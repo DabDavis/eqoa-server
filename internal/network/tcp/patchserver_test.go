@@ -153,10 +153,11 @@ func TestRemoteNamesTrackContent(t *testing.T) {
 	}
 }
 
-// TestDeletePassIsADistinctVersion pins the rule that makes the two-pass dance
-// work: pass 1 and pass 2 are different distributions and MUST carry different
-// Product Versions, or the patcher gates pass 2 out and leaves the file deleted
-// — strictly worse than never running the dance.
+// TestDeletePassIsADistinctVersion pins that pass 1 and pass 2 of the dance
+// carry different Product Versions. They were thought to have to, or the
+// patcher would gate pass 2 out; the decomp shows the patcher never reads the
+// number (bumpProductVersion), so this now only keeps each served set
+// distinct in the logs.
 func TestDeletePassIsADistinctVersion(t *testing.T) {
 	inScratchPatches(t)
 	cfg := &config.Config{}
@@ -223,6 +224,18 @@ func TestManifestListsLoaderFiles(t *testing.T) {
 			strings.Contains(line, "Product Version") {
 			t.Log(strings.TrimSpace(line))
 		}
+	}
+}
+
+// TestManifestUsesCRC pins UseCRC="True" on the distribution. Without it the
+// PS2's patcher compares sizes alone (FileDownloader::FileDiscrepancy), and a
+// change that keeps a file's length never reaches the card.
+func TestManifestUsesCRC(t *testing.T) {
+	s := newTestServer(t)
+	rec := httptest.NewRecorder()
+	s.serveUpdateXML(rec, httptest.NewRequest("GET", "/patch/eqoa/eqoa-frontierslive-update.xml", nil))
+	if !regexp.MustCompile(`<Distribution Name="[^"]*" UseCRC="True"`).MatchString(rec.Body.String()) {
+		t.Fatalf("no UseCRC on the distribution: %.200s", rec.Body.String())
 	}
 }
 

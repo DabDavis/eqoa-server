@@ -397,12 +397,17 @@ const versionFloor = 1100
 
 // bumpProductVersion keeps <Product Version="N"> in step with the content.
 //
-// The Verant patcher gates the WHOLE distribution on this number: if the client
-// has already applied version N it fetches the manifest and then downloads
-// nothing, no matter how the per-file CRCs or remote names change. Editing a
-// payload without bumping it means the change never reaches the memory card,
-// and the only symptom is silence — the manifest GET appears in the log with no
-// file GETs after it.
+// CORRECTED 2026-10-16, from the decomp of SETUP's patcher: the patcher never
+// reads <Product Version>. PatcherAPI_Impl::ContinueInitialization reads
+// Version off the <VerantPatcher> element, nothing calls GetVersion, and the
+// only other Version read is a <Changes>'s, which orders the release notes;
+// nothing is kept on the card to compare a number against. The comments below
+// were written believing the patcher "gates the WHOLE distribution on this
+// number". What actually made a changed file silent — the manifest GET with no
+// file GET after it — is that the patcher judged each file by its SIZE, since
+// this server's <Distribution> did not say UseCRC (serveUpdateXML now does).
+// The number is still kept monotonic: it is harmless, and it marks each served
+// set in the logs. claude-notes/go-client-patcher-20261016.md.
 //
 // The version must also be MONOTONIC, so it is persisted alongside a
 // fingerprint of the served set rather than derived from a hash.
@@ -1233,9 +1238,8 @@ func (s *PatchServer) serveUpdateXML(w http.ResponseWriter, r *http.Request) {
 			"reporting pass %d (%s) without sequencing it",
 			host, pass+1, deleteOrNone(deleteName))
 	}
-	// Each pass carries its own Product Version: two passes sharing a number
-	// means the second is gated out and the console is left with the file
-	// deleted and never restored.
+	// Each pass carries its own Product Version. The patcher does not read it
+	// (see bumpProductVersion); it tells the passes apart in the logs.
 	version := s.productVersion + pass
 
 	// Build File entries from patch files
@@ -1262,9 +1266,18 @@ func (s *PatchServer) serveUpdateXML(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// UseCRC="True", as Sandstorm's manifest has it. Without it the PS2's
+	// patcher judges each file by its SIZE alone
+	// (FileDownloader::FileDiscrepancy, decomp/modules/setup/src/
+	// filedownloader.cpp), so a change that keeps a file's length never
+	// reaches the card — the "manifest fetched, no file GET" this server's
+	// Delete dance and padded eqahosts.txt were built around. With it, every
+	// file is judged by the CRC of what the card holds. A file that SHRINKS
+	// still keeps the old tail on a real card (the write does not truncate),
+	// so it still needs a Delete pass. claude-notes/go-client-patcher-20261016.md.
 	xml := `<VerantPatcher Version="1">` +
 		`<Product Version="` + itoa(version) + `">` +
-		`<Distribution Name="Spire" >` + fileEntries + `</Distribution>` +
+		`<Distribution Name="Spire" UseCRC="True" >` + fileEntries + `</Distribution>` +
 		`<Changes Server="` + serverIP + `" Port="` + itoa(s.cfg.Server.PatchPort) +
 		`" Version="` + itoa(version) + `" RemotePath="patch/eqoa/Changes.txt" CRC="` + uitoa(s.changesCRC) + `"></Changes>` +
 		`</Product>` +

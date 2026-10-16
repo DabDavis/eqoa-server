@@ -189,6 +189,13 @@ refused (it makes the patcher DNAS-encrypt Sony's module onto the card); the six
 not remove it from a card** — the patcher only acts on names the manifest carries, so
 `serve/.delete` is how space is reclaimed. See [patches/README.md](patches/README.md).
 
+**The `<Distribution>` says `UseCRC="True"`, as Sandstorm's does** (2026-10-16). Without
+it the PS2's patcher judges a file by its SIZE alone, and a same-length change never
+reaches a card. That was the silent "manifest GET, no file GET". The decomp of SETUP's
+patcher shows `<Product Version>` is never read, so the version-bump comments in
+`patchserver.go` are corrected in place. A file that SHRINKS still needs the Delete dance,
+because the card keeps the old tail. See `claude-notes/go-client-patcher-20261016.md`.
+
 ### There is a SECOND manifest, and this server does not own it
 
 `ATAD.IRX`, `HDD.IRX`, `PFS.IRX`, `EQPREP.IRX`, `EQSCENE.BIN` and `SD` are **not

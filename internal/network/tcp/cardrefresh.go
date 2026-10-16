@@ -15,11 +15,18 @@ import (
 // Replacing a file the patcher has already written to the memory card takes two
 // passes — see bumpProductVersion for the measurement. That was driven by hand
 // with EQOA_PATCH_DELETE, and by hand it has a hole that no amount of care
-// closes: the patcher gates the whole distribution on <Product Version>, and it
-// never replays a version it skipped past. A console whose FIRST contact
-// happens after pass 2 was published therefore never sees the Delete at all,
-// and keeps its stale copy forever. The operator's log looks identical either
-// way — a manifest GET with no file GET after it.
+// closes: a console whose FIRST contact happens after pass 2 was published
+// never sees the Delete at all, and keeps its stale copy forever. The
+// operator's log looks identical either way — a manifest GET with no file GET
+// after it.
+//
+// CORRECTED 2026-10-16, from the decomp of SETUP's patcher: this was put down
+// to the patcher gating the distribution on <Product Version>, which it never
+// reads. The cause is the size rule below — without UseCRC the patcher judges a
+// file by its length alone. The manifest now says UseCRC="True"
+// (serveUpdateXML), so a same-size change is fetched without a Delete; the
+// dance is still what replaces a file that SHRANK, whose old tail the card
+// keeps. claude-notes/go-client-patcher-20261016.md.
 //
 // So the dance is sequenced here per requester instead of globally in time: a
 // console that has not yet been served the Delete for a managed file's current

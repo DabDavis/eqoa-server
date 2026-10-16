@@ -552,6 +552,13 @@ func (s *Session) ResetTimeout() {
 	}
 }
 
+// LastActivity is when the client last sent a real packet (UpdateActivity).
+func (s *Session) LastActivity() time.Time {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.lastActivity
+}
+
 // IsTimedOut returns whether the session has timed out.
 func (s *Session) IsTimedOut() bool {
 	s.mu.RLock()

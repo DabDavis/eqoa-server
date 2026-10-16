@@ -318,11 +318,23 @@ func (m *Manager) ForEach(fn func(*Session) bool) {
 	})
 }
 
+// staleLobbyIdle is how long a same-IP pre-game session must have been silent
+// before a new login reaps it. A login in progress exchanges packets every
+// few hundred milliseconds; one abandoned by an earlier attempt goes quiet.
+const staleLobbyIdle = 10 * time.Second
+
 // RemoveStaleGameSessions flags stale pre-game sessions for termination.
 // Only removes lobby/auth sessions (not in-game) from the same IP to avoid
 // killing concurrent clients (e.g. headless + PS2 from the same machine).
 // In-game cleanup is handled by character-based dedup in World.CreatePlayer.
+//
+// A pre-game session is stale only once it has been silent for
+// staleLobbyIdle: two players behind one address (one household's router, or
+// two clients on one machine) log in at the same moment, and flagging every
+// lobby session from the IP killed whichever login was still in progress —
+// the second client's session creation took out the first's mid-MemoryDump.
 func (m *Manager) RemoveStaleGameSessions(ip string, exceptInstanceID uint32) int {
+	now := time.Now()
 	var count int
 	m.sessions.Range(func(key, value interface{}) bool {
 		k := key.(SessionKey)
@@ -334,7 +346,8 @@ func (m *Manager) RemoveStaleGameSessions(ip string, exceptInstanceID uint32) in
 		if sessIP == ip {
 			// Only terminate pre-game sessions (lobby duplicates).
 			// In-game sessions are cleaned up by character-based dedup in CreatePlayer.
-			if !sess.InGame() && !sess.CharacterInWorld() && !sess.DidServerInitiate() {
+			if !sess.InGame() && !sess.CharacterInWorld() && !sess.DidServerInitiate() &&
+				now.Sub(sess.LastActivity()) >= staleLobbyIdle {
 				log.Printf("RemoveStaleGameSessions: flagging stale pre-game session (addr=%s, instance=0x%X)",
 					k.Addr, k.InstanceID)
 				sess.SetPendingTermination(true)

@@ -370,3 +370,125 @@ func TestMerchantSellRefusesWornAndMissing(t *testing.T) {
 		t.Error("a refused sale removed the item")
 	}
 }
+
+// --- bank ---
+
+func TestBankOpens(t *testing.T) {
+	f := newShopFixture(t)
+	f.send(protocol.OpcodeBankUI, func(w *buffer.Writer) { w.WriteUint32(shopBankerID) })
+	msgs := f.sent()
+	mustOps(t, msgs, protocol.OpcodeBankUI)
+	if len(msgs[0]) != 2 {
+		t.Errorf("0x124D carries % X; the dispatcher reads nothing", msgs[0])
+	}
+	f.send(protocol.OpcodeBankUI, func(w *buffer.Writer) { w.WriteUint32(shopMerchantID) })
+	mustOps(t, f.sent(), protocol.OpcodeCancelPending)
+}
+
+// A whole record into the bank: 0x003C off the inventory (its index, sound
+// 0, the count), 0x1251 the record onto the bank; the row changes location
+// and keeps its condition. Out again: 0x1250 then 0x003B.
+func TestBankItemRoundTrip(t *testing.T) {
+	f := newShopFixture(t)
+	f.own(f.bait, 3, 100, 0)
+	f.own(f.sword, 1, 40, 0)
+	f.own(f.bait, 5, 100, 1) // the bank already holds bait
+	f.loadLists()
+
+	bankItem := func(fromBank byte, key uint32, n int64) [][]byte {
+		f.send(protocol.OpcodeBankItem, func(w *buffer.Writer) {
+			w.WriteUint32(shopBankerID)
+			w.WriteByte(fromBank)
+			w.WriteUint32(key)
+			w.Write7BitEncodedInt64(n)
+		})
+		return f.sent()
+	}
+
+	// The sword (inventory key 1) into the bank: a new bank record, key 1.
+	msgs := bankItem(0, 1, 1)
+	mustOps(t, msgs, protocol.OpcodeRemoveInvItem, protocol.OpcodeAddBankItem)
+	if want := []byte{0x3C, 0x00, 0x01, 0x00, 0x02}; !bytes.Equal(msgs[0], want) {
+		t.Errorf("0x003C % X, want % X", msgs[0], want)
+	}
+	// The record: 1 of it, condition 40 kept, no charges, -1, -1, key 1.
+	if want := []byte{0x51, 0x12, 0x02, 0x50, 0x00, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00}; !bytes.HasPrefix(msgs[1], want) {
+		t.Errorf("0x1251 % X\nwant prefix % X", msgs[1][:11], want)
+	}
+
+	// Two of the inventory's three bait (key 0) onto the bank's stack.
+	msgs = bankItem(0, 0, 2)
+	mustOps(t, msgs, protocol.OpcodeRemoveInvItem, protocol.OpcodeAddBankItem)
+	rows := f.rows()
+	stacks := map[int]int{}
+	for _, r := range rows {
+		stacks[r.Location*1000+r.Pattern.PatternID] = r.StackLeft
+	}
+	if stacks[0*1000+f.bait] != 1 || stacks[1*1000+f.bait] != 7 || stacks[1*1000+f.sword] != 1 {
+		t.Errorf("after the deposits: %v", stacks)
+	}
+
+	// The sword back out (bank key 1, now at bank index 1): 0x1250 {1, 1}, 0x003B.
+	msgs = bankItem(1, 1, 1)
+	mustOps(t, msgs, protocol.OpcodeRemoveBankItem, protocol.OpcodeAddInvItem)
+	if want := []byte{0x50, 0x12, 0x01, 0x02}; !bytes.Equal(msgs[0], want) {
+		t.Errorf("0x1250 % X, want % X", msgs[0], want)
+	}
+	if l := sessionInvList(f.sess); l.index(2) != 1 { // the inventory's counter was 2
+		t.Errorf("the sword came back under key 2 at index 1: got index %d", l.index(2))
+	}
+	for _, r := range f.rows() {
+		if r.Pattern.PatternID == f.sword && (r.Location != 0 || r.RemainHP != 40) {
+			t.Errorf("the sword is back at location %d with condition %d", r.Location, r.RemainHP)
+		}
+	}
+}
+
+func TestBankItemRefusals(t *testing.T) {
+	f := newShopFixture(t)
+	id := f.own(f.sword, 1, 100, 0)
+	if err := f.inv.SetEquipLoc(f.charSID, id, 14); err != nil {
+		t.Fatal(err)
+	}
+	f.loadLists()
+	for _, c := range []struct {
+		from byte
+		key  uint32
+		n    int64
+	}{{0, 0, 1}, {0, 7, 1}, {1, 0, 1}, {0, 0, 2}} { // worn; no key; empty bank; too many
+		f.send(protocol.OpcodeBankItem, func(w *buffer.Writer) {
+			w.WriteUint32(shopBankerID)
+			w.WriteByte(c.from)
+			w.WriteUint32(c.key)
+			w.Write7BitEncodedInt64(c.n)
+		})
+		mustOps(t, f.sent(), protocol.OpcodeCancelPending)
+	}
+}
+
+func TestBankTunar(t *testing.T) {
+	f := newShopFixture(t)
+	f.player.Tunar, f.player.BankTunar = 562, 0
+	move := func(dir byte, n int64) [][]byte {
+		f.send(protocol.OpcodeDepositBankTunar, func(w *buffer.Writer) {
+			w.WriteUint32(shopBankerID)
+			w.WriteByte(dir)
+			w.Write7BitEncodedInt64(n)
+		})
+		return f.sent()
+	}
+	msgs := move(0, 500)
+	mustOps(t, msgs, protocol.OpcodePlayerTunar, protocol.OpcodeConfirmBankTunar)
+	if want := []byte{0x53, 0x12, 0xE8, 0x07}; !bytes.Equal(msgs[1], want) { // zz 500
+		t.Errorf("0x1253 % X, want % X", msgs[1], want)
+	}
+	if c, b := f.storedTunar(); c != 62 || b != 500 {
+		t.Errorf("stored %d / %d, want 62 / 500", c, b)
+	}
+	mustOps(t, move(1, 501), protocol.OpcodeCancelPending) // more than is banked
+	mustOps(t, move(0, 63), protocol.OpcodeCancelPending)  // more than is carried
+	mustOps(t, move(1, 500), protocol.OpcodePlayerTunar, protocol.OpcodeConfirmBankTunar)
+	if f.player.Tunar != 562 || f.player.BankTunar != 0 {
+		t.Errorf("after the round trip %d / %d", f.player.Tunar, f.player.BankTunar)
+	}
+}

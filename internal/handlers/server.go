@@ -25,14 +25,17 @@ type ServerHandler struct {
 	servers []ServerInfo
 }
 
-// NewServerHandler creates a new server handler with default servers.
-// Format matches eqoa.live which sends 6 identical "Marr's Fist" servers
+// NewServerHandler creates a new server handler with the default server list:
+// one shard. eqoa.live sends six identical "Marr's Fist" entries and Sandstorm
+// four, behind a RAW count byte that CLIENT reads as zigzag (VIShardInfo::Read,
+// 0x00BFC208: ReadSigned), so the byte 2 this server used to send with two
+// entries reached a PS2 as ONE. One entry with a zigzag count is the same byte
+// and the same first entry, without the second one a PS2 never read.
 func NewServerHandler(serverIP string) *ServerHandler {
 	ip := net.ParseIP(serverIP)
 	return &ServerHandler{
 		servers: []ServerInfo{
 			{Name: "Marr's Fist", Recommended: 1, EndpointID: 0xB991, Port: 10070, IP: ip, Language: 0},
-			{Name: "Marr's Fist", Recommended: 0, EndpointID: 0xB991, Port: 10070, IP: ip, Language: 0},
 		},
 	}
 }
@@ -54,8 +57,10 @@ func (h *ServerHandler) SendServerList(sess *session.Session) {
 	// Write opcode in data (C# reference format)
 	writer.WriteUint16(uint16(protocol.OpcodeGameServers))
 
-	// Write server count as raw byte (from eqoa.live packet capture format)
-	writer.WriteByte(byte(len(h.servers)))
+	// The count is ZIGZAG: CLIENT's VIShardInfo::Read takes it with
+	// ReadSigned (VIMemStreamArray.h). A raw byte N reads as N/2 entries, and
+	// one entry as -1, so nothing at all.
+	writer.Write7BitEncodedInt64(int64(len(h.servers)))
 
 	for _, srv := range h.servers {
 		// Server name: WriteString(Encoding.Unicode, name)

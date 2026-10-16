@@ -46,15 +46,17 @@ func (h *FactionHandler) HandleLootMessages(sess *session.Session, msg *protocol
 	return nil
 }
 
-// HandleClientFaction handles a faction page request (0x0AC4).
-// Wire format in: byte(0x66) + zigzag(pageID) + byte(pageIndex)
-// Wire format out: byte(0x77) + zigzag(pageID) + byte(pageIndex) + byte(0x44) +
+// HandleClientFaction answers a faction page request, 0x0AC4 (func_00BEA6B8
+// [A]): a u8 0x66, a zigzag token (one more per opening of the window), a
+// zigzag page. The client asks for page 0, then the next on each answer, and
+// stops when page+1 reaches the total (claude-notes/go-client-egress-pass-
+// 20261016/senders.md). So EVERY request is answered — a page with nothing on
+// it, or past the end, with a count of 0 — or the client's paging stops there.
+// The answer, 0x07E2: a u8 0x77, the token, the page, the total pages and the
+// count, all zigzag, then per faction a wide name and a zigzag standing.
 //
-//	zigzag(count) + [int32(nameLen) + utf16(name) + zigzag(standing)] × count
-//
-// pageID is a session-specific counter the client increments per request.
-// pageIndex identifies which faction page (0, 2, 4, ... 66 for 34 pages).
-// Server echoes back the client's pageID and pageIndex.
+// The page was read and echoed as one raw byte, which is its zigzag only
+// below 64; the table is still keyed by those bytes (0, 2, ... 66).
 func (h *FactionHandler) HandleClientFaction(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 3 {
@@ -62,56 +64,56 @@ func (h *FactionHandler) HandleClientFaction(sess *session.Session, msg *protoco
 	}
 
 	reader := buffer.NewReader(data)
-
-	// Read request: byte(0x66) + zigzag(pageID) + byte(pageIndex)
 	marker, _ := reader.ReadByte()
 	if marker != 0x66 {
 		log.Printf("ClientFaction: unexpected marker 0x%02X", marker)
 		return nil
 	}
-
-	pageID, _ := reader.Read7BitEncodedInt64()
-	pageIndex, _ := reader.ReadByte()
-
-	log.Printf("ClientFaction from %s: pageID=%d pageIndex=%d", sess.RemoteAddr(), pageID, pageIndex)
-
-	// Look up by pageIndex (not pageID, which is session-specific)
-	page, ok := factionPages[int(pageIndex)]
-	if !ok || len(page) == 0 {
-		return nil // No factions on this page — don't respond (matches eqoa.live)
+	token, err := reader.Read7BitEncodedInt64()
+	if err != nil {
+		return nil
+	}
+	page, err := reader.Read7BitEncodedInt64()
+	if err != nil {
+		return nil
 	}
 
-	// Build response: opcode(2) + byte(0x77) + zigzag(pageID) + byte(pageIndex) + byte(0x44) + zigzag(count) + entries
+	log.Printf("ClientFaction from %s: token=%d page=%d", sess.RemoteAddr(), token, page)
+
 	resp := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeFactionPage)
-	buf := make([]byte, 8192)
+	resp.SetData(factionPagePayload(token, page))
+	sess.Queue().AddWithSequence(resp)
+	return nil
+}
+
+// factionPageCount is how many pages the table holds.
+func factionPageCount() int64 {
+	return int64(len(factionPages))
+}
+
+// factionPagePayload is page `page` of the table, as 0x07E2.
+func factionPagePayload(token, page int64) []byte {
+	var entries []FactionEntry
+	if page >= 0 && page < factionPageCount() {
+		entries = factionPages[int(page)*2]
+	}
+	size := 2 + 1 + 3*10 + 10
+	for _, f := range entries {
+		size += 4 + 2*len([]rune(f.Name)) + 10
+	}
+	buf := make([]byte, size)
 	w := buffer.NewWriter(buf)
-
-	// Opcode
 	w.WriteUint16(uint16(protocol.OpcodeFactionPage))
-
-	// Response header — echo back client's pageID and pageIndex
 	w.WriteByte(0x77)
-	w.Write7BitEncodedInt64(pageID)
-	w.WriteByte(pageIndex)
-	w.WriteByte(0x44) // constant flag
-
-	// Count of factions in this page
-	w.Write7BitEncodedInt64(int64(len(page)))
-
-	// Faction entries
-	for _, f := range page {
-		// int32 name length (chars, not bytes)
-		nameRunes := []rune(f.Name)
-		w.WriteInt32(int32(len(nameRunes)))
-		// UTF-16LE name
-		w.WriteStringUnicodeRaw(f.Name)
-		// Standing as zigzag
+	w.Write7BitEncodedInt64(token)
+	w.Write7BitEncodedInt64(page)
+	w.Write7BitEncodedInt64(factionPageCount())
+	w.Write7BitEncodedInt64(int64(len(entries)))
+	for _, f := range entries {
+		writeWideString(w, f.Name, 128)
 		w.Write7BitEncodedInt64(int64(f.Standing))
 	}
-
-	resp.SetData(buf[:w.Position()])
-	sess.Queue().Add(resp)
-	return nil
+	return buf[:w.Position()]
 }
 
 // FactionEntry represents a single faction with its default standing.
@@ -120,9 +122,8 @@ type FactionEntry struct {
 	Standing int
 }
 
-// factionPages maps pageIndex → list of faction entries.
-// PageIndex goes 0, 2, 4, ... 66 (34 pages, 10 factions each except last).
-// Client sends pageID (session-specific counter) + pageIndex; server echoes both back.
+// factionPages maps a page's zigzag code (2 × the page: 0, 2, 4, ... 66 for
+// 34 pages, 10 factions each but the last) to its factions.
 // Data reverse-engineered from eqoa.live pcap (2026-02-13). 331 factions total.
 var factionPages = map[int][]FactionEntry{
 	0: {

@@ -30,9 +30,13 @@ func (h *WhoHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeWhoList, h.HandleWhoList)
 }
 
-// HandleWhoList handles the who list request (0x0E01).
-// Client sends: byte temp1 (unused), byte temp2 (filter mode, echoed back)
-// Server responds with 0x0E02 listing all online players except the requester.
+// HandleWhoList handles the who list request (0x0E01), VIClientPart38334::Open
+// (0x00C03038 [A]): a u8 1, then a ZIGZAG token, one more per request. The
+// answer, 0x0E02 (Recv0E02 0x00C03168 [A]), is a u8 1, the same token as a
+// zigzag — a page whose token is not the last request's is dropped — then a
+// zigzag count and the players. The token was read and echoed as one raw
+// byte, which is the zigzag only below 64: from the 64th request on the
+// client dropped every answer.
 func (h *WhoHandler) HandleWhoList(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 2 {
@@ -40,10 +44,13 @@ func (h *WhoHandler) HandleWhoList(sess *session.Session, msg *protocol.Message)
 	}
 
 	reader := buffer.NewReader(data)
-	_, _ = reader.ReadByte()      // temp1 (unused)
-	temp2, _ := reader.ReadByte() // filter/mode — echoed in response
+	_, _ = reader.ReadByte() // 1
+	token, err := reader.Read7BitEncodedInt64()
+	if err != nil {
+		return nil
+	}
 
-	log.Printf("WhoList request from %s (temp2=%d)", sess.RemoteAddr(), temp2)
+	log.Printf("WhoList request from %s (token=%d)", sess.RemoteAddr(), token)
 
 	if h.gameWorld == nil {
 		return nil
@@ -54,25 +61,17 @@ func (h *WhoHandler) HandleWhoList(sess *session.Session, msg *protocol.Message)
 		return nil
 	}
 
-	// Collect all players except sender
-	type playerInfo struct {
-		Race  int
-		Class int
-		Level int
-		Name  string
-		ID    uint32
-	}
-	var players []playerInfo
+	// Every player in the world, the sender included. The row's last word is
+	// the id the requester knows the player by: CLIENT's InviteToGroup takes
+	// the row as a VIInviteRec, whose +0x1C is the id it sends back in 0x0625.
+	// Collected first: IDSeenBy takes the world's lock.
 	var all []*entity.Player
-
 	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
 		all = append(all, p)
 	})
-	// The row's last word is the id the requester knows the player by:
-	// CLIENT's InviteToGroup takes the row as a VIInviteRec, whose +0x1C is
-	// the id it sends back in 0x0625.
+	var players []whoEntry
 	for _, p := range all {
-		players = append(players, playerInfo{
+		players = append(players, whoEntry{
 			Race:  p.Race,
 			Class: p.Class,
 			Level: p.Level,
@@ -83,15 +82,38 @@ func (h *WhoHandler) HandleWhoList(sess *session.Session, msg *protocol.Message)
 
 	count := int64(len(players))
 
-	// Build response: opcode + byte(1) + temp2 + 7BitEncodedInt64(count) + per-player data
-	resp := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeWhoListResponse)
-	writer := buffer.NewWriter(resp.Span())
+	sess.Queue().AddWithSequence(whoListResponse(token, players))
 
+	log.Printf("WhoList: sent %d players to %s", count, sender.Name)
+	return nil
+}
+
+// whoEntry is one line of the who list.
+type whoEntry struct {
+	Race  int
+	Class int
+	Level int
+	Name  string
+	ID    uint32
+}
+
+// whoListResponse is 0x0E02: a u8 1, the request's token and the count as
+// zigzags, then per player a u8 race, class and level, the name (u32 length
+// and bytes, ReadString's) and a u32 the client does not use. It is built in
+// a buffer of its own size: the message's own span is 2,046 bytes, which a
+// list of a hundred-odd players overflows (Sandstorm's runs to 4 KB and comes
+// fragmented, which AddWithSequence does).
+func whoListResponse(token int64, players []whoEntry) *protocol.Message {
+	size := 2 + 1 + 10 + 10
+	for _, p := range players {
+		size += 3 + 4 + len(p.Name) + 4
+	}
+	buf := make([]byte, size)
+	writer := buffer.NewWriter(buf)
 	writer.WriteUint16(uint16(protocol.OpcodeWhoListResponse))
-	writer.WriteByte(1)     // constant
-	writer.WriteByte(temp2) // echo filter mode
-	writer.Write7BitEncodedInt64(count)
-
+	writer.WriteByte(1)
+	writer.Write7BitEncodedInt64(token)
+	writer.Write7BitEncodedInt64(int64(len(players)))
 	for _, p := range players {
 		writer.WriteByte(byte(p.Race))
 		writer.WriteByte(byte(p.Class))
@@ -99,10 +121,7 @@ func (h *WhoHandler) HandleWhoList(sess *session.Session, msg *protocol.Message)
 		writer.WriteStringUTF8(p.Name)
 		writer.WriteUint32(p.ID)
 	}
-
-	resp.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(resp)
-
-	log.Printf("WhoList: sent %d players to %s", count, sender.Name)
-	return nil
+	resp := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeWhoListResponse)
+	resp.SetData(buf[:writer.Position()])
+	return resp
 }

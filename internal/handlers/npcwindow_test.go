@@ -492,3 +492,59 @@ func TestBankTunar(t *testing.T) {
 		t.Errorf("after the round trip %d / %d", f.player.Tunar, f.player.BankTunar)
 	}
 }
+
+// --- blacksmith ---
+
+func TestBlacksmith(t *testing.T) {
+	f := newShopFixture(t)
+	f.own(f.bait, 1, 100, 0)
+	id := f.own(f.sword, 1, 40, 0) // 40 of 100: costs (int)(100 × 0.6) = 60
+	if err := f.inv.SetEquipLoc(f.charSID, id, 14); err != nil {
+		t.Fatal(err) // worn gear is what gets repaired
+	}
+	f.loadLists()
+	f.player.Tunar = 562
+
+	f.send(protocol.OpcodeBlackSmithMenu, func(w *buffer.Writer) { w.WriteUint32(shopSmithID) })
+	msgs := f.sent()
+	mustOps(t, msgs, protocol.OpcodeBlackSmithMenu)
+	if want := []byte{0x61, 0x00, 0xBB, 0x0B, 0x10, 0x00}; !bytes.Equal(msgs[0], want) {
+		t.Errorf("0x0061 % X, want % X", msgs[0], want)
+	}
+
+	repair := func(key uint32) [][]byte {
+		f.send(protocol.OpcodeRequestRepair, func(w *buffer.Writer) {
+			w.WriteUint32(key)
+			w.WriteUint32(shopSmithID)
+		})
+		return f.sent()
+	}
+	msgs = repair(1)
+	mustOps(t, msgs, protocol.OpcodeAdjustItemHP, protocol.OpcodePlayerTunar)
+	if want := []byte{0x60, 0x00, 0x01, 0x00, 0x00, 0x00, 0xC8, 0x01}; !bytes.Equal(msgs[0], want) { // key 1, zz 100
+		t.Errorf("0x0060 % X, want % X", msgs[0], want)
+	}
+	if f.player.Tunar != 502 {
+		t.Errorf("purse %d after a 60-tunar repair from 562", f.player.Tunar)
+	}
+	if got, _ := f.storedTunar(); got != 502 {
+		t.Errorf("stored purse %d", got)
+	}
+	// Mended: nothing more to do, and the bait (new) needs nothing either.
+	mustOps(t, repair(1))
+	mustOps(t, repair(0))
+
+	// Not a blacksmith: no window.
+	f.send(protocol.OpcodeBlackSmithMenu, func(w *buffer.Writer) { w.WriteUint32(shopMerchantID) })
+	mustOps(t, f.sent())
+}
+
+func TestRepairCostIsTheClients(t *testing.T) {
+	for _, c := range []struct{ value, cur, max, want int }{
+		{100, 40, 100, 60}, {100, 100, 100, 0}, {100, 0, 100, 100}, {77, 1, 3, 51}, {50, 5, 0, 0},
+	} {
+		if got := repairCost(c.value, c.cur, c.max); got != c.want {
+			t.Errorf("repairCost(%d, %d/%d) = %d, want %d", c.value, c.cur, c.max, got, c.want)
+		}
+	}
+}

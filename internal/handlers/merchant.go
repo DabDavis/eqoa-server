@@ -75,6 +75,9 @@ func (h *NPCWindowHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeBankUI, h.HandleBankOpen)
 	r.Register(protocol.OpcodeBankItem, h.HandleBankItem)
 	r.Register(protocol.OpcodeDepositBankTunar, h.HandleBankTunar)
+	r.Register(protocol.OpcodeBlackSmithMenu, h.HandleBlacksmithOpen)
+	r.Register(protocol.OpcodeRequestRepair, h.HandleRepair)
+	r.Register(protocol.OpcodeCloseBlacksmithMenu, h.HandleBlacksmithClose)
 }
 
 // windowNPC resolves the NPC a window request names: it must be an NPC with

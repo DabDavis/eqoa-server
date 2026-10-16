@@ -1267,6 +1267,18 @@ func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player, spells []datab
 	}
 }
 
+// dumpQuickSlot is a dumped item's fifth field, its QUICK SLOT (VINetItem
+// +0x10), not where the database keeps it: Sandstorm's MemoryDump in
+// ps2_sandstorm.pcap sends -1 for all 31 inventory items and 0 for all 39 bank
+// items. Writing charinventory.location here put every inventory item on
+// quick slot 0.
+func dumpQuickSlot(e *database.CharInventoryEntry) int64 {
+	if e.Location == 1 {
+		return 0
+	}
+	return -1
+}
+
 // writeSingleItem serializes one DumpItem entry to the MemoryDump wire format.
 // Wire format: 29 zigzag fields (with key as uint32) + name + desc + stat pairs.
 // Mirrors the client's parseSingleItem() exactly.
@@ -1287,7 +1299,7 @@ func writeSingleItem(w *buffer.Writer, e *database.CharInventoryEntry, key int) 
 	w.Write7BitEncodedInt64(int64(e.RemainHP))
 	w.Write7BitEncodedInt64(int64(e.Charges))
 	w.Write7BitEncodedInt64(int64(e.EquipLoc))
-	w.Write7BitEncodedInt64(int64(e.Location))
+	w.Write7BitEncodedInt64(dumpQuickSlot(e))
 	w.WriteUint32(uint32(key)) // key = container position (see doc comment)
 	writeItemPattern(w, e)
 }

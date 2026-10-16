@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/entity"
@@ -14,15 +15,44 @@ import (
 	"github.com/eqoa/server/internal/session"
 )
 
+// Chat, as a PS2 sends it and expects it back.
+//
+// The client keeps a chat MODE, VIClient+0x382E4: GroupChanged (0x00BD9B48 [V])
+// stores it, sends it as 0x000E and prints "Chat Mode: <mode>." (words
+// 595-599). Plain typed text goes out in that mode: 0x000B in say, whisper and
+// group, 0x0C01 sub 2 in shout, 0x0578 sub 12 in guild. A /command sets the
+// mode for one line and restores it (/g: 0x000E{2}, 0x000B, 0x000E{kept}).
+// A tell has no mode: /t and /tell send the WHOLE typed line as 0x000B, and /r
+// sends "/t <the 0x07A3 name> <text>" the same way (the chat-line parser
+// func_00BCFE78 [A]; claude-notes/go-client-egress-pass-20261016/senders.md
+// section 3). So the server routes 0x000B by the line first, then by the mode
+// the sender's last 0x000E named.
+const (
+	ChatModeSay     byte = 0
+	ChatModeWhisper byte = 1
+	ChatModeGroup   byte = 2
+	ChatModeShout   byte = 3
+	ChatModeGuild   byte = 4
+)
+
+// sayRadius is how far a say carries (the C# reference's SayChat.Radius).
+const sayRadius = 200.0
+
+// Tell colour, 0x0A7B: no capture holds a tell, so it is a choice [P].
+const tellR, tellG, tellB = 0xFF, 0x7F, 0xFF
+
 // ChatHandler handles chat-related messages.
 type ChatHandler struct {
 	sessionManager *session.Manager
 	gameWorld      *entity.World
+
+	mu    sync.Mutex
+	modes map[entity.EntityID]byte // each player's last 0x000E
 }
 
 // NewChatHandler creates a new chat handler.
 func NewChatHandler(sessionMgr *session.Manager) *ChatHandler {
-	return &ChatHandler{sessionManager: sessionMgr}
+	return &ChatHandler{sessionManager: sessionMgr, modes: make(map[entity.EntityID]byte)}
 }
 
 // SetGameWorld sets the game world reference (called after world init).
@@ -37,36 +67,61 @@ func (h *ChatHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeChangeChatMode, h.HandleChangeChatMode)
 }
 
-// HandleSayChat handles local say messages (broadcast to players within 200 units).
-// C# reference: ChatMessage.ProcessClientChat → SayChat.ProcessSay
-// Wire format in:  int32 charCount + UTF-16LE chars
-// Wire format out: uint16 opcode + WriteStringUnicode(message) via OpcodeClientMessage
-func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message) error {
+// chatMode is the mode p's last 0x000E named, say before any.
+func (h *ChatHandler) chatMode(p *entity.Player) byte {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return h.modes[p.ServerID]
+}
+
+// HandleChangeChatMode is 0x000E: GroupChanged's SendOpcodeByte(14, mode).
+// Every world entry sends the kept mode again, so it is kept per character.
+func (h *ChatHandler) HandleChangeChatMode(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
-	if len(data) < 4 {
+	if len(data) < 1 || h.gameWorld == nil {
 		return nil
 	}
+	mode := data[0]
+	player := h.gameWorld.SessionPlayer(sess)
+	if player == nil {
+		return nil
+	}
+	h.mu.Lock()
+	h.modes[player.ServerID] = mode
+	h.mu.Unlock()
+	log.Printf("ChangeChatMode: %s mode=%d", player.Name, mode)
+	return nil
+}
 
+// readChatLine reads 0x000B: func_00BE6188(11, text, m_target) [A], a wide
+// string (u32 count of UTF-16 units, then the units) and the sender's target,
+// a raw u32 (0xFFFFFFFF for none; absent from an old client). CLIENT sends no
+// line of 128 units or more; anything past 1023 is refused here.
+func readChatLine(data []byte) (text string, target uint32, ok bool) {
 	reader := buffer.NewReader(data)
-
-	// C# ProcessClientChat: int32 messageLength at offset 0, then Unicode string
-	charCount, _ := reader.ReadInt32()
-	if charCount <= 0 {
-		return nil
+	n, err := reader.ReadInt32()
+	if err != nil || n <= 0 || n > 1023 {
+		return "", 0, false
 	}
-	message, err := reader.ReadStringUnicode(int(charCount))
+	text, err = reader.ReadStringUnicode(int(n))
 	if err != nil {
-		log.Printf("SayChat: failed to read unicode message: %v", err)
+		return "", 0, false
+	}
+	target = 0xFFFFFFFF
+	if t, err := reader.ReadUint32(); err == nil {
+		target = t
+	}
+	return text, target, true
+}
+
+// HandleSayChat is 0x000B: a typed line. Server commands first (/hddsetup and
+// the GM's #), then a tell, then any other /command, then the sender's mode.
+func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message) error {
+	message, target, ok := readChatLine(msg.Data())
+	if !ok || h.gameWorld == nil {
 		return nil
 	}
 
-	log.Printf("SayChat from %s: %s", sess.RemoteAddr(), message)
-
-	if h.gameWorld == nil {
-		return nil
-	}
-
-	// Get sender player
 	player := h.gameWorld.SessionPlayer(sess)
 	if player == nil {
 		log.Printf("SayChat: sender has no player entity, playerObjectID=%d", sess.PlayerObjectID())
@@ -89,125 +144,261 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
-	// Format: "CharName: message" (matching C# SayChat.ProcessSay)
-	chatMessage := fmt.Sprintf("%s: %s", player.Name, message)
+	if name, body, isTell := parseTell(message); isTell {
+		h.tell(sess, player, name, body)
+		return nil
+	}
 
-	// Build the outgoing message
-	outMsg := buildClientMessage(chatMessage)
-
-	// Query entities within 200 units (matching C# SayChat.Radius = 200.0f)
-	nearby := h.gameWorld.SpatialIndex.QueryRadius(player.X, player.Z, 200.0)
-
-	// Send to each nearby player session
-	sentCount := 0
-	for _, nearbyID := range nearby {
-		nearSess := h.gameWorld.FindSessionByEntityID(nearbyID)
-		if nearSess != nil {
-			nearSess.Queue().AddWithSequence(outMsg)
-			sentCount++
+	// Any other /command reaches the server only from a client that forwards
+	// what it does not know (Sandstorm's S2 does): answer the sender alone,
+	// with retail's word 826, instead of saying it to the room.
+	if strings.HasPrefix(message, "/") {
+		word := message
+		if i := strings.IndexByte(word, ' '); i >= 0 {
+			word = word[:i]
 		}
+		SendErrorMessage(sess, fmt.Sprintf("Unrecognized command %q.", word))
+		return nil
 	}
 
-	// Ensure sender always gets their own message (they may not be in spatial index yet)
-	if !h.entityIDInList(player.ServerID, nearby) {
-		sess.Queue().AddWithSequence(outMsg)
-		sentCount++
+	switch h.chatMode(player) {
+	case ChatModeGroup:
+		h.groupChat(sess, player, message)
+	case ChatModeGuild:
+		RouteGuildChat(h.gameWorld, sess, player, message)
+	case ChatModeShout:
+		h.shout(sess, player, message)
+	case ChatModeWhisper:
+		h.whisper(sess, player, target, message)
+	default:
+		h.say(sess, player, message)
 	}
-
-	log.Printf("SayChat: sent '%s' to %d players", chatMessage, sentCount)
 	return nil
 }
 
-// HandleShoutChat handles zone-wide shout messages (broadcast to all in-world players).
-// C# reference: ShoutChat.ProcessShout
-// Wire format in:  1 byte skip + int32 charCount + UTF-16LE chars
-// Wire format out: uint16 opcode + WriteStringUnicode(message) + 4 color bytes via OpcodeColoredChat
+// HandleShoutChat is 0x0C01, VIClientPart2EFCC's message: sub 2 is a shout
+// (func_00CBBE10 [A]: u8 2, a wide string); sub 1 is func_00CBBEE0's u8 (a
+// switch the client's menu sends, probably whether it hears shouts — its sense
+// is not pinned, so it is only logged).
 func (h *ChatHandler) HandleShoutChat(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
-	if len(data) < 5 {
+	if len(data) < 1 || h.gameWorld == nil {
 		return nil
 	}
-
-	reader := buffer.NewReader(data)
-
-	// C# ShoutChat.ProcessShout(Session, Message): skip 1 byte, then int32 messageLength at offset 1
-	_, _ = reader.ReadByte() // chat mode flag byte
-	charCount, _ := reader.ReadInt32()
-	if charCount <= 0 {
+	if data[0] != 2 {
+		log.Printf("Shout: sub %d from %s: % X", data[0], sess.RemoteAddr(), data)
 		return nil
 	}
-	message, err := reader.ReadStringUnicode(int(charCount))
-	if err != nil {
-		log.Printf("ShoutChat: failed to read unicode message: %v", err)
+	message, _, ok := readChatLine(data[1:])
+	if !ok {
 		return nil
 	}
-
-	log.Printf("ShoutChat from %s: %s", sess.RemoteAddr(), message)
-
-	if h.gameWorld == nil {
-		return nil
-	}
-
-	// Get sender player
 	player := h.gameWorld.SessionPlayer(sess)
 	if player == nil {
 		log.Printf("ShoutChat: sender has no player entity, playerObjectID=%d", sess.PlayerObjectID())
 		return nil
 	}
+	h.shout(sess, player, message)
+	return nil
+}
 
-	// Format: "CharName shouts: message" (matching C# ShoutChat.ProcessShout)
-	chatMessage := fmt.Sprintf("%s shouts: %s", player.Name, message)
+// playerSessions maps every in-world player to its session, in one pass:
+// World.FindSessionByEntityID walks every session for every lookup, and
+// calling it inside ForEachPlayer takes the world's read lock twice.
+func playerSessions(gw *entity.World) map[entity.EntityID]*session.Session {
+	out := make(map[entity.EntityID]*session.Session)
+	if gw == nil || gw.SessionManager == nil {
+		return out
+	}
+	gw.SessionManager.ForEach(func(s *session.Session) bool {
+		if !s.CharacterInWorld() {
+			return true
+		}
+		if p := gw.SessionPlayer(s); p != nil {
+			out[p.ServerID] = s
+		}
+		return true
+	})
+	return out
+}
 
-	// Build colored message with green color bytes {0x3F, 0xFF, 0x3F, 0x00}
-	outMsg := buildColoredMessage(chatMessage)
-
-	// Broadcast to all in-world player sessions.
-	sentCount := 0
-	sentToSelf := false
+// say is mode 0: "Name: text", white (0x0A7A, as Sandstorm says NPC lines
+// [C]), to every player within sayRadius in the sender's world.
+func (h *ChatHandler) say(sess *session.Session, player *entity.Player, message string) {
+	line := fmt.Sprintf("%s: %s", player.Name, message)
+	sessions := playerSessions(h.gameWorld)
+	var hear []*session.Session
 	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
-		playerSess := h.gameWorld.FindSessionByEntityID(p.ServerID)
-		if playerSess != nil {
-			playerSess.Queue().AddWithSequence(outMsg)
-			sentCount++
-			if p.ServerID == player.ServerID {
-				sentToSelf = true
+		if p.World != player.World || p.ServerID == player.ServerID {
+			return
+		}
+		dx, dz := float64(p.X-player.X), float64(p.Z-player.Z)
+		if math.Sqrt(dx*dx+dz*dz) <= sayRadius {
+			if s := sessions[p.ServerID]; s != nil {
+				hear = append(hear, s)
 			}
 		}
 	})
-
-	// Ensure sender always gets the message
-	if !sentToSelf {
-		sess.Queue().AddWithSequence(outMsg)
-		sentCount++
+	hear = append(hear, sess)
+	for _, s := range hear {
+		s.Queue().AddWithSequence(buildClientMessage(line))
 	}
-
-	log.Printf("ShoutChat: sent '%s' to %d players", chatMessage, sentCount)
-	return nil
+	log.Printf("SayChat: %q to %d players", line, len(hear))
 }
 
-// HandleChangeChatMode handles chat mode changes.
-func (h *ChatHandler) HandleChangeChatMode(sess *session.Session, msg *protocol.Message) error {
-	data := msg.Data()
-	if len(data) < 1 {
-		return nil
-	}
-
-	reader := buffer.NewReader(data)
-	mode, _ := reader.ReadByte()
-
-	log.Printf("ChangeChatMode from %s: mode=%d", sess.RemoteAddr(), mode)
-
-	return nil
-}
-
-// entityIDInList checks if an entity ID is in a list.
-func (h *ChatHandler) entityIDInList(id entity.EntityID, list []entity.EntityID) bool {
-	for _, e := range list {
-		if e == id {
-			return true
+// shout is mode 3: "Name shouts: text" in (63, 255, 63), 0x0A7B, as Sandstorm
+// sends it [C], to every player in the world.
+func (h *ChatHandler) shout(sess *session.Session, player *entity.Player, message string) {
+	line := fmt.Sprintf("%s shouts: %s", player.Name, message)
+	n := 0
+	self := false
+	for id, s := range playerSessions(h.gameWorld) {
+		s.Queue().AddWithSequence(buildColoredMessage(line))
+		n++
+		if id == player.ServerID {
+			self = true
 		}
 	}
-	return false
+	if !self {
+		sess.Queue().AddWithSequence(buildColoredMessage(line))
+		n++
+	}
+	log.Printf("ShoutChat: %q to %d players", line, n)
+}
+
+// groupChat is mode 2: 0x069E (the dispatcher [A]: a u32 CLIENT does not use,
+// a wide line in (.5, .5, 1)) with the C# reference's "Name tells the group:"
+// to every member, the sender included. Not in a group: word 629.
+func (h *ChatHandler) groupChat(sess *session.Session, player *entity.Player, message string) {
+	members := h.gameWorld.GroupMembers(player)
+	if len(members) == 0 {
+		SendErrorMessage(sess, "You are not in a group.")
+		return
+	}
+	line := fmt.Sprintf("%s tells the group: %s", player.Name, message)
+	sessions := playerSessions(h.gameWorld)
+	for _, m := range members {
+		if s := sessions[m.ServerID]; s != nil {
+			SendGroupChat(s, uint32(player.ServerID), line)
+		}
+	}
+	log.Printf("GroupChat: %q to %d members", line, len(members))
+}
+
+// guildChatLinePayload is 0x0468 sub 5, Recv0468 (0x00BF0D38 [A]): a u32 the
+// client does not use, then a wide line of at most 255 characters, drawn in
+// (.25, 1, .8).
+func guildChatLinePayload(senderID uint32, text string) []byte {
+	return build(protocol.OpcodeGuildInfo, 2+1+4+4+510, func(w *buffer.Writer) {
+		w.WriteByte(5)
+		w.WriteUint32(senderID)
+		writeWideString(w, text, 512)
+	})
+}
+
+// RouteGuildChat is guild chat, from 0x000B in mode 4 or 0x0578 sub 12 (what a
+// PS2 sends for /gu and for typed text in guild mode, func_00BEF1B0 [A]):
+// "Name tells the guild: text" to every online member, the sender included.
+// Not in a guild: an error to the sender alone.
+func RouteGuildChat(gw *entity.World, sess *session.Session, player *entity.Player, message string) {
+	if gw == nil || player == nil {
+		return
+	}
+	if player.GuildID == 0 {
+		SendErrorMessage(sess, "You are not in a guild.")
+		return
+	}
+	line := fmt.Sprintf("%s tells the guild: %s", player.Name, message)
+	payload := guildChatLinePayload(uint32(player.ServerID), line)
+	sessions := playerSessions(gw)
+	var to []*session.Session
+	gw.ForEachPlayer(func(p *entity.Player) {
+		if p.GuildID == player.GuildID {
+			if s := sessions[p.ServerID]; s != nil {
+				to = append(to, s)
+			}
+		}
+	})
+	for _, s := range to {
+		queueReliable(s, protocol.OpcodeGuildInfo, payload)
+	}
+	log.Printf("GuildChat: %q to %d members", line, len(to))
+}
+
+// parseTell splits a /t or /tell line (the command word in any case, as the
+// client's parser lower-cases it) into the name and the text.
+func parseTell(line string) (name, text string, ok bool) {
+	word, rest, _ := strings.Cut(line, " ")
+	switch strings.ToLower(word) {
+	case "/t", "/tell":
+	default:
+		return "", "", false
+	}
+	rest = strings.TrimLeft(rest, " ")
+	name, text, _ = strings.Cut(rest, " ")
+	return name, strings.TrimLeft(text, " "), true
+}
+
+// findPlayerByName is the in-world player named name (case-insensitive).
+func findPlayerByName(gw *entity.World, name string) *entity.Player {
+	var found *entity.Player
+	gw.ForEachPlayer(func(p *entity.Player) {
+		if found == nil && strings.EqualFold(p.Name, name) {
+			found = p
+		}
+	})
+	return found
+}
+
+// tell delivers a tell to the named player only: "Sender tells you, 'text'",
+// with 0x07A3 naming the sender so the recipient's /r answers them
+// (Msg07A3 [A]: ReadString(name, 24) into +0x4F0B8, the only writer of the
+// reply name). The sender sees "You told Name, 'text'"; CLIENT echoes
+// nothing itself. An unknown or offline name is an error to the sender alone.
+// The texts are a choice [P]: no capture holds a tell.
+func (h *ChatHandler) tell(sess *session.Session, from *entity.Player, name, text string) {
+	if name == "" || text == "" {
+		SendErrorMessage(sess, "Tell Failed")
+		return
+	}
+	to := findPlayerByName(h.gameWorld, name)
+	var toSess *session.Session
+	if to != nil {
+		toSess = playerSessions(h.gameWorld)[to.ServerID]
+	}
+	if toSess == nil {
+		SendErrorMessage(sess, fmt.Sprintf("%s is not connected.", name))
+		return
+	}
+	SendReplyName(toSess, from.Name)
+	SendColoredChat(toSess, fmt.Sprintf("%s tells you, '%s'", from.Name, text), tellR, tellG, tellB)
+	SendColoredChat(sess, fmt.Sprintf("You told %s, '%s'", to.Name, text), tellR, tellG, tellB)
+	log.Printf("Tell: %s -> %s", from.Name, to.Name)
+}
+
+// whisper is mode 1, which no window of the client offers (its four modes
+// are say, shout, group and guild): a 0x000B in it goes to the sender's
+// target alone, if that is a player, and never to the room [P].
+func (h *ChatHandler) whisper(sess *session.Session, from *entity.Player, target uint32, text string) {
+	var to *entity.Player
+	if target != 0xFFFFFFFF {
+		if e, ok := h.gameWorld.FindEntityByObjectID(sess, target); ok {
+			to, _ = e.(*entity.Player)
+		}
+	}
+	if to == nil {
+		SendErrorMessage(sess, "You must target a player to whisper.")
+		return
+	}
+	toSess := playerSessions(h.gameWorld)[to.ServerID]
+	if toSess == nil {
+		SendErrorMessage(sess, fmt.Sprintf("%s is not connected.", to.Name))
+		return
+	}
+	SendColoredChat(toSess, fmt.Sprintf("%s whispers, '%s'", from.Name, text), tellR, tellG, tellB)
+	if toSess != sess {
+		SendColoredChat(sess, fmt.Sprintf("You whisper to %s, '%s'", to.Name, text), tellR, tellG, tellB)
+	}
 }
 
 // buildClientMessage builds a 0x0A7A line (clientMessagePayload): white text,
@@ -225,75 +416,6 @@ func buildColoredMessage(message string) *protocol.Message {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeColoredChat)
 	msg.SetData(coloredChatPayload(message, 0x3F, 0xFF, 0x3F))
 	return msg
-}
-
-// ChatType represents the type of chat message.
-type ChatType byte
-
-const (
-	ChatTypeSay     ChatType = 0
-	ChatTypeShout   ChatType = 1
-	ChatTypeGroup   ChatType = 2
-	ChatTypeGuild   ChatType = 3
-	ChatTypeTell    ChatType = 4
-	ChatTypeSystem  ChatType = 5
-	ChatTypeError   ChatType = 6
-	ChatTypeAuction ChatType = 7
-)
-
-// ChatColor represents chat message colors.
-type ChatColor uint32
-
-const (
-	ColorWhite  ChatColor = 0xFFFFFFFF
-	ColorRed    ChatColor = 0xFFFF0000
-	ColorGreen  ChatColor = 0xFF00FF00
-	ColorBlue   ChatColor = 0xFF0000FF
-	ColorYellow ChatColor = 0xFFFFFF00
-	ColorCyan   ChatColor = 0xFF00FFFF
-	ColorPurple ChatColor = 0xFFFF00FF
-	ColorOrange ChatColor = 0xFFFF8000
-)
-
-// SendChatMessage sends a chat message to a session using Unicode encoding.
-func (h *ChatHandler) SendChatMessage(sess *session.Session, message string) {
-	outMsg := buildClientMessage(message)
-	sess.Queue().AddWithSequence(outMsg)
-}
-
-// SendColoredMessage sends a colored chat message using Unicode encoding.
-func (h *ChatHandler) SendColoredMessage(sess *session.Session, message string) {
-	outMsg := buildColoredMessage(message)
-	sess.Queue().AddWithSequence(outMsg)
-}
-
-// SendErrorMessage sends a red error message.
-func (h *ChatHandler) SendErrorMessage(sess *session.Session, message string) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeErrorMessage)
-	writer := buffer.NewWriter(msg.Span())
-
-	writer.WriteUint16(uint16(protocol.OpcodeErrorMessage))
-	writer.WriteStringUnicode(message)
-
-	msg.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(msg)
-}
-
-// SendSystemMessage sends a system message.
-func (h *ChatHandler) SendSystemMessage(sess *session.Session, message string) {
-	h.SendChatMessage(sess, message)
-}
-
-// SendGroupChat sends a message to all group members.
-func (h *ChatHandler) SendGroupChat(sess *session.Session, message string, senderName string) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeGroupChat)
-	writer := buffer.NewWriter(msg.Span())
-
-	writer.WriteUint16(uint16(protocol.OpcodeGroupChat))
-	writer.WriteStringUnicode(fmt.Sprintf("%s: %s", senderName, message))
-
-	msg.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(msg)
 }
 
 // worldNames labels each world index for GM output. Index 9 is the one world

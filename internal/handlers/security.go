@@ -11,9 +11,9 @@ import (
 
 // OpcodePolicy defines rate limiting and validation for a single opcode.
 type OpcodePolicy struct {
-	MinInterval time.Duration // minimum time between calls (0 = no limit)
-	MaxPerMin   int           // max calls per minute (0 = no limit)
-	RequireWorld bool         // must be in-world to use
+	MinInterval  time.Duration // minimum time between calls (0 = no limit)
+	MaxPerMin    int           // max calls per minute (0 = no limit)
+	RequireWorld bool          // must be in-world to use
 }
 
 // SecurityMiddleware wraps handler dispatch with rate limiting, validation, and logging.
@@ -26,8 +26,8 @@ type SecurityMiddleware struct {
 }
 
 type sessionRateState struct {
-	lastCall  map[protocol.GameOpcode]time.Time
-	callCount map[protocol.GameOpcode]int
+	lastCall   map[protocol.GameOpcode]time.Time
+	callCount  map[protocol.GameOpcode]int
 	countReset time.Time // when to reset per-minute counters
 	violations int       // total security violations
 }

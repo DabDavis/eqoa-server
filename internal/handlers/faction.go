@@ -3,10 +3,10 @@ package handlers
 import (
 	"log"
 
+	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
-	"github.com/eqoa/pkg/pkg/buffer"
 )
 
 // FactionHandler handles faction-related messages.

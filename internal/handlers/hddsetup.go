@@ -547,7 +547,6 @@ func hddSetupCommand(sess *session.Session, player *entity.Player, arg string,
 	}
 }
 
-
 // hddChatConfirmHint is the typed half of the format guard. The NPC passes its
 // own (a second menu) instead, so neither path describes the other's mechanism.
 var hddChatConfirmHint = fmt.Sprintf(

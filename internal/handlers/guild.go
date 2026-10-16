@@ -3,10 +3,10 @@ package handlers
 import (
 	"log"
 
+	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
-	"github.com/eqoa/pkg/pkg/buffer"
 )
 
 // GuildHandler handles guild opcodes.
@@ -141,17 +141,17 @@ func (h *GuildHandler) BroadcastGuildInfo(guildID uint32) {
 // PS2 CLIENT reads ~25 fields in this exact order.
 func writeGuildTail(w *buffer.Writer, p *entity.Player) {
 	// Guild identity: raw(4,1) × 3
-	w.WriteUint32(p.GuildID)  // guildID
-	w.WriteUint32(0)          // guildFlags
-	w.WriteUint32(0)          // guildTimestamp
+	w.WriteUint32(p.GuildID) // guildID
+	w.WriteUint32(0)         // guildFlags
+	w.WriteUint32(0)         // guildTimestamp
 
 	// Guild hall: raw(4,1) × 2
 	w.WriteInt32(int32(p.GuildHallZone)) // guildHallZoneID (-1 = none)
 	w.WriteInt32(int32(p.GuildHallInst)) // guildHallInstanceID
 
 	// Economy: raw(1,1) + raw(4,1)
-	w.WriteByte(p.GuildTaxRate)        // taxRate
-	w.WriteInt32(int32(p.GuildLevel))  // level
+	w.WriteByte(p.GuildTaxRate)       // taxRate
+	w.WriteInt32(int32(p.GuildLevel)) // level
 
 	// Bank: raw(4,1) + zigzag
 	w.WriteInt32(int32(p.GuildBankGold)) // bankGold
@@ -177,8 +177,8 @@ func writeGuildTail(w *buffer.Writer, p *entity.Player) {
 	w.WriteFloat32(p.Speed)
 
 	// Player title: string(24) + raw(1,1)
-	w.WriteInt32(0)  // titleLen = 0 (no title)
-	w.WriteByte(0)   // titleFlags
+	w.WriteInt32(0) // titleLen = 0 (no title)
+	w.WriteByte(0)  // titleFlags
 
 	// Guild name: string(24)
 	w.WriteInt32(int32(len(p.GuildName)))
@@ -188,11 +188,11 @@ func writeGuildTail(w *buffer.Writer, p *entity.Player) {
 	w.WriteInt32(int32(p.Power))
 
 	// Damage indication: raw(4,1) + zigzag + raw(4,1)
-	w.WriteUint32(0)             // dmgSourceEntityID (none)
-	w.Write7BitEncodedInt64(0)   // dmgAmount (none)
-	w.WriteUint32(0)             // dmgType (none)
+	w.WriteUint32(0)           // dmgSourceEntityID (none)
+	w.Write7BitEncodedInt64(0) // dmgAmount (none)
+	w.WriteUint32(0)           // dmgType (none)
 
 	// Target + action state: raw(4,1) × 2
-	w.WriteUint32(0xFFFFFFFF)    // targetEntityID (none)
-	w.WriteInt32(0)              // actionState
+	w.WriteUint32(0xFFFFFFFF) // targetEntityID (none)
+	w.WriteInt32(0)           // actionState
 }

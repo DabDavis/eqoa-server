@@ -14,7 +14,7 @@ func TestCalculateOffMod(t *testing.T) {
 	}{
 		{"Corsten L60 Rogue", 235, 80, 60, 129},
 		{"Lostologist L45 Alchemist", 50, 70, 45, 36},
-		{"L1 minimum", 60, 60, 1, 1},       // should be at least 1
+		{"L1 minimum", 60, 60, 1, 1},                // should be at least 1
 		{"L35 NPC (STR=70 DEX=70)", 70, 70, 35, 32}, // Guard Jahn estimate
 	}
 	for _, tt := range tests {
@@ -30,10 +30,10 @@ func TestCalculateOffMod(t *testing.T) {
 // TestCalculateDefMod verifies DEF MOD against SOE retail data.
 func TestCalculateDefMod(t *testing.T) {
 	tests := []struct {
-		name      string
-		ac, agi   int
-		level     int
-		want      int
+		name    string
+		ac, agi int
+		level   int
+		want    int
 	}{
 		{"Corsten L60 Rogue", 3174, 85, 60, 114},
 		{"Lostologist L45 Alchemist", 1264, 65, 45, 52},
@@ -52,10 +52,10 @@ func TestCalculateDefMod(t *testing.T) {
 // TestCalculateMeleeDamage verifies damage formula against SOE retail combat data.
 func TestCalculateMeleeDamage(t *testing.T) {
 	tests := []struct {
-		name                                   string
-		attackerOff, weaponDmg                  int
-		attackerLevel, targetLevel, targetDef   int
-		want                                   int
+		name                                  string
+		attackerOff, weaponDmg                int
+		attackerLevel, targetLevel, targetDef int
+		want                                  int
 	}{
 		// Corsten (OFF=129, weapondamage=41) → Guard Jahn (L35, DEF≈0)
 		// 129 × 41 × 1.5 / 1.0 = 7933.5 → 7933
@@ -85,9 +85,9 @@ func TestCalculateMeleeDamage(t *testing.T) {
 // TestCalculateMaxHP verifies HP formula against SOE retail data.
 func TestCalculateMaxHP(t *testing.T) {
 	tests := []struct {
-		name          string
-		level, class  int
-		stamina       int
+		name             string
+		level, class     int
+		stamina          int
 		wantMin, wantMax int // allow ±2 for rounding
 	}{
 		// Corsten: L60 Rogue (class 6), BaseSTA=235, HP=6459
@@ -109,10 +109,10 @@ func TestCalculateMaxHP(t *testing.T) {
 // TestCalculateMaxPower verifies Power formula against SOE retail data.
 func TestCalculateMaxPower(t *testing.T) {
 	tests := []struct {
-		name                                    string
-		level, class                            int
-		str, sta, agi, dex, wis, intel, cha     int
-		wantMin, wantMax                        int
+		name                                string
+		level, class                        int
+		str, sta, agi, dex, wis, intel, cha int
+		wantMin, wantMax                    int
 	}{
 		// Corsten: L60 Rogue, base stats, BasePower=5490
 		{"Corsten L60 Rogue", 60, 6, 235, 235, 85, 80, 195, 55, 55, 5489, 5491},

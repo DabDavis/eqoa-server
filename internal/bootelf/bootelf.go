@@ -1,7 +1,7 @@
 // Package bootelf retargets EQOABOOT.ELF, the loader a tester runs to play the
 // RETAIL disc against this server.
 //
-// WHY THE SERVER DOES THIS AND NOT THE BUILD
+// # WHY THE SERVER DOES THIS AND NOT THE BUILD
 //
 // Two of the three programs a tester is handed are the same bytes for every
 // operator: EQOAHDD.ELF and EQOADIAG.ELF both read the server's address off the
@@ -26,7 +26,7 @@
 // station.pak and fills the patch manifest. An operator who runs this server
 // cannot hand out a loader that disagrees with it.
 //
-// WHAT IS REWRITTEN
+// # WHAT IS REWRITTEN
 //
 // Two words of the loader's SLUS patch table, which is an array of
 // {addr, orig, val} little-endian u32 triples:
@@ -41,7 +41,7 @@
 // a 32-bit constant into $v1. Exactly one match is required, so a table this
 // does not understand is refused rather than guessed at.
 //
-// AND THE CRC, WHICH IS THE PART THAT IS EASY TO MISS
+// # AND THE CRC, WHICH IS THE PART THAT IS EASY TO MISS
 //
 // PCSX2 identifies a title by XOR-ing every 32-bit word of the boot ELF, and
 // when it is given an ELF override it uses THAT file's CRC rather than the

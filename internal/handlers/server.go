@@ -5,9 +5,9 @@ import (
 	"log"
 	"net"
 
+	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
-	"github.com/eqoa/pkg/pkg/buffer"
 )
 
 // ServerInfo holds game server information.

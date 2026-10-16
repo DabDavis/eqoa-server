@@ -8,21 +8,21 @@ import (
 	"net"
 	"time"
 
-	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/protocol"
 )
 
 const MaxPacketSize = 0x530
 
 type TestClient struct {
-	conn       *net.UDPConn
-	serverAddr *net.UDPAddr
-	clientID   uint16
-	serverID   uint16
-	instanceID uint32
-	hasInstance bool
-	packetSeq   uint16
-	messageSeq  uint16
+	conn           *net.UDPConn
+	serverAddr     *net.UDPAddr
+	clientID       uint16
+	serverID       uint16
+	instanceID     uint32
+	hasInstance    bool
+	packetSeq      uint16
+	messageSeq     uint16
 	lastRecvPacket uint16
 	lastRecvMsg    uint16
 }

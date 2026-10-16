@@ -6,31 +6,31 @@ import (
 
 // DefaultCharacterRecord represents a row from the defaultcharacter table.
 type DefaultCharacterRecord struct {
-	ID                   int
-	TClass               int
-	Race                 int
-	HumType              int
-	Level                int
-	Tunar                int
-	BankTunar            int
-	UnusedTP             int
-	TotalTP              int
-	X, Y, Z              float32
-	Facing               float32
-	DefaultSpeed         float32
-	World                int
-	DefaultStrength      int
-	DefaultStamina       int
-	DefaultAgility       int
-	DefaultDexterity     int
-	DefaultWisdom        int
-	DefaultIntelligence  int
-	DefaultCharisma      int
+	ID                  int
+	TClass              int
+	Race                int
+	HumType             int
+	Level               int
+	Tunar               int
+	BankTunar           int
+	UnusedTP            int
+	TotalTP             int
+	X, Y, Z             float32
+	Facing              float32
+	DefaultSpeed        float32
+	World               int
+	DefaultStrength     int
+	DefaultStamina      int
+	DefaultAgility      int
+	DefaultDexterity    int
+	DefaultWisdom       int
+	DefaultIntelligence int
+	DefaultCharisma     int
 }
 
 // DefaultCharacterStore provides lookup for default character templates.
 type DefaultCharacterStore struct {
-	db       *SQLiteDB
+	db *SQLiteDB
 	// In-memory cache keyed by (tclass, race, humType)
 	defaults map[defaultKey]*DefaultCharacterRecord
 }

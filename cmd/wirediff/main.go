@@ -104,14 +104,14 @@ func main() {
 		ModelID: 0x70D898C6,
 		Torso:   3, Forearm: 3, NPCGloves: 3, NPCLegs: 3, Feet: 3, Head: 0,
 		HairColor: 0, HairLength: 3, HairStyle: 0, Face: 3,
-		Race:    "0", NPCType: 0x8100,
+		Race: "0", NPCType: 0x8100,
 	}
 	diff("NPC (townsfolk, armor set 3)", entity.SerializeNPCUpdate(0x0000E4CD, n), parse(retailNPC))
 
 	p := &entity.Player{
 		Name: "Mcgregor", Level: 51, Race: 0, Class: 9, Sex: 0, Size: 1.0,
-		ModelID:   0x70D898C6,
-		Chest:     7, Bracer: 7, Gloves: 7, Legs: 7, Boots: 7, Helm: 7,
+		ModelID: 0x70D898C6,
+		Chest:   7, Bracer: 7, Gloves: 7, Legs: 7, Boots: 7, Helm: 7,
 		HairColor: 1, HairLength: 2, HairStyle: 1, FaceOption: 0, Robe: 2,
 	}
 	diff("Player (armored)", entity.SerializePlayerUpdate(0x1D9F67A2, p), parse(retailPlayer))

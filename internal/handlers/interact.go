@@ -403,7 +403,6 @@ func sendTeleportWarp(sess *session.Session, world byte, x, y, z, facing float32
 	sess.Queue().AddWithSequence(msg)
 }
 
-
 // npcSay puts one line in the player's chat window, attributed to the
 // technician. It is the same ClientMessage the chat command replies with, so
 // the NPC and #hddsetup produce identical text for identical outcomes — the

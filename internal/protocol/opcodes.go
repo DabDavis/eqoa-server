@@ -187,20 +187,20 @@ const (
 // =============================================================================
 
 const (
-	OpcodeAdminCode                  GameOpcode = 0x0700 // Admin Code
-	OpcodeServerNotReadyDC           GameOpcode = 0x0728 // Disconnect(6): word 620 "Server not ready, please try again later. (nodbs)"
-	OpcodeServerNotReadyLoginDC      GameOpcode = 0x072A // Disconnect(7): word 621 "Server not ready, please try again later. (loginto)"
-	OpcodeBadLoginPassword           GameOpcode = 0x0729 // Disconnect(3): word 270 "Bad Login/Password"
-	OpcodeNotSubscribed              GameOpcode = 0x072B // Disconnect(4): word 593 "Not Subscribed."
-	OpcodeTarget                     GameOpcode = 0x0760 // Target
-	OpcodeTargetInformation          GameOpcode = 0x0761 // Target Player Info
-	OpcodeBuddyInvite                GameOpcode = 0x076F // Buddy Invite
-	OpcodeGroupInviteAcceptedMessage GameOpcode = 0x0770 // Group Invite Accepted Message
-	OpcodeBuddyListStuff             GameOpcode = 0x0771 // Buddy List Stuff
-	OpcodeCreateGroup                GameOpcode = 0x0772 // Display Group Info
-	OpcodeGroupInviteReceived        GameOpcode = 0x0773 // Msg0773: u32 invite id, u32, ReadString(name, 24); grouped = auto-decline
-	OpcodeGroupInviteCancelled       GameOpcode = 0x0774 // Msg0774: the invitation was withdrawn
-	OpcodeEntityAction               GameOpcode = 0x0775 // u32 entity id + u8 VICSprite action; for the player only 34 plays
+	OpcodeAdminCode                     GameOpcode = 0x0700 // Admin Code
+	OpcodeServerNotReadyDC              GameOpcode = 0x0728 // Disconnect(6): word 620 "Server not ready, please try again later. (nodbs)"
+	OpcodeServerNotReadyLoginDC         GameOpcode = 0x072A // Disconnect(7): word 621 "Server not ready, please try again later. (loginto)"
+	OpcodeBadLoginPassword              GameOpcode = 0x0729 // Disconnect(3): word 270 "Bad Login/Password"
+	OpcodeNotSubscribed                 GameOpcode = 0x072B // Disconnect(4): word 593 "Not Subscribed."
+	OpcodeTarget                        GameOpcode = 0x0760 // Target
+	OpcodeTargetInformation             GameOpcode = 0x0761 // Target Player Info
+	OpcodeBuddyInvite                   GameOpcode = 0x076F // Buddy Invite
+	OpcodeGroupInviteAcceptedMessage    GameOpcode = 0x0770 // Group Invite Accepted Message
+	OpcodeBuddyListStuff                GameOpcode = 0x0771 // Buddy List Stuff
+	OpcodeCreateGroup                   GameOpcode = 0x0772 // Display Group Info
+	OpcodeGroupInviteReceived           GameOpcode = 0x0773 // Msg0773: u32 invite id, u32, ReadString(name, 24); grouped = auto-decline
+	OpcodeGroupInviteCancelled          GameOpcode = 0x0774 // Msg0774: the invitation was withdrawn
+	OpcodeEntityAction                  GameOpcode = 0x0775 // u32 entity id + u8 VICSprite action; for the player only 34 plays
 	OpcodeDisconnectNoError             GameOpcode = 0x0777 // Disconnect No Error
 	OpcodeOutMatched                    GameOpcode = 0x077A // Outmatched warning
 	OpcodeFactionPage                   GameOpcode = 0x07E2 // Server Faction Page Response

@@ -3,10 +3,10 @@ package handlers
 import (
 	"log"
 
+	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
-	"github.com/eqoa/pkg/pkg/buffer"
 )
 
 // WhoHandler handles who list requests.
@@ -40,8 +40,8 @@ func (h *WhoHandler) HandleWhoList(sess *session.Session, msg *protocol.Message)
 	}
 
 	reader := buffer.NewReader(data)
-	_, _ = reader.ReadByte()       // temp1 (unused)
-	temp2, _ := reader.ReadByte()  // filter/mode — echoed in response
+	_, _ = reader.ReadByte()      // temp1 (unused)
+	temp2, _ := reader.ReadByte() // filter/mode — echoed in response
 
 	log.Printf("WhoList request from %s (temp2=%d)", sess.RemoteAddr(), temp2)
 

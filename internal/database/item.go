@@ -4,7 +4,7 @@ package database
 // All 44+2 columns from the schema (patternid through fish).
 type ItemPatternRecord struct {
 	PatternID    int
-	ItemCost   int
+	ItemCost     int
 	Unk1         int
 	ItemIcon     int64
 	Unk2         int

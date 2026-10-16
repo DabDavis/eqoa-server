@@ -3,8 +3,8 @@ package handlers
 import (
 	"testing"
 
-	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/entity"
 )
 
 // TestMemoryDumpTailMatchesClientReadSequence reads the tail back exactly the

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/protocol"
 )
 
 var (

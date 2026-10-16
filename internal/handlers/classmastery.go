@@ -5,9 +5,9 @@ import (
 	"encoding/binary"
 	"log"
 
+	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
-	"github.com/eqoa/pkg/pkg/buffer"
 )
 
 // cmFullTree is a REAL 0x1402 type=0x08 response captured from retail
@@ -35,12 +35,12 @@ var cmFullTree []byte
 
 // Client action codes — byte 0 of the 0x1401 payload.
 const (
-	cmActionSelect   = 0x01 // select/inspect a skill (server acks)
-	cmActionSpend    = 0x02 // spend a CM point on a skill
-	cmActionOpen     = 0x04 // open the menu (server sends the full tree)
-	cmActionBrowse   = 0x05 // browse into a category (server sends detail)
-	cmRespSelectAck  = 0x01 // 0x1402 type: echo of a select
-	cmRespFullTree   = 0x08 // 0x1402 type: complete tree
+	cmActionSelect  = 0x01 // select/inspect a skill (server acks)
+	cmActionSpend   = 0x02 // spend a CM point on a skill
+	cmActionOpen    = 0x04 // open the menu (server sends the full tree)
+	cmActionBrowse  = 0x05 // browse into a category (server sends detail)
+	cmRespSelectAck = 0x01 // 0x1402 type: echo of a select
+	cmRespFullTree  = 0x08 // 0x1402 type: complete tree
 )
 
 // ClassMasteryHandler answers 0x1401 so the CM window can be opened and closed.

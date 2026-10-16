@@ -440,4 +440,3 @@ func (w *World) buffChannelSyncSystem() {
 		return true
 	})
 }
-

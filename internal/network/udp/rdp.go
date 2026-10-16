@@ -5,9 +5,9 @@ import (
 	"sort"
 	"time"
 
+	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
-	"github.com/eqoa/pkg/pkg/buffer"
 )
 
 const (
@@ -173,8 +173,8 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 		flags := queue.GetBodyFlags()
 		// Send if we have ACK flags OR RdpMessage flag (for responding to new connections)
 		if flags&protocol.BodyFlagGuaranteedAck == 0 &&
-		   flags&protocol.BodyFlagClientUpdateAck == 0 &&
-		   flags&protocol.BodyFlagRdpMessage == 0 {
+			flags&protocol.BodyFlagClientUpdateAck == 0 &&
+			flags&protocol.BodyFlagRdpMessage == 0 {
 			return nil
 		}
 	}
@@ -356,7 +356,6 @@ func (r *RDPHandler) PreparePacket(sess *session.Session) []byte {
 	log.Printf("Outgoing packet hex (%d bytes): %x", len(packet), packet)
 	return packet
 }
-
 
 // SendPacket sends a packet to a session.
 func (r *RDPHandler) SendPacket(sess *session.Session, data []byte) error {

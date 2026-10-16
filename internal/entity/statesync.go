@@ -496,10 +496,10 @@ func SerializeStatUpdate(p *Player) []byte {
 	writeInt32(40, int32(p.MaxPower))
 
 	// Combat modifiers (offsets 44-56) — SOE layout
-	writeInt32(44, 100)              // field_100 (always 100 on SOE retail)
-	writeInt32(48, int32(p.OffMod))  // OFF_MOD (total)
-	writeInt32(52, int32(p.DefMod))  // DEF_MOD (total)
-	writeInt32(56, int32(p.AC))      // HP_FACTOR position (using AC for now)
+	writeInt32(44, 100)             // field_100 (always 100 on SOE retail)
+	writeInt32(48, int32(p.OffMod)) // OFF_MOD (total)
+	writeInt32(52, int32(p.DefMod)) // DEF_MOD (total)
+	writeInt32(56, int32(p.AC))     // HP_FACTOR position (using AC for now)
 
 	// Resists (offsets 88-111)
 	writeInt32(88, int32(p.PoisonR))

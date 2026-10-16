@@ -18,7 +18,7 @@ type Player struct {
 	Size    float32
 
 	// Appearance
-	Race, Sex, HumType                         int
+	Race, Sex, HumType                           int
 	HairColor, HairLength, HairStyle, FaceOption int
 
 	// Equipment
@@ -57,22 +57,22 @@ type Player struct {
 	Str, Sta, Agi, Dex, Wis, Int, Cha int
 
 	// Experience
-	TotalXP    int
-	Debt       int
-	XPInLevel  int // XP earned within current level (sent to client)
-	UnusedTP   int
-	TotalTP    int
+	TotalXP     int
+	Debt        int
+	XPInLevel   int // XP earned within current level (sent to client)
+	UnusedTP    int
+	TotalTP     int
 	BaseMaxStat int
 
 	// Currency
 	Tunar, BankTunar int
 
 	// Combat — SOE retail formulas (see claude-notes/combat-formula-final.md)
-	AC                                                    int
-	OffMod, DefMod                                        int // Computed offense/defense modifiers
+	AC                                                            int
+	OffMod, DefMod                                                int // Computed offense/defense modifiers
 	BaseStr, BaseSta, BaseAgi, BaseDex, BaseWis, BaseInt, BaseCha int // Stats before equipment
-	WeaponDamage                                          int // From equipped weapon item
-	PoisonR, DiseaseR, FireR, ColdR, LightningR, ArcaneR int
+	WeaponDamage                                                  int // From equipped weapon item
+	PoisonR, DiseaseR, FireR, ColdR, LightningR, ArcaneR          int
 
 	// World is the world index the player is currently in (0=Tunaria … 8=Guk).
 	// Loaded from characters.world and written back on every world-changing
@@ -106,7 +106,7 @@ type Player struct {
 	// Guild
 	GuildID       uint32
 	GuildName     string
-	GuildRank     int    // 0=leader, 1-7=ranks
+	GuildRank     int // 0=leader, 1-7=ranks
 	GuildMOTD     string
 	GuildCrestID  uint32
 	GuildTaxRate  byte

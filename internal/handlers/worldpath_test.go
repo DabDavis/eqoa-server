@@ -47,10 +47,10 @@ func TestWorldPathForDoesNotSilentlyRelocate(t *testing.T) {
 	// absent: it was the MEMORY CARD world, and the SD no longer hooks the
 	// "mc:" prefix that reached it.
 	cases := map[uint8]string{
-		0:                "data\\tunaria.esf",
-		8:                "hdd:world8.ESF",
-		9:                "hdd:world9.ESF",
-		WorldCount - 1:   "hdd:world29.ESF",
+		0:              "data\\tunaria.esf",
+		8:              "hdd:world8.ESF",
+		9:              "hdd:world9.ESF",
+		WorldCount - 1: "hdd:world29.ESF",
 		// 6 held "hdd:HDDSETUP.ESF", the setup SCREEN. With the screen gone it
 		// follows the same convention as every slot above 7.
 		6: "hdd:world6.ESF",

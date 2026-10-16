@@ -207,7 +207,7 @@ func shouldSkipLine(line string) bool {
 	}
 
 	// Skip MySQL conditional comments (/*!...*/)
-	if strings.HasPrefix(trimmed, "/*!")  {
+	if strings.HasPrefix(trimmed, "/*!") {
 		return true
 	}
 

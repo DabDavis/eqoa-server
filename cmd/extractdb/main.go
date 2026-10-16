@@ -18,38 +18,38 @@ import (
 
 // ParsedItem mirrors the client's game.ParsedItem struct for JSON deserialization.
 type ParsedItem struct {
-	StackLeft     int64             `json:"StackLeft"`
-	RemainingHP   int64             `json:"RemainingHP"`
-	Charges       int64             `json:"Charges"`
-	EquipLocation int64             `json:"EquipLocation"`
-	Location      int64             `json:"Location"`
-	Key           uint32            `json:"Key"`
-	ItemID        int64             `json:"ItemID"`
-	ItemCost      int64             `json:"ItemCost"`
-	Unk1          int64             `json:"Unk1"`
-	ItemIcon      int64             `json:"ItemIcon"`
-	Unk2          int64             `json:"Unk2"`
-	Slot          int64             `json:"Slot"`
-	Unk3          int64             `json:"Unk3"`
-	NoTrade       int64             `json:"NoTrade"`
-	NoRent        int64             `json:"NoRent"`
-	Unk4          int64             `json:"Unk4"`
-	AttackType    int64             `json:"AttackType"`
-	WeaponDamage  int64             `json:"WeaponDamage"`
-	Unk5          int64             `json:"Unk5"`
-	LevelReq      int64             `json:"LevelReq"`
-	MaxStack      int64             `json:"MaxStack"`
-	MaxHP         int64             `json:"MaxHP"`
-	Duration      int64             `json:"Duration"`
-	ClassUse      int64             `json:"ClassUse"`
-	RaceUse       int64             `json:"RaceUse"`
-	ProcAnim      int64             `json:"ProcAnim"`
-	IsLore        int64             `json:"IsLore"`
-	Unk6          int64             `json:"Unk6"`
-	IsCraft       int64             `json:"IsCraft"`
-	Name          string            `json:"Name"`
-	Desc          string            `json:"Desc"`
-	Stats         map[string]int64  `json:"Stats"` // JSON keys are strings
+	StackLeft     int64            `json:"StackLeft"`
+	RemainingHP   int64            `json:"RemainingHP"`
+	Charges       int64            `json:"Charges"`
+	EquipLocation int64            `json:"EquipLocation"`
+	Location      int64            `json:"Location"`
+	Key           uint32           `json:"Key"`
+	ItemID        int64            `json:"ItemID"`
+	ItemCost      int64            `json:"ItemCost"`
+	Unk1          int64            `json:"Unk1"`
+	ItemIcon      int64            `json:"ItemIcon"`
+	Unk2          int64            `json:"Unk2"`
+	Slot          int64            `json:"Slot"`
+	Unk3          int64            `json:"Unk3"`
+	NoTrade       int64            `json:"NoTrade"`
+	NoRent        int64            `json:"NoRent"`
+	Unk4          int64            `json:"Unk4"`
+	AttackType    int64            `json:"AttackType"`
+	WeaponDamage  int64            `json:"WeaponDamage"`
+	Unk5          int64            `json:"Unk5"`
+	LevelReq      int64            `json:"LevelReq"`
+	MaxStack      int64            `json:"MaxStack"`
+	MaxHP         int64            `json:"MaxHP"`
+	Duration      int64            `json:"Duration"`
+	ClassUse      int64            `json:"ClassUse"`
+	RaceUse       int64            `json:"RaceUse"`
+	ProcAnim      int64            `json:"ProcAnim"`
+	IsLore        int64            `json:"IsLore"`
+	Unk6          int64            `json:"Unk6"`
+	IsCraft       int64            `json:"IsCraft"`
+	Name          string           `json:"Name"`
+	Desc          string           `json:"Desc"`
+	Stats         map[string]int64 `json:"Stats"` // JSON keys are strings
 }
 
 // ParsedSpell mirrors the client's game.ParsedSpell struct for JSON deserialization.

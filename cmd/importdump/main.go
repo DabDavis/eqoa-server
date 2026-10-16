@@ -15,8 +15,8 @@ import (
 	"os"
 	"unicode/utf16"
 
-	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/database"
 )
 
 // Parsed item/spell structs (subset of client's game.ParsedItem/ParsedSpell)
@@ -56,25 +56,25 @@ type parsedItem struct {
 }
 
 type parsedSpell struct {
-	SpellID      int64
-	AddedOrder   int64
-	OnHotBar     int64
+	SpellID       int64
+	AddedOrder    int64
+	OnHotBar      int64
 	WhereOnHotBar int64
-	Unk1         int64
-	ShowHide     int64
-	AbilityLevel int64
-	Unk2         int64
-	Unk3         int64
-	Range        int
-	CastTime     int64
-	Power        int64
-	IconColor    int64
-	Icon         int64
-	Scope        int64
-	Recast       int64
-	EqpRequire   int64
-	Name         string
-	Desc         string
+	Unk1          int64
+	ShowHide      int64
+	AbilityLevel  int64
+	Unk2          int64
+	Unk3          int64
+	Range         int
+	CastTime      int64
+	Power         int64
+	IconColor     int64
+	Icon          int64
+	Scope         int64
+	Recast        int64
+	EqpRequire    int64
+	Name          string
+	Desc          string
 }
 
 func main() {

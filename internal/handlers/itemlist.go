@@ -141,3 +141,60 @@ func (l *invList) took(i, n int) bool {
 	}
 	return true
 }
+
+// sessionBankList is the session's copy of the client's bank list
+// (VIBankControl+8), or nil before its MemoryDump.
+func sessionBankList(sess *session.Session) *invList {
+	if sess == nil {
+		return nil
+	}
+	l, _ := sess.BankList().(*invList)
+	return l
+}
+
+// wouldAdd is add without the change: how many of qty the client would keep.
+func (l *invList) wouldAdd(patternID, qty, maxStack int) int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if maxStack >= 2 {
+		for i := range l.recs {
+			if l.recs[i].patternID != patternID {
+				continue
+			}
+			if sum := l.recs[i].qty + qty; maxStack < sum {
+				return maxStack - l.recs[i].qty
+			}
+			return qty
+		}
+	}
+	if len(l.recs) >= invListCap {
+		return 0
+	}
+	if maxStack >= 2 {
+		return min(qty, maxStack)
+	}
+	return 1
+}
+
+// stackOnto is the list index of the record a stackable item would join
+// (AddItem's first record of the same item), or -1 for a new record.
+func (l *invList) stackOnto(patternID, maxStack int) int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if maxStack < 2 {
+		return -1
+	}
+	for i := range l.recs {
+		if l.recs[i].patternID == patternID {
+			return i
+		}
+	}
+	return -1
+}
+
+// nextKey is the key AddItem would give a new record (VIItemList +4).
+func (l *invList) nextKey() uint32 {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.next
+}

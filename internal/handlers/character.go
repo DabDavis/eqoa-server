@@ -1124,6 +1124,8 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 		writeSingleItem(writer, &bankItems[i], i)
 	}
 	log.Printf("SendMemoryDump: wrote %d bank items", len(bankItems))
+	// The bank list keeps keys of its own, numbered the same way.
+	sess.SetBankList(newInvList(bankItems))
 
 	var spells []database.CharSpellEntry
 	if h.spellbookStore != nil {

@@ -71,6 +71,9 @@ type Session struct {
 	// list: which record sits at each list index and the key the client files
 	// it under. Stored as interface{} for the same reason as visibilityState.
 	inventoryList interface{}
+	// bankList is the same for the client's bank list (VIBankControl+8),
+	// which keeps keys of its own.
+	bankList interface{}
 
 	// Send callback - set by UDP listener
 	sendFunc func([]byte) error
@@ -475,6 +478,20 @@ func (s *Session) InventoryList() interface{} {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.inventoryList
+}
+
+// SetBankList stores the copy of the client's bank list.
+func (s *Session) SetBankList(v interface{}) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.bankList = v
+}
+
+// BankList returns the stored copy of the client's bank list.
+func (s *Session) BankList() interface{} {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.bankList
 }
 
 // Connection returns the connection data.

@@ -221,6 +221,14 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Register interact handlers
 	interactHandler.RegisterHandlers(r)
 
+	// The merchant, bank and blacksmith windows (merchant.go, bank.go,
+	// blacksmith.go): the requests InteractWithTarget sends instead of 0x0004.
+	npcWindowHandler := NewNPCWindowHandler(sessionMgr, invStore)
+	if gameWorld != nil {
+		npcWindowHandler.SetGameWorld(gameWorld)
+	}
+	npcWindowHandler.RegisterHandlers(r)
+
 	// Register who handlers
 	whoHandler.RegisterHandlers(r)
 

@@ -176,7 +176,8 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		UnusedTP:     record.UnusedTP,
 		TotalTP:      record.TotalTP,
 		BaseMaxStat:  475,
-		Tunar:        5000,
+		Tunar:        StartingTunar(record),
+		BankTunar:    record.BankTunar,
 		AC:           50,
 		Breath:       127,
 

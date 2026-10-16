@@ -31,6 +31,10 @@ type World struct {
 	TickCount      uint64
 	nextEntityID   EntityID
 
+	guilds      map[uint32]*Guild // guild.go
+	nextGuildID uint32
+	leaving     []func(*Player)  // OnPlayerLeaving
+	announced   map[*Player]bool // guildAnnounceSystem: told its guild at login
 	// OnEntityEnter is called when a new entity enters a player's visibility range.
 	// Set by the handler layer to send FullEntityCreate (0x00B3) reliable opcodes.
 	OnEntityEnter EntityEnterCallback
@@ -191,6 +195,7 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		WeaponDamage: level / 3,                       // placeholder until item system
 	}
 
+	w.rejoinGuildLocked(p)
 	w.Players[id] = p
 	w.SpatialIndex.Insert(id, p.X, p.Z)
 
@@ -205,16 +210,21 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 // RemovePlayer removes a player entity from the world.
 func (w *World) RemovePlayer(id EntityID) {
 	w.mu.Lock()
-	defer w.mu.Unlock()
 
 	p, ok := w.Players[id]
 	if !ok {
+		w.mu.Unlock()
 		return
 	}
 	w.leaveGroupLocked(p)
 	w.SpatialIndex.Remove(id, p.X, p.Z)
 	delete(w.Players, id)
+	fns := w.leavingLocked(p)
+	w.mu.Unlock()
 	log.Printf("Entity: removed player ID=%d", id)
+	for _, fn := range fns {
+		fn(p)
+	}
 }
 
 // RemovePlayerBySession removes the player entity associated with a session.
@@ -233,13 +243,53 @@ func (w *World) RemovePlayerBySession(sess *session.Session) {
 	// so UpdatePosition dropped every move and the visibility and interact
 	// range checks kept the spawn point.
 	w.mu.Lock()
-	defer w.mu.Unlock()
 	if cur, ok := w.Players[p.ServerID]; !ok || cur != p {
+		w.mu.Unlock()
 		return
 	}
 	w.leaveGroupLocked(p)
 	w.SpatialIndex.Remove(p.ServerID, p.X, p.Z)
 	delete(w.Players, p.ServerID)
+	fns := w.leavingLocked(p)
+	w.mu.Unlock()
+	for _, fn := range fns {
+		fn(p)
+	}
+}
+
+// OnPlayerLeaving registers fn to run as a player leaves the world, after its
+// entity goes, without the World lock held (the guild shows it offline and
+// lapses its invitations there).
+func (w *World) OnPlayerLeaving(fn func(p *Player)) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.leaving = append(w.leaving, fn)
+}
+
+// leavingLocked forgets the player's guild announcement and returns the
+// departure hooks to run once the lock is let go.
+func (w *World) leavingLocked(p *Player) []func(*Player) {
+	delete(w.announced, p)
+	fns := make([]func(*Player), len(w.leaving))
+	copy(fns, w.leaving)
+	return fns
+}
+
+// PlayerByName is the online player of that name, compared without case, or
+// nil.
+func (w *World) PlayerByName(name string) *Player {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil
+	}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	for _, p := range w.Players {
+		if strings.EqualFold(p.Name, name) {
+			return p
+		}
+	}
+	return nil
 }
 
 // UpdatePosition updates an entity's position in the world.
@@ -959,100 +1009,6 @@ func (w *World) sendPlayerDied(sess *session.Session) {
 	writer.WriteUint16(uint16(protocol.OpcodeCharacterDied))
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)
-}
-
-// --- Guild System ---
-
-var nextGuildID uint32 = 1
-
-// CreateGuild creates a new guild and makes the player its leader.
-func (w *World) CreateGuild(name string, leader *Player) uint32 {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	for _, p := range w.Players {
-		if p.GuildName == name && p.GuildID != 0 {
-			return 0
-		}
-	}
-
-	guildID := nextGuildID
-	nextGuildID++
-
-	leader.GuildID = guildID
-	leader.GuildName = name
-	leader.GuildRank = 0
-	leader.GuildLevel = 1
-	leader.GuildMOTD = "Welcome to " + name + "!"
-	leader.GuildHallZone = -1
-	leader.GuildHallInst = -1
-
-	return guildID
-}
-
-// RemoveFromGuild removes a player from their guild.
-func (w *World) RemoveFromGuild(player *Player) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	player.GuildID = 0
-	player.GuildName = ""
-	player.GuildRank = 0
-	player.GuildMOTD = ""
-	player.GuildCrestID = 0
-	player.GuildTaxRate = 0
-	player.GuildLevel = 0
-	player.GuildBankGold = 0
-	player.GuildXP = 0
-	player.GuildHallZone = -1
-	player.GuildHallInst = -1
-}
-
-// SetGuildMOTD updates the MOTD for all online members.
-func (w *World) SetGuildMOTD(guildID uint32, motd string) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	for _, p := range w.Players {
-		if p.GuildID == guildID {
-			p.GuildMOTD = motd
-		}
-	}
-}
-
-// AddToGuild adds a player to an existing guild by copying info from an existing member.
-func (w *World) AddToGuild(player *Player, guildID uint32) bool {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	for _, p := range w.Players {
-		if p.GuildID == guildID {
-			player.GuildID = guildID
-			player.GuildName = p.GuildName
-			player.GuildRank = 7
-			player.GuildMOTD = p.GuildMOTD
-			player.GuildLevel = p.GuildLevel
-			player.GuildCrestID = p.GuildCrestID
-			player.GuildHallZone = p.GuildHallZone
-			player.GuildHallInst = p.GuildHallInst
-			return true
-		}
-	}
-	return false
-}
-
-// GuildMembers returns all online players in a guild.
-func (w *World) GuildMembers(guildID uint32) []*Player {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-
-	var members []*Player
-	for _, p := range w.Players {
-		if p.GuildID == guildID {
-			members = append(members, p)
-		}
-	}
-	return members
 }
 
 // SpawnOfNPC returns the spawn point and world of the NPC with this exact

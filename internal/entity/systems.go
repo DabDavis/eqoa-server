@@ -32,6 +32,7 @@ func (w *World) Tick(now time.Time) {
 	w.entityChannelSyncSystem()
 	w.statChannelSyncSystem()
 	w.buffChannelSyncSystem()
+	w.guildAnnounceSystem()
 	w.visibilitySystem()
 	w.groupSyncSystem()
 }

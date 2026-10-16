@@ -34,7 +34,7 @@ func beginWorldLoad(sess *session.Session, worldChanged bool) {
 	}
 }
 
-// clearVisibilityChannels zeroes every NPC visibility channel so the client
+// clearVisibilityChannels clears every occupied NPC visibility channel so the client
 // drops the old world's entities and the visibility system is free to re-fill
 // the channels at the destination.
 func clearVisibilityChannels(sess *session.Session) {
@@ -50,8 +50,10 @@ func clearVisibilityChannels(sess *session.Session) {
 		if vis.ChannelEntity[i] == 0 {
 			continue
 		}
+		// The entity's own id and type, flag cleared: CLIENT deletes it and
+		// makes nothing. Zeros would be type 0, an assert on an empty slot.
 		if state := conn.GetServerObject(i + 1 + entity.NPCChannelOffset); state != nil {
-			state.SetData(make([]byte, entity.EntityStateSize))
+			state.MarkRemoved()
 		}
 		vis.ChannelEntity[i] = 0
 		vis.ChannelObjectID[i] = 0

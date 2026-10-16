@@ -4,9 +4,12 @@ import (
 	"sync"
 )
 
-// MaxServerObjects is the number of state channel entries (channels 0x00-0x1C).
-// 29 entries: channel 0 = player, channels 1-28 = entities.
-const MaxServerObjects = 29
+// MaxServerObjects is the number of object state channels, 0x00-0x17: channel 0
+// is the player, 1-23 the entities in view. CLIENT reads an object channel only
+// below 24 (VIClient::ProcessStateChannel, 0x00BD3C18: `type < 24` goes to
+// ChannelEntity, which keeps m_entities[24]); 0x18 and up reach nothing, so an
+// entity put there is invisible to a PS2.
+const MaxServerObjects = 24
 
 // entityStateSize and statUpdateSize are the wire sizes of the object channels
 // (0x00-0x1C) and the stat channel (0x42), measured off pcaps/ps2_sandstorm.pcap.
@@ -42,10 +45,10 @@ type ConnectionData struct {
 
 	// State channel data
 	serverObjects     [MaxServerObjects]*StateUpdateData // Channels 0x00-0x17 (player + up to 23 entities)
-	clientStatUpdate  *StateUpdateData                  // Channel 0x42
-	clientBuffUpdate  *StateUpdateData                  // Channel 0x43
-	serverGroupUpdate *StateUpdateData                  // Channel 0x40
-	client            *ClientStateData                  // Client input state
+	clientStatUpdate  *StateUpdateData                   // Channel 0x42
+	clientBuffUpdate  *StateUpdateData                   // Channel 0x43
+	serverGroupUpdate *StateUpdateData                   // Channel 0x40
+	client            *ClientStateData                   // Client input state
 
 	// Round-robin offset for state update generation (ensures all channels get served)
 	stateUpdateOffset int
@@ -83,10 +86,13 @@ type StateUpdateData struct {
 	// we only resend every ResendInterval ticks to avoid flooding.
 	resendTicks uint8
 
-	// Number of times we've resent without receiving an ACK.
-	// Capped at MaxResendCount to prevent the xorByte from growing beyond
-	// the client's state history buffer, which would cause a client crash.
-	resendCount uint8
+	// lastSentSeq is the sequence number the current data first went out
+	// with, and sentOnce whether anything has. A retransmission reuses it
+	// (connection_append_state numbers a state message once, on its first
+	// send), so the client, which drops a sequence at or below the channel's
+	// rx, applies each change exactly once.
+	lastSentSeq uint16
+	sentOnce    bool
 }
 
 // ClientStateData tracks client input state.
@@ -316,12 +322,12 @@ func (cd *ConnectionData) GetClientState() *ClientStateData {
 // ref=1, a delta against the message it sent BEFORE the teleport. So an
 // ordinary delta is all that is needed, and it is all the client will accept
 // without being told its base changed (see ForceFullResend).
-// An EMPTY object channel is skipped, and that is not an optimisation — it is
-// the difference between a world change and a client assert.
-//
-// A cleared visibility channel is 162 zero bytes, and byte 4 of an object
-// channel is the ENTITY TYPE, which the client's entity factory
-// (CLIENT VIEntity.cpp:476) accepts as only 0x81 or 0x82:
+// An object channel that describes no entity is skipped, and that is not an
+// optimisation — it is the difference between a world change and a client
+// assert. Byte 0 of an object channel is the flag, bytes 1-4 the id and byte 5
+// the ENTITY TYPE, and CLIENT's ChannelEntity (0x00BD41B8) builds an entity on
+// an EMPTY slot whatever the flag, through a factory (CLIENT VIEntity.cpp:476)
+// that accepts only 0x81 or 0x82:
 //
 //	type = a0 & 0xFF
 //	if      type == 0x81 -> alloc 0x58,  construct
@@ -336,13 +342,14 @@ func (cd *ConnectionData) GetClientState() *ClientStateData {
 // never the heap. Re-arming the cleared channels re-delivered 28 type-0 buffers
 // at the exact moment the client was rebuilding its scene.
 //
-// Sending the zeros ONCE is still how an entity is dropped; that goes out on the
-// ordinary dirty path when the channel is cleared. What must not happen is
-// re-offering them afterwards as though they described something.
+// A removal now goes out once as the entity's own id and type with the flag
+// cleared (StateUpdateData.MarkRemoved), and a resend keeps its sequence
+// number, so the client deletes the entity exactly once. Re-offering that
+// buffer here would rebuild the entity on the now-empty slot, hence the skip.
 func (cd *ConnectionData) ResendAll() int {
 	n := 0
 	for _, state := range cd.serverObjects {
-		if state != nil && !state.IsEmpty() && state.MarkDirtyIfActive() {
+		if state != nil && !state.DescribesNoEntity() && state.MarkDirtyIfActive() {
 			n++
 		}
 	}
@@ -413,9 +420,8 @@ func (s *StateUpdateData) UpdateBaseXor(msgCounter uint16) {
 	// Update base message counter
 	s.baseMessageCounter = msgCounter
 
-	// Reset resend throttle and count
+	// Reset the resend throttle
 	s.resendTicks = 0
-	s.resendCount = 0
 }
 
 // ForceFullResend makes the next GenerateXORDelta emit the ENTIRE state as a
@@ -443,21 +449,37 @@ func (s *StateUpdateData) ForceFullResend() {
 	s.baseMessageCounter = 0
 	s.dirty = true
 	s.resendTicks = 0
-	s.resendCount = 0
 }
 
-// IsEmpty reports whether the channel currently holds nothing — the state a
-// cleared visibility slot is left in. Such a buffer describes no entity, and
-// re-offering it to the client asserts it; see ConnectionData.ResendAll.
-func (s *StateUpdateData) IsEmpty() bool {
+// DescribesNoEntity reports whether an object channel holds no live entity:
+// it is empty, or its flag byte (byte 0) is 0 — never armed, or cleared by
+// MarkRemoved. Re-offering such a buffer would make the client build an
+// entity out of it (ChannelEntity creates on an empty slot whatever the
+// flag), so ConnectionData.ResendAll skips it.
+func (s *StateUpdateData) DescribesNoEntity() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	for _, b := range s.data {
-		if b != 0 {
-			return false
-		}
+	return len(s.data) == 0 || s.data[0] == 0
+}
+
+// MarkRemoved tells the client the entity on this object channel is gone, the
+// way Sandstorm does and CLIENT's ChannelEntity (0x00BD41B8) reads it: the
+// same id and type with the flag byte (byte 0) cleared. A slot whose entity
+// has that id and type is then deleted and NOT replaced. The rest of the last
+// state stays as it was. An all-zero buffer, the old way, carries type 0,
+// which CLIENT's entity factory refuses with an assert and a NULL write
+// whenever it lands on a slot that is already empty. A channel that never held
+// an entity (flag already 0) sends nothing.
+func (s *StateUpdateData) MarkRemoved() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if len(s.data) == 0 || s.data[0] == 0 {
+		return
 	}
-	return true
+	s.data[0] = 0
+	s.dirty = true
+	s.isActive = true
+	s.resendTicks = 0
 }
 
 // MarkDirtyIfActive queues an armed channel for re-transmission and reports
@@ -471,11 +493,7 @@ func (s *StateUpdateData) MarkDirtyIfActive() bool {
 		return false
 	}
 	s.dirty = true
-	// Clear the resend throttle too. A channel that had already burned its
-	// MaxResendCount attempts is otherwise permanently mute, which is exactly
-	// the state a world change leaves the busy channels in.
 	s.resendTicks = 0
-	s.resendCount = 0
 	return true
 }
 
@@ -551,20 +569,17 @@ func (s *StateUpdateData) SetData(data []byte) {
 		copy(s.data, data)
 		s.dirty = true
 		s.isActive = true
-		s.resendTicks = 0  // Reset throttle so new data is sent immediately
-		s.resendCount = 0  // Reset resend cap — new data gets fresh resend attempts
+		s.resendTicks = 0 // Reset throttle so new data is sent immediately
 	}
 }
 
 // ResendInterval is how many round-robin visits to wait before resending
 // unchanged data that the client hasn't ACK'd yet. With round-robin visiting
-// each channel every ~3 ticks (300ms), 10 visits = ~3 seconds.
+// each channel every ~3 ticks (300ms), 10 visits = ~3 seconds. A resend keeps
+// the sequence number of the message it repeats, so it can go on until the
+// client acknowledges: the refnum does not grow, and the client applies the
+// change once whatever arrives twice.
 const ResendInterval = 10
-
-// MaxResendCount is the max number of resends before we stop trying.
-// Prevents xorByte from growing beyond the client's state history buffer.
-// After this many resends, the channel stays dormant until new data arrives.
-const MaxResendCount = 3
 
 // GenerateXORDelta generates an XOR delta update if the state has changed.
 // Returns the XOR'd delta data (to be RLE encoded), the sequence number, and the XOR byte (refnum).
@@ -593,18 +608,19 @@ func (s *StateUpdateData) GenerateXORDelta() (data []byte, seq uint16, xorByte b
 	// If data hasn't been newly dirtied but differs from base (client hasn't ACK'd),
 	// throttle resends to avoid flooding the same data every tick.
 	if !s.dirty && differs {
-		// Stop resending after MaxResendCount attempts to prevent xorByte overflow.
-		// The client's state history buffer is limited; if xorByte exceeds it,
-		// the client can't apply the delta and crashes.
-		if s.resendCount >= MaxResendCount {
-			return nil, 0, 0
-		}
 		s.resendTicks++
 		if s.resendTicks < ResendInterval {
 			return nil, 0, 0
 		}
 		s.resendTicks = 0
-		s.resendCount++
+		// A retransmission, not a new message: connection_append_state gives a
+		// state message its sequence number once (m_usTx++ on the first send
+		// only) and re-encodes a resend against the newest acknowledged copy.
+		// A new number per resend made the client apply the same state again,
+		// and an entity removal applied twice lands on an empty slot.
+		if s.sentOnce {
+			return s.retransmitLocked()
+		}
 	}
 
 	// Generate XOR delta (current data XOR'd with base)
@@ -622,6 +638,7 @@ func (s *StateUpdateData) GenerateXORDelta() (data []byte, seq uint16, xorByte b
 	seq = s.messageCounter
 	s.pendingDeltas[seq] = delta
 	s.messageCounter++
+	s.lastSentSeq, s.sentOnce = seq, true
 
 	// Calculate refnum (XOR byte) - difference from base message counter
 	if s.baseMessageCounter == 0 {
@@ -633,6 +650,29 @@ func (s *StateUpdateData) GenerateXORDelta() (data []byte, seq uint16, xorByte b
 	s.dirty = false
 	s.resendTicks = 0
 
+	return delta, seq, xorByte
+}
+
+// retransmitLocked repeats the last message sent on this channel under the
+// sequence number it first had, re-encoded against the current base (the
+// newest copy the client acknowledged), as connection_append_state does for a
+// state message already in flight. The client drops it if it already holds
+// that sequence, and re-acknowledges it; the delta is kept so that ack can
+// still move the base. Must be called with s.mu held, after a first send.
+func (s *StateUpdateData) retransmitLocked() (data []byte, seq uint16, xorByte byte) {
+	seq = s.lastSentSeq
+	delta := make([]byte, len(s.data))
+	for i := range s.data {
+		if i < len(s.baseXOR) {
+			delta[i] = s.data[i] ^ s.baseXOR[i]
+		} else {
+			delta[i] = s.data[i]
+		}
+	}
+	s.pendingDeltas[seq] = delta
+	if s.baseMessageCounter != 0 {
+		xorByte = byte(seq - s.baseMessageCounter)
+	}
 	return delta, seq, xorByte
 }
 

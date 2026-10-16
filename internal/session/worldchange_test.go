@@ -82,9 +82,9 @@ func TestResendAllSkipsInactiveChannels(t *testing.T) {
 
 // TestResendAllSkipsClearedChannels is the assert this cost us.
 //
-// A cleared visibility channel is 162 zero bytes and stays ACTIVE, because
-// SetData arms whatever it is handed. Byte 4 of an object channel is the entity
-// type, and the client's factory (VIEntity.cpp:476) accepts only 0x81 and 0x82 —
+// A cleared visibility channel used to be 162 zero bytes, and stays ACTIVE,
+// because SetData arms whatever it is handed. Byte 5 of an object channel is the
+// entity type, and the client's factory (VIEntity.cpp:476) accepts only 0x81 and 0x82 —
 // type 0x00 leaves its pointer NULL and asserts. Re-offering the cleared
 // channels at a world change put a live console into that assert loop on
 // 2026-08-10; the guest's own malloc, run AT the assert, still returned 1 MB, so
@@ -107,30 +107,106 @@ func TestResendAllSkipsClearedChannels(t *testing.T) {
 	}
 }
 
-// TestResendAllSurvivesTheResendCap.
-//
-// A channel that went unacknowledged burns through MaxResendCount and then goes
-// permanently mute. That is exactly the state a world change leaves the busy
-// channels in, so a resend that respects the cap re-arms nothing where it is
-// needed most.
-func TestResendAllSurvivesTheResendCap(t *testing.T) {
+// TestRetransmitKeepsTheSequenceNumber is connection_append_state's rule: a
+// state message is numbered once, on its first send, and a resend of the same
+// data carries the same number. The client drops a sequence at or below its rx,
+// so it applies the change once. The old resends took a new number each, and
+// pcaps/local-warp.pcap shows the result: three zero buffers in a row on one
+// channel, the second of which a PS2 applies to the slot the first emptied.
+func TestRetransmitKeepsTheSequenceNumber(t *testing.T) {
 	cd := session.NewConnectionData(nil, 0, 0)
 	st := cd.GetServerObject(1)
-	st.SetData(filled(162, 0xCC)) // never acknowledged
+	ack(t, st, filled(162, 0xAA))
 
-	// Drain the cap: first send, then ResendInterval visits per retry.
-	st.GenerateXORDelta()
-	for i := 0; i < session.MaxResendCount*session.ResendInterval*2; i++ {
-		st.GenerateXORDelta()
+	st.SetData(filled(162, 0xCC)) // a change the client never acknowledges
+	first, seq, ref := st.GenerateXORDelta()
+	if first == nil {
+		t.Fatal("no update for changed data")
 	}
-	if data, _, _ := st.GenerateXORDelta(); data != nil {
-		t.Fatal("channel is still sending; the resend cap did not engage, " +
-			"so this test is not testing what it claims")
+	resends := 0
+	for i := 0; i < session.ResendInterval*5; i++ {
+		data, s, r := st.GenerateXORDelta()
+		if data == nil {
+			continue
+		}
+		resends++
+		if s != seq || r != ref {
+			t.Fatalf("resend %d went out as seq %d ref %d; the first send was seq %d ref %d",
+				resends, s, r, seq, ref)
+		}
+		if string(data) != string(first) {
+			t.Fatalf("resend %d carries a different delta", resends)
+		}
+	}
+	if resends == 0 {
+		t.Fatal("an unacknowledged change was never resent")
 	}
 
-	cd.ResendAll()
-	if data, _, _ := st.GenerateXORDelta(); data == nil {
-		t.Error("ResendAll left a capped-out channel mute")
+	// The acknowledgement of that one number still moves the base, and the
+	// channel falls quiet.
+	st.UpdateBaseXor(seq)
+	for i := 0; i < session.ResendInterval*2; i++ {
+		if data, _, _ := st.GenerateXORDelta(); data != nil {
+			t.Fatal("the channel kept sending after its message was acknowledged")
+		}
+	}
+
+	// A new change is a new message.
+	st.SetData(filled(162, 0xDD))
+	if _, s, _ := st.GenerateXORDelta(); s == seq {
+		t.Fatalf("new data reused seq %d", s)
+	}
+}
+
+// TestMarkRemovedClearsOnlyTheFlag: a removal is the entity's own id and type
+// with byte 0 cleared, which CLIENT's ChannelEntity reads as "delete it, make
+// nothing" (Sandstorm's removal). A channel that never held an entity sends
+// nothing at all.
+func TestMarkRemovedClearsOnlyTheFlag(t *testing.T) {
+	cd := session.NewConnectionData(nil, 0, 0)
+	st := cd.GetServerObject(2)
+	live := filled(162, 0x11)
+	live[0] = 1                                     // the flag
+	live[1], live[2], live[3], live[4] = 1, 2, 3, 4 // the id
+	live[5] = 0x82                                  // the type
+	ack(t, st, live)
+
+	st.MarkRemoved()
+	data, _, _ := st.GenerateXORDelta()
+	if data == nil {
+		t.Fatal("a removal sent nothing")
+	}
+	got := st.GetData()
+	if got[0] != 0 || got[5] != 0x82 || got[1] != 1 || got[4] != 4 || got[100] != 0x11 {
+		t.Fatalf("removal bytes %x..., want the old state with byte 0 cleared", got[:8])
+	}
+	if !st.DescribesNoEntity() {
+		t.Fatal("a removed channel still describes an entity")
+	}
+
+	quiet := cd.GetServerObject(9)
+	quiet.MarkRemoved()
+	if data, _, _ := quiet.GenerateXORDelta(); data != nil {
+		t.Fatal("removing an entity from a channel that never had one sent something")
+	}
+}
+
+// TestResendAllSkipsRemovedChannels: after a removal the channel is still armed,
+// and re-offering it would make CLIENT build the entity again on the slot the
+// removal emptied.
+func TestResendAllSkipsRemovedChannels(t *testing.T) {
+	cd := session.NewConnectionData(nil, 0, 0)
+	ack(t, cd.GetServerObject(0), filled(162, 0xAA))
+	gone := cd.GetServerObject(4)
+	live := filled(162, 0x22)
+	live[0], live[5] = 1, 0x82
+	ack(t, gone, live)
+	gone.MarkRemoved()
+	_, seq, _ := gone.GenerateXORDelta()
+	gone.UpdateBaseXor(seq)
+
+	if n := cd.ResendAll(); n != 1 {
+		t.Fatalf("ResendAll re-armed %d channels, want 1 (the removed one describes no entity)", n)
 	}
 }
 

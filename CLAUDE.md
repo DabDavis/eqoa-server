@@ -49,7 +49,7 @@ Two flat structs (`Player`, `NPC`) with a mutex-protected `World`. All entity da
 | `systems.go` | Tick loop + game systems (AI, respawn, regen, state sync, visibility) |
 | `quadtree.go` | Spatial index (QuadTree) using `EntityID` |
 | `statesync.go` | Binary serializers: `SerializePlayerUpdate` (201 bytes), `SerializeNPCUpdate` (201 bytes), `SerializeStatUpdate` (236 bytes) |
-| `visibility.go` | 28-channel visibility system, stable ObjectID assignment per session |
+| `visibility.go` | 23-channel visibility system (channels 1-23: a PS2 reads object channels 0x00-0x17 only, 0 is the player), stable ObjectID assignment per session; an entity leaves by its own id and type with the flag cleared (`MarkRemoved`), never 162 zero bytes (type 0 asserts the PS2) |
 | `xp.go` | `CharXPDict` level→XP table, XP/level-up logic |
 
 ### Concurrency Model
@@ -98,7 +98,7 @@ destination by hand.
 4. `initPlayerStatChannel` → `SerializeStatUpdate` — 236-byte channel 0x42
 5. `stateSyncSystem()` — updates channel 0 every tick
 6. `statChannelSyncSystem()` — updates stat channel every 20 ticks
-7. `visibilitySystem()` — assigns nearby entities to channels 1-28 every 5 ticks
+7. `visibilitySystem()` — assigns nearby entities to channels 1-23 every 5 ticks
 
 ### Handler Pattern
 
@@ -121,7 +121,7 @@ case *entity.NPC:
 | `regenSystem` | Every 20 ticks (2s) | 1% HP/Power regen (skipped if in combat <10s) |
 | `stateSyncSystem` | Every tick | Serialize player state to channel 0 |
 | `statChannelSyncSystem` | Every 20 ticks | Serialize stats to channel 0x42 |
-| `visibilitySystem` | Every 5 ticks | Assign nearby entities to channels 1-28 |
+| `visibilitySystem` | Every 5 ticks | Assign nearby entities to channels 1-23 |
 
 ## Current Status
 

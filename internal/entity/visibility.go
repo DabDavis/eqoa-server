@@ -9,8 +9,11 @@ import (
 )
 
 const (
-	// MaxVisibleEntities is the max number of NPC/player entities we can track.
-	MaxVisibleEntities = 28
+	// MaxVisibleEntities is the max number of NPC/player entities we can track:
+	// channels 1-23. CLIENT keeps 24 entity slots, the object channels
+	// 0x00-0x17 (VIClient::ProcessStateChannel sends only `type < 24` to
+	// ChannelEntity), and channel 0 is the player's own.
+	MaxVisibleEntities = 23
 	// VisibilityRadius is the query radius for nearby entities.
 	VisibilityRadius float32 = 300.0
 	// VisibilityTickInterval controls how often (in ticks) the visibility system runs.
@@ -21,7 +24,7 @@ const (
 	NPCChannelOffset = 0
 )
 
-// VisibilityState tracks which entity occupies each state channel (1-28) for a session.
+// VisibilityState tracks which entity occupies each state channel (1-23) for a session.
 type VisibilityState struct {
 	ChannelEntity   [MaxVisibleEntities]EntityID // Entity in each channel
 	ChannelObjectID [MaxVisibleEntities]uint32   // ObjectID assigned to each channel's entity
@@ -49,7 +52,7 @@ type entityDist struct {
 	DistSq float32
 }
 
-// visibilitySystem assigns nearby entities to state channels 1-28 for each player session.
+// visibilitySystem assigns nearby entities to state channels 1-23 for each player session.
 func (w *World) visibilitySystem() {
 	if w.SessionManager == nil {
 		return
@@ -155,10 +158,11 @@ func (w *World) visibilitySystem() {
 				continue
 			}
 			if _, kept := usedChannels[id]; !kept {
-				state := conn.GetServerObject(i + 1 + NPCChannelOffset)
-				if state != nil {
-					deactiveBuf := make([]byte, EntityStateSize)
-					state.SetData(deactiveBuf)
+				// The entity's own id and type with the flag cleared, which
+				// CLIENT's ChannelEntity reads as "delete it, make nothing";
+				// 162 zero bytes would be type 0 (see MarkRemoved).
+				if state := conn.GetServerObject(i + 1 + NPCChannelOffset); state != nil {
+					state.MarkRemoved()
 				}
 				vis.ChannelEntity[i] = 0
 				vis.ChannelObjectID[i] = 0

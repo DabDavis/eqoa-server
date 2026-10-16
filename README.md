@@ -70,3 +70,9 @@ internal/auth/       account and login checks
 
 `CLAUDE.md` is the working notes: the design, the protocol details and why each odd-looking
 rule is there.
+
+## License
+
+MIT (`LICENSE`), for this repository's own work: the server, its tools and its notes. It
+grants no rights in *EverQuest Online Adventures* itself; the game, its binaries and its
+data belong to their owners, and none of them are distributed here.

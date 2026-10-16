@@ -665,16 +665,23 @@ func (w *World) sendDamageIndication(sess *session.Session, sourceObjectID uint3
 	sess.Queue().AddWithSequence(msg)
 }
 
-// sendResourceUpdate sends opcode 0x0775 (paired with DamageIndication on eqoa.live).
-// Wire format: opcode(2) + uint32(objectID) + zigzag(amount)
-// Negative amount depletes the resource (like damage depletes HP).
-func (w *World) sendResourceUpdate(sess *session.Session, objectID uint32, amount int) {
+// actionDrowning is the action Sandstorm plays on a drowning player with
+// 0x0775: pcaps/breath_capture.pcap carries fifteen (self, 34).
+const actionDrowning = 34
+
+// sendEntityAction sends opcode 0x0775, which CLIENT reads as u32 id + u8
+// action (dispatcher case 0x0775): it finds the entity and, if its sprite is
+// a character sprite, plays the action on it -- for the player's own entity
+// only action 34. It is not a resource update: the zigzag amount this used to
+// write reached a PS2 as action 1 or 3 and did nothing, and the breath bar is
+// the client's own.
+func (w *World) sendEntityAction(sess *session.Session, objectID uint32, action byte) {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeResourceUpdate)
 	writer := buffer.NewWriter(msg.Span())
 
 	writer.WriteUint16(uint16(protocol.OpcodeResourceUpdate))
 	writer.WriteUint32(objectID)
-	writer.Write7BitEncodedInt64(int64(amount))
+	writer.WriteByte(action)
 
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)

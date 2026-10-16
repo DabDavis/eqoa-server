@@ -305,7 +305,8 @@ func isSwimAnimation(anim byte) bool {
 // Runs every 6 ticks (0.6s). Breath depletes from 127→0 over ~76.2s (close to
 // observed 78.6s on eqoa.live). When breath hits 0, deals 2 HP self-damage
 // every 60 ticks (6s). The client manages the breath bar UI independently —
-// the server only sends drowning damage via DamageIndication (0x00DB).
+// the server only sends drowning damage via DamageIndication (0x00DB) and the
+// drowning action (0x0775, action 34), as Sandstorm does.
 // Underwater detection uses the client's animation byte (swim animations)
 // rather than a global Y threshold, so it works correctly per-zone.
 // Must be called with lock held.
@@ -323,14 +324,8 @@ func (w *World) breathSystem() {
 
 		if p.Underwater {
 			if p.Breath > 0 {
+				// The breath bar is the client's own; nothing is sent.
 				p.Breath--
-
-				// Send negative resource update to deplete client breath bar
-				sess := w.findSessionByEntityIDLocked(p.ServerID)
-				if sess != nil {
-					playerObjectID := sess.PlayerObjectID()
-					w.sendResourceUpdate(sess, playerObjectID, -1)
-				}
 			} else {
 				// Out of breath — accumulate drowning counter
 				p.DrowningCounter += 6 // 6 ticks per breathSystem call
@@ -350,7 +345,7 @@ func (w *World) breathSystem() {
 
 					playerObjectID := sess.PlayerObjectID()
 					w.sendDamageIndication(sess, playerObjectID, -2, playerObjectID)
-					w.sendResourceUpdate(sess, playerObjectID, -2)
+					w.sendEntityAction(sess, playerObjectID, actionDrowning)
 
 					log.Printf("Drowning: %s took 2 drowning damage (HP: %d/%d, breath: %d)",
 						p.Name, p.HP, p.MaxHP, p.Breath)

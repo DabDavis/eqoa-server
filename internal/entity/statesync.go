@@ -34,13 +34,18 @@ const BuffUpdateSize = 136
 // buffSlotSize is the size of each buff slot within the 0x43 buffer.
 const buffSlotSize = 66
 
-// velocityToByte converts a velocity (units/tick) to a signed byte for state channel interpolation.
+// velocityToByte is a velocity in units a second as the entity state's
+// signed byte: CLIENT's ChannelEntity (0x00BD41B8) reads bytes 40-42 as
+// (signed char) × 21/128 units a second — the Go client's world lane checked
+// the scale on two Sandstorm captures (creatures travel 1.019 and 1.011 of
+// velocity × time between updates). The old ×4 of a per-update position
+// difference moved a running player at about a quarter of its speed.
 func velocityToByte(v float32) byte {
-	scaled := int(v * 4) // Scale factor: 5 units/tick → byte value ~20
+	scaled := math.Round(float64(v) * 128 / 21)
 	if scaled > 127 {
 		scaled = 127
-	} else if scaled < -127 {
-		scaled = -127
+	} else if scaled < -128 {
+		scaled = -128
 	}
 	return byte(int8(scaled))
 }
@@ -109,8 +114,7 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	// Offset 36-39: Scale (float32 LE)
 	binary.LittleEndian.PutUint32(buf[36:40], math.Float32bits(p.Size))
 
-	// Offset 40-42: Velocity X/Y/Z (signed bytes for client-side interpolation)
-	// Scale: velocity in units/tick * 4, clamped to [-127, 127]
+	// Offset 40-42: Velocity X/Y/Z, units a second × 128/21 (velocityToByte)
 	buf[40] = velocityToByte(p.VelX)
 	buf[41] = velocityToByte(p.VelY)
 	buf[42] = velocityToByte(p.VelZ)

@@ -582,13 +582,17 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 		animation = decoded[35]
 	}
 
-	// Update server-side position and animation for visibility/breath systems
+	// Position, the walker's own velocity (bytes 10-15), the animation and
+	// the auto-attack flag (byte 36), in one locked update: see
+	// entity/clientupdate.go for why the velocity is read, not worked out.
 	if l.gameWorld != nil {
 		player := l.gameWorld.SessionPlayer(sess)
 		if player != nil {
 			reportWorldMismatch(sess, player, decoded[0])
-			l.gameWorld.UpdatePosition(player.ServerID, posX, posY, posZ, facing)
-			l.gameWorld.SetAnimation(player.ServerID, animation)
+			u := entity.ClientUpdate{X: posX, Y: posY, Z: posZ, Facing: facing, Animation: animation}
+			u.Velocity, u.HasVelocity = entity.ClientUpdateVelocity(decoded)
+			u.AutoAttack, u.HasAutoAttack = entity.ClientUpdateAutoAttack(decoded)
+			l.gameWorld.ApplyClientUpdate(player.ServerID, u)
 		}
 	}
 }

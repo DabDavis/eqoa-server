@@ -292,17 +292,16 @@ func (w *World) PlayerByName(name string) *Player {
 	return nil
 }
 
-// UpdatePosition updates an entity's position in the world.
+// UpdatePosition moves an entity: for a player, a server-side move (a
+// teleport, a GM command), which arrives standing still. A client's own 0x40
+// goes through ApplyClientUpdate, with the walker's velocity.
 func (w *World) UpdatePosition(id EntityID, x, y, z, facing float32) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
 	if p, ok := w.Players[id]; ok {
 		oldX, oldZ := p.X, p.Z
-		// Compute velocity from position delta (units per tick)
-		p.VelX = x - p.X
-		p.VelY = y - p.Y
-		p.VelZ = z - p.Z
+		p.VelX, p.VelY, p.VelZ = 0, 0, 0
 		p.X = x
 		p.Y = y
 		p.Z = z

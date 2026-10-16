@@ -95,8 +95,14 @@ type Player struct {
 	// Animation (from client position update byte 35)
 	Animation byte
 
-	// Velocity (computed from position deltas, used for state channel interpolation)
+	// Velocity in units a second: the walker's own, out of the client's 0x40
+	// (clientupdate.go), relayed in the entity state bytes 40-42; zero after
+	// a server-side move (UpdatePosition).
 	VelX, VelY, VelZ float32
+
+	// AutoAttack is the 0x40's byte 36, CLIENT's m_autoAttack: the attack
+	// button held (or toggled on). attack.go reads it at every swing.
+	AutoAttack bool
 
 	// Breath / underwater
 	Breath          int  // 0-127, depletes underwater (eqoa.live sends 127 in MemoryDump)

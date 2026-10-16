@@ -210,31 +210,20 @@ func (h *ChatHandler) entityIDInList(id entity.EntityID, list []entity.EntityID)
 	return false
 }
 
-// buildClientMessage builds a OpcodeClientMessage with Unicode encoding.
-// C# format: uint16 opcode + WriteString(Encoding.Unicode, message)
+// buildClientMessage builds a 0x0A7A line (clientMessagePayload): white text,
+// at most 1023 characters.
 func buildClientMessage(message string) *protocol.Message {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeClientMessage)
-	writer := buffer.NewWriter(msg.Span())
-
-	writer.WriteUint16(uint16(protocol.OpcodeClientMessage))
-	writer.WriteStringUnicode(message)
-
-	msg.SetSize(writer.Position())
+	msg.SetData(clientMessagePayload(message))
 	return msg
 }
 
-// buildColoredMessage builds a OpcodeColoredChat with Unicode encoding and green color.
-// C# format: uint16 opcode + WriteString(Encoding.Unicode, message) + 4 color bytes
+// buildColoredMessage builds a 0x0A7B line (coloredChatPayload) in green
+// (0x3F, 0xFF, 0x3F). CLIENT reads three colour bytes; the C# reference's
+// fourth was never read.
 func buildColoredMessage(message string) *protocol.Message {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeColoredChat)
-	writer := buffer.NewWriter(msg.Span())
-
-	writer.WriteUint16(uint16(protocol.OpcodeColoredChat))
-	writer.WriteStringUnicode(message)
-	// Color bytes: green {0x3F, 0xFF, 0x3F, 0x00} matching C# ShoutChat
-	writer.WriteBytes([]byte{0x3F, 0xFF, 0x3F, 0x00})
-
-	msg.SetSize(writer.Position())
+	msg.SetData(coloredChatPayload(message, 0x3F, 0xFF, 0x3F))
 	return msg
 }
 
@@ -571,8 +560,9 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			maxhp, _ := strconv.Atoi(parts[2])
 			player.MaxHP = maxhp
 		}
-		// Use GrantXP opcode (0x0020) which writes HP/MaxHP on PS2
-		sendHPUpdate(sess, player.HP, player.MaxHP)
+		// HP reaches the console on the stat channel (0x42, m_stat[7] and
+		// [8]), which statChannelSyncSystem re-serializes from the Player.
+		// 0x0020 is level and exp: sending HP there set the PS2's LEVEL.
 		h.gmReply(sess, fmt.Sprintf("HP set to %d/%d", player.HP, player.MaxHP))
 
 	case "#tunar":
@@ -690,17 +680,6 @@ func sendTeleportGM(sess *session.Session, x, y, z, facing float32, world byte) 
 	writer.WriteUint32(0) // padding
 	writer.WriteUint32(0) // padding
 	writer.WriteUint32(0) // counter
-	msg.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(msg)
-}
-
-// sendHPUpdate sends GrantXP (0x0020) which PS2 uses to update HP/MaxHP display.
-func sendHPUpdate(sess *session.Session, hp, maxHP int) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeGrantXP)
-	writer := buffer.NewWriter(msg.Span())
-	writer.WriteUint16(uint16(protocol.OpcodeGrantXP))
-	writer.Write7BitEncodedInt64(int64(hp))
-	writer.Write7BitEncodedInt64(int64(maxHP))
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)
 }

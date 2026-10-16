@@ -1,596 +1,247 @@
 package handlers
 
 import (
-	"encoding/binary"
 	"log"
 	"math"
-	"strconv"
+	"unicode/utf16"
 
-	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
-	"github.com/eqoa/pkg/pkg/buffer"
 )
 
 // =============================================================================
-// PS2-correct opcode senders
+// Reliable (0xFB) opcode senders, each written the way CLIENT's dispatcher
+// reads it: VIClient::ProcessMessage in the CLIENT decomp
+// (decomp/modules/client/src/viclient.cpp) and the per-opcode map in
+// claude-notes/decomp-phase62-dispatcher-survey-20261015.md. The address of
+// the handler that reads each one is beside it.
 //
-// These implement the reliable opcode protocol that PS2 retail expects.
-// Sandstorm skips most of these, packing everything into state channels.
-// Our server sends both: reliable opcodes for guaranteed entity identity,
-// and state channels for continuous position/velocity streaming.
+// The rewritten ones are a build function, which returns the payload with the
+// opcode first and is what the tests check, and a Send wrapper that queues it.
 // =============================================================================
 
-// SendServerLoginResponse sends opcode 0x0728 — post-auth state setup.
-// PS2 retail sends this after auth, before CharacterSelect.
-// It signals state reset and prepares the client for character selection.
-func (h *CharacterHandler) SendServerLoginResponse(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeServerLoginResponse)
-	writer := buffer.NewWriter(msg.Span())
-	writer.WriteUint16(uint16(protocol.OpcodeServerLoginResponse))
-
-	// State reset indicator — PS2 expects state 6 or 7 here
-	writer.Write7BitEncodedInt64(7) // state = 7 (full reset)
-
-	// Server count (for server list — we only have 1)
-	writer.Write7BitEncodedInt64(1)
-
-	// Server entry: ID + name
-	writer.Write7BitEncodedInt64(1)                    // server ID
-	writer.WriteInt32(int32(len("EQOA")))              // name length
-	writer.WriteStringUTF8Raw("EQOA")                  // server name
-
-	msg.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(msg)
-	log.Printf("PS2: sent ServerLoginResponse (0x0728) to %s", sess.RemoteAddr())
-}
-
-// SendWorldEntry sends opcode 0x002E — proper world entry trigger.
-// PS2 retail sends this instead of using MemoryDump as the trigger.
-// Contains character identity, appearance, equipment, and entity init data.
-func (h *CharacterHandler) SendWorldEntry(sess *session.Session, player *entity.Player) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeWorldEntry)
-	dataBuf := make([]byte, 4096)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeWorldEntry))
-
-	// Character identity
-	writer.Write7BitEncodedInt64(int64(player.CharServerID))
-	writer.WriteInt32(int32(len(player.Name)))
-	writer.WriteStringUTF8Raw(player.Name)
-
-	// Appearance data
-	writer.Write7BitEncodedInt64(int64(player.Race))
-	writer.Write7BitEncodedInt64(int64(player.Sex))
-	writer.Write7BitEncodedInt64(int64(player.Class))
-	writer.Write7BitEncodedInt64(int64(player.Level))
-
-	// Model
-	writer.Write7BitEncodedInt64(player.ModelID)
-
-	// Position
-	writer.WriteFloat32(player.X)
-	writer.WriteFloat32(player.Y)
-	writer.WriteFloat32(player.Z)
-	writer.WriteFloat32(player.Facing)
-
-	// Equipment visual slots
-	writer.WriteUint32(player.Primary)
-	writer.WriteUint32(player.Secondary)
-	writer.WriteUint32(player.Shield)
-	writer.WriteByte(player.Chest)
-	writer.WriteByte(player.Bracer)
-	writer.WriteByte(player.Gloves)
-	writer.WriteByte(player.Legs)
-	writer.WriteByte(player.Boots)
-	writer.WriteByte(player.Helm)
-
-	// Appearance
-	writer.WriteByte(byte(player.HairColor))
-	writer.WriteByte(byte(player.HairLength))
-	writer.WriteByte(byte(player.HairStyle))
-	writer.WriteByte(byte(player.FaceOption))
-	if player.Robe != 0 {
-		writer.WriteByte(byte(player.Robe))
-	} else {
-		writer.WriteByte(0xFF)
+// build returns the opcode followed by whatever fill writes.
+func build(op protocol.GameOpcode, size int, fill func(w *buffer.Writer)) []byte {
+	buf := make([]byte, size)
+	w := buffer.NewWriter(buf)
+	w.WriteUint16(uint16(op))
+	if fill != nil {
+		fill(w)
 	}
-
-	// Entity init — ObjectID for self
-	playerObjectID := sess.PlayerObjectID()
-	writer.WriteUint32(playerObjectID)
-
-	// HP/Power
-	writer.Write7BitEncodedInt64(int64(player.HP))
-	writer.Write7BitEncodedInt64(int64(player.MaxHP))
-	writer.Write7BitEncodedInt64(int64(player.Power))
-	writer.Write7BitEncodedInt64(int64(player.MaxPower))
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-	log.Printf("PS2: sent WorldEntry (0x002E) %d bytes for '%s' to %s",
-		writer.Position(), player.Name, sess.RemoteAddr())
+	return buf[:w.Position()]
 }
 
-// SendFullEntityCreate sends opcode 0x00B3 — reliable entity creation.
+// queueReliable queues one guaranteed message whose payload starts with op.
+func queueReliable(sess *session.Session, op protocol.GameOpcode, payload []byte) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, op)
+	msg.SetData(payload)
+	sess.Queue().AddWithSequence(msg)
+}
+
+// writeString8 writes a string as VIMemStream::ReadString(char *, MaxBytes)
+// (0x00CB8740) reads one: a u32 byte count, then the bytes. CLIENT keeps it
+// only when count+1 <= MaxBytes and otherwise skips it and keeps "", so it is
+// cut to maxBytes-1 here.
+func writeString8(w *buffer.Writer, s string, maxBytes int) {
+	b := []byte(s)
+	if n := maxBytes - 1; len(b) > n {
+		b = b[:n]
+	}
+	w.WriteUint32(uint32(len(b)))
+	w.WriteBytes(b)
+}
+
+// writeWideString writes a string as VIMemStream::ReadString(unsigned short *,
+// MaxBytes) (0x00CB87E8) reads one: a u32 count of UTF-16 units, then the
+// units. CLIENT keeps it only when count+1 <= MaxBytes/2, so it is cut to that
+// (never between the halves of a surrogate pair). The count is of units:
+// buffer.WriteStringUnicode counts runes, which differs past the BMP.
+func writeWideString(w *buffer.Writer, s string, maxBytes int) {
+	u := utf16.Encode([]rune(s))
+	if n := maxBytes/2 - 1; len(u) > n {
+		u = u[:n]
+		if k := len(u); k > 0 && u[k-1] >= 0xD800 && u[k-1] < 0xDC00 {
+			u = u[:k-1]
+		}
+	}
+	w.WriteUint32(uint32(len(u)))
+	for _, c := range u {
+		w.WriteUint16(c)
+	}
+}
+
+// writeFixedWide writes exactly n UTF-16 units, NUL-padded: a field CLIENT
+// reads raw with Read(buf, 2, n), not as a counted string.
+func writeFixedWide(w *buffer.Writer, s string, n int) {
+	u := utf16.Encode([]rune(s))
+	if len(u) > n-1 {
+		u = u[:n-1]
+	}
+	for i := 0; i < n; i++ {
+		var c uint16
+		if i < len(u) {
+			c = u[i]
+		}
+		w.WriteUint16(c)
+	}
+}
+
+// =============================================================================
+// Disconnects and the login window
+// =============================================================================
+
+// buildDisconnect is one of the opcodes CLIENT answers with
+// Disconnect(reason, 0) and nothing else. What the console then shows is
+// ConnectStatusString's word for the reason (0x00BC2268):
 //
-// NOT CALLED. The comment below claimed PS2 retail sends this when an entity
-// enters visibility range. It does not: 0x00B3 appears 0 times across all five
-// PS2 captures in pcaps/, while one session of ours sent 173. Retail's client
-// spawns everything from the 28 state channels. Kept only as the wire format,
-// should a use for it ever turn up.
+//	0x0728 reason 6   620 "Server not ready, please try again later. (nodbs)"
+//	0x0729 reason 3   270 "Bad Login/Password"
+//	0x072A reason 7   621 "Server not ready, please try again later. (loginto)"
+//	0x072B reason 4   593 "Not Subscribed."
+//	0x00EC, 0x07A4 8  619 "You have logged in from another location."
+//	0x07A1 reason 13  677 (the character's area is temporarily unavailable)
+//	0x07A2 reason 14  716 "You have been ejected by a server administrator."
+//	0x07C0 reason 17  718 "We are updating the game, please try again later."
+//	0x07C1 reason 18  718, as 0x07C0
+//	0x07D2 reason 19  1420 (modified by a customer service representative)
 //
-// Contains: entity ID, name, model, level, equipment, position.
-func SendFullEntityCreate(sess *session.Session, objectID uint32, ent entity.Entity) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeFullEntityCreate)
-	dataBuf := make([]byte, 512)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeFullEntityCreate))
-
-	// ObjectID as zigzag varint (client reads Read7BitEncodedInt64)
-	writer.Write7BitEncodedInt64(int64(objectID))
-
-	switch e := ent.(type) {
-	case *entity.NPC:
-		writeEntityCreateNPC(writer, e)
-	case *entity.Player:
-		writeEntityCreatePlayer(writer, e)
-	}
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// writeEntityCreateNPC writes NPC fields for FullEntityCreate.
-// Wire format: name(24) + pos(3×zigzag) + level(zigzag) + modelID(uint32) + hp(byte)
-//   + dead(byte) + entityType(byte) + equipment(3×uint32 + 6×byte + 6×byte + 4×byte + byte + byte)
-func writeEntityCreateNPC(writer *buffer.Writer, n *entity.NPC) {
-	// Name (24 bytes, null-padded)
-	nameBytes := make([]byte, 24)
-	copy(nameBytes, []byte(n.Name))
-	writer.WriteBytes(nameBytes)
-
-	// Position as zigzag varints (coord * 128.0, matching client's division by 128.0)
-	writer.Write7BitEncodedInt64(int64(n.X * 128.0))
-	writer.Write7BitEncodedInt64(int64(n.Y * 128.0))
-	writer.Write7BitEncodedInt64(int64(n.Z * 128.0))
-
-	// Level as zigzag varint
-	writer.Write7BitEncodedInt64(int64(n.Level))
-
-	// ModelID (uint32 LE)
-	writer.WriteUint32(uint32(n.ModelID))
-
-	// HP bar (0-255 proportional)
-	if n.MaxHP > 0 {
-		writer.WriteByte(byte(n.HP * 255 / n.MaxHP))
-	} else {
-		writer.WriteByte(255)
-	}
-
-	// Dead flag
-	if n.Dead {
-		writer.WriteByte(1)
-	} else {
-		writer.WriteByte(0)
-	}
-
-	// Entity type: 0=NPC
-	writer.WriteByte(0)
-
-	// Equipment: weapons (3×uint32)
-	writer.WriteUint32(uint32(n.PrimaryWeapon))
-	writer.WriteUint32(uint32(n.SecondaryWeapon))
-	writer.WriteUint32(uint32(n.Shield))
-
-	// Armor slots (6 bytes)
-	writer.WriteByte(byte(n.Torso))
-	writer.WriteByte(byte(n.Forearm))
-	writer.WriteByte(byte(n.NPCGloves))
-	writer.WriteByte(byte(n.NPCLegs))
-	writer.WriteByte(byte(n.Feet))
-	writer.WriteByte(byte(n.Head))
-
-	// Armor tints (6 bytes, 0xFF = default for NPCs)
-	writer.WriteByte(0xFF)
-	writer.WriteByte(0xFF)
-	writer.WriteByte(0xFF)
-	writer.WriteByte(0xFF)
-	writer.WriteByte(0xFF)
-	writer.WriteByte(0xFF)
-
-	// Appearance: hairColor, hairLength, hairStyle, face
-	writer.WriteByte(byte(n.HairColor))
-	writer.WriteByte(byte(n.HairLength))
-	writer.WriteByte(byte(n.HairStyle))
-	writer.WriteByte(byte(n.Face))
-
-	// Robe (0xFF = no robe)
-	robeVal := byte(0xFF)
-	if v, err := strconv.Atoi(n.RobeStyle); err == nil {
-		robeVal = byte(v)
-	}
-	writer.WriteByte(robeVal)
-
-	// Sex (0=male default for NPCs)
-	writer.WriteByte(0)
-}
-
-// writeEntityCreatePlayer writes Player fields for FullEntityCreate.
-// Wire format: name(24) + pos(3×zigzag) + level(zigzag) + modelID(uint32) + hp(byte)
-//   + dead(byte) + entityType(byte=1) + equipment(3×uint32 + 6×byte + 6×byte + 4×byte + byte + byte)
-func writeEntityCreatePlayer(writer *buffer.Writer, p *entity.Player) {
-	// Name (24 bytes, null-padded)
-	nameBytes := make([]byte, 24)
-	copy(nameBytes, []byte(p.Name))
-	writer.WriteBytes(nameBytes)
-
-	// Position as zigzag varints (coord * 128.0)
-	writer.Write7BitEncodedInt64(int64(p.X * 128.0))
-	writer.Write7BitEncodedInt64(int64(p.Y * 128.0))
-	writer.Write7BitEncodedInt64(int64(p.Z * 128.0))
-
-	// Level as zigzag varint
-	writer.Write7BitEncodedInt64(int64(p.Level))
-
-	// ModelID (uint32 LE)
-	writer.WriteUint32(uint32(p.ModelID))
-
-	// HP bar (0-255 proportional)
-	if p.MaxHP > 0 {
-		writer.WriteByte(byte(p.HP * 255 / p.MaxHP))
-	} else {
-		writer.WriteByte(255)
-	}
-
-	// Dead flag
-	if p.IsDead() {
-		writer.WriteByte(1)
-	} else {
-		writer.WriteByte(0)
-	}
-
-	// Entity type: 1=Player
-	writer.WriteByte(1)
-
-	// Equipment: weapons (3×uint32)
-	writer.WriteUint32(p.Primary)
-	writer.WriteUint32(p.Secondary)
-	writer.WriteUint32(p.Shield)
-
-	// Armor slots (6 bytes)
-	writer.WriteByte(p.Chest)
-	writer.WriteByte(p.Bracer)
-	writer.WriteByte(p.Gloves)
-	writer.WriteByte(p.Legs)
-	writer.WriteByte(p.Boots)
-	writer.WriteByte(p.Helm)
-
-	// Armor tints (6 bytes, 0x00 = default for players)
-	writer.WriteByte(0)
-	writer.WriteByte(0)
-	writer.WriteByte(0)
-	writer.WriteByte(0)
-	writer.WriteByte(0)
-	writer.WriteByte(0)
-
-	// Appearance: hairColor, hairLength, hairStyle, face
-	writer.WriteByte(byte(p.HairColor))
-	writer.WriteByte(byte(p.HairLength))
-	writer.WriteByte(byte(p.HairStyle))
-	writer.WriteByte(byte(p.FaceOption))
-
-	// Robe (0xFF = no robe, low byte of Robe uint32)
-	if p.Robe != 0 {
-		writer.WriteByte(byte(p.Robe))
-	} else {
-		writer.WriteByte(0xFF)
-	}
-
-	// Sex (0=male, 1=female)
-	writer.WriteByte(byte(p.Sex))
-}
-
-// SendEntityUpdate sends opcode 0x00B5 — entity property update.
-// PS2 retail sends this when an entity's properties change (level up, equip change, etc).
-func SendEntityUpdate(sess *session.Session, objectID uint32, ent entity.Entity) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeEntityUpdate)
-	dataBuf := make([]byte, 256)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeEntityUpdate))
-
-	// ObjectID
-	writer.WriteUint32(objectID)
-
-	// Update fields depend on entity type
-	switch e := ent.(type) {
-	case *entity.NPC:
-		// Position
-		writer.WriteFloat32(e.X)
-		writer.WriteFloat32(e.Y)
-		writer.WriteFloat32(e.Z)
-		writer.WriteFloat32(e.Facing)
-		// HP bar
-		if e.MaxHP > 0 {
-			writer.WriteByte(byte(e.HP * 255 / e.MaxHP))
-		} else {
-			writer.WriteByte(255)
+// 0x07A1 alone reads eight bytes first (Msg07A1), so it carries eight zeros.
+// 0x0777 is the quiet one (SendDisconnectNoError).
+func buildDisconnect(op protocol.GameOpcode) []byte {
+	return build(op, 16, func(w *buffer.Writer) {
+		if op == protocol.OpcodeZoneUnavailableDC {
+			w.WriteUint32(0)
+			w.WriteUint32(0)
 		}
-		// Level
-		writer.WriteByte(byte(e.Level))
-		// Dead
-		if e.Dead {
-			writer.WriteByte(1)
-		} else {
-			writer.WriteByte(0)
-		}
-	case *entity.Player:
-		// Position
-		writer.WriteFloat32(e.X)
-		writer.WriteFloat32(e.Y)
-		writer.WriteFloat32(e.Z)
-		writer.WriteFloat32(e.Facing)
-		// HP bar
-		if e.MaxHP > 0 {
-			writer.WriteByte(byte(e.HP * 255 / e.MaxHP))
-		} else {
-			writer.WriteByte(255)
-		}
-		// Level
-		writer.WriteByte(byte(e.Level))
-		// Dead
-		if e.IsDead() {
-			writer.WriteByte(1)
-		} else {
-			writer.WriteByte(0)
-		}
-	}
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
+	})
 }
 
-// SendNPCInteraction sends opcode 0x001C — NPC type dispatch.
-// Client reads: zigzag(interactionType) + optional string(npcName).
-// Type: 3=merchant, 4=blacksmith, 6=quest, 7=banker, 16=trainer, 18=info.
-func SendNPCInteraction(sess *session.Session, npcObjectID uint32, interactionType int, npcName string) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeNPCInteraction)
-	dataBuf := make([]byte, 256)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeNPCInteraction))
-
-	// Interaction type as zigzag (client reads Read7BitEncodedInt64)
-	writer.Write7BitEncodedInt64(int64(interactionType))
-
-	// NPC name (length-prefixed string)
-	if npcName != "" {
-		writer.WriteInt32(int32(len(npcName)))
-		writer.WriteStringUTF8Raw(npcName)
-	}
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-	log.Printf("PS2: sent NPCInteraction (0x001C) type=%d npc=%q to %s",
-		interactionType, npcName, sess.RemoteAddr())
+// SendDisconnect sends one of buildDisconnect's opcodes.
+func SendDisconnect(sess *session.Session, op protocol.GameOpcode) {
+	queueReliable(sess, op, buildDisconnect(op))
+	log.Printf("PS2: sent disconnect 0x%04X to %s", uint16(op), sess.RemoteAddr())
 }
 
-// SendNPCMessage sends opcode 0x00D3 — NPC speech.
-// PS2 format: 64-byte name + type byte + formatted text.
-func SendNPCMessage(sess *session.Session, npcName string, msgType byte, text string) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeNPCMessage)
-	dataBuf := make([]byte, 1024)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeNPCMessage))
-
-	// NPC name (64 bytes, null-padded)
-	nameBytes := make([]byte, 64)
-	copy(nameBytes, []byte(npcName))
-	writer.WriteBytes(nameBytes)
-
-	// Message type
-	writer.WriteByte(msgType)
-
-	// Text (length-prefixed)
-	writer.WriteInt32(int32(len(text)))
-	writer.WriteStringUTF8Raw(text)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// SendHPResourceUpdate sends opcode 0x00D9 — HP/resource update.
-// Client reads: zigzag(entityID) + zigzag(amount) + optional zigzag(buffType).
-func SendHPResourceUpdate(sess *session.Session, entityObjectID uint32, amount int32, buffType int64) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeHPResourceUpdate)
-	dataBuf := make([]byte, 64)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeHPResourceUpdate))
-
-	writer.Write7BitEncodedInt64(int64(entityObjectID))
-	writer.Write7BitEncodedInt64(int64(amount))
-	if buffType != 0 {
-		writer.Write7BitEncodedInt64(buffType)
-	}
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// SendLootResult sends opcode 0x001A — loot outcome.
-// Status: 1=ok, 2=partial, 3=fail.
-func SendLootResult(sess *session.Session, status byte, items []LootItem) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeLootResult)
-	dataBuf := make([]byte, 2048)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeLootResult))
-
-	writer.WriteByte(status)
-	writer.Write7BitEncodedInt64(int64(len(items)))
-
-	for _, item := range items {
-		writer.WriteUint32(item.ItemID)
-		writer.Write7BitEncodedInt64(int64(item.Quantity))
-		writer.WriteInt32(int32(len(item.Name)))
-		writer.WriteStringUTF8Raw(item.Name)
-	}
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// LootItem describes an item in a loot result.
-type LootItem struct {
-	ItemID   uint32
-	Quantity int
-	Name     string
-}
-
-// SendZoneTransferInit sends opcode 0x07B0 — zone transfer initiation.
-// PS2 retail sends this to start a zone transition.
-func SendZoneTransferInit(sess *session.Session, zoneName string, x, y, z, facing float32) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeZoneTransferInit)
-	dataBuf := make([]byte, 256)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeZoneTransferInit))
-
-	// Zone name (length-prefixed)
-	writer.WriteInt32(int32(len(zoneName)))
-	writer.WriteStringUTF8Raw(zoneName)
-
-	// Destination position
-	writer.WriteFloat32(x)
-	writer.WriteFloat32(y)
-	writer.WriteFloat32(z)
-	writer.WriteFloat32(facing)
-
-	// Loading state indicator
-	writer.WriteByte(1) // 1 = begin loading
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-	log.Printf("PS2: sent ZoneTransferInit (0x07B0) zone=%q to %s", zoneName, sess.RemoteAddr())
-}
-
-// SendZoneTransferConfirm sends opcode 0x07B2 — zone load complete.
-// PS2 retail sends this after the client finishes loading the new zone.
-func SendZoneTransferConfirm(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeZoneTransferConfirm)
-	writer := buffer.NewWriter(msg.Span())
-	writer.WriteUint16(uint16(protocol.OpcodeZoneTransferConfirm))
-	writer.WriteByte(1) // zone load complete
-	msg.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(msg)
-	log.Printf("PS2: sent ZoneTransferConfirm (0x07B2) to %s", sess.RemoteAddr())
-}
-
-// SendItemListUpdate sends opcode 0x0065 — full item definitions.
-// Used for merchant inventory and quest reward lists.
-func SendItemListUpdate(sess *session.Session, listType byte, items []ItemDefinition) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeItemListUpdate)
-	dataBuf := make([]byte, 8192)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeItemListUpdate))
-
-	writer.WriteByte(listType) // 0=merchant, 1=quest reward, etc.
-	writer.Write7BitEncodedInt64(int64(len(items)))
-
-	for _, item := range items {
-		writer.WriteUint32(item.PatternID)
-		writer.WriteInt32(int32(len(item.Name)))
-		writer.WriteStringUTF8Raw(item.Name)
-		writer.Write7BitEncodedInt64(int64(item.Cost))
-		writer.Write7BitEncodedInt64(int64(item.Level))
-		writer.WriteByte(item.Slot)
-	}
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-	log.Printf("PS2: sent ItemListUpdate (0x0065) type=%d count=%d to %s",
-		listType, len(items), sess.RemoteAddr())
-}
-
-// ItemDefinition describes an item for ItemListUpdate.
-type ItemDefinition struct {
-	PatternID uint32
-	Name      string
-	Cost      int
-	Level     int
-	Slot      byte
-}
-
-// SendQuestProgress sends opcode 0x007B — quest progress update.
-func SendQuestProgress(sess *session.Session, questID uint32, text string, progress int64) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeUpdateQuestProgress)
-	dataBuf := make([]byte, 512)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeUpdateQuestProgress))
-
-	writer.WriteUint32(questID)
-	writer.WriteInt32(int32(len(text)))
-	writer.WriteStringUTF8Raw(text)
-	writer.Write7BitEncodedInt64(progress)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// SendQuestStageComplete sends opcode 0x0036 — quest stage completion + XP reward.
-func SendQuestStageComplete(sess *session.Session, questID uint32, xpReward int64, stageType byte) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeQuestStageComplete)
-	dataBuf := make([]byte, 64)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeQuestStageComplete))
-
-	writer.WriteUint32(questID)
-	writer.Write7BitEncodedInt64(xpReward)
-	writer.WriteByte(stageType) // 22-type dispatch in PS2
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// SendForceDisconnect sends opcode 0x00EC — force client disconnect.
+// SendForceDisconnect sends opcode 0x00EC: Disconnect(8), word 619 "You have
+// logged in from another location."
 func SendForceDisconnect(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeForceDisconnect)
-	writer := buffer.NewWriter(msg.Span())
-	writer.WriteUint16(uint16(protocol.OpcodeForceDisconnect))
-	msg.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(msg)
-	log.Printf("PS2: sent ForceDisconnect (0x00EC) to %s", sess.RemoteAddr())
+	SendDisconnect(sess, protocol.OpcodeForceDisconnect)
 }
 
-// SendChatMessage sends opcode 0x07A3 — chat message with sender metadata.
-func SendChatMessage(sess *session.Session, senderName string, chatType byte, msgID int64, text string) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeChatMessage)
-	dataBuf := make([]byte, 1024)
+// SendLoggedInElsewhere sends opcode 0x07A4: Disconnect(8), as 0x00EC.
+func SendLoggedInElsewhere(sess *session.Session) {
+	SendDisconnect(sess, protocol.OpcodeLoggedInFromAnotherLocationDC)
+}
+
+// SendDisconnectNoError sends opcode 0x0777 — Msg0777: a quiet disconnect back
+// to the login window, with no notice.
+func SendDisconnectNoError(sess *session.Session) {
+	queueReliable(sess, protocol.OpcodeDisconnectNoError, build(protocol.OpcodeDisconnectNoError, 2, nil))
+}
+
+// buildCreateCharFailed is one of the three character-create failures, none
+// with a payload: each shows a word in the login window and takes one off
+// CLIENT's character count. 0x002E word 269 "Character create failed", 0x0065
+// word 828 "Failed: invalid name", 0x002F word 829 "Failed: name already taken".
+func buildCreateCharFailed(op protocol.GameOpcode) []byte {
+	return build(op, 2, nil)
+}
+
+// SendCreateCharFailed sends one of buildCreateCharFailed's opcodes.
+func SendCreateCharFailed(sess *session.Session, op protocol.GameOpcode) {
+	queueReliable(sess, op, buildCreateCharFailed(op))
+}
+
+// buildCharSelectNotice is one of the character-select notices (no payload):
+// 0x07F2 and 0x07F4 show word 1662 (that character needs the Frontiers disc),
+// 0x07F0, 0x07F1 and 0x07F3 word 676 (the character's area of the world is
+// unavailable).
+func buildCharSelectNotice(op protocol.GameOpcode) []byte {
+	return build(op, 2, nil)
+}
+
+// SendCharSelectNotice sends one of buildCharSelectNotice's opcodes.
+func SendCharSelectNotice(sess *session.Session, op protocol.GameOpcode) {
+	queueReliable(sess, op, buildCharSelectNotice(op))
+}
+
+// =============================================================================
+// The ability list (VIClient+0x2BB2C). 0x00B3..0x00FF edit it; none of them
+// is an entity message.
+// =============================================================================
+
+// writeAbilityRecord writes one spellbook entry as VIAbility::Read
+// (0x00BDCBE0) reads it, which is also how the MemoryDump carries the list:
+// seven zigzag ints (id, display index, valid, slot, lockout, +0x14, level),
+// the range as a raw float32, seven more (cast time, power cost, the two icon
+// hashes, scope, cooldown, equip mask), a wide name of at most 63 characters,
+// a wide description of at most 127 and a zigzag count of sub-records (none).
+//
+// The database holds the range the way the C# reference parsed it: the
+// float's high half as Range, and its two low bytes as the zigzag "Unk2" and
+// "Unk3" that came before it. So the float is put back together from all
+// three; for the low bytes to be single zigzag bytes, Unk2 and Unk3 must be in
+// 0..63, and Sandstorm's always are (they are 0).
+//
+// The icon hashes are written as signed 32-bit values: CLIENT gathers a
+// zigzag int into 32 bits, so a hash stored unsigned would lose its top bit.
+func writeAbilityRecord(w *buffer.Writer, e *database.CharSpellEntry) {
+	sp := &e.Pattern
+	for _, v := range []int64{int64(sp.SpellID), int64(e.AddedOrder), int64(e.OnHotBar),
+		int64(e.WhereOnHotBar), int64(e.Unk1), int64(e.ShowHide), int64(sp.AbilityLvl)} {
+		w.Write7BitEncodedInt64(v)
+	}
+	lowByte := func(v int) uint32 {
+		if v < 0 || v > 63 {
+			return 0
+		}
+		return uint32(v << 1) // zigzag of a small non-negative value, one byte
+	}
+	w.WriteUint32(uint32(uint16(sp.Range))<<16 | lowByte(sp.Unk3)<<8 | lowByte(sp.Unk2))
+	for _, v := range []int64{int64(sp.CastTime), int64(sp.Power), int64(int32(sp.IconColor)),
+		int64(int32(sp.Icon)), int64(sp.Scope), int64(sp.Recast), int64(sp.EqpRequire)} {
+		w.Write7BitEncodedInt64(v)
+	}
+	writeWideString(w, sp.SpellName, 128)
+	writeWideString(w, sp.SpellDesc, 256)
+	w.Write7BitEncodedInt64(0) // no sub-records
+}
+
+// buildAbilityAdd is opcode 0x00B3 — Msg00B3 (0x00BCF3A0): the u32 ability
+// stamp (VIClient+0x2BB60, sent back first in 0x0032/0x0033/0x00FE), a u32
+// flag that shows word 721 "You have gained a new ability." when set, then one
+// ability record. CLIENT's map insert keeps an existing record of the same id.
+func buildAbilityAdd(stamp uint32, announce bool, e *database.CharSpellEntry) []byte {
+	return build(protocol.OpcodeAbilityAdd, 1024, func(w *buffer.Writer) {
+		w.WriteUint32(stamp)
+		var flag uint32
+		if announce {
+			flag = 1
+		}
+		w.WriteUint32(flag)
+		writeAbilityRecord(w, e)
+	})
+}
+
+// SendAbilityAdd sends opcode 0x00B3.
+func SendAbilityAdd(sess *session.Session, stamp uint32, announce bool, e *database.CharSpellEntry) {
+	queueReliable(sess, protocol.OpcodeAbilityAdd, buildAbilityAdd(stamp, announce, e))
+}
+
+// SendCooldownTimer sends opcode 0x00CD — the case at 0x00BD2168 and Msg00CD:
+// u8 display index, the u32 ability stamp (0 here), zigzag lockout in ms, which
+// lands on the first ability with that display index.
+func SendCooldownTimer(sess *session.Session, addedOrder byte, cooldownMs int64) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCooldownTimer)
+	dataBuf := make([]byte, 32)
 	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeChatMessage))
+	writer.WriteUint16(uint16(protocol.OpcodeCooldownTimer))
 
-	// Sender name (24 bytes, null-padded)
-	nameBytes := make([]byte, 24)
-	copy(nameBytes, []byte(senderName))
-	writer.WriteBytes(nameBytes)
-
-	// Chat type
-	writer.WriteByte(chatType)
-
-	// Message ID (zigzag)
-	writer.Write7BitEncodedInt64(msgID)
-
-	// Text (length-prefixed)
-	writer.WriteInt32(int32(len(text)))
-	writer.WriteStringUTF8Raw(text)
+	writer.WriteByte(addedOrder)
+	writer.WriteUint32(0) // the ability stamp
+	writer.Write7BitEncodedInt64(cooldownMs)
 
 	data := dataBuf[:writer.Position()]
 	msg.SetData(data)
@@ -598,12 +249,11 @@ func SendChatMessage(sess *session.Session, senderName string, chatType byte, ms
 }
 
 // =============================================================================
-// Combat / XP / Death opcodes (PS2-correct wire formats)
-// Verified against Go client handlers in internal/game/state.go
+// The player record
 // =============================================================================
 
-// SendGrantXP sends opcode 0x0020 — level/XP update.
-// Client reads: zigzag(level) + zigzag(xpInLevel).
+// SendGrantXP sends opcode 0x0020 — the case at 0x00BD19D8: zigzag level, then
+// zigzag exp, into the player record; a higher level plays sound 16.
 func SendGrantXP(sess *session.Session, level int, xpInLevel int64) {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeGrantXP)
 	dataBuf := make([]byte, 32)
@@ -619,308 +269,66 @@ func SendGrantXP(sess *session.Session, level int, xpInLevel int64) {
 	log.Printf("PS2: sent GrantXP (0x0020) level=%d xp=%d to %s", level, xpInLevel, sess.RemoteAddr())
 }
 
-// SendDamageIndication sends opcode 0x00DB — floating damage/heal number.
-// Client reads: uint32(sourceObjID) + zigzag(damage) + uint32(targetObjID).
-// Negative damage = damage dealt, positive = heal.
-func SendDamageIndication(sess *session.Session, sourceObjectID uint32, damage int64, targetObjectID uint32) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeDamageIndication)
-	dataBuf := make([]byte, 32)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeDamageIndication))
-
-	writer.WriteUint32(sourceObjectID)
-	writer.Write7BitEncodedInt64(damage) // negative=damage, positive=heal
-	writer.WriteUint32(targetObjectID)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
+// buildTrainingPoints is opcode 0x0036 — the case at 0x00BD26CC: a u8, then
+// the TOTAL training points as a zigzag int into VIPlayer+0x40. When the total
+// changes, QuestStage (0x00BD9AA8) shows word 625 "You have received more
+// training points!" and refreshes the window; the byte only decides whether
+// sound 7 plays.
+func buildTrainingPoints(sound bool, total int32) []byte {
+	return build(protocol.OpcodeTrainingPoints, 16, func(w *buffer.Writer) {
+		var b byte
+		if sound {
+			b = 1
+		}
+		w.WriteByte(b)
+		w.Write7BitEncodedInt64(int64(total))
+	})
 }
 
-// SendCastingCombat sends opcode 0x00B1 — combat action (melee swing or spell cast).
-// PS2 func_00BD1F10 reads:
-//
-//	raw(4,1) sourceEntityID
-//	raw(4,1) targetEntityID
-//	raw(1,1) additionalTargetCount (uint8)
-//	[N × raw(4,1)] additionalTargetIDs (if count > 0)
-//	raw(4,1) castTimeMS (uint32, not uint16!)
-//	raw(4,1) spellEffectDictID (for VISpellEffectSystem::Play via FindTyped)
-//
-// castTimeMS >= 3000 = auto-attack, > 0 && < 4000 = spell cast, 0 = instant.
-func SendCastingCombat(sess *session.Session, casterObjectID, targetObjectID uint32, castTimeMS uint32, spellFXDictID uint32) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCastingCombat)
-	dataBuf := make([]byte, 32)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeCastingCombat))
-
-	writer.WriteUint32(casterObjectID)
-	writer.WriteUint32(targetObjectID)
-	writer.WriteByte(0)              // additionalTargetCount = 0
-	writer.WriteUint32(castTimeMS)   // uint32 (PS2 raw(4,1))
-	writer.WriteUint32(spellFXDictID) // spell effect DictID
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
+// SendTrainingPoints sends opcode 0x0036.
+func SendTrainingPoints(sess *session.Session, sound bool, total int32) {
+	queueReliable(sess, protocol.OpcodeTrainingPoints, buildTrainingPoints(sound, total))
 }
 
-// SendCooldownTimer sends opcode 0x00CD — spell cooldown notification.
-// Client reads: byte(addedOrder) + 4 zero bytes + zigzag(cooldownMs).
-// addedOrder identifies which spell (matched to hotbar by client).
-func SendCooldownTimer(sess *session.Session, addedOrder byte, cooldownMs int64) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCooldownTimer)
-	dataBuf := make([]byte, 32)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeCooldownTimer))
-
-	writer.WriteByte(addedOrder)
-	writer.WriteUint32(0) // 4 reserved zero bytes
-	writer.Write7BitEncodedInt64(cooldownMs)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
+// buildTrainingPointsSpent is opcode 0x001D — Msg001D (0x00BDCAF0): one zigzag
+// int SUBTRACTED from the training points (VIPlayer+0x40), not a new total.
+func buildTrainingPointsSpent(spent int32) []byte {
+	return build(protocol.OpcodeUpdateTrainingPoints, 16, func(w *buffer.Writer) {
+		w.Write7BitEncodedInt64(int64(spent))
+	})
 }
 
-// SendCharacterDied sends opcode 0x005E — player death notification.
-// Client reads: no unique fields (just opcode). Sets dead state immediately.
-func SendCharacterDied(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCharacterDied)
-	dataBuf := make([]byte, 8)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeCharacterDied))
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-	log.Printf("PS2: sent CharacterDied (0x005E) to %s", sess.RemoteAddr())
+// SendTrainingPointsSpent sends opcode 0x001D.
+func SendTrainingPointsSpent(sess *session.Session, spent int32) {
+	queueReliable(sess, protocol.OpcodeUpdateTrainingPoints, buildTrainingPointsSpent(spent))
 }
 
-// SendResourceUpdate sends opcode 0x0775 — HP/resource animation trigger.
-// PS2: uint32(objectID) + uint8(animationAction). Client currently reads zigzag.
-func SendResourceUpdate(sess *session.Session, objectID uint32, action byte) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeResourceUpdate)
-	dataBuf := make([]byte, 16)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeResourceUpdate))
-
-	writer.Write7BitEncodedInt64(int64(objectID))
-	writer.WriteByte(action)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
+// buildPlayerP44 is opcode 0x001C: one raw u32 into VIPlayer+0x44, which the
+// stat-training window reads together with the class mastery count
+// (GetP44Total). It is not an NPC interaction.
+func buildPlayerP44(v uint32) []byte {
+	return build(protocol.OpcodePlayerP44, 8, func(w *buffer.Writer) { w.WriteUint32(v) })
 }
 
-// SendPlayerSpeed sends opcode 0x00F8 — player movement speed.
-// Client reads: float32 (4 bytes LE).
-func SendPlayerSpeed(sess *session.Session, speed float32) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodePlayerSpeed)
-	dataBuf := make([]byte, 16)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodePlayerSpeed))
-
-	// Speed as float32 (client reads ReadFloat32 which reads 4 bytes LE)
-	writer.WriteUint32(math.Float32bits(speed))
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
+// SendPlayerP44 sends opcode 0x001C.
+func SendPlayerP44(sess *session.Session, v uint32) {
+	queueReliable(sess, protocol.OpcodePlayerP44, buildPlayerP44(v))
 }
 
-// =============================================================================
-// Entity update cascade senders (PS2 world recovery opcodes)
-// These are used during reconnect/zone load to restore entity state.
-// =============================================================================
-
-// SendEntityUpdateFullUI sends opcode 0x07F4 — enables HUD + map + full entity update.
-func SendEntityUpdateFullUI(sess *session.Session, objectID uint32, ent entity.Entity) {
-	sendEntityUpdateCascade(sess, protocol.OpcodeEntityUpdateFullUI, objectID, ent)
+// buildExpDebt is opcode 0x00D9: one raw u32 into the player record's +0x2C
+// (FrontiersForge calls the field exp debt; unconfirmed). HP is never carried
+// here: it is the stat channel's (0x42, m_stat[7]).
+func buildExpDebt(v uint32) []byte {
+	return build(protocol.OpcodeExpDebt, 8, func(w *buffer.Writer) { w.WriteUint32(v) })
 }
 
-// SendEntityUpdateMapPanel sends opcode 0x07F0 — enables map + entity update.
-func SendEntityUpdateMapPanel(sess *session.Session, objectID uint32, ent entity.Entity) {
-	sendEntityUpdateCascade(sess, protocol.OpcodeEntityUpdateMapPanel, objectID, ent)
+// SendExpDebt sends opcode 0x00D9.
+func SendExpDebt(sess *session.Session, v uint32) {
+	queueReliable(sess, protocol.OpcodeExpDebt, buildExpDebt(v))
 }
 
-// SendEntityUpdateDirect sends opcode 0x07C0 — bare position/zone update.
-func SendEntityUpdateDirect(sess *session.Session, objectID uint32, ent entity.Entity) {
-	sendEntityUpdateCascade(sess, protocol.OpcodeEntityUpdateDirect, objectID, ent)
-}
-
-// sendEntityUpdateCascade is the shared body for entity update cascade opcodes.
-// PS2 uses fall-through entry points that all converge to the same update logic.
-func sendEntityUpdateCascade(sess *session.Session, opcode protocol.GameOpcode, objectID uint32, ent entity.Entity) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, opcode)
-	dataBuf := make([]byte, 256)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(opcode))
-
-	writer.WriteUint32(objectID)
-
-	x, y, z := ent.GetPosition()
-	writer.WriteFloat32(x)
-	writer.WriteFloat32(y)
-	writer.WriteFloat32(z)
-
-	// Entity name
-	var name string
-	switch e := ent.(type) {
-	case *entity.NPC:
-		name = e.Name
-	case *entity.Player:
-		name = e.Name
-	}
-	nameBytes := make([]byte, 24)
-	copy(nameBytes, []byte(name))
-	writer.WriteBytes(nameBytes)
-
-	// Flag byte (varies by opcode in PS2 but we send 0 for basic update)
-	writer.WriteByte(0)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// =============================================================================
-// Helpers used by the visibility system to send FullEntityCreate
-// =============================================================================
-
-// SerializeFullEntityCreate builds a reliable message buffer for 0x00B3.
-// Called from visibility.go when a new entity enters a player's view.
-func SerializeFullEntityCreate(objectID uint32, ent entity.Entity) []byte {
-	dataBuf := make([]byte, 512)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeFullEntityCreate))
-
-	// ObjectID as zigzag varint (matching SendFullEntityCreate and client's parseEntityReliable)
-	writer.Write7BitEncodedInt64(int64(objectID))
-
-	switch e := ent.(type) {
-	case *entity.NPC:
-		writeEntityCreateNPC(writer, e)
-	case *entity.Player:
-		writeEntityCreatePlayer(writer, e)
-	}
-
-	return dataBuf[:writer.Position()]
-}
-
-// SendPlayerSpeedPS2 is the CharacterHandler method version of SendPlayerSpeed.
-// Delegates to the standalone function.
-func (h *CharacterHandler) SendPlayerSpeedPS2(sess *session.Session, speed float32) {
-	SendPlayerSpeed(sess, speed)
-}
-
-// =============================================================================
-// Chat / Message opcodes
-// =============================================================================
-
-// SendColoredChat sends opcode 0x0A7B — colored text message (MOTD, shout, etc).
-// Client reads: int32(charCount) + UTF-16LE(chars) + 4 color bytes (RGBA).
-func SendColoredChat(sess *session.Session, text string, r, g, b, a uint8) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeColoredChat)
-	dataBuf := make([]byte, 4096)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeColoredChat))
-
-	// UTF-16LE string with int32 char count prefix
-	writer.WriteStringUnicode(text)
-
-	// RGBA color bytes
-	writer.WriteByte(r)
-	writer.WriteByte(g)
-	writer.WriteByte(b)
-	writer.WriteByte(a)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// SendClientMessage sends opcode 0x0A7A — system/broadcast message (white text).
-// Client reads: int32(charCount) + UTF-16LE(chars).
-func SendClientMessage(sess *session.Session, text string) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeClientMessage)
-	dataBuf := make([]byte, 4096)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeClientMessage))
-
-	writer.WriteStringUnicode(text)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// SendErrorMessage sends opcode 0x00CE — error text (red).
-// Client reads: int32(charCount) + UTF-16LE(chars).
-func SendErrorMessage(sess *session.Session, text string) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeErrorMessage)
-	dataBuf := make([]byte, 4096)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeErrorMessage))
-
-	writer.WriteStringUnicode(text)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// =============================================================================
-// Server status / keepalive opcodes
-// =============================================================================
-
-// SendServerReady sends opcode 0x07E0 — server keepalive/ready signal.
-// No payload — just the opcode. Sandstorm sends this periodically.
-func SendServerReady(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeServerReady)
-	writer := buffer.NewWriter(msg.Span())
-	writer.WriteUint16(uint16(protocol.OpcodeServerReady))
-	msg.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(msg)
-}
-
-// =============================================================================
-// Combat feedback opcodes
-// =============================================================================
-
-// SendOutMatched sends opcode 0x077A — "You are outmatched!" warning.
-// No payload — just the opcode. Sent when player targets a mob too far above their level.
-func SendOutMatched(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeOutMatched)
-	writer := buffer.NewWriter(msg.Span())
-	writer.WriteUint16(uint16(protocol.OpcodeOutMatched))
-	msg.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(msg)
-}
-
-// SendClassicTargetInfo sends opcode 0x0010 — target con/face colors.
-// Client reads: byte(faceColor) + byte(conColor) + padding.
-func SendClassicTargetInfo(sess *session.Session, faceColor, conColor byte) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeClassicTargetInfo)
-	dataBuf := make([]byte, 8)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeClassicTargetInfo))
-
-	writer.WriteByte(faceColor)
-	writer.WriteByte(conColor)
-	writer.WriteByte(0) // padding byte
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// =============================================================================
-// Economy / currency opcodes
-// =============================================================================
-
-// SendPlayerTunar sends opcode 0x0052 — update player's tunar (gold) amount.
-// Client reads: zigzag(tunarAmount).
+// SendPlayerTunar sends opcode 0x0052 — the case at 0x00BD263C: a zigzag int
+// into the player record's tunar.
 func SendPlayerTunar(sess *session.Session, tunar int64) {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodePlayerTunar)
 	dataBuf := make([]byte, 16)
@@ -934,9 +342,318 @@ func SendPlayerTunar(sess *session.Session, tunar int64) {
 	sess.Queue().AddWithSequence(msg)
 }
 
+// SendPlayerSpeed sends opcode 0x00F8 — the case at 0x00BD2BE0: a raw float32,
+// then VIClient::SetSpeed.
+func SendPlayerSpeed(sess *session.Session, speed float32) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodePlayerSpeed)
+	dataBuf := make([]byte, 16)
+	writer := buffer.NewWriter(dataBuf)
+	writer.WriteUint16(uint16(protocol.OpcodePlayerSpeed))
+
+	writer.WriteUint32(math.Float32bits(speed))
+
+	data := dataBuf[:writer.Position()]
+	msg.SetData(data)
+	sess.Queue().AddWithSequence(msg)
+}
+
+// SendPlayerSpeedPS2 is the CharacterHandler method version of SendPlayerSpeed.
+func (h *CharacterHandler) SendPlayerSpeedPS2(sess *session.Session, speed float32) {
+	SendPlayerSpeed(sess, speed)
+}
+
 // =============================================================================
-// Weather opcodes
+// Combat
 // =============================================================================
+
+// SendDamageIndication sends opcode 0x00DB — the case at 0x00BD2D70: u32
+// attacker, zigzag amount, u32 defender. CLIENT draws |amount| over the
+// defender when the attacker is the player, and over the player otherwise;
+// a positive amount is green (a heal).
+func SendDamageIndication(sess *session.Session, sourceObjectID uint32, damage int64, targetObjectID uint32) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeDamageIndication)
+	dataBuf := make([]byte, 32)
+	writer := buffer.NewWriter(dataBuf)
+	writer.WriteUint16(uint16(protocol.OpcodeDamageIndication))
+
+	writer.WriteUint32(sourceObjectID)
+	writer.Write7BitEncodedInt64(damage)
+	writer.WriteUint32(targetObjectID)
+
+	data := dataBuf[:writer.Position()]
+	msg.SetData(data)
+	sess.Queue().AddWithSequence(msg)
+}
+
+// SendCastingCombat sends opcode 0x00B1 — the case at 0x00BD1F10:
+//
+//	u32 caster, u32 target, u8 n, n × u32 further targets,
+//	u32 time in ms, u32 spell effect DictID (VISpellEffectSystem::Play)
+func SendCastingCombat(sess *session.Session, casterObjectID, targetObjectID uint32, castTimeMS uint32, spellFXDictID uint32) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCastingCombat)
+	dataBuf := make([]byte, 32)
+	writer := buffer.NewWriter(dataBuf)
+	writer.WriteUint16(uint16(protocol.OpcodeCastingCombat))
+
+	writer.WriteUint32(casterObjectID)
+	writer.WriteUint32(targetObjectID)
+	writer.WriteByte(0) // no further targets
+	writer.WriteUint32(castTimeMS)
+	writer.WriteUint32(spellFXDictID)
+
+	data := dataBuf[:writer.Position()]
+	msg.SetData(data)
+	sess.Queue().AddWithSequence(msg)
+}
+
+// SendCharacterDied sends opcode 0x005E — Msg005E (0x00BDAEB8): no payload.
+func SendCharacterDied(sess *session.Session) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCharacterDied)
+	dataBuf := make([]byte, 8)
+	writer := buffer.NewWriter(dataBuf)
+	writer.WriteUint16(uint16(protocol.OpcodeCharacterDied))
+
+	data := dataBuf[:writer.Position()]
+	msg.SetData(data)
+	sess.Queue().AddWithSequence(msg)
+	log.Printf("PS2: sent CharacterDied (0x005E) to %s", sess.RemoteAddr())
+}
+
+// buildEntityAction is opcode 0x0775 — the case at 0x00BD1930: a raw u32
+// entity id and a u8 VICSprite action, played on that entity's character
+// sprite. For the player's own entity only action 34 plays.
+func buildEntityAction(objectID uint32, action byte) []byte {
+	return build(protocol.OpcodeEntityAction, 8, func(w *buffer.Writer) {
+		w.WriteUint32(objectID)
+		w.WriteByte(action)
+	})
+}
+
+// SendEntityAction sends opcode 0x0775.
+func SendEntityAction(sess *session.Session, objectID uint32, action byte) {
+	queueReliable(sess, protocol.OpcodeEntityAction, buildEntityAction(objectID, action))
+}
+
+// SendOutMatched sends opcode 0x077A — the case at 0x00BD280C: no payload. The
+// console shows word 1196 in red, stops auto-attack and answers 0x077B.
+func SendOutMatched(sess *session.Session) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeOutMatched)
+	writer := buffer.NewWriter(msg.Span())
+	writer.WriteUint16(uint16(protocol.OpcodeOutMatched))
+	msg.SetSize(writer.Position())
+	sess.Queue().AddWithSequence(msg)
+}
+
+// buildClassicTargetInfo is opcode 0x0010 — Msg0010 (0x00BD9D60): u8
+// disposition, two more bytes, two fixed 64-unit wide fields read raw (the
+// guild and title lines), and the u32 token of the 0x0010 request it answers.
+// CLIENT keeps the three bytes only when that token matches the one it sent
+// (SendOpIntInt(16, token, target)): without it the console compares whatever
+// its stack held, which is how the 261-byte replies retail sends leave a PS2's
+// target colours to chance.
+func buildClassicTargetInfo(token uint32, disposition, b, c byte, guild, title string) []byte {
+	return build(protocol.OpcodeClassicTargetInfo, 2+3+128+128+4, func(w *buffer.Writer) {
+		w.WriteByte(disposition)
+		w.WriteByte(b)
+		w.WriteByte(c)
+		writeFixedWide(w, guild, 64)
+		writeFixedWide(w, title, 64)
+		w.WriteUint32(token)
+	})
+}
+
+// SendClassicTargetInfo sends opcode 0x0010.
+func SendClassicTargetInfo(sess *session.Session, token uint32, disposition, b, c byte, guild, title string) {
+	queueReliable(sess, protocol.OpcodeClassicTargetInfo, buildClassicTargetInfo(token, disposition, b, c, guild, title))
+}
+
+// buildAssistTarget is opcode 0x007B — Msg007B: a u32 entity id the client
+// targets (and asks 0x0010 about); 0xFFFFFFFF shows word 838 "There is no
+// target for assisting." It has nothing to do with quests.
+func buildAssistTarget(objectID uint32) []byte {
+	return build(protocol.OpcodeAssistTarget, 8, func(w *buffer.Writer) { w.WriteUint32(objectID) })
+}
+
+// SendAssistTarget sends opcode 0x007B.
+func SendAssistTarget(sess *session.Session, objectID uint32) {
+	queueReliable(sess, protocol.OpcodeAssistTarget, buildAssistTarget(objectID))
+}
+
+// =============================================================================
+// Pets
+// =============================================================================
+
+// buildSetPet is opcode 0x007E: one raw u32 into m_petId.
+func buildSetPet(petID uint32) []byte {
+	return build(protocol.OpcodeSetPet, 8, func(w *buffer.Writer) { w.WriteUint32(petID) })
+}
+
+// SendSetPet sends opcode 0x007E.
+func SendSetPet(sess *session.Session, petID uint32) {
+	queueReliable(sess, protocol.OpcodeSetPet, buildSetPet(petID))
+}
+
+// buildClearPet is opcode 0x007F: no payload; m_petId = -1 and the pet's name
+// is cleared. It does not touch the quest tracker.
+func buildClearPet() []byte {
+	return build(protocol.OpcodeClearPet, 2, nil)
+}
+
+// SendClearPet sends opcode 0x007F.
+func SendClearPet(sess *session.Session) {
+	queueReliable(sess, protocol.OpcodeClearPet, buildClearPet())
+}
+
+// =============================================================================
+// Loot
+// =============================================================================
+
+// maxCorpseItems is a VIItemList's capacity. VIItemList::Read does not clamp
+// the count it is sent, so more than this would run past the list on a PS2.
+const maxCorpseItems = 40
+
+// buildLoot is opcode 0x0018 — the case at 0x00BD1DD0: VIItemList::Read
+// (0x00BBC8D0) into the corpse list, a zigzag count, the u32 key the next new
+// record gets, and the records, each exactly as the MemoryDump writes an
+// inventory row (writeSingleItem; its key is its position). CLIENT opens the
+// loot window, or answers 0x0016 at once when it cannot (LootNoWindow).
+func buildLoot(items []database.CharInventoryEntry) []byte {
+	if len(items) > maxCorpseItems {
+		items = items[:maxCorpseItems]
+	}
+	return build(protocol.OpcodeLoot, 16+len(items)*1024, func(w *buffer.Writer) {
+		w.Write7BitEncodedInt64(int64(len(items)))
+		w.WriteUint32(uint32(len(items)))
+		for i := range items {
+			writeSingleItem(w, &items[i], i)
+		}
+	})
+}
+
+// SendLoot sends opcode 0x0018.
+func SendLoot(sess *session.Session, items []database.CharInventoryEntry) {
+	queueReliable(sess, protocol.OpcodeLoot, buildLoot(items))
+}
+
+// buildLootTakeAll is opcode 0x001A — Msg001A (0x00BD98B0): no payload. Every
+// corpse item the inventory has room for moves into it; a stack that did not
+// all fit stays on the corpse.
+func buildLootTakeAll() []byte {
+	return build(protocol.OpcodeLootTakeAll, 2, nil)
+}
+
+// SendLootTakeAll sends opcode 0x001A.
+func SendLootTakeAll(sess *session.Session) {
+	queueReliable(sess, protocol.OpcodeLootTakeAll, buildLootTakeAll())
+}
+
+// =============================================================================
+// Chat and text
+// =============================================================================
+
+// coloredChatPayload is opcode 0x0A7B — Msg0A7B (0x00BD3600): a wide string of
+// at most 1023 characters, then THREE colour bytes (VIRGB). A fourth byte was
+// once written here; CLIENT never reads it.
+func coloredChatPayload(text string, r, g, b uint8) []byte {
+	return build(protocol.OpcodeColoredChat, 2+4+2046+3, func(w *buffer.Writer) {
+		writeWideString(w, text, 2048)
+		w.WriteByte(r)
+		w.WriteByte(g)
+		w.WriteByte(b)
+	})
+}
+
+// SendColoredChat sends opcode 0x0A7B.
+func SendColoredChat(sess *session.Session, text string, r, g, b uint8) {
+	queueReliable(sess, protocol.OpcodeColoredChat, coloredChatPayload(text, r, g, b))
+}
+
+// clientMessagePayload is opcode 0x0A7A — Msg0A7A (0x00BD36D0): a wide string of
+// at most 1023 characters, drawn white.
+func clientMessagePayload(text string) []byte {
+	return build(protocol.OpcodeClientMessage, 2+4+2046, func(w *buffer.Writer) {
+		writeWideString(w, text, 2048)
+	})
+}
+
+// SendClientMessage sends opcode 0x0A7A.
+func SendClientMessage(sess *session.Session, text string) {
+	queueReliable(sess, protocol.OpcodeClientMessage, clientMessagePayload(text))
+}
+
+// buildErrorMessage is opcode 0x00CE — the case at 0x00BD1628: a wide string of
+// at most 1023 characters, drawn red (1, .25, .25).
+func buildErrorMessage(text string) []byte {
+	return build(protocol.OpcodeErrorMessage, 2+4+2046, func(w *buffer.Writer) {
+		writeWideString(w, text, 2048)
+	})
+}
+
+// SendErrorMessage sends opcode 0x00CE.
+func SendErrorMessage(sess *session.Session, text string) {
+	queueReliable(sess, protocol.OpcodeErrorMessage, buildErrorMessage(text))
+}
+
+// buildReplyName is opcode 0x07A3 — the case at 0x00BD2D28: ReadString(name,
+// 24), an 8-bit name of at most 23 characters, which becomes the name /r
+// replies to (GetReplyName). It is not a chat line.
+func buildReplyName(name string) []byte {
+	return build(protocol.OpcodeReplyName, 2+4+23, func(w *buffer.Writer) {
+		writeString8(w, name, 24)
+	})
+}
+
+// SendReplyName sends opcode 0x07A3.
+func SendReplyName(sess *session.Session, name string) {
+	queueReliable(sess, protocol.OpcodeReplyName, buildReplyName(name))
+}
+
+// buildSummonPrompt is opcode 0x00D3 — the case at 0x00BD2C48 and Msg00D3
+// (0x00BDB0E8): ReadString(name, 64), an 8-bit name of at most 63 characters,
+// then a u8. The console prompts "<name> wants to summon you, do you accept?"
+// (word 610) for 0, else "... resurrect you ..." (611). It is not NPC speech.
+func buildSummonPrompt(name string, resurrect bool) []byte {
+	return build(protocol.OpcodeSummonPrompt, 2+4+63+1, func(w *buffer.Writer) {
+		writeString8(w, name, 64)
+		var c byte
+		if resurrect {
+			c = 1
+		}
+		w.WriteByte(c)
+	})
+}
+
+// SendSummonPrompt sends opcode 0x00D3.
+func SendSummonPrompt(sess *session.Session, name string, resurrect bool) {
+	queueReliable(sess, protocol.OpcodeSummonPrompt, buildSummonPrompt(name, resurrect))
+}
+
+// =============================================================================
+// Server status and weather
+// =============================================================================
+
+// SendServerReady sends opcode 0x07E0 — Msg07E0: CLIENT answers with 0x07E1,
+// its DRDP counters as text, and echoes whatever followed the opcode (nothing
+// here, as in every captured one).
+func SendServerReady(sess *session.Session) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeServerReady)
+	writer := buffer.NewWriter(msg.Span())
+	writer.WriteUint16(uint16(protocol.OpcodeServerReady))
+	msg.SetSize(writer.Position())
+	sess.Queue().AddWithSequence(msg)
+}
+
+// buildZoneTransferConfirm is opcode 0x07B2 — the case at 0x00BD2DF8: one raw
+// u32 into VIClient+0x7578, which the constructor sets to 100. What CLIENT does
+// with it is not known yet; the old writer's single byte left it unread.
+func buildZoneTransferConfirm(value uint32) []byte {
+	return build(protocol.OpcodeZoneTransferConfirm, 8, func(w *buffer.Writer) { w.WriteUint32(value) })
+}
+
+// SendZoneTransferConfirm sends opcode 0x07B2.
+func SendZoneTransferConfirm(sess *session.Session, value uint32) {
+	queueReliable(sess, protocol.OpcodeZoneTransferConfirm, buildZoneTransferConfirm(value))
+}
 
 // SendWeatherControl sends opcode 0x00C5 — a weather change FADED over 30
 // seconds: CLIENT 0x00BD2CC0 calls VIAtmosphere::SetWeather(type, false).
@@ -968,188 +685,115 @@ func SendSkyboxWeather(sess *session.Session, weatherType byte) {
 }
 
 // =============================================================================
-// NPC Dialogue opcodes
+// Dialogs and the quest journal
 // =============================================================================
 
-// SendDialogueBox sends opcode 0x0046 — quest/NPC dialogue text (no options).
-// Client reads: uint32(counter) + unicodeString(text).
+// Room CLIENT has for the option dialog (Msg0034 0x00BDBD58).
+const (
+	maxDialogOptions = 6
+)
+
+// buildDialogueBox is opcode 0x0046 — the case at 0x00BD1A4C: a u32, then a
+// wide string of at most 511 characters, shown with ShowDialog (queued when a
+// dialog is already open).
+func buildDialogueBox(counter uint32, text string) []byte {
+	return build(protocol.OpcodeDialogueBox, 2+4+4+1022, func(w *buffer.Writer) {
+		w.WriteUint32(counter)
+		writeWideString(w, text, 1024)
+	})
+}
+
+// SendDialogueBox sends opcode 0x0046.
 func SendDialogueBox(sess *session.Session, counter uint32, text string) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeDialogueBox)
-	dataBuf := make([]byte, 4096)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeDialogueBox))
-
-	writer.WriteUint32(counter)
-	writer.WriteStringUnicode(text)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
+	queueReliable(sess, protocol.OpcodeDialogueBox, buildDialogueBox(counter, text))
 }
 
-// SendQuestPopupMulti sends opcode 0x0034 — dialogue with multiple choice options.
-// Client reads: uint32(counter) + unicodeString(greeting) + byte(optionCount) + N × unicodeString(option).
+// buildQuestPopupMulti is opcode 0x0034 — Msg0034 (0x00BDBD58): a u32 id the
+// answer (0x0035) echoes, the question as a wide string of at most 127
+// characters, a u8 option count and each option as a wide string of at most 63.
+// CLIENT has room for six options; more would run past them.
+func buildQuestPopupMulti(counter uint32, greeting string, options []string) []byte {
+	if len(options) > maxDialogOptions {
+		options = options[:maxDialogOptions]
+	}
+	return build(protocol.OpcodeQuestPopupMulti, 2+4+4+254+1+len(options)*(4+126), func(w *buffer.Writer) {
+		w.WriteUint32(counter)
+		writeWideString(w, greeting, 256)
+		w.WriteByte(byte(len(options)))
+		for _, o := range options {
+			writeWideString(w, o, 128)
+		}
+	})
+}
+
+// SendQuestPopupMulti sends opcode 0x0034.
 func SendQuestPopupMulti(sess *session.Session, counter uint32, greeting string, options []string) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeQuestPopupMulti)
-	dataBuf := make([]byte, 8192)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeQuestPopupMulti))
+	queueReliable(sess, protocol.OpcodeQuestPopupMulti, buildQuestPopupMulti(counter, greeting, options))
+}
 
-	writer.WriteUint32(counter)
-	writer.WriteStringUnicode(greeting)
+// buildQuestAdd is opcode 0x007C — the case at 0x00BD2B60: the u32 journal
+// token (VIClient+0x2BB0C, which the MemoryDump also sets) and a quest title as
+// a wide string of at most 127 characters, added while there are fewer than
+// eight.
+func buildQuestAdd(journalToken uint32, title string) []byte {
+	return build(protocol.OpcodeAddQuestLog, 2+4+4+254, func(w *buffer.Writer) {
+		w.WriteUint32(journalToken)
+		writeWideString(w, title, 256)
+	})
+}
 
-	// Option count (byte, max 255)
-	count := len(options)
-	if count > 255 {
-		count = 255
-	}
-	writer.WriteByte(byte(count))
+// SendQuestAdd sends opcode 0x007C.
+func SendQuestAdd(sess *session.Session, journalToken uint32, title string) {
+	queueReliable(sess, protocol.OpcodeAddQuestLog, buildQuestAdd(journalToken, title))
+}
 
-	for i := 0; i < count; i++ {
-		writer.WriteStringUnicode(options[i])
-	}
+// buildQuestRemove is opcode 0x007D — the case at 0x00BD2BA4 and Msg007D
+// (0x00BDBB98): the u32 journal token, then the zigzag INDEX of the title to
+// remove (the rest move up). An index of 8 or more is ignored.
+func buildQuestRemove(journalToken uint32, index int32) []byte {
+	return build(protocol.OpcodeDeleteQuest, 16, func(w *buffer.Writer) {
+		w.WriteUint32(journalToken)
+		w.Write7BitEncodedInt64(int64(index))
+	})
+}
 
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
+// SendQuestRemove sends opcode 0x007D.
+func SendQuestRemove(sess *session.Session, journalToken uint32, index int32) {
+	queueReliable(sess, protocol.OpcodeDeleteQuest, buildQuestRemove(journalToken, index))
 }
 
 // =============================================================================
-// Group opcodes
+// Group
 // =============================================================================
 
-// SendGroupInviteResponse sends opcode 0x0773 — group invite to a player.
-// Client reads: uint32(groupID) + uint32(inviterOID) + uint32(nameLen) + ASCII(name).
-func SendGroupInviteResponse(sess *session.Session, groupID, inviterObjectID uint32, inviterName string) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeGroupInviteResponse)
-	dataBuf := make([]byte, 256)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeGroupInviteResponse))
-
-	writer.WriteUint32(groupID)
-	writer.WriteUint32(inviterObjectID)
-	writer.WriteUint32(uint32(len(inviterName)))
-	writer.WriteStringUTF8Raw(inviterName)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
+// buildGroupInvite is opcode 0x0773 — Msg0773 (0x00BD3458): the u32 invite id
+// (which the accept and the decline, 0x0624, send back), a u32, and the
+// inviter's name as ReadString(name, 24): 8-bit, at most 23 characters. A
+// console already in a group declines it at once.
+func buildGroupInvite(inviteID, x uint32, inviterName string) []byte {
+	return build(protocol.OpcodeGroupInviteReceived, 2+4+4+4+23, func(w *buffer.Writer) {
+		w.WriteUint32(inviteID)
+		w.WriteUint32(x)
+		writeString8(w, inviterName, 24)
+	})
 }
 
-// SendGroupChat sends opcode 0x069E — group chat message.
-// Client reads: uint32(senderOID) + unicodeString(text).
+// SendGroupInvite sends opcode 0x0773.
+func SendGroupInvite(sess *session.Session, inviteID, x uint32, inviterName string) {
+	queueReliable(sess, protocol.OpcodeGroupInviteReceived, buildGroupInvite(inviteID, x, inviterName))
+}
+
+// buildGroupChat is opcode 0x069E — the case at 0x00BD15B8: a u32 CLIENT reads
+// and never uses, then a wide string of at most 1023 characters, drawn in the
+// group colour (.5, .5, 1).
+func buildGroupChat(senderObjectID uint32, text string) []byte {
+	return build(protocol.OpcodeGroupChat, 2+4+4+2046, func(w *buffer.Writer) {
+		w.WriteUint32(senderObjectID)
+		writeWideString(w, text, 2048)
+	})
+}
+
+// SendGroupChat sends opcode 0x069E.
 func SendGroupChat(sess *session.Session, senderObjectID uint32, text string) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeGroupChat)
-	dataBuf := make([]byte, 1024)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeGroupChat))
-
-	writer.WriteUint32(senderObjectID)
-	writer.WriteStringUnicode(text)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
+	queueReliable(sess, protocol.OpcodeGroupChat, buildGroupChat(senderObjectID, text))
 }
-
-// =============================================================================
-// Training / skills opcodes
-// =============================================================================
-
-// SendUpdateTrainingPoints sends opcode 0x001D — training point update.
-// Client reads: zigzag(value).
-func SendUpdateTrainingPoints(sess *session.Session, points int64) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeUpdateTrainingPoints)
-	dataBuf := make([]byte, 16)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeUpdateTrainingPoints))
-
-	writer.Write7BitEncodedInt64(points)
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// =============================================================================
-// Disconnect opcodes
-// =============================================================================
-
-// SendDisconnectNoError sends opcode 0x0777 — clean disconnect (no error message).
-func SendDisconnectNoError(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeDisconnectNoError)
-	writer := buffer.NewWriter(msg.Span())
-	writer.WriteUint16(uint16(protocol.OpcodeDisconnectNoError))
-	msg.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(msg)
-}
-
-// SendLoggedInElsewhere sends opcode 0x07A4 — "logged in from another location" disconnect.
-func SendLoggedInElsewhere(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeLoggedInFromAnotherLocationDC)
-	writer := buffer.NewWriter(msg.Span())
-	writer.WriteUint16(uint16(protocol.OpcodeLoggedInFromAnotherLocationDC))
-	msg.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(msg)
-}
-
-// =============================================================================
-// Loot opcodes
-// =============================================================================
-
-// SendLoot sends opcode 0x0018 — open loot window with items.
-// Wire format mirrors the item parser used by AddInvItem/EquipItem.
-func SendLoot(sess *session.Session, items []LootWindowItem) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeLoot)
-	dataBuf := make([]byte, 4096)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeLoot))
-
-	writer.Write7BitEncodedInt64(int64(len(items)))
-	for _, item := range items {
-		writer.WriteUint32(item.ItemID)
-		writer.Write7BitEncodedInt64(int64(item.Quantity))
-		writer.WriteStringUnicode(item.Name)
-		writer.Write7BitEncodedInt64(int64(item.IconID))
-	}
-
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// LootWindowItem describes an item in the loot popup.
-type LootWindowItem struct {
-	ItemID   uint32
-	Quantity int
-	Name     string
-	IconID   int
-}
-
-// =============================================================================
-// Quest opcodes
-// =============================================================================
-
-// SendDeleteQuest sends opcode 0x007D — remove quest from journal.
-func SendDeleteQuest(sess *session.Session, questID uint32) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeDeleteQuest)
-	dataBuf := make([]byte, 16)
-	writer := buffer.NewWriter(dataBuf)
-	writer.WriteUint16(uint16(protocol.OpcodeDeleteQuest))
-	writer.WriteUint32(questID)
-	data := dataBuf[:writer.Position()]
-	msg.SetData(data)
-	sess.Queue().AddWithSequence(msg)
-}
-
-// SendClearQuestTracker sends opcode 0x007F — clear active quest tracker.
-func SendClearQuestTracker(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeClearQuestTracker)
-	writer := buffer.NewWriter(msg.Span())
-	writer.WriteUint16(uint16(protocol.OpcodeClearQuestTracker))
-	msg.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(msg)
-}
-
-// Ensure binary import is used (for entity cascade helpers)
-var _ = binary.LittleEndian

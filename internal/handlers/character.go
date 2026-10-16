@@ -986,9 +986,9 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 	log.Printf("SendMemoryDump: using playerObjectID=%d (0x%X) for '%s'", playerObjectID, playerObjectID, player.Name)
 
 	// Send Camera1 (0x07D1) with value -1 (0xFFFFFFFF) before MemoryDump
-	camMsg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCamera1)
+	camMsg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeExpansionFlags)
 	camWriter := buffer.NewWriter(camMsg.Span())
-	camWriter.WriteUint16(uint16(protocol.OpcodeCamera1))
+	camWriter.WriteUint16(uint16(protocol.OpcodeExpansionFlags))
 	camWriter.WriteInt32(-1)
 	camMsg.SetSize(camWriter.Position())
 	sess.Queue().AddWithSequence(camMsg)
@@ -1151,7 +1151,7 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 	}
 
 	// Send ignore list and buddy list after memory dump (matches eqoa.live)
-	h.SendIgnoreList(sess)
+	h.SendNoCollideList(sess)
 	h.SendBuddyList(sess)
 
 	// Initialize state channel 0 from Player struct
@@ -1192,11 +1192,11 @@ const memoryDumpTrailerLen = 39
 // writeMemoryDumpTail writes everything the client reads after the bank/equipment
 // container, in the order func_00BD0630 reads it:
 //
-//	zigzag  spellCount            func_00BBCD10  (retail sends 0 — see below)
-//	zigzag  buffCount             func_00BBD0A8
-//	raw1    equipment flag        (1 in every capture)
-//	raw1    hasPendingLoot
-//	zigzag  skillCount + rows     func_00BDCDC0
+//	zigzag  bank listing rows     func_00BBCD10
+//	zigzag  bank 32-byte rows     func_00BBD0A8
+//	raw1    bank flag             (1 in every capture)
+//	raw1    HaveCorpse            (set: the corpse's item list follows)
+//	zigzag  ability count + rows  func_00BDCDC0 (VIAbility records)
 //	raw4    run speed             (0x410D5555 = 8.833 in every capture)
 //	raw4    unknown               (0)
 //	6x4     raw4 weapon hotbar    func_00BFD178
@@ -1209,18 +1209,20 @@ const memoryDumpTrailerLen = 39
 // whole MemoryDump, and dropped the session back to server select — which is
 // what "picking a character returns to server select" was.
 //
-// Abilities: retail does NOT use the spell list for them. Both captured
-// characters send spellCount 0 and carry their songs/spells as skill rows
-// (Sandstorm's bard sends 42, including "Chant of Battle"). Our stored
-// spellbook is in a different row format than func_00BDCBE0 reads, so it is
-// not sent at all rather than sent malformed; wiring it into the skill table
-// is separate work.
+// What CLIENT reads here, after the bank's items (func_00BB9C80, then
+// Msg000D): the bank's listing rows (func_00BBCD10, a zigzag count), its
+// 32-byte rows (func_00BBD0A8, a zigzag count), the bank's flag byte, the
+// HaveCorpse byte (a set one is followed by the corpse's item list), and the
+// ability list (ReadAbilities 0x00BDCDC0: a zigzag count of VIAbility
+// records). The ability list is where retail carries every song and spell
+// (Sandstorm's bard sends 42); our spellbook is not sent yet, and
+// writeAbilityRecord (ps2opcodes.go) writes its rows in that format when it is.
 func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player) {
-	w.Write7BitEncodedInt64(0) // spellCount   — abilities ride the skill table
-	w.Write7BitEncodedInt64(0) // buffCount
-	w.WriteByte(0x01)          // equipment trailing flag
-	w.WriteByte(0x00)          // hasPendingLoot
-	w.Write7BitEncodedInt64(0) // skillCount
+	w.Write7BitEncodedInt64(0) // the bank's listing rows
+	w.Write7BitEncodedInt64(0) // the bank's 32-byte rows
+	w.WriteByte(0x01)          // the bank's flag byte
+	w.WriteByte(0x00)          // HaveCorpse: no corpse list follows
+	w.Write7BitEncodedInt64(0) // the ability list's count
 
 	w.WriteFloat32(player.Speed)
 	w.WriteUint32(0)
@@ -1349,50 +1351,6 @@ func itemPatternStats(p *database.ItemPatternRecord) map[int]int {
 	addStat(26, p.LR)
 	addStat(27, p.AR)
 	return stats
-}
-
-// writeSingleSpell serializes one DumpSpell entry to the MemoryDump wire format.
-// Wire format: 9 zigzag + uint16(range) + 7 zigzag + name + desc + byte(0x00).
-//
-// NOT CURRENTLY CALLED. This format is not what the PS2 reads: the rows landed
-// where func_00BD0630 reads the skill table (func_00BDCBE0: 15 zigzag + raw4 +
-// two UTF-16 blobs + a sub-entry count), so any character with spells sent the
-// PS2 malformed rows. Retail carries abilities as skill rows — Sandstorm's bard
-// sends 42 of them, spell count 0 — so delivering our spellbook means mapping
-// it onto that row format, not this one. Kept as the DB→wire field mapping that
-// work will start from.
-func writeSingleSpell(w *buffer.Writer, e *database.CharSpellEntry) {
-	sp := &e.Pattern
-
-	// 9 zigzag fields
-	w.Write7BitEncodedInt64(int64(sp.SpellID))
-	w.Write7BitEncodedInt64(int64(e.AddedOrder))
-	w.Write7BitEncodedInt64(int64(e.OnHotBar))
-	w.Write7BitEncodedInt64(int64(e.WhereOnHotBar))
-	w.Write7BitEncodedInt64(int64(e.Unk1))
-	w.Write7BitEncodedInt64(int64(e.ShowHide))
-	w.Write7BitEncodedInt64(int64(sp.AbilityLvl))
-	w.Write7BitEncodedInt64(int64(sp.Unk2))
-	w.Write7BitEncodedInt64(int64(sp.Unk3))
-
-	// Range as uint16 (half-float bits stored as integer in DB)
-	w.WriteUint16(uint16(sp.Range))
-
-	// 7 zigzag fields
-	w.Write7BitEncodedInt64(int64(sp.CastTime))
-	w.Write7BitEncodedInt64(int64(sp.Power))
-	w.Write7BitEncodedInt64(sp.IconColor)
-	w.Write7BitEncodedInt64(sp.Icon)
-	w.Write7BitEncodedInt64(int64(sp.Scope))
-	w.Write7BitEncodedInt64(int64(sp.Recast))
-	w.Write7BitEncodedInt64(int64(sp.EqpRequire))
-
-	// Spell name + description (WriteStringUnicode = int32 charCount + UTF-16LE)
-	w.WriteStringUnicode(sp.SpellName)
-	w.WriteStringUnicode(sp.SpellDesc)
-
-	// Terminator
-	w.WriteByte(0x00)
 }
 
 // flushStateChannels immediately generates and queues state channel messages.
@@ -1525,16 +1483,16 @@ func (h *CharacterHandler) SendDelCharacter(sess *session.Session, charID int) {
 	sess.Queue().AddWithSequence(msg)
 }
 
-// SendCamera1 sends Camera1 (opcode 0x07D1) with value 0x03.
-// Sandstorm sends this as the first message on a freshly promoted master
-// session, before Time and the MemoryDump fragments. eqoa.live only ever sends
-// Camera1, never Camera2 (0x07F5).
-// SendCamera1 sends opcode 0x07D1. The payload is int32 -1 on every session —
-// see the note in AuthHandler where the same message is built.
-func (h *CharacterHandler) SendCamera1(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCamera1)
+// SendExpansionFlags sends opcode 0x07D1 (once called Camera1): a u32 into
+// VIClient+0x50304, which CLIENT ANDs with the disc's own expansion flags for
+// the race camera and the frame rate. Retail sends -1, every bit, on every
+// session, and Sandstorm sends it first on a freshly promoted session, before
+// Time and the MemoryDump fragments; see the note in AuthHandler where the
+// same message is built. 0x07F5 (once Camera2) has no case in CLIENT.
+func (h *CharacterHandler) SendExpansionFlags(sess *session.Session) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeExpansionFlags)
 	writer := buffer.NewWriter(msg.Span())
-	writer.WriteUint16(uint16(protocol.OpcodeCamera1))
+	writer.WriteUint16(uint16(protocol.OpcodeExpansionFlags))
 	writer.WriteInt32(-1)
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)
@@ -1553,20 +1511,21 @@ func (h *CharacterHandler) SendTime(sess *session.Session) {
 	h.sendTimeOnly(sess)
 }
 
-// SendIgnoreList sends the player ignore list (opcode 0x1005).
-// Based on C# ServerPlayerIgnoreList.PlayerIgnoreList()
-func (h *CharacterHandler) SendIgnoreList(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeIgnoreList)
+// SendNoCollideList sends opcode 0x1005, empty. It is not an ignore list:
+// VIClientPart38300::Recv (0x00BFA850) appends a zigzag count of
+// {ReadString(name, 32), u32 id} entries to the names RefreshCollision treats
+// as non-collideable (0x1003 adds one, 0x1004 removes one by id). A zigzag 0
+// appends nothing.
+func (h *CharacterHandler) SendNoCollideList(sess *session.Session) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeNoCollideList)
 	writer := buffer.NewWriter(msg.Span())
 
-	// Write opcode in data (C# reference format)
-	writer.WriteUint16(uint16(protocol.OpcodeIgnoreList))
-	// Write empty ignore list count (0 ignored players)
-	writer.WriteByte(0)
+	writer.WriteUint16(uint16(protocol.OpcodeNoCollideList))
+	writer.Write7BitEncodedInt64(0) // no entries
 
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)
-	log.Printf("Sent IgnoreList (empty) to %s", sess.RemoteAddr())
+	log.Printf("Sent NoCollideList (empty) to %s", sess.RemoteAddr())
 }
 
 // SendBuddyList sends the buddy list (opcode 0x03D5).

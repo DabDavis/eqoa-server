@@ -609,6 +609,10 @@ func TestPlayerFacingSinksAreASCII(t *testing.T) {
 		"gmReply": true, "reply": true, "npcSay": true,
 		"buildClientMessage": true, "buildColoredMessage": true,
 		"sendOptionBox": true,
+		// ps2opcodes.go's text writers.
+		"SendClientMessage": true, "SendColoredChat": true, "SendErrorMessage": true,
+		"SendDialogueBox": true, "SendQuestPopupMulti": true, "SendQuestAdd": true,
+		"SendGroupChat": true, "SendSummonPrompt": true, "SendReplyName": true,
 	}
 	fset := token.NewFileSet()
 	pkgs, err := parser.ParseDir(fset, ".", func(fi os.FileInfo) bool {

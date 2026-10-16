@@ -444,9 +444,9 @@ func (h *AuthHandler) HandleAuthenticate2(sess *session.Session, msg *protocol.M
 	// CLAUDE.md and the memory notes both record as wrong; SendMemoryDump was
 	// corrected in 2026-08-03 but these two character-select senders were not.
 	// Note: eqoa.live only sends Camera1, never Camera2 (0x07F5)
-	msg1 := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCamera1)
+	msg1 := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeExpansionFlags)
 	writer1 := buffer.NewWriter(msg1.Span())
-	writer1.WriteUint16(uint16(protocol.OpcodeCamera1))
+	writer1.WriteUint16(uint16(protocol.OpcodeExpansionFlags))
 	writer1.WriteInt32(-1)
 	msg1.SetSize(writer1.Position())
 	sess.Queue().AddWithSequence(msg1)

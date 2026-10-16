@@ -2,19 +2,17 @@ package handlers
 
 import (
 	"log"
-	"sync"
 
+	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
-	"github.com/eqoa/pkg/pkg/buffer"
 )
 
 // TargetHandler handles targeting-related messages.
 type TargetHandler struct {
-	sessionManager  *session.Manager
-	gameWorld       *entity.World
-	targetCounters  sync.Map // session addr → *uint32 (server-side target counter per session)
+	sessionManager *session.Manager
+	gameWorld      *entity.World
 }
 
 // NewTargetHandler creates a new target handler.
@@ -42,7 +40,7 @@ type targetInfo struct {
 	faceColor byte
 	conColor  byte
 	objectID  uint32
-	counter   uint32
+	counter   uint32 // the request's token, echoed
 }
 
 // HandleTarget handles a client target request (opcode 0x0760 or 0x0010).
@@ -54,22 +52,13 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 
 	reader := buffer.NewReader(data)
 
-	_, _ = reader.ReadUint32() // client counter (discarded, C# also discards this)
+	// CLIENT's request is SendOpIntInt(16, token, target): the token comes
+	// back last in the reply, and Msg0010 keeps the reply's colours only when
+	// it matches.
+	token, _ := reader.ReadUint32()
 	targetObjectID, _ := reader.ReadUint32()
 
-	// Server-side target counter per session (C# uses _targetCounter++ starting at 1)
-	var counterPtr *uint32
-	if val, ok := h.targetCounters.Load(sess.RemoteAddr()); ok {
-		counterPtr = val.(*uint32)
-	} else {
-		initial := uint32(0)
-		counterPtr = &initial
-		h.targetCounters.Store(sess.RemoteAddr(), counterPtr)
-	}
-	*counterPtr++
-	serverCounter := *counterPtr
-
-	log.Printf("Target from %s: targetObjectID=%d serverCounter=%d", sess.RemoteAddr(), targetObjectID, serverCounter)
+	log.Printf("Target from %s: targetObjectID=%d token=%d", sess.RemoteAddr(), targetObjectID, token)
 
 	if h.gameWorld == nil {
 		return nil
@@ -86,7 +75,7 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 	// Get target info via type switch
 	info := targetInfo{
 		objectID: targetObjectID,
-		counter:  serverCounter,
+		counter:  token,
 	}
 
 	switch t := targetEntity.(type) {
@@ -168,34 +157,14 @@ func calcConColor(observerLevel, targetLevel int) byte {
 	}
 }
 
-// sendTargetInfo sends the target info response (261 bytes).
-// Uses opcode 0x0010 (ClassicTargetInfo) matching eqoa.live pcap.
-// Wire format: opcode(2) + face(1) + con(1) + byte(1, always 1) + zeros(256) = 261 bytes.
+// sendTargetInfo answers a 0x0010 request (buildClassicTargetInfo): face,
+// con, a byte retail always sends as 1, the two 64-unit wide lines (empty
+// here), and the request's token. Retail's replies stop at 261 bytes, before
+// the token, which leaves a PS2 comparing whatever its stack held; with the
+// token they are 265 and the colours apply every time.
 func (h *TargetHandler) sendTargetInfo(sess *session.Session, info *targetInfo) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeClassicTargetInfo)
-	span := msg.Span()
-
-	// Zero out 261 bytes
-	for i := 0; i < 261 && i < len(span); i++ {
-		span[i] = 0
-	}
-
-	writer := buffer.NewWriter(span)
-
-	// Write opcode 0x0010
-	writer.WriteUint16(uint16(protocol.OpcodeClassicTargetInfo))
-
-	// Byte 2: face color (0=hostile red, 2=neutral, 4=friendly blue)
-	writer.WriteByte(info.faceColor)
-	// Byte 3: con color (0=green, 1=yellow, 2=white)
-	writer.WriteByte(info.conColor)
-	// Byte 4: always 1 (observed in eqoa.live pcap)
-	writer.WriteByte(0x01)
-
-	msg.SetSize(261)
-
-	log.Printf("TargetPacket: face=%d con=%d targetID=%d counter=%d",
+	queueReliable(sess, protocol.OpcodeClassicTargetInfo,
+		buildClassicTargetInfo(info.counter, info.faceColor, info.conColor, 0x01, "", ""))
+	log.Printf("TargetPacket: face=%d con=%d targetID=%d token=%d",
 		info.faceColor, info.conColor, info.objectID, info.counter)
-
-	sess.Queue().AddWithSequence(msg)
 }

@@ -1,0 +1,41 @@
+# Compiled binaries in the repository root (anchored: cmd/ has directories of
+# the same names, and an unanchored pattern ignored their source)
+/authserver
+/authserver-vps
+/gameserver
+/gameserver-*
+/gameserver.*
+/esfextract
+/bgmextract
+/dataextract
+/imgextract
+/extractdb
+/importdump
+/sqlimport
+/testclient
+/testlogin
+
+# Databases and their backups (accounts, characters, captured NPC data)
+*.db
+*.db.*
+*.bak
+*.bak-*
+
+# Logs
+*.log
+
+# Config with secrets (keep the example)
+/config.yaml
+/config.yaml.*
+!/config.yaml.example
+
+# Runtime: the patch payloads, the world ESFs and their archives (game data;
+# Sandstorm's S2 among the payloads)
+/patches/
+/worlds/
+/patches-attic-*.tar.gz
+
+# IDE and caches
+.vscode/
+.idea/
+__pycache__/

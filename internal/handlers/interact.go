@@ -1,0 +1,413 @@
+package handlers
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/protocol"
+	"github.com/eqoa/server/internal/session"
+)
+
+// InteractHandler handles NPC interaction (dialogue).
+type InteractHandler struct {
+	sessionManager *session.Manager
+	gameWorld      *entity.World
+}
+
+// NewInteractHandler creates a new interact handler.
+func NewInteractHandler(sessionMgr *session.Manager) *InteractHandler {
+	return &InteractHandler{sessionManager: sessionMgr}
+}
+
+// SetGameWorld sets the game world reference.
+func (h *InteractHandler) SetGameWorld(gw *entity.World) {
+	h.gameWorld = gw
+}
+
+// RegisterHandlers registers interact handlers with the registry.
+func (h *InteractHandler) RegisterHandlers(r *Registry) {
+	r.Register(protocol.OpcodeInteract, h.HandleInteract)
+	r.Register(protocol.OpcodeDialogueBoxOption, h.HandleDialogueOption)
+}
+
+// HandleInteract handles NPC interaction requests (opcode 0x0004).
+// Client sends: uint32 targetObjectID
+// For coachmen (NPCType & 0x100 != 0): sends OptionBox with destinations.
+// For other NPCs: sends debug DialogueBox.
+func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Message) error {
+	data := msg.Data()
+	if len(data) < 4 {
+		return nil
+	}
+
+	reader := buffer.NewReader(data)
+	targetObjectID, _ := reader.ReadUint32()
+
+	log.Printf("Interact from %s: targetObjectID=%d", sess.RemoteAddr(), targetObjectID)
+
+	if h.gameWorld == nil {
+		return nil
+	}
+
+	// Look up the target entity
+	targetEntity, found := h.gameWorld.FindEntityByObjectID(sess, targetObjectID)
+	if !found {
+		log.Printf("Interact: target objectID %d not found", targetObjectID)
+		return nil
+	}
+
+	// Distance check
+	player := h.gameWorld.SessionPlayer(sess)
+	if player == nil {
+		return nil
+	}
+	if !entity.InRange(player, targetEntity, entity.InteractRange) {
+		// Name the target and print both positions. "too far (dist=21.3)" alone
+		// cannot distinguish the two failures that look identical from the
+		// client: a genuinely distant NPC, versus the server resolving the
+		// WRONG entity for the objectID the player clicked (object IDs are
+		// recycled per session, so a stale one still resolves — to someone
+		// else). With the name in the log, one line tells them apart.
+		tx, ty, tz := targetEntity.GetPosition()
+		log.Printf("Interact: %s too far from %s (dist=%.1f > %.1f) player=(%.1f, %.1f, %.1f) target=(%.1f, %.1f, %.1f) objID=%d",
+			player.Name, entity.EntityName(targetEntity),
+			entity.DistanceBetween(player, targetEntity), entity.InteractRange,
+			player.X, player.Y, player.Z, tx, ty, tz, targetObjectID)
+		return nil
+	}
+
+	// Travel NPCs. Two kinds, and the difference is the world:
+	//
+	//   Coachman/Coachwoman — overland travel WITHIN the current world.
+	//   Gatekeeper/Harbormaster — CROSS-world travel. These are the only
+	//     routes that set CoachDest.World, and the only way to reach guk
+	//     (world 8) short of a GM #goto.
+	//
+	// Both reuse the same pending-destination list and option-box paging, so a
+	// warp NPC needs no new dialogue plumbing.
+	// The hard-disk technician. Checked before the travel NPCs because a name
+	// belongs to exactly one of them, and because his menu is not a list of
+	// destinations — a numbered pick here means something else entirely.
+	if npc, ok := targetEntity.(*entity.NPC); ok && npc.Name == HDDSetupNPC {
+		player.PendingCoachDests = nil // this box is not a travel box
+		// Say so BEFORE opening the menu, rather than letting the player pick a
+		// line and be turned down. A menu whose every option is refused is worse
+		// than no menu, and the player has something to do about this one.
+		if hddConsoleUpdating(sess) {
+			player.PendingHDDMenu = HDDMenuNone
+			h.npcSay(sess, HDDUpdatingReply)
+			log.Printf("HDD: %s opened %s while mid-SD-refresh; told to update again",
+				player.Name, HDDSetupNPC)
+			return nil
+		}
+		player.PendingHDDMenu = HDDMenuMain
+		h.sendOptionBox(sess, HDDGreeting, HDDMenuFor(HDDMenuMain))
+		log.Printf("HDD: %s opened %s", player.Name, HDDSetupNPC)
+		return nil
+	}
+
+	if npc, ok := targetEntity.(*entity.NPC); ok {
+		var routes []entity.CoachDest
+		switch {
+		case entity.IsWarpNPC(npc.Name):
+			routes = h.gameWorld.GetWarpDestinations(npc.Name)
+		case entity.IsCoachman(npc.Name):
+			routes = h.gameWorld.GetCoachDestinations(npc.Name, npc.World)
+		}
+		if len(routes) > 0 {
+			player.PendingCoachDests = routes
+			player.CoachPage = 0
+			h.sendCoachPage(sess, player)
+			return nil
+		}
+	}
+
+	// Default: build debug info via type switch
+	var debug string
+
+	switch t := targetEntity.(type) {
+	case *entity.NPC:
+		debug += fmt.Sprintf("[%s] ServerID=%d ObjID=%d\n", t.Name, t.ServerID, targetObjectID)
+		debug += fmt.Sprintf("NPCID=%d Type=%d\n", t.NPCID, t.NPCType)
+		debug += fmt.Sprintf("HP=%d/%d\n", t.HP, t.MaxHP)
+		debug += fmt.Sprintf("Level=%d\n", t.Level)
+		debug += fmt.Sprintf("Speed=%.1f\n", t.Speed)
+		debug += fmt.Sprintf("Pos=(%.1f, %.1f, %.1f)\n", t.X, t.Y, t.Z)
+		debug += fmt.Sprintf("Facing=%.2f\n", t.Facing)
+		debug += fmt.Sprintf("Model=%d Size=%.1f\n", t.ModelID, t.Size)
+		debug += fmt.Sprintf("Spawn=(%.1f, %.1f, %.1f) F=%.2f\n", t.SpawnX, t.SpawnY, t.SpawnZ, t.SpawnFacing)
+		debug += fmt.Sprintf("Wpn=%d/%d Shld=%d\nTorso=%d Arm=%d Glv=%d\nLeg=%d Ft=%d Hd=%d\n",
+			t.PrimaryWeapon, t.SecondaryWeapon, t.Shield,
+			t.Torso, t.Forearm, t.NPCGloves,
+			t.NPCLegs, t.Feet, t.Head)
+	case *entity.Player:
+		debug += fmt.Sprintf("[%s] ServerID=%d ObjID=%d\n", t.Name, t.ServerID, targetObjectID)
+		debug += fmt.Sprintf("HP=%d/%d Power=%d/%d\n", t.HP, t.MaxHP, t.Power, t.MaxPower)
+		debug += fmt.Sprintf("Level=%d\n", t.Level)
+		debug += fmt.Sprintf("STR=%d STA=%d AGI=%d DEX=%d\nWIS=%d INT=%d CHA=%d\n",
+			t.Str, t.Sta, t.Agi, t.Dex, t.Wis, t.Int, t.Cha)
+		debug += fmt.Sprintf("AC=%d Poi=%d Dis=%d Fire=%d\nCold=%d Lit=%d Arc=%d\n",
+			t.AC, t.PoisonR, t.DiseaseR, t.FireR, t.ColdR, t.LightningR, t.ArcaneR)
+		debug += fmt.Sprintf("Speed=%.1f\n", t.Speed)
+		debug += fmt.Sprintf("Pos=(%.1f, %.1f, %.1f)\n", t.X, t.Y, t.Z)
+		debug += fmt.Sprintf("Facing=%.2f\n", t.Facing)
+		debug += fmt.Sprintf("Model=%d Size=%.1f\n", t.ModelID, t.Size)
+	default:
+		debug += fmt.Sprintf("[???] ObjID=%d\n", targetObjectID)
+	}
+
+	log.Printf("Interact debug for ObjID %d:\n%s", targetObjectID, debug)
+
+	h.sendDialogueBox(sess, debug)
+
+	return nil
+}
+
+// coachDestsPerPage is the max destinations per page (client option box limit is 6,
+// reserve slots for "More..." / "Back" navigation as needed).
+const coachDestsPerPage = 5
+
+// sendCoachPage sends the current page of coaching destinations to the player.
+func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Player) {
+	dests := player.PendingCoachDests
+	page := player.CoachPage
+	total := len(dests)
+
+	start := page * coachDestsPerPage
+	end := start + coachDestsPerPage
+	if end > total {
+		end = total
+	}
+	pageDests := dests[start:end]
+	hasMore := end < total
+	hasBack := page > 0
+
+	options := make([]string, 0, len(pageDests)+2)
+	for _, d := range pageDests {
+		options = append(options, d.Name)
+	}
+	if hasMore {
+		options = append(options, "More...")
+	}
+	if hasBack {
+		options = append(options, "Back")
+	}
+
+	greeting := "Greetings, traveler! Where would you like to go?"
+	log.Printf("Coaching: page %d, showing %d dests (%d-%d of %d), options=%v", page, len(pageDests), start, end-1, total, options)
+	h.sendOptionBox(sess, greeting, options)
+}
+
+// HandleDialogueOption handles the client's dialogue option selection (opcode 0x0035).
+// Client sends: uint32 targetObjectID + byte selectedOption (255 = cancel).
+func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *protocol.Message) error {
+	data := msg.Data()
+	if len(data) < 5 {
+		return nil
+	}
+
+	reader := buffer.NewReader(data)
+	targetObjectID, _ := reader.ReadUint32()
+	selectedOption, _ := reader.ReadByte()
+	log.Printf("DialogueOption from %s: targetObjectID=%d option=%d", sess.RemoteAddr(), targetObjectID, selectedOption)
+
+	if h.gameWorld == nil {
+		return nil
+	}
+
+	player := h.gameWorld.SessionPlayer(sess)
+	if player == nil {
+		return nil
+	}
+
+	// The technician's menu, before the travel list is consulted. A pick is
+	// just a number; only the menu the player has open says what it means, and
+	// reading a "format the disk" pick against a list of destinations is the
+	// one mistake here that cannot be undone.
+	if player.PendingHDDMenu != HDDMenuNone {
+		menu := player.PendingHDDMenu
+		if selectedOption == 255 {
+			// Same rule as below: a close is not the player's last word, the
+			// PS2 sends 255 before the real pick when two boxes are open. But
+			// an ARMED format must not survive a closed box, so the arm goes
+			// even though the menu stays.
+			clearFormatArm(player.ServerID)
+			return nil
+		}
+		player.PendingHDDMenu = HandleHDDMenuPick(sess, player, menu,
+			int(selectedOption), func(t string) { h.npcSay(sess, t) })
+		if next := HDDMenuFor(player.PendingHDDMenu); next != nil {
+			h.sendOptionBox(sess, HDDGreeting, next)
+		}
+		return nil
+	}
+
+	if len(player.PendingCoachDests) == 0 {
+		return nil
+	}
+
+	// 255 is the client closing a dialogue box, and it is NOT reliably the
+	// player's last word: the PS2 sends it immediately BEFORE the real
+	// selection when more than one box is open (opening the dialogue twice is
+	// easy, and the Interact rate limiter makes a double-click likely).
+	// Observed 2026-08-06:
+	//
+	//   option=255   <- clears the list
+	//   option=1     <- "Odus", dropped on the floor, no error anywhere
+	//
+	// Discarding the destinations here therefore ate a real pick and looked
+	// exactly like the travel NPC ignoring the player. Only a selection or the
+	// next Interact should replace the list; a close just closes the box.
+	if selectedOption == 255 {
+		return nil
+	}
+
+	dests := player.PendingCoachDests
+	page := player.CoachPage
+	total := len(dests)
+
+	start := page * coachDestsPerPage
+	end := start + coachDestsPerPage
+	if end > total {
+		end = total
+	}
+	destsOnPage := end - start
+	hasMore := end < total
+	hasBack := page > 0
+
+	idx := int(selectedOption)
+
+	// Check for "More..." selection
+	if hasMore && idx == destsOnPage {
+		player.CoachPage++
+		h.sendCoachPage(sess, player)
+		return nil
+	}
+
+	// Check for "Back" selection
+	moreOffset := 0
+	if hasMore {
+		moreOffset = 1
+	}
+	if hasBack && idx == destsOnPage+moreOffset {
+		player.CoachPage--
+		h.sendCoachPage(sess, player)
+		return nil
+	}
+
+	// Destination selection
+	destIdx := start + idx
+	if destIdx >= total {
+		log.Printf("DialogueOption: invalid option %d (page %d, total %d)", selectedOption, page, total)
+		player.PendingCoachDests = nil
+		return nil
+	}
+
+	dest := dests[destIdx]
+	player.PendingCoachDests = nil
+
+	log.Printf("Coaching: teleporting %s to %s (%.1f, %.1f, %.1f) world=%d",
+		player.Name, dest.Name, dest.X, dest.Y, dest.Z, dest.World)
+
+	// Increment teleport counter
+	player.TeleportCounter++
+
+	// Remember the world BEFORE the teleport so it survives a relog. This used
+	// to be hardcoded to 0 in the send below, which was correct while every
+	// route was intra-Tunaria and silently wrong the moment one was not.
+	worldChanged := player.World != dest.World
+	player.World = dest.World
+
+	// Send teleport packet
+	h.sendTeleport(sess, dest.World, dest.X, dest.Y, dest.Z, dest.Facing, player.TeleportCounter)
+
+	// Hold the state channels until the client has loaded, and drop the
+	// entities it can currently see. The client re-arms everything by sending
+	// 0x0049 when it is done — see worldload.go.
+	beginWorldLoad(sess, worldChanged)
+
+	// Update player position in the world
+	h.gameWorld.UpdatePosition(player.ServerID, dest.X, dest.Y, dest.Z, dest.Facing)
+
+	return nil
+}
+
+// sendDialogueBox sends a simple dialogue box (no options) to the client.
+// C# reference: Entity.Interaction.SendDialogue with dialogueType = DialogueBox (0x0046)
+// Wire format: uint16 opcode + uint32 counter(0) + int32 charCount + UTF-16LE string
+func (h *InteractHandler) sendDialogueBox(sess *session.Session, text string) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeDialogueBox)
+	writer := buffer.NewWriter(msg.Span())
+
+	writer.WriteUint16(uint16(protocol.OpcodeDialogueBox))
+	writer.WriteUint32(0) // counter = 0 for simple dialogue
+	writer.WriteStringUnicode(text)
+
+	msg.SetSize(writer.Position())
+	sess.Queue().AddWithSequence(msg)
+}
+
+// sendOptionBox sends a dialogue with selectable options to the client.
+// Wire format (from eqoa.live pcap): uint16 opcode + uint32 dialogueCounter + UTF-16LE text + byte optionCount + [UTF-16LE options...]
+// The uint32 is a dialogue counter/ID (pcap shows values like 4), NOT the option count.
+func (h *InteractHandler) sendOptionBox(sess *session.Session, text string, options []string) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeQuestPopupMulti)
+	writer := buffer.NewWriter(msg.Span())
+
+	writer.WriteUint16(uint16(protocol.OpcodeQuestPopupMulti))
+	writer.WriteUint32(0) // dialogue counter (not option count)
+	writer.WriteStringUnicode(text)
+	writer.WriteByte(byte(len(options))) // text options count
+	for _, opt := range options {
+		writer.WriteStringUnicode(opt)
+	}
+
+	msg.SetSize(writer.Position())
+	sess.Queue().AddWithSequence(msg)
+}
+
+// sendTeleport sends a teleport packet to the client.
+// C# reference: ServerTeleportPlayer.cs (opcode 0x07F6)
+// Wire format: uint16 opcode + int32 world + float32 x,y,z,facing + 8 bytes padding + uint32 counter
+func (h *InteractHandler) sendTeleport(sess *session.Session, world byte, x, y, z, facing float32, counter uint32) {
+	sendTeleportWarp(sess, world, x, y, z, facing, counter)
+}
+
+// sendTeleportWarp is the travel NPCs' teleport, as a plain function so the
+// account pages can perform the same warp.
+//
+// THE COUNTER IS THE DIFFERENCE between this and sendTeleportGM, which is
+// otherwise byte-for-byte identical and always writes 0. The travel NPCs
+// increment a per-player counter for each warp; that is the path proven to work
+// live, so anything that wants a warp to behave like a Harbormaster's has to
+// send it the same way rather than approximately.
+func sendTeleportWarp(sess *session.Session, world byte, x, y, z, facing float32, counter uint32) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeTeleport)
+	writer := buffer.NewWriter(msg.Span())
+
+	writer.WriteUint16(uint16(protocol.OpcodeTeleport))
+	writer.WriteByte(world) // world is enum World : byte in C#
+	writer.WriteFloat32(x)
+	writer.WriteFloat32(y)
+	writer.WriteFloat32(z)
+	writer.WriteFloat32(facing)
+	// 8 bytes padding
+	writer.WriteUint32(0)
+	writer.WriteUint32(0)
+	// Teleport counter
+	writer.WriteUint32(counter)
+
+	msg.SetSize(writer.Position())
+	sess.Queue().AddWithSequence(msg)
+}
+
+
+// npcSay puts one line in the player's chat window, attributed to the
+// technician. It is the same ClientMessage the chat command replies with, so
+// the NPC and #hddsetup produce identical text for identical outcomes — the
+// point of routing both through hddSetupCommand in the first place.
+func (h *InteractHandler) npcSay(sess *session.Session, text string) {
+	sess.Queue().AddWithSequence(buildClientMessage(HDDSetupNPC + ": " + text))
+}

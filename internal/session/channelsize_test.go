@@ -1,0 +1,71 @@
+package session_test
+
+import (
+	"testing"
+
+	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/session"
+)
+
+// TestChannelBufferSizesMatchSerializers pins the two halves of the state
+// channel size together.
+//
+// This is the bug this test exists for, and it shipped twice:
+//
+//	SerializeStatUpdate was corrected from 236 to 233 bytes, with a comment
+//	explaining that 236 "was writing three bytes past the end of the client's
+//	stat buffer" — but NewConnectionData still allocated the channel at 0xEC
+//	(236). SetData only copy()s into the allocated buffer and cannot shrink it,
+//	so the corrected serializer left three zero bytes in place and the wire
+//	output never changed. The same thing happened to the object channels: the
+//	serializer's tail was zeroed while the channel stayed 201 bytes.
+//
+// Fixing a serializer therefore does nothing on its own. Both numbers have to
+// move, and nothing in either package's compiler output relates them, so this
+// test is the only thing that does.
+func TestChannelBufferSizesMatchSerializers(t *testing.T) {
+	cd := session.NewConnectionData(nil, 0, 0)
+
+	t.Run("object channels", func(t *testing.T) {
+		for i := 0; i < session.MaxServerObjects; i++ {
+			so := cd.GetServerObject(i)
+			if so == nil {
+				t.Fatalf("channel %d not allocated", i)
+			}
+			if got := len(so.GetData()); got != entity.EntityStateSize {
+				t.Fatalf("channel %d allocated %d bytes, serializer produces %d — "+
+					"the larger of the two is what reaches the client",
+					i, got, entity.EntityStateSize)
+			}
+		}
+	})
+
+	t.Run("stat channel 0x42", func(t *testing.T) {
+		if got := len(cd.GetClientStatUpdate().GetData()); got != entity.StatUpdateSize {
+			t.Fatalf("stat channel allocated %d bytes, serializer produces %d",
+				got, entity.StatUpdateSize)
+		}
+	})
+
+	t.Run("buff channel 0x43", func(t *testing.T) {
+		if got := len(cd.GetClientBuffUpdate().GetData()); got != entity.BuffUpdateSize {
+			t.Fatalf("buff channel allocated %d bytes, serializer produces %d",
+				got, entity.BuffUpdateSize)
+		}
+	})
+}
+
+// TestRetailMeasuredSizes states the wire sizes as measured off
+// pcaps/ps2_sandstorm.pcap, so that a future change to the serializers has to
+// disagree with the capture explicitly rather than by accident.
+//
+// Object channels: all 24 occupied channels, every update in the capture, decode
+// to exactly 162. Stat channel: 233, ending with the 0xFF at offset 232.
+func TestRetailMeasuredSizes(t *testing.T) {
+	if entity.EntityStateSize != 162 {
+		t.Errorf("EntityStateSize = %d, retail sends 162", entity.EntityStateSize)
+	}
+	if entity.StatUpdateSize != 233 {
+		t.Errorf("StatUpdateSize = %d, retail sends 233", entity.StatUpdateSize)
+	}
+}

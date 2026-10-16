@@ -1,0 +1,124 @@
+server:
+  game_port: 10070
+  auth_port: 9735
+  patch_port: 7000
+  account_port: 8080
+
+  bind_address: "0.0.0.0"
+
+  # REQUIRED. The address the CLIENT is told to connect to -- it goes into the
+  # server list and into the patch XML, so it must be reachable from the PS2 /
+  # PCSX2 host. It is NOT necessarily bind_address, and it is never "localhost".
+  #
+  # If the PS2's address is an alias on this same machine, bind_address must be
+  # the specific address too, not 0.0.0.0: a UDP socket bound to 0.0.0.0 can
+  # reply from the wrong local address, and the client silently drops it. TCP is
+  # unaffected, so the symptom is auth and patching working while the server
+  # list stays empty.
+  server_ip: "192.168.1.100"
+
+  # SQLite database file. Copy eqoa.seed.db here to start.
+  db_path: "eqoa.db"
+
+  # Applied to the patch server's HTTP listener.
+  read_timeout: 5s
+  write_timeout: 5s
+
+world:
+  tick_rate: 100ms
+
+  # Time a session may sit at character select before it is dropped. The 45s
+  # default is not enough for a human reading the list.
+  session_timeout_pre: 300s
+  session_timeout_game: 2s
+
+patch:
+  # Directory holding the client patch payloads. A relative path resolves
+  # against the working directory first, then against the executable's
+  # directory.
+  dir: "patches"
+
+  # THE MANIFEST IS THE FOLDER patches/serve/. Every file in it is offered to
+  # the client under its own name -- the name it will have on the memory card --
+  # so adding a file is a copy and removing one is a delete. Nothing here lists
+  # them.
+  #
+  # Two things that surprise people:
+  #
+  #   * Removing a file from serve/ does NOT remove it from a card that already
+  #     has it. The patcher only acts on what the manifest names. Put the name
+  #     in patches/serve/.delete to reclaim the space.
+  #   * eqahosts.txt is GENERATED from server_ip and must not be in serve/.
+  #
+  # The three settings below are OVERRIDES and are normally left unset. Each
+  # names a file in patches/ -- the pool of variants beside the folder -- to be
+  # served under that LocalName instead of the folder's copy. They exist for a
+  # rollback or a single-variable bisect, and EQOA_SS_FILE / EQOA_S2_FILE /
+  # EQOA_SD_FILE do the same without a config edit, so a bisect is a restart.
+  #
+  #   ss_file: "ss-s2boot.dat"      Sandstorm's own bootstrap
+  #   s2_file: "S2-race10-nohelm"   the sharpest single-variable control
+  #   sd_file: "SD-hddnpc"          the assembly SD payload, console-proved
+  #   sd_file: "SD-hdd-mc0"         the HDD chain with NO world fetcher
+  #
+  # Do NOT reach for the bare "SD" to fix a problem: that is the retired
+  # memory-card build, with nine world-table entries and no HDD chain at all.
+  # Serving it takes the hard-disk worlds away with no error anywhere.
+
+  # World ESFs served to the in-game stager, NOT to the patcher -- the patcher
+  # only ever writes to the memory card, and it has finished running long
+  # before pfs0: is mounted, so a world can only reach the hard disk from
+  # inside the running game. Slot N is the file worldN.ESF, for slots 8-29.
+  #
+  # No world is shipped: they are lifted from your own retail disc. Empty is
+  # fine -- every disc world still works, and the server says so at startup.
+  worlds_dir: "worlds"
+
+  # UDP port the in-game stager fetches world chunks on. A protocol of ours,
+  # not HTTP: the EE parses no HTTP, and the patcher's own HTTP client is
+  # unloaded by the time our payload exists. 0 disables the listener.
+  #
+  # Delivery of both this address and the payload is sequenced per console:
+  # the patcher compares by SIZE, and eqahosts.txt is fifteen bytes for almost
+  # every operator ("5.161.217.188" and "192.168.40.87" are the same length),
+  # so without that a card patched by another server keeps its address forever.
+  # EQOA_REFRESH_FILES="SD" narrows it back, "none" turns it off.
+  #
+  # THE PORT IS BAKED INTO THE SD PAYLOAD and nothing on the console can
+  # discover it, so changing this needs a rebuilt SD to match
+  # (`make_hdd_sd.py --world-port N`). The server compares the two at startup
+  # and says so if they differ. The ADDRESS is not baked: the payload reads it
+  # off the memory card, out of eqahosts.txt, which this server writes from
+  # server_ip -- so world downloads reach whatever the game itself connects to,
+  # and there is no second address to keep in step. One consequence: server_ip
+  # must be a dotted quad for world downloads to work at all. The game resolves
+  # a host NAME; the payload has no resolver.
+  worlds_udp_port: 7003
+
+auth:
+  # Cost factor for password hashing (bcrypt). 4-31; outside that it falls back
+  # to 10. Higher is slower to crack and slower to log in.
+  bcrypt_cost: 10
+
+  # An unknown username registers itself on first login, adopting the password
+  # it presented. Convenient for a private server. Set false to allow only the
+  # accounts already in the database -- then add players via auth.accounts below
+  # or the signup page on account_port.
+  allow_auto_register: true
+
+  # Require a completed TCP login before the UDP handshake will accept a
+  # username. Leave this on: the UDP handlers take the username straight out of
+  # the packet, so without it a client can skip the auth server entirely and
+  # name any account, which makes the password check pointless.
+  require_tcp_login: true
+
+  # How long a completed login stays usable for the UDP handshake. It needs to
+  # cover a player sitting on the server-select and character-select screens.
+  ticket_ttl: 15m
+
+  # Accounts created at startup if they do not already exist, with the password
+  # hashed. An account that already exists is left untouched, so changing a
+  # password here does NOT reset one already in the database.
+  accounts:
+    - username: "test"
+      password: "changeme"

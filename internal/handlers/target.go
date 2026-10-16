@@ -64,6 +64,10 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 		return nil
 	}
 
+	// CLIENT turns auto-attack off on every target change, and a 0x0010 is
+	// sent on every one (-1 included): the fight on the old target ends here.
+	h.gameWorld.StopAttackOnRetarget(sess, targetObjectID)
+
 	// Look up target entity by runtime objectID.
 	targetEntity, targetFound := h.gameWorld.FindEntityByObjectID(sess, targetObjectID)
 

@@ -25,6 +25,7 @@ func (w *World) Tick(now time.Time) {
 	w.TickCount++
 
 	w.aiSystem(now)
+	w.attackSystem(now)
 	w.respawnSystem(now)
 	w.regenSystem(now)
 	w.breathSystem()
@@ -129,7 +130,11 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	// Send combat action + damage pop-up on the player (source=NPC, target=player)
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)
 	playerObjectID := sess.PlayerObjectID()
-	w.sendCastingCombat(sess, npcObjectID, playerObjectID, 4000, 0) // NPC auto-attack
+	// Sandstorm's NPC swing, live 2026-10-16: 0x00B1 with the swing's delay
+	// and VISwing::Effect's id — 3000 and Attack1 (0xDA9BEA11) on all six of
+	// a Crab's, the kind-0 swing, which is also this system's 3 s cadence.
+	// Effect 0 named no effect at all, so a client had no swing to play.
+	w.sendCastingCombat(sess, npcObjectID, playerObjectID, uint32(SwingDelay(0)/time.Millisecond), HashResourceID(SwingEffectName(0)))
 	w.sendDamageIndication(sess, npcObjectID, -damage, playerObjectID)
 
 	log.Printf("Combat: NPC '%s' hit player %s for %d damage (HP: %d/%d)",

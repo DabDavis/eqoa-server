@@ -126,6 +126,7 @@ const (
 	// 0x00DX - Damage, NPC Messages, Misc
 	OpcodeSummonPrompt     GameOpcode = 0x00D3 // Msg00D3: ReadString(name, 64) + u8 (0 summon, word 610; else resurrect, 611)
 	OpcodeCancelPending    GameOpcode = 0x00D7 // Msg00D7: clears the merchant/loot request flags and closes the bank; shows nothing
+	OpcodeSwingOutOfReach  GameOpcode = 0x00D8 // client -> server, bare: AutoAttackTick swung at a target out of reach (retries in 2 s)
 	OpcodeExpDebt          GameOpcode = 0x00D9 // one raw u32 into the player record +0x2C (FrontiersForge: exp debt, unconfirmed)
 	OpcodeDamageIndication GameOpcode = 0x00DB // Damage/Healing Indication
 	OpcodeForceDisconnect  GameOpcode = 0x00EC // Disconnect(8): word 619 "You have logged in from another location."
@@ -428,6 +429,8 @@ func (op GameOpcode) String() string {
 		return "PlayerP44"
 	case OpcodeSummonPrompt:
 		return "SummonPrompt"
+	case OpcodeSwingOutOfReach:
+		return "SwingOutOfReach"
 	case OpcodeExpDebt:
 		return "ExpDebt"
 	case OpcodeLootTakeAll:

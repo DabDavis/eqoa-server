@@ -104,6 +104,13 @@ type Player struct {
 	// button held (or toggled on). attack.go reads it at every swing.
 	AutoAttack bool
 
+	// The fight a 0x000F engaged (attack.go): the NPC, the object id the
+	// player named it by, when the next swing is due and what it swings.
+	AttackTarget   EntityID
+	AttackObjectID uint32
+	NextSwing      time.Time
+	Swing          Swing
+
 	// Breath / underwater
 	Breath          int  // 0-127, depletes underwater (eqoa.live sends 127 in MemoryDump)
 	Underwater      bool // true when animation is a swim animation

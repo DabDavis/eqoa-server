@@ -344,7 +344,8 @@ func (w *World) SetTarget(id EntityID, targetObjectID uint32) {
 	}
 }
 
-// ProcessAttack handles an attack from a player session against a target.
+// ProcessAttack lands one swing at once, in melee range: the GM kill command.
+// A player's 0x000F engages a fight instead (EngageAttack, attack.go).
 func (w *World) ProcessAttack(sess *session.Session, targetObjectID uint32, damage int) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -388,42 +389,10 @@ func (w *World) ProcessAttack(sess *session.Session, targetObjectID uint32, dama
 		return
 	}
 
-	// Calculate damage using SOE retail formula
-	weaponDmg := RollWeaponDamage(attacker.WeaponDamage)
-	damage = CalculateMeleeDamage(attacker.OffMod, weaponDmg, attacker.Level, npc.Level, npc.DefMod)
-	npc.HP -= damage
-	if npc.HP < 0 {
-		npc.HP = 0
-	}
-
-	killed := npc.HP <= 0
-
-	// Set combat timestamp on attacker
-	attacker.LastCombatTime = time.Now()
-
-	targetName := npc.Name
-
-	// Send combat action (triggers attack animation on client)
-	playerObjectID := sess.PlayerObjectID()
-	w.sendCastingCombat(sess, playerObjectID, targetObjectID, 4000, 0) // 4000ms = auto-attack
-
-	// Send visual damage pop-up on the NPC (source=player, target=NPC, negative=damage)
-	w.sendDamageIndication(sess, playerObjectID, -damage, targetObjectID)
-
-	log.Printf("Combat: %s hit %s for %d damage (HP: %d/%d)",
-		sess.RemoteAddr(), targetName, damage, npc.HP, npc.MaxHP)
-
-	// Update aggro on the NPC
-	w.updateAggro(npc, attacker.ServerID, damage)
-
-	// Check for kill
-	if killed {
-		w.killNPC(npc)
-
-		// Award XP
-		xpAward := npc.Level * 100
-		w.awardXP(sess, attacker, xpAward)
-	}
+	// One swing, as the auto-attack loop lands it (attack.go): the SOE retail
+	// formula, the damage figure without a 0x00B1 (a client plays its own
+	// swing), the NPC's threat, the kill and XP.
+	w.playerHitLocked(sess, attacker, npc, targetObjectID)
 }
 
 // KillNPCByObjectID is the GM's #kill: the NPC the session knows by that id

@@ -201,8 +201,6 @@ const (
 	OpcodeGroupInviteReceived        GameOpcode = 0x0773 // Msg0773: u32 invite id, u32, ReadString(name, 24); grouped = auto-decline
 	OpcodeGroupInviteCancelled       GameOpcode = 0x0774 // Msg0774: the invitation was withdrawn
 	OpcodeEntityAction               GameOpcode = 0x0775 // u32 entity id + u8 VICSprite action; for the player only 34 plays
-	// Deprecated: OpcodeResourceUpdate is OpcodeEntityAction; 0x0775 never carried a resource.
-	OpcodeResourceUpdate                           = OpcodeEntityAction
 	OpcodeDisconnectNoError             GameOpcode = 0x0777 // Disconnect No Error
 	OpcodeOutMatched                    GameOpcode = 0x077A // Outmatched warning
 	OpcodeFactionPage                   GameOpcode = 0x07E2 // Server Faction Page Response

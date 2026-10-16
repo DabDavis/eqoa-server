@@ -676,10 +676,10 @@ const actionDrowning = 34
 // write reached a PS2 as action 1 or 3 and did nothing, and the breath bar is
 // the client's own.
 func (w *World) sendEntityAction(sess *session.Session, objectID uint32, action byte) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeResourceUpdate)
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeEntityAction)
 	writer := buffer.NewWriter(msg.Span())
 
-	writer.WriteUint16(uint16(protocol.OpcodeResourceUpdate))
+	writer.WriteUint16(uint16(protocol.OpcodeEntityAction))
 	writer.WriteUint32(objectID)
 	writer.WriteByte(action)
 

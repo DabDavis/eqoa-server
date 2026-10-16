@@ -43,10 +43,19 @@ func NewSecurityMiddleware() *SecurityMiddleware {
 }
 
 func (sm *SecurityMiddleware) registerDefaults() {
-	// Combat — prevent rapid-fire attacks
+	// Combat — prevent rapid-fire attacks. CLIENT sends 0x000F at most once
+	// per swing of its own (ToggleAutoAttack waits for m_p071E8), and the
+	// shortest swing is 3000 VITimer ticks, 3.05 s; the margin is for network
+	// jitter. A 0x000F only engages: the swings are the server's
+	// (entity/attack.go), so a dropped repeat costs nothing.
 	sm.policies[protocol.OpcodeAttack] = &OpcodePolicy{
-		MinInterval:  3 * time.Second, // 4s attack timer with 1s tolerance
+		MinInterval:  2500 * time.Millisecond,
 		RequireWorld: true,
+	}
+
+	// Emotes are shown to every player who can see the sender (0x0775).
+	for _, op := range []protocol.GameOpcode{protocol.OpcodeEmoteWave, protocol.OpcodeEmoteBow, protocol.OpcodeEmotePoint, protocol.OpcodeEmoteCheer} {
+		sm.policies[op] = &OpcodePolicy{MinInterval: time.Second, RequireWorld: true}
 	}
 
 	// Spells — prevent spam casting

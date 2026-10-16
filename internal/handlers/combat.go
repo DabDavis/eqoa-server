@@ -37,6 +37,32 @@ func (h *CombatHandler) SetInventoryStore(inv *database.InventoryStore) {
 func (h *CombatHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeAttack, h.HandleAttack)
 	r.Register(protocol.OpcodeSwingOutOfReach, h.HandleSwingOutOfReach)
+	for op, action := range emoteActions {
+		action := action
+		r.Register(op, func(sess *session.Session, msg *protocol.Message) error {
+			return h.HandleEmote(sess, action)
+		})
+	}
+}
+
+// emoteActions is CLIENT's PlayEmote (0x00BCFC38 [V]): the bare opcode it
+// sends for an emote and the action it plays.
+var emoteActions = map[protocol.GameOpcode]byte{
+	protocol.OpcodeEmoteWave:  entity.ActionWave,
+	protocol.OpcodeEmoteBow:   entity.ActionBow,
+	protocol.OpcodeEmotePoint: entity.ActionPoint,
+	protocol.OpcodeEmoteCheer: entity.ActionCheer,
+}
+
+// HandleEmote shows the sender's emote to the players who can see it
+// (entity.ShowEmote, 0x0775).
+func (h *CombatHandler) HandleEmote(sess *session.Session, action byte) error {
+	if h.gameWorld == nil {
+		return nil
+	}
+	n := h.gameWorld.ShowEmote(sess, action)
+	log.Printf("Emote from %s: action %d shown to %d", sess.RemoteAddr(), action, n)
+	return nil
 }
 
 // HandleAttack is a 0x000F, u32 target: the attack button's press

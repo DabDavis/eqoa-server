@@ -33,6 +33,13 @@ const (
 	OpcodeChangeChatMode GameOpcode = 0x000E // Change chat mode
 	OpcodeAttack         GameOpcode = 0x000F // Auto Attack
 
+	// The emotes, client -> server, bare (CLIENT's PlayEmote, 0x00BCFC38): the
+	// client plays the action on itself; the server shows it to the others.
+	OpcodeEmoteWave  GameOpcode = 0x001E // action 56
+	OpcodeEmoteBow   GameOpcode = 0x0042 // action 57
+	OpcodeEmotePoint GameOpcode = 0x0043 // action 60
+	OpcodeEmoteCheer GameOpcode = 0x0044 // action 61
+
 	// 0x001X - Targeting, Time, Loot, NPC Interaction
 	OpcodeClassicTargetInfo    GameOpcode = 0x0010 // Classic Player Target Info
 	OpcodeRandomName           GameOpcode = 0x0012 // Random name generation
@@ -467,6 +474,14 @@ func (op GameOpcode) String() string {
 		return "TargetInformation"
 	case OpcodeAttack:
 		return "Attack"
+	case OpcodeEmoteWave:
+		return "EmoteWave"
+	case OpcodeEmoteBow:
+		return "EmoteBow"
+	case OpcodeEmotePoint:
+		return "EmotePoint"
+	case OpcodeEmoteCheer:
+		return "EmoteCheer"
 	case OpcodeInteract:
 		return "Interact"
 	case OpcodeDisconnectClient:

@@ -49,3 +49,17 @@ func ids(rs []database.CharInventoryEntry) []int {
 	}
 	return out
 }
+
+// PlayEmote's table (0x00BCFC38): wave 0x001E/56, bow 0x0042/57, point
+// 0x0043/60, cheer 0x0044/61.
+func TestEmoteOpcodesAreCLIENTsPlayEmote(t *testing.T) {
+	want := map[uint16]byte{0x001E: 56, 0x0042: 57, 0x0043: 60, 0x0044: 61}
+	if len(emoteActions) != len(want) {
+		t.Fatalf("%d emotes", len(emoteActions))
+	}
+	for op, a := range emoteActions {
+		if want[uint16(op)] != a {
+			t.Errorf("0x%04X -> %d, want %d", uint16(op), a, want[uint16(op)])
+		}
+	}
+}

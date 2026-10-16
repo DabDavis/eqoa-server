@@ -4,6 +4,21 @@ UDP game server (port 10070), TCP auth server (port 9735), HTTP patch server (po
 
 See [root CLAUDE.md](../CLAUDE.md) for project overview, research notes, ISO reverse engineering, and shared infrastructure.
 
+## This repository is PUBLIC
+
+[github.com/DabDavis/eqoa-server](https://github.com/DabDavis/eqoa-server), MIT. Its history
+starts at the 2026-10-16 import; the March 2026 private repository's history is the local
+branch `private-main` and `../backups/go-eqoa-server-private-repo-20261016.bundle`.
+
+- **Never commit** `config.yaml` (or a copy), a database or its backups, a log, a binary,
+  `worlds/` or `patches/`. `.gitignore` covers them, and every pattern for a root binary is
+  ANCHORED (`/gameserver`): the old unanchored `gameserver` also ignored `cmd/gameserver/`,
+  so the server's own `main` was never committed until 2026-10-16.
+- No credential, personal address or game data in code, tests or comments. Test vectors
+  for the login crypt are synthetic (`authcrypt_test.go`).
+- It builds beside a checkout of `DabDavis/eqoa-esf-tools` (branch `client-v1`) at
+  `../go-eqoa-esf-tools`, for `pkg/buffer` (see `README.md`).
+
 ## Quick Commands
 
 ```bash

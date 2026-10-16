@@ -132,6 +132,7 @@ case *entity.NPC:
 | System | Interval | Purpose |
 |--------|----------|---------|
 | `aiSystem` | Every 30 ticks (3s) | NPC aggro detection, melee combat, leash |
+| `attackSystem` | Every tick | Players' auto-attack (`attack.go`): a 0x000F engages, swings land one swing delay apart (CLIENT's GetSwing table) in CLIENT's reach while 0x40 byte 36 is up or the NPC fights back |
 | `respawnSystem` | Every tick | Dead NPC respawn after RespawnTime |
 | `regenSystem` | Every 20 ticks (2s) | 1% HP/Power regen (skipped if in combat <10s) |
 | `stateSyncSystem` | Every tick | Serialize player state to channel 0 |

@@ -29,9 +29,18 @@ import (
 // re-tools/hdd_sd/layout.h now, as #defines, and a missing file is FATAL: if
 // this cannot find the payload's source it cannot say whether the server and
 // the console agree, and "I could not check" is not "they agree".
+//
+// The payload lives in the project around this repository, not in it. A
+// checkout with no re-tools/ beside it at all (a clone of the public
+// repository on its own) has nothing to compare against and skips; one that
+// HAS re-tools/ but cannot read the layout fails, as before.
 func payloadSrc(t *testing.T) string {
 	t.Helper()
-	p := filepath.Join("..", "..", "..", "re-tools", "hdd_sd", "layout.h")
+	tools := filepath.Join("..", "..", "..", "re-tools")
+	if _, err := os.Stat(tools); os.IsNotExist(err) {
+		t.Skip("the SD payload's source (re-tools/hdd_sd) is not beside this checkout")
+	}
+	p := filepath.Join(tools, "hdd_sd", "layout.h")
 	b, err := os.ReadFile(p)
 	if err != nil {
 		t.Fatalf("cannot read the payload's layout (%v) -- this test exists to "+

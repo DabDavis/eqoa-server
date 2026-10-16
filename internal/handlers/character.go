@@ -1101,8 +1101,12 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 		writeSingleItem(writer, &invItems[i], i)
 	}
 	log.Printf("SendMemoryDump: wrote %d inventory items", len(invItems))
-	// Dump the list the client will index into. InteractItem replies carry a
-	// position in THIS list, so any disagreement about order shows up here.
+	// The client's inventory list as this dump leaves it (key = position,
+	// counter = count): InteractItem's key resolves through it, and its reply
+	// carries the position in THIS list.
+	sess.SetInventoryList(newInvList(invItems))
+	// Dump the list the client will index into, so any disagreement about
+	// order shows up here.
 	for i := range invItems {
 		log.Printf("INVLIST[%02d] key=%-4d equiploc=%-3d slot=%-3d model=%-4d %q",
 			i, invItems[i].ItemID, invItems[i].EquipLoc,
@@ -1254,9 +1258,12 @@ func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player) {
 //
 // This is the C# `Item.DumpItem(ref writer, int key)` called as
 // `DumpItem(ref writer, item.ClientIndex)`, where ClientIndex is assigned
-// `(byte)_itemContainer.Count` when the item is added. The client echoes this
-// value back in InteractItem (0x003E) and treats it positionally, so sending
-// charinventory.itemid instead made clicking one row act on another.
+// `(byte)_itemContainer.Count` when the item is added. The client keeps it as
+// the record's key and echoes it back in InteractItem (0x003E). A key equals a
+// position only until a record leaves the list (the client packs the list and
+// never renumbers), so requests resolve keys through the session's invList
+// (itemlist.go), never by indexing. Sending charinventory.itemid here instead
+// made clicking one row act on another.
 func writeSingleItem(w *buffer.Writer, e *database.CharInventoryEntry, key int) {
 	p := &e.Pattern
 

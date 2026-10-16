@@ -67,6 +67,11 @@ type Session struct {
 	// Visibility state (stored as interface{} to avoid circular import with ecs package)
 	visibilityState interface{}
 
+	// inventoryList is the handlers package's copy of the client's inventory
+	// list: which record sits at each list index and the key the client files
+	// it under. Stored as interface{} for the same reason as visibilityState.
+	inventoryList interface{}
+
 	// Send callback - set by UDP listener
 	sendFunc func([]byte) error
 
@@ -456,6 +461,20 @@ func (s *Session) VisibilityState() interface{} {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.visibilityState
+}
+
+// SetInventoryList stores the copy of the client's inventory list.
+func (s *Session) SetInventoryList(v interface{}) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.inventoryList = v
+}
+
+// InventoryList returns the stored copy of the client's inventory list.
+func (s *Session) InventoryList() interface{} {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.inventoryList
 }
 
 // Connection returns the connection data.

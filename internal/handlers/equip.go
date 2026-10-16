@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"errors"
+	"fmt"
 	"log"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -15,18 +17,17 @@ import (
 // so nothing could be equipped in game and appearance could only be changed by
 // editing charinventory directly.
 //
-// Wire format, from the C# reference
-// (Opcodes/Messages/Client/ClientInteractItem.cs ProcessItemInteraction) and
-// confirmed against live payloads such as `4d000000ffffffff00`:
+// Wire format, CLIENT's VIClient::UseItem (0x00BCABA0), which writes it with
+// SendOpIntIntByte, and live payloads such as `4d000000ffffffff00`:
 //
-//	uint32  itemIndex        the item's `key`, i.e. charinventory.itemid, which
-//	                         is what SendMemoryDump writes as the item key
-//	uint32  target           0xFFFFFFFF in every observed request
-//	7bit    interactionType  0 = equip/unequip toggle
+//	uint32  key          the record's key, VIItemList::GetSlotId (+0x2F8) —
+//	                     NOT its position in the list once records have left
+//	uint32  target       the client's current target (m_target)
+//	uint8   interaction  UseItem's second argument; 0 = equip/unequip toggle
 //
-// It is a TOGGLE: equipped -> unequip, not equipped -> equip. The client picks
-// the slot itself only in the sense that it expects us to choose the item's
-// natural one and tell it which we used.
+// It is a TOGGLE: equipped -> unequip, not equipped -> equip. The server picks
+// the slot (the first free one a pair allows) and tells the client which,
+// in EquipItem (0x003F); the client then takes off what that displaces itself.
 type EquipHandler struct {
 	sessionManager *session.Manager
 	gameWorld      *entity.World
@@ -47,17 +48,11 @@ func (h *EquipHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeInteractItem, h.HandleInteractItem)
 }
 
-// itemSlotToEquipSlot maps an item's category (itempattern.equipslot, the C#
-// ItemSlot enum) to the physical slot it occupies (charinventory.equiploc, the
-// C# EquipSlot enum). The two are different enumerations and equal only by
-// coincidence for chest.
-//
-// Every armor entry here is corroborated by real rows: coif 1->0, robe 2->21,
-// earring 3->2/3, neck 4->4, tunic 5->5, bracers 7->8, ring 8->9/10, belt
-// 9->11, leggings 10->12, boots 11->13, gloves 19->1.
-//
-// A nil second entry means the slot is unique; two entries means a pair, and we
-// take whichever is free.
+// itemSlotToEquipSlot maps an item's wear slot (itempattern.equipslot; the
+// item's +0x14 on the client) to the equip slots (charinventory.equiploc) it may
+// be put in, in the order the server tries them: exactly the slots CLIENT's fit
+// check (fitsEquip) accepts. Two entries are a pair, and the server takes
+// whichever is free, else the first.
 var itemSlotToEquipSlot = map[int][]int{
 	1:  {0},      // Head        -> Head
 	2:  {21},     // Robe        -> Robe
@@ -74,28 +69,231 @@ var itemSlotToEquipSlot = map[int][]int{
 	13: {17},     // Shield      -> Shield
 	14: {14, 15}, // Secondary   -> Primary/Secondary
 	15: {16},     // TwoHand     -> TwoHand
-	16: {14},     // Bow         -> Primary
-	17: {18},     // Thrown      -> Thrown
+	16: {18},     // Bow         -> Ranged (CLIENT allows a bow nowhere else)
+	17: {18},     // Thrown      -> Ranged
 	18: {19, 20}, // Held        -> Held/Held2
 	19: {1},      // Hand        -> Hand (gloves)
+	20: {14},     // Fishing     -> Primary
+	21: {15},     // Bait        -> Secondary
+	22: {19},     // Tools (six crafting kinds, 22-27) -> Held
+	23: {19},
+	24: {19},
+	25: {19},
+	26: {19},
+	27: {19},
+}
+
+// fitsEquip is CLIENT's func_00CC61A8, which Msg003F (0x00BCB2F0) asks before
+// it equips anything: whether an item of wear slot w may go in equip slot e. A
+// 0x003F that fails it is ignored by the client, so the server must never
+// choose a slot it rejects (itemSlotToEquipSlot is checked against it in
+// tests). Read off its jump table at 0x00CF3E40, wear -1..27.
+func fitsEquip(w, e int) bool {
+	switch w {
+	case 1:
+		return e == 0
+	case 2:
+		return e == 21
+	case 3:
+		return e == 2 || e == 3
+	case 4:
+		return e == 4
+	case 5:
+		return e == 5
+	case 6:
+		return e == 6 || e == 7
+	case 7:
+		return e == 8
+	case 8:
+		return e == 9 || e == 10
+	case 9:
+		return e == 11
+	case 10:
+		return e == 12
+	case 11:
+		return e == 13
+	case 12:
+		return e == 14
+	case 13:
+		return e == 17
+	case 14:
+		return e == 14 || e == 15
+	case 15:
+		return e == 16
+	case 16, 17:
+		return e == 18
+	case 18:
+		return e == 19 || e == 20
+	case 19:
+		return e == 1
+	case 20:
+		return e == 14
+	case 21:
+		return e == 15
+	case 22, 23, 24, 25, 26, 27:
+		return e == 19
+	}
+	return false
+}
+
+// equipDisplaces is Msg003F's jump table (data_00CDA880, wear 6..27): the equip
+// slots the client empties, after the target slot itself, when an item of wear
+// slot w goes into slot e. The server empties the same ones in its database,
+// or it keeps items equipped that the client shows as taken off.
+func equipDisplaces(w, e int) []int {
+	switch w {
+	case 6: // forearm
+		return []int{8}
+	case 7: // both forearms
+		return []int{7, 6}
+	case 12, 20: // primary, fishing
+		return []int{16, 18, 19}
+	case 13: // shield
+		return []int{15, 16, 18, 20}
+	case 14, 21: // secondary, bait
+		if e == 15 {
+			return []int{16, 18, 17, 20}
+		}
+		return []int{16, 18, 19}
+	case 15: // two-handed
+		return []int{14, 15, 17, 18, 19, 20}
+	case 16: // bow
+		return []int{14, 15, 17, 16, 19, 20}
+	case 18: // held
+		if e != 20 {
+			return []int{16, 18, 14}
+		}
+		return []int{16, 18, 17, 15}
+	case 22, 23, 24, 25, 26, 27: // crafting tools
+		return []int{16, 18, 14}
+	}
+	return nil
+}
+
+// equipChange is one charinventory row whose equiploc changes.
+type equipChange struct {
+	itemID   int
+	equipLoc int
+}
+
+// equipPlan is what one InteractItem toggle does.
+type equipPlan struct {
+	name    string        // the item, for the log
+	key     uint32        // the key the client asked with
+	changes []equipChange // in order: displaced items first, the item last
+	unequip int           // the slot UnequipItem (0x0040) vacates, or -1
+	equip   bool          // send EquipItem (0x003F)
+	index   int           // with the item's LIST index
+	slot    int           // and the slot it now occupies
+}
+
+var errNotEquippable = errors.New("not equippable")
+
+// inventoryRows is the client's inventory list in database order: every row
+// that is not in the bank (location 1), the order SendMemoryDump writes them.
+func inventoryRows(items []database.CharInventoryEntry) []*database.CharInventoryEntry {
+	inv := make([]*database.CharInventoryEntry, 0, len(items))
+	for i := range items {
+		if items[i].Location == 1 {
+			continue // bank is a separate list with its own keys
+		}
+		inv = append(inv, &items[i])
+	}
+	return inv
+}
+
+// planInteractItem decides one toggle. The key is resolved through the
+// client's list (list), not used as a position; with no list (no MemoryDump
+// sent yet) a key is the position the MemoryDump would have given it.
+func planInteractItem(items []database.CharInventoryEntry, list *invList, key uint32) (equipPlan, error) {
+	plan := equipPlan{key: key, unequip: -1}
+	inv := inventoryRows(items)
+
+	idx := -1
+	var found *database.CharInventoryEntry
+	if list != nil {
+		idx = list.index(key)
+		if idx < 0 {
+			return plan, fmt.Errorf("the client holds no record with key %d", key)
+		}
+		rec, _ := list.at(idx)
+		for _, e := range inv {
+			if e.ItemID == rec.itemID {
+				found = e
+				break
+			}
+		}
+		if found == nil {
+			return plan, fmt.Errorf("key %d is item %d, which the inventory no longer holds", key, rec.itemID)
+		}
+	} else {
+		if int(key) >= len(inv) {
+			return plan, fmt.Errorf("key %d out of range (inventory has %d items)", key, len(inv))
+		}
+		idx, found = int(key), inv[key]
+	}
+	plan.name = found.Pattern.ItemName
+
+	wear := found.Pattern.EquipSlot
+	slots, equippable := itemSlotToEquipSlot[wear]
+	if !equippable {
+		return plan, errNotEquippable
+	}
+
+	if found.EquipLoc >= 0 {
+		// Equipped -> unequip.
+		plan.changes = []equipChange{{found.ItemID, -1}}
+		plan.unequip = found.EquipLoc
+		return plan, nil
+	}
+
+	// Not equipped -> equip, into the first free slot of the pair, else the
+	// first. Then take off what the client's Msg003F takes off: everything in
+	// that slot, then everything in the slots its table names for this wear.
+	worn := map[int][]int{}
+	for _, e := range inv {
+		if e.EquipLoc >= 0 {
+			worn[e.EquipLoc] = append(worn[e.EquipLoc], e.ItemID)
+		}
+	}
+	chosen := slots[0]
+	for _, s := range slots {
+		if len(worn[s]) == 0 {
+			chosen = s
+			break
+		}
+	}
+	for _, s := range append([]int{chosen}, equipDisplaces(wear, chosen)...) {
+		for _, id := range worn[s] {
+			plan.changes = append(plan.changes, equipChange{id, -1})
+		}
+		delete(worn, s)
+	}
+	plan.changes = append(plan.changes, equipChange{found.ItemID, chosen})
+	plan.equip, plan.index, plan.slot = true, idx, chosen
+	return plan, nil
+}
+
+// parseInteractItem reads the request: u32 key, u32 target, u8 interaction.
+func parseInteractItem(data []byte) (key, target uint32, interaction byte, ok bool) {
+	if len(data) < 9 {
+		return 0, 0, 0, false
+	}
+	r := buffer.NewReader(data)
+	key, e1 := r.ReadUint32()
+	target, e2 := r.ReadUint32()
+	interaction, e3 := r.ReadByte()
+	return key, target, interaction, e1 == nil && e2 == nil && e3 == nil
 }
 
 // HandleInteractItem toggles an item between equipped and not.
 func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
-	if len(data) < 9 {
-		log.Printf("InteractItem: short payload len=%d hex=%x", len(data), data)
+	key, target, interaction, ok := parseInteractItem(data)
+	if !ok {
+		log.Printf("InteractItem: short or malformed payload len=%d hex=%x", len(data), data)
 		return nil
 	}
-	r := buffer.NewReader(data)
-	key, e1 := r.ReadUint32()
-	target, e2 := r.ReadUint32()
-	interaction, e3 := r.Read7BitEncodedInt64()
-	if e1 != nil || e2 != nil || e3 != nil {
-		log.Printf("InteractItem: malformed payload hex=%x", data)
-		return nil
-	}
-
 	if interaction != 0 {
 		// The C# reference treats this as an error worth surfacing rather than
 		// guessing at, and we have never seen a non-zero value on the wire.
@@ -116,80 +314,27 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		return nil
 	}
 
-	// `key` is the item's POSITION in the client's inventory container, because
-	// that is what SendMemoryDump writes as each row's key (the C# ClientIndex).
-	// It is NOT charinventory.itemid. Build the same list — GetCharacterItems
-	// order with bank rows (Location == 1) removed — and index straight into it.
-	// This must stay in step with SendMemoryDump.
-	inv := make([]*database.CharInventoryEntry, 0, len(items))
-	for i := range items {
-		if items[i].Location == 1 {
-			continue // bank is a separate container with its own 0-based keys
-		}
-		inv = append(inv, &items[i])
-	}
-	idx, found := -1, (*database.CharInventoryEntry)(nil)
-	if int(key) < len(inv) {
-		idx, found = int(key), inv[key]
-	}
-	if found == nil {
-		log.Printf("InteractItem: serverID=%d key=%d out of range (inventory has %d items)",
-			serverID, key, len(inv))
-		return nil
-	}
-	log.Printf("InteractItem: REQ key=%d -> invIndex=%d %q (equipslot=%d model=%d equiploc=%d)",
-		key, idx, found.Pattern.ItemName, found.Pattern.EquipSlot,
-		found.Pattern.Model, found.EquipLoc)
-
-	slots, equippable := itemSlotToEquipSlot[found.Pattern.EquipSlot]
-	if !equippable {
-		log.Printf("InteractItem: %q (equipslot=%d) is not equippable — consumable?",
-			found.Pattern.ItemName, found.Pattern.EquipSlot)
+	plan, err := planInteractItem(items, sessionInvList(sess), key)
+	if err != nil {
+		log.Printf("InteractItem: serverID=%d key=%d %q: %v", serverID, key, plan.name, err)
 		return nil
 	}
 
-	if found.EquipLoc >= 0 {
-		// Equipped -> unequip.
-		old := found.EquipLoc
-		if err := h.inventoryStore.SetEquipLoc(serverID, found.ItemID, -1); err != nil {
-			log.Printf("InteractItem: unequip %q: %v", found.Pattern.ItemName, err)
+	for _, c := range plan.changes {
+		if err := h.inventoryStore.SetEquipLoc(serverID, c.itemID, c.equipLoc); err != nil {
+			log.Printf("InteractItem: item %d -> equiploc %d: %v", c.itemID, c.equipLoc, err)
 			return nil
 		}
+	}
+	if plan.unequip >= 0 {
 		log.Printf("InteractItem: serverID=%d UNEQUIP %q (key=%d) from slot %d",
-			serverID, found.Pattern.ItemName, key, old)
-		h.sendUnequip(sess, old)
-	} else {
-		// Not equipped -> equip. Take the first free slot of the pair; if both
-		// are taken, displace the first, which is what the client shows when a
-		// player equips over a full pair.
-		occupied := map[int]int{}
-		for i := range items {
-			if items[i].EquipLoc >= 0 {
-				occupied[items[i].EquipLoc] = items[i].ItemID
-			}
-		}
-		chosen := slots[0]
-		for _, s := range slots {
-			if _, taken := occupied[s]; !taken {
-				chosen = s
-				break
-			}
-		}
-		if displaced, taken := occupied[chosen]; taken {
-			if err := h.inventoryStore.SetEquipLoc(serverID, displaced, -1); err != nil {
-				log.Printf("InteractItem: displacing item %d from slot %d: %v", displaced, chosen, err)
-				return nil
-			}
-			log.Printf("InteractItem: serverID=%d displaced item %d from slot %d", serverID, displaced, chosen)
-			h.sendUnequip(sess, chosen)
-		}
-		if err := h.inventoryStore.SetEquipLoc(serverID, found.ItemID, chosen); err != nil {
-			log.Printf("InteractItem: equip %q: %v", found.Pattern.ItemName, err)
-			return nil
-		}
-		log.Printf("InteractItem: serverID=%d EQUIP %q (key=%d, model=%d) to slot %d",
-			serverID, found.Pattern.ItemName, key, found.Pattern.Model, chosen)
-		h.sendEquip(sess, idx, chosen)
+			serverID, plan.name, key, plan.unequip)
+		sess.Queue().AddWithSequence(unequipItemMessage(plan.unequip))
+	}
+	if plan.equip {
+		log.Printf("InteractItem: serverID=%d EQUIP %q (key=%d, list index %d) to slot %d, %d displaced",
+			serverID, plan.name, key, plan.index, plan.slot, len(plan.changes)-1)
+		sess.Queue().AddWithSequence(equipItemMessage(plan.index, plan.slot))
 	}
 
 	// Refresh the visual equipment bytes. The state channel is serialized from
@@ -199,9 +344,9 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 	return nil
 }
 
-// sendEquip sends EquipItem (0x003F): the item's inventory index, then the slot
-// it now occupies. Matches ServerEquipItem.ProcessServerEquipItem.
-func (h *EquipHandler) sendEquip(sess *session.Session, index, equipLoc int) {
+// equipItemMessage is EquipItem (0x003F), which the client's dispatcher reads
+// as two bytes for Msg003F: the item's LIST index, then the equip slot.
+func equipItemMessage(index, equipLoc int) *protocol.Message {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeEquipItem)
 	buf := make([]byte, 16)
 	w := buffer.NewWriter(buf)
@@ -209,17 +354,17 @@ func (h *EquipHandler) sendEquip(sess *session.Session, index, equipLoc int) {
 	w.WriteByte(byte(index))
 	w.WriteByte(byte(equipLoc))
 	msg.SetData(buf[:w.Position()])
-	sess.Queue().AddWithSequence(msg)
+	return msg
 }
 
-// sendUnequip sends UnequipItem (0x0040): just the slot that was vacated.
-// Matches ServerUnequipItem.ProcessServerUnequipItem.
-func (h *EquipHandler) sendUnequip(sess *session.Session, equipLoc int) {
+// unequipItemMessage is UnequipItem (0x0040): one byte, the equip slot whose
+// records Msg0040 (0x00BCB8A0) takes off.
+func unequipItemMessage(equipLoc int) *protocol.Message {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeUnequipItem)
 	buf := make([]byte, 16)
 	w := buffer.NewWriter(buf)
 	w.WriteUint16(uint16(protocol.OpcodeUnequipItem))
 	w.WriteByte(byte(equipLoc))
 	msg.SetData(buf[:w.Position()])
-	sess.Queue().AddWithSequence(msg)
+	return msg
 }

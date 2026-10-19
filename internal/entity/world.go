@@ -34,6 +34,11 @@ type World struct {
 	// OnEntityEnter is called when a new entity enters a player's visibility range.
 	// Set by the handler layer to send FullEntityCreate (0x00B3) reliable opcodes.
 	OnEntityEnter EntityEnterCallback
+
+	// Groups (group.go)
+	groups      map[uint32]*Group
+	nextGroupID uint32
+	invites     map[EntityID]map[EntityID]bool // invitee -> inviters
 }
 
 // NewWorld creates and initializes a new game world.
@@ -202,6 +207,7 @@ func (w *World) RemovePlayer(id EntityID) {
 	if !ok {
 		return
 	}
+	w.leaveGroupLocked(p)
 	w.SpatialIndex.Remove(id, p.X, p.Z)
 	delete(w.Players, id)
 	log.Printf("Entity: removed player ID=%d", id)
@@ -227,6 +233,7 @@ func (w *World) RemovePlayerBySession(sess *session.Session) {
 	if cur, ok := w.Players[p.ServerID]; !ok || cur != p {
 		return
 	}
+	w.leaveGroupLocked(p)
 	w.SpatialIndex.Remove(p.ServerID, p.X, p.Z)
 	delete(w.Players, p.ServerID)
 }

@@ -33,6 +33,7 @@ func (w *World) Tick(now time.Time) {
 	w.statChannelSyncSystem()
 	w.buffChannelSyncSystem()
 	w.visibilitySystem()
+	w.groupSyncSystem()
 }
 
 // aiSystem handles NPC combat: aggro'd NPCs attack their current enemy every ~3 seconds.

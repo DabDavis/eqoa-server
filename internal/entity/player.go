@@ -103,6 +103,9 @@ type Player struct {
 	Underwater      bool // true when animation is a swim animation
 	DrowningCounter int  // tick counter for 6s drowning damage interval
 
+	// Group (group.go): the group's id, 0 for none
+	GroupID uint32
+
 	// Guild
 	GuildID       uint32
 	GuildName     string

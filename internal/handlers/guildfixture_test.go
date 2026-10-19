@@ -44,8 +44,10 @@ func (f *groupFixture) seen(viewer, who string) uint32 {
 	return f.world.IDSeenBy(f.sess[viewer], f.p[who])
 }
 
+// groupMsg is a request as the dispatcher hands it over: Data() is the
+// payload after the opcode.
 func groupMsg(op protocol.GameOpcode, body ...[]byte) *protocol.Message {
-	b := binary.LittleEndian.AppendUint16(nil, uint16(op))
+	var b []byte
 	for _, x := range body {
 		b = append(b, x...)
 	}

@@ -10,8 +10,8 @@ import (
 // --- reading a client message ----------------------------------------------------
 
 // clientReader reads a message the way CLIENT's VIMemStream writes one: raw
-// little-endian words, seven-bit zigzag ints, and counted strings. The
-// opcode is skipped. Any short read sets err.
+// little-endian words, seven-bit zigzag ints, and counted strings, from the
+// payload after the opcode (Data()). Any short read sets err.
 type clientReader struct {
 	b   []byte
 	p   int
@@ -19,11 +19,7 @@ type clientReader struct {
 }
 
 func newClientReader(msg *protocol.Message) *clientReader {
-	d := msg.Data()
-	if len(d) < 2 {
-		return &clientReader{err: true}
-	}
-	return &clientReader{b: d[2:]}
+	return &clientReader{b: msg.Data()}
 }
 
 func (r *clientReader) take(n int) []byte {

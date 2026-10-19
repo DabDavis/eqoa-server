@@ -96,8 +96,13 @@ func (a *auctionHouse) resultsPayload(page int, lots []*auctionLot) []byte {
 		var owner, high, n []int
 		for _, l := range lots {
 			writeLot(w, l)
+			// no bid yet: -1 (DrawSummary's "no bids", word 1708)
+			hi := l.high
+			if l.bids == 0 {
+				hi = -1
+			}
 			owner = append(owner, l.highID)
-			high = append(high, l.high)
+			high = append(high, hi)
 			n = append(n, l.bids)
 		}
 		writeInts(w, owner)

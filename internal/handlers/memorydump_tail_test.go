@@ -20,7 +20,7 @@ func TestMemoryDumpTailMatchesClientReadSequence(t *testing.T) {
 	buf := make([]byte, 4096)
 	w := buffer.NewWriter(buf)
 	player := &entity.Player{Speed: 8.8333}
-	writeMemoryDumpTail(w, player)
+	writeMemoryDumpTail(w, player, nil)
 
 	written := w.Position()
 	r := buffer.NewReader(buf[:written])

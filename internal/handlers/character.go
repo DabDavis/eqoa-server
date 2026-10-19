@@ -1125,7 +1125,17 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 	}
 	log.Printf("SendMemoryDump: wrote %d bank items", len(bankItems))
 
-	writeMemoryDumpTail(writer, player)
+	var spells []database.CharSpellEntry
+	if h.spellbookStore != nil {
+		var err error
+		spells, err = h.spellbookStore.GetCharacterSpells(player.CharServerID)
+		if err != nil {
+			log.Printf("SendMemoryDump: spellbook for %d: %v", player.CharServerID, err)
+			spells = nil
+		}
+	}
+	writeMemoryDumpTail(writer, player, spells)
+	log.Printf("SendMemoryDump: wrote %d abilities", len(spells))
 
 	dumpData := dumpBuf[:writer.Position()]
 	// Debug: EQOA_DUMP_MEMDUMP=<path> writes the payload (after the opcode) to
@@ -1215,14 +1225,17 @@ const memoryDumpTrailerLen = 39
 // HaveCorpse byte (a set one is followed by the corpse's item list), and the
 // ability list (ReadAbilities 0x00BDCDC0: a zigzag count of VIAbility
 // records). The ability list is where retail carries every song and spell
-// (Sandstorm's bard sends 42); our spellbook is not sent yet, and
-// writeAbilityRecord (ps2opcodes.go) writes its rows in that format when it is.
-func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player) {
+// (Sandstorm's bard sends 42); the character's spellbook goes here, each row as
+// writeAbilityRecord (ps2opcodes.go) writes it.
+func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player, spells []database.CharSpellEntry) {
 	w.Write7BitEncodedInt64(0) // the bank's listing rows
 	w.Write7BitEncodedInt64(0) // the bank's 32-byte rows
 	w.WriteByte(0x01)          // the bank's flag byte
 	w.WriteByte(0x00)          // HaveCorpse: no corpse list follows
-	w.Write7BitEncodedInt64(0) // the ability list's count
+	w.Write7BitEncodedInt64(int64(len(spells)))
+	for i := range spells {
+		writeAbilityRecord(w, &spells[i])
+	}
 
 	w.WriteFloat32(player.Speed)
 	w.WriteUint32(0)

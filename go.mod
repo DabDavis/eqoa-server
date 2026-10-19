@@ -5,6 +5,7 @@ go 1.24.0
 toolchain go1.24.4
 
 require (
+	github.com/coder/websocket v1.8.15
 	github.com/eqoa/pkg v0.0.0
 	github.com/go-sql-driver/mysql v1.7.1
 	golang.org/x/crypto v0.14.0

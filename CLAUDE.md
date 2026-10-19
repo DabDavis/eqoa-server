@@ -41,6 +41,7 @@ sqlite3 eqoa.db "SELECT id, server_id, name, model_id FROM characters"
 ```
 cmd/authserver/      TCP auth (port 9735)
 cmd/gameserver/      UDP game (port 10070) + HTTP patch (port 7000)
+cmd/wsrelay/         WebSocket relay for browser clients (wsrelay.py's protocol, host:port allow-list)
 internal/network/    RDP protocol, packet assembly
 internal/protocol/   Opcodes, message types, RLE encoding
 internal/session/    Session management, state channels, XOR delta

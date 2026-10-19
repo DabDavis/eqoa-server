@@ -242,6 +242,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Register group handlers (the group is the World's: entity/group.go)
 	NewGroupHandler(gameWorld).RegisterHandlers(r)
 
+	// Register the buddy and ignore lists (entity/social.go)
+	NewSocialHandler(gameWorld).RegisterHandlers(r)
+
 	// Register the spell book's requests (0x0033, 0x003A, 0x00FE)
 	NewSpellbookHandler(gameWorld, spellStore).RegisterHandlers(r)
 

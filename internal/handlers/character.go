@@ -1524,29 +1524,41 @@ func (h *CharacterHandler) SendTime(sess *session.Session) {
 	h.sendTimeOnly(sess)
 }
 
-// SendNoCollideList sends opcode 0x1005, empty. It is not an ignore list:
-// VIClientPart38300::Recv (0x00BFA850) appends a zigzag count of
-// {ReadString(name, 32), u32 id} entries to the names RefreshCollision treats
-// as non-collideable (0x1003 adds one, 0x1004 removes one by id). A zigzag 0
-// appends nothing.
+// SendNoCollideList sends opcode 0x1005: VIClientPart38300::Recv
+// (0x00BFA850) appends a zigzag count of {ReadString(name, 32), u32 id}
+// entries. It is the ignore list VIWndIgnoreList shows (612, "Ignore List"),
+// and the same names RefreshCollision treats as non-collideable (0x1003 adds
+// one, 0x1004 removes one by id). The entries are the World's
+// (entity/social.go); none is a zigzag 0, which appends nothing.
 func (h *CharacterHandler) SendNoCollideList(sess *session.Session) {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeNoCollideList)
 	writer := buffer.NewWriter(msg.Span())
 
 	writer.WriteUint16(uint16(protocol.OpcodeNoCollideList))
-	writer.Write7BitEncodedInt64(0) // no entries
+	var names []string
+	var ids []uint32
+	if h.gameWorld != nil {
+		names, ids = h.gameWorld.IgnoreList(sess)
+	}
+	writer.Write7BitEncodedInt64(int64(len(names)))
+	for i, n := range names {
+		writer.WriteStringUTF8(n)
+		writer.WriteUint32(ids[i])
+	}
 
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)
-	log.Printf("Sent NoCollideList (empty) to %s", sess.RemoteAddr())
+	log.Printf("Sent NoCollideList (%d) to %s", len(names), sess.RemoteAddr())
 }
 
 // SendBuddyList sends the buddy list (opcode 0x03D5).
 // eqoa.live sends one message per buddy. Empty = no messages sent.
 func (h *CharacterHandler) SendBuddyList(sess *session.Session) {
-	// No buddies to send for now — stub.
-	// When buddy system is implemented, send one 0x03D5 message per buddy entry.
-	log.Printf("BuddyList: no buddies to send to %s", sess.RemoteAddr())
+	n := 0
+	if h.gameWorld != nil {
+		n = h.gameWorld.SendBuddyList(sess)
+	}
+	log.Printf("BuddyList: %d buddies sent to %s", n, sess.RemoteAddr())
 }
 
 // sendTimeOnly sends just the Time message (opcode 0x13) without Ping.

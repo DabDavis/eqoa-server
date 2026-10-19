@@ -39,6 +39,9 @@ type World struct {
 	groups      map[uint32]*Group
 	nextGroupID uint32
 	invites     map[EntityID]map[EntityID]bool // invitee -> inviters
+
+	// Buddy and ignore lists (social.go), in memory only
+	social socialLists
 }
 
 // NewWorld creates and initializes a new game world.

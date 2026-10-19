@@ -143,6 +143,9 @@ const (
 // =============================================================================
 
 const (
+	OpcodeBuddyAdd       GameOpcode = 0x0366 // VIClient::AddBuddy: string name; the server asks that player (0x076F)
+	OpcodeBuddyAccept    GameOpcode = 0x0367 // AnswerBuddyRequest: u32 request id (0x076F's)
+	OpcodeBuddyRefuse    GameOpcode = 0x0368 // RejectBuddyRequest / Msg076F: u32 request id, u8 reason (1 busy, 2 refused, 8 list full)
 	OpcodeBuddyRemove    GameOpcode = 0x0369 // Buddy list remove Request (client)
 	OpcodeBuddyListEntry GameOpcode = 0x03D5 // Buddy list entry (server sends per buddy)
 	OpcodeBuddyRemoved   GameOpcode = 0x03D6 // zigzag buddy id: erased from the buddy list
@@ -279,6 +282,8 @@ const (
 // =============================================================================
 
 const (
+	OpcodeIgnoreAdd       GameOpcode = 0x1000 // VIClientPart38300::Add: string name (VIWndIgnoreList's Add Target)
+	OpcodeIgnoreRemove    GameOpcode = 0x1002 // VIClientPart38300::RemoveAt: u32 id, raw
 	OpcodeNoCollideList   GameOpcode = 0x1005 // VIClientPart38300: a counted list of non-collideable names, appended
 	OpcodeNoCollideAdd    GameOpcode = 0x1003 // one {name(32), id} added to the non-collideable list
 	OpcodeNoCollideRemove GameOpcode = 0x1004 // one entry removed by id

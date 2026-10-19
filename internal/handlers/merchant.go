@@ -80,6 +80,7 @@ func (h *NPCWindowHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeBankUI, h.HandleBankOpen)
 	r.Register(protocol.OpcodeBankItem, h.HandleBankItem)
 	r.Register(protocol.OpcodeDepositBankTunar, h.HandleBankTunar)
+	r.Register(protocol.OpcodeAuctionRequest, h.HandleAuction)
 	r.Register(protocol.OpcodeBlackSmithMenu, h.HandleBlacksmithOpen)
 	r.Register(protocol.OpcodeRequestRepair, h.HandleRepair)
 	r.Register(protocol.OpcodeCloseBlacksmithMenu, h.HandleBlacksmithClose)

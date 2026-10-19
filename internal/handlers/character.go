@@ -1282,8 +1282,6 @@ func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player, spells []datab
 // (itemlist.go), never by indexing. Sending charinventory.itemid here instead
 // made clicking one row act on another.
 func writeSingleItem(w *buffer.Writer, e *database.CharInventoryEntry, key int) {
-	p := &e.Pattern
-
 	// Per-instance fields
 	w.Write7BitEncodedInt64(int64(e.StackLeft))
 	w.Write7BitEncodedInt64(int64(e.RemainHP))
@@ -1291,6 +1289,13 @@ func writeSingleItem(w *buffer.Writer, e *database.CharInventoryEntry, key int) 
 	w.Write7BitEncodedInt64(int64(e.EquipLoc))
 	w.Write7BitEncodedInt64(int64(e.Location))
 	w.WriteUint32(uint32(key)) // key = container position (see doc comment)
+	writeItemPattern(w, e)
+}
+
+// writeItemPattern is the VIItem half of a record (0x00CBACE8): what an
+// auction lot carries after its own fields.
+func writeItemPattern(w *buffer.Writer, e *database.CharInventoryEntry) {
+	p := &e.Pattern
 
 	// Pattern fields
 	w.Write7BitEncodedInt64(int64(p.PatternID)) // ItemID on wire

@@ -294,7 +294,8 @@ const (
 // =============================================================================
 
 const (
-	OpcodeAuctionStuff     GameOpcode = 0x1206 // Won Auction item Info
+	OpcodeAuctionRequest   GameOpcode = 0x1205 // VIBankControl's auction requests: a sub-op byte (5 sell .. 9)
+	OpcodeAuctionStuff     GameOpcode = 0x1206 // the auction's replies: sub-ops 128..137 (Recv1206)
 	OpcodeBankUI           GameOpcode = 0x124D // Bank UI
 	OpcodeRemoveBankItem   GameOpcode = 0x1250 // Response to withdraw Item from bank (server)
 	OpcodeAddBankItem      GameOpcode = 0x1251 // Auction Item Win / Add bank item

@@ -228,6 +228,14 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		npcWindowHandler.SetGameWorld(gameWorld)
 	}
 	npcWindowHandler.RegisterHandlers(r)
+	interactHandler.corpse = npcWindowHandler.OpenCorpse
+
+	// Trading between players (trade.go): 0x0057 and 0x0056.
+	tradeHandler := NewTradeHandler(sessionMgr, npcWindowHandler)
+	if gameWorld != nil {
+		tradeHandler.SetGameWorld(gameWorld)
+	}
+	tradeHandler.RegisterHandlers(r)
 
 	// Register who handlers
 	whoHandler.RegisterHandlers(r)

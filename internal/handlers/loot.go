@@ -1,0 +1,212 @@
+package handlers
+
+import (
+	"log"
+	"sync"
+	"time"
+
+	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/protocol"
+	"github.com/eqoa/server/internal/session"
+)
+
+// Looting a corpse, as CLIENT asks for it:
+//
+//   - 0x0004 (InteractWithTarget's default) on a dead NPC opens its corpse:
+//     0x0018, the corpse as a VIItemList (buildLoot), each record keyed by
+//     its position. A client not in play answers 0x0016 at once
+//     (LootNoWindow).
+//   - 0x0019 {u32 key, u32 count} (LootOne 0x00BCAB?? → SendLoot(25, ...)):
+//     that record into the inventory (0x003B), and the corpse sent again
+//     (0x0016, then 0x0018 while anything is left). CLIENT's 0x0018 asserts
+//     no corpse is held, so 0x0016 always goes first.
+//   - 0x001A, no payload (RequestLootAll): 0x001A back, and CLIENT moves every
+//     record it has room for itself (Msg001A 0x00BD98B0: AddItem, then Took on
+//     the corpse); the server mirrors that in the database and the list, then
+//     closes (0x0016) or sends what is left.
+//   - 0x0016, no payload (LootNoWindow): 0x0016 back, which is what makes
+//     CLIENT let go of the corpse (HaveCorpse = 0) and leave the window.
+//
+// A corpse's items are its NPC's npcitem rows (the same table a merchant's
+// wares are in), taken when it is first opened after a death and gone with
+// the corpse. Anyone may loot a corpse.
+
+// corpse is one dead NPC's loot.
+type corpse struct {
+	died  time.Time // the death it is the loot of
+	items []database.CharInventoryEntry
+}
+
+// lootState is the corpses and who has which one open.
+type lootState struct {
+	mu      sync.Mutex
+	corpses map[entity.EntityID]*corpse
+	open    map[*session.Session]entity.EntityID
+}
+
+func (h *NPCWindowHandler) loots() *lootState {
+	h.lootOnce.Do(func() {
+		h.loot = &lootState{corpses: map[entity.EntityID]*corpse{}, open: map[*session.Session]entity.EntityID{}}
+	})
+	return h.loot
+}
+
+// closeLootPayload is 0x0016, no payload: LootClose, and the corpse forgotten.
+func closeLootPayload() []byte {
+	return build(protocol.OpcodeClientCloseLoot, 2, nil)
+}
+
+// OpenCorpse is 0x0004 on a dead NPC (InteractHandler hands it over): its
+// corpse, if it has anything on it, as 0x0018. It reports whether the NPC was
+// a corpse.
+func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bool {
+	if !npc.Dead || h.inv == nil {
+		return false
+	}
+	ls := h.loots()
+	ls.mu.Lock()
+	defer ls.mu.Unlock()
+	c := ls.corpses[npc.ServerID]
+	if c == nil || !c.died.Equal(npc.DeathTime) {
+		items, err := h.inv.GetNPCItems(npc.NPCID)
+		if err != nil {
+			log.Printf("Loot: %q (npc %d): %v", npc.Name, npc.NPCID, err)
+		}
+		for i := range items {
+			items[i] = catalogRecord(items[i])
+		}
+		c = &corpse{died: npc.DeathTime, items: items}
+		ls.corpses[npc.ServerID] = c
+	}
+	if len(c.items) == 0 {
+		return true
+	}
+	ls.open[sess] = npc.ServerID
+	SendLoot(sess, c.items)
+	log.Printf("Loot: %s opened %q: %d items", sessName(h, sess), npc.Name, len(c.items))
+	return true
+}
+
+func sessName(h *NPCWindowHandler, sess *session.Session) string {
+	if h.playerOf != nil {
+		if p := h.playerOf(sess); p != nil {
+			return p.Name
+		}
+	}
+	return sess.RemoteAddr().String()
+}
+
+// resend is the corpse again after a change: 0x0016, then 0x0018 while
+// anything is left (else the corpse is closed for this session).
+func (h *NPCWindowHandler) resendCorpse(sess *session.Session, ls *lootState, c *corpse) {
+	queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
+	if len(c.items) == 0 {
+		delete(ls.open, sess)
+		return
+	}
+	SendLoot(sess, c.items)
+}
+
+// HandleLootClose is 0x0016 (LootNoWindow): answered with 0x0016.
+func (h *NPCWindowHandler) HandleLootClose(sess *session.Session, msg *protocol.Message) error {
+	ls := h.loots()
+	ls.mu.Lock()
+	delete(ls.open, sess)
+	ls.mu.Unlock()
+	queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
+	return nil
+}
+
+// HandleLootItem is 0x0019 {u32 key, u32 count} (SendLoot): the record with
+// that key into the inventory, as many as it holds.
+func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.Message) error {
+	r := buffer.NewReader(msg.Data())
+	key, e1 := r.ReadUint32()
+	n, e2 := r.ReadUint32()
+	if e1 != nil || e2 != nil {
+		return nil
+	}
+	ls := h.loots()
+	ls.mu.Lock()
+	defer ls.mu.Unlock()
+	c, player, inv := h.openCorpse(sess, ls)
+	if c == nil {
+		queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
+		return nil
+	}
+	i := int(key)
+	if i < 0 || i >= len(c.items) || n == 0 {
+		h.resendCorpse(sess, ls, c)
+		return nil
+	}
+	rec := c.items[i]
+	count := min(int(n), rec.StackLeft)
+	took := inv.wouldAdd(rec.Pattern.PatternID, count, rec.Pattern.MaxStack)
+	if took > 0 {
+		out, k, err := h.giveItem(player, inv, rec, took, 0)
+		if err != nil {
+			log.Printf("Loot: %s: %v", player.Name, err)
+		} else {
+			queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k))
+			c.items[i].StackLeft -= took
+			if c.items[i].StackLeft <= 0 {
+				c.items = append(c.items[:i], c.items[i+1:]...)
+			}
+			log.Printf("Loot: %s took %d %q", player.Name, took, rec.Pattern.ItemName)
+		}
+	}
+	h.resendCorpse(sess, ls, c)
+	return nil
+}
+
+// HandleLootAll is 0x001A (RequestLootAll): 0x001A back, and the server does
+// what Msg001A does on the client, record by record.
+func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Message) error {
+	ls := h.loots()
+	ls.mu.Lock()
+	defer ls.mu.Unlock()
+	c, player, inv := h.openCorpse(sess, ls)
+	if c == nil {
+		queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
+		return nil
+	}
+	queueReliable(sess, protocol.OpcodeLootTakeAll, buildLootTakeAll())
+	for i := 0; i < len(c.items); {
+		rec := c.items[i]
+		took := inv.wouldAdd(rec.Pattern.PatternID, rec.StackLeft, rec.Pattern.MaxStack)
+		if took > 0 {
+			if _, _, err := h.giveItem(player, inv, rec, took, 0); err != nil {
+				log.Printf("Loot: %s: %v", player.Name, err)
+				took = 0
+			}
+		}
+		c.items[i].StackLeft -= took
+		if c.items[i].StackLeft <= 0 {
+			c.items = append(c.items[:i], c.items[i+1:]...)
+		} else if took != rec.StackLeft {
+			i++
+		}
+	}
+	log.Printf("Loot: %s took everything; %d records left", player.Name, len(c.items))
+	h.resendCorpse(sess, ls, c)
+	return nil
+}
+
+// openCorpse is the session's open corpse, its player and inventory list, or
+// nils (with the session's corpse forgotten).
+func (h *NPCWindowHandler) openCorpse(sess *session.Session, ls *lootState) (*corpse, *entity.Player, *invList) {
+	id, ok := ls.open[sess]
+	if !ok || h.playerOf == nil || h.inv == nil {
+		return nil, nil, nil
+	}
+	c := ls.corpses[id]
+	player := h.playerOf(sess)
+	inv := sessionInvList(sess)
+	if c == nil || player == nil || inv == nil {
+		delete(ls.open, sess)
+		return nil, nil, nil
+	}
+	return c, player, inv
+}

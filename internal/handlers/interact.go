@@ -14,6 +14,10 @@ import (
 type InteractHandler struct {
 	sessionManager *session.Manager
 	gameWorld      *entity.World
+
+	// corpse opens a dead NPC's loot (NPCWindowHandler.OpenCorpse); it
+	// reports whether the NPC was a corpse.
+	corpse func(*session.Session, *entity.NPC) bool
 }
 
 // NewInteractHandler creates a new interact handler.
@@ -75,6 +79,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 			player.Name, entity.EntityName(targetEntity),
 			entity.DistanceBetween(player, targetEntity), entity.InteractRange,
 			player.X, player.Y, player.Z, tx, ty, tz, targetObjectID)
+		return nil
+	}
+
+	// A corpse: its loot (loot.go).
+	if npc, ok := targetEntity.(*entity.NPC); ok && npc.Dead && h.corpse != nil && h.corpse(sess, npc) {
 		return nil
 	}
 

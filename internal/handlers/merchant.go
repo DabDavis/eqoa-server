@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"sync"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
@@ -52,6 +53,10 @@ type NPCWindowHandler struct {
 	// SessionPlayer (SetGameWorld); tests stand in for them.
 	find     func(*session.Session, uint32) (entity.Entity, bool)
 	playerOf func(*session.Session) *entity.Player
+
+	// loot is the corpses (loot.go), made on first use.
+	loot     *lootState
+	lootOnce sync.Once
 }
 
 // NewNPCWindowHandler creates the handler. inv may be nil (no database): the
@@ -78,6 +83,9 @@ func (h *NPCWindowHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeBlackSmithMenu, h.HandleBlacksmithOpen)
 	r.Register(protocol.OpcodeRequestRepair, h.HandleRepair)
 	r.Register(protocol.OpcodeCloseBlacksmithMenu, h.HandleBlacksmithClose)
+	r.Register(protocol.OpcodeClientCloseLoot, h.HandleLootClose)
+	r.Register(protocol.OpcodeClientLoot, h.HandleLootItem)
+	r.Register(protocol.OpcodeLootTakeAll, h.HandleLootAll)
 }
 
 // windowNPC resolves the NPC a window request names: it must be an NPC with

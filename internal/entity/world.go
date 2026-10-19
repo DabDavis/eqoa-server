@@ -377,6 +377,25 @@ func (w *World) ProcessAttack(sess *session.Session, targetObjectID uint32, dama
 	}
 }
 
+// KillNPCByObjectID is the GM's #kill: the NPC the session knows by that id
+// dead at once (no swing, no XP). It reports the NPC's name, or false when
+// the id names no living NPC.
+func (w *World) KillNPCByObjectID(sess *session.Session, objectID uint32) (string, bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	ent, found := w.findEntityByObjectIDLocked(sess, objectID)
+	if !found {
+		return "", false
+	}
+	npc, ok := ent.(*NPC)
+	if !ok || npc.Dead {
+		return "", false
+	}
+	npc.HP = 0
+	w.killNPC(npc)
+	return npc.Name, true
+}
+
 // LoadNPCs loads all NPCs from the database into the world.
 func (w *World) LoadNPCs(npcStore *database.NPCStore) {
 	w.mu.Lock()

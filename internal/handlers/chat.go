@@ -601,9 +601,14 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			h.gmReply(sess, "Target not found")
 			return
 		}
-		if npc, ok := target.(*entity.NPC); ok {
-			h.gameWorld.ProcessAttack(sess, player.TargetObjectID, npc.HP)
-			h.gmReply(sess, fmt.Sprintf("Killed %s", npc.Name))
+		if _, ok := target.(*entity.NPC); ok {
+			// ProcessAttack is one auto-attack swing now (attack.go), which
+			// leaves most NPCs standing: kill outright.
+			if name, ok := h.gameWorld.KillNPCByObjectID(sess, player.TargetObjectID); ok {
+				h.gmReply(sess, fmt.Sprintf("Killed %s", name))
+			} else {
+				h.gmReply(sess, "Already dead")
+			}
 		} else {
 			h.gmReply(sess, "Can only kill NPCs")
 		}

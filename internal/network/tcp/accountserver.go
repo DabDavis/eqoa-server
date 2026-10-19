@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -20,6 +21,7 @@ type AccountServer struct {
 	db           *database.SQLiteDB
 	accountStore *database.SQLiteAccountStore
 	charStore    *database.SQLiteCharacterStore
+	defaults     *database.DefaultCharacterStore
 	port         int
 	bcryptCost   int
 	server       *http.Server
@@ -80,6 +82,7 @@ func NewAccountServer(db *database.SQLiteDB, port int, bcryptCost int) *AccountS
 		db:           db,
 		accountStore: database.NewSQLiteAccountStore(db),
 		charStore:    database.NewSQLiteCharacterStore(db),
+		defaults:     database.NewDefaultCharacterStore(db),
 		port:         port,
 		bcryptCost:   bcryptCost,
 		createdIPs:   make(map[string]bool),
@@ -122,6 +125,7 @@ func (s *AccountServer) Start() error {
 	mux.HandleFunc("/api/characters/delete", s.handleAPIDeleteCharacter)
 	mux.HandleFunc("/api/characters/teleport", s.handleAPITeleport)
 	mux.HandleFunc("/api/teleport/destinations", s.handleAPITeleportDests)
+	mux.HandleFunc("/api/creation", s.handleAPICreation)
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", s.port),
@@ -145,22 +149,47 @@ func (s *AccountServer) Stop() {
 	}
 }
 
-// getClientIP extracts the client IP from the request.
+// getClientIP extracts the client IP from the request. Behind a proxy on
+// loopback (nginx), the client is the address the proxy names: X-Real-IP,
+// else the LAST X-Forwarded-For entry (the proxy appends to whatever the
+// client sent, so the first is the client's to choose). From any other peer
+// the headers are ignored.
 func (s *AccountServer) getClientIP(r *http.Request) string {
-	forwarded := r.Header.Get("X-Forwarded-For")
-	if forwarded != "" {
-		parts := strings.Split(forwarded, ",")
-		return strings.TrimSpace(parts[0])
-	}
-	realIP := r.Header.Get("X-Real-IP")
-	if realIP != "" {
-		return realIP
-	}
 	ip := r.RemoteAddr
-	if colonIdx := strings.LastIndex(ip, ":"); colonIdx != -1 {
-		ip = ip[:colonIdx]
+	if host, _, err := net.SplitHostPort(ip); err == nil {
+		ip = host
+	}
+	if p := net.ParseIP(ip); p != nil && p.IsLoopback() {
+		if real := strings.TrimSpace(r.Header.Get("X-Real-IP")); real != "" {
+			return real
+		}
+		if fwd := r.Header.Get("X-Forwarded-For"); fwd != "" {
+			parts := strings.Split(fwd, ",")
+			return strings.TrimSpace(parts[len(parts)-1])
+		}
 	}
 	return ip
+}
+
+// handleAPICreation lists what character creation offers: one entry per
+// (race, city, class) in the defaultcharacter table, which holds one row per
+// class a race's classMask allows (claude-notes/new-race-checklist.md), with
+// the starting stats (60 plus the race's and the class's bonuses). A new
+// character spends `points` over them.
+func (s *AccountServer) handleAPICreation(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	type combo struct {
+		Race  int    `json:"race"`
+		City  int    `json:"city"`
+		Class int    `json:"class"`
+		Stats [7]int `json:"stats"`
+	}
+	out := []combo{}
+	for _, d := range s.defaults.All() {
+		out = append(out, combo{d.Race, d.HumType, d.TClass, [7]int{d.DefaultStrength, d.DefaultStamina,
+			d.DefaultAgility, d.DefaultDexterity, d.DefaultWisdom, d.DefaultIntelligence, d.DefaultCharisma}})
+	}
+	json.NewEncoder(w).Encode(map[string]interface{}{"combos": out, "points": 20})
 }
 
 // generateToken creates a random session token.

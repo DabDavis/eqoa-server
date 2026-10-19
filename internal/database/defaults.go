@@ -2,6 +2,7 @@ package database
 
 import (
 	"log"
+	"sort"
 )
 
 // DefaultCharacterRecord represents a row from the defaultcharacter table.
@@ -113,6 +114,25 @@ func (s *DefaultCharacterStore) GetDefaults(tclass, race, humType int) *DefaultC
 	}
 
 	return nil
+}
+
+// All returns every template, by race, city (humType) and class.
+func (s *DefaultCharacterStore) All() []*DefaultCharacterRecord {
+	out := make([]*DefaultCharacterRecord, 0, len(s.defaults))
+	for _, d := range s.defaults {
+		out = append(out, d)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		a, b := out[i], out[j]
+		if a.Race != b.Race {
+			return a.Race < b.Race
+		}
+		if a.HumType != b.HumType {
+			return a.HumType < b.HumType
+		}
+		return a.TClass < b.TClass
+	})
+	return out
 }
 
 // Count returns the number of default character templates.

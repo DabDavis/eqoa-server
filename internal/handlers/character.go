@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
@@ -226,7 +227,7 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 
 	if nameLen <= 0 || nameLen > 24 {
 		log.Printf("CreateCharacter: invalid name length %d", nameLen)
-		h.SendNameTaken(sess)
+		h.sendCreateRefusal(sess, protocol.OpcodeCreateCharBadName)
 		return nil
 	}
 
@@ -242,7 +243,7 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 	// Validate name
 	if !h.isValidName(name) {
 		log.Printf("CreateCharacter: invalid name '%s'", name)
-		h.SendNameTaken(sess)
+		h.sendCreateRefusal(sess, protocol.OpcodeCreateCharBadName)
 		return nil
 	}
 
@@ -250,7 +251,7 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 	exists, err := h.store.NameExists(name)
 	if err != nil {
 		log.Printf("CreateCharacter: database error checking name: %v", err)
-		h.SendNameTaken(sess)
+		h.sendCreateRefusal(sess, protocol.OpcodeCreateCharFailed)
 		return nil
 	}
 	if exists {
@@ -288,6 +289,13 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 	log.Printf("CreateCharacter: stats STR=%d STA=%d AGI=%d DEX=%d WIS=%d INT=%d CHA=%d",
 		strength, stamina, agility, dexterity, wisdom, intelligence, charisma)
 
+	if why := checkNewChar(race, class, gender, hairColor, hairLength, hairStyle, faceOption, humanType,
+		[]int32{strength, stamina, agility, dexterity, wisdom, intelligence, charisma}); why != "" {
+		log.Printf("CreateCharacter: refused '%s': %s", name, why)
+		h.sendCreateRefusal(sess, protocol.OpcodeCreateCharFailed)
+		return nil
+	}
+
 	// Create character record for database
 	accountID := sess.AccountID()
 	if accountID == 0 {
@@ -299,7 +307,7 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 	charCount, _ := h.store.CountByAccount(uint32(accountID))
 	if charCount >= 8 {
 		log.Printf("CreateCharacter: account %d already has %d characters (max 8)", accountID, charCount)
-		h.SendNameTaken(sess) // reuse NameTaken response to signal rejection
+		h.sendCreateRefusal(sess, protocol.OpcodeCreateCharFailed)
 		return nil
 	}
 	record := &database.CharacterRecord{
@@ -340,7 +348,7 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 			return nil
 		}
 		log.Printf("CreateCharacter: failed to save character: %v", err)
-		h.SendNameTaken(sess)
+		h.sendCreateRefusal(sess, protocol.OpcodeCreateCharFailed)
 		return nil
 	}
 
@@ -526,11 +534,11 @@ func (h *CharacterHandler) HandleRandomName(sess *session.Session, msg *protocol
 	response := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeRandomName)
 	writer := buffer.NewWriter(response.Span())
 
-	// Write opcode in data (C# reference format)
+	// The name page reads it with VIMemStream::ReadString(name, 24): a u32
+	// length, then the bytes (decomp viclient.cpp, case 0x0012). The C#
+	// reference's 7-bit length made the client read four bytes of length.
 	writer.WriteUint16(uint16(protocol.OpcodeRandomName))
-	// Write name with length prefix (7-bit encoded length + UTF8 string)
-	writer.Write7BitEncodedUInt64(uint64(len(name)))
-	writer.WriteStringUTF8Raw(name)
+	writer.WriteStringUTF8(name)
 	response.SetSize(writer.Position())
 
 	sess.Queue().AddWithSequence(response)
@@ -779,15 +787,54 @@ func (h *CharacterHandler) HandleDelCharacter(sess *session.Session, msg *protoc
 
 // SendNameTaken sends a name taken response (opcode 0x2F) and resends character list.
 func (h *CharacterHandler) SendNameTaken(sess *session.Session) {
-	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeNameTaken)
+	h.sendCreateRefusal(sess, protocol.OpcodeNameTaken)
+}
+
+// sendCreateRefusal answers a 0x002B the client must drop: the select page
+// shows a word for each (decomp viclient.cpp) -- 0x002F 829 "Failed: name
+// already taken", 0x0065 828 "Failed: invalid name", 0x002E 269 "Character
+// create failed" -- and removes the entry CreateCharacter added. The list
+// follows, to keep the client on the select screen.
+func (h *CharacterHandler) sendCreateRefusal(sess *session.Session, op protocol.GameOpcode) {
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, op)
 	writer := buffer.NewWriter(msg.Span())
-	writer.WriteUint16(uint16(protocol.OpcodeNameTaken)) // Opcode in data
+	writer.WriteUint16(uint16(op)) // Opcode in data
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)
-	log.Printf("Sent NameTaken to %s", sess.RemoteAddr())
-
-	// Resend character list to keep client on character select screen
+	log.Printf("Sent %s to %s", op, sess.RemoteAddr())
 	h.SendCharacterSelectEQOA(sess)
+}
+
+// checkNewChar bounds a creation form to what the client's pages can produce
+// (decomp viwndcharcreate*.cpp): race 0-9 and the froglok's 10, class 0-14,
+// sex 0-1, face, hair style and length 0-3, hair colour 0-7, city 0-2, and
+// the stats as points spent over the race's and class's bonuses, none below
+// zero and 20 in all. "" means acceptable.
+func checkNewChar(race, class, sex, hairColor, hairLength, hairStyle, face, city int64, stats []int32) string {
+	in := func(v, lo, hi int64) bool { return v >= lo && v <= hi }
+	switch {
+	case !in(race, 0, 10):
+		return fmt.Sprintf("race %d", race)
+	case !in(class, 0, 14):
+		return fmt.Sprintf("class %d", class)
+	case !in(sex, 0, 1):
+		return fmt.Sprintf("sex %d", sex)
+	case !in(face, 0, 3) || !in(hairStyle, 0, 3) || !in(hairLength, 0, 3) || !in(hairColor, 0, 7):
+		return fmt.Sprintf("look face %d hair %d/%d/%d", face, hairStyle, hairLength, hairColor)
+	case !in(city, 0, 2):
+		return fmt.Sprintf("city %d", city)
+	}
+	total := int32(0)
+	for _, v := range stats {
+		if v < 0 || v > 20 {
+			return fmt.Sprintf("stat points %v", stats)
+		}
+		total += v
+	}
+	if total > 20 {
+		return fmt.Sprintf("stat points %v sum to %d", stats, total)
+	}
+	return ""
 }
 
 // SendCharacterSelectEQOA sends the character list (opcode 0x2C).

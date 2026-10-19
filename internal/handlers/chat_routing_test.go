@@ -68,7 +68,7 @@ type line struct {
 	sub  byte
 }
 
-func readWide(b []byte) (string, []byte) {
+func readWideLine(b []byte) (string, []byte) {
 	if len(b) < 4 {
 		return "", nil
 	}
@@ -92,21 +92,25 @@ func heard(t *testing.T, s *session.Session) []line {
 			continue
 		}
 		op := protocol.GameOpcode(binary.LittleEndian.Uint16(d))
+		// forming a group (group's invitation and roster) is not chat
+		if op == protocol.OpcodeCreateGroup || op == protocol.OpcodeGroupInviteReceived {
+			continue
+		}
 		l := line{op: op}
 		switch op {
 		case protocol.OpcodeClientMessage, protocol.OpcodeErrorMessage:
-			l.text, _ = readWide(d[2:])
+			l.text, _ = readWideLine(d[2:])
 		case protocol.OpcodeColoredChat:
 			var rest []byte
-			l.text, rest = readWide(d[2:])
+			l.text, rest = readWideLine(d[2:])
 			if len(rest) >= 3 {
 				copy(l.rgb[:], rest)
 			}
 		case protocol.OpcodeGroupChat:
-			l.text, _ = readWide(d[6:])
+			l.text, _ = readWideLine(d[6:])
 		case protocol.OpcodeGuildInfo:
 			l.sub = d[2]
-			l.text, _ = readWide(d[7:])
+			l.text, _ = readWideLine(d[7:])
 		case protocol.OpcodeReplyName:
 			n := int(binary.LittleEndian.Uint32(d[2:]))
 			l.text = string(d[6 : 6+n])
@@ -114,6 +118,18 @@ func heard(t *testing.T, s *session.Session) []line {
 		out = append(out, l)
 	}
 	return out
+}
+
+// group makes a and b a group the way clients do: a invites b, b accepts,
+// each naming the other by the id its own session knows it by (heard skips
+// the invitation and the roster this sends).
+func (c *chatWorld) group(t *testing.T, sa *session.Session, pa *entity.Player, sb *session.Session, pb *entity.Player) {
+	t.Helper()
+	c.gw.GroupInvite(sa, c.gw.IDSeenBy(sa, pb))
+	c.gw.GroupAccept(sb, c.gw.IDSeenBy(sb, pa))
+	if len(c.gw.GroupMembers(pa)) != 2 {
+		t.Fatalf("no group: %v", c.gw.GroupMembers(pa))
+	}
 }
 
 func (c *chatWorld) send(s *session.Session, op protocol.GameOpcode, data []byte) {
@@ -175,9 +191,7 @@ func TestChatGroupModeReachesTheGroupOnly(t *testing.T) {
 	alice, pa := c.join(1, "Alice", 25000, 16000, 0)
 	bob, pb := c.join(2, "Bob", 27000, 16000, 0)  // far away: group chat has no range
 	carl, _ := c.join(3, "Carl", 25010, 16000, 0) // in say range, not in the group
-	if _, err := c.gw.CreateGroup(pa, pb); err != nil {
-		t.Fatal(err)
-	}
+	c.group(t, alice, pa, bob, pb)
 
 	c.mode(alice, ChatModeGroup)
 	c.say(alice, "pull now")
@@ -213,16 +227,19 @@ func TestChatGuildModeReachesTheGuildOnly(t *testing.T) {
 	alice, pa := c.join(1, "Alice", 25000, 16000, 0)
 	bob, pb := c.join(2, "Bob", 27000, 16000, 1)
 	carl, _ := c.join(3, "Carl", 25010, 16000, 0)
-	g := c.gw.CreateGuild("Testers", pa)
-	if !c.gw.AddToGuild(pb, g) {
-		t.Fatal("AddToGuild")
+	g, err := c.gw.CreateGuild("Testers", pa)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := c.gw.JoinGuild(g, pb); err != nil {
+		t.Fatal(err)
 	}
 
 	c.mode(alice, ChatModeGuild)
 	c.say(alice, "guild only")
 	for _, s := range []*session.Session{alice, bob} {
 		got := heard(t, s)
-		if len(got) != 1 || got[0].op != protocol.OpcodeGuildInfo || got[0].sub != 5 || got[0].text != "Alice tells the guild: guild only" {
+		if len(got) != 1 || got[0].op != protocol.OpcodeGuildInfo || got[0].sub != 5 || got[0].text != "Alice: guild only" {
 			t.Errorf("a member heard %+v", got)
 		}
 	}
@@ -345,9 +362,7 @@ func TestChatModeIsPerPlayer(t *testing.T) {
 	c := newChatWorld(t)
 	alice, pa := c.join(1, "Alice", 25000, 16000, 0)
 	bob, pb := c.join(2, "Bob", 25010, 16000, 0)
-	if _, err := c.gw.CreateGroup(pa, pb); err != nil {
-		t.Fatal(err)
-	}
+	c.group(t, alice, pa, bob, pb)
 	c.mode(alice, ChatModeGroup)
 	c.say(bob, "plain say")
 	if got := heard(t, alice); len(got) != 1 || got[0].op != protocol.OpcodeClientMessage || got[0].text != "Bob: plain say" {

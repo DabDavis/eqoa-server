@@ -43,6 +43,23 @@ type Group struct {
 	lastRoster map[EntityID]string
 }
 
+// GroupMembers is p's group's members (the leader first), or none.
+func (w *World) GroupMembers(p *Player) []*Player {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	g := w.groups[p.GroupID]
+	if p.GroupID == 0 || g == nil {
+		return nil
+	}
+	out := make([]*Player, 0, len(g.Members))
+	for _, id := range g.Members {
+		if m := w.Players[id]; m != nil {
+			out = append(out, m)
+		}
+	}
+	return out
+}
+
 // groupFarID stands in for a member the receiver cannot see.
 func groupFarID(id EntityID) uint32 { return 0x7F000000 | uint32(id) }
 

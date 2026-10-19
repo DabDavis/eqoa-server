@@ -296,9 +296,9 @@ func guildChatLinePayload(senderID uint32, text string) []byte {
 	})
 }
 
-// RouteGuildChat is guild chat, from 0x000B in mode 4 or 0x0578 sub 12 (what a
-// PS2 sends for /gu and for typed text in guild mode, func_00BEF1B0 [A]):
-// "Name tells the guild: text" to every online member, the sender included.
+// RouteGuildChat is guild chat from 0x000B in mode 4 (0x0578 sub 12 is the
+// guild handler's): "Name: text" to every online member, the sender included,
+// as the guild handler sends it.
 // Not in a guild: an error to the sender alone.
 func RouteGuildChat(gw *entity.World, sess *session.Session, player *entity.Player, message string) {
 	if gw == nil || player == nil {
@@ -308,8 +308,9 @@ func RouteGuildChat(gw *entity.World, sess *session.Session, player *entity.Play
 		SendErrorMessage(sess, "You are not in a guild.")
 		return
 	}
-	line := fmt.Sprintf("%s tells the guild: %s", player.Name, message)
-	payload := guildChatLinePayload(uint32(player.ServerID), line)
+	// the guild handler's line (0x0578 sub 12): CLIENT prints it as it is
+	line := player.Name + ": " + message
+	payload := entity.BuildGuildChat(0, line)
 	sessions := playerSessions(gw)
 	var to []*session.Session
 	gw.ForEachPlayer(func(p *entity.Player) {

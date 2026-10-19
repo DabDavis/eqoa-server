@@ -73,6 +73,15 @@ func (w *World) idSeenByLocked(recv *session.Session, member *Player) uint32 {
 	return groupFarID(member.ServerID)
 }
 
+// IDSeenBy is the id the receiver knows a player by (its own object id,
+// the visibility channel's, or groupFarID's stand-in), for lists that name
+// players: the who list's rows carry it, and an invite from one sends it back.
+func (w *World) IDSeenBy(recv *session.Session, p *Player) uint32 {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.idSeenByLocked(recv, p)
+}
+
 // playerSeenByLocked resolves an id the sender gave (its own, an object id
 // from ITS visibility channels, or a stand-in) to a player. Object ids are per
 // session, so only the sender's own table is read: findEntityByObjectIDLocked

@@ -60,17 +60,26 @@ func (h *WhoHandler) HandleWhoList(sess *session.Session, msg *protocol.Message)
 		Class int
 		Level int
 		Name  string
+		ID    uint32
 	}
 	var players []playerInfo
+	var all []*entity.Player
 
 	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
+		all = append(all, p)
+	})
+	// The row's last word is the id the requester knows the player by:
+	// CLIENT's InviteToGroup takes the row as a VIInviteRec, whose +0x1C is
+	// the id it sends back in 0x0625.
+	for _, p := range all {
 		players = append(players, playerInfo{
 			Race:  p.Race,
 			Class: p.Class,
 			Level: p.Level,
 			Name:  p.Name,
+			ID:    h.gameWorld.IDSeenBy(sess, p),
 		})
-	})
+	}
 
 	count := int64(len(players))
 
@@ -88,7 +97,7 @@ func (h *WhoHandler) HandleWhoList(sess *session.Session, msg *protocol.Message)
 		writer.WriteByte(byte(p.Class))
 		writer.WriteByte(byte(p.Level))
 		writer.WriteStringUTF8(p.Name)
-		writer.WriteUint32(0) // objectID — not used for cross-zone targeting
+		writer.WriteUint32(p.ID)
 	}
 
 	resp.SetSize(writer.Position())

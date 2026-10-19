@@ -237,6 +237,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	}
 	tradeHandler.RegisterHandlers(r)
 
+	// Tradeskills (craft.go): 0x1101, a stand-in recipe book
+	NewCraftHandler().RegisterHandlers(r)
+
 	// Register who handlers
 	whoHandler.RegisterHandlers(r)
 

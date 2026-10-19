@@ -216,7 +216,19 @@ func (w *World) RemovePlayerBySession(sess *session.Session) {
 	if p == nil {
 		return
 	}
-	w.RemovePlayer(p.ServerID)
+	// Only while the map still holds THIS session's player. A character that
+	// logged in again has a new Player under the same ServerID (CreatePlayer
+	// replaced the old one), and the old session timing out later must not
+	// take the new one with it: that left the live session with no map entry,
+	// so UpdatePosition dropped every move and the visibility and interact
+	// range checks kept the spawn point.
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if cur, ok := w.Players[p.ServerID]; !ok || cur != p {
+		return
+	}
+	w.SpatialIndex.Remove(p.ServerID, p.X, p.Z)
+	delete(w.Players, p.ServerID)
 }
 
 // UpdatePosition updates an entity's position in the world.

@@ -17,7 +17,7 @@ import (
 //   - 0x0057 {u32 target} (RequestTrade 0x00BDA028, SendOpU32(87)): A asks B.
 //     B gets 0x0057 {u32 partner, u32 id} (Msg0057 0x00BDA1A8): the id every
 //     0x0056 it sends and receives carries, and the entity it names the asker
-//     by. Both are the asker's ObjectID.
+//     by. Both are the asker, as the target's client knows it.
 //   - Every other message is 0x0056 {u8 sub, u32 id, ...}. CLIENT drops one
 //     whose id is not its partner's, but for subs 1, 2 and 20.
 //     From the client: 1 cancel (TradeCancel), 2 yes (the asked side's
@@ -117,6 +117,11 @@ func tradeSub(sub byte, id uint32, fill func(w *buffer.Writer)) []byte {
 	})
 }
 
+// seen is the id side s's client knows player p by (ids are per session).
+func (h *TradeHandler) seen(s *tradeSide, p *entity.Player) uint32 {
+	return h.gameWorld.IDSeenBy(s.sess, p)
+}
+
 func (h *TradeHandler) send(s *tradeSide, sub byte, id uint32, fill func(w *buffer.Writer)) {
 	queueReliable(s.sess, protocol.OpcodeTradeUI, tradeSub(sub, id, fill))
 }
@@ -130,7 +135,7 @@ func (h *TradeHandler) HandleTradeRequest(sess *session.Session, msg *protocol.M
 		return nil
 	}
 	me := h.gameWorld.SessionPlayer(sess)
-	them := h.gameWorld.PlayerByObjectID(target)
+	them := h.gameWorld.PlayerSeenBy(sess, target)
 	if me == nil || them == nil || them == me {
 		return nil
 	}
@@ -146,7 +151,7 @@ func (h *TradeHandler) HandleTradeRequest(sess *session.Session, msg *protocol.M
 	a := &tradeSide{sess: sess, player: me, asker: true}
 	if h.trades[theirSess] != nil {
 		// Trade20: busy
-		h.send(a, 20, them.ObjectID, nil)
+		h.send(a, 20, h.seen(a, them), nil)
 		return nil
 	}
 	b := &tradeSide{sess: theirSess, player: them}
@@ -154,8 +159,9 @@ func (h *TradeHandler) HandleTradeRequest(sess *session.Session, msg *protocol.M
 	h.trades[sess] = t
 	h.trades[theirSess] = t
 	queueReliable(theirSess, protocol.OpcodeTradeRequest, build(protocol.OpcodeTradeRequest, 16, func(w *buffer.Writer) {
-		w.WriteUint32(me.ObjectID)
-		w.WriteUint32(me.ObjectID)
+		id := h.gameWorld.IDSeenBy(theirSess, me)
+		w.WriteUint32(id)
+		w.WriteUint32(id)
 	}))
 	log.Printf("Trade: %s asks %s", me.Name, them.Name)
 	return nil
@@ -192,18 +198,18 @@ func (h *TradeHandler) HandleTradeUI(sess *session.Session, msg *protocol.Messag
 	you := t.other(me)
 	switch sub {
 	case 1: // cancel
-		h.send(you, 1, me.player.ObjectID, nil)
+		h.send(you, 1, h.seen(you, me.player), nil)
 		h.endLocked(t)
 		log.Printf("Trade: %s cancelled", me.player.Name)
 	case 20: // busy
-		h.send(you, 20, me.player.ObjectID, nil)
+		h.send(you, 20, h.seen(you, me.player), nil)
 		h.endLocked(t)
 	case 2: // the asked side said yes
 		if me.asker || t.open {
 			return nil
 		}
 		t.open = true
-		h.send(you, 2, me.player.ObjectID, nil)
+		h.send(you, 2, h.seen(you, me.player), nil)
 		log.Printf("Trade: %s and %s trade", t.a.player.Name, t.b.player.Name)
 	case 3:
 		key, ea := r.ReadUint32()
@@ -228,21 +234,21 @@ func (h *TradeHandler) HandleTradeUI(sess *session.Session, msg *protocol.Messag
 		if me.asker {
 			sub = 5
 		}
-		h.send(me, sub, you.player.ObjectID, func(w *buffer.Writer) { w.Write7BitEncodedInt64(x) })
-		h.send(you, sub, me.player.ObjectID, func(w *buffer.Writer) { w.Write7BitEncodedInt64(x) })
+		h.send(me, sub, h.seen(me, you.player), func(w *buffer.Writer) { w.Write7BitEncodedInt64(x) })
+		h.send(you, sub, h.seen(you, me.player), func(w *buffer.Writer) { w.Write7BitEncodedInt64(x) })
 		h.clearAcceptsLocked(t)
 	case 6:
 		if !t.open {
 			return nil
 		}
 		me.accepted = true
-		h.send(you, 6, me.player.ObjectID, nil)
+		h.send(you, 6, h.seen(you, me.player), nil)
 		if you.accepted {
 			h.completeLocked(t)
 		}
 	case 7:
 		me.accepted = false
-		h.send(you, 7, me.player.ObjectID, nil)
+		h.send(you, 7, h.seen(you, me.player), nil)
 	}
 	return nil
 }
@@ -251,8 +257,8 @@ func (h *TradeHandler) HandleTradeUI(sess *session.Session, msg *protocol.Messag
 func (h *TradeHandler) clearAcceptsLocked(t *trade) {
 	t.a.accepted = false
 	t.b.accepted = false
-	h.send(t.a, 7, t.b.player.ObjectID, nil)
-	h.send(t.b, 7, t.a.player.ObjectID, nil)
+	h.send(t.a, 7, h.seen(t.a, t.b.player), nil)
+	h.send(t.b, 7, h.seen(t.b, t.a.player), nil)
 }
 
 // offered is how many of the record with that key the side has offered.
@@ -305,13 +311,13 @@ func (h *TradeHandler) offerLocked(t *trade, me, you *tradeSide, key uint32, n i
 	if me.asker {
 		sub = 3
 	}
-	h.send(me, sub, you.player.ObjectID, func(w *buffer.Writer) {
+	h.send(me, sub, h.seen(me, you.player), func(w *buffer.Writer) {
 		w.WriteUint32(key)
 		w.Write7BitEncodedInt64(int64(n))
 	})
 	out := wireRecord(row)
 	out.StackLeft = n
-	h.send(you, sub, me.player.ObjectID, func(w *buffer.Writer) { writeSingleItem(w, &out, int(key)) })
+	h.send(you, sub, h.seen(you, me.player), func(w *buffer.Writer) { writeSingleItem(w, &out, int(key)) })
 	h.clearAcceptsLocked(t)
 	log.Printf("Trade: %s offers %d %q", me.player.Name, n, row.Pattern.ItemName)
 }
@@ -332,8 +338,8 @@ func (h *TradeHandler) withdrawLocked(t *trade, me, you *tradeSide, id int) {
 	if me.asker {
 		sub = 4
 	}
-	h.send(me, sub, you.player.ObjectID, func(w *buffer.Writer) { w.WriteUint32(uint32(id)) })
-	h.send(you, sub, me.player.ObjectID, func(w *buffer.Writer) { w.WriteUint32(uint32(id)) })
+	h.send(me, sub, h.seen(me, you.player), func(w *buffer.Writer) { w.WriteUint32(uint32(id)) })
+	h.send(you, sub, h.seen(you, me.player), func(w *buffer.Writer) { w.WriteUint32(uint32(id)) })
 	h.clearAcceptsLocked(t)
 }
 
@@ -400,8 +406,8 @@ func (h *TradeHandler) completeLocked(t *trade) {
 			queueReliable(s.sess, protocol.OpcodePlayerTunar, tunarPayload(s.player.Tunar))
 		}
 	}
-	h.send(t.a, 16, t.b.player.ObjectID, nil)
-	h.send(t.b, 16, t.a.player.ObjectID, nil)
+	h.send(t.a, 16, h.seen(t.a, t.b.player), nil)
+	h.send(t.b, 16, h.seen(t.b, t.a.player), nil)
 	h.endLocked(t)
 }
 
@@ -409,7 +415,7 @@ func (h *TradeHandler) completeLocked(t *trade) {
 func (h *TradeHandler) refuseLocked(t *trade) {
 	t.a.accepted = false
 	t.b.accepted = false
-	h.send(t.a, 17, t.b.player.ObjectID, nil)
-	h.send(t.b, 17, t.a.player.ObjectID, nil)
+	h.send(t.a, 17, h.seen(t.a, t.b.player), nil)
+	h.send(t.b, 17, h.seen(t.b, t.a.player), nil)
 	log.Printf("Trade: %s and %s refused", t.a.player.Name, t.b.player.Name)
 }

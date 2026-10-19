@@ -82,6 +82,13 @@ func (w *World) IDSeenBy(recv *session.Session, p *Player) uint32 {
 	return w.idSeenByLocked(recv, p)
 }
 
+// PlayerSeenBy resolves an id the sender gave to a player (playerSeenByLocked).
+func (w *World) PlayerSeenBy(sender *session.Session, id uint32) *Player {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.playerSeenByLocked(sender, id)
+}
+
 // playerSeenByLocked resolves an id the sender gave (its own, an object id
 // from ITS visibility channels, or a stand-in) to a player. Object ids are per
 // session, so only the sender's own table is read: findEntityByObjectIDLocked

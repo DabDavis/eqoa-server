@@ -57,3 +57,37 @@ func (s *SpellbookStore) GetCharacterSpells(serverID uint32) ([]CharSpellEntry, 
 	}
 	return spells, rows.Err()
 }
+
+// SpellRow is one row of a character's spellbook as the bar and the order
+// keep it.
+type SpellRow struct {
+	SpellID       int
+	AddedOrder    int
+	OnHotBar      int
+	WhereOnHotBar int
+}
+
+// GetSpellRows returns the character's spellbook rows.
+func (s *SpellbookStore) GetSpellRows(serverID uint32) ([]SpellRow, error) {
+	rows, err := s.db.Query(`SELECT spellid, addedorder, onHotBar, whereonBar FROM spells WHERE serverid = ?`, serverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []SpellRow
+	for rows.Next() {
+		var r SpellRow
+		if err := rows.Scan(&r.SpellID, &r.AddedOrder, &r.OnHotBar, &r.WhereOnHotBar); err != nil {
+			return nil, err
+		}
+		out = append(out, r)
+	}
+	return out, rows.Err()
+}
+
+// SetSpellRow writes one row's order and bar slot back.
+func (s *SpellbookStore) SetSpellRow(serverID uint32, r SpellRow) error {
+	_, err := s.db.Exec(`UPDATE spells SET addedorder = ?, onHotBar = ?, whereonBar = ? WHERE serverid = ? AND spellid = ?`,
+		r.AddedOrder, r.OnHotBar, r.WhereOnHotBar, serverID, r.SpellID)
+	return err
+}

@@ -59,6 +59,7 @@ const (
 	// 0x003X - Skills, Quests, Inventory
 	OpcodeUseSkill          GameOpcode = 0x0032 // Use Skill Request (client)
 	OpcodeAddSkillToBar     GameOpcode = 0x0033 // Add Skill to Bar Request (client)
+	OpcodeArrangeAbility    GameOpcode = 0x003A // Send003A: stamp, u8 from display index, u8 to (client; answered by 0x00B6)
 	OpcodeQuestPopupMulti   GameOpcode = 0x0034 // Quest Popup with multiple sections (server)
 	OpcodeDialogueBoxOption GameOpcode = 0x0035 // Client Popup selection
 	OpcodeTrainingPoints    GameOpcode = 0x0036 // u8 sound flag + zigzag TOTAL training points (VIPlayer+0x40); a change shows word 625
@@ -133,6 +134,7 @@ const (
 	OpcodeMoveLock        GameOpcode = 0x00FC // u8 into VIClient+0x6DC8; while non-zero the walker zeroes forward speed
 	OpcodeAbilitySetP14   GameOpcode = 0x00FD // Msg00FD: stamp, u32 ability id, u32 value for VIAbility+0x14 (0 = off the bar)
 	OpcodePlayerSpeed     GameOpcode = 0x00F8 // Player speed
+	OpcodeUnmemorizeAll   GameOpcode = 0x00FE // Send00FE: stamp (client; answered by 0x00FF)
 	OpcodeAbilityClearBar GameOpcode = 0x00FF // Msg00FF: stamp; every ability (display < 0xFC) off the bar -- the answer to 0x00FE
 )
 

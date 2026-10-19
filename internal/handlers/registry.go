@@ -242,6 +242,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Register group handlers (the group is the World's: entity/group.go)
 	NewGroupHandler(gameWorld).RegisterHandlers(r)
 
+	// Register the spell book's requests (0x0033, 0x003A, 0x00FE)
+	NewSpellbookHandler(gameWorld, spellStore).RegisterHandlers(r)
+
 	// Register the world-load handler (0x0049). This is what re-describes the
 	// scene after a teleport; without it a world change lands the player in an
 	// empty world. See worldload.go.

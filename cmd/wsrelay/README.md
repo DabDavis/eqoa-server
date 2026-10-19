@@ -94,8 +94,8 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-User=sdg
-ExecStart=/home/sdg/eqoa-server/wsrelay -allow-udp 203.0.113.10:10070 -allow-tcp 203.0.113.10:9735,203.0.113.10:7000 -origin https://example.org
+User=eqoa
+ExecStart=/opt/eqoa/wsrelay -allow-udp 203.0.113.10:10070 -allow-tcp 203.0.113.10:9735,203.0.113.10:7000 -origin https://example.org
 Restart=always
 RestartSec=2
 

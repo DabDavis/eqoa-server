@@ -277,6 +277,21 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr) {
 				continue
 			}
 
+			// The character pick promotes the session, which clears the queue and
+			// restarts the sequence space. Acknowledge the pick on the LOBBY
+			// connection first, as Sandstorm does (pcaps/ps2_sandstorm.pcap: the
+			// PS2 answers the promotion with a reset of its lobby connection
+			// 15 ms later). Unacknowledged, the client's lobby connection never
+			// gets in sync, so CLIENT's connection_close leaves it alive, and it
+			// keeps resending 0x002A under this same instance: its arrival
+			// numbers become the promoted session's, the promoted connection's
+			// own packets are dropped as old, and the client rejects every ack
+			// that comes back (the decomp's "acking a segment that hasn't been
+			// sent"). Found by eqoa-rs's DRDP, which is the decomp's.
+			if msg.Type.IsReliable() && msg.Opcode == protocol.OpcodeSelectedChar && sess.PlayerObjectID() == 0 {
+				l.flushSession(sess)
+			}
+
 			if l.handlers != nil {
 				l.handlers.Handle(sess, msg)
 			}

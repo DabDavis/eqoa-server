@@ -551,6 +551,15 @@ func (h *CharacterHandler) HandleRandomName(sess *session.Session, msg *protocol
 func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *protocol.Message) error {
 	// Only process fully once - subsequent calls just need ACK
 	if sess.CharacterInWorld() {
+		// A respawn's MemoryDump is answered with 0x0014 too (respawn.go);
+		// when it moved the player to another world, the world is loaded
+		// now, so the held state channels go out again in full, as on 0x0049.
+		if sess.ConsumeWorldLoadPending() {
+			if conn := sess.Connection(); conn != nil {
+				log.Printf("CharacterInWorld: world loaded after a respawn, re-arming %d state channels for %s",
+					conn.ResendAll(), sess.RemoteAddr())
+			}
+		}
 		// Client keeps sending this while waiting - just ACK
 		sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
 		return nil
@@ -1046,6 +1055,32 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 	// sequence number and shifts the MemoryDump fragments by one.
 	h.sendTimeOnly(sess)
 
+	h.queueMemoryDump(sess, player)
+
+	// Send ignore list and buddy list after memory dump (matches eqoa.live)
+	h.SendNoCollideList(sess)
+	h.SendBuddyList(sess)
+
+	// Initialize state channel 0 from Player struct
+	h.initPlayerStateChannel(sess, player)
+
+	// Initialize stat channel (0x42) from Player struct
+	h.initPlayerStatChannel(sess, player)
+
+	// Initialize buff channel (0x43) from Player struct
+	h.initPlayerBuffChannel(sess, player)
+
+	// IMPORTANT: Generate and queue state channel updates immediately
+	// The tick routine won't run until CharacterInWorld is true, but the client
+	// needs state channels BEFORE it will send CharacterInWorld
+	h.flushStateChannels(sess)
+}
+
+// queueMemoryDump builds the MemoryDump (0x000D) out of the Player struct
+// and the character's stored items and spells, and queues it. A login sends
+// it after Camera1 and Time (SendMemoryDump); a respawn sends it alone
+// (respawnPlayer), as Sandstorm does.
+func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity.Player) {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeMemoryDump)
 	// MemoryDump can be 30KB+ with items/spells/hotkeys; write to a large buffer then SetData
 	dumpBuf := make([]byte, 65536)
@@ -1208,24 +1243,6 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 	if logLen > 0 {
 		log.Printf("SendMemoryDump: first %d payload bytes: %x", logLen, dumpData[2:2+logLen])
 	}
-
-	// Send ignore list and buddy list after memory dump (matches eqoa.live)
-	h.SendNoCollideList(sess)
-	h.SendBuddyList(sess)
-
-	// Initialize state channel 0 from Player struct
-	h.initPlayerStateChannel(sess, player)
-
-	// Initialize stat channel (0x42) from Player struct
-	h.initPlayerStatChannel(sess, player)
-
-	// Initialize buff channel (0x43) from Player struct
-	h.initPlayerBuffChannel(sess, player)
-
-	// IMPORTANT: Generate and queue state channel updates immediately
-	// The tick routine won't run until CharacterInWorld is true, but the client
-	// needs state channels BEFORE it will send CharacterInWorld
-	h.flushStateChannels(sess)
 }
 
 // weaponHotbarRows is the fixed 6x4 weapon-hotbar block the client reads with

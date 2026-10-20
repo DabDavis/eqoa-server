@@ -133,6 +133,7 @@ case *entity.NPC:
 | `aiSystem` | Every 30 ticks (3s) | NPC aggro detection, melee combat, leash |
 | `attackSystem` | Every tick | Players' auto-attack (`attack.go`): a 0x000F engages, swings land one swing delay apart (CLIENT's GetSwing table) in CLIENT's reach while 0x40 byte 36 is up or the NPC fights back |
 | `respawnSystem` | Every tick | Dead NPC respawn after RespawnTime |
+| `playerRespawnSystem` | Every tick | A dead player (`respawn.go`: 0x005E once, off every threat list, no regen) is restored 15 s after its death (Sandstorm's 15.6 s in `pcaps/breath_capture.pcap`) and sent a MemoryDump at the login spawn: the dump, not 0x00B2, is what clears CLIENT's dead flag (Msg000D's ClearPC1B0) |
 | `regenSystem` | Every 20 ticks (2s) | 1% HP/Power regen (skipped if in combat <10s) |
 | `stateSyncSystem` | Every tick | Serialize player state to channel 0 |
 | `statChannelSyncSystem` | Every 20 ticks | Serialize stats to channel 0x42 |
@@ -146,7 +147,7 @@ case *entity.NPC:
 - NPC loading from packets.db, visibility system, state channel delivery
 - Chat system (say + shout)
 - Targeting (select NPCs/players, con colors, faction faces)
-- Basic combat (attack command, damage, death/respawn)
+- Basic combat (attack command, damage, death; a player respawns at the login spawn 15 s after dying)
 - NPC AI (aggro, melee, leash, respawn)
 - HP/Power regen system
 - Hotkey menu (L2 D-pad) — 25 default hotkeys, fragmented MemoryDump delivery

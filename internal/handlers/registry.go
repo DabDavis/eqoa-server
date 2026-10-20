@@ -159,6 +159,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	charHandler := NewCharacterHandler(charStore, sessionMgr, invStore, spellStore)
 	if gameWorld != nil {
 		charHandler.SetGameWorld(gameWorld)
+		// A dead player's respawn: the login spawn and a MemoryDump (respawn.go)
+		gameWorld.OnPlayerRespawn(charHandler.respawnPlayer)
 	}
 	authHandler := NewAuthHandlerFull(serverHandler, charHandler, accountStore)
 	r.mu.Lock()

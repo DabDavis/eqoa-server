@@ -116,6 +116,19 @@ auth:
   # cover a player sitting on the server-select and character-select screens.
   ticket_ttl: 15m
 
+  # One login at a time: a login is refused while the same account, or a
+  # session from the same address, is already in the game (the first window
+  # keeps playing; no multiboxing). The address rule skips loopback,
+  # server_ip and these (IPs or CIDR prefixes): the operators' own addresses,
+  # and a web relay's when relay_lookup is not set.
+  one_login: true
+  one_login_exempt: []
+  # wsrelay's -lookup listener: which page is behind a relayed player, so the
+  # address rule sees a browser player's own address. Without it every browser
+  # player has the relay's (server_ip, exempt above).
+  # relay_lookup: "http://127.0.0.1:8792"
+  # relay_addrs: []   # the relay's source addresses besides server_ip
+
   # Accounts created at startup if they do not already exist, with the password
   # hashed. An account that already exists is left untouched, so changing a
   # password here does NOT reset one already in the database.

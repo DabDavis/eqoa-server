@@ -124,6 +124,28 @@ type AuthConfig struct {
 	// handshake. It needs to cover a human sitting on the server-select and
 	// character-select screens.
 	TicketTTL time.Duration `yaml:"ticket_ttl"`
+
+	// OneLogin refuses a login while the same account, or (for a client that
+	// is not exempt) the same address, already has a live session in the
+	// game: the first window keeps playing, and multiboxing is stopped.
+	OneLogin bool `yaml:"one_login"`
+
+	// OneLoginExempt lists addresses (IPs or CIDR prefixes) the address rule
+	// does not apply to: the operators' own, and the web relay's, through
+	// which every browser player arrives (wsrelay limits those itself, by the
+	// page's address). Loopback and server.server_ip are always exempt. The
+	// account rule applies to everyone.
+	OneLoginExempt []string `yaml:"one_login_exempt"`
+
+	// RelayLookup is wsrelay's -lookup listener ("http://127.0.0.1:8792"):
+	// asked which page is behind a relayed login or session, so the address
+	// rule sees a browser player's own address. Empty: relayed players share
+	// the relay's address, and it must then be exempt (server_ip is).
+	RelayLookup string `yaml:"relay_lookup"`
+
+	// RelayAddrs are the source addresses the relay reaches this server from
+	// (default: loopback and server.server_ip).
+	RelayAddrs []string `yaml:"relay_addrs"`
 }
 
 // AccountSeed is a pre-registered account.
@@ -165,6 +187,7 @@ func DefaultConfig() *Config {
 			AllowAutoRegister: true,
 			RequireTCPLogin:   true,
 			TicketTTL:         15 * time.Minute,
+			OneLogin:          true,
 		},
 	}
 }

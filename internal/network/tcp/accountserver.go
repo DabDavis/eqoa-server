@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -60,6 +61,12 @@ type AccountServer struct {
 	ValidatePlace func(x, y, z float32, world byte) (byte, error)
 	TeleportLive  func(serverID uint32, x, y, z float32, world byte) bool
 	SendOnly      func(world byte) bool
+
+	// EndSessions ends every session an account has in the game (each is
+	// told 0x07A4, "You have logged in from another location.") and returns
+	// how many: /api/logout, the browser's way past "You are already logged
+	// in." (session.Manager.EndAccount).
+	EndSessions func(accountID int) int
 }
 
 // TeleportDest is one named shortcut as the web pages present it.
@@ -126,6 +133,7 @@ func (s *AccountServer) Start() error {
 	mux.HandleFunc("/api/characters/teleport", s.handleAPITeleport)
 	mux.HandleFunc("/api/teleport/destinations", s.handleAPITeleportDests)
 	mux.HandleFunc("/api/creation", s.handleAPICreation)
+	mux.HandleFunc("/api/logout", s.handleAPILogoutSessions)
 
 	s.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", s.port),
@@ -918,6 +926,41 @@ func (s *AccountServer) handleAPILogin(w http.ResponseWriter, r *http.Request) {
 
 	s.createSession(w, account.ID, account.Username)
 	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
+}
+
+// handleAPILogoutSessions ends the account's sessions in the game, given its
+// password: a login refused with "You are already logged in." (one login at a
+// time, listener.go) offers it, so a player whose other window is gone, hung
+// or elsewhere can take the account over. The answer for a wrong password is
+// the login page's, so it tells nothing about an account to anyone else.
+func (s *AccountServer) handleAPILogoutSessions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if r.Method != http.MethodPost || s.EndSessions == nil {
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Method not allowed"})
+		return
+	}
+	var req struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(io.LimitReader(r.Body, 4096)).Decode(&req); err != nil {
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid request"})
+		return
+	}
+	account, err := s.accountStore.GetByUsername(req.Username)
+	if err != nil || account == nil {
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid username or password"})
+		return
+	}
+	switch auth.VerifyPassword(account.PasswordHash, req.Password) {
+	case auth.Accepted, auth.AcceptedNeedsRehash:
+	default:
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid username or password"})
+		return
+	}
+	n := s.EndSessions(account.ID)
+	log.Printf("AccountServer: '%s' logged out %d session(s) in the game from %s", account.Username, n, s.getClientIP(r))
+	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "ended": n})
 }
 
 // handleAPICharacters returns the user's characters.

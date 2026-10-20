@@ -50,6 +50,7 @@ entry is the client's to choose). From any other peer the headers are ignored.
 | `-udp-idle` | `120s` | A UDP socket with no datagram either way this long is closed. |
 | `-tcp-idle` | `10m` | A TCP connection idle this long is closed. |
 | `-ping` | `30s` | WebSocket pings that notice a client gone silent (a browser answers them itself; the page never sees them). `0` turns them off. |
+| `-lookup` | off | Also serve `GET /client?port=N` on this address: the client address behind one of the relay's local ports (a UDP socket's or a TCP connection's), 404 for one it does not hold. For the game server's one-login rule (`auth.relay_lookup`). It names players' addresses: **loopback only**, never behind the public proxy. |
 | `-v` | off | Also log dropped datagrams and failed handshakes. |
 
 It logs one line per socket opened, refused and closed: the client, the target
@@ -112,7 +113,10 @@ the relay pair up; and a new login reaps another pre-game session from the same
 address only once that one has been silent for 10 s
 (`RemoveStaleGameSessions`), so two web players logging in at once do not take
 each other out. Anything new that keys on a client's IP alone will lump web
-players together.
+players together, unless it asks the relay: the one-login rule
+(`auth.one_login`, one live game per address) does, through `-lookup`
+(`auth.relay_lookup: "http://127.0.0.1:8792"`), and sees each page's own
+address.
 
 ## Tests
 

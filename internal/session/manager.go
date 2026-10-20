@@ -363,6 +363,83 @@ func (m *Manager) RemoveStaleGameSessions(ip string, exceptInstanceID uint32) in
 	return count
 }
 
+// LiveWithin is how recently an in-game session must have been heard from to
+// hold its login (LiveLogin). An idle page keeps its connection with a DRDP
+// keepalive every 30 s; a tab closed, crashed or long hidden goes quiet, and
+// must not lock its account or address out until the in-game timeout.
+const LiveWithin = 60 * time.Second
+
+// LiveLogin names what a new login would collide with: "account" when that
+// account has a live in-game session, "address" when one comes from ip
+// (nil: not checked), "" when neither. Live means in the game, not on its way
+// out (replaced or terminating), and heard from within LiveWithin. ipOf gives
+// a session's client address (a relayed player's is the page's, not the
+// relay's; nil: unknown, never a match); nil ipOf takes the source as it is.
+func (m *Manager) LiveLogin(accountID int, ip net.IP, ipOf func(*net.UDPAddr) net.IP) string {
+	now := time.Now()
+	var hit string
+	m.sessions.Range(func(_, value interface{}) bool {
+		sess := value.(*Session)
+		if !sess.InGame() && !sess.CharacterInWorld() {
+			return true
+		}
+		if _, replaced := sess.ReplacedFor(); replaced || sess.PendingTermination() {
+			return true
+		}
+		if now.Sub(sess.LastActivity()) > LiveWithin {
+			return true
+		}
+		if accountID != 0 && sess.AccountID() == accountID {
+			hit = "account"
+			return false
+		}
+		if ip != nil && sess.RemoteAddr() != nil {
+			sip := sess.RemoteAddr().IP
+			if ipOf != nil {
+				sip = ipOf(sess.RemoteAddr())
+			}
+			if sip == nil || !sip.Equal(ip) {
+				return true
+			}
+			hit = "address"
+			return false
+		}
+		return true
+	})
+	return hit
+}
+
+// EndAccount ends every session the account holds: one in the game is told
+// it was replaced (0x07A4) and kept ReplacedGrace to hear it, as
+// RemoveSessionForCharacter does; one still in the lobby is dropped. Returns
+// how many in-game sessions were told.
+func (m *Manager) EndAccount(accountID int) int {
+	if accountID == 0 {
+		return 0
+	}
+	var n int
+	m.sessions.Range(func(_, value interface{}) bool {
+		sess := value.(*Session)
+		if sess.AccountID() != accountID {
+			return true
+		}
+		if _, done := sess.ReplacedFor(); done || sess.PendingTermination() {
+			return true
+		}
+		if (sess.InGame() || sess.CharacterInWorld()) && m.onReplaced != nil {
+			log.Printf("EndAccount: telling session for account %d it was logged out (addr=%s, instance=0x%X)",
+				accountID, sess.RemoteAddr(), sess.InstanceID())
+			sess.MarkReplaced()
+			m.onReplaced(sess)
+			n++
+			return true
+		}
+		sess.SetPendingTermination(true)
+		return true
+	})
+	return n
+}
+
 // ReplacedGrace is how long a session whose character logged in again is kept
 // after it was told so: long enough for the disconnect to go out (and be
 // resent once), short of the in-game timeout.

@@ -555,3 +555,47 @@ func TestHTTPEndpoints(t *testing.T) {
 		t.Errorf("/udp without an upgrade: %d", code)
 	}
 }
+
+// ClientOf / Lookup: the relayed server sees the relay's address, and the
+// relay names the page's behind each local port, for as long as the socket
+// is open. Control: a port the relay does not hold is unknown.
+func TestClientOfNamesThePage(t *testing.T) {
+	echo := newUDPPeer(t, true)
+	r, srv, _ := newRelay(t, Config{AllowUDP: allow(t, echo.addr().String())})
+	c, _, err := dial(t, srv, "/udp", http.Header{"X-Real-Ip": {"198.51.100.23"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	port := okPort(t, readText(t, c), "127.0.0.1")
+	if ip, ok := r.ClientOf(port); !ok || ip != "198.51.100.23" {
+		t.Fatalf("ClientOf(%d) = %q %v, want the page's address", port, ip, ok)
+	}
+	look := httptest.NewServer(r.Lookup())
+	t.Cleanup(look.Close)
+	get := func(p int) (int, string) {
+		resp, err := http.Get(fmt.Sprintf("%s/client?port=%d", look.URL, p))
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		b, _ := io.ReadAll(resp.Body)
+		return resp.StatusCode, string(b)
+	}
+	if code, body := get(port); code != 200 || body != "198.51.100.23" {
+		t.Fatalf("lookup %d: %d %q", port, code, body)
+	}
+	if code, _ := get(port + 1); code != 404 {
+		t.Fatalf("a port the relay does not hold: %d, want 404", code)
+	}
+	c.Close(websocket.StatusNormalClosure, "")
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		if _, ok := r.ClientOf(port); !ok {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the port still names the page after its socket closed")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}

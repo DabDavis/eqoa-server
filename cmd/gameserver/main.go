@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -152,6 +153,24 @@ func main() {
 
 	// Initialize and start auth server (TCP port 9735)
 	authHandler := tcp.NewAuthServer(cfg, accountStore, loginTickets)
+	if cfg.Auth.OneLogin {
+		exempt := append([]string{cfg.Server.ServerIP}, cfg.Auth.OneLoginExempt...)
+		if err := authHandler.SetOneLogin(sessionMgr.LiveLogin, exempt); err != nil {
+			log.Fatalf("auth.one_login_exempt: %v", err)
+		}
+		log.Printf("Auth: one login at a time per account, and per address except %v", exempt)
+		if cfg.Auth.RelayLookup != "" {
+			addrs := []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback}
+			names := append([]string{cfg.Server.ServerIP}, cfg.Auth.RelayAddrs...)
+			for _, a := range names {
+				if ip := net.ParseIP(a); ip != nil {
+					addrs = append(addrs, ip)
+				}
+			}
+			authHandler.SetRelay(addrs, tcp.RelayLookup(cfg.Auth.RelayLookup))
+			log.Printf("Auth: relayed players (from %v) named by %s", names, cfg.Auth.RelayLookup)
+		}
+	}
 	authListener := tcp.NewListener(cfg, authHandler)
 	if err := authListener.Start(); err != nil {
 		log.Fatalf("Failed to start auth server: %v", err)
@@ -229,6 +248,7 @@ func main() {
 			entity.EntityID(serverID), x, y, z, world)
 	}
 	accountServer.SendOnly = handlers.IsSendOnlyWorld
+	accountServer.EndSessions = sessionMgr.EndAccount
 
 	if err := accountServer.Start(); err != nil {
 		log.Fatalf("Failed to start account server: %v", err)

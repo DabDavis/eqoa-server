@@ -68,6 +68,9 @@ type Relay struct {
 	cfg   Config
 	mu    sync.Mutex
 	perIP map[string]int
+	// owner maps each local port the relay holds (a UDP socket's, a TCP
+	// connection's) to the client address it carries, for ClientOf.
+	owner map[int]string
 }
 
 const (
@@ -98,7 +101,53 @@ func New(cfg Config) *Relay {
 	for k, o := range cfg.Origins {
 		cfg.Origins[k] = normOrigin(o)
 	}
-	return &Relay{cfg: cfg, perIP: map[string]int{}}
+	return &Relay{cfg: cfg, perIP: map[string]int{}, owner: map[int]string{}}
+}
+
+// own records that the relay's local port carries client ip until the
+// returned function is called.
+func (r *Relay) own(port int, ip string) func() {
+	r.mu.Lock()
+	r.owner[port] = ip
+	r.mu.Unlock()
+	return func() {
+		r.mu.Lock()
+		if r.owner[port] == ip {
+			delete(r.owner, port)
+		}
+		r.mu.Unlock()
+	}
+}
+
+// ClientOf names the client address behind one of the relay's local ports:
+// what the server it relays to sees as the source of a browser player is the
+// relay's own address, and the port is all that tells the players apart.
+func (r *Relay) ClientOf(port int) (string, bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	ip, ok := r.owner[port]
+	return ip, ok
+}
+
+// Lookup serves ClientOf as GET /client?port=N: the client's address as
+// text, or 404. It names players' addresses, so it is served on its own
+// listener for the relayed server alone (wsrelay -lookup, on loopback), never
+// beside the relay behind a public proxy.
+func (r *Relay) Lookup() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		port, err := strconv.Atoi(req.URL.Query().Get("port"))
+		if req.URL.Path != "/client" || err != nil {
+			http.NotFound(w, req)
+			return
+		}
+		ip, ok := r.ClientOf(port)
+		if !ok {
+			http.NotFound(w, req)
+			return
+		}
+		w.Header().Set("Content-Type", "text/plain")
+		fmt.Fprint(w, ip)
+	})
 }
 
 func normOrigin(o string) string {
@@ -354,6 +403,7 @@ func (r *Relay) udp(ctx context.Context, cancel context.CancelFunc, c *websocket
 	}
 	defer conn.Close()
 	port := conn.LocalAddr().(*net.UDPAddr).Port
+	defer r.own(port, ip)()
 	toward, ok := r.cfg.AllowUDP.First()
 	if !ok {
 		toward, _ = r.cfg.AllowTCP.First()
@@ -457,6 +507,7 @@ func (r *Relay) tcp(ctx context.Context, cancel context.CancelFunc, c *websocket
 	}
 	defer conn.Close()
 	me := conn.LocalAddr().(*net.TCPAddr)
+	defer r.own(me.Port, ip)()
 	if r.write(ctx, c, websocket.MessageText, []byte(fmt.Sprintf("ok %s %d", me.IP, me.Port))) != nil {
 		return
 	}

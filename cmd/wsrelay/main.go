@@ -43,6 +43,7 @@ func main() {
 	udpIdle := flag.Duration("udp-idle", 120*time.Second, "close a UDP socket after this long with no datagram either way")
 	tcpIdle := flag.Duration("tcp-idle", 10*time.Minute, "close a TCP connection after this long idle")
 	ping := flag.Duration("ping", 30*time.Second, "WebSocket ping interval that notices a silent client (0: off)")
+	lookup := flag.String("lookup", "", "also serve GET /client?port=N here (the client address behind one of the relay's local ports) for the relayed server; loopback only, never public")
 	verbose := flag.Bool("v", false, "log dropped datagrams and failed handshakes too")
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "usage: wsrelay -allow-udp HOST:PORT -allow-tcp HOST:PORT[,...] [flags]\n\n")
@@ -81,6 +82,13 @@ func main() {
 		o = "origins " + origins.String()
 	}
 	log.Printf("wsrelay: ws://%s, udp to %s, tcp to %s, %s, %d sockets per client", *listen, orNone(udp), orNone(tcp), o, *maxPerIP)
+	if *lookup != "" {
+		go func() {
+			ls := &http.Server{Addr: *lookup, Handler: relay.Lookup(), ReadHeaderTimeout: 5 * time.Second}
+			log.Fatal(ls.ListenAndServe())
+		}()
+		log.Printf("wsrelay: client lookup on http://%s/client", *lookup)
+	}
 	srv := &http.Server{Addr: *listen, Handler: relay, ReadHeaderTimeout: 10 * time.Second}
 	log.Fatal(srv.ListenAndServe())
 }

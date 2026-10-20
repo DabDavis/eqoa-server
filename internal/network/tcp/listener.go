@@ -4,8 +4,13 @@ import (
 	"context"
 	"encoding/binary"
 	"errors"
+	"fmt"
+	"io"
 	"log"
 	"net"
+	"net/http"
+	"net/netip"
+	"strings"
 	"sync"
 	"time"
 
@@ -196,6 +201,105 @@ type AuthServer struct {
 	cfg     *config.Config
 	store   *database.SQLiteAccountStore
 	tickets *auth.TicketStore
+
+	// liveLogin, when set, names what a login collides with: "account" (that
+	// account is already in the game) or "address" (a session from that IP
+	// is; ip nil when not checked); see SetOneLogin.
+	liveLogin func(accountID int, ip net.IP, ipOf func(*net.UDPAddr) net.IP) string
+	exempt    []netip.Prefix
+	// clientIP, when set, gives the client address behind a source: a
+	// relayed browser player's page address (SetRelay); nil when unknown.
+	clientIP func(ip net.IP, port int) net.IP
+}
+
+// SetRelay names the web relay's source addresses and how to ask it which
+// page is behind one of its ports (wsrelay -lookup), so that the address rule
+// sees a browser player's own address rather than the relay's, which every
+// browser player shares. A relayed source the relay cannot name is unknown,
+// and the address rule passes it.
+func (s *AuthServer) SetRelay(addrs []net.IP, lookup func(port int) (net.IP, bool)) {
+	s.clientIP = func(ip net.IP, port int) net.IP {
+		for _, a := range addrs {
+			if a.Equal(ip) {
+				if c, ok := lookup(port); ok {
+					return c
+				}
+				return nil
+			}
+		}
+		return ip
+	}
+}
+
+// RelayLookup asks wsrelay's lookup listener (base: "http://127.0.0.1:8792")
+// for the client behind one of its local ports.
+func RelayLookup(base string) func(port int) (net.IP, bool) {
+	client := &http.Client{Timeout: time.Second}
+	base = strings.TrimRight(base, "/")
+	return func(port int) (net.IP, bool) {
+		resp, err := client.Get(fmt.Sprintf("%s/client?port=%d", base, port))
+		if err != nil {
+			return nil, false
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return nil, false
+		}
+		b, err := io.ReadAll(io.LimitReader(resp.Body, 64))
+		if err != nil {
+			return nil, false
+		}
+		ip := net.ParseIP(strings.TrimSpace(string(b)))
+		return ip, ip != nil
+	}
+}
+
+// SetOneLogin turns on one login at a time: an account already in the game,
+// or an address that already has a session in it, is refused at the Station
+// login, so the first window keeps playing and a second one is told why (no
+// two windows on one character, and no multiboxing). exempt lists the
+// addresses (IPs or CIDR prefixes) the address rule does not apply to: the
+// operators' own, and the web relay's, which every browser player comes
+// through (the relay limits those itself, by the page's address).
+func (s *AuthServer) SetOneLogin(live func(accountID int, ip net.IP, ipOf func(*net.UDPAddr) net.IP) string, exempt []string) error {
+	s.liveLogin = live
+	s.exempt = nil
+	for _, e := range exempt {
+		e = strings.TrimSpace(e)
+		if e == "" {
+			continue
+		}
+		if !strings.Contains(e, "/") {
+			a, err := netip.ParseAddr(e)
+			if err != nil {
+				return fmt.Errorf("one-login exemption %q: %v", e, err)
+			}
+			e = netip.PrefixFrom(a, a.BitLen()).String()
+		}
+		p, err := netip.ParsePrefix(e)
+		if err != nil {
+			return fmt.Errorf("one-login exemption %q: %v", e, err)
+		}
+		s.exempt = append(s.exempt, p.Masked())
+	}
+	return nil
+}
+
+func (s *AuthServer) exemptIP(ip net.IP) bool {
+	a, ok := netip.AddrFromSlice(ip)
+	if !ok {
+		return false
+	}
+	a = a.Unmap()
+	if a.IsLoopback() {
+		return true
+	}
+	for _, p := range s.exempt {
+		if p.Contains(a) {
+			return true
+		}
+	}
+	return false
 }
 
 // NewAuthServer creates a new auth server handler.
@@ -261,7 +365,14 @@ func (s *AuthServer) HandleConnection(conn net.Conn) {
 		var response []byte
 		switch opcode {
 		case MsgLoginRequest:
-			response = s.handleLogin(payload)
+			var ip net.IP
+			if a, ok := conn.RemoteAddr().(*net.TCPAddr); ok {
+				ip = a.IP
+				if s.clientIP != nil {
+					ip = s.clientIP(a.IP, a.Port)
+				}
+			}
+			response = s.handleLoginFrom(payload, ip)
 		case MsgSubmitAcctCreate:
 			response = s.handleCreateAccount(payload)
 		case MsgChangePassword:
@@ -292,6 +403,12 @@ func (s *AuthServer) HandleConnection(conn net.Conn) {
 //	[76:80] GameID ("EQOA")
 //	[80:140] Padding (zeros)
 func (s *AuthServer) handleLogin(payload []byte) []byte {
+	return s.handleLoginFrom(payload, nil)
+}
+
+// handleLoginFrom is handleLogin for a connection from ip (nil: unknown, and
+// the address rule is not applied).
+func (s *AuthServer) handleLoginFrom(payload []byte, ip net.IP) []byte {
 	if len(payload) < 72 {
 		log.Printf("Auth: login payload too short (%d bytes)", len(payload))
 		return nil
@@ -310,6 +427,28 @@ func (s *AuthServer) handleLogin(payload []byte) []byte {
 		// The account ID is echoed even on failure, matching a real server's
 		// response shape. 0 is correct for an account we could not identify.
 		return s.buildLoginFailResponse(uint32(accountID))
+	}
+
+	// One login at a time (SetOneLogin): the window already in the game
+	// keeps it. Checked after the password, so a refusal says nothing about
+	// an account to someone who does not hold it.
+	if s.liveLogin != nil {
+		checkIP := ip
+		if ip != nil && s.exemptIP(ip) {
+			checkIP = nil
+		}
+		var ipOf func(*net.UDPAddr) net.IP
+		if s.clientIP != nil {
+			ipOf = func(a *net.UDPAddr) net.IP { return s.clientIP(a.IP, a.Port) }
+		}
+		switch s.liveLogin(accountID, checkIP, ipOf) {
+		case "account":
+			log.Printf("Auth: refused '%s' (ID: %d) from %s: the account is already in the game", username, accountID, ip)
+			return s.buildLoginRefusedResponse(uint32(accountID), alreadyLoggedIn)
+		case "address":
+			log.Printf("Auth: refused '%s' (ID: %d) from %s: that address already has a session in the game", username, accountID, ip)
+			return s.buildLoginRefusedResponse(uint32(accountID), alreadyPlayingHere)
+		}
 	}
 
 	// Record that this username completed a login, so the UDP handshake can
@@ -333,7 +472,7 @@ func (s *AuthServer) handleLogin(payload []byte) []byte {
 	binary.BigEndian.PutUint32(response[160:164], 0xFFFFFFFF)
 	binary.BigEndian.PutUint32(response[164:168], 0xFFFFFFFF)
 
-	log.Printf("Auth: login success for '%s' (ID: %d)", username, accountID)
+	log.Printf("Auth: login success for '%s' (ID: %d) from %v", username, accountID, ip)
 	return response
 }
 
@@ -444,6 +583,23 @@ func (s *AuthServer) buildLoginFailResponse(accountID uint32) []byte {
 	copy(response[96:112], []byte("EQOA_SESSION_OK!"))
 	binary.BigEndian.PutUint32(response[160:164], 0xFFFFFFFF)
 	binary.BigEndian.PutUint32(response[164:168], 0xFFFFFFFF)
+	return response
+}
+
+// The refusals' texts. STATION shows its own word 1394 ("Your login failed.")
+// for any nonzero result and never reads this field (OnValidateLogin's s12);
+// the browser client shows it.
+const (
+	alreadyLoggedIn    = "You are already logged in."
+	alreadyPlayingHere = "Someone is already playing from your address."
+)
+
+// buildLoginRefusedResponse is a refusal that says why: the reply STATION
+// reads (VIStationReply37) has the result at 8 and a 64-byte text at 12,
+// NUL-terminated, so at most 63 characters.
+func (s *AuthServer) buildLoginRefusedResponse(accountID uint32, why string) []byte {
+	response := s.buildLoginFailResponse(accountID)
+	copy(response[12:75], why)
 	return response
 }
 

@@ -511,9 +511,25 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// Note: CharacterInWorld is set later in HandleCharacterInWorld after client confirms
 	sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
 
-	// EVERY LOGIN STARTS IN FREEPORT, beside Archivist Vaal. The character's
-	// saved position is overridden here, before CreatePlayer reads it, so this
-	// is the one place a session's starting place is decided.
+	// A login that replaces a session still in the world (a closed tab, a
+	// reconnect, the other window logged out) takes that session's place: it
+	// is newer than the row, and the old session's cleanup will not save it
+	// (savePlayerPosition skips a player that is no longer live). Saved now,
+	// so the row is right even if this session never saves.
+	if h.gameWorld != nil {
+		if x, y, z, facing, world, ok := h.gameWorld.LivePosition(entity.EntityID(record.ServerID), record.Y); ok {
+			record.X, record.Y, record.Z, record.Facing, record.World = x, y, z, facing, int(world)
+			if err := h.store.Update(record); err != nil {
+				log.Printf("SelectedChar: could not save '%s' replaced session's position: %v", record.CharName, err)
+			} else {
+				log.Printf("SelectedChar: '%s' replaces a session in the world; its position (%.1f, %.1f, %.1f) world=%d saved",
+					record.CharName, x, y, z, world)
+			}
+		}
+	}
+
+	// Where the session starts (loginSpawn): where the character logged out,
+	// or beside Archivist Vaal. Decided here, before CreatePlayer reads it.
 	loginSpawn(h.gameWorld, record)
 
 	// Create player entity directly (replaces QueueCommandSync + CmdEnterWorld)

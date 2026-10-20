@@ -185,3 +185,27 @@ func TestBreathRunsOutUnderTheSurfaceNotOnIt(t *testing.T) {
 		t.Fatal("without flags a swim animation is under water")
 	}
 }
+
+// A login that replaces a live session takes its player's place (F3
+// 20261020-195202: a tab closed and logged in again came back to the place
+// saved before): alive, with the save's guards; a dead player has none.
+func TestLivePositionIsTheLivePlayersWithTheSaveGuards(t *testing.T) {
+	w := NewWorld()
+	p := &Player{ServerID: 9, HP: 10, X: 17091.6, Y: 141.1, Z: 15220.2, Facing: 1.5, World: 0}
+	w.Players[p.ServerID] = p
+	x, y, z, f, world, ok := w.LivePosition(9, 54.1)
+	if !ok || x != 17091.6 || y != 141.1 || z != 15220.2 || f != 1.5 || world != 0 {
+		t.Fatalf("live: (%v, %v, %v) facing %v world %d ok %v", x, y, z, f, world, ok)
+	}
+	p.Y = WorldFloorY // a fall keeps the stored height
+	if _, y, _, _, _, _ := w.LivePosition(9, 54.1); y != 54.1 {
+		t.Errorf("a fall gave y=%v, want the stored 54.1", y)
+	}
+	p.HP = 0
+	if _, _, _, _, _, ok := w.LivePosition(9, 54.1); ok {
+		t.Error("a dead player's place is not taken")
+	}
+	if _, _, _, _, _, ok := w.LivePosition(10, 0); ok {
+		t.Error("a character with no player in the world has no live position")
+	}
+}

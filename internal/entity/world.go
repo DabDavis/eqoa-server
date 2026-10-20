@@ -590,6 +590,23 @@ func (w *World) IsLivePlayer(p *Player) bool {
 	return ok && cur == p
 }
 
+// LivePosition is where the character's player stands while some session
+// still has it in the world, with savePlayerPosition's guards applied (a
+// fall keeps the stored height prevY, a world that does not contain the
+// position is world 0's), and whether there is a live one to take it from.
+// A dead player has none: its place is not where the next login starts.
+func (w *World) LivePosition(id EntityID, prevY float32) (x, y, z, facing float32, world uint8, ok bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p, found := w.Players[id]
+	if !found || p.IsDead() {
+		return 0, 0, 0, 0, 0, false
+	}
+	y, _ = SafeSaveHeight(p.Y, prevY)
+	world, _ = CoherentWorld(p.World, p.X, p.Z)
+	return p.X, y, p.Z, p.Facing, world, true
+}
+
 // sessionPlayerLocked extracts the *Player from a session. Must be called with lock held.
 func (w *World) sessionPlayerLocked(sess *session.Session) *Player {
 	if sess == nil {

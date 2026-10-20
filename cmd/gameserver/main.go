@@ -58,6 +58,7 @@ func main() {
 
 	// Initialize session manager
 	sessionMgr := session.NewManager()
+	sessionMgr.SetOnReplaced(handlers.SendLoggedInElsewhere)
 	sessionMgr.SetTimeouts(cfg.World.SessionTimeoutPre, cfg.World.SessionTimeoutGame)
 
 	// Start session cleanup routine

@@ -40,7 +40,8 @@ type Session struct {
 	characterInWorld   bool
 	inGame             bool
 	pendingTermination bool
-	charListSent       bool // Track if character list was actually sent
+	replacedAt         time.Time // set when another session took this one's character
+	charListSent       bool      // Track if character list was actually sent
 
 	// Connection tracking
 	conn *ConnectionData
@@ -392,6 +393,28 @@ func (s *Session) SetPendingTermination(pending bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.pendingTermination = pending
+}
+
+// MarkReplaced records that another session took this one's character. The
+// session is kept only long enough to deliver the disconnect it was sent; see
+// Manager.RemoveSessionForCharacter.
+func (s *Session) MarkReplaced() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.replacedAt.IsZero() {
+		s.replacedAt = time.Now()
+	}
+}
+
+// ReplacedFor returns how long ago the session was replaced, and false if it
+// never was.
+func (s *Session) ReplacedFor() (time.Duration, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.replacedAt.IsZero() {
+		return 0, false
+	}
+	return time.Since(s.replacedAt), true
 }
 
 // AccountID returns the account ID.

@@ -378,6 +378,22 @@ func (l *Listener) tickAllSessions() {
 			return true
 		}
 
+		// Another login took this session's character: it only delivers the
+		// disconnect it was queued, then goes. Its Player is no longer the
+		// world's, so it gets no full tick (state updates, timeouts).
+		if age, replaced := sess.ReplacedFor(); replaced {
+			if age >= session.ReplacedGrace {
+				toRemove = append(toRemove, sess)
+				return true
+			}
+			if data := rdp.PreparePacket(sess); data != nil {
+				if err := rdp.SendPacket(sess, data); err != nil {
+					log.Printf("Failed to send disconnect to replaced session %s: %v", sess.RemoteAddr(), err)
+				}
+			}
+			return true
+		}
+
 		if sess.CharacterInWorld() {
 			// Full tick: timeout checks, state updates, packet send
 			rdp.TickSession(sess)
@@ -412,6 +428,14 @@ func (l *Listener) tickAllSessions() {
 func (l *Listener) savePlayerPosition(sess *session.Session) {
 	player := l.gameWorld.SessionPlayer(sess)
 	if player == nil {
+		return
+	}
+	// A session whose character logged in again holds the OLD Player, no
+	// longer the world's: saving it wrote the stale window's position over
+	// the live one's.
+	if !l.gameWorld.IsLivePlayer(player) {
+		log.Printf("savePlayerPosition: '%s' was replaced by a newer login, not saving the old session's position",
+			player.Name)
 		return
 	}
 

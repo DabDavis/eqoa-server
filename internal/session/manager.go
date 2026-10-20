@@ -23,6 +23,10 @@ type Manager struct {
 	activeCount int64
 	totalCount  int64
 
+	// onReplaced tells a session it lost its character to another login
+	// (handlers.SendLoggedInElsewhere); see RemoveSessionForCharacter.
+	onReplaced func(*Session)
+
 	// Configurable timeouts
 	preGameTimeout time.Duration
 	inGameTimeout  time.Duration
@@ -359,10 +363,28 @@ func (m *Manager) RemoveStaleGameSessions(ip string, exceptInstanceID uint32) in
 	return count
 }
 
-// RemoveSessionForCharacter flags any existing in-game session that holds the
-// given character (by serverID) for termination. Called from World.CreatePlayer
-// so that reconnecting the same character cleans up the ghost, while different
-// characters from the same IP can coexist.
+// ReplacedGrace is how long a session whose character logged in again is kept
+// after it was told so: long enough for the disconnect to go out (and be
+// resent once), short of the in-game timeout.
+const ReplacedGrace = 3 * time.Second
+
+// SetOnReplaced sets the function that tells a replaced session it was
+// replaced. Without one, a replaced session is dropped at once and silently.
+func (m *Manager) SetOnReplaced(fn func(*Session)) {
+	m.onReplaced = fn
+}
+
+// RemoveSessionForCharacter retires any existing session that holds the given
+// character (by serverID). Called from World.CreatePlayer so that reconnecting
+// the same character cleans up the ghost, while different characters from the
+// same IP can coexist.
+//
+// The old session is TOLD (0x07A4, "You have logged in from another
+// location."), then kept for ReplacedGrace so the message goes out. Dropping
+// it silently left the old client running against a server that no longer
+// answered it — a stale window that kept sending, so a fresh session was made
+// for it and lived until the ping timeout. Two browser tabs on one character
+// did exactly that.
 func (m *Manager) RemoveSessionForCharacter(charServerID uint32, exceptInstanceID uint32) int {
 	var count int
 	m.sessions.Range(func(key, value interface{}) bool {
@@ -372,10 +394,20 @@ func (m *Manager) RemoveSessionForCharacter(charServerID uint32, exceptInstanceI
 			return true
 		}
 		if sess.CharacterServerID() == charServerID && charServerID != 0 {
-			log.Printf("RemoveSessionForCharacter: flagging old session for char serverID=%d (addr=%s, instance=0x%X)",
-				charServerID, k.Addr, k.InstanceID)
-			sess.SetPendingTermination(true)
+			if _, done := sess.ReplacedFor(); done {
+				return true
+			}
 			count++
+			if m.onReplaced == nil || !sess.InGame() {
+				log.Printf("RemoveSessionForCharacter: flagging old session for char serverID=%d (addr=%s, instance=0x%X)",
+					charServerID, k.Addr, k.InstanceID)
+				sess.SetPendingTermination(true)
+				return true
+			}
+			log.Printf("RemoveSessionForCharacter: telling old session for char serverID=%d it was replaced (addr=%s, instance=0x%X)",
+				charServerID, k.Addr, k.InstanceID)
+			sess.MarkReplaced()
+			m.onReplaced(sess)
 		}
 		return true
 	})

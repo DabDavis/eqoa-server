@@ -576,6 +576,19 @@ func (w *World) SessionPlayer(sess *session.Session) *Player {
 	return w.sessionPlayerLocked(sess)
 }
 
+// IsLivePlayer reports whether p is the world's current Player for its
+// ServerID — false for the Player of a session whose character logged in
+// again (CreatePlayer replaced it).
+func (w *World) IsLivePlayer(p *Player) bool {
+	if p == nil {
+		return false
+	}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	cur, ok := w.Players[p.ServerID]
+	return ok && cur == p
+}
+
 // sessionPlayerLocked extracts the *Player from a session. Must be called with lock held.
 func (w *World) sessionPlayerLocked(sess *session.Session) *Player {
 	if sess == nil {

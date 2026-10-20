@@ -767,6 +767,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "Teleported to Guild Hall (ARENA.ESF)")
 		log.Printf("GM: %s entered guild hall", player.Name)
 
+	case "#effect":
+		// #effect [<icon> [name] | clear]
+		h.effectCommand(sess, parts[1:])
+
 	case "#help":
 		h.gmReply(sess, "GM Commands:")
 		h.gmReply(sess, "  #goto <x> <y> <z> [world] - teleport")
@@ -778,6 +782,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #setlevel <lvl> - set level")
 		h.gmReply(sess, "  #hp <cur> [max] - set HP")
 		h.gmReply(sess, "  #tunar <amt> - set gold")
+		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear active effects")
 		h.gmReply(sess, "  #spawn - list nearby NPCs")
 		h.gmReply(sess, "  #kill - kill target")
 		h.gmReply(sess, "  #pos - show position")
@@ -786,6 +791,51 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	default:
 		h.gmReply(sess, fmt.Sprintf("Unknown GM command: %s (try #help)", cmd))
 	}
+}
+
+// effectCommand is #effect: with nothing after it, the player's active
+// effects; `clear` takes them all off; `<icon> [name]` puts one on, the icon
+// a DictID in hex as VIWndInfluence blits it. They reach the client on state
+// channel 0x43 within buffChannelSyncSystem's two seconds.
+func (h *ChatHandler) effectCommand(sess *session.Session, args []string) {
+	const usage = "Usage: #effect <icon hex> [name] | #effect clear"
+	switch {
+	case len(args) == 0:
+		fx := h.gameWorld.PlayerEffects(sess)
+		if len(fx) == 0 {
+			h.gmReply(sess, "No effects. "+usage)
+		}
+		for i, e := range fx {
+			h.gmReply(sess, fmt.Sprintf("  %d: %08X %s", i+1, e.Icon, e.Name))
+		}
+	case strings.EqualFold(args[0], "clear"):
+		h.gameWorld.ClearEffects(sess)
+		h.gmReply(sess, "Effects cleared")
+	default:
+		e, err := parseEffect(args)
+		if err != nil {
+			h.gmReply(sess, usage)
+			return
+		}
+		if !h.gameWorld.AddEffect(sess, e) {
+			h.gmReply(sess, fmt.Sprintf("There are %d effects already (the client keeps no more)", entity.MaxEffects))
+			return
+		}
+		h.gmReply(sess, fmt.Sprintf("Effect %08X %q on", e.Icon, e.Name))
+	}
+}
+
+// parseEffect reads #effect's `<icon> [name]`: the icon a DictID in hex (0x
+// optional), the rest of the words the name.
+func parseEffect(args []string) (entity.BuffSlot, error) {
+	if len(args) == 0 {
+		return entity.BuffSlot{}, fmt.Errorf("no icon")
+	}
+	icon, err := strconv.ParseUint(strings.TrimPrefix(strings.ToLower(args[0]), "0x"), 16, 32)
+	if err != nil {
+		return entity.BuffSlot{}, err
+	}
+	return entity.BuffSlot{Icon: uint32(icon), Name: strings.Join(args[1:], " ")}, nil
 }
 
 // gmReply sends a system message back to the GM.

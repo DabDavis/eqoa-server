@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"math"
 	"strconv"
+	"unicode/utf16"
 )
 
 // EntityStateSize is the state buffer size for object channels 0x00-0x1C.
@@ -27,12 +28,25 @@ const EntityStateSize = 162
 // exactly 233 bytes on every capture, ending with the 0xFF at offset 232.
 const StatUpdateSize = 233
 
-// BuffUpdateSize is the state buffer size for channel 0x43.
-// Format: 4-byte header + 2 × 66-byte buff slots = 136 bytes.
-const BuffUpdateSize = 136
-
-// buffSlotSize is the size of each buff slot within the 0x43 buffer.
-const buffSlotSize = 66
+// The active effects' channel (0x43) is as long as its count: a u32 count,
+// then a 132-byte record per effect, 4 bytes when there is none. Every value
+// in the captures is 4 + 132n (136 up to 796 bytes, and 4 again when the last
+// effect ends), and CLIENT's Channel43 (0x00BD3D18) reads exactly that: the
+// count (at most 8), then each record's u32 icon and its name, jumping to
+// 4 + 132(i+1) after each. Unlike the channels above it is not a fixed buffer:
+// session.StateUpdateData.SetSizedData sends it at its own length. It was
+// once 136 bytes of two 66-byte slots, which CLIENT read as one record with a
+// second's icon and name in the middle of it.
+const (
+	EffectRecordSize = 132
+	// MaxEffects is how many the client keeps (m_effectIcon[8]); a larger
+	// count is read as 8.
+	MaxEffects = 8
+	// MaxEffectName is the longest name the client shows: ReadString(name,
+	// 64) on a wide string takes n + 1 <= 32 characters, and shows a longer
+	// name empty.
+	MaxEffectName = 31
+)
 
 // velocityToByte is a velocity in units a second as the entity state's
 // signed byte: CLIENT's ChannelEntity (0x00BD41B8) reads bytes 40-42 as
@@ -541,51 +555,35 @@ func SerializeStatUpdate(p *Player) []byte {
 	return buf
 }
 
-// SerializeBuffUpdate serializes the player's active buffs for state channel 0x43.
-// Format: 136 bytes = 4-byte header + 2 × 66-byte buff slots.
-// Header: [0] number of active slots, [1-3] padding.
-// Each slot: int32(spellHash) + int32(nameLen) + UTF-16LE name (padded to 58 bytes, max 29 chars).
+// SerializeBuffUpdate is the player's active effects as state channel 0x43
+// carries them: the u32 count, then each effect's 132-byte record, the u32
+// icon (a DictID: VIWndInfluence blits it whole), the name's length in
+// characters (u32) and the name in UTF-16LE, zeros to the record's end. At
+// most MaxEffects, and each name cut to MaxEffectName characters.
 //
-// Byte 0 IS A COUNT, not a sequence number. It used to be given TickCount/20,
-// which climbs 0..255 and wraps: the client was told it had up to 255 active
-// entries and its buff bar filled with garbage. It also made the channel change
-// every 2s forever, so the XOR delta was never empty — the PS2 received 112
-// buff updates where a real server sent 2 (pcaps/ps2_sandstorm.pcap, which
-// holds byte 0 at 1 for its single entry and then stops sending).
+// The count is the number of records that follow, nothing else. It was once
+// given TickCount/20, which climbs and wraps: the client was told of up to 255
+// entries, and the channel changed every 2 s forever where a real server sends
+// only when an effect starts or ends.
 func SerializeBuffUpdate(p *Player) []byte {
-	buf := make([]byte, BuffUpdateSize)
-
-	active := byte(0)
-	for i := 0; i < 2; i++ {
-		if p.Buffs[i].SpellHash != 0 {
-			active++
+	n := min(len(p.Buffs), MaxEffects)
+	buf := make([]byte, 4+n*EffectRecordSize)
+	binary.LittleEndian.PutUint32(buf, uint32(n))
+	for i, e := range p.Buffs[:n] {
+		r := buf[4+i*EffectRecordSize : 4+(i+1)*EffectRecordSize]
+		binary.LittleEndian.PutUint32(r, e.Icon)
+		name := utf16.Encode([]rune(e.Name))
+		if len(name) > MaxEffectName {
+			name = name[:MaxEffectName]
+			// not half a surrogate pair
+			if c := name[len(name)-1]; c >= 0xD800 && c < 0xDC00 {
+				name = name[:len(name)-1]
+			}
+		}
+		binary.LittleEndian.PutUint32(r[4:], uint32(len(name)))
+		for j, c := range name {
+			binary.LittleEndian.PutUint16(r[8+2*j:], c)
 		}
 	}
-	buf[0] = active
-
-	// Write each buff slot
-	for i := 0; i < 2; i++ {
-		offset := 4 + i*buffSlotSize
-		slot := p.Buffs[i]
-
-		if slot.SpellHash == 0 {
-			continue // slot is empty, leave as zeros
-		}
-
-		binary.LittleEndian.PutUint32(buf[offset:offset+4], uint32(slot.SpellHash))
-
-		name := slot.Name
-		if len(name) > 29 {
-			name = name[:29]
-		}
-		runes := []rune(name)
-		binary.LittleEndian.PutUint32(buf[offset+4:offset+8], uint32(len(runes)))
-
-		// Write UTF-16LE
-		for j, r := range runes {
-			binary.LittleEndian.PutUint16(buf[offset+8+j*2:offset+10+j*2], uint16(r))
-		}
-	}
-
 	return buf
 }

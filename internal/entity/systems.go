@@ -412,9 +412,10 @@ func (w *World) statChannelSyncSystem() {
 	})
 }
 
-// buffChannelSyncSystem serializes buff data into session buff channel (0x43) buffers.
-// Runs every 20 ticks (2 seconds), matching stat channel sync rate.
-// Must be called with lock held.
+// buffChannelSyncSystem serializes each player's active effects into its
+// session's effects channel (0x43), at the value's own length (SetSizedData).
+// Runs every 20 ticks (2 seconds), matching stat channel sync rate; a value
+// that has not changed sends nothing. Must be called with lock held.
 func (w *World) buffChannelSyncSystem() {
 	if w.SessionManager == nil {
 		return
@@ -440,7 +441,7 @@ func (w *World) buffChannelSyncSystem() {
 		if conn != nil {
 			buffChannel := conn.GetClientBuffUpdate()
 			if buffChannel != nil {
-				buffChannel.SetData(buffData)
+				buffChannel.SetSizedData(buffData)
 			}
 		}
 

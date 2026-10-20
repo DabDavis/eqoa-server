@@ -1533,7 +1533,9 @@ func (h *CharacterHandler) initPlayerStatChannel(sess *session.Session, player *
 		player.HP, player.MaxHP, player.Power, player.MaxPower)
 }
 
-// initPlayerBuffChannel builds the buff channel (0x43) from the Player struct.
+// initPlayerBuffChannel builds the effects channel (0x43) from the Player
+// struct, at its own length (4 bytes with none, which sends nothing until an
+// effect starts, as Sandstorm's first 0x43 is the first effect).
 func (h *CharacterHandler) initPlayerBuffChannel(sess *session.Session, player *entity.Player) {
 	conn := sess.Connection()
 	if conn == nil {
@@ -1547,9 +1549,9 @@ func (h *CharacterHandler) initPlayerBuffChannel(sess *session.Session, player *
 
 	buffData := entity.SerializeBuffUpdate(player)
 	buffChannel.SetActive(true)
-	buffChannel.SetData(buffData)
+	buffChannel.SetSizedData(buffData)
 
-	log.Printf("initPlayerBuffChannel: set buff channel (136 bytes)")
+	log.Printf("initPlayerBuffChannel: set effects channel (%d bytes, %d effects)", len(buffData), len(player.Buffs))
 }
 
 // SendDelCharacter confirms character deletion.

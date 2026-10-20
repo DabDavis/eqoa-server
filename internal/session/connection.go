@@ -1,6 +1,7 @@
 package session
 
 import (
+	"bytes"
 	"sync"
 )
 
@@ -140,8 +141,10 @@ func NewConnectionData(session *Session, clientID, serverID uint16) *ConnectionD
 	// above, and it likewise survived SerializeStatUpdate being corrected to
 	// 233, because that only shortened the copy, not the buffer.
 	cd.clientStatUpdate = NewStateUpdateData(statUpdateSize)
-	// Buff update channel (0x43) - 136 bytes (0x88)
-	cd.clientBuffUpdate = NewStateUpdateData(136)
+	// Active effects channel (0x43): as long as its count, 4 bytes and 132 an
+	// effect (entity.SerializeBuffUpdate), so it starts at 4, no effect, and
+	// SetSizedData moves its length.
+	cd.clientBuffUpdate = NewStateUpdateData(4)
 	// Group update channel (0x40) - 0x27 bytes
 	cd.serverGroupUpdate = NewStateUpdateData(0x27)
 	// Client input state
@@ -409,10 +412,20 @@ func (s *StateUpdateData) UpdateBaseXor(msgCounter uint16) {
 		return
 	}
 
-	// XOR the base with the delta to update it
-	for i := 0; i < len(s.baseXOR) && i < len(delta); i++ {
-		s.baseXOR[i] ^= delta[i]
+	// The base becomes the value the client now holds: the delta XORed onto
+	// the old base over the shorter of the two, the rest of the delta as it
+	// came, at the delta's length (connection.cpp's receive keeps a state
+	// message's own size). For a fixed-size channel that is the old in-place
+	// XOR; the effects channel changes length (SetSizedData).
+	base := make([]byte, len(delta))
+	for i := range delta {
+		if i < len(s.baseXOR) {
+			base[i] = s.baseXOR[i] ^ delta[i]
+		} else {
+			base[i] = delta[i]
+		}
 	}
+	s.baseXOR = base
 
 	// Clear pending deltas (client has caught up)
 	s.pendingDeltas = make(map[uint16][]byte)
@@ -573,6 +586,24 @@ func (s *StateUpdateData) SetData(data []byte) {
 	}
 }
 
+// SetSizedData sets the channel's value at data's own length, for the one
+// channel whose value is as long as what it holds: the active effects (0x43,
+// 4 + 132 bytes an effect). DRDP allows it: connection_append_state XORs a
+// state message against its reference over the shorter of the two and sends
+// the rest as it is, and the receive keeps each message's own size, so a
+// value may grow or shrink by any amount between two messages.
+func (s *StateUpdateData) SetSizedData(data []byte) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if bytes.Equal(s.data, data) {
+		return
+	}
+	s.data = append([]byte(nil), data...)
+	s.dirty = true
+	s.isActive = true
+	s.resendTicks = 0
+}
+
 // ResendInterval is how many round-robin visits to wait before resending
 // unchanged data that the client hasn't ACK'd yet. With round-robin visiting
 // each channel every ~3 ticks (300ms), 10 visits = ~3 seconds. A resend keeps
@@ -592,8 +623,9 @@ func (s *StateUpdateData) GenerateXORDelta() (data []byte, seq uint16, xorByte b
 		return nil, 0, 0
 	}
 
-	// Check if data differs from base (matches C# ServerObjectUpdate.GenerateUpdate)
-	differs := false
+	// Check if data differs from base (matches C# ServerObjectUpdate.GenerateUpdate);
+	// a value of another length differs (SetSizedData)
+	differs := len(s.data) != len(s.baseXOR)
 	for i := 0; i < len(s.data) && i < len(s.baseXOR); i++ {
 		if s.data[i] != s.baseXOR[i] {
 			differs = true

@@ -132,14 +132,16 @@ type Player struct {
 	GuildHallZone int // -1 = no hall
 	GuildHallInst int // instance ID
 
-	// Active buffs (sent via state channel 0x43)
-	Buffs [2]BuffSlot
+	// Active effects, in the order the client shows them (state channel
+	// 0x43, SerializeBuffUpdate); at most MaxEffects (AddEffect).
+	Buffs []BuffSlot
 }
 
-// BuffSlot represents an active buff/effect for state channel 0x43.
+// BuffSlot is one active effect as CLIENT's Channel43 reads it into
+// m_effectIcon and m_effectName.
 type BuffSlot struct {
-	SpellHash int32  // Spell/effect identifier (0 = empty slot)
-	Name      string // Display name (max 29 chars for UTF-16LE encoding)
+	Icon uint32 // the icon's DictID: VIWndInfluence blits it whole, by DictID
+	Name string // the client shows MaxEffectName characters at most
 }
 
 // CoachDest describes a coaching or warp teleport destination.

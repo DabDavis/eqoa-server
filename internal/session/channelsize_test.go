@@ -47,10 +47,13 @@ func TestChannelBufferSizesMatchSerializers(t *testing.T) {
 		}
 	})
 
-	t.Run("buff channel 0x43", func(t *testing.T) {
-		if got := len(cd.GetClientBuffUpdate().GetData()); got != entity.BuffUpdateSize {
-			t.Fatalf("buff channel allocated %d bytes, serializer produces %d",
-				got, entity.BuffUpdateSize)
+	t.Run("effects channel 0x43", func(t *testing.T) {
+		// as long as its count (SetSizedData): it starts as the serializer's
+		// value for a player with no effect
+		want := len(entity.SerializeBuffUpdate(&entity.Player{}))
+		if got := len(cd.GetClientBuffUpdate().GetData()); got != want {
+			t.Fatalf("effects channel starts at %d bytes, the serializer's value for none is %d",
+				got, want)
 		}
 	})
 }
@@ -60,8 +63,12 @@ func TestChannelBufferSizesMatchSerializers(t *testing.T) {
 // disagree with the capture explicitly rather than by accident.
 //
 // Object channels: all 24 occupied channels, every update in the capture, decode
-// to exactly 162. Stat channel: 233, ending with the 0xFF at offset 232.
+// to exactly 162. Stat channel: 233, ending with the 0xFF at offset 232. Effects
+// channel: every value in the captures is 4 + 132 bytes an effect.
 func TestRetailMeasuredSizes(t *testing.T) {
+	if entity.EffectRecordSize != 132 {
+		t.Errorf("EffectRecordSize = %d, retail's records are 132", entity.EffectRecordSize)
+	}
 	if entity.EntityStateSize != 162 {
 		t.Errorf("EntityStateSize = %d, retail sends 162", entity.EntityStateSize)
 	}

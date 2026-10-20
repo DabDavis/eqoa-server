@@ -203,6 +203,20 @@ func (h *CharacterHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeRandomName, h.HandleRandomName)
 	r.Register(protocol.OpcodeCharacterInWorld, h.HandleCharacterInWorld)
 	r.Register(protocol.OpcodeDelCharacter, h.HandleDelCharacter)
+	r.Register(protocol.OpcodeDisconnectClient, h.HandleLogout)
+}
+
+// HandleLogout is a client's Quit (opcode 0x09B0, no payload). CLIENT's
+// Process sends it when Quit is answered yes (m_p2EC28, "LOGOUT!") and then
+// disconnects itself (Disconnect(9, 1)), so nothing more comes from this
+// session. It ends now rather than at the in-game timeout: the next tick
+// saves where the character stood and takes it out of the world, so the
+// account can log in again at once (one login at a time counts a session
+// heard from in the last minute as live).
+func (h *CharacterHandler) HandleLogout(sess *session.Session, msg *protocol.Message) error {
+	log.Printf("Logout: %s quit the game (0x09B0)", sess.RemoteAddr())
+	sess.SetPendingTermination(true)
+	return nil
 }
 
 // HandleCreateCharacter handles character creation requests (opcode 0x2B).

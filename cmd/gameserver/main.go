@@ -140,6 +140,11 @@ func main() {
 	// Seed the auth account table from config before the listener starts.
 	tcp.SeedAccounts(accountStore, cfg.Auth.Accounts, cfg.Auth.BCryptCost)
 
+	handlers.SetNPCText(cfg.World.NPCText)
+	if len(cfg.World.NPCText) > 0 {
+		log.Printf("NPC text: %d NPCs say their own words when talked to", len(cfg.World.NPCText))
+	}
+
 	// Tickets link the two halves of the handshake: the TCP auth server grants
 	// one when a password checks out, and the UDP handlers require one. Without
 	// that link the UDP path would still accept any username on its own.

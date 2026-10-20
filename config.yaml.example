@@ -32,6 +32,11 @@ world:
   session_timeout_pre: 300s
   session_timeout_game: 2s
 
+  # What an NPC says when talked to, by name, in place of the debug box
+  # (ServerID, HP, position...) every other NPC opens.
+  npc_text:
+    "Freeport Announcements": "Welcome to the server."
+
 patch:
   # Directory holding the client patch payloads. A relative path resolves
   # against the working directory first, then against the executable's

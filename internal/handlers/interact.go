@@ -20,6 +20,15 @@ type InteractHandler struct {
 	corpse func(*session.Session, *entity.NPC) bool
 }
 
+// npcText is what an NPC says when talked to, by name (config
+// world.npc_text), in place of the debug box.
+var npcText map[string]string
+
+// SetNPCText sets what NPCs say when talked to, by name.
+func SetNPCText(m map[string]string) {
+	npcText = m
+}
+
 // NewInteractHandler creates a new interact handler.
 func NewInteractHandler(sessionMgr *session.Manager) *InteractHandler {
 	return &InteractHandler{sessionManager: sessionMgr}
@@ -129,6 +138,16 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 			player.PendingCoachDests = routes
 			player.CoachPage = 0
 			h.sendCoachPage(sess, player)
+			return nil
+		}
+	}
+
+	// A sign post or a greeter: its words (world.npc_text) instead of the
+	// debug box.
+	if npc, ok := targetEntity.(*entity.NPC); ok {
+		if text, ok := npcText[npc.Name]; ok {
+			player.PendingCoachDests = nil
+			h.sendDialogueBox(sess, text)
 			return nil
 		}
 	}

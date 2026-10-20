@@ -43,6 +43,10 @@ type WorldConfig struct {
 	TickRate           time.Duration `yaml:"tick_rate"`
 	SessionTimeoutPre  time.Duration `yaml:"session_timeout_pre"`
 	SessionTimeoutGame time.Duration `yaml:"session_timeout_game"`
+
+	// NPCText is what an NPC says when talked to, by its name: a sign post or
+	// a greeter, in place of the debug box every other NPC opens.
+	NPCText map[string]string `yaml:"npc_text"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

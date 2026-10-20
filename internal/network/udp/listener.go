@@ -616,6 +616,7 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 			u := entity.ClientUpdate{X: posX, Y: posY, Z: posZ, Facing: facing, Animation: animation}
 			u.Velocity, u.HasVelocity = entity.ClientUpdateVelocity(decoded)
 			u.AutoAttack, u.HasAutoAttack = entity.ClientUpdateAutoAttack(decoded)
+			u.WalkFlags, u.HasWalkFlags = entity.ClientUpdateWalkFlags(decoded)
 			l.gameWorld.ApplyClientUpdate(player.ServerID, u)
 		}
 	}

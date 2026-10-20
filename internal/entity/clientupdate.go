@@ -1,5 +1,7 @@
 package entity
 
+import "encoding/binary"
+
 // clientupdate.go — what the server takes out of a client's own state
 // channel, 0x40, beyond its position.
 //
@@ -24,8 +26,32 @@ var clientVelLo, clientVelHi = [3]float32{-15.3, -84.5, -15.3}, [3]float32{15.3,
 // Byte offsets in the 0x40.
 const (
 	clientUpdateVelocity   = 10 // 3 × u16 big-endian
+	clientUpdateWalkFlags  = 31 // u32 little-endian, VIWalkPhysics' flags
 	clientUpdateAutoAttack = 36
 )
+
+// The walk flags' liquid bits (vi::walk in eqoa-rs, VIWalkControl's): each
+// liquid's "in" bit and its "at the surface" bit.
+const (
+	walkFlagsSubmerged = 0x0854 // in water, lava, slime or mud
+	walkFlagsAtSurface = 0x10A8 // at the surface of one of them
+)
+
+// ClientUpdateWalkFlags is bytes 31-34 of a 0x40: the walker's flags.
+func ClientUpdateWalkFlags(b []byte) (flags uint32, ok bool) {
+	if len(b) < clientUpdateWalkFlags+4 {
+		return 0, false
+	}
+	return binary.LittleEndian.Uint32(b[clientUpdateWalkFlags:]), true
+}
+
+// UnderLiquid is VIWalkControl::IsUnderLiquid on the flags a client sent: in
+// a liquid and not at its surface. It is what the client's breath gauge shows
+// under (DrawStatus), so it is what breath runs out under; a player swimming
+// at the surface has the swim animation too, but breathes.
+func UnderLiquid(flags uint32) bool {
+	return flags&walkFlagsSubmerged != 0 && flags&walkFlagsAtSurface == 0
+}
 
 // ClientUpdateVelocity is the walker's velocity out of a reconstructed 0x40,
 // in units a second: each axis the centre of its WriteQuantized bucket.
@@ -56,7 +82,9 @@ type ClientUpdate struct {
 	X, Y, Z, Facing float32
 	Velocity        [3]float32 // units a second
 	HasVelocity     bool
-	Animation       byte // byte 35, the locomotion state
+	Animation       byte   // byte 35, the locomotion state
+	WalkFlags       uint32 // bytes 31-34
+	HasWalkFlags    bool
 	AutoAttack      bool // byte 36
 	HasAutoAttack   bool
 }
@@ -81,6 +109,9 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 		p.VelX, p.VelY, p.VelZ = u.Velocity[0], u.Velocity[1], u.Velocity[2]
 	}
 	p.Animation = u.Animation
+	if u.HasWalkFlags {
+		p.WalkFlags, p.HasWalkFlags = u.WalkFlags, true
+	}
 	if u.HasAutoAttack {
 		p.AutoAttack = u.AutoAttack
 	}

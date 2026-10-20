@@ -117,9 +117,11 @@ type Player struct {
 	Swing          Swing
 
 	// Breath / underwater
-	Breath          int  // 0-127, depletes underwater (eqoa.live sends 127 in MemoryDump)
-	Underwater      bool // true when animation is a swim animation
-	DrowningCounter int  // tick counter for 6s drowning damage interval
+	Breath          int    // 0-127, depletes underwater (eqoa.live sends 127 in MemoryDump)
+	Underwater      bool   // under a liquid's surface (UnderLiquid on WalkFlags)
+	DrowningCounter int    // tick counter for 6s drowning damage interval
+	WalkFlags       uint32 // the last 0x40's walker flags (clientupdate.go)
+	HasWalkFlags    bool
 
 	// Group (group.go): the group's id, 0 for none
 	GroupID uint32

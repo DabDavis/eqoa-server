@@ -329,8 +329,11 @@ func isSwimAnimation(anim byte) bool {
 // every 60 ticks (6s). The client manages the breath bar UI independently —
 // the server only sends drowning damage via DamageIndication (0x00DB) and the
 // drowning action (0x0775, action 34), as Sandstorm does.
-// Underwater detection uses the client's animation byte (swim animations)
-// rather than a global Y threshold, so it works correctly per-zone.
+// Underwater is the client's own IsUnderLiquid, out of the walker flags in
+// its 0x40 (UnderLiquid): in a liquid and not at its surface, which is when
+// the client draws the breath gauge. The swim animation alone said nothing
+// about the surface, so a player swimming along the top drowned (F3
+// 20261020-205003). A client that has sent no flags yet falls back to it.
 // Must be called with lock held.
 func (w *World) breathSystem(now time.Time) {
 	if w.TickCount%6 != 0 {
@@ -342,7 +345,11 @@ func (w *World) breathSystem(now time.Time) {
 			continue
 		}
 
-		p.Underwater = isSwimAnimation(p.Animation)
+		if p.HasWalkFlags {
+			p.Underwater = UnderLiquid(p.WalkFlags)
+		} else {
+			p.Underwater = isSwimAnimation(p.Animation)
+		}
 
 		if p.Underwater {
 			if p.Breath > 0 {

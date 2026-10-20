@@ -3,6 +3,7 @@ package entity
 import (
 	"math"
 	"testing"
+	"time"
 )
 
 // quantize is CLIENT's WriteQuantized (0x00BC2D28) for one axis, two bytes:
@@ -124,5 +125,63 @@ func TestUpdatePositionArrivesStill(t *testing.T) {
 	w.UpdatePosition(p.ServerID, 5000, 20, 5000, 1)
 	if p.VelX != 0 || p.VelY != 0 || p.VelZ != 0 {
 		t.Errorf("teleported player keeps velocity (%v, %v, %v)", p.VelX, p.VelY, p.VelZ)
+	}
+}
+
+// A walker's flags in its 0x40, as VIWalkPhysics carries them: on the
+// ground, swimming along the surface, and under it. Only the last is out of
+// breath's reach (F3 20261020-205003: drowning while swimming on top).
+func TestUnderLiquidIsUnderTheSurfaceOnly(t *testing.T) {
+	for _, c := range []struct {
+		name  string
+		flags uint32
+		under bool
+	}{
+		{"on the ground", 0x0401, false},          // on floor, landscape
+		{"at the water's surface", 0x000C, false}, // in water + at its surface
+		{"under water", 0x0004, true},             // in water
+		{"under lava", 0x0010, true},              // in lava
+		{"at the mud's surface", 0x0800 | 0x1000, false},
+	} {
+		b := make([]byte, 41)
+		b[31], b[32], b[33], b[34] = byte(c.flags), byte(c.flags>>8), byte(c.flags>>16), byte(c.flags>>24)
+		f, ok := ClientUpdateWalkFlags(b)
+		if !ok || f != c.flags {
+			t.Fatalf("%s: flags %#x, %v; want %#x", c.name, f, ok, c.flags)
+		}
+		if got := UnderLiquid(f); got != c.under {
+			t.Errorf("%s: under liquid %v, want %v", c.name, got, c.under)
+		}
+	}
+	if _, ok := ClientUpdateWalkFlags(make([]byte, 34)); ok {
+		t.Error("a buffer that ends before byte 34 has no flags")
+	}
+}
+
+// The breath system takes the flags when a client sent them: a swim
+// animation at the surface keeps breath, under it loses it.
+func TestBreathRunsOutUnderTheSurfaceNotOnIt(t *testing.T) {
+	w := NewWorld()
+	p := &Player{ServerID: 7, HP: 50, MaxHP: 50, Breath: 100, Animation: AnimSwimSlow}
+	w.Players[p.ServerID] = p
+	tick := func() {
+		w.TickCount = 6
+		w.breathSystem(time.Now())
+	}
+	p.WalkFlags, p.HasWalkFlags = 0x000C, true // at the surface
+	tick()
+	if p.Underwater || p.Breath != 102 {
+		t.Fatalf("at the surface: underwater %v, breath %d; want false, 102", p.Underwater, p.Breath)
+	}
+	p.WalkFlags = 0x0004 // under it
+	tick()
+	if !p.Underwater || p.Breath != 101 {
+		t.Fatalf("under water: underwater %v, breath %d; want true, 101", p.Underwater, p.Breath)
+	}
+	// negative control: no flags yet, the swim animation decides
+	p.HasWalkFlags = false
+	tick()
+	if !p.Underwater {
+		t.Fatal("without flags a swim animation is under water")
 	}
 }

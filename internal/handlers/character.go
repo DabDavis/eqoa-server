@@ -616,27 +616,41 @@ const loginSpawnDest = "vaal"
 // the height is how you get a spawn that falls.
 const loginSpawnOffset = 8.0
 
-// loginSpawn overwrites a character's saved position with the fixed start
-// point, in place, before the player entity is built from the record.
+// loginSpawn decides where a session starts, in place, before the player
+// entity is built from the record: where the character logged out when that
+// is a place every client can stand, else beside Archivist Vaal.
 //
-// WHY EVERY LOGIN AND NOT JUST A NEW CHARACTER. A saved position is a thing
-// that can strand a session: under terrain, in a world whose ESF is not on this
-// console's disk, or at coordinates a PNACH wrote (see
-// claude-notes/position-spoofing-fix.md). Logging in somewhere known-good makes
-// every one of those recoverable by reconnecting, which is worth more here than
-// resuming where a player left off.
+// A saved position resumes when (resumable) it was ever saved (a character
+// that never logged out holds the origin), it is in one of the six worlds
+// CLIENT's gWorldInfo names on the Frontiers disc (a world a server's S2 or a
+// hard disk adds may not be on the next console that logs in, or in a page),
+// and ValidateTeleport takes it (above the world floor, inside its world).
+// savePlayerPosition already refuses to write a fall or a world that does not
+// contain the position, and does not write a death's place (the respawn would
+// have moved the player to Vaal).
 //
-// It replaces autoGoto/EQOA_AUTO_GOTO, which did the same job late — a timed GM
-// teleport AFTER world entry, so the client first entered the saved world and
-// then warped out of it.
+// Until 2026-10-20 every login started at Vaal: a saved position could strand
+// a session under terrain, in a world whose ESF was not on that console's disk,
+// or at coordinates a PNACH wrote (claude-notes/position-spoofing-fix.md).
+// The world rule and the save-side guards answer the first two; the third
+// was never the login's to stop (a client that writes its position writes it
+// all session long); and `#tele vaal` is the way back from anything else.
+// Testers asked to come back where they left (F3 20261020-195202).
 //
-// The record is NOT saved back: this changes where a session starts, not what
-// the database holds. A character who walks somewhere and logs out still has
-// that position on the row; it is simply not where the next login begins.
+// When the spawn is Vaal's the record is NOT saved back: this changes where a
+// session starts, not what the database holds.
 func loginSpawn(gw *entity.World, record *database.CharacterRecord) {
 	if record == nil {
 		return
 	}
+	why, resume := resumable(record)
+	if resume {
+		log.Printf("loginSpawn: '%s' resumes where it logged out (%.1f, %.1f, %.1f) world=%d",
+			record.CharName, record.X, record.Y, record.Z, record.World)
+		return
+	}
+	log.Printf("loginSpawn: '%s' does not resume at (%.1f, %.1f, %.1f) world=%d: %s",
+		record.CharName, record.X, record.Y, record.Z, record.World, why)
 	x, y, z, world, via, ok := ResolveTeleDest(gw, loginSpawnDest)
 	if !ok {
 		// Only reachable if the shortcut is renamed out from under this, which
@@ -664,6 +678,26 @@ func loginSpawn(gw *entity.World, record *database.CharacterRecord) {
 
 	record.X, record.Y, record.Z = x, y, z
 	record.World = int(world)
+}
+
+// discWorlds is how many worlds CLIENT's gWorldInfo names on the Frontiers
+// disc (TUNARIA, RATHE, ODUS, LAVASTM, PLANESKY, SECRETS): the worlds every
+// client has, a retail PS2 and a page reading the player's own disc alike.
+const discWorlds = 6
+
+// resumable reports whether a login may start at the record's saved
+// position, and if not, why.
+func resumable(record *database.CharacterRecord) (string, bool) {
+	if record.X == 0 && record.Y == 0 && record.Z == 0 {
+		return "never saved", false
+	}
+	if record.World < 0 || record.World >= discWorlds {
+		return fmt.Sprintf("world %d is not on every disc", record.World), false
+	}
+	if _, err := ValidateTeleport(record.X, record.Y, record.Z, byte(record.World)); err != nil {
+		return err.Error(), false
+	}
+	return "", true
 }
 
 // HandleServerSelection handles server selection (opcode 0x2D).

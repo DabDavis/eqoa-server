@@ -87,22 +87,21 @@ handler → world.mu.Lock() → direct method call → return
 | `SessionPlayer(sess) *Player` | Get player for session |
 | `ForEachPlayer(fn)` | Iterate all players |
 
-### Every login starts beside Archivist Vaal
+### A login resumes where the character logged out, else beside Archivist Vaal
 
-`loginSpawn` (`internal/handlers/character.go`) overwrites the character record's
-position with the `vaal` `#tele` destination before `CreatePlayer` reads it, so Freeport
-is where every session begins regardless of where the character logged out. The anchor is
-the NPC row, not three floats — moving Archivist Vaal moves the spawn, and `#tele vaal`
-and logging in cannot disagree.
+`loginSpawn` (`internal/handlers/character.go`) keeps the record's saved position when
+`resumable` takes it: it was ever saved (a new character holds the origin), it is in one
+of the six worlds CLIENT's `gWorldInfo` names on the Frontiers disc (`discWorlds`: a world
+an S2 or the hard disk adds may not be on the next console, or in a page), and
+`ValidateTeleport` accepts it. Anything else starts at the `vaal` `#tele` destination, a
+few units off the NPC; the anchor is the NPC row, so moving Archivist Vaal moves the spawn,
+and `#tele vaal` and logging in cannot disagree. `savePlayerPosition` refuses to save a
+fall, an incoherent world, or a death's place (the respawn would have moved the player).
 
-It is deliberately unconditional: a saved position can strand a session under terrain, in
-a world whose ESF is not on that console's disk, or at coordinates a PNACH wrote, and all
-three become recoverable by reconnecting. The record is **not** written back — the row
-keeps whatever the character last saved; it is simply not where the next login starts.
-
-This replaced `EQOA_AUTO_GOTO`, which did the same job late (a timed GM teleport *after*
-world entry) and took `EQOA_GOTO_CYCLE` with it. `#tele <name>` still reaches every named
-destination by hand.
+Until 2026-10-20 every login started at Vaal, unconditionally, so a saved position could
+never strand a session (under terrain, in a world not on that console's disk, at PNACH
+coordinates); testers asked to come back where they left (F3 20261020-195202), and the
+user chose resuming. When the spawn is Vaal's the record is **not** written back.
 
 ### Data Flow (World Entry)
 

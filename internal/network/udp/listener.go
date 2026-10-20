@@ -439,6 +439,16 @@ func (l *Listener) savePlayerPosition(sess *session.Session) {
 		return
 	}
 
+	// A death's place is not where the next login starts: the respawn would
+	// have moved the player beside Vaal 15 s later (entity/respawn.go), and the
+	// place it died may be the lava or the deep water that killed it. The row
+	// keeps the last place it logged out alive.
+	if player.IsDead() {
+		log.Printf("savePlayerPosition: '%s' logged out dead at (%.1f, %.1f, %.1f); "+
+			"keeping the position saved before", player.Name, player.X, player.Y, player.Z)
+		return
+	}
+
 	record, err := l.charStore.GetByServerID(uint32(player.ServerID))
 	if err != nil {
 		log.Printf("savePlayerPosition: failed to load record for serverID=%d: %v", player.ServerID, err)

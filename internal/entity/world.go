@@ -34,6 +34,7 @@ type World struct {
 	guilds      map[uint32]*Guild // guild.go
 	nextGuildID uint32
 	leaving     []func(*Player)  // OnPlayerLeaving
+	respawn     RespawnFunc      // OnPlayerRespawn (respawn.go)
 	announced   map[*Player]bool // guildAnnounceSystem: told its guild at login
 	// OnEntityEnter is called when a new entity enters a player's visibility range.
 	// Set by the handler layer to send FullEntityCreate (0x00B3) reliable opcodes.

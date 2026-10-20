@@ -17,8 +17,16 @@ const (
 
 // Tick runs one game tick: increments counter, then runs all systems.
 // Called from the network tick goroutine. Acquires the world lock for the
-// full duration so that handler goroutines are serialized against the tick.
+// full duration so that handler goroutines are serialized against the tick;
+// the players whose respawn came due are then handed to the respawn hook
+// with the lock let go (respawn.go).
 func (w *World) Tick(now time.Time) {
+	w.runRespawns(w.tickLocked(now))
+}
+
+// tickLocked is the tick's systems under the world lock. It returns the
+// players whose respawn came due, for runRespawns.
+func (w *World) tickLocked(now time.Time) []respawnDue {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
@@ -27,8 +35,9 @@ func (w *World) Tick(now time.Time) {
 	w.aiSystem(now)
 	w.attackSystem(now)
 	w.respawnSystem(now)
+	due := w.playerRespawnSystem(now)
 	w.regenSystem(now)
-	w.breathSystem()
+	w.breathSystem(now)
 	w.stateSyncSystem()
 	w.entityChannelSyncSystem()
 	w.statChannelSyncSystem()
@@ -36,6 +45,7 @@ func (w *World) Tick(now time.Time) {
 	w.guildAnnounceSystem()
 	w.visibilitySystem()
 	w.groupSyncSystem()
+	return due
 }
 
 // aiSystem handles NPC combat: aggro'd NPCs attack their current enemy every ~3 seconds.
@@ -142,7 +152,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 
 	// Check for player death
 	if player.HP <= 0 {
-		w.sendPlayerDied(sess)
+		w.playerDiedLocked(sess, player, now)
 		log.Printf("Combat: player %s has died!", sess.RemoteAddr())
 	}
 }
@@ -188,6 +198,11 @@ func (w *World) regenSystem(now time.Time) {
 	}
 
 	for _, p := range w.Players {
+		// A corpse does not heal: the respawn restores it (respawn.go)
+		if p.respawnPending() {
+			continue
+		}
+
 		// Skip regen if player was in combat within the last 10 seconds
 		if !p.LastCombatTime.IsZero() && now.Sub(p.LastCombatTime) < 10*time.Second {
 			continue
@@ -317,13 +332,13 @@ func isSwimAnimation(anim byte) bool {
 // Underwater detection uses the client's animation byte (swim animations)
 // rather than a global Y threshold, so it works correctly per-zone.
 // Must be called with lock held.
-func (w *World) breathSystem() {
+func (w *World) breathSystem(now time.Time) {
 	if w.TickCount%6 != 0 {
 		return
 	}
 
 	for _, p := range w.Players {
-		if p.HP <= 0 {
+		if p.HP <= 0 || p.respawnPending() {
 			continue
 		}
 
@@ -347,6 +362,9 @@ func (w *World) breathSystem() {
 
 					sess := w.findSessionByEntityIDLocked(p.ServerID)
 					if sess == nil {
+						if p.HP <= 0 {
+							w.playerDiedLocked(nil, p, now)
+						}
 						continue
 					}
 
@@ -358,7 +376,7 @@ func (w *World) breathSystem() {
 						p.Name, p.HP, p.MaxHP, p.Breath)
 
 					if p.HP <= 0 {
-						w.sendPlayerDied(sess)
+						w.playerDiedLocked(sess, p, now)
 						log.Printf("Drowning: %s has drowned!", p.Name)
 					}
 				}

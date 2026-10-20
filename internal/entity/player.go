@@ -42,6 +42,11 @@ type Player struct {
 	HP, MaxHP      int
 	LastCombatTime time.Time
 
+	// DiedAt is when the player last died (0x005E went out), zero while
+	// alive. It stays set until respawn.go brings the player back, so a
+	// death is told once and nothing heals or hits the corpse meanwhile.
+	DiedAt time.Time
+
 	// Power
 	Power, MaxPower int
 

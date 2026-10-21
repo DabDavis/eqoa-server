@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -33,6 +34,14 @@ func TestNPCRoundShapes(t *testing.T) {
 		{"the Lv35 gharial: Attack4 every 6 s", NPC{Level: 35}, 6000, 6000, 0xDA9BEA14, []int{500, 1000, 1700, 2400}},
 		{"a Lv49 guard with sword and shield: Attack3 every 4 s", NPC{Level: 49, PrimaryWeapon: 0x64B86194, Shield: 0x77CAADDE}, 4000, 4000, 0xDA9BEA13, []int{500, 1000}},
 		{"a Lv60 with a sword alone: Attack4", NPC{Level: 60, PrimaryWeapon: 1}, 6000, 6000, 0xDA9BEA14, []int{500, 1000, 1700, 2400}},
+		// the class's swing, as a player's (Sandstorm's classes: a Crag Wisp
+		// is a magician, Guard Findel a shadow knight)
+		{"a Lv27 magician: Attack1 always", NPC{Level: 27, Class: 10}, 3200, 3000, 0xDA9BEA11, []int{500}},
+		{"a Lv60 enchanter: Attack1 always", NPC{Level: 60, Class: 12}, 3200, 3000, 0xDA9BEA11, []int{500}},
+		{"a Lv70 shadow knight: Attack3", NPC{Level: 70, Class: 3}, 4000, 4000, 0xDA9BEA13, []int{500, 1000}},
+		{"a Lv25 paladin: Attack3 from Lv20", NPC{Level: 25, Class: 2}, 4000, 4000, 0xDA9BEA13, []int{500, 1000}},
+		{"a Lv40 rogue: Attack4", NPC{Level: 40, Class: 6}, 6000, 6000, 0xDA9BEA14, []int{500, 1000, 1700, 2400}},
+		{"a class out of range is a warrior's", NPC{Level: 40, Class: 224}, 6000, 6000, 0xDA9BEA14, []int{500, 1000, 1700, 2400}},
 	}
 	for _, tt := range tests {
 		length, delay, fx, hits := npcRound(&tt.npc)
@@ -161,5 +170,33 @@ func TestNPCRoundsKeepTheirCadence(t *testing.T) {
 	}
 	if swings != 3 {
 		t.Errorf("%d swings at 0, 4.05 and 8 s, want 3: the round late by a tick put off the next", swings)
+	}
+}
+
+// An NPC loaded from the database takes its class from npcclass by its name
+// (a trailing space or '$' and case not counting), and one the table does
+// not name is a warrior.
+func TestLoadNPCsTakesTheirClass(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/npcs.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Close() })
+	for _, q := range []string{
+		`INSERT INTO npcs (npc_name, x_coord, y_coord, z_coord, world, npc_level) VALUES ('Crag Wisp ', 23186, 56, 19623, 0, 27), ('Gharial ', 23516, 48, 19556, 0, 33)`,
+		`INSERT INTO npcclass (name, class, source) VALUES ('crag wisp', 10, 'sandstorm')`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	w := NewWorld()
+	w.LoadNPCs(database.NewNPCStore(db))
+	classes := map[string]int{}
+	for _, n := range w.NPCs {
+		classes[n.Name] = n.Class
+	}
+	if classes["Crag Wisp "] != 10 || classes["Gharial "] != 0 || len(classes) != 2 {
+		t.Errorf("classes %v, want the wisp a magician and the gharial a warrior", classes)
 	}
 }

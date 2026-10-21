@@ -54,6 +54,10 @@ type NPC struct {
 	Faction byte
 	Dead    bool
 
+	// Class is the NPC's class (WAR=0 ... ALC=14), from the npcclass table
+	// by its name; it picks the NPC's melee swing (rounds.go).
+	Class int
+
 	// Effects is the spells on it (cast.go): damage ticks, holds, slows.
 	Effects []*ActiveEffect
 

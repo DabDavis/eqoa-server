@@ -428,6 +428,15 @@ func (db *SQLiteDB) initSchema() error {
 		PRIMARY KEY (class, spellid)
 	);
 
+	-- npcclass: each NPC name's class (WAR=0 ... ALC=14), which picks its
+	-- melee swing (entity/rounds.go); tools/import_npc_classes.py fills it,
+	-- by NPCClassKey
+	CREATE TABLE IF NOT EXISTS npcclass (
+		name   TEXT PRIMARY KEY,
+		class  INTEGER NOT NULL,
+		source TEXT NOT NULL
+	);
+
 	-- spells (player spellbook)
 	CREATE TABLE IF NOT EXISTS spells (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,

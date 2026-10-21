@@ -17,20 +17,28 @@ import (
 //     swing at another player).
 //   - Its hits come at fixed times into the round, each a 0x00DB to the
 //     player hit alone.
-//   - The swing is CLIENT's GetSwing for a warrior of the NPC's level
-//     carrying what it carries: below Lv20 Attack1, one hit at 0.5 s in a
-//     3.2 s round; Lv20-34 Attack2, hits at 0.5 and 1.5 s in 4 s; from Lv35
-//     Attack4, hits at 0.5, 1, 1.7 and 2.4 s in 6 s; from Lv35 with a shield
-//     Attack3, hits at 0.5 and 1 s in 4 s (a Lv49 guard with sword and
-//     shield, the PS2 capture's).
+//   - The swing is CLIENT's GetSwing for the NPC's class and level,
+//     carrying what it carries, as a player's is. For a warrior, which most
+//     of Sandstorm's NPCs are (641 of the 833 names it has shown us):
+//     below Lv20 Attack1, one hit at 0.5 s in a 3.2 s round; Lv20-34
+//     Attack2, hits at 0.5 and 1.5 s in 4 s; from Lv35 Attack4, hits at
+//     0.5, 1, 1.7 and 2.4 s in 6 s; from Lv35 with a shield Attack3, hits
+//     at 0.5 and 1 s in 4 s (a Lv49 guard with sword and shield, the PS2
+//     capture's). A caster's is always Attack1; a paladin's or shadow
+//     knight's Attack3 from Lv20.
 
-// npcSwingKind is the swing an NPC fights with: GetSwing for a warrior of
-// its level, a weapon in the primary and a shield as it carries them.
+// npcSwingKind is the swing an NPC fights with: GetSwing for its class (a
+// warrior's when it has none we know) and level, a weapon in the primary
+// and a shield as it carries them.
 func npcSwingKind(npc *NPC) int {
 	var worn [21]bool
 	worn[14] = npc.PrimaryWeapon != 0
 	worn[17] = npc.Shield != 0
-	return GetSwing(0, npc.Level, worn)
+	class := npc.Class
+	if class < 0 || class > 14 {
+		class = 0
+	}
+	return GetSwing(class, npc.Level, worn)
 }
 
 // npcRound is the shape of the NPC's round: its length, the swing (the

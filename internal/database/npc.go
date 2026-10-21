@@ -1,5 +1,7 @@
 package database
 
+import "strings"
+
 // NPCRecord represents a row from the npcs table.
 type NPCRecord struct {
 	ID              int
@@ -137,4 +139,31 @@ func (s *NPCStore) Count() (int, error) {
 	var count int
 	err := s.db.QueryRow(`SELECT COUNT(*) FROM npcs`).Scan(&count)
 	return count, err
+}
+
+// NPCClassKey is an NPC's name as the npcclass table keys it: trimmed, any
+// case, without the trailing '$' some sources mark names with.
+func NPCClassKey(name string) string {
+	n := strings.ToLower(strings.TrimSpace(name))
+	return strings.TrimSpace(strings.TrimSuffix(n, "$"))
+}
+
+// NPCClasses is the npcclass table (tools/import_npc_classes.py): each NPC
+// name's class, by NPCClassKey. A name it does not hold is a warrior's.
+func (s *NPCStore) NPCClasses() (map[string]int, error) {
+	rows, err := s.db.Query(`SELECT name, class FROM npcclass`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make(map[string]int)
+	for rows.Next() {
+		var name string
+		var class int
+		if err := rows.Scan(&name, &class); err != nil {
+			return nil, err
+		}
+		out[name] = class
+	}
+	return out, rows.Err()
 }

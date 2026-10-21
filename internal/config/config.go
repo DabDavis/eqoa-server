@@ -47,6 +47,13 @@ type WorldConfig struct {
 	// NPCText is what an NPC says when talked to, by its name: a sign post or
 	// a greeter, in place of the debug box every other NPC opens.
 	NPCText map[string]string `yaml:"npc_text"`
+
+	// StartLevel is the level a new character is created at (1 when unset);
+	// the level a client's creation message carries is never taken.
+	// StartAllSpells gives a new character every spell its class has
+	// (classspells, tools/import_class_spells.py). Both are for testing.
+	StartLevel     int  `yaml:"start_level"`
+	StartAllSpells bool `yaml:"start_all_spells"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

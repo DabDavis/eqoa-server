@@ -549,8 +549,12 @@ func SerializeStatUpdate(p *Player) []byte {
 	// Base AC (offset 172)
 	writeInt32(172, int32(p.AC))
 
-	// Offset 232: End marker (0xFF in eqoa.live pcap)
-	buf[232] = 0xFF
+	// Offset 232: breath, 255 full (VIPlayer's m_p30, the breath gauge's
+	// fill: DrawStatus draws it over 255). Not an end marker: every capture
+	// sent 0xFF only because nobody in them was under water; in
+	// pcaps/breath_capture.pcap it steps 0xFF, 0xDF, ... 0x1F, 0x00, 32 every
+	// 6 s, and then the HP goes (F3 20261021-011015: the gauge stood full).
+	buf[232] = byte(max(0, min(255, p.Breath)))
 
 	return buf
 }

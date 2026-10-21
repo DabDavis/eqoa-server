@@ -156,7 +156,7 @@ func TestPlayerRespawnsAfterTheDelay(t *testing.T) {
 	if f.p.HP != f.p.MaxHP || f.p.Power != f.p.MaxPower {
 		t.Errorf("respawned at %d/%d HP, %d/%d power, want both full", f.p.HP, f.p.MaxHP, f.p.Power, f.p.MaxPower)
 	}
-	if f.p.Breath != 127 || f.p.respawnPending() || f.p.IsDead() {
+	if f.p.Breath != BreathFull || f.p.respawnPending() || f.p.IsDead() {
 		t.Errorf("breath %d, pending %v, dead %v after the respawn", f.p.Breath, f.p.respawnPending(), f.p.IsDead())
 	}
 

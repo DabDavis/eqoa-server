@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"github.com/eqoa/server/internal/session"
 	"math"
 	"testing"
 	"time"
@@ -164,25 +165,69 @@ func TestBreathRunsOutUnderTheSurfaceNotOnIt(t *testing.T) {
 	w := NewWorld()
 	p := &Player{ServerID: 7, HP: 50, MaxHP: 50, Breath: 100, Animation: AnimSwimSlow}
 	w.Players[p.ServerID] = p
-	tick := func() {
-		w.TickCount = 6
-		w.breathSystem(time.Now())
+	tick := func(n int) {
+		for range n {
+			w.TickCount = 6
+			w.breathSystem(time.Now())
+		}
 	}
 	p.WalkFlags, p.HasWalkFlags = 0x000C, true // at the surface
-	tick()
-	if p.Underwater || p.Breath != 102 {
-		t.Fatalf("at the surface: underwater %v, breath %d; want false, 102", p.Underwater, p.Breath)
+	tick(1)
+	if p.Underwater || p.Breath != 104 {
+		t.Fatalf("at the surface: underwater %v, breath %d; want false, 104", p.Underwater, p.Breath)
 	}
-	p.WalkFlags = 0x0004 // under it
-	tick()
-	if !p.Underwater || p.Breath != 101 {
-		t.Fatalf("under water: underwater %v, breath %d; want true, 101", p.Underwater, p.Breath)
+	p.WalkFlags = 0x0004 // under it: a step every 6 s (ten calls)
+	tick(9)
+	if !p.Underwater || p.Breath != 104 {
+		t.Fatalf("under water 5.4 s: underwater %v, breath %d; want true, 104", p.Underwater, p.Breath)
+	}
+	tick(1)
+	if p.Breath != 104-BreathStep {
+		t.Fatalf("under water 6 s: breath %d, want %d", p.Breath, 104-BreathStep)
 	}
 	// negative control: no flags yet, the swim animation decides
 	p.HasWalkFlags = false
-	tick()
+	tick(1)
 	if !p.Underwater {
 		t.Fatal("without flags a swim animation is under water")
+	}
+}
+
+// Sandstorm's breath (pcaps/breath_capture.pcap): full is 0xFF, eight steps
+// of 32 to nothing (48 s), then the HP goes; and the stat channel carries it
+// at byte 232, where it was a constant 0xFF (F3 20261021-011015: the gauge
+// stood full under water).
+func TestBreathStepsAsSandstormsAndReachesTheStatChannel(t *testing.T) {
+	w := NewWorld()
+	w.SessionManager = session.NewManager() // the drowning looks for a session (none here)
+	p := &Player{ServerID: 7, HP: 50, MaxHP: 50, Breath: BreathFull, WalkFlags: 0x0004, HasWalkFlags: true}
+	w.Players[p.ServerID] = p
+	var seen []byte
+	for range 8 * 10 {
+		w.TickCount = 6
+		w.breathSystem(time.Now())
+		if b := SerializeStatUpdate(p)[232]; len(seen) == 0 || seen[len(seen)-1] != b {
+			seen = append(seen, b)
+		}
+	}
+	want := []byte{0xFF, 0xDF, 0xBF, 0x9F, 0x7F, 0x5F, 0x3F, 0x1F, 0x00}
+	if string(seen) != string(want) {
+		t.Fatalf("byte 232 over 48 s under water: % x, want % x", seen, want)
+	}
+	if p.HP != 50 {
+		t.Fatalf("HP %d while there was breath, want 50", p.HP)
+	}
+	for range 10 {
+		w.TickCount = 6
+		w.breathSystem(time.Now())
+	}
+	if p.HP != 48 {
+		t.Fatalf("HP %d 6 s after the breath ran out, want 48", p.HP)
+	}
+	// the control: a player out of the water is full on the wire
+	q := &Player{Breath: BreathFull}
+	if b := SerializeStatUpdate(q)[232]; b != 0xFF {
+		t.Fatalf("a full breath on the wire: %#x, want 0xff", b)
 	}
 }
 

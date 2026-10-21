@@ -117,7 +117,7 @@ func (w *World) playerRespawnSystem(now time.Time) []respawnDue {
 		p.DiedAt = time.Time{}
 		p.HP = p.MaxHP
 		p.Power = p.MaxPower
-		p.Breath = 127
+		p.Breath = BreathFull
 		p.DrowningCounter = 0
 		p.LastCombatTime = time.Time{}
 		p.AutoAttack = false

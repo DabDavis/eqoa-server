@@ -324,11 +324,12 @@ func isSwimAnimation(anim byte) bool {
 }
 
 // breathSystem handles breath depletion underwater and drowning damage.
-// Runs every 6 ticks (0.6s). Breath depletes from 127→0 over ~76.2s (close to
-// observed 78.6s on eqoa.live). When breath hits 0, deals 2 HP self-damage
-// every 60 ticks (6s). The client manages the breath bar UI independently —
-// the server only sends drowning damage via DamageIndication (0x00DB) and the
-// drowning action (0x0775, action 34), as Sandstorm does.
+// Runs every 6 ticks (0.6s). Breath is 0-255, 255 full, the byte the client's
+// breath gauge draws (the dump's and stat channel 0x42's byte 232): under
+// liquid it loses BreathStep every 6 s, as Sandstorm's did in
+// pcaps/breath_capture.pcap (in the water at 34.6 s, 0xDF at 35.9 s, 0 at
+// 78.3 s); once it is gone, 2 HP every 6 s, with DamageIndication (0x00DB)
+// and the drowning action (0x0775, action 34), as Sandstorm does.
 // Underwater is the client's own IsUnderLiquid, out of the walker flags in
 // its 0x40 (UnderLiquid): in a liquid and not at its surface, which is when
 // the client draws the breath gauge. The swim animation alone said nothing
@@ -352,12 +353,16 @@ func (w *World) breathSystem(now time.Time) {
 		}
 
 		if p.Underwater {
-			if p.Breath > 0 {
-				// The breath bar is the client's own; nothing is sent.
-				p.Breath--
-			} else {
-				// Out of breath — accumulate drowning counter
-				p.DrowningCounter += 6 // 6 ticks per breathSystem call
+			// Every 6 s under liquid: 32 of the 255 breath, then once it is
+			// gone the HP (pcaps/breath_capture.pcap, Sandstorm: 0xFF to 0
+			// in eight steps, 48 s of air). The breath reaches the client on
+			// the stat channel (byte 232, statChannelSyncSystem).
+			p.DrowningCounter += 6 // 6 ticks per breathSystem call
+			if p.DrowningCounter >= 60 && p.Breath > 0 {
+				p.DrowningCounter = 0
+				p.Breath = max(0, p.Breath-BreathStep)
+			} else if p.Breath <= 0 {
+				// Out of breath: drowning damage every 6 s
 				if p.DrowningCounter >= 60 {
 					p.DrowningCounter = 0
 
@@ -389,13 +394,9 @@ func (w *World) breathSystem(now time.Time) {
 				}
 			}
 		} else {
-			// Above water — regenerate breath
-			if p.Breath < 127 {
-				p.Breath += 2
-				if p.Breath > 127 {
-					p.Breath = 127
-				}
-			}
+			// Above water: breath comes back, 4 every 0.6 s (full again in
+			// about 38 s; the capture never surfaced, so this rate is ours)
+			p.Breath = min(BreathFull, p.Breath+4)
 			p.DrowningCounter = 0
 		}
 	}

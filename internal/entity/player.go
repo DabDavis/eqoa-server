@@ -117,9 +117,9 @@ type Player struct {
 	Swing          Swing
 
 	// Breath / underwater
-	Breath          int    // 0-127, depletes underwater (eqoa.live sends 127 in MemoryDump)
+	Breath          int    // 0-255 (255 full), as the dump and stat channel byte 232 carry it; 32 every 6 s under liquid
 	Underwater      bool   // under a liquid's surface (UnderLiquid on WalkFlags)
-	DrowningCounter int    // tick counter for 6s drowning damage interval
+	DrowningCounter int    // ticks under liquid since the last 6 s step (breath, then drowning)
 	WalkFlags       uint32 // the last 0x40's walker flags (clientupdate.go)
 	HasWalkFlags    bool
 
@@ -150,6 +150,14 @@ type BuffSlot struct {
 	Icon uint32 // the icon's DictID: VIWndInfluence blits it whole, by DictID
 	Name string // the client shows MaxEffectName characters at most
 }
+
+// Breath is a byte, as the client's gauge reads it (VIPlayer's m_p30 over
+// 255): full at BreathFull, BreathStep lost every 6 s under liquid (Sandstorm,
+// pcaps/breath_capture.pcap: 0xFF, 0xDF, ... 0x1F, 0).
+const (
+	BreathFull = 255
+	BreathStep = 32
+)
 
 // CoachDest describes a coaching or warp teleport destination.
 type CoachDest struct {

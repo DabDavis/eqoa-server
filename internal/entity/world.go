@@ -184,7 +184,7 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		Tunar:        StartingTunar(record),
 		BankTunar:    record.BankTunar,
 		AC:           50,
-		Breath:       127,
+		Breath:       BreathFull,
 
 		// Base stats (before equipment) for combat formulas
 		BaseStr: str, BaseSta: sta, BaseAgi: agi, BaseDex: dex,

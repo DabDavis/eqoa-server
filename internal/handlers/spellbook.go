@@ -20,6 +20,7 @@ import (
 //	       one display index moved to another's place, the rest shifted)
 //	0x00FE stamp                            -> 0x00FF stamp (Msg00FF: every
 //	       ability, display index below 252, off the bar)
+//	0x0032 stamp, u8 bar slot, u32 target   -> the cast (cast.go)
 type SpellbookHandler struct {
 	gameWorld *entity.World
 	store     *database.SpellbookStore
@@ -33,6 +34,7 @@ func (h *SpellbookHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeAddSkillToBar, h.handleMemorize)
 	r.Register(protocol.OpcodeArrangeAbility, h.handleArrange)
 	r.Register(protocol.OpcodeUnmemorizeAll, h.handleUnmemorizeAll)
+	r.Register(protocol.OpcodeUseSkill, h.handleUseSkill)
 }
 
 // rows reads the request's stamp and two bytes, and the character's rows.

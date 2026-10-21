@@ -146,6 +146,17 @@ type Player struct {
 	// Active effects, in the order the client shows them (state channel
 	// 0x43, SerializeBuffUpdate); at most MaxEffects (AddEffect).
 	Buffs []BuffSlot
+
+	// Casting (cast.go): the cast on, each ability's lockout, the spells'
+	// effects on the player and what they add to its stats.
+	Casting  *castState
+	Lockouts []castLockout
+	Effects  []*ActiveEffect
+	Mods     StatMods
+
+	// StatsDirty sends the stat and effect channels on the next tick, not
+	// at the next 2 s round: a cast's cost goes out with its start.
+	StatsDirty bool
 }
 
 // BuffSlot is one active effect as CLIENT's Channel43 reads it into

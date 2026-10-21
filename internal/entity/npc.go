@@ -54,6 +54,9 @@ type NPC struct {
 	Faction byte
 	Dead    bool
 
+	// Effects is the spells on it (cast.go): damage ticks, holds, slows.
+	Effects []*ActiveEffect
+
 	// Combat — computed from level via SOE formulas
 	OffMod       int
 	DefMod       int

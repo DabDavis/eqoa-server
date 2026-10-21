@@ -1,5 +1,7 @@
 package database
 
+import "database/sql"
+
 // SpellbookStore queries character spell data (spells joined with spellpattern).
 type SpellbookStore struct {
 	db *SQLiteDB
@@ -125,4 +127,19 @@ func (s *SpellbookStore) AddSpell(serverID uint32, spellID, order int) error {
 	_, err := s.db.Exec(`INSERT INTO spells (serverid, spellid, addedorder, onHotBar, whereonBar, unk1, showhide)
 		VALUES (?, ?, ?, 0, -1, 0, -1)`, serverID, spellID, order)
 	return err
+}
+
+// SpellEffect is a spell's spelleffect row: the line saying what it does
+// and the visual Sandstorm names for it (0 when none was recorded). ok is
+// false for a spell with no row.
+func (s *SpellbookStore) SpellEffect(spellID int) (line string, fx uint32, ok bool, err error) {
+	var dict int64
+	err = s.db.QueryRow(`SELECT line, fxdict FROM spelleffect WHERE spellid = ?`, spellID).Scan(&line, &dict)
+	if err == sql.ErrNoRows {
+		return "", 0, false, nil
+	}
+	if err != nil {
+		return "", 0, false, err
+	}
+	return line, uint32(dict), true, nil
 }

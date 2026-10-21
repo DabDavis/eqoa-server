@@ -21,12 +21,15 @@ const (
 // the players whose respawn came due are then handed to the respawn hook
 // with the lock let go (respawn.go).
 func (w *World) Tick(now time.Time) {
-	w.runRespawns(w.tickLocked(now))
+	due, gates := w.tickLocked(now)
+	w.runRespawns(due)
+	w.runGates(gates)
 }
 
 // tickLocked is the tick's systems under the world lock. It returns the
-// players whose respawn came due, for runRespawns.
-func (w *World) tickLocked(now time.Time) []respawnDue {
+// players whose respawn came due, for runRespawns, and those a gate sends
+// home, for runGates.
+func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
@@ -34,6 +37,8 @@ func (w *World) tickLocked(now time.Time) []respawnDue {
 
 	w.aiSystem(now)
 	w.attackSystem(now)
+	gates := w.castSystem(now)
+	w.effectSystem(now)
 	w.respawnSystem(now)
 	due := w.playerRespawnSystem(now)
 	w.regenSystem(now)
@@ -45,7 +50,7 @@ func (w *World) tickLocked(now time.Time) []respawnDue {
 	w.guildAnnounceSystem()
 	w.visibilitySystem()
 	w.groupSyncSystem()
-	return due
+	return due, gates
 }
 
 // aiSystem handles NPC combat: aggro'd NPCs attack their current enemy every ~3 seconds.
@@ -220,26 +225,26 @@ func (w *World) regenSystem(now time.Time) {
 		}
 
 		// HP regen: 1% of max HP per tick
-		if p.HP < p.MaxHP {
-			regen := p.MaxHP / 100
+		if top := p.MaxHPNow(); p.HP < top {
+			regen := top / 100
 			if regen < 1 {
 				regen = 1
 			}
 			p.HP += regen
-			if p.HP > p.MaxHP {
-				p.HP = p.MaxHP
+			if p.HP > top {
+				p.HP = top
 			}
 		}
 
 		// Power regen: 1% of max power per tick
-		if p.Power < p.MaxPower {
-			regen := p.MaxPower / 100
+		if top := p.MaxPowerNow(); p.Power < top {
+			regen := top / 100
 			if regen < 1 {
 				regen = 1
 			}
 			p.Power += regen
-			if p.Power > p.MaxPower {
-				p.Power = p.MaxPower
+			if p.Power > top {
+				p.Power = top
 			}
 		}
 	}
@@ -409,16 +414,15 @@ func (w *World) breathSystem(now time.Time) {
 }
 
 // statChannelSyncSystem serializes stat data into session stat channel (0x42) buffers.
-// Runs every 20 ticks (2 seconds) to keep HP/Power bars in sync with regen.
-// Must be called with lock held.
+// Runs every 20 ticks (2 seconds) to keep HP/Power bars in sync with regen,
+// and on the tick after a player's stats changed (StatsDirty: a cast's cost
+// goes out with its start, as on Sandstorm). Must be called with lock held.
 func (w *World) statChannelSyncSystem() {
 	if w.SessionManager == nil {
 		return
 	}
 
-	if w.TickCount%20 != 0 {
-		return
-	}
+	round := w.TickCount%20 == 0
 
 	w.SessionManager.ForEach(func(sess *session.Session) bool {
 		if !sess.CharacterInWorld() {
@@ -426,7 +430,7 @@ func (w *World) statChannelSyncSystem() {
 		}
 
 		player := w.sessionPlayerLocked(sess)
-		if player == nil {
+		if player == nil || !(round || player.StatsDirty) {
 			return true
 		}
 
@@ -446,16 +450,15 @@ func (w *World) statChannelSyncSystem() {
 
 // buffChannelSyncSystem serializes each player's active effects into its
 // session's effects channel (0x43), at the value's own length (SetSizedData).
-// Runs every 20 ticks (2 seconds), matching stat channel sync rate; a value
-// that has not changed sends nothing. Must be called with lock held.
+// Runs every 20 ticks (2 seconds), matching stat channel sync rate, and on
+// a StatsDirty tick, which it ends (it runs after statChannelSyncSystem); a
+// value that has not changed sends nothing. Must be called with lock held.
 func (w *World) buffChannelSyncSystem() {
 	if w.SessionManager == nil {
 		return
 	}
 
-	if w.TickCount%20 != 0 {
-		return
-	}
+	round := w.TickCount%20 == 0
 
 	w.SessionManager.ForEach(func(sess *session.Session) bool {
 		if !sess.CharacterInWorld() {
@@ -463,9 +466,10 @@ func (w *World) buffChannelSyncSystem() {
 		}
 
 		player := w.sessionPlayerLocked(sess)
-		if player == nil {
+		if player == nil || !(round || player.StatsDirty) {
 			return true
 		}
+		player.StatsDirty = false
 
 		buffData := SerializeBuffUpdate(player)
 

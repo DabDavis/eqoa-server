@@ -72,22 +72,18 @@ func (h *TrainingHandler) HandleUpdateTrainingPoints(sess *session.Session, msg 
 		return nil
 	}
 
-	// Apply stat increases
-	player.Str += int(strAdd)
-	player.Sta += int(staAdd)
-	player.Agi += int(agiAdd)
-	player.Dex += int(dexAdd)
-	player.Wis += int(wisAdd)
-	player.Int += int(intAdd)
-	player.Cha += int(chaAdd)
+	// Apply stat increases: training raises the base stats (the stat
+	// channel's base half), and the stats, the maxima and the full hit
+	// points and power follow from them with the worn items' (gear.go)
+	player.BaseStr += int(strAdd)
+	player.BaseSta += int(staAdd)
+	player.BaseAgi += int(agiAdd)
+	player.BaseDex += int(dexAdd)
+	player.BaseWis += int(wisAdd)
+	player.BaseInt += int(intAdd)
+	player.BaseCha += int(chaAdd)
 	player.UnusedTP -= total
-
-	// Recalculate HP and Power from new stats
-	player.MaxHP = entity.CalculateMaxHP(player.Level, player.Class, player.Sta)
-	player.MaxPower = entity.CalculateMaxPower(player.Level, player.Class,
-		player.Str, player.Sta, player.Agi, player.Dex, player.Wis, player.Int, player.Cha)
-	player.HP = player.MaxHP
-	player.Power = player.MaxPower
+	player.RecalcStats(true)
 
 	log.Printf("TrainingPoints: %s spent %d TP (remaining=%d) stats=[%d,%d,%d,%d,%d,%d,%d] HP=%d Power=%d",
 		player.Name, total, player.UnusedTP,

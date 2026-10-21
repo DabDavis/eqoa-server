@@ -365,7 +365,7 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 	// Refresh the visual equipment bytes. The state channel is serialized from
 	// the Player struct every tick, so this is what actually makes the change
 	// show up on the character.
-	h.charHandler.applyEquipmentFromDB(player, serverID)
+	h.charHandler.applyEquipmentFromDB(player, serverID, false)
 	return nil
 }
 

@@ -274,8 +274,11 @@ func TestCastBuffStats(t *testing.T) {
 	if g := [3]uint32{binary.LittleEndian.Uint32(b[32:]), binary.LittleEndian.Uint32(b[40:]), binary.LittleEndian.Uint32(b[56:])}; g != [3]uint32{566, 1085, 150} {
 		t.Errorf("stat channel max HP, max power, AC: %v", g)
 	}
-	if binary.LittleEndian.Uint32(b[148:]) != 536 {
-		t.Error("the base max HP took the buff")
+	// the base maximum is what the stamina gives (gear.go): this druid's
+	// 506, Sandstorm's for the same level, class and stamina, the buff's
+	// own 30 not in it
+	if g := binary.LittleEndian.Uint32(b[148:]); g != 506 {
+		t.Errorf("base max HP %d, want 506: the buff's hit points are not the base's", g)
 	}
 	c.tick(5400*time.Millisecond + 30*time.Minute)
 	if c.p.MaxHPNow() != 536 || c.p.StatNow(StatAC) != 0 || c.p.HP > 536 {

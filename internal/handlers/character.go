@@ -566,7 +566,7 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 
 	// Load equipped items from DB and apply visual equipment to player
 	if player != nil && h.inventoryStore != nil {
-		h.applyEquipmentFromDB(player, record.ServerID)
+		h.applyEquipmentFromDB(player, record.ServerID, true)
 	}
 
 	// NOT sent: WorldEntry (0x002E). Sandstorm never sends it — zero
@@ -780,11 +780,17 @@ func (h *CharacterHandler) HandleServerSelection(sess *session.Session, msg *pro
 
 // applyEquipmentFromDB loads the character's equipped items and sets visual
 // equipment bytes on the Player struct so the state channel reflects them.
-func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID uint32) {
+func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID uint32, fill bool) {
 	items, err := h.inventoryStore.GetCharacterItems(serverID)
 	if err != nil {
 		log.Printf("applyEquipment: failed to load items for serverID=%d: %v", serverID, err)
 		return
+	}
+
+	// What the worn items add to the stats (entity/gear.go), the primary
+	// weapon's (or the two-hander's) damage with it; fill at a login.
+	if h.gameWorld != nil {
+		h.gameWorld.SetGear(player.ServerID, wornGear(items), fill)
 	}
 
 	for _, item := range items {
@@ -821,6 +827,26 @@ func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID 
 	log.Printf("applyEquipment: serverID=%d chest=%d bracer=%d gloves=%d legs=%d boots=%d helm=%d robe=%d primary=0x%08X secondary=0x%08X shield=0x%08X",
 		serverID, player.Chest, player.Bracer, player.Gloves, player.Legs, player.Boots, player.Helm,
 		player.Robe, player.Primary, player.Secondary, player.Shield)
+}
+
+// wornGear sums the stats of the items worn (an equip slot, not the bank),
+// by the stat ids the dump gives them (itemPatternStats), and takes the
+// primary weapon's damage, or the two-hander's.
+func wornGear(items []database.CharInventoryEntry) entity.Gear {
+	var g entity.Gear
+	for i := range items {
+		it := &items[i]
+		if it.EquipLoc < 0 || it.Location != 0 {
+			continue
+		}
+		for id, v := range itemPatternStats(&it.Pattern) {
+			g.Add(id, v)
+		}
+		if it.EquipLoc == 14 || it.EquipLoc == 16 {
+			g.WeaponDamage = it.Pattern.WeaponDamage
+		}
+	}
+	return g
 }
 
 // generateRandomName generates a random character name.

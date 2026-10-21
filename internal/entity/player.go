@@ -79,6 +79,9 @@ type Player struct {
 	WeaponDamage                                                  int // From equipped weapon item
 	PoisonR, DiseaseR, FireR, ColdR, LightningR, ArcaneR          int
 
+	// Gear is what the worn items add (gear.go); RecalcStats puts it on.
+	Gear Gear
+
 	// World is the world index the player is currently in (0=Tunaria … 8=Guk).
 	// Loaded from characters.world and written back on every world-changing
 	// teleport, so logging out in Guk and back in returns you to Guk rather

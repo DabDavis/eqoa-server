@@ -67,3 +67,27 @@ func TestProfanityFilterIsEachHearers(t *testing.T) {
 		t.Fatalf("Cid's second toggle: % x", reply[0].Data())
 	}
 }
+
+// /filter in the chat line turns the filter over as 0x0045 does (the
+// retail menus never send it), for anyone, and is not said; the control:
+// a line that only starts with the word is said.
+func TestSlashFilterTurnsItOver(t *testing.T) {
+	c := newChatWorld(t)
+	as, ap := c.join(1, "Ann", 100, 100, 0)
+	c.say(as, "/FILTER")
+	if !ap.ProfanityFilterOff {
+		t.Fatal("/FILTER left the filter on")
+	}
+	if got := as.Queue().GetPending(); len(got) != 1 || string(got[0].Data()) != "\x45\x00\x00" {
+		t.Fatalf("/filter's answer: %d messages", len(got))
+	}
+	c.say(as, "/profanity")
+	if ap.ProfanityFilterOff {
+		t.Fatal("/profanity left the filter off")
+	}
+	as.Queue().GetPending()
+	c.say(as, "filtered water")
+	if got := texts(heard(t, as)); len(got) != 1 || got[0] != "Ann: filtered water" {
+		t.Fatalf("a plain line: %v", got)
+	}
+}

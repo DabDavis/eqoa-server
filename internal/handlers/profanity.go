@@ -110,7 +110,9 @@ func profaneName(name string) bool {
 }
 
 // HandleProfanityFilter is 0x0045 from the client: the filter turned over,
-// and its new state told (Msg0045's zigzag).
+// and its new state told (Msg0045's zigzag). The retail client's menus never
+// send it (no entry carries action 0x0B052000), so /filter in the chat line
+// does the same (HandleSayChat); msg may be nil.
 func (h *ChatHandler) HandleProfanityFilter(sess *session.Session, msg *protocol.Message) error {
 	if h.gameWorld == nil {
 		return nil

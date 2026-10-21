@@ -141,6 +141,13 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /filter (or /profanity): the profanity filter turned over, everyone's
+	// (profanity.go). The game's own toggle, action 0x0B052000, is in no
+	// menu of the retail client, so a player had no way to it.
+	if word, _, _ := strings.Cut(strings.ToLower(message), " "); word == "/filter" || word == "/profanity" {
+		return h.HandleProfanityFilter(sess, nil)
+	}
+
 	// GM commands start with #
 	if strings.HasPrefix(message, "#") {
 		h.handleGMCommand(sess, player, message)

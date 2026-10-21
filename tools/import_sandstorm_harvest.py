@@ -57,17 +57,24 @@ npcitem (the catalogs)
   already has a catalog keeps it unless --replace-catalogs.
 
 The report also counts the scrolls whose spell has an exact record here (by
-name, a trailing class tag such as " (SHA, WIZ)" aside): those are the ones a
-scribe could hand out. The server does not scribe a scroll yet.
+name, a trailing class tag such as " (SHA, WIZ)" aside): those are the ones
+scribing hands out (handlers/scribe.go).
 
 Everything happens in one transaction and is logged in sandstorm_import_*
 tables, so --undo takes it back out: updated rows get their old values back,
 and the AUTOINCREMENT counters theirs, so the database is as it was.
 Run it against a copy, or with the server stopped.
 
+A second --apply is refused; --apply --add writes on top of the import there
+(more harvest files: other characters' dumps), logged in the same tables, so
+one --undo still takes both out and puts the counters back as the first apply
+found them. --undo is refused once players hold what came in, so --add is the
+way to grow an import a live server has been using.
+
 Usage:
     python3 tools/import_sandstorm_harvest.py --harvest DIR_OR_JSON [...]
     python3 tools/import_sandstorm_harvest.py --harvest DIR --apply
+    python3 tools/import_sandstorm_harvest.py --harvest MORE.json --apply --add
     python3 tools/import_sandstorm_harvest.py --undo
 """
 
@@ -365,11 +372,13 @@ def write_rows(db, table, key, rows, plan_):
     return counts
 
 
-def apply(db, files, items, item_plan, spells, spell_plan, matched, replace):
+def apply(db, files, items, item_plan, spells, spell_plan, matched, replace, add=False):
     cur = db.cursor()
     cur.executescript(LOG_DDL)
-    if cur.execute("SELECT count(*) FROM sandstorm_import_rows").fetchone()[0]:
-        sys.exit("this database already holds a harvest import (sandstorm_import_rows); --undo it first")
+    first = not cur.execute("SELECT count(*) FROM sandstorm_import_rows").fetchone()[0]
+    if not first and not add:
+        sys.exit("this database already holds a harvest import (sandstorm_import_rows); "
+                 "--add to write on top of it, or --undo it first")
     for table, want in (("itempattern", [c for _, c in ITEM_FIELDS] + list(STAT_COLUMNS.values())),
                         ("spellpattern", SPELL_COLS)):
         missing = [c for c in want if c not in columns(db, table)]
@@ -408,15 +417,24 @@ def apply(db, files, items, item_plan, spells, spell_plan, matched, replace):
                 log(db, "npcitem", c.lastrowid, "inserted")
                 catalogs["rows"] += 1
             catalogs["written"] += 1
-        meta = {
-            "harvest": json.dumps([os.path.basename(f) for f in files]),
-            "harvest_sha256": json.dumps({os.path.basename(f): sha256(f) for f in files}),
-            "applied_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
-            "itempattern": json.dumps(item_counts),
-            "spellpattern": json.dumps(spell_counts),
-            "catalogs": json.dumps(catalogs),
-            "sqlite_sequence": json.dumps(seqs),
-        }
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+        if first:
+            meta = {
+                "harvest": json.dumps([os.path.basename(f) for f in files]),
+                "harvest_sha256": json.dumps({os.path.basename(f): sha256(f) for f in files}),
+                "applied_at": now,
+                "itempattern": json.dumps(item_counts),
+                "spellpattern": json.dumps(spell_counts),
+                "catalogs": json.dumps(catalogs),
+                "sqlite_sequence": json.dumps(seqs),
+            }
+        else:
+            # the first apply's counters stay: they are what --undo restores
+            r = db.execute("SELECT value FROM sandstorm_import_meta WHERE key = 'added'").fetchone()
+            added = json.loads(r[0]) if r else []
+            added.append({"at": now, "harvest_sha256": {os.path.basename(f): sha256(f) for f in files},
+                          "itempattern": item_counts, "spellpattern": spell_counts, "catalogs": catalogs})
+            meta = {"added": json.dumps(added)}
         for k, v in meta.items():
             db.execute("INSERT OR REPLACE INTO sandstorm_import_meta VALUES (?, ?)", (k, v))
         db.execute("COMMIT")
@@ -515,6 +533,7 @@ def main():
     ap.add_argument("--all-merchants", action="store_true", help="every harvested merchant's catalog, not only the spell vendors'")
     ap.add_argument("--replace-catalogs", action="store_true", help="replace a matched NPC's existing catalog (default: keep it)")
     ap.add_argument("--apply", action="store_true", help="write the import (default: report only)")
+    ap.add_argument("--add", action="store_true", help="with --apply: on top of the import already there")
     ap.add_argument("--undo", action="store_true", help="take a previous import back out")
     ap.add_argument("--force", action="store_true", help="--undo even if players hold imported items or spells")
     args = ap.parse_args()
@@ -533,7 +552,7 @@ def main():
     print_report(db, *planned)
     if args.apply:
         items, item_plan, spells, spell_plan, matched, _, _ = planned
-        ic, sc, cc = apply(db, files, items, item_plan, spells, spell_plan, matched, args.replace_catalogs)
+        ic, sc, cc = apply(db, files, items, item_plan, spells, spell_plan, matched, args.replace_catalogs, args.add)
         print(f"applied to {args.db}: itempattern {ic}, spellpattern {sc}, catalogs {cc}")
     else:
         print("(report only: --apply to write it)")

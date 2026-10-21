@@ -51,3 +51,14 @@ func TestRecalcStatsWithGear(t *testing.T) {
 		t.Errorf("unequipped: STA %d, max HP %d, HP %d, AC %d", p.Sta, p.MaxHP, p.HP, p.AC)
 	}
 }
+
+// Combat is not touched by the gear until its formulas are measured: the
+// weapon damage stays level/3 and the DEF the old AC-50 one, whatever is worn.
+func TestRecalcStatsKeepsCombat(t *testing.T) {
+	p := &Player{Class: 3, Level: 50, BaseStr: 75, BaseSta: 204, BaseAgi: 60, BaseDex: 351, BaseWis: 55, BaseInt: 232, BaseCha: 50}
+	p.Gear = Gear{AC: 1703, WeaponDamage: 560, Str: 80}
+	p.RecalcStats(true)
+	if p.WeaponDamage != 16 || p.DefMod != CalculateDefMod(50, 60, 50) || p.OffMod != CalculateOffMod(75, 351, 50) {
+		t.Errorf("weapon damage %d, DEF %d, OFF %d", p.WeaponDamage, p.DefMod, p.OffMod)
+	}
+}

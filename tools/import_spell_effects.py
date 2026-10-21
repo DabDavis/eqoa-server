@@ -154,8 +154,8 @@ def main():
     ap.add_argument("--clear", action="store_true", help="empty the table")
     a = ap.parse_args()
     db = sqlite3.connect(a.db, isolation_level=None)
-    db.executescript(DDL)
     if a.clear:
+        db.executescript(DDL)
         db.execute("DELETE FROM main.spelleffect")
         print("spelleffect emptied")
         return
@@ -177,6 +177,7 @@ def main():
     if not a.apply:
         print("(report only: --apply to write it)")
         return
+    db.executescript(DDL)
     db.execute("BEGIN IMMEDIATE")
     try:
         db.execute("DELETE FROM main.spelleffect")

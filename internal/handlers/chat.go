@@ -48,6 +48,8 @@ type ChatHandler struct {
 
 	mu    sync.Mutex
 	modes map[entity.EntityID]byte // each player's last 0x000E
+
+	access accessLevels // the accounts' acctlevel: who is a GM (devcmds.go)
 }
 
 // NewChatHandler creates a new chat handler.
@@ -146,6 +148,13 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 
 	if name, body, isTell := parseTell(message); isTell {
 		h.tell(sess, player, name, body)
+		return nil
+	}
+
+	// A GM's /command spelling of a # command (devcmds.go), from a client
+	// that forwards the /commands it does not know.
+	if gm := slashGM(message); gm != "" && h.isGM(sess) {
+		h.handleGMCommand(sess, player, gm)
 		return nil
 	}
 
@@ -540,44 +549,42 @@ func worldName(w byte) string {
 	return "?"
 }
 
-// handleGMCommand processes server-side GM commands (start with #).
-// All players are GM on the private server.
+// handleGMCommand processes server-side GM commands (start with #): a GM's
+// alone (devcmds.go: accountinfo.acctlevel 1 or more), but #hddsetup, which
+// is everyone's.
 func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Player, message string) {
 	parts := strings.Fields(message)
 	if len(parts) == 0 {
 		return
 	}
 	cmd := strings.ToLower(parts[0])
+	if cmd != "#hddsetup" && !h.isGM(sess) {
+		SendErrorMessage(sess, fmt.Sprintf("Unrecognized command %q.", parts[0]))
+		return
+	}
 
 	switch cmd {
-	case "#goto":
-		// #goto <x> <y> <z> [world]
-		if len(parts) < 4 {
-			h.gmReply(sess, "Usage: #goto <x> <y> <z> [world]")
-			h.gmReply(sess, "  world: 0=Tunaria 1=Rathe 2=Odus 3=Lavastm 4=Planesky")
-			h.gmReply(sess, "         5=Secrets 6=world6 7=Secrets2")
-			return
-		}
-		x, _ := strconv.ParseFloat(parts[1], 32)
-		y, _ := strconv.ParseFloat(parts[2], 32)
-		z, _ := strconv.ParseFloat(parts[3], 32)
-		world := byte(0)
-		if len(parts) >= 5 {
-			w, _ := strconv.Atoi(parts[4])
-			if w >= 0 && w < len(worldNames) {
-				world = byte(w)
-			}
-		}
-		// Keep the player's world in step with where we just sent them, or
+	case "#goto", "#teleport":
+		// #goto <x> <y> <z> [world] | <town or NPC name>. Keeping the
+		// player's world in step with where it was sent matters: else
 		// visibility keeps filtering against the old one and the destination
-		// looks empty.
-		worldChanged := player.World != world
-		player.World = world
-		h.gameWorld.UpdatePosition(player.ServerID, float32(x), float32(y), float32(z), player.Facing)
-		sendTeleportGM(sess, float32(x), float32(y), float32(z), player.Facing, world)
-		beginWorldLoad(sess, worldChanged)
-		h.gmReply(sess, fmt.Sprintf("Teleported to (%.0f, %.0f, %.0f) world=%s", x, y, z, worldNames[world]))
-		log.Printf("GM: %s teleported to (%.0f, %.0f, %.0f) world=%d", player.Name, x, y, z, world)
+		// looks empty (teleportTo).
+		h.gotoCommand(sess, player, cmd, parts[1:])
+
+	case "#gotoplayer":
+		h.gotoPlayerCommand(sess, player, parts[1:])
+
+	case "#summon":
+		h.summonCommand(sess, player, parts[1:])
+
+	case "#despawn":
+		h.despawnCommand(sess, player)
+
+	case "#monstersearch":
+		h.monsterSearchCommand(sess, parts[1:])
+
+	case "#nearby":
+		h.nearbyCommand(sess, player)
 
 	case "#tele":
 		// #tele <name> — teleport to a named place, so the coordinates of the
@@ -700,18 +707,8 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, fmt.Sprintf("Tunar set to %d", amount))
 
 	case "#spawn":
-		// #spawn — list nearby NPCs
-		npcs := h.gameWorld.GetNPCsInRadius(player.X, player.Z, 200)
-		h.gmReply(sess, fmt.Sprintf("Nearby NPCs (%d):", len(npcs)))
-		for i, npc := range npcs {
-			if i >= 10 {
-				break
-			}
-			dx := npc.X - player.X
-			dz := npc.Z - player.Z
-			dist := float32(math.Sqrt(float64(dx*dx + dz*dz)))
-			h.gmReply(sess, fmt.Sprintf("  %s Lv%d HP=%d (%.0fm)", npc.Name, npc.Level, npc.HP, dist))
-		}
+		// #spawn <name>: a copy of that NPC beside you; alone, the NPCs near
+		h.spawnCommand(sess, player, parts[1:])
 
 	case "#kill":
 		// #kill — kill targeted NPC
@@ -772,8 +769,13 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.effectCommand(sess, parts[1:])
 
 	case "#help":
-		h.gmReply(sess, "GM Commands:")
-		h.gmReply(sess, "  #goto <x> <y> <z> [world] - teleport")
+		h.gmReply(sess, "GM Commands (each also as /name):")
+		h.gmReply(sess, "  #goto <x> <y> <z> [world] | <town or NPC> - teleport (#teleport too)")
+		h.gmReply(sess, "  #gotoplayer <name> - go to an online player")
+		h.gmReply(sess, "  #summon <name> - bring an online player to you")
+		h.gmReply(sess, "  #spawn <name> - a copy of that NPC beside you; #despawn takes the target away")
+		h.gmReply(sess, "  #monstersearch <start of a name> - up to ten NPC names")
+		h.gmReply(sess, "  #nearby - NPCs within 200")
 		h.gmReply(sess, "  #tele <name> - teleport to a named place (no name lists them)")
 		h.gmReply(sess, "  #world [n] - show/set world without teleporting")
 		h.gmReply(sess, "  #guildhall - enter guild hall")
@@ -783,7 +785,6 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #hp <cur> [max] - set HP")
 		h.gmReply(sess, "  #tunar <amt> - set gold")
 		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear active effects")
-		h.gmReply(sess, "  #spawn - list nearby NPCs")
 		h.gmReply(sess, "  #kill - kill target")
 		h.gmReply(sess, "  #pos - show position")
 		h.gmReply(sess, "  #who - list players")

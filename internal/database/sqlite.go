@@ -818,6 +818,21 @@ func (s *SQLiteAccountStore) GetByUsername(username string) (*AccountRecord, err
 	return &a, nil
 }
 
+// AccessLevel is the account's acctlevel: 0 a player, 1 or more a GM (the
+// GM commands, handlers/devcmds.go). Read on each use, so a change in the
+// database counts at once, without a new login.
+func (s *SQLiteAccountStore) AccessLevel(accountID int) (int, error) {
+	var level int
+	err := s.db.QueryRow(`SELECT COALESCE(acctlevel, 0) FROM accountinfo WHERE accountid = ?`, accountID).Scan(&level)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, ErrAccountNotFound
+		}
+		return 0, err
+	}
+	return level, nil
+}
+
 // Create creates a new account. Password should already be hashed if needed.
 func (s *SQLiteAccountStore) Create(username, passwordHash string) (*AccountRecord, error) {
 	result, err := s.db.Exec(`

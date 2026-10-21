@@ -103,6 +103,19 @@ never strand a session (under terrain, in a world not on that console's disk, at
 coordinates); testers asked to come back where they left (F3 20261020-195202), and the
 user chose resuming. When the spawn is Vaal's the record is **not** written back.
 
+### GM commands are a GM's: `accountinfo.acctlevel` 1 or more
+
+Every `#` command (`internal/handlers/chat.go`, `devcmds.go`) needs an account whose
+`acctlevel` is 1 or more, read on each command (a database change counts without a new
+login); anyone else is answered `Unrecognized command "#x".` and nothing is said aloud.
+`#hddsetup` stays everyone's (a PS2 player's hard-disk setup, also the Freeport NPC's).
+A GM may also spell any of them `/name`: eqoa-rs forwards a `/command` it does not know (as
+Sandstorm's S2 does), a retail PS2 keeps an unknown one to itself. The dev console of F3
+20261021-003556: `#goto x y z [world] | <town or NPC>` (`#teleport` too), `#gotoplayer`,
+`#summon`, `#spawn <name>` (a temporary copy, gone after its corpse time; `#despawn` the
+target), `#monstersearch`, `#nearby`. Until 2026-10-21 every player was a GM. Make one:
+`sqlite3 eqoa.db "UPDATE accountinfo SET acctlevel = 1 WHERE username = '<name>'"`.
+
 ### Data Flow (World Entry)
 
 1. `HandleSelectedChar` → `loginSpawn(record)` → `gw.CreatePlayer(sess, record)` — creates Player struct

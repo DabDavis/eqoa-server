@@ -170,6 +170,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if gameWorld != nil {
 		chatHandler.SetGameWorld(gameWorld)
 	}
+	if accountStore != nil {
+		chatHandler.SetAccessLevels(accountStore)
+	}
 	targetHandler := NewTargetHandler(sessionMgr)
 	if gameWorld != nil {
 		targetHandler.SetGameWorld(gameWorld)

@@ -170,6 +170,12 @@ func (w *World) respawnSystem(now time.Time) {
 		if now.Sub(npc.DeathTime) < npc.RespawnTime {
 			continue
 		}
+		// A GM's /spawn leaves once its corpse time is up (devspawn.go).
+		if npc.Temporary {
+			w.removeNPCLocked(npc)
+			log.Printf("RespawnSystem: removed spawned NPC '%s' (entity ID=%d)", npc.Name, npc.ServerID)
+			continue
+		}
 
 		// Respawn: reset position, HP, clear dead flag
 		oldX, oldZ := npc.X, npc.Z

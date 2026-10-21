@@ -74,6 +74,11 @@ type NPC struct {
 	Threats      map[EntityID]int64
 	CurrentEnemy EntityID
 	LastCombat   time.Time
+
+	// Temporary is a GM's /spawn (devspawn.go): it has no database row, and
+	// once dead it leaves the world after its corpse time instead of
+	// respawning.
+	Temporary bool
 }
 
 // GetEntityID returns the NPC's entity ID.

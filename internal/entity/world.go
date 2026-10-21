@@ -98,7 +98,7 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		log.Printf("Entity CreatePlayer: removed ghost player '%s' (serverID=%d)", existing.Name, id)
 	}
 	if _, exists := w.NPCs[id]; exists {
-		id = w.allocID()
+		id = w.allocFreeIDLocked()
 	}
 
 	// Look up race/class base stats (C# DefaultCharacter table)

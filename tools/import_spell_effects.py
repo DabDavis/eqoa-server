@@ -131,6 +131,11 @@ def plan(db, lines, visuals):
         cands = lines.get(key)
         if not cands:
             missing.append(key)
+            # a visual still goes in, under an empty line (the cast lands
+            # as nothing, but looks as it does)
+            if visuals.get(key):
+                for sid in ids:
+                    rows[sid] = ("", visuals[key], "visual recorded; no eqoa-data line")
             continue
         counts = collections.Counter(c[0] for c in cands)
         best = max(counts.values())
@@ -167,7 +172,7 @@ def main():
         visuals.update(load_visual_table(a.visuals))
     rows, missing, conflicts = plan(db, lines, visuals)
     total = db.execute("SELECT count(*) FROM main.spellpattern").fetchone()[0]
-    print(f"spellpattern rows {total}: with a line {len(rows)}, with a recorded visual {sum(1 for r in rows.values() if r[1])}")
+    print(f"spellpattern rows {total}: with a line {sum(1 for r in rows.values() if r[0])}, with a recorded visual {sum(1 for r in rows.values() if r[1])}")
     print(f"spell names with no line: {len(missing)}" + (f" (e.g. {', '.join(missing[:8])})" if missing else ""))
     for key, n, cls in conflicts:
         print(f"    {key!r}: {n} different lines in the lists; took {cls}'s")

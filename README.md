@@ -52,8 +52,11 @@ explain every setting, including the test accounts created at startup.
 
 The database schema is created on first start. **The game content is not**: NPC spawns,
 items, spells and default characters come from a seed database that is not part of this
-repository. `cmd/importdump`, `cmd/extractdb`, `cmd/sqlimport` and
-`tools/import_ff_npcs.py` build one from data you have; `sql/` holds a few NPC set-ups.
+repository. `cmd/importdump`, `cmd/extractdb`, `cmd/sqlimport`,
+`tools/import_ff_npcs.py`, `tools/import_prh_content.py` (Return Home's static tables) and
+`tools/import_sandstorm_harvest.py` (what eqoa-rs's `eqoa harvest` collected off a server:
+its spell vendors' catalogs, their items, the ability records) build one from data you have;
+`sql/` holds a few NPC set-ups.
 
 ## Layout
 

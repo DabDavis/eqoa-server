@@ -452,6 +452,12 @@ func (w *World) LoadNPCs(npcStore *database.NPCStore) {
 		return
 	}
 
+	// each name's class (npcclass), for its melee swing
+	classes, err := npcStore.NPCClasses()
+	if err != nil {
+		log.Printf("Entity LoadNPCs: NPC classes: %v (every NPC a warrior)", err)
+	}
+
 	count := 0
 	for _, rec := range npcs {
 		posX := float32(rec.XCoord)
@@ -528,6 +534,7 @@ func (w *World) LoadNPCs(npcStore *database.NPCStore) {
 			WeaponDamage: NPCWeaponDamage(rec.NPCLevel),
 
 			Dummy: DummyKindOf(rec.NPCName),
+			Class: classes[database.NPCClassKey(rec.NPCName)],
 		}
 
 		w.NPCs[id] = npc

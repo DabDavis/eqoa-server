@@ -22,10 +22,13 @@ import (
 //   - It fights in rounds: a swing at the player (0x00B1, the round's length
 //     as the cast time and VISwing::Effect's Attack2 or Attack4), then its
 //     hits at fixed times into the round.
-//   - A Training Dummy's hit is a fixed amount by its level, each followed at
-//     once by a heal of 300 (0x00DB +300, the dummy the healer), so the
-//     player never dies of it. A Regular Dummy hits as a creature does and
-//     heals nothing.
+//   - A Training Dummy's hit is the floor of its level's roll, each followed
+//     at once by a heal of 300 (0x00DB +300, the dummy the healer), so the
+//     player never dies of it. Sandstorm's rolled above the floor on a
+//     player of little armour (an enchanter of 167 AC took 24-124 from the
+//     Lv45, where two tanks took 24 every time); the roll waits on the
+//     defence formula, so here every hit is the floor. A Regular Dummy hits
+//     as a creature does and heals nothing.
 //
 // It gives no experience and never takes a target's aggro (CurrentEnemy
 // stays 0), so the player's swings end with the attack button, as against
@@ -73,9 +76,9 @@ func dummyRound(level int) (length time.Duration, swing string, hits []time.Dura
 // dummyLongRoundLevel is the first level whose rounds are 6 s.
 const dummyLongRoundLevel = 35
 
-// trainingDummyHit is a Training Dummy's hit by its level, as Sandstorm's
-// were on every player measured (a level 50 and a level 51 of 1763 and 1430
-// AC took the same). Between the levels measured it is interpolated.
+// trainingDummyHit is a Training Dummy's floor by its level: what
+// Sandstorm's hit two tanks (a level 50 and a level 51 of 1763 and 1430 AC)
+// every time. Between the levels measured it is interpolated.
 var trainingDummyHits = [][2]int{{20, 8}, {25, 10}, {30, 12}, {35, 14}, {45, 24}, {50, 21}, {55, 30}}
 
 func trainingDummyHit(level int) int {

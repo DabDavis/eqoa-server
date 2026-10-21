@@ -616,6 +616,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 
 	AutoHDD(h.gameWorld, sess)
 
+	if h.gameWorld != nil {
+		h.gameWorld.PlayerEntered(sess)
+	}
+
 	return nil
 }
 

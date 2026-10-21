@@ -68,7 +68,42 @@ func NewMailHandler(gw *entity.World, cs *database.SQLiteCharacterStore) *MailHa
 
 func (h *MailHandler) RegisterHandlers(r *Registry) {
 	r.Register(opcodeGramRequest, h.handleRequest)
+	if h.gameWorld != nil {
+		h.gameWorld.OnPlayerEntered(h.announceUnread)
+	}
 	log.Printf("Mail: registered handlers")
+}
+
+// newMailText is WORDS.TXT's word 1192. CLIENT shows nothing for 0x0D41's
+// sub-op 5 (Recv0D41 only sets the gram client's m_x08, which nothing
+// reads) and no code of the game's shows the word, so the server says it:
+// a gram arrived and nobody knew (F3 20261021-001609).
+const newMailText = "You have new mail."
+
+// notifyNewMail is sub-op 5 and the line that says it.
+func notifyNewMail(sess *session.Session) {
+	gramReply(sess, 5, nil)
+	sess.Queue().AddWithSequence(buildClientMessage(newMailText))
+}
+
+// announceUnread tells a player entering the world of grams it has not read.
+func (h *MailHandler) announceUnread(sess *session.Session, p *entity.Player) {
+	if h.unread(p.Name) > 0 {
+		notifyNewMail(sess)
+	}
+}
+
+// unread is how many grams in name's box are unread.
+func (h *MailHandler) unread(name string) int {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	n := 0
+	for _, g := range h.boxes[strings.ToLower(name)] {
+		if !g.read {
+			n++
+		}
+	}
+	return n
 }
 
 // gramReply queues 0x0D41 with sub, then fill.
@@ -214,7 +249,8 @@ func (h *MailHandler) handleRequest(sess *session.Session, msg *protocol.Message
 	return nil
 }
 
-// send files a gram in to's box, and tells to (sub-op 5) when on line.
+// send files a gram in to's box, and tells to (sub-op 5 and newMailText)
+// when on line.
 func (h *MailHandler) send(from, to, subject, text string) byte {
 	if to == "" {
 		return 9
@@ -254,7 +290,7 @@ func (h *MailHandler) send(from, to, subject, text string) byte {
 	})
 	if target != nil {
 		if s := h.gameWorld.FindSessionByEntityID(target.ServerID); s != nil {
-			gramReply(s, 5, nil)
+			notifyNewMail(s)
 		}
 	}
 	return 1

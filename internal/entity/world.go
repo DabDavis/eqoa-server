@@ -33,9 +33,10 @@ type World struct {
 
 	guilds      map[uint32]*Guild // guild.go
 	nextGuildID uint32
-	leaving     []func(*Player)  // OnPlayerLeaving
-	respawn     RespawnFunc      // OnPlayerRespawn (respawn.go)
-	announced   map[*Player]bool // guildAnnounceSystem: told its guild at login
+	leaving     []func(*Player)                   // OnPlayerLeaving
+	entered     []func(*session.Session, *Player) // OnPlayerEntered
+	respawn     RespawnFunc                       // OnPlayerRespawn (respawn.go)
+	announced   map[*Player]bool                  // guildAnnounceSystem: told its guild at login
 	// OnEntityEnter is called when a new entity enters a player's visibility range.
 	// Set by the handler layer to send FullEntityCreate (0x00B3) reliable opcodes.
 	OnEntityEnter EntityEnterCallback
@@ -265,6 +266,30 @@ func (w *World) OnPlayerLeaving(fn func(p *Player)) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.leaving = append(w.leaving, fn)
+}
+
+// OnPlayerEntered registers fn to run when a session's client says it is in
+// the world (its first 0x0014), without the World lock held (the mail tells
+// of grams waiting there).
+func (w *World) OnPlayerEntered(fn func(sess *session.Session, p *Player)) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.entered = append(w.entered, fn)
+}
+
+// PlayerEntered runs the OnPlayerEntered hooks for sess's player.
+func (w *World) PlayerEntered(sess *session.Session) {
+	w.mu.RLock()
+	p := w.sessionPlayerLocked(sess)
+	fns := make([]func(*session.Session, *Player), len(w.entered))
+	copy(fns, w.entered)
+	w.mu.RUnlock()
+	if p == nil {
+		return
+	}
+	for _, fn := range fns {
+		fn(sess, p)
+	}
 }
 
 // leavingLocked forgets the player's guild announcement and returns the

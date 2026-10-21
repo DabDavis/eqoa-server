@@ -24,7 +24,8 @@ itempattern (every ware of an imported merchant)
   28, the fishing rating of poles and bait, to `fish`, which the server does
   not send yet. Any other stat index is dropped, and the report counts it.
     - an id we do not hold comes in under its own id;
-    - an id we hold under the same name is the same item: its wire columns
+    - an id we hold under the same name (a trailing class tag aside: Return
+      Home's "Taunt" is Sandstorm's "Taunt (SK/PAL)") is the same item: its wire columns
       take the harvest's values (the price above all: Return Home's are 0),
       and model, color and weaponproc stay ours, since the wire does not carry
       them;
@@ -46,8 +47,10 @@ npcitem (the catalogs)
   A merchant is a spell vendor when one of its wares has the scroll icon
   (-607649328); --all-merchants takes every merchant with a catalog. Each is
   matched to an NPC of ours in the same world, with the same name (case, a
-  trailing '$' and backtick against apostrophe aside), within MATCH_RADIUS. A
-  merchant with no such NPC is reported and left out. The catalog is keyed by
+  trailing '$' and backtick against apostrophe aside), within MATCH_RADIUS;
+  failing that, a name one letter off (Return Home's "Merchant Liliac" is
+  Sandstorm's "Merchant Lilac") within NEAR_RADIUS, which the report lists.
+  A merchant with no such NPC is reported and left out. The catalog is keyed by
   npcs.npc_id (GetNPCItems): an NPC whose npc_id is 0 gets its own row id, as
   the Return Home import keys its own. Rows keep the merchant's order
   (listnumber) and the ware's quantity, condition and charges. An NPC that
@@ -86,6 +89,7 @@ DEFAULT_DB = os.path.join(SERVER, "eqoa.db")
 
 ID_OFFSET = 300000      # a harvested id held here by a different item or spell
 MATCH_RADIUS = 15.0     # a merchant and our NPC of its name this close are one
+NEAR_RADIUS = 25.0      # ... and one whose name is a letter off, this close
 SCROLL_ICON = -607649328
 
 # The ware's VIItem fields (net::dump::Item) and the itempattern column each
@@ -138,6 +142,18 @@ def spell_name(name):
     tag ("Invisibility (SHA, WIZ)", "Taunt (SK/PAL)"), no bard '+'."""
     n = re.sub(r"\s*\((?:[A-Za-z]{2,3}(?:\s*[,/]\s*)?)+\)\s*$", "", name or "")
     return norm_name(n.replace("+", ""))
+
+
+def one_letter_off(a, b):
+    """Whether two names differ by one letter added, dropped or changed."""
+    if a == b or abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) > len(b):
+        a, b = b, a
+    i = 0
+    while i < len(a) and a[i] == b[i]:
+        i += 1
+    return a[i + (len(a) == len(b)):] == b[i + 1:]
 
 
 def signed32(v):
@@ -226,12 +242,12 @@ def plan_ids(db, table, key, name_col, rows):
         r = db.execute(f"SELECT {name_col} FROM main.{table} WHERE {key} = ?", (k,)).fetchone()
         if r is None:
             plan[k] = ("insert", k)
-        elif norm_name(r[0]) == norm_name(row[name_col]):
+        elif spell_name(r[0]) == spell_name(row[name_col]):
             plan[k] = ("update", k)
         else:
             n = ID_OFFSET + k
             r2 = db.execute(f"SELECT {name_col} FROM main.{table} WHERE {key} = ?", (n,)).fetchone()
-            if r2 is not None and norm_name(r2[0]) != norm_name(row[name_col]):
+            if r2 is not None and spell_name(r2[0]) != spell_name(row[name_col]):
                 sys.exit(f"{table} {k} and {n} are both held by other rows ({r[0]!r}, {r2[0]!r})")
             plan[k] = ("update" if r2 is not None else "insert", n)
     return plan
@@ -273,19 +289,24 @@ def plan(db, merchants, abilities, all_merchants):
     spell_plan = plan_ids(db, "spellpattern", "spellid", "spellname", spells)
 
     # The merchants, matched to our NPCs.
-    matched, unmatched = [], []
+    matched, unmatched, report["near_names"] = [], [], []
     for m in chosen:
         x, y, z = m["pos"]
-        best = None
+        best = near = None
         for row in db.execute(
                 "SELECT id, npc_name, x_coord, y_coord, z_coord, npc_id FROM main.npcs "
                 "WHERE world = ? AND x_coord BETWEEN ? AND ? AND z_coord BETWEEN ? AND ?",
-                (m["world"], x - MATCH_RADIUS, x + MATCH_RADIUS, z - MATCH_RADIUS, z + MATCH_RADIUS)):
-            if norm_name(row[1]) != norm_name(m["name"]):
-                continue
+                (m["world"], x - NEAR_RADIUS, x + NEAR_RADIUS, z - NEAR_RADIUS, z + NEAR_RADIUS)):
             d = math.dist((x, y, z), (row[2], row[3], row[4]))
-            if d <= MATCH_RADIUS and (best is None or d < best[0]):
-                best = (d, row)
+            if norm_name(row[1]) == norm_name(m["name"]):
+                if d <= MATCH_RADIUS and (best is None or d < best[0]):
+                    best = (d, row)
+            elif one_letter_off(norm_name(row[1]), norm_name(m["name"])) and d <= NEAR_RADIUS:
+                if near is None or d < near[0]:
+                    near = (d, row)
+        if best is None and near is not None:
+            best = near
+            report["near_names"].append((m["name"], near[1][1], round(near[0], 1)))
         if best is None:
             unmatched.append(m)
         else:
@@ -298,12 +319,14 @@ def plan(db, merchants, abilities, all_merchants):
             by_npc[row[0]] = (d, m, row)
     matched = [(m, row) for _, m, row in by_npc.values()]
 
-    # The scrolls whose spell has an exact record (by name).
-    have = {spell_name(r["spellname"]) for r in spells.values()}
-    have |= {spell_name(r[0]) for r in db.execute("SELECT spellname FROM main.spellpattern")}
+    # The scrolls whose spell has a record (by name): one of the harvest's,
+    # exact, or only one this database already held.
+    harvested = {spell_name(r["spellname"]) for r in spells.values()}
+    held = {spell_name(r[0]) for r in db.execute("SELECT spellname FROM main.spellpattern")} - harvested
     scrolls = {w["id"]: w for m in chosen for w in m["wares"] if w["icon"] == SCROLL_ICON}
     report["scrolls"] = len(scrolls)
-    report["scrolls_with_record"] = sum(1 for w in scrolls.values() if spell_name(w["name"]) in have)
+    report["scrolls_exact"] = sum(1 for w in scrolls.values() if spell_name(w["name"]) in harvested)
+    report["scrolls_held"] = sum(1 for w in scrolls.values() if spell_name(w["name"]) in held)
     return items, item_plan, spells, spell_plan, matched, unmatched, report
 
 
@@ -452,7 +475,7 @@ def undo(db, force):
     print("undone")
 
 
-def print_report(items, item_plan, spells, spell_plan, matched, unmatched, report):
+def print_report(db, items, item_plan, spells, spell_plan, matched, unmatched, report):
     def tally(p):
         t = {}
         for action, dst in p.values():
@@ -461,13 +484,22 @@ def print_report(items, item_plan, spells, spell_plan, matched, unmatched, repor
         return t
     print(f"item patterns: {len(items)} {tally(item_plan)}")
     print(f"spell patterns: {len(spells)} {tally(spell_plan)}")
+    for table, key, name_col, rows, p in (("itempattern", "patternid", "itemname", items, item_plan),
+                                         ("spellpattern", "spellid", "spellname", spells, spell_plan)):
+        for k, (_, dst) in sorted(p.items()):
+            if dst != k:
+                (held,) = db.execute(f"SELECT {name_col} FROM main.{table} WHERE {key} = ?", (k,)).fetchone()
+                print(f"    {table} {k} is our {held!r}: {rows[k][name_col]!r} comes in as {dst}")
     print(f"merchants: {len(matched)} matched to our NPCs, {len(unmatched)} not in this database")
     for m in sorted(unmatched, key=lambda m: m["name"])[:40]:
         print(f"    not here: {m['name']} at {[round(v) for v in m['pos']]} (world {m['world']})")
     if len(unmatched) > 40:
         print(f"    ... and {len(unmatched) - 40} more")
+    for theirs, ours, d in report["near_names"]:
+        print(f"    matched by a near name: {theirs!r} is our {ours!r}, {d} away")
     print(f"catalog rows: {sum(len(m['wares']) for m, _ in matched)}")
-    print(f"scrolls: {report['scrolls']}, of them with an exact spell record here: {report['scrolls_with_record']}")
+    print(f"scrolls: {report['scrolls']}; with the harvest's exact spell record: {report['scrolls_exact']}; "
+          f"with only a record already here: {report['scrolls_held']}")
     if report["stats_dropped"]:
         print(f"stat indices with no column, dropped: {report['stats_dropped']}")
     if report["range_inexact"]:
@@ -498,7 +530,7 @@ def main():
         ap.error("--harvest is required (or --undo)")
     files, merchants, abilities = load_harvest(args.harvest)
     planned = plan(db, merchants, abilities, args.all_merchants)
-    print_report(*planned)
+    print_report(db, *planned)
     if args.apply:
         items, item_plan, spells, spell_plan, matched, _, _ = planned
         ic, sc, cc = apply(db, files, items, item_plan, spells, spell_plan, matched, args.replace_catalogs)

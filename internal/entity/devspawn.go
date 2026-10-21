@@ -103,6 +103,7 @@ func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) 
 	c.LastCombat = time.Time{}
 	c.LastCombatTime = time.Time{}
 	c.Temporary = true
+	c.endDummyFight()
 	w.NPCs[c.ServerID] = &c
 	w.SpatialIndex.Insert(c.ServerID, x, z)
 	return c.ServerID, t.Name, true

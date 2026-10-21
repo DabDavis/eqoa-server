@@ -526,6 +526,8 @@ func (w *World) LoadNPCs(npcStore *database.NPCStore) {
 			OffMod:       NPCOffMod(rec.NPCLevel),
 			DefMod:       NPCDefMod(rec.NPCLevel),
 			WeaponDamage: NPCWeaponDamage(rec.NPCLevel),
+
+			Dummy: DummyKindOf(rec.NPCName),
 		}
 
 		w.NPCs[id] = npc
@@ -702,6 +704,9 @@ func (w *World) killNPC(npc *NPC) {
 
 // updateAggro adds or updates threat on an NPC.
 func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
+	if npc.Dummy != NotDummy {
+		return // a dummy holds no grudge: it fights its one player (dummy.go)
+	}
 	if npc.Threats == nil {
 		npc.Threats = make(map[EntityID]int64)
 	}

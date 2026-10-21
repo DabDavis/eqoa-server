@@ -144,6 +144,7 @@ case *entity.NPC:
 |--------|----------|---------|
 | `aiSystem` | Every 30 ticks (3s) | NPC aggro detection, melee combat, leash |
 | `attackSystem` | Every tick | Players' auto-attack (`attack.go`): a 0x000F engages, swings land one swing delay apart (CLIENT's GetSwing table) in CLIENT's reach while 0x40 byte 36 is up or the NPC fights back |
+| `dummySystem` | Every tick | Training dummies as Sandstorm's (`dummy.go`): never die, fight the first player whose hit lands, attacking or not, while within 10, in rounds (Lv20-30: 4 s of Attack2, two hits; Lv35+: 6 s of Attack4, four), a Training Dummy's fixed hit each followed by a +300 heal, a Regular Dummy's a creature's |
 | `respawnSystem` | Every tick | Dead NPC respawn after RespawnTime |
 | `playerRespawnSystem` | Every tick | A dead player (`respawn.go`: 0x005E once, off every threat list, no regen) is restored 15 s after its death (Sandstorm's 15.6 s in `pcaps/breath_capture.pcap`) and sent a MemoryDump at the login spawn: the dump, not 0x00B2, is what clears CLIENT's dead flag (Msg000D's ClearPC1B0) |
 | `regenSystem` | Every 20 ticks (2s) | 1% HP/Power regen (skipped if in combat <10s) |
@@ -166,6 +167,7 @@ case *entity.NPC:
 - Spell scrolls: the item menu's Use scribes one (`scribe.go`: a scroll is the scroll's art plus a spell of its name; Sandstorm's 0x003C + 0x00B3 and its refusal lines, recorded); `tools/import_sandstorm_harvest.py` stocks the spell vendors
 - Casting (0x0032, `entity/cast.go`): Sandstorm's start (0x00CD lockout = cast + recast + 300 ms, then 0x00B1), landing 1.4 s after the cast time, refusal lines and silences, all recorded; what a spell does is read from its EQOA-Data line in `spelleffect` (`entity/spelltext.go`, filled by `tools/import_spell_effects.py`): hits, heals, ticks, stat buffs on the stat and effects channels, speed, invisibility, Return Home. Not yet: pets, charm, cures, resurrection, procs, damage shields
 - For testing, `world.start_level` (a new character's level; a client's creation message never picks it) and `world.start_all_spells` (every spell of its class, from `classspells`, filled by `tools/import_class_spells.py` out of Sandstorm's dumps, its vendors' scrolls and EQOA-Data's class lists), both creation paths (`database/newchar.go`)
+- Training dummies as Sandstorm's (`entity/dummy.go`, measured; `claude-notes/training-dummies-20261021.md`): "Training Dummy …" and "Regular Dummy …" never die, fight one player in rounds, and a Training Dummy heals 300 after each of its fixed hits
 - Spell effects kept over a logout (`entity/buffsave.go`, table `charbuffs`), their time running only in the world, as Sandstorm's: saved at a logout, a re-login's takeover and for everyone at a shutdown (`Listener.SaveAll`, positions too), put back at the login (the world entry's 0x00F8 the buffed speed)
 
 ### Key Server Protocol Details

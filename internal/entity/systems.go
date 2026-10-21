@@ -37,6 +37,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue) {
 
 	w.aiSystem(now)
 	w.attackSystem(now)
+	w.dummySystem(now)
 	gates := w.castSystem(now)
 	w.effectSystem(now)
 	w.respawnSystem(now)
@@ -68,8 +69,8 @@ func (w *World) aiSystem(now time.Time) {
 	var attacks []npcAttack
 
 	for _, npc := range w.NPCs {
-		if npc.Dead {
-			continue
+		if npc.Dead || npc.Dummy != NotDummy {
+			continue // a dummy fights in its own rounds (dummySystem)
 		}
 		if npc.CurrentEnemy == 0 {
 			continue

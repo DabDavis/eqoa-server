@@ -44,6 +44,16 @@ func npcRound(npc *NPC) (length, delay time.Duration, fx uint32, hits []time.Dur
 	if kind == 0 {
 		length = 3200 * time.Millisecond
 	}
+	return length, delay, HashResourceID(SwingEffectName(kind)), swingHits(kind)
+}
+
+// swingHits is the times of a round's hits by swing kind, as Sandstorm's
+// NPCs and players both land them (a player's measured from the first hit:
+// a bard's Attack4 0, 0.5, 1.2, 1.9 s; an SK's Attack3 0, 0.5; an
+// enchanter's Attack1 one): Attack1 one hit at 0.5 s; Attack2 at 0.5 and
+// 1.5; Attack3 at 0.5 and 1; Attack4 at 0.5, 1, 1.7 and 2.4; a ranged swing
+// one.
+func swingHits(kind int) []time.Duration {
 	ms := func(v ...int) []time.Duration {
 		out := make([]time.Duration, len(v))
 		for i, x := range v {
@@ -53,15 +63,13 @@ func npcRound(npc *NPC) (length, delay time.Duration, fx uint32, hits []time.Dur
 	}
 	switch SwingEffectName(kind) {
 	case "Attack2":
-		hits = ms(500, 1500)
+		return ms(500, 1500)
 	case "Attack3":
-		hits = ms(500, 1000)
+		return ms(500, 1000)
 	case "Attack4":
-		hits = ms(500, 1000, 1700, 2400)
-	default:
-		hits = ms(500)
+		return ms(500, 1000, 1700, 2400)
 	}
-	return length, delay, HashResourceID(SwingEffectName(kind)), hits
+	return ms(500)
 }
 
 // npcRoundLocked runs the NPC's round against its target: a new round's
@@ -71,7 +79,13 @@ func npcRound(npc *NPC) (length, delay time.Duration, fx uint32, hits []time.Dur
 func (w *World) npcRoundLocked(npc *NPC, target *Player, now time.Time, hit func() bool) {
 	length, delay, fx, hits := npcRound(npc)
 	if npc.RoundStart.IsZero() || !now.Before(npc.RoundStart.Add(length)) {
-		npc.RoundStart = now
+		// a round on from the last one's start, a steady cadence as
+		// Sandstorm's; the first, or one after a pause, from now
+		next := npc.RoundStart.Add(length)
+		if npc.RoundStart.IsZero() || now.Sub(next) >= length {
+			next = now
+		}
+		npc.RoundStart = next
 		npc.RoundHits = 0
 		w.broadcastNPCSwingLocked(npc, target.ServerID, uint32(delay/time.Millisecond), fx)
 	}

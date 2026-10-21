@@ -119,6 +119,11 @@ type Player struct {
 	NextSwing      time.Time
 	Swing          Swing
 
+	// The melee round in hand (attack.go): when it began and how many of its
+	// hits have come due.
+	RoundStart time.Time
+	RoundHits  int
+
 	// ProfanityFilterOff: the player turned the profanity filter off
 	// (handlers/profanity.go, opcode 0x0045); it is on at every login.
 	ProfanityFilterOff bool

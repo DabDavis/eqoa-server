@@ -293,7 +293,8 @@ func (w *World) EngageAttack(sess *session.Session, objectID uint32, swing Swing
 	}
 	p.AttackTarget = npc.ServerID
 	p.AttackObjectID = objectID
-	p.NextSwing = now.Add(swing.Delay)
+	p.RoundStart, p.RoundHits = time.Time{}, 0
+	p.NextSwing = now.Add(firstRound)
 	log.Printf("Combat: %s engages %s (swing %d, %v, reach %.1f)", p.Name, npc.Name, swing.Kind, swing.Delay, swing.Reach)
 	return true
 }
@@ -313,10 +314,24 @@ func (p *Player) disengage() {
 	p.AttackTarget = 0
 	p.AttackObjectID = 0
 	p.NextSwing = time.Time{}
+	p.RoundStart, p.RoundHits = time.Time{}, 0
 }
 
-// attackSystem swings for every engaged player whose swing is due. Every
-// tick; must be called with the lock held.
+// firstRound is how long after its 0x000F a fight's first round begins.
+// Sandstorm's first hit came 0.56 to 0.76 s after the 0x000F in 17 of 20
+// fights (the hit 0.5 s into the round), and a tap, the button up again
+// 0.2 s later, started none: the round's start is where the button is read.
+const firstRound = 250 * time.Millisecond
+
+// attackSystem runs every engaged player's melee in rounds, as Sandstorm's
+// (rounds.go): a round every swing delay, its hits at the swing's times
+// (swingHits), each in reach a hit (playerHitLocked) and out of it lost. A
+// round begins only with the attack button held (0x40 byte 36) and the
+// target in reach (it waits for reach); the round in hand lands whole, the
+// button up or not, as Sandstorm's did (a bard's hits went on 1.15 s past
+// the release, and no further, the training dummy still hitting him). The
+// player's own swing is played by its client: no 0x00B1. Every tick; must be
+// called with the lock held.
 func (w *World) attackSystem(now time.Time) {
 	for _, p := range w.Players {
 		if p.AttackTarget == 0 {
@@ -327,33 +342,53 @@ func (w *World) attackSystem(now time.Time) {
 			p.disengage()
 			continue
 		}
+		if !p.RoundStart.IsZero() && w.playerRoundHitsLocked(p, npc, now) {
+			continue // the fight ended
+		}
 		if now.Before(p.NextSwing) {
 			continue
 		}
-		if !p.AutoAttack && npc.CurrentEnemy != p.ServerID {
-			// The button is up and the NPC is not fighting back: a tap
-			// that never landed, or a fight the NPC walked away from.
+		if !p.AutoAttack {
+			// The button is up: a tap that never held, or the fight let go.
 			p.disengage()
 			continue
 		}
 		if !inReach(p, npc) {
-			continue // the swing waits for reach
+			p.NextSwing = now // the round waits for reach, and begins with it
+			continue
+		}
+		// at its due time, not the tick's: a steady cadence
+		p.RoundStart, p.RoundHits = p.NextSwing, 0
+		p.NextSwing = p.RoundStart.Add(p.Swing.Delay)
+		w.playerRoundHitsLocked(p, npc, now)
+	}
+}
+
+// playerRoundHitsLocked lands the hits of the player's round that are due.
+// It reports whether the fight ended (a kill, or the NPC out of view).
+func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
+	hits := swingHits(p.Swing.Kind)
+	for p.RoundHits < len(hits) && !now.Before(p.RoundStart.Add(hits[p.RoundHits])) {
+		p.RoundHits++
+		if !inReach(p, npc) {
+			continue // swung at a target that stepped away
 		}
 		sess := w.findSessionByEntityIDLocked(p.ServerID)
 		if sess == nil {
 			p.disengage()
-			continue
+			return true
 		}
 		objectID := w.objectIDForEntityLocked(sess, npc.ServerID)
 		if objectID == 0 {
 			p.disengage() // gone from the player's view
-			continue
+			return true
 		}
-		p.NextSwing = now.Add(p.Swing.Delay)
 		if w.playerHitLocked(sess, p, npc, objectID) {
 			p.disengage()
+			return true
 		}
 	}
+	return false
 }
 
 // playerHitLocked is one landed player swing: the SOE retail damage, the

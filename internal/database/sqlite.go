@@ -401,6 +401,24 @@ func (db *SQLiteDB) initSchema() error {
 		source  TEXT NOT NULL
 	);
 
+	-- charbuffs: a character's spell effects kept over a logout, what is
+	-- left of each counted while it is in the world (entity/buffsave.go)
+	CREATE TABLE IF NOT EXISTS charbuffs (
+		serverid   INTEGER NOT NULL,
+		seq        INTEGER NOT NULL,
+		spellid    INTEGER NOT NULL,
+		name       TEXT NOT NULL,
+		icon       INTEGER NOT NULL,
+		caster     INTEGER NOT NULL,
+		left_ms    INTEGER NOT NULL,
+		tick_ms    INTEGER NOT NULL,
+		hp_tick    INTEGER NOT NULL,
+		power_tick INTEGER NOT NULL,
+		mods       TEXT NOT NULL,
+		flags      INTEGER NOT NULL,
+		PRIMARY KEY (serverid, seq)
+	);
+
 	-- spells (player spellbook)
 	CREATE TABLE IF NOT EXISTS spells (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,

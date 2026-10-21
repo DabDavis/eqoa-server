@@ -413,14 +413,55 @@ func (l *Listener) tickAllSessions() {
 		log.Printf("Cleaning up terminated session %s (instance=0x%X, objectID=%d)",
 			sess.RemoteAddr(), sess.InstanceID(), sess.PlayerObjectID())
 		if l.gameWorld != nil && sess.CharacterInWorld() {
-			// Save player position to database before removing
+			// Save player position and spell effects to database before removing
 			if l.charStore != nil {
 				l.savePlayerPosition(sess)
+				l.saveEffects(sess)
 			}
 			l.gameWorld.RemovePlayerBySession(sess)
 		}
 		l.sessionManager.RemoveSession(sess)
 	}
+}
+
+// saveEffects keeps the player's spell effects over the logout, what is left
+// of each (entity/buffsave.go): a session whose character logged in again
+// holds the OLD Player, whose effects the new login already kept.
+func (l *Listener) saveEffects(sess *session.Session) {
+	player := l.gameWorld.SessionPlayer(sess)
+	if player == nil || !l.gameWorld.IsLivePlayer(player) {
+		return
+	}
+	rows, ok := l.gameWorld.SavedEffects(player.ServerID, time.Now())
+	if !ok {
+		return
+	}
+	if err := l.charStore.SaveBuffs(player.CharServerID, rows); err != nil {
+		log.Printf("saveEffects: '%s' %d effects: %v", player.Name, len(rows), err)
+	} else if len(rows) > 0 {
+		log.Printf("saveEffects: '%s' keeps %d spell effects", player.Name, len(rows))
+	}
+}
+
+// SaveAll saves every player in the world as a logout would (position and
+// spell effects), for a shutdown: a restart is a logout for everyone in it,
+// and before this one the state since each login was lost.
+func (l *Listener) SaveAll() {
+	if l.gameWorld == nil || l.charStore == nil {
+		return
+	}
+	var inWorld []*session.Session
+	l.sessionManager.ForEach(func(sess *session.Session) bool {
+		if sess.CharacterInWorld() {
+			inWorld = append(inWorld, sess)
+		}
+		return true
+	})
+	for _, sess := range inWorld {
+		l.savePlayerPosition(sess)
+		l.saveEffects(sess)
+	}
+	log.Printf("SaveAll: %d players saved", len(inWorld))
 }
 
 // savePlayerPosition saves the player's current position to the database on disconnect.

@@ -28,20 +28,31 @@ import (
 // It is a TOGGLE: equipped -> unequip, not equipped -> equip. The server picks
 // the slot (the first free one a pair allows) and tells the client which,
 // in EquipItem (0x003F); the client then takes off what that displaces itself.
+//
+// A spell scroll is not worn: the same request scribes it (scribe.go).
 type EquipHandler struct {
 	sessionManager *session.Manager
 	gameWorld      *entity.World
 	inventoryStore *database.InventoryStore
+	spells         *database.SpellbookStore
 	charHandler    *CharacterHandler
+
+	// playerOf is the World's SessionPlayer (SetGameWorld); tests stand in
+	// for it.
+	playerOf func(*session.Session) *entity.Player
 }
 
-// NewEquipHandler creates the handler.
-func NewEquipHandler(sessionMgr *session.Manager, inv *database.InventoryStore, ch *CharacterHandler) *EquipHandler {
-	return &EquipHandler{sessionManager: sessionMgr, inventoryStore: inv, charHandler: ch}
+// NewEquipHandler creates the handler. spells may be nil: no scroll is then
+// scribed.
+func NewEquipHandler(sessionMgr *session.Manager, inv *database.InventoryStore, spells *database.SpellbookStore, ch *CharacterHandler) *EquipHandler {
+	return &EquipHandler{sessionManager: sessionMgr, inventoryStore: inv, spells: spells, charHandler: ch}
 }
 
 // SetGameWorld sets the game world reference.
-func (h *EquipHandler) SetGameWorld(gw *entity.World) { h.gameWorld = gw }
+func (h *EquipHandler) SetGameWorld(gw *entity.World) {
+	h.gameWorld = gw
+	h.playerOf = gw.SessionPlayer
+}
 
 // RegisterHandlers registers the equip handlers.
 func (h *EquipHandler) RegisterHandlers(r *Registry) {
@@ -202,35 +213,40 @@ func inventoryRows(items []database.CharInventoryEntry) []*database.CharInventor
 	return inv
 }
 
-// planInteractItem decides one toggle. The key is resolved through the
-// client's list (list), not used as a position; with no list (no MemoryDump
-// sent yet) a key is the position the MemoryDump would have given it.
+// invItemByKey is the record a request names: its list index and its row.
+// The key is resolved through the client's list (list), not used as a
+// position; with no list (no MemoryDump sent yet) a key is the position the
+// MemoryDump would have given it.
+func invItemByKey(items []database.CharInventoryEntry, list *invList, key uint32) (int, *database.CharInventoryEntry, error) {
+	inv := inventoryRows(items)
+	if list == nil {
+		if int(key) >= len(inv) {
+			return -1, nil, fmt.Errorf("key %d out of range (inventory has %d items)", key, len(inv))
+		}
+		return int(key), inv[key], nil
+	}
+	idx := list.index(key)
+	if idx < 0 {
+		return -1, nil, fmt.Errorf("the client holds no record with key %d", key)
+	}
+	rec, _ := list.at(idx)
+	for _, e := range inv {
+		if e.ItemID == rec.itemID {
+			return idx, e, nil
+		}
+	}
+	return -1, nil, fmt.Errorf("key %d is item %d, which the inventory no longer holds", key, rec.itemID)
+}
+
+// planInteractItem decides one toggle, for the record the key names
+// (invItemByKey).
 func planInteractItem(items []database.CharInventoryEntry, list *invList, key uint32) (equipPlan, error) {
 	plan := equipPlan{key: key, unequip: -1}
 	inv := inventoryRows(items)
 
-	idx := -1
-	var found *database.CharInventoryEntry
-	if list != nil {
-		idx = list.index(key)
-		if idx < 0 {
-			return plan, fmt.Errorf("the client holds no record with key %d", key)
-		}
-		rec, _ := list.at(idx)
-		for _, e := range inv {
-			if e.ItemID == rec.itemID {
-				found = e
-				break
-			}
-		}
-		if found == nil {
-			return plan, fmt.Errorf("key %d is item %d, which the inventory no longer holds", key, rec.itemID)
-		}
-	} else {
-		if int(key) >= len(inv) {
-			return plan, fmt.Errorf("key %d out of range (inventory has %d items)", key, len(inv))
-		}
-		idx, found = int(key), inv[key]
+	idx, found, err := invItemByKey(items, list, key)
+	if err != nil {
+		return plan, err
 	}
 	plan.name = found.Pattern.ItemName
 
@@ -302,7 +318,10 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		return nil
 	}
 
-	player := h.gameWorld.SessionPlayer(sess)
+	if h.playerOf == nil {
+		return nil
+	}
+	player := h.playerOf(sess)
 	if player == nil {
 		return nil
 	}
@@ -311,6 +330,12 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 	items, err := h.inventoryStore.GetCharacterItems(serverID)
 	if err != nil {
 		log.Printf("InteractItem: loading items for serverID=%d: %v", serverID, err)
+		return nil
+	}
+
+	// A spell scroll is scribed, not worn.
+	if idx, row, err := invItemByKey(items, sessionInvList(sess), key); err == nil && isScroll(&row.Pattern) {
+		h.scribe(sess, player, idx, row)
 		return nil
 	}
 

@@ -151,11 +151,25 @@ type ActiveEffect struct {
 	Invis     bool
 }
 
-// StatMods is what effects add to a player's stats.
+// StatMods is what effects add to a player's stats (kept over a logout as
+// JSON, the stats it changes only).
 type StatMods struct {
-	Str, Sta, Agi, Dex, Wis, Int, Cha int
-	AC, MaxHP, MaxPower               int
-	FR, CR, PR, DR, LR, AR            int
+	Str      int `json:",omitempty"`
+	Sta      int `json:",omitempty"`
+	Agi      int `json:",omitempty"`
+	Dex      int `json:",omitempty"`
+	Wis      int `json:",omitempty"`
+	Int      int `json:",omitempty"`
+	Cha      int `json:",omitempty"`
+	AC       int `json:",omitempty"`
+	MaxHP    int `json:",omitempty"`
+	MaxPower int `json:",omitempty"`
+	FR       int `json:",omitempty"`
+	CR       int `json:",omitempty"`
+	PR       int `json:",omitempty"`
+	DR       int `json:",omitempty"`
+	LR       int `json:",omitempty"`
+	AR       int `json:",omitempty"`
 }
 
 func (m *StatMods) add(st Stat, n int) {
@@ -722,8 +736,14 @@ func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 		return
 	}
 	ae.NextTick = ae.NextTick.Add(effectTick)
-	caster := w.Players[ae.Caster]
-	if ae.HPTick > 0 && caster != nil {
+	if ae.HPTick > 0 {
+		// the caster may be gone (logged out, or the effect kept over a
+		// logout): the figure is then the target's own, as Sandstorm's first
+		// tick after a login was
+		caster := w.Players[ae.Caster]
+		if caster == nil {
+			caster = t
+		}
 		w.healLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), t, ae.HPTick)
 	}
 	if ae.PowerTick > 0 && t.Power < t.MaxPowerNow() {

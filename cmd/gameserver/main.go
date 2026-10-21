@@ -331,6 +331,9 @@ func main() {
 
 	<-sigChan
 	log.Println("Shutdown signal received, stopping server...")
+	// Everyone in the world is saved as at a logout: their positions and
+	// their spell effects.
+	udpListener.SaveAll()
 
 	log.Println("Server stopped")
 }

@@ -528,6 +528,16 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 		}
 	}
 
+	// So are its spell effects: the old session's cleanup will not save them
+	// either (entity/buffsave.go).
+	if h.gameWorld != nil && h.store != nil {
+		if rows, ok := h.gameWorld.SavedEffects(entity.EntityID(record.ServerID), time.Now()); ok {
+			if err := h.store.SaveBuffs(record.ServerID, rows); err != nil {
+				log.Printf("SelectedChar: could not keep '%s' replaced session's %d effects: %v", record.CharName, len(rows), err)
+			}
+		}
+	}
+
 	// Where the session starts (loginSpawn): where the character logged out,
 	// or beside Archivist Vaal. Decided here, before CreatePlayer reads it.
 	loginSpawn(h.gameWorld, record)
@@ -536,6 +546,16 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	var player *entity.Player
 	if h.gameWorld != nil {
 		player = h.gameWorld.CreatePlayer(sess, record)
+	}
+
+	// The spell effects it logged out with, their time running again
+	// (Sandstorm keeps them over a logout; entity/buffsave.go)
+	if player != nil && h.store != nil {
+		if rows, err := h.store.LoadBuffs(record.ServerID); err != nil {
+			log.Printf("SelectedChar: '%s' kept effects: %v", record.CharName, err)
+		} else if n := h.gameWorld.RestoreEffects(sess, rows, time.Now()); n > 0 {
+			log.Printf("SelectedChar: '%s' keeps %d spell effects from its last session", record.CharName, n)
+		}
 	}
 
 	// Load equipped items from DB and apply visual equipment to player
@@ -608,8 +628,14 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Send another time sync now that we're in world
 	h.SendTime(sess)
 
-	// Send player speed (needed for movement)
-	h.SendPlayerSpeed(sess, 20.0)
+	// Send player speed (needed for movement): a speed effect kept over the
+	// logout makes it more (Sandstorm's dump carried the plain speed and its
+	// 0x00F8 the buffed one)
+	speed := float32(20.0)
+	if h.gameWorld != nil {
+		speed = h.gameWorld.PlayerSpeed(sess, speed)
+	}
+	h.SendPlayerSpeed(sess, speed)
 
 	// Send server ready signal (Sandstorm sends this after world entry)
 	SendServerReady(sess)

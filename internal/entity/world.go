@@ -48,6 +48,12 @@ type World struct {
 
 	// Buddy and ignore lists (social.go), in memory only
 	social socialLists
+
+	// Casts on their way to landing, and the hook a gate sends home with
+	// (cast.go)
+	casts    []*castState
+	onGate   GateFunc
+	affected map[EntityID]*NPC // creatures with a spell's effect on them
 }
 
 // NewWorld creates and initializes a new game world.

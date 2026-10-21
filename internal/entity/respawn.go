@@ -75,6 +75,7 @@ func (w *World) playerDiedLocked(sess *session.Session, p *Player, now time.Time
 	p.DiedAt = now
 	p.AutoAttack = false
 	p.disengage()
+	w.clearSpellsLocked(p)
 	w.dropAggroLocked(p.ServerID)
 	if sess != nil {
 		w.sendPlayerDied(sess)

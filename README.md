@@ -55,7 +55,9 @@ items, spells and default characters come from a seed database that is not part 
 repository. `cmd/importdump`, `cmd/extractdb`, `cmd/sqlimport`,
 `tools/import_ff_npcs.py`, `tools/import_prh_content.py` (Return Home's static tables) and
 `tools/import_sandstorm_harvest.py` (what eqoa-rs's `eqoa harvest` collected off a server:
-its spell vendors' catalogs, their items, the ability records) build one from data you have;
+its spell vendors' catalogs, their items, the ability records) and
+`tools/import_spell_effects.py` (what each spell does, from the EQOA-Data project's spell
+lists, and the visuals recorded casts named) build one from data you have;
 `sql/` holds a few NPC set-ups.
 
 ## Layout

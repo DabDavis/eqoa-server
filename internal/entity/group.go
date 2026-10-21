@@ -431,8 +431,8 @@ func (w *World) groupSyncSystem() {
 				r[0], r[1], r[2], r[3] = byte(id), byte(id>>8), byte(id>>16), byte(id>>24)
 				r[4] = 1
 				hp := 0
-				if o.MaxHP > 0 {
-					hp = o.HP * 255 / o.MaxHP
+				if top := o.MaxHPNow(); top > 0 {
+					hp = o.HP * 255 / top
 				}
 				r[5] = byte(max(0, min(255, hp)))
 				r[6] = 0

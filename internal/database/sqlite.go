@@ -391,6 +391,16 @@ func (db *SQLiteDB) initSchema() error {
 		spelldesc TEXT NOT NULL
 	);
 
+	-- spelleffect: what each spell does, as EQOA-Data's spell lists word
+	-- it, and the visual CastingCombat names for it (0: the server's
+	-- stand-in); tools/import_spell_effects.py fills it
+	CREATE TABLE IF NOT EXISTS spelleffect (
+		spellid INTEGER PRIMARY KEY,
+		line    TEXT NOT NULL,
+		fxdict  INTEGER NOT NULL,
+		source  TEXT NOT NULL
+	);
+
 	-- spells (player spellbook)
 	CREATE TABLE IF NOT EXISTS spells (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,

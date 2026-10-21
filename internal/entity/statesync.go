@@ -117,8 +117,8 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	buf[26] = 1
 
 	// Offset 27: HPBar (0-255 proportional)
-	if p.MaxHP > 0 {
-		buf[27] = byte(p.HP * 255 / p.MaxHP)
+	if top := p.MaxHPNow(); top > 0 {
+		buf[27] = byte(min(p.HP, top) * 255 / top)
 	} else {
 		buf[27] = 255
 	}
@@ -245,7 +245,12 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	// constant and was simply missed.
 	buf[156] = 0x01
 
-	// Offset 152, 154-155, 157: zero on every entity in the capture.
+	// Offset 152, 154-155, 157: zero on every entity in the capture, but
+	// 154 is 1 on an invisible player: Sandstorm set it on the caster's own
+	// channel when Camouflage landed (2026-10-21, cast.go).
+	if p.Invisible() {
+		buf[154] = 1
+	}
 
 	// Offset 158-161: End signature "tsrq" (eqoa.live byte order)
 	buf[158] = 't'
@@ -503,34 +508,35 @@ func SerializeStatUpdate(p *Player) []byte {
 		binary.LittleEndian.PutUint32(buf[offset:offset+4], uint32(val))
 	}
 
-	// Current stats (offsets 0-27)
-	writeInt32(0, int32(p.Str))
-	writeInt32(4, int32(p.Sta))
-	writeInt32(8, int32(p.Agi))
-	writeInt32(12, int32(p.Dex))
-	writeInt32(16, int32(p.Wis))
-	writeInt32(20, int32(p.Int))
-	writeInt32(24, int32(p.Cha))
+	// Current stats (offsets 0-27), with what spells add (cast.go)
+	writeInt32(0, int32(p.StatNow(StatStr)))
+	writeInt32(4, int32(p.StatNow(StatSta)))
+	writeInt32(8, int32(p.StatNow(StatAgi)))
+	writeInt32(12, int32(p.StatNow(StatDex)))
+	writeInt32(16, int32(p.StatNow(StatWis)))
+	writeInt32(20, int32(p.StatNow(StatInt)))
+	writeInt32(24, int32(p.StatNow(StatCha)))
 
-	// HP/Power (offsets 28-43)
+	// HP/Power (offsets 28-43); the maximums with spells' (Rockskin's +30
+	// max HP came here on Sandstorm, the base at 148 kept)
 	writeInt32(28, int32(p.HP))
-	writeInt32(32, int32(p.MaxHP))
+	writeInt32(32, int32(p.MaxHPNow()))
 	writeInt32(36, int32(p.Power))
-	writeInt32(40, int32(p.MaxPower))
+	writeInt32(40, int32(p.MaxPowerNow()))
 
 	// Combat modifiers (offsets 44-56) — SOE layout
-	writeInt32(44, 100)             // field_100 (always 100 on SOE retail)
-	writeInt32(48, int32(p.OffMod)) // OFF_MOD (total)
-	writeInt32(52, int32(p.DefMod)) // DEF_MOD (total)
-	writeInt32(56, int32(p.AC))     // HP_FACTOR position (using AC for now)
+	writeInt32(44, 100)                      // field_100 (always 100 on SOE retail)
+	writeInt32(48, int32(p.OffMod))          // OFF_MOD (total)
+	writeInt32(52, int32(p.DefMod))          // DEF_MOD (total)
+	writeInt32(56, int32(p.StatNow(StatAC))) // Rockskin's AC 150 came here on Sandstorm
 
-	// Resists (offsets 88-111)
-	writeInt32(88, int32(p.PoisonR))
-	writeInt32(92, int32(p.DiseaseR))
-	writeInt32(96, int32(p.FireR))
-	writeInt32(100, int32(p.ColdR))
-	writeInt32(104, int32(p.LightningR))
-	writeInt32(108, int32(p.ArcaneR))
+	// Resists (offsets 88-111), with spells'
+	writeInt32(88, int32(p.StatNow(StatPR)))
+	writeInt32(92, int32(p.StatNow(StatDR)))
+	writeInt32(96, int32(p.StatNow(StatFR)))
+	writeInt32(100, int32(p.StatNow(StatCR)))
+	writeInt32(104, int32(p.StatNow(StatLR)))
+	writeInt32(108, int32(p.StatNow(StatAR)))
 
 	// Base stats (offsets 116-143) — stats before equipment
 	writeInt32(116, int32(p.BaseStr))

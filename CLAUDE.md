@@ -163,7 +163,8 @@ case *entity.NPC:
 - NPC AI (aggro, melee, leash, respawn)
 - HP/Power regen system
 - Hotkey menu (L2 D-pad) — 25 default hotkeys, fragmented MemoryDump delivery
-- Spell scrolls: the item menu's Use scribes one (`scribe.go`: a scroll is the scroll's art plus a spell of its name; Sandstorm's 0x003C + 0x00B3 and its refusal lines, recorded); `tools/import_sandstorm_harvest.py` stocks the spell vendors. Casting (0x0032) is not handled yet
+- Spell scrolls: the item menu's Use scribes one (`scribe.go`: a scroll is the scroll's art plus a spell of its name; Sandstorm's 0x003C + 0x00B3 and its refusal lines, recorded); `tools/import_sandstorm_harvest.py` stocks the spell vendors
+- Casting (0x0032, `entity/cast.go`): Sandstorm's start (0x00CD lockout = cast + recast + 300 ms, then 0x00B1), landing 1.4 s after the cast time, refusal lines and silences, all recorded; what a spell does is read from its EQOA-Data line in `spelleffect` (`entity/spelltext.go`, filled by `tools/import_spell_effects.py`): hits, heals, ticks, stat buffs on the stat and effects channels, speed, invisibility, Return Home. Not yet: pets, charm, cures, resurrection, procs, damage shields; effects are not saved over a logout
 
 ### Key Server Protocol Details
 

@@ -193,13 +193,7 @@ func writeAbilityRecord(w *buffer.Writer, e *database.CharSpellEntry) {
 		int64(e.WhereOnHotBar), int64(e.Unk1), int64(e.ShowHide), int64(sp.AbilityLvl)} {
 		w.Write7BitEncodedInt64(v)
 	}
-	lowByte := func(v int) uint32 {
-		if v < 0 || v > 63 {
-			return 0
-		}
-		return uint32(v << 1) // zigzag of a small non-negative value, one byte
-	}
-	w.WriteUint32(uint32(uint16(sp.Range))<<16 | lowByte(sp.Unk3)<<8 | lowByte(sp.Unk2))
+	w.WriteUint32(abilityRangeBits(sp))
 	for _, v := range []int64{int64(sp.CastTime), int64(sp.Power), int64(int32(sp.IconColor)),
 		int64(int32(sp.Icon)), int64(sp.Scope), int64(sp.Recast), int64(sp.EqpRequire)} {
 		w.Write7BitEncodedInt64(v)
@@ -207,6 +201,19 @@ func writeAbilityRecord(w *buffer.Writer, e *database.CharSpellEntry) {
 	writeWideString(w, sp.SpellName, 128)
 	writeWideString(w, sp.SpellDesc, 256)
 	w.Write7BitEncodedInt64(0) // no sub-records
+}
+
+// abilityRangeBits is the range float as the record holds it (see
+// writeAbilityRecord): its high half from Range, its low bytes from the
+// zigzag Unk3 and Unk2.
+func abilityRangeBits(sp *database.SpellPatternRecord) uint32 {
+	lowByte := func(v int) uint32 {
+		if v < 0 || v > 63 {
+			return 0
+		}
+		return uint32(v << 1) // zigzag of a small non-negative value, one byte
+	}
+	return uint32(uint16(sp.Range))<<16 | lowByte(sp.Unk3)<<8 | lowByte(sp.Unk2)
 }
 
 // buildAbilityAdd is opcode 0x00B3 — Msg00B3 (0x00BCF3A0): the u32 ability

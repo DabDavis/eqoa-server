@@ -812,6 +812,11 @@ func (h *CharacterHandler) isValidName(name string) bool {
 		}
 	}
 
+	// A name with a profane root in it (profanity.go)
+	if profaneName(name) {
+		return false
+	}
+
 	// Check for reserved names
 	reserved := []string{"admin", "gm", "moderator", "server", "system"}
 	nameLower := strings.ToLower(name)

@@ -116,6 +116,10 @@ type Player struct {
 	NextSwing      time.Time
 	Swing          Swing
 
+	// ProfanityFilterOff: the player turned the profanity filter off
+	// (handlers/profanity.go, opcode 0x0045); it is on at every login.
+	ProfanityFilterOff bool
+
 	// Breath / underwater
 	Breath          int    // 0-255 (255 full), as the dump and stat channel byte 232 carry it; 32 every 6 s under liquid
 	Underwater      bool   // under a liquid's surface (UnderLiquid on WalkFlags)

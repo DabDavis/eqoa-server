@@ -67,6 +67,7 @@ func (h *ChatHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeClientSayChat, h.HandleSayChat)
 	r.Register(protocol.OpcodeClientShout, h.HandleShoutChat)
 	r.Register(protocol.OpcodeChangeChatMode, h.HandleChangeChatMode)
+	r.Register(protocol.OpcodeProfanityFilter, h.HandleProfanityFilter)
 }
 
 // chatMode is the mode p's last 0x000E named, say before any.
@@ -236,7 +237,11 @@ func playerSessions(gw *entity.World) map[entity.EntityID]*session.Session {
 func (h *ChatHandler) say(sess *session.Session, player *entity.Player, message string) {
 	line := fmt.Sprintf("%s: %s", player.Name, message)
 	sessions := playerSessions(h.gameWorld)
-	var hear []*session.Session
+	type hearer struct {
+		s *session.Session
+		p *entity.Player
+	}
+	var hear []hearer
 	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
 		if p.World != player.World || p.ServerID == player.ServerID {
 			return
@@ -244,13 +249,13 @@ func (h *ChatHandler) say(sess *session.Session, player *entity.Player, message 
 		dx, dz := float64(p.X-player.X), float64(p.Z-player.Z)
 		if math.Sqrt(dx*dx+dz*dz) <= sayRadius {
 			if s := sessions[p.ServerID]; s != nil {
-				hear = append(hear, s)
+				hear = append(hear, hearer{s, p})
 			}
 		}
 	})
-	hear = append(hear, sess)
-	for _, s := range hear {
-		s.Queue().AddWithSequence(buildClientMessage(line))
+	hear = append(hear, hearer{sess, player})
+	for _, l := range hear {
+		l.s.Queue().AddWithSequence(buildClientMessage(lineFor(l.p, line)))
 	}
 	log.Printf("SayChat: %q to %d players", line, len(hear))
 }
@@ -261,15 +266,20 @@ func (h *ChatHandler) shout(sess *session.Session, player *entity.Player, messag
 	line := fmt.Sprintf("%s shouts: %s", player.Name, message)
 	n := 0
 	self := false
-	for id, s := range playerSessions(h.gameWorld) {
-		s.Queue().AddWithSequence(buildColoredMessage(line))
+	sessions := playerSessions(h.gameWorld)
+	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
+		s := sessions[p.ServerID]
+		if s == nil {
+			return
+		}
+		s.Queue().AddWithSequence(buildColoredMessage(lineFor(p, line)))
 		n++
-		if id == player.ServerID {
+		if p.ServerID == player.ServerID {
 			self = true
 		}
-	}
+	})
 	if !self {
-		sess.Queue().AddWithSequence(buildColoredMessage(line))
+		sess.Queue().AddWithSequence(buildColoredMessage(lineFor(player, line)))
 		n++
 	}
 	log.Printf("ShoutChat: %q to %d players", line, n)
@@ -288,7 +298,7 @@ func (h *ChatHandler) groupChat(sess *session.Session, player *entity.Player, me
 	sessions := playerSessions(h.gameWorld)
 	for _, m := range members {
 		if s := sessions[m.ServerID]; s != nil {
-			SendGroupChat(s, uint32(player.ServerID), line)
+			SendGroupChat(s, uint32(player.ServerID), lineFor(m, line))
 		}
 	}
 	log.Printf("GroupChat: %q to %d members", line, len(members))
@@ -319,18 +329,21 @@ func RouteGuildChat(gw *entity.World, sess *session.Session, player *entity.Play
 	}
 	// the guild handler's line (0x0578 sub 12): CLIENT prints it as it is
 	line := player.Name + ": " + message
-	payload := entity.BuildGuildChat(0, line)
 	sessions := playerSessions(gw)
-	var to []*session.Session
+	type member struct {
+		s *session.Session
+		p *entity.Player
+	}
+	var to []member
 	gw.ForEachPlayer(func(p *entity.Player) {
 		if p.GuildID == player.GuildID {
 			if s := sessions[p.ServerID]; s != nil {
-				to = append(to, s)
+				to = append(to, member{s, p})
 			}
 		}
 	})
-	for _, s := range to {
-		queueReliable(s, protocol.OpcodeGuildInfo, payload)
+	for _, m := range to {
+		queueReliable(m.s, protocol.OpcodeGuildInfo, entity.BuildGuildChat(0, lineFor(m.p, line)))
 	}
 	log.Printf("GuildChat: %q to %d members", line, len(to))
 }
@@ -381,8 +394,8 @@ func (h *ChatHandler) tell(sess *session.Session, from *entity.Player, name, tex
 		return
 	}
 	SendReplyName(toSess, from.Name)
-	SendColoredChat(toSess, fmt.Sprintf("%s tells you, '%s'", from.Name, text), tellR, tellG, tellB)
-	SendColoredChat(sess, fmt.Sprintf("You told %s, '%s'", to.Name, text), tellR, tellG, tellB)
+	SendColoredChat(toSess, lineFor(to, fmt.Sprintf("%s tells you, '%s'", from.Name, text)), tellR, tellG, tellB)
+	SendColoredChat(sess, lineFor(from, fmt.Sprintf("You told %s, '%s'", to.Name, text)), tellR, tellG, tellB)
 	log.Printf("Tell: %s -> %s", from.Name, to.Name)
 }
 
@@ -405,9 +418,9 @@ func (h *ChatHandler) whisper(sess *session.Session, from *entity.Player, target
 		SendErrorMessage(sess, fmt.Sprintf("%s is not connected.", to.Name))
 		return
 	}
-	SendColoredChat(toSess, fmt.Sprintf("%s whispers, '%s'", from.Name, text), tellR, tellG, tellB)
+	SendColoredChat(toSess, lineFor(to, fmt.Sprintf("%s whispers, '%s'", from.Name, text)), tellR, tellG, tellB)
 	if toSess != sess {
-		SendColoredChat(sess, fmt.Sprintf("You whisper to %s, '%s'", to.Name, text), tellR, tellG, tellB)
+		SendColoredChat(sess, lineFor(from, fmt.Sprintf("You whisper to %s, '%s'", to.Name, text)), tellR, tellG, tellB)
 	}
 }
 

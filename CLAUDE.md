@@ -143,7 +143,7 @@ case *entity.NPC:
 | System | Interval | Purpose |
 |--------|----------|---------|
 | `aiSystem` | Every tick | NPC melee in Sandstorm's rounds (`rounds.go`): a round's swing (0x00B1, to all who see the NPC) then its hits at fixed times, the swing CLIENT's GetSwing for a warrior of the NPC's level with its weapon and shield (below Lv20 Attack1, one hit, 3.2 s; Lv20-34 Attack2, two in 4 s; Lv35+ Attack4, four in 6 s; Lv35+ with a shield Attack3, two in 4 s); the leash at 10; the training dummies' fights too (`dummy.go`) |
-| `attackSystem` | Every tick | Players' auto-attack (`attack.go`): a 0x000F engages, swings land one swing delay apart (CLIENT's GetSwing table) in CLIENT's reach while 0x40 byte 36 is up or the NPC fights back |
+| `attackSystem` | Every tick | Players' auto-attack in Sandstorm's rounds (`attack.go`, `rounds.go`): a 0x000F engages, the first round 0.25 s later, then one every swing delay (CLIENT's GetSwing on the class and gear: a caster's Attack1 one hit, an SK's or paladin's Attack3 two, a melee class's Attack2 two from Lv20 and Attack4 four from Lv35), the hits at the swing's times in CLIENT's reach; a round begins only with 0x40 byte 36 up, and the round in hand lands whole after the release |
 | `respawnSystem` | Every tick | Dead NPC respawn after RespawnTime |
 | `playerRespawnSystem` | Every tick | A dead player (`respawn.go`: 0x005E once, off every threat list, no regen) is restored 15 s after its death (Sandstorm's 15.6 s in `pcaps/breath_capture.pcap`) and sent a MemoryDump at the login spawn: the dump, not 0x00B2, is what clears CLIENT's dead flag (Msg000D's ClearPC1B0) |
 | `regenSystem` | Every 20 ticks (2s) | 1% HP/Power regen (skipped if in combat <10s) |

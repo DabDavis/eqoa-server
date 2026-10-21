@@ -150,14 +150,17 @@ func (r *vims) signed() int32 {
 
 var swing6s = Swing{Kind: 5, Delay: 6 * time.Second, Reach: 4.5}
 
-// A tap: byte 36 is back at 0 long before the first swing, and the NPC was
-// never hit, so nothing lands (Sandstorm, live: a Crab at 255/255 for 25 s).
+// A tap: byte 36 is back at 0 before the first round begins, so nothing
+// lands (Sandstorm, live: a Crab at 255/255 for 25 s).
 func TestAutoAttackTapStartsNothing(t *testing.T) {
 	f := newFight(t)
 	if !f.w.EngageAttack(f.sess, f.npcID, swing6s, f.t0) {
 		t.Fatal("not engaged")
 	}
+	f.p.AutoAttack = true
+	f.tick(100 * time.Millisecond)
 	f.p.AutoAttack = false // released 0.2 s later
+	f.tick(250 * time.Millisecond)
 	f.tick(6 * time.Second)
 	if len(f.damage(t)) != 0 || f.npc.HP != f.npc.MaxHP {
 		t.Fatalf("a tap hit: %v", f.damage(t))
@@ -167,57 +170,90 @@ func TestAutoAttackTapStartsNothing(t *testing.T) {
 	}
 }
 
-// Held: the first hit one swing delay after the 0x000F, as 0x00DB from me to
-// the NPC, the next one delay later; the NPC fights back; and the fight goes
-// on after the release while it does (Sandstorm, live: 13 hits, two of them
-// after the release).
-func TestAutoAttackHeldThenReleased(t *testing.T) {
+// Held: rounds of the swing (Attack4: four hits, 0.5, 1, 1.7 and 2.4 s into a
+// round every 6 s), the first round 0.25 s after the 0x000F, each hit a
+// 0x00DB from me to the NPC; let go, the round in hand lands whole and no
+// other begins, though the NPC fights on (Sandstorm: a bard's hits went on
+// 1.15 s past the release, and no further).
+func TestAutoAttackRounds(t *testing.T) {
 	f := newFight(t)
 	f.w.EngageAttack(f.sess, f.npcID, swing6s, f.t0)
 	f.p.AutoAttack = true
-	f.tick(5999 * time.Millisecond)
-	if len(f.damage(t)) != 0 {
-		t.Fatal("hit before the first swing was due")
+	at := func(d time.Duration) int { f.tick(d); return len(f.damage(t)) }
+	if at(249*time.Millisecond) != 0 || at(749*time.Millisecond) != 0 {
+		t.Fatal("hit before the first round's first hit was due")
 	}
-	f.tick(6 * time.Second)
+	if at(750*time.Millisecond) != 1 {
+		t.Fatal("no first hit 0.5 s into the first round")
+	}
 	d := f.damage(t)
-	if len(d) != 1 || d[0][0] != int64(f.me) || d[0][1] >= 0 || d[0][2] != int64(f.npcID) {
-		t.Fatalf("first swing: %v, want one (me, -n, crab)", d)
+	if d[0][0] != int64(f.me) || d[0][1] >= 0 || d[0][2] != int64(f.npcID) {
+		t.Fatalf("first hit %v, want (me, -n, crab)", d[0])
+	}
+	if at(1250*time.Millisecond) != 2 || at(1949*time.Millisecond) != 2 || at(1950*time.Millisecond) != 3 {
+		t.Fatal("the second and third hits off their times")
+	}
+	f.p.AutoAttack = false // released before the round's last hit
+	if at(2650*time.Millisecond) != 4 {
+		t.Fatal("the round in hand did not land whole after the release")
 	}
 	if f.npc.CurrentEnemy != f.p.ServerID {
 		t.Fatal("the NPC was hit and does not fight back")
 	}
-	f.p.AutoAttack = false // released; the Crab fights on
-	f.tick(11 * time.Second)
-	if len(f.damage(t)) != 1 {
-		t.Fatal("the second swing came early")
-	}
-	f.tick(12 * time.Second)
-	if len(f.damage(t)) != 2 {
-		t.Fatal("no swing after the release while the NPC fights back")
-	}
-	f.npc.CurrentEnemy = 0 // it leashed
-	f.tick(18 * time.Second)
-	if len(f.damage(t)) != 2 || f.p.AttackTarget != 0 {
-		t.Error("swung at an NPC that stopped fighting, with the button up")
+	if at(6250*time.Millisecond) != 4 || at(7000*time.Millisecond) != 4 || f.p.AttackTarget != 0 {
+		t.Error("a new round with the button up")
 	}
 }
 
-// Out of reach the due swing waits; in reach it lands at once.
+// The round is the class's swing (GetSwing): an enchanter's Attack1 is one
+// hit every 3 s, an SK's with a shield Attack3, two hits at 0.5 and 1 s
+// every 4 s (Sandstorm's, measured on both).
+func TestAutoAttackRoundsByClass(t *testing.T) {
+	var primaryShield [21]bool
+	primaryShield[14], primaryShield[17] = true, true
+	var primary [21]bool
+	primary[14] = true
+	cases := []struct {
+		name  string
+		swing Swing
+		times []time.Duration // the hits of the first two rounds
+	}{
+		{"enchanter 49", SwingFor(12, 49, primary, true, 3, 0), []time.Duration{750 * time.Millisecond, 3750 * time.Millisecond}},
+		{"shadow knight 50, sword and shield", SwingFor(3, 50, primaryShield, true, 1, 0), []time.Duration{750 * time.Millisecond, 1250 * time.Millisecond, 4750 * time.Millisecond, 5250 * time.Millisecond}},
+	}
+	for _, c := range cases {
+		f := newFight(t)
+		f.w.EngageAttack(f.sess, f.npcID, c.swing, f.t0)
+		f.p.AutoAttack = true
+		for i, want := range c.times {
+			f.tick(want - time.Millisecond)
+			if n := len(f.damage(t)); n != i {
+				t.Errorf("%s: %d hits just before %v, want %d", c.name, n, want, i)
+			}
+			f.tick(want)
+			if n := len(f.damage(t)); n != i+1 {
+				t.Errorf("%s: %d hits at %v, want %d", c.name, n, want, i+1)
+			}
+		}
+	}
+}
+
+// Out of reach the round waits; in reach it begins at once.
 func TestAutoAttackWaitsForReach(t *testing.T) {
 	f := newFight(t)
 	f.w.EngageAttack(f.sess, f.npcID, swing6s, f.t0)
 	f.p.AutoAttack = true
 	f.npc.X = 160 // 60 units away
-	f.tick(6 * time.Second)
+	f.tick(250 * time.Millisecond)
 	f.tick(9 * time.Second)
 	if len(f.damage(t)) != 0 || f.p.AttackTarget == 0 {
 		t.Fatalf("out of reach: %v, engaged %v", f.damage(t), f.p.AttackTarget != 0)
 	}
 	f.npc.X = 103
 	f.tick(9100 * time.Millisecond)
+	f.tick(9600 * time.Millisecond)
 	if len(f.damage(t)) != 1 {
-		t.Fatal("the waiting swing did not land in reach")
+		t.Fatal("the waiting round did not begin in reach")
 	}
 }
 
@@ -262,7 +298,8 @@ func TestAutoAttackKillEndsTheFight(t *testing.T) {
 	f.npc.HP = 1
 	f.w.EngageAttack(f.sess, f.npcID, swing6s, f.t0)
 	f.p.AutoAttack = true
-	f.tick(6 * time.Second)
+	f.tick(250 * time.Millisecond)
+	f.tick(750 * time.Millisecond)
 	if !f.npc.Dead || f.p.AttackTarget != 0 {
 		t.Errorf("dead %v, still engaged %v", f.npc.Dead, f.p.AttackTarget != 0)
 	}

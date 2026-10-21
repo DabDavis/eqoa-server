@@ -140,3 +140,26 @@ func drain(s *session.Session) [][]byte {
 	}
 	return out
 }
+
+// An NPC's rounds keep their cadence whatever the tick: a round begins one
+// round after the last began, not at the tick that found it due.
+func TestNPCRoundsKeepTheirCadence(t *testing.T) {
+	c := newCaster(t)
+	c.npc.Name, c.npc.Level, c.npc.HP, c.npc.MaxHP = "Desert Crab", 34, 2000, 2000
+	c.npc.CurrentEnemy = c.p.ServerID
+	c.p.HP, c.p.MaxHP = 5000, 5000
+	swings := 0
+	for _, d := range []time.Duration{0, 4050 * time.Millisecond, 8 * time.Second} {
+		c.w.mu.Lock()
+		c.w.aiSystem(c.at(d))
+		c.w.mu.Unlock()
+		for _, m := range c.sent() {
+			if opOfMsg(m) == protocol.OpcodeCastingCombat {
+				swings++
+			}
+		}
+	}
+	if swings != 3 {
+		t.Errorf("%d swings at 0, 4.05 and 8 s, want 3: the round late by a tick put off the next", swings)
+	}
+}

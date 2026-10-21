@@ -14,7 +14,8 @@ type Gear struct {
 	PoT, HoT                          int // 12 and 13
 	AC                                int // 14
 	PR, DR, FR, CR, LR, AR            int // 22-27
-	// WeaponDamage is the primary weapon's itempattern.weapondamage, 0 for none.
+	// WeaponDamage is the primary weapon's itempattern.weapondamage (the
+	// tooltip's DMG), 0 for none. Not yet used: see RecalcStats.
 	WeaponDamage int
 }
 
@@ -79,14 +80,14 @@ func (p *Player) RecalcStats(fill bool) {
 	p.MaxPower = CalculateMaxPower(p.Level, p.Class, p.Str, p.Sta, p.Agi, p.Dex, p.Wis, p.Int, p.Cha) + g.MaxPower
 	p.AC = g.AC
 	p.PoisonR, p.DiseaseR, p.FireR, p.ColdR, p.LightningR, p.ArcaneR = g.PR, g.DR, g.FR, g.CR, g.LR, g.AR
-	// the combat modifiers' placeholders (stats.go) on what is worn now
+	// Combat keeps its old placeholders (stats.go) until Sandstorm's melee
+	// and defense are measured: the AC of 50 and a weapon damage of level/3
+	// that CalculateMeleeDamage was tuned on. The worn weapon's rating
+	// (g.WeaponDamage, 560 on a level 50 sword) is some 35 times that, and
+	// the worn AC up to 30 times, so neither may go in before the formulas.
 	p.OffMod = CalculateOffMod(p.BaseStr, p.BaseDex, p.Level)
-	p.DefMod = CalculateDefMod(p.AC, p.BaseAgi, p.Level)
-	if g.WeaponDamage > 0 {
-		p.WeaponDamage = g.WeaponDamage
-	} else {
-		p.WeaponDamage = max(p.Level/3, 1) // no weapon: the old placeholder
-	}
+	p.DefMod = CalculateDefMod(50, p.BaseAgi, p.Level)
+	p.WeaponDamage = p.Level / 3
 	if fill {
 		p.HP, p.Power = p.MaxHPNow(), p.MaxPowerNow()
 	} else {

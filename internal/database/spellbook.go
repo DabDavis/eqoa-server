@@ -91,3 +91,38 @@ func (s *SpellbookStore) SetSpellRow(serverID uint32, r SpellRow) error {
 		r.AddedOrder, r.OnHotBar, r.WhereOnHotBar, serverID, r.SpellID)
 	return err
 }
+
+// SpellName is one spell pattern's id, name and level.
+type SpellName struct {
+	SpellID int
+	Name    string
+	Level   int
+}
+
+// SpellNames returns every spell pattern's id, name and level, in id order:
+// a scroll names the spell it teaches by its own name, and nothing else.
+func (s *SpellbookStore) SpellNames() ([]SpellName, error) {
+	rows, err := s.db.Query(`SELECT spellid, spellname, abilitylvl FROM spellpattern ORDER BY spellid`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []SpellName
+	for rows.Next() {
+		var n SpellName
+		if err := rows.Scan(&n.SpellID, &n.Name, &n.Level); err != nil {
+			return nil, err
+		}
+		out = append(out, n)
+	}
+	return out, rows.Err()
+}
+
+// AddSpell puts a spell in a character's book at display index order, off
+// the bar, with no lockout and -1 at VIAbility+0x14: the record Sandstorm
+// sends for a scroll just scribed.
+func (s *SpellbookStore) AddSpell(serverID uint32, spellID, order int) error {
+	_, err := s.db.Exec(`INSERT INTO spells (serverid, spellid, addedorder, onHotBar, whereonBar, unk1, showhide)
+		VALUES (?, ?, ?, 0, -1, 0, -1)`, serverID, spellID, order)
+	return err
+}

@@ -163,6 +163,7 @@ case *entity.NPC:
 - NPC AI (aggro, melee, leash, respawn)
 - HP/Power regen system
 - Hotkey menu (L2 D-pad) — 25 default hotkeys, fragmented MemoryDump delivery
+- Spell scrolls: the item menu's Use scribes one (`scribe.go`: a scroll is the scroll's art plus a spell of its name; Sandstorm's 0x003C + 0x00B3 and its refusal lines, recorded); `tools/import_sandstorm_harvest.py` stocks the spell vendors. Casting (0x0032) is not handled yet
 
 ### Key Server Protocol Details
 

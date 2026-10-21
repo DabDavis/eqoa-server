@@ -419,6 +419,15 @@ func (db *SQLiteDB) initSchema() error {
 		PRIMARY KEY (serverid, seq)
 	);
 
+	-- classspells: which spells a class has, for a new character given
+	-- them all (world.start_all_spells); tools/import_class_spells.py fills it
+	CREATE TABLE IF NOT EXISTS classspells (
+		class   INTEGER NOT NULL,
+		spellid INTEGER NOT NULL,
+		source  TEXT NOT NULL,
+		PRIMARY KEY (class, spellid)
+	);
+
 	-- spells (player spellbook)
 	CREATE TABLE IF NOT EXISTS spells (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -498,6 +507,9 @@ func (db *SQLiteDB) Close() error {
 // SQLiteCharacterStore handles character persistence with SQLite.
 type SQLiteCharacterStore struct {
 	db *SQLiteDB
+
+	// newRules is what CreateNew gives a new character (newchar.go)
+	newRules NewCharacterRules
 }
 
 // NewSQLiteCharacterStore creates a new character store.

@@ -1002,6 +1002,12 @@ func (s *AccountServer) handleAPICharacters(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(map[string]interface{}{"success": true, "characters": charList})
 }
 
+// SetNewCharacterRules sets what a character made on the page starts with,
+// as the game's own creation does (database/newchar.go).
+func (s *AccountServer) SetNewCharacterRules(r database.NewCharacterRules) {
+	s.charStore.SetNewCharacterRules(r)
+}
+
 // handleAPICreateCharacter creates a new character.
 func (s *AccountServer) handleAPICreateCharacter(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -1100,13 +1106,18 @@ func (s *AccountServer) handleAPICreateCharacter(w http.ResponseWriter, r *http.
 		Speed:        8.0,
 	}
 
-	if err := s.charStore.Create(record); err != nil {
+	// at the start level, with the class's spells when the server gives them
+	spells, err := s.charStore.CreateNew(record)
+	if err != nil && record.ServerID == 0 {
 		log.Printf("AccountServer: failed to create character: %v", err)
 		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Failed to create character"})
 		return
 	}
+	if err != nil {
+		log.Printf("AccountServer: %v", err)
+	}
 
-	log.Printf("AccountServer: character '%s' created for account %d", req.Name, sess.AccountID)
+	log.Printf("AccountServer: character '%s' created for account %d (level %d, %d spells)", req.Name, sess.AccountID, record.Level, spells)
 	json.NewEncoder(w).Encode(map[string]interface{}{"success": true})
 }
 

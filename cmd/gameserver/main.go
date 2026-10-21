@@ -44,6 +44,13 @@ func main() {
 
 	// Create database stores
 	charStore := database.NewSQLiteCharacterStore(db)
+	// What a new character starts with (for testing: world.start_level and
+	// world.start_all_spells); the account page's store is given the same
+	newRules := database.NewCharacterRules{Level: cfg.World.StartLevel, AllSpells: cfg.World.StartAllSpells}
+	charStore.SetNewCharacterRules(newRules)
+	if cfg.World.StartLevel > 1 || cfg.World.StartAllSpells {
+		log.Printf("New characters: level %d, all their class's spells: %v", max(1, min(60, cfg.World.StartLevel)), cfg.World.StartAllSpells)
+	}
 	accountStore := database.NewSQLiteAccountStore(db)
 	inventoryStore := database.NewInventoryStore(db)
 	spellbookStore := database.NewSpellbookStore(db)
@@ -226,6 +233,7 @@ func main() {
 
 	// Initialize and start account registration server
 	accountServer := tcp.NewAccountServer(db, cfg.Server.AccountPort, cfg.Auth.BCryptCost)
+	accountServer.SetNewCharacterRules(newRules)
 
 	// The account pages can move a character on the logged-in account. Where the
 	// destinations ARE depends on where their defining NPCs spawned, and moving a

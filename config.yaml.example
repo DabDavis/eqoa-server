@@ -37,6 +37,13 @@ world:
   npc_text:
     "Freeport Announcements": "Welcome to the server."
 
+  # For testing: the level a new character starts at (1 when unset; a
+  # client's creation message never chooses it), and whether it starts with
+  # every spell its class has (the classspells table, filled by
+  # tools/import_class_spells.py).
+  # start_level: 50
+  # start_all_spells: true
+
 patch:
   # Directory holding the client patch payloads. A relative path resolves
   # against the working directory first, then against the executable's

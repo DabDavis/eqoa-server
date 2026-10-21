@@ -354,8 +354,11 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 
 	h.applyFrogloklSpawn(record)
 
-	// Save to database
-	if err := h.store.Create(record); err != nil {
+	// Save to database, at the start level and with the class's spells when
+	// the server gives them (database/newchar.go): the level the message
+	// carried is not taken
+	spells, err := h.store.CreateNew(record)
+	if err != nil && record.ServerID == 0 {
 		if err == database.ErrCharacterExists {
 			log.Printf("CreateCharacter: name '%s' already exists in database", name)
 			h.SendNameTaken(sess)
@@ -365,10 +368,13 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 		h.sendCreateRefusal(sess, protocol.OpcodeCreateCharFailed)
 		return nil
 	}
+	if err != nil {
+		log.Printf("CreateCharacter: %v", err)
+	}
 
 	count, _ := h.store.Count()
-	log.Printf("*** CHARACTER CREATED: '%s' (ServerID=%d, Level %d Race=%d Class=%d) - Total chars: %d ***",
-		name, record.ServerID, record.Level, record.Race, record.TClass, count)
+	log.Printf("*** CHARACTER CREATED: '%s' (ServerID=%d, Level %d Race=%d Class=%d, %d spells; the message asked level %d) - Total chars: %d ***",
+		name, record.ServerID, record.Level, record.Race, record.TClass, spells, level, count)
 
 	// Don't create entity here — player entities are created when entering the world
 	// (CreatePlayer in HandleSelectedChar). Creating them at character creation would

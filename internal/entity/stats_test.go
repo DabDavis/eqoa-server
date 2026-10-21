@@ -82,51 +82,94 @@ func TestCalculateMeleeDamage(t *testing.T) {
 	}
 }
 
-// TestCalculateMaxHP verifies HP formula against SOE retail data.
+// TestCalculateMaxHP holds the formula to Sandstorm's base maximum hit
+// points (stat channel byte 148) as measured 2026-10-21, one case for each
+// different (class, level, stamina) among the characters with no mastery
+// that adds hit points: the stamina is all of it, worn and from spells.
 func TestCalculateMaxHP(t *testing.T) {
 	tests := []struct {
-		name             string
-		level, class     int
-		stamina          int
-		wantMin, wantMax int // allow ±2 for rounding
+		class, level, stamina, want int
 	}{
-		// Corsten: L60 Rogue (class 6), BaseSTA=235, HP=6459
-		{"Corsten L60 Rogue", 60, 6, 235, 6458, 6462},
-		// Lostologist: L45 Alchemist (class 14), BaseSTA=115, HP=1814
-		{"Lostologist L45 Alch", 45, 14, 115, 1813, 1815},
+		{0, 1, 85, 32}, {0, 1, 80, 31}, {0, 51, 515, 3621}, // warrior
+		{2, 1, 80, 31},                  // paladin
+		{3, 1, 110, 34}, {3, 2, 90, 64}, // shadow knight
+		{6, 1, 70, 22},                  // rogue
+		{4, 5, 100, 125},                // monk
+		{5, 51, 515, 3213},              // bard
+		{9, 1, 80, 20}, {9, 7, 98, 154}, // cleric
+		{7, 23, 128, 575}, {7, 23, 120, 552}, {7, 23, 103, 506}, // druid
+		{14, 1, 65, 16},                       // alchemist
+		{13, 6, 86, 108},                      // wizard
+		{12, 15, 54, 225}, {12, 49, 105, 980}, // enchanter
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := CalculateMaxHP(tt.level, tt.class, tt.stamina)
-			if got < tt.wantMin || got > tt.wantMax {
-				t.Errorf("CalculateMaxHP(%d, %d, %d) = %d, want [%d, %d]",
-					tt.level, tt.class, tt.stamina, got, tt.wantMin, tt.wantMax)
-			}
-		})
+		if got := CalculateMaxHP(tt.level, tt.class, tt.stamina); got != tt.want {
+			t.Errorf("CalculateMaxHP(level %d, class %d, STA %d) = %d, Sandstorm's %d", tt.level, tt.class, tt.stamina, got, tt.want)
+		}
 	}
 }
 
-// TestCalculateMaxPower verifies Power formula against SOE retail data.
+// TestCalculateMaxPower holds the formula to Sandstorm's base maximum power
+// (stat channel byte 156, of the base stats), measured on the same
+// characters: one case for each different (class, level, base stats),
+// every class but the ranger and the shaman (none was measured).
 func TestCalculateMaxPower(t *testing.T) {
 	tests := []struct {
-		name                                string
-		level, class                        int
-		str, sta, agi, dex, wis, intel, cha int
-		wantMin, wantMax                    int
+		class, level int
+		stats        [7]int // STR STA AGI DEX WIS INT CHA
+		want         int
 	}{
-		// Corsten: L60 Rogue, base stats, BasePower=5490
-		{"Corsten L60 Rogue", 60, 6, 235, 235, 85, 80, 195, 55, 55, 5489, 5491},
-		// Lostologist: L45 Alch, base stats, BasePower=2481
-		{"Lostologist L45 Alch", 45, 14, 50, 115, 65, 70, 291, 90, 50, 2470, 2500},
+		{0, 1, [7]int{85, 85, 60, 65, 55, 55, 50}, 41},
+		{0, 1, [7]int{70, 80, 60, 70, 60, 65, 50}, 40},
+		{0, 51, [7]int{239, 254, 222, 209, 60, 60, 55}, 3333},
+		{2, 1, [7]int{75, 80, 65, 65, 60, 55, 55}, 40},
+		{3, 1, [7]int{90, 110, 60, 60, 50, 55, 50}, 44},
+		{3, 2, [7]int{90, 90, 60, 60, 50, 55, 50}, 83},
+		{3, 50, [7]int{75, 204, 60, 351, 55, 232, 50}, 2608},
+		{4, 5, [7]int{65, 100, 65, 80, 60, 55, 55}, 205},
+		{5, 51, [7]int{65, 301, 207, 70, 60, 60, 227}, 3251},
+		{6, 1, [7]int{75, 70, 70, 80, 50, 55, 55}, 40},
+		{7, 23, [7]int{60, 100, 100, 105, 75, 55, 60}, 937},
+		{7, 23, [7]int{60, 103, 100, 105, 75, 55, 60}, 937},
+		{9, 1, [7]int{60, 80, 65, 60, 75, 65, 70}, 39},
+		{9, 7, [7]int{60, 98, 65, 60, 75, 65, 70}, 273},
+		{10, 45, [7]int{55, 229, 194, 60, 65, 80, 55}, 2057},
+		{11, 51, [7]int{80, 268, 50, 60, 55, 75, 306}, 2494},
+		{12, 15, [7]int{50, 50, 60, 109, 65, 95, 90}, 630},
+		{12, 49, [7]int{50, 50, 397, 65, 65, 95, 71}, 2011},
+		{13, 6, [7]int{60, 86, 60, 80, 55, 90, 50}, 246},
+		{14, 1, [7]int{50, 65, 55, 70, 75, 90, 50}, 41},
+		{14, 32, [7]int{55, 165, 158, 65, 85, 80, 55}, 1288},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := CalculateMaxPower(tt.level, tt.class, tt.str, tt.sta, tt.agi, tt.dex, tt.wis, tt.intel, tt.cha)
-			if got < tt.wantMin || got > tt.wantMax {
-				t.Errorf("CalculateMaxPower(%d, %d, ...) = %d, want [%d, %d]",
-					tt.level, tt.class, got, tt.wantMin, tt.wantMax)
-			}
-		})
+		s := tt.stats
+		if got := CalculateMaxPower(tt.level, tt.class, s[0], s[1], s[2], s[3], s[4], s[5], s[6]); got != tt.want {
+			t.Errorf("CalculateMaxPower(level %d, class %d, %v) = %d, Sandstorm's %d", tt.level, tt.class, s, got, tt.want)
+		}
+	}
+}
+
+// TestLookupBaseStats holds the starting stats to Sandstorm's level 1
+// characters, less the 20 points each spent (a character that put them all
+// in STA shows it 20 over). The Barbarian Warrior is the row Return Home's
+// table has wrong.
+func TestLookupBaseStats(t *testing.T) {
+	tests := []struct {
+		race, class int
+		want        baseStats
+	}{
+		{6, 0, baseStats{85, 85, 60, 65, 55, 55, 50}},  // Barbarian Warrior
+		{6, 6, baseStats{75, 70, 70, 80, 50, 55, 55}},  // Barbarian Rogue
+		{2, 0, baseStats{70, 80, 60, 70, 60, 65, 50}},  // Dark Elf Warrior
+		{2, 14, baseStats{50, 65, 55, 70, 75, 90, 50}}, // Dark Elf Alchemist
+		{0, 2, baseStats{75, 80, 65, 65, 60, 55, 55}},  // Human Paladin
+		{5, 3, baseStats{90, 90, 60, 60, 50, 55, 50}},  // Troll Shadow Knight
+		{3, 9, baseStats{60, 60, 65, 60, 75, 65, 70}},  // Gnome Cleric (Sandstorm's 20 more STA)
+	}
+	for _, tt := range tests {
+		if got := LookupBaseStats(tt.race, tt.class); got != tt.want {
+			t.Errorf("LookupBaseStats(race %d, class %d) = %v, Sandstorm's %v", tt.race, tt.class, got, tt.want)
+		}
 	}
 }
 
@@ -148,16 +191,15 @@ func TestNPCOffMod(t *testing.T) {
 // Player.Size and NPC.Size, i.e. ModelSize on the wire, so the only signal was
 // how the model looked in-world.
 func TestRaceScaleUsesNetworkEnum(t *testing.T) {
-	// Anchor the enum in a table that is independently keyed on it. The classes
-	// have to be ones that DISCRIMINATE between the two orderings: Shaman does
-	// not (both Troll and Halfling have one), but ShadowKnight is Troll-only and
-	// Druid is Halfling-only, so this pair is false under the old layout. If the
-	// enum is ever re-swapped, it fails here rather than in the scale assertions.
-	if _, ok := defaultBaseStats[raceClass{5, 3}]; !ok { // Troll ShadowKnight
-		t.Fatal("defaultBaseStats has no race 5 ShadowKnight — race 5 is not Troll?")
+	// Anchor the enum in a table that is independently keyed on it, by bonuses
+	// that DISCRIMINATE between the two orderings: only the Troll's STR is +20
+	// of the three, only the Halfling's DEX +15. If the enum is ever re-swapped,
+	// it fails here rather than in the scale assertions.
+	if raceBonus[5][0] != 20 { // the Troll's STR +20
+		t.Fatal("raceBonus[5] is not the Troll's — race 5 is not Troll?")
 	}
-	if _, ok := defaultBaseStats[raceClass{7, 7}]; !ok { // Halfling Druid
-		t.Fatal("defaultBaseStats has no race 7 Druid — race 7 is not Halfling?")
+	if raceBonus[7][3] != 15 { // the Halfling's DEX +15
+		t.Fatal("raceBonus[7] is not the Halfling's — race 7 is not Halfling?")
 	}
 
 	// Big races scale up, small races scale down. Values are the model-height

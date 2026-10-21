@@ -122,9 +122,6 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		level = 1
 	}
 
-	maxHP := CalculateMaxHP(level, record.TClass, sta)
-	maxPower := CalculateMaxPower(level, record.TClass, str, sta, agi, dex, wis, intel, cha)
-
 	// Use DB position if it's been saved (non-zero), otherwise use default spawn
 	posX := float32(25285.0)
 	posY := float32(54.12)
@@ -171,10 +168,6 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		AccountID:    record.AccountID,
 		CharServerID: record.ServerID,
 		Class:        record.TClass,
-		HP:           maxHP,
-		MaxHP:        maxHP,
-		Power:        maxPower,
-		MaxPower:     maxPower,
 		Level:        level,
 		Speed:        20.0,
 		Faction:      FactionFriendly,
@@ -190,18 +183,15 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		BaseMaxStat:  475,
 		Tunar:        StartingTunar(record),
 		BankTunar:    record.BankTunar,
-		AC:           50,
 		Breath:       BreathFull,
 
 		// Base stats (before equipment) for combat formulas
 		BaseStr: str, BaseSta: sta, BaseAgi: agi, BaseDex: dex,
 		BaseWis: wis, BaseInt: intel, BaseCha: cha,
-
-		// SOE combat modifiers — computed from base stats
-		OffMod:       CalculateOffMod(str, dex, level),
-		DefMod:       CalculateDefMod(50, agi, level), // AC=50 default
-		WeaponDamage: level / 3,                       // placeholder until item system
 	}
+	// the maxima and the combat modifiers from the stats; the worn items
+	// come with SetGear
+	p.RecalcStats(true)
 
 	w.rejoinGuildLocked(p)
 	w.Players[id] = p
@@ -745,6 +735,7 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 			}
 			player.XPInLevel -= threshold
 			player.Level++
+			player.RecalcStats(false)
 			log.Printf("Combat: player %s leveled up to %d!", sess.RemoteAddr(), player.Level)
 			w.sendChatToSession(sess, fmt.Sprintf("You have reached level %d!", player.Level))
 			if player.Level >= 60 {

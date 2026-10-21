@@ -547,18 +547,18 @@ func SerializeStatUpdate(p *Player) []byte {
 	writeInt32(136, int32(p.BaseInt))
 	writeInt32(140, int32(p.BaseCha))
 
-	// Base HP/Power (offsets 144-159) — eqoa.live format:
-	// offset 144: 0 (NOT a duplicate of current HP)
-	// offset 148: BaseHP (max HP before buffs; using MaxHP since no buff system yet)
-	// offset 152: 0 (NOT a duplicate of current Power)
-	// offset 156: BasePower (max Power before buffs; using MaxPower since no buff system yet)
+	// Base maxima (offsets 148, 156), as Sandstorm sends them (gear.go): the
+	// hit points of all the stamina without anything's own, the power of the
+	// base stats alone. 144 and 152 stay 0, not the current HP and power.
 	writeInt32(144, 0)
-	writeInt32(148, int32(p.MaxHP))
+	writeInt32(148, int32(p.BaseMaxHP()))
 	writeInt32(152, 0)
-	writeInt32(156, int32(p.MaxPower))
+	writeInt32(156, int32(p.BaseMaxPower()))
 
-	// Base AC (offset 172)
-	writeInt32(172, int32(p.AC))
+	// Base AC (offset 172): 0, as on Sandstorm; the AC is all the worn items'
+	// and the spells' (56). The client adds the worn items' to the base half
+	// itself (GetStatTotal), so a base AC would count them twice.
+	writeInt32(172, 0)
 
 	// Offset 232: breath, 255 full (VIPlayer's m_p30, the breath gauge's
 	// fill: DrawStatus draws it over 255). Not an end marker: every capture

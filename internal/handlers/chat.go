@@ -696,6 +696,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			level = 60
 		}
 		player.Level = level
+		player.RecalcStats(false)
 		h.gmReply(sess, fmt.Sprintf("Level set to %d", level))
 
 	case "#hp":

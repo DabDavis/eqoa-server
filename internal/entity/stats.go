@@ -54,217 +54,127 @@ type baseStats struct {
 	Str, Sta, Agi, Dex, Wis, Int, Cha int
 }
 
-// raceClass is the lookup key for default base stats.
-type raceClass struct {
-	Race, Class int
+// raceBonus is each race's seven stat bonuses (STR STA AGI DEX WIS INT CHA),
+// gRaces' m_bonus in SUPPORT (decomp src/virace.cpp), on the network race
+// enum; every race's total 35. The froglok's (10) is the S2's, a copy of
+// Human's (re-tools/extend_s2_race.py).
+var raceBonus = [...][7]int{
+	{5, 5, 5, 5, 5, 5, 5},    // 0 Human
+	{0, 0, 0, 10, 10, 5, 10}, // 1 Elf
+	{0, 5, 0, 10, 5, 15, 0},  // 2 Dark Elf
+	{0, 0, 10, 10, 0, 15, 0}, // 3 Gnome
+	{10, 10, 0, 5, 10, 0, 0}, // 4 Dwarf
+	{20, 15, 0, 0, 0, 0, 0},  // 5 Troll
+	{15, 10, 0, 5, 0, 5, 0},  // 6 Barbarian
+	{0, 10, 10, 15, 0, 0, 0}, // 7 Halfling
+	{0, 0, 0, 5, 10, 20, 0},  // 8 Erudite
+	{20, 15, 0, 0, 0, 0, 0},  // 9 Ogre
+	{5, 5, 5, 5, 5, 5, 5},    // 10 Froglok
 }
 
-// defaultBaseStats maps race/class to starting base stats.
-// Source: C# ReturnHome DefaultCharacter table (eqoabase_schema.sql).
-// HumanType/Sex variants share the same stats per race/class in practice.
-var defaultBaseStats = map[raceClass]baseStats{
-	// Human (0) — Eastern (humType 1)
-	{0, 8}:  {65, 65, 60, 55, 80, 55, 75}, // Shaman
-	{0, 5}:  {60, 75, 80, 65, 55, 55, 65}, // Bard
-	{0, 14}: {55, 65, 60, 65, 75, 80, 55}, // Alchemist
-	{0, 0}:  {75, 80, 65, 65, 60, 55, 55}, // Warrior
-	{0, 13}: {65, 60, 65, 75, 55, 80, 55}, // Wizard
-	{0, 3}:  {75, 80, 65, 65, 55, 60, 55}, // ShadowKnight
-	{0, 6}:  {65, 65, 75, 80, 55, 55, 60}, // Rogue
-	{0, 11}: {65, 75, 55, 65, 60, 80, 55}, // Necromancer
-	{0, 10}: {55, 65, 75, 60, 65, 80, 55}, // Magician
-	{0, 12}: {55, 55, 65, 65, 60, 80, 75}, // Enchanter
-	{0, 1}:  {65, 65, 75, 80, 60, 55, 55}, // Ranger (Western)
-	{0, 2}:  {75, 80, 65, 65, 60, 55, 55}, // Paladin (Western)
-	{0, 4}:  {65, 75, 65, 80, 60, 55, 55}, // Monk (Western)
-	{0, 7}:  {65, 55, 55, 75, 80, 60, 65}, // Druid (Western)
-	{0, 9}:  {0, 0, 0, 0, 0, 0, 0},        // Cleric — not available for Human
-
-	// Elf (1)
-	{1, 14}: {50, 60, 55, 70, 80, 80, 60}, // Alchemist
-	{1, 5}:  {55, 70, 75, 70, 60, 55, 70}, // Bard
-	{1, 8}:  {60, 60, 55, 60, 85, 55, 80}, // Shaman
-	{1, 7}:  {60, 50, 50, 80, 85, 60, 70}, // Druid
-	{1, 12}: {50, 50, 60, 70, 65, 80, 80}, // Enchanter
-	{1, 10}: {50, 60, 70, 65, 70, 80, 60}, // Magician
-	{1, 2}:  {70, 85, 60, 70, 65, 55, 60}, // Paladin
-	{1, 1}:  {60, 60, 70, 85, 65, 55, 60}, // Ranger
-	{1, 6}:  {60, 60, 70, 85, 60, 55, 65}, // Rogue
-	{1, 9}:  {60, 55, 60, 80, 60, 80, 60}, // Cleric
-
-	// Dark Elf (2)
-	{2, 14}: {50, 65, 55, 70, 75, 90, 50}, // Alchemist
-	{2, 8}:  {60, 65, 55, 60, 80, 65, 70}, // Shaman
-	{2, 12}: {50, 55, 60, 70, 60, 90, 70}, // Enchanter
-	{2, 10}: {50, 65, 70, 65, 65, 90, 50}, // Magician
-	{2, 11}: {60, 75, 50, 70, 60, 90, 50}, // Necromancer
-	{2, 6}:  {60, 65, 70, 85, 55, 65, 55}, // Rogue
-	{2, 3}:  {70, 80, 60, 70, 55, 70, 50}, // ShadowKnight
-	{2, 0}:  {70, 80, 60, 70, 60, 65, 50}, // Warrior
-	{2, 13}: {60, 60, 60, 80, 55, 90, 50}, // Wizard
-
-	// Gnome (3)
-	{3, 8}:  {70, 70, 55, 55, 85, 50, 70}, // Shaman (old entry)
-	{3, 2}:  {80, 85, 60, 65, 65, 50, 50}, // Paladin
-	{3, 0}:  {70, 75, 70, 70, 55, 65, 50}, // Warrior (2nd entry)
-	{3, 6}:  {60, 60, 80, 85, 50, 65, 55}, // Rogue (2nd entry)
-	{3, 14}: {50, 60, 65, 70, 70, 90, 50}, // Alchemist
-	{3, 12}: {50, 50, 70, 70, 55, 90, 70}, // Enchanter
-	{3, 10}: {50, 60, 80, 65, 60, 90, 50}, // Magician
-	{3, 11}: {60, 70, 60, 70, 55, 90, 50}, // Necromancer
-	{3, 13}: {60, 55, 70, 80, 50, 90, 50}, // Wizard
-
-	// Dwarf (4)
-	{4, 0}: {90, 90, 60, 60, 55, 50, 50}, // Warrior
-	{4, 3}: {90, 90, 60, 60, 50, 55, 50}, // ShadowKnight
-	{4, 8}: {70, 85, 60, 55, 75, 50, 60}, // Shaman
-
-	// Troll (5)
-	{5, 8}: {65, 80, 60, 60, 75, 55, 60}, // Shaman
-	{5, 0}: {65, 80, 60, 60, 75, 55, 60}, // Warrior
-	{5, 3}: {65, 80, 60, 60, 70, 60, 60}, // ShadowKnight
-	{5, 6}: {75, 70, 70, 80, 50, 55, 55}, // Rogue
-
-	// Halfling (7)
-	{7, 7}: {60, 60, 60, 85, 75, 55, 60}, // Druid
-	{7, 6}: {60, 70, 80, 90, 50, 50, 55}, // Rogue
-	{7, 0}: {70, 85, 70, 75, 55, 50, 50}, // Warrior
-	{7, 8}: {60, 70, 65, 65, 75, 50, 70}, // Shaman
-
-	// Erudite (8)
-	{8, 14}: {50, 60, 55, 65, 80, 95, 50}, // Alchemist
-	{8, 8}:  {60, 60, 55, 55, 85, 70, 70}, // Shaman
-	{8, 12}: {50, 50, 60, 65, 65, 95, 70}, // Enchanter
-	{8, 10}: {50, 60, 70, 60, 70, 95, 50}, // Magician
-	{8, 2}:  {70, 75, 60, 65, 65, 70, 50}, // Paladin
-	{8, 3}:  {70, 75, 60, 65, 60, 75, 50}, // ShadowKnight
-	{8, 11}: {60, 70, 50, 65, 65, 95, 50}, // Necromancer
-	{8, 9}:  {60, 55, 60, 75, 60, 95, 50}, // Cleric
-
-	// Ogre (9)
-	{9, 3}:  {90, 90, 60, 60, 50, 55, 50}, // ShadowKnight
-	{9, 0}:  {90, 90, 60, 60, 55, 50, 50}, // Warrior
-	{9, 8}:  {70, 85, 60, 55, 75, 50, 60}, // Shaman
-	{9, 11}: {80, 85, 50, 60, 55, 75, 50}, // Necromancer
+// classBonus is each class's, VIClassDef's m_bonus (decomp src/viclass.cpp).
+// Each class has one +15 stat and one +10: the two its create page
+// highlights (m_statMask), and its power's (powerStats).
+var classBonus = [...][7]int{
+	{10, 15, 0, 0, -5, -10, -10}, // 0 Warrior
+	{0, 0, 10, 15, -5, -10, -10}, // 1 Ranger
+	{10, 15, 0, 0, -5, -10, -10}, // 2 Paladin
+	{10, 15, 0, 0, -10, -5, -10}, // 3 Shadow Knight
+	{0, 10, 0, 15, -5, -10, -10}, // 4 Monk
+	{-5, 10, 15, 0, -10, -10, 0}, // 5 Bard
+	{0, 0, 10, 15, -10, -10, -5}, // 6 Rogue
+	{0, -10, -10, 10, 15, -5, 0}, // 7 Druid
+	{-10, 10, 0, -5, 15, -10, 0}, // 8 Shaman
+	{0, 0, -5, -10, 15, -10, 10}, // 9 Cleric
+	{-10, 0, 10, -5, 0, 15, -10}, // 10 Magician
+	{0, 10, -10, 0, -5, 15, -10}, // 11 Necromancer
+	{-10, -10, 0, 0, -5, 15, 10}, // 12 Enchanter
+	{0, -5, 0, 10, -10, 15, -10}, // 13 Wizard
+	{-10, 0, -5, 0, 10, 15, -10}, // 14 Alchemist
 }
 
-// LookupBaseStats returns the base stats for a race/class combo.
-// Falls back to a generic default if the combo isn't in the table.
+// LookupBaseStats is a new character's stats before the 20 points it
+// spends, as the create screen shows them: 60, plus the race's bonus, plus
+// the class's (viwndcharcreatereview.cpp). Sandstorm's level 1 characters
+// have exactly these (2026-10-21: seven race/class pairs, the points spent
+// aside), where Return Home's defaultcharacter table, this server's source
+// until then, has its Barbarian Shaman's row for the Barbarian Warrior and a
+// Troll Shaman of WIS 5. A race or class out of range takes no bonus.
 func LookupBaseStats(race, class int) baseStats {
-	if bs, ok := defaultBaseStats[raceClass{race, class}]; ok {
-		return bs
+	var v [7]int
+	for i := range v {
+		v[i] = 60
+		if race >= 0 && race < len(raceBonus) {
+			v[i] += raceBonus[race][i]
+		}
+		if class >= 0 && class < len(classBonus) {
+			v[i] += classBonus[class][i]
+		}
 	}
-	// Fallback for unknown combos
-	return baseStats{60, 60, 60, 60, 60, 60, 60}
+	return baseStats{v[0], v[1], v[2], v[3], v[4], v[5], v[6]}
 }
 
-// hpKClass returns the HP scaling constant K for a given class.
-// SOE retail formula: HP = level * (4.167 * STA * K + 19.2)
-// Verified exact: Rogue=0.090355, Alchemist=0.044058
-// Other classes estimated from C# ratio (tank:melee:healer:caster = 2.4:1.6:1.3:1.0)
-func hpKClass(class int) float64 {
+// hpFactor is the class's hit points a level before stamina: Return Home's
+// HPFactor (Character.cs), 24 the warrior, paladin and shadow knight, 16 the
+// ranger, monk, bard and rogue, 13 the priests, 10 the casters. Sandstorm's
+// are the same.
+func hpFactor(class int) int {
 	switch class {
-	case 0, 2, 3: // Warrior, Paladin, ShadowKnight (tank)
-		return 0.1057 // estimated: 0.044058 * 2.4
-	case 1, 4, 5, 6: // Ranger, Monk, Bard, Rogue (melee DPS)
-		return 0.090355 // VERIFIED from Corsten (L60 Rogue, HPFactor=1274)
-	case 7, 8, 9: // Druid, Shaman, Cleric (healer)
-		return 0.0573 // estimated: 0.044058 * 1.3
-	case 10, 11, 12, 13, 14: // Magician, Necromancer, Enchanter, Wizard, Alchemist (caster)
-		return 0.044058 // VERIFIED from Lostologist (L45 Alchemist, HPFactor=228)
-	default:
-		return 0.0441
+	case 0, 2, 3:
+		return 24
+	case 1, 4, 5, 6:
+		return 16
+	case 7, 8, 9:
+		return 13
 	}
+	return 10
 }
 
-// CalculateMaxHP computes max HP from level, class, and stamina.
-// SOE retail formula: HP = level * (4.167 * STA * K_class + 19.2)
-// Verified exact against Corsten (L60 Rogue, HP=6459) and Lostologist (L45 Alch, HP=1814).
+// CalculateMaxHP is the maximum hit points stamina gives: the level times
+// the class's factor and a point for every 11 stamina, rounded (stamina 5
+// to 15 gives one), all of the stamina counted, worn and from spells. The
+// stat channel's base maximum (byte 148) on Sandstorm is exactly this: 32
+// characters of every archetype, levels 1 to 51, measured 2026-10-21; on
+// six the masteries this server has none of add more (Vital Body's flat
+// hit points, Hearty's and Zek Boon's factor). Worn items' and spells' own
+// hit points come on top (MaxHPNow).
 func CalculateMaxHP(level, class, stamina int) int {
-	k := hpKClass(class)
-	hp := float64(level) * (4.167*float64(stamina)*k + 19.2)
-	result := int(math.Floor(hp))
-	if result < 1 {
-		return 1
-	}
-	return result
+	hp := level * (hpFactor(class) + (max(stamina, 0)+5)/11)
+	return max(hp, 1)
 }
 
-// powerStats returns the two stat values used for power calculation for a class.
-// Source: C# Entity.Stats.cs CalculatePower()
+// powerStats is the two stats a class's power is made of: the one its class
+// bonus raises 15, then the one it raises 10 (classBonus). Sandstorm's power
+// fits these pairs and no other for every class measured; Return Home's
+// table had the warrior's, paladin's and shadow knight's swapped, the bard's
+// and monk's on AGI and WIS, the ranger's and rogue's swapped.
 func powerStats(class, str, sta, agi, dex, wis, intel, cha int) (primary, secondary int) {
-	switch class {
-	case 0, 2, 3: // Warrior, Paladin, ShadowKnight
-		return str, sta
-	case 1, 6: // Ranger, Rogue
-		return agi, dex
-	case 4, 5: // Monk, Bard
-		return agi, wis
-	case 7: // Druid
-		return wis, dex
-	case 8: // Shaman
-		return wis, sta
-	case 9: // Cleric
-		return wis, cha
-	case 10: // Magician
-		return intel, agi
-	case 11: // Necromancer
-		return intel, sta
-	case 12: // Enchanter
-		return intel, cha
-	case 13: // Wizard
-		return intel, dex
-	case 14: // Alchemist
-		return intel, wis
-	default:
-		return str, sta
+	if class < 0 || class >= len(classBonus) {
+		class = 0
 	}
+	stats := [7]int{str, sta, agi, dex, wis, intel, cha}
+	for i, b := range classBonus[class] {
+		switch b {
+		case 15:
+			primary = stats[i]
+		case 10:
+			secondary = stats[i]
+		}
+	}
+	return primary, secondary
 }
 
-// powerBaseByClass returns the base power constant for a class.
-// SOE retail: Power = ((base*100 + primary*10 + secondary*5) * level) / 100
-// Verified: Rogue base=79 (AGI+DEX), Alchemist base≈32 (INT+WIS)
-// Other classes estimated from C# ratio patterns.
-func powerBaseByClass(class int) int {
-	switch class {
-	case 0, 2, 3: // Warrior, Paladin, ShadowKnight (STR+STA) — high base
-		return 70
-	case 1, 6: // Ranger, Rogue (AGI+DEX) — high base
-		return 79 // VERIFIED from Corsten
-	case 4, 5: // Monk, Bard (AGI+WIS)
-		return 60
-	case 7: // Druid (WIS+DEX)
-		return 45
-	case 8: // Shaman (WIS+STA)
-		return 45
-	case 9: // Cleric (WIS+CHA)
-		return 40
-	case 10: // Magician (INT+AGI)
-		return 35
-	case 11: // Necromancer (INT+STA)
-		return 35
-	case 12: // Enchanter (INT+CHA)
-		return 35
-	case 13: // Wizard (INT+DEX)
-		return 35
-	case 14: // Alchemist (INT+WIS)
-		return 32 // VERIFIED from Lostologist
-	default:
-		return 28
-	}
-}
-
-// CalculateMaxPower computes max power from level, class, and stats.
-// SOE retail formula: Power = ((base*100 + primary*10 + secondary*5) * level) / 100
-// Verified against Corsten (Rogue, Power=5490) and Lostologist (Alch, Power=2481).
+// CalculateMaxPower is the maximum power the stats give: (28 + primary/10 +
+// secondary/20) a level, rounded half up, Return Home's formula
+// (Entity.Stats.cs) on the class's own pair. The stat channel's base
+// maximum (byte 156) on Sandstorm is this of the base stats; its maximum
+// (byte 40), this of the stats worn and from spells too, plus their power.
+// Measured on the same 32 characters; the one that differs bought a mastery
+// that costs power.
 func CalculateMaxPower(level, class, str, sta, agi, dex, wis, intel, cha int) int {
 	primary, secondary := powerStats(class, str, sta, agi, dex, wis, intel, cha)
-	base := powerBaseByClass(class)
-	pow := ((base*100 + primary*10 + secondary*5) * level) / 100
-	if pow < 1 {
-		return 1
-	}
-	return pow
+	pow := ((2800+primary*10+secondary*5)*level + 50) / 100
+	return max(pow, 1)
 }
 
 // ---------------------------------------------------------------------------
@@ -287,6 +197,8 @@ func CalculateOffMod(baseStr, baseDex, level int) int {
 
 // CalculateDefMod computes the defensive modifier from AC and base agility.
 // DEF = floor(AC / 41.5 + base_AGI * level / 135.6) + equip_bonus
+// A placeholder: both constants are fitted to two characters, not verified
+// (claude-notes/combat-formula-final.md, "Status of the OFF/DEF MOD formulas").
 func CalculateDefMod(ac, baseAgi, level int) int {
 	def := float64(ac)/41.5 + float64(baseAgi)*float64(level)/135.6
 	return int(math.Floor(def))

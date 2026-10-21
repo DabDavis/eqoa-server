@@ -1,0 +1,53 @@
+package entity
+
+import (
+	"encoding/binary"
+	"testing"
+)
+
+// A level 23 druid in its gear, as Sandstorm's stat channel showed one
+// (2026-10-21): the worn items' stats on the base ones, the maximum hit
+// points of all the stamina plus the items' 113, the maximum power of all
+// the stats plus the items' 145, and the base maxima as Sandstorm sends them.
+func TestRecalcStatsWithGear(t *testing.T) {
+	p := &Player{Class: 7, Level: 23,
+		BaseStr: 60, BaseSta: 100, BaseAgi: 100, BaseDex: 105, BaseWis: 75, BaseInt: 55, BaseCha: 60}
+	var g Gear
+	for _, s := range [][2]int{{1, 28}, {2, 3}, {3, 38}, {4, 27}, {6, 18}, {8, 113}, {10, 145}, {14, 404},
+		{23, 26}, {24, 38}, {25, 14}, {26, 20}, {27, 12}} {
+		g.Add(s[0], s[1])
+	}
+	p.Gear = g
+	p.RecalcStats(true)
+
+	b := SerializeStatUpdate(p)
+	at := func(o int) int { return int(int32(binary.LittleEndian.Uint32(b[o:]))) }
+	for i, want := range []int{60, 128, 103, 143, 102, 55, 78} {
+		if got := at(4 * i); got != want {
+			t.Errorf("stat %d = %d, Sandstorm's %d", i, got, want)
+		}
+	}
+	for i, want := range []int{60, 100, 100, 105, 75, 55, 60} {
+		if got := at(116 + 4*i); got != want {
+			t.Errorf("base stat %d = %d, want %d", i, got, want)
+		}
+	}
+	// 28 HP, 32 its maximum, 36 power, 40 its maximum, 148 and 156 the base maxima
+	for o, want := range map[int]int{28: 688, 32: 688, 36: 1188, 40: 1188, 148: 575, 156: 937} {
+		if got := at(o); got != want {
+			t.Errorf("byte %d = %d, Sandstorm's %d", o, got, want)
+		}
+	}
+	// the worn AC and resists (Sandstorm showed this druid AC 529: something
+	// adds more than the items' 404, not yet known)
+	if at(56) != 404 || at(92) != 26 || at(108) != 12 || at(172) != 0 {
+		t.Errorf("AC %d, resists %d %d, base AC %d", at(56), at(92), at(108), at(172))
+	}
+
+	// Off with it all: the base stats again, the hit points within the new maximum.
+	p.Gear = Gear{}
+	p.RecalcStats(false)
+	if p.Sta != 100 || p.MaxHP != CalculateMaxHP(23, 7, 100) || p.HP != p.MaxHP || p.AC != 0 {
+		t.Errorf("unequipped: STA %d, max HP %d, HP %d, AC %d", p.Sta, p.MaxHP, p.HP, p.AC)
+	}
+}

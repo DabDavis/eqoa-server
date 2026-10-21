@@ -83,13 +83,16 @@ type NPC struct {
 	// respawning.
 	Temporary bool
 
-	// Dummy is a training dummy's kind (dummy.go), by its name; its fight:
-	// the player it fights, when its round began and how many of the
-	// round's hits have landed.
+	// Its melee round (rounds.go): when it began, how many of its hits
+	// have landed, and at whom.
+	RoundStart  time.Time
+	RoundHits   int
+	RoundTarget EntityID
+
+	// Dummy is a training dummy's kind (dummy.go), by its name, and the
+	// player it fights.
 	Dummy       DummyKind
 	DummyTarget EntityID
-	DummyRound  time.Time
-	DummyHits   int
 }
 
 // GetEntityID returns the NPC's entity ID.

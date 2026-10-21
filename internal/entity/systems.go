@@ -37,7 +37,6 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue) {
 
 	w.aiSystem(now)
 	w.attackSystem(now)
-	w.dummySystem(now)
 	gates := w.castSystem(now)
 	w.effectSystem(now)
 	w.respawnSystem(now)
@@ -54,25 +53,30 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue) {
 	return due, gates
 }
 
-// aiSystem handles NPC combat: aggro'd NPCs attack their current enemy every ~3 seconds.
-// Runs every 30 ticks (~3 seconds at 100ms tick rate), matching C# 3000ms attack timer.
-// Must be called with lock held.
+// aiSystem runs every aggro'd NPC's melee in rounds, as Sandstorm's
+// (rounds.go): its swing at its current enemy when a round begins, then the
+// round's hits. An NPC drops an enemy that is gone, dead or out of its
+// reach (10), and a new enemy starts a new round. Every tick; must be called
+// with the lock held.
 func (w *World) aiSystem(now time.Time) {
-	if w.TickCount%30 != 0 {
-		return
+	type fight struct {
+		npc   *NPC
+		enemy *Player
 	}
-
-	type npcAttack struct {
-		npc     *NPC
-		enemyID EntityID
-	}
-	var attacks []npcAttack
+	var fights []fight
+	var dummies []*NPC
 
 	for _, npc := range w.NPCs {
-		if npc.Dead || npc.Dummy != NotDummy {
-			continue // a dummy fights in its own rounds (dummySystem)
+		if npc.Dummy != NotDummy {
+			if npc.DummyTarget != 0 {
+				dummies = append(dummies, npc) // its own target and hits (dummy.go)
+			}
+			continue
 		}
-		if npc.CurrentEnemy == 0 {
+		if npc.CurrentEnemy == 0 || npc.Dead {
+			if !npc.RoundStart.IsZero() {
+				npc.endRound()
+			}
 			continue
 		}
 
@@ -81,6 +85,7 @@ func (w *World) aiSystem(now time.Time) {
 		if !ok {
 			npc.Threats = nil
 			npc.CurrentEnemy = 0
+			npc.endRound()
 			continue
 		}
 
@@ -92,6 +97,7 @@ func (w *World) aiSystem(now time.Time) {
 		if enemy.IsDead() {
 			npc.Threats = nil
 			npc.CurrentEnemy = 0
+			npc.endRound()
 			continue
 		}
 
@@ -103,19 +109,36 @@ func (w *World) aiSystem(now time.Time) {
 			// Out of range — clear aggro (leash)
 			npc.Threats = nil
 			npc.CurrentEnemy = 0
+			npc.endRound()
 			continue
 		}
 
-		attacks = append(attacks, npcAttack{npc: npc, enemyID: npc.CurrentEnemy})
+		if npc.RoundTarget != enemy.ServerID {
+			npc.endRound()
+			npc.RoundTarget = enemy.ServerID
+		}
+		fights = append(fights, fight{npc: npc, enemy: enemy})
 	}
 
-	// Process attacks
-	for _, atk := range attacks {
-		w.npcAttackPlayer(atk.npc, atk.enemyID, now)
+	// The rounds after the checks: a player one NPC kills is off every
+	// NPC's list (playerDiedLocked) before the next one swings.
+	for _, f := range fights {
+		npc, enemy := f.npc, f.enemy
+		if enemy.IsDead() || npc.CurrentEnemy != enemy.ServerID {
+			continue
+		}
+		w.npcRoundLocked(npc, enemy, now, func() bool {
+			w.npcAttackPlayer(npc, enemy.ServerID, now)
+			return enemy.IsDead() || npc.CurrentEnemy != enemy.ServerID
+		})
+	}
+	for _, npc := range dummies {
+		w.dummyFightLocked(npc, now)
 	}
 }
 
-// npcAttackPlayer applies NPC damage to a player.
+// npcAttackPlayer is one of an NPC's hits on a player (a round's swing is
+// npcRoundLocked's): the damage, its 0x00DB to the player, and a death.
 // Must be called with lock held.
 func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	player, ok := w.Players[playerID]
@@ -143,15 +166,10 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 		return
 	}
 
-	// Send combat action + damage pop-up on the player (source=NPC, target=player)
+	// The hit's figure on the player (source=NPC, target=player); the
+	// round's swing (0x00B1) went out at its start, to everyone near
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)
-	playerObjectID := sess.PlayerObjectID()
-	// Sandstorm's NPC swing, live 2026-10-16: 0x00B1 with the swing's delay
-	// and VISwing::Effect's id — 3000 and Attack1 (0xDA9BEA11) on all six of
-	// a Crab's, the kind-0 swing, which is also this system's 3 s cadence.
-	// Effect 0 named no effect at all, so a client had no swing to play.
-	w.sendCastingCombat(sess, npcObjectID, playerObjectID, uint32(SwingDelay(0)/time.Millisecond), HashResourceID(SwingEffectName(0)))
-	w.sendDamageIndication(sess, npcObjectID, -damage, playerObjectID)
+	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID())
 
 	log.Printf("Combat: NPC '%s' hit player %s for %d damage (HP: %d/%d)",
 		npc.Name, sess.RemoteAddr(), damage, player.HP, player.MaxHP)

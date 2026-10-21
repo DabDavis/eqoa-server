@@ -142,9 +142,8 @@ case *entity.NPC:
 
 | System | Interval | Purpose |
 |--------|----------|---------|
-| `aiSystem` | Every 30 ticks (3s) | NPC aggro detection, melee combat, leash |
+| `aiSystem` | Every tick | NPC melee in Sandstorm's rounds (`rounds.go`): a round's swing (0x00B1, to all who see the NPC) then its hits at fixed times, the swing CLIENT's GetSwing for a warrior of the NPC's level with its weapon and shield (below Lv20 Attack1, one hit, 3.2 s; Lv20-34 Attack2, two in 4 s; Lv35+ Attack4, four in 6 s; Lv35+ with a shield Attack3, two in 4 s); the leash at 10; the training dummies' fights too (`dummy.go`) |
 | `attackSystem` | Every tick | Players' auto-attack (`attack.go`): a 0x000F engages, swings land one swing delay apart (CLIENT's GetSwing table) in CLIENT's reach while 0x40 byte 36 is up or the NPC fights back |
-| `dummySystem` | Every tick | Training dummies as Sandstorm's (`dummy.go`): never die, fight the first player whose hit lands, attacking or not, while within 10, in rounds (Lv20-30: 4 s of Attack2, two hits; Lv35+: 6 s of Attack4, four), a Training Dummy's fixed hit each followed by a +300 heal, a Regular Dummy's a creature's |
 | `respawnSystem` | Every tick | Dead NPC respawn after RespawnTime |
 | `playerRespawnSystem` | Every tick | A dead player (`respawn.go`: 0x005E once, off every threat list, no regen) is restored 15 s after its death (Sandstorm's 15.6 s in `pcaps/breath_capture.pcap`) and sent a MemoryDump at the login spawn: the dump, not 0x00B2, is what clears CLIENT's dead flag (Msg000D's ClearPC1B0) |
 | `regenSystem` | Every 20 ticks (2s) | 1% HP/Power regen (skipped if in combat <10s) |
@@ -161,7 +160,7 @@ case *entity.NPC:
 - Chat system (say + shout)
 - Targeting (select NPCs/players, con colors, faction faces)
 - Basic combat (attack command, damage, death; a player respawns at the login spawn 15 s after dying)
-- NPC AI (aggro, melee, leash, respawn)
+- NPC AI (aggro, melee in Sandstorm's rounds — `entity/rounds.go`, leash, respawn)
 - HP/Power regen system
 - Hotkey menu (L2 D-pad) — 25 default hotkeys, fragmented MemoryDump delivery
 - Spell scrolls: the item menu's Use scribes one (`scribe.go`: a scroll is the scroll's art plus a spell of its name; Sandstorm's 0x003C + 0x00B3 and its refusal lines, recorded); `tools/import_sandstorm_harvest.py` stocks the spell vendors

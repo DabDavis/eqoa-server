@@ -271,11 +271,13 @@ func TestAutoAttackKillEndsTheFight(t *testing.T) {
 	}
 }
 
-// The NPC's swing as Sandstorm sends it: 0x00B1, its delay and Attack1.
+// The NPC's swing as Sandstorm sends it at a round's start: 0x00B1, its
+// delay and Attack1 for a creature below Lv20 (rounds.go).
 func TestNPCSwingCarriesSandstormsEffect(t *testing.T) {
 	f := newFight(t)
+	f.npc.CurrentEnemy = f.p.ServerID
 	f.w.mu.Lock()
-	f.w.npcAttackPlayer(f.npc, f.p.ServerID, f.t0)
+	f.w.aiSystem(f.t0)
 	f.w.mu.Unlock()
 	for _, m := range f.sess.Queue().PeekPending() {
 		d := m.Data()

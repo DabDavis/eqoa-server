@@ -24,7 +24,7 @@ func newDummy(t *testing.T, name string, level int) *caster {
 
 func (c *caster) dummyTick(d time.Duration) [][]byte {
 	c.w.mu.Lock()
-	c.w.dummySystem(c.at(d))
+	c.w.aiSystem(c.at(d))
 	c.w.mu.Unlock()
 	return c.sent()
 }
@@ -102,20 +102,8 @@ func TestTrainingDummyFightsInRounds(t *testing.T) {
 	}
 }
 
-// The low dummies' rounds are 4 s of Attack2 with two hits, and the hits go
-// by level.
-func TestDummyRoundsByLevel(t *testing.T) {
-	length, swing, hits := dummyRound(20)
-	if length != 4*time.Second || swing != "Attack2" || len(hits) != 2 || hits[1] != 1500*time.Millisecond {
-		t.Errorf("Lv20 round %v %s %v", length, swing, hits)
-	}
-	if length, swing, _ = dummyRound(30); length != 4*time.Second || swing != "Attack2" {
-		t.Errorf("Lv30 round %v %s, Sandstorm's 4 s of Attack2", length, swing)
-	}
-	length, swing, hits = dummyRound(60)
-	if length != 6*time.Second || swing != "Attack4" || len(hits) != 4 || hits[2] != 1700*time.Millisecond {
-		t.Errorf("Lv60 round %v %s %v", length, swing, hits)
-	}
+// The Training Dummies' floors by level.
+func TestTrainingDummyFloors(t *testing.T) {
 	for _, c := range [][2]int{{20, 8}, {25, 10}, {30, 12}, {35, 14}, {45, 24}, {50, 21}, {55, 30}} {
 		if got := trainingDummyHit(c[0]); got != c[1] {
 			t.Errorf("Lv%d dummy hits %d, Sandstorm's %d", c[0], got, c[1])

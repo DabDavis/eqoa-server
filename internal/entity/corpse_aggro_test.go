@@ -28,8 +28,6 @@ func TestAISystemDropsAggroOnCorpse(t *testing.T) {
 	npc.Threats = map[EntityID]int64{player.ServerID: 500}
 	w.NPCs[npc.ServerID] = npc
 
-	// aiSystem only runs on every 30th tick.
-	w.TickCount = 30
 	w.aiSystem(timeNowForTest())
 
 	if npc.CurrentEnemy != 0 {
@@ -44,8 +42,8 @@ func TestAISystemDropsAggroOnCorpse(t *testing.T) {
 	player.HP = player.MaxHP
 	npc.CurrentEnemy = player.ServerID
 	npc.Threats = map[EntityID]int64{player.ServerID: 500}
-	w.TickCount = 60
 	w.aiSystem(timeNowForTest())
+	w.aiSystem(timeNowForTest().Add(500 * time.Millisecond)) // the round's first hit
 
 	if npc.CurrentEnemy != player.ServerID {
 		t.Errorf("NPC dropped aggro on a living player (CurrentEnemy=%d), want %d",

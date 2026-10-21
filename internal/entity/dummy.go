@@ -19,9 +19,9 @@ import (
 //     player stays within its reach, attacking it or not (a dummy went on
 //     with its rounds for 80 s while its player fought the dummies beside
 //     it), and nobody else.
-//   - It fights in rounds: a swing at the player (0x00B1, the round's length
-//     as the cast time and VISwing::Effect's Attack2 or Attack4), then its
-//     hits at fixed times into the round.
+//   - It fights in rounds as every NPC does (rounds.go): the Lv20-30 swing
+//     Attack2 every 4 s and hit at 0.5 and 1.5 s; from Lv35, Attack4 every
+//     6 s with hits at 0.5, 1, 1.7 and 2.4 s.
 //   - A Training Dummy's hit is the floor of its level's roll, each followed
 //     at once by a heal of 300 (0x00DB +300, the dummy the healer), so the
 //     player never dies of it. Sandstorm's rolled above the floor on a
@@ -62,20 +62,6 @@ const dummyHeal = 300
 // fighting it. A dummy went on at 7.1 and let go of a player 12.8 away.
 const dummyReach = 10
 
-// dummyRound is the shape of a dummy's round at its level: its length, the
-// swing it plays and the times of its hits. Sandstorm's: the Lv20, Lv25
-// and Lv30 dummies swing Attack2 every 4 s and hit at 0.5 and 1.5 s; from
-// Lv35 they swing Attack4 every 6 s and hit at 0.5, 1, 1.7 and 2.4 s.
-func dummyRound(level int) (length time.Duration, swing string, hits []time.Duration) {
-	if level < dummyLongRoundLevel {
-		return 4 * time.Second, "Attack2", []time.Duration{500 * time.Millisecond, 1500 * time.Millisecond}
-	}
-	return 6 * time.Second, "Attack4", []time.Duration{500 * time.Millisecond, 1000 * time.Millisecond, 1700 * time.Millisecond, 2400 * time.Millisecond}
-}
-
-// dummyLongRoundLevel is the first level whose rounds are 6 s.
-const dummyLongRoundLevel = 35
-
 // trainingDummyHit is a Training Dummy's floor by its level: what
 // Sandstorm's hit two tanks (a level 50 and a level 51 of 1763 and 1430 AC)
 // every time. Between the levels measured it is interpolated.
@@ -103,41 +89,24 @@ func (w *World) dummyEngagedLocked(npc *NPC, p *Player, now time.Time) {
 		return
 	}
 	npc.DummyTarget = p.ServerID
-	npc.DummyRound = time.Time{}
-	npc.DummyHits = 0
+	npc.endRound()
 	log.Printf("Dummy: %s fights %s", npc.Name, p.Name)
 }
 
-// dummySystem runs every fighting dummy's rounds. Every tick; must be
-// called with the lock held.
-func (w *World) dummySystem(now time.Time) {
-	for _, npc := range w.NPCs {
-		if npc.Dummy == NotDummy || npc.DummyTarget == 0 {
-			continue
-		}
-		p := w.Players[npc.DummyTarget]
-		var sess *session.Session
-		if p != nil {
-			sess = w.findSessionByEntityIDLocked(p.ServerID)
-		}
-		if p == nil || sess == nil || p.IsDead() || npc.Dead || !dummyNear(npc, p) {
-			npc.endDummyFight()
-			continue
-		}
-		length, swing, hits := dummyRound(npc.Level)
-		if npc.DummyRound.IsZero() || !now.Before(npc.DummyRound.Add(length)) {
-			npc.DummyRound = now
-			npc.DummyHits = 0
-			w.sendCastingCombat(sess, w.objectIDForEntityLocked(sess, npc.ServerID), sess.PlayerObjectID(),
-				uint32(length/time.Millisecond), HashResourceID(swing))
-		}
-		for npc.DummyHits < len(hits) && !now.Before(npc.DummyRound.Add(hits[npc.DummyHits])) {
-			npc.DummyHits++
-			if w.dummyHitLocked(sess, npc, p, now) {
-				break
-			}
-		}
+// dummyFightLocked runs a fighting dummy's round (aiSystem's pass, every
+// tick): its fight ends when its player is gone, dead or out of its reach.
+// Must be called with the lock held.
+func (w *World) dummyFightLocked(npc *NPC, now time.Time) {
+	p := w.Players[npc.DummyTarget]
+	var sess *session.Session
+	if p != nil {
+		sess = w.findSessionByEntityIDLocked(p.ServerID)
 	}
+	if p == nil || sess == nil || p.IsDead() || npc.Dead || !dummyNear(npc, p) {
+		npc.endDummyFight()
+		return
+	}
+	w.npcRoundLocked(npc, p, now, func() bool { return w.dummyHitLocked(sess, npc, p, now) })
 }
 
 // dummyHitLocked is one of a dummy's hits on the player, and a Training
@@ -173,6 +142,5 @@ func dummyNear(npc *NPC, p *Player) bool {
 
 func (n *NPC) endDummyFight() {
 	n.DummyTarget = 0
-	n.DummyRound = time.Time{}
-	n.DummyHits = 0
+	n.endRound()
 }

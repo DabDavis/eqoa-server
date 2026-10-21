@@ -362,6 +362,14 @@ func (w *World) attackSystem(now time.Time) {
 func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NPC, objectID uint32) bool {
 	weaponDmg := RollWeaponDamage(attacker.WeaponDamage)
 	damage := CalculateMeleeDamage(attacker.OffMod, weaponDmg, attacker.Level, npc.Level, npc.DefMod)
+	if npc.Dummy != NotDummy {
+		// told, taken off nothing; the dummy fights back (dummy.go)
+		now := time.Now()
+		attacker.LastCombatTime = now
+		w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID)
+		w.dummyEngagedLocked(npc, attacker, now)
+		return false
+	}
 	npc.HP -= damage
 	if npc.HP < 0 {
 		npc.HP = 0

@@ -82,6 +82,14 @@ type NPC struct {
 	// once dead it leaves the world after its corpse time instead of
 	// respawning.
 	Temporary bool
+
+	// Dummy is a training dummy's kind (dummy.go), by its name; its fight:
+	// the player it fights, when its round began and how many of the
+	// round's hits have landed.
+	Dummy       DummyKind
+	DummyTarget EntityID
+	DummyRound  time.Time
+	DummyHits   int
 }
 
 // GetEntityID returns the NPC's entity ID.

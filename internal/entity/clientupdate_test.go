@@ -254,3 +254,39 @@ func TestLivePositionIsTheLivePlayersWithTheSaveGuards(t *testing.T) {
 		t.Error("a character with no player in the world has no live position")
 	}
 }
+
+// A heading goes out the way it came in. SendPosition quantizes it into a
+// byte over [-pi, pi] (q = (h + pi) / 2pi * 256, eqoa-rs vi::selfstate's
+// HPR box); the entity channel's byte 15 is read back by CLIENT as a signed
+// byte times pi/128 (eqoa-rs net::entity). Read over [0, 2pi], every
+// player faced backwards to everyone else (F3 20261021-012739): the
+// control's half turn.
+func TestHeadingRoundTripsThroughTheServer(t *testing.T) {
+	quantize := func(h float64) byte { return byte((h + math.Pi) / (2 * math.Pi) * 256) }
+	seen := func(b byte) float64 { return float64(int8(b)) * math.Pi / 128 }
+	off := func(a, b float64) float64 {
+		d := math.Mod(a-b+3*math.Pi, 2*math.Pi) - math.Pi
+		return math.Abs(d)
+	}
+	w := NewWorld()
+	p := &Player{ServerID: 3}
+	w.Players[p.ServerID] = p
+	for _, h := range []float64{0, 1, -1, 2.5, -2.5, 3.1, -3.14} {
+		b := make([]byte, 41)
+		b[clientUpdateFacing] = quantize(h)
+		f, ok := ClientUpdateFacing(b)
+		if !ok {
+			t.Fatal("no heading in a 41-byte 0x40")
+		}
+		w.ApplyClientUpdate(p.ServerID, ClientUpdate{Facing: f, HasFacing: true})
+		if got := seen(SerializePlayerUpdate(1, p)[15]); off(got, h) > 2*2*math.Pi/256 {
+			t.Errorf("heading %.3f comes back %.3f", h, got)
+		}
+		if old := float64(b[clientUpdateFacing]) / 256 * 2 * math.Pi; off(old, h) < 3 {
+			t.Errorf("the control: the old reading of %.3f is %.3f, not half a turn out", h, old)
+		}
+	}
+	if _, ok := ClientUpdateFacing(make([]byte, 22)); ok {
+		t.Error("a 0x40 that ends before byte 22 has no heading")
+	}
+}

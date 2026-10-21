@@ -3,7 +3,6 @@ package udp
 import (
 	"context"
 	"log"
-	"math"
 	"net"
 	"sync"
 	"time"
@@ -562,10 +561,7 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 	posY := float32(2000.0*float64(rawY)/float64(0xFFFFFF) - 1000.0)
 	posZ := float32(36000.0*float64(rawZ)/float64(0xFFFFFF) - 4000.0)
 
-	var facing float32
-	if len(decoded) > 22 {
-		facing = float32(decoded[22]) / 256.0 * 2 * math.Pi
-	}
+	facing, hasFacing := entity.ClientUpdateFacing(decoded)
 
 	var animByte byte
 	if len(decoded) > 35 {
@@ -623,7 +619,7 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 		player := l.gameWorld.SessionPlayer(sess)
 		if player != nil {
 			reportWorldMismatch(sess, player, decoded[0])
-			u := entity.ClientUpdate{X: posX, Y: posY, Z: posZ, Facing: facing, Animation: animation}
+			u := entity.ClientUpdate{X: posX, Y: posY, Z: posZ, Facing: facing, HasFacing: hasFacing, Animation: animation}
 			u.Velocity, u.HasVelocity = entity.ClientUpdateVelocity(decoded)
 			u.AutoAttack, u.HasAutoAttack = entity.ClientUpdateAutoAttack(decoded)
 			u.WalkFlags, u.HasWalkFlags = entity.ClientUpdateWalkFlags(decoded)

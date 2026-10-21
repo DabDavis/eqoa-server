@@ -93,9 +93,14 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	// Byte 5: Entity type 0x82
 	buf[5] = 0x82
 
-	// Offset 15: Facing (0=south, 128=north)
-	facingByte := byte(p.Facing / (2 * math.Pi) * 256)
-	buf[15] = facingByte
+	// Offset 15: Facing (0=south, 128=north). A client's heading comes in
+	// over [-pi, pi) (ClientUpdateFacing): turned into [0, 2pi) first, as
+	// converting a negative float to a byte is not defined.
+	f := math.Mod(float64(p.Facing), 2*math.Pi)
+	if f < 0 {
+		f += 2 * math.Pi
+	}
+	buf[15] = byte(f / (2 * math.Pi) * 256)
 
 	// Offset 17: World (ObjectUpdate offset 16 + the isActive prefix byte).
 	//

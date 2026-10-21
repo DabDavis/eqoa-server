@@ -1,6 +1,9 @@
 package entity
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"math"
+)
 
 // clientupdate.go — what the server takes out of a client's own state
 // channel, 0x40, beyond its position.
@@ -26,6 +29,7 @@ var clientVelLo, clientVelHi = [3]float32{-15.3, -84.5, -15.3}, [3]float32{15.3,
 // Byte offsets in the 0x40.
 const (
 	clientUpdateVelocity   = 10 // 3 × u16 big-endian
+	clientUpdateFacing     = 22 // the heading, a byte over [-pi, pi]
 	clientUpdateWalkFlags  = 31 // u32 little-endian, VIWalkPhysics' flags
 	clientUpdateAutoAttack = 36
 )
@@ -36,6 +40,18 @@ const (
 	walkFlagsSubmerged = 0x0854 // in water, lava, slime or mud
 	walkFlagsAtSurface = 0x10A8 // at the surface of one of them
 )
+
+// ClientUpdateFacing is byte 22 of a 0x40, the heading: SendPosition
+// quantizes the walker's angles into a byte each over [-pi, pi] (its HPR box;
+// eqoa-rs vi::selfstate), so 0 is -pi and 128 is 0. It was read over [0,
+// 2pi], half a turn out: every player faced backwards in everyone else's
+// view, running away from where it looked (F3 20261021-012739).
+func ClientUpdateFacing(b []byte) (facing float32, ok bool) {
+	if len(b) <= clientUpdateFacing {
+		return 0, false
+	}
+	return float32(b[clientUpdateFacing])/256*2*math.Pi - math.Pi, true
+}
 
 // ClientUpdateWalkFlags is bytes 31-34 of a 0x40: the walker's flags.
 func ClientUpdateWalkFlags(b []byte) (flags uint32, ok bool) {
@@ -80,6 +96,7 @@ func ClientUpdateAutoAttack(b []byte) (on, ok bool) {
 // ClientUpdate is what ApplyClientUpdate takes out of one 0x40.
 type ClientUpdate struct {
 	X, Y, Z, Facing float32
+	HasFacing       bool       // byte 22 (ClientUpdateFacing)
 	Velocity        [3]float32 // units a second
 	HasVelocity     bool
 	Animation       byte   // byte 35, the locomotion state
@@ -101,7 +118,7 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	}
 	oldX, oldZ := p.X, p.Z
 	p.X, p.Y, p.Z = u.X, u.Y, u.Z
-	if u.Facing != 0 {
+	if u.HasFacing {
 		p.Facing = u.Facing
 	}
 	w.SpatialIndex.Update(id, oldX, oldZ, u.X, u.Z)

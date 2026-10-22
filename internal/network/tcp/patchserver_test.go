@@ -367,3 +367,19 @@ func TestPayloadFilesAreServed(t *testing.T) {
 		"EQOAHDD.ELF, %d from both, %d from neither",
 		len(wanted), byServer, len(wanted)-byServer-byNeither-byBoth, byBoth, byNeither)
 }
+
+// TestNewsIsPlainText: STATION shows the news a byte a character
+// (VIWndGenericRenderer's news poll, then VIGUIDialog::SetText), so a tag in
+// it would be on the player's screen as written.
+func TestNewsIsPlainText(t *testing.T) {
+	s := newTestServer(t)
+	w := httptest.NewRecorder()
+	s.handleRequest(w, httptest.NewRequest("GET", "/patch/web/eqoa/motd/news.html", nil))
+	body := w.Body.String()
+	if w.Code != 200 || body == "" {
+		t.Fatalf("news: %d %q", w.Code, body)
+	}
+	if strings.ContainsAny(body, "<>") {
+		t.Fatalf("the news carries markup STATION would show as written: %q", body)
+	}
+}

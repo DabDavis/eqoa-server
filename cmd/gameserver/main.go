@@ -167,24 +167,35 @@ func main() {
 
 	// Initialize and start auth server (TCP port 9735)
 	authHandler := tcp.NewAuthServer(cfg, accountStore, loginTickets)
+	// The operators' addresses and the server's own (the web relay's source,
+	// every browser player's when the relay cannot name the page): one login
+	// at a time does not apply to them by address, nor does the login limit.
+	exempt := append([]string{cfg.Server.ServerIP}, cfg.Auth.OneLoginExempt...)
 	if cfg.Auth.OneLogin {
-		exempt := append([]string{cfg.Server.ServerIP}, cfg.Auth.OneLoginExempt...)
 		if err := authHandler.SetOneLogin(sessionMgr.LiveLogin, exempt); err != nil {
 			log.Fatalf("auth.one_login_exempt: %v", err)
 		}
 		log.Printf("Auth: one login at a time per account, and per address except %v", exempt)
-		if cfg.Auth.RelayLookup != "" {
-			addrs := []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback}
-			names := append([]string{cfg.Server.ServerIP}, cfg.Auth.RelayAddrs...)
-			for _, a := range names {
-				if ip := net.ParseIP(a); ip != nil {
-					addrs = append(addrs, ip)
-				}
-			}
-			authHandler.SetRelay(addrs, tcp.RelayLookup(cfg.Auth.RelayLookup))
-			log.Printf("Auth: relayed players (from %v) named by %s", names, cfg.Auth.RelayLookup)
-		}
 	}
+	if cfg.Auth.RelayLookup != "" {
+		addrs := []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback}
+		names := append([]string{cfg.Server.ServerIP}, cfg.Auth.RelayAddrs...)
+		for _, a := range names {
+			if ip := net.ParseIP(a); ip != nil {
+				addrs = append(addrs, ip)
+			}
+		}
+		authHandler.SetRelay(addrs, tcp.RelayLookup(cfg.Auth.RelayLookup))
+		log.Printf("Auth: relayed players (from %v) named by %s", names, cfg.Auth.RelayLookup)
+	}
+	// One limit on guessing a password for every place one is checked: the
+	// game's login here, the account pages and the GM panel (handed below).
+	loginLimiter := auth.NewLimiter()
+	if err := authHandler.SetLimiter(loginLimiter, exempt); err != nil {
+		log.Fatalf("auth: %v", err)
+	}
+	log.Printf("Auth: at most %d failed logins an account and %d an address every %v (addresses %v not counted)",
+		auth.FailsPerName, auth.FailsPerAddr, auth.FailWindow, exempt)
 	authListener := tcp.NewListener(cfg, authHandler)
 	if err := authListener.Start(); err != nil {
 		log.Fatalf("Failed to start auth server: %v", err)
@@ -264,6 +275,7 @@ func main() {
 	}
 	accountServer.SendOnly = handlers.IsSendOnlyWorld
 	accountServer.EndSessions = sessionMgr.EndAccount
+	accountServer.Limiter = loginLimiter
 
 	if err := accountServer.Start(); err != nil {
 		log.Fatalf("Failed to start account server: %v", err)
@@ -292,6 +304,7 @@ func main() {
 			},
 			SetAutoRegister: authHandler.SetAllowAutoRegister,
 			AutoRegister:    authHandler.AllowAutoRegister,
+			Limiter:         loginLimiter,
 			Restart: func() error {
 				// Everyone saved as at a shutdown, then this process becomes
 				// the binary on disk again (a new build, if one was copied in):

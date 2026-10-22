@@ -140,25 +140,11 @@ func TestTheSignInLimiterIsBoundedAndCountsFirst(t *testing.T) {
 		code, _ := c.do("POST", "/api/auth/login", map[string]any{"username": fmt.Sprintf("%d%s", i, big), "password": "x"})
 		statuses[code]++
 	}
-	f.s.limiter.mu.Lock()
-	kept := len(f.s.limiter.byUser)
-	f.s.limiter.mu.Unlock()
-	if kept != 0 || statuses[401] != failsPerIP || statuses[429] != 30-failsPerIP {
+	_, kept := f.s.limiter.Sizes()
+	if kept != 0 || statuses[401] != auth.FailsPerAddr || statuses[429] != 30-auth.FailsPerAddr {
 		t.Fatalf("statuses %v, %d names kept", statuses, kept)
 	}
-
-	// the maps never grow past their bound
-	l := newLoginLimiter()
-	for i := 0; i < limiterKeys+500; i++ {
-		l.begin(fmt.Sprintf("10.%d.%d.%d", i>>16&255, i>>8&255, i&255), fmt.Sprintf("name%d", i))
-	}
-	if len(l.byIP) > limiterKeys || len(l.byUser) > limiterKeys {
-		t.Fatalf("limiter maps: %d addresses, %d names", len(l.byIP), len(l.byUser))
-	}
-	// one machine's IPv6 addresses are one address
-	if limitKey("2001:db8:1:2::5") != limitKey("2001:db8:1:2:aaaa::9") || limitKey("2001:db8:1:3::5") == limitKey("2001:db8:1:2::5") {
-		t.Fatal("IPv6 addresses are not limited by their /64")
-	}
+	// (the limiter's bounds and its IPv6 keys: internal/auth's tests)
 
 	// a burst of concurrent guesses gets no more tries than a slow one
 	hash, _ := auth.HashPassword(testPassword, 8)
@@ -192,8 +178,8 @@ func TestTheSignInLimiterIsBoundedAndCountsFirst(t *testing.T) {
 	for c := range codes {
 		got[c]++
 	}
-	if got[401] > failsPerAcc {
-		t.Fatalf("%d concurrent guesses: %v (at most %d may be tried)", n, got, failsPerAcc)
+	if got[401] > auth.FailsPerName {
+		t.Fatalf("%d concurrent guesses: %v (at most %d may be tried)", n, got, auth.FailsPerName)
 	}
 }
 

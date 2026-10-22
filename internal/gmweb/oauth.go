@@ -15,6 +15,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/eqoa/server/internal/auth"
 )
 
 // OAuth 2.1 for the MCP endpoint, as MCP's authorization asks: protected
@@ -226,7 +228,7 @@ func (s *Server) handleOAuthRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ip := clientIP(r)
-	if !s.regRate.allow(limitKey(ip)) || !s.regAll.allow("all") {
+	if !s.regRate.allow(auth.LimitKey(ip)) || !s.regAll.allow("all") {
 		writeJSON(w, http.StatusTooManyRequests, map[string]any{"error": "invalid_client_metadata",
 			"error_description": "too many registrations; try again later"})
 		return
@@ -422,7 +424,7 @@ func (s *Server) handleOAuthAuthorize(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) authorizeStart(w http.ResponseWriter, r *http.Request) {
-	if !s.authorizeRate.allow(limitKey(clientIP(r))) {
+	if !s.authorizeRate.allow(auth.LimitKey(clientIP(r))) {
 		s.renderAuthorize(w, r, http.StatusTooManyRequests, authorizeView{Fatal: "Too many sign-in pages from this address. Wait a minute and start again from the application."}, "")
 		return
 	}

@@ -240,12 +240,12 @@ func TestAWriteWithoutTheCSRFTokenIsRefused(t *testing.T) {
 func TestFailedSignInsAreLimited(t *testing.T) {
 	f := newFixture(t)
 	c := f.browser()
-	for i := 0; i < failsPerAcc; i++ {
+	for i := 0; i < auth.FailsPerName; i++ {
 		c.do("POST", "/api/auth/login", map[string]any{"username": "gm", "password": "nope"})
 	}
 	code, _ := c.do("POST", "/api/auth/login", map[string]any{"username": "gm", "password": testPassword})
 	if code != 429 {
-		t.Fatalf("after %d failures the right password got %d, want 429", failsPerAcc, code)
+		t.Fatalf("after %d failures the right password got %d, want 429", auth.FailsPerName, code)
 	}
 }
 

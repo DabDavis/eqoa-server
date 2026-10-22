@@ -67,6 +67,54 @@ type AccountServer struct {
 	// how many: /api/logout, the browser's way past "You are already logged
 	// in." (session.Manager.EndAccount).
 	EndSessions func(accountID int) int
+
+	// Limiter counts the password checks of /api/login and /api/logout: the
+	// server's one limiter, shared with the game's login and the GM panel, so
+	// guesses spread over them add up. Nil: not counted.
+	Limiter *auth.Limiter
+}
+
+// checkPassword is a page's password check under the limiter: counted by the
+// client's address and the name before it is made, the attempt given back
+// when it is right. refusal is what to tell the client when it is refused
+// before any check; "" otherwise.
+func (s *AccountServer) checkPassword(r *http.Request, account *database.AccountRecord, username, password string) (ok bool, refusal string) {
+	ip := s.getClientIP(r)
+	if s.Limiter != nil {
+		if wait := s.Limiter.Begin(ip, username); wait > 0 {
+			log.Printf("AccountServer: refused '%s' from %s: too many failed logins", username, ip)
+			return false, fmt.Sprintf("Too many failed logins; try again in %d minutes", auth.RetryMinutes(wait))
+		}
+		release, free := s.Limiter.Slot(10 * time.Second)
+		if !free {
+			return false, "The server is busy; try again in a moment"
+		}
+		defer release()
+	}
+	if account == nil {
+		return false, ""
+	}
+	switch auth.VerifyPassword(account.PasswordHash, password) {
+	case auth.Accepted:
+	case auth.AcceptedNeedsRehash:
+		// Stored plaintext, from before this page hashed anything. It matched,
+		// so replace it now -- this is the only point the plaintext is known.
+		if hash, herr := auth.HashPassword(password, s.bcryptCost); herr == nil {
+			if uerr := s.accountStore.UpdatePasswordHash(account.ID, hash); uerr != nil {
+				log.Printf("AccountServer: could not upgrade stored password for '%s': %v", account.Username, uerr)
+			} else {
+				log.Printf("AccountServer: upgraded '%s' from a plaintext password to bcrypt", account.Username)
+			}
+		}
+	default:
+		// Covers Rejected and NoCredential. An account with no password set
+		// must not be loggable into with an empty one.
+		return false, ""
+	}
+	if s.Limiter != nil {
+		s.Limiter.Succeed(ip, username)
+	}
+	return true, ""
 }
 
 // TeleportDest is one named shortcut as the web pages present it.
@@ -896,31 +944,13 @@ func (s *AccountServer) handleAPILogin(w http.ResponseWriter, r *http.Request) {
 
 	account, err := s.accountStore.GetByUsername(req.Username)
 	if err != nil {
-		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid username or password"})
-		return
+		account = nil // counted all the same: a guess at a name is a guess
 	}
-
-	switch auth.VerifyPassword(account.PasswordHash, req.Password) {
-	case auth.Accepted:
-		// ok
-
-	case auth.AcceptedNeedsRehash:
-		// Stored plaintext, from before this page hashed anything. It matched,
-		// so replace it now -- this is the only point the plaintext is known.
-		if hash, herr := auth.HashPassword(req.Password, s.bcryptCost); herr == nil {
-			if uerr := s.accountStore.UpdatePasswordHash(account.ID, hash); uerr != nil {
-				log.Printf("AccountServer: could not upgrade stored password for '%s': %v",
-					account.Username, uerr)
-			} else {
-				log.Printf("AccountServer: upgraded '%s' from a plaintext password to bcrypt",
-					account.Username)
-			}
+	if ok, refusal := s.checkPassword(r, account, req.Username, req.Password); !ok {
+		if refusal == "" {
+			refusal = "Invalid username or password"
 		}
-
-	default:
-		// Covers Rejected and NoCredential. An account with no password set
-		// must not be loggable into with an empty one.
-		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid username or password"})
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": refusal})
 		return
 	}
 
@@ -948,14 +978,14 @@ func (s *AccountServer) handleAPILogoutSessions(w http.ResponseWriter, r *http.R
 		return
 	}
 	account, err := s.accountStore.GetByUsername(req.Username)
-	if err != nil || account == nil {
-		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid username or password"})
-		return
+	if err != nil {
+		account = nil // counted all the same: a guess at a name is a guess
 	}
-	switch auth.VerifyPassword(account.PasswordHash, req.Password) {
-	case auth.Accepted, auth.AcceptedNeedsRehash:
-	default:
-		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": "Invalid username or password"})
+	if ok, refusal := s.checkPassword(r, account, req.Username, req.Password); !ok {
+		if refusal == "" {
+			refusal = "Invalid username or password"
+		}
+		json.NewEncoder(w).Encode(map[string]interface{}{"success": false, "error": refusal})
 		return
 	}
 	n := s.EndSessions(account.ID)

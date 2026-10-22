@@ -40,6 +40,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/config"
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -70,6 +71,10 @@ type Deps struct {
 	AutoRegister    func() bool
 	// Restart saves everyone and starts the server again; nil: not offered.
 	Restart func() error
+	// Limiter counts sign-in attempts; the server's own, shared with the
+	// game's login and the account pages, so guesses spread over them all add
+	// up (nil: the panel keeps its own).
+	Limiter *auth.Limiter
 }
 
 // Server is the GM panel's HTTP server.
@@ -85,7 +90,7 @@ type Server struct {
 	build   string
 
 	sessions *sessionStore
-	limiter  *loginLimiter
+	limiter  *auth.Limiter
 	tokens   *tokenCache
 	oauth    *oauthState
 	rate     *rateLimiter
@@ -95,9 +100,6 @@ type Server struct {
 	// registrations (and all of those together); per account: the page's
 	// requests
 	badTokens, authorizeRate, regRate, regAll, sessRate *bucketLimiter
-	// bcryptSlots bounds the password checks running at once: each is a
-	// deliberate few dozen milliseconds of a core
-	bcryptSlots chan struct{}
 
 	ops    map[string]*Op
 	opList []*Op
@@ -143,7 +145,7 @@ func New(d Deps) (*Server, error) {
 		started:  time.Now(),
 		build:    buildVersion(),
 		sessions: newSessionStore(cfg.SessionIdle),
-		limiter:  newLoginLimiter(),
+		limiter:  d.Limiter,
 		rate:     newRateLimiter(cfg.TokenRate, time.Minute),
 		oauth:    newOAuthState(),
 		schema:   &schemaCache{},
@@ -153,7 +155,9 @@ func New(d Deps) (*Server, error) {
 		regRate:       newBucketLimiter(0.5, 10),
 		regAll:        newBucketLimiter(2, 60),
 		sessRate:      newBucketLimiter(600, 300),
-		bcryptSlots:   make(chan struct{}, 4),
+	}
+	if s.limiter == nil {
+		s.limiter = auth.NewLimiter()
 	}
 	if cfg.PublicURL != "" {
 		u, err := url.Parse(strings.TrimRight(cfg.PublicURL, "/"))

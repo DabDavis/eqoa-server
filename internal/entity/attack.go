@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"math/rand"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -391,12 +392,12 @@ func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
 	return false
 }
 
-// playerHitLocked is one landed player swing: the SOE retail damage, the
-// damage figure to the attacker (0x00DB, attacker → NPC, negative), the NPC's
-// threat (so it fights back), and on a kill the XP. It reports a kill.
+// playerHitLocked is one landed player swing: Sandstorm's roll on the worn
+// weapon, STR, DEX and the target (offence.go), the damage figure to the
+// attacker (0x00DB, attacker → NPC, negative), the NPC's threat (so it
+// fights back), and on a kill the XP. It reports a kill.
 func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NPC, objectID uint32) bool {
-	weaponDmg := RollWeaponDamage(attacker.WeaponDamage)
-	damage := CalculateMeleeDamage(attacker.OffMod, weaponDmg, attacker.Level, npc.Level, npc.DefMod)
+	damage := playerMeleeHit(attacker, npc, rand.Intn)
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing; the dummy fights back (dummy.go)
 		now := time.Now()

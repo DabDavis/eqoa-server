@@ -831,9 +831,11 @@ func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID 
 
 // wornGear sums the stats of the items worn (an equip slot, not the bank),
 // by the stat ids the dump gives them (itemPatternStats), and takes the
-// primary weapon's damage, or the two-hander's.
+// primary weapon's damage, or the two-hander's, its condition (hit points
+// over their most; an item that holds none, as the default inventory's,
+// whole) and whether it takes both hands (wear slot 15).
 func wornGear(items []database.CharInventoryEntry) entity.Gear {
-	var g entity.Gear
+	g := entity.Gear{WeaponCond: 1}
 	for i := range items {
 		it := &items[i]
 		if it.EquipLoc < 0 || it.Location != 0 {
@@ -844,6 +846,11 @@ func wornGear(items []database.CharInventoryEntry) entity.Gear {
 		}
 		if it.EquipLoc == 14 || it.EquipLoc == 16 {
 			g.WeaponDamage = it.Pattern.WeaponDamage
+			g.WeaponCond = 1
+			if it.RemainHP > 0 && it.Pattern.MaxHP > 0 && it.RemainHP < it.Pattern.MaxHP {
+				g.WeaponCond = float64(it.RemainHP) / float64(it.Pattern.MaxHP)
+			}
+			g.WeaponTwoHanded = it.EquipLoc == 16 || it.Pattern.EquipSlot == 15
 		}
 	}
 	return g

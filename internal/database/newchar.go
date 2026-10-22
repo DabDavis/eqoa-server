@@ -9,9 +9,19 @@ type NewCharacterRules struct {
 	AllSpells bool // every spell its class has (classspells)
 }
 
-// SetNewCharacterRules sets what CreateNew gives. Call it before serving.
+// SetNewCharacterRules sets what CreateNew gives; the GM panel changes it
+// while the server runs.
 func (s *SQLiteCharacterStore) SetNewCharacterRules(r NewCharacterRules) {
+	s.rulesMu.Lock()
 	s.newRules = r
+	s.rulesMu.Unlock()
+}
+
+// NewCharacterRules is what CreateNew gives now.
+func (s *SQLiteCharacterStore) NewCharacterRules() NewCharacterRules {
+	s.rulesMu.RLock()
+	defer s.rulesMu.RUnlock()
+	return s.newRules
 }
 
 // startLevel is the level a new character starts at.
@@ -24,11 +34,12 @@ func (r NewCharacterRules) startLevel() int {
 // the record says, and with its class's spells when the rules say so. It
 // returns how many spells it was given.
 func (s *SQLiteCharacterStore) CreateNew(c *CharacterRecord) (int, error) {
-	c.Level = s.newRules.startLevel()
+	rules := s.NewCharacterRules()
+	c.Level = rules.startLevel()
 	if err := s.Create(c); err != nil {
 		return 0, err
 	}
-	if !s.newRules.AllSpells {
+	if !rules.AllSpells {
 		return 0, nil
 	}
 	n, err := s.GrantClassSpells(c.ServerID, c.TClass)

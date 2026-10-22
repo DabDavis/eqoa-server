@@ -147,3 +147,36 @@ auth:
   accounts:
     - username: "test"
       password: "changeme"
+
+gm:
+  # The GM panel (internal/gmweb): a web page for GMs, and the same tools for
+  # an AI agent (MCP with OAuth, or OpenAPI with a token). Off unless port is
+  # set. Bind it to loopback and put a TLS proxy in front (nginx): it is the
+  # whole server's admin.
+  # port: 8081
+  # bind: "127.0.0.1"
+
+  # Where GMs and AI clients reach it, without a trailing slash: the OAuth
+  # issuer, the cookie's path, and (https) whether the cookie is Secure. A
+  # host name of its own is best: no other page then shares its origin, and
+  # its cookie is a __Host- one no other host can set.
+  # public_url: "https://gm.example.org"
+
+  # acctlevel to sign in (the in-game # commands' 1), and to use the admin
+  # tools: raw SQL, these settings, backups, a restart, other accounts' levels
+  # (which also need a sign-in with an authenticator code).
+  # min_level: 1
+  # admin_level: 2
+
+  # Every GM must enrol an authenticator app before the panel does anything.
+  # require_totp: false
+
+  # The log the panel shows the end of, and where its backups go (beside the
+  # database when relative).
+  # log_path: "gameserver.log"
+  # backup_dir: "backups"
+
+  # A browser session left alone this long ends; an API token may make this
+  # many requests a minute.
+  # session_idle: 2h
+  # token_rate: 240

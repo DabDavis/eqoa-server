@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"sync/atomic"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/entity"
@@ -21,12 +22,38 @@ type InteractHandler struct {
 }
 
 // npcText is what an NPC says when talked to, by name (config
-// world.npc_text), in place of the debug box.
-var npcText map[string]string
+// world.npc_text), in place of the debug box. The GM panel replaces it while
+// the server runs, so it is swapped whole, never written in place.
+var npcText atomic.Pointer[map[string]string]
 
-// SetNPCText sets what NPCs say when talked to, by name.
+// SetNPCText sets what NPCs say when talked to, by name. It keeps a copy.
 func SetNPCText(m map[string]string) {
-	npcText = m
+	c := make(map[string]string, len(m))
+	for k, v := range m {
+		c[k] = v
+	}
+	npcText.Store(&c)
+}
+
+// NPCText is a copy of what NPCs say when talked to, by name.
+func NPCText() map[string]string {
+	c := map[string]string{}
+	if m := npcText.Load(); m != nil {
+		for k, v := range *m {
+			c[k] = v
+		}
+	}
+	return c
+}
+
+// npcTextFor is what the NPC of that name says, if anything.
+func npcTextFor(name string) (string, bool) {
+	m := npcText.Load()
+	if m == nil {
+		return "", false
+	}
+	text, ok := (*m)[name]
+	return text, ok
 }
 
 // NewInteractHandler creates a new interact handler.
@@ -145,7 +172,7 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	// A sign post or a greeter: its words (world.npc_text) instead of the
 	// debug box.
 	if npc, ok := targetEntity.(*entity.NPC); ok {
-		if text, ok := npcText[npc.Name]; ok {
+		if text, ok := npcTextFor(npc.Name); ok {
 			player.PendingCoachDests = nil
 			h.sendDialogueBox(sess, text)
 			return nil

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -518,6 +519,7 @@ type SQLiteCharacterStore struct {
 	db *SQLiteDB
 
 	// newRules is what CreateNew gives a new character (newchar.go)
+	rulesMu  sync.RWMutex
 	newRules NewCharacterRules
 }
 

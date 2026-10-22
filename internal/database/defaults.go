@@ -3,6 +3,8 @@ package database
 import (
 	"log"
 	"sort"
+	"sync"
+	"sync/atomic"
 )
 
 // DefaultCharacterRecord represents a row from the defaultcharacter table.
@@ -32,8 +34,33 @@ type DefaultCharacterRecord struct {
 // DefaultCharacterStore provides lookup for default character templates.
 type DefaultCharacterStore struct {
 	db *SQLiteDB
+
+	mu sync.Mutex
 	// In-memory cache keyed by (tclass, race, humType)
 	defaults map[defaultKey]*DefaultCharacterRecord
+	// gen is defaultsGen when the cache was read
+	gen int64
+}
+
+// defaultsGen counts InvalidateDefaultCharacters: every store reads the table
+// again before its next answer once it has moved.
+var defaultsGen atomic.Int64
+
+// InvalidateDefaultCharacters makes every DefaultCharacterStore read the
+// defaultcharacter table again before it next answers: the GM panel changed
+// it. The game's creation and the account pages each hold a store.
+func InvalidateDefaultCharacters() {
+	defaultsGen.Add(1)
+}
+
+// fresh reads the table again if it changed since the cache was read. Must be
+// called with mu held.
+func (s *DefaultCharacterStore) fresh() {
+	if g := defaultsGen.Load(); g != s.gen {
+		s.gen = g
+		s.defaults = make(map[defaultKey]*DefaultCharacterRecord)
+		s.loadAll()
+	}
 }
 
 type defaultKey struct {
@@ -45,6 +72,7 @@ func NewDefaultCharacterStore(db *SQLiteDB) *DefaultCharacterStore {
 	s := &DefaultCharacterStore{
 		db:       db,
 		defaults: make(map[defaultKey]*DefaultCharacterRecord),
+		gen:      defaultsGen.Load(),
 	}
 	s.loadAll()
 	return s
@@ -93,6 +121,9 @@ func (s *DefaultCharacterStore) loadAll() {
 
 // GetDefaults returns the default character template for a given class, race, humType.
 func (s *DefaultCharacterStore) GetDefaults(tclass, race, humType int) *DefaultCharacterRecord {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.fresh()
 	key := defaultKey{tclass, race, humType}
 	if d, ok := s.defaults[key]; ok {
 		return d
@@ -118,6 +149,9 @@ func (s *DefaultCharacterStore) GetDefaults(tclass, race, humType int) *DefaultC
 
 // All returns every template, by race, city (humType) and class.
 func (s *DefaultCharacterStore) All() []*DefaultCharacterRecord {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.fresh()
 	out := make([]*DefaultCharacterRecord, 0, len(s.defaults))
 	for _, d := range s.defaults {
 		out = append(out, d)
@@ -137,5 +171,8 @@ func (s *DefaultCharacterStore) All() []*DefaultCharacterRecord {
 
 // Count returns the number of default character templates.
 func (s *DefaultCharacterStore) Count() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.fresh()
 	return len(s.defaults)
 }

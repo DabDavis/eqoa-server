@@ -12,6 +12,7 @@ import (
 	"net/netip"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/eqoa/server/internal/auth"
@@ -210,6 +211,21 @@ type AuthServer struct {
 	// clientIP, when set, gives the client address behind a source: a
 	// relayed browser player's page address (SetRelay); nil when unknown.
 	clientIP func(ip net.IP, port int) net.IP
+
+	// autoRegister is auth.allow_auto_register, which the GM panel turns
+	// over while the server runs (SetAllowAutoRegister).
+	autoRegister atomic.Bool
+}
+
+// SetAllowAutoRegister turns auth.allow_auto_register on or off from the next
+// login on: an unknown username registering itself.
+func (s *AuthServer) SetAllowAutoRegister(on bool) {
+	s.autoRegister.Store(on)
+}
+
+// AllowAutoRegister is whether an unknown username registers itself now.
+func (s *AuthServer) AllowAutoRegister() bool {
+	return s.autoRegister.Load()
 }
 
 // SetRelay names the web relay's source addresses and how to ask it which
@@ -308,7 +324,9 @@ func (s *AuthServer) exemptIP(ip net.IP) bool {
 // authentication; with a nil store every login is refused, because a server
 // that cannot look an account up must not conclude the password was right.
 func NewAuthServer(cfg *config.Config, store *database.SQLiteAccountStore, tickets *auth.TicketStore) *AuthServer {
-	return &AuthServer{cfg: cfg, store: store, tickets: tickets}
+	s := &AuthServer{cfg: cfg, store: store, tickets: tickets}
+	s.autoRegister.Store(cfg.Auth.AllowAutoRegister)
+	return s
 }
 
 // HandleConnection processes an auth server connection.
@@ -495,7 +513,7 @@ func (s *AuthServer) authenticate(username string, passwordField []byte) (int, b
 	}
 
 	cost := s.cfg.Auth.BCryptCost
-	autoRegister := s.cfg.Auth.AllowAutoRegister
+	autoRegister := s.autoRegister.Load()
 
 	account, err := s.store.GetByUsername(username)
 	if err != nil {

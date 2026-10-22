@@ -1,0 +1,262 @@
+package gmweb
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/handlers"
+	"github.com/eqoa/server/internal/session"
+)
+
+// What a committed row change does to the running game, where the game holds
+// the data in memory: an NPC spawns, changes or leaves; NPCs of a name take a
+// new class; an online character's level, purse and place change where it
+// stands; a banned account's sessions end. The answer says what happened, or
+// when the change will be seen, in words for the page and for an agent.
+
+func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[string]any) string {
+	switch t.Name {
+	case "npcs":
+		return s.liveNPC(action, before, after)
+	case "npcclass":
+		return s.liveNPCClass(before, after)
+	case "defaultcharacter":
+		database.InvalidateDefaultCharacters()
+		return "the next character made uses it"
+	case "accountinfo":
+		return s.liveAccount(a, action, before, after)
+	case "characters":
+		return s.liveCharacter(a, action, before, after)
+	case "charinventory", "spells", "hotkeys", "charbuffs", "weaponhotbar":
+		row := after
+		if row == nil {
+			row = before
+		}
+		col := "serverid"
+		if id, ok := asFloat(row[col]); ok {
+			if p, online := s.onlineCharacter(uint32(id)); online {
+				return fmt.Sprintf("%s is in the world: they get it at their next login (kick_player to apply it now)", p.Name)
+			}
+		}
+		return "at the character's next login"
+	}
+	return t.Live
+}
+
+func (s *Server) liveNPC(action string, before, after map[string]any) string {
+	if s.d.World == nil || s.d.NPCs == nil {
+		return "no world is running: at the next start"
+	}
+	var msgs []string
+	if before != nil {
+		bid, _ := asFloat(before["id"])
+		aid := bid
+		if after != nil {
+			aid, _ = asFloat(after["id"])
+		}
+		if after == nil || aid != bid {
+			if name, ok := s.d.World.RemoveNPC(entity.EntityID(bid)); ok {
+				msgs = append(msgs, fmt.Sprintf("%s left the world", name))
+			}
+		}
+	}
+	if after != nil {
+		id, _ := asFloat(after["id"])
+		rec, err := s.d.NPCs.GetNPC(int(id))
+		if err != nil {
+			return "not applied to the world: " + err.Error()
+		}
+		class, _ := s.d.NPCs.NPCClassOf(rec.NPCName)
+		created, err := s.d.World.UpsertNPC(rec, class)
+		switch {
+		case err != nil:
+			msgs = append(msgs, "not applied to the world: "+err.Error())
+		case created:
+			msgs = append(msgs, fmt.Sprintf("%s spawned in %s at (%.0f, %.0f, %.0f)", rec.NPCName,
+				worldName(rec.World), rec.XCoord, rec.YCoord, rec.ZCoord))
+		default:
+			msgs = append(msgs, fmt.Sprintf("%s changed in the world: it leaves every view for a second and comes back as edited, on its spawn point", rec.NPCName))
+		}
+	}
+	return strings.Join(msgs, "; ")
+}
+
+func (s *Server) liveNPCClass(before, after map[string]any) string {
+	if s.d.World == nil {
+		return "no world is running: at the next start"
+	}
+	var msgs []string
+	if before != nil && (after == nil || fmt.Sprint(before["name"]) != fmt.Sprint(after["name"])) {
+		n := s.d.World.SetNPCClass(fmt.Sprint(before["name"]), 0)
+		msgs = append(msgs, fmt.Sprintf("%d NPCs named %q are warriors again", n, before["name"]))
+	}
+	if after != nil {
+		class, _ := asFloat(after["class"])
+		n := s.d.World.SetNPCClass(fmt.Sprint(after["name"]), int(class))
+		msgs = append(msgs, fmt.Sprintf("%d NPCs named %q swing as a %s now", n, after["name"], className(int(class))))
+	}
+	return strings.Join(msgs, "; ")
+}
+
+func (s *Server) liveAccount(a *actor, action string, before, after map[string]any) string {
+	row := after
+	if row == nil {
+		row = before
+	}
+	id, _ := asFloat(row["accountid"])
+	banned := func(m map[string]any) bool {
+		if m == nil {
+			return false
+		}
+		st, ok := asFloat(m["acctstatus"])
+		return ok && st < 0
+	}
+	if action == "delete" || (banned(after) && !banned(before)) {
+		n := handlers.EjectAccount(s.d.Sessions, int(id))
+		s.sessions.endAccount(int(id), "")
+		s.revokeAccountTokens(int(id))
+		if action == "delete" {
+			return fmt.Sprintf("account deleted; %d game session(s) ejected", n)
+		}
+		return fmt.Sprintf("banned: %d game session(s) ejected; the next login is refused", n)
+	}
+	if banned(before) && !banned(after) {
+		return "unbanned: the account may log in again"
+	}
+	level := func(m map[string]any) int {
+		v, _ := asFloat(m["acctlevel"])
+		return int(v)
+	}
+	if action == "update" && level(before) >= s.cfg.MinLevel && level(after) < s.cfg.MinLevel {
+		// however it came (set_account_level, a revert): no longer a GM, so
+		// nothing of the panel's works for it any more
+		s.sessions.endAccount(int(id), "")
+		n := s.revokeAccountTokens(int(id))
+		return fmt.Sprintf("no longer a GM: its panel sessions ended and %d token(s) were revoked", n)
+	}
+	return ""
+}
+
+func (s *Server) liveCharacter(a *actor, action string, before, after map[string]any) string {
+	row := after
+	if row == nil {
+		row = before
+	}
+	id, _ := asFloat(row["serverid"])
+	p, online := s.onlineCharacter(uint32(id))
+	if !online {
+		if action == "delete" {
+			return ""
+		}
+		return "the character is offline: everything at its next login"
+	}
+	sess := handlers.SessionOfCharacter(s.d.World, s.d.Sessions, uint32(id))
+	if action == "delete" {
+		if sess != nil {
+			handlers.Eject(sess)
+		}
+		return fmt.Sprintf("%s was in the world and was ejected", p.Name)
+	}
+	if action != "update" {
+		return ""
+	}
+	var done, later []string
+	changed := func(col string) bool { return !sameValue(before[col], after[col]) }
+	if changed("level") {
+		lvl, _ := asFloat(after["level"])
+		if s.d.World.SetPlayerLevel(uint32(id), int(lvl)) && sess != nil {
+			handlers.SendLevel(sess, int(lvl))
+		}
+		done = append(done, fmt.Sprintf("level %d", int(lvl)))
+	}
+	if changed("tunar") || changed("bankTunar") {
+		t, _ := asFloat(after["tunar"])
+		b, _ := asFloat(after["bankTunar"])
+		if s.d.World.SetPlayerTunar(uint32(id), int(t), int(b)) && sess != nil {
+			handlers.SendPlayerTunar(sess, int64(t))
+		}
+		done = append(done, fmt.Sprintf("%d tunar, %d in the bank", int(t), int(b)))
+	}
+	if changed("x") || changed("y") || changed("z") || changed("world") {
+		x, _ := asFloat(after["x"])
+		y, _ := asFloat(after["y"])
+		z, _ := asFloat(after["z"])
+		w, _ := asFloat(after["world"])
+		if msg, err := s.teleportLive(p, float32(x), float32(y), float32(z), byte(w)); err != nil {
+			later = append(later, "not moved: "+err.Error()+" (they will be saved where they stand at logout)")
+		} else {
+			done = append(done, msg)
+		}
+	}
+	for _, c := range []string{"charName", "tclass", "race", "sex", "modelid", "haircolor", "hairlength", "hairstyle",
+		"faceoption", "tpstrength", "tpstamina", "tpagility", "tpdexterity", "tpwisdom", "tpintel", "tpcharisma",
+		"totalXP", "unusedTP", "totalTP", "humType", "accountid"} {
+		if changed(c) {
+			later = append(later, c)
+		}
+	}
+	msg := p.Name + " is in the world"
+	if len(done) > 0 {
+		msg += ": applied now: " + strings.Join(done, ", ")
+	}
+	if len(later) > 0 {
+		msg += "; at their next login: " + strings.Join(later, ", ")
+	}
+	return msg
+}
+
+// onlineCharacter is the world's player for a character, if it is in the
+// world.
+func (s *Server) onlineCharacter(serverID uint32) (entity.PlayerState, bool) {
+	if s.d.World == nil {
+		return entity.PlayerState{}, false
+	}
+	return s.d.World.PlayerByCharacter(serverID)
+}
+
+// teleportLive moves a character who is in the world, as the account pages'
+// teleport does (a harbormaster's warp), once the place passes the game's
+// checks.
+func (s *Server) teleportLive(p entity.PlayerState, x, y, z float32, world byte) (string, error) {
+	w, err := handlers.ValidateTeleport(x, y, z, world)
+	if err != nil {
+		return "", err
+	}
+	if !handlers.TeleportOnlineCharacter(s.d.World, s.d.Sessions, p.ID, x, y, z, w) {
+		return "", fmt.Errorf("%s has no session to send it to", p.Name)
+	}
+	return fmt.Sprintf("teleported to (%.0f, %.0f, %.0f) in %s", x, y, z, worldName(int(w))), nil
+}
+
+// sessionFor is a character's in-world session, or nil.
+func (s *Server) sessionFor(serverID uint32) *session.Session {
+	return handlers.SessionOfCharacter(s.d.World, s.d.Sessions, serverID)
+}
+
+func worldName(w int) string {
+	names := handlers.WorldNames()
+	if w >= 0 && w < len(names) {
+		return names[w]
+	}
+	return fmt.Sprintf("world %d", w)
+}
+
+func className(c int) string {
+	for _, e := range enums()["class"] {
+		if e.Value == c {
+			return e.Label
+		}
+	}
+	return fmt.Sprintf("class %d", c)
+}
+
+func raceName(r int) string {
+	for _, e := range enums()["race"] {
+		if e.Value == r {
+			return e.Label
+		}
+	}
+	return fmt.Sprintf("race %d", r)
+}

@@ -1,6 +1,10 @@
 package database
 
-import "strings"
+import (
+	"database/sql"
+	"errors"
+	"strings"
+)
 
 // NPCRecord represents a row from the npcs table.
 type NPCRecord struct {
@@ -48,21 +52,42 @@ func NewNPCStore(db *SQLiteDB) *NPCStore {
 	return &NPCStore{db: db}
 }
 
-// GetAllNPCs returns all NPCs.
-func (s *NPCStore) GetAllNPCs() ([]*NPCRecord, error) {
-	rows, err := s.db.Query(`
-		SELECT id, COALESCE(npc_name,''), COALESCE(zone,0), COALESCE(unk_a,0), COALESCE(unk_b,0),
-			COALESCE(x_coord,0), COALESCE(y_coord,0), COALESCE(z_coord,0),
-			COALESCE(facing,0), COALESCE(world,0),
-			COALESCE(hp,0), COALESCE(hp_percent,0), COALESCE(modelid,0), COALESCE(size,1.0),
-			COALESCE(primary_weapon,0), COALESCE(secondary_weapon,0), COALESCE(shield,0),
-			COALESCE(torso,0), COALESCE(forearm,0), COALESCE(gloves,0),
-			COALESCE(legs,0), COALESCE(feet,0), COALESCE(head,0),
-			COALESCE(hair_color,0), COALESCE(hair_length,0), COALESCE(hair_style,0), COALESCE(face,0),
-			COALESCE(robe_style,''), COALESCE(race,''),
-			COALESCE(npc_level,1), COALESCE(npc_type,0), COALESCE(npc_id,0)
-		FROM npcs ORDER BY id
-	`)
+// npcColumns is the npcs columns NPCRecord holds, in scanNPC's order.
+const npcColumns = `id, COALESCE(npc_name,''), COALESCE(zone,0), COALESCE(unk_a,0), COALESCE(unk_b,0),
+	COALESCE(x_coord,0), COALESCE(y_coord,0), COALESCE(z_coord,0),
+	COALESCE(facing,0), COALESCE(world,0),
+	COALESCE(hp,0), COALESCE(hp_percent,0), COALESCE(modelid,0), COALESCE(size,1.0),
+	COALESCE(primary_weapon,0), COALESCE(secondary_weapon,0), COALESCE(shield,0),
+	COALESCE(torso,0), COALESCE(forearm,0), COALESCE(gloves,0),
+	COALESCE(legs,0), COALESCE(feet,0), COALESCE(head,0),
+	COALESCE(hair_color,0), COALESCE(hair_length,0), COALESCE(hair_style,0), COALESCE(face,0),
+	COALESCE(robe_style,''), COALESCE(race,''),
+	COALESCE(npc_level,1), COALESCE(npc_type,0), COALESCE(npc_id,0)`
+
+// scanNPC scans one row of npcColumns.
+func scanNPC(scan func(...any) error) (*NPCRecord, error) {
+	n := &NPCRecord{}
+	err := scan(
+		&n.ID, &n.NPCName, &n.Zone, &n.UnkA, &n.UnkB,
+		&n.XCoord, &n.YCoord, &n.ZCoord,
+		&n.Facing, &n.World,
+		&n.HP, &n.HPPercent, &n.ModelID, &n.Size,
+		&n.PrimaryWeapon, &n.SecondaryWeapon, &n.Shield,
+		&n.Torso, &n.Forearm, &n.Gloves,
+		&n.Legs, &n.Feet, &n.Head,
+		&n.HairColor, &n.HairLength, &n.HairStyle, &n.Face,
+		&n.RobeStyle, &n.Race,
+		&n.NPCLevel, &n.NPCType, &n.NPCID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return n, nil
+}
+
+// queryNPCs runs a SELECT of npcColumns and scans every row.
+func (s *NPCStore) queryNPCs(query string, args ...any) ([]*NPCRecord, error) {
+	rows, err := s.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -70,19 +95,7 @@ func (s *NPCStore) GetAllNPCs() ([]*NPCRecord, error) {
 
 	var npcs []*NPCRecord
 	for rows.Next() {
-		n := &NPCRecord{}
-		err := rows.Scan(
-			&n.ID, &n.NPCName, &n.Zone, &n.UnkA, &n.UnkB,
-			&n.XCoord, &n.YCoord, &n.ZCoord,
-			&n.Facing, &n.World,
-			&n.HP, &n.HPPercent, &n.ModelID, &n.Size,
-			&n.PrimaryWeapon, &n.SecondaryWeapon, &n.Shield,
-			&n.Torso, &n.Forearm, &n.Gloves,
-			&n.Legs, &n.Feet, &n.Head,
-			&n.HairColor, &n.HairLength, &n.HairStyle, &n.Face,
-			&n.RobeStyle, &n.Race,
-			&n.NPCLevel, &n.NPCType, &n.NPCID,
-		)
+		n, err := scanNPC(rows.Scan)
 		if err != nil {
 			return nil, err
 		}
@@ -91,47 +104,19 @@ func (s *NPCStore) GetAllNPCs() ([]*NPCRecord, error) {
 	return npcs, rows.Err()
 }
 
+// GetAllNPCs returns all NPCs.
+func (s *NPCStore) GetAllNPCs() ([]*NPCRecord, error) {
+	return s.queryNPCs(`SELECT ` + npcColumns + ` FROM npcs ORDER BY id`)
+}
+
+// GetNPC returns the NPC of that row id, or sql.ErrNoRows.
+func (s *NPCStore) GetNPC(id int) (*NPCRecord, error) {
+	return scanNPC(s.db.QueryRow(`SELECT `+npcColumns+` FROM npcs WHERE id = ?`, id).Scan)
+}
+
 // GetNPCsByZone returns all NPCs in a given zone.
 func (s *NPCStore) GetNPCsByZone(zone int) ([]*NPCRecord, error) {
-	rows, err := s.db.Query(`
-		SELECT id, COALESCE(npc_name,''), COALESCE(zone,0), COALESCE(unk_a,0), COALESCE(unk_b,0),
-			COALESCE(x_coord,0), COALESCE(y_coord,0), COALESCE(z_coord,0),
-			COALESCE(facing,0), COALESCE(world,0),
-			COALESCE(hp,0), COALESCE(hp_percent,0), COALESCE(modelid,0), COALESCE(size,1.0),
-			COALESCE(primary_weapon,0), COALESCE(secondary_weapon,0), COALESCE(shield,0),
-			COALESCE(torso,0), COALESCE(forearm,0), COALESCE(gloves,0),
-			COALESCE(legs,0), COALESCE(feet,0), COALESCE(head,0),
-			COALESCE(hair_color,0), COALESCE(hair_length,0), COALESCE(hair_style,0), COALESCE(face,0),
-			COALESCE(robe_style,''), COALESCE(race,''),
-			COALESCE(npc_level,1), COALESCE(npc_type,0), COALESCE(npc_id,0)
-		FROM npcs WHERE zone = ? ORDER BY id
-	`, zone)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var npcs []*NPCRecord
-	for rows.Next() {
-		n := &NPCRecord{}
-		err := rows.Scan(
-			&n.ID, &n.NPCName, &n.Zone, &n.UnkA, &n.UnkB,
-			&n.XCoord, &n.YCoord, &n.ZCoord,
-			&n.Facing, &n.World,
-			&n.HP, &n.HPPercent, &n.ModelID, &n.Size,
-			&n.PrimaryWeapon, &n.SecondaryWeapon, &n.Shield,
-			&n.Torso, &n.Forearm, &n.Gloves,
-			&n.Legs, &n.Feet, &n.Head,
-			&n.HairColor, &n.HairLength, &n.HairStyle, &n.Face,
-			&n.RobeStyle, &n.Race,
-			&n.NPCLevel, &n.NPCType, &n.NPCID,
-		)
-		if err != nil {
-			return nil, err
-		}
-		npcs = append(npcs, n)
-	}
-	return npcs, rows.Err()
+	return s.queryNPCs(`SELECT `+npcColumns+` FROM npcs WHERE zone = ? ORDER BY id`, zone)
 }
 
 // Count returns the total number of NPCs.
@@ -166,4 +151,15 @@ func (s *NPCStore) NPCClasses() (map[string]int, error) {
 		out[name] = class
 	}
 	return out, rows.Err()
+}
+
+// NPCClassOf is the npcclass table's class for an NPC name (by NPCClassKey),
+// and 0 (a warrior's) when it holds none.
+func (s *NPCStore) NPCClassOf(name string) (int, error) {
+	var class int
+	err := s.db.QueryRow(`SELECT class FROM npcclass WHERE name = ?`, NPCClassKey(name)).Scan(&class)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, nil
+	}
+	return class, err
 }

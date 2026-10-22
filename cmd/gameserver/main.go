@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/eqoa/server/internal/auth"
@@ -13,6 +14,7 @@ import (
 	"github.com/eqoa/server/internal/config"
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
+	"github.com/eqoa/server/internal/gmweb"
 	"github.com/eqoa/server/internal/handlers"
 	"github.com/eqoa/server/internal/network/tcp"
 	"github.com/eqoa/server/internal/network/udp"
@@ -274,6 +276,44 @@ func main() {
 	// Initialize UDP listener with game world
 	udpListener := udp.NewListener(cfg, sessionMgr, udpHandlers, gameWorld)
 	udpListener.SetCharStore(charStore)
+
+	// The GM panel (internal/gmweb): a web page for GMs and the same tools
+	// for an AI agent (MCP, OpenAPI), off unless gm.port is set. It edits the
+	// database and the running world, so it is handed both, and the hooks
+	// that change what main owns: the new-character rules (both creation
+	// paths hold a copy), auto-registration, and a restart.
+	if cfg.GM.Port != 0 {
+		gm, err := gmweb.New(gmweb.Deps{
+			Config: cfg, ConfigPath: *configPath, DB: db, World: gameWorld, Sessions: sessionMgr,
+			Characters: charStore, Accounts: accountStore, NPCs: npcStore,
+			ApplyNewCharacterRules: func(r database.NewCharacterRules) {
+				charStore.SetNewCharacterRules(r)
+				accountServer.SetNewCharacterRules(r)
+			},
+			SetAutoRegister: authHandler.SetAllowAutoRegister,
+			AutoRegister:    authHandler.AllowAutoRegister,
+			Restart: func() error {
+				// Everyone saved as at a shutdown, then this process becomes
+				// the binary on disk again (a new build, if one was copied in):
+				// every socket closes on exec and the new image opens them.
+				udpListener.SaveAll()
+				exe, err := os.Executable()
+				if err != nil {
+					return err
+				}
+				exe = strings.TrimSuffix(exe, " (deleted)")
+				log.Printf("GM panel: restarting %s", exe)
+				return syscall.Exec(exe, os.Args, os.Environ())
+			},
+		})
+		if err != nil {
+			log.Fatalf("GM panel: %v", err)
+		}
+		if err := gm.Start(); err != nil {
+			log.Fatalf("GM panel: %v", err)
+		}
+		defer gm.Stop()
+	}
 
 	// Start UDP listener
 	if err := udpListener.Start(); err != nil {

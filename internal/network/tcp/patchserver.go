@@ -1088,10 +1088,13 @@ func (s *PatchServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Message of the day. The station UI requests this (the URL comes from
 	// options.cfg inside station.pak) and we were answering 404 — five times
-	// per visit to the server-select screen.
+	// per visit to the server-select screen. STATION shows the body as it
+	// comes, a byte a character (VIWndGenericRenderer: leading tabs and
+	// newlines skipped, then VIGUIDialog::SetText), so it is plain text: a
+	// tag would be shown as written. Lines break at '\n'.
 	if r.URL.Path == "/patch/web/eqoa/motd/news.html" {
-		body := []byte("<html><body><p>Welcome to Spire.</p></body></html>")
-		w.Header().Set("Content-Type", "text/html")
+		body := []byte("Welcome to Spire.")
+		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("Content-Length", itoa(len(body)))
 		w.Header().Set("Connection", "close")
 		w.WriteHeader(http.StatusOK)

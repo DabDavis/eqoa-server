@@ -793,6 +793,22 @@ func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID 
 		h.gameWorld.SetGear(player.ServerID, wornGear(items), fill)
 	}
 
+	wornLook(player, items)
+
+	log.Printf("applyEquipment: serverID=%d chest=%d bracer=%d gloves=%d legs=%d boots=%d helm=%d robe=%d primary=0x%08X secondary=0x%08X shield=0x%08X",
+		serverID, player.Chest, player.Bracer, player.Gloves, player.Legs, player.Boots, player.Helm,
+		player.Robe, player.Primary, player.Secondary, player.Shield)
+}
+
+// wornLook sets the player's look on the state channel from the items worn.
+// It starts from nothing, so an item taken off leaves the character: these
+// fields are set nowhere else, and an unequipped weapon or armour piece kept
+// showing in every client until the next login. A weapon goes in the hand its
+// equip slot names (15 the second), where the first hand free put a weapon
+// taken off and worn again in the second hand.
+func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
+	player.Helm, player.Chest, player.Bracer, player.Legs, player.Boots, player.Gloves = 0, 0, 0, 0, 0, 0
+	player.Robe, player.Primary, player.Secondary, player.Shield = 0, 0, 0, 0
 	for _, item := range items {
 		if item.EquipLoc < 0 {
 			continue // not equipped
@@ -813,20 +829,16 @@ func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID 
 			player.Gloves = byte(model)
 		case 2: // Robe
 			player.Robe = uint32(model)
-		case 14: // Weapon
-			if player.Primary == 0 {
-				player.Primary = uint32(model)
-			} else {
+		case 14: // Weapon, in either hand
+			if item.EquipLoc == 15 {
 				player.Secondary = uint32(model)
+			} else {
+				player.Primary = uint32(model)
 			}
 		case 13: // Shield
 			player.Shield = uint32(model)
 		}
 	}
-
-	log.Printf("applyEquipment: serverID=%d chest=%d bracer=%d gloves=%d legs=%d boots=%d helm=%d robe=%d primary=0x%08X secondary=0x%08X shield=0x%08X",
-		serverID, player.Chest, player.Bracer, player.Gloves, player.Legs, player.Boots, player.Helm,
-		player.Robe, player.Primary, player.Secondary, player.Shield)
 }
 
 // wornGear sums the stats of the items worn (an equip slot, not the bank),

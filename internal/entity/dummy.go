@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -22,13 +23,13 @@ import (
 //   - It fights in rounds as every NPC does (rounds.go): the Lv20-30 swing
 //     Attack2 every 4 s and hit at 0.5 and 1.5 s; from Lv35, Attack4 every
 //     6 s with hits at 0.5, 1, 1.7 and 2.4 s.
-//   - A Training Dummy's hit is the floor of its level's roll, each followed
-//     at once by a heal of 300 (0x00DB +300, the dummy the healer), so the
-//     player never dies of it. Sandstorm's rolled above the floor on a
-//     player of little armour (an enchanter of 167 AC took 24-124 from the
-//     Lv45, where two tanks took 24 every time); the roll waits on the
-//     defence formula, so here every hit is the floor. A Regular Dummy hits
-//     as a creature does and heals nothing.
+//   - A dummy's hit is its level's roll on the player's AC, AGI and
+//     archetype (defence.go, dummyRolls): the floor on a well-armoured tank
+//     (two tanks of 1763 and 1430 AC took the Lv45's 24 every time), up to
+//     its top on little armour (an enchanter of 167 AC took 24-124). A
+//     Training Dummy's every hit is followed at once by a heal of 300
+//     (0x00DB +300, the dummy the healer), so the player never dies of it;
+//     a Regular Dummy heals nothing.
 //
 // It gives no experience and never takes a target's aggro (CurrentEnemy
 // stays 0), so the player's swings end with the attack button, as against
@@ -39,7 +40,7 @@ type DummyKind uint8
 
 const (
 	NotDummy      DummyKind = iota
-	TrainingDummy           // "Training Dummy LvN": fixed hits, a heal after each
+	TrainingDummy           // "Training Dummy LvN": a heal after each hit
 	RegularDummy            // "Regular Dummy LvN": a creature's hits, no heal
 )
 
@@ -61,25 +62,6 @@ const dummyHeal = 300
 // dummyReach is how near the player must stay for the dummy to go on
 // fighting it. A dummy went on at 7.1 and let go of a player 12.8 away.
 const dummyReach = 10
-
-// trainingDummyHit is a Training Dummy's floor by its level: what
-// Sandstorm's hit two tanks (a level 50 and a level 51 of 1763 and 1430 AC)
-// every time. Between the levels measured it is interpolated.
-var trainingDummyHits = [][2]int{{20, 8}, {25, 10}, {30, 12}, {35, 14}, {45, 24}, {50, 21}, {55, 30}}
-
-func trainingDummyHit(level int) int {
-	t := trainingDummyHits
-	if level <= t[0][0] {
-		return t[0][1]
-	}
-	for i := 1; i < len(t); i++ {
-		if level <= t[i][0] {
-			a, b := t[i-1], t[i]
-			return a[1] + (b[1]-a[1])*(level-a[0])/(b[0]-a[0])
-		}
-	}
-	return t[len(t)-1][1]
-}
 
 // dummyEngagedLocked is a player's hit landing on a dummy: the dummy takes
 // that player on if it is fighting no one. The first round starts at once,
@@ -112,12 +94,7 @@ func (w *World) dummyFightLocked(npc *NPC, now time.Time) {
 // dummyHitLocked is one of a dummy's hits on the player, and a Training
 // Dummy's heal after it. It reports the player's death.
 func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now time.Time) bool {
-	var damage int
-	if npc.Dummy == TrainingDummy {
-		damage = trainingDummyHit(npc.Level)
-	} else {
-		damage = CalculateMeleeDamage(npc.OffMod, RollWeaponDamage(npc.WeaponDamage), npc.Level, p.Level, p.DefMod)
-	}
+	damage := npcMeleeRoll(npc).hitOn(p, rand.Intn)
 	p.HP = max(p.HP-damage, 0)
 	p.LastCombatTime = now
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)

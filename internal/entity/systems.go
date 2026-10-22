@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"math/rand"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -151,9 +152,8 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 		return
 	}
 
-	// SOE retail damage formula: NPC attacks player
-	weaponDmg := RollWeaponDamage(npc.WeaponDamage)
-	damage := CalculateMeleeDamage(npc.OffMod, weaponDmg, npc.Level, player.Level, player.DefMod)
+	// Sandstorm's roll on the player's AC, AGI and archetype (defence.go)
+	damage := npcMeleeRoll(npc).hitOn(player, rand.Intn)
 	player.HP -= damage
 	if player.HP < 0 {
 		player.HP = 0

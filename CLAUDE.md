@@ -327,6 +327,19 @@ Two things follow from the protocol that are easy to get wrong:
 - Accounts with an empty `pwhash` predate password checking. The first login that
   supplies a password adopts it (when `auth.allow_auto_register` is on); after
   that the account is enforced normally.
+- **Guessing is limited, everywhere a password is checked, by ONE `auth.Limiter`**
+  (`internal/auth/limiter.go`, made in `main.go`): this login, the account pages'
+  `/api/login` and `/api/logout` (public through nginx: the play page's "log the
+  other window out"), and the GM panel. `auth.FailsPerName` (8) attempts an
+  account and `auth.FailsPerAddr` (20) an address every 15 minutes, counted
+  BEFORE the password is checked (a burst gets no more than a slow guesser), a
+  right password taking its attempt back; at most four password checks at once.
+  The address is the client's own: a relayed browser player's from wsrelay's
+  lookup, which is set whenever `auth.relay_lookup` is. Not counted by address:
+  loopback, `server_ip` and `auth.one_login_exempt` (an unnamed relayed player
+  is counted by name only). A login that REGISTERS an account keeps its
+  attempt, so an address registers no faster than it may guess. A refused
+  login is STATION's failure with the reason in the text the browser shows.
 
 Test accounts come from `auth.accounts` in `config.yaml`, created at startup if
 absent with the password hashed. Existing accounts are never overwritten.

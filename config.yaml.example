@@ -132,7 +132,9 @@ auth:
   # session from the same address, is already in the game (the first window
   # keeps playing; no multiboxing). The address rule skips loopback,
   # server_ip and these (IPs or CIDR prefixes): the operators' own addresses,
-  # and a web relay's when relay_lookup is not set.
+  # and a web relay's when relay_lookup is not set. The same addresses are
+  # not counted by address by the login limit (8 failed logins an account, 20
+  # an address, every 15 minutes, always on); their account names still are.
   one_login: true
   one_login_exempt: []
   # wsrelay's -lookup listener: which page is behind a relayed player, so the

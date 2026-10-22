@@ -7,12 +7,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/eqoa/server/internal/auth"
 )
 
 // Who is asking: a person signed in with a cookie, or an AI agent (any client)
@@ -177,117 +178,6 @@ func (st *sessionStore) pruneLocked(now time.Time) {
 	}
 }
 
-// loginLimiter counts sign-in attempts (the page's, a terminal's and OAuth's)
-// by address and by account name, so a password cannot be guessed at speed.
-// An attempt is counted BEFORE its password is checked, so a burst of
-// concurrent guesses gets no more tries than a slow one; a right password
-// takes its own attempt back. Both maps are bounded: a flood of names or
-// addresses can cost a little memory, never the game's.
-type loginLimiter struct {
-	mu     sync.Mutex
-	byIP   map[string][]time.Time
-	byUser map[string][]time.Time
-}
-
-const (
-	failWindow  = 15 * time.Minute
-	failsPerIP  = 20
-	failsPerAcc = 8
-
-	// limiterKeys bounds each of the limiter's maps.
-	limiterKeys = 5000
-	// maxNameLen is longer than any game name (16); a longer one is refused
-	// before it is counted under its own name.
-	maxNameLen = 64
-)
-
-func newLoginLimiter() *loginLimiter {
-	return &loginLimiter{byIP: map[string][]time.Time{}, byUser: map[string][]time.Time{}}
-}
-
-func recent(ts []time.Time, now time.Time) []time.Time {
-	out := ts[:0]
-	for _, t := range ts {
-		if now.Sub(t) < failWindow {
-			out = append(out, t)
-		}
-	}
-	return out
-}
-
-// limitKey is the address a limit is kept under: an IPv6 address by its /64,
-// which is what one machine is given.
-func limitKey(ip string) string {
-	p := net.ParseIP(ip)
-	if p == nil || p.To4() != nil {
-		return ip
-	}
-	return p.Mask(net.CIDRMask(64, 128)).String() + "/64"
-}
-
-// room makes room in m for one more key: the expired go first, then any.
-func room(m map[string][]time.Time, now time.Time) {
-	if len(m) < limiterKeys {
-		return
-	}
-	for k, v := range m {
-		if len(recent(v, now)) == 0 {
-			delete(m, k)
-		}
-	}
-	for k := range m {
-		if len(m) < limiterKeys {
-			break
-		}
-		delete(m, k)
-	}
-}
-
-// begin counts an attempt by the address and the name ("" for none), or
-// says how long until one is allowed.
-func (l *loginLimiter) begin(ip, user string) time.Duration {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	now := time.Now()
-	ip, user = limitKey(ip), strings.ToLower(user)
-	f := recent(l.byIP[ip], now)
-	if len(f) >= failsPerIP {
-		l.byIP[ip] = f
-		return failWindow - now.Sub(f[len(f)-failsPerIP])
-	}
-	var u []time.Time
-	if user != "" {
-		u = recent(l.byUser[user], now)
-		if len(u) >= failsPerAcc {
-			l.byUser[user] = u
-			return failWindow - now.Sub(u[len(u)-failsPerAcc])
-		}
-	}
-	if _, ok := l.byIP[ip]; !ok {
-		room(l.byIP, now)
-	}
-	l.byIP[ip] = append(f, now)
-	if user != "" {
-		if _, ok := l.byUser[user]; !ok {
-			room(l.byUser, now)
-		}
-		l.byUser[user] = append(u, now)
-	}
-	return 0
-}
-
-// succeed is a right sign-in: the name's count is cleared and the address
-// gets its attempt back.
-func (l *loginLimiter) succeed(ip, user string) {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	delete(l.byUser, strings.ToLower(user))
-	ip = limitKey(ip)
-	if f := l.byIP[ip]; len(f) > 0 {
-		l.byIP[ip] = f[:len(f)-1]
-	}
-}
-
 // bucketLimiter is a token bucket per key (an address, an account): burst
 // requests at once, refilled at rate a second. A key costs a few words
 // however busy it is, and there are at most maxKeys of them.
@@ -443,7 +333,7 @@ func (s *Server) authenticate(r *http.Request) (*actor, error) {
 			return nil, &authError{http.StatusUnauthorized, "Authorization must be a Bearer token"}
 		}
 		// a guesser of tokens is stopped before it costs a database read
-		key := limitKey(ip)
+		key := auth.LimitKey(ip)
 		if s.badTokens.empty(key) {
 			return nil, &authError{http.StatusTooManyRequests, "too many unknown tokens from this address; wait a minute"}
 		}

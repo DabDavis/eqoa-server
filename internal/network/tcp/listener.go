@@ -215,6 +215,70 @@ type AuthServer struct {
 	// autoRegister is auth.allow_auto_register, which the GM panel turns
 	// over while the server runs (SetAllowAutoRegister).
 	autoRegister atomic.Bool
+
+	// limiter counts every login before its password is checked (SetLimiter);
+	// limitExempt are the addresses it does not count by address.
+	limiter     *auth.Limiter
+	limitExempt []netip.Prefix
+}
+
+// SetLimiter counts every login against l (the server's one limiter, which
+// the account pages and the GM panel share): by the client's address (a
+// relayed browser player's own, SetRelay) and by the account name, BEFORE
+// the password is checked, and a refused login is answered as one with no
+// password tried. exempt lists the addresses (IPs or CIDR prefixes) not
+// counted by address: the operators' own, and the relay's, which every
+// browser player comes through when the relay cannot name the page behind
+// it. Their names are still counted.
+func (s *AuthServer) SetLimiter(l *auth.Limiter, exempt []string) error {
+	p, err := parsePrefixes(exempt, "login-limit exemption")
+	if err != nil {
+		return err
+	}
+	s.limiter, s.limitExempt = l, p
+	return nil
+}
+
+// parsePrefixes reads a list of IPs and CIDR prefixes.
+func parsePrefixes(list []string, what string) ([]netip.Prefix, error) {
+	var out []netip.Prefix
+	for _, e := range list {
+		e = strings.TrimSpace(e)
+		if e == "" {
+			continue
+		}
+		if !strings.Contains(e, "/") {
+			a, err := netip.ParseAddr(e)
+			if err != nil {
+				return nil, fmt.Errorf("%s %q: %v", what, e, err)
+			}
+			e = netip.PrefixFrom(a, a.BitLen()).String()
+		}
+		p, err := netip.ParsePrefix(e)
+		if err != nil {
+			return nil, fmt.Errorf("%s %q: %v", what, e, err)
+		}
+		out = append(out, p.Masked())
+	}
+	return out, nil
+}
+
+// inPrefixes is whether ip is loopback or in one of the prefixes.
+func inPrefixes(ip net.IP, prefixes []netip.Prefix) bool {
+	a, ok := netip.AddrFromSlice(ip)
+	if !ok {
+		return false
+	}
+	a = a.Unmap()
+	if a.IsLoopback() {
+		return true
+	}
+	for _, p := range prefixes {
+		if p.Contains(a) {
+			return true
+		}
+	}
+	return false
 }
 
 // SetAllowAutoRegister turns auth.allow_auto_register on or off from the next
@@ -278,44 +342,16 @@ func RelayLookup(base string) func(port int) (net.IP, bool) {
 // operators' own, and the web relay's, which every browser player comes
 // through (the relay limits those itself, by the page's address).
 func (s *AuthServer) SetOneLogin(live func(accountID int, ip net.IP, ipOf func(*net.UDPAddr) net.IP) string, exempt []string) error {
-	s.liveLogin = live
-	s.exempt = nil
-	for _, e := range exempt {
-		e = strings.TrimSpace(e)
-		if e == "" {
-			continue
-		}
-		if !strings.Contains(e, "/") {
-			a, err := netip.ParseAddr(e)
-			if err != nil {
-				return fmt.Errorf("one-login exemption %q: %v", e, err)
-			}
-			e = netip.PrefixFrom(a, a.BitLen()).String()
-		}
-		p, err := netip.ParsePrefix(e)
-		if err != nil {
-			return fmt.Errorf("one-login exemption %q: %v", e, err)
-		}
-		s.exempt = append(s.exempt, p.Masked())
+	p, err := parsePrefixes(exempt, "one-login exemption")
+	if err != nil {
+		return err
 	}
+	s.liveLogin, s.exempt = live, p
 	return nil
 }
 
 func (s *AuthServer) exemptIP(ip net.IP) bool {
-	a, ok := netip.AddrFromSlice(ip)
-	if !ok {
-		return false
-	}
-	a = a.Unmap()
-	if a.IsLoopback() {
-		return true
-	}
-	for _, p := range s.exempt {
-		if p.Contains(a) {
-			return true
-		}
-	}
-	return false
+	return inPrefixes(ip, s.exempt)
 }
 
 // NewAuthServer creates a new auth server handler.
@@ -440,11 +476,41 @@ func (s *AuthServer) handleLoginFrom(payload []byte, ip net.IP) []byte {
 
 	log.Printf("Auth: login request for '%s'", username)
 
-	accountID, ok := s.authenticate(username, payload[40:72])
+	// Counted before the password is checked (SetLimiter): a guesser gets
+	// FailsPerName tries at an account and FailsPerAddr from an address
+	// every FailWindow, here and on the account pages and the GM panel
+	// together, however many connections it opens.
+	addr := ""
+	if ip != nil && !inPrefixes(ip, s.limitExempt) {
+		addr = ip.String()
+	}
+	var release func()
+	if s.limiter != nil {
+		if wait := s.limiter.Begin(addr, username); wait > 0 {
+			log.Printf("Auth: refused '%s' from %v: too many failed logins", username, ip)
+			return s.buildLoginRefusedResponse(0, fmt.Sprintf(tooManyLogins, auth.RetryMinutes(wait)))
+		}
+		var free bool
+		if release, free = s.limiter.Slot(10 * time.Second); !free {
+			log.Printf("Auth: refused '%s' from %v: no free password check", username, ip)
+			return s.buildLoginRefusedResponse(0, serverBusy)
+		}
+	}
+	accountID, ok, registered := s.authenticate(username, payload[40:72])
+	if release != nil {
+		release()
+	}
 	if !ok {
 		// The account ID is echoed even on failure, matching a real server's
 		// response shape. 0 is correct for an account we could not identify.
 		return s.buildLoginFailResponse(uint32(accountID))
+	}
+	if s.limiter != nil {
+		if registered {
+			s.limiter.Succeed("", username) // the address keeps the attempt
+		} else {
+			s.limiter.Succeed(addr, username)
+		}
 	}
 
 	// One login at a time (SetOneLogin): the window already in the game
@@ -495,21 +561,22 @@ func (s *AuthServer) handleLoginFrom(payload []byte, ip net.IP) []byte {
 }
 
 // authenticate decrypts the password field and checks it against the account's
-// stored credential. It returns the account ID and whether the login stands.
+// stored credential. It returns the account ID, whether the login stands, and
+// whether it registered the account (auth.allow_auto_register).
 //
 // Every failure returns the same refusal to the client and logs the reason
 // server-side: an unknown username and a wrong password are indistinguishable
 // on the wire, so the auth port cannot be used to enumerate account names.
-func (s *AuthServer) authenticate(username string, passwordField []byte) (int, bool) {
+func (s *AuthServer) authenticate(username string, passwordField []byte) (int, bool, bool) {
 	if s.store == nil {
 		log.Printf("Auth: REFUSING login for '%s' — no account store configured", username)
-		return 0, false
+		return 0, false, false
 	}
 
 	password, err := decryptPassword(passwordField)
 	if err != nil {
 		log.Printf("Auth: login for '%s' rejected — %v", username, err)
-		return 0, false
+		return 0, false, false
 	}
 
 	cost := s.cfg.Auth.BCryptCost
@@ -519,35 +586,35 @@ func (s *AuthServer) authenticate(username string, passwordField []byte) (int, b
 	if err != nil {
 		if !errors.Is(err, database.ErrAccountNotFound) {
 			log.Printf("Auth: account lookup failed for '%s': %v", username, err)
-			return 0, false
+			return 0, false, false
 		}
 		if !autoRegister {
 			log.Printf("Auth: login for '%s' rejected — no such account (auto-register disabled)", username)
-			return 0, false
+			return 0, false, false
 		}
 		hash, err := auth.HashPassword(password, cost)
 		if err != nil {
 			log.Printf("Auth: could not hash password for new account '%s': %v", username, err)
-			return 0, false
+			return 0, false, false
 		}
 		created, err := s.store.Create(username, hash)
 		if err != nil {
 			log.Printf("Auth: could not create account '%s': %v", username, err)
-			return 0, false
+			return 0, false, false
 		}
 		log.Printf("Auth: registered new account '%s' (ID: %d) on first login", username, created.ID)
-		return created.ID, true
+		return created.ID, true, true
 	}
 
 	if account.Banned {
 		log.Printf("Auth: login for '%s' (ID: %d) rejected — account is banned", username, account.ID)
-		return account.ID, false
+		return account.ID, false, false
 	}
 
 	switch auth.VerifyPassword(account.PasswordHash, password) {
 	case auth.Accepted:
 		s.store.UpdateLastLogin(account.ID)
-		return account.ID, true
+		return account.ID, true, false
 
 	case auth.AcceptedNeedsRehash:
 		// The stored value was a legacy plaintext password. It matched, so
@@ -560,7 +627,7 @@ func (s *AuthServer) authenticate(username string, passwordField []byte) (int, b
 			}
 		}
 		s.store.UpdateLastLogin(account.ID)
-		return account.ID, true
+		return account.ID, true, false
 
 	case auth.NoCredential:
 		// Created by the UDP path before password checking existed, so it has
@@ -568,22 +635,22 @@ func (s *AuthServer) authenticate(username string, passwordField []byte) (int, b
 		if !autoRegister {
 			log.Printf("Auth: login for '%s' rejected — account has no password set "+
 				"and auto-register is disabled; set one in auth.accounts", username)
-			return account.ID, false
+			return account.ID, false, false
 		}
 		if hash, err := auth.HashPassword(password, cost); err == nil {
 			if err := s.store.UpdatePasswordHash(account.ID, hash); err != nil {
 				log.Printf("Auth: could not set initial password for '%s': %v", username, err)
-				return account.ID, false
+				return account.ID, false, false
 			}
 			log.Printf("Auth: adopted a password for '%s' (ID: %d), which had none set",
 				username, account.ID)
 		}
 		s.store.UpdateLastLogin(account.ID)
-		return account.ID, true
+		return account.ID, true, false
 
 	default:
 		log.Printf("Auth: login for '%s' (ID: %d) rejected — wrong password", username, account.ID)
-		return account.ID, false
+		return account.ID, false, false
 	}
 }
 
@@ -610,6 +677,8 @@ func (s *AuthServer) buildLoginFailResponse(accountID uint32) []byte {
 const (
 	alreadyLoggedIn    = "You are already logged in."
 	alreadyPlayingHere = "Someone is already playing from your address."
+	tooManyLogins      = "Too many failed logins. Try again in %d minutes."
+	serverBusy         = "The server is busy. Try again in a moment."
 )
 
 // buildLoginRefusedResponse is a refusal that says why: the reply STATION

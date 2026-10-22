@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math"
 	"net/http"
 	"strings"
 	"time"
@@ -62,15 +61,15 @@ func writeAuthError(w http.ResponseWriter, err error) {
 func (s *Server) checkCredentials(ip, username, password, code string) (acc accountState, mfa, needCode bool, err error) {
 	username = strings.TrimSpace(username)
 	counted := username
-	if len(username) > maxNameLen || len(password) > 256 {
+	if len(username) > auth.MaxNameLen || len(password) > 256 {
 		counted = "" // counted against the address alone: a name this long is no account's
 	}
-	if wait := s.limiter.begin(ip, counted); wait > 0 {
+	if wait := s.limiter.Begin(ip, counted); wait > 0 {
 		return acc, false, false, &authError{http.StatusTooManyRequests,
-			fmt.Sprintf("too many failed sign-ins; try again in %d minutes", int(math.Ceil(wait.Minutes())))}
+			fmt.Sprintf("too many failed sign-ins; try again in %d minutes", auth.RetryMinutes(wait))}
 	}
 	refuse := func(why string) (accountState, bool, bool, error) {
-		log.Printf("GM panel: sign-in refused for %q from %s: %s", clip(username, maxNameLen), ip, why)
+		log.Printf("GM panel: sign-in refused for %q from %s: %s", clip(username, auth.MaxNameLen), ip, why)
 		return accountState{}, false, false, &authError{http.StatusUnauthorized, "wrong account name or password, or not a GM account"}
 	}
 	if counted == "" {
@@ -79,13 +78,13 @@ func (s *Server) checkCredentials(ip, username, password, code string) (acc acco
 	if password == "" {
 		return refuse("empty password")
 	}
-	// at most a few password checks at once, whoever asks
-	select {
-	case s.bcryptSlots <- struct{}{}:
-		defer func() { <-s.bcryptSlots }()
-	case <-time.After(10 * time.Second):
+	// at most a few password checks at once, whoever asks (the game's
+	// logins included)
+	release, ok := s.limiter.Slot(10 * time.Second)
+	if !ok {
 		return acc, false, false, &authError{http.StatusServiceUnavailable, "the server is busy; try again in a moment"}
 	}
+	defer release()
 	acc, err = s.accountByName(username)
 	if err != nil {
 		if errors.Is(err, errNoAccount) {
@@ -119,7 +118,7 @@ func (s *Server) checkCredentials(ip, username, password, code string) (acc acco
 			return refuse("wrong authenticator code")
 		}
 	}
-	s.limiter.succeed(ip, username)
+	s.limiter.Succeed(ip, username)
 	return acc, on, false, nil
 }
 

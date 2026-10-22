@@ -29,10 +29,12 @@ export async function render(box) {
           const code = h('input', { inputmode: 'numeric', maxlength: '7', placeholder: '123456', autocomplete: 'one-time-code' });
           mount(body,
             h('ol', { class: 'steps' },
-              h('li', null, 'In the app, add an account by entering a setup key (or open the link on your phone):'),
-              h('li', null, h('div', { class: 'secret-box' }, h('code', null, out.secret.replace(/(.{4})/g, '$1 ').trim()), copyButton(out.secret))),
-              h('li', null, h('a', { href: out.uri }, 'Open in the authenticator app'), h('span', { class: 'muted' }, ' (on the phone that has it)')),
-              h('li', null, 'Enter the code it shows:')),
+              h('li', null, 'In your authenticator app, add an account and scan this code:',
+                h('img', { class: 'qr', src: out.qr, width: '232', height: '232', alt: 'QR code for your authenticator app' })),
+              h('li', null, 'No camera? Enter this setup key in the app instead, or open the link on the phone that has it:',
+                h('div', { class: 'secret-box' }, h('code', null, out.secret.replace(/(.{4})/g, '$1 ').trim()), copyButton(out.secret)),
+                h('a', { href: out.uri }, 'Open in the authenticator app')),
+              h('li', null, 'Enter the six-digit code the app shows:')),
             h('div', { class: 'row' }, code, button('Turn it on', { class: 'primary', onclick: async () => {
               try {
                 await api('api/auth/totp', { action: 'confirm', code: code.value });

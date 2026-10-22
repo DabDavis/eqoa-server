@@ -26,7 +26,7 @@ const NPCRefreshHold = 1200 * time.Millisecond
 // the NPC is new. An id held by a player or a GM's spawn cannot be placed: the
 // spatial index knows one entity an id.
 func (w *World) UpsertNPC(rec *database.NPCRecord, class int) (created bool, err error) {
-	fresh := NPCFromRecord(rec, class)
+	fresh := NPCFromRecord(rec, class, w.rangedModels)
 	fresh.HiddenUntil = time.Now().Add(NPCRefreshHold)
 
 	w.mu.Lock()
@@ -225,7 +225,7 @@ func (w *World) ReloadNPCs(store *database.NPCStore) (loaded, removed int, err e
 	defer w.mu.Unlock()
 	keep := make(map[EntityID]bool, len(recs))
 	for _, rec := range recs {
-		fresh := NPCFromRecord(rec, classes[database.NPCClassKey(rec.NPCName)])
+		fresh := NPCFromRecord(rec, classes[database.NPCClassKey(rec.NPCName)], w.rangedModels)
 		if _, taken := w.Players[fresh.ServerID]; taken {
 			continue
 		}
@@ -267,7 +267,8 @@ func npcSameRecord(a, b *NPC) bool {
 	return a.Name == b.Name && a.SpawnX == b.SpawnX && a.SpawnY == b.SpawnY && a.SpawnZ == b.SpawnZ &&
 		a.SpawnFacing == b.SpawnFacing && a.World == b.World && a.ModelID == b.ModelID && a.Size == b.Size &&
 		a.NPCID == b.NPCID && a.NPCType == b.NPCType && a.PrimaryWeapon == b.PrimaryWeapon &&
-		a.SecondaryWeapon == b.SecondaryWeapon && a.Shield == b.Shield && a.Torso == b.Torso &&
+		a.SecondaryWeapon == b.SecondaryWeapon && a.PrimaryType == b.PrimaryType &&
+		a.SecondaryType == b.SecondaryType && a.Shield == b.Shield && a.Torso == b.Torso &&
 		a.Forearm == b.Forearm && a.NPCGloves == b.NPCGloves && a.NPCLegs == b.NPCLegs && a.Feet == b.Feet &&
 		a.Head == b.Head && a.HairColor == b.HairColor && a.HairLength == b.HairLength &&
 		a.HairStyle == b.HairStyle && a.Face == b.Face && a.RobeStyle == b.RobeStyle && a.Race == b.Race &&

@@ -350,10 +350,13 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 
 	// eqoa.live: bytes 63-64 are 0x00, 0x00 (not 0x01, 0x05)
 
-	// NPC Equipment
+	// NPC Equipment, and the two hands' attack types (91, 92; npcHandTypes):
+	// with none an armed NPC's swing has no attack animation on the PS2
 	binary.LittleEndian.PutUint32(buf[67:71], uint32(n.PrimaryWeapon))
 	binary.LittleEndian.PutUint32(buf[71:75], uint32(n.SecondaryWeapon))
 	binary.LittleEndian.PutUint32(buf[75:79], uint32(n.Shield))
+	buf[91] = n.PrimaryType
+	buf[92] = n.SecondaryType
 
 	buf[93] = byte(n.Torso)
 	buf[94] = byte(n.Forearm)

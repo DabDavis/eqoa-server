@@ -360,6 +360,10 @@ pre.json { margin: 0; font: 12px/1.5 var(--mono); white-space: pre-wrap; word-br
 .secret-box code { flex: 1; background: none; font-size: 13px; }
 .steps { margin: 0; padding-left: 20px; }
 .steps li { margin: 6px 0; }
+.steps li > .secret-box, .steps li > a { margin-top: 8px; }
+.steps li > a { display: inline-block; }
+/* a QR code stays dark on white in either theme: scanners need the contrast */
+img.qr { display: block; margin: 10px 0 4px; width: 232px; max-width: 100%; height: auto; aspect-ratio: 1; background: #fff; border-radius: 8px; border: 1px solid var(--border); }
 
 /* the map and the model viewer */
 .map-wrap { position: relative; height: calc(100vh - 210px); min-height: 420px; background: #0a0c10; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }

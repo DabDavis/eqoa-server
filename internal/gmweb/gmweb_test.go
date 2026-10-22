@@ -24,6 +24,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/handlers"
 	"github.com/eqoa/server/internal/session"
+	"rsc.io/qr"
 )
 
 // fixture is a panel over a fresh database with three accounts (an admin, a
@@ -872,5 +873,58 @@ func TestTheConsentPageOffersWriteNotAdmin(t *testing.T) {
 	}
 	if !regexp.MustCompile(`value="write" checked`).Match(page) || regexp.MustCompile(`value="admin" checked`).Match(page) {
 		t.Fatalf("the page did not offer write first:\n%s", page)
+	}
+}
+
+// The enrolment answers with a QR code of the authenticator's address: its
+// SVG drawn back into modules is exactly the encoder's, inside a white quiet
+// border.
+func TestTheEnrolmentQRCodeIsTheAuthenticatorsAddress(t *testing.T) {
+	f := newFixture(t)
+	gm := f.browser()
+	gm.login("gm")
+	code, out := gm.do("POST", "/api/auth/totp", map[string]any{"action": "begin"})
+	if code != 200 {
+		t.Fatalf("begin: %d %v", code, out)
+	}
+	uri := out["uri"].(string)
+	data, ok := strings.CutPrefix(out["qr"].(string), "data:image/svg+xml;base64,")
+	if !ok || !strings.Contains(uri, out["secret"].(string)) {
+		t.Fatalf("qr %.40q for %s", out["qr"], uri)
+	}
+	raw, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	svg := string(raw)
+	want, err := qr.Encode(uri, qr.M)
+	if err != nil {
+		t.Fatal(err)
+	}
+	side := want.Size + 2*qrQuiet
+	if !strings.Contains(svg, fmt.Sprintf(`viewBox="0 0 %d %d"`, side, side)) || !strings.Contains(svg, `fill="#fff"`) {
+		t.Fatalf("no white %d-module field: %.200s", side, svg)
+	}
+	got := map[[2]int]bool{}
+	for _, m := range regexp.MustCompile(`M(\d+) (\d+)h(\d+)v1h-(\d+)z`).FindAllStringSubmatch(svg, -1) {
+		var x, y, run int
+		fmt.Sscan(m[1]+" "+m[2]+" "+m[3], &x, &y, &run)
+		for i := 0; i < run; i++ {
+			got[[2]int{x + i - qrQuiet, y - qrQuiet}] = true
+		}
+	}
+	dark := 0
+	for y := -qrQuiet; y < want.Size+qrQuiet; y++ {
+		for x := -qrQuiet; x < want.Size+qrQuiet; x++ {
+			if got[[2]int{x, y}] != want.Black(x, y) {
+				t.Fatalf("module (%d, %d): drawn %v, encoded %v", x, y, got[[2]int{x, y}], want.Black(x, y))
+			}
+			if want.Black(x, y) {
+				dark++
+			}
+		}
+	}
+	if dark == 0 || len(got) != dark {
+		t.Fatalf("%d modules drawn, %d dark", len(got), dark)
 	}
 }

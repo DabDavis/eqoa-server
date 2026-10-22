@@ -163,6 +163,14 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	// Offset 75-78: Shield (LE)
 	binary.LittleEndian.PutUint32(buf[75:79], p.Shield)
 
+	// Offset 79-90: the three override items (m_itemOver), none.
+	// Offset 91-92: the two hands' attack types (m_itemType), as every player
+	// in the Sandstorm captures has them: ApplyItems attaches items 0 and 1
+	// with them, and the swing is picked by them (a two-hander's 2, 4 or 6
+	// off item 0; 0 has no attack animation).
+	buf[91] = p.PrimaryType
+	buf[92] = p.SecondaryType
+
 	// Offset 93-98: Armor slots
 	buf[93] = p.Chest
 	buf[94] = p.Bracer

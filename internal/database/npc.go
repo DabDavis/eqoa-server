@@ -133,6 +133,53 @@ func NPCClassKey(name string) string {
 	return strings.TrimSpace(strings.TrimSuffix(n, "$"))
 }
 
+// RangedModels is the item catalog's ranged weapons by model: a model every
+// one of whose weapons (itempattern rows in a hand's wear slot) is a bow (7),
+// a crossbow (9) or a thrown weapon (10), with that attack type (the
+// commonest, if several). An NPC holding one swings it with that type, the
+// one the PS2 shoots it with (entity.npcHandTypes).
+func (s *NPCStore) RangedModels() (map[uint32]byte, error) {
+	rows, err := s.db.Query(`SELECT model, attacktype, COUNT(*) FROM itempattern
+		WHERE model <> 0 AND equipslot IN (12, 14, 15, 16, 17, 18, 20, 21) GROUP BY model, attacktype`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	counts := map[uint32]map[int]int{}
+	for rows.Next() {
+		var model int64
+		var t, n int
+		if err := rows.Scan(&model, &t, &n); err != nil {
+			return nil, err
+		}
+		m := uint32(model)
+		if counts[m] == nil {
+			counts[m] = map[int]int{}
+		}
+		counts[m][t] += n
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	ranged := map[uint32]byte{}
+	for m, types := range counts {
+		best, most, melee := 0, 0, false
+		for t, n := range types {
+			if t != 7 && t != 9 && t != 10 {
+				melee = true
+				break
+			}
+			if n > most || n == most && t < best {
+				best, most = t, n
+			}
+		}
+		if !melee {
+			ranged[m] = byte(best)
+		}
+	}
+	return ranged, nil
+}
+
 // NPCClasses is the npcclass table (tools/import_npc_classes.py): each NPC
 // name's class, by NPCClassKey. A name it does not hold is a warrior's.
 func (s *NPCStore) NPCClasses() (map[string]int, error) {

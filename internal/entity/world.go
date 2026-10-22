@@ -49,6 +49,10 @@ type World struct {
 	// Buddy and ignore lists (social.go), in memory only
 	social socialLists
 
+	// The item catalog's ranged weapons by model (NPCStore.RangedModels),
+	// for an NPC's hand types: set once by LoadNPCs, never changed after.
+	rangedModels map[uint32]byte
+
 	// Casts on their way to landing, and the hook a gate sends home with
 	// (cast.go)
 	casts    []*castState
@@ -457,26 +461,38 @@ func (w *World) LoadNPCs(npcStore *database.NPCStore) {
 	if err != nil {
 		log.Printf("Entity LoadNPCs: NPC classes: %v (every NPC a warrior)", err)
 	}
+	// the catalog's ranged weapons, for the hands' attack types
+	if w.rangedModels, err = npcStore.RangedModels(); err != nil {
+		log.Printf("Entity LoadNPCs: ranged weapons: %v (every NPC weapon a melee one)", err)
+	}
 
 	count := 0
+	hands := map[byte]int{} // the held items' attack types, both hands
 	for _, rec := range npcs {
-		npc := NPCFromRecord(rec, classes[database.NPCClassKey(rec.NPCName)])
+		npc := NPCFromRecord(rec, classes[database.NPCClassKey(rec.NPCName)], w.rangedModels)
 		w.NPCs[npc.ServerID] = npc
 		w.SpatialIndex.Insert(npc.ServerID, npc.X, npc.Z)
+		if npc.PrimaryWeapon != 0 {
+			hands[npc.PrimaryType]++
+		}
+		if npc.SecondaryWeapon != 0 {
+			hands[npc.SecondaryType]++
+		}
 
 		count++
 		log.Printf("Entity LoadNPCs: '%s' at (%.1f, %.1f, %.1f)", rec.NPCName, npc.X, npc.Y, npc.Z)
 	}
 
-	log.Printf("Entity LoadNPCs: loaded %d NPCs into world", count)
+	log.Printf("Entity LoadNPCs: loaded %d NPCs into world; held items by attack type %v (%d ranged weapon models)", count, hands, len(w.rangedModels))
 }
 
 // NPCFromRecord is the NPC a row of npcs spawns, at full health on its spawn
-// point; class is the row's npcclass entry (a warrior when it has none). The
-// one constructor for a row: LoadNPCs at startup and the GM panel's edits
-// (gmlive.go) both build through it, so an NPC edited live is the NPC the
-// next restart would load.
-func NPCFromRecord(rec *database.NPCRecord, class int) *NPC {
+// point; class is the row's npcclass entry (a warrior when it has none), and
+// ranged the catalog's ranged weapons (NPCStore.RangedModels), for its hands'
+// attack types. The one constructor for a row: LoadNPCs at startup and the GM
+// panel's edits (gmlive.go) both build through it, so an NPC edited live is
+// the NPC the next restart would load.
+func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *NPC {
 	posX := float32(rec.XCoord)
 	posY := float32(rec.YCoord)
 	posZ := float32(rec.ZCoord)
@@ -502,6 +518,7 @@ func NPCFromRecord(rec *database.NPCRecord, class int) *NPC {
 	}
 	// NPCType == 0: defaults to FactionNeutral (town guards, named NPCs)
 
+	primaryType, secondaryType := npcHandTypes(rec.NPCName, uint32(rec.PrimaryWeapon), uint32(rec.SecondaryWeapon), ranged)
 	return &NPC{
 		ServerID:        EntityID(rec.ID),
 		Name:            rec.NPCName,
@@ -516,6 +533,8 @@ func NPCFromRecord(rec *database.NPCRecord, class int) *NPC {
 		NPCType:         rec.NPCType,
 		PrimaryWeapon:   rec.PrimaryWeapon,
 		SecondaryWeapon: rec.SecondaryWeapon,
+		PrimaryType:     primaryType,
+		SecondaryType:   secondaryType,
 		Shield:          rec.Shield,
 		Torso:           rec.Torso,
 		Forearm:         rec.Forearm,

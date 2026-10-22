@@ -27,9 +27,11 @@ type NPC struct {
 	NPCID   int
 	NPCType int
 
-	// NPCEquipment
+	// NPCEquipment; the two hands' attack types are npcHandTypes'
 	PrimaryWeapon   int
 	SecondaryWeapon int
+	PrimaryType     byte
+	SecondaryType   byte
 	Shield          int
 	Torso           int
 	Forearm         int

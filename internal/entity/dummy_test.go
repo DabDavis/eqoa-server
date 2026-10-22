@@ -9,8 +9,9 @@ import (
 )
 
 // The training dummies held to what Sandstorm's did (2026-10-21): the
-// round's swing and hit times, the fixed hit with its heal, a hit taken off
+// round's swing and hit times, the hit with its heal, a hit taken off
 // nothing, one player at a time, and the fight over when the player stops.
+// What a hit is, is defence.go's (defence_test.go).
 
 // newDummy is the caster's fixture with its creature made a dummy of the
 // level and kind given, the player engaged with it.
@@ -47,6 +48,7 @@ func damageMsg(t *testing.T, from uint32, amount int, to uint32) []byte {
 
 func TestTrainingDummyFightsInRounds(t *testing.T) {
 	c := newDummy(t, "Training Dummy Lv35", 35)
+	c.p.AC = 600 // enough armour for the Lv35's floor, 14, every hit
 	c.w.mu.Lock()
 	killed := c.w.playerHitLocked(c.sess, c.p, c.npc, c.npcO)
 	c.w.mu.Unlock()
@@ -99,15 +101,6 @@ func TestTrainingDummyFightsInRounds(t *testing.T) {
 	c.p.X += 20
 	if got := c.dummyTick(12500 * time.Millisecond); len(got) != 0 || c.npc.DummyTarget != 0 {
 		t.Errorf("hits on a player 20 away: %x, target %d", got, c.npc.DummyTarget)
-	}
-}
-
-// The Training Dummies' floors by level.
-func TestTrainingDummyFloors(t *testing.T) {
-	for _, c := range [][2]int{{20, 8}, {25, 10}, {30, 12}, {35, 14}, {45, 24}, {50, 21}, {55, 30}} {
-		if got := trainingDummyHit(c[0]); got != c[1] {
-			t.Errorf("Lv%d dummy hits %d, Sandstorm's %d", c[0], got, c[1])
-		}
 	}
 }
 

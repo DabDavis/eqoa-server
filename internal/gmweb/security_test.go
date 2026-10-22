@@ -637,6 +637,31 @@ func TestMCPBatchesAreBoundedAndCharged(t *testing.T) {
 	}
 }
 
+// A browser drops a __Host- cookie silently unless it is Secure, on Path=/
+// and has no Domain: then nobody could sign in, and nothing would say why.
+func TestTheSessionCookieKeepsTheHostPrefixRules(t *testing.T) {
+	f := newFixture(t)
+	u, _ := url.Parse("https://gm.example.test")
+	f.s.public = u
+	body := strings.NewReader(`{"username":"gm","password":"` + testPassword + `"}`)
+	req, _ := http.NewRequest("POST", f.ts.URL+"/api/auth/login", body)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	set := resp.Header.Get("Set-Cookie")
+	for _, want := range []string{"__Host-eqoa_gm=", "Path=/;", "Secure", "HttpOnly", "SameSite=Strict"} {
+		if !strings.Contains(set+";", want) {
+			t.Errorf("Set-Cookie %q lacks %q", set, want)
+		}
+	}
+	if strings.Contains(strings.ToLower(set), "domain=") {
+		t.Errorf("Set-Cookie %q names a domain", set)
+	}
+}
+
 func TestTheCookieIsAHostCookieOnItsOwnHost(t *testing.T) {
 	for _, c := range []struct{ public, name, path string }{
 		{"https://gm.example.test", "__Host-eqoa_gm", "/"},

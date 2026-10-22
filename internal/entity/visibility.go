@@ -101,6 +101,9 @@ func (w *World) visibilitySystem() {
 				if npc.World != player.World {
 					continue
 				}
+				if !npc.HiddenUntil.IsZero() && time.Now().Before(npc.HiddenUntil) {
+					continue
+				}
 				if npc.Dead {
 					if npc.DeathTime.IsZero() || time.Since(npc.DeathTime) > 30*time.Second {
 						continue

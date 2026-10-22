@@ -21,6 +21,7 @@ One binary, `cmd/gameserver`:
 | 10070 | UDP | The game: DRDP (reliable messages, 24 state channels, XOR deltas), world entry, movement, combat, NPCs, equipment, chat, guilds, factions, class masteries, training, the who list |
 | 7000 | HTTP | The patch server: the VerantPatcher manifest the PS2 downloads its patches from |
 | 8080 | HTTP | Optional account page |
+| (gm.port) | HTTP | Optional GM panel, behind a TLS proxy: a web page and MCP/OAuth/OpenAPI for AI agents |
 
 Beside the game itself it serves the PS2 hard-disk setup (an in-game technician, the disc
 mirror and world delivery over UDP), which needs payloads built by separate projects.
@@ -71,7 +72,22 @@ internal/handlers/   opcode handlers and senders
 internal/entity/     players, NPCs, the world and its tick systems
 internal/database/   SQLite persistence
 internal/auth/       account and login checks
+internal/gmweb/      the GM panel (web page, MCP + OAuth + OpenAPI for AI agents)
 ```
+
+## The GM panel
+
+Set `gm.port` (and `gm.public_url`) to give accounts with `acctlevel` 1 or more a web page that
+edits every table, with the running world kept in step (an NPC edited is changed where it
+stands), every change audited and revertible. An AI agent (ChatGPT, Claude, Codex, any MCP
+client) can sign in as a GM through OAuth at `<public_url>/mcp`, or use a GM's token with the
+OpenAPI description at `<public_url>/api/openapi.json`. The map and the 3D models are drawn in
+the browser from the GM's own disc image; the server holds no game data.
+
+Put it on a host name of its own (`gm.example.org`) behind TLS: then no other page shares its
+origin, and its session is a `__Host-` cookie. The admin's tools (raw SQL, settings, backups, a
+restart, account levels) need an admin who signed in with an authenticator code, enrolled on
+the panel's Security page; `gm.require_totp` asks every GM for one.
 
 `CLAUDE.md` is the working notes: the design, the protocol details and why each odd-looking
 rule is there.

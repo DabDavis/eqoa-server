@@ -46,6 +46,7 @@ internal/session/    Session management, state channels, XOR delta
 internal/handlers/   Opcode handlers
 internal/entity/     Player/NPC flat structs, World, systems
 internal/database/   SQLite persistence
+internal/gmweb/      the GM panel: web page, MCP + OAuth + OpenAPI for AI agents
 ```
 
 ## Architecture: Flat Struct Entity System (`internal/entity/`)
@@ -150,6 +151,73 @@ case *entity.NPC:
 | `stateSyncSystem` | Every tick | Serialize player state to channel 0 |
 | `statChannelSyncSystem` | Every 20 ticks | Serialize stats to channel 0x42 |
 | `visibilitySystem` | Every 5 ticks | Assign nearby entities to channels 1-23 |
+
+## The GM panel (`internal/gmweb`)
+
+A web page for GMs, and the same work for an AI agent, over the database and the running
+world. **Off unless `gm.port` is set**; it listens on `gm.bind` (loopback) and is meant to be
+reached through a TLS proxy on a host name of its own (`gm.<domain>` → `127.0.0.1:8081`), with
+`gm.public_url` set to that address (the OAuth issuer, the cookie's path and `Secure`). Its own
+host matters: a page of any other path on the same origin could read the session's CSRF token,
+and on its own https host the session is a `__Host-` cookie no other host can set.
+
+- **Who**: `acctlevel >= gm.min_level` (1) signs in with the game password (bcrypt) and a
+  TOTP code once enrolled (`totp.go`); `gm.admin_level` (2) adds raw SQL, settings, backups,
+  restart and other accounts' levels, **and those need a sign-in with an authenticator code**
+  (`actor.Admin`: the session gave one or enrolled one; a token was made by such a sign-in,
+  and the account still has it) — the game password travels in a weak cipher and is not
+  enough for the whole server. The level is read again on EVERY request, so a demotion in the
+  database is out at once. No account at or above your level, nor its characters or their
+  rows, can be changed by you but your own (`guardAccountRow`, `guardOwner`), and a level
+  change of any origin, a revert included, passes `guardLevel`. Sign-in attempts are counted
+  per address (IPv6 by /64) and per name BEFORE the password is checked, in bounded maps, with
+  at most four bcrypts at once (`session.go`, `auth.go`).
+- **One registry of operations** (`ops*.go`): name, AI-readable description, JSON Schema,
+  scope (read/write/admin), handler. The page calls `api/op/<name>`; MCP (`mcp.go`, JSON-RPC
+  over plain HTTP POST, no stream) lists them as tools; `api/openapi.json` (`?core=1`, a
+  shorter list for a custom GPT) describes them. A change to an operation is a change to all three.
+- **AI agents** sign in as the GM: OAuth 2.1 (`oauth.go`: RFC 9728 resource metadata, RFC 8414,
+  open dynamic registration, PKCE S256 only, refresh rotation, RFC 9207 `iss`, loopback
+  redirects on any port per RFC 8252 7.3 — Codex needs that), or a personal bearer token
+  made in the panel or by `POST api/auth/token` with name and password (a terminal, Codex over
+  SSH). Tokens are kept as SHA-256 only (`gm_tokens`), scoped, revocable, rate limited
+  (`gm.token_rate`, each call of an MCP batch counted), expire within a year, and go with the
+  account's password. Registration is open, so the consent page names where a client returns
+  to, and one not returning to ChatGPT, Claude or this computer is offered read only and needs
+  the GM's tick; a bad authorize request is answered on the page, never redirected (an open
+  redirector otherwise); a refresh token used twice revokes its grant. ChatGPT connectors take
+  OAuth only (no static header); a custom GPT's actions take a token. `guide.md` is what an
+  agent reads first.
+- **Every change is audited** (`gm_audit`: who, through what, the row before and after, in the
+  change's own transaction) and a row change can be reverted (`audit.go`).
+- **Live** (`live.go`, `entity/gmlive.go`, `handlers/gmops.go`): an `npcs` row inserted, edited
+  or deleted is applied to the World at once (the NPC is hidden from every view for
+  `NPCRefreshHold` so each client re-creates it); `npcclass` re-classes NPCs by name;
+  `defaultcharacter` invalidates both template caches; an online character's level, tunar,
+  bank tunar and place are applied where it stands; a ban ejects (0x07A2) the account's
+  sessions; give_item delivers into an online inventory as a sale does (0x003B); grant_spell
+  as a scribe (0x00B3). What the game reads only at a login says so in the answer.
+- **The catalog** (`catalog.go`) is what each table and column means (labels, enums, npc_type
+  flags, class/race bit sets, references, hex DictIDs); a table it does not know is shown raw
+  and is admin-only to write. `accountinfo.pwhash` is never read or written through rows.
+- **The game disc, in the browser only** (`static/disc/`): the GM picks their own ISO; a worker
+  reads it in place (ISO 9660 walk), draws NPC bodies (`npcs.modelid` = CHAR.ESF CSprite,
+  442/442 live values), item models (ITEM.ESF) and icons (`itemicon` = ITEMICON.ESF Surface,
+  337/337), and the map's zones from straight above (each world's zone table is in its last
+  few KB, 0x8200 → 0x8210). CHAR/ITEM/ITEMICON.ESF are kept in OPFS and zone pictures in
+  IndexedDB, so later visits need no disc. The server ships and stores no game data.
+
+Traps: the database has ONE connection (`SetMaxOpenConns(1)`): never query while holding rows
+or a `db.Conn`/transaction from the plain handle — it deadlocks the game (the SQL console once
+did, through its audit write). A view must not `import` `app.js` (the page loads it with
+`?v=<build>`, so another URL evaluates it twice): shared state is `lib/nav.js`. In a request
+struct that embeds another, an outer field shadowing an embedded TAGGED one needs the same
+`json` tag (Go matches the exact tag before the case-insensitive name).
+
+Test locally against a copy of the database on spare ports (`gm.port` 18081, the rest moved),
+and drive the page headless with `tools/gmdrive.py`; `go test ./internal/gmweb/`
+covers sign-in, CSRF, limits, scopes, live NPC edits, revert, the guards, MCP and the whole
+OAuth flow, and the official MCP Python SDK was run against it end to end.
 
 ## Current Status
 

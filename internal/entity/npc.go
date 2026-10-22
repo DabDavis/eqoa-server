@@ -97,6 +97,11 @@ type NPC struct {
 	// player it fights.
 	Dummy       DummyKind
 	DummyTarget EntityID
+
+	// HiddenUntil keeps it out of every view until then (gmlive.go): an NPC
+	// the GM panel changed leaves each client's channels and comes back as
+	// a new entity, made from its new record.
+	HiddenUntil time.Time
 }
 
 // GetEntityID returns the NPC's entity ID.

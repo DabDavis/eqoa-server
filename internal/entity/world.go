@@ -460,91 +460,97 @@ func (w *World) LoadNPCs(npcStore *database.NPCStore) {
 
 	count := 0
 	for _, rec := range npcs {
-		posX := float32(rec.XCoord)
-		posY := float32(rec.YCoord)
-		posZ := float32(rec.ZCoord)
-		facing := float32(rec.Facing) / 256.0 * 2.0 * math.Pi
-
-		id := EntityID(rec.ID)
-
-		// Faction from NPCType bits:
-		//   0x80 = non-hostile (interactable NPC)
-		//   0x01 = merchant/vendor
-		//   0x80 + 0x01 = friendly merchant → FactionFriendly
-		//   0x80 only   = neutral NPC (coachman, patron) → FactionNeutral
-		//   0x00         = town NPC without flags (guards, named) → FactionNeutral
-		//   Other without 0x80 = hostile mob → FactionHostile
-		faction := FactionNeutral
-		if rec.NPCType&0x80 != 0 {
-			if rec.NPCType&0x01 != 0 {
-				faction = FactionFriendly // merchants, vendors, bankers
-			} else {
-				faction = FactionNeutral
-			}
-		} else if rec.NPCType != 0 {
-			// Non-zero NPCType without 0x80 bit = likely hostile
-			faction = FactionHostile
-		}
-		// NPCType == 0: defaults to FactionNeutral (town guards, named NPCs)
-
-		npc := &NPC{
-			ServerID:        id,
-			Name:            rec.NPCName,
-			X:               posX,
-			Y:               posY,
-			Z:               posZ,
-			Facing:          facing,
-			World:           uint8(rec.World),
-			ModelID:         int64(rec.ModelID),
-			Size:            rec.Size * raceScaleFromString(rec.Race),
-			NPCID:           rec.NPCID,
-			NPCType:         rec.NPCType,
-			PrimaryWeapon:   rec.PrimaryWeapon,
-			SecondaryWeapon: rec.SecondaryWeapon,
-			Shield:          rec.Shield,
-			Torso:           rec.Torso,
-			Forearm:         rec.Forearm,
-			NPCGloves:       rec.Gloves,
-			NPCLegs:         rec.Legs,
-			Feet:            rec.Feet,
-			Head:            rec.Head,
-			HairColor:       rec.HairColor,
-			HairLength:      rec.HairLength,
-			HairStyle:       rec.HairStyle,
-			Face:            rec.Face,
-			RobeStyle:       rec.RobeStyle,
-			Race:            rec.Race,
-			HP:              NPCMaxHP(rec.NPCLevel),
-			MaxHP:           NPCMaxHP(rec.NPCLevel),
-			Level:           rec.NPCLevel,
-			Speed:           8.0,
-			Faction:         faction,
-			SpawnX:          posX,
-			SpawnY:          posY,
-			SpawnZ:          posZ,
-			SpawnFacing:     facing,
-			RespawnTime:     60 * time.Second,
-			AggroRadius:     30.0,
-			LeashRadius:     100.0,
-			RoamRadius:      50.0,
-
-			// SOE combat stats — estimated from level
-			OffMod:       NPCOffMod(rec.NPCLevel),
-			DefMod:       NPCDefMod(rec.NPCLevel),
-			WeaponDamage: NPCWeaponDamage(rec.NPCLevel),
-
-			Dummy: DummyKindOf(rec.NPCName),
-			Class: classes[database.NPCClassKey(rec.NPCName)],
-		}
-
-		w.NPCs[id] = npc
-		w.SpatialIndex.Insert(id, posX, posZ)
+		npc := NPCFromRecord(rec, classes[database.NPCClassKey(rec.NPCName)])
+		w.NPCs[npc.ServerID] = npc
+		w.SpatialIndex.Insert(npc.ServerID, npc.X, npc.Z)
 
 		count++
-		log.Printf("Entity LoadNPCs: '%s' at (%.1f, %.1f, %.1f)", rec.NPCName, posX, posY, posZ)
+		log.Printf("Entity LoadNPCs: '%s' at (%.1f, %.1f, %.1f)", rec.NPCName, npc.X, npc.Y, npc.Z)
 	}
 
 	log.Printf("Entity LoadNPCs: loaded %d NPCs into world", count)
+}
+
+// NPCFromRecord is the NPC a row of npcs spawns, at full health on its spawn
+// point; class is the row's npcclass entry (a warrior when it has none). The
+// one constructor for a row: LoadNPCs at startup and the GM panel's edits
+// (gmlive.go) both build through it, so an NPC edited live is the NPC the
+// next restart would load.
+func NPCFromRecord(rec *database.NPCRecord, class int) *NPC {
+	posX := float32(rec.XCoord)
+	posY := float32(rec.YCoord)
+	posZ := float32(rec.ZCoord)
+	facing := float32(rec.Facing) / 256.0 * 2.0 * math.Pi
+
+	// Faction from NPCType bits:
+	//   0x80 = non-hostile (interactable NPC)
+	//   0x01 = merchant/vendor
+	//   0x80 + 0x01 = friendly merchant → FactionFriendly
+	//   0x80 only   = neutral NPC (coachman, patron) → FactionNeutral
+	//   0x00         = town NPC without flags (guards, named) → FactionNeutral
+	//   Other without 0x80 = hostile mob → FactionHostile
+	faction := FactionNeutral
+	if rec.NPCType&0x80 != 0 {
+		if rec.NPCType&0x01 != 0 {
+			faction = FactionFriendly // merchants, vendors, bankers
+		} else {
+			faction = FactionNeutral
+		}
+	} else if rec.NPCType != 0 {
+		// Non-zero NPCType without 0x80 bit = likely hostile
+		faction = FactionHostile
+	}
+	// NPCType == 0: defaults to FactionNeutral (town guards, named NPCs)
+
+	return &NPC{
+		ServerID:        EntityID(rec.ID),
+		Name:            rec.NPCName,
+		X:               posX,
+		Y:               posY,
+		Z:               posZ,
+		Facing:          facing,
+		World:           uint8(rec.World),
+		ModelID:         int64(rec.ModelID),
+		Size:            rec.Size * raceScaleFromString(rec.Race),
+		NPCID:           rec.NPCID,
+		NPCType:         rec.NPCType,
+		PrimaryWeapon:   rec.PrimaryWeapon,
+		SecondaryWeapon: rec.SecondaryWeapon,
+		Shield:          rec.Shield,
+		Torso:           rec.Torso,
+		Forearm:         rec.Forearm,
+		NPCGloves:       rec.Gloves,
+		NPCLegs:         rec.Legs,
+		Feet:            rec.Feet,
+		Head:            rec.Head,
+		HairColor:       rec.HairColor,
+		HairLength:      rec.HairLength,
+		HairStyle:       rec.HairStyle,
+		Face:            rec.Face,
+		RobeStyle:       rec.RobeStyle,
+		Race:            rec.Race,
+		HP:              NPCMaxHP(rec.NPCLevel),
+		MaxHP:           NPCMaxHP(rec.NPCLevel),
+		Level:           rec.NPCLevel,
+		Speed:           8.0,
+		Faction:         faction,
+		SpawnX:          posX,
+		SpawnY:          posY,
+		SpawnZ:          posZ,
+		SpawnFacing:     facing,
+		RespawnTime:     60 * time.Second,
+		AggroRadius:     30.0,
+		LeashRadius:     100.0,
+		RoamRadius:      50.0,
+
+		// SOE combat stats — estimated from level
+		OffMod:       NPCOffMod(rec.NPCLevel),
+		DefMod:       NPCDefMod(rec.NPCLevel),
+		WeaponDamage: NPCWeaponDamage(rec.NPCLevel),
+
+		Dummy: DummyKindOf(rec.NPCName),
+		Class: class,
+	}
 }
 
 // FindEntityByObjectID resolves a runtime objectID to an Entity.

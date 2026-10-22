@@ -14,6 +14,47 @@ type Config struct {
 	World  WorldConfig  `yaml:"world"`
 	Patch  PatchConfig  `yaml:"patch"`
 	Auth   AuthConfig   `yaml:"auth"`
+	GM     GMConfig     `yaml:"gm"`
+}
+
+// GMConfig is the GM panel (internal/gmweb): a web page, and the same work
+// for an AI agent (MCP and OpenAPI), for accounts whose acctlevel is
+// MinLevel or more. Off unless Port is set.
+type GMConfig struct {
+	// Port is its HTTP port; 0 turns it off.
+	Port int `yaml:"port"`
+
+	// Bind is the address it listens on. Loopback by default: it is meant to
+	// be reached through a proxy that adds TLS (nginx), never in the clear.
+	Bind string `yaml:"bind"`
+
+	// PublicURL is where GMs and AI clients reach it, without a trailing
+	// slash ("https://example.org/eqoa/gm"): the OAuth issuer, the cookie's
+	// path, and whether the cookie is Secure. Empty: http on Bind:Port, as
+	// for a panel used on the machine itself.
+	PublicURL string `yaml:"public_url"`
+
+	// MinLevel is the acctlevel that may sign in (the in-game GM commands'
+	// 1); AdminLevel the one for the server's own settings, raw SQL,
+	// backups, a restart and other accounts' levels.
+	MinLevel   int `yaml:"min_level"`
+	AdminLevel int `yaml:"admin_level"`
+
+	// RequireTOTP makes every GM enrol an authenticator app before the
+	// panel does anything for them.
+	RequireTOTP bool `yaml:"require_totp"`
+
+	// LogPath is the server's log the panel shows the end of; BackupDir
+	// where its database backups go.
+	LogPath   string `yaml:"log_path"`
+	BackupDir string `yaml:"backup_dir"`
+
+	// SessionIdle ends a signed-in browser session left alone this long.
+	SessionIdle time.Duration `yaml:"session_idle"`
+
+	// TokenRate is how many requests a minute one API token (an AI agent's)
+	// may make.
+	TokenRate int `yaml:"token_rate"`
 }
 
 // ServerConfig holds network server settings.
@@ -190,6 +231,15 @@ func DefaultConfig() *Config {
 			Dir:           "patches",
 			WorldsDir:     "worlds",
 			WorldsUDPPort: 7003,
+		},
+		GM: GMConfig{
+			Bind:        "127.0.0.1",
+			MinLevel:    1,
+			AdminLevel:  2,
+			LogPath:     "gameserver.log",
+			BackupDir:   "backups",
+			SessionIdle: 2 * time.Hour,
+			TokenRate:   240,
 		},
 		Auth: AuthConfig{
 			BCryptCost: 10,

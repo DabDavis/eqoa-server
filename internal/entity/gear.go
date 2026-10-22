@@ -15,8 +15,12 @@ type Gear struct {
 	AC                                int // 14
 	PR, DR, FR, CR, LR, AR            int // 22-27
 	// WeaponDamage is the primary weapon's itempattern.weapondamage (the
-	// tooltip's DMG), 0 for none. Not yet used: see RecalcStats.
-	WeaponDamage int
+	// tooltip's DMG), 0 for none; WeaponCond its condition (hit points over
+	// their most, 1 when the item holds none) and WeaponTwoHanded whether
+	// it takes both hands. The player's melee rolls on them (offence.go).
+	WeaponDamage    int
+	WeaponCond      float64
+	WeaponTwoHanded bool
 }
 
 // Add puts one worn item's stats, by stat id, into the sums.
@@ -80,11 +84,9 @@ func (p *Player) RecalcStats(fill bool) {
 	p.MaxPower = CalculateMaxPower(p.Level, p.Class, p.Str, p.Sta, p.Agi, p.Dex, p.Wis, p.Int, p.Cha) + g.MaxPower
 	p.AC = g.AC
 	p.PoisonR, p.DiseaseR, p.FireR, p.ColdR, p.LightningR, p.ArcaneR = g.PR, g.DR, g.FR, g.CR, g.LR, g.AR
-	// Combat keeps its old placeholders (stats.go) until Sandstorm's melee
-	// and defense are measured: the AC of 50 and a weapon damage of level/3
-	// that CalculateMeleeDamage was tuned on. The worn weapon's rating
-	// (g.WeaponDamage, 560 on a level 50 sword) is some 35 times that, and
-	// the worn AC up to 30 times, so neither may go in before the formulas.
+	// The old OFF/DEF placeholders (stats.go), which nothing rolls on any
+	// more: an NPC's melee is defence.go's on the AC and AGI, the player's
+	// offence.go's on the worn weapon (Gear).
 	p.OffMod = CalculateOffMod(p.BaseStr, p.BaseDex, p.Level)
 	p.DefMod = CalculateDefMod(50, p.BaseAgi, p.Level)
 	p.WeaponDamage = p.Level / 3

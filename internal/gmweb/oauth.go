@@ -348,8 +348,10 @@ var authorizePage = template.Must(template.New("authorize").Parse(`<!doctype htm
       <input type="hidden" name="csrf" value="{{.CSRF}}">
       <label>GM account <input name="username" autocomplete="username" required value="{{.Username}}" autofocus></label>
       <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
-      <label>Authenticator code <span class="muted">(if you have one)</span>
-        <input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7"></label>
+      {{if .CodeRequired}}<label>Authenticator code
+        <input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7" required></label>
+      {{else}}<label>Authenticator code <span class="muted">(if you have one)</span>
+        <input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7"></label>{{end}}
       <fieldset>
         <legend>It may</legend>
         <label class="radio"><input type="radio" name="scope" value="read"{{if eq .Scope "read"}} checked{{end}}> look only</label>
@@ -369,7 +371,7 @@ var authorizePage = template.Must(template.New("authorize").Parse(`<!doctype htm
 
 type authorizeView struct {
 	Base, Build, Client, Return, Req, CSRF, Scope, Username, Error, Fatal string
-	Known                                                                 bool
+	Known, CodeRequired                                                   bool
 }
 
 // renderAuthorize draws the sign-in page. returnTo is the client's redirect
@@ -381,6 +383,7 @@ func (s *Server) renderAuthorize(w http.ResponseWriter, r *http.Request, status 
 		v.Base = strings.TrimRight(s.public.Path, "/")
 	}
 	v.Build = url.QueryEscape(s.build)
+	v.CodeRequired = s.cfg.RequireTOTP
 	target := ""
 	if u, err := url.Parse(returnTo); err == nil && u.Scheme != "" {
 		switch strings.ToLower(u.Scheme) {

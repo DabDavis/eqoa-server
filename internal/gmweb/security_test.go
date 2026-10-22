@@ -680,3 +680,74 @@ func TestSQLExecutesBackupsArePruned(t *testing.T) {
 	}
 	os.RemoveAll(f.s.backupDir())
 }
+
+func TestRequireTOTPHasEveryGMEnrolFirst(t *testing.T) {
+	f := newFixture(t)
+	// a token made before the rule was turned on
+	gm := f.browser()
+	gm.login("gm")
+	code, out := gm.do("POST", "/api/tokens", map[string]any{"action": "create", "name": "older", "scope": "write", "days": 30})
+	if code != 200 {
+		t.Fatalf("token: %d %v", code, out)
+	}
+	older := f.bearer(out["token"].(string))
+	f.s.cfg.RequireTOTP = true
+
+	// before enrolling: the page signs in, and does nothing but enrol
+	gm = f.browser()
+	code, out = gm.do("POST", "/api/auth/login", map[string]any{"username": "gm", "password": testPassword})
+	if code != 200 {
+		t.Fatalf("sign-in: %d %v", code, out)
+	}
+	gm.csrf, _ = out["csrf"].(string)
+	if totp := out["totp"].(map[string]any); totp["required"] != true || totp["enabled"] != false {
+		t.Fatalf("session: %v", totp)
+	}
+	for _, name := range []string{"server_status", "query_rows", "update_row"} {
+		if code, out := gm.op(name, map[string]any{"table": "npcs"}); code != 403 || !strings.Contains(fmt.Sprint(out["error"]), "authenticator") {
+			t.Fatalf("%s before enrolling: %d %v", name, code, out)
+		}
+	}
+	if code, _ := gm.do("POST", "/api/tokens", map[string]any{"action": "create", "name": "x", "scope": "read", "days": 7}); code != 403 {
+		t.Fatalf("a token before enrolling: %d", code)
+	}
+	if code, _ := older.op("server_status", nil); code != 403 {
+		t.Fatalf("an older token before enrolling: %d", code)
+	}
+	if code, _ := f.browser().do("POST", "/api/auth/token", map[string]any{"username": "gm", "password": testPassword}); code != 403 {
+		t.Fatalf("a terminal's token before enrolling: %d", code)
+	}
+	if _, tok := oauthTokens(t, f, "gm", "write", ""); tok["access_token"] != nil {
+		t.Fatalf("an agent's grant before enrolling: %v", tok)
+	}
+
+	// enrolling is the way in
+	code, out = gm.do("POST", "/api/auth/totp", map[string]any{"action": "begin"})
+	if code != 200 {
+		t.Fatalf("begin: %d %v", code, out)
+	}
+	secret := out["secret"].(string)
+	if code, out := gm.do("POST", "/api/auth/totp", map[string]any{"action": "confirm", "code": totpNow(secret)}); code != 200 {
+		t.Fatalf("confirm: %d %v", code, out)
+	}
+	if code, out := gm.op("server_status", nil); code != 200 {
+		t.Fatalf("after enrolling: %d %v", code, out)
+	}
+	if code, _ := older.op("server_status", nil); code != 200 {
+		t.Fatalf("the older token once its GM enrolled: %d", code)
+	}
+
+	// and from then on every sign-in asks for the code
+	mustExec(t, f.db, `UPDATE gm_totp SET last_step = 0 WHERE accountid = 2`)
+	if code, out := f.browser().do("POST", "/api/auth/login", map[string]any{"username": "gm", "password": testPassword}); code != 401 || out["needCode"] != true {
+		t.Fatalf("a sign-in without the code: %d %v", code, out)
+	}
+	code, out = f.browser().do("POST", "/api/auth/token", map[string]any{"username": "gm", "password": testPassword,
+		"code": totpNow(secret), "name": "codex"})
+	if code != 200 {
+		t.Fatalf("a terminal's token with the code: %d %v", code, out)
+	}
+	if code, _ := f.bearer(out["token"].(string)).op("server_status", nil); code != 200 {
+		t.Fatalf("the terminal's token: %d", code)
+	}
+}

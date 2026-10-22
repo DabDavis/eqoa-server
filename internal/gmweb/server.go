@@ -232,7 +232,11 @@ func (s *Server) Start() error {
 	if s.public != nil {
 		where = s.public.String() + "/ (" + addr + ")"
 	}
-	log.Printf("GM panel on %s for acctlevel %d+ (admin %d+)", where, s.cfg.MinLevel, s.cfg.AdminLevel)
+	totp := "an authenticator for the admin's tools"
+	if s.cfg.RequireTOTP {
+		totp = "an authenticator required of every GM"
+	}
+	log.Printf("GM panel on %s for acctlevel %d+ (admin %d+), %s", where, s.cfg.MinLevel, s.cfg.AdminLevel, totp)
 	return nil
 }
 

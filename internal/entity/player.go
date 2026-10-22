@@ -21,17 +21,20 @@ type Player struct {
 	Race, Sex, HumType                           int
 	HairColor, HairLength, HairStyle, FaceOption int
 
-	// Equipment
-	Robe      uint32
-	Primary   uint32
-	Secondary uint32
-	Shield    uint32
-	Chest     byte
-	Bracer    byte
-	Gloves    byte
-	Legs      byte
-	Boots     byte
-	Helm      byte
+	// Equipment: the three items the channel shows (the main hand, the off
+	// hand, the shield) and the two hands' attack types (handlers.wornLook)
+	Robe          uint32
+	Primary       uint32
+	Secondary     uint32
+	Shield        uint32
+	PrimaryType   byte
+	SecondaryType byte
+	Chest         byte
+	Bracer        byte
+	Gloves        byte
+	Legs          byte
+	Boots         byte
+	Helm          byte
 
 	// PlayerInfo
 	AccountID    int

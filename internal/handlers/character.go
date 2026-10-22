@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/binary"
 	"fmt"
 	"log"
 	"math/rand"
@@ -795,23 +796,40 @@ func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID 
 
 	wornLook(player, items)
 
-	log.Printf("applyEquipment: serverID=%d chest=%d bracer=%d gloves=%d legs=%d boots=%d helm=%d robe=%d primary=0x%08X secondary=0x%08X shield=0x%08X",
+	log.Printf("applyEquipment: serverID=%d chest=%d bracer=%d gloves=%d legs=%d boots=%d helm=%d robe=%d primary=0x%08X (type %d) secondary=0x%08X (type %d) shield=0x%08X",
 		serverID, player.Chest, player.Bracer, player.Gloves, player.Legs, player.Boots, player.Helm,
-		player.Robe, player.Primary, player.Secondary, player.Shield)
+		player.Robe, player.Primary, player.PrimaryType, player.Secondary, player.SecondaryType, player.Shield)
 }
 
 // wornLook sets the player's look on the state channel from the items worn.
 // It starts from nothing, so an item taken off leaves the character: these
 // fields are set nowhere else, and an unequipped weapon or armour piece kept
-// showing in every client until the next login. A weapon goes in the hand its
-// equip slot names (15 the second), where the first hand free put a weapon
-// taken off and worn again in the second hand.
+// showing in every client until the next login.
+//
+// The hands go by the equip slot an item is worn in, as Sandstorm's channel
+// and character list carry them (every player in the PS2 captures): item 0
+// is the main hand, a weapon (14), a two-hander (16) or an item held in it
+// (19); item 1 the off hand, a second weapon (15) or an item held in it
+// (20), else the ranged weapon (18), since CLIENT's ApplyItems gives item 1
+// alone a projectile (an arrow for type 7, a bolt for 9, the weapon itself
+// for 10) and VISpellEventDriver shoots item 1's; item 2 the shield (17).
+// Each hand's attack type goes with it, which the PS2 attaches the item
+// with and picks the swing by (a two-hander's 2, 4 or 6 off item 0). Until
+// 2026-10-22 only wear slots 14 and 13 were read, so a two-hander, a
+// primary-only weapon, a held item and a bow never showed, and every type
+// was 0, which has no attack animation.
 func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	player.Helm, player.Chest, player.Bracer, player.Legs, player.Boots, player.Gloves = 0, 0, 0, 0, 0, 0
 	player.Robe, player.Primary, player.Secondary, player.Shield = 0, 0, 0, 0
-	for _, item := range items {
+	player.PrimaryType, player.SecondaryType = 0, 0
+	worn := map[int]*database.CharInventoryEntry{}
+	for i := range items {
+		item := &items[i]
 		if item.EquipLoc < 0 {
 			continue // not equipped
+		}
+		if _, ok := worn[item.EquipLoc]; !ok {
+			worn[item.EquipLoc] = item
 		}
 		model := item.Pattern.Model
 		switch item.Pattern.EquipSlot {
@@ -829,16 +847,54 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 			player.Gloves = byte(model)
 		case 2: // Robe
 			player.Robe = uint32(model)
-		case 14: // Weapon, in either hand
-			if item.EquipLoc == 15 {
-				player.Secondary = uint32(model)
-			} else {
-				player.Primary = uint32(model)
-			}
-		case 13: // Shield
-			player.Shield = uint32(model)
 		}
 	}
+	first := func(slots ...int) *database.CharInventoryEntry {
+		for _, e := range slots {
+			if item := worn[e]; item != nil {
+				return item
+			}
+		}
+		return nil
+	}
+	if item := first(16, 14, 19); item != nil {
+		player.Primary, player.PrimaryType = uint32(item.Pattern.Model), byte(item.Pattern.AttackType)
+	}
+	if item := first(15, 20, 18); item != nil {
+		player.Secondary, player.SecondaryType = uint32(item.Pattern.Model), byte(item.Pattern.AttackType)
+	}
+	if item := first(17); item != nil {
+		player.Shield = uint32(item.Pattern.Model)
+	}
+}
+
+// characterGear is a character list entry's 32 bytes of gear (CLIENT's
+// func_00BD2E80 reads them, and character select dresses its figure with
+// them): the robe, its tint, the three items and their attack types, the six
+// armour sets and their tints, from the same worn items as the channel's
+// look. Nothing worn is a robe of -1 and armour 0xFF, as Sandstorm's lists
+// have it; tints are not kept, 0. Until 2026-10-22 every entry was blank, so
+// character select showed every character bare and empty-handed.
+func characterGear(items []database.CharInventoryEntry) []byte {
+	var p entity.Player
+	wornLook(&p, items)
+	g := make([]byte, 32)
+	robe := uint32(0xFFFFFFFF)
+	if p.Robe != 0 {
+		robe = p.Robe
+	}
+	binary.LittleEndian.PutUint32(g[0:4], robe)
+	binary.LittleEndian.PutUint32(g[5:9], p.Primary)
+	binary.LittleEndian.PutUint32(g[9:13], p.Secondary)
+	binary.LittleEndian.PutUint32(g[13:17], p.Shield)
+	g[17], g[18] = p.PrimaryType, p.SecondaryType
+	for i, set := range []byte{p.Chest, p.Bracer, p.Gloves, p.Legs, p.Boots, p.Helm} {
+		g[20+i] = 0xFF
+		if set != 0 {
+			g[20+i] = set
+		}
+	}
+	return g
 }
 
 // wornGear sums the stats of the items worn (an equip slot, not the bank),
@@ -1062,30 +1118,18 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 		// PS2 func_00BD2E80 reads:
 		//   raw(4,1)  robeModel         [0:4]   uint32, 0xFFFFFFFF = none
 		//   raw(1,1)  robeTint          [4]     uint8
-		//   raw(4,3)  weapons           [5:17]  3× uint32 (primary, secondary, shield)
-		//   raw(1,3)  unknown           [17:20] 3 bytes
+		//   raw(4,3)  weapons           [5:17]  3× uint32 (main hand, off hand, shield)
+		//   raw(1,3)  attack types      [17:20] the three items' (m_p50)
 		//   raw(1,6)  armorSlots        [20:26] chest,bracer,gloves,legs,boots,helm (0xFF=none)
 		//   raw(1,6)  tints             [26:32] per-slot tint index
-		writer.WriteUint32(0xFFFFFFFF) // robeModel (none)
-		writer.WriteByte(0)            // robeTint
-		writer.WriteUint32(0)          // primaryWeapon
-		writer.WriteUint32(0)          // secondaryWeapon
-		writer.WriteUint32(0)          // shield
-		writer.WriteByte(0)            // unknown
-		writer.WriteByte(0)            // unknown
-		writer.WriteByte(0)            // unknown
-		writer.WriteByte(0xFF)         // chest (none)
-		writer.WriteByte(0xFF)         // bracer (none)
-		writer.WriteByte(0xFF)         // gloves (none)
-		writer.WriteByte(0xFF)         // legs (none)
-		writer.WriteByte(0xFF)         // boots (none)
-		writer.WriteByte(0xFF)         // helm (none)
-		writer.WriteByte(0)            // chest tint
-		writer.WriteByte(0)            // bracer tint
-		writer.WriteByte(0)            // gloves tint
-		writer.WriteByte(0)            // legs tint
-		writer.WriteByte(0)            // boots tint
-		writer.WriteByte(0)            // helm tint
+		var items []database.CharInventoryEntry
+		if h.inventoryStore != nil {
+			if items, err = h.inventoryStore.GetCharacterItems(uint32(c.ServerID)); err != nil {
+				log.Printf("SendCharacterSelectEQOA: %s's items: %v", c.CharName, err)
+				items = nil
+			}
+		}
+		writer.WriteBytes(characterGear(items))
 	}
 
 	msg.SetSize(writer.Position())

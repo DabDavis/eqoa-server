@@ -154,8 +154,9 @@ func TestAssistTargetNone(t *testing.T) {
 // Assist Leader: the group's first member's target; none out of a group,
 // and the leader gets its own back. It reads a target both ways round (the
 // leader's for the asker, then the asker's for the leader), so a lookup over
-// every session's table (findEntityByObjectIDLocked), which takes whichever
-// session the manager's map gives first, fails it in either order.
+// every session's table (findEntityByObjectIDLocked's until 2026-10-23), which
+// takes whichever session the manager's map gives first, fails it in either
+// order.
 func TestAssistLeader(t *testing.T) {
 	aw := newAssistWorld(t)
 	aw.b.TargetObjectID = bOrc
@@ -174,5 +175,37 @@ func TestAssistLeader(t *testing.T) {
 	aw.a.TargetObjectID = aRat
 	if got := aw.lead(t, aw.leader); got != bRat {
 		t.Fatalf("the asker leading: %d, want the rat as the leader knows it (%d)", got, bRat)
+	}
+}
+
+// FindEntityByObjectID reads the sender's own table: the asker's 100003 is
+// the rat and the leader's the orc, asked both ways round so a search of
+// every session's table fails in either order; a stand-in and the sender's
+// own id resolve, another session's own id does not.
+func TestFindEntityByObjectIDIsTheSendersTable(t *testing.T) {
+	aw := newAssistWorld(t)
+	for _, c := range []struct {
+		who  *session.Session
+		id   uint32
+		want Entity
+	}{
+		{aw.asker, aRat, aw.rat},
+		{aw.leader, bRat, aw.rat},
+		{aw.asker, aOrc, aw.orc},
+		{aw.leader, bOrc, aw.orc},
+		{aw.asker, aLeader, aw.b},
+		{aw.asker, askerSelf, aw.a},
+		{aw.leader, groupFarID(aw.a.ServerID), aw.a},
+	} {
+		got, ok := aw.w.FindEntityByObjectID(c.who, c.id)
+		if !ok || got != c.want {
+			t.Errorf("%d: %v (found %v), want %v", c.id, got, ok, c.want)
+		}
+	}
+	if got, ok := aw.w.FindEntityByObjectID(aw.asker, leaderSelf); ok {
+		t.Errorf("the leader's own id resolved for the asker: %v", got)
+	}
+	if got, ok := aw.w.FindEntityByObjectID(aw.asker, bWolf); ok {
+		t.Errorf("an id only the leader's table has resolved for the asker: %v", got)
 	}
 }

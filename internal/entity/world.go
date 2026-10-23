@@ -579,50 +579,20 @@ func (w *World) FindEntityByObjectID(sess *session.Session, objectID uint32) (En
 	return w.findEntityByObjectIDLocked(sess, objectID)
 }
 
-// findEntityByObjectIDLocked resolves a runtime objectID. Must be called with lock held.
+// findEntityByObjectIDLocked resolves an id the sender's client gave: its
+// own player's, an object id from ITS visibility channels, or a group
+// stand-in (entitySeenByLocked). Object ids are per session, each table
+// counting its own from 100001, so no other session's table is read. Until
+// 2026-10-23 every session's was, the first with the id taken: with two
+// players online one's 0x0010 could name what the other calls by that
+// number, and the target's details, a fight's 0x000F, Q's talk and a
+// merchant went to that creature instead. Must be called with the lock held.
 func (w *World) findEntityByObjectIDLocked(sess *session.Session, objectID uint32) (Entity, bool) {
-	var found Entity
-	entityFound := false
-
-	w.SessionManager.ForEach(func(s *session.Session) bool {
-		// Check if this session's player has the objectID
-		if s.PlayerObjectID() == objectID && s.CharacterInWorld() {
-			p := w.sessionPlayerLocked(s)
-			if p != nil {
-				found = p
-				entityFound = true
-				return false
-			}
-		}
-
-		// Check this session's NPC visibility channels
-		vis := s.VisibilityState()
-		if vis == nil {
-			return true
-		}
-		vs, ok := vis.(*VisibilityState)
-		if !ok {
-			return true
-		}
-		for i := 0; i < MaxVisibleEntities; i++ {
-			if vs.ChannelObjectID[i] == objectID {
-				id := vs.ChannelEntity[i]
-				if npc, ok := w.NPCs[id]; ok {
-					found = npc
-					entityFound = true
-					return false
-				}
-				if p, ok := w.Players[id]; ok {
-					found = p
-					entityFound = true
-					return false
-				}
-			}
-		}
-		return true
-	})
-
-	return found, entityFound
+	if sess == nil {
+		return nil, false
+	}
+	e := w.entitySeenByLocked(sess, objectID)
+	return e, e != nil
 }
 
 // SessionPlayer extracts the *Player from a session's ECS entity field.

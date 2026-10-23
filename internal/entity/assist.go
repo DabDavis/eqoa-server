@@ -13,8 +13,7 @@ import "github.com/eqoa/server/internal/session"
 // A player's target is its last 0x0010, an id in ITS session's table; the
 // answer is the same entity in the asker's. Object ids are per session (each
 // visibility table counts its own), so both are read through the session the
-// id belongs to, never findEntityByObjectIDLocked, which searches every
-// session's table and takes the first match.
+// id belongs to.
 
 // NoAssist is Msg007B's -1: word 838.
 const NoAssist uint32 = 0xFFFFFFFF

@@ -108,9 +108,9 @@ func (w *World) PlayerSeenBy(sender *session.Session, id uint32) *Player {
 
 // playerSeenByLocked resolves an id the sender gave (its own, an object id
 // from ITS visibility channels, or a stand-in) to a player. Object ids are per
-// session, so only the sender's own table is read: findEntityByObjectIDLocked
-// searches every session's, and two clients that see each other first both
-// call the other 100001.
+// session, so only the sender's own table is read (two clients that see each
+// other first both call the other 100001), as findEntityByObjectIDLocked
+// reads it too.
 func (w *World) playerSeenByLocked(sender *session.Session, id uint32) *Player {
 	if id&0xFF000000 == 0x7F000000 {
 		return w.Players[EntityID(id&0x00FFFFFF)]

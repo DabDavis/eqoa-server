@@ -638,7 +638,7 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Send player speed (needed for movement): a speed effect kept over the
 	// logout makes it more (Sandstorm's dump carried the plain speed and its
 	// 0x00F8 the buffed one)
-	speed := float32(20.0)
+	speed := entity.RunSpeed
 	if h.gameWorld != nil {
 		speed = h.gameWorld.PlayerSpeed(sess, speed)
 	}

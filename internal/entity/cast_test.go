@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -332,6 +333,26 @@ func TestCastSpeed(t *testing.T) {
 	c.tick(3400*time.Millisecond + 30*time.Minute)
 	if s := speed(); len(s) != 1 || s[0] != c.p.Speed {
 		t.Errorf("worn off: 0x00F8 %v", s)
+	}
+}
+
+// A player is made at Sandstorm's run speed, which the dump and the world
+// entry's 0x00F8 carry, and Spirit of the Wolf makes it Sandstorm's
+// 11.483333 to the bit (pcaps/ps2_sandstorm_cast_spells_and_autoattack.pcap:
+// 0x410D5555 and 0x4137BBBB). The control is the 20 every player was made
+// at until 2026-10-23.
+func TestPlayerRunSpeedIsSandstorms(t *testing.T) {
+	w := NewWorld()
+	p := w.CreatePlayer(nil, &database.CharacterRecord{ServerID: 7, CharName: "Runner", Level: 50, TClass: 7, X: 100, Y: 54, Z: 100})
+	if b := math.Float32bits(p.Speed); b != 0x410D5555 {
+		t.Fatalf("run speed %v (%#x), want Sandstorm's 8.833333 (0x410D5555)", p.Speed, b)
+	}
+	if p.Speed == 20 {
+		t.Fatal("the control: 20")
+	}
+	p.Effects = append(p.Effects, &ActiveEffect{Speed: true})
+	if b := math.Float32bits(p.SpeedNow()); b != 0x4137BBBB {
+		t.Errorf("under Spirit of the Wolf %v (%#x), want Sandstorm's 11.483333 (0x4137BBBB)", p.SpeedNow(), b)
 	}
 }
 

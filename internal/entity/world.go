@@ -173,7 +173,7 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		CharServerID: record.ServerID,
 		Class:        record.TClass,
 		Level:        level,
-		Speed:        20.0,
+		Speed:        RunSpeed,
 		Faction:      FactionFriendly,
 		Str:          str,
 		Sta:          sta,

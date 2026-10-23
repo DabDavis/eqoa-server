@@ -65,6 +65,15 @@ const tickDuration = 24 * time.Second
 // became 11.48 under Spirit of the Wolf.
 const speedBuff = 1.3
 
+// RunSpeed is a player's run speed with nothing on it: what Sandstorm's dump
+// and its 0x00F8 carry in every capture (0x410D5555, 8.833333), and CLIENT's
+// own m_speed before a dump. 1.3 times it is 0x4137BBBB, Spirit of the Wolf's
+// 0x00F8 there to the bit. It was 20 until 2026-10-23 (since the first
+// import), so a PS2 here ran 2.3 times Sandstorm's speed; the Rust client
+// kept its own 8.83 and took no speed from a server, which is why a speed
+// buff did nothing in it. It takes them now.
+var RunSpeed = math.Float32frombits(0x410D5555)
+
 // The refusals' words, as Sandstorm's.
 const (
 	castNoTarget    = "No target."

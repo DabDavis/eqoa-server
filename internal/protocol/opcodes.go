@@ -103,7 +103,7 @@ const (
 	OpcodeHotkeyMenu          GameOpcode = 0x006C // Hotkey Menu (server)
 
 	// 0x007X - Quests, Pets, Groups
-	OpcodeAssistTarget GameOpcode = 0x007B // Msg007B: u32 entity id to target (and ask 0x0010 about); -1 shows word 838
+	OpcodeAssistTarget GameOpcode = 0x007B // out, Msg007B: u32 entity id to target (and ask 0x0010 about); -1 shows word 838. In: Assist Leader (DoAction 0x0B090000), a u32, the sender's target
 	OpcodeAddQuestLog  GameOpcode = 0x007C // Add Quest to Log (server)
 	OpcodeDeleteQuest  GameOpcode = 0x007D // Remove Quest from Log (client/server)
 	OpcodeSetPet       GameOpcode = 0x007E // one raw u32 into m_petId
@@ -127,6 +127,7 @@ const (
 	OpcodeRollRequest     GameOpcode = 0x00C8 // Roll Request
 	OpcodeFactionMessages GameOpcode = 0x00C9 // Faction messages
 	OpcodeLootMessages    GameOpcode = 0x00CA // Loot messages
+	OpcodeAssist          GameOpcode = 0x00CB // in: Assist Target (DoAction 0x0B0E0006), a u32, the sender's target; answered by 0x007B
 	OpcodeCooldownTimer   GameOpcode = 0x00CD // Cooldown Timer
 	OpcodeErrorMessage    GameOpcode = 0x00CE // Chat Text Error
 

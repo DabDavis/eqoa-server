@@ -29,6 +29,37 @@ func (h *TargetHandler) SetGameWorld(gw *entity.World) {
 func (h *TargetHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeTarget, h.HandleTarget)
 	r.Register(protocol.OpcodeClassicTargetInfo, h.HandleTarget)
+	r.Register(protocol.OpcodeAssist, h.HandleAssistTarget)
+	r.Register(protocol.OpcodeAssistTarget, h.HandleAssistLeader)
+}
+
+// HandleAssistTarget is 0x00CB, Assist Target (DoAction 0x0B0E0006: the
+// quick command |22, the start menu's): a raw u32, the sender's target. The
+// answer is a 0x007B with whom that target has targeted, as the sender knows
+// it, or -1 for none (entity/assist.go).
+func (h *TargetHandler) HandleAssistTarget(sess *session.Session, msg *protocol.Message) error {
+	r := newClientReader(msg)
+	id := r.u32()
+	if r.err || h.gameWorld == nil {
+		return nil
+	}
+	if to, ok := h.gameWorld.AssistTarget(sess, id); ok {
+		SendAssistTarget(sess, to)
+	}
+	return nil
+}
+
+// HandleAssistLeader is 0x007B, Assist Leader (DoAction 0x0B090000, |21):
+// the same u32, the sender's own target, which it does not need. The answer
+// is a 0x007B with the group leader's target, or -1.
+func (h *TargetHandler) HandleAssistLeader(sess *session.Session, msg *protocol.Message) error {
+	if h.gameWorld == nil {
+		return nil
+	}
+	if to, ok := h.gameWorld.AssistLeader(sess); ok {
+		SendAssistTarget(sess, to)
+	}
+	return nil
 }
 
 // targetInfo holds the data needed for a target info response.
@@ -67,6 +98,15 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 	// CLIENT turns auto-attack off on every target change, and a 0x0010 is
 	// sent on every one (-1 included): the fight on the old target ends here.
 	h.gameWorld.StopAttackOnRetarget(sess, targetObjectID)
+
+	// The target is what the client names, found or not (-1 is none, a group
+	// stand-in a member out of sight): Assist Target and Assist Leader read
+	// it. Letting a target go (ClearTarget) sends nothing, so it can outlive
+	// the client's.
+	player := h.gameWorld.SessionPlayer(sess)
+	if player != nil {
+		h.gameWorld.SetTarget(player.ServerID, targetObjectID)
+	}
 
 	// Look up target entity by runtime objectID.
 	targetEntity, targetFound := h.gameWorld.FindEntityByObjectID(sess, targetObjectID)
@@ -114,18 +154,12 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 
 	// Get sender's level for con color calculation
 	senderLevel := 1
-	player := h.gameWorld.SessionPlayer(sess)
 	if player != nil {
 		senderLevel = player.Level
 	}
 	info.conColor = calcConColor(senderLevel, info.level)
 
 	h.sendTargetInfo(sess, &info)
-
-	// Update player's target directly
-	if player != nil {
-		h.gameWorld.SetTarget(player.ServerID, targetObjectID)
-	}
 
 	log.Printf("Target: sent info for '%s' level=%d race=%d class=%d conColor=%d objectID=%d",
 		info.name, info.level, info.race, info.class, info.conColor, info.objectID)

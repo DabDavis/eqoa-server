@@ -142,6 +142,9 @@ type CharacterHandler struct {
 	inventoryStore *database.InventoryStore
 	spellbookStore *database.SpellbookStore
 	defaults       *database.DefaultCharacterStore
+	// gearSets sends the session's weapon sets at world entry
+	// (EquipHandler.SendGearSets, gearsets.go)
+	gearSets func(*session.Session)
 }
 
 // NewCharacterHandler creates a new character handler with SQLite persistence.
@@ -650,6 +653,12 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Offer more entity slots than CLIENT's 24, and farther (entityslots.go):
 	// a PS2 ignores it, a client that keeps more says how many and how far
 	SendEntityViewOffer(sess)
+
+	// The four weapon sets (gearsets.go): SOE's live client reads them, a PS2
+	// skips them
+	if h.gearSets != nil {
+		h.gearSets(sess)
+	}
 
 	AutoHDD(h.gameWorld, sess)
 
@@ -1374,11 +1383,25 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 		}
 	}
 
+	// The items prepared on the HUD's quick slots (gearsets.go)
+	quick := map[int]int{}
+	if h.inventoryStore != nil {
+		if q, err := h.inventoryStore.QuickSlotsOf(player.CharServerID); err != nil {
+			log.Printf("SendMemoryDump: quick slot query error: %v", err)
+		} else {
+			quick = q
+		}
+	}
+
 	// Inventory (zigzag count + uint32 count + items)
 	writer.Write7BitEncodedInt64(int64(len(invItems)))
 	writer.WriteUint32(uint32(len(invItems)))
 	for i := range invItems {
-		writeSingleItem(writer, &invItems[i], i)
+		q := int64(-1)
+		if pos, ok := quick[invItems[i].ItemID]; ok {
+			q = int64(pos)
+		}
+		writeItem(writer, &invItems[i], i, q)
 	}
 	log.Printf("SendMemoryDump: wrote %d inventory items", len(invItems))
 	// The client's inventory list as this dump leaves it (key = position,
@@ -1556,12 +1579,19 @@ func dumpQuickSlot(e *database.CharInventoryEntry) int64 {
 // (itemlist.go), never by indexing. Sending charinventory.itemid here instead
 // made clicking one row act on another.
 func writeSingleItem(w *buffer.Writer, e *database.CharInventoryEntry, key int) {
+	writeItem(w, e, key, dumpQuickSlot(e))
+}
+
+// writeItem is writeSingleItem with the record's quick slot given: only the
+// MemoryDump's inventory sends a prepared item's (gearsets.go); every other
+// record arrives on none.
+func writeItem(w *buffer.Writer, e *database.CharInventoryEntry, key int, quick int64) {
 	// Per-instance fields
 	w.Write7BitEncodedInt64(int64(e.StackLeft))
 	w.Write7BitEncodedInt64(int64(e.RemainHP))
 	w.Write7BitEncodedInt64(int64(e.Charges))
 	w.Write7BitEncodedInt64(int64(e.EquipLoc))
-	w.Write7BitEncodedInt64(dumpQuickSlot(e))
+	w.Write7BitEncodedInt64(quick)
 	w.WriteUint32(uint32(key)) // key = container position (see doc comment)
 	writeItemPattern(w, e)
 }

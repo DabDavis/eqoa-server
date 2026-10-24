@@ -23,7 +23,8 @@ import (
 //	uint32  key          the record's key, VIItemList::GetSlotId (+0x2F8) —
 //	                     NOT its position in the list once records have left
 //	uint32  target       the client's current target (m_target)
-//	uint8   interaction  UseItem's second argument; 0 = equip/unequip toggle
+//	uint8   interaction  UseItem's second argument: 0 from the item menu, 1 from
+//	                     the HUD's item quick slot, both a use or an equip toggle
 //
 // It is a TOGGLE: equipped -> unequip, not equipped -> equip. The server picks
 // the slot (the first free one a pair allows) and tells the client which,
@@ -57,6 +58,10 @@ func (h *EquipHandler) SetGameWorld(gw *entity.World) {
 // RegisterHandlers registers the equip handlers.
 func (h *EquipHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeInteractItem, h.HandleInteractItem)
+	// the HUD's item quick slots and weapon sets (gearsets.go)
+	r.Register(protocol.OpcodePrepareItem, h.HandlePrepareItem)
+	r.Register(protocol.OpcodePrepareWeapon, h.HandlePrepareWeapon)
+	r.Register(protocol.OpcodeUseWeaponSet, h.HandleUseWeaponSet)
 }
 
 // itemSlotToEquipSlot maps an item's wear slot (itempattern.equipslot; the
@@ -264,30 +269,54 @@ func planInteractItem(items []database.CharInventoryEntry, list *invList, key ui
 	}
 
 	// Not equipped -> equip, into the first free slot of the pair, else the
-	// first. Then take off what the client's Msg003F takes off: everything in
-	// that slot, then everything in the slots its table names for this wear.
-	worn := map[int][]int{}
+	// first.
+	worn := map[int]bool{}
 	for _, e := range inv {
 		if e.EquipLoc >= 0 {
-			worn[e.EquipLoc] = append(worn[e.EquipLoc], e.ItemID)
+			worn[e.EquipLoc] = true
 		}
 	}
 	chosen := slots[0]
 	for _, s := range slots {
-		if len(worn[s]) == 0 {
+		if !worn[s] {
 			chosen = s
 			break
 		}
 	}
-	for _, s := range append([]int{chosen}, equipDisplaces(wear, chosen)...) {
+	into := planEquipInto(inv, idx, found, chosen)
+	into.key = key
+	return into, nil
+}
+
+// planEquipInto is the equip half of a toggle into a slot the caller chose (a
+// weapon set's hand, gearsets.go): what the client's Msg003F takes off comes
+// off, everything in that slot and then everything in the slots its table
+// names for the item's wear, and the item goes in. An item already worn in
+// another slot comes off that one first (UnequipItem); one already in the
+// slot changes nothing.
+func planEquipInto(inv []*database.CharInventoryEntry, idx int, found *database.CharInventoryEntry, slot int) equipPlan {
+	plan := equipPlan{name: found.Pattern.ItemName, unequip: -1}
+	if found.EquipLoc == slot {
+		return plan
+	}
+	if found.EquipLoc >= 0 {
+		plan.unequip = found.EquipLoc
+	}
+	worn := map[int][]int{}
+	for _, e := range inv {
+		if e.EquipLoc >= 0 && e.ItemID != found.ItemID {
+			worn[e.EquipLoc] = append(worn[e.EquipLoc], e.ItemID)
+		}
+	}
+	for _, s := range append([]int{slot}, equipDisplaces(found.Pattern.EquipSlot, slot)...) {
 		for _, id := range worn[s] {
 			plan.changes = append(plan.changes, equipChange{id, -1})
 		}
 		delete(worn, s)
 	}
-	plan.changes = append(plan.changes, equipChange{found.ItemID, chosen})
-	plan.equip, plan.index, plan.slot = true, idx, chosen
-	return plan, nil
+	plan.changes = append(plan.changes, equipChange{found.ItemID, slot})
+	plan.equip, plan.index, plan.slot = true, idx, slot
+	return plan
 }
 
 // parseInteractItem reads the request: u32 key, u32 target, u8 interaction.
@@ -310,10 +339,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		log.Printf("InteractItem: short or malformed payload len=%d hex=%x", len(data), data)
 		return nil
 	}
-	if interaction != 0 {
-		// The C# reference treats this as an error worth surfacing rather than
-		// guessing at, and we have never seen a non-zero value on the wire.
-		log.Printf("InteractItem: non-zero interaction type %d (key=%d target=0x%08X) — not handled",
+	if interaction > 1 {
+		// 0 is the item menu's use or equip (UseItem(i, 0)) and 1 the HUD's
+		// item quick slot (VIWndGame::OnMessage 0x2030000: UseItem(i, 1)),
+		// which asks for the same; no other value is sent.
+		log.Printf("InteractItem: interaction type %d (key=%d target=0x%08X) — not handled",
 			interaction, key, target)
 		return nil
 	}
@@ -345,21 +375,8 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		return nil
 	}
 
-	for _, c := range plan.changes {
-		if err := h.inventoryStore.SetEquipLoc(serverID, c.itemID, c.equipLoc); err != nil {
-			log.Printf("InteractItem: item %d -> equiploc %d: %v", c.itemID, c.equipLoc, err)
-			return nil
-		}
-	}
-	if plan.unequip >= 0 {
-		log.Printf("InteractItem: serverID=%d UNEQUIP %q (key=%d) from slot %d",
-			serverID, plan.name, key, plan.unequip)
-		sess.Queue().AddWithSequence(unequipItemMessage(plan.unequip))
-	}
-	if plan.equip {
-		log.Printf("InteractItem: serverID=%d EQUIP %q (key=%d, list index %d) to slot %d, %d displaced",
-			serverID, plan.name, key, plan.index, plan.slot, len(plan.changes)-1)
-		sess.Queue().AddWithSequence(equipItemMessage(plan.index, plan.slot))
+	if !h.applyPlan(sess, serverID, plan, "InteractItem") {
+		return nil
 	}
 
 	// Refresh the visual equipment bytes. The state channel is serialized from
@@ -367,6 +384,28 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 	// show up on the character.
 	h.charHandler.applyEquipmentFromDB(player, serverID, false)
 	return nil
+}
+
+// applyPlan writes a plan's equip slots and tells the client: UnequipItem for
+// the slot it vacates, then EquipItem. False when the database refused one.
+func (h *EquipHandler) applyPlan(sess *session.Session, serverID uint32, plan equipPlan, who string) bool {
+	for _, c := range plan.changes {
+		if err := h.inventoryStore.SetEquipLoc(serverID, c.itemID, c.equipLoc); err != nil {
+			log.Printf("%s: item %d -> equiploc %d: %v", who, c.itemID, c.equipLoc, err)
+			return false
+		}
+	}
+	if plan.unequip >= 0 {
+		log.Printf("%s: serverID=%d UNEQUIP %q (key=%d) from slot %d",
+			who, serverID, plan.name, plan.key, plan.unequip)
+		sess.Queue().AddWithSequence(unequipItemMessage(plan.unequip))
+	}
+	if plan.equip {
+		log.Printf("%s: serverID=%d EQUIP %q (key=%d, list index %d) to slot %d, %d displaced",
+			who, serverID, plan.name, plan.key, plan.index, plan.slot, len(plan.changes)-1)
+		sess.Queue().AddWithSequence(equipItemMessage(plan.index, plan.slot))
+	}
+	return true
 }
 
 // equipItemMessage is EquipItem (0x003F), which the client's dispatcher reads

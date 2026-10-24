@@ -453,13 +453,38 @@ func (db *SQLiteDB) initSchema() error {
 	);
 	CREATE INDEX IF NOT EXISTS idx_spells_serverid ON spells(serverid);
 
-	-- weaponhotbar
+	-- weaponhotbar: Return Home's schema, never used (it has no set number);
+	-- the weapon sets are gearsets
 	CREATE TABLE IF NOT EXISTS weaponhotbar (
 		weaponsetID INTEGER PRIMARY KEY AUTOINCREMENT,
 		serverid INTEGER NOT NULL,
 		hotbarname TEXT NOT NULL,
 		weaponID INTEGER NOT NULL,
 		secondaryID INTEGER NOT NULL,
+		FOREIGN KEY (serverid) REFERENCES characters(serverid) ON DELETE CASCADE
+	);
+
+	-- quickslots: the inventory item prepared on each of the HUD's four item
+	-- quick slots (0x000A)
+	CREATE TABLE IF NOT EXISTS quickslots (
+		serverid INTEGER NOT NULL,
+		pos INTEGER NOT NULL,
+		itemid INTEGER NOT NULL,
+		PRIMARY KEY (serverid, pos),
+		FOREIGN KEY (serverid) REFERENCES characters(serverid) ON DELETE CASCADE
+	);
+
+	-- gearsets: the HUD's four weapon sets (0x0021, 0x0022), each the main
+	-- hand's and the off hand's charinventory.itemid and patternid (-1 none)
+	CREATE TABLE IF NOT EXISTS gearsets (
+		serverid INTEGER NOT NULL,
+		slot INTEGER NOT NULL,
+		name TEXT NOT NULL,
+		mainitem INTEGER NOT NULL,
+		mainpattern INTEGER NOT NULL,
+		offitem INTEGER NOT NULL,
+		offpattern INTEGER NOT NULL,
+		PRIMARY KEY (serverid, slot),
 		FOREIGN KEY (serverid) REFERENCES characters(serverid) ON DELETE CASCADE
 	);
 

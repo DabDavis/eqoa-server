@@ -27,7 +27,7 @@ const (
 	OpcodeAuthenticate2  GameOpcode = 0x0001 // Username/Auth (game server connection)
 	OpcodeInteract       GameOpcode = 0x0004 // NPC/Object interaction
 	OpcodeSendReport     GameOpcode = 0x0009 // Send Report (client)
-	OpcodePrepareItem    GameOpcode = 0x000A // Prepare Item on Hotbar Request (client)
+	OpcodePrepareItem    GameOpcode = 0x000A // an item onto a HUD quick slot: client u32 key + u8 slot, server u8 list index + u8 slot (Msg000A)
 	OpcodeClientSayChat  GameOpcode = 0x000B // Chat Input from Client
 	OpcodeMemoryDump     GameOpcode = 0x000D // Memory Dump - entity data on world enter
 	OpcodeChangeChatMode GameOpcode = 0x000E // Change chat mode
@@ -55,7 +55,8 @@ const (
 
 	// 0x002X - Character/Toon Opcodes
 	OpcodeGrantXP          GameOpcode = 0x0020 // Receive XP
-	OpcodePrepareWeapon    GameOpcode = 0x0021 // Prepare Weapon from Hotbar Request (client)
+	OpcodePrepareWeapon    GameOpcode = 0x0021 // a weapon set (SOE's live client, not the disc): client u8 set + name, server u8 set + name + u32 main + u32 off (gearsets.go)
+	OpcodeUseWeaponSet     GameOpcode = 0x0022 // the client takes up weapon set u8 (0-3, 4 bare hands; SOE's live client)
 	OpcodeSelectedChar     GameOpcode = 0x002A // Character Select (client selects char)
 	OpcodeCreateCharacter  GameOpcode = 0x002B // Character Create (client creates char)
 	OpcodeCharacterSelect  GameOpcode = 0x002C // Character View (server sends char list)

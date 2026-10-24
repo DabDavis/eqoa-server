@@ -188,6 +188,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if gameWorld != nil {
 		equipHandler.SetGameWorld(gameWorld)
 	}
+	charHandler.gearSets = equipHandler.SendGearSets
 	interactHandler := NewInteractHandler(sessionMgr)
 	if gameWorld != nil {
 		interactHandler.SetGameWorld(gameWorld)

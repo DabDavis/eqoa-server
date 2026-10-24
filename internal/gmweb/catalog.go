@@ -237,8 +237,31 @@ var catalog = map[string]tableNote{
 		Cols: map[string]colNote{"serverid": {Label: "Character", Ref: "characters"}},
 	},
 	"weaponhotbar": {
-		Label: "Weapon sets", Group: "Players",
+		Label: "Weapon hotbar (unused)", Group: "Players",
+		Help: "Return Home's schema, never read: the weapon sets are gearsets.",
 		Cols: map[string]colNote{"serverid": {Label: "Character", Ref: "characters"}},
+	},
+	"quickslots": {
+		Label: "Item quick slots", Group: "Players",
+		Help: "The item prepared on each of the HUD's four item quick slots (0-1 potions, 2-3 gems; on a PS2 slot 3 is a weapon's). Read at the character's next login.",
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"pos":      {Label: "Slot"},
+			"itemid":   {Label: "Item", Ref: "charinventory"},
+		},
+	},
+	"gearsets": {
+		Label: "Weapon sets", Group: "Players",
+		Help: "The HUD's four weapon sets (SOE's live client): the main and off hand as worn when the set was prepared, each by charinventory item and its item pattern; -1 is none, an empty set has no main hand.",
+		Cols: map[string]colNote{
+			"serverid":    {Label: "Character", Ref: "characters"},
+			"slot":        {Label: "Set (0-3)"},
+			"name":        {Label: "Name"},
+			"mainitem":    {Label: "Main hand", Ref: "charinventory"},
+			"mainpattern": {Label: "Main hand item", Ref: "itempattern"},
+			"offitem":     {Label: "Off hand", Ref: "charinventory"},
+			"offpattern":  {Label: "Off hand item", Ref: "itempattern"},
+		},
 	},
 	"playerquest": {
 		Label: "Character quests", Group: "Guilds & quests",

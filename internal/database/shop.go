@@ -112,17 +112,24 @@ func (s *InventoryStore) SetItemRemainHP(serverID uint32, itemID, hp int) error 
 
 // DeleteCharItem removes a row (sold, or the last of a stack moved).
 func (s *InventoryStore) DeleteCharItem(serverID uint32, itemID int) error {
-	return s.execOne(`DELETE FROM charinventory WHERE itemid = ? AND serverid = ?`, itemID, serverID)
+	if err := s.execOne(`DELETE FROM charinventory WHERE itemid = ? AND serverid = ?`, itemID, serverID); err != nil {
+		return err
+	}
+	return s.dropQuickSlot(serverID, itemID)
 }
 
 // MoveCharItem moves a row to the end of the list at location, unequipped
-// (an item crosses between the inventory and the bank whole).
+// (an item crosses between the inventory and the bank whole) and off its
+// quick slot.
 func (s *InventoryStore) MoveCharItem(serverID uint32, itemID, location int) error {
-	return s.execOne(`
+	if err := s.execOne(`
 		UPDATE charinventory SET location = ?, equiploc = -1,
 			listnumber = (SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = ?)
 		WHERE itemid = ? AND serverid = ?
-	`, location, serverID, location, itemID, serverID)
+	`, location, serverID, location, itemID, serverID); err != nil {
+		return err
+	}
+	return s.dropQuickSlot(serverID, itemID)
 }
 
 // SetTunar stores a character's purse and bank tunar.

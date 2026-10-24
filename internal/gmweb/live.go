@@ -29,7 +29,7 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveAccount(a, action, before, after)
 	case "characters":
 		return s.liveCharacter(a, action, before, after)
-	case "charinventory", "spells", "hotkeys", "charbuffs", "weaponhotbar":
+	case "charinventory", "spells", "hotkeys", "charbuffs", "weaponhotbar", "quickslots", "gearsets":
 		row := after
 		if row == nil {
 			row = before

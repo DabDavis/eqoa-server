@@ -73,7 +73,7 @@ func (w *World) entitySeenByLocked(sender *session.Session, id uint32) Entity {
 	if !ok || vs == nil {
 		return nil
 	}
-	for i := 0; i < MaxVisibleEntities; i++ {
+	for i := range vs.ChannelObjectID {
 		if vs.ChannelObjectID[i] != id || vs.ChannelEntity[i] == 0 {
 			continue
 		}

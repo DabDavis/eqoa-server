@@ -331,6 +331,22 @@ const (
 )
 
 // =============================================================================
+// Not retail: this server's and its clients' own
+// =============================================================================
+
+const (
+	// OpcodeEntityView is what a client keeps in view (session/entityslots.go):
+	// how many entity slots and how far, two u32s after the opcode, both ways.
+	// The server offers the most it will fill and the farthest it will look
+	// once the player is in the world, and a client that keeps more than
+	// CLIENT's answers with its own two (any time after, again whenever they
+	// change). No retail message has it: CLIENT's dispatcher handles nothing
+	// above 0x1402 and has no default case, and S2's own are 0x1500-0x1507, so
+	// a PS2 ignores the offer and never asks.
+	OpcodeEntityView GameOpcode = 0x7E00
+)
+
+// =============================================================================
 // Game Version Constants
 // =============================================================================
 
@@ -539,6 +555,8 @@ func (op GameOpcode) String() string {
 		return "ClientFaction"
 	case OpcodeFactionMessages:
 		return "FactionMessages"
+	case OpcodeEntityView:
+		return "EntityView"
 	default:
 		return "Unknown"
 	}

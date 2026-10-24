@@ -44,6 +44,16 @@ world:
   # start_level: 50
   # start_all_spells: true
 
+  # The most NPCs and players (the player's own among them) a client that
+  # keeps more than the game's 24 may have in view, and the farthest they are
+  # looked for: eqoa-rust-client-vanilla's Options > Extended > NPC/PC Display
+  # and NPC/PC View Distance ask for theirs once the server offers these
+  # (opcode 0x7E00). max_entity_slots unset or 0: every state channel the
+  # protocol has, 204; 24: none past the game's. max_view_distance unset or 0:
+  # 1000; 300: no farther than every client's. A PS2 always has 24 within 300.
+  # max_entity_slots: 128
+  # max_view_distance: 600
+
 patch:
   # Directory holding the client patch payloads. A relative path resolves
   # against the working directory first, then against the executable's

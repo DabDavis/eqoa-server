@@ -46,13 +46,13 @@ func clearVisibilityChannels(sess *session.Session) {
 	vis := entity.GetOrCreateVisibility(sess)
 
 	cleared := 0
-	for i := 0; i < entity.MaxVisibleEntities; i++ {
+	for i := range vis.ChannelEntity {
 		if vis.ChannelEntity[i] == 0 {
 			continue
 		}
 		// The entity's own id and type, flag cleared: CLIENT deletes it and
 		// makes nothing. Zeros would be type 0, an assert on an empty slot.
-		if state := conn.GetServerObject(i + 1 + entity.NPCChannelOffset); state != nil {
+		if state := conn.GetServerObject(i + 1); state != nil {
 			state.MarkRemoved()
 		}
 		vis.ChannelEntity[i] = 0

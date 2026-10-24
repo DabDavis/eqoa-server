@@ -95,6 +95,15 @@ type WorldConfig struct {
 	// (classspells, tools/import_class_spells.py). Both are for testing.
 	StartLevel     int  `yaml:"start_level"`
 	StartAllSpells bool `yaml:"start_all_spells"`
+
+	// MaxEntitySlots is the most NPCs and players (the player's own among
+	// them) a client that keeps more than CLIENT's 24 may have in view
+	// (handlers/entityslots.go): unset or 0 for every state channel the
+	// protocol has (204), 24 for none past CLIENT's. MaxViewDistance is the
+	// farthest such a client may have them looked for: unset or 0 for 1000,
+	// 300 (every client's) for no farther. A PS2 always has 24 within 300.
+	MaxEntitySlots  int `yaml:"max_entity_slots"`
+	MaxViewDistance int `yaml:"max_view_distance"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

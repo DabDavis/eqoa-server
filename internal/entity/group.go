@@ -122,7 +122,7 @@ func (w *World) playerSeenByLocked(sender *session.Session, id uint32) *Player {
 	if !ok || vs == nil {
 		return nil
 	}
-	for i := 0; i < MaxVisibleEntities; i++ {
+	for i := range vs.ChannelObjectID {
 		if vs.ChannelObjectID[i] == id {
 			return w.Players[vs.ChannelEntity[i]]
 		}

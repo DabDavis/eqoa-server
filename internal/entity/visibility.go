@@ -9,26 +9,24 @@ import (
 )
 
 const (
-	// MaxVisibleEntities is the max number of NPC/player entities we can track:
-	// channels 1-23. CLIENT keeps 24 entity slots, the object channels
-	// 0x00-0x17 (VIClient::ProcessStateChannel sends only `type < 24` to
-	// ChannelEntity), and channel 0 is the player's own.
-	MaxVisibleEntities = 23
-	// VisibilityRadius is the query radius for nearby entities.
-	VisibilityRadius float32 = 300.0
+	// VisibilityRadius is the query radius for nearby entities, for a client
+	// that never asked for another (session.ViewDistance); one that did is
+	// looked for to its connection's ViewDistance().
+	VisibilityRadius float32 = session.ViewDistance
 	// VisibilityTickInterval controls how often (in ticks) the visibility system runs.
 	VisibilityTickInterval uint64 = 5
-	// MaxNewEntitiesPerTick limits how many new entities are assigned per visibility tick.
-	MaxNewEntitiesPerTick = MaxVisibleEntities
-	// NPCChannelOffset: NPC channels start at 1 (channel 0 = player self).
-	NPCChannelOffset = 0
 )
 
-// VisibilityState tracks which entity occupies each state channel (1-23) for a session.
+// VisibilityState tracks which entity occupies each entity slot past the
+// player's own for a session: index i is slot i+1, on state channel
+// session.EntityChannel(i+1). A session has its connection's EntitySlots()-1
+// of them: 23, channels 1-23, for a client that never asked for more (CLIENT
+// keeps 24 entity slots, the object channels 0x00-0x17, and channel 0 is the
+// player's own), up to session.MaxEntitySlots-1 for one that did.
 type VisibilityState struct {
-	ChannelEntity   [MaxVisibleEntities]EntityID // Entity in each channel
-	ChannelObjectID [MaxVisibleEntities]uint32   // ObjectID assigned to each channel's entity
-	nextObjectID    uint32                       // Counter for assigning stable object IDs
+	ChannelEntity   []EntityID // Entity in each slot
+	ChannelObjectID []uint32   // ObjectID assigned to each slot's entity
+	nextObjectID    uint32     // Counter for assigning stable object IDs
 }
 
 // GetOrCreateVisibility retrieves or creates a VisibilityState from a session.
@@ -40,10 +38,35 @@ func GetOrCreateVisibility(sess *session.Session) *VisibilityState {
 		}
 	}
 	vs := &VisibilityState{
-		nextObjectID: 100000, // NPC objectIDs start at 100001+ (player IDs are 500000000+)
+		ChannelEntity:   make([]EntityID, session.RetailEntitySlots-1),
+		ChannelObjectID: make([]uint32, session.RetailEntitySlots-1),
+		nextObjectID:    100000, // NPC objectIDs start at 100001+ (player IDs are 500000000+)
 	}
 	sess.SetVisibilityState(vs)
 	return vs
+}
+
+// fit gives vs the slots conn has in use, past the player's. A slot given up
+// (the client asked for fewer) loses its entity: the client dropped it when
+// it asked, so the entity is only marked removed on its channel, which is no
+// longer sent, and it may come back on a slot still in use.
+func (vs *VisibilityState) fit(conn *session.ConnectionData) {
+	n := conn.EntitySlots() - 1
+	for i := n; i < len(vs.ChannelEntity); i++ {
+		if vs.ChannelEntity[i] != 0 {
+			if state := conn.GetServerObject(i + 1); state != nil {
+				state.MarkRemoved()
+			}
+		}
+	}
+	if n <= len(vs.ChannelEntity) {
+		vs.ChannelEntity = vs.ChannelEntity[:n]
+		vs.ChannelObjectID = vs.ChannelObjectID[:n]
+		return
+	}
+	more := n - len(vs.ChannelEntity)
+	vs.ChannelEntity = append(vs.ChannelEntity, make([]EntityID, more)...)
+	vs.ChannelObjectID = append(vs.ChannelObjectID, make([]uint32, more)...)
 }
 
 // entityDist pairs an entity ID with its distance from the observer.
@@ -52,7 +75,8 @@ type entityDist struct {
 	DistSq float32
 }
 
-// visibilitySystem assigns nearby entities to state channels 1-23 for each player session.
+// visibilitySystem assigns nearby entities to each player session's entity
+// slots: state channels 1-23, or as many more as its client asked for.
 func (w *World) visibilitySystem() {
 	if w.SessionManager == nil {
 		return
@@ -78,9 +102,11 @@ func (w *World) visibilitySystem() {
 		}
 
 		vis := GetOrCreateVisibility(sess)
+		vis.fit(conn)
+		slots := len(vis.ChannelEntity)
 
 		// Query nearby entities from spatial index
-		nearbyIDs := w.SpatialIndex.QueryRadius(player.X, player.Z, VisibilityRadius)
+		nearbyIDs := w.SpatialIndex.QueryRadius(player.X, player.Z, float32(conn.ViewDistance()))
 
 		// Filter out self, dead entities (unless recent corpse), and build distance list
 		var candidates []entityDist
@@ -131,9 +157,9 @@ func (w *World) visibilitySystem() {
 			return candidates[i].DistSq < candidates[j].DistSq
 		})
 
-		// Cap at MaxVisibleEntities
-		if len(candidates) > MaxVisibleEntities {
-			candidates = candidates[:MaxVisibleEntities]
+		// Cap at the session's slots
+		if len(candidates) > slots {
+			candidates = candidates[:slots]
 		}
 
 		// Build set of currently visible entity IDs for fast lookup
@@ -144,7 +170,7 @@ func (w *World) visibilitySystem() {
 
 		// Phase 1: Identify channels to keep (entity still visible)
 		usedChannels := make(map[EntityID]int) // entity ID -> channel index
-		for i := 0; i < MaxVisibleEntities; i++ {
+		for i := 0; i < slots; i++ {
 			id := vis.ChannelEntity[i]
 			if id == 0 {
 				continue
@@ -155,7 +181,7 @@ func (w *World) visibilitySystem() {
 		}
 
 		// Phase 2: Deactivate channels for entities no longer visible
-		for i := 0; i < MaxVisibleEntities; i++ {
+		for i := 0; i < slots; i++ {
 			id := vis.ChannelEntity[i]
 			if id == 0 {
 				continue
@@ -164,7 +190,7 @@ func (w *World) visibilitySystem() {
 				// The entity's own id and type with the flag cleared, which
 				// CLIENT's ChannelEntity reads as "delete it, make nothing";
 				// 162 zero bytes would be type 0 (see MarkRemoved).
-				if state := conn.GetServerObject(i + 1 + NPCChannelOffset); state != nil {
+				if state := conn.GetServerObject(i + 1); state != nil {
 					state.MarkRemoved()
 				}
 				vis.ChannelEntity[i] = 0
@@ -175,15 +201,12 @@ func (w *World) visibilitySystem() {
 		// Phase 3: Assign new entities to free channels
 		newCount := 0
 		for _, c := range candidates {
-			if newCount >= MaxNewEntitiesPerTick {
-				break
-			}
 			if _, already := usedChannels[c.ID]; already {
 				continue
 			}
 			// Find a free channel
 			freeIdx := -1
-			for i := 0; i < MaxVisibleEntities; i++ {
+			for i := 0; i < slots; i++ {
 				if vis.ChannelEntity[i] == 0 {
 					freeIdx = i
 					break
@@ -203,7 +226,7 @@ func (w *World) visibilitySystem() {
 				npcName = p.Name
 			}
 			log.Printf("CHANNEL_MAP: NEW entity=%q objID=%d -> channel=%d (array idx=%d) distSq=%.0f",
-				npcName, objectID, freeIdx+1+NPCChannelOffset, freeIdx, c.DistSq)
+				npcName, objectID, session.EntityChannel(freeIdx+1), freeIdx, c.DistSq)
 
 			vis.ChannelEntity[freeIdx] = c.ID
 			vis.ChannelObjectID[freeIdx] = objectID
@@ -226,7 +249,7 @@ func (w *World) visibilitySystem() {
 
 		// Phase 4: Serialize state for all occupied channels
 		var occupiedChannels []int
-		for i := 0; i < MaxVisibleEntities; i++ {
+		for i := 0; i < slots; i++ {
 			id := vis.ChannelEntity[i]
 			if id == 0 {
 				continue
@@ -235,17 +258,15 @@ func (w *World) visibilitySystem() {
 
 			stateData := w.serializeEntityForChannel(id, objectID)
 			if stateData != nil {
-				ch := i + 1 + NPCChannelOffset
-				state := conn.GetServerObject(ch)
-				if state != nil {
+				if state := conn.GetServerObject(i + 1); state != nil {
 					state.SetData(stateData)
 				}
-				occupiedChannels = append(occupiedChannels, ch)
+				occupiedChannels = append(occupiedChannels, int(session.EntityChannel(i+1)))
 			}
 		}
 
 		log.Printf("CHANNEL_MAP: SUMMARY candidates=%d occupied=%d/%d new=%d channels=%v",
-			len(candidates), len(occupiedChannels), MaxVisibleEntities, newCount, occupiedChannels)
+			len(candidates), len(occupiedChannels), slots, newCount, occupiedChannels)
 
 		return true
 	})

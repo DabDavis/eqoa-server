@@ -647,6 +647,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Send server ready signal (Sandstorm sends this after world entry)
 	SendServerReady(sess)
 
+	// Offer more entity slots than CLIENT's 24, and farther (entityslots.go):
+	// a PS2 ignores it, a client that keeps more says how many and how far
+	SendEntityViewOffer(sess)
+
 	AutoHDD(h.gameWorld, sess)
 
 	if h.gameWorld != nil {
@@ -1652,20 +1656,16 @@ func (h *CharacterHandler) flushStateChannels(sess *session.Session) {
 		return
 	}
 
-	// Generate object updates for dirty channels (0-22)
-	for i := 0; i < session.MaxServerObjects; i++ {
-		state := conn.GetServerObject(i)
-		if state == nil {
-			continue
-		}
+	// Generate object updates for dirty channels, every entity slot in use
+	for i, state := range conn.GetServerObjects() {
 		if data, seq, xorByte := state.GenerateXORDelta(); data != nil {
-			msg := protocol.NewMessage(protocol.MessageType(i), 0)
+			msg := protocol.NewMessage(protocol.MessageType(session.EntityChannel(i)), 0)
 			msg.Sequence = seq
 			msg.XORByte = xorByte
 			msg.SetData(data)
 			sess.Queue().Add(msg)
 			log.Printf("flushStateChannels: channel %d, seq=%d, xorByte=%d, dataLen=%d",
-				i, seq, xorByte, len(data))
+				session.EntityChannel(i), seq, xorByte, len(data))
 			if i == 0 && len(data) > 184 {
 				log.Printf("flushStateChannels ch0: buf[140]=%d buf[183]=%d buf[184]=%d",
 					data[140], data[183], data[184])

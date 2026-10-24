@@ -306,7 +306,7 @@ func (w *World) stateSyncSystem() {
 	})
 }
 
-// entityChannelSyncSystem re-serializes all occupied entity channels (1-28) every tick.
+// entityChannelSyncSystem re-serializes all occupied entity channels every tick.
 // This mirrors stateSyncSystem (which handles channel 0 for the player) but for NPCs
 // and other players. Without this, entity channels are only written once during
 // visibility assignment and never update — so position/HP/animation changes are never sent.
@@ -328,8 +328,7 @@ func (w *World) entityChannelSyncSystem() {
 
 		vis := GetOrCreateVisibility(sess)
 
-		for i := 0; i < MaxVisibleEntities; i++ {
-			id := vis.ChannelEntity[i]
+		for i, id := range vis.ChannelEntity {
 			if id == 0 {
 				continue
 			}
@@ -337,8 +336,7 @@ func (w *World) entityChannelSyncSystem() {
 
 			stateData := w.serializeEntityForChannel(id, objectID)
 			if stateData != nil {
-				ch := i + 1 + NPCChannelOffset
-				if state := conn.GetServerObject(ch); state != nil {
+				if state := conn.GetServerObject(i + 1); state != nil {
 					state.SetData(stateData)
 				}
 			}

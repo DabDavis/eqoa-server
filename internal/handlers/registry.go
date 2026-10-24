@@ -286,6 +286,10 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// empty world. See worldload.go.
 	NewWorldLoadHandler().RegisterHandlers(r)
 
+	// Register the client's entity view (0x7E00; entityslots.go): a client
+	// that keeps more than CLIENT's 24 says how many, and how far
+	NewEntityViewHandler().RegisterHandlers(r)
+
 	// Register server handlers
 	serverHandler.RegisterHandlers(r)
 

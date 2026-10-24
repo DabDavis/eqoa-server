@@ -848,7 +848,7 @@ func (w *World) objectIDForEntityLocked(sess *session.Session, entityID EntityID
 	if !ok {
 		return 0
 	}
-	for i := 0; i < MaxVisibleEntities; i++ {
+	for i := range vs.ChannelEntity {
 		if vs.ChannelEntity[i] == entityID {
 			return vs.ChannelObjectID[i]
 		}

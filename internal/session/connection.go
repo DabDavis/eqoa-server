@@ -5,13 +5,6 @@ import (
 	"sync"
 )
 
-// MaxServerObjects is the number of object state channels, 0x00-0x17: channel 0
-// is the player, 1-23 the entities in view. CLIENT reads an object channel only
-// below 24 (VIClient::ProcessStateChannel, 0x00BD3C18: `type < 24` goes to
-// ChannelEntity, which keeps m_entities[24]); 0x18 and up reach nothing, so an
-// entity put there is invisible to a PS2.
-const MaxServerObjects = 24
-
 // entityStateSize and statUpdateSize are the wire sizes of the object channels
 // (0x00-0x1C) and the stat channel (0x42), measured off pcaps/ps2_sandstorm.pcap.
 //
@@ -44,12 +37,21 @@ type ConnectionData struct {
 	// Client acknowledgment tracking
 	clientLastReceivedMessage uint16
 
-	// State channel data
-	serverObjects     [MaxServerObjects]*StateUpdateData // Channels 0x00-0x17 (player + up to 23 entities)
-	clientStatUpdate  *StateUpdateData                   // Channel 0x42
-	clientBuffUpdate  *StateUpdateData                   // Channel 0x43
-	serverGroupUpdate *StateUpdateData                   // Channel 0x40
-	client            *ClientStateData                   // Client input state
+	// State channel data. serverObjects is by entity slot (entityslots.go):
+	// slot 0 the player, 1 on the entities in view, slot n on state channel
+	// EntityChannel(n). It holds RetailEntitySlots (channels 0x00-0x17) until
+	// the client asks for more (SetEntitySlots), and never shrinks; slots is
+	// how many are in use, view how far round the player they are looked for
+	// (SetViewDistance). objMu guards them: the tick sends and the visibility
+	// system grows them while the packet goroutine applies acks.
+	objMu             sync.RWMutex
+	serverObjects     []*StateUpdateData
+	slots             int
+	view              int
+	clientStatUpdate  *StateUpdateData // Channel 0x42
+	clientBuffUpdate  *StateUpdateData // Channel 0x43
+	serverGroupUpdate *StateUpdateData // Channel 0x40
+	client            *ClientStateData // Client input state
 
 	// Round-robin offset for state update generation (ensures all channels get served)
 	stateUpdateOffset int
@@ -154,7 +156,7 @@ func NewConnectionData(session *Session, clientID, serverID uint16) *ConnectionD
 		serverID: serverID,
 	}
 
-	// Initialize state channels (0x00-0x16).
+	// Initialize the object channels, 0x00-0x17 (SetEntitySlots adds more).
 	//
 	// THE ALLOCATION IS THE WIRE SIZE. SetData only copy()s into this buffer, so
 	// it can never shrink it — a serializer that returns fewer bytes just leaves
@@ -170,9 +172,9 @@ func NewConnectionData(session *Session, clientID, serverID uint16) *ConnectionD
 	// This was 201, which overran the client's entity struct by 39 bytes on
 	// every channel every tick. Zeroing the tail in SerializePlayerUpdate did
 	// NOT fix it: the bytes were still allocated, still encoded, still sent.
-	for i := range cd.serverObjects {
-		cd.serverObjects[i] = NewStateUpdateData(entityStateSize)
-	}
+	cd.growEntitySlots(RetailEntitySlots)
+	cd.slots = RetailEntitySlots
+	cd.view = ViewDistance
 	// Stat update channel (0x42). Retail decodes to 233 on every capture,
 	// ending with the 0xFF at offset 232. Was 0xEC (236) — the same bug as
 	// above, and it likewise survived SerializeStatUpdate being corrected to
@@ -299,31 +301,86 @@ func (cd *ConnectionData) ProcessPacket(packet interface{}) {
 	// This will be expanded when integrating with the packet parser
 }
 
-// UpdateStateChannel updates a state channel with new data.
-func (cd *ConnectionData) UpdateStateChannel(channel byte, data []byte) {
-	cd.mu.Lock()
-	defer cd.mu.Unlock()
-
-	if int(channel) < len(cd.serverObjects) {
-		state := cd.serverObjects[channel]
-		state.mu.Lock()
-		copy(state.data, data)
-		state.dirty = true
-		state.mu.Unlock()
-	}
-}
-
-// GetServerObject returns a server object state channel.
-func (cd *ConnectionData) GetServerObject(index int) *StateUpdateData {
-	if index >= 0 && index < len(cd.serverObjects) {
-		return cd.serverObjects[index]
+// GetServerObject returns entity slot slot's object channel (state channel
+// EntityChannel(slot)): 0 is the player's own. Nil for a slot not allocated.
+func (cd *ConnectionData) GetServerObject(slot int) *StateUpdateData {
+	cd.objMu.RLock()
+	defer cd.objMu.RUnlock()
+	if slot >= 0 && slot < len(cd.serverObjects) {
+		return cd.serverObjects[slot]
 	}
 	return nil
 }
 
-// GetServerObjects returns the server object state channels slice.
+// ServerObjectForChannel returns the object channel state channel ch is, nil
+// when ch carries no entity slot or one not allocated (a state ack names
+// channels by number).
+func (cd *ConnectionData) ServerObjectForChannel(ch byte) *StateUpdateData {
+	slot := EntitySlot(ch)
+	if slot < 0 {
+		return nil
+	}
+	return cd.GetServerObject(slot)
+}
+
+// GetServerObjects returns the object channels in use (EntitySlots of them),
+// by entity slot.
 func (cd *ConnectionData) GetServerObjects() []*StateUpdateData {
-	return cd.serverObjects[:]
+	cd.objMu.RLock()
+	defer cd.objMu.RUnlock()
+	return append([]*StateUpdateData(nil), cd.serverObjects[:cd.slots]...)
+}
+
+// EntitySlots is how many entity slots the client keeps, the player's own
+// among them: RetailEntitySlots until it asks for another number.
+func (cd *ConnectionData) EntitySlots() int {
+	cd.objMu.RLock()
+	defer cd.objMu.RUnlock()
+	return cd.slots
+}
+
+// SetEntitySlots makes n entity slots the ones in use (n within
+// RetailEntitySlots and MaxEntitySlots), allocating any not yet allocated.
+// A slot no longer in use keeps its channel: what was on it stays the
+// client's to have dropped (it asked for fewer), and it is used again when
+// the client asks for more.
+func (cd *ConnectionData) SetEntitySlots(n int) {
+	n = ClampEntitySlots(n, MaxEntitySlots)
+	cd.objMu.Lock()
+	defer cd.objMu.Unlock()
+	cd.growEntitySlots(n)
+	cd.slots = n
+}
+
+// ViewDistance is how far round the player the visibility system looks for
+// the client's entities: ViewDistance until it asks for farther.
+func (cd *ConnectionData) ViewDistance() int {
+	cd.objMu.RLock()
+	defer cd.objMu.RUnlock()
+	return cd.view
+}
+
+// SetViewDistance makes d (within ViewDistance and MaxViewDistance) how far
+// the visibility system looks for the client's entities.
+func (cd *ConnectionData) SetViewDistance(d int) {
+	d = ClampViewDistance(d, MaxViewDistance)
+	cd.objMu.Lock()
+	defer cd.objMu.Unlock()
+	cd.view = d
+}
+
+// growEntitySlots allocates object channels up to slot n-1. The caller holds
+// objMu (or owns cd outright, as NewConnectionData does).
+func (cd *ConnectionData) growEntitySlots(n int) {
+	if n <= len(cd.serverObjects) {
+		return
+	}
+	grown := make([]*StateUpdateData, n)
+	copy(grown, cd.serverObjects)
+	for i := len(cd.serverObjects); i < n; i++ {
+		grown[i] = NewStateUpdateData(entityStateSize)
+	}
+	cd.serverObjects = grown
 }
 
 // GetClientStatUpdate returns the client stat update state.
@@ -388,7 +445,7 @@ func (cd *ConnectionData) GetClientState() *ClientStateData {
 // buffer here would rebuild the entity on the now-empty slot, hence the skip.
 func (cd *ConnectionData) ResendAll() int {
 	n := 0
-	for _, state := range cd.serverObjects {
+	for _, state := range cd.GetServerObjects() {
 		if state != nil && !state.DescribesNoEntity() && state.MarkDirtyIfActive() {
 			n++
 		}

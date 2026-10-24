@@ -64,7 +64,7 @@ Two flat structs (`Player`, `NPC`) with a mutex-protected `World`. All entity da
 | `systems.go` | Tick loop + game systems (AI, respawn, regen, state sync, visibility) |
 | `quadtree.go` | Spatial index (QuadTree) using `EntityID` |
 | `statesync.go` | Binary serializers: `SerializePlayerUpdate` (201 bytes), `SerializeNPCUpdate` (201 bytes), `SerializeStatUpdate` (236 bytes) |
-| `visibility.go` | 23-channel visibility system (channels 1-23: a PS2 reads object channels 0x00-0x17 only, 0 is the player), stable ObjectID assignment per session; an entity leaves by its own id and type with the flag cleared (`MarkRemoved`), never 162 zero bytes (type 0 asserts the PS2) |
+| `visibility.go` | The visibility system: the nearest entities on the session's entity slots, channels 1-23 (a PS2 reads object channels 0x00-0x17 only, 0 is the player) or as many as its client asked for (below), stable ObjectID assignment per session; an entity leaves by its own id and type with the flag cleared (`MarkRemoved`), never 162 zero bytes (type 0 asserts the PS2) |
 | `xp.go` | `CharXPDict` level→XP table, XP/level-up logic |
 
 ### Concurrency Model
@@ -125,7 +125,7 @@ target), `#monstersearch`, `#nearby`. Until 2026-10-21 every player was a GM. Ma
 4. `initPlayerStatChannel` → `SerializeStatUpdate` — 236-byte channel 0x42
 5. `stateSyncSystem()` — updates channel 0 every tick
 6. `statChannelSyncSystem()` — updates stat channel every 20 ticks
-7. `visibilitySystem()` — assigns nearby entities to channels 1-23 every 5 ticks
+7. `visibilitySystem()` — assigns nearby entities to channels 1-23 (or the client's own number of slots) every 5 ticks
 
 ### Handler Pattern
 
@@ -150,7 +150,7 @@ case *entity.NPC:
 | `regenSystem` | Every 20 ticks (2s) | 1% HP/Power regen (skipped if in combat <10s) |
 | `stateSyncSystem` | Every tick | Serialize player state to channel 0 |
 | `statChannelSyncSystem` | Every 20 ticks | Serialize stats to channel 0x42 |
-| `visibilitySystem` | Every 5 ticks | Assign nearby entities to channels 1-23 |
+| `visibilitySystem` | Every 5 ticks | Assign nearby entities to channels 1-23, or the slots (and distance) the client asked for |
 
 ## The GM panel (`internal/gmweb`)
 
@@ -250,6 +250,25 @@ OAuth flow, and the official MCP Python SDK was run against it end to end.
 **MemoryDump format** (Sandstorm differs from C#): No weapon hotbar section between inventory and bank. Bank items immediately follow inventory. 4 transition bytes between bank and spells.
 
 **Segment header size**: Placeholder varint written first, patched with actual body size after all messages written (`PatchSegmentHeaderSize`). Prevents body size mismatch when fragments exceed MTU.
+
+**More than 24 NPCs and players in view, and farther, for a client that keeps them**
+(2026-10-24; `session/entityslots.go`, `handlers/entityslots.go`). CLIENT keeps 24 entity
+slots, the state channels 0x00-0x17; DRDP has 248 (0x00-0xF7), and CLIENT reads 0x40
+(group), 0x42 (stats), 0x43 (effects) and 0x44-0x6B as other things and ignores the rest.
+At the first 0x0014 the server offers its most, opcode **0x7E00** (`OpcodeEntityView`; not
+retail: CLIENT's dispatcher has no default and nothing above 0x1402; S2's are
+0x1500-0x1507), two u32s: the entity slots and the view distance. A client that keeps more
+(eqoa-rust-client-vanilla's NPC/PC Display and NPC/PC View Distance) answers with its two,
+again whenever they change, and the session fills that many from that far: slot n on
+`session.EntityChannel(n)`, 24-63 on 0x18-0x3F and 64-203 on 0x6C-0xF7, so 204 at most
+(`world.max_entity_slots`), and the visibility system's radius the connection's
+`ViewDistance()`, at least the 300 every client has, at most 1000
+(`world.max_view_distance`). `ConnectionData`'s object channels are by slot and grow when
+asked; a state ack names a channel (`ServerObjectForChannel`). Such a session's tick sends a
+datagram more for each 24 slots (`TickSession`, `statePacketsPerTick`), each with up to
+`MaxStateUpdatesPerTick` entity channels further round the round robin. A session that
+never asks (every PS2) is exactly as before: 24 slots within 300, one datagram a tick
+(`TestPS2TickIsOneDatagram`).
 
 **Effects channel (0x43) is as long as its count**: a u32 count and a 132-byte record an effect (icon DictID, name as a wide string of at most 31 characters), 4 bytes when there is none, as CLIENT's `Channel43` reads it and every value in the captures is (136 to 796 bytes). It is the one state channel that changes length (`StateUpdateData.SetSizedData`; DRDP XORs over the shorter of a message and its reference). `#effect <icon hex> [name]` / `#effect clear` sets them by hand: nothing else puts an effect on yet.
 

@@ -150,6 +150,10 @@ func main() {
 	tcp.SeedAccounts(accountStore, cfg.Auth.Accounts, cfg.Auth.BCryptCost)
 
 	handlers.SetNPCText(cfg.World.NPCText)
+	handlers.SetMaxEntitySlots(cfg.World.MaxEntitySlots)
+	handlers.SetMaxViewDistance(cfg.World.MaxViewDistance)
+	log.Printf("Entity view: up to %d within %d for a client that keeps more than 24 within 300",
+		handlers.MaxEntitySlots(), handlers.MaxViewDistance())
 	if len(cfg.World.NPCText) > 0 {
 		log.Printf("NPC text: %d NPCs say their own words when talked to", len(cfg.World.NPCText))
 	}

@@ -27,17 +27,23 @@ func TestChannelBufferSizesMatchSerializers(t *testing.T) {
 	cd := session.NewConnectionData(nil, 0, 0)
 
 	t.Run("object channels", func(t *testing.T) {
-		for i := 0; i < session.MaxServerObjects; i++ {
-			so := cd.GetServerObject(i)
-			if so == nil {
-				t.Fatalf("channel %d not allocated", i)
+		check := func(want int) {
+			objs := cd.GetServerObjects()
+			if len(objs) != want {
+				t.Fatalf("%d object channels in use, want %d", len(objs), want)
 			}
-			if got := len(so.GetData()); got != entity.EntityStateSize {
-				t.Fatalf("channel %d allocated %d bytes, serializer produces %d — "+
-					"the larger of the two is what reaches the client",
-					i, got, entity.EntityStateSize)
+			for i, so := range objs {
+				if got := len(so.GetData()); got != entity.EntityStateSize {
+					t.Fatalf("slot %d allocated %d bytes, serializer produces %d — "+
+						"the larger of the two is what reaches the client",
+						i, got, entity.EntityStateSize)
+				}
 			}
 		}
+		check(session.RetailEntitySlots)
+		// and every slot a client may ask for (session/entityslots.go)
+		cd.SetEntitySlots(session.MaxEntitySlots)
+		check(session.MaxEntitySlots)
 	})
 
 	t.Run("stat channel 0x42", func(t *testing.T) {

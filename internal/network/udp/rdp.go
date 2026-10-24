@@ -122,8 +122,8 @@ func (r *RDPHandler) processStateAcks(sess *session.Session, body *protocol.Segm
 		len(body.StateAcks), sess.RemoteAddr(), body.Flags)
 	for _, stateAck := range body.StateAcks {
 		log.Printf("processStateAcks: channel=%d ack=%d", stateAck.Channel, stateAck.Ack)
-		if stateAck.Channel >= 0 && int(stateAck.Channel) < session.MaxServerObjects {
-			if state := conn.GetServerObject(int(stateAck.Channel)); state != nil {
+		if session.EntitySlot(stateAck.Channel) >= 0 {
+			if state := conn.ServerObjectForChannel(stateAck.Channel); state != nil {
 				state.UpdateBaseXor(stateAck.Ack)
 			}
 		} else if stateAck.Channel == byte(protocol.MessageTypeStatUpdate) {
@@ -382,11 +382,38 @@ func (r *RDPHandler) TickSession(sess *session.Session) {
 	// Held while the client is loading a world after a teleport — retail sends
 	// nothing across that window either. Deferred, not dropped: the buffers keep
 	// being written and go out the moment the client reports in with 0x0049.
-	if sess.CharacterInWorld() && !sess.StateChannelsHeld() {
-		r.GenerateStateUpdates(sess)
+	states := sess.CharacterInWorld() && !sess.StateChannelsHeld()
+	var round entityRound
+	if states {
+		round = r.GenerateStateUpdates(sess)
 	}
 
 	// Prepare and send packet if needed
+	r.sendPrepared(sess)
+
+	// A client keeping more entity slots than CLIENT's 24 (OpcodeEntitySlots)
+	// has a packet more in the tick for each 24 slots more, each with up to
+	// MaxStateUpdatesPerTick entity channels further round the round robin, so
+	// each of its channels is served as often as a PS2's are. A PS2's tick is
+	// the one packet above.
+	if states {
+		conn := sess.Connection()
+		more := false
+		for p := 1; p < statePacketsPerTick(conn.EntitySlots()); p++ {
+			if n, _, _ := r.queueEntityUpdates(sess, &round); n == 0 {
+				break
+			}
+			more = true
+			r.sendPrepared(sess)
+		}
+		if more {
+			conn.SetStateUpdateOffset((round.start + round.visited) % round.n)
+		}
+	}
+}
+
+// sendPrepared sends the packet PreparePacket builds, if there is one.
+func (r *RDPHandler) sendPrepared(sess *session.Session) {
 	if data := r.PreparePacket(sess); data != nil {
 		if err := r.SendPacket(sess, data); err != nil {
 			log.Printf("Failed to send packet to %s: %v", sess.RemoteAddr(), err)
@@ -394,7 +421,20 @@ func (r *RDPHandler) TickSession(sess *session.Session) {
 	}
 }
 
-// MaxStateUpdatesPerTick limits how many state channel messages are queued per tick.
+// statePacketsPerTick is how many packets a tick may send a client keeping
+// slots entity slots: one for each RetailEntitySlots, so 1 for a PS2.
+func statePacketsPerTick(slots int) int {
+	return (slots + session.RetailEntitySlots - 1) / session.RetailEntitySlots
+}
+
+// entityRound is a tick's round robin over the entity channels, slots 1 to n:
+// slot 1 + (start+k)%n is the k-th visited, and visited of them have been.
+type entityRound struct {
+	start, visited, n int
+}
+
+// MaxStateUpdatesPerTick limits how many entity channel messages are queued for
+// one packet (a PS2's tick sends one; see TickSession).
 // Each state update is ~100-135 bytes after RLE. With MaxPacketSize=0x530 (1328 bytes)
 // and ~100 bytes of header overhead, roughly 9-10 updates fit per packet.
 // CRITICAL: This value must not exceed what fits in one packet, because calculateBodySize
@@ -405,7 +445,8 @@ const MaxStateUpdatesPerTick = 10
 
 // GenerateStateUpdates generates state channel updates using XOR delta encoding.
 // Uses round-robin starting offset to ensure all channels get fair access to the packet.
-func (r *RDPHandler) GenerateStateUpdates(sess *session.Session) {
+// It returns the tick's round robin over the entity channels as it left it.
+func (r *RDPHandler) GenerateStateUpdates(sess *session.Session) entityRound {
 	conn := sess.Connection()
 
 	// Player channel 0
@@ -425,41 +466,14 @@ func (r *RDPHandler) GenerateStateUpdates(sess *session.Session) {
 			seq, xorByte, len(data))
 	}
 
-	// Check all NPC channels (1-22) every tick
-	startIdx := conn.StateUpdateOffset()
-	numNPCChannels := session.MaxServerObjects - 1 // channels 1 through MaxServerObjects-1
-	var sentNPC []int
-	activeCount := 0
-
-	npcCount := 0
-	for j := 0; j < numNPCChannels && npcCount < MaxStateUpdatesPerTick; j++ {
-		ch := 1 + (startIdx+j)%numNPCChannels // channels 1..22
-		state := conn.GetServerObject(ch)
-		if state.IsActive() {
-			activeCount++
-		}
-		if data, seq, xorByte := state.GenerateXORDelta(); data != nil {
-			msg := protocol.GetMessage()
-			msg.Type = protocol.MessageType(ch)
-			msg.Sequence = seq
-			msg.XORByte = xorByte
-			msg.SetData(data)
-			sess.Queue().Add(msg)
-			count++
-			npcCount++
-			sentNPC = append(sentNPC, ch)
-			// Log first 16 bytes of delta for rendered-vs-not comparison
-			hexLen := 16
-			if len(data) < hexLen {
-				hexLen = len(data)
-			}
-			log.Printf("CHANNEL_DELTA: ch=%d seq=%d xorByte=%d dataLen=%d first16=%x",
-				ch, seq, xorByte, len(data), data[:hexLen])
-		}
-	}
+	// The entity slots past the player's, round robin from where the last
+	// tick left off
+	round := entityRound{start: conn.StateUpdateOffset(), n: conn.EntitySlots() - 1}
+	npcCount, activeCount, sentNPC := r.queueEntityUpdates(sess, &round)
+	count += npcCount
 
 	// Advance round-robin offset so next tick starts from a different channel
-	conn.SetStateUpdateOffset((startIdx + MaxStateUpdatesPerTick) % numNPCChannels)
+	conn.SetStateUpdateOffset((round.start + MaxStateUpdatesPerTick) % round.n)
 
 	// Diagnostic summary: active channels vs sent channels
 	log.Printf("GenerateStateUpdates: SUMMARY sent=%d player=%v active=%d npcSent=%v",
@@ -501,6 +515,45 @@ func (r *RDPHandler) GenerateStateUpdates(sess *session.Session) {
 		log.Printf("GenerateStateUpdates: group update, seq=%d, xorByte=%d, dataLen=%d",
 			seq, xorByte, len(data))
 	}
+	return round
+}
+
+// queueEntityUpdates queues the messages of up to MaxStateUpdatesPerTick entity
+// channels, visiting them on round's way round (each at most once a tick),
+// each on its slot's state channel (session.EntityChannel). It returns how
+// many it queued, how many of the channels it visited were active, and the
+// channels it queued.
+func (r *RDPHandler) queueEntityUpdates(sess *session.Session, round *entityRound) (queued, active int, sent []int) {
+	conn := sess.Connection()
+	for ; round.visited < round.n && queued < MaxStateUpdatesPerTick; round.visited++ {
+		slot := 1 + (round.start+round.visited)%round.n
+		state := conn.GetServerObject(slot)
+		if state == nil {
+			continue
+		}
+		if state.IsActive() {
+			active++
+		}
+		if data, seq, xorByte := state.GenerateXORDelta(); data != nil {
+			ch := session.EntityChannel(slot)
+			msg := protocol.GetMessage()
+			msg.Type = protocol.MessageType(ch)
+			msg.Sequence = seq
+			msg.XORByte = xorByte
+			msg.SetData(data)
+			sess.Queue().Add(msg)
+			queued++
+			sent = append(sent, int(ch))
+			// Log first 16 bytes of delta for rendered-vs-not comparison
+			hexLen := 16
+			if len(data) < hexLen {
+				hexLen = len(data)
+			}
+			log.Printf("CHANNEL_DELTA: ch=%d seq=%d xorByte=%d dataLen=%d first16=%x",
+				ch, seq, xorByte, len(data), data[:hexLen])
+		}
+	}
+	return queued, active, sent
 }
 
 // BuildPacketData builds raw packet data from components.

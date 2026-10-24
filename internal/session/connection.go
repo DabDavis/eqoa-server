@@ -55,26 +55,48 @@ type ConnectionData struct {
 	stateUpdateOffset int
 }
 
-// StateUpdateData tracks state channel updates with XOR delta encoding.
-// Implements the same logic as C# ServerObjectUpdate.cs
+// RefnumOffsetMax is how far back a state message may name its reference:
+// connection.cpp's REFNUM_OFFSET_MAX. CLIENT refuses the WHOLE segment that
+// carries a state message with a larger refnum, or one whose reference it no
+// longer holds, so nothing in that segment arrives and nothing of it is acked.
+const RefnumOffsetMax = 32
+
+// StateUpdateData tracks state channel updates with XOR delta encoding, the
+// send half of connection.cpp's state channels (connection_append_state,
+// connection_record_state_acks).
+//
+// Until 2026-10-24 it kept C# ServerObjectUpdate.cs's model: one base and the
+// XOR deltas sent since, all thrown away at each ack. An ack for a message
+// already in flight then found nothing and was ignored, the base lagged, and
+// the refnum (seq minus the base) grew without bound and was written as a
+// byte. After a client stall (a hidden browser tab, a lag spike) it passed 32,
+// so the client refused every segment carrying the channel and acked nothing;
+// at 256 it wrapped to 0 and the client took a delta for a whole value. On the
+// player's own channel that value's flag, id and type XOR to zero, a removal:
+// F3 20261024-001134's player lost its own entity (no health gauge, no
+// compass) and kept it lost, every later delta landing on the bad copy.
 type StateUpdateData struct {
 	mu sync.Mutex
 
 	// Current entity state data (what we want to send)
 	data []byte
 
-	// Base state that client has acknowledged - used for XOR delta
+	// The value the client is known to hold: the newest acknowledged one,
+	// zeros before any acknowledgement, nil when the acknowledged message had
+	// already left `sent`. Whether data differs from it decides a resend.
 	baseXOR []byte
 
-	// Message counter for this channel
+	// Message counter for this channel (the next sequence number)
 	messageCounter uint16
 
-	// The message counter of the last ACK'd message (used to calculate XOR byte)
-	baseMessageCounter uint16
-
-	// Pending XOR deltas - stored until client ACKs
-	// Maps message counter -> XOR delta data
-	pendingDeltas map[uint16][]byte
+	// sent is m_txList: every value sent under a new sequence number within
+	// RefnumOffsetMax of the newest, oldest first, with nothing older than
+	// the newest acknowledgement. A message is XORed against the head when the
+	// head is that acknowledged message (ackSeq, acked), and goes out whole
+	// with refnum 0 otherwise.
+	sent   []sentValue
+	ackSeq uint16
+	acked  bool
 
 	// Is this channel active?
 	isActive bool
@@ -96,10 +118,25 @@ type StateUpdateData struct {
 	sentOnce    bool
 }
 
+// sentValue is one message of StateUpdateData.sent: its sequence number and
+// the value it carried.
+type sentValue struct {
+	seq  uint16
+	data []byte
+}
+
+// seqBefore reports whether sequence number a comes before b, the way
+// connection.cpp compares them (the signed 16-bit difference), so a channel
+// may pass 65535.
+func seqBefore(a, b uint16) bool {
+	return int16(a-b) < 0
+}
+
 // ClientStateData tracks client input state.
 type ClientStateData struct {
 	mu     sync.Mutex
-	SeqNum uint16
+	SeqNum uint16 // the newest message taken, the one acknowledged
+	took   bool
 	data   []byte
 
 	// XOR base messages for delta reconstruction.
@@ -382,7 +419,6 @@ func NewStateUpdateData(size int) *StateUpdateData {
 		data:           make([]byte, size),
 		baseXOR:        make([]byte, size),
 		messageCounter: 1, // Start at 1 like C#
-		pendingDeltas:  make(map[uint16][]byte),
 	}
 }
 
@@ -400,38 +436,35 @@ func (s *StateUpdateData) IsActive() bool {
 	return s.isActive
 }
 
-// UpdateBaseXor updates the base state when client ACKs a message.
-// This is called when we receive a state channel ACK from the client.
+// UpdateBaseXor takes the client's acknowledgement of message msgCounter on
+// this channel, as connection_record_state_acks does: only one newer than the
+// last moves anything; it becomes the reference, and what was sent before it
+// is dropped. Any message still held may be acknowledged, so a burst of acks
+// for messages that were in flight together moves the reference to the newest
+// (the old model ignored all but the first). The value the client holds is
+// the one that message carried, at its own length (connection.cpp's receive
+// keeps a state message's own size; the effects channel's changes).
 func (s *StateUpdateData) UpdateBaseXor(msgCounter uint16) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Get the XOR delta for that message
-	delta, ok := s.pendingDeltas[msgCounter]
-	if !ok || len(delta) == 0 {
-		return
+	if !s.sentOnce || seqBefore(s.lastSentSeq, msgCounter) {
+		return // never sent: not the client's to acknowledge
 	}
-
-	// The base becomes the value the client now holds: the delta XORed onto
-	// the old base over the shorter of the two, the rest of the delta as it
-	// came, at the delta's length (connection.cpp's receive keeps a state
-	// message's own size). For a fixed-size channel that is the old in-place
-	// XOR; the effects channel changes length (SetSizedData).
-	base := make([]byte, len(delta))
-	for i := range delta {
-		if i < len(s.baseXOR) {
-			base[i] = s.baseXOR[i] ^ delta[i]
-		} else {
-			base[i] = delta[i]
-		}
+	if s.acked && !seqBefore(s.ackSeq, msgCounter) {
+		return // this one or a newer one is acknowledged already
 	}
-	s.baseXOR = base
-
-	// Clear pending deltas (client has caught up)
-	s.pendingDeltas = make(map[uint16][]byte)
-
-	// Update base message counter
-	s.baseMessageCounter = msgCounter
+	s.ackSeq, s.acked = msgCounter, true
+	for len(s.sent) > 0 && seqBefore(s.sent[0].seq, msgCounter) {
+		s.sent = s.sent[1:]
+	}
+	if len(s.sent) > 0 && s.sent[0].seq == msgCounter {
+		s.baseXOR = append([]byte(nil), s.sent[0].data...)
+	} else {
+		// sent too long ago to be held: its value is unknown here, so the
+		// channel counts as unsynced and goes out whole until a newer ack
+		s.baseXOR = nil
+	}
 
 	// Reset the resend throttle
 	s.resendTicks = 0
@@ -443,23 +476,20 @@ func (s *StateUpdateData) UpdateBaseXor(msgCounter uint16) {
 // the routine answer to a world change; for that use ConnectionData.ResendAll,
 // which is what retail sends.
 //
-// baseMessageCounter is reset here and that reset is the whole point. Zeroing
-// baseXOR alone makes the SERVER emit the full state, but leaves the refnum at
-// `seq - baseMessageCounter`, i.e. non-zero, which tells the client to XOR that
-// full state against the message it still holds. The client computes
-// `its_state XOR full_state` and gets garbage. Thirty channels of garbage at a
-// client that is mid-load is how a loading screen becomes permanent — observed
-// 2026-08-06, and misread at the time as "a full resend cannot work".
-// It can; it has to say refnum 0 while doing it.
+// Forgetting the acknowledgement is the whole point. Zeroing the base alone
+// made the SERVER emit the full state under a NON-ZERO refnum, which tells the
+// client to XOR that full state against the message it still holds. The client
+// computes `its_state XOR full_state` and gets garbage. Thirty channels of
+// garbage at a client that is mid-load is how a loading screen becomes
+// permanent — observed 2026-08-06, and misread at the time as "a full resend
+// cannot work". It can; it has to say refnum 0 while doing it.
 func (s *StateUpdateData) ForceFullResend() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	for i := range s.baseXOR {
-		s.baseXOR[i] = 0
-	}
-	s.pendingDeltas = make(map[uint16][]byte)
-	s.baseMessageCounter = 0
+	s.baseXOR = make([]byte, len(s.data))
+	s.sent = nil
+	s.acked = false
 	s.dirty = true
 	s.resendTicks = 0
 }
@@ -515,25 +545,6 @@ func (s *StateUpdateData) GetSeqNum() uint16 {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.messageCounter
-}
-
-// IncrementSeqNum increments and returns the message counter.
-func (s *StateUpdateData) IncrementSeqNum() uint16 {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.messageCounter++
-	return s.messageCounter
-}
-
-// GetXORByte returns the XOR reference byte for the current message.
-// This is the offset from the base message counter.
-func (s *StateUpdateData) GetXORByte() byte {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if s.baseMessageCounter == 0 {
-		return 0
-	}
-	return byte(s.messageCounter - s.baseMessageCounter)
 }
 
 // IsDirty returns whether the state needs to be sent.
@@ -655,57 +666,51 @@ func (s *StateUpdateData) GenerateXORDelta() (data []byte, seq uint16, xorByte b
 		}
 	}
 
-	// Generate XOR delta (current data XOR'd with base)
-	// For first message, baseXOR is zeros, so delta = data (raw)
-	delta := make([]byte, len(s.data))
-	for i := 0; i < len(s.data); i++ {
-		if i < len(s.baseXOR) {
-			delta[i] = s.data[i] ^ s.baseXOR[i]
-		} else {
-			delta[i] = s.data[i]
-		}
-	}
-
-	// Store the delta for when client ACKs
+	// A new message: numbered once, its value kept in sent for the ack
 	seq = s.messageCounter
-	s.pendingDeltas[seq] = delta
 	s.messageCounter++
+	s.sent = append(s.sent, sentValue{seq, append([]byte(nil), s.data...)})
 	s.lastSentSeq, s.sentOnce = seq, true
-
-	// Calculate refnum (XOR byte) - difference from base message counter
-	if s.baseMessageCounter == 0 {
-		xorByte = 0
-	} else {
-		xorByte = byte(seq - s.baseMessageCounter)
-	}
-
 	s.dirty = false
 	s.resendTicks = 0
 
-	return delta, seq, xorByte
+	data, xorByte = s.encodeLocked(seq)
+	return data, seq, xorByte
 }
 
 // retransmitLocked repeats the last message sent on this channel under the
-// sequence number it first had, re-encoded against the current base (the
-// newest copy the client acknowledged), as connection_append_state does for a
-// state message already in flight. The client drops it if it already holds
-// that sequence, and re-acknowledges it; the delta is kept so that ack can
-// still move the base. Must be called with s.mu held, after a first send.
+// sequence number it first had, re-encoded against the newest copy the client
+// acknowledged, as connection_append_state does for a state message already
+// in flight. The client drops it if it already holds that sequence, and
+// re-acknowledges it. Must be called with s.mu held, after a first send; data
+// has not changed since (a change dirties the channel: a new message).
 func (s *StateUpdateData) retransmitLocked() (data []byte, seq uint16, xorByte byte) {
 	seq = s.lastSentSeq
-	delta := make([]byte, len(s.data))
-	for i := range s.data {
-		if i < len(s.baseXOR) {
-			delta[i] = s.data[i] ^ s.baseXOR[i]
-		} else {
-			delta[i] = s.data[i]
-		}
+	data, xorByte = s.encodeLocked(seq)
+	return data, seq, xorByte
+}
+
+// encodeLocked is connection_append_state's encoding of message seq (whose
+// value is data): what is more than RefnumOffsetMax behind it leaves sent,
+// and when the head of what is left is the client's newest acknowledged
+// message, the value goes out XORed against it over the shorter of the two
+// (the rest as it is) with the distance back as its refnum; otherwise whole,
+// refnum 0. So the refnum is never above RefnumOffsetMax and always names a
+// message the client holds: it acked it, and connection.cpp's receive keeps
+// every message from a received one's reference on.
+func (s *StateUpdateData) encodeLocked(seq uint16) ([]byte, byte) {
+	for len(s.sent) > 0 && seqBefore(s.sent[0].seq, seq-RefnumOffsetMax) {
+		s.sent = s.sent[1:]
 	}
-	s.pendingDeltas[seq] = delta
-	if s.baseMessageCounter != 0 {
-		xorByte = byte(seq - s.baseMessageCounter)
+	out := append([]byte(nil), s.data...)
+	if !s.acked || len(s.sent) == 0 || s.sent[0].seq != s.ackSeq || s.ackSeq == seq {
+		return out, 0
 	}
-	return delta, seq, xorByte
+	ref := s.sent[0].data
+	for i := 0; i < len(out) && i < len(ref); i++ {
+		out[i] ^= ref[i]
+	}
+	return out, byte(seq - s.ackSeq)
 }
 
 // GenerateUpdate generates an update message if dirty (legacy method).
@@ -729,24 +734,41 @@ func (s *StateUpdateData) MarkDirty() {
 	s.dirty = true
 }
 
-// AddBase stores a decoded state message as a base for future XOR delta reconstruction.
+// AddBase stores a decoded state message as a base for future XOR delta
+// reconstruction, and drops those more than RefnumOffsetMax behind it, which
+// the client can no longer name. Behind by the sequence numbers' signed
+// difference: the old "numerically smallest" eviction, once the client's
+// numbers passed 65535, dropped the new small ones and kept the stale large
+// ones, so no position update decoded again.
 func (c *ClientStateData) AddBase(seq uint16, data []byte) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	base := make([]byte, len(data))
 	copy(base, data)
 	c.bases[seq] = base
-	// Limit stored bases to 32 (matching C#)
-	if len(c.bases) > 32 {
-		// Remove oldest entries
-		var oldest uint16
-		for k := range c.bases {
-			if oldest == 0 || k < oldest {
-				oldest = k
-			}
+	for k := range c.bases {
+		if seqBefore(k, seq-RefnumOffsetMax) {
+			delete(c.bases, k)
 		}
-		delete(c.bases, oldest)
 	}
+}
+
+// Newer reports whether message seq is newer than the last one taken (any
+// is, before the first): connection.cpp drops a state message at or below the
+// channel's rx as a duplicate and acknowledges rx again.
+func (c *ClientStateData) Newer(seq uint16) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return !c.took || seqBefore(c.SeqNum, seq)
+}
+
+// Took records message seq as taken: the one acknowledged from now on. Only
+// a message that decoded is taken, so the client, which XORs its next message
+// against the one acknowledged, never names a base this side lacks.
+func (c *ClientStateData) Took(seq uint16) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.SeqNum, c.took = seq, true
 }
 
 // GetBase retrieves a stored base message by sequence number.

@@ -264,14 +264,19 @@ func (l *Listener) handlePacket(data []byte, addr *net.UDPAddr) {
 			}
 
 			// Handle state channel messages directly (position updates, etc.)
+			// Only a message that decodes is taken and acknowledged, and an old
+			// one is a duplicate, acknowledged again but not applied (a late
+			// position put the player back), as connection.cpp's receive does.
+			// Acknowledging one whose base was missing made the client XOR its
+			// next against a message never stored here.
 			if msg.Type.IsStateChannel() {
 				clientState := conn.GetClientState()
-				clientState.SeqNum = msg.Sequence
 				sess.Queue().SetBodyFlags(protocol.BodyFlagClientUpdateAck)
 
 				// Process channel 0x40 (ClientUpdate) - contains position data
-				if msg.Type == protocol.MessageTypeClientUpdate && len(msg.Data()) > 0 {
-					l.processClientUpdate(sess, msg)
+				if msg.Type == protocol.MessageTypeClientUpdate && len(msg.Data()) > 0 &&
+					clientState.Newer(msg.Sequence) && l.processClientUpdate(sess, msg) {
+					clientState.Took(msg.Sequence)
 				}
 				continue
 			}
@@ -549,7 +554,8 @@ func (l *Listener) savePlayerPosition(sess *session.Session) {
 
 // processClientUpdate handles an incoming state channel 0x40 message.
 // Reconstructs the full state via XOR delta, extracts position, and queues an ECS command.
-func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Message) {
+// It reports whether the message decoded: false when its base is not held.
+func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Message) bool {
 	clientState := sess.Connection().GetClientState()
 	decoded := msg.Data()
 
@@ -577,7 +583,7 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 			decoded = reconstructed
 		} else {
 			log.Printf("processClientUpdate: missing XOR base for seq %d (baseSeq=%d), skipping", msg.Sequence, baseSeq)
-			return
+			return false
 		}
 	}
 
@@ -591,7 +597,7 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 	// Bytes 7-9: Z (uint24 BE) → 36000 * val / 0xFFFFFF - 4000
 	// Byte 22: Facing → float32(byte) / 256.0 * 2 * PI
 	if len(decoded) < 23 {
-		return
+		return true
 	}
 
 	rawX := uint32(decoded[1])<<16 | uint32(decoded[2])<<8 | uint32(decoded[3])
@@ -667,6 +673,7 @@ func (l *Listener) processClientUpdate(sess *session.Session, msg *protocol.Mess
 			l.gameWorld.ApplyClientUpdate(player.ServerID, u)
 		}
 	}
+	return true
 }
 
 // reportWorldMismatch logs when the client says it is in a different world than

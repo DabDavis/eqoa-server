@@ -173,7 +173,7 @@ func (h *ChatHandler) pickNPCName(sess *session.Session, q string) (string, bool
 
 // gotoCommand is #goto, also #teleport: x y z [world], or a place by name: a
 // #tele shortcut or a travel NPC (ResolveTeleDest), a town a coachman or a
-// harbormaster serves ("Freeport", "Neriak", "Highpass"), the NPCs a word of
+// harbormaster serves ("Freeport", "Neriak", "Highpass Hold"), the NPCs a word of
 // whose names it is when they stand together ("guk": NamesakePlace), or any
 // NPC. Only of the worlds the GM's game can load.
 func (h *ChatHandler) gotoCommand(sess *session.Session, player *entity.Player, cmd string, args []string) {

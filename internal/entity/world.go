@@ -960,18 +960,6 @@ func coherentWorldOnLoad(name string, world uint8, x, z float32) uint8 {
 	return fixed
 }
 
-// coachLocationNames maps coachman NPC names to friendly area labels.
-var coachLocationNames = map[string]string{
-	"Coachman Quicksteed": "Highpass",
-	"Coachman Ronks":      "Freeport",
-	"Coachman D'Larik":    "Fort Seriak",
-	"Coachman Doba":       "Moradhim",
-	"Coachman Farn":       "Muniels Tea Garden",
-	"Coachman Huff":       "Rivervale",
-	"Coachman Lothi":      "Neriak",
-	"Coachwoman Darva":    "Darvor Manor",
-}
-
 // sortDests puts a destination list in a STABLE order.
 //
 // Both destination lists are built by ranging over w.NPCs, and Go RANDOMISES
@@ -1100,10 +1088,7 @@ func (w *World) GetCoachDestinations(excludeName string, inWorld uint8) []CoachD
 		if npc.Name == excludeName || npc.World != inWorld {
 			continue
 		}
-		label := npc.Name
-		if friendly, ok := coachLocationNames[npc.Name]; ok {
-			label = friendly
-		}
+		label, _ := coachLabel(npc)
 		dests = append(dests, CoachDest{
 			Name:   label,
 			X:      npc.SpawnX,

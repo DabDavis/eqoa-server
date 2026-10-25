@@ -172,6 +172,9 @@ func (w *World) factionKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	if p == nil || npc == nil {
 		return
 	}
+	// every kill a player is credited with passes here (melee, a spell, a
+	// pet, a GM's #kill): the quests hear it (questhooks.go)
+	w.creditKillLocked(sess, p, npc)
 	w.factions.ensure()
 	hits := w.factions.hits[npc.Name]
 	if len(hits) == 0 {

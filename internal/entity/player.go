@@ -131,6 +131,9 @@ type Player struct {
 	// a spiritmaster it bound to, kept in charbind; unset, the login spawn.
 	Bind Bind
 
+	// PendingSpar is a sparring dummy's open menu (sparring.go in handlers).
+	PendingSpar SparPick
+
 	// Animation (from client position update byte 35)
 	Animation byte
 
@@ -238,6 +241,15 @@ type CoachDest struct {
 	Fee      int
 	MinLevel int
 	Via      string
+}
+
+// SparPick is a sparring dummy's menu as far as the player has gone: the
+// dummy, the question open (1 its level, 2 its element; 0 none) and the
+// level picked (an index of SparLevels).
+type SparPick struct {
+	NPC   EntityID
+	Asked int
+	Level int
 }
 
 // Bind is a player's bind point: where a spiritmaster bound it (Set).

@@ -559,7 +559,8 @@ func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *
 	// NPCType == 0: defaults to FactionNeutral (town guards, named NPCs)
 
 	primaryType, secondaryType := npcHandTypes(rec.NPCName, uint32(rec.PrimaryWeapon), uint32(rec.SecondaryWeapon), ranged)
-	return &NPC{
+	dummy := DummyKindOf(rec.NPCName)
+	n := &NPC{
 		ServerID:        EntityID(rec.ID),
 		Name:            rec.NPCName,
 		X:               posX,
@@ -607,9 +608,14 @@ func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *
 		DefMod:       NPCDefMod(rec.NPCLevel),
 		WeaponDamage: NPCWeaponDamage(rec.NPCLevel),
 
-		Dummy: DummyKindOf(rec.NPCName),
+		Dummy: dummy,
 		Class: class,
 	}
+	if dummy == SparringDummy {
+		// it quads at any level (sparring.go)
+		n.SwingFixed, n.SwingKind = true, sparSwing
+	}
+	return n
 }
 
 // FindEntityByObjectID resolves a runtime objectID to an Entity.

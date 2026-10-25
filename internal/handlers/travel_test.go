@@ -207,3 +207,34 @@ func TestANewBoxReplacesTheOld(t *testing.T) {
 		t.Error("the coach's pick bound the player")
 	}
 }
+
+// A sparring dummy asks its level, then its element, and is set to them
+// (F3 20261025-174503). The control: a Training Dummy says nothing.
+func TestASparringDummyAsksLevelAndElement(t *testing.T) {
+	tw := newTalkWorld(t, 25362, 15716)
+	spar := &entity.NPC{ServerID: 7001, Name: "Sparring Dummy", Level: 10, SpawnX: 25362, SpawnY: 54.1, SpawnZ: 15719,
+		Dummy: entity.SparringDummy}
+	id := tw.add(1, spar)
+	tw.talk(id)
+	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Level 10", "Level 20", "Level 30", "Level 40", "Level 50", "Level 60"}) {
+		t.Fatalf("its first question offered %q", got)
+	}
+	tw.pick(id, 3)
+	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Fire", "Cold", "Lightning", "Arcane", "Poison", "Disease"}) {
+		t.Fatalf("its second question offered %q", got)
+	}
+	tw.pick(id, 1)
+	if spar.Level != 40 || spar.SparElement != 1 {
+		t.Errorf("set to level %d, element %d; want 40 and cold (1)", spar.Level, spar.SparElement)
+	}
+	if got := said(tw); !slices.Contains(got, "Sparring Dummy: Level 40, cold. Strike me when you are ready.") {
+		t.Errorf("it said %q", got)
+	}
+	tw.s.Queue().GetPending()
+	td := tw.add(2, &entity.NPC{ServerID: 7002, Name: "Training Dummy Lv50", Level: 50, SpawnX: 25365.9, SpawnY: 54.1, SpawnZ: 15716.5,
+		Dummy: entity.TrainingDummy})
+	tw.talk(td)
+	if got := opcodes(tw.s); len(got) != 0 {
+		t.Errorf("the control: a Training Dummy answered %v", got)
+	}
+}

@@ -51,6 +51,11 @@ func (h *ChatHandler) SetStores(p progressStore, t purseStore) {
 	h.progress, h.purse = p, t
 }
 
+// SetTemplate gives #template its work (CharacterHandler.ApplyTemplate).
+func (h *ChatHandler) SetTemplate(fn func(*session.Session) ([]string, error)) {
+	h.template = fn
+}
+
 // isGM is whether sess's account has acctlevel 1 or more.
 func (h *ChatHandler) isGM(sess *session.Session) bool {
 	if h.access == nil || sess == nil || sess.AccountID() == 0 {
@@ -66,7 +71,7 @@ var gmCommands = map[string]bool{
 	"#summon": true, "#spawn": true, "#despawn": true, "#monstersearch": true,
 	"#nearby": true, "#world": true, "#speed": true, "#setlevel": true,
 	"#hp": true, "#tunar": true, "#kill": true, "#pos": true, "#who": true,
-	"#guildhall": true, "#effect": true, "#help": true,
+	"#guildhall": true, "#effect": true, "#template": true, "#help": true,
 }
 
 // slashGM is the # spelling of a /command line that names a GM command
@@ -440,4 +445,21 @@ func (h *ChatHandler) setTunar(sess *session.Session, player *entity.Player, amo
 		}
 	}
 	h.gmReply(sess, fmt.Sprintf("Tunar set to %d", amount))
+}
+
+// templateCommand is #template (template.go): the GM's own character at 60,
+// its class's spells, 1,000,000 tunar and the best gear it may wear.
+func (h *ChatHandler) templateCommand(sess *session.Session) {
+	if h.template == nil {
+		h.gmReply(sess, "Template: this server keeps no characters")
+		return
+	}
+	lines, err := h.template(sess)
+	if err != nil {
+		h.gmReply(sess, "Template: "+err.Error())
+		return
+	}
+	for _, l := range lines {
+		h.gmReply(sess, l)
+	}
 }

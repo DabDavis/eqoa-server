@@ -51,9 +51,10 @@ type ChatHandler struct {
 
 	access accessLevels // the accounts' acctlevel: who is a GM (devcmds.go)
 
-	// where a GM's level and purse are kept (devcmds.go)
+	// where a GM's level and purse are kept, and #template (devcmds.go)
 	progress progressStore
 	purse    purseStore
+	template func(*session.Session) ([]string, error)
 }
 
 // NewChatHandler creates a new chat handler.
@@ -787,6 +788,11 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #effect [<icon> [name] | clear]
 		h.effectCommand(sess, parts[1:])
 
+	case "#template":
+		// level 60, every class spell, 1,000,000 tunar, the best gear worn
+		// (template.go)
+		h.templateCommand(sess)
+
 	case "#help":
 		h.gmReply(sess, "GM Commands (each also as /name):")
 		h.gmReply(sess, "  #goto <x> <y> <z> [world] | <town or NPC> - teleport (#teleport too)")
@@ -803,6 +809,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #setlevel <lvl> - set level")
 		h.gmReply(sess, "  #hp <cur> [max] - set HP")
 		h.gmReply(sess, "  #tunar <amt> - set gold")
+		h.gmReply(sess, "  #template - level 60, every spell of your class, 1,000,000 tunar, the best gear you may wear")
 		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear active effects")
 		h.gmReply(sess, "  #kill - kill target")
 		h.gmReply(sess, "  #pos - show position")

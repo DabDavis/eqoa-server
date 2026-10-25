@@ -73,6 +73,7 @@ var gmCommands = map[string]bool{
 	"#hp": true, "#tunar": true, "#kill": true, "#pos": true, "#who": true,
 	"#guildhall": true, "#effect": true, "#faction": true, "#template": true, "#help": true,
 	"#grantcm": true, "#npcinfo": true,
+	"#aggro": true,
 }
 
 // slashGM is the # spelling of a /command line that names a GM command

@@ -31,6 +31,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveCharacter(a, action, before, after)
 	case "factions", "factionhits":
 		return s.liveFactions(t.Name)
+	case "npcaggro":
+		return s.liveAggro()
 	case "charfactions":
 		return s.liveCharFaction(before, after)
 	case "charinventory", "spells", "hotkeys", "charbuffs", "weaponhotbar", "quickslots", "gearsets":
@@ -62,6 +64,18 @@ func (s *Server) liveFactions(table string) string {
 		return "at once: every faction window and the next kill read it"
 	}
 	return "at once: the next kill of that NPC uses it"
+}
+
+// liveAggro reads the creatures' aggro rules again (entity/aggro.go; the
+// change is committed: the database is free).
+func (s *Server) liveAggro() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	if _, err := s.d.World.LoadAggroRules(s.d.DB); err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return "at once: the next look round (half a second) and the next target box use it"
 }
 
 // liveCharFaction applies a charfactions edit where the character stands, so

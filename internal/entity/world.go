@@ -79,9 +79,6 @@ type World struct {
 
 	// The factions' starting standings and what a kill does (faction.go)
 	factions factionTable
-
-	// How much experience makes a mastery point (mastery.go)
-	cmXPPerPoint int
 }
 
 // NewWorld creates and initializes a new game world.
@@ -779,7 +776,7 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 // that changes the stat cap tells it (0x001C).
 func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 	levelXP, cmXP := splitXP(player.Mastery, xp)
-	made := gainMastery(&player.Mastery, cmXP, w.cmXPPerPointLocked())
+	made := gainMastery(&player.Mastery, cmXP)
 	statCap := StatCapBase(player.Level)
 	player.TotalXP += levelXP
 	player.XPInLevel += levelXP

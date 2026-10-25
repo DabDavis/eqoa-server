@@ -2,6 +2,7 @@ package entity
 
 import (
 	"encoding/binary"
+	"math"
 	"net"
 	"testing"
 
@@ -95,10 +96,35 @@ func TestStatsPastTheCapCountForNothing(t *testing.T) {
 	}
 }
 
+// A point costs what the live game's table says (eqoa.fandom.com's "CM
+// Point XP Required"), the nth of the character's points: sixteen of its 151
+// listed values, all of which round(125000 * 1.0061^(n-1)) gives. The
+// control: a curve a hair flatter misses the table.
+func TestAMasteryPointCostsTheLiveTables(t *testing.T) {
+	table := map[int]int{
+		1: 125000, 10: 132032, 100: 228236, 200: 419275, 300: 770218, 400: 1414909,
+		500: 2599222, 600: 4774834, 700: 8771486, 770: 13426215, 800: 16113432,
+		900: 29600767, 1000: 54377328, 1200: 183504899, 1400: 619266325, 1500: 1137607284,
+	}
+	missed := 0
+	for n, want := range table {
+		if got := CMPointXP(n); got != want {
+			t.Errorf("point %d: %d, want the table's %d", n, got, want)
+		}
+		if int(math.Round(125000*math.Pow(1.006, float64(n-1)))) != want {
+			missed++
+		}
+	}
+	if missed < len(table)-1 {
+		t.Fatalf("the control: 1.006 matched %d of the table's points", len(table)-missed)
+	}
+}
+
 // The share divides each award (0-100 by one, the mastery points window's
-// step), a point for every CMXPPerPoint of the masteries' part; 1500 points
-// held, spent and unspent, all of it goes to the level. The controls: 0%
-// gives the masteries nothing, and a point is not made early.
+// step), each point made when the masteries' part reaches its cost
+// (CMPointXP of the point it would be); 1500 points held, spent and unspent,
+// all of it goes to the level. The controls: 0% gives the masteries
+// nothing, and a point is not made early.
 func TestTheShareDividesExperience(t *testing.T) {
 	for _, c := range []struct {
 		m              Mastery
@@ -108,17 +134,20 @@ func TestTheShareDividesExperience(t *testing.T) {
 		{Mastery{Percent: 0}, 6000, 6000, 0, 0},
 		{Mastery{Percent: 25}, 1000, 750, 250, 0},
 		{Mastery{Percent: 33}, 1000, 670, 330, 0},
-		{Mastery{Percent: 100, XP: 9000}, 1200, 0, 1200, 1},
-		{Mastery{Percent: 100, XP: 0}, 25000, 0, 25000, 2},
+		{Mastery{Percent: 100, XP: CMPointXP(1) - 1000}, 1200, 0, 1200, 1},
+		{Mastery{Percent: 100, XP: CMPointXP(1) - 1}, CMPointXP(2) + 1, 0, CMPointXP(2) + 1, 2},
+		{Mastery{Percent: 100, XP: CMPointXP(1) - 1}, CMPointXP(2), 0, CMPointXP(2), 1},
+		{Mastery{Percent: 100, XP: 0}, CMPointXP(1) - 1, 0, CMPointXP(1) - 1, 0},
+		{Mastery{Percent: 100, Points: 700, Spent: 69, XP: CMPointXP(770) - 5}, 10, 0, 10, 1},
 		{Mastery{Percent: 100, Points: 1000, Spent: 500}, 6000, 6000, 0, 0},
-		{Mastery{Percent: 100, Points: 1499}, 30000, 0, 30000, 1},
+		{Mastery{Percent: 100, Points: 1499, XP: CMPointXP(1500) - 100}, 30000, 0, 30000, 1},
 	} {
 		lvl, cm := splitXP(c.m, c.xp)
 		if lvl != c.lvl || cm != c.cm {
 			t.Errorf("%+v of %d: level %d, masteries %d; want %d, %d", c.m, c.xp, lvl, cm, c.lvl, c.cm)
 		}
 		m := c.m
-		if n := gainMastery(&m, cm, DefaultCMXPPerPoint); n != c.n {
+		if n := gainMastery(&m, cm); n != c.n {
 			t.Errorf("%+v of %d: %d points made, want %d", c.m, c.xp, n, c.n)
 		}
 		if m.Points+m.Spent > MasteryCap {
@@ -167,7 +196,7 @@ func TestAKillMakesMasteryPointsAndTellsTheCap(t *testing.T) {
 	s.SetECSEntity(p)
 	s.SetCharacterInWorld(true)
 
-	p.Mastery = Mastery{Percent: 50, XP: DefaultCMXPPerPoint - 1000}
+	p.Mastery = Mastery{Percent: 50, XP: CMPointXP(1) - 1000}
 	w.awardXP(s, p, 4000)
 	if p.Mastery.Points != 1 || p.Mastery.XP != 1000 {
 		t.Fatalf("mastery %+v, want a point and 1000 toward the next", p.Mastery)

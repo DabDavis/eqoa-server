@@ -64,10 +64,6 @@ func main() {
 	// A creature's corpse, its return and its wander (entity/corpse.go,
 	// entity/roam.go), set before the NPCs are loaded so each takes them.
 	gameWorld.SetCorpseTimes(cfg.World.CorpseDecay, cfg.World.RespawnAfter)
-	if cfg.World.CMXPPerPoint > 0 {
-		gameWorld.SetCMXPPerPoint(cfg.World.CMXPPerPoint)
-	}
-	log.Printf("Class mastery: a point every %d experience given to masteries", gameWorld.CMXPPerPoint())
 	if cfg.World.RoamRadius != 0 {
 		gameWorld.SetRoamRadius(cfg.World.RoamRadius)
 	}

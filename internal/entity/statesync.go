@@ -493,6 +493,13 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	npcType := uint16(n.NPCType)
 	binary.LittleEndian.PutUint16(buf[145:147], npcType<<8|npcType>>8)
 
+	// Offset 147: CLIENT's npc flags are bytes 146-147 (VICreatureEntity's
+	// ReadState after race 144 and class 145), so this is their high byte,
+	// which only a large creature's reach sets: 0x04 (0x400) or 0x08
+	// (0x800) for TargetInRange's +3 or +5 (reach.go). Zero on every NPC
+	// in every capture.
+	buf[147] = byte(n.reachFlag() >> 8)
+
 	// Offset 148-151: Pattern (0xFFFFFFFF) — eqoa.live constant
 	buf[148] = 0xFF
 	buf[149] = 0xFF

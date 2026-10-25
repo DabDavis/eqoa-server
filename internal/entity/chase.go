@@ -1,6 +1,9 @@
 package entity
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 // A creature that fights runs at its enemy (F3 20261025-165533: "Mobs
 // currently do not chase you when they agro. They also do not attack
@@ -156,6 +159,7 @@ func (w *World) chaseLocked(npc *NPC, x, z, vx, vz float32, now time.Time) (inRe
 		// standing, turned to its enemy
 		if npc.moving() {
 			npc.stopMoving()
+			log.Printf("Chase: %s stands %.2f off its enemy (reach %.2f)", npc.Name, d, reach)
 		}
 		return d <= reach, false
 	}

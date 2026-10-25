@@ -155,23 +155,25 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 	posY := float32(54.12)
 	posZ := float32(15720.0)
 	posFacing := float32(3.15526)
+	storedY := posY // where it stood when saved, before any lift
 	if record.X != 0 || record.Z != 0 {
 		posX = record.X
 		posY = record.Y
 		posZ = record.Z
 		posFacing = record.Facing
+		storedY = posY
 
-		// Spawn a little ABOVE the stored height rather than exactly on it, and
-		// let the client's floor snap settle the last few units. A stored
-		// height that is even slightly low puts the camera under the terrain
-		// and the player falls; arriving high costs an invisible drop. See
-		// SpawnLift.
+		// In a world that is not on every disc, spawn a little ABOVE the
+		// stored height rather than exactly on it, and let the client's floor
+		// snap settle the last few units: there a stored height was measured
+		// low. In the disc's own worlds the stored height is where the client
+		// stood, and is where it lands (SpawnLift, SpawnLifted).
 		//
 		// A character already at the world floor is not lifted: they are not
 		// a rounding error away from the ground, they are in the void, and
 		// three units does not reach it. Their row needs fixing, and pretending
 		// otherwise would just hide it.
-		if posY > WorldFloorY {
+		if posY > WorldFloorY && SpawnLifted(record.World) {
 			posY += SpawnLift
 		}
 	}
@@ -222,6 +224,10 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 	// the maxima and the combat modifiers from the stats; the worn items
 	// come with SetGear
 	p.RecalcStats(true)
+	// where it was saved standing is where it stands until a report says
+	// otherwise: a lift's height is a fall, not a place (SpawnLift)
+	p.noteStood()
+	p.StoodY = storedY
 
 	w.rejoinGuildLocked(p)
 	w.Players[id] = p
@@ -360,6 +366,7 @@ func (w *World) UpdatePosition(id EntityID, x, y, z, facing float32) {
 		if facing != 0 {
 			p.Facing = facing
 		}
+		p.noteStood()
 		w.SpatialIndex.Update(id, oldX, oldZ, x, z)
 		return
 	}

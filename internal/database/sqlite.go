@@ -560,6 +560,20 @@ func (db *SQLiteDB) initSchema() error {
 		spiritmaster TEXT NOT NULL DEFAULT ''
 	);
 
+	-- npcpaths: a path a GM gave an NPC (npcpath.go, entity/path.go, the GM
+	-- panel's map): npcid is its npcs row (so the path outlives its deaths and
+	-- a restart), points a JSON list of {x, y, z[, pause]} in its world, mode
+	-- loop | pingpong | once, pause the seconds it stands at each point (a
+	-- point's own pause first), speed walk | run
+	CREATE TABLE IF NOT EXISTS npcpaths (
+		npcid  INTEGER PRIMARY KEY,
+		world  INTEGER NOT NULL DEFAULT 0,
+		mode   TEXT NOT NULL DEFAULT 'loop',
+		pause  REAL NOT NULL DEFAULT 0,
+		speed  TEXT NOT NULL DEFAULT 'walk',
+		points TEXT NOT NULL DEFAULT '[]'
+	);
+
 	-- Create indexes
 	CREATE INDEX IF NOT EXISTS idx_characters_account ON characters(accountid);
 	CREATE INDEX IF NOT EXISTS idx_characters_name ON characters(charName);

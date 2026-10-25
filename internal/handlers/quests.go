@@ -120,7 +120,7 @@ type questChar struct {
 	// 0x007C and 0x007D since (redrawLocked)
 	shown []string
 	// name is its player's, for %p in what is said (Sandstorm's Nothard puts
-	// it in an answer: "My name is Halvardin.")
+	// it in an answer: "My name is <the player's name>.")
 	name string
 }
 

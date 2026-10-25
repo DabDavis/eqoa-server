@@ -50,6 +50,11 @@ type ChatHandler struct {
 	modes map[entity.EntityID]byte // each player's last 0x000E
 
 	access accessLevels // the accounts' acctlevel: who is a GM (devcmds.go)
+
+	// where a GM's level and purse are kept, and #template (devcmds.go)
+	progress progressStore
+	purse    purseStore
+	template func(*session.Session) ([]string, error)
 }
 
 // NewChatHandler creates a new chat handler.
@@ -693,15 +698,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			return
 		}
 		level, _ := strconv.Atoi(parts[1])
-		if level < 1 {
-			level = 1
-		}
-		if level > 60 {
-			level = 60
-		}
-		player.Level = level
-		player.RecalcStats(false)
-		h.gmReply(sess, fmt.Sprintf("Level set to %d", level))
+		h.setLevel(sess, player, level)
 
 	case "#hp":
 		// #hp <current> [max]
@@ -727,9 +724,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			return
 		}
 		amount, _ := strconv.Atoi(parts[1])
-		player.Tunar = amount
-		SendPlayerTunar(sess, int64(amount))
-		h.gmReply(sess, fmt.Sprintf("Tunar set to %d", amount))
+		h.setTunar(sess, player, amount)
 
 	case "#spawn":
 		// #spawn <name>: a copy of that NPC beside you; alone, the NPCs near
@@ -796,6 +791,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#faction":
 		// #faction <faction> [standing]: your standing, or set it
 		h.factionCommand(sess, parts[1:])
+	case "#template":
+		// level 60, every class spell, 1,000,000 tunar, the best gear worn
+		// (template.go)
+		h.templateCommand(sess)
 
 	case "#help":
 		h.gmReply(sess, "GM Commands (each also as /name):")
@@ -813,6 +812,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #setlevel <lvl> - set level")
 		h.gmReply(sess, "  #hp <cur> [max] - set HP")
 		h.gmReply(sess, "  #tunar <amt> - set gold")
+		h.gmReply(sess, "  #template - level 60, every spell of your class, 1,000,000 tunar, the best gear you may wear")
 		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear active effects")
 		h.gmReply(sess, "  #faction <faction> [standing] - your standing with a faction, or set it")
 		h.gmReply(sess, "  #kill - kill target")

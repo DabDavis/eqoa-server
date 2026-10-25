@@ -13,3 +13,31 @@ var CharXPDict = map[int]int{
 	51: 204303424, 52: 220486837, 53: 237613176, 54: 255718375, 55: 274839040, 56: 295012449, 57: 316276552,
 	58: 338669971, 59: 362232000,
 }
+
+// XPBase is the experience a character has at the start of level: every
+// level below it whole (CharXPDict holds what each level takes to pass).
+func XPBase(level int) int {
+	total := 0
+	for l := 1; l < level && l < 60; l++ {
+		total += CharXPDict[l]
+	}
+	return total
+}
+
+// TotalXP is the experience the characters table keeps (totalXP): the
+// levels below and what is into this one.
+func TotalXP(level, xpInLevel int) int {
+	return XPBase(level) + max(0, xpInLevel)
+}
+
+// XPInLevel is how far into its level a kept total puts a character. The
+// level column decides the level, so a total that does not reach it (a row
+// from before experience was kept, a level a GM set) is no way into it, and
+// one past it (a level a GM lowered) is short of the next: what a level holds
+// is never more than it takes, nor anything at 60.
+func XPInLevel(level, totalXP int) int {
+	if level >= 60 {
+		return 0
+	}
+	return min(max(0, totalXP-XPBase(level)), max(0, CharXPDict[level]-1))
+}

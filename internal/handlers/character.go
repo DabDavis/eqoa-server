@@ -617,6 +617,12 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 		} else {
 			h.gameWorld.RestoreMastery(sess, PlayerMastery(m))
 		}
+		// and where a spiritmaster bound it (spiritmaster.go)
+		if b, ok, err := h.store.LoadBind(record.ServerID); err != nil {
+			log.Printf("SelectedChar: '%s' bind point: %v", record.CharName, err)
+		} else if ok {
+			h.gameWorld.SetBind(player.ServerID, bindOfRow(b))
+		}
 	}
 
 	// Load equipped items from DB and apply visual equipment to player

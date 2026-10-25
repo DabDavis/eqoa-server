@@ -259,6 +259,11 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	}
 	npcWindowHandler.RegisterHandlers(r)
 	interactHandler.corpse = npcWindowHandler.OpenCorpse
+	// a waysender's fee, and the bind points spiritmasters give
+	interactHandler.spend = npcWindowHandler.spendTunar
+	if charStore != nil {
+		interactHandler.binds = charStore
+	}
 
 	// Trading between players (trade.go): 0x0057 and 0x0056.
 	tradeHandler := NewTradeHandler(sessionMgr, npcWindowHandler)

@@ -439,6 +439,18 @@ func (h *NPCWindowHandler) takeItem(player *entity.Player, l *invList, i int, re
 }
 
 // saveTunar stores the purse and the bank's tunar.
+// spendTunar takes amount tunar from the player, kept and shown, when it has
+// that much (a waysender's fee: interact.go's travel).
+func (h *NPCWindowHandler) spendTunar(sess *session.Session, player *entity.Player, amount int) bool {
+	if amount > player.Tunar {
+		return false
+	}
+	player.Tunar -= amount
+	h.saveTunar(player)
+	queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(player.Tunar))
+	return true
+}
+
 func (h *NPCWindowHandler) saveTunar(player *entity.Player) {
 	if h.inv == nil {
 		return

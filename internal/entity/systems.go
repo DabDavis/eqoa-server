@@ -334,7 +334,7 @@ func (w *World) entityChannelSyncSystem() {
 			}
 			objectID := vis.ChannelObjectID[i]
 
-			stateData := w.serializeEntityForChannel(id, objectID)
+			stateData := w.serializeEntityForChannel(sess, id, objectID)
 			if stateData != nil {
 				if state := conn.GetServerObject(i + 1); state != nil {
 					state.SetData(stateData)

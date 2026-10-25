@@ -40,6 +40,9 @@ with the row before and after, and `revert_change` undoes a row change.
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
 | `classspells` | which spells each class has | `class`+`spellid` |
 | `defaultcharacter` | starting template per race, home city and class | `defaultCharacterID` |
+| `quests` | a quest: its giver (an NPC's name), levels, classes, races, quests first, what the giver says (`offer`, `accept`, `started`); `enabled` 0 is a draft | `questid` |
+| `queststeps` | a quest's steps in order: `kind` talk / show / give / kill / reach, `target` (an NPC's or creature's name), `items` (`patternid*count, ...`), the `journal` line, the NPC's words, the rewards | `questid`+`step` |
+| `charquests` | how far a character has come in a quest: `step` (0 finished), `count` (kills so far), `done` (times finished) | `serverid`+`questid` |
 
 ## Conventions
 
@@ -75,6 +78,8 @@ with the row before and after, and `revert_change` undoes a row change.
 - **An offline character**: everything at its next login.
 - **Items and spells' own rows**: merchants show them at once; players' own copies at their next login.
 - **Accounts**: a ban ejects the account's sessions and refuses its logins at once.
+- **Quests: at once.** A quest or step saved is used by the next talk, kill or step; a character's quest set
+  with `character_quest_set` (or its `charquests` row edited) redraws the journal of a character in the world.
 
 ## Recipes
 
@@ -93,6 +98,25 @@ with the row before and after, and `revert_change` undoes a row change.
   `Invis`, `Return to bind point` (a gate), `+100 hate`; a scale
   `; Increase 15% based on DEX`; a duration `30sec`, `5min`, `2hr`. Example:
   `Target, Decrease Hitpoints by 120 ; Increase 10% based on INT`.
+- **Write a quest**: `quest_save` with the quest and its steps in order (look at one with `quest_get` first;
+  its answer lists the quest's problems: an NPC this server lacks, a merchant, banker or blacksmith, which
+  the game never talks to, a creature that never spawns, words the client cuts). How it plays:
+  the giver, talked to, says `offer` a box a line; each paragraph of it (lines between blank lines) ends in a
+  question the player answers with that line of `accept` (no `accept`: the quest is given at once). Taken, the
+  journal gets the first step's `journal` line, then "You have received a quest!", then `started`. An NPC's
+  lines are shown with its name before them, as Sandstorm's are; a question is not. Steps: `talk` (talk to
+  `target`; with an `answer`, the player picks it first), `show` (talk to it holding `items`, which are kept:
+  the live game's "pick up the bracers from the merchant and come back"), `give` (hand it `items` and `tunar`,
+  which are taken), `kill` (`count` creatures named `target`, shared with the group within 200), `reach`
+  (within `radius` of `x`, `z` in `world`). A step done says its `says`, moves the journal to the next step's
+  line (the last step: "You have finished a quest!") and gives its rewards: `xp`, `rewardtunar`,
+  `rewarditems`, `factions` (`Faction Name:+10`), `spells` (ids). The journal holds eight quests. Keep a quest
+  a draft (`enabled` 0) until it is right; `quest_try` gives it to your own character in the world to play.
+- **A player's quests**: `character_quests`, then `character_quest_set` with `give` (a step, or its first),
+  `step`, `complete` (no reward), `giveup` or `reset` (forgotten: it may be taken again). Logged and revertible.
+- **Drafts from EQOA-Data**: `quest_import_eqoadata` with its guides' JSON (Quests/**/*.json of
+  github.com/Jadiction/EQOA-Data; `dryRun` first) makes off drafts with the giver, level, class, experience
+  and reward items resolved by name and the guide in `notes`; write their steps from the notes.
 - **Give a player something**: `give_item` (an item by name or id), `grant_spell` (one, or "all" of its
   class), `set_character` (level, tunar, heal).
 - **Moderate**: `message_player`, `broadcast`, `kick_player`, `ban_account` (with a reason).

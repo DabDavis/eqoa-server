@@ -670,14 +670,22 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 	}
 }
 
-// petHitLocked is one of the pet's hits on its target, its owner's: the
+// petHitLocked is one of the pet's hits on its target, then its procs
+// (proc.go). It reports a kill.
+func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
+	ps.npc.LastCombatTime = now
+	if w.petDamageLocked(ps, t, petMeleeHit(ps.npc, t, rand.Intn), now) {
+		return true
+	}
+	return w.petProcsLocked(ps, t, now)
+}
+
+// petDamageLocked is n of the pet's damage on its target, its owner's: the
 // figure to the owner as the owner's (0x00DB), the target's hate for the
 // pet, and on a kill the owner's XP and faction hits. It reports a kill.
-func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
+func (w *World) petDamageLocked(ps *petState, t *NPC, n int, now time.Time) bool {
 	owner, pet := ps.owner, ps.npc
 	sess := w.findSessionByEntityIDLocked(owner.ServerID)
-	n := petMeleeHit(pet, t, rand.Intn)
-	pet.LastCombatTime = now
 	tell := func() {
 		if sess == nil {
 			return

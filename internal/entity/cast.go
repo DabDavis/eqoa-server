@@ -162,6 +162,9 @@ type ActiveEffect struct {
 	Snare     bool
 	Speed     bool
 	Invis     bool
+	// Proc is a proc's damage (proc.go): what the bearer's melee hits may do
+	// more, 0 for none; ProcMax the top of its range.
+	Proc, ProcMax int
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -653,6 +656,9 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			ae.Speed = true
 		case EffectInvis:
 			ae.Invis = true
+		case EffectProc:
+			// no mod: the line's damage as it is (jib: "Damage has no mod")
+			ae.Proc, ae.ProcMax = e.Amount, max(e.AmountMax, e.Amount)
 		default:
 			continue
 		}

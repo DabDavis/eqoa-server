@@ -76,7 +76,7 @@ func castSpell(e *database.CharSpellEntry, line string, fx uint32) entity.CastSp
 		Recast:       time.Duration(sp.Recast) * time.Second,
 		PowerCost:    sp.Power,
 		Range:        math.Float32frombits(abilityRangeBits(sp)),
-		Def:          entity.ParseSpellText(line),
+		Def:          entity.ParseSpell(line, sp.SpellDesc),
 		FX:           fx,
 	}
 }

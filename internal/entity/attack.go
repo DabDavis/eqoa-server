@@ -407,6 +407,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		attacker.LastCombatTime = now
 		w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID)
 		w.dummyEngagedLocked(npc, attacker, now)
+		w.playerProcsLocked(sess, attacker, npc, now)
 		return false
 	}
 	npc.HP -= damage
@@ -424,6 +425,8 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		w.killNPC(npc)
 		w.awardXP(sess, attacker, npc.Level*100)
 		w.factionKillLocked(sess, attacker, npc)
+		return true
 	}
-	return killed
+	// a proc's damage after the hit (proc.go)
+	return w.playerProcsLocked(sess, attacker, npc, attacker.LastCombatTime)
 }

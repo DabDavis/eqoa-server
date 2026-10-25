@@ -119,6 +119,27 @@ type questChar struct {
 	// shown is the journal as the client has it: the MemoryDump's lines, each
 	// 0x007C and 0x007D since (redrawLocked)
 	shown []string
+	// name is its player's, for %p in what is said (Sandstorm's Nothard puts
+	// it in an answer: "My name is Halvardin.")
+	name string
+}
+
+// say is a text with %p the player's name (left as it is while the name is
+// not known: CLIENT's own expansion fills a box's).
+func (c *questChar) say(s string) string {
+	if c == nil || c.name == "" {
+		return s
+	}
+	return strings.ReplaceAll(s, "%p", c.name)
+}
+
+// namedLocked is a character's quests, its player's name noted.
+func (q *QuestEngine) namedLocked(serverID uint32, name string) *questChar {
+	c := q.charLocked(serverID)
+	if name != "" {
+		c.name = name
+	}
+	return c
 }
 
 // questBox is the quest dialog a character has open.
@@ -139,6 +160,8 @@ const (
 	choiceAccept = iota + 1
 	choiceDecline
 	choiceStep
+	choiceNotYet  // a show or give step's answer while its items lack: the reminder
+	choiceNothing // a dead end (Sandstorm's "Farewell")
 )
 
 // NewQuestEngine reads the quests out of db. Start sets it running.
@@ -326,7 +349,7 @@ func (q *QuestEngine) linesLocked(c *questChar) []string {
 		if len(lines) == questJournalLines {
 			break
 		}
-		lines = append(lines, q.lineLocked(cq))
+		lines = append(lines, c.say(q.lineLocked(cq)))
 	}
 	return lines
 }
@@ -335,6 +358,9 @@ func (q *QuestEngine) linesLocked(c *questChar) []string {
 // engine running.
 func questJournal(p *entity.Player) (uint32, []string) {
 	if q := Quests(); q != nil && p != nil {
+		q.mu.Lock()
+		q.namedLocked(p.CharServerID, p.Name)
+		q.mu.Unlock()
 		return q.Journal(p.CharServerID)
 	}
 	return 0, nil
@@ -356,6 +382,7 @@ func (q *QuestEngine) dropLineLocked(sess *session.Session, c *questChar, idx in
 
 // addLineLocked adds a line at the journal's end (0x007C).
 func (q *QuestEngine) addLineLocked(sess *session.Session, c *questChar, text string) {
+	text = c.say(text)
 	c.token++
 	if len(c.shown) < questJournalLines {
 		c.shown = append(c.shown, text)
@@ -410,7 +437,7 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	c := q.charLocked(p.CharServerID)
+	c := q.namedLocked(p.CharServerID, p.Name)
 	c.box = nil
 	for _, cq := range c.active() {
 		qu := q.cat.byID[cq.QuestID]
@@ -486,7 +513,7 @@ func containsInt(v []int, n int) bool {
 // once when nothing need be answered (its words said first).
 func (q *QuestEngine) offerLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest) {
 	if len(sayLines(qu.Accept)) == 0 {
-		q.tellLocked(sess, qu.Giver, sayLines(qu.Offer)...)
+		q.tellLocked(c, sess, qu.Giver, sayLines(qu.Offer)...)
 		q.startLocked(sess, p, c, qu, 0, false)
 		return
 	}
@@ -554,7 +581,7 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 	}
 	if len(c.active()) >= questJournalLines {
 		if sess != nil && !gm {
-			q.tellLocked(sess, "", questFull)
+			q.tellLocked(c, sess, "", questFull)
 		}
 		return "the journal is full (eight quests under way)"
 	}
@@ -568,8 +595,8 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 	// Sandstorm's order: the journal's line, "You have received a quest!",
 	// then the giver's words
 	q.addLineLocked(sess, c, q.lineLocked(cq))
-	q.tellLocked(sess, "", questReceived)
-	q.tellLocked(sess, qu.Giver, sayLines(qu.Started)...)
+	q.tellLocked(c, sess, "", questReceived)
+	q.tellLocked(c, sess, qu.Giver, sayLines(qu.Started)...)
 	who := fmt.Sprintf("character %d", c.serverID)
 	if p != nil {
 		who = p.Name
@@ -583,20 +610,37 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, answered bool) {
 	if st.Kind == database.StepGive || st.Kind == database.StepShow {
 		if lack := q.lackingLocked(p, st); lack != "" {
-			q.tellLocked(sess, st.Target, sayLines(orText(st.Waiting, questNotYet))...)
 			log.Printf("Quests: %s at %q step %d still lacks %s", p.Name, qu.Name, st.Step, lack)
+			// Sandstorm's Norgam asks his question with only the not-yet
+			// answer while the belts lack; the completing one comes once
+			// they are held
+			if notyet := sayLines(st.NotYet); len(notyet) > 0 && !answered {
+				var choices []questChoice
+				for _, l := range notyet {
+					choices = append(choices, questChoice{kind: choiceNotYet, quest: qu.ID, step: st.Step, label: l})
+				}
+				q.askLocked(sess, c, st.Target, st.Waiting, questAskStep, choices)
+				return
+			}
+			q.tellLocked(c, sess, st.Target, sayLines(orText(st.Reminder, orText(st.Waiting, questNotYet)))...)
 			return
 		}
 	}
-	if strings.TrimSpace(st.Answer) != "" && !answered {
-		q.askLocked(sess, c, st.Target, st.Waiting, questAskStep, []questChoice{{kind: choiceStep, quest: qu.ID, step: st.Step, label: st.Answer}})
+	// the answer's first line does the step; any more are dead ends
+	// (Sandstorm's Zole: "Commander Nothard sent me", "Farewell")
+	if answers := sayLines(st.Answer); len(answers) > 0 && !answered {
+		choices := []questChoice{{kind: choiceStep, quest: qu.ID, step: st.Step, label: answers[0]}}
+		for _, l := range answers[1:] {
+			choices = append(choices, questChoice{kind: choiceNothing, label: l})
+		}
+		q.askLocked(sess, c, st.Target, st.Waiting, questAskStep, choices)
 		return
 	}
 	var given []string
 	if st.Kind == database.StepGive {
 		var ok bool
 		if given, ok = q.takeLocked(sess, p, st); !ok {
-			q.tellLocked(sess, st.Target, sayLines(orText(st.Waiting, questNotYet))...)
+			q.tellLocked(c, sess, st.Target, sayLines(orText(st.Reminder, questNotYet))...)
 			return
 		}
 	}
@@ -611,7 +655,7 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	c := q.charLocked(p.CharServerID)
+	c := q.namedLocked(p.CharServerID, p.Name)
 	if c.box == nil || c.box.id != box {
 		return true // an old quest box: nothing to do
 	}
@@ -626,6 +670,9 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 		return true
 	}
 	ch := b.choices[option]
+	if ch.kind == choiceNothing {
+		return true // a dead end (Sandstorm's "Farewell"): nothing changes
+	}
 	qu := q.cat.byID[ch.quest]
 	if qu == nil {
 		return true
@@ -642,7 +689,14 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 		}
 		q.startLocked(sess, p, c, qu, 0, false)
 	case choiceDecline:
+		// the giver's reply, said as written (Sandstorm's Norgam's has no
+		// name before it)
+		q.tellLocked(c, sess, "", sayLines(qu.Declined)...)
 		log.Printf("Quests: %s refused %q", p.Name, qu.Name)
+	case choiceNotYet:
+		if st := qu.Step(ch.step); st != nil {
+			q.tellLocked(c, sess, st.Target, sayLines(orText(st.Reminder, questNotYet))...)
+		}
 	case choiceStep:
 		cq := c.quests[qu.ID]
 		st := qu.Step(ch.step)
@@ -671,7 +725,7 @@ func (q *QuestEngine) HandleDrop(sess *session.Session, msg *protocol.Message) e
 	}
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	c := q.charLocked(p.CharServerID)
+	c := q.namedLocked(p.CharServerID, p.Name)
 	act := c.active()
 	if token != c.token {
 		log.Printf("Quests: %s deleted journal line %d under token %d, the journal's is %d: ignored", p.Name, idx, token, c.token)
@@ -708,7 +762,7 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	for _, kp := range k.Players {
-		c := q.charLocked(kp.ServerID)
+		c := q.namedLocked(kp.ServerID, kp.Name)
 		for _, cq := range c.active() {
 			qu := q.cat.byID[cq.QuestID]
 			if qu == nil {
@@ -785,7 +839,7 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 	if database.AtNPC(st.Kind) {
 		speaker = st.Target
 	}
-	q.tellLocked(sess, speaker, sayLines(st.Says)...)
+	q.tellLocked(c, sess, speaker, sayLines(st.Says)...)
 	who := fmt.Sprintf("character %d", c.serverID)
 	if p != nil {
 		who = p.Name
@@ -804,6 +858,9 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 			q.dropLineLocked(sess, c, idx)
 			cq.Slot = c.nextSlot()
 			q.addLineLocked(sess, c, text)
+			// each step is its own journal line, both announced (Sandstorm's
+			// Zole and Ronks, recorded)
+			lines = append(lines, questFinished, questReceived)
 		}
 		log.Printf("Quests: %s did step %d of %q; step %d next", who, st.Step, qu.Name, next.Step)
 	}
@@ -812,7 +869,7 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 		lines = append(lines, "You have given away "+g+".")
 	}
 	lines = append(lines, q.rewardLocked(sess, p, st)...)
-	q.tellLocked(sess, "", lines...)
+	q.tellLocked(c, sess, "", lines...)
 	if st.XP > 0 && sess != nil && p != nil {
 		q.gw.AwardXP(sess, p, st.XP)
 	}
@@ -1013,12 +1070,13 @@ func countOf(n int, name string) string {
 // tellLocked says each line in a box of its own (0x0046), the client showing
 // them one after another; an NPC's (speaker not "") begin with its name, as
 // Sandstorm's do ("Commander Nothard: ..."), unless the line names it already.
-func (q *QuestEngine) tellLocked(sess *session.Session, speaker string, lines ...string) {
+func (q *QuestEngine) tellLocked(c *questChar, sess *session.Session, speaker string, lines ...string) {
 	if sess == nil {
 		return
 	}
 	speaker = strings.TrimSpace(speaker)
 	for _, l := range lines {
+		l = c.say(l)
 		if speaker != "" && !strings.HasPrefix(strings.ToLower(l), strings.ToLower(speaker)+":") {
 			l = speaker + ": " + l
 		}
@@ -1037,12 +1095,13 @@ func (q *QuestEngine) askLocked(sess *session.Session, c *questChar, speaker, wo
 	if n := len(lines); n > 0 && utf8.RuneCountInString(lines[n-1]) <= questAskChars {
 		ask, lines = lines[n-1], lines[:n-1]
 	}
-	q.tellLocked(sess, speaker, lines...)
+	q.tellLocked(c, sess, speaker, lines...)
+	ask = c.say(ask)
 	q.boxSeq++
 	id := uint32(questBoxMark | (q.boxSeq & 0xFFFFFF))
 	labels := make([]string, len(choices))
 	for i, ch := range choices {
-		labels[i] = clipRunes(strings.TrimSpace(ch.label), questAnswerChars)
+		labels[i] = clipRunes(c.say(strings.TrimSpace(ch.label)), questAnswerChars)
 	}
 	c.box = &questBox{id: id, choices: choices}
 	if sess != nil {

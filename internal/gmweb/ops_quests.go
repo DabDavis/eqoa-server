@@ -19,11 +19,11 @@ import (
 
 // questCols are a quest row's columns the editor sends, in the table's order.
 var questCols = []string{"name", "enabled", "giver", "minlevel", "maxlevel", "classes", "races", "requires",
-	"repeatable", "offer", "accept", "decline", "started", "source", "notes"}
+	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes"}
 
 // stepCols are a step row's columns the editor sends.
 var stepCols = []string{"kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
-	"journal", "answer", "says", "waiting", "xp", "rewardtunar", "rewarditems", "factions", "spells"}
+	"journal", "answer", "says", "waiting", "notyet", "reminder", "xp", "rewardtunar", "rewarditems", "factions", "spells"}
 
 func (s *Server) registerQuestOps() {
 	questSchema := obj(map[string]any{
@@ -40,6 +40,7 @@ func (s *Server) registerQuestOps() {
 		"offer":      str("the giver's words offering it: a paragraph (lines between blank lines) a question, a line a box, each paragraph's last line the question"),
 		"accept":     str("the player's answers that take it, a line a question (the last one gives the quest); empty: taken as soon as the giver is talked to"),
 		"decline":    str("the player's answer that refuses it, offered with each answer; empty: none"),
+		"declined":   str("the giver's reply to a refusal, said as written (no name put before it)"),
 		"started":    str("the giver's words once it is taken"),
 		"source":     str("where it came from"),
 		"notes":      str("for GMs"),
@@ -57,7 +58,9 @@ func (s *Server) registerQuestOps() {
 		"z":           number("reach: z"),
 		"radius":      number("reach: within (default 15)"),
 		"journal":     str("the journal's line while this is the step to do (at most 127 characters)"),
-		"answer":      str("talk/give: the player's answer that does it; empty: done on talking"),
+		"answer":      str("talk/show/give: the player's answer that does it (its first line; any further lines are answers that change nothing, as Sandstorm's \"Farewell\"); empty: done on talking"),
+		"notyet":      str("show/give: the player's answer(s) offered while the items are not held (Sandstorm's \"No, I am lost.\"); empty: the reminder at once"),
+		"reminder":    str("show/give: the NPC's words while the items are not held"),
 		"says":        str("the NPC's words when it is done: a line a box"),
 		"waiting":     str("the NPC's words before it can be done; with an answer, the last line asks"),
 		"xp":          integer("reward: experience"),

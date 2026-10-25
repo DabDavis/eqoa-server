@@ -516,3 +516,74 @@ func TestSandstormsFirstQuestsShape(t *testing.T) {
 		t.Errorf("finished: step %d done %d", s, d)
 	}
 }
+
+// Sandstorm's second and third warrior quests in their shape (the test's own
+// words): an answer naming the player (%p); a refusal answered with a line
+// that carries no name; a middle step announced as one quest finished and
+// another received; a dead-end answer that changes nothing; and, while the
+// items lack, only the not-yet answer and then the reminder, the completing
+// answer offered once they are held.
+func TestSandstormsLaterQuestsShape(t *testing.T) {
+	f := newQuestFixture(t)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, offer, accept, decline, declined)
+		VALUES (40, 'Belts', 1, 'Captain Test', 'Your name was?', 'My name is %p.', 'I am not sure.', 'Ha ha. Face them head on.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal, answer, waiting, says)
+		VALUES (40, 1, 'talk', 'Kellina', 'Speak with Kellina.', 'The captain sent me' || char(10) || 'Farewell', 'What do you need?', 'Go back.')`)
+	f.exec(fmt.Sprintf(`INSERT INTO queststeps (questid, step, kind, target, items, journal, answer, notyet, waiting, reminder, says)
+		VALUES (40, 2, 'give', 'Captain Test', '%d*2', 'Bring two belts.', 'Here they are.', 'No, I am lost.',
+			'Have you done it?', 'Hard of hearing?', 'Good.')`, f.pincer))
+	f.qe.Reload()
+	cpt := f.tw.add(3, &entity.NPC{ServerID: 704, Name: "Captain Test", SpawnX: 25403, SpawnY: 54.1, SpawnZ: 15726})
+	kel := f.tw.add(4, &entity.NPC{ServerID: 705, Name: "Kellina", SpawnX: 25404, SpawnY: 54.1, SpawnZ: 15725})
+
+	f.tw.talk(cpt)
+	m := f.msgs()
+	if len(m) != 1 || !strings.HasSuffix(m[0], ":Your name was?|My name is Talker.|I am not sure.") {
+		t.Fatalf("the offer with the player's name: %q", m)
+	}
+	f.tw.pick(boxID(m), 1)
+	if m := f.msgs(); len(m) != 1 || m[0] != "box:Ha ha. Face them head on." {
+		t.Fatalf("refused: %q", m)
+	}
+	f.tw.talk(cpt)
+	f.tw.pick(boxID(f.msgs()), 0)
+	f.want(f.msgs(), "add:Speak with Kellina.", "box:"+questReceived)
+
+	f.tw.talk(kel)
+	m = f.msgs()
+	if len(m) != 1 || !strings.HasSuffix(m[0], ":What do you need?|The captain sent me|Farewell") {
+		t.Fatalf("the step's box: %q", m)
+	}
+	f.tw.pick(boxID(m), 1)
+	if m := f.msgs(); len(m) != 0 {
+		t.Errorf("Farewell changed something: %q", m)
+	}
+	f.tw.talk(kel)
+	f.tw.pick(boxID(f.msgs()), 0)
+	m = f.msgs()
+	order := []string{"box:Kellina: Go back.", "drop:0", "add:Bring two belts.", "box:" + questFinished, "box:" + questReceived}
+	if strings.Join(m, "\n") != strings.Join(order, "\n") {
+		t.Fatalf("a middle step:\n%s\nwant\n%s", strings.Join(m, "\n"), strings.Join(order, "\n"))
+	}
+
+	f.tw.talk(cpt)
+	m = f.msgs()
+	if len(m) != 1 || !strings.HasSuffix(m[0], ":Have you done it?|No, I am lost.") {
+		t.Fatalf("without the belts: %q", m)
+	}
+	f.tw.pick(boxID(m), 0)
+	if m := f.msgs(); len(m) != 1 || m[0] != "box:Captain Test: Hard of hearing?" {
+		t.Fatalf("not yet: %q", m)
+	}
+	f.own(f.pincer, 2)
+	f.tw.talk(cpt)
+	m = f.msgs()
+	if len(m) != 1 || !strings.HasSuffix(m[0], ":Have you done it?|Here they are.") {
+		t.Fatalf("with the belts: %q", m)
+	}
+	f.tw.pick(boxID(m), 0)
+	f.want(f.msgs(), "box:Captain Test: Good.", "drop:0", "box:"+questFinished, "take:0*2")
+	if s, d := f.progress(40); s != 0 || d != 1 {
+		t.Errorf("finished: step %d done %d", s, d)
+	}
+}

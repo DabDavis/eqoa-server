@@ -140,8 +140,9 @@ func TestBrindelSendsTheStrongToLavastorm(t *testing.T) {
 	tw.s.Queue().GetPending()
 	tw.pick(brindel, 0)
 	x, z, world, moved := teleported(tw.s)
-	if !moved || world != 3 || x != 7908 || z != 5925 {
-		t.Errorf("Yes sent the player to (%.0f, %.0f) world %d (%v), want Lavastorm's outpost (7908, 5925) world 3", x, z, world, moved)
+	if d := math.Hypot(float64(x-7908), float64(z-5925)); !moved || world != 3 || math.Abs(d-bindReach) > 0.01 {
+		t.Errorf("Yes sent the player to (%.1f, %.1f) world %d (%v), want Lavastorm's outpost, %.0f from Explorer Springa (7908, 5925) in world 3",
+			x, z, world, moved, bindReach)
 	}
 	if got := said(tw); !slices.Contains(got, "Waysender Brindel: Very well.") {
 		t.Errorf("Brindel said %q", got)
@@ -181,8 +182,8 @@ func TestATripCostsItsFee(t *testing.T) {
 	tw.talk(thox)
 	tw.s.Queue().GetPending()
 	tw.pick(thox, 0)
-	if x, z, _, moved := teleported(tw.s); !moved || x != 25405.4 || z != 15781 {
-		t.Errorf("Freeport: sent to (%.1f, %.1f) (%v), want Abodai's spot", x, z, moved)
+	if x, z, _, moved := teleported(tw.s); !moved || math.Abs(math.Hypot(float64(x-25405.4), float64(z-15781))-bindReach) > 0.01 {
+		t.Errorf("Freeport: sent to (%.1f, %.1f) (%v), want just in front of Abodai", x, z, moved)
 	}
 	if tw.p.Tunar != 400 {
 		t.Errorf("tunar %d after the trip, want 400", tw.p.Tunar)

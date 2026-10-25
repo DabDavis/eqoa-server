@@ -34,21 +34,18 @@ func IsSpiritmaster(name string) bool {
 	return strings.HasPrefix(name, "Spiritmaster ")
 }
 
-// bindSpot is the spot right in front of a spiritmaster: bindReach along its
-// facing (CLIENT's heading: the direction (sin h, cos h)) at its own height,
-// facing it.
+// bindSpot is the spot right in front of a spiritmaster (inFrontOf).
 func bindSpot(npc *entity.NPC) entity.Bind {
-	h := float64(npc.SpawnFacing)
-	face := math.Mod(h+math.Pi, 2*math.Pi)
-	return entity.Bind{
-		Set:    true,
-		World:  npc.World,
-		X:      npc.SpawnX + float32(bindReach*math.Sin(h)),
-		Y:      npc.SpawnY,
-		Z:      npc.SpawnZ + float32(bindReach*math.Cos(h)),
-		Facing: float32(face),
-		By:     npc.Name,
-	}
+	x, z, face := inFrontOf(npc.SpawnX, npc.SpawnZ, npc.SpawnFacing)
+	return entity.Bind{Set: true, World: npc.World, X: x, Y: npc.SpawnY, Z: z, Facing: face, By: npc.Name}
+}
+
+// inFrontOf is the spot bindReach in front of someone standing at (x, z)
+// with heading h (CLIENT's: the direction (sin h, cos h)), and the heading
+// that faces them from it.
+func inFrontOf(x, z, h float32) (fx, fz, face float32) {
+	a := float64(h)
+	return x + float32(bindReach*math.Sin(a)), z + float32(bindReach*math.Cos(a)), float32(math.Mod(a+math.Pi, 2*math.Pi))
 }
 
 // bindOfRow is a kept bind point.

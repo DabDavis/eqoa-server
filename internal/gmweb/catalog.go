@@ -458,7 +458,7 @@ var catalog = map[string]tableNote{
 	},
 	"spellpattern": {
 		Label: "Spells", Group: "Items & spells", Title: "spellname", Sort: "spellid",
-		Help: "Every spell and ability, by spellid: level, range, cast and recast times (ms), power cost, icon. What a spell " +
+		Help: "Every spell and ability, by spellid: level, range, cast and recast times (seconds: the server casts with CastTime × 1 s), power cost, icon. What a spell " +
 			"DOES is its spelleffect line.",
 		Live:   "Read at each cast and scribe; a player's spell book takes it at their next login.",
 		Show:   []string{"spellid", "spellname", "abilitylvl", "casttime", "recast", "power", "range"},
@@ -468,8 +468,8 @@ var catalog = map[string]tableNote{
 			"spellname":  {Label: "Name"},
 			"spelldesc":  {Label: "Description", Format: "multiline"},
 			"abilitylvl": {Label: "Level"},
-			"casttime":   {Label: "Cast time (ms)"},
-			"recast":     {Label: "Recast (ms)"},
+			"casttime":   {Label: "Cast time (s)"},
+			"recast":     {Label: "Recast (s)"},
 			"power":      {Label: "Power cost"},
 			"icon":       {Format: hex32},
 			"iconColor":  {Label: "Icon colour", Format: hex32},

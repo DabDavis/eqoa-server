@@ -14,7 +14,7 @@ export async function render(box, [id]) {
     crumbs: h('a', { href: '#/spells' }, 'Spells'),
     title: (row) => row.spellname || 'Spell ' + row.spellid,
     sub: (row) => `Spell ${row.spellid} · level ${row.abilitylvl}`,
-    newDefaults: { abilitylvl: 1, unk2: 0, unk3: 0, range: 30, casttime: 2000, power: 5, iconColor: 0, icon: 0, scope: 0, recast: 6000, eqprequire: 0, spellname: '', spelldesc: '' },
+    newDefaults: { abilitylvl: 1, unk2: 0, unk3: 0, range: 30, casttime: 2, power: 5, iconColor: 0, icon: 0, scope: 0, recast: 6, eqprequire: 0, spellname: '', spelldesc: '' },
     side: async (row) => {
       const out = await op('fetch', { id: 'spell:' + row.spellid });
       const r = out.record;

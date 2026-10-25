@@ -1,8 +1,11 @@
 package entity
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
+
+	"github.com/eqoa/server/internal/database"
 )
 
 // TestCalculateOffMod verifies OFF MOD against SOE retail save state data.
@@ -229,50 +232,36 @@ func TestNPCOffMod(t *testing.T) {
 	}
 }
 
-// TestRaceScaleUsesNetworkEnum pins raceScaleTable to the network race enum.
-//
-// The table was originally laid out on the old ordering (5=Halfling, 6=Troll,
-// 7=Barbarian) after the rest of the server had moved to the network enum
-// (5=Troll, 6=Barbarian, 7=Halfling), so Trolls rendered at 0.60 and Halflings
-// at 1.10 — each with the other's factor, and nothing failed. RaceScale feeds
-// Player.Size and NPC.Size, i.e. ModelSize on the wire, so the only signal was
-// how the model looked in-world.
-func TestRaceScaleUsesNetworkEnum(t *testing.T) {
-	// Anchor the enum in a table that is independently keyed on it, by bonuses
-	// that DISCRIMINATE between the two orderings: only the Troll's STR is +20
-	// of the three, only the Halfling's DEX +15. If the enum is ever re-swapped,
-	// it fails here rather than in the scale assertions.
-	if raceBonus[5][0] != 20 { // the Troll's STR +20
-		t.Fatal("raceBonus[5] is not the Troll's — race 5 is not Troll?")
-	}
-	if raceBonus[7][3] != 15 { // the Halfling's DEX +15
-		t.Fatal("raceBonus[7] is not the Halfling's — race 7 is not Halfling?")
-	}
-
-	// Big races scale up, small races scale down. Values are the model-height
-	// derivations in stats.go; what this guards is which row they sit on.
-	tests := []struct {
-		race int
-		name string
+// TestSizesAreSandstormsNotScaledByRace: an NPC sends its row's size and a
+// player 1.0, whatever the race (F3 20261025-172359, -173632: the gnome
+// bankers and Psova Brinkbar drawn at under half size). Sandstorm's captures
+// carry 1.00 for players of every race and each NPC's own value (a gnome NPC
+// at 1.00 and one at 1.20). The control: the race factors this replaced (a
+// gnome 0.45, an ogre 1.5) fail every row below but the human's.
+func TestSizesAreSandstormsNotScaledByRace(t *testing.T) {
+	for _, tt := range []struct {
+		race string
+		size float32
 		want float32
 	}{
-		{3, "Gnome", 0.45},
-		{4, "Dwarf", 0.78},
-		{5, "Troll", 1.20},
-		{6, "Barbarian", 1.10},
-		{7, "Halfling", 0.60},
-		{9, "Ogre", 1.50},
-	}
-	for _, tt := range tests {
-		if got := RaceScale(tt.race); got != tt.want {
-			t.Errorf("RaceScale(%d) [%s] = %v, want %v", tt.race, tt.name, got, tt.want)
+		{"3", 1.0, 1.0},   // Psova Brinkbar, a gnome body
+		{"3", 1.2, 1.2},   // Sandstorm's Craigwold, a gnome at 1.20
+		{"9", 1.0, 1.0},   // an ogre
+		{"4", 0.75, 0.75}, // a dwarf row with its own size
+		{"0", 2.0, 2.0},   // the Tests Program
+		{"3", 0, 1.0},     // no size: 1.0
+		{"6", 1e-40, 1.0}, // a denormal (Return Home's dump has 234)
+	} {
+		rec := &database.NPCRecord{ID: 1, NPCName: "Sized", Race: tt.race, Size: tt.size, NPCLevel: 10}
+		if got := NPCFromRecord(rec, 0, nil).Size; got != tt.want {
+			t.Errorf("race %s size %v: NPC sent at %v, want %v", tt.race, tt.size, got, tt.want)
 		}
 	}
-
-	// Out of range (including race 10, which has no row) falls back to 1.0.
-	for _, race := range []int{-1, 10, 255} {
-		if got := RaceScale(race); got != 1.0 {
-			t.Errorf("RaceScale(%d) = %v, want 1.0 fallback", race, got)
+	w := NewWorld()
+	for race := 0; race <= 10; race++ {
+		p := w.CreatePlayer(nil, &database.CharacterRecord{ServerID: uint32(100 + race), CharName: fmt.Sprintf("Race%d", race), Race: race, Level: 10})
+		if p == nil || p.Size != 1.0 {
+			t.Errorf("race %d: player sent at %v, want 1.0", race, p.Size)
 		}
 	}
 }

@@ -69,20 +69,108 @@ func TestACreatureRunsAtItsEnemyAndFightsWhenItReaches(t *testing.T) {
 	if swungAt == 0 {
 		t.Fatalf("never swung: at %.2f, %.2f from its enemy", c.npc.X, c.p.X-c.npc.X)
 	}
-	// 28 - 0.7 x 4.5 = 24.85 at 8.83 a second, the first tick standing
-	if swungAt < 2800*time.Millisecond || swungAt > 3000*time.Millisecond {
-		t.Errorf("swung at %v, want about 2.9 s", swungAt)
+	// in its reach after a run of about 23.5 at 8.83 a second (it eases off
+	// in the last two units), the first tick standing
+	if swungAt < 2600*time.Millisecond || swungAt > 3000*time.Millisecond {
+		t.Errorf("swung at %v, want 2.6 to 3 s", swungAt)
 	}
-	if gap := c.p.X - c.npc.X; gap > reach || gap < reach*npcCloseIn-0.01 {
-		t.Errorf("stopped %.2f off its enemy, want within [%.2f, %.2f]", gap, reach*npcCloseIn, reach)
-	}
-	if c.npc.moving() || c.npc.Loco != LocoStand {
-		t.Errorf("still moving in reach: loco %d", c.npc.Loco)
-	}
+	// then it eases in to a little inside its reach, and stands, its round
+	// going on meanwhile
 	hp := c.p.HP
-	c.chaseTick(swungAt + 500*time.Millisecond)
+	var stoodAt time.Duration
+	for d := swungAt + 100*time.Millisecond; d <= swungAt+1500*time.Millisecond && stoodAt == 0; d += 100 * time.Millisecond {
+		c.chaseTick(d)
+		if !c.npc.moving() {
+			stoodAt = d
+		}
+	}
+	stop := reach * npcCloseIn
+	if gap := c.p.X - c.npc.X; stoodAt == 0 || gap < stop-0.01 || gap > stop+0.13 {
+		t.Errorf("stood (at %v) %.2f off its enemy, want %.2f", stoodAt, gap, stop)
+	}
+	if c.npc.Loco != LocoStand {
+		t.Errorf("standing with loco %d", c.npc.Loco)
+	}
+	for d := stoodAt + 100*time.Millisecond; d <= swungAt+1600*time.Millisecond; d += 100 * time.Millisecond {
+		c.chaseTick(d)
+	}
 	if c.p.HP >= hp {
-		t.Error("no hit half a second into the round")
+		t.Error("no hit in the round's first 1.6 s")
+	}
+}
+
+// A creature following a player who backs off at 3 a second moves with a
+// velocity of the pace it moves at, every tick, and the walk or run to match: its
+// channel never says it stands while it moves, which CLIENT drew as a slide
+// (seen live, 2026-10-25). It keeps hitting in reach. The control: a step to
+// a point that stops dead on arriving, as the roam's does.
+func TestAFollowingCreatureWalksWithItsVelocity(t *testing.T) {
+	c := newCaster(t)
+	c.npc.Level, c.npc.HP, c.npc.MaxHP = 18, 900, 900
+	c.p.X, c.p.HP, c.p.MaxHP = 105, 5000, 5000 // in reach of the creature at 102
+	c.npc.CurrentEnemy = c.p.ServerID
+	c.npc.Threats = map[EntityID]int64{c.p.ServerID: 10}
+	c.chaseTick(0)
+	hp := c.p.HP
+	moves, slides := 0, 0
+	for d := 100 * time.Millisecond; d <= 8*time.Second; d += 100 * time.Millisecond {
+		c.p.X += 0.3
+		x := c.npc.X
+		c.chaseTick(d)
+		if moved := c.npc.X - x; moved > 1e-4 {
+			moves++
+			want := LocoWalk
+			if moved/0.1 >= NPCRunFrom {
+				want = LocoRun // the burst that catches it up
+			}
+			if v := moved / 0.1; !near(c.npc.VelX, v) || c.npc.Loco != want {
+				slides++
+			}
+		}
+	}
+	if moves < 75 {
+		t.Fatalf("moved on %d ticks of 80 after a player backing off: in bursts", moves)
+	}
+	if slides != 0 {
+		t.Errorf("%d of %d ticks moved with a velocity or animation not its own", slides, moves)
+	}
+	if c.p.HP >= hp {
+		t.Error("never hit the player it followed")
+	}
+
+	// the player's 0x40 every other tick (its place two ticks' worth at a
+	// time, its velocity 3 a second): followed at its pace every tick, not
+	// a walk and a stand by turns
+	stood := 0
+	for d := 8100 * time.Millisecond; d <= 12*time.Second; d += 100 * time.Millisecond {
+		if (d/(100*time.Millisecond))%2 == 0 {
+			c.p.X += 0.6
+		}
+		c.p.VelX = 3
+		x := c.npc.X
+		c.chaseTick(d)
+		if c.npc.X-x < 1e-4 || c.npc.Loco != LocoWalk {
+			stood++
+		}
+	}
+	if stood != 0 {
+		t.Errorf("stood or ran on %d of 40 ticks following a player whose 0x40 came every other tick", stood)
+	}
+
+	// a player backing off at 6 a second: followed at about where it would
+	// stop, by the lead its velocity gives (on the gap alone it trails 0.9
+	// further, at the edge of its reach)
+	stop, far := npcReach(c.npc)*npcCloseIn, 0
+	for d := 12100 * time.Millisecond; d <= 16*time.Second; d += 100 * time.Millisecond {
+		c.p.X += 0.6
+		c.p.VelX = 6
+		c.chaseTick(d)
+		if d > 13*time.Second && c.p.X-c.npc.X > stop+0.3 {
+			far++
+		}
+	}
+	if far != 0 {
+		t.Errorf("trailed past %.2f on %d ticks following a player backing off at 6 a second", stop+0.3, far)
 	}
 }
 

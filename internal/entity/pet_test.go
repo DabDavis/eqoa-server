@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -538,5 +539,27 @@ func TestAPetsCorpseGoesInItsOwnTimeAndAPetDoesNotWander(t *testing.T) {
 	}
 	if _, lies := r.w.CorpseLies(r.enemy.ServerID); !lies {
 		t.Error("the crab's corpse went with the pet's")
+	}
+}
+
+// A pet's kill changes its owner's factions as the owner's own kill does
+// (faction.go). The control: the owner's standings untouched before it.
+func TestAPetsKillIsItsOwnersForFactions(t *testing.T) {
+	r := newPetRig(t)
+	pet, _ := r.summon(t, fireElemental(), 0)
+	r.w.SetFactionHits([]database.FactionHitRow{{NPCName: "Desert Crab", Faction: "Citizens of Freeport", Delta: -25}})
+	if len(r.p.Factions) != 0 {
+		t.Fatalf("standings before the kill: %v", r.p.Factions)
+	}
+	r.enemy.HP = 1
+	r.w.mu.Lock()
+	ps := r.w.petStateLocked(r.p)
+	killed := r.w.petHitLocked(ps, r.enemy, r.at(20*time.Second))
+	r.w.mu.Unlock()
+	if !killed || !r.enemy.Dead {
+		t.Fatalf("%q did not kill the crab", pet.Name)
+	}
+	if got := r.p.Factions["Citizens of Freeport"]; got != -24 {
+		t.Errorf("Citizens of Freeport %d after the pet's kill, want -24", got)
 	}
 }

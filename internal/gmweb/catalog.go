@@ -218,6 +218,17 @@ var catalog = map[string]tableNote{
 			"whereonBar": {Label: "Bar slot", Help: "-1 for none"},
 		},
 	},
+	"charfactions": {
+		Label: "Character factions", Group: "Players", Sort: "serverid",
+		Help: "A character's standing with each faction it has moved off the faction's starting one (-2000 to 2000); " +
+			"with no row it has the starting standing (Factions).",
+		Live: "At once where the character stands, else at its next login.",
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"faction":  {Label: "Faction", Ref: "factions"},
+			"standing": {Label: "Standing"},
+		},
+	},
 	"charbuffs": {
 		Label: "Character effects", Group: "Players",
 		Help: "Spell effects kept over a logout, what is left of each (entity/buffsave.go).",
@@ -333,6 +344,30 @@ var catalog = map[string]tableNote{
 		Cols: map[string]colNote{
 			"name":  {Label: "NPC name (key)"},
 			"class": {Label: "Class", Enum: "class"},
+		},
+	},
+	"factions": {
+		Label: "Factions", Group: "World", Title: "name", Sort: "name",
+		Help: "Every faction and the standing a character starts with (-2000 to 2000). Filled from an eqoa.live capture's " +
+			"331 (one gnome's: Klick`Anon 300, Qeynos -2000) when empty; a character's own standings are Character factions.",
+		Live: "At once: every faction window and the next kill read it.",
+		Cols: map[string]colNote{
+			"name":     {Label: "Faction"},
+			"standing": {Label: "Starting standing", Help: "-2000 to 2000"},
+		},
+	},
+	"factionhits": {
+		Label: "Faction hits", Group: "World", Title: "npc_name", Sort: "npc_name",
+		Help: "What killing an NPC does to its killer's standings: each row adds delta to the standing with one faction " +
+			"for a kill of any NPC of that NAME (a #spawn copy too). The killer alone, as the kill's XP. Town rows " +
+			"(source town-seed) are tools/seed_faction_hits.py's guesses, not measured: no capture holds a faction hit.",
+		Live:   "At once: the next kill of that NPC uses it.",
+		Search: []string{"npc_name", "faction", "source"},
+		Cols: map[string]colNote{
+			"npc_name": {Label: "NPC name", Help: "as in NPCs, exactly (a trailing space included)"},
+			"faction":  {Label: "Faction", Ref: "factions"},
+			"delta":    {Label: "Change", Help: "added to the killer's standing; below 0 lowers it"},
+			"source":   {Label: "Source", Help: "gm, or town-seed for the seeding tool's rows (its --undo deletes those)"},
 		},
 	},
 	"itempattern": {

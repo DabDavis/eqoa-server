@@ -29,6 +29,10 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveAccount(a, action, before, after)
 	case "characters":
 		return s.liveCharacter(a, action, before, after)
+	case "factions", "factionhits":
+		return s.liveFactions(t.Name)
+	case "charfactions":
+		return s.liveCharFaction(before, after)
 	case "charinventory", "spells", "hotkeys", "charbuffs", "weaponhotbar", "quickslots", "gearsets":
 		row := after
 		if row == nil {
@@ -43,6 +47,48 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return "at the character's next login"
 	}
 	return t.Live
+}
+
+// liveFactions reads the factions and the hits again (the change is
+// committed: the database is free).
+func (s *Server) liveFactions(table string) string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	if err := s.d.World.LoadFactions(s.d.DB); err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	if table == "factions" {
+		return "at once: every faction window and the next kill read it"
+	}
+	return "at once: the next kill of that NPC uses it"
+}
+
+// liveCharFaction applies a charfactions edit where the character stands, so
+// its logout does not save the old standing over it.
+func (s *Server) liveCharFaction(before, after map[string]any) string {
+	if s.d.World == nil {
+		return "at the character's next login"
+	}
+	text := func(v any) string { str, _ := v.(string); return str }
+	var name string
+	var online bool
+	if before != nil && (after == nil || text(before["faction"]) != text(after["faction"])) {
+		if id, ok := asFloat(before["serverid"]); ok {
+			name, online = s.d.World.SetOnlineFaction(uint32(id), text(before["faction"]), 0, true)
+		}
+	}
+	if after != nil {
+		id, ok1 := asFloat(after["serverid"])
+		v, ok2 := asFloat(after["standing"])
+		if ok1 && ok2 {
+			name, online = s.d.World.SetOnlineFaction(uint32(id), text(after["faction"]), int(v), false)
+		}
+	}
+	if online {
+		return fmt.Sprintf("applied where %s stands: their faction window shows it the next time it opens", name)
+	}
+	return "at the character's next login"
 }
 
 func (s *Server) liveNPC(action string, before, after map[string]any) string {

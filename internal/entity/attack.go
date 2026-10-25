@@ -397,7 +397,8 @@ func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
 // playerHitLocked is one landed player swing: Sandstorm's roll on the worn
 // weapon, STR, DEX and the target (offence.go), the damage figure to the
 // attacker (0x00DB, attacker → NPC, negative), the NPC's threat (so it
-// fights back), and on a kill the XP. It reports a kill.
+// fights back), and on a kill the XP and the faction hits (faction.go). It
+// reports a kill.
 func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NPC, objectID uint32) bool {
 	damage := playerMeleeHit(attacker, npc, rand.Intn)
 	if npc.Dummy != NotDummy {
@@ -422,6 +423,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	if killed {
 		w.killNPC(npc)
 		w.awardXP(sess, attacker, npc.Level*100)
+		w.factionKillLocked(sess, attacker, npc)
 	}
 	return killed
 }

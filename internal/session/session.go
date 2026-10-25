@@ -102,6 +102,25 @@ type Session struct {
 	// web page), 0x13 from a PS2 running Sandstorm's S2 patch on its world
 	// session, 0 before one arrives. See DiscVersion.
 	discVersion byte
+
+	// factionMessagesOff is the client's Faction Messages option off: 0x00C9's
+	// first byte 1 (sent at the world entry and when the option changes).
+	factionMessagesOff bool
+}
+
+// SetFactionMessagesOff records the client's Faction Messages option (0x00C9):
+// off, the server sends no faction line to this session.
+func (s *Session) SetFactionMessagesOff(off bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.factionMessagesOff = off
+}
+
+// FactionMessagesOff is whether the client asked for no faction lines.
+func (s *Session) FactionMessagesOff() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.factionMessagesOff
 }
 
 // SetDiscVersion records the version byte the client's DiscVersion carried.

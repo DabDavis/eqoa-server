@@ -254,6 +254,7 @@ OAuth flow, and the official MCP Python SDK was run against it end to end.
 - Basic combat (attack command, damage, death; a player respawns at the login spawn 15 s after dying)
 - NPC AI (aggro, melee in Sandstorm's rounds — `entity/rounds.go`, leash, respawn)
 - Corpses as live EQOA's: lie 3 minutes unless emptied (an empty one opens "Empty"), emptied and closed they go at once, and the creature returns a minute after its corpse went (`entity/corpse.go`); creatures wander round their spawn, townsfolk stand (`entity/roam.go`)
+- Wildlife where no import has any (F3 20261025-172939, -173551): `tools/seed_wildlife.py` turns FrontiersForge's sightings (`npcs_ff_import`) of generic creatures in Klick'Anon (levels 1-12) and the Rogue Clockworks (11-23) into a few spawns round each, copying a namesake row's body (a name with none is left out and listed), on the ground files' terrain, out of towns (`towns.go`'s, 120 off) and apart; a camp's creature round the camp; `--with-guide-species` adds the Klick'Anon guides' bats, rats, snakes and fireflies. Dry run by default, `--apply`, `--undo` (every row back), logged per row in `wildlife_seed_npcs`; stop the server to apply and start it after. The counts and spreads are ours
 - HP/Power regen system
 - Hotkey menu (L2 D-pad) — 25 default hotkeys, fragmented MemoryDump delivery
 - Spell scrolls: the item menu's Use scribes one (`scribe.go`: a scroll is the scroll's art plus a spell of its name; Sandstorm's 0x003C + 0x00B3 and its refusal lines, recorded); `tools/import_sandstorm_harvest.py` stocks the spell vendors

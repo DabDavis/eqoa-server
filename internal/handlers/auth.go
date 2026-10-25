@@ -135,13 +135,20 @@ func (h *AuthHandler) RegisterHandlers(r *Registry) {
 // Only responds once per session - subsequent DiscVersion messages are ignored
 // since the client sends DiscVersion with every packet.
 func (h *AuthHandler) HandleDiscVersion(sess *session.Session, msg *protocol.Message) error {
+	data := msg.Data()
+	// Kept on the session whenever it comes: it names the world table the
+	// client loads from (LoadableWorld), and S2 says 0x13 only on its world
+	// session.
+	if len(data) >= 1 {
+		sess.SetDiscVersion(data[0])
+	}
+
 	// Only respond to DiscVersion if we haven't already (session is still connecting)
 	// The client sends DiscVersion with every packet, so we must not flood responses
 	if sess.State() != session.StateConnecting {
 		return nil // Already responded, just ignore
 	}
 
-	data := msg.Data()
 	if len(data) < 1 {
 		log.Printf("DiscVersion: empty data from %s", sess.RemoteAddr())
 		return nil

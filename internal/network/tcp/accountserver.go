@@ -55,12 +55,19 @@ type AccountServer struct {
 	// for an offline character by returning false — but false means "write the
 	// row", which is the very thing that must not happen, so the question has to
 	// be asked separately. Nil means every world is savable.
+	//
+	// CanLoad refuses a world the character's game cannot load: its session's
+	// table while it is logged in, else the disc's six that a login starts in
+	// (handlers.LoadableWorlds). Asked before either move, because a client
+	// told to load a world its table lacks stays where it was while the
+	// server files the character under that world. Nil allows every world.
 	Destinations  func() []TeleportDest
 	WorldNames    func() []string
 	ResolveDest   func(name string) (x, y, z float32, world byte, via string, ok bool)
 	ValidatePlace func(x, y, z float32, world byte) (byte, error)
 	TeleportLive  func(serverID uint32, x, y, z float32, world byte) bool
 	SendOnly      func(world byte) bool
+	CanLoad       func(serverID uint32, world byte) error
 
 	// EndSessions ends every session an account has in the game (each is
 	// told 0x07A4, "You have logged in from another location.") and returns

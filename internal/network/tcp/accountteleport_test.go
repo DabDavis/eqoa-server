@@ -3,6 +3,7 @@ package tcp
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -214,5 +215,35 @@ func TestTeleportDisabledWithoutAGameWorld(t *testing.T) {
 		`{"serverid":`+itoa(int(myChar))+`,"dest":"freeport"}`)
 	if out["success"] == true {
 		t.Error("teleported on a server with no world attached")
+	}
+}
+
+// A world the character's game cannot load is refused before either move:
+// told to load one its table lacks, a client stays where it was while the
+// server files the character there, and an offline one would log in beside
+// Archivist Vaal anyway. Neither the live move nor the row happens. The
+// control: the same request with no CanLoad goes through.
+func TestTeleportRefusesAWorldTheGameCannotLoad(t *testing.T) {
+	s, myChar, _, token := teleTestServer(t)
+	var moved bool
+	s.TeleportLive = func(uint32, float32, float32, float32, byte) bool { moved = true; return true }
+	s.ValidatePlace = func(_, _, _ float32, w byte) (byte, error) { return w, nil }
+	s.CanLoad = func(id uint32, w byte) error {
+		if w >= 6 {
+			return errors.New("this character's game cannot load world 8")
+		}
+		return nil
+	}
+	body := `{"serverid":` + itoa(int(myChar)) + `,"x":1125,"y":-62,"z":1143,"world":8}`
+	out := postTeleport(t, s, token, body)
+	if out["success"] == true || moved || !strings.Contains(fmt.Sprint(out["error"]), "cannot load world 8") {
+		t.Fatalf("world 8: %v (moved %v)", out, moved)
+	}
+	if rec, _ := database.NewSQLiteCharacterStore(s.db).GetByServerID(myChar); rec.World != 0 || rec.X != 25000 {
+		t.Errorf("the refused world was written: world %d x %.0f", rec.World, rec.X)
+	}
+	s.CanLoad = nil
+	if out := postTeleport(t, s, token, body); out["success"] != true || !moved {
+		t.Fatalf("the control, no CanLoad: %v (moved %v)", out, moved)
 	}
 }

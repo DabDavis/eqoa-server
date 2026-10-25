@@ -48,7 +48,7 @@ export async function teleport(ch) {
     intro: ch.online === false ? `${ch.name} is offline: this changes where their next login starts.` : `${ch.name} is moved where they stand, as a harbormaster's warp moves them.`,
     fields: [
       { name: 'place', label: 'A travel destination', type: 'select', options },
-      { name: 'npc', label: 'or an NPC (name or id)', placeholder: 'Coachman Ronks' },
+      { name: 'npc', label: 'or an NPC (name or id) or where they stand', placeholder: 'Coachman Ronks, guk' },
       { name: 'player', label: 'or an online character', placeholder: 'their name' },
       { name: 'x', label: 'or x', type: 'number' }, { name: 'y', label: 'y (height)', type: 'number' }, { name: 'z', label: 'z', type: 'number' },
       { name: 'world', label: 'world', type: 'number', value: ch.world ?? 0 },

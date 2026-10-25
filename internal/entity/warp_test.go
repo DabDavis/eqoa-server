@@ -51,16 +51,18 @@ func TestWarpNPCClassification(t *testing.T) {
 	}
 }
 
-// Talking to Thand in Freeport must offer guk, carrying world 8 — the byte the
-// 0x00B2 Teleport sends raw and the only thing that reaches the card loader.
+// Talking to Thand in Freeport must offer world 8 (guk's world while worlds
+// came off the memory card; the hard-disk loader's hdd:world8.ESF now) to a
+// console whose table has it, carrying world 8 — the byte the 0x00B2 Teleport
+// sends raw and the only thing that reaches the loader.
 func TestWarpFreeportOffersGuk(t *testing.T) {
-	dests := gukWorld().GetWarpDestinations("Harbormaster Thand")
+	dests := gukWorld().GetWarpDestinations("Harbormaster Thand", nil)
 	if len(dests) != 1 {
 		t.Fatalf("expected exactly 1 destination from Freeport, got %d: %+v", len(dests), dests)
 	}
 	d := dests[0]
-	if d.Name != "Guk" {
-		t.Errorf("label = %q, want %q (friendly name, not the NPC name)", d.Name, "Guk")
+	if d.Name != "World 8 (HDD)" {
+		t.Errorf("label = %q, want %q (friendly name, not the NPC name; not Guk, which is in Tunaria)", d.Name, "World 8 (HDD)")
 	}
 	if d.World != 8 {
 		t.Errorf("world = %d, want 8 — a 0 here silently lands the player at guk's coordinates inside Tunaria", d.World)
@@ -72,7 +74,7 @@ func TestWarpFreeportOffersGuk(t *testing.T) {
 
 // ...and the return leg, which is the half that is easy to forget.
 func TestWarpGukOffersFreeport(t *testing.T) {
-	dests := gukWorld().GetWarpDestinations("Gatekeeper Krup")
+	dests := gukWorld().GetWarpDestinations("Gatekeeper Krup", nil)
 	if len(dests) != 1 {
 		t.Fatalf("expected exactly 1 destination from guk, got %d: %+v", len(dests), dests)
 	}
@@ -92,7 +94,7 @@ func TestWarpGukOffersFreeport(t *testing.T) {
 // are already standing in.
 func TestWarpExcludesSelf(t *testing.T) {
 	for _, self := range []string{"Harbormaster Thand", "Gatekeeper Krup"} {
-		for _, d := range gukWorld().GetWarpDestinations(self) {
+		for _, d := range gukWorld().GetWarpDestinations(self, nil) {
 			if d.Name == self {
 				t.Errorf("%s offered itself", self)
 			}
@@ -129,13 +131,13 @@ func TestCoachRoutesAreIntraWorld(t *testing.T) {
 // different mechanisms with different teleport semantics.
 func TestCoachAndWarpDoNotMix(t *testing.T) {
 	w := gukWorld()
-	for _, d := range w.GetWarpDestinations("Harbormaster Thand") {
+	for _, d := range w.GetWarpDestinations("Harbormaster Thand", nil) {
 		if IsCoachman(d.Name) || d.Name == "Highpass" {
 			t.Errorf("warp list contains a coach destination: %q", d.Name)
 		}
 	}
 	for _, d := range w.GetCoachDestinations("Coachman Ronks", 0) {
-		if d.Name == "Guk" || d.Name == "Freeport" {
+		if d.Name == "World 8 (HDD)" || d.Name == "Freeport" {
 			t.Errorf("coach list contains a warp destination: %q", d.Name)
 		}
 	}
@@ -189,7 +191,7 @@ func TestRescueLandsInAReachableWorld(t *testing.T) {
 		t.Errorf("stranded player rescued into world %d, want 0", got)
 	}
 	w := gukWorld()
-	dests := w.GetWarpDestinations("")
+	dests := w.GetWarpDestinations("", nil)
 	found := false
 	for _, d := range dests {
 		if d.World == got {
@@ -211,13 +213,13 @@ func TestDestinationOrderIsStable(t *testing.T) {
 	w := gukWorld()
 	w.NPCs[7] = &NPC{ServerID: 7, Name: "Gatekeeper Sulon", World: 2, SpawnX: 7338, SpawnZ: 11124}
 
-	first := w.GetWarpDestinations("Harbormaster Thand")
+	first := w.GetWarpDestinations("Harbormaster Thand", nil)
 	if len(first) < 2 {
 		t.Fatalf("need at least 2 destinations to detect reordering, got %d", len(first))
 	}
 	// Many rebuilds: a map-order bug shows up within a handful of iterations.
 	for i := 0; i < 200; i++ {
-		got := w.GetWarpDestinations("Harbormaster Thand")
+		got := w.GetWarpDestinations("Harbormaster Thand", nil)
 		if len(got) != len(first) {
 			t.Fatalf("iteration %d: length changed %d -> %d", i, len(first), len(got))
 		}
@@ -273,7 +275,7 @@ func world9World() *World {
 func TestWarpWorld9BothDirections(t *testing.T) {
 	w := world9World()
 
-	out := w.GetWarpDestinations("Harbormaster Thand")
+	out := w.GetWarpDestinations("Harbormaster Thand", nil)
 	if len(out) != 1 {
 		t.Fatalf("Freeport should offer exactly world 9, got %d: %+v", len(out), out)
 	}
@@ -288,7 +290,7 @@ func TestWarpWorld9BothDirections(t *testing.T) {
 		t.Errorf("outbound label = %q, want the friendly name", out[0].Name)
 	}
 
-	back := w.GetWarpDestinations("Harbormaster Machado")
+	back := w.GetWarpDestinations("Harbormaster Machado", nil)
 	if len(back) != 1 {
 		t.Fatalf("world 9 should offer exactly Freeport, got %d: %+v", len(back), back)
 	}
@@ -352,7 +354,7 @@ func freeportWorld() *World {
 // this asserts BOTH survive, because the failure mode of a derived route table
 // is that a new NPC displaces rather than joins.
 func TestFreeportOffersBothHDDWorlds(t *testing.T) {
-	out := freeportWorld().GetWarpDestinations("Harbormaster Thand")
+	out := freeportWorld().GetWarpDestinations("Harbormaster Thand", nil)
 
 	got := map[uint8]CoachDest{}
 	for _, d := range out {
@@ -390,7 +392,7 @@ func TestFreeportOffersBothHDDWorlds(t *testing.T) {
 // And the return leg, which the same single row buys: Deuces offers everywhere
 // else, never himself.
 func TestWorld22OffersTheWayBack(t *testing.T) {
-	back := freeportWorld().GetWarpDestinations("Harbormaster Deuces")
+	back := freeportWorld().GetWarpDestinations("Harbormaster Deuces", nil)
 	if len(back) != 2 {
 		t.Fatalf("world 22 should offer Freeport and world 9, got %d: %+v", len(back), back)
 	}
@@ -413,5 +415,50 @@ func TestWorld22IsReachableWithoutBounds(t *testing.T) {
 	if got, ok := CoherentWorld(22, 9000, 9000); !ok || got != 22 {
 		t.Errorf("CoherentWorld(22, 9000, 9000) = %d, %v; want 22, true — "+
 			"Deuces stands there and the route would be undone on arrival", got, ok)
+	}
+}
+
+// A travel menu, the GM's places and the warp points offer only the worlds
+// the asking client loads (handlers.LoadableWorlds): from Freeport a game
+// with the disc's six is offered Odus, never the patched consoles' worlds 7,
+// 8, 9 and 22, which it cannot load (picked, the client stayed where it was
+// while the server filed the player there: F3 20261025-000749). The control:
+// the whole table (nil, a patched PS2's) offers all five.
+func TestTravelOffersOnlyLoadableWorlds(t *testing.T) {
+	w := freeportWorld()
+	w.NPCs[4] = &NPC{ServerID: 4, Name: "Gatekeeper Sulon", World: 2, SpawnX: 7338, SpawnY: 54.2, SpawnZ: 11124}
+	w.NPCs[5] = &NPC{ServerID: 5, Name: "Gatekeeper Krup", World: 8, SpawnX: 1125, SpawnY: -62.2, SpawnZ: 1143.7}
+	w.NPCs[6] = &NPC{ServerID: 6, Name: "Gatekeeper Rilis", World: 7, SpawnX: 4562, SpawnY: -12.3, SpawnZ: 3663.8}
+	disc := func(world uint8) bool { return world < 6 }
+	worlds := func(d []CoachDest) (out []uint8) {
+		for _, x := range d {
+			out = append(out, x.World)
+		}
+		return
+	}
+	if got := worlds(w.GetWarpDestinations("Harbormaster Thand", disc)); len(got) != 1 || got[0] != 2 {
+		t.Errorf("the disc's six from Freeport: worlds %v, want just Odus (2)", got)
+	}
+	if got := worlds(w.GetWarpDestinations("Harbormaster Thand", nil)); len(got) != 5 {
+		t.Errorf("the control, the whole table: worlds %v, want 2, 7, 8, 9 and 22", got)
+	}
+	for _, p := range w.Places(disc) {
+		if p.World >= 6 {
+			t.Errorf("Places offered %q in world %d to the disc's six", p.Name, p.World)
+		}
+	}
+	for _, wp := range w.WarpPoints(disc) {
+		if wp.World >= 6 {
+			t.Errorf("WarpPoints offered %q in world %d to the disc's six", wp.NPC, wp.World)
+		}
+	}
+	if n := len(w.Places(nil)); n != 6 {
+		t.Errorf("the control: %d places in the whole table, want 6", n)
+	}
+	// world 8 is not Guk any more, and Odus is not a control
+	for _, d := range w.GetWarpDestinations("Harbormaster Thand", nil) {
+		if d.Name == "Guk" || d.Name == "Odus (control)" {
+			t.Errorf("a stale label is still offered: %q (world %d)", d.Name, d.World)
+		}
 	}
 }

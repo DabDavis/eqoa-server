@@ -127,8 +127,8 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	//
 	//   Coachman/Coachwoman — overland travel WITHIN the current world.
 	//   Gatekeeper/Harbormaster — CROSS-world travel. These are the only
-	//     routes that set CoachDest.World, and the only way to reach guk
-	//     (world 8) short of a GM #goto.
+	//     routes that set CoachDest.World, and the only way to reach another
+	//     world short of a GM #goto.
 	//
 	// Both reuse the same pending-destination list and option-box paging, so a
 	// warp NPC needs no new dialogue plumbing.
@@ -157,7 +157,8 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		var routes []entity.CoachDest
 		switch {
 		case entity.IsWarpNPC(npc.Name):
-			routes = h.gameWorld.GetWarpDestinations(npc.Name)
+			// only the worlds this client's table has (LoadableWorlds)
+			routes = h.gameWorld.GetWarpDestinations(npc.Name, LoadableWorlds(sess))
 		case entity.IsCoachman(npc.Name):
 			routes = h.gameWorld.GetCoachDestinations(npc.Name, npc.World)
 		}

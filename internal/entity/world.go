@@ -921,19 +921,22 @@ func IsCoachman(name string) bool {
 // warpLocationNames maps warp NPC names to the place they stand in.
 //
 // Gatekeepers and Harbormasters are the CROSS-WORLD travel NPCs; coachmen only
-// move you around within a world. That distinction is the whole reason guk
-// needs one: a coach destination is an (x,y,z) in the world you are already in,
-// whereas reaching guk means changing the world index the client loads from.
+// move you around within a world. That distinction is the whole reason a world
+// change needs one: a coach destination is an (x,y,z) in the world you are
+// already in, whereas another world means changing the world index the client
+// loads from. Only a client whose table has that world is offered it
+// (GetWarpDestinations' loadable; handlers.LoadableWorlds).
 var warpLocationNames = map[string]string{
 	"Harbormaster Thand": "Freeport",
-	"Gatekeeper Krup":    "Guk",
-	// A control, not content: Odus is a RETAIL world on the disc, so picking it
-	// exercises the same 0x00B2 world change that guk uses without involving
-	// the memory-card loader at all. If Odus renders, the world-change path is
-	// sound and guk's content is at fault; if Odus is empty too, the path
-	// itself is broken and guk was never the problem. Remove with the row in
-	// sql/odus_control_gatekeeper.sql once that is settled.
-	"Gatekeeper Sulon": "Odus (control)",
+	// World 8 was guk while worlds came off the memory card (sql/guk_gatekeeper.sql);
+	// it is our hard-disk loader's hdd:world8.ESF now, and the real Guk is in
+	// Tunaria. Labelled "Guk" until 2026-10-25, which sent a GM's "Guk" to
+	// world 8 (F3 20261025-000749).
+	"Gatekeeper Krup": "World 8 (HDD)",
+	// Odus is a RETAIL world on the disc. It was added as a control for the
+	// world-change path (sql/odus_control_gatekeeper.sql) and labelled
+	// "Odus (control)"; the path is settled and players use it, so it is Odus.
+	"Gatekeeper Sulon": "Odus",
 	// World 7 (`secrets2`) — a control that needs no patch deploy at all.
 	// Sandstorm's table entry 7 is a verbatim duplicate of entry 5 (`secrets`),
 	// i.e. a DISC world at a high index, already inside the bound our SD raised
@@ -960,20 +963,26 @@ func IsWarpNPC(name string) bool {
 }
 
 // GetWarpDestinations returns every warp NPC except the one named excludeName,
-// each as a destination at that NPC's own spawn point and world.
+// each as a destination at that NPC's own spawn point and world, of the worlds
+// loadable takes (nil: all of them).
 //
 // Mirrors GetCoachDestinations deliberately: routes are discovered from the
 // NPCs that exist rather than kept in a second table that could disagree with
 // them. Adding a Gatekeeper to a new world therefore wires it up in both
 // directions with no code change — which is exactly what connects Freeport and
-// guk here, since Harbormaster Thand was already standing in Freeport.
-func (w *World) GetWarpDestinations(excludeName string) []CoachDest {
+// the hard-disk worlds here, since Harbormaster Thand was already standing in
+// Freeport. A world the asking client cannot load is not offered: picked, it
+// moved nothing on the client while the server filed the player under it.
+func (w *World) GetWarpDestinations(excludeName string, loadable func(world uint8) bool) []CoachDest {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
 	var dests []CoachDest
 	for _, npc := range w.NPCs {
 		if !IsWarpNPC(npc.Name) || npc.Name == excludeName {
+			continue
+		}
+		if loadable != nil && !loadable(npc.World) {
 			continue
 		}
 		label := npc.Name
@@ -1117,19 +1126,23 @@ type WarpPoint struct {
 	X, Y, Z, Facing float32
 }
 
-// WarpPoints lists every cross-world travel NPC, in the same order and with the
-// same friendly labels a Harbormaster's own menu uses.
+// WarpPoints lists every cross-world travel NPC of the worlds loadable takes
+// (nil: all of them), in the same order and with the same friendly labels a
+// Harbormaster's own menu uses.
 //
 // No exclusion: a Harbormaster leaves ITSELF out because a player standing in
 // front of one cannot usefully travel to it. A caller who is not standing
 // anywhere wants the whole set, Freeport included.
-func (w *World) WarpPoints() []WarpPoint {
+func (w *World) WarpPoints(loadable func(world uint8) bool) []WarpPoint {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
 	var out []WarpPoint
 	for _, npc := range w.NPCs {
 		if !IsWarpNPC(npc.Name) {
+			continue
+		}
+		if loadable != nil && !loadable(npc.World) {
 			continue
 		}
 		label := npc.Name

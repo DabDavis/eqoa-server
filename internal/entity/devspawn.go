@@ -127,6 +127,38 @@ func (w *World) removeNPCLocked(npc *NPC) {
 	delete(w.NPCs, npc.ServerID)
 }
 
+// NPCsNamed is the spawn spot of every NPC (not a GM's temporary copy) whose
+// name match takes, as Places' Place with the NPC's name for both names,
+// sorted by name and then id: what a place named by its people resolves over
+// (handlers' namesakes: "guk" is where the "froglok guk ..." stand).
+func (w *World) NPCsNamed(match func(name string) bool) []Place {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	type spot struct {
+		Place
+		id EntityID
+	}
+	var spots []spot
+	for _, npc := range w.NPCs {
+		if npc.Temporary || !match(npc.Name) {
+			continue
+		}
+		spots = append(spots, spot{Place{Name: npc.Name, NPC: npc.Name, World: npc.World,
+			X: npc.SpawnX, Y: npc.SpawnY, Z: npc.SpawnZ, Facing: npc.SpawnFacing}, npc.ServerID})
+	}
+	sort.Slice(spots, func(i, j int) bool {
+		if spots[i].Name != spots[j].Name {
+			return spots[i].Name < spots[j].Name
+		}
+		return spots[i].id < spots[j].id
+	})
+	out := make([]Place, len(spots))
+	for i, s := range spots {
+		out[i] = s.Place
+	}
+	return out
+}
+
 // Place is a travel NPC's spot under the name players know it by: a
 // coachman's town ("Neriak") or a harbormaster's or gatekeeper's route.
 type Place struct {
@@ -137,9 +169,10 @@ type Place struct {
 }
 
 // Places lists the coachmen's and the cross-world travel NPCs' spots by
-// their labels (coachLocationNames, warpLocationNames), sorted by name. A
-// label with no NPC loaded is not a place.
-func (w *World) Places() []Place {
+// their labels (coachLocationNames, warpLocationNames), sorted by name, of the
+// worlds loadable takes (nil: all of them). A label with no NPC loaded is not
+// a place.
+func (w *World) Places(loadable func(world uint8) bool) []Place {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	var out []Place
@@ -149,6 +182,9 @@ func (w *World) Places() []Place {
 			label, ok = warpLocationNames[npc.Name]
 		}
 		if !ok || npc.Temporary {
+			continue
+		}
+		if loadable != nil && !loadable(npc.World) {
 			continue
 		}
 		out = append(out, Place{Name: label, NPC: npc.Name, World: npc.World,

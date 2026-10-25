@@ -127,6 +127,12 @@ func (s *AccountServer) handleAPITeleport(w http.ResponseWriter, r *http.Request
 		webError(w, err.Error())
 		return
 	}
+	if s.CanLoad != nil {
+		if err := s.CanLoad(req.ServerID, world); err != nil {
+			webError(w, err.Error())
+			return
+		}
+	}
 
 	// ONLINE FIRST, and only write the row when nobody is holding it. The two
 	// are alternatives rather than a belt and braces: a logged-in character's

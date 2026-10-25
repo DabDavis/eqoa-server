@@ -40,12 +40,13 @@ func TeleDestinations() []TeleDestInfo {
 
 // WarpDestinations lists what a Harbormaster offers — every cross-world travel
 // NPC, at its own spawn point — keyed by NPC name so a route survives its label
-// being rewritten.
+// being rewritten. Only the disc's six worlds: the list is for a page, which
+// cannot know what the console behind a character loads (LoadableWorlds).
 func WarpDestinations(gw *entity.World) []TeleDestInfo {
 	if gw == nil {
 		return nil
 	}
-	points := gw.WarpPoints()
+	points := gw.WarpPoints(DiscWorld)
 	out := make([]TeleDestInfo, 0, len(points))
 	for _, wp := range points {
 		out = append(out, TeleDestInfo{Name: wp.NPC, Label: wp.Label, World: wp.World})
@@ -71,8 +72,10 @@ func ResolveTeleDest(gw *entity.World, name string) (x, y, z float32, world byte
 		// WarpPoints is the whole allowed set, which is what keeps this from
 		// being "teleport to any NPC by name": a route has to be one a player
 		// could have walked up to and asked for.
+		// The whole set: whether the client can load the world is the
+		// mover's to check (CanLoadWorld), with the client in hand.
 		if gw != nil {
-			for _, wp := range gw.WarpPoints() {
+			for _, wp := range gw.WarpPoints(nil) {
 				if strings.EqualFold(wp.NPC, strings.TrimSpace(name)) {
 					return wp.X, wp.Y, wp.Z, wp.World, wp.Label, true
 				}

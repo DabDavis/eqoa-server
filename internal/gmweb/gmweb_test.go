@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -926,5 +927,71 @@ func TestTheEnrolmentQRCodeIsTheAuthenticatorsAddress(t *testing.T) {
 	}
 	if dark == 0 || len(got) != dark {
 		t.Fatalf("%d modules drawn, %d dark", len(got), dark)
+	}
+}
+
+// The panel's teleport names a place by its people ("guk": where Guk's
+// frogloks stand in Tunaria, the spot of the one nearest their middle), and
+// lists and takes only worlds the character's game loads: an offline one logs
+// in in the disc's six alone, so world 8 is refused for it by label and by
+// coordinates (F3 20261025-000749: a GM's "Guk" was the August gatekeeper's
+// world 8). The control: the world holds that world 8 place, and the list
+// leaves it out.
+func TestATeleportGoesWhereTheGameLoads(t *testing.T) {
+	f := newFixture(t)
+	for id, n := range map[entity.EntityID]*entity.NPC{
+		900: {Name: "froglok guk wizard", World: 0, SpawnX: 24610, SpawnY: -30, SpawnZ: 28980},
+		901: {Name: "froglok guk shaman", World: 0, SpawnX: 24630, SpawnY: -33, SpawnZ: 28955},
+		902: {Name: "froglok guk warrior", World: 0, SpawnX: 24630, SpawnY: -33, SpawnZ: 28962},
+		903: {Name: "Gatekeeper Krup", World: 8, SpawnX: 1125, SpawnY: -62.2, SpawnZ: 1143.7},
+		904: {Name: "Harbormaster Thand", World: 0, SpawnX: 25377.7, SpawnY: 54.1, SpawnZ: 15741.5},
+	} {
+		n.ServerID = id
+		n.X, n.Y, n.Z = n.SpawnX, n.SpawnY, n.SpawnZ
+		f.world.NPCs[id] = n
+	}
+	c := f.browser()
+	c.login("gm")
+
+	if !slices.ContainsFunc(f.world.Places(nil), func(p entity.Place) bool { return p.World == 8 }) {
+		t.Fatal("the control: the world has no place in world 8")
+	}
+	code, out := c.op("teleport_destinations", map[string]any{})
+	if code != 200 {
+		t.Fatalf("teleport_destinations: %d %v", code, out)
+	}
+	for _, d := range out["destinations"].([]any) {
+		if w := d.(map[string]any)["world"].(float64); w >= 6 {
+			t.Errorf("listed %v in world %v", d, w)
+		}
+	}
+
+	code, out = c.op("teleport_character", map[string]any{"character": "Hero", "place": "guk"})
+	if code != 200 || !strings.Contains(fmt.Sprint(out["message"]), "froglok guk warrior") {
+		t.Fatalf("to guk: %d %v", code, out)
+	}
+	var x, z float64
+	var world int
+	if err := f.db.QueryRow(`SELECT x, z, world FROM characters WHERE serverid = 7`).Scan(&x, &z, &world); err != nil {
+		t.Fatal(err)
+	}
+	if x != 24630 || z != 28962 || world != 0 {
+		t.Fatalf("Hero's next login at (%v, %v) world %d, want the warrior's spot in Tunaria", x, z, world)
+	}
+
+	// the page's NPC field takes the same word
+	if code, out = c.op("teleport_character", map[string]any{"character": "Hero", "npc": "guk"}); code != 200 ||
+		!strings.Contains(fmt.Sprint(out["message"]), "3 NPCs called guk") {
+		t.Fatalf("npc guk: %d %v", code, out)
+	}
+	if code, out = c.op("teleport_character", map[string]any{"character": "Hero", "npc": "nobody here"}); code == 200 {
+		t.Fatalf("an NPC nobody is: %v", out)
+	}
+	if code, out = c.op("teleport_character", map[string]any{"character": "Hero", "place": "World 8 (HDD)"}); code == 200 {
+		t.Fatalf("world 8 by its label: %v", out)
+	}
+	code, out = c.op("teleport_character", map[string]any{"character": "Hero", "x": 1125, "y": -62, "z": 1143, "world": 8})
+	if code == 200 || !strings.Contains(fmt.Sprint(out), "disc's six") {
+		t.Fatalf("world 8 by coordinates: %d %v", code, out)
 	}
 }

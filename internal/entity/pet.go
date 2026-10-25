@@ -93,6 +93,18 @@ const (
 	petBackOffHold         = 6 * time.Second // after a back off it takes no fight of its own
 )
 
+// An enchanter's pet taunts its target every third round it fights it (F3
+// 20261025-174403, jib: "Enchanter pets would taunt periodically. Maybe
+// every 3 combat round. That taunt also did a small amount of damage, like
+// a single melee hit relative to the pets level"): the target turns on the
+// pet and takes one more of the pet's hits; Grand Animation's does 500
+// (EQOA-Data's Animator: "Has 500 dmg taunt and dual hits"). The cadence is
+// jib's recollection, not a recording.
+const (
+	petTauntEvery       = 3
+	grandAnimationTaunt = 500
+)
+
 // petState is one pet, kept by its owner's id.
 type petState struct {
 	owner     *Player
@@ -103,6 +115,11 @@ type petState struct {
 	noCollide bool      // its non-collide entry is on the owner's list
 	heldUntil time.Time // a back off's: no fight of its own until then
 	last      time.Time // its last step
+	// taunts is whether it taunts every petTauntEvery rounds (an
+	// enchanter's summoned pet), and rounds how many it has begun on its
+	// target
+	taunts bool
+	rounds int
 }
 
 // petOfLocked is the player's pet, alive, or nil.
@@ -309,7 +326,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	if w.pets == nil {
 		w.pets = make(map[EntityID]*petState)
 	}
-	ps := &petState{owner: caster, npc: pet, stance: petDefensive, last: now}
+	ps := &petState{owner: caster, npc: pet, stance: petDefensive, last: now, taunts: caster.Class == classEnchanter}
 	w.pets[caster.ServerID] = ps
 	if sess != nil {
 		w.announcePetLocked(ps, sess)
@@ -667,6 +684,7 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 	if pet.RoundTarget != t.ServerID {
 		pet.endRound()
 		pet.RoundTarget = t.ServerID
+		ps.rounds = 0
 	}
 	if pet.RoundStart.IsZero() || !now.Before(pet.RoundStart.Add(length)) {
 		next := pet.RoundStart.Add(length)
@@ -676,6 +694,10 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 		pet.RoundStart, pet.RoundHits = next, 0
 		breakNPCInvis(pet) // a pet that fights is seen (invis.go)
 		w.broadcastNPCSwingLocked(pet, t.ServerID, uint32(delay/time.Millisecond), fx)
+		ps.rounds++
+		if ps.taunts && ps.rounds%petTauntEvery == 0 && w.petTauntLocked(ps, t, now) {
+			return
+		}
 	}
 	for pet.RoundHits < len(hits) && !now.Before(pet.RoundStart.Add(hits[pet.RoundHits])) {
 		pet.RoundHits++
@@ -683,6 +705,35 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 			return
 		}
 	}
+}
+
+// petTauntLocked is the pet's taunt: its target's hate for it put above
+// everyone else's, so it turns on the pet, and one more of the pet's hits
+// (Grand Animation's grandAnimationTaunt). It reports a kill.
+func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
+	pet := ps.npc
+	if t.Dummy == NotDummy {
+		var top int64
+		for id, v := range t.Threats {
+			if id != pet.ServerID && v > top {
+				top = v
+			}
+		}
+		if t.Threats == nil {
+			t.Threats = make(map[EntityID]int64)
+		}
+		if t.Threats[pet.ServerID] <= top {
+			t.Threats[pet.ServerID] = top + 1
+		}
+		t.CurrentEnemy = pet.ServerID
+	}
+	n := petMeleeHit(pet, t, rand.Intn)
+	if petName(pet.Name) == grandAnimation {
+		n = grandAnimationTaunt
+	}
+	log.Printf("Pet: %s's %q taunts %s (round %d)", ps.owner.Name, pet.Name, t.Name, ps.rounds)
+	pet.LastCombatTime = now
+	return w.petDamageLocked(ps, t, n, now)
 }
 
 // petHitLocked is one of the pet's hits on its target, then its procs

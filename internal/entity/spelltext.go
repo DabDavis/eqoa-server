@@ -210,9 +210,28 @@ func statWord(s string) (Stat, bool) {
 	return StatNone, false
 }
 
+// defaultSpellLines are what a spell does when spelleffect holds no line
+// for it (a GM's row there comes first). Arcane Beckon (F3 20261025-180443,
+// jib: "supposed to buff charisma"): an enchanter's level 15 self spell,
+// "Fills you with an arcane presence, increasing charisma." No list, wiki
+// or recording gives its numbers; CHA +15 for 30 minutes is ours.
+var defaultSpellLines = map[string]string{
+	"arcane beckon": "Self, Increase CHA by 15, 30min",
+}
+
+// DefaultSpellLine is the line a spell of this name has when the database
+// gives none, "" when there is none.
+func DefaultSpellLine(name string) string {
+	return defaultSpellLines[strings.ToLower(strings.TrimSpace(name))]
+}
+
 // ParseSpellNamed is ParseSpell with what the spell's name says beside its
-// line and description: an illusion's body and whom it lands on.
+// line and description: a default line when it has none, and an illusion's
+// body and whom it lands on.
 func ParseSpellNamed(name, line, desc string) SpellDef {
+	if strings.TrimSpace(line) == "" {
+		line = DefaultSpellLine(name)
+	}
 	d := ParseSpell(line, desc)
 	d.readIllusion(name, desc)
 	return d

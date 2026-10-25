@@ -63,7 +63,8 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 // time and recast in seconds (Sandstorm's: Minor Healing's 2 and 1 are a
 // 3300 ms lockout), the front icon the effects channel shows, the range as
 // writeAbilityRecord sends it; its line is read with its name, which says
-// what an illusion is (entity/illusion.go).
+// what an illusion is (entity/illusion.go) and gives a line where the
+// database has none.
 func castSpell(e *database.CharSpellEntry, line string, fx uint32) entity.CastSpell {
 	sp := &e.Pattern
 	return entity.CastSpell{

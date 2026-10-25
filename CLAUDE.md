@@ -116,6 +116,14 @@ Sandstorm's S2 does), a retail PS2 keeps an unknown one to itself. The dev conso
 `#summon`, `#spawn <name>` (a temporary copy, gone after its corpse time; `#despawn` the
 target), `#monstersearch`, `#nearby`; `#faction <faction> [standing]` (a GM's own standing). Until 2026-10-21 every player was a GM. Make one:
 `sqlite3 eqoa.db "UPDATE accountinfo SET acctlevel = 1 WHERE username = '<name>'"`.
+`#template` (`handlers/template.go`, jib's ask of 2026-10-25) makes the GM's own character a
+60 of its class and race: level 60, every spell of its class (`classspells`), 1,000,000
+tunar, and per slot the best item of `itempattern` it may wear (CLIENT's `CanUse`: class
+and race bits, levelreq <= 60) by AC and stats, the hands by the DMG the melee rolls on,
+worn; all of it written, then a MemoryDump where it stands. `#setlevel` and `#tunar` write
+the row too, and a character's level and the experience into it (`totalXP`: every level
+below plus this one's, `entity.TotalXP`) are kept by the logout save, the shutdown's and a
+replacing login's: until then a level gained or set was gone at the next login.
 
 A place may also be named by the people standing there: a word of the names of NPCs that
 stand together in one world (`NamesakePlace`: `/goto guk` lands among Guk's "froglok guk ..."

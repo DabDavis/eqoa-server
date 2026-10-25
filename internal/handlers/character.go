@@ -527,13 +527,22 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// (savePlayerPosition skips a player that is no longer live). Saved now,
 	// so the row is right even if this session never saves.
 	if h.gameWorld != nil {
+		// its level and experience too, dead or alive (savePlayerPosition)
+		level, xp, live := h.gameWorld.LiveProgress(entity.EntityID(record.ServerID))
+		if live {
+			record.Level, record.TotalXP = level, xp
+		}
 		if x, y, z, facing, world, ok := h.gameWorld.LivePosition(entity.EntityID(record.ServerID), record.Y); ok {
 			record.X, record.Y, record.Z, record.Facing, record.World = x, y, z, facing, int(world)
 			if err := h.store.Update(record); err != nil {
 				log.Printf("SelectedChar: could not save '%s' replaced session's position: %v", record.CharName, err)
 			} else {
-				log.Printf("SelectedChar: '%s' replaces a session in the world; its position (%.1f, %.1f, %.1f) world=%d saved",
-					record.CharName, x, y, z, world)
+				log.Printf("SelectedChar: '%s' replaces a session in the world; its position (%.1f, %.1f, %.1f) world=%d, level %d saved",
+					record.CharName, x, y, z, world, record.Level)
+			}
+		} else if live {
+			if err := h.store.SetProgress(record.ServerID, record.Level, record.TotalXP); err != nil {
+				log.Printf("SelectedChar: could not save '%s' replaced session's level: %v", record.CharName, err)
 			}
 		}
 	}

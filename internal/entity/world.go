@@ -197,6 +197,8 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		CharServerID: record.ServerID,
 		Class:        record.TClass,
 		Level:        level,
+		XPInLevel:    XPInLevel(level, record.TotalXP),
+		TotalXP:      TotalXP(level, XPInLevel(level, record.TotalXP)),
 		Speed:        RunSpeed,
 		Faction:      FactionFriendly,
 		Str:          str,
@@ -657,6 +659,19 @@ func (w *World) LivePosition(id EntityID, prevY float32) (x, y, z, facing float3
 	y, _ = SafeSaveHeight(p.Y, prevY)
 	world, _ = CoherentWorld(p.World, p.X, p.Z)
 	return p.X, y, p.Z, p.Facing, world, true
+}
+
+// LiveProgress is the level and the kept total experience (totalXP) of the
+// character's player while some session still has it in the world, dead or
+// not: a death takes a place away from the next login, not a level.
+func (w *World) LiveProgress(id EntityID) (level, totalXP int, ok bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p, found := w.Players[id]
+	if !found {
+		return 0, 0, false
+	}
+	return p.Level, TotalXP(p.Level, p.XPInLevel), true
 }
 
 // sessionPlayerLocked extracts the *Player from a session. Must be called with lock held.

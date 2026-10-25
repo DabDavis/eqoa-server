@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"sync"
+	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
@@ -50,9 +51,12 @@ type NPCWindowHandler struct {
 	inv            *database.InventoryStore
 
 	// find and playerOf are the World's FindEntityByObjectID and
-	// SessionPlayer (SetGameWorld); tests stand in for them.
-	find     func(*session.Session, uint32) (entity.Entity, bool)
-	playerOf func(*session.Session) *entity.Player
+	// SessionPlayer, corpseLies and clearCorpse its CorpseLies and
+	// ClearCorpse (SetGameWorld); tests stand in for them.
+	find        func(*session.Session, uint32) (entity.Entity, bool)
+	playerOf    func(*session.Session) *entity.Player
+	corpseLies  func(entity.EntityID) (time.Time, bool)
+	clearCorpse func(entity.EntityID, time.Time) bool
 
 	// loot is the corpses (loot.go), made on first use.
 	loot     *lootState
@@ -70,6 +74,9 @@ func (h *NPCWindowHandler) SetGameWorld(gw *entity.World) {
 	h.gameWorld = gw
 	h.find = gw.FindEntityByObjectID
 	h.playerOf = gw.SessionPlayer
+	h.corpseLies = gw.CorpseLies
+	h.clearCorpse = gw.ClearCorpse
+	gw.OnCorpseGone(h.CorpsesGone)
 }
 
 // RegisterHandlers registers the window requests.

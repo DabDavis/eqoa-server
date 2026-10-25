@@ -537,6 +537,19 @@ func buildLoot(items []database.CharInventoryEntry) []byte {
 	})
 }
 
+// The reasons 0x0085 gives for a corpse not opened (CLIENT's case: words
+// 673-675 in the chat box).
+const (
+	lootBeingLooted  byte = 1 // "That corpse is already being looted by another player"
+	lootNotLootable  byte = 2 // "That entity is not lootable"
+	lootAnotherOwner byte = 3 // "That corpse belongs to another player or group"
+)
+
+// buildLootOption is opcode 0x0085: a u8, why a corpse was not opened.
+func buildLootOption(why byte) []byte {
+	return build(protocol.OpcodeLootOptions, 3, func(w *buffer.Writer) { w.WriteByte(why) })
+}
+
 // SendLoot sends opcode 0x0018.
 func SendLoot(sess *session.Session, items []database.CharInventoryEntry) {
 	queueReliable(sess, protocol.OpcodeLoot, buildLoot(items))

@@ -31,6 +31,7 @@ func (w *World) UpsertNPC(rec *database.NPCRecord, class int) (created bool, err
 
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	w.applyNPCSettingsLocked(fresh)
 	if _, taken := w.Players[fresh.ServerID]; taken {
 		return false, fmt.Errorf("entity id %d is a player's in the world now; the NPC comes at the next restart", fresh.ServerID)
 	}
@@ -73,17 +74,10 @@ func (w *World) RespawnNPCNow(id EntityID) bool {
 	if !ok {
 		return false
 	}
-	oldX, oldZ := npc.X, npc.Z
-	npc.X, npc.Y, npc.Z, npc.Facing = npc.SpawnX, npc.SpawnY, npc.SpawnZ, npc.SpawnFacing
-	npc.HP = npc.MaxHP
-	npc.Dead = false
-	npc.DeathTime = time.Time{}
-	npc.Threats = nil
-	npc.CurrentEnemy = 0
+	w.respawnNPCLocked(npc)
 	npc.Effects = nil
 	npc.endDummyFight()
 	delete(w.affected, id)
-	w.SpatialIndex.Update(id, oldX, oldZ, npc.X, npc.Z)
 	return true
 }
 

@@ -309,9 +309,13 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 
 	buf[5] = 0x82
 
-	// Facing
-	facingByte := byte(n.Facing / (2 * math.Pi) * 256)
-	buf[15] = facingByte
+	// Facing, as the player's (byte 15): turned into [0, 2pi) first, as
+	// converting a negative float to a byte is not defined
+	f := math.Mod(float64(n.Facing), 2*math.Pi)
+	if f < 0 {
+		f += 2 * math.Pi
+	}
+	buf[15] = byte(f / (2 * math.Pi) * 256)
 
 	buf[17] = n.World // World — see SerializePlayerUpdate for the measurement
 
@@ -330,8 +334,12 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	// Leave as 0x00000000
 	binary.LittleEndian.PutUint32(buf[36:40], math.Float32bits(n.Size))
 
-	// Offset 40-42: Movement/velocity data (varies with entity motion)
-	// Leave at 0 for stationary entities.
+	// Offset 40-42: the velocity (npcmove.go), units a second × 128/21, which
+	// CLIENT carries a creature along between updates (ExtrapolateMove); 0
+	// standing.
+	buf[40] = velocityToByte(n.VelX)
+	buf[41] = velocityToByte(n.VelY)
+	buf[42] = velocityToByte(n.VelZ)
 
 	// Offset 50-57: eqoa.live constant for NPCs (float32: 54.245, -2.528)
 	// Player entities have different values here (position-related)
@@ -344,7 +352,10 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	buf[56] = 0x21
 	buf[57] = 0xC0
 
-	buf[58] = 0 // Animation
+	// Offset 58: the animation CLIENT's sprite plays (UpdateCreatures'
+	// SetLocomotion, a VICSpriteAnimID): 0 standing, 1 walking (npcmove.go);
+	// a corpse's 14 is serializeEntityForChannel's
+	buf[58] = n.Loco
 
 	// Target = 0 (no target) — eqoa.live: 0 for NPCs, player OID for pets
 	binary.LittleEndian.PutUint32(buf[59:63], 0x00000000)

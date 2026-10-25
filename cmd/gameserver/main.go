@@ -61,9 +61,24 @@ func main() {
 	// Initialize game world
 	gameWorld := entity.NewWorld()
 
+	// A creature's corpse, its return and its wander (entity/corpse.go,
+	// entity/roam.go), set before the NPCs are loaded so each takes them.
+	gameWorld.SetCorpseTimes(cfg.World.CorpseDecay, cfg.World.RespawnAfter)
+	if cfg.World.RoamRadius != 0 {
+		gameWorld.SetRoamRadius(cfg.World.RoamRadius)
+	}
+
 	// Load NPCs from eqoa.db
 	npcStore := database.NewNPCStore(db)
+	if models, err := npcStore.PlayerModels(); err != nil {
+		log.Printf("Entity world: the players' race models: %v (every NPC with a body wanders)", err)
+	} else {
+		gameWorld.SetPlayerModels(models)
+	}
 	gameWorld.LoadNPCs(npcStore)
+	decay, respawn := gameWorld.CorpseTimes()
+	log.Printf("Creatures: a corpse lies %v unless emptied, the creature back %v after it goes; wandering within %.0f of its spawn",
+		decay, respawn, gameWorld.RoamRadius())
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 

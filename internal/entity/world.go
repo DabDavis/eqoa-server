@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"math/rand"
 	"sort"
 	"strings"
 	"sync"
@@ -58,6 +59,20 @@ type World struct {
 	casts    []*castState
 	onGate   GateFunc
 	affected map[EntityID]*NPC // creatures with a spell's effect on them
+
+	// Corpses (corpse.go): how long one lies unlooted, how long after it
+	// goes its creature comes back, and the hook told which went.
+	corpseDecay  time.Duration
+	respawnAfter time.Duration
+	onCorpseGone CorpseGoneFunc
+
+	// Creatures' wandering (roam.go): how far from its spawn one goes, those
+	// near a player (the ones that move), the players' race models (whose
+	// NPCs are townsfolk and stand) and the wander's random source.
+	roamRadius   float32
+	roamers      []*NPC
+	playerModels map[uint32]bool
+	roamRnd      *rand.Rand
 }
 
 // NewWorld creates and initializes a new game world.
@@ -67,6 +82,9 @@ func NewWorld() *World {
 		NPCs:         make(map[EntityID]*NPC),
 		SpatialIndex: NewQuadTree(Bounds{X: 0, Y: 0, Width: 50000, Height: 50000}),
 		nextEntityID: 1000, // Reserve IDs below 1000
+		corpseDecay:  DefaultCorpseDecay,
+		respawnAfter: DefaultRespawnAfter,
+		roamRadius:   DefaultRoamRadius,
 	}
 	log.Println("Entity World initialized")
 	return w
@@ -470,6 +488,7 @@ func (w *World) LoadNPCs(npcStore *database.NPCStore) {
 	hands := map[byte]int{} // the held items' attack types, both hands
 	for _, rec := range npcs {
 		npc := NPCFromRecord(rec, classes[database.NPCClassKey(rec.NPCName)], w.rangedModels)
+		w.applyNPCSettingsLocked(npc)
 		w.NPCs[npc.ServerID] = npc
 		w.SpatialIndex.Insert(npc.ServerID, npc.X, npc.Z)
 		if npc.PrimaryWeapon != 0 {
@@ -557,10 +576,10 @@ func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *
 		SpawnY:          posY,
 		SpawnZ:          posZ,
 		SpawnFacing:     facing,
-		RespawnTime:     60 * time.Second,
+		RespawnTime:     DefaultRespawnAfter,
 		AggroRadius:     30.0,
 		LeashRadius:     100.0,
-		RoamRadius:      50.0,
+		RoamRadius:      DefaultRoamRadius,
 
 		// SOE combat stats — estimated from level
 		OffMod:       NPCOffMod(rec.NPCLevel),
@@ -694,12 +713,16 @@ func (w *World) findSessionByEntityIDLocked(id EntityID) *session.Session {
 
 // --- Combat helpers (must be called with lock held) ---
 
-// killNPC marks an NPC as dead.
+// killNPC marks an NPC as dead: a fresh corpse (corpse.go), standing where
+// it fell (a walk's velocity would carry the corpse on on every client).
 func (w *World) killNPC(npc *NPC) {
 	npc.Dead = true
 	npc.DeathTime = time.Now()
+	npc.CorpseGone = time.Time{}
 	npc.Threats = nil
 	npc.CurrentEnemy = 0
+	npc.stopMoving()
+	npc.roam = roamState{}
 
 	log.Printf("Combat: NPC '%s' killed (entity ID=%d)", npc.Name, npc.ServerID)
 }

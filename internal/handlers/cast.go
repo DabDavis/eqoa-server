@@ -62,7 +62,8 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 // castSpell is a book entry as the World casts it. The record gives cast
 // time and recast in seconds (Sandstorm's: Minor Healing's 2 and 1 are a
 // 3300 ms lockout), the front icon the effects channel shows, the range as
-// writeAbilityRecord sends it.
+// writeAbilityRecord sends it; its line is read with its name, which says
+// what an illusion is (entity/illusion.go).
 func castSpell(e *database.CharSpellEntry, line string, fx uint32) entity.CastSpell {
 	sp := &e.Pattern
 	return entity.CastSpell{
@@ -76,7 +77,7 @@ func castSpell(e *database.CharSpellEntry, line string, fx uint32) entity.CastSp
 		Recast:       time.Duration(sp.Recast) * time.Second,
 		PowerCost:    sp.Power,
 		Range:        math.Float32frombits(abilityRangeBits(sp)),
-		Def:          entity.ParseSpell(line, sp.SpellDesc),
+		Def:          entity.ParseSpellNamed(sp.SpellName, line, sp.SpellDesc),
 		FX:           fx,
 	}
 }

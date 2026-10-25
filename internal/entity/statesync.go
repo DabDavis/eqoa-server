@@ -123,15 +123,16 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 		buf[27] = 255
 	}
 
-	// Offset 28-31: ModelID (LE)
-	modelID := uint32(p.ModelID)
+	// Offset 28-31: ModelID (LE): the body, an illusion's when one is on
+	// (illusion.go)
+	modelID, size := p.Body()
 	binary.LittleEndian.PutUint32(buf[28:32], modelID)
 
 	// Offset 32-35: ModelID2 (LE, 0 in eqoa.live — only set for upgraded models)
 	// Leave as 0x00000000
 
 	// Offset 36-39: Scale (float32 LE)
-	binary.LittleEndian.PutUint32(buf[36:40], math.Float32bits(p.Size))
+	binary.LittleEndian.PutUint32(buf[36:40], math.Float32bits(size))
 
 	// Offset 40-42: Velocity X/Y/Z, units a second × 128/21 (velocityToByte)
 	buf[40] = velocityToByte(p.VelX)

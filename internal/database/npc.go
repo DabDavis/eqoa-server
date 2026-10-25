@@ -200,6 +200,27 @@ func (s *NPCStore) PlayerModels() (map[uint32]bool, error) {
 	return out, rows.Err()
 }
 
+// RaceModels is each player race's two bodies by race and sex
+// (charactermodel), as the wire carries a model id: the bodies an illusion
+// of a race shows (entity/illusion.go).
+func (s *NPCStore) RaceModels() (map[[2]int]uint32, error) {
+	rows, err := s.db.Query(`SELECT race, sex, modelid FROM charactermodel`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make(map[[2]int]uint32)
+	for rows.Next() {
+		var race, sex int
+		var m int64
+		if err := rows.Scan(&race, &sex, &m); err != nil {
+			return nil, err
+		}
+		out[[2]int{race, sex}] = uint32(m)
+	}
+	return out, rows.Err()
+}
+
 // NPCClasses is the npcclass table (tools/import_npc_classes.py): each NPC
 // name's class, by NPCClassKey. A name it does not hold is a warrior's.
 func (s *NPCStore) NPCClasses() (map[string]int, error) {

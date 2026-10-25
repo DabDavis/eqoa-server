@@ -448,7 +448,7 @@ func (s *Server) lookupNames(t *Table, keys []any) (map[string]string, error) {
 }
 
 // deleteCharacter deletes a character with everything that is its: items,
-// spells, effects, hotkeys, weapon sets, quests and guild membership, each
+// spells, effects, standings, hotkeys, weapon sets, quests and guild membership, each
 // row audited (so revert_change can put any back), the character last. One
 // in the world is ejected first.
 func (s *Server) deleteCharacter(a *actor, id int64, dry bool) (any, error) {
@@ -468,7 +468,7 @@ func (s *Server) deleteCharacter(a *actor, id int64, dry bool) (any, error) {
 		return nil, forbidden("that character's account is at or above your level")
 	}
 	deps := []struct{ table, col string }{
-		{"charinventory", "serverid"}, {"spells", "serverid"}, {"charbuffs", "serverid"}, {"hotkeys", "serverid"},
+		{"charinventory", "serverid"}, {"spells", "serverid"}, {"charbuffs", "serverid"}, {"charfactions", "serverid"}, {"hotkeys", "serverid"},
 		{"weaponhotbar", "serverid"}, {"quickslots", "serverid"}, {"gearsets", "serverid"},
 		{"playerquest", "serverID"}, {"guild_members", "player_id"},
 	}

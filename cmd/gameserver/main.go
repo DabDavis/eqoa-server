@@ -79,6 +79,10 @@ func main() {
 	decay, respawn := gameWorld.CorpseTimes()
 	log.Printf("Creatures: a corpse lies %v unless emptied, the creature back %v after it goes; wandering within %.0f of its spawn",
 		decay, respawn, gameWorld.RoamRadius())
+	// The factions' starting standings and what kills do to them
+	if err := gameWorld.LoadFactions(db); err != nil {
+		log.Printf("WARNING: %v; every faction at its default, no kill changes one", err)
+	}
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 

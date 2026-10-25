@@ -62,6 +62,10 @@ type Player struct {
 	Speed   float32
 	Faction byte
 
+	// Factions is the character's standing with each faction it has moved
+	// off the faction's starting standing (faction.go; table charfactions).
+	Factions map[string]int
+
 	// Target
 	TargetObjectID uint32
 

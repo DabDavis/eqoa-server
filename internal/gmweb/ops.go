@@ -111,6 +111,7 @@ func (s *Server) registerOps() {
 	s.registerPlayerOps()
 	s.registerAccountOps()
 	s.registerAdminOps()
+	s.registerVisualOps()
 }
 
 // run calls an operation as an actor, with the scope check, and logs a

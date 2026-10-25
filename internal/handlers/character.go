@@ -711,6 +711,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// a PS2 ignores it, a client that keeps more says how many and how far
 	SendEntityViewOffer(sess)
 
+	// Offer others' power (powerbars.go): a client that draws power bars
+	// asks for it, a PS2 ignores it
+	SendPowerBarsOffer(sess)
+
 	// The four weapon sets (gearsets.go): SOE's live client reads them, a PS2
 	// skips them
 	if h.gearSets != nil {

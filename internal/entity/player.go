@@ -162,6 +162,14 @@ type Player struct {
 	// (handlers/profanity.go, opcode 0x0045); it is on at every login.
 	ProfanityFilterOff bool
 
+	// PowerBars: the player's client draws others' power bars and asked
+	// for their power (powerbars.go, opcode 0x7E01); powerBarsSent is the
+	// set it was last sent, so only a change goes out, and powerBarsDue
+	// sends the next one whatever it is (just asked).
+	PowerBars     bool
+	powerBarsSent string
+	powerBarsDue  bool
+
 	// Breath / underwater
 	Breath          int    // 0-255 (255 full), as the dump and stat channel byte 232 carry it; 32 every 6 s under liquid
 	Underwater      bool   // under a liquid's surface (UnderLiquid on WalkFlags)

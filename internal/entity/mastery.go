@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"math"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/protocol"
@@ -36,11 +37,14 @@ import (
 // unspent together (F3 20261025-165747).
 const MasteryCap = 1500
 
-// DefaultCMXPPerPoint is how much experience makes a mastery point unless
-// world.cm_xp_per_point says otherwise. No capture or source gives the live
-// game's rate: it is this server's, sized to its experience (a kill gives a
-// hundred a level of the creature).
-const DefaultCMXPPerPoint = 10000
+// CMPointXP is the experience the character's nth mastery point takes (n
+// counts every point it has earned: spent, unspent and this one): the live
+// game's table, eqoa.fandom.com's "CM Point XP Required" (125,000 for the
+// first, 13,426,215 for the 770th), which is exactly round(125000 *
+// 1.0061^(n-1)) at all 151 points it lists.
+func CMPointXP(n int) int {
+	return int(math.Round(125000 * math.Pow(1.0061, float64(max(n, 1)-1))))
+}
 
 // StatCapBase is the stat cap before masteries at a level (CLIENT's m_p44):
 // 350, and 400 past level 45.
@@ -90,27 +94,6 @@ type Mastery struct {
 	Points, Spent, Percent, XP int
 }
 
-// SetCMXPPerPoint sets how much experience makes a mastery point (at least 1).
-func (w *World) SetCMXPPerPoint(n int) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	w.cmXPPerPoint = max(1, n)
-}
-
-// CMXPPerPoint is how much experience makes a mastery point.
-func (w *World) CMXPPerPoint() int {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-	return w.cmXPPerPointLocked()
-}
-
-func (w *World) cmXPPerPointLocked() int {
-	if w.cmXPPerPoint <= 0 {
-		return DefaultCMXPPerPoint
-	}
-	return w.cmXPPerPoint
-}
-
 // splitXP is an award of xp as the player's mastery share divides it: what
 // goes to the level and what to mastery points. Holding MasteryCap points,
 // all of it goes to the level.
@@ -123,16 +106,21 @@ func splitXP(m Mastery, xp int) (level, mastery int) {
 	return xp - mastery, mastery
 }
 
-// gainMastery puts xp of mastery experience on m, a point for every perPoint
-// of it, never past MasteryCap points: the points it made.
-func gainMastery(m *Mastery, xp, perPoint int) int {
-	if xp <= 0 || perPoint <= 0 {
+// gainMastery puts xp of mastery experience on m, each point made when the
+// experience reaches its cost (CMPointXP of the point it would be), never
+// past MasteryCap points: the points it made.
+func gainMastery(m *Mastery, xp int) int {
+	if xp <= 0 {
 		return 0
 	}
 	m.XP += xp
 	made := 0
-	for m.XP >= perPoint && m.Points+m.Spent < MasteryCap {
-		m.XP -= perPoint
+	for m.Points+m.Spent < MasteryCap {
+		cost := CMPointXP(m.Points + m.Spent + 1)
+		if m.XP < cost {
+			break
+		}
+		m.XP -= cost
 		m.Points++
 		made++
 	}

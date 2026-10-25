@@ -8,7 +8,9 @@ import (
 // A level 23 druid in its gear, as Sandstorm's stat channel showed one
 // (2026-10-21): the worn items' stats on the base ones, the maximum hit
 // points of all the stamina plus the items' 113, the maximum power of all
-// the stats plus the items' 145, and the base maxima as Sandstorm sends them.
+// the stats plus the items' 145, and the base maxima. The hit points are
+// the live game's formula's (stats.go): 566 of the stamina where Sandstorm,
+// rounding STA/11 first, sent 575 (and 688 with the items' where 679).
 func TestRecalcStatsWithGear(t *testing.T) {
 	p := &Player{Class: 7, Level: 23,
 		BaseStr: 60, BaseSta: 100, BaseAgi: 100, BaseDex: 105, BaseWis: 75, BaseInt: 55, BaseCha: 60}
@@ -33,9 +35,9 @@ func TestRecalcStatsWithGear(t *testing.T) {
 		}
 	}
 	// 28 HP, 32 its maximum, 36 power, 40 its maximum, 148 and 156 the base maxima
-	for o, want := range map[int]int{28: 688, 32: 688, 36: 1188, 40: 1188, 148: 575, 156: 937} {
+	for o, want := range map[int]int{28: 679, 32: 679, 36: 1188, 40: 1188, 148: 566, 156: 937} {
 		if got := at(o); got != want {
-			t.Errorf("byte %d = %d, Sandstorm's %d", o, got, want)
+			t.Errorf("byte %d = %d, want %d", o, got, want)
 		}
 	}
 	// the worn AC and resists (Sandstorm showed this druid AC 529: something

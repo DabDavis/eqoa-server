@@ -83,9 +83,6 @@ type World struct {
 
 	// The factions' starting standings and what a kill does (faction.go)
 	factions factionTable
-
-	// How much experience makes a mastery point (mastery.go)
-	cmXPPerPoint int
 }
 
 // NewWorld creates and initializes a new game world.
@@ -791,7 +788,7 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 // that changes the stat cap tells it (0x001C).
 func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 	levelXP, cmXP := splitXP(player.Mastery, xp)
-	made := gainMastery(&player.Mastery, cmXP, w.cmXPPerPointLocked())
+	made := gainMastery(&player.Mastery, cmXP)
 	statCap := StatCapBase(player.Level)
 	player.TotalXP += levelXP
 	player.XPInLevel += levelXP
@@ -820,6 +817,10 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 	if StatCapBase(player.Level) != statCap {
 		SendStatCap(sess, player.Level)
 	}
+	// each level left gives its training points (training.go)
+	if player.TopUpTrainingPoints() > 0 {
+		SendTrainingPoints(sess, player.UnusedTP)
+	}
 	w.sendGrantXP(sess, player.Level, player.XPInLevel)
 	if cmXP > 0 {
 		w.sendChatToSession(sess, fmt.Sprintf("You received %d XP (%d to masteries).", xp, cmXP))
@@ -840,7 +841,8 @@ func (w *World) sendGrantXP(sess *session.Session, level, xpInLevel int) {
 
 	writer.WriteUint16(uint16(protocol.OpcodeGrantXP))
 	writer.Write7BitEncodedInt64(int64(level))
-	writer.Write7BitEncodedInt64(int64(xpInLevel))
+	// as the HUD's bar reads it, against CLIENT's own table (xp.go)
+	writer.Write7BitEncodedInt64(int64(ClientXP(level, xpInLevel)))
 
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)

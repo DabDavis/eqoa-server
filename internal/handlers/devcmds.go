@@ -420,8 +420,20 @@ func (h *ChatHandler) nearbyCommand(sess *session.Session, player *entity.Player
 // database, F3 pass 13).
 func (h *ChatHandler) setLevel(sess *session.Session, player *entity.Player, level int) {
 	level = max(1, min(60, level))
+	before := player.UnusedTP
 	h.gameWorld.SetPlayerLevel(player.CharServerID, level)
 	SendLevel(sess, level)
+	// the training points the level is due (entity/training.go)
+	if unused, total, ok := h.gameWorld.LiveTrainingPoints(player.ServerID); ok && unused != before {
+		entity.SendTrainingPoints(sess, unused)
+		if tp, ok := h.progress.(interface {
+			SetTrainingPoints(uint32, int, int) error
+		}); ok {
+			if err := tp.SetTrainingPoints(player.CharServerID, unused, total); err != nil {
+				log.Printf("GM: #setlevel %d for '%s': training points not kept: %v", level, player.Name, err)
+			}
+		}
+	}
 	if h.progress != nil {
 		if err := h.progress.SetProgress(player.CharServerID, level, entity.TotalXP(level, 0)); err != nil {
 			log.Printf("GM: #setlevel %d for '%s' not kept: %v", level, player.Name, err)

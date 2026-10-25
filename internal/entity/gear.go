@@ -11,9 +11,11 @@ package entity
 type Gear struct {
 	Str, Sta, Agi, Dex, Wis, Int, Cha int
 	MaxHP, MaxPower                   int // stats 8 and 10
-	PoT, HoT                          int // 12 and 13
 	AC                                int // 14
-	PR, DR, FR, CR, LR, AR            int // 22-27
+	// PoTItems and HoTItems are each worn item's PoT and HoT (12, 13), as
+	// ItemCredit counts them (regen.go), not summed
+	PoTItems, HoTItems     []int
+	PR, DR, FR, CR, LR, AR int // 22-27
 	// WeaponDamage is the primary weapon's itempattern.weapondamage (the
 	// tooltip's DMG), 0 for none; WeaponCond its condition (hit points over
 	// their most, 1 when the item holds none) and WeaponTwoHanded whether
@@ -45,9 +47,13 @@ func (g *Gear) Add(id, v int) {
 	case 10:
 		g.MaxPower += v
 	case 12:
-		g.PoT += v
+		if v > 0 {
+			g.PoTItems = append(g.PoTItems, v)
+		}
 	case 13:
-		g.HoT += v
+		if v > 0 {
+			g.HoTItems = append(g.HoTItems, v)
+		}
 	case 14:
 		g.AC += v
 	case 22:

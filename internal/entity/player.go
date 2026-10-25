@@ -22,8 +22,12 @@ type Player struct {
 	HairColor, HairLength, HairStyle, FaceOption int
 
 	// Equipment: the three items the channel shows (the main hand, the off
-	// hand, the shield) and the two hands' attack types (handlers.wornLook)
+	// hand, the shield) and the two hands' attack types (handlers.wornLook).
+	// Robe is the worn robe's style and RobeWorn whether one is worn: style
+	// 0 is a robe (the first), so it cannot also mean none, and the zero
+	// Player wears none.
 	Robe          uint32
+	RobeWorn      bool
 	Primary       uint32
 	Secondary     uint32
 	Shield        uint32

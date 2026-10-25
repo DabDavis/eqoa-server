@@ -809,9 +809,13 @@ func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID 
 
 	wornLook(player, items)
 
+	robe := -1
+	if player.RobeWorn {
+		robe = int(player.Robe)
+	}
 	log.Printf("applyEquipment: serverID=%d chest=%d bracer=%d gloves=%d legs=%d boots=%d helm=%d robe=%d primary=0x%08X (type %d) secondary=0x%08X (type %d) shield=0x%08X",
 		serverID, player.Chest, player.Bracer, player.Gloves, player.Legs, player.Boots, player.Helm,
-		player.Robe, player.Primary, player.PrimaryType, player.Secondary, player.SecondaryType, player.Shield)
+		robe, player.Primary, player.PrimaryType, player.Secondary, player.SecondaryType, player.Shield)
 }
 
 // wornLook sets the player's look on the state channel from the items worn.
@@ -833,7 +837,7 @@ func (h *CharacterHandler) applyEquipmentFromDB(player *entity.Player, serverID 
 // was 0, which has no attack animation.
 func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 	player.Helm, player.Chest, player.Bracer, player.Legs, player.Boots, player.Gloves = 0, 0, 0, 0, 0, 0
-	player.Robe, player.Primary, player.Secondary, player.Shield = 0, 0, 0, 0
+	player.Robe, player.RobeWorn, player.Primary, player.Secondary, player.Shield = 0, false, 0, 0, 0
 	player.PrimaryType, player.SecondaryType = 0, 0
 	worn := map[int]*database.CharInventoryEntry{}
 	for i := range items {
@@ -858,8 +862,8 @@ func wornLook(player *entity.Player, items []database.CharInventoryEntry) {
 			player.Boots = byte(model)
 		case 19: // Hands/Gloves
 			player.Gloves = byte(model)
-		case 2: // Robe
-			player.Robe = uint32(model)
+		case 2: // Robe: style 0 is a robe too
+			player.Robe, player.RobeWorn = uint32(model), true
 		}
 	}
 	first := func(slots ...int) *database.CharInventoryEntry {
@@ -893,7 +897,7 @@ func characterGear(items []database.CharInventoryEntry) []byte {
 	wornLook(&p, items)
 	g := make([]byte, 32)
 	robe := uint32(0xFFFFFFFF)
-	if p.Robe != 0 {
+	if p.RobeWorn {
 		robe = p.Robe
 	}
 	binary.LittleEndian.PutUint32(g[0:4], robe)

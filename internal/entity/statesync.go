@@ -187,8 +187,9 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 	buf[107] = byte(p.HairStyle)
 	buf[108] = byte(p.FaceOption)
 
-	// Offset 109: Robe style (0xFF = no robe, low byte of Robe uint32)
-	if p.Robe != 0 {
+	// Offset 109: Robe style (0xFF = no robe, low byte of Robe uint32). Style
+	// 0 is a robe: until 2026-10-25 a robe whose model is 0 was sent as none.
+	if p.RobeWorn {
 		buf[109] = byte(p.Robe)
 	} else {
 		buf[109] = 0xFF

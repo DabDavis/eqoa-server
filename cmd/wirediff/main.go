@@ -112,7 +112,7 @@ func main() {
 		Name: "Mcgregor", Level: 51, Race: 0, Class: 9, Sex: 0, Size: 1.0,
 		ModelID: 0x70D898C6,
 		Chest:   7, Bracer: 7, Gloves: 7, Legs: 7, Boots: 7, Helm: 7,
-		HairColor: 1, HairLength: 2, HairStyle: 1, FaceOption: 0, Robe: 2,
+		HairColor: 1, HairLength: 2, HairStyle: 1, FaceOption: 0, Robe: 2, RobeWorn: true,
 	}
 	diff("Player (armored)", entity.SerializePlayerUpdate(0x1D9F67A2, p), parse(retailPlayer))
 }

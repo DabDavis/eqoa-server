@@ -186,3 +186,50 @@ func TestCharacterGearIsSandstorms(t *testing.T) {
 		t.Error("the control: the blank entry must not be Sandstorm's for a character in gear")
 	}
 }
+
+// A robe whose style is 0 is a robe (the first): "robe of the serpent god"
+// and "Khal Robe of War" have model 0, and a character wearing either went
+// out bare, the channel's byte 109 and the character list's robe both
+// saying none (F3 20261025-010516). Nothing worn, and a Player no gear was
+// applied to, is still none: 0xFF on the channel, -1 in the list. The
+// control: the rule before (a robe is worn when its style is not 0) sends
+// the style-0 robe as none.
+func TestARobeOfStyleZeroIsWorn(t *testing.T) {
+	robe0 := worn(21, 2, 0, 0)
+	p := &entity.Player{}
+	wornLook(p, []database.CharInventoryEntry{robe0})
+	if ch := entity.SerializePlayerUpdate(1, p); ch[109] != 0 {
+		t.Errorf("robe style 0 worn: channel byte 109 = %#x, want 0", ch[109])
+	}
+	if g := characterGear([]database.CharInventoryEntry{robe0}); !bytes.Equal(g[0:4], []byte{0, 0, 0, 0}) {
+		t.Errorf("robe style 0 worn: list robe %x, want 00000000", g[0:4])
+	}
+	robe3 := worn(21, 2, 0, 3)
+	wornLook(p, []database.CharInventoryEntry{robe3})
+	if ch := entity.SerializePlayerUpdate(1, p); ch[109] != 3 {
+		t.Errorf("robe style 3 worn: channel byte 109 = %#x, want 3", ch[109])
+	}
+
+	off := robe0
+	off.EquipLoc = -1
+	wornLook(p, []database.CharInventoryEntry{off})
+	if ch := entity.SerializePlayerUpdate(1, p); ch[109] != 0xFF {
+		t.Errorf("robe taken off: channel byte 109 = %#x, want 0xFF", ch[109])
+	}
+	if ch := entity.SerializePlayerUpdate(1, &entity.Player{}); ch[109] != 0xFF {
+		t.Errorf("no gear applied: channel byte 109 = %#x, want 0xFF", ch[109])
+	}
+	if g := characterGear(nil); !bytes.Equal(g[0:4], []byte{0xFF, 0xFF, 0xFF, 0xFF}) {
+		t.Errorf("nothing worn: list robe %x, want ffffffff", g[0:4])
+	}
+
+	before := func(robe uint32) byte {
+		if robe != 0 {
+			return byte(robe)
+		}
+		return 0xFF
+	}
+	if before(uint32(robe0.Pattern.Model)) != 0xFF {
+		t.Error("the control: the rule before must send the style-0 robe as none")
+	}
+}

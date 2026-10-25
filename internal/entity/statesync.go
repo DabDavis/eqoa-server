@@ -438,8 +438,13 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	// Offset 141: Movement (0 = normal per Java)
 	buf[141] = 0
 
-	// Offset 142: NameColor — eqoa.live: 0 for ALL NPCs, 2 for players only
+	// Offset 142: NameColor — eqoa.live: 0 for ALL NPCs, 2 for players only;
+	// 3 for a pet (pet.go: CLIENT's m_p256, player-side, as Sandstorm's
+	// summoned Fire Elemental carried it)
 	buf[142] = 0
+	if n.Owner != 0 {
+		buf[142] = 3
+	}
 
 	// Offset 143: NamePlate/Targetable — eqoa.live: 1 for hostile/combat NPCs, 0 for merchants/quest
 	if n.NPCType == 0x0000 {

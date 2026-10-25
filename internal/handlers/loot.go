@@ -73,7 +73,8 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 		return false
 	}
 	died, lies := h.corpseOf(npc)
-	if !lies {
+	// a pet's corpse carries nothing and is no one's to loot (pet.go)
+	if !lies || npc.Owner != 0 {
 		queueReliable(sess, protocol.OpcodeLootOptions, buildLootOption(lootNotLootable))
 		return true
 	}

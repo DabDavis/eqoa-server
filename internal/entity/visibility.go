@@ -153,6 +153,9 @@ func (w *World) visibilitySystem() {
 			}
 		}
 
+		// The player's pet first, wherever it is (pet.go)
+		candidates = w.pinPetLocked(player, candidates)
+
 		// Sort by distance (closest first)
 		sort.Slice(candidates, func(i, j int) bool {
 			return candidates[i].DistSq < candidates[j].DistSq

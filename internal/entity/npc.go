@@ -119,6 +119,13 @@ type NPC struct {
 	// the GM panel changed leaves each client's channels and comes back as
 	// a new entity, made from its new record.
 	HiddenUntil time.Time
+
+	// Owner is the player whose pet it is (pet.go), 0 for any other NPC.
+	Owner EntityID
+
+	// CorpseDecay is how long its corpse lies when not the world's
+	// (`world.corpse_decay`, corpse.go): a pet's (pet.go); 0 the world's.
+	CorpseDecay time.Duration
 }
 
 // GetEntityID returns the NPC's entity ID.

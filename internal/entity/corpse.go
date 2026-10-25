@@ -68,9 +68,19 @@ func (w *World) applyNPCSettingsLocked(npc *NPC) {
 }
 
 // corpseLies reports a dead NPC whose corpse is still where it fell at now:
-// not emptied and closed, not decayed (decay after its death).
+// not emptied and closed, not decayed (its decay, the world's `decay` or its
+// own, after its death).
 func (n *NPC) corpseLies(now time.Time, decay time.Duration) bool {
-	return n.Dead && !n.DeathTime.IsZero() && n.CorpseGone.IsZero() && now.Before(n.DeathTime.Add(decay))
+	return n.Dead && !n.DeathTime.IsZero() && n.CorpseGone.IsZero() && now.Before(n.DeathTime.Add(n.decayOf(decay)))
+}
+
+// decayOf is how long the NPC's corpse lies: its own CorpseDecay (a pet's,
+// pet.go), else the world's.
+func (n *NPC) decayOf(world time.Duration) time.Duration {
+	if n.CorpseDecay > 0 {
+		return n.CorpseDecay
+	}
+	return world
 }
 
 // CorpseLies reports whether the NPC's corpse is there to loot now, and the
@@ -121,7 +131,7 @@ func (w *World) corpseSystem(now time.Time) []EntityID {
 			if npc.corpseLies(now, w.corpseDecay) {
 				continue
 			}
-			npc.CorpseGone = npc.DeathTime.Add(w.corpseDecay)
+			npc.CorpseGone = npc.DeathTime.Add(npc.decayOf(w.corpseDecay))
 			gone = append(gone, npc.ServerID)
 		}
 		// A GM's /spawn leaves once its corpse is gone (devspawn.go).

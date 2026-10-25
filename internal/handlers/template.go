@@ -362,6 +362,11 @@ func (h *CharacterHandler) ApplyTemplate(sess *session.Session) ([]string, error
 	// The game's copy, then the client's: the level, the purse, what the worn
 	// items add (full hit points and power at the new level), and the dump.
 	gw.SetPlayerLevel(sid, templateLevel)
+	if unused, total, ok := gw.LiveTrainingPoints(player.ServerID); ok {
+		if err := h.store.SetTrainingPoints(sid, unused, total); err != nil {
+			log.Printf("Template: '%s' training points not kept: %v", player.Name, err)
+		}
+	}
 	gw.SetPlayerTunar(sid, templateTunar, snap.BankTunar)
 	h.applyEquipmentFromDB(player, sid, true)
 	gw.SyncSelfChannels(sess)

@@ -124,8 +124,8 @@ zones' own names are CLIENT's (`ZoneName`) and are not in this repository.
 
 **Only worlds the client loads** (`handlers/loadable.go`, F3 20261025-000749): a Frontiers
 disc has six (a retail PS2, eqoa-rust-client-vanilla, the page: DiscVersion 0x12), only a
-PS2 running a patch has more (S2's 0x13 on its world session; our hard-disk loader rides on
-it). The harbormasters' and gatekeepers' menus, `#goto`/`#tele`/`#summon`, the GM panel's
+PS2 running a patch has more (the July S2's 0x13 on its world session, our hard-disk loader
+riding on it: the whole table; Sandstorm's live S2 says 0x15: its eight). The harbormasters' and gatekeepers' menus, `#goto`/`#tele`/`#summon`, the GM panel's
 list and teleport and the account pages offer and take only those (`LoadableWorlds(sess)`;
 no session is the disc's six, and an offline character logs in only there): a client told
 to load a world its table lacks stayed where it was while the server filed it under that

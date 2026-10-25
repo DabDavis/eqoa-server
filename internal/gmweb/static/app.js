@@ -23,6 +23,7 @@ const NAV = [
     ['items', 'Items', 'sword'],
     ['spells', 'Spells', 'spark'],
     ['quests', 'Quests', 'pin'],
+    ['visuals', 'Spell visuals', 'play'],
     ['starting', 'New characters', 'book'],
   ]],
   ['Server', [
@@ -50,6 +51,7 @@ const VIEWS = {
   items: () => import('./views/items.js'),
   spells: () => import('./views/spells.js'),
   quests: () => import('./views/quests.js'),
+  visuals: () => import('./views/visuals.js'),
   starting: () => import('./views/starting.js'),
   tables: () => import('./views/tables.js'),
   audit: () => import('./views/audit.js'),

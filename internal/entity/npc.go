@@ -92,6 +92,9 @@ type NPC struct {
 	// (chase.go).
 	chase chaseState
 
+	// path is where it is on the path a GM gave it (path.go).
+	path pathState
+
 	// onGround: it spawned on the terrain of the world's ground, so its moves
 	// take its floor (groundnpc.go); groundKnown once that was looked at.
 	groundKnown, onGround bool
@@ -106,6 +109,12 @@ type NPC struct {
 	Threats      map[EntityID]int64
 	CurrentEnemy EntityID
 	LastCombat   time.Time
+
+	// nature is whether it attacks on sight (aggro.go's hostileLocked): 0
+	// not looked at, 1 it does, -1 it does not; natureGen the GMs' rules it
+	// was looked at under.
+	nature    int8
+	natureGen uint32
 
 	// Temporary is a GM's /spawn (devspawn.go): it has no database row, and
 	// once dead it leaves the world after its corpse time instead of

@@ -76,6 +76,7 @@ const ICONS = {
   pin: 'M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6',
   bolt: 'M13 2 3 14h9l-1 8 10-12h-9z',
   box: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
+  play: 'M7 4v16l13-8z',
 };
 
 export function icon(name) {

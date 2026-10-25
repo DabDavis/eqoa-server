@@ -1,7 +1,8 @@
-// The GM's own game disc, for the map's terrain and the models: picked here,
-// read in place by the disc worker, never sent anywhere. The models and icons
-// need three small files that are kept in this site's private storage, so they
-// work on later visits without the disc; the map's zones are kept as pictures.
+// The GM's own game disc, for the map's terrain, the models and the spell
+// visuals: picked here, read in place by the disc worker, never sent anywhere.
+// The models, icons and visuals need four small files that are kept in this
+// site's private storage, so they work on later visits without the disc; the
+// map's zones are kept as pictures.
 
 import { h, mount, pageHead, button, toast, card, confirmBox, empty } from '../lib/dom.js';
 import { Viewer } from '../lib/viewer.js';
@@ -41,12 +42,13 @@ async function checkKept() {
 }
 
 export function discState() {
-  return { loaded: st.open, label: st.label, models: st.open || st.kept.includes('DATA/CHAR.ESF'), icons: st.open || st.kept.includes('DATA/ITEMICON.ESF'), items: st.open || st.kept.includes('DATA/ITEM.ESF') };
+  return { loaded: st.open, label: st.label, models: st.open || st.kept.includes('DATA/CHAR.ESF'), icons: st.open || st.kept.includes('DATA/ITEMICON.ESF'), items: st.open || st.kept.includes('DATA/ITEM.ESF'), visuals: st.open || st.kept.includes('DATA2/SPELLFX.CSF') };
 }
 
 async function openDisc(file) {
   toast('Reading ' + file.name + '…', 'info', 'It stays on this computer.');
   const out = await call('open', { file });
+  visualsOnce = null;
   st.open = true;
   st.label = out.label;
   st.kept = out.kept;
@@ -76,6 +78,7 @@ export async function render(box) {
       h('dt', null, 'This visit'), h('dd', null, s.loaded ? h('span', { class: 'badge ok' }, 'loaded: ' + st.label) : h('span', { class: 'badge' }, 'not loaded')),
       h('dt', null, 'Models'), h('dd', null, s.models ? 'available (character bodies and items)' : 'need the disc once'),
       h('dt', null, 'Item icons'), h('dd', null, s.icons ? 'available' : 'need the disc once'),
+      h('dt', null, 'Spell visuals'), h('dd', null, s.visuals ? 'available (Spell visuals lists them)' : 'need the disc once'),
       h('dt', null, 'World map'), h('dd', null, s.loaded ? 'terrain is drawn zone by zone and kept' : 'zones drawn before are shown; new ones need the disc')));
   };
   draw();
@@ -87,15 +90,31 @@ export async function render(box) {
         h('div', { class: 'row' }, pick, input),
         statusBox)),
       card('What is kept', h('div', { class: 'stack' },
-        h('p', null, 'So the models work on your next visit without the disc, three files are kept in this site\'s private storage in your browser (about 160 MB): CHAR.ESF, ITEM.ESF and ITEMICON.ESF. Map zones are kept as pictures once drawn.'),
+        h('p', null, 'So the models and the spell visuals work on your next visit without the disc, four files are kept in this site\'s private storage in your browser (about 160 MB): CHAR.ESF, ITEM.ESF, ITEMICON.ESF and SPELLFX.CSF. Map zones are kept as pictures once drawn.'),
         button('Forget them', { class: 'danger', onclick: async () => {
           if (!(await confirmBox({ title: 'Forget the kept files?', message: 'The models need the disc again next time, and the map is drawn again.', confirmLabel: 'Forget', danger: true }))) return;
           await call('forget');
+          visualsOnce = null;
           await clearTiles();
           st.kept = []; st.open = false;
           draw();
           toast('Forgotten', 'ok');
         } })))));
+}
+
+// ---- the spell visuals, for the Spell visuals page
+
+let visualsOnce = null;
+
+// spellVisualsOnDisc is every spell visual on the disc (or the kept
+// SPELLFX.CSF): [{id, version, lists: [{events, kinds}] x3}].
+export async function spellVisualsOnDisc() {
+  await checkKept();
+  if (!visualsOnce) {
+    visualsOnce = call('spellVisuals').then((out) => out.visuals);
+    visualsOnce.catch(() => { visualsOnce = null; });
+  }
+  return visualsOnce;
 }
 
 // ---- models and icons for other pages

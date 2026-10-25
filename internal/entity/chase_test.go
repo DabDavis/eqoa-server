@@ -65,16 +65,17 @@ func TestACreatureRunsAtItsEnemyAndFightsWhenItReaches(t *testing.T) {
 			}
 		}
 	}
-	reach := npcReach(c.npc)
 	if swungAt == 0 {
 		t.Fatalf("never swung: at %.2f, %.2f from its enemy", c.npc.X, c.p.X-c.npc.X)
 	}
-	// in its reach after a run of about 23.5 at 8.83 a second (it eases off
-	// in the last two units), the first tick standing
-	if swungAt < 2600*time.Millisecond || swungAt > 3000*time.Millisecond {
-		t.Errorf("swung at %v, want 2.6 to 3 s", swungAt)
+	// in its reach after a run of about 23.5 at Sandstorm's 9.9 a second (it
+	// eases off in the last unit and a quarter), the first tick in reach;
+	// this test asked 2.6 to 3 s of the player's base run (8.83) and the
+	// easing over 2.5 units until F3 pass 16
+	if swungAt < 2300*time.Millisecond || swungAt > 2500*time.Millisecond {
+		t.Errorf("swung at %v, want 2.3 to 2.5 s", swungAt)
 	}
-	// then it eases in to a little inside its reach, and stands, its round
+	// then it eases in to half a step inside its reach, and stands, its round
 	// going on meanwhile
 	hp := c.p.HP
 	var stoodAt time.Duration
@@ -84,7 +85,7 @@ func TestACreatureRunsAtItsEnemyAndFightsWhenItReaches(t *testing.T) {
 			stoodAt = d
 		}
 	}
-	stop := reach * npcCloseIn
+	stop := npcStop(c.npc)
 	if gap := c.p.X - c.npc.X; stoodAt == 0 || gap < stop-0.01 || gap > stop+0.13 {
 		t.Errorf("stood (at %v) %.2f off its enemy, want %.2f", stoodAt, gap, stop)
 	}
@@ -160,7 +161,7 @@ func TestAFollowingCreatureWalksWithItsVelocity(t *testing.T) {
 	// a player backing off at 6 a second: followed at about where it would
 	// stop, by the lead its velocity gives (on the gap alone it trails 0.9
 	// further, at the edge of its reach)
-	stop, far := npcReach(c.npc)*npcCloseIn, 0
+	stop, far := npcStop(c.npc), 0
 	for d := 12100 * time.Millisecond; d <= 16*time.Second; d += 100 * time.Millisecond {
 		c.p.X += 0.6
 		c.p.VelX = 6

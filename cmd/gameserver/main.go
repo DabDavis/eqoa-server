@@ -103,6 +103,17 @@ func main() {
 	} else {
 		log.Printf("Creatures: no bodies' sizes (%v): every creature is reached at 4.5, as before", err)
 	}
+	// The paths GMs gave creatures (entity/path.go, the GM panel's map)
+	if recs, bad, err := database.NewNPCPathStore(db).All(); err != nil {
+		log.Printf("Creatures: the paths: %v (none walked)", err)
+	} else {
+		for _, e := range bad {
+			log.Printf("Creatures: %v (not walked)", e)
+		}
+		if n := gameWorld.LoadNPCPaths(recs); n > 0 {
+			log.Printf("Creatures: %d walk the paths GMs gave them", n)
+		}
+	}
 	decay, respawn := gameWorld.CorpseTimes()
 	log.Printf("Creatures: a corpse lies %v unless emptied, the creature back %v after it goes; wandering within %.0f of its spawn",
 		decay, respawn, gameWorld.RoamRadius())

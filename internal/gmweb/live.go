@@ -22,6 +22,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveNPC(action, before, after)
 	case "npcclass":
 		return s.liveNPCClass(before, after)
+	case "npcpaths":
+		return s.livePath(before, after)
 	case "defaultcharacter":
 		database.InvalidateDefaultCharacters()
 		return "the next character made uses it"

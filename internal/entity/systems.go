@@ -70,6 +70,9 @@ func (w *World) aiSystem(now time.Time) {
 	var petFights [][2]*NPC // a creature and the pet it fights (pet.go)
 
 	for _, npc := range w.NPCs {
+		if npc.Owner != 0 {
+			continue // a pet fights in petSystem (pet.go)
+		}
 		if npc.Dummy != NotDummy {
 			if npc.DummyTarget != 0 {
 				dummies = append(dummies, npc) // its own target and hits (dummy.go)

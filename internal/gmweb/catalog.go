@@ -298,7 +298,7 @@ var catalog = map[string]tableNote{
 			"npc_id":           {Label: "NPC id", Section: "Identity", Help: "Sandstorm's id for the NPC (imports), not the row"},
 			"race":             {Label: "Race", Section: "Look", Help: "text: '0'..'10' as the race ids; scales the body"},
 			"modelid":          {Label: "Model", Format: hex32, Section: "Look", Help: "CHAR.ESF DictID of the body"},
-			"size":             {Label: "Size", Section: "Look", Help: "1.0 normal, scaled again by race"},
+			"size":             {Label: "Size", Section: "Look", Help: "1.0 normal, sent as is (a gnome body is already gnome-sized)"},
 			"world":            {Label: "World", Enum: "world", Section: "Place"},
 			"zone":             {Label: "Zone", Section: "Place"},
 			"x_coord":          {Label: "X", Section: "Place"},

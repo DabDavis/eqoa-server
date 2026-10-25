@@ -769,7 +769,7 @@ func loginSpawn(gw *entity.World, record *database.CharacterRecord) {
 // discWorlds is how many worlds CLIENT's gWorldInfo names on the Frontiers
 // disc (TUNARIA, RATHE, ODUS, LAVASTM, PLANESKY, SECRETS): the worlds every
 // client has, a retail PS2 and a page reading the player's own disc alike.
-const discWorlds = 6
+const discWorlds = entity.DiscWorlds
 
 // resumable reports whether a login may start at the record's saved
 // position, and if not, why.

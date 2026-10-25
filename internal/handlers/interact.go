@@ -156,6 +156,7 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		}
 		player.PendingYesNo = false
 		player.PendingBind = entity.Bind{}
+		player.PendingSpar = entity.SparPick{}
 		player.PendingHDDMenu = HDDMenuMain
 		h.sendOptionBox(sess, HDDGreeting, HDDMenuFor(HDDMenuMain))
 		log.Printf("HDD: %s opened %s", player.Name, HDDSetupNPC)
@@ -170,6 +171,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 	if npc, ok := targetEntity.(*entity.NPC); ok && IsWaysender(npc.Name) && h.offerWay(sess, player, npc) {
+		return nil
+	}
+	// a sparring dummy asks its level and element (sparring.go)
+	if npc, ok := targetEntity.(*entity.NPC); ok && npc.Dummy == entity.SparringDummy {
+		h.askSparLevel(sess, player, npc)
 		return nil
 	}
 
@@ -334,6 +340,13 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	if player.PendingBind.Set {
 		if selectedOption != 255 {
 			h.answerBind(sess, player, selectedOption)
+		}
+		return nil
+	}
+	// A sparring dummy's level or element (sparring.go)
+	if player.PendingSpar.Asked != 0 {
+		if selectedOption != 255 {
+			h.answerSpar(sess, player, selectedOption)
 		}
 		return nil
 	}

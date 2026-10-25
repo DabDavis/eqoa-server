@@ -171,6 +171,7 @@ func forgetDialogs(player *entity.Player) {
 	player.CoachPage = 0
 	player.PendingYesNo = false
 	player.PendingBind = entity.Bind{}
+	player.PendingSpar = entity.SparPick{}
 	if player.PendingHDDMenu != HDDMenuNone {
 		player.PendingHDDMenu = HDDMenuNone
 		clearFormatArm(player.ServerID)

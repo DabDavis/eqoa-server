@@ -42,6 +42,7 @@ const (
 	NotDummy      DummyKind = iota
 	TrainingDummy           // "Training Dummy LvN": a heal after each hit
 	RegularDummy            // "Regular Dummy LvN": a creature's hits, no heal
+	SparringDummy           // "Sparring Dummy": its level and element the player's pick (sparring.go)
 )
 
 // DummyKindOf is the kind the NPC's name gives it.
@@ -52,6 +53,8 @@ func DummyKindOf(name string) DummyKind {
 		return TrainingDummy
 	case strings.HasPrefix(n, "regular dummy"):
 		return RegularDummy
+	case strings.HasPrefix(n, "sparring dummy"):
+		return SparringDummy
 	}
 	return NotDummy
 }
@@ -88,13 +91,20 @@ func (w *World) dummyFightLocked(npc *NPC, now time.Time) {
 		npc.endDummyFight()
 		return
 	}
+	start := npc.RoundStart
 	w.npcRoundLocked(npc, p, now, func() bool { return w.dummyHitLocked(sess, npc, p, now) })
+	if npc.Dummy == SparringDummy && npc.DummyTarget == p.ServerID {
+		w.sparRoundLocked(sess, npc, p, start, now)
+	}
 }
 
 // dummyHitLocked is one of a dummy's hits on the player, and a Training
 // Dummy's heal after it. It reports the player's death.
 func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now time.Time) bool {
 	damage := npcMeleeRoll(npc).hitOn(p, rand.Intn)
+	if npc.Dummy == SparringDummy {
+		return w.sparHitLocked(sess, npc, p, damage, "", now)
+	}
 	p.HP = max(p.HP-damage, 0)
 	p.LastCombatTime = now
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)

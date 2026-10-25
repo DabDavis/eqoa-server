@@ -55,15 +55,8 @@ func TestSwingReachIsTargetInRange(t *testing.T) {
 	if inReach(p, npc) {
 		t.Error("7 units in reach of 4.5")
 	}
-	npc.NPCType = 0x400
-	if !inReach(p, npc) {
-		t.Error("a 0x400 target adds 3")
-	}
-	npc.NPCType, npc.X = 0x800, 9.4
-	if !inReach(p, npc) {
-		t.Error("a 0x800 target adds 5")
-	}
-	npc.NPCType, npc.X, npc.Y = 0, 3, 3.5 // 3D: 4.6
+	// a large target's +3 and a huge one's +5 are its body's (reach_test.go)
+	npc.X, npc.Y = 3, 3.5 // 3D: 4.6
 	if inReach(p, npc) {
 		t.Error("the reach is a 3D distance")
 	}

@@ -196,8 +196,9 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)
 	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID())
 
-	log.Printf("Combat: NPC '%s' hit player %s for %d damage (HP: %d/%d)",
-		npc.Name, sess.RemoteAddr(), damage, player.HP, player.MaxHP)
+	log.Printf("Combat: NPC '%s' hit player %s for %d damage (HP: %d/%d) %.2f off, reach %.2f",
+		npc.Name, sess.RemoteAddr(), damage, player.HP, player.MaxHP,
+		dist3(npc.X, npc.Y, npc.Z, player.X, player.Y, player.Z), npcReach(npc))
 
 	// Check for player death
 	if player.HP <= 0 {

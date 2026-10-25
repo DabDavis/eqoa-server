@@ -341,7 +341,8 @@ func (w *World) attackSystem(now time.Time) {
 			continue
 		}
 		npc := w.NPCs[p.AttackTarget]
-		if npc == nil || npc.Dead || p.IsDead() {
+		if npc == nil || npc.Dead || npc.Owner != 0 || p.IsDead() {
+			// gone, dead, or someone's pet now (a charm: charm.go)
 			p.disengage()
 			continue
 		}

@@ -426,6 +426,11 @@ func (w *World) pinPetLocked(p *Player, cands []entityDist) []entityDist {
 // non-collide entry off, text when there is any). sess is the owner's, or
 // nil when it has none to tell. Must be called with the lock held.
 func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text string) {
+	if ps.npc.Charm != nil {
+		// a charmed creature is let go, not taken away (charm.go)
+		w.releaseCharmLocked(ps, sess, text, false)
+		return
+	}
 	pet := ps.npc
 	if w.pets[ps.owner.ServerID] == ps {
 		delete(w.pets, ps.owner.ServerID)
@@ -479,6 +484,11 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		ps.stance = petStance(cmd)
 		w.sendChatToSession(sess, petStanceWords[ps.stance])
 	case petCmdDismiss:
+		if pet.Charm != nil {
+			// let go, it turns on its master (charm.go)
+			w.releaseCharmLocked(ps, sess, "Your pet has been dismissed.", true)
+			return
+		}
 		w.dismissPetLocked(ps, sess, "Your pet has been dismissed.")
 	case petCmdBackOff:
 		ps.target = 0
@@ -535,6 +545,10 @@ func (w *World) petSystem(now time.Time) {
 		}
 		if owner.IsDead() || owner.respawnPending() {
 			w.dismissPetLocked(ps, sess, "")
+			continue
+		}
+		if h := pet.Charm; h != nil && !h.until.IsZero() && !now.Before(h.until) {
+			w.releaseCharmLocked(ps, sess, charmWornOff, true) // charm.go
 			continue
 		}
 		dt := float32(now.Sub(ps.last).Seconds())

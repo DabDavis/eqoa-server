@@ -101,10 +101,27 @@ type SpellDef struct {
 	// Pet is the creature a summoning line names ("Summons an Iron Golem to
 	// your defense": "iron golem"), "" when it names none ("Summons a pet").
 	Pet string
-	// Unread is the part of the line this does not act on (charm, procs,
-	// cures...), for the log.
+	// Unread is the part of the line this does not act on (procs, cures...),
+	// for the log.
 	Unread []string
+	// CharmMax is the highest level a charm takes when its line or
+	// description says ("Charms up to level 54 mobs", "Charm up to level
+	// 54"); 0: the spell's own level (charm.go).
+	CharmMax int
 }
+
+// Charms reports whether the spell makes its target the caster's pet.
+func (d *SpellDef) Charms() bool {
+	for _, e := range d.Effects {
+		if e.Kind == EffectCharm {
+			return true
+		}
+	}
+	return false
+}
+
+// reCharmMax is a charm's level cap in its words.
+var reCharmMax = regexp.MustCompile(`up to level (\d+)`)
 
 // Summons reports whether the spell makes a pet.
 func (d *SpellDef) Summons() bool {
@@ -197,6 +214,11 @@ func ParseSpell(line, desc string) SpellDef {
 	d := ParseSpellText(line)
 	if reProcDesc.MatchString(strings.ToLower(desc)) {
 		d = d.asProc()
+	}
+	if d.Charms() && d.CharmMax == 0 {
+		if m := reCharmMax.FindStringSubmatch(strings.ToLower(desc)); m != nil {
+			d.CharmMax = atoi(m[1])
+		}
 	}
 	return d
 }
@@ -305,7 +327,7 @@ func ParseSpellText(line string) SpellDef {
 			if e.Amount < 0 {
 				d.Harmful = true
 			}
-		case EffectRoot, EffectSnare, EffectHate:
+		case EffectRoot, EffectSnare, EffectHate, EffectCharm:
 			d.Harmful = true
 		}
 	}
@@ -392,6 +414,14 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		}
 	case part == "snare":
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectSnare})
+		return verb
+	case part == "charm" || strings.HasPrefix(part, "charms ") || strings.HasPrefix(part, "charm "):
+		// "Target, Charm ; Increase 25% based on CHA , 4min" (the scale clause
+		// after it is the charm's), "Charms up to level 54 mobs, 1 hour"
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectCharm})
+		if m := reCharmMax.FindStringSubmatch(part); m != nil {
+			d.CharmMax = atoi(m[1])
+		}
 		return verb
 	case part == "sow" || part == "spirit of the wolf":
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectSpeed})

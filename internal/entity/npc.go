@@ -131,6 +131,11 @@ type NPC struct {
 	// (rounds.go): an enchanter's pet's (pet.go).
 	SwingFixed bool
 	SwingKind  int
+
+	// Charm is a charm's hold on it (charm.go): what it was before, put
+	// back when the charm ends or it comes back after dying; nil for a
+	// creature no one charmed.
+	Charm *charmHold
 }
 
 // GetEntityID returns the NPC's entity ID.

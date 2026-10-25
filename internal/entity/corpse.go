@@ -153,6 +153,9 @@ func (w *World) corpseSystem(now time.Time) []EntityID {
 // health, out of any fight, standing. Must be called with the lock held.
 func (w *World) respawnNPCLocked(npc *NPC) {
 	oldX, oldZ := npc.X, npc.Z
+	// one that died as a charmed pet comes back itself, in its own world
+	// (charm.go)
+	npc.World = w.unCharmLocked(npc)
 	npc.X = npc.SpawnX
 	npc.Y = npc.SpawnY
 	npc.Z = npc.SpawnZ

@@ -79,6 +79,9 @@ type World struct {
 
 	// The factions' starting standings and what a kill does (faction.go)
 	factions factionTable
+
+	// How much experience makes a mastery point (mastery.go)
+	cmXPPerPoint int
 }
 
 // NewWorld creates and initializes a new game world.
@@ -210,7 +213,6 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		Cha:          cha,
 		UnusedTP:     record.UnusedTP,
 		TotalTP:      record.TotalTP,
-		BaseMaxStat:  475,
 		Tunar:        StartingTunar(record),
 		BankTunar:    record.BankTunar,
 		Breath:       BreathFull,
@@ -771,10 +773,16 @@ func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 	}
 }
 
-// awardXP grants XP to a player, handles level-ups, and sends GrantXP.
+// awardXP grants XP to a player, handles level-ups, and sends GrantXP. The
+// mastery points window's share of it goes to mastery points (mastery.go),
+// each point made told as CLIENT's Recv03 is (0x1402 sub-op 3), and a level
+// that changes the stat cap tells it (0x001C).
 func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
-	player.TotalXP += xp
-	player.XPInLevel += xp
+	levelXP, cmXP := splitXP(player.Mastery, xp)
+	made := gainMastery(&player.Mastery, cmXP, w.cmXPPerPointLocked())
+	statCap := StatCapBase(player.Level)
+	player.TotalXP += levelXP
+	player.XPInLevel += levelXP
 
 	// Process level-ups
 	if player.Level < 60 {
@@ -797,8 +805,19 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		}
 	}
 
+	if StatCapBase(player.Level) != statCap {
+		SendStatCap(sess, player.Level)
+	}
 	w.sendGrantXP(sess, player.Level, player.XPInLevel)
-	w.sendChatToSession(sess, fmt.Sprintf("You received %d XP.", xp))
+	if cmXP > 0 {
+		w.sendChatToSession(sess, fmt.Sprintf("You received %d XP (%d to masteries).", xp, cmXP))
+	} else {
+		w.sendChatToSession(sess, fmt.Sprintf("You received %d XP.", xp))
+	}
+	if made > 0 {
+		SendMasteryPoints(sess, player.Mastery)
+		logMastery(player.Name, made, player.Mastery)
+	}
 	log.Printf("Combat: awarded %d XP to %s (level %d, xpInLevel: %d/%d)", xp, sess.RemoteAddr(), player.Level, player.XPInLevel, CharXPDict[player.Level])
 }
 

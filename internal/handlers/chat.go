@@ -55,6 +55,7 @@ type ChatHandler struct {
 	progress progressStore
 	purse    purseStore
 	template func(*session.Session) ([]string, error)
+	mastery  masteryStore // #grantcm's (mastery.go)
 }
 
 // NewChatHandler creates a new chat handler.
@@ -795,6 +796,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// level 60, every class spell, 1,000,000 tunar, the best gear worn
 		// (template.go)
 		h.templateCommand(sess)
+	case "#grantcm":
+		// #grantcm <amount>: mastery points, never past 1500 in all
+		// (mastery.go)
+		h.grantMasteryCommand(sess, parts[1:])
 
 	case "#help":
 		h.gmReply(sess, "GM Commands (each also as /name):")
@@ -815,6 +820,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #template - level 60, every spell of your class, 1,000,000 tunar, the best gear you may wear")
 		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear active effects")
 		h.gmReply(sess, "  #faction <faction> [standing] - your standing with a faction, or set it")
+		h.gmReply(sess, "  #grantcm <amount> - mastery points, never past 1500 spent and unspent")
 		h.gmReply(sess, "  #kill - kill target")
 		h.gmReply(sess, "  #pos - show position")
 		h.gmReply(sess, "  #who - list players")

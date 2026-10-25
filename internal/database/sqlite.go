@@ -538,6 +538,17 @@ func (db *SQLiteDB) initSchema() error {
 	);
 	CREATE INDEX IF NOT EXISTS idx_factionhits_npc ON factionhits(npc_name);
 
+	-- charmastery: a character's class mastery points, unspent and spent, the
+	-- share of its experience going to them and the experience gathered
+	-- toward the next (mastery.go, entity/mastery.go)
+	CREATE TABLE IF NOT EXISTS charmastery (
+		serverid INTEGER PRIMARY KEY,
+		points   INTEGER NOT NULL DEFAULT 0,
+		spent    INTEGER NOT NULL DEFAULT 0,
+		percent  INTEGER NOT NULL DEFAULT 0,
+		xp       INTEGER NOT NULL DEFAULT 0
+	);
+
 	-- Create indexes
 	CREATE INDEX IF NOT EXISTS idx_characters_account ON characters(accountid);
 	CREATE INDEX IF NOT EXISTS idx_characters_name ON characters(charName);

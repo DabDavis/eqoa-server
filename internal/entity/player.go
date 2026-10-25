@@ -73,12 +73,15 @@ type Player struct {
 	Str, Sta, Agi, Dex, Wis, Int, Cha int
 
 	// Experience
-	TotalXP     int
-	Debt        int
-	XPInLevel   int // XP earned within current level (sent to client)
-	UnusedTP    int
-	TotalTP     int
-	BaseMaxStat int
+	TotalXP   int
+	Debt      int
+	XPInLevel int // XP earned within current level (sent to client)
+	UnusedTP  int
+	TotalTP   int
+
+	// Class mastery points and the share of experience going to them
+	// (mastery.go); the stat cap is the level's (StatCap)
+	Mastery Mastery
 
 	// Currency
 	Tunar, BankTunar int

@@ -122,7 +122,7 @@ func (w *World) aiSystem(now time.Time) {
 		// its enemy far off or in another world, it gives up and goes home
 		// (chase.go). Until 2026-10-25 an enemy more than 10 off was dropped
 		// at once and the NPC never moved (F3 20261025-165533).
-		in, giveUp := w.chaseLocked(npc, enemy.X, enemy.Z, now)
+		in, giveUp := w.chaseLocked(npc, enemy.X, enemy.Z, enemy.VelX, enemy.VelZ, now)
 		if giveUp || enemy.World != npc.World {
 			w.giveUpLocked(npc)
 			continue

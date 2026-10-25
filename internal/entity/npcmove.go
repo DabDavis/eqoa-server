@@ -48,7 +48,9 @@ func (w *World) stepNPCToward(npc *NPC, x, z, speed, dt float32) (arrived bool) 
 			npc.Facing = headingTo(dx, dz)
 		}
 		npc.stopMoving()
-		w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
+		if w.SpatialIndex != nil {
+			w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
+		}
 		return true
 	} else {
 		ux, uz := dx/dist, dz/dist
@@ -61,7 +63,9 @@ func (w *World) stepNPCToward(npc *NPC, x, z, speed, dt float32) (arrived bool) 
 	if speed >= NPCRunFrom {
 		npc.Loco = LocoRun
 	}
-	w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
+	if w.SpatialIndex != nil {
+		w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
+	}
 	return false
 }
 

@@ -273,6 +273,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Register the buddy and ignore lists (entity/social.go)
 	NewSocialHandler(gameWorld).RegisterHandlers(r)
 
+	// Register the pet commands (0x0041; entity/pet.go)
+	NewPetHandler(gameWorld).RegisterHandlers(r)
+
 	// Register the tell-gram mail (0x0D01 in, 0x0D41 out; mail.go)
 	NewMailHandler(gameWorld, charStore).RegisterHandlers(r)
 

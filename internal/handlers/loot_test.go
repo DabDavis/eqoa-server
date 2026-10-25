@@ -138,3 +138,19 @@ func TestADecayedCorpseClosesItsWindows(t *testing.T) {
 		t.Fatalf("a decayed corpse is remembered: %d open, record %v", len(ls.open), ls.corpses[f.npc.ServerID])
 	}
 }
+
+// A pet's corpse is no one's to loot (entity/pet.go): "That entity is not
+// lootable", no window. The control: the same corpse unowned opens.
+func TestAPetsCorpseIsNotLootable(t *testing.T) {
+	f := newCorpseFixture(t, 0)
+	f.npc.Owner = 1001
+	f.h.OpenCorpse(f.sess, f.npc)
+	got := f.sent()
+	mustOps(t, got, protocol.OpcodeLootOptions)
+	if got[0][2] != lootNotLootable {
+		t.Fatalf("a pet's corpse answered 0x0085 %d", got[0][2])
+	}
+	f.npc.Owner = 0
+	f.h.OpenCorpse(f.sess, f.npc)
+	mustOps(t, f.sent(), protocol.OpcodeLoot)
+}

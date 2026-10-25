@@ -73,6 +73,9 @@ type World struct {
 	roamers      []*NPC
 	playerModels map[uint32]bool
 	roamRnd      *rand.Rand
+
+	// Summoned pets by their owners' ids (pet.go)
+	pets map[EntityID]*petState
 }
 
 // NewWorld creates and initializes a new game world.

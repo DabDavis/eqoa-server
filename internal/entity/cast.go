@@ -81,6 +81,9 @@ const (
 	castNotFriendly = "Target is not friendly."
 	castOutOfRange  = "Out of range."
 	castNoPower     = "Not enough power."
+	// a pet's spell with no pet: CLIENT's own word for it (1021), which it
+	// shows itself for a pet command with none
+	castNoPet = "You do not have a pet."
 )
 
 var castRefusalRGB = [3]byte{255, 63, 63}
@@ -99,6 +102,7 @@ const (
 type CastSpell struct {
 	SpellID      int
 	DisplayIndex int    // its place in the book: 0x00CD names it
+	Level        int    // the ability's level (abilitylvl): a summoned pet's (pet.go)
 	Scope        int    // VIAbility's: 0 self, 1 target, 2 group, 3 pet, 4 corpse
 	Name         string // the effect's name on channel 0x43
 	Icon         uint32 // the ability's front icon: the effect's icon
@@ -389,6 +393,17 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 	switch spell.Scope {
 	case 0:
 		return []EntityID{p.ServerID}, ""
+	case 3:
+		// the caster's pet, whatever is targeted: CLIENT sends its target as
+		// it is and never puts the pet in its place (pet.go)
+		pet := w.petOfLocked(p)
+		if pet == nil {
+			return nil, castNoPet
+		}
+		if outOfRange(p, pet.X, pet.Y, pet.Z, spell.Range) {
+			return nil, castOutOfRange
+		}
+		return []EntityID{pet.ServerID}, ""
 	case 2:
 		ids := []EntityID{p.ServerID}
 		for _, m := range w.groupMembersLocked(p) {
@@ -421,6 +436,16 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 	case *NPC:
 		if t.Dead {
 			return nil, castNoTarget
+		}
+		if t.Owner != 0 {
+			// a pet is on the players' side: helped, never harmed (pet.go)
+			if d.Harmful {
+				return nil, castFriendly
+			}
+			if outOfRange(p, t.X, t.Y, t.Z, spell.Range) {
+				return nil, castOutOfRange
+			}
+			return []EntityID{t.ServerID}, ""
 		}
 		if !d.Harmful {
 			return nil, castNotFriendly
@@ -554,6 +579,10 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 	if len(d.Effects) == 0 {
 		log.Printf("Cast: %s's %q lands: nothing read in its line %v", caster.Name, cs.spell.Name, d.Unread)
 	}
+	if d.Summons() {
+		w.summonPetLocked(cs, caster, casterSess, now)
+		return gate
+	}
 	for _, id := range cs.targets {
 		if t := w.Players[id]; t != nil {
 			if !t.IsDead() {
@@ -562,6 +591,10 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 			continue
 		}
 		if npc := w.NPCs[id]; npc != nil && !npc.Dead {
+			if npc.Owner != 0 {
+				w.landOnPetLocked(cs, caster, casterSess, npc, now)
+				continue
+			}
 			w.landOnNPCLocked(cs, caster, casterSess, npc, now)
 		}
 	}

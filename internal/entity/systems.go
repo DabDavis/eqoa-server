@@ -37,6 +37,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 
 	w.TickCount++
 
+	w.aggroSystem(now) // a creature's first move (aggro.go)
 	w.aiSystem(now)
 	w.homeSystem(now)
 	w.attackSystem(now)

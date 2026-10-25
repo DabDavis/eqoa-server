@@ -107,6 +107,12 @@ type NPC struct {
 	CurrentEnemy EntityID
 	LastCombat   time.Time
 
+	// nature is whether it attacks on sight (aggro.go's hostileLocked): 0
+	// not looked at, 1 it does, -1 it does not; natureGen the GMs' rules it
+	// was looked at under.
+	nature    int8
+	natureGen uint32
+
 	// Temporary is a GM's /spawn (devspawn.go): it has no database row, and
 	// once dead it leaves the world after its corpse time instead of
 	// respawning.

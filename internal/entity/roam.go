@@ -97,9 +97,13 @@ func (w *World) SetPlayerModels(models map[uint32]bool) {
 }
 
 // wanders reports an NPC of the kind that wanders (the file's doc), alive
-// and free to; never a pet, which follows its owner (pet.go).
+// and free to; never a pet, which follows its owner (pet.go), nor one that
+// walks a GM's path (path.go).
 func (w *World) wanders(npc *NPC) bool {
 	if npc.Dead || npc.RoamRadius <= 0 || npc.Dummy != NotDummy || npc.Owner != 0 {
+		return false
+	}
+	if w.pathedLocked(npc.ServerID) {
 		return false
 	}
 	if npc.NPCType&0x80 != 0 || npc.ModelID == 0 || w.playerModels[uint32(npc.ModelID)] {

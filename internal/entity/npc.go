@@ -92,6 +92,9 @@ type NPC struct {
 	// (chase.go).
 	chase chaseState
 
+	// path is where it is on the path a GM gave it (path.go).
+	path pathState
+
 	// onGround: it spawned on the terrain of the world's ground, so its moves
 	// take its floor (groundnpc.go); groundKnown once that was looked at.
 	groundKnown, onGround bool

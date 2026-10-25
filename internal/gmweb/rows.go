@@ -759,6 +759,9 @@ func (s *Server) insertRow(a *actor, t *Table, values map[string]any, o writeOpt
 	if t.Name == "accountinfo" {
 		return nil, errors.New("accounts are made with create_account (it hashes the password)")
 	}
+	if err := checkRow(t.Name, vals); err != nil {
+		return nil, err
+	}
 	ch := &change{Table: t.Name, Action: "insert", DryRun: o.Dry}
 	if o.Dry {
 		if err := s.guardOwner(s.d.DB, a, t, vals); err != nil {
@@ -876,6 +879,9 @@ func (s *Server) updateRow(a *actor, t *Table, key, values, base map[string]any,
 	if len(set) == 0 {
 		ch.Action = "unchanged"
 		return ch, nil
+	}
+	if err := checkRow(t.Name, after); err != nil {
+		return nil, err
 	}
 	if v, ok := set["acctlevel"]; ok && t.Name == "accountinfo" {
 		if err := s.guardLevel(a, before, fromSQL(v)); err != nil {

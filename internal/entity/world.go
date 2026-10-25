@@ -78,6 +78,9 @@ type World struct {
 	playerModels map[uint32]bool
 	roamRnd      *rand.Rand
 
+	// The paths GMs gave creatures, and those walking back from one (path.go)
+	paths pathTable
+
 	// Each player race's two bodies by race and sex (charactermodel), the
 	// bodies a race's illusion shows (illusion.go)
 	raceModels map[raceSex]uint32

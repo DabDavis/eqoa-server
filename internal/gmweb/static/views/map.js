@@ -1,18 +1,20 @@
 // The world map: every NPC of a world as the running world has it, the players
 // online, and (with the game disc loaded, views/disc.js) the terrain under
 // them. Pan with a drag, zoom with the wheel or a pinch, click a marker for
-// what it is.
+// what it is. An NPC's Path… opens the path editor (views/paths.js);
+// #/map/<world>/<npc>/path opens it from the NPC's page.
 
 import { h, mount, pageHead, button, toast, store, debounce } from '../lib/dom.js';
 import { op } from '../lib/api.js';
 import { describe } from '../lib/meta.js';
 import { go } from '../lib/nav.js';
 import { discTerrain } from './disc.js';
+import { PathEditor } from './paths.js';
 
 
 const CELL = 2000;
 
-export async function render(box, [worldSeg, focusSeg]) {
+export async function render(box, [worldSeg, focusSeg, modeSeg]) {
   const meta = await describe('npcs');
   const worlds = (meta.enums.world || []).slice(0, 10);
   let world = worldSeg !== undefined ? Number(worldSeg) : Number(store('map.world') || 0);
@@ -45,6 +47,7 @@ export async function render(box, [worldSeg, focusSeg]) {
   let view = { cx: 0, cz: 0, scale: 0.05 }; // world units -> pixels
   let selected = null, moving = null, hover = null;
   let terrain = null; // {tiles:[{x0,z0,x1,z1,img}], cancel}
+  let paths = null; // the path editor (views/paths.js)
   let dpr = Math.min(2, window.devicePixelRatio || 1);
 
   const resize = () => {
@@ -59,6 +62,17 @@ export async function render(box, [worldSeg, focusSeg]) {
 
   const toScreen = (x, z) => [(x - view.cx) * view.scale * dpr + canvas.width / 2, (z - view.cz) * view.scale * dpr + canvas.height / 2];
   const toWorld = (sx, sy) => [(sx * dpr - canvas.width / 2) / (view.scale * dpr) + view.cx, (sy * dpr - canvas.height / 2) / (view.scale * dpr) + view.cz];
+  paths = new PathEditor({
+    wrap, ctx, toScreen, toWorld, dpr: () => dpr, redraw: () => draw(), world: () => world,
+    // a path's ground: at least 3 pixels a unit round a creature with none
+    fit: (x0, z0, x1, z1) => {
+      const r = wrap.getBoundingClientRect();
+      view.cx = (x0 + x1) / 2;
+      view.cz = (z0 + z1) / 2;
+      view.scale = Math.max(0.3, Math.min(6, 0.6 * Math.min(r.width / Math.max(1, x1 - x0), r.height / Math.max(1, z1 - z0)), 3));
+      draw();
+    },
+  });
 
   // what a marker's colour says (the legend draws the same table)
   const KINDS = [
@@ -113,7 +127,8 @@ export async function render(box, [worldSeg, focusSeg]) {
     // NPCs
     // small and see-through when far out, where thousands overlap the terrain
     const r = Math.max(1.1, Math.min(5, view.scale * 40)) * dpr;
-    ctx.globalAlpha = view.scale < 0.08 ? 0.7 : 1;
+    // dimmed while a path is edited over them
+    ctx.globalAlpha = paths?.editing ? 0.35 : view.scale < 0.08 ? 0.7 : 1;
     const q = find.value.trim().toLowerCase();
     if (showNPC.checked) {
       for (const n of npcs) {
@@ -155,6 +170,7 @@ export async function render(box, [worldSeg, focusSeg]) {
         ctx.font = `${11 * dpr}px system-ui, sans-serif`;
       }
     }
+    if (paths) paths.draw();
     // the selection
     if (selected) {
       const [sx, sy] = toScreen(selected.x, selected.z);
@@ -194,7 +210,8 @@ export async function render(box, [worldSeg, focusSeg]) {
         h('div', { class: 'mono' }, `${x}, ${z}`),
         h('div', { class: 'row' },
           flags & 2 ? null : button('Open', { class: 'small', onclick: () => go('npcs/' + id) }),
-          flags & 2 ? null : button('Move it…', { class: 'small', onclick: () => { moving = { id, name: names[sel.n[6]] }; toast(`Click where ${moving.name} should stand (its height stays; "Move to a character" on its page sets all three)`, 'info'); } })));
+          flags & 2 ? null : button('Move it…', { class: 'small', onclick: () => { moving = { id, name: names[sel.n[6]] }; toast(`Click where ${moving.name} should stand (its height stays; "Move to a character" on its page sets all three)`, 'info'); } }),
+          flags & 2 ? null : button('Path…', { class: 'small', title: 'Give it a path to walk', onclick: () => { info.classList.add('hidden'); paths.edit(id); } })));
     } else {
       const p = sel.p;
       mount(info, h('strong', null, p.name), h('div', null, `level ${p.level}${p.dead ? ' · dead' : ''}`), h('div', { class: 'mono' }, `${p.x}, ${p.z}`),
@@ -208,10 +225,13 @@ export async function render(box, [worldSeg, focusSeg]) {
   canvas.addEventListener('pointerdown', (e) => {
     canvas.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.offsetX, y: e.offsetY });
+    // a press on one of the edited path's points drags the point
+    if (pointers.size === 1 && paths.editing && paths.down(e.offsetX, e.offsetY)) { drag = null; return; }
     drag = { x: e.offsetX, y: e.offsetY, cx: view.cx, cz: view.cz, moved: false };
   });
   canvas.addEventListener('pointermove', (e) => {
     if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.offsetX, y: e.offsetY });
+    if (paths.move(e.offsetX, e.offsetY)) return;
     if (pointers.size === 2) {
       const [a, b] = [...pointers.values()];
       const d = Math.hypot(a.x - b.x, a.y - b.y);
@@ -243,6 +263,7 @@ export async function render(box, [worldSeg, focusSeg]) {
   const up = async (e) => {
     pointers.delete(e.pointerId);
     canvas.classList.remove('dragging');
+    if (paths.up()) { if (pointers.size === 0) drag = null; return; }
     if (drag && !drag.moved && pointers.size === 0) {
       if (moving) {
         const [x, z] = toWorld(e.offsetX, e.offsetY);
@@ -253,6 +274,8 @@ export async function render(box, [worldSeg, focusSeg]) {
           toast(m.name + ' moved', 'ok', out.live || '');
           setTimeout(loadMarkers, 1500);
         } catch (err) { toast(err.message, 'error'); }
+      } else if (paths.editing) {
+        paths.click(e.offsetX, e.offsetY);
       } else {
         selected = pick(e.offsetX, e.offsetY);
         showInfo(selected);
@@ -294,6 +317,8 @@ export async function render(box, [worldSeg, focusSeg]) {
         const f = focus !== null ? npcs.find((n) => n[0] === focus) : null;
         if (f) { view.cx = f[1]; view.cz = f[2]; view.scale = 0.8; selected = { kind: 'npc', n: f, x: f[1], z: f[2] }; showInfo(selected); }
         else fit();
+        paths.loadWorld();
+        if (f && modeSeg === 'path') { info.classList.add('hidden'); paths.edit(f[0]); }
       }
       draw();
     } catch (e) { toast(e.message, 'error'); }
@@ -301,7 +326,8 @@ export async function render(box, [worldSeg, focusSeg]) {
   async function loadPlayers() {
     try {
       const out = await op('map_markers', { world });
-      players = out.players;
+      // the NPCs too: those that walk (a wander, a path) move on the map
+      npcs = out.npcs; names = out.names; players = out.players;
       draw();
     } catch { /* next time */ }
   }
@@ -315,6 +341,7 @@ export async function render(box, [worldSeg, focusSeg]) {
   }
 
   worldSel.addEventListener('change', async () => {
+    if (paths.editing && !(await paths.close())) { worldSel.value = String(world); return; }
     world = Number(worldSel.value);
     store('map.world', String(world));
     selected = null; showInfo(null);
@@ -335,5 +362,5 @@ export async function render(box, [worldSeg, focusSeg]) {
   await loadMarkers(true);
   loadTerrain();
   const timer = setInterval(loadPlayers, 3000);
-  return { leave: () => { clearInterval(timer); ro.disconnect(); terrain?.cancel(); } };
+  return { leave: () => { clearInterval(timer); ro.disconnect(); terrain?.cancel(); paths.leave(); } };
 }

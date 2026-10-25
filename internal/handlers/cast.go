@@ -84,23 +84,17 @@ func castSpell(e *database.CharSpellEntry, line string, fx uint32) entity.CastSp
 }
 
 // gatePlayer is the World's gate hook (entity/cast.go): Return Home's
-// landing. This server keeps no bind points, so home is where every login
-// starts and every respawn goes (loginSpawnDest), reached by a teleport, as
-// #goto moves a player (the player is alive: no dump).
+// landing, the player's home (homeOf: where a spiritmaster bound it, else
+// where every login starts), reached by a teleport, as #goto moves a player
+// (the player is alive: no dump).
 func (h *CharacterHandler) gatePlayer(sess *session.Session, p *entity.Player) {
 	gw := h.gameWorld
 	if gw == nil || sess == nil || p == nil {
 		return
 	}
-	dx, dy, dz, dw, via, found := ResolveTeleDest(gw, loginSpawnDest)
+	x, dy, z, world, via, found := homeOf(gw, sess, p.ServerID)
 	if !found {
-		log.Printf("Gate: no %q destination; %s stays", loginSpawnDest, p.Name)
-		return
-	}
-	x, z := dx+loginSpawnOffset, dz+loginSpawnOffset
-	world, err := ValidateTeleport(x, dy, z, dw)
-	if err != nil {
-		log.Printf("Gate: %s is not a placeable spawn (%v); %s stays", via, err, p.Name)
+		log.Printf("Gate: no home for %s; it stays", p.Name)
 		return
 	}
 	snap, ok := gw.PlayerSnapshot(p.ServerID)

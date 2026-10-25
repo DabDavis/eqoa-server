@@ -140,6 +140,13 @@ type NPC struct {
 	SwingFixed bool
 	SwingKind  int
 
+	// A sparring dummy's element (an index of SparElements), the rounds it
+	// has swung in its fight and the start of the round it last struck with
+	// that element in (sparring.go).
+	SparElement int
+	SparRounds  int
+	SparStruck  time.Time
+
 	// Charm is a charm's hold on it (charm.go): what it was before, put
 	// back when the charm ends or it comes back after dying; nil for a
 	// creature no one charmed.

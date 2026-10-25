@@ -195,7 +195,7 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		Facing:       posFacing,
 		World:        coherentWorldOnLoad(record.CharName, uint8(record.World), posX, posZ),
 		ModelID:      record.ModelID,
-		Size:         RaceScale(record.Race),
+		Size:         PlayerSize,
 		Race:         record.Race,
 		Sex:          record.Sex,
 		HumType:      record.HumType,
@@ -563,7 +563,8 @@ func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *
 	// NPCType == 0: defaults to FactionNeutral (town guards, named NPCs)
 
 	primaryType, secondaryType := npcHandTypes(rec.NPCName, uint32(rec.PrimaryWeapon), uint32(rec.SecondaryWeapon), ranged)
-	return &NPC{
+	dummy := DummyKindOf(rec.NPCName)
+	n := &NPC{
 		ServerID:        EntityID(rec.ID),
 		Name:            rec.NPCName,
 		X:               posX,
@@ -572,7 +573,7 @@ func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *
 		Facing:          facing,
 		World:           uint8(rec.World),
 		ModelID:         int64(rec.ModelID),
-		Size:            rec.Size * raceScaleFromString(rec.Race),
+		Size:            NPCSize(rec.Size),
 		NPCID:           rec.NPCID,
 		NPCType:         rec.NPCType,
 		PrimaryWeapon:   rec.PrimaryWeapon,
@@ -611,9 +612,14 @@ func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *
 		DefMod:       NPCDefMod(rec.NPCLevel),
 		WeaponDamage: NPCWeaponDamage(rec.NPCLevel),
 
-		Dummy: DummyKindOf(rec.NPCName),
+		Dummy: dummy,
 		Class: class,
 	}
+	if dummy == SparringDummy {
+		// it quads at any level (sparring.go)
+		n.SwingFixed, n.SwingKind = true, sparSwing
+	}
+	return n
 }
 
 // FindEntityByObjectID resolves a runtime objectID to an Entity.
@@ -964,18 +970,6 @@ func coherentWorldOnLoad(name string, world uint8, x, z float32) uint8 {
 	return fixed
 }
 
-// coachLocationNames maps coachman NPC names to friendly area labels.
-var coachLocationNames = map[string]string{
-	"Coachman Quicksteed": "Highpass",
-	"Coachman Ronks":      "Freeport",
-	"Coachman D'Larik":    "Fort Seriak",
-	"Coachman Doba":       "Moradhim",
-	"Coachman Farn":       "Muniels Tea Garden",
-	"Coachman Huff":       "Rivervale",
-	"Coachman Lothi":      "Neriak",
-	"Coachwoman Darva":    "Darvor Manor",
-}
-
 // sortDests puts a destination list in a STABLE order.
 //
 // Both destination lists are built by ranging over w.NPCs, and Go RANDOMISES
@@ -1104,10 +1098,7 @@ func (w *World) GetCoachDestinations(excludeName string, inWorld uint8) []CoachD
 		if npc.Name == excludeName || npc.World != inWorld {
 			continue
 		}
-		label := npc.Name
-		if friendly, ok := coachLocationNames[npc.Name]; ok {
-			label = friendly
-		}
+		label, _ := coachLabel(npc)
 		dests = append(dests, CoachDest{
 			Name:   label,
 			X:      npc.SpawnX,
@@ -1243,4 +1234,27 @@ func (w *World) WarpPoints(loadable func(world uint8) bool) []WarpPoint {
 		return out[i].Label < out[j].Label
 	})
 	return out
+}
+
+// SetBind sets player id's bind point (spiritmaster.go in handlers).
+func (w *World) SetBind(id EntityID, b Bind) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.Players[id]
+	if p == nil {
+		return false
+	}
+	p.Bind = b
+	return true
+}
+
+// BindOf is player id's bind point, if it has one.
+func (w *World) BindOf(id EntityID) (Bind, bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.Players[id]
+	if p == nil || !p.Bind.Set {
+		return Bind{}, false
+	}
+	return p.Bind, true
 }

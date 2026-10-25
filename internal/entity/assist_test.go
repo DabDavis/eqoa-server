@@ -209,3 +209,37 @@ func TestFindEntityByObjectIDIsTheSendersTable(t *testing.T) {
 		t.Errorf("an id only the leader's table has resolved for the asker: %v", got)
 	}
 }
+
+// A channel's target (bytes 59-62) is the id the session the channel is for
+// knows the target by: the leader targets the orc, its own 100003, which is
+// the rat to the asker; the asker's channel for the leader says 100002, the
+// orc as the asker numbers it (the control: the leader's own id, raw, names
+// the rat). An NPC's is its enemy, as each session knows it: the asker's own
+// object id on its own channel for the orc, the asker's 100001 on the
+// leader's. None: -1 for a player, 0 for an NPC.
+func TestChannelTargetIsTheViewersID(t *testing.T) {
+	aw := newAssistWorld(t)
+	at := func(b []byte) uint32 { return uint32(b[59]) | uint32(b[60])<<8 | uint32(b[61])<<16 | uint32(b[62])<<24 }
+	aw.b.TargetObjectID = bOrc
+	if got := at(aw.w.serializeEntityForChannel(aw.asker, aw.b.ServerID, aLeader)); got != aOrc {
+		t.Fatalf("the leader's target on the asker's channel: %d, want the orc's %d", got, aOrc)
+	}
+	if bOrc != aRat {
+		t.Fatal("the control: the leader's own id for the orc is the rat's to the asker")
+	}
+	aw.b.TargetObjectID = 0
+	if got := at(aw.w.serializeEntityForChannel(aw.asker, aw.b.ServerID, aLeader)); got != NoAssist {
+		t.Fatalf("no target: %#x, want -1", got)
+	}
+	aw.orc.CurrentEnemy = aw.a.ServerID
+	if got := at(aw.w.serializeEntityForChannel(aw.asker, aw.orc.ServerID, aOrc)); got != askerSelf {
+		t.Fatalf("the orc's enemy on the asker's own channel: %#x, want the asker's own %#x", got, askerSelf)
+	}
+	if got := at(aw.w.serializeEntityForChannel(aw.leader, aw.orc.ServerID, bOrc)); got != bAsker {
+		t.Fatalf("the orc's enemy on the leader's channel: %d, want %d", got, bAsker)
+	}
+	aw.orc.CurrentEnemy = 0
+	if got := at(aw.w.serializeEntityForChannel(aw.asker, aw.orc.ServerID, aOrc)); got != 0 {
+		t.Fatalf("an NPC with no enemy: %#x, want 0", got)
+	}
+}

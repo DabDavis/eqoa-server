@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/binary"
 	"log"
 	"sort"
 	"time"
@@ -256,7 +257,7 @@ func (w *World) visibilitySystem() {
 			}
 			objectID := vis.ChannelObjectID[i]
 
-			stateData := w.serializeEntityForChannel(id, objectID)
+			stateData := w.serializeEntityForChannel(sess, id, objectID)
 			if stateData != nil {
 				if state := conn.GetServerObject(i + 1); state != nil {
 					state.SetData(stateData)
@@ -272,14 +273,17 @@ func (w *World) visibilitySystem() {
 	})
 }
 
-// serializeEntityForChannel builds a 162-byte state buffer for an entity.
-func (w *World) serializeEntityForChannel(id EntityID, objectID uint32) []byte {
+// serializeEntityForChannel builds a 162-byte state buffer for an entity, as
+// the session sess sees it: its target (bytes 59-62) is the id sess knows
+// that target by (putChannelTargetLocked). Must be called with the lock held.
+func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, objectID uint32) []byte {
 	// Check NPC first
 	if npc, ok := w.NPCs[id]; ok {
 		buf := SerializeNPCUpdate(objectID, npc)
 		if npc.Dead {
 			buf[58] = 0x0e // AnimationState.Die
 		}
+		w.putChannelTargetLocked(sess, npc, buf)
 		return buf
 	}
 
@@ -306,8 +310,32 @@ func (w *World) serializeEntityForChannel(id EntityID, objectID uint32) []byte {
 		// A player is distinguished from an NPC by the high half being ZERO,
 		// which is what the serializer already does, so there is nothing for
 		// the visibility path to add.
-		return SerializePlayerUpdate(objectID, p)
+		buf := SerializePlayerUpdate(objectID, p)
+		w.putChannelTargetLocked(sess, p, buf)
+		return buf
 	}
 
 	return nil
+}
+
+// putChannelTargetLocked writes an entity's target (bytes 59-62) as the id
+// sess, the session the channel is for, knows that target by. A player's
+// TargetObjectID is an id in ITS OWN session's table (object ids are per
+// session: visibility.go numbers each session's from 100001), so written
+// raw it named another entity, or none, to everyone else; an NPC's target
+// is its enemy (or the player a dummy fights), where Sandstorm sends 0.
+// CLIENT reads the field into m_p74 and never looks at it; the vanilla
+// client's Target of Target shows it. None: 0xFFFFFFFF for a player (as
+// Sandstorm sends), 0 for an NPC. Must be called with the lock held.
+func (w *World) putChannelTargetLocked(sess *session.Session, e Entity, buf []byte) {
+	id := uint32(0)
+	if _, ok := e.(*Player); ok {
+		id = NoAssist
+	}
+	if t := w.targetOfLocked(e); t != nil && sess != nil {
+		if seen := w.objectIDSeenByLocked(sess, t.GetEntityID()); seen != 0 {
+			id = seen
+		}
+	}
+	binary.LittleEndian.PutUint32(buf[59:63], id)
 }

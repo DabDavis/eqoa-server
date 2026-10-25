@@ -62,9 +62,9 @@ func TestVisibilityChannelTailIsZero(t *testing.T) {
 	w.Players[EntityID(p.ServerID)] = p
 	w.NPCs[EntityID(n.ServerID)] = n
 
-	pb := w.serializeEntityForChannel(EntityID(p.ServerID), 500000042)
+	pb := w.serializeEntityForChannel(nil, EntityID(p.ServerID), 500000042)
 	assertTailZero(t, "visibility/player", pb)
-	nb := w.serializeEntityForChannel(EntityID(n.ServerID), 100007)
+	nb := w.serializeEntityForChannel(nil, EntityID(n.ServerID), 100007)
 	assertTailZero(t, "visibility/npc", nb)
 
 	// And the distinction the panicking code was trying to make: a player's

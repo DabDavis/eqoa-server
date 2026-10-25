@@ -416,6 +416,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 
 	p.Power -= spell.PowerCost
 	p.StatsDirty = true
+	w.breakInvisLocked(p, "a spell cast") // invis.go
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
 	p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
 	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + castBusy), lands: now.Add(spell.CastTime + castLand)}

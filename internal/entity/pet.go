@@ -674,6 +674,7 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 			next = now
 		}
 		pet.RoundStart, pet.RoundHits = next, 0
+		breakNPCInvis(pet) // a pet that fights is seen (invis.go)
 		w.broadcastNPCSwingLocked(pet, t.ServerID, uint32(delay/time.Millisecond), fx)
 	}
 	for pet.RoundHits < len(hits) && !now.Before(pet.RoundStart.Add(hits[pet.RoundHits])) {

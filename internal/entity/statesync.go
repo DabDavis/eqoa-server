@@ -510,7 +510,12 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	// constant and was simply missed.
 	buf[156] = 0x01
 
-	// Offset 152, 154-155, 157: zero on every entity in the capture.
+	// Offset 152, 154-155, 157: zero on every entity in the capture, but 154
+	// is 1 on an invisible one, as on a player (a pet made invisible:
+	// invis.go).
+	if n.invisible() {
+		buf[154] = 1
+	}
 
 	// Offset 158-161: End signature "tsrq" (eqoa.live byte order)
 	buf[158] = 't'

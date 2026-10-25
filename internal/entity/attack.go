@@ -298,6 +298,7 @@ func (w *World) EngageAttack(sess *session.Session, objectID uint32, swing Swing
 	p.AttackObjectID = objectID
 	p.RoundStart, p.RoundHits = time.Time{}, 0
 	p.NextSwing = now.Add(firstRound)
+	w.breakInvisLocked(p, "an attack") // invis.go
 	log.Printf("Combat: %s engages %s (swing %d, %v, reach %.1f)", p.Name, npc.Name, swing.Kind, swing.Delay, swing.Reach)
 	return true
 }
@@ -364,6 +365,7 @@ func (w *World) attackSystem(now time.Time) {
 		// at its due time, not the tick's: a steady cadence
 		p.RoundStart, p.RoundHits = p.NextSwing, 0
 		p.NextSwing = p.RoundStart.Add(p.Swing.Delay)
+		w.breakInvisLocked(p, "a swing") // invis.go
 		w.playerRoundHitsLocked(p, npc, now)
 	}
 }

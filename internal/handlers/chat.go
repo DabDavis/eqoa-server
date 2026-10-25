@@ -50,6 +50,10 @@ type ChatHandler struct {
 	modes map[entity.EntityID]byte // each player's last 0x000E
 
 	access accessLevels // the accounts' acctlevel: who is a GM (devcmds.go)
+
+	// where a GM's level and purse are kept (devcmds.go)
+	progress progressStore
+	purse    purseStore
 }
 
 // NewChatHandler creates a new chat handler.
@@ -693,15 +697,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			return
 		}
 		level, _ := strconv.Atoi(parts[1])
-		if level < 1 {
-			level = 1
-		}
-		if level > 60 {
-			level = 60
-		}
-		player.Level = level
-		player.RecalcStats(false)
-		h.gmReply(sess, fmt.Sprintf("Level set to %d", level))
+		h.setLevel(sess, player, level)
 
 	case "#hp":
 		// #hp <current> [max]
@@ -727,9 +723,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			return
 		}
 		amount, _ := strconv.Atoi(parts[1])
-		player.Tunar = amount
-		SendPlayerTunar(sess, int64(amount))
-		h.gmReply(sess, fmt.Sprintf("Tunar set to %d", amount))
+		h.setTunar(sess, player, amount)
 
 	case "#spawn":
 		// #spawn <name>: a copy of that NPC beside you; alone, the NPCs near

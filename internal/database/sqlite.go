@@ -756,6 +756,20 @@ func (s *SQLiteCharacterStore) Update(c *CharacterRecord) error {
 	return err
 }
 
+// SetProgress stores a character's level and its kept total experience
+// (totalXP: entity.TotalXP), and nothing else of the row: what a GM's level
+// change writes at once, without the place the logout save keeps.
+func (s *SQLiteCharacterStore) SetProgress(serverID uint32, level, totalXP int) error {
+	res, err := s.db.Exec(`UPDATE characters SET level = ?, totalXP = ? WHERE serverid = ?`, level, totalXP, serverID)
+	if err != nil {
+		return err
+	}
+	if n, err := res.RowsAffected(); err == nil && n != 1 {
+		return ErrCharacterNotFound
+	}
+	return nil
+}
+
 // Delete deletes a character by serverid.
 func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	result, err := s.db.Exec(`DELETE FROM characters WHERE serverid = ?`, serverID)

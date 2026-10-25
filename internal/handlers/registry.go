@@ -175,6 +175,16 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if accountStore != nil {
 		chatHandler.SetAccessLevels(accountStore)
 	}
+	// a GM's level and purse kept (devcmds.go)
+	var progress progressStore
+	if charStore != nil {
+		progress = charStore
+	}
+	var purse purseStore
+	if invStore != nil {
+		purse = invStore
+	}
+	chatHandler.SetStores(progress, purse)
 	targetHandler := NewTargetHandler(sessionMgr)
 	if gameWorld != nil {
 		targetHandler.SetGameWorld(gameWorld)

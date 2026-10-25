@@ -484,6 +484,21 @@ func (l *Listener) savePlayerPosition(sess *session.Session) {
 		return
 	}
 
+	// The character's row by its own serverid: the Player's ServerID is its
+	// entity id, another number when the character's collided with an NPC's
+	// (CreatePlayer).
+	record, err := l.charStore.GetByServerID(player.CharServerID)
+	if err != nil {
+		log.Printf("savePlayerPosition: failed to load record for serverID=%d: %v", player.CharServerID, err)
+		return
+	}
+
+	// The level and the experience into it, as the game holds them, whatever
+	// becomes of the place: until 2026-10-25 nothing wrote them, so every
+	// level gained, and a level a GM set, was gone at the next login.
+	record.Level = player.Level
+	record.TotalXP = entity.TotalXP(player.Level, player.XPInLevel)
+
 	// A death's place is not where the next login starts: the respawn would
 	// have moved the player beside Vaal 15 s later (entity/respawn.go), and the
 	// place it died may be the lava or the deep water that killed it. The row
@@ -491,12 +506,9 @@ func (l *Listener) savePlayerPosition(sess *session.Session) {
 	if player.IsDead() {
 		log.Printf("savePlayerPosition: '%s' logged out dead at (%.1f, %.1f, %.1f); "+
 			"keeping the position saved before", player.Name, player.X, player.Y, player.Z)
-		return
-	}
-
-	record, err := l.charStore.GetByServerID(uint32(player.ServerID))
-	if err != nil {
-		log.Printf("savePlayerPosition: failed to load record for serverID=%d: %v", player.ServerID, err)
+		if err := l.charStore.Update(record); err != nil {
+			log.Printf("savePlayerPosition: failed to save level %d for '%s': %v", player.Level, player.Name, err)
+		}
 		return
 	}
 
@@ -547,8 +559,8 @@ func (l *Listener) savePlayerPosition(sess *session.Session) {
 	if err := l.charStore.Update(record); err != nil {
 		log.Printf("savePlayerPosition: failed to save position for '%s': %v", player.Name, err)
 	} else {
-		log.Printf("savePlayerPosition: saved position for '%s' (%.1f, %.1f, %.1f) world=%d",
-			player.Name, player.X, player.Y, player.Z, player.World)
+		log.Printf("savePlayerPosition: saved position for '%s' (%.1f, %.1f, %.1f) world=%d, level %d (%d xp into it)",
+			player.Name, player.X, player.Y, player.Z, player.World, player.Level, player.XPInLevel)
 	}
 }
 

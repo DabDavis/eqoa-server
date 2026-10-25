@@ -35,6 +35,22 @@ func (h *ChatHandler) SetAccessLevels(a accessLevels) {
 	h.access = a
 }
 
+// progressStore keeps a level a GM sets (database.SQLiteCharacterStore);
+// purseStore a purse (database.InventoryStore).
+type progressStore interface {
+	SetProgress(serverID uint32, level, totalXP int) error
+}
+
+type purseStore interface {
+	SetTunar(serverID uint32, tunar, bankTunar int) error
+}
+
+// SetStores gives #setlevel, #tunar and their like where to keep what they
+// set. Without them a change lasts until the next login.
+func (h *ChatHandler) SetStores(p progressStore, t purseStore) {
+	h.progress, h.purse = p, t
+}
+
 // isGM is whether sess's account has acctlevel 1 or more.
 func (h *ChatHandler) isGM(sess *session.Session) bool {
 	if h.access == nil || sess == nil || sess.AccountID() == 0 {
@@ -389,4 +405,39 @@ func (h *ChatHandler) nearbyCommand(sess *session.Session, player *entity.Player
 		dist := float32(math.Sqrt(float64(dx*dx + dz*dz)))
 		h.gmReply(sess, fmt.Sprintf("  %s Lv%d HP=%d (%.0fm)", npc.Name, npc.Level, npc.HP, dist))
 	}
+}
+
+// setLevel is #setlevel: the level where the game holds it (its stats and the
+// stat channel), told to the client (0x0020, as the GM panel tells it), and
+// kept with no experience into it. It was the live Player's alone, so a level
+// set was gone at the next login (Jibrish 60 in the game and 1 in the
+// database, F3 pass 13).
+func (h *ChatHandler) setLevel(sess *session.Session, player *entity.Player, level int) {
+	level = max(1, min(60, level))
+	h.gameWorld.SetPlayerLevel(player.CharServerID, level)
+	SendLevel(sess, level)
+	if h.progress != nil {
+		if err := h.progress.SetProgress(player.CharServerID, level, entity.TotalXP(level, 0)); err != nil {
+			log.Printf("GM: #setlevel %d for '%s' not kept: %v", level, player.Name, err)
+			h.gmReply(sess, fmt.Sprintf("Level set to %d, but not kept: %v", level, err))
+			return
+		}
+	}
+	h.gmReply(sess, fmt.Sprintf("Level set to %d", level))
+}
+
+// setTunar is #tunar: the purse where the game holds it, told to the client
+// and kept (every other change of the purse is: merchant.go's saveTunar).
+func (h *ChatHandler) setTunar(sess *session.Session, player *entity.Player, amount int) {
+	amount = max(0, amount)
+	h.gameWorld.SetPlayerTunar(player.CharServerID, amount, player.BankTunar)
+	SendPlayerTunar(sess, int64(amount))
+	if h.purse != nil {
+		if err := h.purse.SetTunar(player.CharServerID, amount, player.BankTunar); err != nil {
+			log.Printf("GM: #tunar %d for '%s' not kept: %v", amount, player.Name, err)
+			h.gmReply(sess, fmt.Sprintf("Tunar set to %d, but not kept: %v", amount, err))
+			return
+		}
+	}
+	h.gmReply(sess, fmt.Sprintf("Tunar set to %d", amount))
 }

@@ -31,6 +31,9 @@ import (
 // warrior's when it has none we know) and level, a weapon in the primary
 // and a shield as it carries them.
 func npcSwingKind(npc *NPC) int {
+	if npc.SwingFixed {
+		return npc.SwingKind
+	}
 	var worn [21]bool
 	worn[14] = npc.PrimaryWeapon != 0
 	worn[17] = npc.Shield != 0

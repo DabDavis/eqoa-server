@@ -162,6 +162,9 @@ type ActiveEffect struct {
 	Snare     bool
 	Speed     bool
 	Invis     bool
+	// Proc is a proc's damage (proc.go): what the bearer's melee hits may do
+	// more, 0 for none; ProcMax the top of its range.
+	Proc, ProcMax int
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -355,11 +358,22 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 		}
 	}
 	targets, refusal := w.castTargetsLocked(sess, p, &spell, targetObjectID)
+	fizzle := false
+	if refusal == "" && spell.Def.Charms() {
+		refusal, fizzle = w.charmStartLocked(p, &spell, targets) // charm.go
+	}
 	if refusal == "" && p.Power < spell.PowerCost {
 		refusal = castNoPower
 	}
 	if refusal != "" {
 		log.Printf("Cast: %s casts %q on %#x: %s", p.Name, spell.Name, targetObjectID, refusal)
+		if fizzle {
+			target := p.ServerID
+			if len(targets) > 0 {
+				target = targets[0]
+			}
+			w.broadcastCastLocked(p, target, charmFizzle, spell.visual())
+		}
 		w.sendColoredLocked(sess, refusal, castRefusalRGB)
 		return false
 	}
@@ -591,6 +605,10 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 			continue
 		}
 		if npc := w.NPCs[id]; npc != nil && !npc.Dead {
+			if d.Charms() {
+				w.charmLandLocked(cs, caster, casterSess, npc, now) // charm.go
+				continue
+			}
 			if npc.Owner != 0 {
 				w.landOnPetLocked(cs, caster, casterSess, npc, now)
 				continue
@@ -653,6 +671,9 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			ae.Speed = true
 		case EffectInvis:
 			ae.Invis = true
+		case EffectProc:
+			// no mod: the line's damage as it is (jib: "Damage has no mod")
+			ae.Proc, ae.ProcMax = e.Amount, max(e.AmountMax, e.Amount)
 		default:
 			continue
 		}

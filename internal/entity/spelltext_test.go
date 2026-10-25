@@ -80,9 +80,10 @@ func TestParseSpellText(t *testing.T) {
 			{Kind: EffectHate, Amount: 87, AmountMax: 87}}, Unread: []string{"pickpocket"}}},
 		{"Damage by 130, Modified 30% based on DEX", SpellDef{Target: TargetSingle, Harmful: true, Effects: []SpellEffect{
 			{Kind: EffectHP, Amount: -130, AmountMax: -130, Scale: StatDex, ScalePct: 30}}}},
-		// what is not acted on is kept for the log and makes nothing, but a
-		// charm is still cast at an enemy
-		{"Target, Charm, 2min", SpellDef{Target: TargetSingle, Duration: 2 * time.Minute, Harmful: true, Unread: []string{"charm"}}},
+		// a charm makes its target a pet (charm.go), cast at an enemy
+		{"Target, Charm, 2min", SpellDef{Target: TargetSingle, Duration: 2 * time.Minute, Harmful: true, Effects: []SpellEffect{
+			{Kind: EffectCharm}}}},
+		// what is not acted on is kept for the log and makes nothing
 		{"Target, Removes Minor Poison", SpellDef{Target: TargetSingle, Unread: []string{"removes minor poison"}}},
 		{"", SpellDef{}},
 	}

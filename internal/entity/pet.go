@@ -150,7 +150,32 @@ func petLevel(spellLevel, casterLevel int) int {
 var petClassStandIn = map[int]string{
 	11: "skeleton",
 	10: "earth elementaling",
-	12: "animation",
+	12: enchanterAnimation,
+}
+
+const (
+	classEnchanter     = 12
+	enchanterAnimation = "animation"
+	// grandAnimation is the Animator's pet (EQOA-Data's enchanter master
+	// class, Animator 2: "Level 54 pet, ubah tank. Has 500 dmg taunt and dual
+	// hits"); no record of it is on this server yet.
+	grandAnimation = "grand animation"
+)
+
+// petSwing is a summoned pet's own swing (npcSwingKind), when it has one:
+// an enchanter's pet swings once a round whatever its level, as a caster
+// does (Attack1), and Grand Animation twice (Attack2), as live EQOA's did
+// (F3 20261025-164209, jib: "enchanter pets should only single hit
+// regardless of level with grand animation dual hitting"). Any other
+// class's pet swings as the creature its body is.
+func petSwing(class int, spell string) (fixed bool, kind int) {
+	if class != classEnchanter {
+		return false, 0
+	}
+	if petName(spell) == grandAnimation {
+		return true, 4
+	}
+	return true, 0
 }
 
 // petName is a name as the pet records are matched: trimmed, any case.
@@ -278,6 +303,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	}
 	level := petLevel(spell.Level, caster.Level)
 	pet := newPet(t, w.allocFreeIDLocked(), caster, spell.Name, level)
+	pet.SwingFixed, pet.SwingKind = petSwing(caster.Class, spell.Name)
 	w.NPCs[pet.ServerID] = pet
 	w.SpatialIndex.Insert(pet.ServerID, pet.X, pet.Z)
 	if w.pets == nil {
@@ -400,6 +426,11 @@ func (w *World) pinPetLocked(p *Player, cands []entityDist) []entityDist {
 // non-collide entry off, text when there is any). sess is the owner's, or
 // nil when it has none to tell. Must be called with the lock held.
 func (w *World) dismissPetLocked(ps *petState, sess *session.Session, text string) {
+	if ps.npc.Charm != nil {
+		// a charmed creature is let go, not taken away (charm.go)
+		w.releaseCharmLocked(ps, sess, text, false)
+		return
+	}
 	pet := ps.npc
 	if w.pets[ps.owner.ServerID] == ps {
 		delete(w.pets, ps.owner.ServerID)
@@ -453,6 +484,11 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		ps.stance = petStance(cmd)
 		w.sendChatToSession(sess, petStanceWords[ps.stance])
 	case petCmdDismiss:
+		if pet.Charm != nil {
+			// let go, it turns on its master (charm.go)
+			w.releaseCharmLocked(ps, sess, "Your pet has been dismissed.", true)
+			return
+		}
 		w.dismissPetLocked(ps, sess, "Your pet has been dismissed.")
 	case petCmdBackOff:
 		ps.target = 0
@@ -509,6 +545,10 @@ func (w *World) petSystem(now time.Time) {
 		}
 		if owner.IsDead() || owner.respawnPending() {
 			w.dismissPetLocked(ps, sess, "")
+			continue
+		}
+		if h := pet.Charm; h != nil && !h.until.IsZero() && !now.Before(h.until) {
+			w.releaseCharmLocked(ps, sess, charmWornOff, true) // charm.go
 			continue
 		}
 		dt := float32(now.Sub(ps.last).Seconds())
@@ -644,14 +684,22 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 	}
 }
 
-// petHitLocked is one of the pet's hits on its target, its owner's: the
+// petHitLocked is one of the pet's hits on its target, then its procs
+// (proc.go). It reports a kill.
+func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
+	ps.npc.LastCombatTime = now
+	if w.petDamageLocked(ps, t, petMeleeHit(ps.npc, t, rand.Intn), now) {
+		return true
+	}
+	return w.petProcsLocked(ps, t, now)
+}
+
+// petDamageLocked is n of the pet's damage on its target, its owner's: the
 // figure to the owner as the owner's (0x00DB), the target's hate for the
 // pet, and on a kill the owner's XP and faction hits. It reports a kill.
-func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
+func (w *World) petDamageLocked(ps *petState, t *NPC, n int, now time.Time) bool {
 	owner, pet := ps.owner, ps.npc
 	sess := w.findSessionByEntityIDLocked(owner.ServerID)
-	n := petMeleeHit(pet, t, rand.Intn)
-	pet.LastCombatTime = now
 	tell := func() {
 		if sess == nil {
 			return

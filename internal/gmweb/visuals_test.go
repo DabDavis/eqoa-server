@@ -85,6 +85,15 @@ func TestSpellVisualsFromThePanel(t *testing.T) {
 		t.Fatalf("play_visual spell played: %v", got)
 	}
 	sess.Queue().GetPending()
+	// a visual with a spell: the spell's cast time (Root's 2000 s here, held
+	// to the 30 s most)
+	if code, out = c.op("play_visual", map[string]any{"visual": "0x1DAEB5B6", "spell": "Root"}); code != 200 {
+		t.Fatalf("play_visual visual+spell: %d %v", code, out)
+	}
+	if got := castsTo(sess); len(got) != 1 || got[0][3] != 0x1DAEB5B6 || got[0][2] != 30000 {
+		t.Fatalf("play_visual visual+spell played: %v", got)
+	}
+	sess.Queue().GetPending()
 
 	code, out = c.op("visual_uses", nil)
 	if code != 200 {

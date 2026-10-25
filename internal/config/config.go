@@ -113,6 +113,10 @@ type WorldConfig struct {
 	CorpseDecay  time.Duration `yaml:"corpse_decay"`
 	RespawnAfter time.Duration `yaml:"respawn_after"`
 	RoamRadius   float32       `yaml:"roam_radius"`
+
+	// Aggro is whether creatures attack a player on sight (entity/aggro.go):
+	// unset, they do; false, none attacks first.
+	Aggro *bool `yaml:"aggro"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

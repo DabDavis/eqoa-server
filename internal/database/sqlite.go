@@ -575,6 +575,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.seedFactions(); err != nil {
 		return fmt.Errorf("factions: %w", err)
 	}
+	if err := db.ensureNPCAggro(); err != nil {
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil

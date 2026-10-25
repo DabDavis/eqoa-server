@@ -87,6 +87,9 @@ type World struct {
 
 	// The factions' starting standings and what a kill does (faction.go)
 	factions factionTable
+
+	// Creatures attacking a player on sight (aggro.go)
+	aggro aggroState
 }
 
 // NewWorld creates and initializes a new game world.

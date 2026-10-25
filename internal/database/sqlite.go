@@ -538,13 +538,6 @@ func (db *SQLiteDB) initSchema() error {
 	);
 	CREATE INDEX IF NOT EXISTS idx_factionhits_npc ON factionhits(npc_name);
 
-	-- servermeta: what this database has been through, by name (a migration
-	-- done, the table it was done to)
-	CREATE TABLE IF NOT EXISTS servermeta (
-		key   TEXT PRIMARY KEY,
-		value TEXT NOT NULL
-	);
-
 	-- charmastery: a character's class mastery points, unspent and spent, the
 	-- share of its experience going to them and the experience gathered
 	-- toward the next (mastery.go, entity/mastery.go)

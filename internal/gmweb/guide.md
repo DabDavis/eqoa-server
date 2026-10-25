@@ -67,7 +67,8 @@ with the row before and after, and `revert_change` undoes a row change.
 - **NPCs: at once.** An edited NPC leaves every player's view for a second and comes back as edited, alive,
   on its spawn point. A new row spawns; a deleted row leaves. Changes made outside the panel (an importer,
   `sql_execute`) reach the world with `reload_npcs`.
-- **Merchant stock, spell effects: at once** (read each time a window opens or a spell is cast).
+- **Merchant stock, spell effects: at once** (read each time a window opens or a spell is cast), a spell's
+  visual included.
 - **A character in the world**: `level`, `tunar`, `bankTunar` and its place (`x`, `y`, `z`, `world`) are
   applied where it stands at once. `give_item` (inventory) and `grant_spell` deliver at once. Everything else
   about it (stats, looks, name, items written straight into `charinventory`) is read at its next login:
@@ -93,6 +94,15 @@ with the row before and after, and `revert_change` undoes a row change.
   `Invis`, `Return to bind point` (a gate), `+100 hate`; a scale
   `; Increase 15% based on DEX`; a duration `30sec`, `5min`, `2hr`. Example:
   `Target, Decrease Hitpoints by 120 ; Increase 10% based on INT`.
+- **Fix a spell's visual** (what it shows when cast, 0x00B1's DictID: `spelleffect.fxdict`; 0 plays the
+  server's stand-in of its kind, a heal's, a strike's or a buff's, and most spells have none recorded):
+  `spell_visual` says what a spell plays; `play_visual` plays a visual (or a spell's) in the game now, from
+  the GM's own character, logged in with this account, onto its target, so a person watching can say
+  whether it is the right one; `set_spell_visual` gives the spell one (0: its stand-in again), audited and
+  revertible; `visual_uses` lists the visuals given so far. The page's Spell visuals lists every visual on
+  the GM's disc (238 on the Frontiers disc); an agent has only the DictIDs it is told or reads in rows.
+  The same in the game's chat line: `#fx <visual> [seconds]`, `#fx <spell>`, `#spellfx <spell> [<visual> | 0]`
+  (their changes are in `audit_log` too, through "game").
 - **Give a player something**: `give_item` (an item by name or id), `grant_spell` (one, or "all" of its
   class), `set_character` (level, tunar, heal).
 - **Moderate**: `message_player`, `broadcast`, `kick_player`, `ban_account` (with a reason).

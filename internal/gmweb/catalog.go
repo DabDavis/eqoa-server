@@ -413,6 +413,24 @@ var catalog = map[string]tableNote{
 			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_aggro.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npcundead": {
+		Label: "Undead creatures", Group: "World", Title: "name", Sort: "name",
+		Help: "Which creatures are undead, by NPC NAME (lower case, no trailing $): the spells for undead alone (a " +
+			"\"Target undead\" line, as the ... Death nukes have, and the necromancer's Charm, Command, Control and Coerce " +
+			"Undead) are refused at anything else with \"This spell only works on the undead.\", and every other charm " +
+			"fails on undead. undead 1 makes every NPC of the name undead, 0 none, whatever its name says; a name with no " +
+			"row is undead when its name says so (skeleton, zombie, ghoul, mummy, wraith, spectre, ghost...). Rows of " +
+			"source seed are tools/seed_npc_undead.py's, from the creatures' names and bodies: no record of the live game " +
+			"says which creatures were undead.",
+		Live:   "At once: the next cast at a creature of that name uses it.",
+		Search: []string{"name", "note"},
+		Cols: map[string]colNote{
+			"name":   {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"undead": {Label: "Undead", Help: "1 yes, 0 no"},
+			"note":   {Label: "Note", Help: "why"},
+			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_undead.py's rows (its --undo deletes those)"},
+		},
+	},
 	"itempattern": {
 		Label: "Items", Group: "Items & spells", Title: "itemname", Sort: "patternid",
 		Help: "Every item that exists, by patternid. model is the ITEM.ESF DictID worn or held, itemicon the ITEMICON.ESF " +

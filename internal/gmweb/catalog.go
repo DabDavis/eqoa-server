@@ -531,8 +531,8 @@ var catalog = map[string]tableNote{
 			"races":      {Label: "Races", Help: "race ids, comma separated; empty: any"},
 			"requires":   {Label: "Quests first", Help: "quest ids finished first, comma separated"},
 			"repeatable": {Label: "Repeatable"},
-			"offer":      {Label: "Giver offers", Format: "multiline", Help: "a line a box; the last line asks"},
-			"accept":     {Label: "Answer taking it", Help: "empty: taken when talked to"},
+			"offer":      {Label: "Giver offers", Format: "multiline", Help: "a paragraph a question: a line a box, its last line asks"},
+			"accept":     {Label: "Answers taking it", Format: "multiline", Help: "a line a question; empty: taken when talked to"},
 			"decline":    {Label: "Answer refusing it", Help: "empty: none (Close refuses)"},
 			"started":    {Label: "Giver says once taken", Format: "multiline"},
 			"source":     {Label: "Source"},
@@ -542,7 +542,8 @@ var catalog = map[string]tableNote{
 	"queststeps": {
 		Label: "Quest steps", Group: "Guilds & quests", Sort: "questid",
 		Help: "A quest's steps in order (step 1, 2, ...). kind talk: talk to the NPC named target (answering it when answer " +
-			"is set); give: hand that NPC items (patternid*count, comma separated) and tunar; kill: kill count creatures " +
+			"is set); show: talk to it holding items, which are kept; give: hand that NPC items (patternid*count, comma " +
+			"separated) and tunar, which are taken; kill: kill count creatures " +
 			"named target; reach: come within radius of x, y, z in world. journal is the journal's line while it is the " +
 			"step to do; says is the NPC's words when it is done; the rewards are given then.",
 		Live:   "At once: the next talk, kill or step uses it.",
@@ -551,11 +552,11 @@ var catalog = map[string]tableNote{
 		Cols: map[string]colNote{
 			"questid":     {Label: "Quest", Ref: "quests"},
 			"step":        {Label: "Step"},
-			"kind":        {Label: "Kind", Help: "talk, give, kill or reach"},
+			"kind":        {Label: "Kind", Help: "talk, show, give, kill or reach"},
 			"target":      {Label: "NPC or creature", Help: "its name as the game shows it"},
 			"npcid":       {Label: "Only spawn", Ref: "npcs", Help: "0: any of the name"},
-			"items":       {Label: "Items handed in", Help: "patternid*count, comma separated"},
-			"tunar":       {Label: "Tunar handed in"},
+			"items":       {Label: "Items held or handed in", Help: "show: held and kept; give: taken. patternid*count, comma separated"},
+			"tunar":       {Label: "Tunar held or handed in"},
 			"count":       {Label: "How many", Help: "a kill step's creatures"},
 			"world":       {Label: "World", Enum: "world"},
 			"radius":      {Label: "Within"},

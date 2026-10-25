@@ -54,7 +54,7 @@ func TestAQuestIsSavedWithItsSteps(t *testing.T) {
 		t.Fatalf("quest_save: %d %v", code, out)
 	}
 	ps := problemsOf(out)
-	for _, want := range []string{`step 1's NPC "Merchant Shadehand" opens a window`, "step 2 hands in item 999, which does not exist", "step 4's place is 0, 0"} {
+	for _, want := range []string{`step 1's NPC "Merchant Shadehand" opens a window`, "step 2 wants item 999, which does not exist", "step 4's place is 0, 0"} {
 		if !strings.Contains(ps, want) {
 			t.Errorf("problems lack %q:\n%s", want, ps)
 		}

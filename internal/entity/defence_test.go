@@ -94,7 +94,10 @@ func hitChance(r meleeRoll, p *Player, hit int) float64 {
 // the first hit the roll cannot make.
 func defenceNLL(conds []defenceCondition, mut func(*Player, *meleeRoll)) (nll float64, impossible string) {
 	for _, c := range conds {
-		p := &Player{Class: c.class, AC: c.ac, Agi: c.agi}
+		// level 50, as the recorded characters about were: its stat cap
+		// (515, mastery.go) is past every AGI recorded (397 at most), so
+		// the stats are as Sandstorm's channel had them
+		p := &Player{Level: 50, Class: c.class, AC: c.ac, Agi: c.agi}
 		r := npcMeleeRoll(&NPC{Level: c.level, Dummy: TrainingDummy})
 		if mut != nil {
 			mut(p, &r)

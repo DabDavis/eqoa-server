@@ -560,6 +560,11 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 				log.Printf("SelectedChar: could not keep '%s' replaced session's standings: %v", record.CharName, err)
 			}
 		}
+		if m, ok := h.gameWorld.MasteryOf(entity.EntityID(record.ServerID)); ok {
+			if err := h.store.SaveMastery(record.ServerID, MasteryRow(m)); err != nil {
+				log.Printf("SelectedChar: could not keep '%s' replaced session's mastery points: %v", record.CharName, err)
+			}
+		}
 	}
 
 	// Where the session starts (loginSpawn): where the character logged out,
@@ -585,6 +590,12 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 			log.Printf("SelectedChar: '%s' standings: %v", record.CharName, err)
 		} else if n := h.gameWorld.RestoreFactions(sess, m); n > 0 {
 			log.Printf("SelectedChar: '%s' keeps its standing with %d factions", record.CharName, n)
+		}
+		// and its mastery points and their share (entity/mastery.go)
+		if m, err := h.store.LoadMastery(record.ServerID); err != nil {
+			log.Printf("SelectedChar: '%s' mastery points: %v", record.CharName, err)
+		} else {
+			h.gameWorld.RestoreMastery(sess, PlayerMastery(m))
 		}
 	}
 
@@ -1349,19 +1360,7 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 	}
 
 	// Character data (zigzag encoded) — all from Player struct
-	writer.Write7BitEncodedInt64(int64(player.CharServerID))
-	writer.WriteInt32(int32(len(player.Name)))
-	writer.WriteStringUTF8Raw(player.Name)
-	writer.Write7BitEncodedInt64(int64(player.Class))
-	writer.Write7BitEncodedInt64(int64(player.Race))
-	writer.Write7BitEncodedInt64(int64(player.Level))
-	writer.Write7BitEncodedInt64(int64(player.XPInLevel))
-	writer.Write7BitEncodedInt64(int64(player.Debt))
-	writer.WriteByte(byte(player.Breath)) // Breath (255 = full)
-	writer.Write7BitEncodedInt64(int64(player.Tunar))
-	writer.Write7BitEncodedInt64(int64(player.BankTunar))
-	writer.Write7BitEncodedInt64(int64(player.UnusedTP))
-	writer.Write7BitEncodedInt64(int64(player.BaseMaxStat))
+	writeDumpRecord(writer, player)
 
 	// THE WORLD INDEX, and it must agree with the path string above.
 	//
@@ -1562,22 +1561,58 @@ func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player, spells []datab
 		}
 	}
 
-	// CM (Combat Mastery) block — func_00BF71A0.
-	w.WriteUint32(0)           // +0x41C, raw
-	w.Write7BitEncodedInt64(0) // +0x0C
-	w.Write7BitEncodedInt64(0) // +0x10
-	w.Write7BitEncodedInt64(0) // +0x14
-	w.Write7BitEncodedInt64(0) // +0x08 (read after +0x14)
-	w.WriteUint32(0)           // +0xA8, raw
-	for i := 0; i < 29; i++ {  // func_00BF7060
-		w.Write7BitEncodedInt64(0)
-	}
-	for i := 0; i < 7; i++ { // func_00BF6FF0
-		w.Write7BitEncodedInt64(0)
-	}
+	writeMasteryState(w, player)
 
 	for i := 0; i < memoryDumpTrailerLen; i++ {
 		w.WriteByte(0x00)
+	}
+}
+
+// writeDumpRecord is the player's record in the MemoryDump, VINetCharacter's
+// read (decomp vinetcharacter.cpp) up to the world index: the id, the name,
+// class, race, level, the experience into it, m_p2C, the breath, the purse,
+// the bank's tunar, the training points (m_p40) and m_p44, the stat cap
+// before masteries (entity/mastery.go; CLIENT's GetP44Total).
+func writeDumpRecord(writer *buffer.Writer, player *entity.Player) {
+	writer.Write7BitEncodedInt64(int64(player.CharServerID))
+	writer.WriteInt32(int32(len(player.Name)))
+	writer.WriteStringUTF8Raw(player.Name)
+	writer.Write7BitEncodedInt64(int64(player.Class))
+	writer.Write7BitEncodedInt64(int64(player.Race))
+	writer.Write7BitEncodedInt64(int64(player.Level))
+	writer.Write7BitEncodedInt64(int64(player.XPInLevel))
+	writer.Write7BitEncodedInt64(int64(player.Debt))
+	writer.WriteByte(byte(player.Breath)) // Breath (255 = full)
+	writer.Write7BitEncodedInt64(int64(player.Tunar))
+	writer.Write7BitEncodedInt64(int64(player.BankTunar))
+	writer.Write7BitEncodedInt64(int64(player.UnusedTP))
+	writer.Write7BitEncodedInt64(int64(entity.StatCapBase(player.Level)))
+}
+
+// writeMasteryState is the dump's class mastery block, CLIENT's
+// VIClientPart4EC58::ReadState (decomp viclientpart4ec58.cpp): the server's
+// token (raw), the unspent points (m_x0C, the mastery windows' "Available"),
+// the spent ones (m_x10), m_x14 (no reader shows it), the share of
+// experience going to masteries (m_x08, the mastery points window's 0-100),
+// the speed a bought mastery would set (raw; ReadState keeps it, only a
+// buy's reply hands it to SetSpeed), the 29 stats the masteries add and the
+// seven stat caps they raise (m_bonus: GetP44Total's addend, the trainer's
+// cap). A mastery is not sold yet, so the stats are none and the raises the
+// general masteries the level allows (entity/mastery.go).
+func writeMasteryState(w *buffer.Writer, player *entity.Player) {
+	m := player.Mastery
+	w.WriteUint32(0)
+	w.Write7BitEncodedInt64(int64(m.Points))
+	w.Write7BitEncodedInt64(int64(m.Spent))
+	w.Write7BitEncodedInt64(0)
+	w.Write7BitEncodedInt64(int64(m.Percent))
+	w.WriteUint32(0)
+	for i := 0; i < 29; i++ {
+		w.Write7BitEncodedInt64(0)
+	}
+	raise := entity.GeneralCapRaise(player.Level)
+	for i := 0; i < 7; i++ {
+		w.Write7BitEncodedInt64(int64(raise))
 	}
 }
 

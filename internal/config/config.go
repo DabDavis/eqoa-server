@@ -113,6 +113,11 @@ type WorldConfig struct {
 	CorpseDecay  time.Duration `yaml:"corpse_decay"`
 	RespawnAfter time.Duration `yaml:"respawn_after"`
 	RoamRadius   float32       `yaml:"roam_radius"`
+
+	// CMXPPerPoint is how much experience makes a class mastery point, of
+	// the share a player gives to masteries (unset or 0: 10000, this
+	// server's own: no source gives the live game's). entity/mastery.go.
+	CMXPPerPoint int `yaml:"cm_xp_per_point"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

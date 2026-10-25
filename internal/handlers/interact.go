@@ -74,8 +74,8 @@ func (h *InteractHandler) RegisterHandlers(r *Registry) {
 
 // HandleInteract handles NPC interaction requests (opcode 0x0004).
 // Client sends: uint32 targetObjectID
-// For coachmen (NPCType & 0x100 != 0): sends OptionBox with destinations.
-// For other NPCs: sends debug DialogueBox.
+// A corpse opens its loot, the hard-disk technician his menu, a travel NPC
+// its routes and a greeter its words; anything else answers nothing.
 func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {
@@ -180,45 +180,50 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		}
 	}
 
-	// Default: build debug info via type switch
-	var debug string
+	// Anything else has nothing to say: the interact button does nothing, as
+	// on a PS2 an NPC with no words, no shop and no route answers nothing
+	// (F3 20261025-171528). CLIENT waits on no answer to 0x0004
+	// (VIClient::InteractWithTarget). What the box said is a GM's #npcinfo.
+	log.Printf("Interact: %s has nothing to say to %s", entity.EntityName(targetEntity), player.Name)
+	return nil
+}
 
-	switch t := targetEntity.(type) {
+// EntityInfo is what #npcinfo shows of an NPC or a player: its ids, look,
+// level and place, and an NPC's spawn and gear. objectID is the id the
+// asking session knows it by.
+func EntityInfo(target entity.Entity, objectID uint32) string {
+	var info string
+	switch t := target.(type) {
 	case *entity.NPC:
-		debug += fmt.Sprintf("[%s] ServerID=%d ObjID=%d\n", t.Name, t.ServerID, targetObjectID)
-		debug += fmt.Sprintf("NPCID=%d Type=%d\n", t.NPCID, t.NPCType)
-		debug += fmt.Sprintf("HP=%d/%d\n", t.HP, t.MaxHP)
-		debug += fmt.Sprintf("Level=%d\n", t.Level)
-		debug += fmt.Sprintf("Speed=%.1f\n", t.Speed)
-		debug += fmt.Sprintf("Pos=(%.1f, %.1f, %.1f)\n", t.X, t.Y, t.Z)
-		debug += fmt.Sprintf("Facing=%.2f\n", t.Facing)
-		debug += fmt.Sprintf("Model=%d Size=%.1f\n", t.ModelID, t.Size)
-		debug += fmt.Sprintf("Spawn=(%.1f, %.1f, %.1f) F=%.2f\n", t.SpawnX, t.SpawnY, t.SpawnZ, t.SpawnFacing)
-		debug += fmt.Sprintf("Wpn=%d/%d Shld=%d\nTorso=%d Arm=%d Glv=%d\nLeg=%d Ft=%d Hd=%d\n",
+		info += fmt.Sprintf("[%s] ServerID=%d ObjID=%d\n", t.Name, t.ServerID, objectID)
+		info += fmt.Sprintf("NPCID=%d Type=%d\n", t.NPCID, t.NPCType)
+		info += fmt.Sprintf("HP=%d/%d\n", t.HP, t.MaxHP)
+		info += fmt.Sprintf("Level=%d\n", t.Level)
+		info += fmt.Sprintf("Speed=%.1f\n", t.Speed)
+		info += fmt.Sprintf("Pos=(%.1f, %.1f, %.1f)\n", t.X, t.Y, t.Z)
+		info += fmt.Sprintf("Facing=%.2f\n", t.Facing)
+		info += fmt.Sprintf("Model=%d Size=%.2f\n", t.ModelID, t.Size)
+		info += fmt.Sprintf("Spawn=(%.1f, %.1f, %.1f) F=%.2f\n", t.SpawnX, t.SpawnY, t.SpawnZ, t.SpawnFacing)
+		info += fmt.Sprintf("Wpn=%d/%d Shld=%d\nTorso=%d Arm=%d Glv=%d\nLeg=%d Ft=%d Hd=%d\n",
 			t.PrimaryWeapon, t.SecondaryWeapon, t.Shield,
 			t.Torso, t.Forearm, t.NPCGloves,
 			t.NPCLegs, t.Feet, t.Head)
 	case *entity.Player:
-		debug += fmt.Sprintf("[%s] ServerID=%d ObjID=%d\n", t.Name, t.ServerID, targetObjectID)
-		debug += fmt.Sprintf("HP=%d/%d Power=%d/%d\n", t.HP, t.MaxHP, t.Power, t.MaxPower)
-		debug += fmt.Sprintf("Level=%d\n", t.Level)
-		debug += fmt.Sprintf("STR=%d STA=%d AGI=%d DEX=%d\nWIS=%d INT=%d CHA=%d\n",
+		info += fmt.Sprintf("[%s] ServerID=%d ObjID=%d\n", t.Name, t.ServerID, objectID)
+		info += fmt.Sprintf("HP=%d/%d Power=%d/%d\n", t.HP, t.MaxHP, t.Power, t.MaxPower)
+		info += fmt.Sprintf("Level=%d\n", t.Level)
+		info += fmt.Sprintf("STR=%d STA=%d AGI=%d DEX=%d\nWIS=%d INT=%d CHA=%d\n",
 			t.Str, t.Sta, t.Agi, t.Dex, t.Wis, t.Int, t.Cha)
-		debug += fmt.Sprintf("AC=%d Poi=%d Dis=%d Fire=%d\nCold=%d Lit=%d Arc=%d\n",
+		info += fmt.Sprintf("AC=%d Poi=%d Dis=%d Fire=%d\nCold=%d Lit=%d Arc=%d\n",
 			t.AC, t.PoisonR, t.DiseaseR, t.FireR, t.ColdR, t.LightningR, t.ArcaneR)
-		debug += fmt.Sprintf("Speed=%.1f\n", t.Speed)
-		debug += fmt.Sprintf("Pos=(%.1f, %.1f, %.1f)\n", t.X, t.Y, t.Z)
-		debug += fmt.Sprintf("Facing=%.2f\n", t.Facing)
-		debug += fmt.Sprintf("Model=%d Size=%.1f\n", t.ModelID, t.Size)
+		info += fmt.Sprintf("Speed=%.1f\n", t.Speed)
+		info += fmt.Sprintf("Pos=(%.1f, %.1f, %.1f)\n", t.X, t.Y, t.Z)
+		info += fmt.Sprintf("Facing=%.2f\n", t.Facing)
+		info += fmt.Sprintf("Model=%d Size=%.2f\n", t.ModelID, t.Size)
 	default:
-		debug += fmt.Sprintf("[???] ObjID=%d\n", targetObjectID)
+		info += fmt.Sprintf("[???] ObjID=%d\n", objectID)
 	}
-
-	log.Printf("Interact debug for ObjID %d:\n%s", targetObjectID, debug)
-
-	h.sendDialogueBox(sess, debug)
-
-	return nil
+	return info
 }
 
 // coachDestsPerPage is the max destinations per page (client option box limit is 6,

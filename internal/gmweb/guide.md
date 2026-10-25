@@ -35,6 +35,7 @@ with the row before and after, and `revert_change` undoes a row change.
 | `npcs` | every NPC spawn; its `id` is its id in the world | `id` |
 | `npcitem` | merchant stock: `npcid` (→ `npcs.id`), `patternid`, `listnumber` (order) | `itemid` |
 | `npcclass` | an NPC NAME's class (lower case), which picks its melee; absent = warrior | `name` |
+| `npcpaths` | the path an NPC walks: `points` (JSON waypoints), `mode`, `pause`, `speed`; use the path operations | `npcid` |
 | `itempattern` | every item that exists | `patternid` |
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
@@ -70,7 +71,10 @@ with the row before and after, and `revert_change` undoes a row change.
 - **NPCs: at once.** An edited NPC leaves every player's view for a second and comes back as edited, alive,
   on its spawn point. A new row spawns; a deleted row leaves. Changes made outside the panel (an importer,
   `sql_execute`) reach the world with `reload_npcs`.
-- **Merchant stock, spell effects: at once** (read each time a window opens or a spell is cast).
+- **Merchant stock, spell effects: at once** (read each time a window opens or a spell is cast), a spell's
+  visual included.
+- **NPC paths: at once.** The NPC walks its new path from the nearest leg; with its path taken away it walks
+  back to its spawn point. A path survives the NPC's deaths and a restart.
 - **A character in the world**: `level`, `tunar`, `bankTunar` and its place (`x`, `y`, `z`, `world`) are
   applied where it stands at once. `give_item` (inventory) and `grant_spell` deliver at once. Everything else
   about it (stats, looks, name, items written straight into `charinventory`) is read at its next login:
@@ -88,6 +92,12 @@ with the row before and after, and `revert_change` undoes a row change.
   a GM's character stands, read that character's place from `online_players`.
 - **Add an NPC**: `clone_row` an NPC with the right look (`table: npcs`, its key) with changes
   `{npc_name, x_coord, y_coord, z_coord, world, npc_level}`.
+- **Give an NPC a path to walk** (a guard's patrol): `set_npc_path` with `id` and `points` in order, each
+  `{x, z}` in the NPC's own world (leave `y` out: the ground gives it; `pause` for seconds at that point);
+  `mode` `loop` (the default), `pingpong` (back and forth) or `once` (then it stands at the last point);
+  `pause` seconds at every point; `speed` `walk` or `run`. Take places from `online_players` (a GM walking
+  the route) or `world_npcs`. `npc_path` shows it and where the NPC is on it; `clear_npc_path` takes it
+  away. A pathed NPC does not wander; a fight takes it off its path and it comes back to the nearest leg.
 - **Make a merchant**: set `npc_type` to 129 (0x81), then `insert_row` into `npcitem` one row per item:
   `{npcid, patternid, stackleft: 1, listnumber: 0, 1, 2...}`.
 - **Change what a spell does**: `update_row` on `spelleffect` (`line`). The words the server reads:
@@ -117,6 +127,15 @@ with the row before and after, and `revert_change` undoes a row change.
 - **Drafts from EQOA-Data**: `quest_import_eqoadata` with its guides' JSON (Quests/**/*.json of
   github.com/Jadiction/EQOA-Data; `dryRun` first) makes off drafts with the giver, level, class, experience
   and reward items resolved by name and the guide in `notes`; write their steps from the notes.
+- **Fix a spell's visual** (what it shows when cast, 0x00B1's DictID: `spelleffect.fxdict`; 0 plays the
+  server's stand-in of its kind, a heal's, a strike's or a buff's, and most spells have none recorded):
+  `spell_visual` says what a spell plays; `play_visual` plays a visual (or a spell's) in the game now, from
+  the GM's own character, logged in with this account, onto its target, so a person watching can say
+  whether it is the right one; `set_spell_visual` gives the spell one (0: its stand-in again), audited and
+  revertible; `visual_uses` lists the visuals given so far. The page's Spell visuals lists every visual on
+  the GM's disc (238 on the Frontiers disc); an agent has only the DictIDs it is told or reads in rows.
+  The same in the game's chat line: `#fx <visual> [seconds]`, `#fx <spell>`, `#spellfx <spell> [<visual> | 0]`
+  (their changes are in `audit_log` too, through "game").
 - **Give a player something**: `give_item` (an item by name or id), `grant_spell` (one, or "all" of its
   class), `set_character` (level, tunar, heal).
 - **Moderate**: `message_player`, `broadcast`, `kick_player`, `ban_account` (with a reason).

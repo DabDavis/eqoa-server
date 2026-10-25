@@ -333,6 +333,23 @@ var catalog = map[string]tableNote{
 			"dt_kill":          {Section: "Other"},
 		},
 	},
+	"npcpaths": {
+		Label: "NPC paths", Group: "World", Sort: "npcid",
+		Help: "The paths GMs give NPCs (the World map's Path editor draws them): one row an NPC, by its npcs id; points " +
+			"is its waypoints in order, a JSON list of {x, y, z} (and pause, seconds there); mode loop, pingpong (back and " +
+			"forth) or once (then it stands at the last point); pause, seconds at each point; speed walk or run. A pathed " +
+			"NPC does not wander; a fight takes it off its path and it takes it up again at the nearest leg.",
+		Live: "At once: the NPC walks its new path from its nearest leg; a deleted path sends it back to its spawn point.",
+		Show: []string{"npcid", "world", "mode", "pause", "speed"},
+		Cols: map[string]colNote{
+			"npcid":  {Label: "NPC", Ref: "npcs"},
+			"world":  {Label: "World", Enum: "world", Help: "the NPC's own world (a path in another is not walked)"},
+			"mode":   {Label: "Mode", Help: "loop, pingpong (back and forth) or once"},
+			"pause":  {Label: "Pause (s)", Help: "seconds at each point, 0-600"},
+			"speed":  {Label: "Speed", Help: "walk (5 a second) or run (8.8)"},
+			"points": {Label: "Waypoints", Format: "multiline", Help: `[{"x": 25000, "y": 50, "z": 15000}, {"x": 25040, "y": 51, "z": 15000, "pause": 5}]`},
+		},
+	},
 	"npcitem": {
 		Label: "Merchant stock", Group: "World", Sort: "npcid",
 		Help: "What a merchant sells: a row an item, by npcs.id; listnumber orders the window.",
@@ -377,6 +394,23 @@ var catalog = map[string]tableNote{
 			"faction":  {Label: "Faction", Ref: "factions"},
 			"delta":    {Label: "Change", Help: "added to the killer's standing; below 0 lowers it"},
 			"source":   {Label: "Source", Help: "gm, or town-seed for the seeding tool's rows (its --undo deletes those)"},
+		},
+	},
+	"npcaggro": {
+		Label: "Creature aggro", Group: "World", Title: "npc_name", Sort: "npc_name",
+		Help: "Which creatures attack a player on sight, by NPC name, where the rule is wrong for them (entity/aggro.go): " +
+			"a creature (a body no player race has, not an NPC-bit NPC) standing outside the towns attacks a player " +
+			"below three times its level who comes within 30, and shows that player the red face; townsfolk, guards " +
+			"and bandits with players' bodies do not. aggressive 1 makes every NPC of the name attack on sight, 0 never; " +
+			"radius how near (0: 30). An NPC with the NPC bit (0x80) never does: no one may attack it.",
+		Live:   "At once: the next look round (half a second) and the next target box use it.",
+		Search: []string{"npc_name", "note"},
+		Cols: map[string]colNote{
+			"npc_name":   {Label: "NPC name", Help: "as in NPCs, exactly (a trailing space included)"},
+			"aggressive": {Label: "Attacks on sight", Help: "1 yes, 0 never"},
+			"radius":     {Label: "Radius", Help: "how near a player must come; 0 the default, 30"},
+			"note":       {Label: "Note"},
+			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_aggro.py's rows (its --undo deletes those)"},
 		},
 	},
 	"itempattern": {
@@ -433,7 +467,7 @@ var catalog = map[string]tableNote{
 	},
 	"spellpattern": {
 		Label: "Spells", Group: "Items & spells", Title: "spellname", Sort: "spellid",
-		Help: "Every spell and ability, by spellid: level, range, cast and recast times (ms), power cost, icon. What a spell " +
+		Help: "Every spell and ability, by spellid: level, range, cast and recast times (seconds: the server casts with CastTime × 1 s), power cost, icon. What a spell " +
 			"DOES is its spelleffect line.",
 		Live:   "Read at each cast and scribe; a player's spell book takes it at their next login.",
 		Show:   []string{"spellid", "spellname", "abilitylvl", "casttime", "recast", "power", "range"},
@@ -443,8 +477,8 @@ var catalog = map[string]tableNote{
 			"spellname":  {Label: "Name"},
 			"spelldesc":  {Label: "Description", Format: "multiline"},
 			"abilitylvl": {Label: "Level"},
-			"casttime":   {Label: "Cast time (ms)"},
-			"recast":     {Label: "Recast (ms)"},
+			"casttime":   {Label: "Cast time (s)"},
+			"recast":     {Label: "Recast (s)"},
 			"power":      {Label: "Power cost"},
 			"icon":       {Format: hex32},
 			"iconColor":  {Label: "Icon colour", Format: hex32},
@@ -453,7 +487,8 @@ var catalog = map[string]tableNote{
 	"spelleffect": {
 		Label: "Spell effects", Group: "Items & spells", Title: "line", Sort: "spellid",
 		Help: "What each spell does, as EQOA-Data's spell lists word it (\"Inflicts 45 magic damage\", \"Increases STR by 10 " +
-			"for 5 minutes\"); entity/spelltext.go reads the words. fxdict is the visual (0: the server's stand-in).",
+			"for 5 minutes\"); entity/spelltext.go reads the words. fxdict is the visual (0: the server's stand-in of its " +
+			"kind): play_visual plays one in the game, Spell visuals lists the disc's, and #spellfx sets one in the game.",
 		Live:   "At once: read at every cast.",
 		Search: []string{"line"},
 		Cols: map[string]colNote{

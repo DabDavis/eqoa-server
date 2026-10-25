@@ -168,6 +168,7 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	npc.CurrentEnemy = 0
 	npc.stopMoving()
 	npc.roam = roamState{}
+	npc.path = pathState{}
 	w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.SpawnX, npc.SpawnZ)
 }
 

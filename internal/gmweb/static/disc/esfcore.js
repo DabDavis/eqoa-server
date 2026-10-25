@@ -509,3 +509,78 @@ export function zoneTerrain(parsed) {
     ymin, ymax,
   };
 }
+
+// ---- a compressed container (.CSF) and the spell visuals in one
+
+// inflateCSF is a .CSF as the container it compresses: a 40-byte header (the
+// block count at +4, the block table's offset as an int64 at +24), then each
+// block an 8-byte length (its low half used) and a zlib stream, inflated in
+// order (the client's esf::decompress_csf; zlib is DecompressionStream's
+// 'deflate').
+export async function inflateCSF(buf) {
+  if (buf.byteLength < 40) throw new Error('not a CSF (too short)');
+  const dv = new DataView(buf);
+  const blocks = dv.getInt32(4, true);
+  let pos = Number(dv.getBigInt64(24, true));
+  if (blocks <= 0 || blocks > 1 << 20 || pos < 40 || pos > buf.byteLength) throw new Error('not a CSF (no block table)');
+  const parts = [];
+  let total = 0;
+  for (let b = 0; b < blocks; b++) {
+    if (pos + 8 > buf.byteLength) throw new Error('CSF block ' + b + ': truncated');
+    const size = dv.getUint32(pos, true);
+    pos += 8;
+    if (pos + size > buf.byteLength) throw new Error('CSF block ' + b + ': past the end');
+    const stream = new Blob([new Uint8Array(buf, pos, size)]).stream().pipeThrough(new DecompressionStream('deflate'));
+    const out = new Uint8Array(await new Response(stream).arrayBuffer());
+    parts.push(out);
+    total += out.length;
+    pos += size;
+  }
+  const all = new Uint8Array(total);
+  let o = 0;
+  for (const p of parts) { all.set(p, o); o += p.length; }
+  return all.buffer;
+}
+
+// What each spell event does, by its type (VISpellEffectDriver's dispatch;
+// the client's vi::spell).
+const SPELL_EVENT = {
+  1: 'wait', 2: 'action', 3: 'particles', 4: 'particles end', 5: 'attractor', 6: 'motif', 7: 'instant',
+  8: 'projectile', 9: 'sprite', 10: 'sprite end', 11: 'sound', 12: 'sound end', 13: 'lightning', 14: 'fade',
+  15: 'attack', 16: 'vibrate', 17: 'shake',
+};
+
+// spellVisuals is every spell visual in a parsed SPELLFX.CSF: each 0xC200
+// record's DictID (its 0xC210, what 0x00B1 names) and what its three event
+// lists hold (0xC220: the caster's, the target's and the area's, each a
+// count and 44-byte events whose first word is the type), as
+// ParseSpellEffectObj reads them. The first of an id wins, as in the game.
+export function spellVisuals(parsed) {
+  const dv = parsed.dv;
+  const seen = new Set();
+  const out = [];
+  for (const n of parsed.roots) {
+    if (n.type !== 0xc200) continue;
+    const idNode = child(n, 0xc210), ev = child(n, 0xc220);
+    if (!idNode || !ev || idNode.size < 4) continue;
+    const id = dv.getUint32(idNode.body, true);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const lists = [];
+    let p = ev.body;
+    const end = ev.body + ev.size;
+    for (let k = 0; k < 3 && p + 4 <= end; k++) {
+      const count = Math.max(0, dv.getInt32(p, true));
+      p += 4;
+      const kinds = {};
+      for (let i = 0; i < count && p + 44 <= end; i++, p += 44) {
+        const t = dv.getInt32(p, true);
+        const name = SPELL_EVENT[t] || 'event ' + t;
+        kinds[name] = (kinds[name] || 0) + 1;
+      }
+      lists.push({ events: count, kinds });
+    }
+    out.push({ id, version: n.version, lists });
+  }
+  return out;
+}

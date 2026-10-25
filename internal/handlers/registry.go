@@ -189,6 +189,10 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		chatHandler.SetMasteryStore(charStore)
 	}
 	chatHandler.SetTemplate(charHandler.ApplyTemplate)
+	// #fx and #spellfx: the spells and their visuals (spellfx.go)
+	if spellStore != nil {
+		chatHandler.SetSpellVisuals(spellStore)
+	}
 	targetHandler := NewTargetHandler(sessionMgr)
 	if gameWorld != nil {
 		targetHandler.SetGameWorld(gameWorld)
@@ -331,6 +335,10 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 			r.Register(protocol.OpcodeDeleteQuest, qe.HandleDrop)
 		}
 	}
+
+	// Register others' power (0x7E01; powerbars.go): a client that draws
+	// power bars under its group's, its target's and their target's health
+	NewPowerBarsHandler(gameWorld).RegisterHandlers(r)
 
 	// Register server handlers
 	serverHandler.RegisterHandlers(r)

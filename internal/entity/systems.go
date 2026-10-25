@@ -37,6 +37,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 
 	w.TickCount++
 
+	w.aggroSystem(now) // a creature's first move (aggro.go)
 	w.aiSystem(now)
 	w.homeSystem(now)
 	w.attackSystem(now)
@@ -46,6 +47,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.consumableSystem(now)
 	gone := w.corpseSystem(now)
 	w.roamSystem(now)
+	w.pathSystem(now)
 	due := w.playerRespawnSystem(now)
 	w.regenSystem(now)
 	w.breathSystem(now)
@@ -56,6 +58,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.guildAnnounceSystem()
 	w.visibilitySystem()
 	w.groupSyncSystem()
+	w.powerSyncSystem()
 	return due, gates, gone
 }
 
@@ -195,8 +198,9 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)
 	w.sendDamageIndication(sess, npcObjectID, -damage, sess.PlayerObjectID())
 
-	log.Printf("Combat: NPC '%s' hit player %s for %d damage (HP: %d/%d)",
-		npc.Name, sess.RemoteAddr(), damage, player.HP, player.MaxHP)
+	log.Printf("Combat: NPC '%s' hit player %s for %d damage (HP: %d/%d) %.2f off, reach %.2f",
+		npc.Name, sess.RemoteAddr(), damage, player.HP, player.MaxHP,
+		dist3(npc.X, npc.Y, npc.Z, player.X, player.Y, player.Z), npcReach(npc))
 
 	// Check for player death
 	if player.HP <= 0 {

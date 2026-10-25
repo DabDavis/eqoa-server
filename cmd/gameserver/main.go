@@ -94,6 +94,26 @@ func main() {
 	} else {
 		log.Printf("Creatures: no ground (%v): they keep their heights as they move", err)
 	}
+	// The bodies' sizes (entity/reach.go), baked from the disc by
+	// cmd/modelbake into <worlds>/models.txt: a large creature is reached,
+	// and reaches, from further off (CLIENT's TargetInRange +3 or +5).
+	if m, err := entity.LoadModelRadii(filepath.Join(worlds.Dir(cfg.Patch.WorldsDir), "models.txt")); err == nil {
+		entity.SetModelRadii(m)
+		log.Printf("Creatures: the sizes of %d bodies: a large one is reached from further off", len(m))
+	} else {
+		log.Printf("Creatures: no bodies' sizes (%v): every creature is reached at 4.5, as before", err)
+	}
+	// The paths GMs gave creatures (entity/path.go, the GM panel's map)
+	if recs, bad, err := database.NewNPCPathStore(db).All(); err != nil {
+		log.Printf("Creatures: the paths: %v (none walked)", err)
+	} else {
+		for _, e := range bad {
+			log.Printf("Creatures: %v (not walked)", e)
+		}
+		if n := gameWorld.LoadNPCPaths(recs); n > 0 {
+			log.Printf("Creatures: %d walk the paths GMs gave them", n)
+		}
+	}
 	decay, respawn := gameWorld.CorpseTimes()
 	log.Printf("Creatures: a corpse lies %v unless emptied, the creature back %v after it goes; wandering within %.0f of its spawn",
 		decay, respawn, gameWorld.RoamRadius())
@@ -101,6 +121,14 @@ func main() {
 	if err := gameWorld.LoadFactions(db); err != nil {
 		log.Printf("WARNING: %v; every faction at its default, no kill changes one", err)
 	}
+	// Creatures attacking a player on sight, and the GMs' rules by name
+	// (entity/aggro.go, table npcaggro)
+	if cfg.World.Aggro != nil && !*cfg.World.Aggro {
+		gameWorld.SetAggro(false)
+	} else if _, err := gameWorld.LoadAggroRules(db); err != nil {
+		log.Printf("WARNING: %v; creatures attack on sight by the rule alone", err)
+	}
+	log.Printf("Creatures: %s", gameWorld.AggroSummary())
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 

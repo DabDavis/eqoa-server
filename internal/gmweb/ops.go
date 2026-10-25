@@ -112,6 +112,8 @@ func (s *Server) registerOps() {
 	s.registerAccountOps()
 	s.registerAdminOps()
 	s.registerQuestOps()
+	s.registerPathOps()
+	s.registerVisualOps()
 }
 
 // run calls an operation as an actor, with the scope check, and logs a

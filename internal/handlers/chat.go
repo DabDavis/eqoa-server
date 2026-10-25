@@ -56,6 +56,8 @@ type ChatHandler struct {
 	purse    purseStore
 	template func(*session.Session) ([]string, error)
 	mastery  masteryStore // #grantcm's (mastery.go)
+
+	visuals spellVisualStore // #fx's and #spellfx's spells (spellfx.go)
 }
 
 // NewChatHandler creates a new chat handler.
@@ -805,6 +807,17 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #grantcm <amount>: mastery points, never past 1500 in all
 		// (mastery.go)
 		h.grantMasteryCommand(sess, parts[1:])
+	case "#aggro":
+		// #aggro [on|off]: whether creatures attack you on sight (aggrocmd.go)
+		h.aggroCommand(sess, parts[1:])
+	case "#fx":
+		// #fx <visual> [seconds] | <spell>: a spell visual played on the
+		// target now, nothing saved (spellfx.go)
+		h.fxCommand(sess, parts[1:])
+	case "#spellfx":
+		// #spellfx <spell> [<visual> | 0]: a spell's visual, said or set
+		// (spellfx.go)
+		h.spellFXCommand(sess, parts[1:])
 
 	case "#help":
 		h.gmReply(sess, "GM Commands (each also as /name):")
@@ -826,6 +839,9 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear active effects")
 		h.gmReply(sess, "  #faction <faction> [standing] - your standing with a faction, or set it")
 		h.gmReply(sess, "  #grantcm <amount> - mastery points, never past 1500 spent and unspent")
+		h.gmReply(sess, "  #aggro [on|off] - whether creatures attack you on sight (off until #aggro on)")
+		h.gmReply(sess, "  #fx <visual> [seconds] | <spell> - play a spell visual (0x1DAEB5B6) on your target, nothing saved")
+		h.gmReply(sess, "  #spellfx <spell> [<visual> | 0] - a spell's visual, or give it one (0: its stand-in)")
 		h.gmReply(sess, "  #kill - kill target")
 		h.gmReply(sess, "  #npcinfo - the target's ids, model, size, level, spawn and gear")
 		h.gmReply(sess, "  #pos - show position")

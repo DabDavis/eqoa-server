@@ -40,6 +40,7 @@ export async function render(box, [id, tab]) {
     actions: (row, meta) => [
       canWrite(meta) ? button('Move to a character', { icon: 'pin', onclick: () => moveToCharacter(row) }) : null,
       button('On the map', { icon: 'map', onclick: () => go(`map/${row.world}/${row.id}`) }),
+      button('Path on the map', { title: 'Give it a path to walk, or change its path', onclick: () => go(`map/${row.world}/${row.id}/path`) }),
     ].filter(Boolean),
     side: async (row, meta, refresh) => {
       const out = await op('fetch', { id: 'npc:' + row.id });

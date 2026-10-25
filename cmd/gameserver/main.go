@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -278,6 +279,16 @@ func main() {
 			entity.EntityID(serverID), x, y, z, world)
 	}
 	accountServer.SendOnly = handlers.IsSendOnlyWorld
+	accountServer.CanLoad = func(serverID uint32, world byte) error {
+		sess := handlers.SessionOfCharacter(gameWorld, sessionMgr, serverID)
+		if handlers.CanLoadWorld(sess, world) {
+			return nil
+		}
+		if sess == nil {
+			return fmt.Errorf("a login starts only in the six worlds every game has, not in world %d", world)
+		}
+		return fmt.Errorf("this character's game cannot load world %d", world)
+	}
 	accountServer.EndSessions = sessionMgr.EndAccount
 	accountServer.Limiter = loginLimiter
 

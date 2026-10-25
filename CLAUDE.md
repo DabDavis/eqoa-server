@@ -117,6 +117,20 @@ Sandstorm's S2 does), a retail PS2 keeps an unknown one to itself. The dev conso
 target), `#monstersearch`, `#nearby`. Until 2026-10-21 every player was a GM. Make one:
 `sqlite3 eqoa.db "UPDATE accountinfo SET acctlevel = 1 WHERE username = '<name>'"`.
 
+A place may also be named by the people standing there: a word of the names of NPCs that
+stand together in one world (`NamesakePlace`: `/goto guk` lands among Guk's "froglok guk ..."
+in Tunaria, on the one nearest their middle; guards along a road are listed instead). The
+zones' own names are CLIENT's (`ZoneName`) and are not in this repository.
+
+**Only worlds the client loads** (`handlers/loadable.go`, F3 20261025-000749): a Frontiers
+disc has six (a retail PS2, eqoa-rust-client-vanilla, the page: DiscVersion 0x12), only a
+PS2 running a patch has more (S2's 0x13 on its world session; our hard-disk loader rides on
+it). The harbormasters' and gatekeepers' menus, `#goto`/`#tele`/`#summon`, the GM panel's
+list and teleport and the account pages offer and take only those (`LoadableWorlds(sess)`;
+no session is the disc's six, and an offline character logs in only there): a client told
+to load a world its table lacks stayed where it was while the server filed it under that
+world. World 8 is labelled "World 8 (HDD)" (it was "Guk" while worlds came off the card).
+
 ### Data Flow (World Entry)
 
 1. `HandleSelectedChar` → `loginSpawn(record)` → `gw.CreatePlayer(sess, record)` — creates Player struct

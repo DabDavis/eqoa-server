@@ -16,8 +16,9 @@ func warpWorld(t *testing.T) *entity.World {
 		x     float32
 	}{
 		{"Harbormaster Thand", 0, 25377},
-		{"Harbormaster Machado", 9, 13000},
-		{"Coachman Ronks", 0, 25273}, // NOT a warp NPC
+		{"Gatekeeper Sulon", 2, 7338},
+		{"Harbormaster Machado", 9, 13000}, // a patched PS2's hard-disk world
+		{"Coachman Ronks", 0, 25273},       // NOT a warp NPC
 	} {
 		w.NPCs[entity.EntityID(i+1)] = &entity.NPC{
 			Name: n.name, World: n.world,
@@ -29,7 +30,9 @@ func warpWorld(t *testing.T) *entity.World {
 
 // The account pages offer what a Harbormaster offers. Routes are keyed by the
 // NPC's own NAME, not its label: a label is display text and is rewritten the
-// moment a world gets a real name, which would break every saved route.
+// moment a world gets a real name, which would break every saved route. Only
+// the disc's six worlds: a page cannot know what the console behind a
+// character loads, and every game has those (world 9 is a patched PS2's).
 func TestWarpDestinationsAreKeyedByNPCName(t *testing.T) {
 	dests := WarpDestinations(warpWorld(t))
 
@@ -38,13 +41,16 @@ func TestWarpDestinationsAreKeyedByNPCName(t *testing.T) {
 		names = append(names, d.Name)
 	}
 	joined := strings.Join(names, ",")
-	for _, want := range []string{"Harbormaster Thand", "Harbormaster Machado"} {
+	for _, want := range []string{"Harbormaster Thand", "Gatekeeper Sulon"} {
 		if !strings.Contains(joined, want) {
 			t.Errorf("%q missing from the warp list: %v", want, names)
 		}
 	}
 	if strings.Contains(joined, "Coachman") {
 		t.Error("a coachman is not a cross-world route and must not be offered")
+	}
+	if strings.Contains(joined, "Machado") {
+		t.Error("world 9 is not in every game, and a page must not offer it")
 	}
 }
 

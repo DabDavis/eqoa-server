@@ -96,6 +96,29 @@ type Session struct {
 	// disagreeing with the server's. See NoteWorldMismatch.
 	lastWorldMismatch   int16
 	worldMismatchLogged bool
+
+	// discVersion is the first byte of the client's DiscVersion (0x0000):
+	// 0x12 from a Frontiers disc (a retail PS2, eqoa-rust-client-vanilla, the
+	// web page), 0x13 from a PS2 running Sandstorm's S2 patch on its world
+	// session, 0 before one arrives. See DiscVersion.
+	discVersion byte
+}
+
+// SetDiscVersion records the version byte the client's DiscVersion carried.
+func (s *Session) SetDiscVersion(v byte) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.discVersion = v
+}
+
+// DiscVersion is the version byte the client's DiscVersion carried, 0 when
+// none has arrived. It tells which world table the client loads from: a
+// Frontiers disc has six worlds, and only a PS2 running a patch (S2, and our
+// hard-disk loader after it) has more.
+func (s *Session) DiscVersion() byte {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.discVersion
 }
 
 // HoldStateChannels stops state channel updates from going out until the client

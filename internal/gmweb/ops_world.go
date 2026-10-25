@@ -488,13 +488,15 @@ func (s *Server) registerWorldOps() {
 		Name: "teleport_character", Title: "Teleport a character", Scope: scopeWrite, Core: true,
 		Description: "Move a character: one online is teleported where it stands (as a harbormaster's warp), one " +
 			"offline has its saved place changed for its next login. Say where with ONE of: place (a travel " +
-			"destination such as \"freeport\", or a travel NPC's name), npc (an NPC's name or id: on its spot), " +
+			"destination such as \"freeport\", a travel NPC's name, or a word of the names of NPCs standing " +
+			"together, such as \"guk\"), npc (an NPC's name or id: on its spot), " +
 			"player (an online character: on their spot), or x, y, z with world. The place must be in its world and " +
-			"above the floor.",
+			"above the floor, and in a world the character's game loads (the disc's six, unless it is a patched " +
+			"PS2's; an offline character logs in only in those six).",
 		Input: obj(map[string]any{
 			"character": idOrName("the character to move, by name or serverid"),
 			"place":     str("a travel destination or travel NPC (teleport_destinations lists them)"),
-			"npc":       idOrName("an NPC by name or id"),
+			"npc":       idOrName("an NPC by name or id, or a word of the names of NPCs standing together (\"guk\")"),
 			"player":    str("an online character's name"),
 			"x":         number(""), "y": number(""), "z": number(""),
 			"world": integer("with x, y, z: the world index"),
@@ -516,17 +518,22 @@ func (s *Server) registerWorldOps() {
 	})
 	s.addOp(&Op{
 		Name: "teleport_destinations", Title: "Travel destinations", Scope: scopeRead,
-		Description: "The named places teleport_character's place takes: the GM shortcuts and every travel NPC's spot.",
+		Description: "The named places teleport_character's place takes: the GM shortcuts and every travel NPC's spot, " +
+			"in the six worlds every game has. A place may also be named by the NPCs standing there (\"guk\": the " +
+			"froglok guk ... of Guk).",
 		Handler: func(c *opCtx) (any, error) {
 			var out []map[string]any
 			for _, d := range handlers.TeleDestinations() {
+				if !handlers.DiscWorld(d.World) {
+					continue
+				}
 				out = append(out, map[string]any{"name": d.Name, "label": d.Label, "world": d.World})
 			}
 			if c.s.d.World != nil {
 				for _, d := range handlers.WarpDestinations(c.s.d.World) {
 					out = append(out, map[string]any{"name": d.Name, "label": d.Label, "world": d.World})
 				}
-				for _, p := range c.s.d.World.Places() {
+				for _, p := range c.s.d.World.Places(handlers.DiscWorld) {
 					out = append(out, map[string]any{"name": p.NPC, "label": p.Name, "world": p.World})
 				}
 			}
@@ -546,14 +553,27 @@ func (s *Server) teleportCharacter(a *actor, who any, place string, npc any, pla
 	var tx, ty, tz float32
 	var tw byte
 	via := ""
+	// the worlds the character's game loads: its session's, else (offline)
+	// the disc's six, the only ones a login starts in
+	sess := s.sessionFor(uint32(id))
+	loadable := handlers.LoadableWorlds(sess)
 	switch {
 	case strings.TrimSpace(place) != "":
 		px, py, pz, pw, v, ok := handlers.ResolveTeleDest(s.d.World, place)
 		if !ok && s.d.World != nil {
-			for _, p := range s.d.World.Places() {
+			for _, p := range s.d.World.Places(loadable) {
 				if strings.EqualFold(p.Name, place) || strings.EqualFold(p.NPC, place) {
 					px, py, pz, pw, v, ok = p.X, p.Y, p.Z, p.World, p.Name, true
 					break
+				}
+			}
+		}
+		if !ok && s.d.World != nil {
+			if p, n, found := handlers.NamesakePlace(s.d.World, place, loadable); found {
+				px, py, pz, pw, ok = p.X, p.Y, p.Z, p.World, true
+				v = p.NPC
+				if n > 1 {
+					v = fmt.Sprintf("%s (%d NPCs called %s stand there)", p.NPC, n, place)
 				}
 			}
 		}
@@ -564,7 +584,17 @@ func (s *Server) teleportCharacter(a *actor, who any, place string, npc any, pla
 	case npc != nil:
 		st, err := s.npcPlace(npc)
 		if err != nil {
-			return nil, err
+			// no NPC of that name: the NPCs a word of whose names it is, when
+			// they stand together ("guk", Guk's frogloks)
+			text := strings.TrimSpace(fmt.Sprint(npc))
+			p, n, ok := handlers.NamesakePlace(s.d.World, text, loadable)
+			if !ok {
+				return nil, err
+			}
+			st = entity.NPCState{Name: p.NPC, X: p.X, Y: p.Y, Z: p.Z, World: p.World}
+			if n > 1 {
+				st.Name = fmt.Sprintf("%s (%d NPCs called %s stand there)", p.NPC, n, text)
+			}
 		}
 		tx, ty, tz, tw, via = st.X, st.Y, st.Z, st.World, st.Name
 	case strings.TrimSpace(player) != "":
@@ -592,6 +622,16 @@ func (s *Server) teleportCharacter(a *actor, who any, place string, npc any, pla
 	saveWorld, err := handlers.ValidateTeleport(tx, ty, tz, tw)
 	if err != nil {
 		return nil, badRequest("%v", err)
+	}
+	// a world the character's game lacks: the client would stay where it was
+	// while the server filed it there (online), or the login would start it
+	// beside Archivist Vaal instead (offline)
+	if !loadable(saveWorld) {
+		if sess == nil {
+			return nil, badRequest("%s is offline, and a login starts only in the disc's six worlds, not in %s (world %d)",
+				name, worldName(int(saveWorld)), saveWorld)
+		}
+		return nil, badRequest("%s", handlers.CannotLoad(name, saveWorld))
 	}
 	if p, on := s.onlineCharacter(uint32(id)); on {
 		msg, err := s.teleportLive(p, tx, ty, tz, saveWorld)

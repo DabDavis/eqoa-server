@@ -632,6 +632,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// from outside the game: two resolvers would drift, and the drift would
 		// be found by a player standing in the wrong place.
 		x, y, z, world, via, _ := ResolveTeleDest(h.gameWorld, name)
+		if !CanLoadWorld(sess, world) {
+			h.gmReply(sess, CannotLoad(player.Name, world))
+			return
+		}
 		worldChanged := player.World != world
 		player.World = world
 		h.gameWorld.UpdatePosition(player.ServerID, x, y, z, player.Facing)

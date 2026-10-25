@@ -68,13 +68,20 @@ func slashGM(line string) string {
 
 // teleportTo moves sess's player to (x, y, z) in world, as #goto does: the
 // world the visibility filters on, the position, the client's 0x07F6 and the
-// world load's hold on the state channels.
-func (h *ChatHandler) teleportTo(sess *session.Session, p *entity.Player, x, y, z, facing float32, world byte) {
+// world load's hold on the state channels. A world sess's client cannot load
+// (LoadableWorlds) is refused, said to gm, and false returned: the client
+// would stay where it was while the server filed the player under that world.
+func (h *ChatHandler) teleportTo(gm, sess *session.Session, p *entity.Player, x, y, z, facing float32, world byte) bool {
+	if !CanLoadWorld(sess, world) {
+		h.gmReply(gm, CannotLoad(p.Name, world))
+		return false
+	}
 	worldChanged := p.World != world
 	p.World = world
 	h.gameWorld.UpdatePosition(p.ServerID, x, y, z, facing)
 	sendTeleportGM(sess, x, y, z, facing, world)
 	beginWorldLoad(sess, worldChanged)
+	return true
 }
 
 // searchNames is the names (sorted) that q (lowered) begins, then those with
@@ -110,6 +117,16 @@ func (h *ChatHandler) listNames(sess *session.Session, names []string) {
 	}
 }
 
+// npcNamed reports an NPC whose name is q, spelled out (without case).
+func (h *ChatHandler) npcNamed(q string) bool {
+	for _, n := range h.gameWorld.NPCNames() {
+		if strings.EqualFold(n, strings.TrimSpace(q)) {
+			return true
+		}
+	}
+	return false
+}
+
 // pickNPCName is the NPC name q means: the one spelled so (without case),
 // else the only one it begins (searchNames). Several candidates are listed
 // and none is picked.
@@ -134,7 +151,9 @@ func (h *ChatHandler) pickNPCName(sess *session.Session, q string) (string, bool
 
 // gotoCommand is #goto, also #teleport: x y z [world], or a place by name: a
 // #tele shortcut or a travel NPC (ResolveTeleDest), a town a coachman or a
-// harbormaster serves ("Freeport", "Neriak", "Highpass"), or any NPC.
+// harbormaster serves ("Freeport", "Neriak", "Highpass"), the NPCs a word of
+// whose names it is when they stand together ("guk": NamesakePlace), or any
+// NPC. Only of the worlds the GM's game can load.
 func (h *ChatHandler) gotoCommand(sess *session.Session, player *entity.Player, cmd string, args []string) {
 	if len(args) == 0 {
 		h.gmReply(sess, "Usage: "+cmd+" <x> <y> <z> [world] | "+cmd+" <town or NPC name>")
@@ -154,20 +173,25 @@ func (h *ChatHandler) gotoCommand(sess *session.Session, player *entity.Player, 
 					world = byte(w)
 				}
 			}
-			h.teleportTo(sess, player, float32(x), float32(y), float32(z), player.Facing, world)
+			if !h.teleportTo(sess, sess, player, float32(x), float32(y), float32(z), player.Facing, world) {
+				return
+			}
 			h.gmReply(sess, fmt.Sprintf("Teleported to (%.0f, %.0f, %.0f) world=%s", x, y, z, worldNames[world]))
 			log.Printf("GM: %s teleported to (%.0f, %.0f, %.0f) world=%d", player.Name, x, y, z, world)
 			return
 		}
 	}
 	name := strings.Join(args, " ")
+	loadable := LoadableWorlds(sess)
 	if x, y, z, world, via, ok := ResolveTeleDest(h.gameWorld, name); ok {
-		h.teleportTo(sess, player, x, y, z, player.Facing, world)
+		if !h.teleportTo(sess, sess, player, x, y, z, player.Facing, world) {
+			return
+		}
 		h.gmReply(sess, fmt.Sprintf("Teleported to %s - (%.0f, %.0f, %.0f) world=%s", via, x, y, z, worldName(world)))
 		log.Printf("GM: %s teleported to %s", player.Name, via)
 		return
 	}
-	places := h.gameWorld.Places()
+	places := h.gameWorld.Places(loadable)
 	var matched []entity.Place
 	for _, p := range places {
 		if strings.EqualFold(p.Name, name) {
@@ -181,7 +205,9 @@ func (h *ChatHandler) gotoCommand(sess *session.Session, player *entity.Player, 
 	if len(matched) == 1 {
 		// on the NPC's own spot, as #tele lands: a step aside can be a wall
 		p := matched[0]
-		h.teleportTo(sess, player, p.X, p.Y, p.Z, player.Facing, p.World)
+		if !h.teleportTo(sess, sess, player, p.X, p.Y, p.Z, player.Facing, p.World) {
+			return
+		}
 		h.gmReply(sess, fmt.Sprintf("Teleported to %s (%s) - (%.0f, %.0f, %.0f) world=%s", p.Name, p.NPC, p.X, p.Y, p.Z, worldName(p.World)))
 		log.Printf("GM: %s teleported to %s", player.Name, p.Name)
 		return
@@ -192,6 +218,20 @@ func (h *ChatHandler) gotoCommand(sess *session.Session, player *entity.Player, 
 			h.gmReply(sess, "  "+p.Name)
 		}
 		return
+	}
+	// several NPCs that a word of the name finds, standing together: their
+	// place ("guk", the "froglok guk ..." of Guk), where pickNPCName would list
+	// them; one name spelled out in full is still that NPC
+	if !h.npcNamed(name) {
+		if p, n, ok := NamesakePlace(h.gameWorld, name, loadable); ok && n > 1 {
+			if !h.teleportTo(sess, sess, player, p.X, p.Y, p.Z, player.Facing, p.World) {
+				return
+			}
+			h.gmReply(sess, fmt.Sprintf("Teleported to %s, where the %d NPCs %q finds stand - (%.0f, %.0f, %.0f) world=%s",
+				p.NPC, n, name, p.X, p.Y, p.Z, worldName(p.World)))
+			log.Printf("GM: %s teleported to %s (%q, %d NPCs)", player.Name, p.NPC, name, n)
+			return
+		}
 	}
 	npcName, ok := h.pickNPCName(sess, name)
 	if !ok {
@@ -205,7 +245,9 @@ func (h *ChatHandler) gotoCommand(sess *session.Session, player *entity.Player, 
 		return
 	}
 	x, y, z, _, world, _ := h.gameWorld.NPCByName(npcName)
-	h.teleportTo(sess, player, x, y, z, player.Facing, world)
+	if !h.teleportTo(sess, sess, player, x, y, z, player.Facing, world) {
+		return
+	}
 	h.gmReply(sess, fmt.Sprintf("Teleported to %s - (%.0f, %.0f, %.0f) world=%s", npcName, x, y, z, worldName(world)))
 	log.Printf("GM: %s teleported to %s", player.Name, npcName)
 }
@@ -226,7 +268,9 @@ func (h *ChatHandler) gotoPlayerCommand(sess *session.Session, player *entity.Pl
 		h.gmReply(sess, "That is you.")
 		return
 	}
-	h.teleportTo(sess, player, t.X, t.Y, t.Z, player.Facing, t.World)
+	if !h.teleportTo(sess, sess, player, t.X, t.Y, t.Z, player.Facing, t.World) {
+		return
+	}
 	h.gmReply(sess, fmt.Sprintf("Teleported to %s - (%.0f, %.0f, %.0f) world=%s", t.Name, t.X, t.Y, t.Z, worldName(t.World)))
 	log.Printf("GM: %s went to %s", player.Name, t.Name)
 }
@@ -253,7 +297,9 @@ func (h *ChatHandler) summonCommand(sess *session.Session, player *entity.Player
 		h.gmReply(sess, fmt.Sprintf("%s has no session.", t.Name))
 		return
 	}
-	h.teleportTo(ts, t, player.X, player.Y, player.Z, t.Facing, player.World)
+	if !h.teleportTo(sess, ts, t, player.X, player.Y, player.Z, t.Facing, player.World) {
+		return
+	}
 	h.gmReply(ts, fmt.Sprintf("%s summoned you.", player.Name))
 	h.gmReply(sess, fmt.Sprintf("Summoned %s.", t.Name))
 	log.Printf("GM: %s summoned %s", player.Name, t.Name)

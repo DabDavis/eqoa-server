@@ -7,11 +7,17 @@ import (
 )
 
 // Creatures wander round their spawn (F3 20261025-044257: "Wildlife does not
-// roam around"): a point within the roam radius (world.roam_radius), walked
-// to at Sandstorm's walking pace (npcmove.go), a rest of 5 to 20 s there,
-// then another. Sandstorm's own wander that way between rests, walking at
-// 5 units a second (pcaps/ps2_sandstorm_1min10secs.pcap); its town guards
-// stand.
+// roam around"), within the roam radius (world.roam_radius, 75 since F3
+// 20261025-164404: "Wild life roaming needs increased distance and
+// randomization. At least 5x the distance"; it was 15): legs of 5 to 35 in
+// any direction from where it stands, inside the radius, walked at
+// Sandstorm's walking pace (npcmove.go), each followed by a rest of 3 to 25 s,
+// or, two times in five, a pause of half a second to two and another leg, so
+// a creature meanders about its ground rather than crossing it straight. A
+// leg never ends in a town nor passes through one (towns.go: "they should
+// generally not path near or into cities"), unless the creature lives there.
+// Sandstorm's own wander between rests, walking at 5 units a second
+// (pcaps/ps2_sandstorm_1min10secs.pcap); its town guards stand.
 //
 // What wanders: a creature, an NPC with a body of its own (a model, and
 // not one of the players' races, charactermodel: those are the guards, the
@@ -27,14 +33,24 @@ import (
 // steep ground.
 
 // DefaultRoamRadius is how far from its spawn a creature wanders.
-const DefaultRoamRadius float32 = 15
+const DefaultRoamRadius float32 = 75
 
-// The rest between walks, and the first rest of one that comes into a
-// player's range (so a crowd does not set off at once).
+// The rest between walks, the pause before a leg walked straight on (the
+// chance of one), and the first rest of one that comes into a player's
+// range (so a crowd does not set off at once).
 const (
-	roamRestMin   = 5 * time.Second
-	roamRestMax   = 20 * time.Second
+	roamRestMin   = 3 * time.Second
+	roamRestMax   = 25 * time.Second
+	roamPauseMin  = 500 * time.Millisecond
+	roamPauseMax  = 2 * time.Second
+	roamOnChance  = 0.4
 	roamFirstRest = 10 * time.Second
+)
+
+// A leg's length.
+const (
+	roamLegMin float32 = 5
+	roamLegMax float32 = 35
 )
 
 // roamActiveRange is how near a player a creature must be to wander: the
@@ -77,6 +93,7 @@ func (w *World) SetPlayerModels(models map[uint32]bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.playerModels = models
+	w.towns = nil // its townsfolk changed (towns.go)
 }
 
 // wanders reports an NPC of the kind that wanders (the file's doc), alive
@@ -146,8 +163,21 @@ func (w *World) roamStepLocked(npc *NPC, now time.Time) {
 	if dt > 0.5 {
 		dt = 0.5 // a stalled tick does not jump it
 	}
-	if !w.wanders(npc) || npc.CurrentEnemy != 0 || npc.DummyTarget != 0 || npc.rooted(now) {
-		// a fight, a root or a death: standing, and a rest before it goes on
+	if npc.CurrentEnemy != 0 || npc.chase.returning {
+		// a fight, or the way home after one: its movement theirs once the
+		// chase has it (chase.go), standing until then (a pet's fight is
+		// not chased), and a rest before it wanders on
+		if !npc.chase.on && !npc.chase.returning && (npc.roam.walking || npc.moving()) {
+			npc.stopMoving()
+		}
+		npc.roam.walking = false
+		if npc.roam.restUntil.Before(now) {
+			npc.roam.restUntil = now.Add(w.roamDuration(roamRestMin, roamRestMax))
+		}
+		return
+	}
+	if !w.wanders(npc) || npc.DummyTarget != 0 || npc.rooted(now) {
+		// a root, a dummy's fight or a death: standing, and a rest before it goes on
 		if npc.roam.walking || npc.moving() {
 			npc.stopMoving()
 			npc.roam.walking = false
@@ -170,25 +200,40 @@ func (w *World) roamStepLocked(npc *NPC, now time.Time) {
 	}
 	if w.stepNPCToward(npc, npc.roam.toX, npc.roam.toZ, speed, dt) {
 		npc.roam.walking = false
-		npc.roam.restUntil = now.Add(w.roamDuration(roamRestMin, roamRestMax))
+		if w.roamRand().Float64() < roamOnChance {
+			npc.roam.restUntil = now.Add(w.roamDuration(roamPauseMin, roamPauseMax))
+		} else {
+			npc.roam.restUntil = now.Add(w.roamDuration(roamRestMin, roamRestMax))
+		}
 	}
 }
 
-// roamPointLocked is where a creature walks next: a point evenly within its
-// radius of its spawn, at least roamMinStep from where it stands (the spawn
-// itself when the radius leaves no such point).
+// roamPointLocked is where a creature walks next: a leg of roamLegMin to
+// roamLegMax (at most the radius) in any direction from where it stands,
+// ending within its radius of its spawn, and neither ending in a town nor
+// passing through one unless its spawn is in that town's ground (towns.go);
+// where it stands when no such leg is found (it rests and tries again).
 func (w *World) roamPointLocked(npc *NPC) (x, z float32) {
-	r := float64(npc.RoamRadius)
-	for i := 0; i < 8; i++ {
-		d := r * math.Sqrt(w.roamRand().Float64())
-		a := w.roamRand().Float64() * 2 * math.Pi
-		x = npc.SpawnX + float32(d*math.Sin(a))
-		z = npc.SpawnZ + float32(d*math.Cos(a))
-		if dx, dz := x-npc.X, z-npc.Z; dx*dx+dz*dz >= roamMinStep*roamMinStep {
-			return x, z
-		}
+	r := npc.RoamRadius
+	lo, hi := min(roamLegMin, r), min(roamLegMax, r)
+	if hi < roamMinStep {
+		return npc.SpawnX, npc.SpawnZ
 	}
-	return npc.SpawnX, npc.SpawnZ
+	townsfolk := w.inTownLocked(npc.World, npc.SpawnX, npc.SpawnZ)
+	for i := 0; i < 16; i++ {
+		d := lo + (hi-lo)*float32(w.roamRand().Float64())
+		a := w.roamRand().Float64() * 2 * math.Pi
+		x = npc.X + d*float32(math.Sin(a))
+		z = npc.Z + d*float32(math.Cos(a))
+		if distXZ(x, z, npc.SpawnX, npc.SpawnZ) > r {
+			continue
+		}
+		if !townsfolk && w.legInTownLocked(npc.World, npc.X, npc.Z, x, z) {
+			continue
+		}
+		return x, z
+	}
+	return npc.X, npc.Z
 }
 
 // roamDuration is a time evenly between lo and hi.

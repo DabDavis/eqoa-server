@@ -30,7 +30,8 @@ const (
 )
 
 // stepNPCToward moves npc dt seconds at speed (units a second) toward (x, z)
-// on the ground plane, its height kept: its velocity, facing and animation
+// on the ground plane, set on the floor there when the world has its ground
+// (groundnpc.go), else its height kept: its velocity, facing and animation
 // those of the move (a walk, or the run from NPCRunFrom), the spatial index
 // updated. Within this step's reach it stops there and reports true. Must
 // be called with the lock held.
@@ -44,6 +45,7 @@ func (w *World) stepNPCToward(npc *NPC, x, z, speed, dt float32) (arrived bool) 
 	}
 	if step := speed * dt; dist <= step {
 		npc.X, npc.Z = x, z
+		w.groundNPCLocked(npc)
 		if dist > 0 {
 			npc.Facing = headingTo(dx, dz)
 		}
@@ -56,6 +58,7 @@ func (w *World) stepNPCToward(npc *NPC, x, z, speed, dt float32) (arrived bool) 
 		ux, uz := dx/dist, dz/dist
 		npc.X += ux * step
 		npc.Z += uz * step
+		w.groundNPCLocked(npc)
 		npc.VelX, npc.VelY, npc.VelZ = ux*speed, 0, uz*speed
 	}
 	npc.Facing = headingTo(dx, dz)

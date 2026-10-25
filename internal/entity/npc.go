@@ -88,6 +88,14 @@ type NPC struct {
 	// roam is its wander round its spawn (roam.go).
 	roam roamState
 
+	// chase is a fight's movement: its chase, its leash and the way home
+	// (chase.go).
+	chase chaseState
+
+	// onGround: it spawned on the terrain of the world's ground, so its moves
+	// take its floor (groundnpc.go); groundKnown once that was looked at.
+	groundKnown, onGround bool
+
 	// AggroBehavior. RoamRadius is how far from its spawn a creature wanders
 	// (roam.go); 0 for none.
 	AggroRadius float32

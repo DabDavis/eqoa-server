@@ -19,6 +19,13 @@ type InteractHandler struct {
 	// corpse opens a dead NPC's loot (NPCWindowHandler.OpenCorpse); it
 	// reports whether the NPC was a corpse.
 	corpse func(*session.Session, *entity.NPC) bool
+
+	// binds keeps the bind points spiritmasters give (spiritmaster.go).
+	binds bindStore
+
+	// spend takes a waysender's fee from the player, kept and shown
+	// (NPCWindowHandler.spendTunar); false when it cannot pay. Nil: free.
+	spend func(*session.Session, *entity.Player, int) bool
 }
 
 // npcText is what an NPC says when talked to, by name (config
@@ -147,9 +154,22 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 				player.Name, HDDSetupNPC)
 			return nil
 		}
+		player.PendingYesNo = false
+		player.PendingBind = entity.Bind{}
 		player.PendingHDDMenu = HDDMenuMain
 		h.sendOptionBox(sess, HDDGreeting, HDDMenuFor(HDDMenuMain))
 		log.Printf("HDD: %s opened %s", player.Name, HDDSetupNPC)
+		return nil
+	}
+
+	// A spiritmaster binds (spiritmaster.go), a waysender sends the player to
+	// another town (waysender.go).
+	if npc, ok := targetEntity.(*entity.NPC); ok && IsSpiritmaster(npc.Name) {
+		forgetDialogs(player)
+		h.askBind(sess, player, npc)
+		return nil
+	}
+	if npc, ok := targetEntity.(*entity.NPC); ok && IsWaysender(npc.Name) && h.offerWay(sess, player, npc) {
 		return nil
 	}
 
@@ -163,6 +183,7 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 			routes = h.gameWorld.GetCoachDestinations(npc.Name, npc.World)
 		}
 		if len(routes) > 0 {
+			forgetDialogs(player)
 			player.PendingCoachDests = routes
 			player.CoachPage = 0
 			h.sendCoachPage(sess, player)
@@ -174,7 +195,7 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	// debug box.
 	if npc, ok := targetEntity.(*entity.NPC); ok {
 		if text, ok := npcTextFor(npc.Name); ok {
-			player.PendingCoachDests = nil
+			forgetDialogs(player)
 			h.sendDialogueBox(sess, text)
 			return nil
 		}
@@ -247,7 +268,7 @@ func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Pl
 
 	options := make([]string, 0, len(pageDests)+2)
 	for _, d := range pageDests {
-		options = append(options, d.Name)
+		options = append(options, destLabel(d))
 	}
 	if hasMore {
 		options = append(options, "More...")
@@ -257,6 +278,9 @@ func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Pl
 	}
 
 	greeting := "Greetings, traveler! Where would you like to go?"
+	if len(dests) > 0 && dests[0].Via != "" {
+		greeting = wayAskMany // a waysender's, as Sandstorm's dockmasters ask
+	}
 	log.Printf("Coaching: page %d, showing %d dests (%d-%d of %d), options=%v", page, len(pageDests), start, end-1, total, options)
 	h.sendOptionBox(sess, greeting, options)
 }
@@ -305,6 +329,15 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 		return nil
 	}
 
+	// A spiritmaster's question (spiritmaster.go); a close (255) keeps it
+	// open, as a travel list stays below.
+	if player.PendingBind.Set {
+		if selectedOption != 255 {
+			h.answerBind(sess, player, selectedOption)
+		}
+		return nil
+	}
+
 	if len(player.PendingCoachDests) == 0 {
 		return nil
 	}
@@ -322,6 +355,16 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	// exactly like the travel NPC ignoring the player. Only a selection or the
 	// next Interact should replace the list; a close just closes the box.
 	if selectedOption == 255 {
+		return nil
+	}
+
+	// A waysender's one trip, asked as Yes or No (waysender.go)
+	if player.PendingYesNo {
+		dest := player.PendingCoachDests[0]
+		player.PendingCoachDests, player.PendingYesNo = nil, false
+		if selectedOption == 0 {
+			h.travel(sess, player, dest)
+		}
 		return nil
 	}
 
@@ -368,6 +411,25 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 
 	dest := dests[destIdx]
 	player.PendingCoachDests = nil
+	h.travel(sess, player, dest)
+	return nil
+}
+
+// travel sends the player on a picked trip: a waysender's level and fee
+// first (its words: Sandstorm's "Very well."), then the teleport.
+func (h *InteractHandler) travel(sess *session.Session, player *entity.Player, dest entity.CoachDest) {
+	if dest.MinLevel > 0 && player.Level < dest.MinLevel {
+		h.sendDialogueBox(sess, tooWeak(dest.Name))
+		return
+	}
+	if dest.Fee > 0 && h.spend != nil && !h.spend(sess, player, dest.Fee) {
+		h.sendDialogueBox(sess, fmt.Sprintf("The trip to %s costs %d tunar.", dest.Name, dest.Fee))
+		log.Printf("Waysender: %s cannot pay %d for %s", player.Name, dest.Fee, dest.Name)
+		return
+	}
+	if dest.Via != "" {
+		sess.Queue().AddWithSequence(buildClientMessage(dest.Via + ": " + wayGo))
+	}
 
 	log.Printf("Coaching: teleporting %s to %s (%.1f, %.1f, %.1f) world=%d",
 		player.Name, dest.Name, dest.X, dest.Y, dest.Z, dest.World)
@@ -391,8 +453,6 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 
 	// Update player position in the world
 	h.gameWorld.UpdatePosition(player.ServerID, dest.X, dest.Y, dest.Z, dest.Facing)
-
-	return nil
 }
 
 // sendDialogueBox sends a simple dialogue box (no options) to the client.

@@ -8,8 +8,9 @@ import (
 )
 
 // respawnPlayer is the World's respawn hook (entity/respawn.go): a player who
-// died PlayerRespawnDelay ago, HP and Power already restored, is put where
-// every login starts and sent a MemoryDump.
+// died PlayerRespawnDelay ago, HP and Power already restored, is put at its
+// home (homeOf: its bind point, else where every login starts) and sent a
+// MemoryDump.
 //
 // The dump, not a 0x00B2 teleport, because it is the only thing that ends a
 // death on the client: CLIENT clears its dead flag (m_pC1B0) in Msg000D and
@@ -29,12 +30,10 @@ func (h *CharacterHandler) respawnPlayer(sess *session.Session, p *entity.Player
 	}
 	x, y, z, world := snap.X, snap.Y, snap.Z, snap.World
 	where := "where it died"
-	if dx, dy, dz, dw, via, found := ResolveTeleDest(gw, loginSpawnDest); !found {
-		log.Printf("Respawn: no %q destination; '%s' respawns where it died", loginSpawnDest, snap.Name)
-	} else if w, err := ValidateTeleport(dx+loginSpawnOffset, dy, dz+loginSpawnOffset, dw); err != nil {
-		log.Printf("Respawn: %s is not a placeable spawn (%v); '%s' respawns where it died", via, err, snap.Name)
+	if hx, hy, hz, hw, via, found := homeOf(gw, sess, p.ServerID); !found {
+		log.Printf("Respawn: no home for '%s'; it respawns where it died", snap.Name)
 	} else {
-		x, y, z, world, where = dx+loginSpawnOffset, dy, dz+loginSpawnOffset, w, via
+		x, y, z, world, where = hx, hy, hz, hw, via
 	}
 
 	placed, worldChanged, ok := gw.PlaceRespawn(p.ServerID, x, y, z, world)

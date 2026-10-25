@@ -1225,3 +1225,26 @@ func (w *World) WarpPoints(loadable func(world uint8) bool) []WarpPoint {
 	})
 	return out
 }
+
+// SetBind sets player id's bind point (spiritmaster.go in handlers).
+func (w *World) SetBind(id EntityID, b Bind) bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.Players[id]
+	if p == nil {
+		return false
+	}
+	p.Bind = b
+	return true
+}
+
+// BindOf is player id's bind point, if it has one.
+func (w *World) BindOf(id EntityID) (Bind, bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.Players[id]
+	if p == nil || !p.Bind.Set {
+		return Bind{}, false
+	}
+	return p.Bind, true
+}

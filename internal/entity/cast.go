@@ -119,15 +119,28 @@ func (s *CastSpell) visual() uint32 {
 	if s.FX != 0 {
 		return s.FX
 	}
-	for _, e := range s.Def.Effects {
+	fx, _ := StandInVisual(s.Def)
+	return fx
+}
+
+// StandInVisual is the visual a spell with none of its own plays, by what it
+// does, and its kind: a heal's ("heal"), a harmful spell's ("damage"),
+// anything else a buff's ("buff").
+func StandInVisual(d SpellDef) (uint32, string) {
+	for _, e := range d.Effects {
 		if (e.Kind == EffectHP || e.Kind == EffectHPTick) && e.Amount > 0 {
-			return fxHeal
+			return fxHeal, "heal"
 		}
 	}
-	if s.Def.Harmful {
-		return fxDamage
+	if d.Harmful {
+		return fxDamage, "damage"
 	}
-	return fxBuff
+	return fxBuff, "buff"
+}
+
+// StandInVisuals are the stand-ins by kind.
+func StandInVisuals() map[string]uint32 {
+	return map[string]uint32{"heal": fxHeal, "damage": fxDamage, "buff": fxBuff}
 }
 
 // castState is one cast, from its start to its landing.

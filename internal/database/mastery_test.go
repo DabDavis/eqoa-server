@@ -36,3 +36,36 @@ func TestMasteryRoundTrip(t *testing.T) {
 		t.Errorf("the control: character 9's row is %+v", got)
 	}
 }
+
+// The carry to a new level table runs once: every row's total converted,
+// the version kept, and a second run (a restart) changes nothing. The
+// control: a new version runs again.
+func TestMigrateTotalXPRunsOnce(t *testing.T) {
+	db, err := NewSQLite(t.TempDir() + "/xp.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	s := NewSQLiteCharacterStore(db)
+	for i, total := range []int{1000, 0, 77} {
+		if _, err := db.Exec(`INSERT INTO characters (charName, accountid, modelid, tclass, race, humType, level, haircolor, hairlength, hairstyle, faceoption, sex, totalXP)
+			VALUES (?, 1, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, ?)`, "C"+string(rune('a'+i)), total); err != nil {
+			t.Fatal(err)
+		}
+	}
+	double := func(level, total int) int { return total * 2 }
+	if n, err := s.MigrateTotalXP("v1", double); err != nil || n != 2 {
+		t.Fatalf("first run: %d rows (%v), want 2", n, err)
+	}
+	if n, _ := s.MigrateTotalXP("v1", double); n != 0 {
+		t.Fatalf("a second run changed %d rows", n)
+	}
+	var total int
+	db.QueryRow(`SELECT totalXP FROM characters WHERE charName = 'Ca'`).Scan(&total)
+	if total != 2000 {
+		t.Errorf("converted once: %d, want 2000", total)
+	}
+	if n, _ := s.MigrateTotalXP("v2", double); n != 2 {
+		t.Errorf("the control: a new version must run (%d rows)", n)
+	}
+}

@@ -204,11 +204,12 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	}
 }
 
-// regenSystem handles HP and power regeneration for players out of combat.
-// Runs every 20 ticks (~2 seconds at 100ms tick rate).
-// Must be called with lock held.
+// regenSystem gives every player its HoT in hit points and its PoT in power
+// every RegenInterval (6 s), in a fight or out of one (regen.go: the live
+// game's rule and Sandstorm's capture). Must be called with lock held.
 func (w *World) regenSystem(now time.Time) {
-	if w.TickCount%20 != 0 {
+	// a tick every RegenInterval (regen.go), at the world's 100 ms ticks
+	if w.TickCount%uint64(RegenInterval/(100*time.Millisecond)) != 0 {
 		return
 	}
 
@@ -218,39 +219,13 @@ func (w *World) regenSystem(now time.Time) {
 			continue
 		}
 
-		// Skip regen if player was in combat within the last 10 seconds
-		if !p.LastCombatTime.IsZero() && now.Sub(p.LastCombatTime) < 10*time.Second {
-			continue
-		}
-
 		// Skip regen while underwater (drowning should kill, not be out-healed)
 		if p.Underwater {
 			continue
 		}
 
-		// HP regen: 1% of max HP per tick
-		if top := p.MaxHPNow(); p.HP < top {
-			regen := top / 100
-			if regen < 1 {
-				regen = 1
-			}
-			p.HP += regen
-			if p.HP > top {
-				p.HP = top
-			}
-		}
-
-		// Power regen: 1% of max power per tick
-		if top := p.MaxPowerNow(); p.Power < top {
-			regen := top / 100
-			if regen < 1 {
-				regen = 1
-			}
-			p.Power += regen
-			if p.Power > top {
-				p.Power = top
-			}
-		}
+		// HoT and PoT, in a fight or out of one (regen.go)
+		p.regenTick()
 	}
 }
 

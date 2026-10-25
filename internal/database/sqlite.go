@@ -538,6 +538,13 @@ func (db *SQLiteDB) initSchema() error {
 	);
 	CREATE INDEX IF NOT EXISTS idx_factionhits_npc ON factionhits(npc_name);
 
+	-- servermeta: what this database has been through, by name (a migration
+	-- done, the table it was done to)
+	CREATE TABLE IF NOT EXISTS servermeta (
+		key   TEXT PRIMARY KEY,
+		value TEXT NOT NULL
+	);
+
 	-- charmastery: a character's class mastery points, unspent and spent, the
 	-- share of its experience going to them and the experience gathered
 	-- toward the next (mastery.go, entity/mastery.go)
@@ -799,6 +806,19 @@ func (s *SQLiteCharacterStore) Update(c *CharacterRecord) error {
 // change writes at once, without the place the logout save keeps.
 func (s *SQLiteCharacterStore) SetProgress(serverID uint32, level, totalXP int) error {
 	res, err := s.db.Exec(`UPDATE characters SET level = ?, totalXP = ? WHERE serverid = ?`, level, totalXP, serverID)
+	if err != nil {
+		return err
+	}
+	if n, err := res.RowsAffected(); err == nil && n != 1 {
+		return ErrCharacterNotFound
+	}
+	return nil
+}
+
+// SetTrainingPoints stores a character's unspent training points and every
+// one it has been given (entity/training.go), and nothing else of the row.
+func (s *SQLiteCharacterStore) SetTrainingPoints(serverID uint32, unused, total int) error {
+	res, err := s.db.Exec(`UPDATE characters SET unusedTP = ?, totalTP = ? WHERE serverid = ?`, unused, total, serverID)
 	if err != nil {
 		return err
 	}

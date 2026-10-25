@@ -1,6 +1,9 @@
 package entity
 
-import "testing"
+import (
+	"math/big"
+	"testing"
+)
 
 // TestCalculateOffMod verifies OFF MOD against SOE retail save state data.
 // Source: Corsten (L60 Barbarian Rogue) and Lostologist (L45 Gnome Alchemist)
@@ -82,13 +85,28 @@ func TestCalculateMeleeDamage(t *testing.T) {
 	}
 }
 
-// TestCalculateMaxHP holds the formula to Sandstorm's base maximum hit
-// points (stat channel byte 148) as measured 2026-10-21, one case for each
-// different (class, level, stamina) among the characters with no mastery
-// that adds hit points: the stamina is all of it, worn and from spells.
+// floorRat is floor(x), x an exact fraction: the wiki's formulas worked
+// without any rounding error, to hold the integer forms to.
+func floorRat(x *big.Rat) int {
+	q := new(big.Int).Quo(x.Num(), x.Denom())
+	return int(q.Int64())
+}
+
+// TestCalculateMaxHP holds the formula to the live game's (eqoa.fandom.com
+// Formulas): (HP factor + STA/11) x level, STA/11 a real division, the whole
+// truncated. The wiki's worked example: a level 60 priest's factor 13 (its
+// caster with Hearty 1 and 2) and 400 stamina, 2961 (its text rounds 400/11
+// to 36.4 and says 2964). Then every (class, level, stamina) of Sandstorm's
+// measured characters with no hit point mastery, against the exact fraction;
+// Sandstorm's own values (stat channel byte 148) are kept beside them, 11 of
+// 25 equal. The control: Sandstorm's rounding (STA/11 to a whole number
+// first) misses the wiki's example.
 func TestCalculateMaxHP(t *testing.T) {
+	if got := CalculateMaxHP(60, 9, 400); got != 2961 {
+		t.Errorf("the wiki's example: %d, want 2961", got)
+	}
 	tests := []struct {
-		class, level, stamina, want int
+		class, level, stamina, sandstorm int
 	}{
 		{0, 1, 85, 32}, {0, 1, 80, 31}, {0, 51, 515, 3621}, // warrior
 		{2, 1, 80, 31},                  // paladin
@@ -102,22 +120,39 @@ func TestCalculateMaxHP(t *testing.T) {
 		{13, 6, 86, 108},                      // wizard
 		{12, 15, 54, 225}, {12, 49, 105, 980}, // enchanter
 	}
+	same := 0
 	for _, tt := range tests {
-		if got := CalculateMaxHP(tt.level, tt.class, tt.stamina); got != tt.want {
-			t.Errorf("CalculateMaxHP(level %d, class %d, STA %d) = %d, Sandstorm's %d", tt.level, tt.class, tt.stamina, got, tt.want)
+		x := new(big.Rat).SetFrac64(int64(hpFactor(tt.class)*11+tt.stamina), 11)
+		want := floorRat(x.Mul(x, big.NewRat(int64(tt.level), 1)))
+		got := CalculateMaxHP(tt.level, tt.class, tt.stamina)
+		if got != want {
+			t.Errorf("CalculateMaxHP(level %d, class %d, STA %d) = %d, the wiki's %d", tt.level, tt.class, tt.stamina, got, want)
 		}
+		if got == tt.sandstorm {
+			same++
+		}
+	}
+	t.Logf("%d of %d as Sandstorm's", same, len(tests))
+	if sandstorm := 60 * (13 + (400+5)/11); sandstorm == 2961 {
+		t.Fatal("the control: Sandstorm's rounding must miss the wiki's example")
 	}
 }
 
-// TestCalculateMaxPower holds the formula to Sandstorm's base maximum power
-// (stat channel byte 156, of the base stats), measured on the same
-// characters: one case for each different (class, level, base stats),
-// every class but the ranger and the shaman (none was measured).
+// TestCalculateMaxPower holds the formula to the live game's
+// (eqoa.fandom.com Formulas): (28 + primary/10 + secondary/20) x level,
+// truncated, the pair the class's (powerStats). The wiki's worked example: a
+// level 31 magician of 267 INT and 204 AGI, 2011 (its arithmetic writes 206
+// AGI and gets 2011.9). Then the stats of Sandstorm's measured characters,
+// against the exact fraction; Sandstorm's values (byte 156, rounded half up)
+// kept beside them. The control: rounding half up gives the example 2012.
 func TestCalculateMaxPower(t *testing.T) {
+	if got := CalculateMaxPower(31, 10, 50, 50, 204, 50, 50, 267, 50); got != 2011 {
+		t.Errorf("the wiki's example: %d, want 2011", got)
+	}
 	tests := []struct {
 		class, level int
 		stats        [7]int // STR STA AGI DEX WIS INT CHA
-		want         int
+		sandstorm    int
 	}{
 		{0, 1, [7]int{85, 85, 60, 65, 55, 55, 50}, 41},
 		{0, 1, [7]int{70, 80, 60, 70, 60, 65, 50}, 40},
@@ -141,11 +176,23 @@ func TestCalculateMaxPower(t *testing.T) {
 		{14, 1, [7]int{50, 65, 55, 70, 75, 90, 50}, 41},
 		{14, 32, [7]int{55, 165, 158, 65, 85, 80, 55}, 1288},
 	}
+	same := 0
 	for _, tt := range tests {
 		s := tt.stats
-		if got := CalculateMaxPower(tt.level, tt.class, s[0], s[1], s[2], s[3], s[4], s[5], s[6]); got != tt.want {
-			t.Errorf("CalculateMaxPower(level %d, class %d, %v) = %d, Sandstorm's %d", tt.level, tt.class, s, got, tt.want)
+		p, q := powerStats(tt.class, s[0], s[1], s[2], s[3], s[4], s[5], s[6])
+		x := new(big.Rat).SetFrac64(int64(560+2*p+q), 20)
+		want := floorRat(x.Mul(x, big.NewRat(int64(tt.level), 1)))
+		got := CalculateMaxPower(tt.level, tt.class, s[0], s[1], s[2], s[3], s[4], s[5], s[6])
+		if got != want {
+			t.Errorf("CalculateMaxPower(level %d, class %d, %v) = %d, the wiki's %d", tt.level, tt.class, s, got, want)
 		}
+		if got == tt.sandstorm {
+			same++
+		}
+	}
+	t.Logf("%d of %d as Sandstorm's", same, len(tests))
+	if halfUp := ((2800+10*267+5*204)*31 + 50) / 100; halfUp == 2011 {
+		t.Fatal("the control: rounding half up must miss the wiki's example")
 	}
 }
 

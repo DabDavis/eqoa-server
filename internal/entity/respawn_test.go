@@ -175,7 +175,7 @@ func TestCorpseDoesNotRegenerate(t *testing.T) {
 	f.p.LastCombatTime = f.t0.Add(-time.Minute)
 
 	f.w.mu.Lock()
-	f.w.TickCount = 20
+	f.w.TickCount = 60 // a regen tick, every 6 s (regen.go)
 	f.w.regenSystem(f.t0.Add(12 * time.Second))
 	f.w.mu.Unlock()
 	if f.p.HP != 0 || f.p.Power != 3 {
@@ -185,8 +185,8 @@ func TestCorpseDoesNotRegenerate(t *testing.T) {
 	// and a living player beside it does (the skip is the corpse's alone)
 	f.other.HP = 10
 	f.w.mu.Lock()
-	f.w.TickCount = 40
-	f.w.regenSystem(f.t0.Add(14 * time.Second))
+	f.w.TickCount = 120
+	f.w.regenSystem(f.t0.Add(18 * time.Second))
 	f.w.mu.Unlock()
 	if f.other.HP <= 10 {
 		t.Errorf("the living player did not regenerate: %d HP", f.other.HP)

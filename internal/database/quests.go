@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS quests (
 	offer      TEXT NOT NULL DEFAULT '',
 	accept     TEXT NOT NULL DEFAULT '',
 	decline    TEXT NOT NULL DEFAULT '',
+	declined   TEXT NOT NULL DEFAULT '',
 	started    TEXT NOT NULL DEFAULT '',
 	source     TEXT NOT NULL DEFAULT '',
 	notes      TEXT NOT NULL DEFAULT ''
@@ -57,6 +58,8 @@ CREATE TABLE IF NOT EXISTS queststeps (
 	answer      TEXT NOT NULL DEFAULT '',
 	says        TEXT NOT NULL DEFAULT '',
 	waiting     TEXT NOT NULL DEFAULT '',
+	notyet      TEXT NOT NULL DEFAULT '',
+	reminder    TEXT NOT NULL DEFAULT '',
 	xp          INTEGER NOT NULL DEFAULT 0,
 	rewardtunar INTEGER NOT NULL DEFAULT 0,
 	rewarditems TEXT NOT NULL DEFAULT '',
@@ -79,13 +82,28 @@ CREATE INDEX IF NOT EXISTS idx_charquests_quest ON charquests(questid);
 `
 
 // initQuests moves Return Home's quest tables aside and makes the quest
-// tables.
+// tables, adding to an older one the columns it lacks.
 func (db *SQLiteDB) initQuests() error {
 	if err := retireReturnHomeQuests(db.DB); err != nil {
 		return err
 	}
-	_, err := db.Exec(questSchema)
-	return err
+	if _, err := db.Exec(questSchema); err != nil {
+		return err
+	}
+	for _, c := range []struct{ table, col string }{
+		{"quests", "declined"}, {"queststeps", "notyet"}, {"queststeps", "reminder"},
+	} {
+		has, err := hasColumn(db.DB, c.table, c.col)
+		if err != nil {
+			return err
+		}
+		if !has {
+			if _, err := db.Exec(`ALTER TABLE ` + c.table + ` ADD COLUMN ` + c.col + ` TEXT NOT NULL DEFAULT ''`); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // retireReturnHomeQuests drops Return Home's quests and playerquest when they
@@ -177,6 +195,9 @@ type Quest struct {
 	// first warrior quest asks two); "" takes it when the giver is talked to.
 	Accept  string
 	Decline string // the player's answer refusing it, offered with each answer; "" none
+	// Declined is the giver's reply to a refusal, said as written (Sandstorm's
+	// Captain Norgam's carries no name before it).
+	Declined string
 	Started    string // the giver's words once it is taken
 	Source     string
 	Notes      string
@@ -229,8 +250,16 @@ type QuestStep struct {
 	Answer string
 	// Says is the NPC's words when the step is done (a line a box).
 	Says string
-	// Waiting is the NPC's words before the step can be done.
+	// Waiting is the NPC's words when talked to on this step: its lines a box
+	// each, its last line the question its Answer (the items held) or NotYet
+	// (not yet) answers.
 	Waiting string
+	// NotYet is the player's answer when a show or give step's items are not
+	// held (Sandstorm's "No, I am lost."); "" asks nothing then.
+	NotYet string
+	// Reminder is the NPC's words when the step's items are not held (after
+	// NotYet when there is one).
+	Reminder string
 	// The rewards when the step is done.
 	XP          int
 	RewardTunar int
@@ -274,7 +303,7 @@ func NewQuestStore(db *SQLiteDB) *QuestStore { return &QuestStore{db: db} }
 // LoadQuests reads every quest, drafts too, with its steps in order.
 func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	rs, err := s.db.Query(`SELECT questid, name, enabled, giver, minlevel, maxlevel, classes, races, requires,
-		repeatable, offer, accept, decline, started, source, notes FROM quests ORDER BY questid`)
+		repeatable, offer, accept, decline, declined, started, source, notes FROM quests ORDER BY questid`)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +314,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		var enabled, repeatable int
 		var classes, races, requires string
 		if err := rs.Scan(&q.ID, &q.Name, &enabled, &q.Giver, &q.MinLevel, &q.MaxLevel, &classes, &races, &requires,
-			&repeatable, &q.Offer, &q.Accept, &q.Decline, &q.Started, &q.Source, &q.Notes); err != nil {
+			&repeatable, &q.Offer, &q.Accept, &q.Decline, &q.Declined, &q.Started, &q.Source, &q.Notes); err != nil {
 			rs.Close()
 			return nil, err
 		}
@@ -299,7 +328,8 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		return nil, err
 	}
 	srs, err := s.db.Query(`SELECT questid, step, kind, target, npcid, items, tunar, count, world, x, y, z, radius,
-		journal, answer, says, waiting, xp, rewardtunar, rewarditems, factions, spells FROM queststeps ORDER BY questid, step`)
+		journal, answer, says, waiting, notyet, reminder, xp, rewardtunar, rewarditems, factions, spells
+		FROM queststeps ORDER BY questid, step`)
 	if err != nil {
 		return nil, err
 	}
@@ -308,7 +338,8 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		var st QuestStep
 		var items, rewardItems, factions, spells string
 		if err := srs.Scan(&st.Quest, &st.Step, &st.Kind, &st.Target, &st.NPCID, &items, &st.Tunar, &st.Count, &st.World,
-			&st.X, &st.Y, &st.Z, &st.Radius, &st.Journal, &st.Answer, &st.Says, &st.Waiting, &st.XP, &st.RewardTunar,
+			&st.X, &st.Y, &st.Z, &st.Radius, &st.Journal, &st.Answer, &st.Says, &st.Waiting, &st.NotYet, &st.Reminder,
+			&st.XP, &st.RewardTunar,
 			&rewardItems, &factions, &spells); err != nil {
 			return nil, err
 		}

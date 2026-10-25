@@ -56,11 +56,11 @@ func ItemCredit(values []int) int {
 // HoTBase and PoTBase are a 50 of the maxima, at least 1: the HoT page says
 // every character has an innate rate, and a 50 alone gives a new character
 // (16 to 34 hit points at level 1) none; HoTNow and PoTNow add the worn
-// items' (ItemCredit).
+// items' (ItemCredit) and the effects' (food and drink, consumable.go).
 func (p *Player) HoTBase() int { return max(1, p.MaxHPNow()/50) }
 func (p *Player) PoTBase() int { return max(1, p.MaxPowerNow()/50) }
-func (p *Player) HoTNow() int  { return p.HoTBase() + ItemCredit(p.Gear.HoTItems) }
-func (p *Player) PoTNow() int  { return p.PoTBase() + ItemCredit(p.Gear.PoTItems) }
+func (p *Player) HoTNow() int  { return p.HoTBase() + ItemCredit(p.Gear.HoTItems) + p.Mods.HoT }
+func (p *Player) PoTNow() int  { return p.PoTBase() + ItemCredit(p.Gear.PoTItems) + p.Mods.PoT }
 
 // regenTick gives the player its HoT in hit points and its PoT in power,
 // each within its maximum: what a tick does.

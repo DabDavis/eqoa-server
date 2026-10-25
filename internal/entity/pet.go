@@ -150,7 +150,32 @@ func petLevel(spellLevel, casterLevel int) int {
 var petClassStandIn = map[int]string{
 	11: "skeleton",
 	10: "earth elementaling",
-	12: "animation",
+	12: enchanterAnimation,
+}
+
+const (
+	classEnchanter     = 12
+	enchanterAnimation = "animation"
+	// grandAnimation is the Animator's pet (EQOA-Data's enchanter master
+	// class, Animator 2: "Level 54 pet, ubah tank. Has 500 dmg taunt and dual
+	// hits"); no record of it is on this server yet.
+	grandAnimation = "grand animation"
+)
+
+// petSwing is a summoned pet's own swing (npcSwingKind), when it has one:
+// an enchanter's pet swings once a round whatever its level, as a caster
+// does (Attack1), and Grand Animation twice (Attack2), as live EQOA's did
+// (F3 20261025-164209, jib: "enchanter pets should only single hit
+// regardless of level with grand animation dual hitting"). Any other
+// class's pet swings as the creature its body is.
+func petSwing(class int, spell string) (fixed bool, kind int) {
+	if class != classEnchanter {
+		return false, 0
+	}
+	if petName(spell) == grandAnimation {
+		return true, 4
+	}
+	return true, 0
 }
 
 // petName is a name as the pet records are matched: trimmed, any case.
@@ -278,6 +303,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	}
 	level := petLevel(spell.Level, caster.Level)
 	pet := newPet(t, w.allocFreeIDLocked(), caster, spell.Name, level)
+	pet.SwingFixed, pet.SwingKind = petSwing(caster.Class, spell.Name)
 	w.NPCs[pet.ServerID] = pet
 	w.SpatialIndex.Insert(pet.ServerID, pet.X, pet.Z)
 	if w.pets == nil {

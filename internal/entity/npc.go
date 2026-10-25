@@ -126,6 +126,11 @@ type NPC struct {
 	// CorpseDecay is how long its corpse lies when not the world's
 	// (`world.corpse_decay`, corpse.go): a pet's (pet.go); 0 the world's.
 	CorpseDecay time.Duration
+
+	// SwingFixed makes SwingKind its swing whatever its class and level
+	// (rounds.go): an enchanter's pet's (pet.go).
+	SwingFixed bool
+	SwingKind  int
 }
 
 // GetEntityID returns the NPC's entity ID.

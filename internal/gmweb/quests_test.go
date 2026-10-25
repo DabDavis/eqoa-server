@@ -2,10 +2,12 @@ package gmweb
 
 import (
 	"fmt"
+	"net"
 	"strings"
 	"testing"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/handlers"
 )
 
@@ -142,6 +144,34 @@ func TestACharactersQuestIsSetAndReverted(t *testing.T) {
 	if code, _ := c.op("quest_try", map[string]any{"quest": id}); code == 200 {
 		t.Error("quest_try worked for a GM with no character in the world")
 	}
+
+	// the GM in the world with a character of their own: tried, logged
+	f.exec(`INSERT INTO characters (charName, accountid, serverid, modelid, tclass, race, humType, level,
+		haircolor, hairlength, hairstyle, faceoption, sex, world, x, y, z, tunar)
+		VALUES ('Gamemaster', 2, 8, 1, 0, 0, 1, 10, 0, 0, 0, 0, 0, 0, 25300, 54, 15700, 0)`)
+	sess := f.s.d.Sessions.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 8), Port: 7008}, 8, 1, 1, 2, true)
+	sess.SetAccountID(2)
+	p := &entity.Player{ServerID: 1008, CharServerID: 8, Name: "Gamemaster", Level: 10}
+	f.world.Players[p.ServerID] = p
+	sess.SetECSEntity(p)
+	sess.SetCharacterInWorld(true)
+	code, out = c.op("quest_try", map[string]any{"quest": id})
+	if code != 200 {
+		t.Fatalf("quest_try with a character in the world: %d %v", code, out)
+	}
+	if got := q.CharacterQuests(8); len(got) != 1 || got[0].Step != 1 {
+		t.Errorf("the GM's character after quest_try: %+v", got)
+	}
+	var tries int
+	f.db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE tbl = 'charquests' AND rowkey LIKE '%"serverid":8%'`).Scan(&tries)
+	if tries != 1 {
+		t.Errorf("%d audit lines for the try, want 1", tries)
+	}
+}
+
+func (f *fixture) exec(q string, args ...any) {
+	f.t.Helper()
+	mustExec(f.t, f.db, q, args...)
 }
 
 // A guide in EQOA-Data's shape: two level sections, each a draft with its

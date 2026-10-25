@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"math"
 	"math/rand"
 	"time"
 
@@ -243,6 +244,12 @@ func SwingFor(cls, level int, worn [21]bool, hasItem bool, attackType, itemRange
 	return s
 }
 
+// dist3 is the distance between two places.
+func dist3(ax, ay, az, bx, by, bz float32) float32 {
+	dx, dy, dz := ax-bx, ay-by, az-bz
+	return float32(math.Sqrt(float64(dx*dx + dy*dy + dz*dz)))
+}
+
 // inReach is TargetInRange's distance test: the squared 3D distance within
 // the reach plus the target's allowance.
 func inReach(p *Player, npc *NPC) bool {
@@ -409,7 +416,8 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	attacker.LastCombatTime = time.Now()
 
 	w.sendDamageIndication(sess, sess.PlayerObjectID(), -damage, objectID)
-	log.Printf("Combat: %s hit %s for %d damage (HP: %d/%d)", attacker.Name, npc.Name, damage, npc.HP, npc.MaxHP)
+	log.Printf("Combat: %s hit %s for %d damage (HP: %d/%d) %.2f off, reach %.2f", attacker.Name, npc.Name, damage, npc.HP, npc.MaxHP,
+		dist3(attacker.X, attacker.Y, attacker.Z, npc.X, npc.Y, npc.Z), attacker.Swing.Reach+npcReachExtra(npc))
 
 	w.updateAggro(npc, attacker.ServerID, damage)
 	if killed {

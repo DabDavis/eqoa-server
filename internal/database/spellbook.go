@@ -1,6 +1,9 @@
 package database
 
-import "database/sql"
+import (
+	"database/sql"
+	"fmt"
+)
 
 // SpellbookStore queries character spell data (spells joined with spellpattern).
 type SpellbookStore struct {
@@ -127,6 +130,81 @@ func (s *SpellbookStore) AddSpell(serverID uint32, spellID, order int) error {
 	_, err := s.db.Exec(`INSERT INTO spells (serverid, spellid, addedorder, onHotBar, whereonBar, unk1, showhide)
 		VALUES (?, ?, ?, 0, -1, 0, -1)`, serverID, spellID, order)
 	return err
+}
+
+// SpellPattern is one spell's pattern by id (sql.ErrNoRows for none).
+func (s *SpellbookStore) SpellPattern(spellID int) (*SpellPatternRecord, error) {
+	return (&SpellPatternStore{db: s.db}).GetSpellPattern(spellID)
+}
+
+// SetSpellVisual sets a spell's visual (spelleffect.fxdict, 0x00B1's DictID;
+// 0 for the server's stand-in), as the GM panel's row edit makes the change:
+// the row before and after written to gm_audit in the change's own
+// transaction, keyed as the panel keys it, so the panel lists the change with
+// the spell and can revert it. A spell with no row is given one (its line
+// empty, which a cast reads as it reads no row: by the spell's name; its
+// source naming the GM). Setting the visual it has changes nothing and logs
+// nothing. It returns the visual before (0 for none) and the line's id (0
+// when nothing changed).
+func (s *SpellbookStore) SetSpellVisual(spellID int, fx uint32, who GMEdit, detail string) (before uint32, audit int64, err error) {
+	if _, err := s.db.Exec(GMAuditSchema); err != nil {
+		return 0, 0, err
+	}
+	tx, err := s.db.Begin()
+	if err != nil {
+		return 0, 0, err
+	}
+	defer tx.Rollback()
+	var n int
+	if err := tx.QueryRow(`SELECT COUNT(*) FROM spellpattern WHERE spellid = ?`, spellID).Scan(&n); err != nil {
+		return 0, 0, err
+	}
+	if n == 0 {
+		return 0, 0, fmt.Errorf("no spell %d", spellID)
+	}
+	if who.Username == "" {
+		// the log names a GM by the account's name
+		if err := tx.QueryRow(`SELECT username FROM accountinfo WHERE accountid = ?`, who.AccountID).Scan(&who.Username); err != nil {
+			return 0, 0, fmt.Errorf("account %d: %w", who.AccountID, err)
+		}
+	}
+	const sel = `SELECT * FROM spelleffect WHERE spellid = ?`
+	prev, err := fullRow(tx, sel, spellID)
+	if err != nil {
+		return 0, 0, err
+	}
+	action := "update"
+	if prev == nil {
+		action = "insert"
+		source := "visual set by GM " + who.Username + " in the game"
+		if _, err := tx.Exec(`INSERT INTO spelleffect (spellid, line, fxdict, source) VALUES (?, '', ?, ?)`, spellID, int64(fx), source); err != nil {
+			return 0, 0, err
+		}
+	} else {
+		var old int64
+		if err := tx.QueryRow(`SELECT fxdict FROM spelleffect WHERE spellid = ?`, spellID).Scan(&old); err != nil {
+			return 0, 0, err
+		}
+		before = uint32(old)
+		if before == fx {
+			return before, 0, nil
+		}
+		if _, err := tx.Exec(`UPDATE spelleffect SET fxdict = ? WHERE spellid = ?`, int64(fx), spellID); err != nil {
+			return 0, 0, err
+		}
+	}
+	after, err := fullRow(tx, sel, spellID)
+	if err != nil {
+		return 0, 0, err
+	}
+	key := map[string]any{"spellid": int64(spellID)}
+	if audit, err = auditRowChange(tx, who, action, "spelleffect", key, prev, after, detail); err != nil {
+		return 0, 0, err
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, 0, err
+	}
+	return before, audit, nil
 }
 
 // SpellEffect is a spell's spelleffect row: the line saying what it does

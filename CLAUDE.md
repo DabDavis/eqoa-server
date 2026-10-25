@@ -114,7 +114,7 @@ A GM may also spell any of them `/name`: eqoa-rs forwards a `/command` it does n
 Sandstorm's S2 does), a retail PS2 keeps an unknown one to itself. The dev console of F3
 20261021-003556: `#goto x y z [world] | <town or NPC>` (`#teleport` too), `#gotoplayer`,
 `#summon`, `#spawn <name>` (a temporary copy, gone after its corpse time; `#despawn` the
-target), `#monstersearch`, `#nearby`; `#faction <faction> [standing]` (a GM's own standing); `#aggro [on|off]` (whether creatures attack the GM on sight, `entity/aggro.go`; off until `#aggro on` or a restart); `#npcinfo` (the target's ids, model, size, level, spawn and gear in a box: what talking to an NPC with nothing to say showed everyone until F3 20261025-171528; such an NPC now answers nothing). Until 2026-10-21 every player was a GM. Make one:
+target), `#monstersearch`, `#nearby`; `#faction <faction> [standing]` (a GM's own standing); `#aggro [on|off]` (whether creatures attack the GM on sight, `entity/aggro.go`; off until `#aggro on` or a restart); `#npcinfo` (the target's ids, model, size, level, spawn and gear in a box: what talking to an NPC with nothing to say showed everyone until F3 20261025-171528; such an NPC now answers nothing). **Spell visuals by hand** (`handlers/spellfx.go`, F3 pass 16, the user's ask): `#fx <visual> [seconds]` plays a visual (0x00B1's DictID, a 0xC200 record of SPELLFX.CSF, as `0x1DAEB5B6` or the eight digits) from the GM onto its target now (`World.PlayVisual`: a cast's 0x00B1 to all who see the GM, nothing else of a cast), `#fx <spell>` what a spell plays; `#spellfx <spell> [<visual> | 0]` says or sets `spelleffect.fxdict` (0: the stand-in of its kind, `entity.StandInVisual`), the change written to `gm_audit` in its own transaction as the panel writes a row edit (via `game`, `database.SetSpellVisual`), so the panel lists and reverts it. Until 2026-10-21 every player was a GM. Make one:
 `sqlite3 eqoa.db "UPDATE accountinfo SET acctlevel = 1 WHERE username = '<name>'"`.
 `#template` (`handlers/template.go`, jib's ask of 2026-10-25) makes the GM's own character a
 60 of its class and race: level 60, every spell of its class (`classspells`), 1,000,000
@@ -237,9 +237,18 @@ and on its own https host the session is a `__Host-` cookie no other host can se
 - **The game disc, in the browser only** (`static/disc/`): the GM picks their own ISO; a worker
   reads it in place (ISO 9660 walk), draws NPC bodies (`npcs.modelid` = CHAR.ESF CSprite,
   442/442 live values), item models (ITEM.ESF) and icons (`itemicon` = ITEMICON.ESF Surface,
-  337/337), and the map's zones from straight above (each world's zone table is in its last
-  few KB, 0x8200 → 0x8210). CHAR/ITEM/ITEMICON.ESF are kept in OPFS and zone pictures in
-  IndexedDB, so later visits need no disc. The server ships and stores no game data.
+  337/337), the map's zones from straight above (each world's zone table is in its last
+  few KB, 0x8200 → 0x8210), and the spell visuals (DATA2/SPELLFX.CSF, a CSF inflated with
+  `DecompressionStream`: 238 0xC200 records, each its DictID in 0xC210 and three event lists in
+  0xC220; the only file on the disc with any, and every `fxdict` eqoaclassic recorded is one).
+  CHAR/ITEM/ITEMICON.ESF and SPELLFX.CSF are kept in OPFS and zone pictures in IndexedDB, so
+  later visits need no disc. The server ships and stores no game data.
+- **Spell visuals** (`ops_visuals.go`, `views/visuals.js`; F3 pass 16): the page lists the disc's
+  visuals with the spells using each; `play_visual` plays one (or a spell's) in the game from the
+  GM's OWN character, logged in with the same account, onto its target (refused when it is not
+  in the game), so a visual is seen before it is given; `set_spell_visual` gives a spell one through
+  the audited row edit (a row inserted for a spell with none); `spell_visual`, `visual_uses` read.
+  The game's `#fx`/`#spellfx` do the same; `gm_audit`'s statement is `database.GMAuditSchema`.
 
 Traps: the database has ONE connection (`SetMaxOpenConns(1)`): never query while holding rows
 or a `db.Conn`/transaction from the plain handle — it deadlocks the game (the SQL console once

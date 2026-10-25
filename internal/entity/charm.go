@@ -191,7 +191,11 @@ func (w *World) charmLocked(caster *Player, sess *session.Session, npc *NPC, spe
 	if sess != nil {
 		w.announcePetLocked(ps, sess)
 	}
-	log.Printf("Charm: %s's %q takes %s (level %d, %d/%d HP), until %v", caster.Name, spell.Name, npc.Name, npc.Level, npc.HP, npc.MaxHP, hold.until)
+	lasts := "until it is let go"
+	if !hold.until.IsZero() {
+		lasts = "for " + spell.Def.Duration.String()
+	}
+	log.Printf("Charm: %s's %q takes %s (level %d, %d/%d HP), %s", caster.Name, spell.Name, npc.Name, npc.Level, npc.HP, npc.MaxHP, lasts)
 }
 
 // releaseCharmLocked lets a charmed pet go: off its master's pet bar

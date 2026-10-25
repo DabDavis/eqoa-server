@@ -165,6 +165,10 @@ type ActiveEffect struct {
 	// Proc is a proc's damage (proc.go): what the bearer's melee hits may do
 	// more, 0 for none; ProcMax the top of its range.
 	Proc, ProcMax int
+	// Form is the body an illusion shows its bearer in (illusion.go), 0 for
+	// none; FormSize its scale, 0 for the bearer's own.
+	Form     uint32
+	FormSize float32
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -418,6 +422,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 
 	p.Power -= spell.PowerCost
 	p.StatsDirty = true
+	w.breakInvisLocked(p, "a spell cast") // invis.go
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
 	p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
 	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + castBusy), lands: now.Add(spell.CastTime + castLand)}
@@ -442,6 +447,13 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 // one on the caster's group within its range, anything else on the target.
 func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastSpell, targetObjectID uint32) ([]EntityID, string) {
 	d := &spell.Def
+	// an illusion goes by its name, whatever its record's scope (illusion.go)
+	switch d.FormKind {
+	case FormSelf, FormEnd:
+		return []EntityID{p.ServerID}, ""
+	case FormGroup:
+		return w.glamourTargetsLocked(sess, p, spell, targetObjectID)
+	}
 	switch spell.Scope {
 	case 0:
 		return []EntityID{p.ServerID}, ""
@@ -712,6 +724,8 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		case EffectProc:
 			// no mod: the line's damage as it is (jib: "Damage has no mod")
 			ae.Proc, ae.ProcMax = e.Amount, max(e.AmountMax, e.Amount)
+		case EffectIllusion:
+			// its body is its bearer's to choose (landIllusionLocked)
 		default:
 			continue
 		}
@@ -728,6 +742,7 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 // landOnPlayerLocked is a beneficial spell on a player: its instant part,
 // then what lasts, on the effects channel.
 func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *session.Session, t *Player, now time.Time) {
+	illusion := false
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:
@@ -737,9 +752,16 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 				t.Power = min(t.Power+n, t.MaxPowerNow())
 				t.StatsDirty = true
 			}
+		case EffectEndIllusion:
+			w.endIllusionsLocked(t, 0) // illusion.go
+		case EffectIllusion:
+			illusion = true
 		}
 	}
 	if ae := lasting(cs, caster, now); ae != nil {
+		if illusion {
+			w.landIllusionLocked(cs, t, ae) // illusion.go
+		}
 		w.addEffectLocked(t, ae, now)
 	}
 	log.Printf("Cast: %s's %q lands on %s (%d/%d HP, %d effects)", caster.Name, cs.spell.Name, t.Name, t.HP, t.MaxHPNow(), len(t.Effects))

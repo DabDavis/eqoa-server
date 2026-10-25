@@ -78,6 +78,10 @@ type World struct {
 	playerModels map[uint32]bool
 	roamRnd      *rand.Rand
 
+	// Each player race's two bodies by race and sex (charactermodel), the
+	// bodies a race's illusion shows (illusion.go)
+	raceModels map[raceSex]uint32
+
 	// Summoned pets by their owners' ids (pet.go)
 	pets map[EntityID]*petState
 

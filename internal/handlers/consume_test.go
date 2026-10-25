@@ -63,7 +63,9 @@ func (f *scribeFixture) stackOf(name string) int {
 
 // A meal with no HoT of its own gives its level; one of a stack of five is
 // eaten and leaves by 0x003C (index, sound 0, one); a drink gives its own
-// PoT. The last of a stack leaves the list.
+// PoT. The last of a stack leaves the list. Each is shown by its item's name
+// and a buff's 32x32 icon, never the item's own (the wares here carry the
+// 128x64 inventory tile's DictID 1511586099, which a meal must not show).
 func TestUseMealEatsOne(t *testing.T) {
 	f := newScribeFixture(t)
 	got := f.eats(nil)
@@ -78,7 +80,7 @@ func TestUseMealEatsOne(t *testing.T) {
 	if want := mustHex(t, "3c00000002"); !bytes.Equal(msgs[0], want) {
 		t.Errorf("0x003C % X, want % X", msgs[0], want)
 	}
-	if len(*got) != 1 || (*got)[0] != (entity.Consumable{Name: "hearty bread", Icon: 1511586099, Amount: 10}) {
+	if len(*got) != 1 || (*got)[0] != (entity.Consumable{Name: "hearty bread", Icon: mealEffectIcon, Amount: 10}) {
 		t.Fatalf("eaten %+v", *got)
 	}
 	if n := f.stackOf("hearty bread"); n != 4 {
@@ -90,7 +92,7 @@ func TestUseMealEatsOne(t *testing.T) {
 	if want := mustHex(t, "3c00010002"); !bytes.Equal(msgs[0], want) {
 		t.Errorf("0x003C % X, want % X", msgs[0], want)
 	}
-	if len(*got) != 2 || (*got)[1] != (entity.Consumable{Drink: true, Name: "well water", Icon: 1511586099, Amount: 7}) {
+	if len(*got) != 2 || (*got)[1] != (entity.Consumable{Drink: true, Name: "well water", Icon: drinkEffectIcon, Amount: 7}) {
 		t.Fatalf("drunk %+v", *got)
 	}
 	if n := f.stackOf("well water"); n != 0 || len(f.rowsOf()) != 1 {

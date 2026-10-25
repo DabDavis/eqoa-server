@@ -51,6 +51,8 @@ const (
 	EffectGate                        // back to the bind point
 	EffectHate                        // the target's hate for the caster
 	EffectSummon                      // a pet (pet.go): SpellDef.Pet names it
+	EffectProc                        // the bearer's melee hits may do Amount more (proc.go)
+	EffectCharm                       // the target becomes the caster's pet (charm.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -182,6 +184,53 @@ func statWord(s string) (Stat, bool) {
 		}
 	}
 	return StatNone, false
+}
+
+// ParseSpell reads a spell's line with its ability's description, which
+// says what the line cannot: that its hit is a proc (proc.go), done to what
+// the bearer hits in melee rather than to the target, and so cast at a
+// friend. The enchanter's Chaotic Flux, Mark and Glyph are "Target,
+// Decrease Hitpoints by 64, 5min" in EQOA-Data's lists, and "Imbues your
+// attacks with chaotic arcane energy, giving them a chance to deal
+// additional arcane damage" or "Arcane Offensive Proc" in their records.
+func ParseSpell(line, desc string) SpellDef {
+	d := ParseSpellText(line)
+	if reProcDesc.MatchString(strings.ToLower(desc)) {
+		d = d.asProc()
+	}
+	return d
+}
+
+var reProcDesc = regexp.MustCompile(`\bproc\b|chance to deal additional`)
+
+// asProc makes the line's hit a proc: its damage (low to high) the proc's,
+// nothing harmful left, the rest as it was. A line with no hit is left as
+// it is.
+func (d SpellDef) asProc() SpellDef {
+	at := -1
+	for i, e := range d.Effects {
+		if e.Kind == EffectHP && e.Amount < 0 {
+			at = i
+			break
+		}
+	}
+	if at < 0 {
+		return d
+	}
+	hit := d.Effects[at]
+	effects := append([]SpellEffect(nil), d.Effects...)
+	effects[at] = SpellEffect{Kind: EffectProc, Amount: -hit.AmountMax, AmountMax: -hit.Amount}
+	d.Effects = effects
+	d.Harmful = false
+	for _, e := range d.Effects {
+		switch e.Kind {
+		case EffectHP, EffectHPTick, EffectStat:
+			d.Harmful = d.Harmful || e.Amount < 0
+		case EffectRoot, EffectSnare, EffectHate:
+			d.Harmful = true
+		}
+	}
+	return d
 }
 
 // ParseSpellText reads one spell line (see the file's comment).

@@ -349,6 +349,7 @@ func (w *World) SetPlayerLevel(serverID uint32, level int) bool {
 	}
 	p.Level = max(1, min(60, level))
 	p.XPInLevel = 0
+	p.TotalXP = TotalXP(p.Level, 0)
 	p.RecalcStats(false)
 	p.StatsDirty = true
 	return true

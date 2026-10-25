@@ -842,9 +842,11 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 	}
 	w.sendGrantXP(sess, player.Level, player.XPInLevel)
 	if cmXP > 0 {
-		w.sendChatToSession(sess, fmt.Sprintf("You received %d XP (%d to masteries).", xp, cmXP))
+		w.sendChatToSession(sess, fmt.Sprintf("You receive %d XP (%d to masteries).", xp, cmXP))
 	} else {
-		w.sendChatToSession(sess, fmt.Sprintf("You received %d XP.", xp))
+		// Sandstorm's words, for a kill and a quest alike (recorded by
+		// questrec16, claude-notes/quests-sandstorm-20261025.md)
+		w.sendChatToSession(sess, fmt.Sprintf("You receive %d XP.", xp))
 	}
 	if made > 0 {
 		SendMasteryPoints(sess, player.Mastery)

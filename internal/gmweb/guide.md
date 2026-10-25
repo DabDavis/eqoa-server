@@ -113,13 +113,17 @@ with the row before and after, and `revert_change` undoes a row change.
   the game never talks to, a creature that never spawns, words the client cuts). How it plays:
   the giver, talked to, says `offer` a box a line; each paragraph of it (lines between blank lines) ends in a
   question the player answers with that line of `accept` (no `accept`: the quest is given at once). Taken, the
-  journal gets the first step's `journal` line, then "You have received a quest!", then `started`. An NPC's
-  lines are shown with its name before them, as Sandstorm's are; a question is not. Steps: `talk` (talk to
-  `target`; with an `answer`, the player picks it first), `show` (talk to it holding `items`, which are kept:
-  the live game's "pick up the bracers from the merchant and come back"), `give` (hand it `items` and `tunar`,
-  which are taken), `kill` (`count` creatures named `target`, shared with the group within 200), `reach`
-  (within `radius` of `x`, `z` in `world`). A step done says its `says`, moves the journal to the next step's
-  line (the last step: "You have finished a quest!") and gives its rewards: `xp`, `rewardtunar`,
+  journal gets the first step's `journal` line, then "You have received a quest!", then `started`; a refusal
+  (`decline`) gets `declined`, as written. An NPC's lines are shown with its name before them, as Sandstorm's
+  are; a question is not; `%p` is the player's name. Steps: `talk` (talk to `target`; with an `answer`, the
+  player picks its first line first, any further lines being answers that change nothing, "Farewell"), `show`
+  (talk to it holding `items`, which are kept: the live game's "pick up the bracers from the merchant and come
+  back"), `give` (hand it `items` and `tunar`, which are taken; for both, while the items lack the NPC's
+  question offers only `notyet` and then says `reminder`), `kill` (`count` creatures named `target`, shared
+  with the group within 200), `reach` (within `radius` of `x`, `z` in `world`). A step done says its `says`,
+  takes its journal line and adds the next step's ("You have finished a quest!" and "You have received a
+  quest!", as Sandstorm announces each step; the last step only the first) and gives its rewards (Sandstorm
+  gives them at the last step only): `xp`, `rewardtunar`,
   `rewarditems`, `factions` (`Faction Name:+10`), `spells` (ids). The journal holds eight quests. Keep a quest
   a draft (`enabled` 0) until it is right; `quest_try` gives it to your own character in the world to play.
 - **A player's quests**: `character_quests`, then `character_quest_set` with `give` (a step, or its first),

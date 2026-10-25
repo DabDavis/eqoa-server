@@ -196,7 +196,7 @@ function itemsInput(obj, key) {
 async function editor(box, id) {
   let data = {
     quest: { name: '', enabled: 0, giver: '', minlevel: 1, maxlevel: 60, classes: '', races: '', requires: '', repeatable: 0,
-      offer: '', accept: '', decline: '', started: '', source: 'gm', notes: '' },
+      offer: '', accept: '', decline: '', declined: '', started: '', source: 'gm', notes: '' },
     steps: [], problems: [], characters: [],
   };
   if (id) {
@@ -223,7 +223,7 @@ async function editor(box, id) {
     steps.length ? null : empty('No steps yet: a quest needs one to be taken.'),
     button('Add a step', { icon: 'plus', onclick: () => {
       steps.push({ kind: 'talk', target: q.giver || '', npcid: 0, items: '', tunar: 0, count: 1, world: 0, x: 0, y: 0, z: 0, radius: 15,
-        journal: '', answer: '', says: '', waiting: '', xp: 0, rewardtunar: 0, rewarditems: '', factions: '', spells: '' });
+        journal: '', answer: '', says: '', waiting: '', notyet: '', reminder: '', xp: 0, rewardtunar: 0, rewarditems: '', factions: '', spells: '' });
       drawSteps();
     } }));
 
@@ -260,8 +260,12 @@ async function editor(box, id) {
     }
     fields.push(field('Journal line', counted(s, 'journal', 127), 'shown while this is the step to do', true));
     if (AT_NPC.has(s.kind)) {
-      fields.push(field("The player's answer", counted(s, 'answer', 63), 'empty: done on talking', true),
+      fields.push(field("The player's answer", area(s, 'answer', 2), 'the first line does it, any more change nothing ("Farewell"); empty: done on talking', true),
         field('NPC says before', area(s, 'waiting', 2), 'a line a box; with an answer, the last line asks', true));
+      if (s.kind !== 'talk') {
+        fields.push(field('Answer while the items lack', area(s, 'notyet', 2), 'offered instead of the answer until they are held', true),
+          field('NPC says while they lack', area(s, 'reminder', 2), null, true));
+      }
     }
     fields.push(field(AT_NPC.has(s.kind) ? 'NPC says when done' : 'Said when done', area(s, 'says', 2), 'a line a box', true),
       field('Reward: experience', num(s, 'xp', { min: 0 })), field('Reward: tunar', num(s, 'rewardtunar', { min: 0 })),
@@ -327,6 +331,7 @@ async function editor(box, id) {
           field('Offer', area(q, 'offer', 6), 'a paragraph a question: its lines a box each, its last line the question (no name before it)', true),
           field('Answers taking it', area(q, 'accept', 2), 'a line a question; empty: taken as soon as the giver is talked to', true),
           field('Answer refusing it', counted(q, 'decline', 63), 'offered with each answer; empty: none', true),
+          field('Reply to a refusal', area(q, 'declined', 2), 'said as written, no name put before it', true),
           field('Once taken', area(q, 'started', 3), 'a line a box', true),
           h('p', { class: 'muted small field wide' }, "An NPC's lines are shown with its name before them, as Sandstorm's are, unless they begin with it."))),
         card('Steps', stepsBox)),

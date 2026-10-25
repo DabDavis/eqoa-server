@@ -805,6 +805,10 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 	if StatCapBase(player.Level) != statCap {
 		SendStatCap(sess, player.Level)
 	}
+	// each level left gives its training points (training.go)
+	if player.TopUpTrainingPoints() > 0 {
+		SendTrainingPoints(sess, player.UnusedTP)
+	}
 	w.sendGrantXP(sess, player.Level, player.XPInLevel)
 	if cmXP > 0 {
 		w.sendChatToSession(sess, fmt.Sprintf("You received %d XP (%d to masteries).", xp, cmXP))

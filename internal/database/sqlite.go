@@ -808,6 +808,19 @@ func (s *SQLiteCharacterStore) SetProgress(serverID uint32, level, totalXP int) 
 	return nil
 }
 
+// SetTrainingPoints stores a character's unspent training points and every
+// one it has been given (entity/training.go), and nothing else of the row.
+func (s *SQLiteCharacterStore) SetTrainingPoints(serverID uint32, unused, total int) error {
+	res, err := s.db.Exec(`UPDATE characters SET unusedTP = ?, totalTP = ? WHERE serverid = ?`, unused, total, serverID)
+	if err != nil {
+		return err
+	}
+	if n, err := res.RowsAffected(); err == nil && n != 1 {
+		return ErrCharacterNotFound
+	}
+	return nil
+}
+
 // Delete deletes a character by serverid.
 func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	result, err := s.db.Exec(`DELETE FROM characters WHERE serverid = ?`, serverID)

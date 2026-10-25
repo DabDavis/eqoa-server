@@ -532,6 +532,13 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 		if live {
 			record.Level, record.TotalXP = level, xp
 		}
+		// and its training points (entity/training.go)
+		if unused, total, ok := h.gameWorld.LiveTrainingPoints(entity.EntityID(record.ServerID)); ok {
+			record.UnusedTP, record.TotalTP = unused, total
+			if err := h.store.SetTrainingPoints(record.ServerID, unused, total); err != nil {
+				log.Printf("SelectedChar: could not save '%s' replaced session's training points: %v", record.CharName, err)
+			}
+		}
 		if x, y, z, facing, world, ok := h.gameWorld.LivePosition(entity.EntityID(record.ServerID), record.Y); ok {
 			record.X, record.Y, record.Z, record.Facing, record.World = x, y, z, facing, int(world)
 			if err := h.store.Update(record); err != nil {
@@ -570,6 +577,19 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// Where the session starts (loginSpawn): where the character logged out,
 	// or beside Archivist Vaal. Decided here, before CreatePlayer reads it.
 	loginSpawn(h.gameWorld, record)
+
+	// The training points its level is due and it has not been given (a
+	// character made at a level, or one from before levels gave any;
+	// entity/training.go), kept at once.
+	if unused, total, give := entity.TopUpTraining(record.Level, record.UnusedTP, record.TotalTP); give > 0 || total != record.TotalTP {
+		record.UnusedTP, record.TotalTP = unused, total
+		if err := h.store.SetTrainingPoints(record.ServerID, unused, total); err != nil {
+			log.Printf("SelectedChar: '%s' training points not kept: %v", record.CharName, err)
+		} else if give > 0 {
+			log.Printf("SelectedChar: '%s' (level %d) given %d training points its level is due (%d unspent, %d in all)",
+				record.CharName, record.Level, give, unused, total)
+		}
+	}
 
 	// Create player entity directly (replaces QueueCommandSync + CmdEnterWorld)
 	var player *entity.Player

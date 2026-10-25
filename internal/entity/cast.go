@@ -186,6 +186,10 @@ type StatMods struct {
 	DR       int `json:",omitempty"`
 	LR       int `json:",omitempty"`
 	AR       int `json:",omitempty"`
+	// HoT and PoT are added to the six-second regen (regen.go): food and
+	// drink's (consumable.go)
+	HoT int `json:",omitempty"`
+	PoT int `json:",omitempty"`
 }
 
 func (m *StatMods) add(st Stat, n int) {
@@ -242,6 +246,8 @@ func (m *StatMods) sum(o StatMods) {
 	m.DR += o.DR
 	m.LR += o.LR
 	m.AR += o.AR
+	m.HoT += o.HoT
+	m.PoT += o.PoT
 }
 
 // StatNow is a stat as the client sees it: the player's own, plus effects,

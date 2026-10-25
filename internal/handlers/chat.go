@@ -754,6 +754,11 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			h.gmReply(sess, "Can only kill NPCs")
 		}
 
+	case "#npcinfo":
+		// #npcinfo: the target's ids, look, level, place and spawn, in a box
+		// (what talking to a silent NPC showed before F3 20261025-171528)
+		h.npcInfoCommand(sess, player)
+
 	case "#pos":
 		h.gmReply(sess, fmt.Sprintf("Position: (%.1f, %.1f, %.1f) facing=%.2f",
 			player.X, player.Y, player.Z, player.Facing))
@@ -822,6 +827,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #faction <faction> [standing] - your standing with a faction, or set it")
 		h.gmReply(sess, "  #grantcm <amount> - mastery points, never past 1500 spent and unspent")
 		h.gmReply(sess, "  #kill - kill target")
+		h.gmReply(sess, "  #npcinfo - the target's ids, model, size, level, spawn and gear")
 		h.gmReply(sess, "  #pos - show position")
 		h.gmReply(sess, "  #who - list players")
 

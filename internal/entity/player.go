@@ -118,6 +118,22 @@ type Player struct {
 	// question would be answering it destructively. See HDDMenu* in handlers.
 	PendingHDDMenu int
 
+	// PendingBind is the bind point a spiritmaster's open "Do you wish to set
+	// this as your bind point?" offers (Set: a question is open;
+	// spiritmaster.go in handlers).
+	PendingBind Bind
+
+	// PendingYesNo marks PendingCoachDests as a waysender's one route asked
+	// as Yes or No (waysender.go in handlers) rather than a list of places.
+	PendingYesNo bool
+
+	// Bind is where Return Home and a death take the player: the spot before
+	// a spiritmaster it bound to, kept in charbind; unset, the login spawn.
+	Bind Bind
+
+	// PendingSpar is a sparring dummy's open menu (sparring.go in handlers).
+	PendingSpar SparPick
+
 	// Animation (from client position update byte 35)
 	Animation byte
 
@@ -219,6 +235,30 @@ type CoachDest struct {
 	// and leave this 0; a Gatekeeper/Harbormaster route is the only thing that
 	// currently sets it, and 8 is what reaches guk through the card loader.
 	World uint8
+
+	// Fee is the tunar the trip costs (a waysender's; 0 free), MinLevel the
+	// level it needs (0 any), Via the NPC who sends the player.
+	Fee      int
+	MinLevel int
+	Via      string
+}
+
+// SparPick is a sparring dummy's menu as far as the player has gone: the
+// dummy, the question open (1 its level, 2 its element; 0 none) and the
+// level picked (an index of SparLevels).
+type SparPick struct {
+	NPC   EntityID
+	Asked int
+	Level int
+}
+
+// Bind is a player's bind point: where a spiritmaster bound it (Set).
+type Bind struct {
+	Set             bool
+	World           uint8
+	X, Y, Z, Facing float32
+	// By is the spiritmaster who bound it.
+	By string
 }
 
 // GetEntityID returns the player's entity ID.

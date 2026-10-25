@@ -3,50 +3,25 @@ package entity
 import (
 	"math"
 	"math/rand"
-	"strconv"
 )
 
-// RaceScale returns the visual scale factor for a player race.
-// All humanoid models in CHAR.ESF are authored at ~1.8-2.2m height.
-// The scale adjusts them to correct proportional sizes at runtime.
-// Race IDs are the NETWORK enum, the same one defaultBaseStats below and
-// handlers.Race use: 0=Human, 1=Elf, 2=DarkElf, 3=Gnome, 4=Dwarf, 5=Troll,
-// 6=Barbarian, 7=Halfling, 8=Erudite, 9=Ogre.
-//
-// This table used to be laid out on the OLD ordering (5=Halfling, 6=Troll,
-// 7=Barbarian) while every other race-keyed table in the server had already
-// moved to the network enum, so Trolls were scaled 0.60 and Halflings 1.10 —
-// each wearing the other's factor. The scales themselves are unchanged; only
-// the rows they sit on moved. This reaches the wire: world.go feeds it to
-// Player.Size / NPC.Size, which is ModelSize at state-channel offset 36-39.
-var raceScaleTable = [10]float32{
-	1.0,  // 0: Human (reference)
-	1.0,  // 1: Elf
-	1.0,  // 2: Dark Elf
-	0.45, // 3: Gnome (small — ~3ft, model is 2.2m)
-	0.78, // 4: Dwarf (~4.5ft)
-	1.20, // 5: Troll (tall, model is 1.87m)
-	1.10, // 6: Barbarian (large, model is 1.87m)
-	0.60, // 7: Halfling (~3.5ft, model is 1.78m)
-	1.0,  // 8: Erudite
-	1.50, // 9: Ogre (large — ~9ft, model is 1.88m)
-}
+// PlayerSize is every player's ModelSize (state-channel offset 36-39): 1.0
+// whatever the race. CHAR.ESF's race bodies are authored at their race's own
+// height, and Sandstorm sends 1.00 for every player in its captures (human,
+// elf, dark elf, troll, halfling and erudite; F3 20261025-173632). A table of
+// race factors (a gnome 0.45, an ogre 1.5) stood here until then, a guess
+// from the Go client's days, and drew every gnome NPC at under half size.
+const PlayerSize float32 = 1.0
 
-// RaceScale returns the visual scale for a given race index.
-func RaceScale(race int) float32 {
-	if race >= 0 && race < len(raceScaleTable) {
-		return raceScaleTable[race]
-	}
-	return 1.0
-}
-
-// raceScaleFromString parses a race string (e.g. "3") and returns the scale.
-func raceScaleFromString(race string) float32 {
-	r, err := strconv.Atoi(race)
-	if err != nil {
+// NPCSize is the ModelSize an npcs row's size sends: the row's own, as
+// Sandstorm sends each NPC's (a gnome 1.00 or 1.20, a bat 0.50, the Tests
+// Program 2.00), never scaled by its race; 1.0 when the row's is not a size
+// (zero, negative, under 0.01 or not finite).
+func NPCSize(size float32) float32 {
+	if size < 0.01 || size > 1000 || size != size {
 		return 1.0
 	}
-	return RaceScale(r)
+	return size
 }
 
 // baseStats holds default base stats for a race/class combination.

@@ -72,7 +72,7 @@ var gmCommands = map[string]bool{
 	"#nearby": true, "#world": true, "#speed": true, "#setlevel": true,
 	"#hp": true, "#tunar": true, "#kill": true, "#pos": true, "#who": true,
 	"#guildhall": true, "#effect": true, "#faction": true, "#template": true, "#help": true,
-	"#grantcm": true,
+	"#grantcm": true, "#npcinfo": true,
 }
 
 // slashGM is the # spelling of a /command line that names a GM command
@@ -173,7 +173,7 @@ func (h *ChatHandler) pickNPCName(sess *session.Session, q string) (string, bool
 
 // gotoCommand is #goto, also #teleport: x y z [world], or a place by name: a
 // #tele shortcut or a travel NPC (ResolveTeleDest), a town a coachman or a
-// harbormaster serves ("Freeport", "Neriak", "Highpass"), the NPCs a word of
+// harbormaster serves ("Freeport", "Neriak", "Highpass Hold"), the NPCs a word of
 // whose names it is when they stand together ("guk": NamesakePlace), or any
 // NPC. Only of the worlds the GM's game can load.
 func (h *ChatHandler) gotoCommand(sess *session.Session, player *entity.Player, cmd string, args []string) {
@@ -475,4 +475,21 @@ func (h *ChatHandler) templateCommand(sess *session.Session) {
 	for _, l := range lines {
 		h.gmReply(sess, l)
 	}
+}
+
+// npcInfoCommand is #npcinfo: the GM's target as EntityInfo has it, in a
+// dialogue box (F3 20261025-171528: talking to an NPC with nothing to say
+// showed it to everyone; it is a GM's now).
+func (h *ChatHandler) npcInfoCommand(sess *session.Session, player *entity.Player) {
+	id := player.TargetObjectID
+	if id == 0 || id == 0xFFFFFFFF {
+		h.gmReply(sess, "No target selected")
+		return
+	}
+	target, found := h.gameWorld.FindEntityByObjectID(sess, id)
+	if !found {
+		h.gmReply(sess, "Target not found")
+		return
+	}
+	SendDialogueBox(sess, 0, EntityInfo(target, id))
 }

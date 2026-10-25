@@ -548,6 +548,17 @@ func (db *SQLiteDB) initSchema() error {
 		percent  INTEGER NOT NULL DEFAULT 0,
 		xp       INTEGER NOT NULL DEFAULT 0
 	);
+	-- charbind: where a spiritmaster bound a character (Return Home and a
+	-- death take it there); no row, the login spawn
+	CREATE TABLE IF NOT EXISTS charbind (
+		serverid     INTEGER PRIMARY KEY,
+		world        INTEGER NOT NULL,
+		x            REAL NOT NULL,
+		y            REAL NOT NULL,
+		z            REAL NOT NULL,
+		facing       REAL NOT NULL DEFAULT 0,
+		spiritmaster TEXT NOT NULL DEFAULT ''
+	);
 
 	-- Create indexes
 	CREATE INDEX IF NOT EXISTS idx_characters_account ON characters(accountid);
@@ -830,6 +841,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	rows, _ := result.RowsAffected()
 	if rows == 0 {
 		return ErrCharacterNotFound
+	}
+	// its bind point with it: a server id made again must not inherit one
+	if _, err := s.db.Exec(`DELETE FROM charbind WHERE serverid = ?`, serverID); err != nil {
+		return err
 	}
 	return nil
 }

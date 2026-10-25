@@ -19,6 +19,13 @@ type InteractHandler struct {
 	// corpse opens a dead NPC's loot (NPCWindowHandler.OpenCorpse); it
 	// reports whether the NPC was a corpse.
 	corpse func(*session.Session, *entity.NPC) bool
+
+	// binds keeps the bind points spiritmasters give (spiritmaster.go).
+	binds bindStore
+
+	// spend takes a waysender's fee from the player, kept and shown
+	// (NPCWindowHandler.spendTunar); false when it cannot pay. Nil: free.
+	spend func(*session.Session, *entity.Player, int) bool
 }
 
 // npcText is what an NPC says when talked to, by name (config
@@ -74,8 +81,8 @@ func (h *InteractHandler) RegisterHandlers(r *Registry) {
 
 // HandleInteract handles NPC interaction requests (opcode 0x0004).
 // Client sends: uint32 targetObjectID
-// For coachmen (NPCType & 0x100 != 0): sends OptionBox with destinations.
-// For other NPCs: sends debug DialogueBox.
+// A corpse opens its loot, the hard-disk technician his menu, a travel NPC
+// its routes and a greeter its words; anything else answers nothing.
 func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {
@@ -147,9 +154,28 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 				player.Name, HDDSetupNPC)
 			return nil
 		}
+		player.PendingYesNo = false
+		player.PendingBind = entity.Bind{}
+		player.PendingSpar = entity.SparPick{}
 		player.PendingHDDMenu = HDDMenuMain
 		h.sendOptionBox(sess, HDDGreeting, HDDMenuFor(HDDMenuMain))
 		log.Printf("HDD: %s opened %s", player.Name, HDDSetupNPC)
+		return nil
+	}
+
+	// A spiritmaster binds (spiritmaster.go), a waysender sends the player to
+	// another town (waysender.go).
+	if npc, ok := targetEntity.(*entity.NPC); ok && IsSpiritmaster(npc.Name) {
+		forgetDialogs(player)
+		h.askBind(sess, player, npc)
+		return nil
+	}
+	if npc, ok := targetEntity.(*entity.NPC); ok && IsWaysender(npc.Name) && h.offerWay(sess, player, npc) {
+		return nil
+	}
+	// a sparring dummy asks its level and element (sparring.go)
+	if npc, ok := targetEntity.(*entity.NPC); ok && npc.Dummy == entity.SparringDummy {
+		h.askSparLevel(sess, player, npc)
 		return nil
 	}
 
@@ -163,6 +189,7 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 			routes = h.gameWorld.GetCoachDestinations(npc.Name, npc.World)
 		}
 		if len(routes) > 0 {
+			forgetDialogs(player)
 			player.PendingCoachDests = routes
 			player.CoachPage = 0
 			h.sendCoachPage(sess, player)
@@ -174,51 +201,56 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	// debug box.
 	if npc, ok := targetEntity.(*entity.NPC); ok {
 		if text, ok := npcTextFor(npc.Name); ok {
-			player.PendingCoachDests = nil
+			forgetDialogs(player)
 			h.sendDialogueBox(sess, text)
 			return nil
 		}
 	}
 
-	// Default: build debug info via type switch
-	var debug string
+	// Anything else has nothing to say: the interact button does nothing, as
+	// on a PS2 an NPC with no words, no shop and no route answers nothing
+	// (F3 20261025-171528). CLIENT waits on no answer to 0x0004
+	// (VIClient::InteractWithTarget). What the box said is a GM's #npcinfo.
+	log.Printf("Interact: %s has nothing to say to %s", entity.EntityName(targetEntity), player.Name)
+	return nil
+}
 
-	switch t := targetEntity.(type) {
+// EntityInfo is what #npcinfo shows of an NPC or a player: its ids, look,
+// level and place, and an NPC's spawn and gear. objectID is the id the
+// asking session knows it by.
+func EntityInfo(target entity.Entity, objectID uint32) string {
+	var info string
+	switch t := target.(type) {
 	case *entity.NPC:
-		debug += fmt.Sprintf("[%s] ServerID=%d ObjID=%d\n", t.Name, t.ServerID, targetObjectID)
-		debug += fmt.Sprintf("NPCID=%d Type=%d\n", t.NPCID, t.NPCType)
-		debug += fmt.Sprintf("HP=%d/%d\n", t.HP, t.MaxHP)
-		debug += fmt.Sprintf("Level=%d\n", t.Level)
-		debug += fmt.Sprintf("Speed=%.1f\n", t.Speed)
-		debug += fmt.Sprintf("Pos=(%.1f, %.1f, %.1f)\n", t.X, t.Y, t.Z)
-		debug += fmt.Sprintf("Facing=%.2f\n", t.Facing)
-		debug += fmt.Sprintf("Model=%d Size=%.1f\n", t.ModelID, t.Size)
-		debug += fmt.Sprintf("Spawn=(%.1f, %.1f, %.1f) F=%.2f\n", t.SpawnX, t.SpawnY, t.SpawnZ, t.SpawnFacing)
-		debug += fmt.Sprintf("Wpn=%d/%d Shld=%d\nTorso=%d Arm=%d Glv=%d\nLeg=%d Ft=%d Hd=%d\n",
+		info += fmt.Sprintf("[%s] ServerID=%d ObjID=%d\n", t.Name, t.ServerID, objectID)
+		info += fmt.Sprintf("NPCID=%d Type=%d\n", t.NPCID, t.NPCType)
+		info += fmt.Sprintf("HP=%d/%d\n", t.HP, t.MaxHP)
+		info += fmt.Sprintf("Level=%d\n", t.Level)
+		info += fmt.Sprintf("Speed=%.1f\n", t.Speed)
+		info += fmt.Sprintf("Pos=(%.1f, %.1f, %.1f)\n", t.X, t.Y, t.Z)
+		info += fmt.Sprintf("Facing=%.2f\n", t.Facing)
+		info += fmt.Sprintf("Model=%d Size=%.2f\n", t.ModelID, t.Size)
+		info += fmt.Sprintf("Spawn=(%.1f, %.1f, %.1f) F=%.2f\n", t.SpawnX, t.SpawnY, t.SpawnZ, t.SpawnFacing)
+		info += fmt.Sprintf("Wpn=%d/%d Shld=%d\nTorso=%d Arm=%d Glv=%d\nLeg=%d Ft=%d Hd=%d\n",
 			t.PrimaryWeapon, t.SecondaryWeapon, t.Shield,
 			t.Torso, t.Forearm, t.NPCGloves,
 			t.NPCLegs, t.Feet, t.Head)
 	case *entity.Player:
-		debug += fmt.Sprintf("[%s] ServerID=%d ObjID=%d\n", t.Name, t.ServerID, targetObjectID)
-		debug += fmt.Sprintf("HP=%d/%d Power=%d/%d\n", t.HP, t.MaxHP, t.Power, t.MaxPower)
-		debug += fmt.Sprintf("Level=%d\n", t.Level)
-		debug += fmt.Sprintf("STR=%d STA=%d AGI=%d DEX=%d\nWIS=%d INT=%d CHA=%d\n",
+		info += fmt.Sprintf("[%s] ServerID=%d ObjID=%d\n", t.Name, t.ServerID, objectID)
+		info += fmt.Sprintf("HP=%d/%d Power=%d/%d\n", t.HP, t.MaxHP, t.Power, t.MaxPower)
+		info += fmt.Sprintf("Level=%d\n", t.Level)
+		info += fmt.Sprintf("STR=%d STA=%d AGI=%d DEX=%d\nWIS=%d INT=%d CHA=%d\n",
 			t.Str, t.Sta, t.Agi, t.Dex, t.Wis, t.Int, t.Cha)
-		debug += fmt.Sprintf("AC=%d Poi=%d Dis=%d Fire=%d\nCold=%d Lit=%d Arc=%d\n",
+		info += fmt.Sprintf("AC=%d Poi=%d Dis=%d Fire=%d\nCold=%d Lit=%d Arc=%d\n",
 			t.AC, t.PoisonR, t.DiseaseR, t.FireR, t.ColdR, t.LightningR, t.ArcaneR)
-		debug += fmt.Sprintf("Speed=%.1f\n", t.Speed)
-		debug += fmt.Sprintf("Pos=(%.1f, %.1f, %.1f)\n", t.X, t.Y, t.Z)
-		debug += fmt.Sprintf("Facing=%.2f\n", t.Facing)
-		debug += fmt.Sprintf("Model=%d Size=%.1f\n", t.ModelID, t.Size)
+		info += fmt.Sprintf("Speed=%.1f\n", t.Speed)
+		info += fmt.Sprintf("Pos=(%.1f, %.1f, %.1f)\n", t.X, t.Y, t.Z)
+		info += fmt.Sprintf("Facing=%.2f\n", t.Facing)
+		info += fmt.Sprintf("Model=%d Size=%.2f\n", t.ModelID, t.Size)
 	default:
-		debug += fmt.Sprintf("[???] ObjID=%d\n", targetObjectID)
+		info += fmt.Sprintf("[???] ObjID=%d\n", objectID)
 	}
-
-	log.Printf("Interact debug for ObjID %d:\n%s", targetObjectID, debug)
-
-	h.sendDialogueBox(sess, debug)
-
-	return nil
+	return info
 }
 
 // coachDestsPerPage is the max destinations per page (client option box limit is 6,
@@ -242,7 +274,7 @@ func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Pl
 
 	options := make([]string, 0, len(pageDests)+2)
 	for _, d := range pageDests {
-		options = append(options, d.Name)
+		options = append(options, destLabel(d))
 	}
 	if hasMore {
 		options = append(options, "More...")
@@ -252,6 +284,9 @@ func (h *InteractHandler) sendCoachPage(sess *session.Session, player *entity.Pl
 	}
 
 	greeting := "Greetings, traveler! Where would you like to go?"
+	if len(dests) > 0 && dests[0].Via != "" {
+		greeting = wayAskMany // a waysender's, as Sandstorm's dockmasters ask
+	}
 	log.Printf("Coaching: page %d, showing %d dests (%d-%d of %d), options=%v", page, len(pageDests), start, end-1, total, options)
 	h.sendOptionBox(sess, greeting, options)
 }
@@ -300,6 +335,22 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 		return nil
 	}
 
+	// A spiritmaster's question (spiritmaster.go); a close (255) keeps it
+	// open, as a travel list stays below.
+	if player.PendingBind.Set {
+		if selectedOption != 255 {
+			h.answerBind(sess, player, selectedOption)
+		}
+		return nil
+	}
+	// A sparring dummy's level or element (sparring.go)
+	if player.PendingSpar.Asked != 0 {
+		if selectedOption != 255 {
+			h.answerSpar(sess, player, selectedOption)
+		}
+		return nil
+	}
+
 	if len(player.PendingCoachDests) == 0 {
 		return nil
 	}
@@ -317,6 +368,16 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	// exactly like the travel NPC ignoring the player. Only a selection or the
 	// next Interact should replace the list; a close just closes the box.
 	if selectedOption == 255 {
+		return nil
+	}
+
+	// A waysender's one trip, asked as Yes or No (waysender.go)
+	if player.PendingYesNo {
+		dest := player.PendingCoachDests[0]
+		player.PendingCoachDests, player.PendingYesNo = nil, false
+		if selectedOption == 0 {
+			h.travel(sess, player, dest)
+		}
 		return nil
 	}
 
@@ -363,6 +424,25 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 
 	dest := dests[destIdx]
 	player.PendingCoachDests = nil
+	h.travel(sess, player, dest)
+	return nil
+}
+
+// travel sends the player on a picked trip: a waysender's level and fee
+// first (its words: Sandstorm's "Very well."), then the teleport.
+func (h *InteractHandler) travel(sess *session.Session, player *entity.Player, dest entity.CoachDest) {
+	if dest.MinLevel > 0 && player.Level < dest.MinLevel {
+		h.sendDialogueBox(sess, tooWeak(dest.Name))
+		return
+	}
+	if dest.Fee > 0 && h.spend != nil && !h.spend(sess, player, dest.Fee) {
+		h.sendDialogueBox(sess, fmt.Sprintf("The trip to %s costs %d tunar.", dest.Name, dest.Fee))
+		log.Printf("Waysender: %s cannot pay %d for %s", player.Name, dest.Fee, dest.Name)
+		return
+	}
+	if dest.Via != "" {
+		sess.Queue().AddWithSequence(buildClientMessage(dest.Via + ": " + wayGo))
+	}
 
 	log.Printf("Coaching: teleporting %s to %s (%.1f, %.1f, %.1f) world=%d",
 		player.Name, dest.Name, dest.X, dest.Y, dest.Z, dest.World)
@@ -386,8 +466,6 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 
 	// Update player position in the world
 	h.gameWorld.UpdatePosition(player.ServerID, dest.X, dest.Y, dest.Z, dest.Facing)
-
-	return nil
 }
 
 // sendDialogueBox sends a simple dialogue box (no options) to the client.

@@ -132,7 +132,7 @@ func TestCoachRoutesAreIntraWorld(t *testing.T) {
 func TestCoachAndWarpDoNotMix(t *testing.T) {
 	w := gukWorld()
 	for _, d := range w.GetWarpDestinations("Harbormaster Thand", nil) {
-		if IsCoachman(d.Name) || d.Name == "Highpass" {
+		if IsCoachman(d.Name) || d.Name == "Highpass Hold" {
 			t.Errorf("warp list contains a coach destination: %q", d.Name)
 		}
 	}

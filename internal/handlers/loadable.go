@@ -26,14 +26,24 @@ import (
 // DiscWorld reports a world every client has: one of the disc's six.
 func DiscWorld(world uint8) bool { return int(world) < discWorlds }
 
+// s2Worlds is how many worlds Sandstorm's S2 names (the disc's six, world6 and
+// a second Secrets).
+const s2Worlds = 8
+
 // LoadableWorlds is the test of what sess's client can load: the disc's six,
-// or the whole table for a client that said it runs a patch (DiscVersion 0x13,
-// S2's marker on its world session, which our hard-disk loader rides on). No
-// session (an offline character, a list for no one in particular) is the
-// disc's six.
+// the whole table for a client that said it runs the July S2 (DiscVersion
+// 0x13, S2's marker on its world session, which our hard-disk loader rides
+// on), or S2's eight for Sandstorm's live S2 (0x15, which has no hard-disk
+// loader after it). No session (an offline character, a list for no one in
+// particular) is the disc's six.
 func LoadableWorlds(sess *session.Session) func(world uint8) bool {
-	if sess != nil && sess.DiscVersion() == protocol.GameVersionSandstormS2 {
-		return func(world uint8) bool { return int(world) < WorldCount }
+	if sess != nil {
+		switch sess.DiscVersion() {
+		case protocol.GameVersionSandstormS2:
+			return func(world uint8) bool { return int(world) < WorldCount }
+		case protocol.GameVersionSandstormS2Live:
+			return func(world uint8) bool { return int(world) < s2Worlds }
+		}
 	}
 	return DiscWorld
 }

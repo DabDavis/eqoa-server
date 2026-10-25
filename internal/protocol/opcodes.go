@@ -367,7 +367,12 @@ const (
 	// game, please try again later." — which reads like a patch-server problem
 	// and is not one.
 	GameVersionSandstormS2 = 0x13
-	GameVersionUnknown     = 0x00
+	// GameVersionSandstormS2Live is what Sandstorm's live S2 (October 2026)
+	// sends instead: a u32 21, then its own identity fields
+	// (claude-notes/sandstorm-s2-live-20261015.md); its world table is S2's
+	// eight, with no hard-disk loader after it.
+	GameVersionSandstormS2Live = 0x15
+	GameVersionUnknown         = 0x00
 )
 
 // =============================================================================

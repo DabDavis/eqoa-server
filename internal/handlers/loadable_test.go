@@ -16,15 +16,16 @@ import (
 
 // The worlds a client loads, by what its DiscVersion said: a Frontiers disc's
 // six (0x12: a retail PS2, the vanilla client, the page; and a client that
-// has said nothing yet), or the whole table for a PS2 running a patch (0x13,
-// S2's marker on its world session). No session is the disc's six.
+// has said nothing yet), the whole table for a PS2 running the July S2 (0x13,
+// S2's marker on its world session, our hard-disk loader after it), or S2's
+// eight for Sandstorm's live S2 (0x15). No session is the disc's six.
 func TestLoadableWorldsByDiscVersion(t *testing.T) {
 	c := newChatWorld(t)
 	s, _ := c.join(1, "Tester", 25000, 15000, 0)
 	cases := []struct {
 		version byte
 		max     int
-	}{{0, discWorlds}, {protocol.GameVersionEQOAVanilla, discWorlds}, {protocol.GameVersionSandstormS2, WorldCount}}
+	}{{0, discWorlds}, {protocol.GameVersionEQOAVanilla, discWorlds}, {protocol.GameVersionSandstormS2, WorldCount}, {protocol.GameVersionSandstormS2Live, s2Worlds}}
 	for _, k := range cases {
 		s.SetDiscVersion(k.version)
 		for w := 0; w < 256; w++ {

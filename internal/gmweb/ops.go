@@ -111,6 +111,7 @@ func (s *Server) registerOps() {
 	s.registerPlayerOps()
 	s.registerAccountOps()
 	s.registerAdminOps()
+	s.registerQuestOps()
 	s.registerPathOps()
 	s.registerVisualOps()
 }

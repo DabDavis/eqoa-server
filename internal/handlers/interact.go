@@ -163,6 +163,22 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// A spiritmaster not yet bound to offers its bind first, its quest's answer
+	// at the next talk (Sandstorm's Zole, recorded by questrec16).
+	if npc, ok := targetEntity.(*entity.NPC); ok && IsSpiritmaster(npc.Name) {
+		if b, bound := h.gameWorld.BindOf(player.ServerID); !bound || b.By != npc.Name {
+			forgetDialogs(player)
+			h.askBind(sess, player, npc)
+			return nil
+		}
+	}
+
+	// A quest's step at this NPC, or a quest it offers (quests.go), before
+	// the NPC's own business.
+	if npc, ok := targetEntity.(*entity.NPC); ok && Quests().Talk(sess, player, npc) {
+		return nil
+	}
+
 	// A spiritmaster binds (spiritmaster.go), a waysender sends the player to
 	// another town (waysender.go).
 	if npc, ok := targetEntity.(*entity.NPC); ok && IsSpiritmaster(npc.Name) {
@@ -310,6 +326,12 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 
 	player := h.gameWorld.SessionPlayer(sess)
 	if player == nil {
+		return nil
+	}
+
+	// A quest's box (quests.go): the u32 is the box's id, which only the
+	// quests' boxes set.
+	if Quests().Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 

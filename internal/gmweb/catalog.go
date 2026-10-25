@@ -274,11 +274,20 @@ var catalog = map[string]tableNote{
 			"offpattern":  {Label: "Off hand item", Ref: "itempattern"},
 		},
 	},
-	"playerquest": {
-		Label: "Character quests", Group: "Guilds & quests",
+	"charquests": {
+		Label: "Character quests", Group: "Guilds & quests", Sort: "serverid",
+		Help: "How far each character has come in each quest: step is the step to do (0 when finished), count the " +
+			"creatures killed so far on a kill step, done how many times it was finished, slot the journal's order. " +
+			"The Quests page's Characters tab gives, sets, finishes and takes back quests with the journal kept in step.",
+		Live: "At once: a character in the world has the journal redrawn as the row says.",
 		Cols: map[string]colNote{
-			"serverID": {Label: "Character", Ref: "characters"},
-			"questID":  {Label: "Quest", Ref: "quests"},
+			"serverid": {Label: "Character", Ref: "characters"},
+			"questid":  {Label: "Quest", Ref: "quests"},
+			"step":     {Label: "Step to do", Help: "0: finished"},
+			"count":    {Label: "Killed so far"},
+			"done":     {Label: "Times finished"},
+			"slot":     {Label: "Journal order"},
+			"updated":  {Label: "Updated", Format: "stamp", ReadOnly: true},
 		},
 	},
 	"npcs": {
@@ -539,8 +548,66 @@ var catalog = map[string]tableNote{
 		},
 	},
 	"quests": {
-		Label: "Quests", Group: "Guilds & quests",
-		Cols: map[string]colNote{"questLog": {Format: "multiline"}},
+		Label: "Quests", Group: "Guilds & quests", Title: "name", Sort: "questid",
+		Help: "Each quest: who offers it (giver, an NPC's name), to whom (levels, classes, races, quests finished first), " +
+			"what the giver says (offer, a line a box) and the answers that take it or refuse it. enabled 0 is a draft only " +
+			"this panel sees. Its steps are queststeps; the Quests page edits both together.",
+		Live:   "At once: the next talk, kill or step uses it.",
+		Show:   []string{"questid", "name", "enabled", "giver", "minlevel", "maxlevel", "source"},
+		Search: []string{"name", "giver", "notes"},
+		Cols: map[string]colNote{
+			"questid":    {Label: "Quest"},
+			"name":       {Label: "Name"},
+			"enabled":    {Label: "In the game", Help: "1: players get it; 0: a draft"},
+			"giver":      {Label: "Giver", Help: "the NPC who offers it, by its name as the game shows it"},
+			"minlevel":   {Label: "From level"},
+			"maxlevel":   {Label: "To level"},
+			"classes":    {Label: "Classes", Help: "class ids, comma separated; empty: any"},
+			"races":      {Label: "Races", Help: "race ids, comma separated; empty: any"},
+			"requires":   {Label: "Quests first", Help: "quest ids finished first, comma separated"},
+			"repeatable": {Label: "Repeatable"},
+			"offer":      {Label: "Giver offers", Format: "multiline", Help: "a paragraph a question: a line a box, its last line asks"},
+			"accept":     {Label: "Answers taking it", Format: "multiline", Help: "a line a question; empty: taken when talked to"},
+			"decline":    {Label: "Answer refusing it", Help: "empty: none (Close refuses)"},
+			"declined":   {Label: "Giver replies to a refusal", Format: "multiline", Help: "said as written"},
+			"started":    {Label: "Giver says once taken", Format: "multiline"},
+			"source":     {Label: "Source"},
+			"notes":      {Label: "Notes", Format: "multiline"},
+		},
+	},
+	"queststeps": {
+		Label: "Quest steps", Group: "Guilds & quests", Sort: "questid",
+		Help: "A quest's steps in order (step 1, 2, ...). kind talk: talk to the NPC named target (answering it when answer " +
+			"is set); show: talk to it holding items, which are kept; give: hand that NPC items (patternid*count, comma " +
+			"separated) and tunar, which are taken; kill: kill count creatures " +
+			"named target; reach: come within radius of x, y, z in world. journal is the journal's line while it is the " +
+			"step to do; says is the NPC's words when it is done; the rewards are given then.",
+		Live:   "At once: the next talk, kill or step uses it.",
+		Show:   []string{"questid", "step", "kind", "target", "journal"},
+		Search: []string{"target", "journal", "says"},
+		Cols: map[string]colNote{
+			"questid":     {Label: "Quest", Ref: "quests"},
+			"step":        {Label: "Step"},
+			"kind":        {Label: "Kind", Help: "talk, show, give, kill or reach"},
+			"target":      {Label: "NPC or creature", Help: "its name as the game shows it"},
+			"npcid":       {Label: "Only spawn", Ref: "npcs", Help: "0: any of the name"},
+			"items":       {Label: "Items held or handed in", Help: "show: held and kept; give: taken. patternid*count, comma separated"},
+			"tunar":       {Label: "Tunar held or handed in"},
+			"count":       {Label: "How many", Help: "a kill step's creatures"},
+			"world":       {Label: "World", Enum: "world"},
+			"radius":      {Label: "Within"},
+			"journal":     {Label: "Journal line", Help: "at most 127 characters"},
+			"answer":      {Label: "Player's answer", Format: "multiline", Help: "the first line does it, any others change nothing; empty: done on talking"},
+			"notyet":      {Label: "Answer while items lack", Format: "multiline", Help: "show/give: offered instead of the answer until the items are held"},
+			"reminder":    {Label: "NPC says while items lack", Format: "multiline"},
+			"says":        {Label: "NPC says when done", Format: "multiline"},
+			"waiting":     {Label: "NPC says before", Format: "multiline"},
+			"xp":          {Label: "Reward: experience"},
+			"rewardtunar": {Label: "Reward: tunar"},
+			"rewarditems": {Label: "Reward: items", Help: "patternid*count, comma separated"},
+			"factions":    {Label: "Reward: factions", Help: "Faction:+10, comma separated"},
+			"spells":      {Label: "Reward: spells", Help: "spell ids, comma separated"},
+		},
 	},
 	"npc_models_observed": {Label: "Observed NPC models", Group: "Imports", Write: writeAdmin,
 		Cols: map[string]colNote{"modelid": {Format: hex32}, "world": {Enum: "world"}}},

@@ -37,6 +37,10 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveAggro()
 	case "charfactions":
 		return s.liveCharFaction(before, after)
+	case "quests", "queststeps":
+		return s.liveQuests()
+	case "charquests":
+		return s.liveCharQuest(before, after)
 	case "charinventory", "spells", "hotkeys", "charbuffs", "weaponhotbar", "quickslots", "gearsets":
 		row := after
 		if row == nil {

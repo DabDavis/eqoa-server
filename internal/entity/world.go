@@ -71,7 +71,9 @@ type World struct {
 	// NPCs are townsfolk and stand) and the wander's random source.
 	roamRadius   float32
 	roamers      []*NPC
-	returning    []*NPC // NPCs on their way home after a fight (chase.go)
+	returning    []*NPC   // NPCs on their way home after a fight (chase.go)
+	towns        townGrid // the towns' people, for the wander to keep out of (towns.go); nil until first asked
+	townFolk     int
 	playerModels map[uint32]bool
 	roamRnd      *rand.Rand
 
@@ -479,6 +481,7 @@ func (w *World) LoadNPCs(npcStore *database.NPCStore) {
 		log.Printf("Entity LoadNPCs: failed to load NPCs: %v", err)
 		return
 	}
+	w.towns = nil // found again among the NPCs loaded (towns.go)
 
 	if len(npcs) == 0 {
 		log.Println("Entity LoadNPCs: no NPCs found in database")

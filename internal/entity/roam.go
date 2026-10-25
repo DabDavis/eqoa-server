@@ -146,8 +146,21 @@ func (w *World) roamStepLocked(npc *NPC, now time.Time) {
 	if dt > 0.5 {
 		dt = 0.5 // a stalled tick does not jump it
 	}
-	if !w.wanders(npc) || npc.CurrentEnemy != 0 || npc.DummyTarget != 0 || npc.rooted(now) {
-		// a fight, a root or a death: standing, and a rest before it goes on
+	if npc.CurrentEnemy != 0 || npc.chase.returning {
+		// a fight, or the way home after one: its movement theirs once the
+		// chase has it (chase.go), standing until then (a pet's fight is
+		// not chased), and a rest before it wanders on
+		if !npc.chase.on && !npc.chase.returning && (npc.roam.walking || npc.moving()) {
+			npc.stopMoving()
+		}
+		npc.roam.walking = false
+		if npc.roam.restUntil.Before(now) {
+			npc.roam.restUntil = now.Add(w.roamDuration(roamRestMin, roamRestMax))
+		}
+		return
+	}
+	if !w.wanders(npc) || npc.DummyTarget != 0 || npc.rooted(now) {
+		// a root, a dummy's fight or a death: standing, and a rest before it goes on
 		if npc.roam.walking || npc.moving() {
 			npc.stopMoving()
 			npc.roam.walking = false

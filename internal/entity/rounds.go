@@ -105,6 +105,19 @@ func (w *World) npcRoundLocked(npc *NPC, target *Player, now time.Time, hit func
 	}
 }
 
+// loseDueHits lets the hits of the NPC's round that fall due while it is
+// out of reach go by unlanded (it is closing in: chase.go); the next round
+// begins in reach, on the last one's cadence.
+func (n *NPC) loseDueHits(now time.Time) {
+	if n.RoundStart.IsZero() {
+		return
+	}
+	_, _, _, hits := npcRound(n)
+	for n.RoundHits < len(hits) && !now.Before(n.RoundStart.Add(hits[n.RoundHits])) {
+		n.RoundHits++
+	}
+}
+
 // endRound forgets the NPC's round: its next fight starts a new one.
 func (n *NPC) endRound() {
 	n.RoundStart = time.Time{}

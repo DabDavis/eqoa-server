@@ -43,6 +43,15 @@ func (w *World) SavedEffects(id EntityID, now time.Time) (rows []database.BuffRo
 	return savedEffects(p, now), true
 }
 
+// savedMods is an effect's mods column: its stat changes and, beside them, a
+// proc's damage (proc.go), which has no column of its own; a row kept before
+// procs reads as none.
+type savedMods struct {
+	StatMods
+	Proc    int `json:",omitempty"`
+	ProcMax int `json:",omitempty"`
+}
+
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
 	var rows []database.BuffRow
 	for _, e := range p.Effects {
@@ -54,7 +63,7 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 		if !e.NextTick.IsZero() && (e.HPTick != 0 || e.PowerTick != 0) {
 			tick = max(0, e.NextTick.Sub(now).Milliseconds())
 		}
-		mods, _ := json.Marshal(e.Mods)
+		mods, _ := json.Marshal(savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax})
 		flags := 0
 		for _, f := range []struct {
 			on  bool
@@ -93,7 +102,9 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			ae.NextTick = now.Add(time.Duration(r.TickMS) * time.Millisecond)
 		}
 		if r.Mods != "" {
-			_ = json.Unmarshal([]byte(r.Mods), &ae.Mods)
+			var sm savedMods
+			_ = json.Unmarshal([]byte(r.Mods), &sm)
+			ae.Mods, ae.Proc, ae.ProcMax = sm.StatMods, sm.Proc, sm.ProcMax
 		}
 		p.Effects = append(p.Effects, ae)
 		if ae.Name != "" && len(p.Buffs) < MaxEffects {

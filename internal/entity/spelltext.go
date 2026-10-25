@@ -51,6 +51,8 @@ const (
 	EffectGate                        // back to the bind point
 	EffectHate                        // the target's hate for the caster
 	EffectSummon                      // a pet (pet.go): SpellDef.Pet names it
+	EffectProc                        // the bearer's melee hits may do Amount more (proc.go)
+	EffectCharm                       // the target becomes the caster's pet (charm.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -99,10 +101,27 @@ type SpellDef struct {
 	// Pet is the creature a summoning line names ("Summons an Iron Golem to
 	// your defense": "iron golem"), "" when it names none ("Summons a pet").
 	Pet string
-	// Unread is the part of the line this does not act on (charm, procs,
-	// cures...), for the log.
+	// Unread is the part of the line this does not act on (procs, cures...),
+	// for the log.
 	Unread []string
+	// CharmMax is the highest level a charm takes when its line or
+	// description says ("Charms up to level 54 mobs", "Charm up to level
+	// 54"); 0: the spell's own level (charm.go).
+	CharmMax int
 }
+
+// Charms reports whether the spell makes its target the caster's pet.
+func (d *SpellDef) Charms() bool {
+	for _, e := range d.Effects {
+		if e.Kind == EffectCharm {
+			return true
+		}
+	}
+	return false
+}
+
+// reCharmMax is a charm's level cap in its words.
+var reCharmMax = regexp.MustCompile(`up to level (\d+)`)
 
 // Summons reports whether the spell makes a pet.
 func (d *SpellDef) Summons() bool {
@@ -184,6 +203,58 @@ func statWord(s string) (Stat, bool) {
 	return StatNone, false
 }
 
+// ParseSpell reads a spell's line with its ability's description, which
+// says what the line cannot: that its hit is a proc (proc.go), done to what
+// the bearer hits in melee rather than to the target, and so cast at a
+// friend. The enchanter's Chaotic Flux, Mark and Glyph are "Target,
+// Decrease Hitpoints by 64, 5min" in EQOA-Data's lists, and "Imbues your
+// attacks with chaotic arcane energy, giving them a chance to deal
+// additional arcane damage" or "Arcane Offensive Proc" in their records.
+func ParseSpell(line, desc string) SpellDef {
+	d := ParseSpellText(line)
+	if reProcDesc.MatchString(strings.ToLower(desc)) {
+		d = d.asProc()
+	}
+	if d.Charms() && d.CharmMax == 0 {
+		if m := reCharmMax.FindStringSubmatch(strings.ToLower(desc)); m != nil {
+			d.CharmMax = atoi(m[1])
+		}
+	}
+	return d
+}
+
+var reProcDesc = regexp.MustCompile(`\bproc\b|chance to deal additional`)
+
+// asProc makes the line's hit a proc: its damage (low to high) the proc's,
+// nothing harmful left, the rest as it was. A line with no hit is left as
+// it is.
+func (d SpellDef) asProc() SpellDef {
+	at := -1
+	for i, e := range d.Effects {
+		if e.Kind == EffectHP && e.Amount < 0 {
+			at = i
+			break
+		}
+	}
+	if at < 0 {
+		return d
+	}
+	hit := d.Effects[at]
+	effects := append([]SpellEffect(nil), d.Effects...)
+	effects[at] = SpellEffect{Kind: EffectProc, Amount: -hit.AmountMax, AmountMax: -hit.Amount}
+	d.Effects = effects
+	d.Harmful = false
+	for _, e := range d.Effects {
+		switch e.Kind {
+		case EffectHP, EffectHPTick, EffectStat:
+			d.Harmful = d.Harmful || e.Amount < 0
+		case EffectRoot, EffectSnare, EffectHate:
+			d.Harmful = true
+		}
+	}
+	return d
+}
+
 // ParseSpellText reads one spell line (see the file's comment).
 func ParseSpellText(line string) SpellDef {
 	var d SpellDef
@@ -256,7 +327,7 @@ func ParseSpellText(line string) SpellDef {
 			if e.Amount < 0 {
 				d.Harmful = true
 			}
-		case EffectRoot, EffectSnare, EffectHate:
+		case EffectRoot, EffectSnare, EffectHate, EffectCharm:
 			d.Harmful = true
 		}
 	}
@@ -343,6 +414,14 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		}
 	case part == "snare":
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectSnare})
+		return verb
+	case part == "charm" || strings.HasPrefix(part, "charms ") || strings.HasPrefix(part, "charm "):
+		// "Target, Charm ; Increase 25% based on CHA , 4min" (the scale clause
+		// after it is the charm's), "Charms up to level 54 mobs, 1 hour"
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectCharm})
+		if m := reCharmMax.FindStringSubmatch(part); m != nil {
+			d.CharmMax = atoi(m[1])
+		}
 		return verb
 	case part == "sow" || part == "spirit of the wolf":
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectSpeed})

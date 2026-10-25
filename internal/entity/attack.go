@@ -283,9 +283,11 @@ func (w *World) EngageAttack(sess *session.Session, objectID uint32, swing Swing
 		return false
 	}
 	npc, ok := ent.(*NPC)
-	if !ok || npc.Dead || npc.NPCType&0x80 != 0 {
+	if !ok || npc.Dead || npc.NPCType&0x80 != 0 || npc.Owner != 0 {
 		// CLIENT's ToggleAutoAttack refuses a not-attackable creature
-		// (+0x25A & 0x80) itself; TargetInRange refuses a player.
+		// (+0x25A & 0x80) itself; TargetInRange refuses a player. A pet is
+		// on the players' side (pet.go): its byte 142 keeps CLIENT from
+		// swinging at it, though the 0x000F still comes.
 		return false
 	}
 	p.Swing = swing

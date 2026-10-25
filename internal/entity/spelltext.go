@@ -31,7 +31,7 @@ const (
 	TargetSingle SpellTarget = iota // "Target": the caster's target
 	TargetSelf                      // "Self": the caster, whatever is targeted
 	TargetGroup                     // "Group": the caster's group around them
-	TargetPet                       // "Pet": not cast here (no pets yet)
+	TargetPet                       // "Pet": the caster's pet (pet.go)
 	TargetUndead                    // "Target undead": the target, harmful
 )
 
@@ -50,6 +50,7 @@ const (
 	EffectInvis                       // unseen
 	EffectGate                        // back to the bind point
 	EffectHate                        // the target's hate for the caster
+	EffectSummon                      // a pet (pet.go): SpellDef.Pet names it
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -95,9 +96,48 @@ type SpellDef struct {
 	Effects  []SpellEffect
 	Duration time.Duration // 0: it all happens when it lands
 	Harmful  bool
-	// Unread is the part of the line this does not act on (charm, pets,
-	// procs, cures...), for the log.
+	// Pet is the creature a summoning line names ("Summons an Iron Golem to
+	// your defense": "iron golem"), "" when it names none ("Summons a pet").
+	Pet string
+	// Unread is the part of the line this does not act on (charm, procs,
+	// cures...), for the log.
 	Unread []string
+}
+
+// Summons reports whether the spell makes a pet.
+func (d *SpellDef) Summons() bool {
+	for _, e := range d.Effects {
+		if e.Kind == EffectSummon {
+			return true
+		}
+	}
+	return false
+}
+
+// A line that summons a pet: a summoning ("Summons", "Summon", the lists'
+// "Summuns") of a pet, or of a creature "to aid you" or "to your defense".
+// The alchemists' "SELF Summons Unstable Potion" and Phase Ring's "Summons
+// a ring to invis" make items, not pets, and say neither.
+var (
+	reSummons  = regexp.MustCompile(`\bsumm[ou]ns?\b`)
+	reSummonOf = regexp.MustCompile(`\bsumm[ou]ns?\s+(?:a\s+|an\s+|the\s+)?(.+?)\s+(?:to aid you|to your defense|pet)\b`)
+)
+
+// summonLine reads a summoning line: whether it makes a pet, and the
+// creature it names ("" for a bare "pet").
+func summonLine(text string) (bool, string) {
+	if !reSummons.MatchString(text) {
+		return false, ""
+	}
+	if !strings.Contains(text, "pet") && !strings.Contains(text, "to aid you") && !strings.Contains(text, "to your defense") {
+		return false, ""
+	}
+	if m := reSummonOf.FindStringSubmatch(text); m != nil {
+		if name := strings.TrimSpace(m[1]); name != "" && name != "a" && name != "an" {
+			return true, name
+		}
+	}
+	return true, ""
 }
 
 var (
@@ -149,6 +189,13 @@ func ParseSpellText(line string) SpellDef {
 	var d SpellDef
 	text := strings.ToLower(strings.TrimSpace(line))
 	if text == "" {
+		return d
+	}
+	// A summoning line is the whole spell: a pet beside the caster.
+	if ok, name := summonLine(text); ok {
+		d.Target = TargetSelf
+		d.Effects = []SpellEffect{{Kind: EffectSummon}}
+		d.Pet = name
 		return d
 	}
 	// An area spell's line names the target's share first: "Decrease

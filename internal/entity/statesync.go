@@ -330,8 +330,11 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	// Leave as 0x00000000
 	binary.LittleEndian.PutUint32(buf[36:40], math.Float32bits(n.Size))
 
-	// Offset 40-42: Movement/velocity data (varies with entity motion)
-	// Leave at 0 for stationary entities.
+	// Offset 40-42: Velocity X/Y/Z, units a second × 128/21 (velocityToByte):
+	// 0 for an NPC standing still (npcmove.go)
+	buf[40] = velocityToByte(n.VelX)
+	buf[41] = velocityToByte(n.VelY)
+	buf[42] = velocityToByte(n.VelZ)
 
 	// Offset 50-57: eqoa.live constant for NPCs (float32: 54.245, -2.528)
 	// Player entities have different values here (position-related)
@@ -344,7 +347,7 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	buf[56] = 0x21
 	buf[57] = 0xC0
 
-	buf[58] = 0 // Animation
+	buf[58] = n.Loco // the locomotion state (npcmove.go): 0 standing
 
 	// Target = 0 (no target) — eqoa.live: 0 for NPCs, player OID for pets
 	binary.LittleEndian.PutUint32(buf[59:63], 0x00000000)
@@ -427,8 +430,13 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	// Offset 141: Movement (0 = normal per Java)
 	buf[141] = 0
 
-	// Offset 142: NameColor — eqoa.live: 0 for ALL NPCs, 2 for players only
+	// Offset 142: NameColor — eqoa.live: 0 for ALL NPCs, 2 for players only;
+	// 3 for a pet (pet.go: CLIENT's m_p256, player-side, as Sandstorm's
+	// summoned Fire Elemental carried it)
 	buf[142] = 0
+	if n.Owner != 0 {
+		buf[142] = 3
+	}
 
 	// Offset 143: NamePlate/Targetable — eqoa.live: 1 for hostile/combat NPCs, 0 for merchants/quest
 	if n.NPCType == 0x0000 {

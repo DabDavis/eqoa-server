@@ -104,6 +104,15 @@ type NPC struct {
 	// the GM panel changed leaves each client's channels and comes back as
 	// a new entity, made from its new record.
 	HiddenUntil time.Time
+
+	// Its motion as its state channel carries it (npcmove.go): the velocity
+	// in units a second and the locomotion state (byte 58), which a client
+	// moves and animates it by between updates.
+	VelX, VelY, VelZ float32
+	Loco             byte
+
+	// Owner is the player whose pet it is (pet.go), 0 for any other NPC.
+	Owner EntityID
 }
 
 // GetEntityID returns the NPC's entity ID.

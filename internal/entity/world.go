@@ -58,6 +58,9 @@ type World struct {
 	casts    []*castState
 	onGate   GateFunc
 	affected map[EntityID]*NPC // creatures with a spell's effect on them
+
+	// Summoned pets by their owners' ids (pet.go)
+	pets map[EntityID]*petState
 }
 
 // NewWorld creates and initializes a new game world.

@@ -1416,12 +1416,19 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 	// === Hotkeys section ===
 	writeDefaultHotkeys(writer)
 
-	// Two unknown int32s after hotkeys
+	// Two int32s after hotkeys: VIClient m_p2BB60, then m_p2BB0C, the quest
+	// journal's token, which 0x007C/0x007D set and the player's delete sends
+	// back (quests.go)
+	journalToken, journal := questJournal(player)
 	writer.WriteInt32(0)
-	writer.WriteInt32(0)
+	writer.WriteUint32(journalToken)
 
-	// === Quests section ===
-	writer.WriteUint32(0) // Quest count (uint32, not zigzag)
+	// === Quests section === m_questCount (a raw u32, not zigzag), then each
+	// line as ReadString(m_questTitle[q], 256): at most eight
+	writer.WriteUint32(uint32(len(journal)))
+	for _, line := range journal {
+		writeWideString(writer, line, 256)
+	}
 
 	// === Inventory + Bank sections ===
 	// Load items from database (charinventory joined with itempattern)

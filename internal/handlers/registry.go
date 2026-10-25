@@ -324,6 +324,18 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// that keeps more than CLIENT's 24 says how many, and how far
 	NewEntityViewHandler().RegisterHandlers(r)
 
+	// The quests (quests.go): an NPC talked to asks them first, their boxes'
+	// answers, the kills and places that do steps, the journal and the
+	// player's own delete (0x007D); the GM panel edits them (questgm.go)
+	if charStore != nil && gameWorld != nil {
+		if qe, err := NewQuestEngine(charStore.DB(), gameWorld, sessionMgr, invStore, spellStore); err != nil {
+			log.Printf("Quests: not running: %v", err)
+		} else {
+			qe.Start()
+			r.Register(protocol.OpcodeDeleteQuest, qe.HandleDrop)
+		}
+	}
+
 	// Register others' power (0x7E01; powerbars.go): a client that draws
 	// power bars under its group's, its target's and their target's health
 	NewPowerBarsHandler(gameWorld).RegisterHandlers(r)

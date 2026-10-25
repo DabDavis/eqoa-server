@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -514,6 +515,29 @@ func (db *SQLiteDB) initSchema() error {
 		FOREIGN KEY (player_id) REFERENCES characters(serverid) ON DELETE CASCADE
 	);
 
+	-- factions: every faction and the standing a character starts with;
+	-- charfactions: a character's own standings; factionhits: what killing an
+	-- NPC of a name does to the killer's (factions.go, entity/faction.go)
+	CREATE TABLE IF NOT EXISTS factions (
+		name     TEXT PRIMARY KEY,
+		standing INTEGER NOT NULL
+	);
+	CREATE TABLE IF NOT EXISTS charfactions (
+		serverid INTEGER NOT NULL,
+		faction  TEXT NOT NULL,
+		standing INTEGER NOT NULL,
+		PRIMARY KEY (serverid, faction)
+	);
+	CREATE TABLE IF NOT EXISTS factionhits (
+		id       INTEGER PRIMARY KEY AUTOINCREMENT,
+		npc_name TEXT NOT NULL,
+		faction  TEXT NOT NULL,
+		delta    INTEGER NOT NULL,
+		source   TEXT NOT NULL DEFAULT 'gm',
+		UNIQUE (npc_name, faction)
+	);
+	CREATE INDEX IF NOT EXISTS idx_factionhits_npc ON factionhits(npc_name);
+
 	-- Create indexes
 	CREATE INDEX IF NOT EXISTS idx_characters_account ON characters(accountid);
 	CREATE INDEX IF NOT EXISTS idx_characters_name ON characters(charName);
@@ -525,6 +549,9 @@ func (db *SQLiteDB) initSchema() error {
 	_, err := db.Exec(schema)
 	if err != nil {
 		return err
+	}
+	if err := db.seedFactions(); err != nil {
+		return fmt.Errorf("factions: %w", err)
 	}
 
 	log.Printf("SQLite schema initialized")

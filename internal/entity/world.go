@@ -58,6 +58,9 @@ type World struct {
 	casts    []*castState
 	onGate   GateFunc
 	affected map[EntityID]*NPC // creatures with a spell's effect on them
+
+	// The factions' starting standings and what a kill does (faction.go)
+	factions factionTable
 }
 
 // NewWorld creates and initializes a new game world.
@@ -422,8 +425,9 @@ func (w *World) ProcessAttack(sess *session.Session, targetObjectID uint32, dama
 }
 
 // KillNPCByObjectID is the GM's #kill: the NPC the session knows by that id
-// dead at once (no swing, no XP). It reports the NPC's name, or false when
-// the id names no living NPC.
+// dead at once (no swing, no XP, but the kill's faction hits, so a GM can try
+// a factionhits row). It reports the NPC's name, or false when the id names
+// no living NPC.
 func (w *World) KillNPCByObjectID(sess *session.Session, objectID uint32) (string, bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -437,6 +441,7 @@ func (w *World) KillNPCByObjectID(sess *session.Session, objectID uint32) (strin
 	}
 	npc.HP = 0
 	w.killNPC(npc)
+	w.factionKillLocked(sess, w.sessionPlayerLocked(sess), npc)
 	return npc.Name, true
 }
 

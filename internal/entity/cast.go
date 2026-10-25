@@ -797,7 +797,8 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 }
 
 // spellHitLocked is a spell's damage on a creature: the figure to the
-// caster, the hate, and on a kill the XP. It reports the kill.
+// caster, the hate, and on a kill the XP and the faction hits. It reports
+// the kill.
 func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc *NPC, n int) bool {
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing (dummy.go)
@@ -817,6 +818,7 @@ func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc 
 	if casterSess != nil {
 		w.awardXP(casterSess, caster, npc.Level*100)
 	}
+	w.factionKillLocked(casterSess, caster, npc)
 	if caster.AttackTarget == npc.ServerID {
 		caster.disengage()
 	}

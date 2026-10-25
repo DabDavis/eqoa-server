@@ -38,6 +38,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue) {
 
 	w.aiSystem(now)
 	w.attackSystem(now)
+	w.petSystem(now)
 	gates := w.castSystem(now)
 	w.effectSystem(now)
 	w.respawnSystem(now)
@@ -66,6 +67,7 @@ func (w *World) aiSystem(now time.Time) {
 	}
 	var fights []fight
 	var dummies []*NPC
+	var petFights [][2]*NPC // a creature and the pet it fights (pet.go)
 
 	for _, npc := range w.NPCs {
 		if npc.Dummy != NotDummy {
@@ -84,6 +86,10 @@ func (w *World) aiSystem(now time.Time) {
 		// Validate enemy is still a living player in world
 		enemy, ok := w.Players[npc.CurrentEnemy]
 		if !ok {
+			if pet := w.petEnemyLocked(npc); pet != nil {
+				petFights = append(petFights, [2]*NPC{npc, pet})
+				continue
+			}
 			npc.Threats = nil
 			npc.CurrentEnemy = 0
 			npc.endRound()
@@ -132,6 +138,11 @@ func (w *World) aiSystem(now time.Time) {
 			w.npcAttackPlayer(npc, enemy.ServerID, now)
 			return enemy.IsDead() || npc.CurrentEnemy != enemy.ServerID
 		})
+	}
+	for _, f := range petFights {
+		if npc, pet := f[0], f[1]; !npc.Dead && !pet.Dead && npc.CurrentEnemy == pet.ServerID {
+			w.npcFightPetLocked(npc, pet, now)
+		}
 	}
 	for _, npc := range dummies {
 		w.dummyFightLocked(npc, now)

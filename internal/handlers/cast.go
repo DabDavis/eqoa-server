@@ -68,6 +68,7 @@ func castSpell(e *database.CharSpellEntry, line string, fx uint32) entity.CastSp
 	return entity.CastSpell{
 		SpellID:      sp.SpellID,
 		DisplayIndex: e.AddedOrder,
+		Level:        sp.AbilityLvl,
 		Scope:        sp.Scope,
 		Name:         sp.SpellName,
 		Icon:         uint32(sp.Icon),

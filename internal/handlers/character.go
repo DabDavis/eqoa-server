@@ -1292,6 +1292,11 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 // it after Camera1 and Time (SendMemoryDump); a respawn sends it alone
 // (respawnPlayer), as Sandstorm does.
 func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity.Player) {
+	// The dump clears CLIENT's pet (m_petId, its name): told again after it
+	// (entity/pet.go)
+	if h.gameWorld != nil {
+		defer h.gameWorld.PetDumped(sess)
+	}
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeMemoryDump)
 	// MemoryDump can be 30KB+ with items/spells/hotkeys; write to a large buffer then SetData
 	dumpBuf := make([]byte, 65536)

@@ -135,16 +135,13 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 		// NPCs don't have race/class in the player sense
 		info.race = 0
 		info.class = 0
-		// Face color from faction
-		switch t.Faction {
-		case entity.FactionFriendly:
-			info.faceColor = 4 // blue face — amiable
-		case entity.FactionNeutral:
-			info.faceColor = 2 // neutral face — indifferent
-		case entity.FactionHostile:
-			info.faceColor = 0 // red face — ready to attack
+		// Face color from faction; a pet is on the players' side
+		// (entity/pet.go), and its face is theirs
+		switch {
+		case t.Owner != 0:
+			info.faceColor = 5
 		default:
-			info.faceColor = 3 // default neutral
+			info.faceColor = npcFace(t.Faction)
 		}
 	default:
 		info.name = "???"
@@ -165,6 +162,19 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 		info.name, info.level, info.race, info.class, info.conColor, info.objectID)
 
 	return nil
+}
+
+// npcFace is the face a creature of the faction shows its target box.
+func npcFace(faction byte) byte {
+	switch faction {
+	case entity.FactionFriendly:
+		return 4 // blue face — amiable
+	case entity.FactionNeutral:
+		return 2 // neutral face — indifferent
+	case entity.FactionHostile:
+		return 0 // red face — ready to attack
+	}
+	return 3 // default neutral
 }
 
 // calcConColor calculates the "consider" color based on level difference.

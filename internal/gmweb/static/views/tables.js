@@ -1,6 +1,17 @@
-import { h, mount, pageHead } from '../lib/dom.js';
+import { h, mount, pageHead, button } from '../lib/dom.js';
 import { tables } from '../lib/meta.js';
+import { go } from '../lib/nav.js';
 import { listPage, recordPage } from './tablepage.js';
+
+// a table's own actions on a row's page: a spell effect's visual played in
+// the game (the spell's, as it stands now), or chosen on the disc's list
+const rowActions = {
+  spelleffect: (row) => [
+    button('Play in game', { icon: 'play', title: 'The spell\'s visual, from your character in the game onto its target',
+      onclick: async () => (await import('./visuals.js')).playInGame({ spell: row.spellid }) }),
+    button('Choose on the disc…', { icon: 'disc', onclick: () => go('visuals/' + row.spellid) }),
+  ],
+};
 
 export async function render(box, params) {
   const [name, keySeg] = params;
@@ -8,6 +19,7 @@ export async function render(box, params) {
     return recordPage(box, {
       table: name, keySeg, base: 'tables/' + name,
       crumbs: [h('a', { href: '#/tables' }, 'All tables'), ' / ', h('a', { href: '#/tables/' + name }, name)],
+      actions: rowActions[name],
     });
   }
   if (name) {

@@ -96,7 +96,7 @@ func (s *Server) registerVisualOps() {
 			"DictID (0x1DAEB5B6); or spell: what that spell plays, with its cast time. To see a visual before set_spell_visual.",
 		Input: obj(map[string]any{
 			"visual":  idOrName("the visual's DictID: 0x1DAEB5B6, 1DAEB5B6, or a number"),
-			"spell":   idOrName("or a spell, by spellid or exact name: the visual it plays (its stand-in when it has none)"),
+			"spell":   idOrName("or a spell, by spellid or exact name: the visual it plays (its stand-in when it has none); with visual, only its cast time"),
 			"seconds": number("the cast time it plays with, 0 to 30 (default 2, or the spell's own): the visual's casting part waits for it"),
 		}),
 		Handler: func(c *opCtx) (any, error) {
@@ -121,6 +121,18 @@ func (s *Server) registerVisualOps() {
 					return nil, badRequest("visual 0 is none: give a DictID")
 				}
 				fx = v
+				if req.Spell != nil {
+					// with the spell's cast time, as it would cast with it
+					id, _, err := c.s.spellRef(req.Spell)
+					if err != nil {
+						return nil, err
+					}
+					sv, err := handlers.SpellVisualOf(c.s.spellbook(), int(id))
+					if err != nil {
+						return nil, err
+					}
+					cast = sv.CastTime
+				}
 			case req.Spell != nil:
 				id, _, err := c.s.spellRef(req.Spell)
 				if err != nil {

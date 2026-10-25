@@ -384,6 +384,7 @@ var catalog = map[string]tableNote{
 			"aggressive": {Label: "Attacks on sight", Help: "1 yes, 0 never"},
 			"radius":     {Label: "Radius", Help: "how near a player must come; 0 the default, 30"},
 			"note":       {Label: "Note"},
+			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_aggro.py's rows (its --undo deletes those)"},
 		},
 	},
 	"itempattern": {

@@ -117,11 +117,12 @@ func TestNPCFightsInRounds(t *testing.T) {
 		t.Errorf("no second round at 4 s: %x", got)
 	}
 
-	// Out of reach: the leash drops the enemy, and the round with it.
+	// Out of reach: it runs at its enemy (chase.go), landing nothing while
+	// it closes in. Until 2026-10-25 the enemy was dropped here.
 	c.p.X += 20
 	tick(4500 * time.Millisecond)
-	if got := c.sent(); len(got) != 0 || c.npc.CurrentEnemy != 0 || !c.npc.RoundStart.IsZero() {
-		t.Errorf("hit a player 20 away: %x, enemy %d", got, c.npc.CurrentEnemy)
+	if got := c.sent(); len(got) != 0 || c.npc.CurrentEnemy != c.p.ServerID || !c.npc.moving() || c.npc.Loco != LocoRun {
+		t.Errorf("a player 20 away: sent %x, enemy %d, moving %v, loco %d", got, c.npc.CurrentEnemy, c.npc.moving(), c.npc.Loco)
 	}
 }
 

@@ -71,6 +71,7 @@ type World struct {
 	// NPCs are townsfolk and stand) and the wander's random source.
 	roamRadius   float32
 	roamers      []*NPC
+	returning    []*NPC // NPCs on their way home after a fight (chase.go)
 	playerModels map[uint32]bool
 	roamRnd      *rand.Rand
 

@@ -38,6 +38,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.TickCount++
 
 	w.aiSystem(now)
+	w.homeSystem(now)
 	w.attackSystem(now)
 	w.petSystem(now)
 	gates := w.castSystem(now)
@@ -59,9 +60,10 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 
 // aiSystem runs every aggro'd NPC's melee in rounds, as Sandstorm's
 // (rounds.go): its swing at its current enemy when a round begins, then the
-// round's hits. An NPC drops an enemy that is gone, dead or out of its
-// reach (10), and a new enemy starts a new round. Every tick; must be called
-// with the lock held.
+// round's hits. Out of its reach it runs at its enemy, and past its leash it
+// gives up and goes home (chase.go); it drops an enemy that is gone or dead,
+// and a new enemy starts a new round. Every tick; must be called with the
+// lock held.
 func (w *World) aiSystem(now time.Time) {
 	type fight struct {
 		npc   *NPC
@@ -84,6 +86,9 @@ func (w *World) aiSystem(now time.Time) {
 		if npc.CurrentEnemy == 0 || npc.Dead {
 			if !npc.RoundStart.IsZero() {
 				npc.endRound()
+			}
+			if npc.chase.on && !npc.Dead {
+				w.goHomeLocked(npc) // its fight is over: back where it began (chase.go)
 			}
 			continue
 		}
@@ -113,21 +118,23 @@ func (w *World) aiSystem(now time.Time) {
 			continue
 		}
 
-		// Check melee range: distance <= 10 units
-		dx := npc.X - enemy.X
-		dz := npc.Z - enemy.Z
-		distSq := dx*dx + dz*dz
-		if distSq > 10*10 {
-			// Out of range — clear aggro (leash)
-			npc.Threats = nil
-			npc.CurrentEnemy = 0
-			npc.endRound()
+		// Out of its reach it runs at its enemy; past its leash, or with
+		// its enemy far off or in another world, it gives up and goes home
+		// (chase.go). Until 2026-10-25 an enemy more than 10 off was dropped
+		// at once and the NPC never moved (F3 20261025-165533).
+		in, giveUp := w.chaseLocked(npc, enemy.X, enemy.Z, now)
+		if giveUp || enemy.World != npc.World {
+			w.giveUpLocked(npc)
 			continue
 		}
 
 		if npc.RoundTarget != enemy.ServerID {
 			npc.endRound()
 			npc.RoundTarget = enemy.ServerID
+		}
+		if !in {
+			npc.loseDueHits(now) // closing in: no hit lands from out of reach
+			continue
 		}
 		fights = append(fights, fight{npc: npc, enemy: enemy})
 	}

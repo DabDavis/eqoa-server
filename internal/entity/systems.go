@@ -46,6 +46,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.consumableSystem(now)
 	gone := w.corpseSystem(now)
 	w.roamSystem(now)
+	w.pathSystem(now)
 	due := w.playerRespawnSystem(now)
 	w.regenSystem(now)
 	w.breathSystem(now)

@@ -740,8 +740,10 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 	}
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++
-		pet.HP = max(pet.HP-npcHitOnPet(npc, pet, rand.Intn), 0)
+		n := npcHitOnPet(npc, pet, rand.Intn)
+		pet.HP = max(pet.HP-n, 0)
 		pet.LastCombatTime = now
+		log.Printf("Pet: %s hit the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, n, pet.HP, pet.MaxHP)
 		if pet.HP == 0 {
 			w.killNPC(pet)
 			w.dropAggroLocked(pet.ServerID)

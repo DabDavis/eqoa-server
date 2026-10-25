@@ -109,7 +109,7 @@ type WorldConfig struct {
 	// it (unset or 0: 3m); RespawnAfter how long after its corpse goes, so
 	// decayed or emptied and closed, the creature comes back (unset or 0:
 	// 60s). RoamRadius is how far from its spawn a creature wanders (unset or
-	// 0: 15; below 0, none wander). entity/corpse.go, entity/roam.go.
+	// 0: 75; below 0, none wander). entity/corpse.go, entity/roam.go.
 	CorpseDecay  time.Duration `yaml:"corpse_decay"`
 	RespawnAfter time.Duration `yaml:"respawn_after"`
 	RoamRadius   float32       `yaml:"roam_radius"`

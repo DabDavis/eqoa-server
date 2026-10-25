@@ -129,6 +129,12 @@ func main() {
 		log.Printf("WARNING: %v; creatures attack on sight by the rule alone", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.AggroSummary())
+	// Which creatures are undead, for the spells that take nothing else
+	// (entity/undead.go, table npcundead)
+	if _, _, err := gameWorld.LoadUndeadTags(db); err != nil {
+		log.Printf("WARNING: %v; undead by their names alone", err)
+	}
+	log.Printf("Creatures: %s", gameWorld.UndeadSummary())
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 

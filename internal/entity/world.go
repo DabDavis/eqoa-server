@@ -96,6 +96,9 @@ type World struct {
 
 	// Creatures attacking a player on sight (aggro.go)
 	aggro aggroState
+
+	// The GMs' undead tags by NPC name, table npcundead (undead.go)
+	undead map[string]bool
 }
 
 // NewWorld creates and initializes a new game world.

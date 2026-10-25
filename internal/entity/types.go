@@ -13,7 +13,8 @@ import "math"
 // where walking east out of the lifted zone put a character at y=-1000.
 const WorldFloorY = float32(-1000)
 
-// SpawnLift is added to a stored height at world entry.
+// SpawnLift is added to a stored height at world entry, in a world that is not
+// on every disc (SpawnLifted).
 //
 // A character is saved standing ON the ground, and a stored height that is even
 // slightly low puts the camera UNDER the terrain, where the player falls
@@ -22,11 +23,28 @@ const WorldFloorY = float32(-1000)
 // world-space ground (observed: characters stored at y=58.3 and 57.8 where the
 // ground is 59.3).
 //
-// Arriving a little high and letting the client's floor snap settle it is the
-// convention this codebase already uses everywhere else — the #tele table
-// drops world9 from y=400 on purpose. This is the same trick sized for
-// a rounding error rather than a world change, so the drop is not visible.
+// It is NOT added in the disc's own worlds, where every login lands now
+// (handlers' loginSpawn resumes nowhere else): there a stored height is the
+// client's own report of where it stood, and a client places a login exactly
+// where the MemoryDump says (VIWalkControl::SetLocation, marked on the floor)
+// and looks for the floor from its body's middle, 1.2 above its feet (parm38),
+// so a rounding error under the ground is caught anyway. Three units up was a
+// visible fall at every login, on a PS2 as in eqoa-rust-client-vanilla
+// (F3 20261025-163229: "the character is slightly in the air ... in a fall
+// animation briefly"), and a climb: a session that ended before its first
+// report saved the lifted height, three more each time.
 const SpawnLift = float32(3)
+
+// DiscWorlds is how many worlds CLIENT's gWorldInfo names on the Frontiers
+// disc (TUNARIA, RATHE, ODUS, LAVASTM, PLANESKY, SECRETS): the worlds every
+// client has, a retail PS2 and a page reading the player's own disc alike.
+const DiscWorlds = 6
+
+// SpawnLifted reports whether a login into world is lifted by SpawnLift: only
+// in a world that is not on every disc, where heights were measured low.
+func SpawnLifted(world int) bool {
+	return world < 0 || world >= DiscWorlds
+}
 
 // SafeSaveHeight decides which height to persist on disconnect: the one the
 // player is at, or the last one that was written. It reports false when it

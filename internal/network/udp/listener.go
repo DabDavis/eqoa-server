@@ -535,9 +535,16 @@ func (l *Listener) savePlayerPosition(sess *session.Session) {
 
 	prevY := record.Y // the last height that was written, before we overwrite it
 
-	record.X = player.X
-	record.Y = player.Y
-	record.Z = player.Z
+	// In the air (a fall: the last 0x40's walker flags), the last place it
+	// stood, so no login begins in mid-air (entity.SavePlace).
+	x, y, z, back := player.SavePlace()
+	if back {
+		log.Printf("savePlayerPosition: '%s' logged out in the air at (%.1f, %.1f, %.1f); "+
+			"saving where it last stood (%.1f, %.1f, %.1f)", player.Name, player.X, player.Y, player.Z, x, y, z)
+	}
+	record.X = x
+	record.Y = y
+	record.Z = z
 	record.Facing = player.Facing
 
 	// A FALL IS NOT A POSITION. Walking off terrain drops a character to the
@@ -553,11 +560,11 @@ func (l *Listener) savePlayerPosition(sess *session.Session) {
 	//
 	// Same shape as the CoherentWorld guard below, for the same reason: it is
 	// better not to persist the bad value than to detect it forever afterwards.
-	if y, ok := entity.SafeSaveHeight(player.Y, prevY); !ok {
+	if safe, ok := entity.SafeSaveHeight(y, prevY); !ok {
 		log.Printf("savePlayerPosition: '%s' is at y=%.1f, at or under the world "+
 			"floor — keeping the stored height %.1f rather than saving a fall",
-			player.Name, player.Y, y)
-		record.Y = y
+			player.Name, y, safe)
+		record.Y = safe
 	}
 	// The world must be saved WITH the position or the pair is incoherent:
 	// logging out in guk and back in would place the player at guk's

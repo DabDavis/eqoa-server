@@ -35,11 +35,43 @@ const (
 )
 
 // The walk flags' liquid bits (vi::walk in eqoa-rs, VIWalkControl's): each
-// liquid's "in" bit and its "at the surface" bit.
+// liquid's "in" bit and its "at the surface" bit; and the floor's two, which
+// with a liquid's are what VIWalkControl's Walk and Run need to push.
 const (
 	walkFlagsSubmerged = 0x0854 // in water, lava, slime or mud
 	walkFlagsAtSurface = 0x10A8 // at the surface of one of them
+	walkFlagsOnFloor   = 0x0003 // on a floor (bits 0 and 1)
 )
+
+// Standing reports whether walker flags say the body stands somewhere: on a
+// floor or in a liquid, not in the air (a fall: the game has no jump).
+func Standing(flags uint32) bool {
+	return flags&(walkFlagsOnFloor|walkFlagsSubmerged|walkFlagsAtSurface) != 0
+}
+
+// noteStood takes the player's place as the last place it stood.
+func (p *Player) noteStood() {
+	p.StoodX, p.StoodY, p.StoodZ = p.X, p.Y, p.Z
+	p.StoodWorld = p.World
+	p.HasStood = true
+}
+
+// SavePlace is where a logout saves the player: where it is, or, when its
+// last report was in the air (a fall: off a ledge, or out of a login's lift)
+// and it last stood in this same world, where it last stood, which back
+// reports. A login begins where the player stood, never in mid-air: a logout
+// in a fall saved the fall's height, the next login fell from there again,
+// and a session that ended in a lifted login's fall saved a height over the
+// floor, the next login lifted from that: a climb, a lift's height a login
+// (F3 20261025-163229, "an abuseable bug to climb"; measured on a copy of the
+// server: a session quit half a second in saved 56.7 over a floor at 54.1,
+// and the next login arrived at 59.7).
+func (p *Player) SavePlace() (x, y, z float32, back bool) {
+	if p.HasWalkFlags && !Standing(p.WalkFlags) && p.HasStood && p.StoodWorld == p.World {
+		return p.StoodX, p.StoodY, p.StoodZ, true
+	}
+	return p.X, p.Y, p.Z, false
+}
 
 // ClientUpdateFacing is byte 22 of a 0x40, the heading: SendPosition
 // quantizes the walker's angles into a byte each over [-pi, pi] (its HPR box;
@@ -128,6 +160,11 @@ func (w *World) ApplyClientUpdate(id EntityID, u ClientUpdate) {
 	p.Animation = u.Animation
 	if u.HasWalkFlags {
 		p.WalkFlags, p.HasWalkFlags = u.WalkFlags, true
+	}
+	// a report standing (or one with no flags, which says nothing of it) is
+	// where it stood
+	if !u.HasWalkFlags || Standing(u.WalkFlags) {
+		p.noteStood()
 	}
 	if u.HasAutoAttack {
 		p.AutoAttack = u.AutoAttack

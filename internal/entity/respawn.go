@@ -173,6 +173,7 @@ func (w *World) PlaceRespawn(id EntityID, x, y, z float32, world uint8) (placed 
 	p.World = world
 	p.X, p.Y, p.Z = x, y, z
 	p.VelX, p.VelY, p.VelZ = 0, 0, 0
+	p.noteStood()
 	w.SpatialIndex.Update(id, oldX, oldZ, x, z)
 	return *p, worldChanged, true
 }

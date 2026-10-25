@@ -50,6 +50,10 @@ type savedMods struct {
 	StatMods
 	Proc    int `json:",omitempty"`
 	ProcMax int `json:",omitempty"`
+	// an illusion's body and its scale (illusion.go); a row kept before
+	// illusions reads as none
+	Form     uint32  `json:",omitempty"`
+	FormSize float32 `json:",omitempty"`
 }
 
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
@@ -63,7 +67,7 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 		if !e.NextTick.IsZero() && (e.HPTick != 0 || e.PowerTick != 0) {
 			tick = max(0, e.NextTick.Sub(now).Milliseconds())
 		}
-		mods, _ := json.Marshal(savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax})
+		mods, _ := json.Marshal(savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, Form: e.Form, FormSize: e.FormSize})
 		flags := 0
 		for _, f := range []struct {
 			on  bool
@@ -105,6 +109,7 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			var sm savedMods
 			_ = json.Unmarshal([]byte(r.Mods), &sm)
 			ae.Mods, ae.Proc, ae.ProcMax = sm.StatMods, sm.Proc, sm.ProcMax
+			ae.Form, ae.FormSize = sm.Form, sm.FormSize
 		}
 		p.Effects = append(p.Effects, ae)
 		if ae.Name != "" && len(p.Buffs) < MaxEffects {

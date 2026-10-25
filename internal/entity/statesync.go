@@ -123,15 +123,16 @@ func SerializePlayerUpdate(objectID uint32, p *Player) []byte {
 		buf[27] = 255
 	}
 
-	// Offset 28-31: ModelID (LE)
-	modelID := uint32(p.ModelID)
+	// Offset 28-31: ModelID (LE): the body, an illusion's when one is on
+	// (illusion.go)
+	modelID, size := p.Body()
 	binary.LittleEndian.PutUint32(buf[28:32], modelID)
 
 	// Offset 32-35: ModelID2 (LE, 0 in eqoa.live — only set for upgraded models)
 	// Leave as 0x00000000
 
 	// Offset 36-39: Scale (float32 LE)
-	binary.LittleEndian.PutUint32(buf[36:40], math.Float32bits(p.Size))
+	binary.LittleEndian.PutUint32(buf[36:40], math.Float32bits(size))
 
 	// Offset 40-42: Velocity X/Y/Z, units a second × 128/21 (velocityToByte)
 	buf[40] = velocityToByte(p.VelX)
@@ -509,7 +510,12 @@ func SerializeNPCUpdate(objectID uint32, n *NPC) []byte {
 	// constant and was simply missed.
 	buf[156] = 0x01
 
-	// Offset 152, 154-155, 157: zero on every entity in the capture.
+	// Offset 152, 154-155, 157: zero on every entity in the capture, but 154
+	// is 1 on an invisible one, as on a player (a pet made invisible:
+	// invis.go).
+	if n.invisible() {
+		buf[154] = 1
+	}
 
 	// Offset 158-161: End signature "tsrq" (eqoa.live byte order)
 	buf[158] = 't'

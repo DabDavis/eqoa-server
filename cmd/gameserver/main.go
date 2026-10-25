@@ -77,6 +77,12 @@ func main() {
 	} else {
 		gameWorld.SetPlayerModels(models)
 	}
+	// each race's two bodies, which a race's illusion shows (entity/illusion.go)
+	if models, err := npcStore.RaceModels(); err != nil {
+		log.Printf("Entity world: the races' bodies: %v (no illusion of a race shows)", err)
+	} else {
+		gameWorld.SetRaceModels(models)
+	}
 	gameWorld.LoadNPCs(npcStore)
 	// The ground creatures stand on (internal/ground), baked from the game's
 	// disc into <worlds>/ground by cmd/groundbake; without it they keep the

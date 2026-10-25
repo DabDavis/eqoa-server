@@ -74,6 +74,7 @@ type World struct {
 	returning    []*NPC   // NPCs on their way home after a fight (chase.go)
 	towns        townGrid // the towns' people, for the wander to keep out of (towns.go); nil until first asked
 	townFolk     int
+	ground       Ground // where creatures stand (groundnpc.go); nil: their own heights
 	playerModels map[uint32]bool
 	roamRnd      *rand.Rand
 

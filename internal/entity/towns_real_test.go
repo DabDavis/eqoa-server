@@ -18,36 +18,10 @@ import (
 // in a town's ground that does not live there, every one within its radius.
 // Skipped without a database: none is in this repository.
 func TestTheWanderKeepsOutOfTheTownsOfARealWorld(t *testing.T) {
-	src := os.Getenv("EQOA_REAL_DB")
-	if src == "" {
+	if os.Getenv("EQOA_REAL_DB") == "" {
 		t.Skip("EQOA_REAL_DB names a server database to wander over")
 	}
-	path := filepath.Join(t.TempDir(), "eqoa.db")
-	in, err := os.Open(src)
-	if err != nil {
-		t.Fatal(err)
-	}
-	out, err := os.Create(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := io.Copy(out, in); err != nil {
-		t.Fatal(err)
-	}
-	in.Close()
-	out.Close()
-	db, err := database.NewSQLite(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	store := database.NewNPCStore(db)
-	w := NewWorld()
-	models, err := store.PlayerModels()
-	if err != nil {
-		t.Fatal(err)
-	}
-	w.SetPlayerModels(models)
-	w.LoadNPCs(store)
+	w := realWorld(t)
 	w.roamRnd = rand.New(rand.NewSource(1))
 
 	w.mu.Lock()
@@ -101,4 +75,38 @@ func TestTheWanderKeepsOutOfTheTownsOfARealWorld(t *testing.T) {
 	if len(entered) != 0 || len(outside) != 0 {
 		t.Errorf("%d creatures went into a town and %d past their radius", len(entered), len(outside))
 	}
+}
+
+// realWorld is a World of the NPCs of a copy of the database EQOA_REAL_DB
+// names (the file itself is never opened for writing).
+func realWorld(t *testing.T) *World {
+	t.Helper()
+	src := os.Getenv("EQOA_REAL_DB")
+	path := filepath.Join(t.TempDir(), "eqoa.db")
+	in, err := os.Open(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := io.Copy(out, in); err != nil {
+		t.Fatal(err)
+	}
+	in.Close()
+	out.Close()
+	db, err := database.NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	store := database.NewNPCStore(db)
+	w := NewWorld()
+	models, err := store.PlayerModels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	w.SetPlayerModels(models)
+	w.LoadNPCs(store)
+	return w
 }

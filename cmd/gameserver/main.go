@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/gmweb"
+	"github.com/eqoa/server/internal/ground"
 	"github.com/eqoa/server/internal/handlers"
 	"github.com/eqoa/server/internal/network/tcp"
 	"github.com/eqoa/server/internal/network/udp"
@@ -76,6 +78,16 @@ func main() {
 		gameWorld.SetPlayerModels(models)
 	}
 	gameWorld.LoadNPCs(npcStore)
+	// The ground creatures stand on (internal/ground), baked from the game's
+	// disc into <worlds>/ground by cmd/groundbake; without it they keep the
+	// heights they have.
+	if g, err := ground.Open(filepath.Join(worlds.Dir(cfg.Patch.WorldsDir), "ground")); err == nil {
+		gameWorld.SetGround(g)
+		nw, nz := g.Worlds()
+		log.Printf("Creatures: the ground of %d worlds (%d zones), read a zone at a time", nw, nz)
+	} else {
+		log.Printf("Creatures: no ground (%v): they keep their heights as they move", err)
+	}
 	decay, respawn := gameWorld.CorpseTimes()
 	log.Printf("Creatures: a corpse lies %v unless emptied, the creature back %v after it goes; wandering within %.0f of its spawn",
 		decay, respawn, gameWorld.RoamRadius())

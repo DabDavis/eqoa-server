@@ -146,6 +146,14 @@ type Player struct {
 	WalkFlags       uint32 // the last 0x40's walker flags (clientupdate.go)
 	HasWalkFlags    bool
 
+	// Stood is the last place the player was known to stand, on a floor or
+	// in a liquid (clientupdate.go's Standing): where it arrived (a login, a
+	// server-side move, a respawn) or a 0x40 whose walker flags say so;
+	// StoodWorld its world. A logout in the air saves it (SavePlace).
+	StoodX, StoodY, StoodZ float32
+	StoodWorld             uint8
+	HasStood               bool
+
 	// Group (group.go): the group's id, 0 for none
 	GroupID uint32
 

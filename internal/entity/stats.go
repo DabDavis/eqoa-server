@@ -130,16 +130,17 @@ func hpFactor(class int) int {
 	return 10
 }
 
-// CalculateMaxHP is the maximum hit points stamina gives: the level times
-// the class's factor and a point for every 11 stamina, rounded (stamina 5
-// to 15 gives one), all of the stamina counted, worn and from spells. The
-// stat channel's base maximum (byte 148) on Sandstorm is exactly this: 32
-// characters of every archetype, levels 1 to 51, measured 2026-10-21; on
-// six the masteries this server has none of add more (Vital Body's flat
-// hit points, Hearty's and Zek Boon's factor). Worn items' and spells' own
-// hit points come on top (MaxHPNow).
+// CalculateMaxHP is the maximum hit points stamina gives, the live game's
+// formula (eqoa.fandom.com's Formulas, the user's choice of 2026-10-25):
+// (HP factor + STA/11) x level, STA/11 a real division and the whole
+// truncated, worked in integers so no rounding error can drop a point; all
+// of the stamina counted, worn and from spells, within its cap. Sandstorm
+// rounds STA/11 to a whole number first (stat channel byte 148, 32
+// characters measured 2026-10-21): of the 25 with no hit point mastery, 11
+// come out the same and 14 from 23 below to 8 above. Worn items' and
+// spells' own hit points come on top (MaxHPNow).
 func CalculateMaxHP(level, class, stamina int) int {
-	hp := level * (hpFactor(class) + (max(stamina, 0)+5)/11)
+	hp := (hpFactor(class)*11 + max(stamina, 0)) * max(level, 0) / 11
 	return max(hp, 1)
 }
 
@@ -164,16 +165,21 @@ func powerStats(class, str, sta, agi, dex, wis, intel, cha int) (primary, second
 	return primary, secondary
 }
 
-// CalculateMaxPower is the maximum power the stats give: (28 + primary/10 +
-// secondary/20) a level, rounded half up, Return Home's formula
-// (Entity.Stats.cs) on the class's own pair. The stat channel's base
-// maximum (byte 156) on Sandstorm is this of the base stats; its maximum
-// (byte 40), this of the stats worn and from spells too, plus their power.
-// Measured on the same 32 characters; the one that differs bought a mastery
-// that costs power.
+// CalculateMaxPower is the maximum power the stats give, the live game's
+// formula (eqoa.fandom.com's Formulas): (28 + primary/10 + secondary/20) x
+// level, truncated, worked in integers as (560 + 2 primary + secondary) x
+// level / 20; the pair the class's own (powerStats). The wiki names a
+// primary by archetype (tanks STR, melee AGI, casters INT, healers WIS),
+// which CLIENT's class table and Sandstorm's measurements refute for tanks
+// and most melee (a level 50 shadow knight: 2608 measured, 2607 by the
+// class's pair, 2285 by STR). The stat channel's base maximum (byte 156) is
+// this of the base stats; its maximum (byte 40), this of the stats worn and
+// from spells too, plus their power. Sandstorm rounds half up: of the 32
+// characters measured, 15 come out the same, 16 one lower, and one bought
+// a mastery that costs power.
 func CalculateMaxPower(level, class, str, sta, agi, dex, wis, intel, cha int) int {
 	primary, secondary := powerStats(class, str, sta, agi, dex, wis, intel, cha)
-	pow := ((2800+primary*10+secondary*5)*level + 50) / 100
+	pow := (560 + 2*max(primary, 0) + max(secondary, 0)) * max(level, 0) / 20
 	return max(pow, 1)
 }
 

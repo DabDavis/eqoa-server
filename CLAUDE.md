@@ -175,6 +175,7 @@ case *entity.NPC:
 | `stateSyncSystem` | Every tick | Serialize player state to channel 0 |
 | `statChannelSyncSystem` | Every 20 ticks | Serialize stats to channel 0x42 |
 | `visibilitySystem` | Every 5 ticks | Assign nearby entities to channels 1-23, or the slots (and distance) the client asked for |
+| `powerSyncSystem` | Every 5 ticks | Others' power (0x7E02) to a client that asked with 0x7E01: its group's members, its target and its target's target, players only, when the set changed (`powerbars.go`) |
 
 ## The GM panel (`internal/gmweb`)
 
@@ -304,6 +305,18 @@ datagram more for each 24 slots (`TickSession`, `statePacketsPerTick`), each wit
 `MaxStateUpdatesPerTick` entity channels further round the round robin. A session that
 never asks (every PS2) is exactly as before: 24 slots within 300, one datagram a tick
 (`TestPS2TickIsOneDatagram`).
+
+**Others' power for a client's bars** (2026-10-25; `entity/powerbars.go`,
+`handlers/powerbars.go`, `claude-notes/mana-bars-20261025.md`). The game shows no one's
+power but the player's own, so at the first 0x0014, beside 0x7E00's, the server offers
+opcode **0x7E01** (`OpcodePowerBars`, a u32 1; not retail, ignored by a PS2). A client that
+draws power bars (eqoa-rust-client-vanilla's Mana Bars) answers 1 (0 to stop), and from
+then on `powerSyncSystem` (every 5 ticks, after `groupSyncSystem`) sends **0x7E02**
+(`OpcodePowerBarsData`) whenever its set changed: a u8 count, then each a u32 id as that
+client knows the player and a u8 power of 255, the whole set each time: each other group
+member (the roster's id, `groupFarID`'s stand-in out of sight), the target and the target's
+target (the ids the entity channel's bytes 59-62 carry). Players only: an NPC has no power.
+A session that never asks (every PS2, a vanilla build from before it) is sent nothing.
 
 **Effects channel (0x43) is as long as its count**: a u32 count and a 132-byte record an effect (icon DictID, name as a wide string of at most 31 characters), 4 bytes when there is none, as CLIENT's `Channel43` reads it and every value in the captures is (136 to 796 bytes). It is the one state channel that changes length (`StateUpdateData.SetSizedData`; DRDP XORs over the shorter of a message and its reference). `#effect <icon hex> [name]` / `#effect clear` sets them by hand: nothing else puts an effect on yet.
 

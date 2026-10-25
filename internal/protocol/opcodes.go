@@ -345,6 +345,19 @@ const (
 	// above 0x1402 and has no default case, and S2's own are 0x1500-0x1507, so
 	// a PS2 ignores the offer and never asks.
 	OpcodeEntityView GameOpcode = 0x7E00
+
+	// OpcodePowerBars is others' power for the bars a client draws under
+	// their health (entity/powerbars.go): a u32 after the opcode, both ways.
+	// The server offers it (1) once the player is in the world; a client
+	// that draws the bars answers 1 to have them and 0 to stop, at any time
+	// after. A PS2 ignores the offer as it ignores OpcodeEntityView's.
+	OpcodePowerBars GameOpcode = 0x7E01
+
+	// OpcodePowerBarsData is the power, server to a client that asked: a
+	// u8 count, then for each a u32 id (as that client knows the entity)
+	// and a u8 power of 255. Each one is the whole set: an id it leaves out
+	// has no bar.
+	OpcodePowerBarsData GameOpcode = 0x7E02
 )
 
 // =============================================================================
@@ -563,6 +576,10 @@ func (op GameOpcode) String() string {
 		return "FactionMessages"
 	case OpcodeEntityView:
 		return "EntityView"
+	case OpcodePowerBars:
+		return "PowerBars"
+	case OpcodePowerBarsData:
+		return "PowerBarsData"
 	default:
 		return "Unknown"
 	}

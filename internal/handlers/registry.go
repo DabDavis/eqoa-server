@@ -320,6 +320,10 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// that keeps more than CLIENT's 24 says how many, and how far
 	NewEntityViewHandler().RegisterHandlers(r)
 
+	// Register others' power (0x7E01; powerbars.go): a client that draws
+	// power bars under its group's, its target's and their target's health
+	NewPowerBarsHandler(gameWorld).RegisterHandlers(r)
+
 	// Register server handlers
 	serverHandler.RegisterHandlers(r)
 

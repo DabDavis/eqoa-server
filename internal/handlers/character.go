@@ -538,12 +538,17 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 		}
 	}
 
-	// So are its spell effects: the old session's cleanup will not save them
-	// either (entity/buffsave.go).
+	// So are its spell effects and its standings: the old session's cleanup
+	// will not save them either (entity/buffsave.go, entity/faction.go).
 	if h.gameWorld != nil && h.store != nil {
 		if rows, ok := h.gameWorld.SavedEffects(entity.EntityID(record.ServerID), time.Now()); ok {
 			if err := h.store.SaveBuffs(record.ServerID, rows); err != nil {
 				log.Printf("SelectedChar: could not keep '%s' replaced session's %d effects: %v", record.CharName, len(rows), err)
+			}
+		}
+		if m, ok := h.gameWorld.SavedFactions(entity.EntityID(record.ServerID)); ok {
+			if err := h.store.SaveFactions(record.ServerID, m); err != nil {
+				log.Printf("SelectedChar: could not keep '%s' replaced session's standings: %v", record.CharName, err)
 			}
 		}
 	}
@@ -565,6 +570,12 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 			log.Printf("SelectedChar: '%s' kept effects: %v", record.CharName, err)
 		} else if n := h.gameWorld.RestoreEffects(sess, rows, time.Now()); n > 0 {
 			log.Printf("SelectedChar: '%s' keeps %d spell effects from its last session", record.CharName, n)
+		}
+		// and its standings with the factions (entity/faction.go)
+		if m, err := h.store.LoadFactions(record.ServerID); err != nil {
+			log.Printf("SelectedChar: '%s' standings: %v", record.CharName, err)
+		} else if n := h.gameWorld.RestoreFactions(sess, m); n > 0 {
+			log.Printf("SelectedChar: '%s' keeps its standing with %d factions", record.CharName, n)
 		}
 	}
 

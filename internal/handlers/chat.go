@@ -793,6 +793,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #effect [<icon> [name] | clear]
 		h.effectCommand(sess, parts[1:])
 
+	case "#faction":
+		// #faction <faction> [standing]: your standing, or set it
+		h.factionCommand(sess, parts[1:])
+
 	case "#help":
 		h.gmReply(sess, "GM Commands (each also as /name):")
 		h.gmReply(sess, "  #goto <x> <y> <z> [world] | <town or NPC> - teleport (#teleport too)")
@@ -810,6 +814,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #hp <cur> [max] - set HP")
 		h.gmReply(sess, "  #tunar <amt> - set gold")
 		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear active effects")
+		h.gmReply(sess, "  #faction <faction> [standing] - your standing with a faction, or set it")
 		h.gmReply(sess, "  #kill - kill target")
 		h.gmReply(sess, "  #pos - show position")
 		h.gmReply(sess, "  #who - list players")

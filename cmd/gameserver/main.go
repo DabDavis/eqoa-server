@@ -64,6 +64,10 @@ func main() {
 	// Load NPCs from eqoa.db
 	npcStore := database.NewNPCStore(db)
 	gameWorld.LoadNPCs(npcStore)
+	// The factions' starting standings and what kills do to them
+	if err := gameWorld.LoadFactions(db); err != nil {
+		log.Printf("WARNING: %v; every faction at its default, no kill changes one", err)
+	}
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 

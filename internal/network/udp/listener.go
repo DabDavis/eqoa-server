@@ -418,10 +418,11 @@ func (l *Listener) tickAllSessions() {
 		log.Printf("Cleaning up terminated session %s (instance=0x%X, objectID=%d)",
 			sess.RemoteAddr(), sess.InstanceID(), sess.PlayerObjectID())
 		if l.gameWorld != nil && sess.CharacterInWorld() {
-			// Save player position and spell effects to database before removing
+			// Save player position, spell effects and standings to database before removing
 			if l.charStore != nil {
 				l.savePlayerPosition(sess)
 				l.saveEffects(sess)
+				l.saveFactions(sess)
 			}
 			l.gameWorld.RemovePlayerBySession(sess)
 		}
@@ -448,9 +449,28 @@ func (l *Listener) saveEffects(sess *session.Session) {
 	}
 }
 
-// SaveAll saves every player in the world as a logout would (position and
-// spell effects), for a shutdown: a restart is a logout for everyone in it,
-// and before this one the state since each login was lost.
+// saveFactions keeps the player's standings over the logout
+// (entity/faction.go): as saveEffects, an old session's Player is not saved
+// (the new login kept its standings).
+func (l *Listener) saveFactions(sess *session.Session) {
+	player := l.gameWorld.SessionPlayer(sess)
+	if player == nil || !l.gameWorld.IsLivePlayer(player) {
+		return
+	}
+	m, ok := l.gameWorld.SavedFactions(player.ServerID)
+	if !ok {
+		return
+	}
+	if err := l.charStore.SaveFactions(player.CharServerID, m); err != nil {
+		log.Printf("saveFactions: '%s' %d standings: %v", player.Name, len(m), err)
+	} else if len(m) > 0 {
+		log.Printf("saveFactions: '%s' keeps its standing with %d factions", player.Name, len(m))
+	}
+}
+
+// SaveAll saves every player in the world as a logout would (position, spell
+// effects and standings), for a shutdown: a restart is a logout for everyone
+// in it, and before this one the state since each login was lost.
 func (l *Listener) SaveAll() {
 	if l.gameWorld == nil || l.charStore == nil {
 		return
@@ -465,6 +485,7 @@ func (l *Listener) SaveAll() {
 	for _, sess := range inWorld {
 		l.savePlayerPosition(sess)
 		l.saveEffects(sess)
+		l.saveFactions(sess)
 	}
 	log.Printf("SaveAll: %d players saved", len(inWorld))
 }

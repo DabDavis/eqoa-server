@@ -56,6 +56,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.guildAnnounceSystem()
 	w.visibilitySystem()
 	w.groupSyncSystem()
+	w.powerSyncSystem()
 	return due, gates, gone
 }
 

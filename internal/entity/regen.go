@@ -12,11 +12,17 @@ import (
 // every point is 1 hit point (power) a tick, a tick every six seconds.
 //
 // Sandstorm agrees (pcaps/ps2_main_capture.pcap, its stat channel): a level
-// 51 bard's power rose 127 every 6.0-6.2 s for two minutes, and its hit
-// points +89 every 6 s once its songs ended (4201 / 50 = 84, its items 5);
-// they rose the same while it was being hit, so a fight does not stop them.
-// It leaves the stat channel's PoT and HoT (bytes 48 and 52) 0; they are
-// filled here.
+// 51 bard's power rose every 6.0-6.2 s for over two minutes, by 119, 127 and
+// 131 at maxima of 3735, 4149 and 4347, each a 50 of the maximum plus the
+// same 45 (its items'); its hit points rose 89 a tick once its songs ended
+// (4201 / 50 = 84, plus 5); and both kept rising while it was hit between
+// ticks, so a fight does not stop them. Sandstorm leaves the stat channel's
+// PoT and HoT (bytes 48 and 52) 0; they are filled here.
+//
+// A spell's healing over time is not counted here: a "per tic" line is its
+// own effect (EffectHPTick, EffectPowerTick) on its own six-second tick
+// (cast.go's effectTick), for its duration. No spell line in spelleffect
+// names HoT or PoT as a stat (2026-10-25).
 
 // RegenInterval is how often HoT and PoT tick.
 const RegenInterval = 6 * time.Second

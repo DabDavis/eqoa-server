@@ -7,8 +7,12 @@ page's console errors, for testing the panel without a person at it.
 
 steps.json is a list of steps, each optional field done in this order:
     {"hash": "#/npcs/500", "file": ["input[type=file]", "/path/to/disc.iso"],
-     "wait": 3, "js": "document.title", "label": "what js prints", "shot": "npc.png"}
-"file" puts a file into a file input (the game disc on #/disc). WebGL runs on
+     "mouse": [["click", 120, 80], ["down", 10, 10], ["move", 40, 10], ["up", 40, 10]], "at": "canvas",
+     "key": "Delete", "wait": 3, "js": "document.title", "label": "what js prints", "shot": "npc.png"}
+"file" puts a file into a file input (the game disc on #/disc). "mouse" is the
+left button as a person moves it (real input, so pointer capture works), at
+CSS pixels from the top left of the element "at" names (the page's without);
+"key" presses a key ("Delete", "Escape", "Enter", or a character). WebGL runs on
 the GPU (Vulkan ANGLE). DARK=1 emulates a dark colour scheme; MOBILE=1 with
 SIZE=390,844 a phone. Needs the `websockets` package. The browser's profile
 is kept in outdir/profile (a disc's kept files land there: delete it after)."""
@@ -120,6 +124,30 @@ async def drive(ws_url):
                 doc = await call('DOM.getDocument')
                 node = await call('DOM.querySelector', nodeId=doc['root']['nodeId'], selector=st['file'][0])
                 await call('DOM.setFileInputFiles', nodeId=node['nodeId'], files=[st['file'][1]])
+            if 'mouse' in st:
+                ox, oy = 0, 0
+                if st.get('at'):
+                    r = await js(f"(() => {{ const b = document.querySelector({json.dumps(st['at'])}).getBoundingClientRect(); return [b.left, b.top]; }})()")
+                    ox, oy = r
+                for act, x, y in st['mouse']:
+                    x, y = ox + x, oy + y
+                    kinds = {'down': ['mousePressed'], 'up': ['mouseReleased'], 'move': ['mouseMoved'],
+                             'click': ['mouseMoved', 'mousePressed', 'mouseReleased']}[act]
+                    for k in kinds:
+                        held = k == 'mousePressed' or (k == 'mouseMoved' and act == 'move' and st.get('_down'))
+                        await call('Input.dispatchMouseEvent', type=k, x=x, y=y, button='left' if k != 'mouseMoved' or held else 'none',
+                                   buttons=1 if held else 0, clickCount=1 if k != 'mouseMoved' else 0)
+                        await asyncio.sleep(0.05)
+                    if act == 'down':
+                        st['_down'] = True
+                    elif act == 'up':
+                        st['_down'] = False
+            if 'key' in st:
+                k = st['key']
+                codes = {'Delete': 46, 'Escape': 27, 'Enter': 13, 'Backspace': 8}
+                vk = codes.get(k, ord(k.upper()) if len(k) == 1 else 0)
+                for t in ('keyDown', 'keyUp'):
+                    await call('Input.dispatchKeyEvent', type=t, key=k, code=k if len(k) > 1 else 'Key' + k.upper(), windowsVirtualKeyCode=vk)
             await asyncio.sleep(st.get('wait', 2))
             if 'js' in st:
                 print('js', st.get('label', ''), '=>', json.dumps(await js(st['js']))[:1500], flush=True)

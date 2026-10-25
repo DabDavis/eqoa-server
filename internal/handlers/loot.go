@@ -31,7 +31,14 @@ import (
 //
 // A corpse's items are its NPC's npcitem rows (the same table a merchant's
 // wares are in), taken when it is first opened after a death and gone with
-// the corpse. Anyone may loot a corpse.
+// the corpse. Anyone may loot a corpse. One with nothing on it opens too, as
+// the game's "Empty" (word 641, CLIENT opens the window whatever the count),
+// and a corpse whose window closes with nothing left on it goes at once
+// (World.ClearCorpse: out of every view, its creature's respawn time running
+// from then; F3 20261025-044229); one left with items lies until it decays
+// (entity/corpse.go), and every window open on a corpse that goes is closed.
+// A corpse already gone answers 0x0085 2, "That entity is not lootable"
+// (word 674): the client may show one for a visibility round after.
 
 // corpse is one dead NPC's loot.
 type corpse struct {
@@ -65,11 +72,16 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 	if !npc.Dead || h.inv == nil {
 		return false
 	}
+	died, lies := h.corpseOf(npc)
+	if !lies {
+		queueReliable(sess, protocol.OpcodeLootOptions, buildLootOption(lootNotLootable))
+		return true
+	}
 	ls := h.loots()
 	ls.mu.Lock()
 	defer ls.mu.Unlock()
 	c := ls.corpses[npc.ServerID]
-	if c == nil || !c.died.Equal(npc.DeathTime) {
+	if c == nil || !c.died.Equal(died) {
 		items, err := h.inv.GetNPCItems(npc.NPCID)
 		if err != nil {
 			log.Printf("Loot: %q (npc %d): %v", npc.Name, npc.NPCID, err)
@@ -77,16 +89,55 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 		for i := range items {
 			items[i] = catalogRecord(items[i])
 		}
-		c = &corpse{died: npc.DeathTime, items: items}
+		c = &corpse{died: died, items: items}
 		ls.corpses[npc.ServerID] = c
-	}
-	if len(c.items) == 0 {
-		return true
 	}
 	ls.open[sess] = npc.ServerID
 	SendLoot(sess, c.items)
 	log.Printf("Loot: %s opened %q: %d items", sessName(h, sess), npc.Name, len(c.items))
 	return true
+}
+
+// corpseOf is whether the NPC's corpse lies to be looted, and the death it
+// is the corpse of (the World's CorpseLies; without a world, its death).
+func (h *NPCWindowHandler) corpseOf(npc *entity.NPC) (time.Time, bool) {
+	if h.corpseLies != nil {
+		return h.corpseLies(npc.ServerID)
+	}
+	return npc.DeathTime, npc.Dead
+}
+
+// emptiedLocked is a corpse whose window closed with nothing left on it:
+// the World takes it away (ClearCorpse) and every other window open on it
+// is closed. Must be called with ls.mu held.
+func (h *NPCWindowHandler) emptiedLocked(ls *lootState, id entity.EntityID, c *corpse) {
+	if h.clearCorpse == nil || !h.clearCorpse(id, c.died) {
+		return
+	}
+	h.corpseGoneLocked(ls, id)
+}
+
+// corpseGoneLocked forgets a corpse that went and closes every window open
+// on it. Must be called with ls.mu held.
+func (h *NPCWindowHandler) corpseGoneLocked(ls *lootState, id entity.EntityID) {
+	for s, open := range ls.open {
+		if open == id {
+			delete(ls.open, s)
+			queueReliable(s, protocol.OpcodeClientCloseLoot, closeLootPayload())
+		}
+	}
+	delete(ls.corpses, id)
+}
+
+// CorpsesGone is the World's hook for corpses that decayed (OnCorpseGone):
+// each forgotten, and the windows open on it closed.
+func (h *NPCWindowHandler) CorpsesGone(ids []entity.EntityID) {
+	ls := h.loots()
+	ls.mu.Lock()
+	defer ls.mu.Unlock()
+	for _, id := range ids {
+		h.corpseGoneLocked(ls, id)
+	}
 }
 
 func sessName(h *NPCWindowHandler, sess *session.Session) string {
@@ -99,23 +150,33 @@ func sessName(h *NPCWindowHandler, sess *session.Session) string {
 }
 
 // resend is the corpse again after a change: 0x0016, then 0x0018 while
-// anything is left (else the corpse is closed for this session).
+// anything is left; else the corpse is closed for this session, and emptied
+// and closed it goes (emptiedLocked).
 func (h *NPCWindowHandler) resendCorpse(sess *session.Session, ls *lootState, c *corpse) {
 	queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
 	if len(c.items) == 0 {
+		id, open := ls.open[sess]
 		delete(ls.open, sess)
+		if open {
+			h.emptiedLocked(ls, id, c)
+		}
 		return
 	}
 	SendLoot(sess, c.items)
 }
 
-// HandleLootClose is 0x0016 (LootNoWindow): answered with 0x0016.
+// HandleLootClose is 0x0016 (LootNoWindow): answered with 0x0016. A corpse
+// closed with nothing left on it goes (emptiedLocked).
 func (h *NPCWindowHandler) HandleLootClose(sess *session.Session, msg *protocol.Message) error {
 	ls := h.loots()
 	ls.mu.Lock()
+	id, open := ls.open[sess]
 	delete(ls.open, sess)
-	ls.mu.Unlock()
 	queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
+	if c := ls.corpses[id]; open && c != nil && len(c.items) == 0 {
+		h.emptiedLocked(ls, id, c)
+	}
+	ls.mu.Unlock()
 	return nil
 }
 

@@ -104,6 +104,15 @@ type WorldConfig struct {
 	// 300 (every client's) for no farther. A PS2 always has 24 within 300.
 	MaxEntitySlots  int `yaml:"max_entity_slots"`
 	MaxViewDistance int `yaml:"max_view_distance"`
+
+	// CorpseDecay is how long a creature's corpse lies when nothing empties
+	// it (unset or 0: 3m); RespawnAfter how long after its corpse goes, so
+	// decayed or emptied and closed, the creature comes back (unset or 0:
+	// 60s). RoamRadius is how far from its spawn a creature wanders (unset or
+	// 0: 15; below 0, none wander). entity/corpse.go, entity/roam.go.
+	CorpseDecay  time.Duration `yaml:"corpse_decay"`
+	RespawnAfter time.Duration `yaml:"respawn_after"`
+	RoamRadius   float32       `yaml:"roam_radius"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

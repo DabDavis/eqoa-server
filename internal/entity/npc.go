@@ -68,13 +68,28 @@ type NPC struct {
 	DefMod       int
 	WeaponDamage int
 
+	// Movement on the state channel (npcmove.go): the velocity in units a
+	// second (bytes 40-42) and the animation CLIENT plays (byte 58, a
+	// VICSpriteAnimID: 0 stand, 1 walk, 3 run; a corpse's 14 is written by
+	// the channel). All zero for an NPC standing still, as before.
+	VelX, VelY, VelZ float32
+	Loco             byte
+
 	// SpawnPoint
 	SpawnX, SpawnY, SpawnZ float32
 	SpawnFacing            float32
-	RespawnTime            time.Duration
-	DeathTime              time.Time
+	// RespawnTime is how long after its corpse goes (corpse.go) it comes back.
+	RespawnTime time.Duration
+	DeathTime   time.Time
+	// CorpseGone is when its corpse left the world: emptied and closed, or
+	// decayed (corpse.go). Zero while it is alive or its corpse still lies.
+	CorpseGone time.Time
 
-	// AggroBehavior
+	// roam is its wander round its spawn (roam.go).
+	roam roamState
+
+	// AggroBehavior. RoamRadius is how far from its spawn a creature wanders
+	// (roam.go); 0 for none.
 	AggroRadius float32
 	LeashRadius float32
 	RoamRadius  float32

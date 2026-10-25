@@ -22,15 +22,16 @@ const (
 // the players whose respawn came due are then handed to the respawn hook
 // with the lock let go (respawn.go).
 func (w *World) Tick(now time.Time) {
-	due, gates := w.tickLocked(now)
+	due, gates, gone := w.tickLocked(now)
 	w.runRespawns(due)
 	w.runGates(gates)
+	w.runCorpsesGone(gone)
 }
 
 // tickLocked is the tick's systems under the world lock. It returns the
-// players whose respawn came due, for runRespawns, and those a gate sends
-// home, for runGates.
-func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue) {
+// players whose respawn came due, for runRespawns, those a gate sends home,
+// for runGates, and the creatures whose corpses decayed, for runCorpsesGone.
+func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityID) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
@@ -40,7 +41,8 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue) {
 	w.attackSystem(now)
 	gates := w.castSystem(now)
 	w.effectSystem(now)
-	w.respawnSystem(now)
+	gone := w.corpseSystem(now)
+	w.roamSystem(now)
 	due := w.playerRespawnSystem(now)
 	w.regenSystem(now)
 	w.breathSystem(now)
@@ -51,7 +53,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue) {
 	w.guildAnnounceSystem()
 	w.visibilitySystem()
 	w.groupSyncSystem()
-	return due, gates
+	return due, gates, gone
 }
 
 // aiSystem runs every aggro'd NPC's melee in rounds, as Sandstorm's
@@ -178,44 +180,6 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	if player.HP <= 0 {
 		w.playerDiedLocked(sess, player, now)
 		log.Printf("Combat: player %s has died!", sess.RemoteAddr())
-	}
-}
-
-// respawnSystem checks dead NPCs and respawns them after their timer expires.
-// Must be called with lock held.
-func (w *World) respawnSystem(now time.Time) {
-	for _, npc := range w.NPCs {
-		if !npc.Dead {
-			continue
-		}
-		if npc.DeathTime.IsZero() {
-			continue
-		}
-		if now.Sub(npc.DeathTime) < npc.RespawnTime {
-			continue
-		}
-		// A GM's /spawn leaves once its corpse time is up (devspawn.go).
-		if npc.Temporary {
-			w.removeNPCLocked(npc)
-			log.Printf("RespawnSystem: removed spawned NPC '%s' (entity ID=%d)", npc.Name, npc.ServerID)
-			continue
-		}
-
-		// Respawn: reset position, HP, clear dead flag
-		oldX, oldZ := npc.X, npc.Z
-		npc.X = npc.SpawnX
-		npc.Y = npc.SpawnY
-		npc.Z = npc.SpawnZ
-		npc.Facing = npc.SpawnFacing
-		npc.HP = npc.MaxHP
-		npc.Dead = false
-		npc.DeathTime = time.Time{}
-		npc.Threats = nil
-		npc.CurrentEnemy = 0
-
-		w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.SpawnX, npc.SpawnZ)
-
-		log.Printf("RespawnSystem: respawned NPC '%s' (entity ID=%d)", npc.Name, npc.ServerID)
 	}
 }
 

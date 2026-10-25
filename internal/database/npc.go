@@ -180,6 +180,26 @@ func (s *NPCStore) RangedModels() (map[uint32]byte, error) {
 	return ranged, nil
 }
 
+// PlayerModels is the players' race models (charactermodel: each race's
+// two), as the wire carries a model id: an NPC with one of them is one of
+// the townsfolk (entity/roam.go).
+func (s *NPCStore) PlayerModels() (map[uint32]bool, error) {
+	rows, err := s.db.Query(`SELECT modelid FROM charactermodel`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make(map[uint32]bool)
+	for rows.Next() {
+		var m int64
+		if err := rows.Scan(&m); err != nil {
+			return nil, err
+		}
+		out[uint32(m)] = true
+	}
+	return out, rows.Err()
+}
+
 // NPCClasses is the npcclass table (tools/import_npc_classes.py): each NPC
 // name's class, by NPCClassKey. A name it does not hold is a warrior's.
 func (s *NPCStore) NPCClasses() (map[string]int, error) {

@@ -131,10 +131,10 @@ func (w *World) visibilitySystem() {
 				if !npc.HiddenUntil.IsZero() && time.Now().Before(npc.HiddenUntil) {
 					continue
 				}
-				if npc.Dead {
-					if npc.DeathTime.IsZero() || time.Since(npc.DeathTime) > 30*time.Second {
-						continue
-					}
+				// A corpse is in view while it lies (corpse.go): emptied
+				// and closed, or decayed, it leaves every view.
+				if npc.Dead && !npc.corpseLies(time.Now(), w.corpseDecay) {
+					continue
 				}
 				dx := npc.X - player.X
 				dz := npc.Z - player.Z

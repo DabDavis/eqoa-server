@@ -98,6 +98,9 @@ func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) 
 	c.HP = c.MaxHP
 	c.Dead = false
 	c.DeathTime = time.Time{}
+	c.CorpseGone = time.Time{}
+	c.stopMoving()
+	c.roam = roamState{}
 	c.Threats = nil
 	c.CurrentEnemy = 0
 	c.LastCombat = time.Time{}

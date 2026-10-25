@@ -66,20 +66,21 @@ func (g *Gear) Add(id, v int) {
 }
 
 // RecalcStats puts the player's stats back together from the base stats,
-// the worn items and the level: the stats it has (base and gear; what
-// spells add stays in Mods), the maxima from them (CalculateMaxHP of all the
-// stamina, CalculateMaxPower of all the stats, each with the gear's own),
-// the AC and the resists. Hit points and power are kept, within the new
-// maxima; fill brings them to the maxima (a login).
+// the worn items and the level: the stats it has (base and gear, each
+// within the level's stat cap, StatCap; what spells add stays in Mods), the
+// maxima from them (CalculateMaxHP of all the stamina, CalculateMaxPower of
+// all the stats, each with the gear's own), the AC and the resists. Hit
+// points and power are kept, within the new maxima; fill brings them to the
+// maxima (a login).
 func (p *Player) RecalcStats(fill bool) {
 	g := &p.Gear
-	p.Str = p.BaseStr + g.Str
-	p.Sta = p.BaseSta + g.Sta
-	p.Agi = p.BaseAgi + g.Agi
-	p.Dex = p.BaseDex + g.Dex
-	p.Wis = p.BaseWis + g.Wis
-	p.Int = p.BaseInt + g.Int
-	p.Cha = p.BaseCha + g.Cha
+	p.Str = p.capStat(p.BaseStr + g.Str)
+	p.Sta = p.capStat(p.BaseSta + g.Sta)
+	p.Agi = p.capStat(p.BaseAgi + g.Agi)
+	p.Dex = p.capStat(p.BaseDex + g.Dex)
+	p.Wis = p.capStat(p.BaseWis + g.Wis)
+	p.Int = p.capStat(p.BaseInt + g.Int)
+	p.Cha = p.capStat(p.BaseCha + g.Cha)
 	p.MaxHP = CalculateMaxHP(p.Level, p.Class, p.Sta) + g.MaxHP
 	p.MaxPower = CalculateMaxPower(p.Level, p.Class, p.Str, p.Sta, p.Agi, p.Dex, p.Wis, p.Int, p.Cha) + g.MaxPower
 	p.AC = g.AC

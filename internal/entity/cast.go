@@ -244,24 +244,25 @@ func (m *StatMods) sum(o StatMods) {
 	m.AR += o.AR
 }
 
-// StatNow is a stat as the client sees it: the player's own, plus effects.
+// StatNow is a stat as the client sees it: the player's own, plus effects,
+// STR to CHA within the level's stat cap (mastery.go).
 func (p *Player) StatNow(st Stat) int {
 	m := &p.Mods
 	switch st {
 	case StatStr:
-		return p.Str + m.Str
+		return p.capStat(p.Str + m.Str)
 	case StatSta:
-		return p.Sta + m.Sta
+		return p.capStat(p.Sta + m.Sta)
 	case StatAgi:
-		return p.Agi + m.Agi
+		return p.capStat(p.Agi + m.Agi)
 	case StatDex:
-		return p.Dex + m.Dex
+		return p.capStat(p.Dex + m.Dex)
 	case StatWis:
-		return p.Wis + m.Wis
+		return p.capStat(p.Wis + m.Wis)
 	case StatInt:
-		return p.Int + m.Int
+		return p.capStat(p.Int + m.Int)
 	case StatCha:
-		return p.Cha + m.Cha
+		return p.capStat(p.Cha + m.Cha)
 	case StatAC:
 		return p.AC + m.AC
 	case StatMaxHP:
@@ -288,8 +289,8 @@ func (p *Player) StatNow(st Stat) int {
 // their stamina adds through the class's formula.
 func (p *Player) MaxHPNow() int {
 	n := p.MaxHP + p.Mods.MaxHP
-	if p.Mods.Sta != 0 {
-		n += CalculateMaxHP(p.Level, p.Class, p.Sta+p.Mods.Sta) - CalculateMaxHP(p.Level, p.Class, p.Sta)
+	if sta := p.StatNow(StatSta); sta != p.Sta {
+		n += CalculateMaxHP(p.Level, p.Class, sta) - CalculateMaxHP(p.Level, p.Class, p.Sta)
 	}
 	return max(n, 1)
 }
@@ -299,7 +300,8 @@ func (p *Player) MaxPowerNow() int {
 	n := p.MaxPower + p.Mods.MaxPower
 	m := p.Mods
 	if m.Str|m.Sta|m.Agi|m.Dex|m.Wis|m.Int|m.Cha != 0 {
-		n += CalculateMaxPower(p.Level, p.Class, p.Str+m.Str, p.Sta+m.Sta, p.Agi+m.Agi, p.Dex+m.Dex, p.Wis+m.Wis, p.Int+m.Int, p.Cha+m.Cha) -
+		n += CalculateMaxPower(p.Level, p.Class, p.StatNow(StatStr), p.StatNow(StatSta), p.StatNow(StatAgi), p.StatNow(StatDex),
+			p.StatNow(StatWis), p.StatNow(StatInt), p.StatNow(StatCha)) -
 			CalculateMaxPower(p.Level, p.Class, p.Str, p.Sta, p.Agi, p.Dex, p.Wis, p.Int, p.Cha)
 	}
 	return max(n, 0)

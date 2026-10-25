@@ -19,7 +19,7 @@ import (
 func TestMemoryDumpTailMatchesClientReadSequence(t *testing.T) {
 	buf := make([]byte, 4096)
 	w := buffer.NewWriter(buf)
-	player := &entity.Player{Speed: 8.8333}
+	player := &entity.Player{Speed: 8.8333, Level: 60, Mastery: entity.Mastery{Points: 12, Spent: 765, Percent: 100}}
 	writeMemoryDumpTail(w, player, nil)
 
 	written := w.Position()
@@ -87,17 +87,26 @@ func TestMemoryDumpTailMatchesClientReadSequence(t *testing.T) {
 		}
 	}
 
-	// func_00BF71A0 CM block: raw4, 4 zigzag, raw4, then 29 + 7 zigzag.
+	// func_00BF71A0 CM block (ReadState): the token raw; the unspent (+0x0C),
+	// spent (+0x10), +0x14 and the share (+0x08) zigzag; the speed raw; the
+	// 29 stats the masteries add and the 7 stat caps they raise, zigzag.
 	raw32("cm +0x41C")
-	for _, off := range []string{"+0x0C", "+0x10", "+0x14", "+0x08"} {
-		zigzag("cm " + off)
+	for _, f := range []struct {
+		off  string
+		want int64
+	}{{"+0x0C unspent", 12}, {"+0x10 spent", 765}, {"+0x14", 0}, {"+0x08 share", 100}} {
+		if got := zigzag("cm " + f.off); got != f.want {
+			t.Errorf("cm %s = %d, want %d", f.off, got, f.want)
+		}
 	}
 	raw32("cm +0xA8")
 	for i := 0; i < 29; i++ {
 		zigzag("cm stat array 1")
 	}
 	for i := 0; i < 7; i++ {
-		zigzag("cm stat array 2")
+		if got := zigzag("cm stat caps raised"); got != int64(entity.GeneralCapRaise(60)) {
+			t.Errorf("cap raise %d = %d, want %d (level 60's general masteries)", i, got, entity.GeneralCapRaise(60))
+		}
 	}
 
 	// Everything the client is known to read is now consumed. What is left is

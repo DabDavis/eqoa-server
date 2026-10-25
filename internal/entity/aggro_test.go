@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"net"
+	"strings"
 	"testing"
 	"time"
 
@@ -200,6 +201,43 @@ func TestTownsfolkAndATownsCreaturesLeaveYouAlone(t *testing.T) {
 	f.look()
 	if !f.attacks(bandit) || f.face(bandit) != FaceHostile {
 		t.Errorf("a GM's rule did not set the bandit on the player: attacked %v, face %d", f.attacks(bandit), f.face(bandit))
+	}
+}
+
+// The npc_type bits the loader reads as hostile say nothing: a human yeoman
+// typed 0x800 by a city's gate stands peaceful, a creature typed so out in
+// the wild attacks. With no race models (an empty charactermodel) a
+// townsperson cannot be told from a creature, and nothing attacks but a GM's
+// rule's names. The control: the same creature with the models known.
+func TestTypedHostileAndNoRaceModels(t *testing.T) {
+	f := newAggroFix(t, 10)
+	yeoman := f.npc(2001, "Yeoman Lorne", 15, humanBody, 1010, 1000)
+	yeoman.NPCType, yeoman.Faction = 0x800, FactionHostile
+	gator := f.npc(2002, "alligator", 15, bearBody, 990, 1000)
+	gator.NPCType, gator.Faction = 0x44, FactionHostile
+	f.look()
+	if f.attacks(yeoman) || f.face(yeoman) != FaceNeutral {
+		t.Errorf("the yeoman attacked (%v) or showed face %d", f.attacks(yeoman), f.face(yeoman))
+	}
+	if !f.attacks(gator) {
+		t.Error("the control, an alligator in the wild, did not attack")
+	}
+
+	g := newAggroFix(t, 10)
+	g.w.playerModels = nil
+	thand := g.npc(2001, "Harbormaster Thand", 20, humanBody, 1010, 1000)
+	bear := g.npc(2002, "Brown Bear", 20, bearBody, 990, 1000)
+	snake := g.npc(2003, "Moss Snake", 20, bearBody, 1000, 1010)
+	g.w.SetAggroRules(map[string]AggroRule{"Moss Snake": {Aggressive: true}})
+	g.look()
+	if g.attacks(thand) || g.attacks(bear) {
+		t.Errorf("with no race models: the harbormaster attacked %v, the bear %v", g.attacks(thand), g.attacks(bear))
+	}
+	if !g.attacks(snake) {
+		t.Error("with no race models a GM rule's name did not attack")
+	}
+	if s := g.w.AggroSummary(); !strings.Contains(s, "no race models") {
+		t.Errorf("the start's line does not say so: %q", s)
 	}
 }
 

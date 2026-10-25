@@ -40,10 +40,15 @@ import (
 //     levels below the player fits it as well, and only another player level
 //     would tell them apart;
 //   - who is hostile by nature (hostileNatureLocked): an attackable creature
-//     (no NPC bit 0x80) with a body that is not a players' race's, standing
-//     outside the towns (towns.go), and the NPCs typed hostile; townsfolk,
-//     guards, and bandits with players' bodies are not, unless a GM's rule
-//     says so (table npcaggro, by name: AggroRule);
+//     (no NPC bit 0x80) with a body that is not a players' race's, spawned
+//     outside the towns (towns.go); townsfolk, guards, and bandits with
+//     players' bodies are not, unless a GM's rule says so (table npcaggro, by
+//     name: AggroRule; tools/seed_npc_aggro.py seeds the players' pets the
+//     NPC rows hold and the Cave Minnow). The npc_type bits the loader reads
+//     as hostile (FactionHostile) count for nothing here: eqoaclassic's 22
+//     such NPCs hold a human yeoman at Freeport's gate (0x800, the big
+//     creature's reach) and players' pets. With no race models (an empty
+//     charactermodel) nothing attacks but by a GM's rule;
 //   - the radius: the creature's AggroRadius, 30 (the loader's own, under the
 //     38.9 measured), a GM's per name;
 //   - no line of sight and no social pull: nothing measured either;
@@ -109,13 +114,30 @@ func (w *World) hostileNatureLocked(npc *NPC) bool {
 	if r, ok := w.aggro.rules[npc.Name]; ok {
 		return r.Aggressive
 	}
-	if npc.Faction == FactionHostile {
-		return true // typed hostile (NPCFromRecord)
+	if len(w.playerModels) == 0 {
+		// no race models (charactermodel empty): a townsperson cannot be
+		// told from a creature, so none attacks but by a GM's rule (a local
+		// database without the table set every townsperson on its players)
+		return false
 	}
 	if npc.ModelID == 0 || w.playerModels[uint32(npc.ModelID)] {
 		return false // townsfolk, guards and bandits: a players' race's body
 	}
 	return !w.inTownLocked(npc.World, npc.SpawnX, npc.SpawnZ)
+}
+
+// AggroSummary is a line for the server's start: the rule, its GM rules and
+// whether it can tell a townsperson from a creature.
+func (w *World) AggroSummary() string {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	switch {
+	case w.aggro.off:
+		return "none attacks a player on sight (world.aggro false)"
+	case len(w.playerModels) == 0:
+		return fmt.Sprintf("no race models (charactermodel is empty), so only the %d names of the GMs' rules (npcaggro) attack a player on sight", len(w.aggro.rules))
+	}
+	return fmt.Sprintf("a hostile one attacks a player below three times its level within %.0f (%d GM rules by name)", DefaultAggroRadius, len(w.aggro.rules))
 }
 
 // hostileLocked is hostileNatureLocked, kept on the creature until the GMs'

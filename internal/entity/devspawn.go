@@ -172,7 +172,7 @@ type Place struct {
 }
 
 // Places lists the coachmen's and the cross-world travel NPCs' spots by
-// their labels (coachLocationNames, warpLocationNames), sorted by name, of the
+// their labels (coachLabel, warpLocationNames), sorted by name, of the
 // worlds loadable takes (nil: all of them). A label with no NPC loaded is not
 // a place.
 func (w *World) Places(loadable func(world uint8) bool) []Place {
@@ -180,9 +180,9 @@ func (w *World) Places(loadable func(world uint8) bool) []Place {
 	defer w.mu.RUnlock()
 	var out []Place
 	for _, npc := range w.NPCs {
-		label, ok := coachLocationNames[npc.Name]
-		if !ok {
-			label, ok = warpLocationNames[npc.Name]
+		label, ok := warpLocationNames[npc.Name]
+		if IsCoachman(npc.Name) {
+			label, ok = coachLabel(npc)
 		}
 		if !ok || npc.Temporary {
 			continue

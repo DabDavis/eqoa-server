@@ -33,7 +33,7 @@ func TestReachFlagIsTheNearestGap(t *testing.T) {
 		want    uint16
 	}{
 		{1.395, 1, 0},
-		{2.4, 1, 0},           // 1.0 past a man's edge: 4.5 leaves 2.1, nearer his 3.1 than 7.5's 5.1
+		{2.4, 1, 0},            // 1.0 past a man's edge: 4.5 leaves 2.1, nearer his 3.1 than 7.5's 5.1
 		{2.4, 1.5, ReachLarge}, // 3.6, 2.2 past
 		{2.894, 1, 0},
 		{2.896, 1, ReachLarge},

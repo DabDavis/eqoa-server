@@ -318,14 +318,44 @@ func (p *Player) Invisible() bool {
 	return false
 }
 
-// SpeedNow is the run speed with effects (0x00F8).
-func (p *Player) SpeedNow() float32 {
+// The movement rate, as the players' own formula thread gives it
+// (eqoa.forumotion.com t279 "Calculations", 2010): "Normal running = movement
+// rate of 20, Spirit of the Wolf = movement rate of 100 ... various movement
+// cms will increase the basic movement rate of 20, but only SoW gives 100.
+// 100 is the maximum the move-rate can be." It names no speed, so 20 is the
+// run speed (Sandstorm's 8.833333) and 100 Sandstorm's measured Spirit of the
+// Wolf, speedBuff times it, linear between (the user's choice, 2026-10-25;
+// read literally, 100 would run five times as fast).
+const (
+	moveRateBase = 20
+	moveRateMax  = 100
+)
+
+// MoveRate is the player's movement rate now: 20 and what movement masteries
+// add (MoveRateBonus; none can be bought yet), 100 under a movement buff,
+// never more than 100, so speed buffs and masteries never stack past it.
+func (p *Player) MoveRate() int {
+	r := moveRateBase + p.MoveRateBonus
 	for _, e := range p.Effects {
 		if e.Speed {
-			return p.Speed * speedBuff
+			r = moveRateMax
 		}
 	}
-	return p.Speed
+	return min(r, moveRateMax)
+}
+
+// SpeedNow is the run speed with effects (0x00F8): the movement rate as a
+// speed, 20 the run speed and 100 Spirit of the Wolf's to the bit.
+func (p *Player) SpeedNow() float32 {
+	switch r := p.MoveRate(); {
+	case r <= moveRateBase:
+		return p.Speed
+	case r >= moveRateMax:
+		return p.Speed * speedBuff
+	default:
+		f := 1 + (speedBuff-1)*float64(r-moveRateBase)/float64(moveRateMax-moveRateBase)
+		return p.Speed * float32(f)
+	}
 }
 
 // GateFunc is the hook that sends a player home (Return Home's landing):

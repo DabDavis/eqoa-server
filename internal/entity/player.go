@@ -62,6 +62,10 @@ type Player struct {
 	Speed   float32
 	Faction byte
 
+	// MoveRateBonus is what movement masteries add to the movement rate of 20
+	// (cast.go's MoveRate); none can be bought yet, so it is 0.
+	MoveRateBonus int
+
 	// Factions is the character's standing with each faction it has moved
 	// off the faction's starting standing (faction.go; table charfactions).
 	Factions map[string]int

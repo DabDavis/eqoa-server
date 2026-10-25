@@ -356,6 +356,34 @@ func TestPlayerRunSpeedIsSandstorms(t *testing.T) {
 	}
 }
 
+// The movement rate (the forum's 20 for running, 100 for Spirit of the Wolf
+// and the most it can be): 20 is the run speed and 100 Sandstorm's Spirit of
+// the Wolf to the bit, masteries between, nothing past 100. The control: the
+// rate read as a speed, 100 five times 20, which this is not.
+func TestMovementRate(t *testing.T) {
+	w := NewWorld()
+	p := w.CreatePlayer(nil, &database.CharacterRecord{ServerID: 8, CharName: "Mover", Level: 50, TClass: 7, X: 100, Y: 54, Z: 100})
+	if r := p.MoveRate(); r != 20 || p.SpeedNow() != p.Speed {
+		t.Fatalf("running: rate %d speed %v", r, p.SpeedNow())
+	}
+	p.MoveRateBonus = 40
+	if r, s := p.MoveRate(), p.SpeedNow(); r != 60 || math.Abs(float64(s)-8.833333*1.15) > 1e-4 {
+		t.Errorf("a mastery's 40: rate %d speed %v, want 60 and %v", r, s, 8.833333*1.15)
+	}
+	p.Effects = append(p.Effects, &ActiveEffect{Speed: true})
+	if r, b := p.MoveRate(), math.Float32bits(p.SpeedNow()); r != 100 || b != 0x4137BBBB {
+		t.Errorf("Spirit of the Wolf over a mastery: rate %d speed %#x, want 100 and 0x4137BBBB", r, b)
+	}
+	p.Effects = append(p.Effects, &ActiveEffect{Speed: true})
+	p.MoveRateBonus = 500
+	if r := p.MoveRate(); r != 100 {
+		t.Errorf("two buffs and a big mastery: rate %d, want the most, 100", r)
+	}
+	if lit := p.Speed * float32(p.MoveRate()) / 20; lit == p.SpeedNow() {
+		t.Error("the control: 100 read as five times the run")
+	}
+}
+
 // Return Home lands as the caster's gate (the hook moves it, unlocked).
 func TestCastGate(t *testing.T) {
 	c := newCaster(t)

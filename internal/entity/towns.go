@@ -123,16 +123,34 @@ func (w *World) inTownLocked(world uint8, x, z float32) bool {
 }
 
 // legInTownLocked reports a walk from (x0, z0) to (x1, z1) that ends in a
-// town or passes through one (looked at every few units along it). Must be
-// called with the lock held.
+// town or passes through one: one of a town's people within townMargin of
+// the line walked. Must be called with the lock held.
 func (w *World) legInTownLocked(world uint8, x0, z0, x1, z1 float32) bool {
-	d := distXZ(x0, z0, x1, z1)
-	steps := int(d/10) + 1
-	for i := 1; i <= steps; i++ {
-		t := float32(i) / float32(steps)
-		if w.inTownLocked(world, x0+(x1-x0)*t, z0+(z1-z0)*t) {
-			return true
+	if w.towns == nil {
+		w.buildTownsLocked()
+	}
+	lo := townCellOf(world, min(x0, x1)-townMargin, min(z0, z1)-townMargin)
+	hi := townCellOf(world, max(x0, x1)+townMargin, max(z0, z1)+townMargin)
+	for cx := lo.cx; cx <= hi.cx; cx++ {
+		for cz := lo.cz; cz <= hi.cz; cz++ {
+			for _, p := range w.towns[townKey{world, cx, cz}] {
+				if segmentDist(x0, z0, x1, z1, p[0], p[1]) <= townMargin {
+					return true
+				}
+			}
 		}
 	}
 	return false
+}
+
+// segmentDist is the distance on the ground from (px, pz) to the line from
+// (x0, z0) to (x1, z1).
+func segmentDist(x0, z0, x1, z1, px, pz float32) float32 {
+	dx, dz := x1-x0, z1-z0
+	l2 := dx*dx + dz*dz
+	t := float32(0)
+	if l2 > 0 {
+		t = max(0, min(1, ((px-x0)*dx+(pz-z0)*dz)/l2))
+	}
+	return distXZ(x0+dx*t, z0+dz*t, px, pz)
 }

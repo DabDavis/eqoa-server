@@ -55,8 +55,9 @@ func run(w *World, start time.Time, d time.Duration, each func(now time.Time)) t
 func TestACreatureWandersWithinItsRadiusAtAWalkAndRests(t *testing.T) {
 	w := roamWorld(t)
 	npc := addNPC(w, 100, "beetle", 1005, 1000, creatureModel, 0)
-	var walked, rests int
+	var walked, rests, pauses, fulls int
 	var resting time.Time
+	var legFromX, legFromZ float32
 	px, pz := npc.X, npc.Z
 	run(w, time.Now(), 5*time.Minute, func(now time.Time) {
 		step := math.Hypot(float64(npc.X-px), float64(npc.Z-pz))
@@ -77,9 +78,18 @@ func TestACreatureWandersWithinItsRadiusAtAWalkAndRests(t *testing.T) {
 				t.Fatalf("walking at %.2f, want %v", v, NPCWalkSpeed)
 			}
 			if !resting.IsZero() {
-				// a rest after a walk (the first, before any, is shorter)
-				if rest := now.Sub(resting); walked > 1 && (rest < roamRestMin-200*time.Millisecond || rest > roamRestMax+200*time.Millisecond) {
-					t.Fatalf("rested %v between walks, want %v to %v", rest, roamRestMin, roamRestMax)
+				// a pause or a rest after a walk (the first, before any, is
+				// shorter)
+				rest, slack := now.Sub(resting), 200*time.Millisecond
+				pause := rest >= roamPauseMin-slack && rest <= roamPauseMax+slack
+				full := rest >= roamRestMin-slack && rest <= roamRestMax+slack
+				if walked > 1 && !pause && !full {
+					t.Fatalf("stood %v between walks, want a pause of %v to %v or a rest of %v to %v", rest, roamPauseMin, roamPauseMax, roamRestMin, roamRestMax)
+				}
+				if walked > 1 && pause {
+					pauses++
+				} else if walked > 1 {
+					fulls++
 				}
 				resting = time.Time{}
 			}
@@ -88,13 +98,50 @@ func TestACreatureWandersWithinItsRadiusAtAWalkAndRests(t *testing.T) {
 				t.Fatalf("standing with animation %d", npc.Loco)
 			}
 			if resting.IsZero() {
+				if walked > 0 {
+					// a leg of 5 to 35
+					if leg := distXZ(legFromX, legFromZ, npc.X, npc.Z); leg < roamLegMin-0.01 || leg > roamLegMax+0.01 {
+						t.Fatalf("walked a leg of %.2f, want %v to %v", leg, roamLegMin, roamLegMax)
+					}
+				}
 				resting = now
 				rests++
+				legFromX, legFromZ = npc.X, npc.Z
 			}
 		}
 	})
 	if walked == 0 || rests < 5 {
 		t.Fatalf("in five minutes it walked %d ticks and rested %d times", walked, rests)
+	}
+	if pauses == 0 || fulls == 0 {
+		t.Errorf("%d pauses and %d rests in five minutes: both should come", pauses, fulls)
+	}
+}
+
+// A creature's wander keeps out of a town: a chain of ten townsfolk and the
+// ground within 40 of them (towns.go), its legs neither ending there nor
+// crossing it. The control: five townsfolk are not a town, and the same
+// creature walks right up to them.
+func TestTheWanderKeepsOutOfTowns(t *testing.T) {
+	closest := func(folk int) float32 {
+		w := roamWorld(t)
+		for i := 0; i < folk; i++ {
+			addNPC(w, EntityID(200+i), "Guard", float32(1060+20*i), 1000, humanModel, 0)
+		}
+		npc := addNPC(w, 100, "beetle", 1000, 1000, creatureModel, 0)
+		near := float32(1e9)
+		run(w, time.Now(), 20*time.Minute, func(time.Time) {
+			for i := 0; i < folk; i++ {
+				near = min(near, distXZ(npc.X, npc.Z, float32(1060+20*i), 1000))
+			}
+		})
+		return near
+	}
+	if d := closest(10); d <= townMargin {
+		t.Errorf("came within %.1f of a town's people, its margin %v", d, townMargin)
+	}
+	if d := closest(5); d > townMargin {
+		t.Errorf("five townsfolk kept it %.1f off: the control", d)
 	}
 }
 

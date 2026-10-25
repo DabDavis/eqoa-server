@@ -357,23 +357,8 @@ func (db *SQLiteDB) initSchema() error {
 		unk_o INTEGER
 	);
 
-	-- playerquest
-	CREATE TABLE IF NOT EXISTS playerquest (
-		playerQuestID INTEGER PRIMARY KEY AUTOINCREMENT,
-		serverID INTEGER NOT NULL,
-		questID INTEGER NOT NULL,
-		questIndex INTEGER,
-		FOREIGN KEY (questID) REFERENCES quests(questID) ON DELETE CASCADE,
-		FOREIGN KEY (serverID) REFERENCES characters(serverid) ON DELETE CASCADE
-	);
-
-	-- quests
-	CREATE TABLE IF NOT EXISTS quests (
-		questID INTEGER PRIMARY KEY,
-		questNPC TEXT,
-		questLog TEXT,
-		questStep INTEGER
-	);
+	-- quests, queststeps, charquests: initQuests (quests.go), which first
+	-- moves Return Home's quests and playerquest aside
 
 	-- spellpattern
 	CREATE TABLE IF NOT EXISTS spellpattern (
@@ -574,6 +559,9 @@ func (db *SQLiteDB) initSchema() error {
 	}
 	if err := db.seedFactions(); err != nil {
 		return fmt.Errorf("factions: %w", err)
+	}
+	if err := db.initQuests(); err != nil {
+		return fmt.Errorf("quests: %w", err)
 	}
 
 	log.Printf("SQLite schema initialized")

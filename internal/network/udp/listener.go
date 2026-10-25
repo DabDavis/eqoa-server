@@ -423,6 +423,7 @@ func (l *Listener) tickAllSessions() {
 				l.savePlayerPosition(sess)
 				l.saveEffects(sess)
 				l.saveFactions(sess)
+				l.saveMastery(sess)
 			}
 			l.gameWorld.RemovePlayerBySession(sess)
 		}
@@ -468,8 +469,25 @@ func (l *Listener) saveFactions(sess *session.Session) {
 	}
 }
 
+// saveMastery keeps the player's mastery points and their share over the
+// logout (entity/mastery.go), as saveFactions keeps standings.
+func (l *Listener) saveMastery(sess *session.Session) {
+	player := l.gameWorld.SessionPlayer(sess)
+	if player == nil || !l.gameWorld.IsLivePlayer(player) {
+		return
+	}
+	m, ok := l.gameWorld.MasteryOf(player.ServerID)
+	if !ok {
+		return
+	}
+	row := database.MasteryRow{Points: m.Points, Spent: m.Spent, Percent: m.Percent, XP: m.XP}
+	if err := l.charStore.SaveMastery(player.CharServerID, row); err != nil {
+		log.Printf("saveMastery: '%s': %v", player.Name, err)
+	}
+}
+
 // SaveAll saves every player in the world as a logout would (position, spell
-// effects and standings), for a shutdown: a restart is a logout for everyone
+// effects, standings and mastery points), for a shutdown: a restart is a logout for everyone
 // in it, and before this one the state since each login was lost.
 func (l *Listener) SaveAll() {
 	if l.gameWorld == nil || l.charStore == nil {
@@ -486,6 +504,7 @@ func (l *Listener) SaveAll() {
 		l.savePlayerPosition(sess)
 		l.saveEffects(sess)
 		l.saveFactions(sess)
+		l.saveMastery(sess)
 	}
 	log.Printf("SaveAll: %d players saved", len(inWorld))
 }

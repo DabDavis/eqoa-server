@@ -72,7 +72,10 @@ func sandstormOffenceSwings(t *testing.T) []offenceCondition {
 }
 
 func (c offenceCondition) actors() (*Player, *NPC) {
-	p := &Player{Class: c.class, Str: c.str, Dex: c.dex,
+	// level 50, as the recorded characters (49-51) about were: its stat cap
+	// (515, mastery.go) is past every STR and DEX recorded (217 and 490 at
+	// most), so the stats are as Sandstorm's channel had them
+	p := &Player{Level: 50, Class: c.class, Str: c.str, Dex: c.dex,
 		Gear: Gear{WeaponDamage: c.dmg, WeaponCond: c.cond, WeaponTwoHanded: c.twoHanded}}
 	npc := &NPC{Level: c.level, Dummy: TrainingDummy}
 	if c.creature {

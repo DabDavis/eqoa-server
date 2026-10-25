@@ -185,6 +185,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		purse = invStore
 	}
 	chatHandler.SetStores(progress, purse)
+	if charStore != nil {
+		chatHandler.SetMasteryStore(charStore)
+	}
 	chatHandler.SetTemplate(charHandler.ApplyTemplate)
 	targetHandler := NewTargetHandler(sessionMgr)
 	if gameWorld != nil {
@@ -209,6 +212,13 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		whoHandler.SetGameWorld(gameWorld)
 	}
 	classMasteryHandler := NewClassMasteryHandler(sessionMgr)
+	// the share of experience going to mastery points, kept (entity/mastery.go)
+	if gameWorld != nil {
+		classMasteryHandler.SetGameWorld(gameWorld)
+	}
+	if charStore != nil {
+		classMasteryHandler.SetStore(charStore)
+	}
 	connStatsHandler := NewConnStatsHandler()
 	trainingHandler := NewTrainingHandler(sessionMgr, charStore)
 	if gameWorld != nil {

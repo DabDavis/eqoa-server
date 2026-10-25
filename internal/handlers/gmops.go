@@ -114,9 +114,10 @@ func EjectAccount(sm *session.Manager, accountID int) int {
 
 // SendLevel tells a client its player's level (0x0020, with no experience
 // into it), as a level set by a GM is: CLIENT plays its level-up sound for a
-// higher one.
+// higher one. The level's stat cap goes with it (0x001C; entity/mastery.go).
 func SendLevel(sess *session.Session, level int) {
 	SendGrantXP(sess, level, 0)
+	entity.SendStatCap(sess, level)
 }
 
 // GiveItemNow gives an online player n of an item now, as a merchant's sale

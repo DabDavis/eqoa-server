@@ -243,18 +243,6 @@ func SwingFor(cls, level int, worn [21]bool, hasItem bool, attackType, itemRange
 	return s
 }
 
-// npcReachExtra is TargetInRange's allowance for a big target: +3 for
-// npcFlags 0x400, else +5 for 0x800 (VICreatureEntity +0x25A).
-func npcReachExtra(npc *NPC) float32 {
-	switch {
-	case npc.NPCType&0x400 != 0:
-		return 3
-	case npc.NPCType&0x800 != 0:
-		return 5
-	}
-	return 0
-}
-
 // inReach is TargetInRange's distance test: the squared 3D distance within
 // the reach plus the target's allowance.
 func inReach(p *Player, npc *NPC) bool {

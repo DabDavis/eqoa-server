@@ -28,25 +28,42 @@ import "time"
 //     began, a creature that does not wander (a guard at its post) facing
 //     as it was spawned. Hit on the way, it fights again.
 //
-// No capture records a creature chasing (Sandstorm's wander at 5 a second,
-// pcaps/ps2_sandstorm_1min10secs.pcap): the pace is the player's own base
-// run, as a summoned pet's is (pet.go's petRunSpeed), so a creature keeps up
-// with a player at that speed and falls behind one sped up.
+// Sandstorm's chase is recorded (pcaps/ps2_main_capture.pcap, the Lv49
+// guard Jasper Darvar after a bard who pulled him with a spell from 14 off,
+// claude-notes/attack-range-20261025.md): he ran at 9.9 a second (107 units
+// of path in 10.8 s, about a unit each tenth of a second; his channel said
+// 10.3), so a player at the base run (8.83) does not get away; he came on at
+// that pace until a step brought him within his reach of where the server
+// last had the player, and stood there: 3.5 off a player who had stopped,
+// the next round's swing 0.2 s later; a player who kept backing off he
+// followed by turns. Until F3 pass 16 the pace was the player's own base run
+// and the creature stood at 70% of its reach, 3.15 off: inside a big one's
+// body, as nothing gave a big one its reach (reach.go).
 
 // NPCRunSpeed is a creature's pace in a chase and on its way home.
-const NPCRunSpeed float32 = 8.833333
+const NPCRunSpeed float32 = 9.9
 
-// npcCloseIn is how far into its reach a chasing creature comes before it
-// stops: a fraction of the reach.
-const npcCloseIn float32 = 0.7
+// npcStopShort is how far inside its reach a chasing creature stands: half
+// of Sandstorm's last step (a unit), whose stops fell between 3.5 and 4.5
+// off a still player.
+const npcStopShort float32 = 0.5
 
 // chaseSlack is the shortest step a creature takes (none of a hair's
 // width): closer than that to where it would stop, it stands.
 const chaseSlack float32 = 0.05
 
 // chaseGain is how fast a creature closes on where it would stop: its pace
-// over its enemy's has this many units a second for each unit left.
-const chaseGain float32 = 4
+// over its enemy's has this many units a second for each unit left. At 8 it
+// runs at full pace to within a unit and a quarter of where it stops, as
+// Sandstorm's came on at full pace to its last step (it was 4, an easing
+// over the last 2.5 units that held it out of reach 0.2 s longer).
+const chaseGain float32 = 8
+
+// npcStop is where a chasing creature stands off its enemy: just inside its
+// reach.
+func npcStop(npc *NPC) float32 {
+	return npcReach(npc) - npcStopShort
+}
 
 // npcGiveUp is how far off an enemy may be before the fight ends at once
 // (a teleport, a fast runner long gone): past every client's view.
@@ -67,7 +84,12 @@ type chaseState struct {
 
 // npcReach is how near an NPC must be to hit: CLIENT's melee reach, the
 // player's own against it (attack.go's meleeReach, and a big creature's
-// allowance), so the two stand within each other's reach.
+// allowance, reach.go), so the two stand within each other's reach. Its
+// hits land within it of where the server has the player, as Sandstorm's
+// did (its own view of the player, a channel behind the player's 0x40, put
+// every one of Jasper Darvar's 68 hits within 4.5 (4.44 the furthest),
+// though he hit a player kiting him 5.7 to 7.7 off by the player's own
+// reckoning).
 func npcReach(npc *NPC) float32 {
 	return meleeReach + npcReachExtra(npc)
 }
@@ -108,7 +130,7 @@ func (w *World) chaseLocked(npc *NPC, x, z, vx, vz float32, now time.Time) (inRe
 	if d > npcGiveUp || distXZ(npc.X, npc.Z, npc.chase.fromX, npc.chase.fromZ) > leash {
 		return false, true
 	}
-	reach, stop := npcReach(npc), npcReach(npc)*npcCloseIn
+	reach, stop := npcReach(npc), npcStop(npc)
 	if d > 0 {
 		npc.Facing = headingTo(x-npc.X, z-npc.Z)
 	}

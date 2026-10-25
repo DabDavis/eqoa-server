@@ -94,6 +94,15 @@ func main() {
 	} else {
 		log.Printf("Creatures: no ground (%v): they keep their heights as they move", err)
 	}
+	// The bodies' sizes (entity/reach.go), baked from the disc by
+	// cmd/modelbake into <worlds>/models.txt: a large creature is reached,
+	// and reaches, from further off (CLIENT's TargetInRange +3 or +5).
+	if m, err := entity.LoadModelRadii(filepath.Join(worlds.Dir(cfg.Patch.WorldsDir), "models.txt")); err == nil {
+		entity.SetModelRadii(m)
+		log.Printf("Creatures: the sizes of %d bodies: a large one is reached from further off", len(m))
+	} else {
+		log.Printf("Creatures: no bodies' sizes (%v): every creature is reached at 4.5, as before", err)
+	}
 	decay, respawn := gameWorld.CorpseTimes()
 	log.Printf("Creatures: a corpse lies %v unless emptied, the creature back %v after it goes; wandering within %.0f of its spawn",
 		decay, respawn, gameWorld.RoamRadius())

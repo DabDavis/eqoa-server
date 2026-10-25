@@ -370,6 +370,23 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm, or town-seed for the seeding tool's rows (its --undo deletes those)"},
 		},
 	},
+	"npcaggro": {
+		Label: "Creature aggro", Group: "World", Title: "npc_name", Sort: "npc_name",
+		Help: "Which creatures attack a player on sight, by NPC name, where the rule is wrong for them (entity/aggro.go): " +
+			"a creature (a body no player race has, not an NPC-bit NPC) standing outside the towns attacks a player " +
+			"below three times its level who comes within 30, and shows that player the red face; townsfolk, guards " +
+			"and bandits with players' bodies do not. aggressive 1 makes every NPC of the name attack on sight, 0 never; " +
+			"radius how near (0: 30). An NPC with the NPC bit (0x80) never does: no one may attack it.",
+		Live:   "At once: the next look round (half a second) and the next target box use it.",
+		Search: []string{"npc_name", "note"},
+		Cols: map[string]colNote{
+			"npc_name":   {Label: "NPC name", Help: "as in NPCs, exactly (a trailing space included)"},
+			"aggressive": {Label: "Attacks on sight", Help: "1 yes, 0 never"},
+			"radius":     {Label: "Radius", Help: "how near a player must come; 0 the default, 30"},
+			"note":       {Label: "Note"},
+			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_aggro.py's rows (its --undo deletes those)"},
+		},
+	},
 	"itempattern": {
 		Label: "Items", Group: "Items & spells", Title: "itemname", Sort: "patternid",
 		Help: "Every item that exists, by patternid. model is the ITEM.ESF DictID worn or held, itemicon the ITEMICON.ESF " +

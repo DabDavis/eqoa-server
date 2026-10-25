@@ -110,6 +110,14 @@ func main() {
 	if err := gameWorld.LoadFactions(db); err != nil {
 		log.Printf("WARNING: %v; every faction at its default, no kill changes one", err)
 	}
+	// Creatures attacking a player on sight, and the GMs' rules by name
+	// (entity/aggro.go, table npcaggro)
+	if cfg.World.Aggro != nil && !*cfg.World.Aggro {
+		gameWorld.SetAggro(false)
+	} else if _, err := gameWorld.LoadAggroRules(db); err != nil {
+		log.Printf("WARNING: %v; creatures attack on sight by the rule alone", err)
+	}
+	log.Printf("Creatures: %s", gameWorld.AggroSummary())
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 

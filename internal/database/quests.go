@@ -145,13 +145,17 @@ func hasColumn(db *sql.DB, t, c string) (bool, error) {
 // The step kinds.
 const (
 	StepTalk  = "talk"  // talk to an NPC (target), answering it when the step has an answer
+	StepShow  = "show"  // talk to an NPC (target) holding items, which are kept (Sandstorm's first warrior quest: the bracer)
 	StepGive  = "give"  // hand an NPC (target) items and tunar
 	StepKill  = "kill"  // kill count creatures named target
 	StepReach = "reach" // come within radius of a place
 )
 
 // StepKinds is every step kind, in the order the panel offers them.
-var StepKinds = []string{StepTalk, StepGive, StepKill, StepReach}
+var StepKinds = []string{StepTalk, StepShow, StepGive, StepKill, StepReach}
+
+// AtNPC is whether a step kind is done by talking to its NPC.
+func AtNPC(kind string) bool { return kind == StepTalk || kind == StepShow || kind == StepGive }
 
 // Quest is one quest and its steps, in order.
 type Quest struct {
@@ -165,9 +169,14 @@ type Quest struct {
 	Races      []int // race ids; none: any
 	Requires   []int // quests finished first
 	Repeatable bool
-	Offer      string // the giver's words offering it (a line a box)
-	Accept     string // the player's answer taking it; "" takes it when talked to
-	Decline    string // the player's answer refusing it; "" offers none
+	// Offer is the giver's words offering it, a paragraph (lines between
+	// blank lines) a question: its lines a box each, its last line the
+	// question the paragraph's answer (Accept's line of that number) answers.
+	Offer string
+	// Accept is the player's answers taking it, a line a question (Sandstorm's
+	// first warrior quest asks two); "" takes it when the giver is talked to.
+	Accept  string
+	Decline string // the player's answer refusing it, offered with each answer; "" none
 	Started    string // the giver's words once it is taken
 	Source     string
 	Notes      string

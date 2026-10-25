@@ -37,19 +37,19 @@ func (s *Server) registerQuestOps() {
 		"races":      str("race ids, comma separated; empty: any"),
 		"requires":   str("quest ids finished first, comma separated"),
 		"repeatable": integer("1: may be taken again once finished"),
-		"offer":      str("the giver's words offering it: a line a box, the last line asks"),
-		"accept":     str("the player's answer that takes it; empty: taken as soon as the giver is talked to"),
-		"decline":    str("the player's answer that refuses it; empty: none"),
+		"offer":      str("the giver's words offering it: a paragraph (lines between blank lines) a question, a line a box, each paragraph's last line the question"),
+		"accept":     str("the player's answers that take it, a line a question (the last one gives the quest); empty: taken as soon as the giver is talked to"),
+		"decline":    str("the player's answer that refuses it, offered with each answer; empty: none"),
 		"started":    str("the giver's words once it is taken"),
 		"source":     str("where it came from"),
 		"notes":      str("for GMs"),
 	})
 	stepSchema := obj(map[string]any{
-		"kind":        strEnum("talk: talk to target; give: hand target items and tunar; kill: kill count of target; reach: come within radius of x, z in world", database.StepKinds...),
+		"kind":        strEnum("talk: talk to target; show: talk to target holding items (kept); give: hand target items and tunar (taken); kill: kill count of target; reach: come within radius of x, z in world", database.StepKinds...),
 		"target":      str("talk/give: the NPC's name; kill: the creature's name"),
 		"npcid":       integer("only that spawn (npcs.id); 0: any of the name"),
-		"items":       str("give: items handed in, patternid*count, comma separated"),
-		"tunar":       integer("give: tunar handed in"),
+		"items":       str("show/give: items held (show) or handed in (give), patternid*count, comma separated"),
+		"tunar":       integer("show/give: tunar held or handed in"),
 		"count":       integer("kill: how many"),
 		"world":       integer("reach: the world"),
 		"x":           number("reach: x"),
@@ -305,18 +305,18 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 		where := fmt.Sprintf("step %d", n)
 		kind := strings.ToLower(text(st, "kind"))
 		switch kind {
-		case database.StepTalk, database.StepGive:
+		case database.StepTalk, database.StepShow, database.StepGive:
 			if t := text(st, "target"); t == "" {
 				add("%s (%s) names no NPC", where, kind)
 			} else {
 				s.npcProblems(t, where+"'s NPC", add)
 			}
-			if kind == database.StepGive {
+			if kind != database.StepTalk {
 				items := database.ParseItemCounts(text(st, "items"))
 				if len(items) == 0 && num(st, "tunar") <= 0 {
-					add("%s hands nothing in (no items, no tunar)", where)
+					add("%s wants nothing held (no items, no tunar)", where)
 				}
-				s.itemProblems(items, where+" hands in", add)
+				s.itemProblems(items, where+" wants", add)
 			}
 		case database.StepKill:
 			if t := text(st, "target"); t == "" {
@@ -336,7 +336,7 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 				add("%s's place is 0, 0", where)
 			}
 		default:
-			add("%s: no kind %q (talk, give, kill or reach)", where, kind)
+			add("%s: no kind %q (talk, show, give, kill or reach)", where, kind)
 		}
 		if text(st, "journal") == "" {
 			add("%s has no journal line (the quest's name is shown)", where)
@@ -421,7 +421,7 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 	for i, step := range steps {
 		k, _ := step["kind"].(string)
 		if !containsStr(database.StepKinds, strings.ToLower(strings.TrimSpace(k))) {
-			return nil, badRequest("step %d: kind is talk, give, kill or reach", i+1)
+			return nil, badRequest("step %d: kind is talk, show, give, kill or reach", i+1)
 		}
 	}
 	id, _ := asFloat(quest["questid"])

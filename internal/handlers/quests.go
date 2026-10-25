@@ -418,7 +418,7 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 			continue
 		}
 		st := qu.Step(cq.Step)
-		if st == nil || (st.Kind != database.StepTalk && st.Kind != database.StepGive) || !stepNPC(st, npc.Name, npc.ServerID) {
+		if st == nil || !database.AtNPC(st.Kind) || !stepNPC(st, npc.Name, npc.ServerID) {
 			continue
 		}
 		q.atNPCLocked(sess, p, c, qu, cq, st, false)
@@ -482,20 +482,60 @@ func containsInt(v []int, n int) bool {
 	return false
 }
 
-// offerLocked offers a quest: its giver's words, the last asking with the
-// answers, or the quest at once when nothing need be answered.
+// offerLocked offers a quest: its giver's first question, or the quest at
+// once when nothing need be answered (its words said first).
 func (q *QuestEngine) offerLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest) {
-	if strings.TrimSpace(qu.Accept) == "" {
-		q.tellLocked(sess, sayLines(qu.Offer)...)
+	if len(sayLines(qu.Accept)) == 0 {
+		q.tellLocked(sess, qu.Giver, sayLines(qu.Offer)...)
 		q.startLocked(sess, p, c, qu, 0, false)
 		return
 	}
-	choices := []questChoice{{kind: choiceAccept, quest: qu.ID, label: qu.Accept}}
-	if strings.TrimSpace(qu.Decline) != "" {
-		choices = append(choices, questChoice{kind: choiceDecline, quest: qu.ID, label: qu.Decline})
-	}
-	q.askLocked(sess, c, qu.Offer, questAskOffer, choices)
+	q.askStageLocked(sess, c, qu, 0)
 	log.Printf("Quests: %s offered %q", p.Name, qu.Name)
+}
+
+// askStageLocked asks the offer's question k, as Sandstorm's Commander Nothard
+// asks two: the offer's paragraph k (its lines a box each, its last line the
+// question; any paragraphs past the answers said before the last question),
+// answered by Accept's line k, or Decline.
+func (q *QuestEngine) askStageLocked(sess *session.Session, c *questChar, qu *database.Quest, k int) {
+	answers := sayLines(qu.Accept)
+	if k >= len(answers) {
+		return
+	}
+	paras := paragraphs(qu.Offer)
+	words := ""
+	switch {
+	case k == len(answers)-1 && k < len(paras):
+		words = strings.Join(paras[k:], "\n")
+	case k < len(paras):
+		words = paras[k]
+	}
+	choices := []questChoice{{kind: choiceAccept, quest: qu.ID, step: k, label: answers[k]}}
+	if d := strings.TrimSpace(qu.Decline); d != "" {
+		choices = append(choices, questChoice{kind: choiceDecline, quest: qu.ID, label: d})
+	}
+	q.askLocked(sess, c, qu.Giver, words, questAskOffer, choices)
+}
+
+// paragraphs is a text's paragraphs: its lines between blank lines.
+func paragraphs(text string) []string {
+	var out []string
+	var cur []string
+	for _, l := range strings.Split(strings.ReplaceAll(text, "\r", ""), "\n") {
+		if strings.TrimSpace(l) == "" {
+			if len(cur) > 0 {
+				out = append(out, strings.Join(cur, "\n"))
+				cur = nil
+			}
+			continue
+		}
+		cur = append(cur, strings.TrimSpace(l))
+	}
+	if len(cur) > 0 {
+		out = append(out, strings.Join(cur, "\n"))
+	}
+	return out
 }
 
 // startLocked puts a quest in the journal at step (0: its first). gm marks a
@@ -514,7 +554,7 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 	}
 	if len(c.active()) >= questJournalLines {
 		if sess != nil && !gm {
-			q.tellLocked(sess, questFull)
+			q.tellLocked(sess, "", questFull)
 		}
 		return "the journal is full (eight quests under way)"
 	}
@@ -525,8 +565,11 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 	}
 	cq.Step, cq.Count, cq.Slot = st.Step, 0, c.nextSlot()
 	q.saveLocked(cq)
-	q.tellLocked(sess, append(sayLines(qu.Started), questReceived)...)
+	// Sandstorm's order: the journal's line, "You have received a quest!",
+	// then the giver's words
 	q.addLineLocked(sess, c, q.lineLocked(cq))
+	q.tellLocked(sess, "", questReceived)
+	q.tellLocked(sess, qu.Giver, sayLines(qu.Started)...)
 	who := fmt.Sprintf("character %d", c.serverID)
 	if p != nil {
 		who = p.Name
@@ -535,25 +578,25 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 	return ""
 }
 
-// atNPCLocked is a talk or give step's NPC talked to (answered: its answer
-// picked).
+// atNPCLocked is a talk, show or give step's NPC talked to (answered: its
+// answer picked). Show and give wait for what is to be held; give takes it.
 func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, answered bool) {
-	if st.Kind == database.StepGive {
+	if st.Kind == database.StepGive || st.Kind == database.StepShow {
 		if lack := q.lackingLocked(p, st); lack != "" {
-			q.tellLocked(sess, sayLines(orText(st.Waiting, questNotYet))...)
+			q.tellLocked(sess, st.Target, sayLines(orText(st.Waiting, questNotYet))...)
 			log.Printf("Quests: %s at %q step %d still lacks %s", p.Name, qu.Name, st.Step, lack)
 			return
 		}
 	}
 	if strings.TrimSpace(st.Answer) != "" && !answered {
-		q.askLocked(sess, c, st.Waiting, questAskStep, []questChoice{{kind: choiceStep, quest: qu.ID, step: st.Step, label: st.Answer}})
+		q.askLocked(sess, c, st.Target, st.Waiting, questAskStep, []questChoice{{kind: choiceStep, quest: qu.ID, step: st.Step, label: st.Answer}})
 		return
 	}
 	var given []string
 	if st.Kind == database.StepGive {
 		var ok bool
 		if given, ok = q.takeLocked(sess, p, st); !ok {
-			q.tellLocked(sess, sayLines(orText(st.Waiting, questNotYet))...)
+			q.tellLocked(sess, st.Target, sayLines(orText(st.Waiting, questNotYet))...)
 			return
 		}
 	}
@@ -591,6 +634,10 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 	case choiceAccept:
 		if why := q.mayTakeLocked(p, c, qu); why != "" {
 			log.Printf("Quests: %s answered to take %q, but %s", p.Name, qu.Name, why)
+			return true
+		}
+		if ch.step+1 < len(sayLines(qu.Accept)) {
+			q.askStageLocked(sess, c, qu, ch.step+1)
 			return true
 		}
 		q.startLocked(sess, p, c, qu, 0, false)
@@ -726,39 +773,29 @@ func (q *QuestEngine) checkReach() {
 	}
 }
 
-// completeStepLocked does a step: its NPC's words, the lines for what was
-// handed in and given, the rewards, and the next step's line (or the quest
-// finished).
+// completeStepLocked does a step in Sandstorm's order (its first warrior
+// quest, recorded): the NPC's words, the journal's line taken (and the next
+// step's added), "You have finished a quest!" after the last step, a line for
+// what was handed in and each item given, then the experience and the
+// faction lines.
 func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, given []string) {
 	idx := c.index(qu.ID)
 	next := qu.Next(st.Step)
-	lines := sayLines(st.Says)
-	if next == nil {
-		lines = append(lines, questFinished)
+	speaker := ""
+	if database.AtNPC(st.Kind) {
+		speaker = st.Target
 	}
-	for _, g := range given {
-		lines = append(lines, "You have given away "+g+".")
-	}
-	lines = append(lines, q.rewardLocked(sess, p, st)...)
-	q.tellLocked(sess, lines...)
-	if st.XP > 0 && sess != nil && p != nil {
-		q.gw.AwardXP(sess, p, st.XP)
-	}
-	if len(st.Factions) > 0 && p != nil {
-		hits := make([]entity.FactionHit, len(st.Factions))
-		for i, f := range st.Factions {
-			hits[i] = entity.FactionHit{Faction: f.Faction, Delta: f.Delta}
-		}
-		q.gw.ApplyFactionHits(sess, p, hits)
-	}
+	q.tellLocked(sess, speaker, sayLines(st.Says)...)
 	who := fmt.Sprintf("character %d", c.serverID)
 	if p != nil {
 		who = p.Name
 	}
+	var lines []string
 	if next == nil {
 		cq.Step, cq.Count = 0, 0
 		cq.Done++
 		q.dropLineLocked(sess, c, idx)
+		lines = append(lines, questFinished)
 		log.Printf("Quests: %s finished %q", who, qu.Name)
 	} else {
 		old := q.lineLocked(cq)
@@ -771,6 +808,21 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 		log.Printf("Quests: %s did step %d of %q; step %d next", who, st.Step, qu.Name, next.Step)
 	}
 	q.saveLocked(cq)
+	for _, g := range given {
+		lines = append(lines, "You have given away "+g+".")
+	}
+	lines = append(lines, q.rewardLocked(sess, p, st)...)
+	q.tellLocked(sess, "", lines...)
+	if st.XP > 0 && sess != nil && p != nil {
+		q.gw.AwardXP(sess, p, st.XP)
+	}
+	if len(st.Factions) > 0 && p != nil {
+		hits := make([]entity.FactionHit, len(st.Factions))
+		for i, f := range st.Factions {
+			hits[i] = entity.FactionHit{Faction: f.Faction, Delta: f.Delta}
+		}
+		q.gw.ApplyFactionHits(sess, p, hits)
+	}
 }
 
 // rewardLocked gives a step's tunar, items and spells (experience and
@@ -959,27 +1011,33 @@ func countOf(n int, name string) string {
 // --- the boxes ---
 
 // tellLocked says each line in a box of its own (0x0046), the client showing
-// them one after another.
-func (q *QuestEngine) tellLocked(sess *session.Session, lines ...string) {
+// them one after another; an NPC's (speaker not "") begin with its name, as
+// Sandstorm's do ("Commander Nothard: ..."), unless the line names it already.
+func (q *QuestEngine) tellLocked(sess *session.Session, speaker string, lines ...string) {
 	if sess == nil {
 		return
 	}
+	speaker = strings.TrimSpace(speaker)
 	for _, l := range lines {
+		if speaker != "" && !strings.HasPrefix(strings.ToLower(l), strings.ToLower(speaker)+":") {
+			l = speaker + ": " + l
+		}
 		for _, part := range splitSay(l, questBoxChars) {
 			SendDialogueBox(sess, 0, part)
 		}
 	}
 }
 
-// askLocked says words (all lines but the last, which asks; def when there is
-// no line short enough to ask) and opens the answers' box (0x0034).
-func (q *QuestEngine) askLocked(sess *session.Session, c *questChar, words, def string, choices []questChoice) {
+// askLocked says words, the speaker's (all lines but the last, which asks;
+// def when there is no line short enough to ask; the question carries no
+// name, as Sandstorm's do not) and opens the answers' box (0x0034).
+func (q *QuestEngine) askLocked(sess *session.Session, c *questChar, speaker, words, def string, choices []questChoice) {
 	lines := sayLines(words)
 	ask := def
 	if n := len(lines); n > 0 && utf8.RuneCountInString(lines[n-1]) <= questAskChars {
 		ask, lines = lines[n-1], lines[:n-1]
 	}
-	q.tellLocked(sess, lines...)
+	q.tellLocked(sess, speaker, lines...)
 	q.boxSeq++
 	id := uint32(questBoxMark | (q.boxSeq & 0xFFFFFF))
 	labels := make([]string, len(choices))

@@ -459,3 +459,60 @@ func TestLongWordsSplitIntoBoxes(t *testing.T) {
 		}
 	}
 }
+
+// Sandstorm's first warrior quest as questrec16 recorded it, in its shape (the
+// words here are the test's own): two questions before the quest is given, a
+// step that wants an item shown and keeps it, and the messages in Sandstorm's
+// order: taken, the journal's line, "You have received a quest!", then the
+// giver's words, each named for the giver; done, the giver's words, the line
+// taken, "You have finished a quest!", then the experience.
+func TestSandstormsFirstQuestsShape(t *testing.T) {
+	f := newQuestFixture(t)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, offer, accept, started) VALUES (30, 'Join up', 1, 'Commander Test',
+		'What do you need?' || char(10) || char(10) || 'You? Well.' || char(10) || 'We need people.' || char(10) || 'Are you ready?',
+		'I wish to join' || char(10) || 'Yes, I am ready.', 'Good.' || char(10) || 'Fetch the bracer.')`)
+	f.exec(fmt.Sprintf(`INSERT INTO queststeps (questid, step, kind, target, items, journal, says, xp)
+		VALUES (30, 1, 'show', 'Commander Test', '%d', 'Pick up a bracer.', 'Ahh, you have returned.' || char(10) || 'Take a break.', 430)`, f.aura))
+	f.qe.Reload()
+	cmd := f.tw.add(3, &entity.NPC{ServerID: 703, Name: "Commander Test", SpawnX: 25403, SpawnY: 54.1, SpawnZ: 15726})
+
+	f.tw.talk(cmd)
+	m := f.msgs()
+	if len(m) != 1 || !strings.HasSuffix(m[0], ":What do you need?|I wish to join") {
+		t.Fatalf("the first question: %q", m)
+	}
+	f.tw.pick(boxID(m), 0)
+	m = f.msgs()
+	want := []string{"box:Commander Test: You? Well.", "box:Commander Test: We need people."}
+	if len(m) != 3 || m[0] != want[0] || m[1] != want[1] || !strings.HasSuffix(m[2], ":Are you ready?|Yes, I am ready.") {
+		t.Fatalf("the second question: %q", m)
+	}
+	if s, _ := f.progress(30); s != -1 {
+		t.Fatal("the quest was given before its last answer")
+	}
+	f.tw.pick(boxID(m), 0)
+	m = f.msgs()
+	order := []string{"add:Pick up a bracer.", "box:" + questReceived, "box:Commander Test: Good.", "box:Commander Test: Fetch the bracer."}
+	if strings.Join(m, "\n") != strings.Join(order, "\n") {
+		t.Fatalf("taken:\n%s\nwant\n%s", strings.Join(m, "\n"), strings.Join(order, "\n"))
+	}
+
+	f.tw.talk(cmd)
+	m = f.msgs()
+	if len(m) != 1 || m[0] != "box:Commander Test: "+questNotYet {
+		t.Fatalf("without the bracer: %q", m)
+	}
+	f.own(f.aura, 1)
+	f.tw.talk(cmd)
+	m = f.msgs()
+	if len(m) < 5 || m[0] != "box:Commander Test: Ahh, you have returned." || m[1] != "box:Commander Test: Take a break." ||
+		m[2] != "drop:0" || m[3] != "box:"+questFinished || !hasMsg(m[4:], "xp") {
+		t.Fatalf("done: %q", m)
+	}
+	if f.held(f.aura) != 1 {
+		t.Errorf("a shown item was taken: %d left", f.held(f.aura))
+	}
+	if s, d := f.progress(30); s != 0 || d != 1 {
+		t.Errorf("finished: step %d done %d", s, d)
+	}
+}

@@ -47,6 +47,13 @@ func main() {
 
 	// Create database stores
 	charStore := database.NewSQLiteCharacterStore(db)
+	// Every character's kept experience onto the live game's level table,
+	// once: the same level and the same share of it (entity/xp.go)
+	if n, err := charStore.MigrateTotalXP(entity.XPTableVersion, entity.ConvertTotalXP); err != nil {
+		log.Fatalf("Experience: carrying characters to the level table %s: %v", entity.XPTableVersion, err)
+	} else if n > 0 {
+		log.Printf("Experience: %d characters carried to the level table %s, each at its level", n, entity.XPTableVersion)
+	}
 	// What a new character starts with (for testing: world.start_level and
 	// world.start_all_spells); the account page's store is given the same
 	newRules := database.NewCharacterRules{Level: cfg.World.StartLevel, AllSpells: cfg.World.StartAllSpells}

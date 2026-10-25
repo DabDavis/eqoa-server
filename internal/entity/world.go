@@ -829,7 +829,8 @@ func (w *World) sendGrantXP(sess *session.Session, level, xpInLevel int) {
 
 	writer.WriteUint16(uint16(protocol.OpcodeGrantXP))
 	writer.Write7BitEncodedInt64(int64(level))
-	writer.Write7BitEncodedInt64(int64(xpInLevel))
+	// as the HUD's bar reads it, against CLIENT's own table (xp.go)
+	writer.Write7BitEncodedInt64(int64(ClientXP(level, xpInLevel)))
 
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)

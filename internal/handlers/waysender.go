@@ -12,7 +12,7 @@ import (
 // A waysender sends a player to another town for a fee (F3 20261025-173746:
 // Waysender Brindel's trip to Lavastorm, for level 55 and up). The routes are
 // the ones EQOA-Data's quest guides (github.com/Jadiction/EQOA-Data, Quests/)
-// document, each landing on the spot of the NPC the guides meet there: the
+// document, each landing just in front of the NPC the guides meet there: the
 // other town's waysender, else its coachman, else (Lavastorm) the outpost a
 // level-53 guide walks to. Fees are the guides' where they give one (Neriak to
 // Freeport and back 100 tunar, Neriak to Grobb 225), else none. A waysender
@@ -125,7 +125,9 @@ func wayDests(gw *entity.World, sess *session.Session, waysender string, level i
 			}
 			continue
 		}
-		dests = append(dests, entity.CoachDest{Name: r.To, X: x, Y: y, Z: z, Facing: facing,
+		// in front of them, not inside them: a body is solid
+		fx, fz, face := inFrontOf(x, z, facing)
+		dests = append(dests, entity.CoachDest{Name: r.To, X: fx, Y: y, Z: fz, Facing: face,
 			World: world, Fee: r.Fee, MinLevel: r.MinLevel, Via: waysender})
 	}
 	return dests, barred

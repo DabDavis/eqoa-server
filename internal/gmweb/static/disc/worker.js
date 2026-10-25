@@ -1,8 +1,8 @@
 // The disc worker: everything that reads the GM's own game disc, off the
 // page's thread. The image is read in place (a File is a reference, never
-// copied whole); the three small files the models and icons need are kept in
-// this site's private storage (OPFS), so after one load the models work
-// without the disc. Nothing read here leaves the browser.
+// copied whole); the four small files the models, the icons and the spell
+// visuals need are kept in this site's private storage (OPFS), so after one
+// load they work without the disc. Nothing read here leaves the browser.
 
 import { readTOC, WORLD_FILES } from './iso.js';
 import * as esf from './esfcore.js';
@@ -10,7 +10,7 @@ import * as esf from './esfcore.js';
 let disc = null; // {file, files: Map, label}
 const containers = new Map(); // name -> Promise<parsed>
 const zoneTables = new Map(); // world file -> Promise<zones>
-const KEEP = ['DATA/CHAR.ESF', 'DATA/ITEM.ESF', 'DATA/ITEMICON.ESF'];
+const KEEP = ['DATA/CHAR.ESF', 'DATA/ITEM.ESF', 'DATA/ITEMICON.ESF', 'DATA2/SPELLFX.CSF'];
 const OPFS_DIR = 'gm-disc';
 
 const read = (file, off, len) => file.slice(off, off + len).arrayBuffer();
@@ -58,6 +58,8 @@ function container(name) {
         if (f) buf = await f.arrayBuffer();
       }
       if (!buf) throw new Error('load your game disc first (' + name + ')');
+      // a .CSF is the same container compressed
+      if (!esf.magicOK(buf)) buf = await esf.inflateCSF(buf);
       return esf.parseESF(buf);
     })());
     containers.get(name).catch(() => containers.delete(name));
@@ -120,6 +122,15 @@ const ops = {
     const img = esf.surfaceByID(parsed, id | 0);
     if (!img) return { missing: true };
     return { ...img, __transfer: [img.data.buffer] };
+  },
+
+  // spellVisuals: every spell visual on the disc (SPELLFX.CSF's 0xC200
+  // records, which 0x00B1 names by DictID) and what each one's event lists
+  // hold; only the DictIDs ever leave the browser (the page plays and sets
+  // them by id)
+  async spellVisuals() {
+    const parsed = await container('DATA2/SPELLFX.CSF');
+    return { visuals: esf.spellVisuals(parsed) };
   },
 
   async zones({ world }) {

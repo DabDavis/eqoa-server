@@ -478,7 +478,8 @@ var catalog = map[string]tableNote{
 	"spelleffect": {
 		Label: "Spell effects", Group: "Items & spells", Title: "line", Sort: "spellid",
 		Help: "What each spell does, as EQOA-Data's spell lists word it (\"Inflicts 45 magic damage\", \"Increases STR by 10 " +
-			"for 5 minutes\"); entity/spelltext.go reads the words. fxdict is the visual (0: the server's stand-in).",
+			"for 5 minutes\"); entity/spelltext.go reads the words. fxdict is the visual (0: the server's stand-in of its " +
+			"kind): play_visual plays one in the game, Spell visuals lists the disc's, and #spellfx sets one in the game.",
 		Live:   "At once: read at every cast.",
 		Search: []string{"line"},
 		Cols: map[string]colNote{

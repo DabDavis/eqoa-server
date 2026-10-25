@@ -189,6 +189,10 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		chatHandler.SetMasteryStore(charStore)
 	}
 	chatHandler.SetTemplate(charHandler.ApplyTemplate)
+	// #fx and #spellfx: the spells and their visuals (spellfx.go)
+	if spellStore != nil {
+		chatHandler.SetSpellVisuals(spellStore)
+	}
 	targetHandler := NewTargetHandler(sessionMgr)
 	if gameWorld != nil {
 		targetHandler.SetGameWorld(gameWorld)

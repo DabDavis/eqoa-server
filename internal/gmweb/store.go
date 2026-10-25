@@ -1,29 +1,17 @@
 package gmweb
 
-import "time"
+import (
+	"time"
 
-// The panel's own tables, in the game's database: the audit log, the GMs'
-// authenticators, their API and OAuth tokens and the OAuth clients. Times are
-// TEXT in RFC 3339 (UTC), which every reader of the file can sort and parse.
-const panelSchema = `
-CREATE TABLE IF NOT EXISTS gm_audit (
-	id          INTEGER PRIMARY KEY AUTOINCREMENT,
-	at          TEXT NOT NULL,
-	accountid   INTEGER NOT NULL,
-	username    TEXT NOT NULL,
-	via         TEXT NOT NULL,
-	ip          TEXT NOT NULL,
-	action      TEXT NOT NULL,
-	tbl         TEXT NOT NULL DEFAULT '',
-	rowkey      TEXT NOT NULL DEFAULT '',
-	before      TEXT,
-	after       TEXT,
-	detail      TEXT NOT NULL DEFAULT '',
-	reverted_by INTEGER
-);
-CREATE INDEX IF NOT EXISTS idx_gm_audit_tbl ON gm_audit(tbl, rowkey);
-CREATE INDEX IF NOT EXISTS idx_gm_audit_acct ON gm_audit(accountid);
+	"github.com/eqoa/server/internal/database"
+)
 
+// The panel's own tables, in the game's database: the audit log (its
+// statement the database package's: a GM command in the game writes it too),
+// the GMs' authenticators, their API and OAuth tokens and the OAuth clients.
+// Times are TEXT in RFC 3339 (UTC), which every reader of the file can sort
+// and parse.
+const panelSchema = database.GMAuditSchema + `
 CREATE TABLE IF NOT EXISTS gm_totp (
 	accountid INTEGER PRIMARY KEY,
 	secret    TEXT NOT NULL,

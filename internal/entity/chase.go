@@ -141,6 +141,7 @@ func (w *World) chaseLocked(npc *NPC, x, z, vx, vz float32, now time.Time) (inRe
 	oldX, oldZ := npc.X, npc.Z
 	npc.X += ux * step
 	npc.Z += uz * step
+	w.groundNPCLocked(npc)
 	if w.SpatialIndex != nil {
 		w.SpatialIndex.Update(npc.ServerID, oldX, oldZ, npc.X, npc.Z)
 	}

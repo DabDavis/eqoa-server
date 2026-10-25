@@ -92,6 +92,10 @@ type NPC struct {
 	// (chase.go).
 	chase chaseState
 
+	// onGround: it spawned on the terrain of the world's ground, so its moves
+	// take its floor (groundnpc.go); groundKnown once that was looked at.
+	groundKnown, onGround bool
+
 	// AggroBehavior. RoamRadius is how far from its spawn a creature wanders
 	// (roam.go); 0 for none.
 	AggroRadius float32

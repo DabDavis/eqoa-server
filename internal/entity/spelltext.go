@@ -39,20 +39,22 @@ const (
 type EffectKind int
 
 const (
-	EffectHP        EffectKind = iota // hit points now (Amount < 0: damage)
-	EffectHPTick                      // hit points each tick of the duration
-	EffectPower                       // power now
-	EffectPowerTick                   // power each tick
-	EffectStat                        // a stat changed for the duration
-	EffectRoot                        // can not move, for the duration
-	EffectSnare                       // moves slower
-	EffectSpeed                       // runs faster (Spirit of the Wolf: "Sow")
-	EffectInvis                       // unseen
-	EffectGate                        // back to the bind point
-	EffectHate                        // the target's hate for the caster
-	EffectSummon                      // a pet (pet.go): SpellDef.Pet names it
-	EffectProc                        // the bearer's melee hits may do Amount more (proc.go)
-	EffectCharm                       // the target becomes the caster's pet (charm.go)
+	EffectHP          EffectKind = iota // hit points now (Amount < 0: damage)
+	EffectHPTick                        // hit points each tick of the duration
+	EffectPower                         // power now
+	EffectPowerTick                     // power each tick
+	EffectStat                          // a stat changed for the duration
+	EffectRoot                          // can not move, for the duration
+	EffectSnare                         // moves slower
+	EffectSpeed                         // runs faster (Spirit of the Wolf: "Sow")
+	EffectInvis                         // unseen
+	EffectGate                          // back to the bind point
+	EffectHate                          // the target's hate for the caster
+	EffectSummon                        // a pet (pet.go): SpellDef.Pet names it
+	EffectProc                          // the bearer's melee hits may do Amount more (proc.go)
+	EffectCharm                         // the target becomes the caster's pet (charm.go)
+	EffectIllusion                      // the bearer shown in another body (illusion.go): SpellDef.Form
+	EffectEndIllusion                   // the bearer's own body back (illusion.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -108,6 +110,11 @@ type SpellDef struct {
 	// description says ("Charms up to level 54 mobs", "Charm up to level
 	// 54"); 0: the spell's own level (charm.go).
 	CharmMax int
+	// Form is the body an illusion shows its bearer in, as the spell's name
+	// gives it ("troll", "clay golem"), and FormKind whom it lands on
+	// (illusion.go); "" and FormNone for every other spell.
+	Form     string
+	FormKind FormKind
 }
 
 // Charms reports whether the spell makes its target the caster's pet.
@@ -201,6 +208,14 @@ func statWord(s string) (Stat, bool) {
 		}
 	}
 	return StatNone, false
+}
+
+// ParseSpellNamed is ParseSpell with what the spell's name says beside its
+// line and description: an illusion's body and whom it lands on.
+func ParseSpellNamed(name, line, desc string) SpellDef {
+	d := ParseSpell(line, desc)
+	d.readIllusion(name, desc)
+	return d
 }
 
 // ParseSpell reads a spell's line with its ability's description, which

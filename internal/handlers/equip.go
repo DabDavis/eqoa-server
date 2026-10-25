@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
@@ -38,9 +39,10 @@ type EquipHandler struct {
 	spells         *database.SpellbookStore
 	charHandler    *CharacterHandler
 
-	// playerOf is the World's SessionPlayer (SetGameWorld); tests stand in
-	// for it.
+	// playerOf is the World's SessionPlayer and eat its Consume
+	// (SetGameWorld); tests stand in for them.
 	playerOf func(*session.Session) *entity.Player
+	eat      func(*session.Session, entity.Consumable, time.Time) error
 }
 
 // NewEquipHandler creates the handler. spells may be nil: no scroll is then
@@ -53,6 +55,7 @@ func NewEquipHandler(sessionMgr *session.Manager, inv *database.InventoryStore, 
 func (h *EquipHandler) SetGameWorld(gw *entity.World) {
 	h.gameWorld = gw
 	h.playerOf = gw.SessionPlayer
+	h.eat = gw.Consume
 }
 
 // RegisterHandlers registers the equip handlers.
@@ -363,10 +366,17 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		return nil
 	}
 
-	// A spell scroll is scribed, not worn.
-	if idx, row, err := invItemByKey(items, sessionInvList(sess), key); err == nil && isScroll(&row.Pattern) {
-		h.scribe(sess, player, idx, row)
-		return nil
+	// A spell scroll is scribed, and a meal or a drink taken (consume.go),
+	// not worn.
+	if idx, row, err := invItemByKey(items, sessionInvList(sess), key); err == nil {
+		if isScroll(&row.Pattern) {
+			h.scribe(sess, player, idx, row)
+			return nil
+		}
+		if c, ok := consumableOf(&row.Pattern); ok {
+			h.consume(sess, player, idx, row, c)
+			return nil
+		}
 	}
 
 	plan, err := planInteractItem(items, sessionInvList(sess), key)

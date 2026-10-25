@@ -38,9 +38,11 @@ func TestConsumeAddsToTheRegen(t *testing.T) {
 	if p.HoTNow() != 20 || p.PoTNow() != 10 {
 		t.Fatalf("the control: its own HoT %d, PoT %d; want 20, 10", p.HoTNow(), p.PoTNow())
 	}
-	if !w.Consume(sess, Consumable{Name: "hearty bread", Icon: breadIcon, Amount: 10}, now) ||
-		!w.Consume(sess, Consumable{Drink: true, Name: "well water", Icon: waterIcon, Amount: 2}, now) {
-		t.Fatal("Consume refused a living player")
+	if err := w.Consume(sess, Consumable{Name: "hearty bread", Icon: breadIcon, Amount: 10}, now); err != nil {
+		t.Fatal(err)
+	}
+	if err := w.Consume(sess, Consumable{Drink: true, Name: "well water", Icon: waterIcon, Amount: 2}, now); err != nil {
+		t.Fatal(err)
 	}
 	if p.HoTNow() != 30 || p.PoTNow() != 12 {
 		t.Fatalf("with bread and water: HoT %d, PoT %d; want 30, 12", p.HoTNow(), p.PoTNow())
@@ -67,10 +69,18 @@ func TestConsumeAddsToTheRegen(t *testing.T) {
 		t.Errorf("the new meal goes last on the channel: %+v", p.Buffs)
 	}
 
-	// no meal for the dead
-	p.HP = 0
-	if w.Consume(sess, Consumable{Name: "boiled egg", Amount: 14}, now) {
-		t.Error("a dead player ate")
+	// none in a fight (it would end at once), none for the dead; nothing
+	// changes
+	p.AttackTarget = 2002
+	if err := w.Consume(sess, Consumable{Name: "boiled egg", Amount: 14}, now); err != ErrConsumeFighting {
+		t.Errorf("in a fight: %v, want ErrConsumeFighting", err)
+	}
+	p.AttackTarget, p.HP = 0, 0
+	if err := w.Consume(sess, Consumable{Name: "boiled egg", Amount: 14}, now); err != ErrConsumeNoPlayer {
+		t.Errorf("dead: %v, want ErrConsumeNoPlayer", err)
+	}
+	if p.HoTNow() != 20+49 || len(p.Effects) != 2 {
+		t.Errorf("after the refusals: HoT %d, %d effects", p.HoTNow(), len(p.Effects))
 	}
 }
 

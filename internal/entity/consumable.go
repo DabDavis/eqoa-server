@@ -1,10 +1,18 @@
 package entity
 
 import (
+	"errors"
 	"log"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
+)
+
+// What Consume refuses: no player (or a dead one), and one in a fight, whose
+// meal would end at once (consumableSystem).
+var (
+	ErrConsumeNoPlayer = errors.New("no living player")
+	ErrConsumeFighting = errors.New("in a fight")
 )
 
 // consumable.go — food and drink (F3 20261025-172627, jib's account of the
@@ -50,14 +58,18 @@ func (c Consumable) effectID() int {
 func isConsumableEffect(id int) bool { return id == FoodEffectID || id == DrinkEffectID }
 
 // Consume puts a meal or a drink on the session's player for
-// ConsumableDuration: its effect replaces the last of its kind. False with
-// no player, or a dead one.
-func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) bool {
+// ConsumableDuration: its effect replaces the last of its kind. It refuses
+// no player or a dead one (ErrConsumeNoPlayer) and one with auto-attack on
+// (ErrConsumeFighting).
+func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
 	if p == nil || p.IsDead() {
-		return false
+		return ErrConsumeNoPlayer
+	}
+	if p.AttackTarget != 0 {
+		return ErrConsumeFighting
 	}
 	ae := &ActiveEffect{SpellID: c.effectID(), Name: c.Name, Icon: c.Icon, Caster: p.ServerID,
 		Until: now.Add(ConsumableDuration)}
@@ -68,7 +80,7 @@ func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) bool
 	}
 	w.addEffectLocked(p, ae, now)
 	log.Printf("Consume: %s has %q (%s %d for %v)", p.Name, c.Name, map[bool]string{false: "HoT", true: "PoT"}[c.Drink], c.Amount, ConsumableDuration)
-	return true
+	return nil
 }
 
 // consumableSystem ends a player's meal and drink once it takes an

@@ -324,6 +324,23 @@ var catalog = map[string]tableNote{
 			"dt_kill":          {Section: "Other"},
 		},
 	},
+	"npcpaths": {
+		Label: "NPC paths", Group: "World", Sort: "npcid",
+		Help: "The paths GMs give NPCs (the World map's Path editor draws them): one row an NPC, by its npcs id; points " +
+			"is its waypoints in order, a JSON list of {x, y, z} (and pause, seconds there); mode loop, pingpong (back and " +
+			"forth) or once (then it stands at the last point); pause, seconds at each point; speed walk or run. A pathed " +
+			"NPC does not wander; a fight takes it off its path and it takes it up again at the nearest leg.",
+		Live: "At once: the NPC walks its new path from its nearest leg; a deleted path sends it back to its spawn point.",
+		Show: []string{"npcid", "world", "mode", "pause", "speed"},
+		Cols: map[string]colNote{
+			"npcid":  {Label: "NPC", Ref: "npcs"},
+			"world":  {Label: "World", Enum: "world", Help: "the NPC's own world (a path in another is not walked)"},
+			"mode":   {Label: "Mode", Help: "loop, pingpong (back and forth) or once"},
+			"pause":  {Label: "Pause (s)", Help: "seconds at each point, 0-600"},
+			"speed":  {Label: "Speed", Help: "walk (5 a second) or run (8.8)"},
+			"points": {Label: "Waypoints", Format: "multiline", Help: `[{"x": 25000, "y": 50, "z": 15000}, {"x": 25040, "y": 51, "z": 15000, "pause": 5}]`},
+		},
+	},
 	"npcitem": {
 		Label: "Merchant stock", Group: "World", Sort: "npcid",
 		Help: "What a merchant sells: a row an item, by npcs.id; listnumber orders the window.",

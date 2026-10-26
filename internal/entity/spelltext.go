@@ -91,6 +91,14 @@ type SpellEffect struct {
 	AmountMax int  // a range's top, else Amount
 	Scale     Stat
 	ScalePct  int
+	// Self is an effect on the caster, whoever the spell lands on: a
+	// pact's price ("Decrease Hitpoints by 50 to Self"), "Increase AC by
+	// 25 Self", "Increase Caster HP by 1160" (lifetap.go)
+	Self bool
+	// Drain is where what the target loses goes: a life tap's damage heals
+	// its caster (or the caster's group), a drained stat or power is the
+	// caster's (lifetap.go)
+	Drain DrainTo
 }
 
 // SpellDef is a spell's line, read: whom it lands on, what it does, how
@@ -265,7 +273,7 @@ var reProcDesc = regexp.MustCompile(`\bproc\b|chance to deal additional`)
 func (d SpellDef) asProc() SpellDef {
 	at := -1
 	for i, e := range d.Effects {
-		if e.Kind == EffectHP && e.Amount < 0 {
+		if e.Kind == EffectHP && e.Amount < 0 && !e.Self {
 			at = i
 			break
 		}
@@ -281,7 +289,7 @@ func (d SpellDef) asProc() SpellDef {
 	for _, e := range d.Effects {
 		switch e.Kind {
 		case EffectHP, EffectHPTick, EffectStat:
-			d.Harmful = d.Harmful || e.Amount < 0
+			d.Harmful = d.Harmful || (e.Amount < 0 && !e.Self)
 		case EffectRoot, EffectSnare, EffectHate:
 			d.Harmful = true
 		}
@@ -358,7 +366,7 @@ func ParseSpellText(line string) SpellDef {
 	for _, e := range d.Effects {
 		switch e.Kind {
 		case EffectHP, EffectHPTick, EffectStat:
-			if e.Amount < 0 {
+			if e.Amount < 0 && !e.Self {
 				d.Harmful = true
 			}
 		case EffectRoot, EffectSnare, EffectHate, EffectCharm:
@@ -414,6 +422,13 @@ func spellDuration(n, unit string) time.Duration {
 // what it says to d, and returns the verb a following part without one goes
 // on with.
 func (d *SpellDef) parsePart(part, verb string) string {
+	// what goes to the caster: a tap's "give self", a pact's "to Self"
+	// (lifetap.go); a clause of those words alone is the last effect's
+	part, to, self := splitTransfer(part)
+	if part == "" {
+		d.transferFrom(len(d.Effects)-1, "", to, self)
+		return verb
+	}
 	// A trailing "for 30 seconds" is the duration, and so is a bare "5min"
 	// at the end of a clause the line did not cut off ("Target Invis 5min").
 	if m := reFor.FindStringSubmatch(part); m != nil {
@@ -426,11 +441,6 @@ func (d *SpellDef) parsePart(part, verb string) string {
 	if m := reHate.FindStringSubmatch(part); m != nil {
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectHate, Amount: atoi(m[1]), AmountMax: atoi(m[1])})
 		return verb
-	}
-	// A drain's "and transfer to caster" / "give self": the caster's share
-	// is not acted on yet; the target's is.
-	for _, tail := range []string{" and transfer to caster", " and give to self", " gives to self", " give self"} {
-		part = strings.TrimSuffix(part, tail)
 	}
 	scale, scalePct := StatNone, 0
 	if m := reScaleIn.FindStringSubmatch(part); m != nil {
@@ -470,8 +480,11 @@ func (d *SpellDef) parsePart(part, verb string) string {
 	// "X by N and Y by M" (or "&"): two of one verb.
 	for _, joint := range []string{" and ", " & "} {
 		if pieces := strings.Split(part, joint); len(pieces) == 2 && strings.Contains(pieces[0], " by ") && strings.Contains(pieces[1], " by ") {
+			n := len(d.Effects)
 			v := d.parsePart(pieces[0], verb)
-			return d.parsePart(pieces[1], v)
+			v = d.parsePart(pieces[1], v)
+			d.transferFrom(n, v, to, self)
+			return v
 		}
 	}
 	if m := reVerb.FindStringSubmatch(part); m != nil {
@@ -497,6 +510,7 @@ func (d *SpellDef) parsePart(part, verb string) string {
 			e.Amount, e.AmountMax = e.AmountMax, e.Amount
 		}
 		e.Scale, e.ScalePct = scale, scalePct
+		e.Drain, e.Self = resolveTransfer(verb, sign, to, self)
 		d.Effects = append(d.Effects, e)
 	}
 	switch subject {

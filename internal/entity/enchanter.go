@@ -33,12 +33,13 @@ import (
 //     every line's scale is (lasting).
 //   - A group proc reaches the members' pets too (groupProcPetsLocked): the
 //     masteries list's "group melee-proc buff", and pets swing.
-//   - The clarity line (clarityFamily: Breeze, Clarity, Tranquility, Empathy
-//     and the group's Empathic ...) is one at a time on a player, the most
-//     power a tick winning, as heals over time are (hot.go): a weaker one
-//     does nothing, a stronger or equal one replaces the other and keeps its
-//     tick (no tick at once). Mana Flow and the Power ... bursts are not of
-//     the line and add to it.
+//   - The clarity line (clarityFamily: Breeze, Intuition, Clarity, Lucidity,
+//     Tranquility, Empathy and the group's Empathic ...) is one at a time on a
+//     player, the most power a tick winning, as heals over time are (hot.go):
+//     a weaker one does nothing, a stronger or equal one replaces the other
+//     and keeps its tick (no tick at once). Mana Flow, the Power Flow, Tide,
+//     Wave and Flood bursts and the bards' songs are not of the line and add
+//     to it.
 //   - An arcane resist debuff on a creature (the Paralytic line, "Decrease
 //     Resist Arcane by 25, 15min") lowers the chance it resists what this
 //     server rolls an arcane resist for: a proc (proc.go) and a charm
@@ -115,7 +116,7 @@ func (w *World) groupProcPetsLocked(caster *Player, ids []EntityID, r float32) [
 func clarityFamily(name string) bool {
 	n := strings.ToLower(strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(name), "+")))
 	switch n {
-	case "breeze", "clarity", "tranquility", "empathy":
+	case "breeze", "intuition", "clarity", "lucidity", "tranquility", "empathy":
 		return true
 	}
 	return strings.HasPrefix(n, "empathic ")

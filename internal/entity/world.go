@@ -238,6 +238,7 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		Level:        level,
 		XPInLevel:    XPInLevel(level, record.TotalXP),
 		TotalXP:      TotalXP(level, XPInLevel(level, record.TotalXP)),
+		Debt:         max(0, record.Debt),
 		Speed:        RunSpeed,
 		Faction:      FactionFriendly,
 		Str:          str,
@@ -711,17 +712,18 @@ func (w *World) LivePosition(id EntityID, prevY float32) (x, y, z, facing float3
 	return p.X, y, p.Z, p.Facing, world, true
 }
 
-// LiveProgress is the level and the kept total experience (totalXP) of the
-// character's player while some session still has it in the world, dead or
-// not: a death takes a place away from the next login, not a level.
-func (w *World) LiveProgress(id EntityID) (level, totalXP int, ok bool) {
+// LiveProgress is the level, the kept total experience (totalXP) and the
+// experience debt of the character's player while some session still has it
+// in the world, dead or not: a death takes a place away from the next login,
+// not a level.
+func (w *World) LiveProgress(id EntityID) (level, totalXP, debt int, ok bool) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	p, found := w.Players[id]
 	if !found {
-		return 0, 0, false
+		return 0, 0, 0, false
 	}
-	return p.Level, TotalXP(p.Level, p.XPInLevel), true
+	return p.Level, TotalXP(p.Level, p.XPInLevel), p.Debt, true
 }
 
 // sessionPlayerLocked extracts the *Player from a session. Must be called with lock held.
@@ -836,19 +838,27 @@ func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 	}
 }
 
-// awardXP grants XP to a player, handles level-ups, and sends GrantXP. The
-// mastery points window's share of it goes to mastery points (mastery.go),
-// each point made told as CLIENT's Recv03 is (0x1402 sub-op 3), and a level
-// that changes the stat cap tells it (0x001C).
+// awardXP grants XP to a player, handles level-ups, and sends GrantXP. Half
+// of it pays an experience debt while one is owed, and the rest goes to
+// mastery points alone at the level cap, else by the mastery points window's
+// share (splitXP, mastery.go); each point made is told as CLIENT's Recv03 is
+// (0x1402 sub-op 3), the debt left as 0x00D9 (CLIENT's mark on the player's
+// own target bar while it is above 0), and a level that changes the stat cap
+// tells it (0x001C).
 func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
-	levelXP, cmXP := splitXP(player.Mastery, xp)
+	shares := splitXP(player.Mastery, player.Level, player.Debt, xp)
+	levelXP, cmXP := shares.Level, shares.Mastery
 	made := gainMastery(&player.Mastery, cmXP)
+	if shares.Debt > 0 {
+		player.Debt = max(0, player.Debt-shares.Debt)
+		sendExpDebt(sess, player.Debt)
+	}
 	statCap := StatCapBase(player.Level)
 	player.TotalXP += levelXP
 	player.XPInLevel += levelXP
 
 	// Process level-ups
-	if player.Level < 60 {
+	if player.Level < MaxLevel {
 		for {
 			threshold, ok := CharXPDict[player.Level]
 			if !ok || threshold <= 0 {
@@ -862,7 +872,7 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 			player.RecalcStats(false)
 			log.Printf("Combat: player %s leveled up to %d!", sess.RemoteAddr(), player.Level)
 			w.sendChatToSession(sess, fmt.Sprintf("You have reached level %d!", player.Level))
-			if player.Level >= 60 {
+			if player.Level >= MaxLevel {
 				break
 			}
 		}
@@ -881,17 +891,41 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 	// and for the masteries' share "You received N class mastery XP." alone
 	// when it is all of it (a level 60's Sandstorm session in a client
 	// report's chat, F3 20261025-225337)
-	if levelXP > 0 || cmXP == 0 {
+	if levelXP > 0 || (cmXP == 0 && shares.Debt == 0) {
 		w.sendChatToSession(sess, fmt.Sprintf("You receive %d XP.", levelXP))
 	}
 	if cmXP > 0 {
 		w.sendChatToSession(sess, fmt.Sprintf("You received %d class mastery XP.", cmXP))
 	}
+	// what paid the debt, in our words: no record of the live game's line
+	if shares.Debt > 0 {
+		if player.Debt > 0 {
+			w.sendChatToSession(sess, fmt.Sprintf("%d experience went to your experience debt (%d left).", shares.Debt, player.Debt))
+		} else {
+			w.sendChatToSession(sess, fmt.Sprintf("%d experience went to your experience debt, and it is paid off.", shares.Debt))
+		}
+	}
 	if made > 0 {
 		SendMasteryPoints(sess, player.Mastery)
 		logMastery(player.Name, made, player.Mastery)
 	}
-	log.Printf("Combat: awarded %d XP to %s (level %d, xpInLevel: %d/%d)", xp, sess.RemoteAddr(), player.Level, player.XPInLevel, CharXPDict[player.Level])
+	log.Printf("Combat: awarded %d XP to %s (level %d, xpInLevel: %d/%d; %d to the level, %d to masteries, %d to the debt, %d owed)",
+		xp, sess.RemoteAddr(), player.Level, player.XPInLevel, CharXPDict[player.Level], levelXP, cmXP, shares.Debt, player.Debt)
+}
+
+// sendExpDebt sends 0x00D9: the experience debt as one raw u32 into CLIENT's
+// player record (+0x2C, m_p2C), which marks the player's own target bar with
+// a debt icon while it is above 0 (viwndgame.cpp DrawTarget).
+func sendExpDebt(sess *session.Session, debt int) {
+	if sess == nil {
+		return
+	}
+	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeExpDebt)
+	writer := buffer.NewWriter(msg.Span())
+	writer.WriteUint16(uint16(protocol.OpcodeExpDebt))
+	writer.WriteUint32(uint32(max(0, debt)))
+	msg.SetSize(writer.Position())
+	sess.Queue().AddWithSequence(msg)
 }
 
 // sendGrantXP sends OpcodeGrantXP (0x0020).

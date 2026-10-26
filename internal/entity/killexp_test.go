@@ -2,6 +2,7 @@ package entity
 
 import (
 	"encoding/binary"
+	"fmt"
 	"net"
 	"testing"
 
@@ -108,9 +109,21 @@ func sentOf(s *session.Session) (lines []string, points bool) {
 	return lines, points
 }
 
+// earned is all the experience a player was given: into its levels, toward
+// its mastery points (every point's cost and what is toward the next) and to
+// its debt.
+func earned(p *Player, debtBefore int) int {
+	n := p.TotalXP + p.Mastery.XP + debtBefore - p.Debt
+	for i := 1; i <= p.Mastery.Points+p.Mastery.Spent; i++ {
+		n += CMPointXP(i)
+	}
+	return n
+}
+
 // A kill's experience goes to the killer and the group's members in its
 // world within KillShareRange, each GroupExp's share of the members there;
-// one away (or in another world) gets none and counts for none.
+// one away (or in another world) gets none and counts for none. (Level 60s:
+// it is all mastery experience, jib's rule: earned counts it wherever it went.)
 func TestAKillIsSharedWithTheGroupNear(t *testing.T) {
 	k := newKillWorld(t, 60, 60, 60)
 	near, far := k.players[1], k.players[2]
@@ -119,46 +132,98 @@ func TestAKillIsSharedWithTheGroupNear(t *testing.T) {
 
 	k.w.awardKillXPLocked(k.sess[0], k.players[0], npc)
 	want := groupExp(60, 60, []int{60, 60})
-	if k.players[0].TotalXP != want || near.TotalXP != want {
-		t.Fatalf("killer %d, member near %d, want %d each (two sharing)", k.players[0].TotalXP, near.TotalXP, want)
+	if earned(k.players[0], 0) != want || earned(near, 0) != want {
+		t.Fatalf("killer %d, member near %d, want %d each (two sharing)", earned(k.players[0], 0), earned(near, 0), want)
 	}
-	if far.TotalXP != 0 {
-		t.Errorf("the member %v off got %d", KillShareRange+50, far.TotalXP)
+	if earned(far, 0) != 0 {
+		t.Errorf("the member %v off got %d", KillShareRange+50, earned(far, 0))
 	}
 
 	// the control: alone, the whole of it
 	solo := newKillWorld(t, 60)
 	solo.w.awardKillXPLocked(solo.sess[0], solo.players[0], npc)
-	if solo.players[0].TotalXP != groupExp(60, 60, []int{60}) || solo.players[0].TotalXP == want {
-		t.Errorf("alone %d, grouped %d", solo.players[0].TotalXP, want)
+	if got := earned(solo.players[0], 0); got != groupExp(60, 60, []int{60}) || got == want {
+		t.Errorf("alone %d, grouped %d", got, want)
 	}
 }
 
-// jib's report: a level 60 with the whole share on masteries gets three
-// points from one kill of a level 63 (425,820: the first three cost
-// 125,000, 125,763 and 126,530), told by 0x1402 and Sandstorm's one line,
-// "You received N class mastery XP."; the control is no share: the level's
-// line and no point.
+// jib's report: a level 60 gets three points from one kill of a level 63
+// (425,820: the first three cost 125,000, 125,763 and 126,530), told by
+// 0x1402 and Sandstorm's one line, "You received N class mastery XP.", and
+// at the level cap whatever the window's share (jib's rule, F3
+// 20261026-042328: 0% too); the control is a level 59 with no share: the
+// level's line and no point.
 func TestALevel60KillMakesAMasteryPoint(t *testing.T) {
 	k := newKillWorld(t, 60)
 	p := k.players[0]
-	p.Mastery = Mastery{Percent: 100}
 	npc := &NPC{ServerID: 5002, Name: "Froglok Slayer", Level: 63, X: 1000, Z: 1000}
-
-	k.w.awardKillXPLocked(k.sess[0], p, npc)
-	lines, told := sentOf(k.sess[0])
 	left := 425820 - CMPointXP(1) - CMPointXP(2) - CMPointXP(3)
-	if p.Mastery.Points != 3 || p.Mastery.XP != left || left != 48527 || !told {
-		t.Fatalf("mastery %+v, told %v; want three points and 48,527 toward the fourth", p.Mastery, told)
-	}
-	if len(lines) != 1 || lines[0] != "You received 425820 class mastery XP." {
-		t.Errorf("the chat: %q, want Sandstorm's one line", lines)
+	for _, pct := range []int{100, 0} {
+		p.Mastery = Mastery{Percent: pct}
+		k.w.awardKillXPLocked(k.sess[0], p, npc)
+		lines, told := sentOf(k.sess[0])
+		if p.Mastery.Points != 3 || p.Mastery.XP != left || left != 48527 || !told {
+			t.Fatalf("at %d%%: mastery %+v, told %v; want three points and 48,527 toward the fourth", pct, p.Mastery, told)
+		}
+		if len(lines) != 1 || lines[0] != "You received 425820 class mastery XP." {
+			t.Errorf("at %d%%: the chat %q, want Sandstorm's one line", pct, lines)
+		}
 	}
 
-	p.Mastery = Mastery{}
-	k.w.awardKillXPLocked(k.sess[0], p, npc)
-	lines, told = sentOf(k.sess[0])
-	if told || p.Mastery.Points != 0 || len(lines) != 1 || lines[0] != "You receive 425820 XP." {
-		t.Errorf("the control, no share: %q, told %v, mastery %+v", lines, told, p.Mastery)
+	low := newKillWorld(t, 59)
+	q := low.players[0]
+	low.w.awardKillXPLocked(low.sess[0], q, npc)
+	lines, told := sentOf(low.sess[0])
+	worth := groupExp(63, 59, []int{59})
+	if told || q.Mastery.Points != 0 || len(lines) != 1 || lines[0] != fmt.Sprintf("You receive %d XP.", worth) {
+		t.Errorf("the control, a level 59 with no share: %q, told %v, mastery %+v", lines, told, q.Mastery)
+	}
+}
+
+// While a debt is owed half of each kill pays it, never more than is owed: a
+// level 60 owing 100,000 pays it all off out of a 425,820 kill and gets the
+// rest as mastery experience, one owing 1,000,000 pays half (212,910) and
+// still owes the rest; 0x00D9 tells CLIENT the debt left, and the chat says
+// both shares. The control: no debt, no 0x00D9.
+func TestADebtTakesHalfOfAKill(t *testing.T) {
+	npc := &NPC{ServerID: 5003, Name: "Froglok Slayer", Level: 63, X: 1000, Z: 1000}
+	debtOf := func(s *session.Session) (int, bool) {
+		for _, m := range s.Queue().PeekPending() {
+			d := m.Data()
+			if protocol.GameOpcode(binary.LittleEndian.Uint16(d)) == protocol.OpcodeExpDebt {
+				return int(binary.LittleEndian.Uint32(d[2:])), true
+			}
+		}
+		return 0, false
+	}
+	for _, c := range []struct {
+		debt, paid, left int
+		line             string
+	}{
+		{100000, 100000, 0, "100000 experience went to your experience debt, and it is paid off."},
+		{1000000, 212910, 787090, "212910 experience went to your experience debt (787090 left)."},
+	} {
+		k := newKillWorld(t, 60)
+		p := k.players[0]
+		p.Debt = c.debt
+		k.w.awardKillXPLocked(k.sess[0], p, npc)
+		sent, ok := debtOf(k.sess[0])
+		lines, _ := sentOf(k.sess[0])
+		if p.Debt != c.left || !ok || sent != c.left {
+			t.Fatalf("a debt of %d: %d owed, 0x00D9 %v %d; want %d", c.debt, p.Debt, ok, sent, c.left)
+		}
+		if got := earned(p, c.debt); got != 425820 {
+			t.Errorf("a debt of %d: %d earned in all, want the kill's 425,820", c.debt, got)
+		}
+		want := []string{fmt.Sprintf("You received %d class mastery XP.", 425820-c.paid), c.line}
+		if len(lines) != 2 || lines[0] != want[0] || lines[1] != want[1] {
+			t.Errorf("a debt of %d: the chat %q, want %q", c.debt, lines, want)
+		}
+	}
+
+	k := newKillWorld(t, 60)
+	k.w.awardKillXPLocked(k.sess[0], k.players[0], npc)
+	if _, ok := debtOf(k.sess[0]); ok {
+		t.Fatal("the control: no debt, no 0x00D9")
 	}
 }

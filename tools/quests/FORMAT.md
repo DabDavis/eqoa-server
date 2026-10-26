@@ -74,3 +74,14 @@ Quests keep their ids by their keys (`quest_import_quests`, from 100001), so a r
 an earlier one wrote, except a quest a GM has changed since. A quest is a draft when a name it uses is
 not in the database, when its own `unresolved` lists anything, or when a quest it requires is missing
 or a draft. Stop the server to apply, start it after.
+
+## Keeping the files in step with a database
+
+`tools/quests/fix_names.py --db eqoa.db [FILE ...]` (every file here by default) respells a name the
+files use as the database spells it, where the one spelling agrees but for case, apostrophes and
+backticks, hyphens, a leading "the" and plurals (`--rename [KEY:]OLD=NEW` for any other), sets each
+quest's `unresolved` to what `check_quests.py` finds missing, and drops the notes' sentences that only
+said a name now found was missing (and a chain's "It follows L5: L7 before it is a draft ...", its
+`requires` put back on the quest right before it once that one is whole). A sentence that says more is
+listed to be worded again by hand. It reports by default; `--write` writes. Run it after a seed adds
+NPCs (`tools/seed_quest_npcs.py`), then `check_quests.py`.

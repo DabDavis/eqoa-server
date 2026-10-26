@@ -375,21 +375,29 @@ def plan(db, files):
             quests.append(dict(key=key, file=fname, q=q, classes=classes, giver=giver or (q.get("giver") or ""),
                                steps=steps, events=qev, miss=miss, told=told,
                                requires=[r for r in (q.get("requires") or []) if str(r).strip()]))
-    # a quest needing one that is missing or a draft is a draft too
+    # a quest needing one that is missing or a draft is a draft too; a quest a
+    # GM has changed since its import (left as it is) counts as the database has it
     by_key = {x["key"]: x for x in quests}
-    logged = {}
+    logged, gm_kept = {}, {}
     if has_table(db, "quest_import_quests"):
-        logged = {k: (qid, en) for k, qid, en in db.execute("SELECT key, questid, enabled FROM quest_import_quests")}
+        for k, qid, en, dg in db.execute("SELECT key, questid, enabled, digest FROM quest_import_quests").fetchall():
+            logged[k] = (qid, en)
+            row = db.execute("SELECT enabled FROM quests WHERE questid = ?", (qid,)).fetchone()
+            if row is not None and digest(db, qid) != dg:
+                gm_kept[k] = bool(row[0])
     changed = True
     while changed:
         changed = False
         for x in quests:
-            if x.get("draft"):
+            if x.get("draft") or x["key"] in gm_kept:
                 continue
             why = list(x["miss"]) + [f"the file's unresolved {u!r}" for u in x["told"]]
             for r in x["requires"]:
                 dep = by_key.get(r)
-                if dep is None and r not in logged:
+                if r in gm_kept:
+                    if not gm_kept[r]:
+                        why.append(f"the quest {r!r} it requires, a draft (a GM's)")
+                elif dep is None and r not in logged:
                     why.append(f"the quest {r!r} it requires, which no file has")
                 elif dep is not None and dep.get("draft"):
                     why.append(f"the quest {r!r} it requires, a draft")

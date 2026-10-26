@@ -124,7 +124,7 @@ func (h *CombatHandler) swingFor(sess *session.Session, p *entity.Player) entity
 			if !hasItem && (e == 14 || e == 16 || e == 18) {
 				hasItem = true
 				attackType, itemRange = r.Pattern.AttackType, r.Pattern.Unk5
-				if h.gameWorld != nil && h.gameWorld.ThrownPotion(r.Pattern.PatternID) {
+				if thrownPotion(h.gameWorld, h.inventoryStore, &r.Pattern) {
 					potion, potionLeft = r.Pattern.PatternID, r.StackLeft
 				}
 			}

@@ -44,7 +44,7 @@ with the row before and after, and `revert_change` undoes a row change.
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
 | `classspells` | which spells each class has (grant_spell "all" and `#template` never give a were form); a `source` of `eqoa-data cm` / `eqoa-data epic` / `eqoa-data mca` / `eqoa-data master <name>` marks a mastery's, an epic's or a master class's spell: listed for the class (the community visual page), never handed out by #template, start_all_spells or grant_spell "all" | `class`+`spellid` |
-| `cmcatalog` | every class mastery a character may buy, a row a rank: `category` 0 general / 1 racial / 2 archetype / 3 class / 4 master class, who (`classes`, `races` bit sets), `parent` (the rank before it), `cost`, `level`, `spent` (points spent first), `minstats`, `effects` (`STR:1,STRMax:15`), the abilities it needs, adds and replaces (names, and their spell ids in `require_spells` / `add_spells` / `remove_spells`), `enabled` | `id` |
+| `cmcatalog` | every class mastery a character may buy, a row a rank: `category` 0 general / 1 racial / 2 archetype / 3 class / 4 master class, who (`classes`, `races` bit sets), `parent` (the rank before it), `require_ranks` (other masteries' ranks owned first, their ids), `cost`, `level`, `spent` (points spent first), `minstats`, `effects` (`STR:1,STRMax:15`), the abilities it needs, adds and replaces (names, and their spell ids in `require_spells` / `add_spells` / `remove_spells`), `enabled` | `id` |
 | `charcms` | the masteries each character bought and what each cost it | `serverid`+`cmid` |
 | `charmastery` | each character's mastery points: `points` unspent, `spent`, `percent` of experience going to them, `xp` toward the next | `serverid` |
 | `spellfx_suggestions` | the players' suggestions of a spell's visual, from the public spell-visual page: `fxdict`, the sender's `name`/`note` as typed, `status` new/accepted/dismissed; use the operations below | `id` |
@@ -226,7 +226,8 @@ with the row before and after, and `revert_change` undoes a row change.
 - **Class masteries** (`cmcatalog`): players buy them in the game's own Class Mastery window, with the mastery
   points their share of experience earns (`#grantcm` gives a GM's own). A rank is listed to the classes and races
   its bit sets name and buyable once its level, points spent (`spent`), base stats (`minstats`), the abilities it
-  needs (`require_spells`: the book must hold them) and the rank before it (`parent`) are there; one master class
+  needs (`require_spells`: the book must hold them), the rank before it (`parent`) and any other mastery's ranks
+  it names (`require_ranks`, their ids: "6634" for Entrancing Charm 4) are there; one master class
   at a time. `effects` raise stats and the stat caps (a character's cap is the level's, 400 from 46 and 350 below,
   plus its masteries' `STRMax`..`CHAMax`), HP, power, HoT, PoT, AC, resists, the HP factor and the movement rate;
   `add_spells` are given at the purchase, `remove_spells` taken out. To fix an ability the seed could not find,

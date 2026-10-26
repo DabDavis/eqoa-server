@@ -73,9 +73,9 @@ func enums() map[string][]EnumValue {
 			"Held", "Hands", "Fishing pole", "Bait", "Tool (1)", "Tool (2)", "Tool (3)", "Tool (4)", "Tool (5)", "Tool (6)"),
 		"location":   {{0, "Inventory"}, {1, "Bank"}},
 		"acctstatus": {{1, "Active"}, {0, "Inactive"}, {-1, "Banned"}},
+		"bool":       {{0, "No"}, {1, "Yes"}},
 		// npcmove.roam (entity/movement.go)
 		"roam": {{-1, "As its kind (wildlife wanders)"}, {1, "Wanders"}, {0, "Stands until pulled"}},
-		"bool":       {{0, "No"}, {1, "Yes"}},
 	}
 }
 

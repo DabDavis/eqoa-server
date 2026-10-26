@@ -65,9 +65,9 @@ func TestParseSpellText(t *testing.T) {
 		{"Target, Increase Hate by 40", SpellDef{Target: TargetSingle, Harmful: true, Effects: []SpellEffect{
 			{Kind: EffectHate, Amount: 40, AmountMax: 40}}}},
 		{"Target, Decrease Drain HP by 40", SpellDef{Target: TargetSingle, Harmful: true, Effects: []SpellEffect{
-			{Kind: EffectHP, Amount: -40, AmountMax: -40}}}},
+			{Kind: EffectHP, Amount: -40, AmountMax: -40, Drain: DrainCaster}}}},
 		{"Target, Drain STR by 10 and give to self, 60sec", SpellDef{Target: TargetSingle, Duration: time.Minute, Harmful: true, Effects: []SpellEffect{
-			{Kind: EffectStat, Stat: StatStr, Amount: -10, AmountMax: -10}}}},
+			{Kind: EffectStat, Stat: StatStr, Amount: -10, AmountMax: -10, Drain: DrainCaster}}}},
 		{"Target, Decrease HP via Backstab by 50 ; Increase 20% based on DEX", SpellDef{Target: TargetSingle, Harmful: true, Effects: []SpellEffect{
 			{Kind: EffectHP, Amount: -50, AmountMax: -50, Scale: StatDex, ScalePct: 20}}}},
 		{"Target, Decrease Hitpoints by 200 aoe Decrease Hitpoints by 90 - Lightning Based AoE", SpellDef{Target: TargetSingle, Harmful: true, Effects: []SpellEffect{

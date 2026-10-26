@@ -3454,8 +3454,8 @@
     },
     {
      "kind": "talk",
-     "target": "Haldrin",
-     "journal": "Speak with Haldrin.",
+     "target": "Hardlin",
+     "journal": "Speak with Hardlin.",
      "says": "A sand rune from a Nashier sandcaster, south of Freeport."
     },
     {
@@ -3520,10 +3520,9 @@
    ],
    "events": [],
    "unresolved": [
-    "Trapmaw",
-    "Haldrin"
+    "Trapmaw"
    ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. Trapmaw and Haldrin are not on this server (a bear Trapjaw stands south of Moradhim). The guide does not say what the stonemason drops."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here and Haldrin is Hardlin (Fayspire's guide spells him so). Trapmaw is not on this server (a bear Trapjaw stands south of Moradhim). The guide does not say what the stonemason drops."
   },
   {
    "key": "1-20/klick-anon/magician/L20",

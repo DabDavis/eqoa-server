@@ -281,7 +281,7 @@
    "requires": [
     "1-20/halas/warrior/L5"
    ],
-   "offer": "I have three tasks for you, west by northwest of Halas. Kill a Freezeblood Icemaster and bring me its ice axe, kill an Icecrusher for its icycap, and buy a Wolves of the North sash from Misty Trailer for 140 tunar. Bring me all three.",
+   "offer": "Three tasks, west by northwest of Halas: kill a Freezeblood Icemaster for its ice axe and an Icecrusher for its icycap, and buy a Wolves of the North sash from Misty Trailer for 140 tunar. Bring me all three.",
    "accept": "I will do it.",
    "decline": "Not now.",
    "declined": "Then come back when you are ready.",
@@ -352,10 +352,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Freezeblood Icecrusher",
-    "Freezeblood Icemaster"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 7; github.com/Jadiction/EQOA-Data). Misty Trailer is the database's Armorer Misty Traer at Ferris McDougal's camp. The Furious Defense scroll is what the other cities' warrior guides give at level 7."
   },
   {
@@ -369,7 +366,7 @@
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
-    "1-20/halas/warrior/L5"
+    "1-20/halas/warrior/L7"
    ],
    "offer": "Go to Ferris McDougal at the barbarian camp south of the monolith and buy burlap thread for 145 tunar. Bring it here.",
    "accept": "I will do it.",
@@ -431,7 +428,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). There is no White Owl in the database: the owls northwest of Ferris McDougal's camp stand in. It follows L5: L7 before it is a draft until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). There is no White Owl in the database: the owls northwest of Ferris McDougal's camp stand in."
   },
   {
    "key": "1-20/halas/warrior/L13",
@@ -487,7 +484,7 @@
    "requires": [
     "1-20/halas/warrior/L13"
    ],
-   "offer": "Trukat, another Freezeblood, waits on the hill across from Gunkat's igloo. Kill him and bring me his knife. Then take 495 tunar to Ferris McDougal and buy a blued bear skin fur and a blued bear skin sash, and bring me those too.",
+   "offer": "Trukat, another Freezeblood, waits on the hill across from Gunkat's igloo. Bring me his knife. Then take 495 tunar to Ferris McDougal for a blued bear skin fur and a blued bear skin sash, and bring me those too.",
    "accept": "I will do it.",
    "decline": "Not now.",
    "declined": "Then come back when you are ready.",
@@ -627,10 +624,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Salmon",
-    "Pratcher"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Life Path: Blade of War and Pillar of Might; Strength Path: Bellow and a Sword of Rage.) Eldar Joram is Elder Joram."
   },
   {
@@ -1018,9 +1012,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Ice Spider Queen"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). Reward left out (not in the database): item The Slicer's Special."
   },
   {
@@ -1034,7 +1026,7 @@
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
-    "1-20/halas/rogue/L7"
+    "1-20/halas/rogue/L10"
    ],
    "offer": "Freezeblood captains have been seen west of Halas, south by the spider queens, at a camp with an igloo. They carry battle plans. Bring me two.",
    "accept": "I will do it.",
@@ -1074,11 +1066,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Freezeblood Captain",
-    "Iron Eagle"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 13; github.com/Jadiction/EQOA-Data). It follows L7: L10 before it is a draft until its names are in the database."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 13; github.com/Jadiction/EQOA-Data)."
   },
   {
    "key": "1-20/halas/rogue/L15",
@@ -1091,9 +1080,9 @@
    "minlevel": 15,
    "maxlevel": 60,
    "requires": [
-    "1-20/halas/rogue/L7"
+    "1-20/halas/rogue/L13"
    ],
-   "offer": "The plans name an assassin, Numla, in the Freezeblood camp by the water, near a large wooden T. Slay him before he finishes his work and bring me his bag of tricks. Then buy a raven's tail feather from Shawndy McKibbin and bring it as well.",
+   "offer": "The plans name an assassin, Numla, in the Freezeblood camp by the water, near a large wooden T. Slay him before he finishes his work and bring me his bag of tricks, and a raven's tail feather from Shawndy McKibbin.",
    "accept": "I will do it.",
    "decline": "Not now.",
    "declined": "Then come back when you are ready.",
@@ -1146,11 +1135,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Numla",
-    "Iron Eagle"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 15; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Shwandy McKibbin is Shawndy McKibbin. It follows L7: L10, L13 before it are drafts until its names are in the database. Reward left out (not in the database): item Raven Stalkers."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 15; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Shwandy McKibbin is Shawndy McKibbin. Reward left out (not in the database): item Raven Stalkers."
   },
   {
    "key": "1-20/halas/rogue/L20",
@@ -1163,7 +1149,7 @@
    "minlevel": 20,
    "maxlevel": 60,
    "requires": [
-    "1-20/halas/rogue/L7"
+    "1-20/halas/rogue/L15"
    ],
    "offer": "The Freezebloods plan another attack: each clan sends someone to speak with Yarn Icefrost, camped south among the trees he planted. Take him this sealed letter and do as he says.",
    "accept": "I will do it.",
@@ -1280,11 +1266,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Salmon",
-    "Iron Eagle"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Defensive or offensive, the offensive a backstab.) Bren Raven is Brenn Raven. It follows L7: L10, L13, L15 before it are drafts until its names are in the database."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Defensive or offensive, the offensive a backstab.) Bren Raven is Brenn Raven."
   },
   {
    "key": "1-20/halas/shaman/L1",
@@ -1574,7 +1557,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Freezeblood Horde",
+     "target": "Freezeblood Hoarder",
      "items": [
       {
        "item": "Steel Bar",
@@ -1604,9 +1587,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Freezeblood Horde"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 7; github.com/Jadiction/EQOA-Data). The Minor Malady scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
   {
@@ -1620,7 +1601,7 @@
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
-    "1-20/halas/shaman/L5"
+    "1-20/halas/shaman/L7"
    ],
    "offer": "Go to Nilmo at the barbarian camp south of the monolith, west along the mountains. He has work for you.",
    "accept": "I will do it.",
@@ -1670,7 +1651,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 10; github.com/Jadiction/EQOA-Data). There is no White Owl in the database: the owls northwest of Ferris McDougal's camp stand in. Nilmo is the database's Nilmo McPherson. It follows L5: L7 before it is a draft until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 10; github.com/Jadiction/EQOA-Data). There is no White Owl in the database: the owls northwest of Ferris McDougal's camp stand in. Nilmo is the database's Nilmo McPherson."
   },
   {
    "key": "1-20/halas/shaman/L13",
@@ -1870,9 +1851,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Salmon"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (A one-handed weapon and a pet buff, or a two-handed spear and Decaying Wind.) The guide says 2 million XP; the other cities' level 20 guides give 2,814,929."
   }
  ],

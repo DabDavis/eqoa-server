@@ -44,6 +44,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 	case "quests", "queststeps":
 		return s.liveQuests()
 	case "spellpattern", "spelleffect", "classspells":
+		// the community spell page's list too (internal/spellfx)
+		database.InvalidateSpellFX()
 		return s.livePetTaps(t.Live)
 	case "charquests":
 		return s.liveCharQuest(before, after)

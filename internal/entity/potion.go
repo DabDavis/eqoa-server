@@ -327,11 +327,13 @@ func (w *World) thrownPotionHitLocked(sess *session.Session, p *Player, npc *NPC
 var (
 	reSummonItem = regexp.MustCompile(`^summ[ou]ns?\s+(?:an?\s+|the\s+)?(.+?)(?:\s+x\s*(\d+))?$`)
 	reParens     = regexp.MustCompile(`\s*\([^)]*\)`)
+	// a creature's summoning the pet words miss ("Summons a zombie to your
+	// aid", "Summons a familar creature"): no item
+	reSummonCreature = regexp.MustCompile(`\b(?:to your aid|to aid|creature|familiar|familar)\b`)
 )
 
 // summonItemsLocked hands a spell's summoned items to the hook, at its
-// landing. It reports whether the spell summoned any (and so does nothing
-// else).
+// landing. It reports whether the spell's words summon any.
 func (w *World) summonItemsLocked(cs *castState, caster *Player, sess *session.Session) bool {
 	d := &cs.spell.Def
 	if d.Summons() {
@@ -340,7 +342,7 @@ func (w *World) summonItemsLocked(cs *castState, caster *Player, sess *session.S
 	found := false
 	for _, u := range d.Unread {
 		m := reSummonItem.FindStringSubmatch(strings.TrimSpace(reParens.ReplaceAllString(u, "")))
-		if m == nil {
+		if m == nil || reSummonCreature.MatchString(u) {
 			continue
 		}
 		found = true

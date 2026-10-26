@@ -30,9 +30,16 @@ three and one of anything else, unless its words say how many.
 
 A "crude" or "faulty" spell's potions are NO TRADE (itempattern.trade 1, the
 client's m_noTrade), the rest tradeable (jib: "The non crude versions ... give
-tradeable versions"). An item of a potion's name already there keeps its row
-(a thrown one is made a thrown weapon, logged); an itemeffect row already there
-(a GM's) is left alone. New items take ids from 50001, a block no item uses.
+tradeable versions"). An item of a potion's name already there that is no
+spell scroll (the scroll's art, worn nowhere: the Klik'Anon Cocktail of
+itempattern is its spell's scroll, as are tools/import_eqoadata_spells.py's
+Lesser Tonic and Restorative) is that potion: its row is kept and given its
+use. An itemeffect row already there (a GM's) is left alone. New items take
+ids from 50001, a block no item uses; a spell's words find the potion before a
+scroll of its name (the server prefers an item with a use).
+
+The report ends with every spell whose words summon an item and the item they
+will summon once applied (the words' name, else the spell's own), or none.
 
 Every change is logged in potion_seed and --undo puts it all back. Both take a
 copy of the database first (<db>.bak-<when>-pre-potions). Report only by
@@ -45,6 +52,7 @@ import argparse
 import collections
 import datetime
 import os
+import re
 import sqlite3
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
@@ -54,12 +62,16 @@ ALCHEMIST = 1 << 14
 EVERY_CLASS = 32767
 EVERY_RACE = 1023
 
-# Item icons (ITEMICON.ESF surfaces) of the potions already in itempattern:
-# Klik'Anon Cocktail's, Miraculous Draught's, Alacrity Potion's, Major Tonic's.
-ICON_THROWN = -607649328
+# Item icons (ITEMICON.ESF surfaces) of bottles already in itempattern: arcadin
+# brandy's, the wines' (port, merlot), Miraculous Draught's, Alacrity
+# Potion's, Major Tonic's. Never the scroll's art (-607649328): an unworn
+# item with it is scribed (handlers/scribe.go).
+ICON_THROWN = -506671519
+ICON_COCKTAIL = 1116835215
 ICON_DRAUGHT = -649479524
 ICON_FLASK = 209763529
 ICON_TONIC = 824019198
+SCROLL_ART = -607649328
 
 # Effect icons (an ability's front icon, UI.CSF): Breeze's power over time
 # (the drinks'), Spirit of the Wolf's, Invisibility's, Elemental Rhythms'
@@ -172,7 +184,7 @@ def item_of(name, spell, level, kind):
     return {
         "itemcost": 0, "unk1": 0, "unk2": 0, "unk3": 0, "unk4": 0, "unk6": 0, "craft": 0,
         "itemicon": {"draught": ICON_DRAUGHT, "corrective": ICON_DRAUGHT, "restorative": ICON_DRAUGHT,
-                     "tonic": ICON_TONIC}.get(kind, ICON_THROWN if thrown else ICON_FLASK),
+                     "tonic": ICON_TONIC, "cocktail": ICON_COCKTAIL}.get(kind, ICON_THROWN if thrown else ICON_FLASK),
         "equipslot": 17 if thrown else -1,
         "trade": no_trade, "rent": 1,
         "attacktype": 10 if thrown else 0, "weapondamage": 0, "unk5": THROW_RANGE if thrown else 0,
@@ -190,9 +202,6 @@ def effect_of(kind, line, name, area):
     wear = 1 if kind == "invis" else 0
     return {"line": line, "name": name, "icon": icon, "breaks": breaks, "wear": wear, "area": area}
 
-
-# The thrown-weapon columns an existing thrown potion's row is given.
-THROWN_COLS = ("maxstack", "equipslot", "attacktype", "unk5", "itemdesc")
 
 
 def backup(db, path):
@@ -216,24 +225,23 @@ def ensure_tables(db):
         source    TEXT NOT NULL DEFAULT 'gm'
     )""")
     db.execute("""CREATE TABLE IF NOT EXISTS potion_seed (
-        what      TEXT NOT NULL,     -- 'item' (inserted) | 'effect' (inserted) | 'set' (a column changed)
-        patternid INTEGER NOT NULL,
-        col       TEXT,              -- for 'set': the column
-        old       TEXT               -- for 'set': what it was (as SQLite gives it back)
+        what      TEXT NOT NULL,     -- 'item' | 'effect': a row this run inserted
+        patternid INTEGER NOT NULL
     )""")
 
 
 def plan(db):
-    """What a run would write: (new items, uses only, existing rows to change)."""
+    """What a run would write: (new items, uses, potions already used)."""
     by_name = {}
-    for pid, name in db.execute("SELECT patternid, itemname FROM itempattern ORDER BY patternid DESC"):
+    for pid, name in db.execute("SELECT patternid, itemname FROM itempattern WHERE NOT (itemicon = ? AND equipslot = -1) "
+                                "ORDER BY patternid DESC", (SCROLL_ART,)):
         by_name[name.lower()] = pid  # the lowest id last, so it wins
     have_effect = set()
     if db.execute("SELECT name FROM sqlite_master WHERE name = 'itemeffect'").fetchone():
         have_effect = {pid for (pid,) in db.execute("SELECT patternid FROM itemeffect")}
     used = {pid for (pid,) in db.execute("SELECT patternid FROM itempattern WHERE patternid >= ?", (FIRST_ID,))}
     next_id = FIRST_ID
-    new, effects, changes, kept = [], [], [], []
+    new, effects, kept = [], [], []
     for name, spell, level, kind, line, ename, area in POTIONS:
         pid = by_name.get(name.lower())
         if pid is None:
@@ -242,13 +250,6 @@ def plan(db):
             pid = next_id
             used.add(pid)
             new.append((pid, item_of(name, spell, level, kind)))
-        elif kind in THROWN_KINDS:
-            want = item_of(name, spell, level, kind)
-            cur = dict(zip(THROWN_COLS, db.execute(
-                f"SELECT {', '.join(THROWN_COLS)} FROM itempattern WHERE patternid = ?", (pid,)).fetchone()))
-            for c in THROWN_COLS:
-                if cur[c] != want[c]:
-                    changes.append((pid, c, cur[c], want[c]))
         if pid in have_effect:
             kept.append(name)
         else:
@@ -261,23 +262,61 @@ def plan(db):
             kept.append(name)
         else:
             effects.append((pid, name, {"line": line, "name": ename, "icon": icon, "breaks": breaks, "wear": wear, "area": 0}))
-    return new, effects, changes, kept
+    return new, effects, kept
+
+
+SUMMON = re.compile(r"^summ[ou]ns?\s+(?:an?\s+|the\s+)?(.+?)(?:\s+x\s*(\d+))?$")
+PARENS = re.compile(r"\s*\([^)]*\)")
+CREATURE = re.compile(r"\b(?:to your aid|to aid|creature|familiar|familar)\b")
+
+
+def summons(db, new, effects):
+    """Every spell whose words summon an item (as entity/potion.go reads them,
+    a pet's summoning aside) with the item it will summon once applied: by the
+    words' name, else the spell's own, a potion (an item with a use) first,
+    then the lowest id; and the count."""
+    if not db.execute("SELECT name FROM sqlite_master WHERE name = 'spelleffect'").fetchone():
+        return []
+    used = {pid for (pid,) in db.execute("SELECT patternid FROM itemeffect")} if db.execute(
+        "SELECT name FROM sqlite_master WHERE name = 'itemeffect'").fetchone() else set()
+    used |= {pid for pid, _, _ in effects}
+    items = collections.defaultdict(list)
+    for pid, name, stack in db.execute("SELECT patternid, itemname, maxstack FROM itempattern "
+                                       "WHERE NOT (itemicon = ? AND equipslot = -1)", (SCROLL_ART,)):
+        items[name.lower()].append((pid not in used, pid, name, stack))
+    for pid, it in new:
+        items[it["itemname"].lower()].append((pid not in used, pid, it["itemname"], it["maxstack"]))
+    out = []
+    for sid, sname, line in db.execute("SELECT sp.spellid, sp.spellname, se.line FROM spellpattern sp "
+                                       "JOIN spelleffect se ON se.spellid = sp.spellid ORDER BY sp.spellid"):
+        text = (line or "").lower().strip()
+        if not re.search(r"\bsumm[ou]ns?\b", text) or re.search(r"\bpet\b|to aid you|to your defense", text):
+            continue
+        for part in re.split(r"[,;]", text):
+            part = PARENS.sub("", part).strip()
+            for w in ("self ", "target "):
+                if part.startswith(w):
+                    part = part[len(w):]
+            m = SUMMON.match(part)
+            if not m or CREATURE.search(part):
+                continue
+            found = sorted(items.get(m.group(1), [])) or sorted(items.get(sname.lower(), []))
+            item = found[0] if found else None
+            count = int(m.group(2)) if m.group(2) else (3 if item and item[3] == 3 else 1)
+            out.append((sid, sname, m.group(1), item and item[1], item and item[2], count))
+    return out
 
 
 def undo(db):
     ensure_tables(db)
-    rows = list(db.execute("SELECT what, patternid, col, old FROM potion_seed ORDER BY rowid DESC"))
+    rows = list(db.execute("SELECT what, patternid FROM potion_seed ORDER BY rowid DESC"))
     db.execute("BEGIN")
     n = collections.Counter()
-    for what, pid, col, old in rows:
+    for what, pid in rows:
         if what == "item":
             db.execute("DELETE FROM itempattern WHERE patternid = ?", (pid,))
         elif what == "effect":
             db.execute("DELETE FROM itemeffect WHERE patternid = ?", (pid,))
-        elif what == "set":
-            if col not in THROWN_COLS:
-                raise SystemExit(f"potion_seed names an unknown column {col!r}")
-            db.execute(f"UPDATE itempattern SET {col} = ? WHERE patternid = ?", (old, pid))
         n[what] += 1
     db.execute("DROP TABLE potion_seed")
     db.execute("COMMIT")
@@ -301,19 +340,26 @@ def main():
         return
     if a.apply and db.execute("SELECT name FROM sqlite_master WHERE name = 'potion_seed'").fetchone():
         ap.error("potion_seed is there: this database was seeded already (--undo first)")
-    new, effects, changes, kept = plan(db)
+    new, effects, kept = plan(db)
     for pid, it in new:
         print(f"  new item {pid}: {it['itemname']} (level {it['levelreq']}, stacks to {it['maxstack']}"
               f"{', no trade' if it['trade'] else ''}{', thrown' if it['equipslot'] == 17 else ''})")
-    for pid, c, old, want in changes:
-        print(f"  item {pid}: {c} {old!r} -> {want!r}")
     for pid, name, e in effects:
         extra = ", ".join(x for x in (e["name"] and f"named {e['name']!r}", e["breaks"] and f"ends on {e['breaks']}",
                                       e["wear"] and f"{e['wear']}% a tick", e["area"] and f"splash {e['area']}") if x)
         print(f"  use of {name} ({pid}): {e['line']}" + (f" [{extra}]" if extra else ""))
     if kept:
         print(f"{len(kept)} have a use already, left alone: {', '.join(kept)}")
-    print(f"{len(new)} new items, {len(changes)} columns of existing ones, {len(effects)} uses")
+    print("spells whose words summon an item, and the item once applied:")
+    none = 0
+    for sid, sname, named, pid, iname, count in summons(db, new, effects):
+        if pid is None:
+            none += 1
+            print(f"  spell {sid} {sname}: {named!r}, no item of that name")
+        else:
+            via = "" if iname.lower() == named else f" (by the spell's name; its words say {named!r})"
+            print(f"  spell {sid} {sname}: {count} x item {pid} {iname}{via}")
+    print(f"{len(new)} new items, {len(effects)} uses; {none} summoning spells name no item")
     if not a.apply:
         print("(report only: --apply writes them)")
         return
@@ -326,18 +372,15 @@ def main():
         cols = ["patternid"] + list(it)
         db.execute(f"INSERT INTO itempattern ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
                    [pid] + list(it.values()))
-        log.append(("item", pid, None, None))
-    for pid, c, old, want in changes:
-        db.execute(f"UPDATE itempattern SET {c} = ? WHERE patternid = ?", (want, pid))
-        log.append(("set", pid, c, old))
+        log.append(("item", pid))
     for pid, _, e in effects:
         db.execute("INSERT INTO itemeffect (patternid, line, name, icon, breaks, wear, area, source) "
                    "VALUES (?, ?, ?, ?, ?, ?, ?, 'potions')",
                    (pid, e["line"], e["name"], e["icon"], e["breaks"], e["wear"], e["area"]))
-        log.append(("effect", pid, None, None))
-    db.executemany("INSERT INTO potion_seed (what, patternid, col, old) VALUES (?, ?, ?, ?)", log)
+        log.append(("effect", pid))
+    db.executemany("INSERT INTO potion_seed (what, patternid) VALUES (?, ?)", log)
     db.execute("COMMIT")
-    print(f"wrote {len(new)} items, {len(changes)} columns and {len(effects)} uses; restart the server")
+    print(f"wrote {len(new)} items and {len(effects)} uses; restart the server")
 
 
 if __name__ == "__main__":

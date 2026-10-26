@@ -653,7 +653,7 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 			gate = true
 		}
 	}
-	if w.summonItemsLocked(cs, caster, casterSess) { // potion.go
+	if w.summonItemsLocked(cs, caster, casterSess) && len(d.Effects) == 0 { // potion.go
 		return gate
 	}
 	if len(d.Effects) == 0 {

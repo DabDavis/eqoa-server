@@ -101,12 +101,20 @@ func (s *InventoryStore) ItemEffect(patternID int) (ItemEffectRow, bool, error) 
 	return r, true, nil
 }
 
-// ItemPatternByName is the item of that name, the case not counted; of two
-// with one name, the lowest id. ok false when none has it.
+// ScrollArt is a spell scroll's icon: an unworn item with it is scribed
+// (handlers/scribe.go's scrollIcon), and named after its spell.
+const ScrollArt = -607649328
+
+// ItemPatternByName is the item a spell's words summon by that name, the case
+// not counted, never a spell scroll (a summoning spell's own scroll shares its
+// name, and a cocktail's spell its potion's): of several, one that has a use
+// (an itemeffect row) first, then the lowest id. ok false when none has it.
 func (s *InventoryStore) ItemPatternByName(name string) (ItemPatternRecord, bool, error) {
 	var id int
-	err := s.db.QueryRow(`SELECT patternid FROM itempattern WHERE lower(itemname) = ? ORDER BY patternid LIMIT 1`,
-		strings.ToLower(strings.TrimSpace(name))).Scan(&id)
+	err := s.db.QueryRow(`SELECT p.patternid FROM itempattern p LEFT JOIN itemeffect e ON e.patternid = p.patternid
+		WHERE lower(p.itemname) = ? AND NOT (p.itemicon = ? AND p.equipslot = -1)
+		ORDER BY e.patternid IS NULL, p.patternid LIMIT 1`,
+		strings.ToLower(strings.TrimSpace(name)), ScrollArt).Scan(&id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ItemPatternRecord{}, false, nil
 	}

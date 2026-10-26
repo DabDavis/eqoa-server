@@ -234,3 +234,20 @@ func TestTheGolemsWearGolems(t *testing.T) {
 		}
 	}
 }
+
+// The clarity line by name: both bars' six ranks, the group's, a "+" rank;
+// the controls: the bursts, the bards' songs and a potion's name are not of
+// it.
+func TestTheClarityLineByName(t *testing.T) {
+	for _, n := range []string{"Breeze", "Intuition", "Clarity", "Lucidity", "Tranquility", "Empathy",
+		"Empathic Breeze", "Empathic Intuition", "Empathic Lucidity", "Empathic Tranquility", "Clarity+"} {
+		if !clarityFamily(n) {
+			t.Errorf("%s: not of the clarity line", n)
+		}
+	}
+	for _, n := range []string{"Mana Flow", "Power Flow", "Power Flood", "Concerto", "Power Dance", "Clarity Potion"} {
+		if clarityFamily(n) {
+			t.Errorf("%s (control): of the clarity line", n)
+		}
+	}
+}

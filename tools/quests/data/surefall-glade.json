@@ -144,7 +144,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 3; github.com/Jadiction/EQOA-Data). The database has no bats near Surefall Glade: the nearest are by Qeynos, some 6,000 away, so the glade's newbie yard needs spawns for this quest to be close to home. The Fiery Burst scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 3; github.com/Jadiction/EQOA-Data). The Fiery Burst scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/surefall-glade/druid/L4",
@@ -159,7 +159,7 @@
    "requires": [
     "1-20/surefall-glade/druid/L3"
    ],
-   "offer": "I will make you a new weapon. Bring me a walking stick from Merchant Lensian in the guild, falcon feathers from Bowyer Aymrite by the lake, shattered ant chitin from the ants and a cracked beetle mandible from the firebeetles outside the glade.",
+   "offer": "I will make you a new weapon: bring me a walking stick from Merchant Lensian, falcon feathers from Bowyer Aymrite, and shattered ant chitin and a cracked beetle mandible from the ants and firebeetles outside the glade.",
    "accept": "I will do it.",
    "decline": "Not now.",
    "declined": "Then come back when you are ready.",
@@ -202,7 +202,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fire Beetle",
+     "target": "firebeetle",
      "items": [
       {
        "item": "cracked beetle mandible",
@@ -244,10 +244,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Falwyn Breen"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The database has no ants or firebeetles near Surefall Glade: the nearest are by Qeynos, some 6,000 away, so the glade's newbie yard needs spawns for this quest to be close to home. The crafted glade staff is the database's level 4 druid weapon of Surefall's quest items (the guide does not name it)."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The crafted glade staff is the database's level 4 druid weapon of Surefall's quest items (the guide does not name it)."
   },
   {
    "key": "1-20/surefall-glade/druid/L5",
@@ -260,7 +258,7 @@
    "minlevel": 5,
    "maxlevel": 60,
    "requires": [
-    "1-20/surefall-glade/druid/L3"
+    "1-20/surefall-glade/druid/L4"
    ],
    "offer": "Surefall shamblers roam southwest into the hills and along the outer wall of the glade. Kill them and bring me their eyes.",
    "accept": "I will do it.",
@@ -300,10 +298,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Surefall Shambler"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 5; github.com/Jadiction/EQOA-Data). Two eyes is ours. The Snare scroll is the class's level 5 spell, the scroll the guides that name one give for this quest. It follows L3: L4 before it is a draft until its names are in the database."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 5; github.com/Jadiction/EQOA-Data). Two eyes is ours. The Snare scroll is the class's level 5 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/surefall-glade/druid/L7",
@@ -316,7 +312,7 @@
    "minlevel": 7,
    "maxlevel": 60,
    "requires": [
-    "1-20/surefall-glade/druid/L3"
+    "1-20/surefall-glade/druid/L5"
    ],
    "offer": "East of the glade stands a druidic stonehenge. Go into its center and bring me what you find there.",
    "accept": "I will do it.",
@@ -400,7 +396,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 7; github.com/Jadiction/EQOA-Data). The stonehenge's place is EQOA-Data's map's, on the database's terrain. The ward stone is not taken from you when you set it (a reach step takes no items). The light leaf cap is the database's level 7 druid reward of Surefall's quest items. The Nature's Blessing scroll is the class's level 7 spell, the scroll the guides that name one give for this quest. It follows L3: L4, L5 before it are drafts until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 7; github.com/Jadiction/EQOA-Data). The stonehenge's place is EQOA-Data's map's, on the database's terrain. The ward stone is not taken from you when you set it (a reach step takes no items). The light leaf cap is the database's level 7 druid reward of Surefall's quest items. The Nature's Blessing scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/surefall-glade/druid/L10",
@@ -510,10 +506,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Gnoll Champion",
-    "Gnoll Shaman Forager"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 10; github.com/Jadiction/EQOA-Data). Vendilion is the database's Vedilion Brithstar. The herbs are the database's sack of wild herbs and sack of purified herbs."
   },
   {
@@ -527,7 +520,7 @@
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
-    "1-20/surefall-glade/druid/L7"
+    "1-20/surefall-glade/druid/L10"
    ],
    "offer": "Captain Pejon of Qeynos, in the second guard tower north of the coach, needs a druid's help. Go to him.",
    "accept": "I will do it.",
@@ -624,7 +617,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 13; github.com/Jadiction/EQOA-Data). The Gnoll Elder and Blacksmith are the database's gnoll elder and gnoll blacksmith (EQOA-Data's map's Darkpaw elder and blacksmith). The Froglok Elder is not in the database: the froglok seers at the gnoll and froglok meeting in the Fog Marsh, where EQOA-Data's map places him, stand in. The Regenerative Aura scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L7: L10 before it is a draft until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 13; github.com/Jadiction/EQOA-Data). The Gnoll Elder and Blacksmith are the database's gnoll elder and gnoll blacksmith (EQOA-Data's map's Darkpaw elder and blacksmith). The Froglok Elder is not in the database: the froglok seers at the gnoll and froglok meeting in the Fog Marsh, where EQOA-Data's map places him, stand in. The Regenerative Aura scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/surefall-glade/druid/L15",
@@ -911,10 +904,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Gugluk"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. The abomination's shackles are the database's abomination's hide, its quest item for the abomination. Gugluk, the froglok shaman with the rare herb, is not in the database. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Enkindle and the Tree Shroud, or Creeping Health and the Dark Oak Staff.)"
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. The abomination's shackles are the database's abomination's hide, its quest item for the abomination. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Enkindle and the Tree Shroud, or Creeping Health and the Dark Oak Staff.)"
   },
   {
    "key": "1-20/surefall-glade/ranger/L1",
@@ -1059,7 +1050,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 3; github.com/Jadiction/EQOA-Data). The database has no badgers near Surefall Glade: the nearest are by Qeynos, some 6,000 away, so the glade's newbie yard needs spawns for this quest to be close to home. The Swift Blade scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 3; github.com/Jadiction/EQOA-Data). The Swift Blade scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/surefall-glade/ranger/L4",
@@ -1110,7 +1101,7 @@
     },
     {
      "kind": "loot",
-     "target": "firefly",
+     "target": "Fireflies",
      "items": [
       {
        "item": "fractured firefly thorax",
@@ -1162,10 +1153,8 @@
      }
     }
    ],
-   "unresolved": [
-    "firefly"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The fractured snake fang is the database's cracked snake fang. The database has no grass vipers near Surefall Glade: the nearest are by Qeynos, some 6,000 away, so the glade's newbie yard needs spawns for this quest to be close to home. The guide does not name the bow, so none is given."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The fractured snake fang is the database's cracked snake fang. The guide does not name the bow, so none is given."
   },
   {
    "key": "1-20/surefall-glade/ranger/L5",
@@ -1178,7 +1167,7 @@
    "minlevel": 5,
    "maxlevel": 60,
    "requires": [
-    "1-20/surefall-glade/ranger/L3"
+    "1-20/surefall-glade/ranger/L4"
    ],
    "offer": "Surefall shamblers roam southwest into the hills and along the outer wall of the glade. Kill one and bring me its eye.",
    "accept": "I will do it.",
@@ -1218,10 +1207,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Surefall Shambler"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 5; github.com/Jadiction/EQOA-Data). The Forage Berries scroll is the class's level 5 spell, the scroll the guides that name one give for this quest. It follows L3: L4 before it is a draft until its names are in the database."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 5; github.com/Jadiction/EQOA-Data). The Forage Berries scroll is the class's level 5 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/surefall-glade/ranger/L7",
@@ -1234,7 +1221,7 @@
    "minlevel": 7,
    "maxlevel": 60,
    "requires": [
-    "1-20/surefall-glade/ranger/L3"
+    "1-20/surefall-glade/ranger/L5"
    ],
    "offer": "Aieari, our scoutmaster, watches the large Slesher fort southeast of the glade, on the mountain side. Find her and bring me her findings.",
    "accept": "I will do it.",
@@ -1296,11 +1283,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Gnoll Runner",
-    "Aieari Scoutmaster"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 7; github.com/Jadiction/EQOA-Data). The bracers of the glade are the database's level 7 ranger reward of Surefall's quest items. The Tangling Weeds scroll is the class's level 7 spell, the scroll the guides that name one give for this quest. It follows L3: L4, L5 before it are drafts until its names are in the database."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 7; github.com/Jadiction/EQOA-Data). The bracers of the glade are the database's level 7 ranger reward of Surefall's quest items. The Tangling Weeds scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/surefall-glade/ranger/L10",
@@ -1313,7 +1297,7 @@
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
-    "1-20/surefall-glade/ranger/L3"
+    "1-20/surefall-glade/ranger/L7"
    ],
    "offer": "Guard Gaffy, at the guard tower west of the glade, has trouble with outcast rangers. Go to him.",
    "accept": "I will do it.",
@@ -1323,7 +1307,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "Guard Gaffy",
+     "target": "Ranger Gaffy",
      "journal": "Speak with Guard Gaffy at the guard tower west of the glade.",
      "says": "The outcast rangers Gilthar and Brombar roam northwest of here. Bring me a rusted blade off one of them."
     },
@@ -1342,7 +1326,7 @@
     },
     {
      "kind": "give",
-     "target": "Guard Gaffy",
+     "target": "Ranger Gaffy",
      "items": [
       {
        "item": "rusted blade",
@@ -1436,11 +1420,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Gilthar",
-    "Guard Gaffy"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 10; github.com/Jadiction/EQOA-Data). Ranger Gaffy is Guard Gaffy in the guide; neither he nor the outcast rangers Gilthar and Brombar are in the database (either one's blade is enough). The shortsword of the glade is the database's level 10 ranger reward of Surefall's quest items. It follows L3: L4, L5, L7 before it are drafts until its names are in the database."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 10; github.com/Jadiction/EQOA-Data). Ranger Gaffy is Guard Gaffy in the guide; Brombar, the other outcast ranger (either one's blade is enough), is not in the database. The shortsword of the glade is the database's level 10 ranger reward of Surefall's quest items."
   },
   {
    "key": "1-20/surefall-glade/ranger/L13",
@@ -1453,7 +1434,7 @@
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
-    "1-20/surefall-glade/ranger/L3"
+    "1-20/surefall-glade/ranger/L10"
    ],
    "offer": "Report to Captain Pejon in the second tower north of Qeynos: follow the path north from the Qeynos coachman, past the glowing druid ring.",
    "accept": "I will do it.",
@@ -1567,7 +1548,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 13; github.com/Jadiction/EQOA-Data). The Gnoll Elder and Blacksmith are the database's gnoll elder and gnoll blacksmith. The Froglok Elder is not in the database: the froglok seers at the gnoll and froglok meeting in the Fog Marsh, where EQOA-Data's map places him, stand in. The Flametongue scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L3: L4, L5, L7, L10 before it are drafts until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 13; github.com/Jadiction/EQOA-Data). The Gnoll Elder and Blacksmith are the database's gnoll elder and gnoll blacksmith. The Froglok Elder is not in the database: the froglok seers at the gnoll and froglok meeting in the Fog Marsh, where EQOA-Data's map places him, stand in. The Flametongue scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/surefall-glade/ranger/L15",
@@ -1854,10 +1835,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Gugluk"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. Sigmor Felborne is Sigmor Fallbourne. The abomination's shackles are the database's abomination's hide, its quest item for the abomination. Gugluk, the froglok shaman with the rare herb, is not in the database. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Sparrow Eye and the Oak Handled Scimitar, or Strikeblade and the Pine Spirit.)"
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. Sigmor Felborne is Sigmor Fallbourne. The abomination's shackles are the database's abomination's hide, its quest item for the abomination. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Sparrow Eye and the Oak Handled Scimitar, or Strikeblade and the Pine Spirit.)"
   }
  ],
  "items": [

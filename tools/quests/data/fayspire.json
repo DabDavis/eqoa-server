@@ -370,7 +370,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Sunfly",
+     "target": "Sunflies",
      "items": [
       {
        "item": "Radiant Sunfly Wing",
@@ -421,12 +421,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Amelie",
-    "Sunfly",
-    "Pixie Nettle"
-   ],
-   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Amelie, the sunflies and the pixie nettles are not on this server. Not on this server, left out of the rewards: the item \"Alchemist Apprentice Staff\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Alchemist Apprentice Staff\"."
   },
   {
    "key": "1-20/fayspire/alchemist/L13",
@@ -4361,11 +4357,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Orc Thief",
-    "Gligbin Gearcharmer"
-   ],
-   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. No orc thieves or Gligbin are on this server; the orc witchdoctor stands in for the hatebone witchdoctor."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The orc witchdoctor stands in for the hatebone witchdoctor."
   },
   {
    "key": "1-20/fayspire/wizard/L13",
@@ -4609,10 +4602,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Trapmaw"
-   ],
-   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. Trapmaw is not on this server. The guide does not name the loot."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot."
   },
   {
    "key": "1-20/fayspire/wizard/L20",

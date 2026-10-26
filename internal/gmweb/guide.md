@@ -189,6 +189,16 @@ with the row before and after, and `revert_change` undoes a row change.
   0x00B1 DictID like `0x1DAEB5B6`, `seconds`), `teleport` (`world`, `x`, `y`, `z`); one popup at a time (the
   client shows one question box at once). The journal holds eight quests. Keep a quest
   a draft (`enabled` 0) until it is right; `quest_try` gives it to your own character in the world to play.
+- **Hundreds of quests** (the city quests imported whole, `tools/import_quests.py`): `quest_list` with `status`
+  (`in the game`, `ready`: a draft nothing keeps out now, `blocked`: a draft that is not, `draft`: every draft),
+  `city` (`freeport`, `neriak-nektulos`...; `none`), `class`, `level` (or `minLevel`/`maxLevel`), `giver`,
+  `missing` (a name the drafts lack), `search`, `limit`/`offset`. Each quest says its `status` and `why`, worked out
+  from this server as it is now (an NPC you just placed counts); the answer's `missing` is what the drafts lack,
+  the most wanted first. To put mended drafts in the game: `quest_set_enabled` with `filter` (e.g.
+  `{"city": "freeport", "status": "ready"}`) or `quests` (ids), `enabled` true, `dryRun` first; it brings in the
+  ready drafts a quest requires, leaves out a draft that is not ready (with its reasons) unless `force`, and logs
+  each quest as its own row change. `enabled` false takes quests out (a character who has one goes on with it).
+  A step at a merchant, banker or blacksmith is done when its window is asked for; such an NPC offers nothing.
 - **A player's quests**: `character_quests`, then `character_quest_set` with `give` (a step, or its first),
   `step`, `complete` (no reward), `giveup` or `reset` (forgotten: it may be taken again). Logged and revertible.
 - **Drafts from EQOA-Data**: `quest_import_eqoadata` with its guides' JSON (Quests/**/*.json of

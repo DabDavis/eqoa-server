@@ -2,6 +2,7 @@ package voice
 
 import (
 	"encoding/json"
+	"net"
 	"strings"
 	"sync"
 	"testing"
@@ -83,6 +84,19 @@ type testClient struct {
 	msgs chan string
 	seq  uint16
 	ts   uint32
+
+	nets  []webrtc.NetworkType
+	ice   []webrtc.ICEServer
+	relay bool
+}
+
+// pair is the client's selected candidate pair, local then remote.
+func (c *testClient) pair() (string, string) {
+	p, err := c.pc.SCTP().Transport().ICETransport().GetSelectedCandidatePair()
+	if err != nil || p == nil {
+		return "", ""
+	}
+	return p.Local.Protocol.String() + " " + p.Local.Typ.String(), p.Remote.Protocol.String() + " " + p.Remote.Typ.String()
 }
 
 func dialClient(t *testing.T, s *Server, name, group string) *testClient {
@@ -92,6 +106,17 @@ func dialClient(t *testing.T, s *Server, name, group string) *testClient {
 	if c.id == 0 {
 		t.Fatal("no voice id")
 	}
+	c.connect(name, func(sdp string) { s.Signal(c.id, KindOffer, sdp) }, func() string { return c.waitSignal(KindAnswer) })
+	return c
+}
+
+// dialVia is dialClient with the client's transport chosen: only these
+// networks, and these ICE servers relayed through alone when relay.
+func dialVia(t *testing.T, s *Server, name, group string, nets []webrtc.NetworkType, ice []webrtc.ICEServer, relay bool) *testClient {
+	t.Helper()
+	c := &testClient{t: t, s: s, sink: newTestSink(), got: make(chan heard, 4096), msgs: make(chan string, 1024),
+		nets: nets, ice: ice, relay: relay}
+	c.id = s.Join(name, group, c.sink)
 	c.connect(name, func(sdp string) { s.Signal(c.id, KindOffer, sdp) }, func() string { return c.waitSignal(KindAnswer) })
 	return c
 }
@@ -110,9 +135,17 @@ func (c *testClient) connect(name string, offerOut func(string), answerIn func()
 	}
 	var se webrtc.SettingEngine
 	se.SetIncludeLoopbackCandidate(true)
-	se.SetNetworkTypes([]webrtc.NetworkType{webrtc.NetworkTypeUDP4})
+	nets := c.nets
+	if nets == nil {
+		nets = []webrtc.NetworkType{webrtc.NetworkTypeUDP4}
+	}
+	se.SetNetworkTypes(nets)
 	se.SetICEMulticastDNSMode(ice.MulticastDNSModeDisabled)
-	pc, err := webrtc.NewAPI(webrtc.WithMediaEngine(m), webrtc.WithSettingEngine(se)).NewPeerConnection(webrtc.Configuration{})
+	conf := webrtc.Configuration{ICEServers: c.ice}
+	if c.relay {
+		conf.ICETransportPolicy = webrtc.ICETransportPolicyRelay
+	}
+	pc, err := webrtc.NewAPI(webrtc.WithMediaEngine(m), webrtc.WithSettingEngine(se)).NewPeerConnection(conf)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -524,3 +557,39 @@ func TestARestartSaysBye(t *testing.T) {
 
 func itoa(n int) string    { b, _ := json.Marshal(n); return string(b) }
 func utoa(n uint32) string { b, _ := json.Marshal(n); return string(b) }
+
+// A listener whose network allows only TCP connects over ICE-TCP (the media
+// port's TCP), and one that allows only a relay connects through the
+// embedded TURN server with credentials minted as the game mints them; both
+// hear a talker on UDP.
+func TestOverICETCPAndTURN(t *testing.T) {
+	s := newTestServer(t)
+	ts, err := startTURN(TURNConfig{Secret: "a-test-secret-only", RelayMinPort: 41200, RelayMaxPort: 41299}, "127.0.0.1", net.ParseIP("127.0.0.1").To4())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(ts.close)
+	user := Username(time.Now().Add(time.Hour), 99)
+	var iceServers []webrtc.ICEServer
+	for _, u := range ts.urls {
+		iceServers = append(iceServers, webrtc.ICEServer{URLs: []string{u}, Username: user, Credential: Credential("a-test-secret-only", user)})
+	}
+	a := dialClient(t, s, "Asker", "g:1")
+	tcpL := dialVia(t, s, "Tcp", "g:1", []webrtc.NetworkType{webrtc.NetworkTypeTCP4}, nil, false)
+	turnL := dialVia(t, s, "Turn", "g:1", nil, iceServers[:1], true)
+	if l, r := tcpL.pair(); l != "tcp host" || r != "tcp host" {
+		t.Fatalf("the TCP listener's pair: %s <-> %s", l, r)
+	}
+	if l, _ := turnL.pair(); l != "udp relay" {
+		t.Fatalf("the relayed listener's pair: %s", l)
+	}
+	a.send(1)
+	time.Sleep(100 * time.Millisecond)
+	talkFor(600*time.Millisecond, []*testClient{a}, []uint8{20}, []string{"A"})
+	if g := tcpL.listen(300 * time.Millisecond); g[a.id] < 10 {
+		t.Fatalf("over ICE-TCP it heard %v", g)
+	}
+	if g := turnL.listen(300 * time.Millisecond); g[a.id] < 10 {
+		t.Fatalf("through TURN it heard %v", g)
+	}
+}

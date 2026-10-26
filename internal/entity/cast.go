@@ -111,7 +111,8 @@ type CastSpell struct {
 	PowerCost    int
 	Range        float32
 	Def          SpellDef
-	FX           uint32 // 0x00B1's visual; 0 for the stand-in of its kind
+	FX           uint32    // 0x00B1's visual; 0 for the stand-in of its kind
+	Area         SpellArea // what it lands on beside its target (area.go)
 }
 
 // visual is the spell's 0x00B1 visual.
@@ -148,7 +149,8 @@ type castState struct {
 	spell   CastSpell
 	caster  EntityID
 	targets []EntityID
-	ends    time.Time // the cast time over: the caster may cast again
+	others  []EntityID // an area spell's others (area.go)
+	ends    time.Time  // the cast time over: the caster may cast again
 	lands   time.Time
 }
 
@@ -462,6 +464,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
 	p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
 	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + castBusy), lands: now.Add(spell.CastTime + castLand)}
+	w.areaStartLocked(p, cs, now) // area.go: an area spell's others
 	p.Casting = cs
 	w.casts = append(w.casts, cs)
 
@@ -470,7 +473,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	if len(targets) > 0 {
 		target = targets[0]
 	}
-	w.broadcastCastLocked(p, target, spell.CastTime, spell.visual())
+	w.broadcastCastLocked(p, target, spell.CastTime, spell.visual(), cs.others...)
 	log.Printf("Cast: %s begins %q (spell %d) on %#x: %v cast, %d power (%d left), lands in %v",
 		p.Name, spell.Name, spell.SpellID, targetObjectID, spell.CastTime, spell.PowerCost, p.Power, spell.CastTime+castLand)
 	return true
@@ -596,8 +599,9 @@ func (w *World) groupMembersLocked(p *Player) []*Player {
 }
 
 // broadcastCastLocked sends 0x00B1 to the caster and to everyone who sees
-// it, each with the ids it knows the caster and the target by.
-func (w *World) broadcastCastLocked(caster *Player, target EntityID, castTime time.Duration, fx uint32) {
+// it, each with the ids it knows the caster and the target by, and an area
+// spell's others it sees (area.go).
+func (w *World) broadcastCastLocked(caster *Player, target EntityID, castTime time.Duration, fx uint32, others ...EntityID) {
 	if w.SessionManager == nil {
 		return
 	}
@@ -614,7 +618,7 @@ func (w *World) broadcastCastLocked(caster *Player, target EntityID, castTime ti
 		if t == 0 {
 			t = c
 		}
-		w.sendCastingCombat(s, c, t, ms, fx)
+		w.sendCastingCombat(s, c, t, ms, fx, w.areaSeenLocked(s, others)...)
 		return true
 	})
 }
@@ -718,6 +722,7 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 			w.landOnNPCLocked(cs, caster, casterSess, npc, now)
 		}
 	}
+	w.landOthersLocked(cs, caster, casterSess, now) // area.go: an area spell's others
 	return gate
 }
 

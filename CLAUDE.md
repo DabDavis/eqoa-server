@@ -494,7 +494,7 @@ bytes, the client offers, the server says bye when it drops a connection, at a r
 **0x7E16** a join's result. Rooms: 3-24 printable characters, case-folded, the profanity filter's
 (`ProfaneRoomName`), open or locked by a hash H the client brings (the server never sees a password,
 never logs H, and checks one wrong guess per 2 s), unlisted at its maker's choice, alive while occupied
-and 60 s after. A group is channel "g:<id>", kept in step every 5 ticks; leaving the world leaves the
+and 60 s after (listed only while someone is in it). A group is channel "g:<id>", kept in step every 5 ticks; leaving the world leaves the
 voice. **The demo** (`voice.demo.enabled`): the account server's `/api/voice/demo` WebSocket, JSON, for
 vanilla clients on a server without voice (Sandstorm); they vouch for themselves ("d:" channels, names
 shown " (demo)"), 100 at once and 4 an address (a /64), idle 10 minutes closed, sharing the lobby with

@@ -1227,6 +1227,29 @@ func (w *World) SpawnOfNPC(name string) (x, y, z, facing float32, world uint8, o
 	return 0, 0, 0, 0, 0, false
 }
 
+// SpawnOfNPCNear is the spawn of the NPC of that name in the world whose
+// spawn is nearest (x, z), within reach of it: one of a camp's many creatures
+// of a name (a #tele camp's anchor), not a namesake across the world. A GM's
+// temporary copy is not one.
+func (w *World) SpawnOfNPCNear(name string, world uint8, x, z, reach float32) (sx, sy, sz, facing float32, wld uint8, ok bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+
+	best, bestID := reach*reach, EntityID(0)
+	for _, npc := range w.NPCs {
+		if npc.Name != name || npc.World != world || npc.Temporary {
+			continue
+		}
+		dx, dz := npc.SpawnX-x, npc.SpawnZ-z
+		// the nearest, the lower id of two as near (the map's order is random)
+		if d := dx*dx + dz*dz; d < best || (d == best && (!ok || npc.ServerID < bestID)) {
+			best, bestID = d, npc.ServerID
+			sx, sy, sz, facing, wld, ok = npc.SpawnX, npc.SpawnY, npc.SpawnZ, npc.SpawnFacing, npc.World, true
+		}
+	}
+	return
+}
+
 // GetNPCsInRadius returns NPCs within radius of (x,z).
 func (w *World) GetNPCsInRadius(x, z, radius float32) []*NPC {
 	w.mu.RLock()

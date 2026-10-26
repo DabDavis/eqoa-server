@@ -59,10 +59,12 @@ type NPCWindowHandler struct {
 	clearCorpse func(entity.EntityID, time.Time) bool
 
 	// loot is the corpses (loot.go), made on first use; coinRoll rolls a
-	// corpse's tunar (corpsecoins.go; nil: rand.Intn).
+	// corpse's tunar (corpsecoins.go) and lootIntn its loot tables (loot.go's
+	// rollLoot), rand.Intn when nil.
 	loot     *lootState
 	lootOnce sync.Once
 	coinRoll func(int) int
+	lootIntn func(int) int
 }
 
 // NewNPCWindowHandler creates the handler. inv may be nil (no database): the

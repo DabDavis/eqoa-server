@@ -359,7 +359,8 @@ var catalog = map[string]tableNote{
 	},
 	"npcitem": {
 		Label: "Merchant stock", Group: "World", Sort: "npcid",
-		Help: "What a merchant sells: a row an item, by npcs.id; listnumber orders the window.",
+		Help: "What a merchant sells: a row an item, by npcs.id; listnumber orders the window. A creature's rows are " +
+			"the loot its corpse holds every death (its loot tables, Loot tables and Creature loot, roll more beside them).",
 		Live: "At once: the window reads its stock each time it opens.",
 		Show: []string{"itemid", "npcid", "patternid", "stackleft", "listnumber"},
 		Cols: map[string]colNote{
@@ -368,6 +369,46 @@ var catalog = map[string]tableNote{
 			"patternid":  {Label: "Item", Ref: "itempattern"},
 			"stackleft":  {Label: "Stack"},
 			"listnumber": {Label: "Order"},
+		},
+	},
+	"loottables": {
+		Label: "Loot tables", Group: "World", Title: "tablename", Sort: "tablename",
+		Help: "The items a loot table may give, a row an item (handlers/loot.go): the table's name (an EQOA-Data biome's, " +
+			"arctic desert forest marine mountain plains swamp, or rathe mountains, red desert, wetlands, deep jungle, " +
+			"wastelands, generic, or a named creature's own), the item, its weight among the table's (2 is twice as " +
+			"likely as 1; 0 never) and the creature levels it drops for. Creature loot binds creatures to tables. Rows " +
+			"of source camp-seed are tools/seed_camp_loot.py's, EQOA-Data's items by the table their source names, " +
+			"each for creatures within 5 levels of its own; the weights are ours.",
+		Live:   "At once: the next corpse of a creature bound to it rolls with it.",
+		Search: []string{"tablename", "source"},
+		Show:   []string{"id", "tablename", "patternid", "weight", "minlevel", "maxlevel", "source"},
+		Cols: map[string]colNote{
+			"id":        {Label: "Row", ReadOnly: true},
+			"tablename": {Label: "Table"},
+			"patternid": {Label: "Item", Ref: "itempattern"},
+			"weight":    {Label: "Weight", Help: "its share of the table's rolls: 2 twice as likely as 1, 0 never"},
+			"minlevel":  {Label: "From level", Help: "the lowest creature level it drops for"},
+			"maxlevel":  {Label: "To level", Help: "the highest creature level it drops for"},
+			"source":    {Label: "Source", Help: "gm, or camp-seed for tools/seed_camp_loot.py's rows"},
+		},
+	},
+	"npcloot": {
+		Label: "Creature loot", Group: "World", Title: "npc_name", Sort: "npc_name",
+		Help: "Which loot tables a creature's corpse rolls at its death, by NPC NAME as NPC classes key it (lower case, " +
+			"no trailing space or $), beside its own Merchant stock rows: each roll lands at its chance (percent) and " +
+			"takes one of the table's items for the creature's level, by weight; rolls is how many a kill makes. A " +
+			"GM's #spawn copy rolls as its original; a pet's corpse holds nothing. Rows of source camp-seed are " +
+			"tools/seed_camp_loot.py's: the XP camps' creatures (#tele camps) on their zone's biome table, from " +
+			"EQOA-Data's map, and the generic table; the chances are ours, not the live game's.",
+		Live:   "At once: the next corpse of that name rolls with it.",
+		Search: []string{"npc_name", "tablename", "note", "source"},
+		Cols: map[string]colNote{
+			"npc_name":  {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"tablename": {Label: "Table", Help: "a Loot tables name"},
+			"chance":    {Label: "Chance %", Help: "a roll's chance to give an item, 0-100"},
+			"rolls":     {Label: "Rolls", Help: "how many rolls a kill makes"},
+			"note":      {Label: "Note", Help: "why"},
+			"source":    {Label: "Source", Help: "gm, or camp-seed for tools/seed_camp_loot.py's rows (its --undo deletes those no GM changed)"},
 		},
 	},
 	"npcclass": {

@@ -452,6 +452,28 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm, or seed for tools/seed_npc_social.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npcmove": {
+		Label: "Creature movement", Group: "World", Title: "name", Sort: "name",
+		Help: "How the creatures of a name move, by NPC NAME as NPC classes key it (lower case, no trailing space or $; " +
+			"entity/movement.go, water.go): roam 0 stands it on its spawn until a fight takes it (and it goes back there " +
+			"after), 1 it wanders; radius its own wander radius (0: the server's, 75); water what it keeps to: land (it " +
+			"never wanders into the water), both (in and out of it: crocodiles, caiman, crabs), water (it keeps to the " +
+			"water, wandering and fighting), empty by where it spawned. A fight takes a creature where its enemy is, but " +
+			"one of the water stops at the water's edge; no damage crosses the water's edge (a harmful spell is refused, a " +
+			"melee hit lost). A creature that stands off the ground (a keep's floor, a bridge, a dock) does not wander " +
+			"whatever its row says. Rows of source seed are tools/seed_npc_move.py's; the water is the game's own, baked " +
+			"off the disc beside the ground files (worlds/ground/<world>.env).",
+		Live:   "At once: the next step of every creature of that name uses it.",
+		Search: []string{"name", "water", "note", "source"},
+		Cols: map[string]colNote{
+			"name":   {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"roam":   {Label: "Wanders", Help: "1 wanders round its spawn, 0 stands until pulled"},
+			"radius": {Label: "Radius", Help: "how far from its spawn it wanders; 0 the server's (75)"},
+			"water":  {Label: "Water", Help: "land, both, water, or empty: by where it spawned (in the water: water)"},
+			"note":   {Label: "Note", Help: "why"},
+			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_move.py's rows (its --undo deletes those)"},
+		},
+	},
 	"itemeffect": {
 		Label: "Item uses", Group: "Items & spells", Title: "patternid", Sort: "patternid",
 		Help: "What using an item does (entity/potion.go): the alchemists' potions, drunk or thrown. line is in a spell " +

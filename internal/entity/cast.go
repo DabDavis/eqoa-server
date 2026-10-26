@@ -418,6 +418,9 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	}
 	targets, refusal := w.castTargetsLocked(sess, p, &spell, targetObjectID)
 	fizzle := false
+	if refusal == "" && spell.Def.Harmful {
+		refusal = w.waterRefusalLocked(p, targets) // water.go
+	}
 	if refusal == "" && spell.Def.undeadOnly() {
 		refusal, fizzle = w.undeadStartLocked(targets) // undead.go
 	}

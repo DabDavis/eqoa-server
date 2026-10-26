@@ -17,25 +17,68 @@ func (w *World) SetGround(g Ground) {
 	w.ground = g
 }
 
-// spawnedOnGround is how near the terrain a creature's spawn must be for it
-// to stand on the ground as it moves: CLIENT's own reach (0x00CBCE40). Of
-// eqoaclassic's 16,646 creatures 15,508 spawn so; most of the rest stand on
-// what the ground leaves out (a bridge, a ruin, a house), and keep their
-// heights as before, which a fall to the terrain beneath would not.
-const spawnedOnGround float32 = 1.5
+// How near the terrain a creature's spawn must be for it to stand on the
+// ground as it moves: below it CLIENT's own reach (0x00CBCE40), above it a
+// little more, for the spawns recorded a little high. Of eqoaclassic's
+// 22,750 spawns about 20,000 lie within half a unit of the terrain, 613
+// between half a unit and 1.5 above it, 148 between 1.5 and 2 and 72
+// between 2 and 2.5, against a tail of 30 to 70 a half unit beyond, the NPCs
+// that stand on what the ground leaves out (a bridge, a dock, a house, a
+// keep's floor). The 1.5 it was until F3 20261026-021425 left a crocodile
+// recorded 1.68 above the sand off the ground, and it wandered down the
+// beach at its spawn's height, 3.9 above the sand: "Mobs are still floating
+// in the air".
+const (
+	spawnedBelow float32 = 1.5
+	spawnedAbove float32 = 2.5
+)
 
-// groundNPCLocked sets an NPC that moved on the floor where it stands now,
-// if it spawned on the ground. Must be called with the lock held.
-func (w *World) groundNPCLocked(npc *NPC) {
+// platformReach is how far from its spawn a creature that stands off the
+// ground (on what the ground leaves out) keeps its spawn's height in a
+// chase or on its way home; further off it has left whatever it stood on,
+// and stands on the terrain.
+const platformReach float32 = 10
+
+// spawnOnGroundLocked reports whether a creature spawned on the terrain of
+// the world's ground (within spawnedBelow below to spawnedAbove above it),
+// so its moves take the floor; false with no ground. Must be called with the
+// lock held.
+func (w *World) spawnOnGroundLocked(npc *NPC) bool {
 	if w.ground == nil {
-		return
+		return false
 	}
 	if !npc.groundKnown {
 		npc.groundKnown = true
 		y, ok := w.ground.Floor(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ)
-		npc.onGround = ok && y-npc.SpawnY <= spawnedOnGround && npc.SpawnY-y <= spawnedOnGround
+		npc.onGround = ok && y-npc.SpawnY <= spawnedBelow && npc.SpawnY-y <= spawnedAbove
 	}
-	if !npc.onGround {
+	return npc.onGround
+}
+
+// groundNPCLocked sets an NPC that moved at the height it stands at now: on
+// the floor there if it spawned on the ground; one that spawned swimming
+// keeps its height, above the floor; one that stands on something the ground
+// leaves out keeps its spawn's height near its spawn and takes the terrain
+// once it has left it (a creature that never wanders off it: roam.go).
+// Must be called with the lock held.
+func (w *World) groundNPCLocked(npc *NPC) {
+	if w.ground == nil {
+		return
+	}
+	if w.spawnOnGroundLocked(npc) {
+		if y, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z); ok {
+			npc.Y = y
+		}
+		return
+	}
+	if w.spawnInWaterLocked(npc) {
+		if y, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z); ok && y > npc.Y {
+			npc.Y = y
+		}
+		return
+	}
+	if distXZ(npc.X, npc.Z, npc.SpawnX, npc.SpawnZ) <= platformReach {
+		npc.Y = npc.SpawnY
 		return
 	}
 	if y, ok := w.ground.Floor(npc.World, npc.X, npc.Y, npc.Z); ok {

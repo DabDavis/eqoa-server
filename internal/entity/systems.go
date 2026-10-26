@@ -180,6 +180,9 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	if player.IsDead() {
 		return
 	}
+	if w.apartLocked(player, npc) {
+		return // across the water's edge (water.go)
+	}
 
 	// Sandstorm's roll on the player's AC, AGI and archetype (defence.go)
 	damage := npcMeleeRoll(npc).hitOn(player, rand.Intn)

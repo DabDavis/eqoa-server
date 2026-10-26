@@ -22,8 +22,9 @@ rolls); these are the lines that need their words, by the enchanter's
 A row is changed only while it says what this expects it to (no line, or the
 list's words). A row a GM has changed (gm_audit) keeps its line, except an
 empty one, which is filled with the GM's visual and note kept (a community
-pick accepted for a spell with no row makes such a row); a row of the private
-migration (its source says so) is never touched. Every change is logged in
+pick accepted for a spell with no row makes such a row); a row another source
+wrote (its source is not the EQOA-Data importers', a GM's or this tool's) is
+never touched. Every change is logged in
 ench_fix_log (the row before and after, and whether there was one); --undo
 puts each back as it was (a row this made is deleted) and drops the log. Both
 take a copy of the database first (<db>.bak-<when>-pre-enchfix). Report only
@@ -69,7 +70,12 @@ FIXES = {
                           f"eqoa-data enchanter (Animator MCA), no numbers in the list: Stormlord's Rune's on INT (ours), {TAG}"),
 }
 
-PRIVATE = re.compile(r"private migration", re.I)
+def foreign(source):
+    """Whether another source wrote the row: neither the EQOA-Data importers
+    (their sources begin "eqoa-data") nor this tool. A row a GM changed is
+    judged by gm_audit instead (its source names the GM)."""
+    s = (source or "").strip().lower()
+    return bool(s) and not s.startswith("eqoa-data") and s != "gm" and TAG not in s
 
 
 def spell_name(name):
@@ -120,8 +126,8 @@ def plan(db):
         want_before, after, src = fix
         if line == after:
             continue
-        if PRIVATE.search(source):
-            kept.append((sid, name, "its row is the private migration's"))
+        if sid not in gm and foreign(source):
+            kept.append((sid, name, "another source wrote its row"))
             continue
         if (want_before is None and line.strip()) or (want_before is not None and line != want_before):
             kept.append((sid, name, f"its line is not the one expected ({line!r})"))

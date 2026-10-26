@@ -59,12 +59,15 @@ func procResistPct(bearerLevel, targetLevel int) int {
 }
 
 // procRolls is the damage of each proc a hit makes among the effects, of a
-// bearer of that INT and level on a creature of targetLevel: one roll a
-// proc effect (each its own chance), a resisted one left out.
+// bearer of those stats and that level on a creature of targetLevel: one
+// roll a proc effect (each its own chance, by the bearer's INT), a resisted
+// one left out; a proc scaled by its bearer's stat adds its share of it, and
+// a capped one does no more than its cap.
 //
 // resistOff is what arcane resist debuffs on the creature take off its
 // chance to resist, in points (enchanter.go).
-func procRolls(effects []*ActiveEffect, intel, bearerLevel, targetLevel, resistOff int, now time.Time, intn func(int) int) (hits []int, resisted int) {
+func procRolls(effects []*ActiveEffect, stat func(Stat) int, bearerLevel, targetLevel, resistOff int, now time.Time, intn func(int) int) (hits []int, resisted int) {
+	intel := stat(StatInt)
 	for _, ae := range effects {
 		if ae.Proc <= 0 || !now.Before(ae.Until) {
 			continue
@@ -80,7 +83,10 @@ func procRolls(effects []*ActiveEffect, intel, bearerLevel, targetLevel, resistO
 		if ae.ProcMax > ae.Proc {
 			n += intn(ae.ProcMax - ae.Proc + 1)
 		}
-		hits = append(hits, n)
+		if ae.ProcScale != StatNone && ae.ProcScalePct != 0 {
+			n += stat(ae.ProcScale) * ae.ProcScalePct / 100
+		}
+		hits = append(hits, capAmount(n, ae.ProcCap))
 	}
 	return hits, resisted
 }
@@ -88,7 +94,7 @@ func procRolls(effects []*ActiveEffect, intel, bearerLevel, targetLevel, resistO
 // playerProcsLocked runs a player's procs after one of its melee hits on a
 // creature still standing. It reports a kill.
 func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, now time.Time) bool {
-	hits, resisted := procRolls(p.Effects, p.StatNow(StatInt), p.Level, npc.Level, npcResistOffPct(npc, now), now, procIntn)
+	hits, resisted := procRolls(p.Effects, p.StatNow, p.Level, npc.Level, npcResistOffPct(npc, now), now, procIntn)
 	if resisted > 0 {
 		log.Printf("Proc: %s's proc resisted by %s", p.Name, npc.Name)
 	}
@@ -106,7 +112,9 @@ func (w *World) playerProcsLocked(sess *session.Session, p *Player, npc *NPC, no
 // kill.
 func (w *World) petProcsLocked(ps *petState, t *NPC, now time.Time) bool {
 	pet := ps.npc
-	hits, resisted := procRolls(pet.Effects, petIntPerLvl*pet.Level, pet.Level, t.Level, npcResistOffPct(t, now), now, procIntn)
+	// a pet has no stats of its own: each is its INT's stand-in, 3 a level
+	petStat := func(Stat) int { return petIntPerLvl * pet.Level }
+	hits, resisted := procRolls(pet.Effects, petStat, pet.Level, t.Level, npcResistOffPct(t, now), now, procIntn)
 	if resisted > 0 {
 		log.Printf("Proc: the pet %q's proc resisted by %s", pet.Name, t.Name)
 	}

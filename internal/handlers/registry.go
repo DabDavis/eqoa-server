@@ -237,6 +237,10 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if charStore != nil {
 		classMasteryHandler.SetStore(charStore)
 	}
+	if spellStore != nil {
+		classMasteryHandler.SetSpellbook(spellStore)
+	}
+	chatHandler.SetClassMastery(classMasteryHandler)
 	connStatsHandler := NewConnStatsHandler()
 	trainingHandler := NewTrainingHandler(sessionMgr, charStore)
 	if gameWorld != nil {

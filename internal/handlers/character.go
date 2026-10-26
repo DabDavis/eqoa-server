@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"os"
 	"sort"
@@ -578,6 +579,13 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 			log.Printf("SelectedChar: '%s' mastery points: %v", record.CharName, err)
 		} else {
 			h.gameWorld.RestoreMastery(sess, PlayerMastery(m))
+		}
+		// and the masteries it bought (entity/cmbuy.go), before its gear,
+		// whose RecalcStats counts them
+		if owned, err := h.store.LoadOwnedCMs(record.ServerID); err != nil {
+			log.Printf("SelectedChar: '%s' masteries: %v", record.CharName, err)
+		} else {
+			h.gameWorld.RestoreCMs(sess, owned)
 		}
 		// and where a spiritmaster bound it (spiritmaster.go)
 		if b, ok, err := h.store.LoadBind(record.ServerID); err != nil {
@@ -1593,25 +1601,24 @@ func writeDumpRecord(writer *buffer.Writer, player *entity.Player) {
 // token (raw), the unspent points (m_x0C, the mastery windows' "Available"),
 // the spent ones (m_x10), m_x14 (no reader shows it), the share of
 // experience going to masteries (m_x08, the mastery points window's 0-100),
-// the speed a bought mastery would set (raw; ReadState keeps it, only a
-// buy's reply hands it to SetSpeed), the 29 stats the masteries add and the
-// seven stat caps they raise (m_bonus: GetP44Total's addend, the trainer's
-// cap). A mastery is not sold yet, so the stats are none and the raises the
-// general masteries the level allows (entity/mastery.go).
+// the run speed (raw; ReadState keeps it, only a buy's reply hands it to
+// SetSpeed), the 29 stats the masteries it bought add (the trainer shows a
+// stat as its base and training plus GetStat's) and the seven stat caps they
+// raise (m_bonus: GetP44Total's addend, the trainer's cap): entity/cmbuy.go.
 func writeMasteryState(w *buffer.Writer, player *entity.Player) {
 	m := player.Mastery
+	st := entity.CMStateOfPlayer(player)
 	w.WriteUint32(0)
 	w.Write7BitEncodedInt64(int64(m.Points))
 	w.Write7BitEncodedInt64(int64(m.Spent))
 	w.Write7BitEncodedInt64(0)
 	w.Write7BitEncodedInt64(int64(m.Percent))
-	w.WriteUint32(0)
-	for i := 0; i < 29; i++ {
-		w.Write7BitEncodedInt64(0)
+	w.WriteUint32(math.Float32bits(st.Speed))
+	for _, v := range st.Stats {
+		w.Write7BitEncodedInt64(int64(v))
 	}
-	raise := entity.GeneralCapRaise(player.Level)
-	for i := 0; i < 7; i++ {
-		w.Write7BitEncodedInt64(int64(raise))
+	for _, v := range st.Bonuses {
+		w.Write7BitEncodedInt64(int64(v))
 	}
 }
 

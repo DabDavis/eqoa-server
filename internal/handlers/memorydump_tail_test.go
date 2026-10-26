@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"math"
 	"testing"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -20,6 +21,8 @@ func TestMemoryDumpTailMatchesClientReadSequence(t *testing.T) {
 	buf := make([]byte, 4096)
 	w := buffer.NewWriter(buf)
 	player := &entity.Player{Speed: 8.8333, Level: 60, Mastery: entity.Mastery{Points: 12, Spent: 765, Percent: 100}}
+	// the masteries it bought give STR +1 and its cap +15 (Brawn 1's)
+	player.CMEffects[0], player.CMEffects[7] = 1, 15
 	writeMemoryDumpTail(w, player, nil)
 
 	written := w.Position()
@@ -99,13 +102,24 @@ func TestMemoryDumpTailMatchesClientReadSequence(t *testing.T) {
 			t.Errorf("cm %s = %d, want %d", f.off, got, f.want)
 		}
 	}
-	raw32("cm +0xA8")
-	for i := 0; i < 29; i++ {
-		zigzag("cm stat array 1")
+	if got := math.Float32frombits(raw32("cm speed")); got != player.SpeedNow() {
+		t.Errorf("cm speed = %v, want the run speed %v", got, player.SpeedNow())
 	}
+	for i := 0; i < 29; i++ {
+		if got := zigzag("cm stat array"); got != int64(player.CMEffects[i]) {
+			t.Errorf("cm stat %d = %d, want %d (what the masteries bought add)", i, got, player.CMEffects[i])
+		}
+	}
+	// the caps they raise: STR's by Brawn 1's 15, the rest by nothing. Until
+	// masteries were sold every character was sent the general ones its level
+	// allowed (150 each at 60), bought or not.
 	for i := 0; i < 7; i++ {
-		if got := zigzag("cm stat caps raised"); got != int64(entity.GeneralCapRaise(60)) {
-			t.Errorf("cap raise %d = %d, want %d (level 60's general masteries)", i, got, entity.GeneralCapRaise(60))
+		want := int64(0)
+		if i == 0 {
+			want = 15
+		}
+		if got := zigzag("cm stat caps raised"); got != want {
+			t.Errorf("cap raise %d = %d, want %d", i, got, want)
 		}
 	}
 

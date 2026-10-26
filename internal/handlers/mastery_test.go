@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/binary"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -131,5 +132,83 @@ func TestSetLevelGivesTheLevelsTrainingPoints(t *testing.T) {
 	c.say(gs, "#setlevel 31")
 	if v, _ := told(); v != want+9 {
 		t.Errorf("on to 31: told %d, want %d (30's 9 once)", v, want+9)
+	}
+}
+
+// #cm lists what a character bought and #cmreset takes it all back with its
+// points, its abilities taken out and the caps back at the level's; both are
+// a GM's. The control: a player's #cmreset resets nothing.
+func TestCMCommandsAreAGMs(t *testing.T) {
+	c, gs, gp, ps, pp := gmWorld(t)
+	c.gw.SetCMCatalog(testCatalog())
+	cm := NewClassMasteryHandler(c.sm)
+	cm.SetGameWorld(c.gw)
+	book := &fakeBook{spells: map[int]string{500: "Taunt"}}
+	kept := &keptMastery{book: book}
+	cm.SetStore(kept)
+	cm.SetSpellbook(book)
+	c.h.SetClassMastery(cm)
+	buy := func(s *session.Session, id int) {
+		req := make([]byte, 9)
+		req[0] = cmBuy
+		binary.LittleEndian.PutUint32(req[5:], uint32(id))
+		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeClassMastery)
+		msg.SetData(req)
+		if err := cm.HandleClassMastery(s, msg); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, p := range []*entity.Player{gp, pp} {
+		p.Class, p.Level, p.BaseStr = 0, 60, 130
+		p.Mastery = entity.Mastery{Points: 100}
+		p.RecalcStats(true)
+	}
+	buy(gs, 1)
+	buy(gs, 10)
+	buy(ps, 1)
+	if gp.Mastery.Points != 70 || gp.StatCapOf(entity.StatStr) != 415 || len(book.added) != 1 {
+		t.Fatalf("bought: %+v, STR cap %d, abilities added %v", gp.Mastery, gp.StatCapOf(entity.StatStr), book.added)
+	}
+
+	c.say(ps, "#cmreset")
+	if pp.Mastery.Points != 90 || len(pp.CMs) != 1 {
+		t.Fatalf("the control: a player's #cmreset changed %+v, %v", pp.Mastery, pp.CMs)
+	}
+
+	gs.Queue().GetPending()
+	c.say(gs, "#cm")
+	got := strings.Join(texts(heard(t, gs)), "\n")
+	if !strings.Contains(got, "Gm: 2 masteries") || !strings.Contains(got, "Brawn 1 (general, 10)") ||
+		!strings.Contains(got, "Battle Cry 1 (class, 20)") || !strings.Contains(got, "STR cap +15") {
+		t.Errorf("#cm said:\n%s", got)
+	}
+
+	gs.Queue().GetPending()
+	c.say(gs, "#cmreset")
+	if gp.Mastery.Points != 100 || gp.Mastery.Spent != 0 || len(gp.CMs) != 0 || gp.StatCapOf(entity.StatStr) != 400 {
+		t.Errorf("after #cmreset: %+v, %v, STR cap %d", gp.Mastery, gp.CMs, gp.StatCapOf(entity.StatStr))
+	}
+	if len(kept.owned[gp.CharServerID]) != 0 || kept.rows[gp.CharServerID].Points != 100 {
+		t.Errorf("not kept: %v, %+v", kept.owned[gp.CharServerID], kept.rows[gp.CharServerID])
+	}
+	// Battle Cry 1 took Taunt (500) and gave 501: the reset takes 501 and
+	// gives Taunt back
+	if fmt.Sprint(kept.removedSpells) != "[500 501]" || fmt.Sprint(book.added) != "[501 500]" {
+		t.Errorf("abilities: taken out %v, added %v; want [500 501] and [501 500]", kept.removedSpells, book.added)
+	}
+	removed, points := 0, false
+	for _, m := range gs.Queue().PeekPending() {
+		d := m.Data()
+		if protocol.GameOpcode(binary.LittleEndian.Uint16(d)) == protocol.OpcodeClassMasteryServer {
+			switch d[2] {
+			case cmRespRemoved:
+				removed++
+			case cmRespPoints:
+				points = true
+			}
+		}
+	}
+	if removed != 2 || !points {
+		t.Errorf("told the client %d removals and points %v; want 2 and the points", removed, points)
 	}
 }

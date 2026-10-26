@@ -272,24 +272,25 @@ func (m *StatMods) sum(o StatMods) {
 }
 
 // StatNow is a stat as the client sees it: the player's own, plus effects,
-// STR to CHA within the level's stat cap (mastery.go).
+// STR to CHA within its cap, the level's and what its masteries raise it by
+// (mastery.go).
 func (p *Player) StatNow(st Stat) int {
 	m := &p.Mods
 	switch st {
 	case StatStr:
-		return p.capStat(p.Str + m.Str)
+		return p.capStat(StatStr, p.Str+m.Str)
 	case StatSta:
-		return p.capStat(p.Sta + m.Sta)
+		return p.capStat(StatSta, p.Sta+m.Sta)
 	case StatAgi:
-		return p.capStat(p.Agi + m.Agi)
+		return p.capStat(StatAgi, p.Agi+m.Agi)
 	case StatDex:
-		return p.capStat(p.Dex + m.Dex)
+		return p.capStat(StatDex, p.Dex+m.Dex)
 	case StatWis:
-		return p.capStat(p.Wis + m.Wis)
+		return p.capStat(StatWis, p.Wis+m.Wis)
 	case StatInt:
-		return p.capStat(p.Int + m.Int)
+		return p.capStat(StatInt, p.Int+m.Int)
 	case StatCha:
-		return p.capStat(p.Cha + m.Cha)
+		return p.capStat(StatCha, p.Cha+m.Cha)
 	case StatAC:
 		return p.AC + m.AC
 	case StatMaxHP:
@@ -317,7 +318,7 @@ func (p *Player) StatNow(st Stat) int {
 func (p *Player) MaxHPNow() int {
 	n := p.MaxHP + p.Mods.MaxHP
 	if sta := p.StatNow(StatSta); sta != p.Sta {
-		n += CalculateMaxHP(p.Level, p.Class, sta) - CalculateMaxHP(p.Level, p.Class, p.Sta)
+		n += p.maxHPFor(sta) - p.maxHPFor(p.Sta)
 	}
 	return max(n, 1)
 }
@@ -359,7 +360,7 @@ const (
 )
 
 // MoveRate is the player's movement rate now: 20 and what movement masteries
-// add (MoveRateBonus; none can be bought yet), 100 under a movement buff,
+// add (MoveRateBonus: the masteries bought, cmbuy.go), 100 under a movement buff,
 // never more than 100, so speed buffs and masteries never stack past it.
 func (p *Player) MoveRate() int {
 	r := moveRateBase + p.MoveRateBonus

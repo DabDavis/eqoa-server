@@ -54,11 +54,12 @@ func TestStatsReport(t *testing.T) {
 	if len(mine) == 0 || !strings.HasPrefix(mine[0], "Tester: level 60 Elf Alchemist (defends as a caster)") {
 		t.Fatalf("first line %q", mine)
 	}
-	limit := p.StatCap()
+	limit := p.StatCapOf(StatSta)
 	for _, want := range []string{
-		fmt.Sprintf("HoT %d every 6 s: %d base (max HP/50), %+d items (2 worn), +4 meals and spells", p.HoTNow(), p.HoTBase(), ItemCredit(p.Gear.HoTItems)),
-		fmt.Sprintf("STA %d = base 347 +280 items +0 spells (%d past the cap of %d)", limit, 627-limit, limit),
-		fmt.Sprintf("STR %d = base 60 +0 items +0 spells (cap %d)", p.StatNow(StatStr), limit),
+		fmt.Sprintf("HoT %d every 6 s: %d base (max HP/50), %+d items (2 worn), +4 meals and spells, +0 masteries", p.HoTNow(), p.HoTBase(), ItemCredit(p.Gear.HoTItems)),
+		fmt.Sprintf("STA %d = base 347 +280 items +0 spells +0 masteries (%d past the cap of %d)", limit, 627-limit, limit),
+		fmt.Sprintf("STR %d = base 60 +0 items +0 spells +0 masteries (cap %d)", p.StatNow(StatStr), p.StatCapOf(StatStr)),
+		", 0 bought (#cm lists them)",
 		"Invisibility (1m30s)", "Healing +20 HP/tick (24s)",
 		"Off/def mod by the old fitted formulas (no roll uses them)",
 	} {

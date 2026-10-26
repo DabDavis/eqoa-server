@@ -27,11 +27,13 @@ import (
 // Beauty) by 15, 20, 25, 30 and 35 at levels 10, 20, 30, 45 and 60, and
 // Godborn every stat by 25 at 50: 400 + 125 + 25 = 550 at level 60, the cap
 // the live game had "including the normal 5 ranks" (F3 20261025-163704);
-// master classes ("tag") and racial masteries raise their own stats further.
+// master classes and racial masteries raise their own stats further.
 //
-// This server cannot sell a mastery yet (handlers/classmastery.go replays a
-// captured tree), so every character counts the general ones its level
-// allows, as if it had bought them; master class and racial ones none.
+// They are BOUGHT since F3 pass 17 (cmbuy.go; the user's choice for the
+// general ones: "Make them buyable too"): a stat's cap is the level's base
+// plus the caps its character's masteries raise (CMEffects' STR MAX..CHA MAX),
+// nothing more. Until then every character counted the general ones its level
+// allowed as held (550 at 60 for all).
 
 // MasteryCap is the most mastery points a character holds, spent and
 // unspent together (F3 20261025-165747).
@@ -55,36 +57,19 @@ func StatCapBase(level int) int {
 	return 350
 }
 
-// generalCapRanks are the general stat-cap masteries' ranks: the level each
-// may be held from and what it raises a stat's cap by.
-var generalCapRanks = [...]struct{ level, raise int }{
-	{10, 15}, {20, 20}, {30, 25}, {45, 30}, {60, 35},
-}
-
-// GeneralCapRaise is what the general masteries a level allows raise each
-// stat's cap by: the stat's own five ranks and Godborn (25 at level 50).
-func GeneralCapRaise(level int) int {
-	n := 0
-	for _, r := range generalCapRanks {
-		if level >= r.level {
-			n += r.raise
-		}
-	}
-	if level >= 50 {
-		n += 25
+// StatCapOf is the most a stat (StatStr to StatCha) may be at the player's
+// level: the level's base and what its masteries raise that stat's cap by.
+func (p *Player) StatCapOf(st Stat) int {
+	n := StatCapBase(p.Level)
+	if i := int(st - StatStr); i >= 0 && i < 7 {
+		n += p.CMEffects[cmSlotCap+i]
 	}
 	return n
 }
 
-// StatCap is the most a stat (StatStr to StatCha) may be at the player's
-// level, its masteries' raise included.
-func (p *Player) StatCap() int {
-	return StatCapBase(p.Level) + GeneralCapRaise(p.Level)
-}
-
-// capStat is v within the player's stat cap.
-func (p *Player) capStat(v int) int {
-	return min(v, p.StatCap())
+// capStat is v within the stat's cap.
+func (p *Player) capStat(st Stat, v int) int {
+	return min(v, p.StatCapOf(st))
 }
 
 // Mastery is a character's class mastery points: unspent, spent, the share

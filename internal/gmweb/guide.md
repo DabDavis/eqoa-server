@@ -44,6 +44,9 @@ with the row before and after, and `revert_change` undoes a row change.
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
 | `classspells` | which spells each class has (grant_spell "all" and `#template` never give a were form); a `source` of `eqoa-data cm` / `eqoa-data epic` / `eqoa-data mca` / `eqoa-data master <name>` marks a mastery's, an epic's or a master class's spell: listed for the class (the community visual page), never handed out by #template, start_all_spells or grant_spell "all" | `class`+`spellid` |
+| `cmcatalog` | every class mastery a character may buy, a row a rank: `category` 0 general / 1 racial / 2 archetype / 3 class / 4 master class, who (`classes`, `races` bit sets), `parent` (the rank before it), `cost`, `level`, `spent` (points spent first), `minstats`, `effects` (`STR:1,STRMax:15`), the abilities it needs, adds and replaces (names, and their spell ids in `require_spells` / `add_spells` / `remove_spells`), `enabled` | `id` |
+| `charcms` | the masteries each character bought and what each cost it | `serverid`+`cmid` |
+| `charmastery` | each character's mastery points: `points` unspent, `spent`, `percent` of experience going to them, `xp` toward the next | `serverid` |
 | `spellfx_suggestions` | the players' suggestions of a spell's visual, from the public spell-visual page: `fxdict`, the sender's `name`/`note` as typed, `status` new/accepted/dismissed; use the operations below | `id` |
 | `defaultcharacter` | where a new character starts, per race, home city (`humType`: a human's east 1, west 2) and class: `x`, `y`, `z`, `facing` (radians), `world`; it is bound there until a spiritmaster binds it; read at each creation | `defaultCharacterID` |
 | `quests` | a quest: its giver (an NPC's name), levels, classes, races, quests first, what the giver says (`offer`, `accept`, `started`); `enabled` 0 is a draft | `questid` |
@@ -89,6 +92,9 @@ with the row before and after, and `revert_change` undoes a row change.
 - **An offline character**: everything at its next login.
 - **Items and spells' own rows**: merchants show them at once; players' own copies at their next login.
 - **Accounts**: a ban ejects the account's sessions and refuses its logins at once.
+- **Class masteries: at once.** A `cmcatalog` row saved is every list opened from then on, and the stats of the
+  characters online who own it; a `charcms` row edited is applied where its character stands (its points are
+  not: `charmastery` is read at the next login, and a character in the world saves its own over it at logout).
 - **Quests: at once.** A quest or step saved is used by the next talk, kill or step; a character's quest set
   with `character_quest_set` (or its `charquests` row edited) redraws the journal of a character in the world.
 
@@ -210,6 +216,17 @@ with the row before and after, and `revert_change` undoes a row change.
   water is the game's own; a creature standing off the ground (a keep's floor, a dock) does not wander anyway.
   No damage crosses the water's edge: a spell at a creature in the water from the shore is refused ("Your target is
   in the water."), and melee across it is lost, both ways.
+- **Class masteries** (`cmcatalog`): players buy them in the game's own Class Mastery window, with the mastery
+  points their share of experience earns (`#grantcm` gives a GM's own). A rank is listed to the classes and races
+  its bit sets name and buyable once its level, points spent (`spent`), base stats (`minstats`), the abilities it
+  needs (`require_spells`: the book must hold them) and the rank before it (`parent`) are there; one master class
+  at a time. `effects` raise stats and the stat caps (a character's cap is the level's, 400 from 46 and 350 below,
+  plus its masteries' `STRMax`..`CHAMax`), HP, power, HoT, PoT, AC, resists, the HP factor and the movement rate;
+  `add_spells` are given at the purchase, `remove_spells` taken out. To fix an ability the seed could not find,
+  put its spell id in the same place of the id list as its name. A new rank: `insert_row` with an unused `id`
+  and `parent` the rank before it. Never change an `id` a character owns (`charcms`). In the game `#cm` lists what
+  the target (a player) or you bought and `#cmreset` takes it all back, points returned; for a character offline,
+  delete its `charcms` rows and add their `cost` back to its `charmastery` `points` (and take it off `spent`).
 - **Give a player something**: `give_item` (an item by name or id), `grant_spell` (one, or "all" of its
   class), `set_character` (level, tunar, heal).
 - **Moderate**: `message_player`, `broadcast`, `kick_player`, `ban_account` (with a reason).

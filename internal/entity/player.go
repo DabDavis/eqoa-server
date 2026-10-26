@@ -63,7 +63,8 @@ type Player struct {
 	Faction byte
 
 	// MoveRateBonus is what movement masteries add to the movement rate of 20
-	// (cast.go's MoveRate); none can be bought yet, so it is 0.
+	// (cast.go's MoveRate): the MOVEMENT RATE of the masteries the character
+	// bought (cmbuy.go).
 	MoveRateBonus int
 
 	// Factions is the character's standing with each faction it has moved
@@ -84,8 +85,14 @@ type Player struct {
 	TotalTP   int
 
 	// Class mastery points and the share of experience going to them
-	// (mastery.go); the stat cap is the level's (StatCap)
+	// (mastery.go); the stat caps are the level's plus what its masteries
+	// raise (StatCapOf)
 	Mastery Mastery
+	// CMs is the masteries it bought, by cmcatalog id, and what each cost
+	// (table charcms); CMEffects what they give, summed by the window's 29
+	// stats (cmbuy.go), which RecalcStats puts on its stats.
+	CMs       map[int]int
+	CMEffects [CMSlots]int
 
 	// Currency
 	Tunar, BankTunar int

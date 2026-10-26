@@ -198,10 +198,10 @@ type Quest struct {
 	// Declined is the giver's reply to a refusal, said as written (Sandstorm's
 	// Captain Norgam's carries no name before it).
 	Declined string
-	Started    string // the giver's words once it is taken
-	Source     string
-	Notes      string
-	Steps      []QuestStep
+	Started  string // the giver's words once it is taken
+	Source   string
+	Notes    string
+	Steps    []QuestStep
 }
 
 // Step is the quest's step n (from 1), or nil.

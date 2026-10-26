@@ -157,4 +157,3 @@ func utf16le(s string) []byte {
 	}
 	return b
 }
-

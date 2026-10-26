@@ -12,7 +12,7 @@ import { h, mount, pageHead, button, toast, store, debounce, formBox } from '../
 import { op } from '../lib/api.js';
 import { describe } from '../lib/meta.js';
 import { go } from '../lib/nav.js';
-import { discTerrain } from './disc.js';
+import { discTerrain, stableHorseshoe } from './disc.js';
 import { PathEditor } from './paths.js';
 
 
@@ -51,10 +51,20 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
     return h('span', null, dot, label);
   }), h('span', null, h('strong', null, '▲'), ' player'),
     h('span', null, legendIcon((c) => drawXP(c, 13, 9, 1, false)), 'XP camp'),
-    h('span', null, legendIcon((c) => drawHorseshoe(c, 13, 9, 1, false)), 'coach')));
+    h('span', null, coachLegend, 'coach')));
+  const coachLegend = legendIcon((c) => drawHorseshoe(c, 13, 9, 1, false));
+  stableHorseshoe().then((img) => {
+    if (!img) return;
+    shoe = img;
+    const c = coachLegend.getContext('2d');
+    c.clearRect(0, 0, coachLegend.width, coachLegend.height);
+    drawCoach(c, 13, 9, 1, false, shoe);
+    draw();
+  });
   const ctx = canvas.getContext('2d');
   let npcs = [], names = [], players = [];
   let camps = [], coaches = [], you = null; // map_layers
+  let shoe = null; // the stables' horseshoe off the disc (disc.js), once it is read
   let view = { cx: 0, cz: 0, scale: 0.05 }; // world units -> pixels
   let selected = null, moving = null, hover = null;
   let terrain = null; // {tiles:[{x0,z0,x1,z1,img}], cancel}
@@ -176,7 +186,7 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
       for (const c of coaches) {
         const [sx, sy] = toScreen(c.x, c.z);
         if (sx < -20 || sy < -20 || sx > W + 20 || sy > H + 20) continue;
-        drawHorseshoe(ctx, sx, sy, dpr, hover?.kind === 'coach' && hover.c === c);
+        drawCoach(ctx, sx, sy, dpr, hover?.kind === 'coach' && hover.c === c, shoe);
         if (view.scale > 0.15) label(c.town, sx, sy + 16 * dpr, '#e8d2b0');
       }
     }
@@ -557,6 +567,20 @@ function drawHorseshoe(ctx, x, y, d, hot) {
     ctx.arc(x + r * Math.cos(t), y - 1 * d + r * Math.sin(t), 0.9 * d, 0, Math.PI * 2);
     ctx.fill();
   }
+  ctx.restore();
+}
+
+// A coach's marker: the stables' horseshoe off the disc when it has been
+// read (img), on a dark disc so it reads over the terrain, else one of ours.
+function drawCoach(ctx, x, y, d, hot, img) {
+  if (!img) { drawHorseshoe(ctx, x, y, d, hot); return; }
+  const s = 18 * d;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, s * 0.62, 0, Math.PI * 2);
+  ctx.fillStyle = hot ? 'rgba(243,226,196,0.9)' : 'rgba(18,13,8,0.75)';
+  ctx.fill();
+  ctx.drawImage(img, x - s / 2, y - s / 2, s, s);
   ctx.restore();
 }
 

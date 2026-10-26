@@ -261,6 +261,14 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   problems), `quest_save` (a quest and its steps as row changes), `quest_delete`, `character_quests`,
   `character_quest_set` (through the engine, logged as the `charquests` row before and after, so revertible),
   `quest_try` (the GM's own character in the world), `quest_import_eqoadata` (EQOA-Data's guides into OFF drafts).
+- **The map's XP camps and coaches** (`ops_maplayers.go`, `views/map.js`; F3 pass 18, the user's "add the camps and
+  coaches to the GM panel map too"): two layers, each a toggle kept in the browser: the #tele camps as an XP badge
+  (`handlers.CampMarkers`: where the anchor stands now, else as written; hover: levels, the guide's, EQOA-Data's
+  note; click: the creatures, rare mobs, the loot tables they roll by `map_camp`, a teleport to the camp) and the
+  coachmen as a horseshoe drawn by the page (`World.CoachMarkers`: the town, the coach menu's towns, the live game's
+  routes off EQOA-Data's coach map in `entity/coachroutes.go`, written by `tools/gen_coach_routes.py`; click: the
+  NPC's page, a teleport). `tools/gen_camp_teles.py` writes each camp's notes beside its shortcut (`campNotes`).
+  No game data: the places and names are the server's own.
 - **NPC paths** (`ops_paths.go`, `static/views/paths.js`): the World map's path editor (an NPC's Path…, or
   Path on the map on its page: `#/map/<world>/<npc>/path`): click to add points, drag to move, click a
   line to insert, Delete to remove; mode, pause, speed; Save, Revert, Remove path; the view fits the path,

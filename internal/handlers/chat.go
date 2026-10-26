@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/entity"
@@ -761,6 +762,14 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// (what talking to a silent NPC showed before F3 20261025-171528)
 		h.npcInfoCommand(sess, player)
 
+	case "#stats":
+		// #stats: what the server works out and the game does not show (HoT,
+		// PoT, the stats' parts and caps, the rolls), on the target or the GM
+		// (entity/statsreport.go; F3 20261026-014422)
+		for _, l := range h.gameWorld.StatsReport(sess, player.TargetObjectID, time.Now()) {
+			h.gmReply(sess, l)
+		}
+
 	case "#pos":
 		h.gmReply(sess, fmt.Sprintf("Position: (%.1f, %.1f, %.1f) facing=%.2f",
 			player.X, player.Y, player.Z, player.Facing))
@@ -844,6 +853,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #spellfx <spell> [<visual> | 0] - a spell's visual, or give it one (0: its stand-in)")
 		h.gmReply(sess, "  #kill - kill target")
 		h.gmReply(sess, "  #npcinfo - the target's ids, model, size, level, spawn and gear")
+		h.gmReply(sess, "  #stats - HoT, PoT, stats and caps, the melee rolls, hate: the target's or your own")
 		h.gmReply(sess, "  #pos - show position")
 		h.gmReply(sess, "  #who - list players")
 

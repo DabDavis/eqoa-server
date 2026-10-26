@@ -20,8 +20,8 @@ import (
 // "Summons Unstable Potion X3", EQOA-Data's words kept as spelleffect has
 // them): at its landing the spell's words name an item, and the handlers give
 // the caster that many of it (summonItemsLocked: the item by name, count the
-// line's "xN", else three of an item that stacks to three and one of
-// anything else). Using one does what its row of table itemeffect says
+// line's "xN", else three of a potion or of an item that stacks to three and
+// one of anything else). Using one does what its row of table itemeffect says
 // (database/itemeffect.go): a line in spelleffect's words, its first word
 // whom it lands on.
 //
@@ -34,9 +34,13 @@ import (
 //   - Thrown ("Target, ..."): its hit and what lasts of it land on the
 //     creature targeted, as a spell's would (landOnNPCLocked), within the
 //     potion's throwing range, and on every creature within its splash
-//     (itemeffect.area: the cocktails'). A thrown potion is also worn as a
-//     thrown weapon (wear 17, attack type 10), and then each throw of the
-//     auto-attack is one of them, gone from the stack (thrownPotionHitLocked).
+//     (itemeffect.area: the cocktails'). A thrown potion is a ranged weapon
+//     (F3 20261026-014336, jib: "equips in the range attack slot, like a bow,
+//     and fires as a range auto attack"): wear 16, a bow's, attack type 10,
+//     worn in the ranged slot by Use, and each throw of the ranged
+//     auto-attack is one of them, gone from the stack
+//     (thrownPotionHitLocked). Use throws one only when it is worn nowhere
+//     (a GM's potion; handlers/potion.go usesPotion).
 //
 // What ends one early is its row's: "attack" (jib: a quickening "break[s] on
 // any aggressive action done by the character": its auto-attack, a harmful

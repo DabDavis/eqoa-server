@@ -6,14 +6,16 @@ row of itemeffect (entity/potion.go, handlers/potion.go).
 The potions are the ones EQOA-Data's alchemist list (Information/databases/
 spells/alchemist.json) says the spells summon, named exactly as it names
 them, so a spell's words find their item: "SELF Summon Watery Draught",
-"Summons Unstable Potion X3". A spell summons three of an item that stacks to
-three and one of anything else, unless its words say how many.
+"Summons Unstable Potion X3". A spell summons three of a potion (jib: "stacks
+of 3", F3 20261026-014336) unless its words say how many.
 
 - Thrown potions (the Mixtures, the cocktails): the list's own "Mix Potion"
-  and "Fire Potion" lines are their hits; worn as a thrown weapon (wear 17,
-  attack type 10, range 20), stacking to 999, an alchemist's (class bit 14),
-  usable from the spell's level. The cocktails splash everything within 10 of
-  their target (ours).
+  and "Fire Potion" lines are their hits; a ranged weapon (F3 20261026-014336,
+  jib: "equips in the range attack slot, like a bow, and fires as a range auto
+  attack"): worn where a bow is (wear 16, as the rusty throwing knife; attack
+  type 10, range 20) and no potion on the client's quick slots (item type 0),
+  stacking to 999, an alchemist's (class bit 14), usable from the spell's
+  level. The cocktails splash everything within 10 of their target (ours).
 - Draughts (Crude Refinement and the rest of the Refinement line, jib: "convert
   HP into Mana, at a high amount of mana gain"): 4 health a level taken at once
   and 15 power a level given over 18 s (ours: no record gives a draught's
@@ -21,7 +23,8 @@ three and one of anything else, unless its words say how many.
 - Speed (the Quickening line) and invisibility (the Sublimation line), jib's
   design: Spirit of the Wolf's own line ("sow, 30min"), on the effects list by
   the spell's name, ended by the drinker's attack; invisibility 4 minutes, a 1%
-  chance each tick to wear off, ended by an attack or a hit.
+  chance each tick to wear off, ended by an attack or a hit. The crude ones
+  (Crude Quickening, Crude Sublimation) last a minute (F3 20261026-014527).
 - Tonics (the Infusion line): an arcane resist, 15 and 30 the list's own (Minor
   and Lesser Tonic), 45, 60 and 75 past them and the 30 minutes ours.
 - Correctives and restoratives (Distillation, Purification): one or three
@@ -144,10 +147,10 @@ POTIONS = [
     ("Stout Draught", "Superior Refinement", 45, "draught", draught(45), "", 0),
     ("Infused Draught", "Pure Refinement", 54, "draught", draught(54), "", 0),
     # the Quickening line: Spirit of the Wolf's own line
-    ("Faulty Alacrity Potion", "Crude Quickening", 13, "speed", "Self, Sow, 30min", "Crude Quickening", 0),
+    ("Faulty Alacrity Potion", "Crude Quickening", 13, "speed", "Self, Sow, 1min", "Crude Quickening", 0),
     ("Self Alacrity Potion", "Quickening", 33, "speed", "Self, Sow, 30min", "Quickening", 0),
     # the Sublimation line
-    ("Faulty Ethereal Potion", "Crude Sublimation", 7, "invis", "Self, Invis, 4min", "Crude Sublimation", 0),
+    ("Faulty Ethereal Potion", "Crude Sublimation", 7, "invis", "Self, Invis, 1min", "Crude Sublimation", 0),
     ("Ethereal Potion", "Sublimation", 27, "invis", "Self, Invis, 4min", "Sublimation", 0),
     ("Aether Potion", "Volatile Sublimation", 47, "invis", "Self, Invis, 4min", "Volatile Sublimation", 0),
     # the Infusion line
@@ -185,13 +188,14 @@ def item_of(name, spell, level, kind):
         "itemcost": 0, "unk1": 0, "unk2": 0, "unk3": 0, "unk4": 0, "unk6": 0, "craft": 0,
         "itemicon": {"draught": ICON_DRAUGHT, "corrective": ICON_DRAUGHT, "restorative": ICON_DRAUGHT,
                      "tonic": ICON_TONIC, "cocktail": ICON_COCKTAIL}.get(kind, ICON_THROWN if thrown else ICON_FLASK),
-        "equipslot": 17 if thrown else -1,
+        "equipslot": 16 if thrown else -1,  # a bow's slot: the ranged weapon
         "trade": no_trade, "rent": 1,
         "attacktype": 10 if thrown else 0, "weapondamage": 0, "unk5": THROW_RANGE if thrown else 0,
         "levelreq": level if kind in THROWN_KINDS | {"draught"} else 1,
         "maxstack": 999 if thrown else 3, "maxhp": 0, "duration": 50,
         "classuse": ALCHEMIST if thrown else EVERY_CLASS, "raceuse": EVERY_RACE,
-        "procanim": 2,  # the client's item type 2: a potion (quick slots 0-1)
+        # the client's item type: 2 a potion (quick slots 0-1), 0 a thrown one
+        "procanim": 0 if thrown else 2,
         "lore": 0, "itemname": name, "itemdesc": DESC[kind], "model": 0, "color": 4294967295,
     }
 

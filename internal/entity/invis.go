@@ -1,6 +1,10 @@
 package entity
 
-import "log"
+import (
+	"log"
+
+	"github.com/eqoa/server/internal/session"
+)
 
 // invis.go — what ends invisibility, and invisibility on a pet.
 //
@@ -10,7 +14,11 @@ import "log"
 // another player already landed on it (cast.go); at a pet it landed on the
 // pet's effects but showed nothing: a creature's state byte 154 is set now
 // as a player's is. What ends it here: its bearer beginning a cast, engaging
-// a fight, and every round it swings; a pet's, every round it swings. No
+// a fight, and every round it swings; a pet's, every round it swings; and
+// since F3 20261026-014527 (jib: "when using a potion while invis'd, the
+// invis should break. Effectively any action other than movement, targeting
+// and chat should break invis") every other action of its bearer's
+// (BreakInvis, called before the handlers/invisactions.go messages). No
 // recording says what Sandstorm or SOE sent when invisibility broke; the
 // effect simply goes from the effects channel.
 
@@ -24,6 +32,18 @@ func (w *World) breakInvisLocked(p *Player, why string) {
 			w.removeEffectLocked(p, e.SpellID)
 			log.Printf("Cast: %q ends on %s: %s", e.Name, p.Name, why)
 		}
+	}
+}
+
+// BreakInvis ends the session's player's invisibility: an action of the
+// player's (handlers/invisactions.go; F3 20261026-014527, jib: "any action
+// other than movement, targeting and chat should break invis"), why for the
+// log. A player that is not invisible is left as it is.
+func (w *World) BreakInvis(sess *session.Session, why string) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if p := w.sessionPlayerLocked(sess); p != nil {
+		w.breakInvisLocked(p, why)
 	}
 }
 

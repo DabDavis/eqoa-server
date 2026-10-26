@@ -135,6 +135,8 @@ func TestSummonedPotionsArrive(t *testing.T) {
 	f.potionWorld()
 	quick := f.potion("Faulty Alacrity Potion", -1, 3, 1, "Self, Sow, 30min", "Crude Quickening", "attack")
 	f.potion("Unstable Potion", 17, 999, 0, "Target, Decrease Hitpoints by 54", "", "")
+	// the spell's scroll shares the potion's name, and comes first by id
+	f.item("Neriak Cocktail", true, 1<<14, 40, 1)
 	f.potion("Neriak Cocktail", 17, 999, 0, "Target, Decrease Hitpoints by 626", "", "")
 	f.loadList()
 
@@ -142,6 +144,8 @@ func TestSummonedPotionsArrive(t *testing.T) {
 	f.h.summonItem(f.sess, f.sid, "unstable potion", 3, "Unstable Mixtures")
 	f.h.summonItem(f.sess, f.sid, "grobb cocktail", 0, "Neriak Cocktail")
 	f.h.summonItem(f.sess, f.sid, "ring to invis", 0, "Phase Ring")
+	f.item("Lava Stone", true, 1<<10, 10, 1) // the spell's scroll, the only item of its name
+	f.h.summonItem(f.sess, f.sid, "item", 0, "Lava Stone")
 	adds := 0
 	for _, m := range f.sess.Queue().GetPending() {
 		if d := m.Data(); protocol.GameOpcode(uint16(d[0])|uint16(d[1])<<8) == protocol.OpcodeAddInvItem {
@@ -149,11 +153,16 @@ func TestSummonedPotionsArrive(t *testing.T) {
 		}
 	}
 	if adds != 3 {
-		t.Errorf("%d items arrived (0x003B), want 3", adds)
+		t.Errorf("%d items arrived (0x003B), want 3 (never a spell's scroll)", adds)
 	}
 	for name, want := range map[string]int{"Faulty Alacrity Potion": 3, "Unstable Potion": 3, "Neriak Cocktail": 1} {
 		if n := f.stackOf(name); n != want {
 			t.Errorf("%d %s, want %d", n, name, want)
+		}
+	}
+	for _, r := range f.rowsOf() {
+		if r.Pattern.ItemName == "Neriak Cocktail" && isScroll(&r.Pattern) {
+			t.Error("Neriak Cocktail summoned its spell's scroll, not the potion")
 		}
 	}
 	if summonCount(&database.ItemPatternRecord{PatternID: quick, MaxStack: 3}) != 3 ||

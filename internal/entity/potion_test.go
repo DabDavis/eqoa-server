@@ -308,6 +308,7 @@ func TestSummonedItemsGoToTheHook(t *testing.T) {
 		t.Errorf("Unstable Mixtures summoned %+v", g)
 	}
 	land("Summon Golem", "Summons an Iron Golem to your defense")
+	land("Wilting Flesh", "Summons a zombie to your aid") // a pet the pet words miss
 	select {
 	case g := <-ch:
 		t.Errorf("a pet's summoning summoned an item: %+v", g)

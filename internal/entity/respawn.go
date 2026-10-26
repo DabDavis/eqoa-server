@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -77,10 +78,17 @@ func (w *World) playerDiedLocked(sess *session.Session, p *Player, now time.Time
 	p.disengage()
 	w.clearSpellsLocked(p)
 	w.dropAggroLocked(p.ServerID)
+	debt := DeathDebt(p.Level)
+	p.Debt += debt
 	if sess != nil {
 		w.sendPlayerDied(sess)
+		if debt > 0 {
+			// the debt icon on the player's own target bar (0x00D9), and ours: a line
+			sendExpDebt(sess, p.Debt)
+			w.sendChatToSession(sess, fmt.Sprintf("Your death left an experience debt of %d (%d owed in all).", debt, p.Debt))
+		}
 	}
-	log.Printf("Death: %s died; respawn in %v", p.Name, PlayerRespawnDelay)
+	log.Printf("Death: %s died at level %d, %d experience debt (%d owed); respawn in %v", p.Name, p.Level, debt, p.Debt, PlayerRespawnDelay)
 }
 
 // dropAggroLocked takes the entity off every NPC's threat table. An NPC whose

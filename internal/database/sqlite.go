@@ -580,6 +580,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCAggro(); err != nil {
 		return err
 	}
+	if err := db.ensureNPCSocial(); err != nil {
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil

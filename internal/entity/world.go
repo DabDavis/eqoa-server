@@ -96,6 +96,9 @@ type World struct {
 
 	// Creatures attacking a player on sight (aggro.go)
 	aggro aggroState
+
+	// NPCs coming to the help of their own (socialaggro.go)
+	npcSocial npcSocialState
 }
 
 // NewWorld creates and initializes a new game world.
@@ -780,11 +783,26 @@ func (w *World) killNPC(npc *NPC) {
 	log.Printf("Combat: NPC '%s' killed (entity ID=%d)", npc.Name, npc.ServerID)
 }
 
-// updateAggro adds or updates threat on an NPC.
+// updateAggro adds or updates threat on an NPC: a hit or another hostile act
+// on it (a spell landing, a resisted charm), so the NPCs of its own that see
+// it come to its help (socialaggro.go). A creature noticing a player on its
+// own (aggro.go) takes addThreatLocked alone.
 func (w *World) updateAggro(npc *NPC, attackerID EntityID, damage int) {
 	if npc.Dummy != NotDummy {
 		return // a dummy holds no grudge: it fights its one player (dummy.go)
 	}
+	w.addThreatLocked(npc, attackerID, damage)
+	w.socialAssistLocked(npc, attackerID)
+}
+
+// addThreatLocked is threat on an NPC and its enemy the highest: a fight
+// begun or kept up, and no one else told of it. Must be called with the lock
+// held.
+func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
+	if npc.Dummy != NotDummy {
+		return
+	}
+	npc.calmTicks = 0 // in a fight: no regeneration after it for a while (npcregen.go)
 	if npc.Threats == nil {
 		npc.Threats = make(map[EntityID]int64)
 	}

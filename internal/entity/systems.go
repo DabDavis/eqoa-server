@@ -218,6 +218,7 @@ func (w *World) regenSystem(now time.Time) {
 	if w.TickCount%uint64(RegenInterval/(100*time.Millisecond)) != 0 {
 		return
 	}
+	w.regenAt = now
 
 	for _, p := range w.Players {
 		// A corpse does not heal: the respawn restores it (respawn.go)

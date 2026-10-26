@@ -118,7 +118,18 @@ with the row before and after, and `revert_change` undoes a row change.
   Max Power, FR CR PR DR LR AR), `Root`, `Snare` (or `Decrease Movement Speed by 30`), `Sow` (run speed),
   `Invis`, `Return to bind point` (a gate), `+100 hate`; a scale
   `; Increase 15% based on DEX`; a duration `30sec`, `5min`, `2hr`. Example:
-  `Target, Decrease Hitpoints by 120 ; Increase 10% based on INT`.
+  `Target, Decrease Hitpoints by 120 ; Increase 10% based on INT`. Several stats take one number
+  (`Increase PR/DR by 35`, `buff DR, PR, FR, CR by 100`). A line that raises stats and gives no
+  duration lasts 30 minutes; a heal over time with none, 24 seconds. A radius (`15rad`), a buff's
+  hate (`218 hate`) and an epic's `Power cost`, `Cast` and `Recast` are read and left alone.
+  The cleric's HP/AC line (Courage, Center, Daring, Bravery, Valor, Resolution, Order, United
+  Faith and the group ranks) also heals as much as it raises maximum HP. **Heals over time**: the
+  first tick lands at once unless the player already has one; a weaker one over a stronger does
+  nothing; a stronger (or equal) one replaces it, no tick at once, and ticks at the next regular
+  (six-second) tick. `spellpattern` ids from 700001 were made by `tools/import_eqoadata_spells.py`
+  from EQOA-Data's class lists: their cast, recast and power are the server's estimates (from
+  another rank of the line), so fix them freely, and a line it left empty (`spelleffect` has no
+  row) is yours to write.
 - **Undead**: a spell whose line starts `Target undead`, and a charm whose name or description says undead (the
   necromancer's Charm/Command/Control/Coerce Undead), works only on creatures that are undead (`npcundead`); cast at any
   other it is refused with "This spell only works on the undead." Every other charm fails on undead. To make a creature

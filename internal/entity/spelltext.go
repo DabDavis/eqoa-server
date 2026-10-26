@@ -106,6 +106,10 @@ type SpellDef struct {
 	// Unread is the part of the line this does not act on (procs, cures...),
 	// for the log.
 	Unread []string
+	// Ignored is what the line says that is read and left alone on purpose
+	// (spellnotes.go): a group spell's radius, a buff's hate, an epic list's
+	// power cost, cast and recast.
+	Ignored []string
 	// CharmMax is the highest level a charm takes when its line or
 	// description says ("Charms up to level 54 mobs", "Charm up to level
 	// 54"); 0: the spell's own level (charm.go).
@@ -186,6 +190,11 @@ var spellAliases = []struct{ from, to string }{
 	{"decrease drain ", "drain "},
 	{"hp via backstab by", "hp by"},
 	{"damage by ", "decrease hitpoints by "},
+	// the lists' typos and a monk's "Target Damage Hp by 16" (spellnotes.go)
+	{"damage hp by ", "decrease hp by "},
+	{"hitoints", "hitpoints"},
+	{", ecrease ", ", decrease "},
+	{"based on dext", "based on dex"},
 }
 
 // statWords are the stat names a line uses, longest first where one starts
@@ -194,7 +203,7 @@ var statWords = []struct {
 	word string
 	stat Stat
 }{
-	{"maximum hp", StatMaxHP}, {"max hp", StatMaxHP}, {"maxhp", StatMaxHP},
+	{"maximum hp", StatMaxHP}, {"max hp", StatMaxHP}, {"maxhp", StatMaxHP}, {"mhp", StatMaxHP},
 	{"maximum power", StatMaxPower}, {"max power", StatMaxPower}, {"maxpower", StatMaxPower},
 	{"str", StatStr}, {"sta", StatSta}, {"agi", StatAgi}, {"dex", StatDex},
 	{"wis", StatWis}, {"int", StatInt}, {"cha", StatCha}, {"ac", StatAC},
@@ -238,6 +247,7 @@ func ParseSpellNamed(name, line, desc string) SpellDef {
 	d := ParseSpell(line, desc)
 	d.readIllusion(name, desc)
 	d.readUndead(name, desc) // undead.go
+	d.healWithMaxHP(name) // spellnotes.go
 	return d
 }
 
@@ -320,6 +330,7 @@ func ParseSpellText(line string) SpellDef {
 	for _, a := range spellAliases {
 		text = strings.ReplaceAll(text, a.from, a.to)
 	}
+	text = joinStatLists(text) // spellnotes.go
 	// The verb a clause without one goes on with ("Increase AC by 12,
 	// Maximum Power by 5"), and the effect a scale clause belongs to.
 	verb := ""
@@ -348,6 +359,10 @@ func ParseSpellText(line string) SpellDef {
 					d.Effects[last].ScalePct, _ = strconv.Atoi(m[1])
 					continue
 				}
+			}
+			if spellNote(part) { // spellnotes.go
+				d.Ignored = append(d.Ignored, part)
+				continue
 			}
 			n := len(d.Effects)
 			verb = d.parsePart(part, verb)
@@ -380,6 +395,7 @@ func ParseSpellText(line string) SpellDef {
 			}
 		}
 	}
+	d.lineDefaults() // spellnotes.go: what a line leaves out
 	return d
 }
 

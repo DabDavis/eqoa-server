@@ -2,11 +2,8 @@ package entity
 
 import (
 	"bytes"
-	"net"
 	"testing"
 	"time"
-
-	"github.com/eqoa/server/internal/session"
 )
 
 // The enchanter's lines (enchanter.go), as eqoaclassic's records have them:
@@ -219,8 +216,6 @@ func TestAnArcaneDebuffLowersACreaturesResists(t *testing.T) {
 // is the animation it was.
 func TestTheGolemsWearGolems(t *testing.T) {
 	w := NewWorld()
-	w.SessionManager = session.NewManager()
-	_ = net.IPv4zero
 	for _, n := range []*NPC{
 		{ServerID: 1, Name: "granite golem", ModelID: 0x111, Size: 1},
 		{ServerID: 2, Name: "Iron Golem", ModelID: 0x222, Size: 1},

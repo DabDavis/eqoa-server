@@ -13,7 +13,7 @@ import (
 //   - line: what it does, in spelleffect's words (entity/spelltext.go); its
 //     first word says on whom: "Self" (drunk: a draught, a speed or an
 //     invisibility potion) or "Target" (thrown at a creature);
-//   - name: the effect's name on the effects list ('' is the item's own);
+//   - name: the effect's name on the effects list (” is the item's own);
 //   - icon: the effect's icon there, an ability's front icon (a UI.CSF
 //     surface, spellpattern.icon), 0 for none;
 //   - breaks: what ends it early, a comma list: "attack" (the bearer's own

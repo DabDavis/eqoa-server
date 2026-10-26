@@ -280,8 +280,8 @@ SPECS = [
     S("Elusive Stone Ant", FOE, ("kind", "ant"), ("at", 0, 5900.0, 21200.0), count=3, level=10,
       note="the wilds east of Highbourne"),
     S("Giggen Aviak", FOE, ("kind", "aviak"), ("ff",), count=2, note="a male and a female, east past the Stoneclaw ravines"),
-    S("Alchemist of Arcadia", TALKER, ("race", "erudite", MALE), ("near", "Dockmaster Killeron", 40, 2), level=30,
-      note="Arcadia (Odus), in the building in front of the docks; the guide names no one"),
+    S("Alchemist of Arcadia", TALKER, ("race", "erudite", MALE), ("near", "Merchant Samoul", 8, 2), level=30,
+      note="Arcadia (Odus), in the merchants' building west of the docks; the guide names no one"),
     S("Sage of Gramash", TALKER, ("race", "erudite", MALE), ("at", 0, 10584.0, 8625.0), level=40,
       note="a tower at Gramash Ruins; the guide names no one"),
     S("Guard of the Sage", TALKER, ("race", "human", MALE), ("near", "Sage of Gramash", 20, 0), level=35,
@@ -300,6 +300,7 @@ SCALE = 2.13
 OGGOK_MAP = (6855.0, 10988.0)
 SPREAD = (25.0, 120.0)
 SPACING = 12.0
+CLEAR = 3.0     # and this far from any NPC there is
 TRIES = 300
 
 
@@ -476,6 +477,14 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
         if not s["pos_suspect"]:
             seen[key(s["npc_name"])].append(s)
     placed = []   # every new spawn: world, x, z (spacing)
+    others = collections.defaultdict(list)   # the NPCs there are, by (world, 16-unit cell)
+    for n in npcs:
+        others[(n["world"], int(n["x"] // 16), int(n["z"] // 16))].append((n["x"], n["z"]))
+
+    def crowded(world, x, z, r=CLEAR):
+        cx, cz = int(x // 16), int(z // 16)
+        return any(math.hypot(px - x, pz - z) < r
+                   for dx in (-1, 0, 1) for dz in (-1, 0, 1) for px, pz in others.get((world, cx + dx, cz + dz), ()))
     rows, left, types = [], [], []
 
     def ground(world):
@@ -591,8 +600,13 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
                     x, z = ax + r * math.cos(a), az + r * math.sin(a)
                 if any(w == world and math.hypot(px - x, pz - z) < SPACING for w, px, pz in placed):
                     continue
+                if crowded(world, x, z):
+                    continue
                 y = floor_at(world, x, z, ay, low)
-                if y is None or (ay is not None and not low and abs(y - ay) > 30.0):
+                # a talker by a townsperson stands on that person's floor (not off a
+                # dock or a storey up); anything else within 30 of its place's height
+                tol = 10.0 if spec["role"] == TALKER and spec["place"][0] == "near" else 30.0
+                if y is None or (ay is not None and not low and abs(y - ay) > tol):
                     continue
                 tpl = template(spec["body"], world, x, z)
                 if tpl is None:

@@ -133,6 +133,7 @@ with the row before and after, and `revert_change` undoes a row change.
   from EQOA-Data's class lists: their cast, recast and power are the server's estimates (from
   another rank of the line), so fix them freely, and a line it left empty (`spelleffect` has no
   row) is yours to write.
+- **Enchanter procs and clarity**: a weapon proc is a hit with a duration whose ability description says "proc", or a spell of the enchanter's proc lines by name (Chaotic Flux/Mark/Glyph/Rune, Anarchic ..., Stormlord's ..., Rune of ...); a `Group` proc also lands on the members' pets; a proc's `; Increase N% based on X` is its caster's, at its landing. The clarity line (Breeze, Intuition, Clarity, Lucidity, Tranquility, Empathy, Empathic ...) is one at a time: the most power a tick stays. A `Decrease Resist Arcane by N` on a creature makes it resist procs and charms less (25 AR: 6 points; the strongest one counts).
 - **Undead**: a spell whose line starts `Target undead`, and a charm whose name or description says undead (the
   necromancer's Charm/Command/Control/Coerce Undead), works only on creatures that are undead (`npcundead`); cast at any
   other it is refused with "This spell only works on the undead." Every other charm fails on undead. To make a creature

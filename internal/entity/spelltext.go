@@ -254,8 +254,9 @@ func ParseSpellNamed(name, line, desc string) SpellDef {
 	}
 	d := ParseSpell(line, desc)
 	d.readIllusion(name, desc)
-	d.readUndead(name, desc) // undead.go
-	d.healWithMaxHP(name)    // spellnotes.go
+	d.readUndead(name, desc)  // undead.go
+	d.readEnchanterProc(name) // enchanter.go
+	d.healWithMaxHP(name)     // spellnotes.go
 	return d
 }
 
@@ -297,7 +298,8 @@ func (d SpellDef) asProc() SpellDef {
 	}
 	hit := d.Effects[at]
 	effects := append([]SpellEffect(nil), d.Effects...)
-	effects[at] = SpellEffect{Kind: EffectProc, Amount: -hit.AmountMax, AmountMax: -hit.Amount}
+	// its scale stays its own (enchanter.go: Stormlord's Rune's DEX)
+	effects[at] = SpellEffect{Kind: EffectProc, Amount: -hit.AmountMax, AmountMax: -hit.Amount, Scale: hit.Scale, ScalePct: hit.ScalePct}
 	d.Effects = effects
 	d.Harmful = false
 	for _, e := range d.Effects {

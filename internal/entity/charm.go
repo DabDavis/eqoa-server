@@ -142,7 +142,10 @@ func (w *World) charmLandLocked(cs *castState, caster *Player, sess *session.Ses
 	// undead resist every charm but the necromancer's undead line, which
 	// takes nothing else (undead.go: refused at its start)
 	undead := w.undeadLocked(npc) && !cs.spell.Def.undeadOnly()
-	if npc.Dummy != NotDummy || undead || charmIntn(100) < charmResistPct(charmEffect(&cs.spell.Def), caster.StatNow(StatCha)) {
+	// an arcane resist debuff on it (the Paralytic line) lowers the chance,
+	// never under the floor (enchanter.go)
+	resist := max(charmResistPct(charmEffect(&cs.spell.Def), caster.StatNow(StatCha))-npcResistOffPct(npc, now), charmResistFloor)
+	if npc.Dummy != NotDummy || undead || charmIntn(100) < resist {
 		if sess != nil {
 			w.sendColoredLocked(sess, charmResisted, castRefusalRGB)
 		}

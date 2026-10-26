@@ -975,9 +975,7 @@ func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc 
 	}
 	npc.Effects = nil
 	w.killNPC(npc)
-	if casterSess != nil {
-		w.awardXP(casterSess, caster, npc.Level*100)
-	}
+	w.awardKillXPLocked(casterSess, caster, npc) // killexp.go
 	w.factionKillLocked(casterSess, caster, npc)
 	if caster.AttackTarget == npc.ServerID {
 		caster.disengage()

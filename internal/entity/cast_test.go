@@ -237,9 +237,12 @@ func TestCastDuringACastIsNotAnswered(t *testing.T) {
 }
 
 // A strike lands as a hit of 26 + 8% of DEX 105 (34): 0x00DB from the
-// caster, negative, and a 30 HP creature dies of it, the caster paid in XP.
+// caster, negative, and a 30 HP creature dies of it, the caster paid in XP:
+// a level 20's worth to a level 23, the game's model (killexp.go: LevelExp(20)
+// 24,696 x 0.85; the level 1 newCaster makes is grey to it, worth nothing).
 func TestCastStrikeKills(t *testing.T) {
 	c := newCaster(t)
+	c.npc.Level = 20
 	c.w.StartCast(c.sess, strike(), c.npcO, c.at(0))
 	c.sent()
 	c.tick(3400 * time.Millisecond)
@@ -253,8 +256,8 @@ func TestCastStrikeKills(t *testing.T) {
 	if w := unhex(t, "db00d0a1241443982e3101"); !bytes.Equal(hit, w) {
 		t.Errorf("0x00DB % X, want % X (-34)", hit, w)
 	}
-	if !c.npc.Dead || c.p.TotalXP == 0 {
-		t.Errorf("dead %v, XP %d", c.npc.Dead, c.p.TotalXP)
+	if !c.npc.Dead || c.p.TotalXP != 20991 {
+		t.Errorf("dead %v, XP %d, want 20991", c.npc.Dead, c.p.TotalXP)
 	}
 }
 

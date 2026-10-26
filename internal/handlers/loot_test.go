@@ -154,3 +154,40 @@ func TestAPetsCorpseIsNotLootable(t *testing.T) {
 	f.h.OpenCorpse(f.sess, f.npc)
 	mustOps(t, f.sent(), protocol.OpcodeLoot)
 }
+
+// The attack button on a corpse (CLIENT's ToggleAutoAttack, 0x0015 with its
+// id) opens it, as Sandstorm answers it (F3 20261026-042112: a creature shown
+// as attackable could not be looted at all); a creature alive is no corpse
+// (0x0085 2), and one out of reach is refused in red, nothing opened.
+func TestTheAttackButtonOpensACorpse(t *testing.T) {
+	f := newCorpseFixture(t, 1)
+	const id = 77
+	f.npcs[id] = f.npc
+	lootIt := func() { f.send(protocol.OpcodeLootCorpse, func(w *buffer.Writer) { w.WriteUint32(id) }) }
+
+	lootIt()
+	got := f.sent()
+	mustOps(t, got, protocol.OpcodeLoot)
+	if n := lootCount(t, got[0]); n != 1 {
+		t.Fatalf("%d records, want the corpse's 1", n)
+	}
+
+	f.send(protocol.OpcodeClientCloseLoot, nil)
+	f.sent()
+	f.npc.Dead = false
+	lootIt()
+	got = f.sent()
+	mustOps(t, got, protocol.OpcodeLootOptions)
+	if got[0][2] != lootNotLootable {
+		t.Fatalf("a live creature answered 0x0085 %d", got[0][2])
+	}
+
+	f.npc.Dead = true
+	f.player.X = entity.InteractRange + 1
+	lootIt()
+	got = f.sent()
+	mustOps(t, got, protocol.OpcodeColoredChat)
+	f.player.X = entity.InteractRange - 1
+	lootIt()
+	mustOps(t, f.sent(), protocol.OpcodeLoot)
+}

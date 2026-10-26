@@ -103,10 +103,13 @@ func writeFixedWide(w *buffer.Writer, s string, n int) {
 //	0x00EC, 0x07A4 8  619 "You have logged in from another location."
 //	0x07A1 reason 13  677 (the character's area is temporarily unavailable)
 //	0x07A2 reason 14  716 "You have been ejected by a server administrator."
-//	0x07C0 reason 17  718 "We are updating the game, please try again later."
-//	0x07C1 reason 18  718, as 0x07C0
+//	0x07C0 reason 17  1024 "The server has been shutdown by a server administrator."
+//	0x07C1 reason 18  1024, as 0x07C0
 //	0x07D2 reason 19  1420 (modified by a customer service representative)
 //
+// (ConnectStatusString, viclient.cpp: reason 16, word 718 "We are updating the
+// game, please try again later.", is what a client of the wrong version gets,
+// 0x0000; 15, 719 "Disconnected (server restarted).", no opcode gives.)
 // 0x07A1 alone reads eight bytes first (Msg07A1), so it carries eight zeros.
 // 0x0777 is the quiet one (SendDisconnectNoError).
 func buildDisconnect(op protocol.GameOpcode) []byte {

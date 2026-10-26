@@ -214,6 +214,13 @@ with the row before and after, and `revert_change` undoes a row change.
 - **Moderate**: `message_player`, `broadcast`, `kick_player`, `ban_account` (with a reason).
 - **Look at the past**: `audit_log` (filter by GM, table or row), `server_log` (the server's own log).
 - **Count and compare**: `count_rows` with `group_by` ("NPCs per world": table npcs, group_by [world]).
+- **The Plane of Disease** (world 5, the Secrets world's "Last Home", x 4031-5985, z 2000-4000): Necrologist
+  Zizclank in the Rathe's Dead Hills (NW) (world 1, by the tomb yard at about 4280, 6412) sends a level 50 to the
+  "Portal to the Dead Hills" at PoD's arrival (5063, 3881), which sends players back; inside, the Whirling Portal
+  (the entrance pond) and the Bloody Portal (the middle) take a level 60 to the Queen's bowl and the Twins' valley.
+  The trips are code (`wayRoutes`), so moving one of these NPCs moves where its trip lands, and renaming it breaks
+  it. `tools/seed_pod.py` placed them and PoD's people (rows logged in `pod_seed_npcs`); the bosses are ordinary
+  spawns, always up. In the game: `#tele pod`, `#tele deadhills`.
 
 ## Limits
 

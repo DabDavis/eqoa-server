@@ -121,6 +121,12 @@ func effectWords(e SpellEffect) string {
 		s = "illusion"
 	case EffectEndIllusion:
 		s = "end illusion"
+	case EffectShield:
+		s = amount("shield")
+	case EffectDefProc:
+		s = amount("defproc")
+	case EffectResurrect:
+		s = amount("rez")
 	default:
 		s = fmt.Sprintf("kind %d", e.Kind)
 	}

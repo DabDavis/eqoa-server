@@ -844,9 +844,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Crim Arikson"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/freeport/warrior.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide's Swiftwind Galeehart is no NPC here: the skeletons of Hangman's Hill drop the amulet. The guide offers a choice; this gives the first: Bellow and an ensorcelled greataxe, or Pillar of Might and an ensorcelled longsword."
   },
   {
@@ -2569,9 +2567,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Crim Arikson"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/freeport/bard.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide's Swiftwind Galeehart is no NPC here: the skeletons of Hangman's Hill drop the amulet. The guide offers a choice; this gives the first: Power Dance and a magic foil, or Sweeping Combat (Sweeping Flurry here) and a magic sabre."
   },
   {
@@ -3423,9 +3419,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Crim Arikson"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/freeport/cleric.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide's Swiftwind Galeehart is no NPC here: the skeletons of Hangman's Hill drop the amulet. The guide offers a choice; this gives the first: Disease Ward and a magic staff, or Field Dress and an enchanted mace."
   },
   {
@@ -4285,9 +4279,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Crim Arikson"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/freeport/magician.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide's Swiftwind Galeehart is no NPC here: the skeletons of Hangman's Hill drop the amulet. The guide offers a choice; this gives the first: Frozen Mark and a magical staff, or Lava Stone and a mystical tome."
   },
   {
@@ -5147,9 +5139,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Crim Arikson"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/freeport/rogue.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide's Swiftwind Galeehart is no NPC here: the skeletons of Hangman's Hill drop the amulet. The guide offers a choice; this gives the first: Avoidance and a magic dagger, or Minor Wound and a magic rapier."
   },
   {
@@ -5714,9 +5704,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Eliene"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/freeport/enchanter.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Eliene's contact is Grave Robber Laen, the grave robber the guides put under a bridge in Bastable."
   },
   {
@@ -6364,9 +6352,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Squire Janxt (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/freeport/necromancer.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The idol is the cracked symbol of Tunare."
   },
   {
@@ -6570,9 +6556,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Eliene"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/freeport/necromancer.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Eliene's contact is Grave Robber Laen, the grave robber the guides put under a bridge in Bastable."
   },
   {
@@ -7206,9 +7190,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Squire Janxt (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/freeport/shadowknight.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The idol is the cracked symbol of Tunare."
   },
   {
@@ -7293,9 +7275,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Nanik Novandear"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/freeport/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
@@ -7414,9 +7394,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Eliene"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/freeport/shadowknight.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Eliene's contact is Grave Robber Laen, the grave robber the guides put under a bridge in Bastable."
   },
   {
@@ -8265,9 +8243,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Eliene"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/freeport/wizard.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Eliene's contact is Grave Robber Laen, the grave robber the guides put under a bridge in Bastable."
   },
   {

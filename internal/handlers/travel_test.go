@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/binary"
 	"math"
 	"slices"
 	"strings"
@@ -29,8 +30,23 @@ func said(tw *talkWorld) []string {
 	return out
 }
 
+// bindCasts is the 0x00B1s queued for the session (taken from a copy): the
+// caster's and target's ids, the cast time and the visual.
+func bindCasts(s *session.Session) [][4]uint32 {
+	var out [][4]uint32
+	for _, m := range s.Queue().PeekPending() {
+		d := m.Data()
+		if len(d) >= 19 && protocol.GameOpcode(binary.LittleEndian.Uint16(d)) == protocol.OpcodeCastingCombat {
+			le := binary.LittleEndian
+			out = append(out, [4]uint32{le.Uint32(d[2:]), le.Uint32(d[6:]), le.Uint32(d[11:]), le.Uint32(d[15:])})
+		}
+	}
+	return out
+}
+
 // A spiritmaster asks "Do you wish to set this as your bind point?", Yes
-// binds the player right in front of it, kept, and Return Home takes it
+// binds the player right in front of it, kept, with its cast of the bind's
+// visual onto the player as Sandstorm's Zole did, and Return Home takes it
 // there (F3 20261025-172313). The controls: No binds nothing, and before any
 // bind Return Home goes where every login starts.
 func TestASpiritmasterBinds(t *testing.T) {
@@ -61,9 +77,16 @@ func TestASpiritmasterBinds(t *testing.T) {
 	if _, bound := tw.w.BindOf(tw.p.ServerID); bound || len(kept) != 0 {
 		t.Fatal("the control: No bound the player")
 	}
+	if cast := bindCasts(tw.s); len(cast) != 0 {
+		t.Fatalf("the control: No played the bind's visual %v", cast)
+	}
+	tw.s.SetPlayerObjectID(500000001)
 	tw.talk(id)
 	tw.s.Queue().GetPending()
 	tw.pick(id, 0)
+	if cast := bindCasts(tw.s); len(cast) != 1 || cast[0] != [4]uint32{id, tw.s.PlayerObjectID(), 3000, bindVisual} {
+		t.Fatalf("Yes cast %v; want Savi's 0x00B1 onto the player, 3000 ms, 0x08F3B955", cast)
+	}
 	b, bound := tw.w.BindOf(tw.p.ServerID)
 	if !bound {
 		t.Fatal("Yes did not bind the player")

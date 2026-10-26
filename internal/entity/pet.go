@@ -888,6 +888,9 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 			log.Printf("Pet: %q killed by %s", pet.Name, npc.Name)
 			return
 		}
+		if w.petShieldsLocked(pet, npc, now) { // its damage shield and defensive procs (dshield.go)
+			return
+		}
 	}
 }
 

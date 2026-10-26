@@ -103,7 +103,11 @@ func (w *World) dummyFightLocked(npc *NPC, now time.Time) {
 func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now time.Time) bool {
 	damage := npcMeleeRoll(npc).hitOn(p, rand.Intn)
 	if npc.Dummy == SparringDummy {
-		return w.sparHitLocked(sess, npc, p, damage, "", now)
+		if w.sparHitLocked(sess, npc, p, damage, "", now) {
+			return true
+		}
+		w.playerShieldsLocked(sess, p, npc, now) // the player's shields: told, taken off nothing (dshield.go)
+		return false
 	}
 	p.HP = max(p.HP-damage, 0)
 	p.LastCombatTime = now
@@ -114,6 +118,7 @@ func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now t
 		w.playerDiedLocked(sess, p, now)
 		return true
 	}
+	w.playerShieldsLocked(sess, p, npc, now) // the player's shields: told, taken off nothing (dshield.go)
 	if npc.Dummy == TrainingDummy {
 		p.HP = min(p.HP+dummyHeal, p.MaxHPNow())
 		w.sendDamageIndication(sess, npcObjectID, dummyHeal, sess.PlayerObjectID())

@@ -293,9 +293,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Froglok Novitiate"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -371,10 +369,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Froglok Page",
-    "Froglok Squire"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -462,10 +457,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Froglok Knight",
-    "Traitor"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the shoreline's popup (random places in the guide) is Grumgra's words here. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -495,7 +487,7 @@
     },
     {
      "kind": "talk",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Speak with Dragoon X'Talin.",
      "says": "Bring me three shadow cub pelts from east of my tower."
     },
@@ -514,7 +506,7 @@
     },
     {
      "kind": "give",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Bring three shadow cub pelts to Dragoon X'Talin.",
      "items": [
       {
@@ -565,10 +557,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Dragoon X'Talin",
-    "Elf Paladin"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's Underlord Burgish is Underlord Bugrish here. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -674,11 +663,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Smithy Cragis",
-    "Bogwater",
-    "Torgot"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Underlord Burgrish is Underlord Bugrish here, and its Turgot is Torgot. The guide's tunic and Torgot's scroll are unnamed. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1095,9 +1080,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Froglok Novitiate"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1173,9 +1156,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Froglok Apprentice"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide's bloated mosquitoes are the giant mosquitos here. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1251,10 +1232,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Vengeful Dead",
-    "Krazul"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the swamp's popup is left out. The tower's undead skeletons are the warrior's Vengeful Dead. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1284,7 +1262,7 @@
     },
     {
      "kind": "talk",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Speak with Dragoon X'Talin.",
      "says": "Bring me three shadow cub pelts from east of my tower."
     },
@@ -1303,7 +1281,7 @@
     },
     {
      "kind": "give",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Bring three shadow cub pelts to Dragoon X'Talin.",
      "items": [
       {
@@ -1354,10 +1332,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Dragoon X'Talin",
-    "Imprisoned Wizard"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's Underlord Burgish is Underlord Bugrish here. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1463,11 +1438,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Smithy Cragis",
-    "Bogwater",
-    "Torgot"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Underlord Burgrish is Underlord Bugrish here, and its Turgot is Torgot. The guide's tunic and Torgot's scroll are unnamed. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1589,9 +1560,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Froglok Tuk"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide offers a choice; this gives the first: Decaying Wind (the Spell path), or Feral Spirit (the Spiritual path)."
   },
   {
@@ -1892,9 +1861,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Froglok Novitiate"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1970,9 +1937,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Froglok Tactician"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -2127,10 +2092,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Vengeful Dead",
-    "Grothmal"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's Swillmaster is Swillmaster Sturg here; its Crazed Troll's slap is left out. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -2160,7 +2122,7 @@
     },
     {
      "kind": "talk",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Speak with Dragoon X'Talin.",
      "says": "Bring me three shadow cub pelts from east of my tower."
     },
@@ -2179,7 +2141,7 @@
     },
     {
      "kind": "give",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Bring three shadow cub pelts to Dragoon X'Talin.",
      "items": [
       {
@@ -2230,10 +2192,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Dragoon X'Talin",
-    "Arena Troll"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's Underlord Burgish is Underlord Bugrish here. The guide names no reward but the experience; the experience is the one every city gives for this level. The arena troll is unnamed in the guide."
   },
   {
@@ -2339,11 +2298,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Smithy Cragis",
-    "Bogscraper",
-    "Torgot"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Underlord Burgrish is Underlord Bugrish here, and its Turgot is Torgot. The guide's tunic and Torgot's scroll are unnamed. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {

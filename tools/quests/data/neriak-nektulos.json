@@ -244,9 +244,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Tailor Soldark"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -335,9 +333,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Zezilbe Veldinox"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -841,12 +837,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Goblin Alchemist",
-    "Wandering Herbalist",
-    "Orc Gatherer",
-    "Glixin"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is a choice: a mace and a mana potion, or a tome and an explosive potion; none of them is on this server, so only the experience is given."
   },
   {
@@ -1151,7 +1142,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "Denouncer R'Noxt",
+     "target": "Denouncer R`Noxt",
      "journal": "Speak with Denouncer R'Noxt.",
      "says": "Take this report to Theologist S'Tai, and quickly.",
      "events": [
@@ -1183,9 +1174,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Denouncer R'Noxt"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1209,7 +1198,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Speak with Dragoon X'Talin.",
      "says": "Rats from the north attacked my tower. Kill tomb rats and bring me an undead sigil."
     },
@@ -1228,7 +1217,7 @@
     },
     {
      "kind": "give",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Bring the undead sigil to Dragoon X'Talin.",
      "items": [
       {
@@ -1253,7 +1242,7 @@
     },
     {
      "kind": "give",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Bring Arzen's papers to Dragoon X'Talin.",
      "items": [
       {
@@ -1304,12 +1293,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Dragoon X'Talin",
-    "Arzen",
-    "Xeruin"
-   ],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's dog Grim (it guards the tent) is not on this server and is left out. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
    "key": "1-20/neriak-nektulos/cleric/L13",
@@ -1438,9 +1423,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Thrun"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The guide gives no price for the chalice; it is the 226 tunar of the other cities' bracelet here."
   },
   {
@@ -1521,10 +1504,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Grebarg",
-    "Croc"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's pay for the trolls is not given; Underlord Bugrish is only spoken to here. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1548,7 +1528,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "Denouncer T'Crit",
+     "target": "Denouncer T`Crit",
      "journal": "Speak with Denouncer T'Crit.",
      "says": "Ghoul captains hold the dock below. Kill them until one gives up its insignia."
     },
@@ -1567,7 +1547,7 @@
     },
     {
      "kind": "give",
-     "target": "Denouncer T'Crit",
+     "target": "Denouncer T`Crit",
      "journal": "Bring the ghoul captain's insignia to Denouncer T'Crit.",
      "items": [
       {
@@ -1585,7 +1565,7 @@
     },
     {
      "kind": "loot",
-     "target": "Elder",
+     "target": "Elder of Hodstock",
      "items": [
       {
        "item": "elder's book",
@@ -1623,7 +1603,7 @@
     },
     {
      "kind": "give",
-     "target": "Denouncer T'Crit",
+     "target": "Denouncer T`Crit",
      "journal": "Bring the captain's ring to Denouncer T'Crit.",
      "items": [
       {
@@ -1637,11 +1617,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Denouncer T'Crit",
-    "Elder",
-    "Captain Thender"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT).  The Hodstock elder is unnamed in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1955,7 +1931,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "Counselor Du'Klot",
+     "target": "Counselor Du`Klot",
      "journal": "Speak with Counselor Du'Klot.",
      "says": "Take this to the Dominary.",
      "events": [
@@ -1990,9 +1966,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Counselor Du'Klot"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/enchanter.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide's Apprentice Boots are not on this server."
   },
   {
@@ -2016,7 +1990,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Speak with Dragoon X'Talin.",
      "says": "Rats from the north attacked my tower. Kill tomb rats and bring me an undead sigil."
     },
@@ -2035,7 +2009,7 @@
     },
     {
      "kind": "give",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Bring the undead sigil to Dragoon X'Talin.",
      "items": [
       {
@@ -2060,7 +2034,7 @@
     },
     {
      "kind": "give",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Bring Arzen's papers to Dragoon X'Talin.",
      "items": [
       {
@@ -2111,12 +2085,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Dragoon X'Talin",
-    "Arzen",
-    "Xeruin"
-   ],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/enchanter.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's dog Grim (it guards the tent) is not on this server and is left out. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide's Burnished Staff is not on this server."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/enchanter.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The guide's Burnished Staff is not on this server."
   },
   {
    "key": "1-20/neriak-nektulos/enchanter/L13",
@@ -2248,9 +2218,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Efram"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/enchanter.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
@@ -2334,10 +2302,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Grebarg",
-    "Croc"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/enchanter.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's pay for the trolls is not given; Underlord Bugrish is only spoken to here. The guide's Mindbend Robe is not on this server."
   },
   {
@@ -2361,7 +2326,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "Denouncer T'Crit",
+     "target": "Denouncer T`Crit",
      "journal": "Speak with Denouncer T'Crit.",
      "says": "Ghoul captains hold the dock below. Kill them until one gives up its insignia."
     },
@@ -2380,7 +2345,7 @@
     },
     {
      "kind": "give",
-     "target": "Denouncer T'Crit",
+     "target": "Denouncer T`Crit",
      "journal": "Bring the ghoul captain's insignia to Denouncer T'Crit.",
      "items": [
       {
@@ -2398,7 +2363,7 @@
     },
     {
      "kind": "loot",
-     "target": "Elder",
+     "target": "Elder of Hodstock",
      "items": [
       {
        "item": "elder's book",
@@ -2436,7 +2401,7 @@
     },
     {
      "kind": "give",
-     "target": "Denouncer T'Crit",
+     "target": "Denouncer T`Crit",
      "journal": "Bring the captain's ring to Denouncer T'Crit.",
      "items": [
       {
@@ -2453,11 +2418,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Denouncer T'Crit",
-    "Elder",
-    "Captain Thender"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/enchanter.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice; this gives the first: Spacious Mind, or Power Boon. The Hodstock elder is unnamed in the guides."
   },
   {
@@ -2974,13 +2935,13 @@
     },
     {
      "kind": "talk",
-     "target": "Dragoon V'Ghen",
+     "target": "Dragoon V`Ghen",
      "journal": "Speak with Dragoon V'Ghen.",
      "says": "My brother Valraen keeps the tent below. Ask him."
     },
     {
      "kind": "loot",
-     "target": "Valraen V'Ghen",
+     "target": "Valrean V`Ghen",
      "items": [
       {
        "item": "locked box",
@@ -3049,10 +3010,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Dragoon V'Ghen",
-    "Valraen V'Ghen"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -3814,13 +3772,13 @@
     },
     {
      "kind": "talk",
-     "target": "Dragoon V'Ghen",
+     "target": "Dragoon V`Ghen",
      "journal": "Speak with Dragoon V'Ghen.",
      "says": "My brother Valraen keeps the tent below. Ask him."
     },
     {
      "kind": "loot",
-     "target": "Valraen V'Ghen",
+     "target": "Valrean V`Ghen",
      "items": [
       {
        "item": "locked box",
@@ -3889,10 +3847,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Dragoon V'Ghen",
-    "Valraen V'Ghen"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -4608,9 +4563,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Eliene"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -5405,13 +5358,13 @@
     },
     {
      "kind": "talk",
-     "target": "Dragoon V'Ghen",
+     "target": "Dragoon V`Ghen",
      "journal": "Speak with Dragoon V'Ghen.",
      "says": "My brother Valraen keeps the tent below. Ask him."
     },
     {
      "kind": "loot",
-     "target": "Valraen V'Ghen",
+     "target": "Valrean V`Ghen",
      "items": [
       {
        "item": "locked box",
@@ -5480,10 +5433,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Dragoon V'Ghen",
-    "Valraen V'Ghen"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -6110,7 +6060,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Speak with Dragoon X'Talin.",
      "says": "Rats from the north attacked my tower. Kill tomb rats and bring me an undead sigil."
     },
@@ -6129,7 +6079,7 @@
     },
     {
      "kind": "give",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Bring the undead sigil to Dragoon X'Talin.",
      "items": [
       {
@@ -6154,7 +6104,7 @@
     },
     {
      "kind": "give",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Bring Arzen's papers to Dragoon X'Talin.",
      "items": [
       {
@@ -6205,12 +6155,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Dragoon X'Talin",
-    "Arzen",
-    "Xeruin"
-   ],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's dog Grim (it guards the tent) is not on this server and is left out. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
    "key": "1-20/neriak-nektulos/warrior/L13",
@@ -6333,9 +6279,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Efram"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -6416,10 +6360,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Grebarg",
-    "Croc"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's pay for the trolls is not given; Underlord Bugrish is only spoken to here. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -6443,7 +6384,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "Denouncer T'Crit",
+     "target": "Denouncer T`Crit",
      "journal": "Speak with Denouncer T'Crit.",
      "says": "Ghoul captains hold the dock below. Kill them until one gives up its insignia."
     },
@@ -6462,7 +6403,7 @@
     },
     {
      "kind": "give",
-     "target": "Denouncer T'Crit",
+     "target": "Denouncer T`Crit",
      "journal": "Bring the ghoul captain's insignia to Denouncer T'Crit.",
      "items": [
       {
@@ -6480,7 +6421,7 @@
     },
     {
      "kind": "loot",
-     "target": "Elder",
+     "target": "Elder of Hodstock",
      "items": [
       {
        "item": "elder's book",
@@ -6518,7 +6459,7 @@
     },
     {
      "kind": "give",
-     "target": "Denouncer T'Crit",
+     "target": "Denouncer T`Crit",
      "journal": "Bring the captain's ring to Denouncer T'Crit.",
      "items": [
       {
@@ -6532,11 +6473,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Denouncer T'Crit",
-    "Elder",
-    "Captain Thender"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide's Elder Willam is Elder William here. The Hodstock elder is unnamed in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -7071,13 +7008,13 @@
     },
     {
      "kind": "talk",
-     "target": "Dragoon V'Ghen",
+     "target": "Dragoon V`Ghen",
      "journal": "Speak with Dragoon V'Ghen.",
      "says": "My brother Valraen keeps the tent below. Ask him."
     },
     {
      "kind": "loot",
-     "target": "Valraen V'Ghen",
+     "target": "Valrean V`Ghen",
      "items": [
       {
        "item": "locked box",
@@ -7146,10 +7083,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Dragoon V'Ghen",
-    "Valraen V'Ghen"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {

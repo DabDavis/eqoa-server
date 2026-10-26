@@ -250,7 +250,7 @@ func titleWords(s string) string {
 func (s *Server) resolveDraft(d *eqoaDraft) {
 	if d.Giver != "" {
 		var n int
-		s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(npc_name) = LOWER(?)`, d.Giver).Scan(&n)
+		s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(TRIM(npc_name)) = LOWER(TRIM(?))`, d.Giver).Scan(&n)
 		d.GiverFound = n > 0
 		if !d.GiverFound {
 			d.Unresolved = append(d.Unresolved, "NPC "+d.Giver)
@@ -273,8 +273,27 @@ func (s *Server) resolveDraft(d *eqoaDraft) {
 	}
 	var n int
 	s.d.DB.QueryRow(`SELECT COUNT(*) FROM quests WHERE source = ?`, d.Source).Scan(&n)
+	// the content import (tools/import_quests.py) makes a city guide's
+	// sections whole, keyed "1-20/<city>/<class>/L<level>" (a second quest
+	// of a section "...L<level>b"): a section it made is not made again
+	if key := contentKey(d.Source); n == 0 && key != "" {
+		s.d.DB.QueryRow(`SELECT COUNT(*) FROM quests WHERE source LIKE ? OR source LIKE ?`,
+			"EQOA-Data "+key+" (%", "EQOA-Data "+key+"_ (%").Scan(&n)
+	}
 	d.Exists = n > 0
 }
+
+// contentKey is the content import's key for a draft's source ("EQOA-Data
+// 1-20/freeport/warrior.json level 3" is "1-20/freeport/warrior/L3"), or "".
+func contentKey(source string) string {
+	m := reContentSource.FindStringSubmatch(source)
+	if m == nil {
+		return ""
+	}
+	return m[1] + "/L" + m[2]
+}
+
+var reContentSource = regexp.MustCompile(`^EQOA-Data (?:Quests/)?(1-20/[^/]+/[^/.]+)\.json level (\d+)$`)
 
 func (s *Server) questImport(a *actor, files []eqoaDataFile, dry bool) (any, error) {
 	if len(files) == 0 {

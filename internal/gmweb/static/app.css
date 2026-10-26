@@ -289,6 +289,11 @@ table.plain tr:last-child td { border-bottom: 0; }
   background: var(--accent-soft); color: var(--accent-2); font-size: 12.5px;
 }
 .chip button { padding: 0 6px; border: 0; background: transparent; color: inherit; }
+/* the quests' filters and what the drafts lack (views/quests.js) */
+.quest-tools input[type="number"] { width: 96px; }
+.quest-tools input[type="search"]:not(.grow input) { width: 150px; }
+.quest-lacks { gap: 6px; }
+.quest-lacks a.badge { text-decoration: none; cursor: pointer; }
 .empty { padding: 30px; text-align: center; color: var(--faint); }
 
 /* record forms */

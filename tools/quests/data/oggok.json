@@ -279,9 +279,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Lizardman Outcast"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -331,10 +329,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Guard Fraug",
-    "Lork"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the shallow grave at the Craknek camp is Lork's second word here. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -410,9 +405,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Korpus"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The sapphire charred at Korpus's death is the charred sapphire he drops here. The guide's Charred Sapphire Staff is not on this server."
   },
   {
@@ -488,9 +481,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Lizardman Sneak"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the seeing stone on the island south of the gate (its roaches) is left out. The guide's purchase is a hand-over here: the merchant gives the item when spoken to."
   },
   {
@@ -569,9 +560,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Necrapede"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). Simplified: anointing and burying Frada's remains on the island topped with mushrooms are left out. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -669,10 +658,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Grugnik Blackface",
-    "Druid Trainee"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice; this gives the first: a dagger and the Life path (Blood Gale), or a staff and the Power path. The ranger trainees are the druid trainees' fellows; one name stands for both. Neither weapon is on this server."
   },
   {
@@ -973,9 +959,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Lizardman Outcast"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1026,9 +1010,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Tainted Rat"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1127,10 +1109,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Merchant Zogog",
-    "Undead Alchemist"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the potion thrown into the fire is the hand-over to Elder Thorg; the undead alchemist is fought where it stands. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1185,7 +1164,7 @@
     },
     {
      "kind": "loot",
-     "target": "Drunken Dwarf",
+     "target": "dwarven drunkard",
      "items": [
       {
        "item": "mineral dust",
@@ -1235,9 +1214,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Drunken Dwarf"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide's Poisonous Kingsnake is spelled posionous kingsnake on this server. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1380,10 +1357,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Gruk Crab",
-    "Lokar"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the tree sap and the three meals' deliveries are left out; Lokar's three ogres are made beside the player (the server's ogre thugs). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1496,10 +1470,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Dwarf Thug",
-    "Gamor (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the dwarves, their commander and the meals' remnants are left out. The guide's Warlord Borgar is Warlord Brogar. The guide's ogre thug is the server's orge thug. The guide offers a choice; Bloodwasp is the first of the shadowknight's paths."
   },
   {
@@ -1780,9 +1751,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Lizardman Outcast"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1827,9 +1796,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Guard Fraug"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide's meditation is a popup at a stone; here it pops up when Guard Fraug sends you there (the stone has no place in the database). The story's words are ours. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -1998,11 +1965,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Bouncer Trod",
-    "Hobgoblin Vandal",
-    "Hobgoblin Initiate"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -2089,10 +2052,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Wandering Forager",
-    "Fat Piranha"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -2183,9 +2143,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Ghoul"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice; this gives the first: Decaying Wind and a two-handed club, or Spiritual Guide and a spear."
   },
   {
@@ -2307,7 +2265,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "mosquito",
+     "target": "mosquitos",
      "items": [
       {
        "item": "damaged mosquito wing",
@@ -2351,9 +2309,7 @@
      }
     }
    ],
-   "unresolved": [
-    "mosquito"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -2486,9 +2442,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Lizardman Outcast"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -2539,9 +2493,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Tainted Rat"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -2640,10 +2592,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Merchant Zogog",
-    "Undead Alchemist"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the potion thrown into the fire is the hand-over to Elder Thorg; the undead alchemist is fought where it stands. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -2783,10 +2732,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Thodgar",
-    "Ogre Magi"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Simplified: enchanting the totem at the altar in Mogguk's Gate (the words GYTHGOR OGG) is left out. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -2923,11 +2869,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Burdened Mog Thug",
-    "Tae Ew Weaponsmith",
-    "Weary Troll Raider"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Provisioner Oomgig is spelled Provivisioner Oomgig on this server. The guide names no reward but the experience; the experience is the one every city gives for this level."
   },
   {
@@ -3073,11 +3015,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Tae Ew Commander",
-    "Ankextet Runner",
-    "Aviak Windstrider"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the arena's three gladiators are left out (none is on this server); the three pieces of jewelry are one item. The guide offers a choice; this gives the first: Bellow and an axe, or Pillar of Might and a sword."
   }
  ],

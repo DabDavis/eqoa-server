@@ -758,6 +758,7 @@ var catalog = map[string]tableNote{
 			"started":    {Label: "Giver says once taken", Format: "multiline"},
 			"source":     {Label: "Source"},
 			"notes":      {Label: "Notes", Format: "multiline"},
+			"events":     {Label: "Events", Format: "multiline", Help: "a JSON list: on accept or finish, do popup, say, give, spawn, visual or teleport (the Quests page edits them)"},
 		},
 	},
 	"queststeps": {
@@ -765,20 +766,23 @@ var catalog = map[string]tableNote{
 		Help: "A quest's steps in order (step 1, 2, ...). kind talk: talk to the NPC named target (answering it when answer " +
 			"is set); show: talk to it holding items, which are kept; give: hand that NPC items (patternid*count, comma " +
 			"separated) and tunar, which are taken; kill: kill count creatures " +
-			"named target; reach: come within radius of x, y, z in world. journal is the journal's line while it is the " +
-			"step to do; says is the NPC's words when it is done; the rewards are given then.",
+			"named target; loot: kill creatures named target until count of the item in items are held, each kill dropping " +
+			"one on the corpse with chance for a player on the step; reach: come within radius of x, y, z in world. journal is " +
+			"the journal's line while it is the step to do; says is the NPC's words when it is done; the rewards are given " +
+			"then; events are what happens when it becomes the step to do (start) and when it is done (done).",
 		Live:   "At once: the next talk, kill or step uses it.",
 		Show:   []string{"questid", "step", "kind", "target", "journal"},
 		Search: []string{"target", "journal", "says"},
 		Cols: map[string]colNote{
 			"questid":     {Label: "Quest", Ref: "quests"},
 			"step":        {Label: "Step"},
-			"kind":        {Label: "Kind", Help: "talk, show, give, kill or reach"},
+			"kind":        {Label: "Kind", Help: "talk, show, give, kill, loot or reach"},
 			"target":      {Label: "NPC or creature", Help: "its name as the game shows it"},
 			"npcid":       {Label: "Only spawn", Ref: "npcs", Help: "0: any of the name"},
 			"items":       {Label: "Items held or handed in", Help: "show: held and kept; give: taken. patternid*count, comma separated"},
 			"tunar":       {Label: "Tunar held or handed in"},
-			"count":       {Label: "How many", Help: "a kill step's creatures"},
+			"count":       {Label: "How many", Help: "a kill step's creatures, a loot step's items"},
+			"chance":      {Label: "Drop chance", Help: "a loot step's: 0 to 1 a kill; 0 every kill"},
 			"world":       {Label: "World", Enum: "world"},
 			"radius":      {Label: "Within"},
 			"journal":     {Label: "Journal line", Help: "at most 127 characters"},
@@ -792,6 +796,7 @@ var catalog = map[string]tableNote{
 			"rewarditems": {Label: "Reward: items", Help: "patternid*count, comma separated"},
 			"factions":    {Label: "Reward: factions", Help: "Faction:+10, comma separated"},
 			"spells":      {Label: "Reward: spells", Help: "spell ids, comma separated"},
+			"events":      {Label: "Events", Format: "multiline", Help: "a JSON list: on start or done, do popup, say, give, spawn, visual or teleport (the Quests page edits them)"},
 		},
 	},
 	"npc_models_observed": {Label: "Observed NPC models", Group: "Imports", Write: writeAdmin,

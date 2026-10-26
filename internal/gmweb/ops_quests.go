@@ -19,11 +19,19 @@ import (
 
 // questCols are a quest row's columns the editor sends, in the table's order.
 var questCols = []string{"name", "enabled", "giver", "minlevel", "maxlevel", "classes", "races", "requires",
-	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes"}
+	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes", "events"}
 
 // stepCols are a step row's columns the editor sends.
 var stepCols = []string{"kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
-	"journal", "answer", "says", "waiting", "notyet", "reminder", "xp", "rewardtunar", "rewarditems", "factions", "spells"}
+	"journal", "answer", "says", "waiting", "notyet", "reminder", "xp", "rewardtunar", "rewarditems", "factions", "spells",
+	"chance", "events"}
+
+// eventsHelp is what an events column holds, for the schemas.
+const eventsHelp = `a JSON list of events, each {"on", "do", ...}: popup {text, answer} a window the player closes ` +
+	`(one answer, "OK" when none); say {npc, text} an NPC's words; give {items: "patternid*count, ..."}; ` +
+	`spawn {npc, hostile} a copy of that NPC before the player for the step (hostile: it may be attacked and attacks); ` +
+	`visual {fx: "0x1DAEB5B6", seconds} a spell visual on the player; teleport {world, x, y, z}. ` +
+	`text may hold %p, the player's name. Empty: none`
 
 func (s *Server) registerQuestOps() {
 	questSchema := obj(map[string]any{
@@ -44,14 +52,16 @@ func (s *Server) registerQuestOps() {
 		"started":    str("the giver's words once it is taken"),
 		"source":     str("where it came from"),
 		"notes":      str("for GMs"),
+		"events":     str("what happens when it is taken (on accept) and finished (on finish): " + eventsHelp),
 	})
 	stepSchema := obj(map[string]any{
-		"kind":        strEnum("talk: talk to target; show: talk to target holding items (kept); give: hand target items and tunar (taken); kill: kill count of target; reach: come within radius of x, z in world", database.StepKinds...),
-		"target":      str("talk/give: the NPC's name; kill: the creature's name"),
+		"kind":        strEnum("talk: talk to target; show: talk to target holding items (kept); give: hand target items and tunar (taken); kill: kill count of target; loot: kill target until count of the item in items are held, each kill dropping one on the corpse with chance; reach: come within radius of x, z in world", database.StepKinds...),
+		"target":      str("talk/give: the NPC's name; kill/loot: the creature's name"),
 		"npcid":       integer("only that spawn (npcs.id); 0: any of the name"),
-		"items":       str("show/give: items held (show) or handed in (give), patternid*count, comma separated"),
+		"items":       str("show/give: items held (show) or handed in (give), patternid*count, comma separated; loot: the item that drops"),
 		"tunar":       integer("show/give: tunar held or handed in"),
-		"count":       integer("kill: how many"),
+		"count":       integer("kill: how many; loot: how many of the item are to be held"),
+		"chance":      number("loot: the chance (0 to 1) that a kill drops the item for a player on the step; 0: every kill"),
 		"world":       integer("reach: the world"),
 		"x":           number("reach: x"),
 		"y":           number("reach: y"),
@@ -68,6 +78,7 @@ func (s *Server) registerQuestOps() {
 		"rewarditems": str("reward: items, patternid*count, comma separated"),
 		"factions":    str("reward: faction changes, Faction Name:+10, comma separated"),
 		"spells":      str("reward: spell ids, comma separated"),
+		"events":      str("what happens when it becomes the step to do (on start) and when it is done (on done): " + eventsHelp),
 	})
 	s.addOp(&Op{
 		Name: "quest_list", Title: "List quests", Scope: scopeRead, Core: true,
@@ -299,6 +310,7 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 	if len(steps) == 0 {
 		add("it has no steps: it cannot be taken")
 	}
+	s.eventProblems(text(q, "events"), false, "the quest's", add)
 	if strings.HasPrefix(text(q, "source"), "EQOA-Data") && len(steps) == 1 &&
 		strings.EqualFold(text(steps[0], "kind"), database.StepTalk) && strings.EqualFold(text(steps[0], "target"), text(q, "giver")) {
 		add("an imported draft: its steps are still the one talk to its giver; write them from its notes before turning it on")
@@ -334,13 +346,32 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 			if num(st, "count") < 1 {
 				add("%s kills fewer than one", where)
 			}
+		case database.StepLoot:
+			if t := text(st, "target"); t == "" {
+				add("%s names no creature", where)
+			} else {
+				var n int
+				s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(npc_name) = LOWER(?)`, t).Scan(&n)
+				if n == 0 {
+					add("%s: no creature named %q spawns here, so nothing drops its item", where, t)
+				}
+			}
+			items := database.ParseItemCounts(text(st, "items"))
+			if len(items) == 0 {
+				add("%s names no item to drop", where)
+			}
+			s.itemProblems(items, where+" drops", add)
+			if c := num(st, "chance"); c < 0 || c > 1 {
+				add("%s's chance %v is not between 0 and 1 (0 is every kill)", where, c)
+			}
 		case database.StepReach:
 			if num(st, "x") == 0 && num(st, "z") == 0 {
 				add("%s's place is 0, 0", where)
 			}
 		default:
-			add("%s: no kind %q (talk, show, give, kill or reach)", where, kind)
+			add("%s: no kind %q (talk, show, give, kill, loot or reach)", where, kind)
 		}
+		s.eventProblems(text(st, "events"), true, where+"'s", add)
 		if text(st, "journal") == "" {
 			add("%s has no journal line (the quest's name is shown)", where)
 		} else if utf8.RuneCountInString(text(st, "journal")) > 127 {
@@ -388,6 +419,32 @@ func (s *Server) npcProblems(name, what string, add func(string, ...any)) {
 	}
 }
 
+// eventProblems says what is wrong with an events column (a step's when step):
+// its form (database.EventProblems), and the NPCs and items it names that
+// this server lacks.
+func (s *Server) eventProblems(events string, step bool, what string, add func(string, ...any)) {
+	for _, p := range database.EventProblems(events, step) {
+		add("%s %s", what, p)
+	}
+	evs, err := database.ParseQuestEvents(events)
+	if err != nil {
+		return
+	}
+	for i, e := range evs {
+		where := fmt.Sprintf("%s event %d", what, i+1)
+		switch e.Do {
+		case database.EventSpawn:
+			var n int
+			s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(npc_name) = LOWER(?)`, strings.TrimSpace(e.NPC)).Scan(&n)
+			if n == 0 && strings.TrimSpace(e.NPC) != "" {
+				add("%s spawns %q, which this server has no NPC of", where, e.NPC)
+			}
+		case database.EventGive:
+			s.itemProblems(database.ParseItemCounts(e.Items), where+" gives", add)
+		}
+	}
+}
+
 // itemProblems says which items do not exist.
 func (s *Server) itemProblems(items []database.ItemCount, what string, add func(string, ...any)) {
 	for _, it := range items {
@@ -424,7 +481,7 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 	for i, step := range steps {
 		k, _ := step["kind"].(string)
 		if !containsStr(database.StepKinds, strings.ToLower(strings.TrimSpace(k))) {
-			return nil, badRequest("step %d: kind is talk, show, give, kill or reach", i+1)
+			return nil, badRequest("step %d: kind is talk, show, give, kill, loot or reach", i+1)
 		}
 	}
 	id, _ := asFloat(quest["questid"])

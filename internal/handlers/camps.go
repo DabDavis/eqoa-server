@@ -19,7 +19,7 @@ var campDests = map[string]teleDest{
 	"hatebonecave":   {NPC: "hatebone oracle", Near: true, X: 19840.2, Y: 49.3, Z: 7727.4, World: 0, Levels: "3-12", Label: "Halas' Hatebone orc cave"},
 	"nroundead":      {NPC: "grave rat", Near: true, X: 24123.5, Y: 54.1, Z: 16547.0, World: 0, Levels: "15-20", Label: "Northern Ro's undead"},
 	"nroundead2":     {NPC: "Decaying Zombie", Near: true, X: 24329.7, Y: 54.1, Z: 17688.8, World: 0, Levels: "18-20", Label: "Northern Ro's undead, the second camp"},
-	"gharial":        {NPC: "Gharial", Near: true, X: 23325.2, Y: 55.1, Z: 20427.6, World: 0, Levels: "31-35", Label: "the gharial island south of Moradhim"},
+	"gharial":        {NPC: "Gharial ", Near: true, X: 23325.2, Y: 55.1, Z: 20427.6, World: 0, Levels: "31-35", Label: "the gharial island south of Moradhim"},
 	"tendora":        {NPC: "kerran warrior", Near: true, X: 5649.0, Y: 56.3, Z: 4936.1, World: 2, Levels: "45-55", Label: "Tendora-Buki, West Toxulia's kerran village"},
 	"kappa":          {NPC: "kappa slave", Near: true, X: 4907.8, Y: 50.3, Z: 2298.7, World: 2, Levels: "45-52", Label: "Slythis Dwell's kappa"},
 	"kappawarriors":  {NPC: "kappa warrior", Near: true, X: 4886.8, Y: 57.7, Z: 3786.7, World: 2, Levels: "45", Label: "Slythis Dwell's kappa warriors"},

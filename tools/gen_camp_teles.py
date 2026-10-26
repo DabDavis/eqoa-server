@@ -219,7 +219,9 @@ def place(spec, zones, rows, fitted):
     levels = f"{min(lv)}-{max(lv)}" if lv and min(lv) != max(lv) else (str(lv[0]) if lv else "")
     kinds = collections.Counter(o[1].strip() for o in around)
     return {
-        "key": key, "aliases": aliases, "label": label, "npc": anchor[1].strip(),
+        # the anchor's name exactly as npcs has it (a trailing space included:
+        # "Gharial "), for the World matches it so
+        "key": key, "aliases": aliases, "label": label, "npc": anchor[1],
         "x": anchor[2], "y": anchor[3], "z": anchor[4], "world": w, "levels": levels,
         "count": len(around), "kinds": kinds.most_common(4), "off": off, "point": point,
         "guide": camps[0].get("levelRange", ""),

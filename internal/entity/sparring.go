@@ -20,7 +20,7 @@ import (
 //     the player's defence (defence.go's creature line);
 //   - every sparNukeEvery-th round, after the four hits, it strikes with its
 //     element (sparStrike): its level's damage, the player's resist to that
-//     element taking its share off, said in the chat with the share;
+//     element taking its share off (resist.go), said in the chat with the share;
 //   - it never kills: a hit that would leave the player at nothing leaves
 //     one hit point and ends the fight.
 //
@@ -55,21 +55,16 @@ const (
 	// sparStrikePerLevel is a strike's damage a level, before its spread
 	// (±20%) and the resist's share: a level 60's 600, a level 10's 100.
 	sparStrikePerLevel = 10
-	// sparResistHalf is the resist that takes half a strike off: the share
-	// is resist / (resist + sparResistHalf).
-	sparResistHalf = 200
 	// sparFX is the strike's visual: the damage spells' stand-in (Fiery
 	// Burst's, the one Sandstorm showed us; cast.go's fxDamage).
 	sparFX = fxDamage
 )
 
-// sparStrikeDamage is a strike of a dummy of level on a resist, spread by
-// roll (0 to 1): what lands and the share the resist took.
-func sparStrikeDamage(level, resist int, roll float64) (damage int, share float64) {
+// sparStrikeDamage is a strike of a dummy of level, spread by roll (0 to 1),
+// less the share its target's resist took (resist.go's RollResist).
+func sparStrikeDamage(level int, share, roll float64) int {
 	base := float64(level*sparStrikePerLevel) * (0.8 + 0.4*roll)
-	r := math.Max(float64(resist), 0)
-	share = r / (r + sparResistHalf)
-	return max(int(math.Round(base*(1-share))), 1), share
+	return max(int(math.Round(base*(1-share))), 1)
 }
 
 // SetSparring sets a sparring dummy's level and element (indexes of
@@ -113,9 +108,10 @@ func (w *World) sparRoundLocked(sess *session.Session, npc *NPC, p *Player, star
 	}
 	npc.SparStruck = npc.RoundStart
 	el := SparElements[npc.SparElement]
-	damage, share := sparStrikeDamage(npc.Level, p.StatNow(el.Resist), rand.Float64())
+	share, how := RollResist(p.StatNow(el.Resist))
+	damage := sparStrikeDamage(npc.Level, share, rand.Float64())
 	w.broadcastNPCSwingLocked(npc, p.ServerID, 0, sparFX)
-	line := fmt.Sprintf("%s strikes you with %s for %d (your resist took %.0f%%).", npc.Name, el.Name, damage, share*100)
+	line := fmt.Sprintf("%s strikes you with %s for %d (%s).", npc.Name, el.Name, damage, resistWords(share, how))
 	w.sparHitLocked(sess, npc, p, damage, line, now)
 }
 

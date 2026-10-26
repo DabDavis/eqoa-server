@@ -40,10 +40,10 @@ import (
 // Here:
 //   - an effect marked Self lands on the caster, once a cast, before the
 //     targets (landOnCasterLocked): a price in hit points, less the share
-//     the caster's arcane resist takes, resist / (resist + 200) as the
-//     sparring dummy's strikes take theirs (sparring.go: one rule on this
-//     server for a resist's share; at no resist the whole price, at 200 half,
-//     at 600 a quarter); it can kill. A gain in hit points or power is the
+//     the caster's arcane resist takes (resist.go, the one rule on this
+//     server for a resist's share, as the sparring dummy's strikes take
+//     theirs: 75% at the cap of 315, in proportion below it, and at the cap
+//     a chance to fail wholly or in part); it can kill. A gain in hit points or power is the
 //     caster's own; a stat changed lasts the line's duration as an effect of
 //     the spell's name on the caster;
 //   - a drained effect lands on its target as before, and then the caster
@@ -54,7 +54,7 @@ import (
 //     a pact one, so it is cast at a friend, oneself included, and on oneself
 //     the price is paid first and the heal comes after.
 //
-// The resist's share is the server's own, not measured; so is healing the
+// The resist's share below the cap is the server's own, not measured; so is healing the
 // whole figure of a tap that kills (EverQuest's taps do).
 
 // DrainTo is where a drained effect's take goes.
@@ -65,9 +65,6 @@ const (
 	DrainCaster         // the caster: a life tap, a stat or power taken
 	DrainGroup          // the caster's group in range: "Drain Group HP"
 )
-
-// pactResistHalf is the arcane resist that takes half a price off.
-const pactResistHalf = sparResistHalf
 
 var (
 	// the words that send the take to the caster or its group, longest
@@ -242,22 +239,16 @@ func (w *World) landOnCasterLocked(cs *castState, caster *Player, sess *session.
 	return &out
 }
 
-// pactResistShare is the share of a price an arcane resist takes.
-func pactResistShare(resist int) float64 {
-	r := math.Max(float64(resist), 0)
-	return r / (r + pactResistHalf)
-}
-
 // payPriceLocked takes a price of n hit points off the caster, less its
 // arcane resist's share: the figure on the caster, a line saying it, and a
 // death when nothing is left.
 func (w *World) payPriceLocked(cs *castState, caster *Player, sess *session.Session, n int, now time.Time) {
-	share := pactResistShare(caster.StatNow(StatAR))
+	share, how := RollResist(caster.StatNow(StatAR)) // resist.go
 	taken := int(math.Round(float64(n) * (1 - share)))
 	log.Printf("Cast: %s's %q costs %s %d of %d hit points (resist %.0f%%; HP %d)",
 		caster.Name, cs.spell.Name, caster.Name, taken, n, share*100, caster.HP)
 	if sess != nil {
-		w.sendChatToSession(sess, fmt.Sprintf("%s costs you %d hit points (your resist took %.0f%%).", cs.spell.Name, taken, share*100))
+		w.sendChatToSession(sess, fmt.Sprintf("%s costs you %d hit points (%s).", cs.spell.Name, taken, resistWords(share, how)))
 	}
 	if taken <= 0 {
 		return

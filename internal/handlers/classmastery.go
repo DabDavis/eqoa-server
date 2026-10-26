@@ -352,8 +352,9 @@ func (h *ClassMasteryHandler) buy(sess *session.Session, token uint32, id int) [
 		}
 	}
 	SendColoredChat(sess, fmt.Sprintf("You have bought %s for %d mastery points.", res.Rank.Name, res.Paid), 255, 255, 0)
-	h.giveAbilities(sess, p, res.Rank.Adds)
-	h.takeAbilities(sess, p, res.Rank.Removes)
+	gives, takes := res.Rank.BookChange()
+	h.giveAbilities(sess, p, gives)
+	h.takeAbilities(sess, p, takes)
 	list := h.gameWorld.CMList(sess, h.cmBookOf(p))
 	return cmBig(func(w *buffer.Writer) {
 		w.WriteByte(cmRespBought)
@@ -391,8 +392,9 @@ func (h *ClassMasteryHandler) remove(sess *session.Session, token uint32, id int
 	name := fmt.Sprintf("mastery %d", id)
 	if res.Rank != nil {
 		name = res.Rank.Name
-		h.takeAbilities(sess, p, res.Rank.Adds)
-		h.giveAbilities(sess, p, res.Rank.Removes)
+		gives, takes := res.Rank.BookChange()
+		h.takeAbilities(sess, p, gives)
+		h.giveAbilities(sess, p, takes)
 	}
 	SendColoredChat(sess, fmt.Sprintf("You have removed %s: its %d mastery points are gone, to be earned again.", name, res.Paid), 255, 255, 0)
 	list := h.gameWorld.CMList(sess, h.cmBookOf(p))
@@ -555,8 +557,9 @@ func (h *ClassMasteryHandler) GMReset(sess *session.Session, objectID uint32) st
 	list := h.gameWorld.CMList(who, h.cmBookOf(p))
 	for _, id := range res.Removed {
 		if r := h.gameWorld.CMRankByID(id); r != nil {
-			h.takeAbilities(who, p, r.Adds)
-			h.giveAbilities(who, p, r.Removes)
+			gives, takes := r.BookChange()
+			h.takeAbilities(who, p, gives)
+			h.giveAbilities(who, p, takes)
 		}
 		queueReliable(who, protocol.OpcodeClassMasteryServer, cmBig(func(w *buffer.Writer) {
 			w.WriteByte(cmRespRemoved)

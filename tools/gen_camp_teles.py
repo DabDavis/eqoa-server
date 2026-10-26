@@ -18,6 +18,14 @@ npcs lack it lands on that spawn as written), the world and the levels of the
 camp's creatures here; ResolveTeleDest takes the NPC of that name nearest the
 spawn, so the shortcut follows a GM's move of the camp.
 
+Beside the shortcuts it writes what the GM panel's map says of each camp
+(campNotes, handlers/campinfo.go): EQOA-Data's note on it (its "Needs review"
+asides left out), the guide's levels, the creatures that make it here (every
+name of its kind within CREATURE_REACH of the anchor, as
+tools/seed_camp_loot.py binds their loot), and EQOA-Data's rare mobs within
+RARE_REACH of it, each with its level here (an NPC of the name) and the drops
+EQOA-Data's items name it the source of.
+
     python3 -E -s tools/gen_camp_teles.py --db eqoa.db \\
         --eqoa-data ../external/EQOA-Data [--out internal/handlers/camps.go]
 
@@ -26,6 +34,7 @@ Without --out it prints the table it would write and every camp's match.
 
 import argparse
 import collections
+import glob
 import json
 import math
 import os
@@ -102,6 +111,10 @@ CLOSE_FIT = 50.0
 REACH = {0: 400.0, 2: 900.0}
 CLUSTER = 60.0
 LEVELS_WITHIN = 120.0
+# the camp's creatures for its notes (seed_camp_loot.py's CAMP_REACH), and
+# how far from the anchor a rare mob counts as the camp's
+CREATURE_REACH = 150.0
+RARE_REACH = 700.0
 
 
 def clean(name):
@@ -130,6 +143,32 @@ def fit(points):
         cur = keep
     res = sorted(math.hypot(a * p[0] + b - p[2], c * p[1] + d - p[3]) for p in cur)
     return (a, b, c, d), len(cur), len(points), res[len(res) // 2]
+
+
+def drops_by_mob(data):
+    """EQOA-Data's items by the creature it names their source (not a loot
+    table's), lower case: {mob: [item, ...]}."""
+    out = collections.defaultdict(list)
+    for path in sorted(glob.glob(os.path.join(data, "Information", "databases", "items", "*.json"))):
+        doc = json.load(open(path))
+        items = doc["items"] if isinstance(doc, dict) and "items" in doc else doc
+        for it in items:
+            src = it.get("source")
+            for s in src if isinstance(src, list) else ([src] if src else []):
+                if s.get("type") == "mobDrop" and "loot table" not in s.get("name", "").lower():
+                    name = re.sub(r"'s$", "", s["name"].strip()).lower()
+                    name = re.sub(r"^the ", "", name)
+                    if it["name"] not in out[name]:
+                        out[name].append(it["name"])
+    return out
+
+
+def note_of(camps):
+    """EQOA-Data's note on the camp, its "Needs review: ..." asides (the
+    guide's own editing) left out."""
+    note = camps[0].get("note", "")
+    note = re.sub(r"\s*Needs review:.*$", "", note).strip()
+    return note
 
 
 def load(db, data):
@@ -218,14 +257,48 @@ def place(spec, zones, rows, fitted):
     lv = [o[6] for o in around if o[6]]
     levels = f"{min(lv)}-{max(lv)}" if lv and min(lv) != max(lv) else (str(lv[0]) if lv else "")
     kinds = collections.Counter(o[1].strip() for o in around)
+    # every name of the camp's kind within CREATURE_REACH (seed_camp_loot.py's
+    # binding), as the npcs spell it most, the commonest first
+    spell = collections.defaultdict(collections.Counter)
+    for o in rows:
+        if o[5] == w and rx.search(o[1].strip()) and math.hypot(o[2] - anchor[2], o[4] - anchor[4]) <= CREATURE_REACH:
+            spell[o[1].strip().lower()][o[1].strip()] += 1
+    creatures = [c.most_common(1)[0][0] for _, c in sorted(spell.items(), key=lambda kv: (-sum(kv[1].values()), kv[0]))]
     return {
         # the anchor's name exactly as npcs has it (a trailing space included:
         # "Gharial "), for the World matches it so
         "key": key, "aliases": aliases, "label": label, "npc": anchor[1],
         "x": anchor[2], "y": anchor[3], "z": anchor[4], "world": w, "levels": levels,
         "count": len(around), "kinds": kinds.most_common(4), "off": off, "point": point,
-        "guide": camps[0].get("levelRange", ""),
+        "guide": camps[0].get("levelRange", ""), "note": note_of(camps), "creatures": creatures,
     }, ""
+
+
+def rare_near(placed, zones, rows, fitted, drops):
+    """EQOA-Data's rare mobs within RARE_REACH of each camp: where this
+    server's npcs hold one of the name (in the camp's world, the nearest),
+    its spawn and level, else the map's point by the world's fit; with the
+    drops EQOA-Data names it the source of."""
+    byname = collections.defaultdict(list)
+    for r in rows:
+        byname[r[1].strip().lower()].append(r)
+    rares = [p for p in zones["pois"] if p["category"] == "rare-mob"]
+    for c in placed:
+        found = []
+        for p in rares:
+            name = clean(p["name"])
+            (a, b, cc, d), _, _, _ = fitted[c["world"]]
+            gx, gz = a * p["x"] + b, cc * p["y"] + d
+            ours = [r for r in byname.get(name, []) if r[5] == c["world"]]
+            level = 0
+            if ours:
+                r = min(ours, key=lambda r: math.hypot(r[2] - c["x"], r[4] - c["z"]))
+                gx, gz, level = r[2], r[4], r[6] or 0
+            dist = math.hypot(gx - c["x"], gz - c["z"])
+            if dist <= RARE_REACH:
+                shown = ours[0][1].strip() if ours else re.sub(r"\s*\([^)]*\)\s*", " ", p["name"]).strip()
+                found.append((dist, shown, level, drops.get(name, [])))
+        c["rare"] = [{"name": n, "level": lv, "drops": dr} for _, n, lv, dr in sorted(found)]
 
 
 def go_string(s):
@@ -251,6 +324,22 @@ def render(placed):
             f'\t{go_string(p["key"])}: {{NPC: {go_string(p["npc"])}, Near: true, '
             f'X: {p["x"]:.1f}, Y: {p["y"]:.1f}, Z: {p["z"]:.1f}, World: {p["world"]}, '
             f'Levels: {go_string(p["levels"])}, Label: {go_string(p["label"])}}},'
+        )
+    lines.append("}")
+    lines.append("")
+    lines.append("// campNotes are what the GM panel's map says of each camp (campinfo.go):")
+    lines.append("// EQOA-Data's note on it, the guide's levels, the creatures that make it")
+    lines.append("// here and EQOA-Data's rare mobs near it, with their levels here and the")
+    lines.append("// drops EQOA-Data names them the source of.")
+    lines.append("var campNotes = map[string]campNote{")
+    for p in placed:
+        rare = ", ".join(
+            f'{{Name: {go_string(r["name"])}, Level: {r["level"]}, Drops: []string{{{", ".join(go_string(x) for x in r["drops"])}}}}}'
+            for r in p.get("rare", []))
+        lines.append(
+            f'\t{go_string(p["key"])}: {{Note: {go_string(p["note"])}, Guide: {go_string(p["guide"])}, '
+            f'Creatures: []string{{{", ".join(go_string(x) for x in p["creatures"])}}}, '
+            f'Rare: []campRare{{{rare}}}}},'
         )
     lines.append("}")
     lines.append("")
@@ -287,6 +376,10 @@ def main():
         off = f", the map {p['off']:.0f} off" if p["off"] else ""
         kinds = ", ".join(f"{k} x{n}" for k, n in p["kinds"])
         print(f"  {p['key']:15s} w{p['world']} ({p['x']:.0f}, {p['y']:.1f}, {p['z']:.0f}) {p['npc']!r} levels {p['levels']} (guide {p['guide']}){off}: {kinds}", file=sys.stderr)
+    rare_near(placed, zones, rows, fitted, drops_by_mob(args.eqoa_data))
+    for p in placed:
+        if p["rare"]:
+            print(f"  {p['key']:15s} rare: " + ", ".join(f"{r['name']} ({r['level'] or '?'})" for r in p["rare"]), file=sys.stderr)
     text = render(placed)
     if args.out:
         with open(args.out, "w") as f:

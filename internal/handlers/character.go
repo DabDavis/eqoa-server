@@ -311,8 +311,12 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 	// Create character record for database
 	accountID := sess.AccountID()
 	if accountID == 0 {
-		log.Printf("CreateCharacter: no account ID set for session, using default account 1")
-		accountID = 1 // Fallback to account 1 if not set
+		// a session with no account makes no character (F3 20261026-103415:
+		// "account 1" got one a player's client made on a session the server
+		// had dropped and made anew): the client goes back to its login
+		log.Printf("CreateCharacter: REJECTED '%s' from %s: no account on the session; told to log in again (0x%04X)", name, sess.RemoteAddr(), uint16(protocol.OpcodeBadLoginPassword))
+		SendDisconnect(sess, protocol.OpcodeBadLoginPassword)
+		return nil
 	}
 
 	// PS2 limit: 8 characters per account
@@ -457,6 +461,18 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	if err != nil {
 		log.Printf("SelectedChar: character with server_id %d not found: %v", charID, err)
 		sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
+		return nil
+	}
+
+	// Only a character of the session's own account (F3 20261026-103415: a
+	// pre-game session the server had dropped was made anew by the client's
+	// next packet with no account, and nothing here asked whose a character
+	// was: any session could enter the world as anyone's). A refusal is the
+	// login's: the client goes back to STATION's login.
+	if acct := sess.AccountID(); acct == 0 || record.AccountID != int(acct) {
+		log.Printf("SelectedChar: REJECTED serverID=%d ('%s', account %d) from %s: the session's account is %d; told to log in again (0x%04X)",
+			charID, record.CharName, record.AccountID, sess.RemoteAddr(), acct, uint16(protocol.OpcodeBadLoginPassword))
+		SendDisconnect(sess, protocol.OpcodeBadLoginPassword)
 		return nil
 	}
 
@@ -1135,14 +1151,13 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 			log.Printf("SendCharacterSelectEQOA:   [%d] ServerID=%d Name='%s' Race=%d Class=%d ModelID=0x%X", i, r.ServerID, r.CharName, r.Race, r.TClass, r.ModelID)
 		}
 	} else {
-		// No account - show all characters (legacy behavior)
-		log.Printf("SendCharacterSelectEQOA: WARNING - no accountID set, showing ALL characters (legacy mode)")
-		records, err = h.store.GetAll()
-		if err != nil {
-			log.Printf("SendCharacterSelectEQOA: failed to get characters: %v", err)
-			records = []*database.CharacterRecord{}
-		}
-		log.Printf("SendCharacterSelectEQOA: legacy mode returning %d characters", len(records))
+		// No account: no list. This sent every character on the server (a
+		// legacy of the days before accounts) to a session the server had
+		// dropped and the client's next packet made anew (F3
+		// 20261026-103415). The client goes back to its login.
+		log.Printf("SendCharacterSelectEQOA: REFUSED: no account on the session from %s; told to log in again (0x%04X)", sess.RemoteAddr(), uint16(protocol.OpcodeBadLoginPassword))
+		SendDisconnect(sess, protocol.OpcodeBadLoginPassword)
+		return
 	}
 
 	// Character count is ZIGZAG, like every field below it. Verified against a

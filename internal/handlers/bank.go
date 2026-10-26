@@ -64,6 +64,11 @@ func (h *NPCWindowHandler) HandleBankOpen(sess *session.Session, msg *protocol.M
 		refuse(sess)
 		return nil
 	}
+	// a quest's step to do at it is done first (questevents.go: CLIENT
+	// never talks to an NPC with a window)
+	if questsAtWindow(sess, player, npc) {
+		return nil
+	}
 	queueReliable(sess, protocol.OpcodeBankUI, build(protocol.OpcodeBankUI, 2, nil))
 	log.Printf("Bank: %s opened %q", player.Name, npc.Name)
 	return nil

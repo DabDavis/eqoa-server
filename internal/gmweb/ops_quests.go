@@ -466,7 +466,7 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 	if g := text(q, "giver"); g == "" {
 		add("it has no giver: no one offers it (a GM can still give it)")
 	} else {
-		s.npcProblems(g, "the giver", add)
+		s.npcProblems(g, "the giver", true, add)
 	}
 	if lo, hi := num(q, "minlevel"), num(q, "maxlevel"); hi > 0 && lo > hi {
 		add("its levels run backwards: %v to %v", lo, hi)
@@ -506,7 +506,7 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 			if t := text(st, "target"); t == "" {
 				add("%s (%s) names no NPC", where, kind)
 			} else {
-				s.npcProblems(t, where+"'s NPC", add)
+				s.npcProblems(t, where+"'s NPC", false, add)
 			}
 			if kind != database.StepTalk {
 				items := database.ParseItemCounts(text(st, "items"))
@@ -582,9 +582,11 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 }
 
 // npcProblems says what is wrong with an NPC a quest names: none of the name,
-// or one that opens a window (the client never talks to a merchant, banker
-// or blacksmith: InteractWithTarget sends their windows' requests instead).
-func (s *Server) npcProblems(name, what string, add func(string, ...any)) {
+// or, for its giver (window), one that opens a window (the client never talks
+// to a merchant, banker or blacksmith: InteractWithTarget asks for its window
+// instead, so it offers nothing; a step at one is done when its window is
+// asked for, handlers.QuestEngine.AtWindow).
+func (s *Server) npcProblems(name, what string, window bool, add func(string, ...any)) {
 	rows, err := s.rowsOf(`SELECT npc_type FROM npcs WHERE LOWER(npc_name) = LOWER(?) LIMIT 20`, name)
 	if err != nil {
 		return
@@ -594,8 +596,8 @@ func (s *Server) npcProblems(name, what string, add func(string, ...any)) {
 		return
 	}
 	for _, r := range rows {
-		if t, _ := asFloat(r["npc_type"]); int64(t)&0x0B != 0 {
-			add("%s %q opens a window (merchant, bank or blacksmith): the game never talks to it", what, name)
+		if t, _ := asFloat(r["npc_type"]); window && int64(t)&0x0B != 0 {
+			add("%s %q opens a window (merchant, bank or blacksmith): the game never talks to it, so it offers nothing", what, name)
 			return
 		}
 	}

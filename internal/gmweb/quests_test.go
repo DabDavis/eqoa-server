@@ -56,13 +56,13 @@ func TestAQuestIsSavedWithItsSteps(t *testing.T) {
 		t.Fatalf("quest_save: %d %v", code, out)
 	}
 	ps := problemsOf(out)
-	for _, want := range []string{`step 1's NPC "Merchant Shadehand" opens a window`, "step 2 wants item 999, which does not exist", "step 4's place is 0, 0"} {
+	for _, want := range []string{"step 2 wants item 999, which does not exist", "step 4's place is 0, 0"} {
 		if !strings.Contains(ps, want) {
 			t.Errorf("problems lack %q:\n%s", want, ps)
 		}
 	}
-	if strings.Contains(ps, "step 3") {
-		t.Errorf("the control: step 3 (two skeletons, which spawn here) has a problem:\n%s", ps)
+	if strings.Contains(ps, "step 3") || strings.Contains(ps, "step 1") {
+		t.Errorf("the control: step 3 (two skeletons, which spawn here) or step 1 (a merchant, done at its window) has a problem:\n%s", ps)
 	}
 	quest, _ := out["quest"].(map[string]any)
 	id, _ := asFloat(quest["questid"])
@@ -429,11 +429,34 @@ func TestTheQuestListFiltersImportedQuests(t *testing.T) {
 		}
 	}
 
+	// past a thousand steps (rowsOf's cap) every quest still has its own
+	for i := 2; i <= 1100; i++ {
+		f.exec(`INSERT INTO queststeps (questid, step, kind, target, count, journal) VALUES (7, ?, 'talk', 'Guard Dahvel', 1, 'Talk.')`, i)
+	}
+	code, out = c.op("quest_list", map[string]any{"search": "Mage one"})
+	if code != 200 || strings.Contains(fmt.Sprint(out["quests"]), "it has no steps") {
+		t.Errorf("past a thousand steps, a quest lost its own: %d %v", code, out["quests"])
+	}
+
 	// Maryan placed: her quest and the one after it are ready
 	f.exec(`INSERT INTO npcs (id, npc_name, world, x_coord, y_coord, z_coord, facing, modelid, size, npc_level, npc_type, race)
 		VALUES (503, 'Maryan', 0, 25005, 50, 15005, 0, 1893243078, 1.0, 20, 128, '0')`)
 	if got := fmt.Sprint(c.questIDs(t, map[string]any{"status": questReady})); got != "[100002 100003 100004]" {
 		t.Errorf("Maryan placed, the ready ones are %s", got)
+	}
+
+	// a merchant offers nothing (the game asks for its window), though a step
+	// at one is fine (done at its window): the first is a draft, the control not
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel, classes, source) VALUES
+		(100007, 'Shop', 0, 'Merchant Shadehand', 1, 60, '', 'gm'), (100008, 'Shop step', 0, 'Guard Dahvel', 1, 60, '', 'gm')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, count, journal) VALUES
+		(100007, 1, 'talk', 'Guard Dahvel', 1, 'Talk.'), (100008, 1, 'talk', 'Merchant Shadehand', 1, 'See the merchant.')`)
+	code, out = c.op("quest_list", map[string]any{"search": "shop"})
+	if code != 200 || !strings.Contains(fmt.Sprint(out["quests"]), "offers nothing") {
+		t.Errorf("a merchant giver: %d %v", code, out["quests"])
+	}
+	if got := fmt.Sprint(c.questIDs(t, map[string]any{"search": "shop", "status": questReady})); got != "[100008]" {
+		t.Errorf("a step at a merchant should be ready: %s", got)
 	}
 }
 

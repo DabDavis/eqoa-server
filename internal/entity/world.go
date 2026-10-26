@@ -109,6 +109,11 @@ type World struct {
 	npcSocial npcSocialState
 	// Every item's use, and the hooks that give and take potions (potion.go)
 	potions potionTable
+	// Where the water is (water.go), and how the creatures of a name move,
+	// table npcmove (movement.go)
+	env         Env
+	moveRules   map[string]database.NPCMoveRule
+	apartToldAt map[EntityID]time.Time // when a player was last told its melee crossed the water's edge
 }
 
 // NewWorld creates and initializes a new game world.

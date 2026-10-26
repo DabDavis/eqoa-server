@@ -27,10 +27,10 @@ import (
 // (roamActiveRange): only those near someone move, so the tick is as cheap
 // with 20,000 NPCs as with 200. A snare halves its pace.
 //
-// The server has no ground: a creature keeps its spawn's height, and the
-// client drops it onto the ground within 1.5 above or below that
-// (ExtrapolateGround), which a small radius keeps it within on all but
-// steep ground.
+// It walks on the ground (groundnpc.go), and only where it can stand, in or
+// out of the water as it keeps (movement.go's legs, water.go); table
+// npcmove stands some on their spawns, and one standing off the ground (a
+// keep's floor, a bridge) does not wander.
 
 // DefaultRoamRadius is how far from its spawn a creature wanders.
 const DefaultRoamRadius float32 = 75
@@ -109,7 +109,7 @@ func (w *World) wanders(npc *NPC) bool {
 	if npc.NPCType&0x80 != 0 || npc.ModelID == 0 || w.playerModels[uint32(npc.ModelID)] {
 		return false
 	}
-	return true
+	return !w.standsLocked(npc) // movement.go
 }
 
 // roamSystem walks the creatures near a player (the file's doc). Every
@@ -214,11 +214,12 @@ func (w *World) roamStepLocked(npc *NPC, now time.Time) {
 
 // roamPointLocked is where a creature walks next: a leg of roamLegMin to
 // roamLegMax (at most the radius) in any direction from where it stands,
-// ending within its radius of its spawn, and neither ending in a town nor
-// passing through one unless its spawn is in that town's ground (towns.go);
-// where it stands when no such leg is found (it rests and tries again).
+// ending within its radius of its spawn, neither ending in a town nor
+// passing through one unless its spawn is in that town's ground (towns.go),
+// and standable all along (legOKLocked); where it stands when no such leg is
+// found (it rests and tries again).
 func (w *World) roamPointLocked(npc *NPC) (x, z float32) {
-	r := npc.RoamRadius
+	r := w.roamRadiusLocked(npc)
 	lo, hi := min(roamLegMin, r), min(roamLegMax, r)
 	if hi < roamMinStep {
 		return npc.SpawnX, npc.SpawnZ
@@ -234,6 +235,9 @@ func (w *World) roamPointLocked(npc *NPC) (x, z float32) {
 		}
 		if !townsfolk && w.legInTownLocked(npc.World, npc.X, npc.Z, x, z) {
 			continue
+		}
+		if !w.legOKLocked(npc, x, z) {
+			continue // somewhere it cannot stand, or into or out of the water (movement.go)
 		}
 		return x, z
 	}

@@ -413,13 +413,7 @@ func (w *World) NPCOnGround(id EntityID) bool {
 	if npc == nil || w.ground == nil {
 		return false
 	}
-	if !npc.groundKnown {
-		x, y, z := npc.X, npc.Y, npc.Z
-		npc.X, npc.Y, npc.Z = npc.SpawnX, npc.SpawnY, npc.SpawnZ
-		w.groundNPCLocked(npc)
-		npc.X, npc.Y, npc.Z = x, y, z
-	}
-	return npc.onGround
+	return w.spawnOnGroundLocked(npc)
 }
 
 // pathSystem walks every creature with a path, and those walking back from

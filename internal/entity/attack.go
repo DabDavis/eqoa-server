@@ -431,6 +431,10 @@ func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
 // fights back), and on a kill the XP and the faction hits (faction.go). It
 // reports a kill.
 func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NPC, objectID uint32) bool {
+	if w.apartLocked(attacker, npc) {
+		w.tellApartLocked(sess, attacker, npc, time.Now()) // water.go
+		return false
+	}
 	if attacker.Swing.Potion != 0 {
 		return w.thrownPotionHitLocked(sess, attacker, npc, objectID) // potion.go
 	}

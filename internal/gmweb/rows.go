@@ -585,6 +585,9 @@ func mayWrite(a *actor, t *Table) error {
 type writeOpts struct {
 	Dry bool
 	Raw bool
+	// NoLive leaves the running game alone: a caller writing many rows of one
+	// table applies it once after them (quest_save, quest_set_enabled).
+	NoLive bool
 }
 
 // writableValues checks and converts the columns a change sets.
@@ -818,7 +821,9 @@ func (s *Server) insertRow(a *actor, t *Table, values map[string]any, o writeOpt
 		return nil, err
 	}
 	s.schema.bumpCount(t.Name, 1)
-	ch.Live = s.applyLive(a, t, "insert", nil, after)
+	if !o.NoLive {
+		ch.Live = s.applyLive(a, t, "insert", nil, after)
+	}
 	return ch, nil
 }
 
@@ -939,7 +944,9 @@ func (s *Server) updateRow(a *actor, t *Table, key, values, base map[string]any,
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
-	ch.Live = s.applyLive(a, t, "update", before, after)
+	if !o.NoLive {
+		ch.Live = s.applyLive(a, t, "update", before, after)
+	}
 	return ch, nil
 }
 
@@ -989,7 +996,9 @@ func (s *Server) deleteRow(a *actor, t *Table, key map[string]any, o writeOpts) 
 		return nil, err
 	}
 	s.schema.bumpCount(t.Name, -1)
-	ch.Live = s.applyLive(a, t, "delete", before, nil)
+	if !o.NoLive {
+		ch.Live = s.applyLive(a, t, "delete", before, nil)
+	}
 	return ch, nil
 }
 

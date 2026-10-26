@@ -5063,9 +5063,6 @@
      "says": "Well done.",
      "rewards": {
       "xp": 883791,
-      "items": [
-       "Slayer's Chain"
-      ],
       "spells": [
        "Punish Death"
       ]
@@ -5078,7 +5075,7 @@
     "Maryan",
     "Brownie Thief"
    ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Toshel is Caller Toshei here and Nalej is Nalai Belzia. Fenra, Maryan and the brownie thief are not on this server."
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Toshel is Caller Toshei here and Nalej is Nalai Belzia. Fenra, Maryan and the brownie thief are not on this server. Not on this server, left out of the rewards: the item \"Slayer's Chain Shirt\"."
   },
   {
    "key": "1-20/highbourne/shadowknight/L20",

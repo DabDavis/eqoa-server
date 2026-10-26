@@ -1,0 +1,6353 @@
+{
+ "city": "highbourne",
+ "quests": [
+  {
+   "key": "1-20/highbourne/alchemist/L1",
+   "name": "Your Uniform",
+   "giver": "Melina Quiscellin",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Merchant Hanna, directly across from the guild house, has your uniform. It costs you nothing; fetch it and show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Hanna",
+     "journal": "Speak with Merchant Hanna.",
+     "says": "Melina's new alchemist? Your uniform.",
+     "rewards": {
+      "items": [
+       "Student's Uniform"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Melina Quiscellin",
+     "items": [
+      {
+       "item": "Student's Uniform",
+       "count": 1
+      }
+     ],
+     "journal": "Show Student's Uniform to Melina Quiscellin.",
+     "says": "Welcome to the guild.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). The guide does not name the uniform; the student's uniform stands in."
+  },
+  {
+   "key": "1-20/highbourne/alchemist/L2",
+   "name": "Bound to Highbourne",
+   "giver": "Melina Quiscellin",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/alchemist/L1"
+   ],
+   "offer": "Speak to Spiritmaster Alcadia, then to Coachman Galdah, and come back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Alcadia",
+     "journal": "Speak with Spiritmaster Alcadia.",
+     "says": "Your spirit is bound. Coachman Galdah is just there."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Galdah",
+     "journal": "Speak with Coachman Galdah.",
+     "says": "Your name is in my ledger."
+    },
+    {
+     "kind": "talk",
+     "target": "Melina Quiscellin",
+     "journal": "Speak with Melina Quiscellin.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/alchemist/L3",
+   "name": "Tarantula Leg Tips",
+   "giver": "Truborne Jaegir",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/alchemist/L2"
+   ],
+   "offer": "Bring me two tarantula leg tips. The hatchlings outside either gate carry them.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "tarantula hatchling",
+     "items": [
+      {
+       "item": "tarantula leg tips",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 tarantula leg tips from tarantula hatchlings."
+    },
+    {
+     "kind": "give",
+     "target": "Truborne Jaegir",
+     "items": [
+      {
+       "item": "tarantula leg tips",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 tarantula leg tips to Truborne Jaegir.",
+     "says": "Good. Learn this hardening agent.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Hardening Agent"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "tarantula hatchling"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). No tarantula hatchlings are on this server."
+  },
+  {
+   "key": "1-20/highbourne/alchemist/L4",
+   "name": "The Alchemist's Log",
+   "giver": "Truborne Jaegir",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/alchemist/L3"
+   ],
+   "offer": "Bring me a cracked beetle horn from the beetles round the gates, and 100 tunar.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Spike Beetle",
+     "items": [
+      {
+       "item": "Cracked Beetle Horn",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Cracked Beetle Horn from Spike Beetles."
+    },
+    {
+     "kind": "give",
+     "target": "Truborne Jaegir",
+     "items": [
+      {
+       "item": "Cracked Beetle Horn",
+       "count": 1
+      }
+     ],
+     "tunar": 100,
+     "journal": "Bring Cracked Beetle Horn and 100 tunar to Truborne Jaegir.",
+     "says": "Here is your log.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The spike beetle by the gate stands in for \"beetles\". Not on this server, left out of the rewards: the item \"Alchemist's Log\"."
+  },
+  {
+   "key": "1-20/highbourne/alchemist/L5",
+   "name": "A Strange Poison Sac",
+   "giver": "Truborne Jaegir",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/alchemist/L4"
+   ],
+   "offer": "Retrieve a strange poison sac from a banded kingsnake, by the rock piles north of the north gate.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "banded kingsnake",
+     "items": [
+      {
+       "item": "Strange Poison Sac",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Strange Poison Sac from banded kingsnakes."
+    },
+    {
+     "kind": "give",
+     "target": "Truborne Jaegir",
+     "items": [
+      {
+       "item": "Strange Poison Sac",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Strange Poison Sac to Truborne Jaegir.",
+     "says": "Strange indeed. Learn this.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Crude Refinement"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "banded kingsnake"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). No banded kingsnakes are on this server."
+  },
+  {
+   "key": "1-20/highbourne/alchemist/L7",
+   "name": "Pike Oil",
+   "giver": "Truborne Jaegir",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/alchemist/L5"
+   ],
+   "offer": "Go to Qeynos and talk to the alchemy guildmaster there, in the nobles' court.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Jergish Anaebraum",
+     "journal": "Speak with Jergish Anaebraum.",
+     "says": "Kill the greyflesh pike under the docks and bring me its fillet; and 130 tunar to extract the oil."
+    },
+    {
+     "kind": "loot",
+     "target": "greyflesh pike",
+     "items": [
+      {
+       "item": "Greyflesh Pike Fillet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Greyflesh Pike Fillet from greyflesh pikes."
+    },
+    {
+     "kind": "give",
+     "target": "Jergish Anaebraum",
+     "items": [
+      {
+       "item": "Greyflesh Pike Fillet",
+       "count": 1
+      }
+     ],
+     "tunar": 130,
+     "journal": "Bring Greyflesh Pike Fillet and 130 tunar to Jergish Anaebraum.",
+     "says": "The oil. Take it to Truborne.",
+     "rewards": {
+      "items": [
+       "Pike Oil"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Truborne Jaegir",
+     "items": [
+      {
+       "item": "Pike Oil",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Pike Oil to Truborne Jaegir.",
+     "says": "Fine oil. Take these.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Crude Sublimation"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "greyflesh pike"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The guildmaster is Jergish Anaebarum. The greyflesh pike is not on this server. Not on this server, left out of the rewards: the item \"Treated Gloves\"."
+  },
+  {
+   "key": "1-20/highbourne/alchemist/L10",
+   "name": "Three Poisons",
+   "giver": "Truborne Jaegir",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/alchemist/L7"
+   ],
+   "offer": "The kingsnake's poison has properties I want to study. Bring me three more poisons.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tarantula",
+     "items": [
+      {
+       "item": "broken tarantula fang",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect broken tarantula fang from Tarantulas."
+    },
+    {
+     "kind": "loot",
+     "target": "Elusive Stone Ant",
+     "items": [
+      {
+       "item": "Elusive Stone Ant Poison",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Elusive Stone Ant Poison from Elusive Stone Ants."
+    },
+    {
+     "kind": "give",
+     "target": "Fisherman Bobston",
+     "tunar": 300,
+     "journal": "Bring 300 tunar to Fisherman Bobston.",
+     "says": "Three hundred, not two thousand. Here.",
+     "rewards": {
+      "items": [
+       "Fisherman's Poison"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Truborne Jaegir",
+     "items": [
+      {
+       "item": "broken tarantula fang",
+       "count": 1
+      },
+      {
+       "item": "Elusive Stone Ant Poison",
+       "count": 1
+      },
+      {
+       "item": "Fisherman's Poison",
+       "count": 1
+      }
+     ],
+     "journal": "Bring broken tarantula fang, Elusive Stone Ant Poison and Fisherman's Poison to Truborne Jaegir.",
+     "says": "Three fine poisons. This hammer is yours.",
+     "rewards": {
+      "xp": 556753,
+      "items": [
+       "Alchemy Hammer"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Elusive Stone Ant"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). The fisherman on the raft north of Wyndhaven is Fisherman Bobston. The Elusive Stone Ant is not on this server."
+  },
+  {
+   "key": "1-20/highbourne/alchemist/L13",
+   "name": "The Ribbed Snake",
+   "giver": "Truborne Jaegir",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/alchemist/L10"
+   ],
+   "offer": "Kill a ribbed snake in Stoneclaw, east of here, and bring me its poison sack.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "ribbed snake",
+     "items": [
+      {
+       "item": "Ribbed Snake Poison Sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Ribbed Snake Poison Sack from ribbed snakes."
+    },
+    {
+     "kind": "give",
+     "target": "Truborne Jaegir",
+     "items": [
+      {
+       "item": "Ribbed Snake Poison Sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Ribbed Snake Poison Sack to Truborne Jaegir.",
+     "says": "Now speak to Jargan Nicks in Qeynos."
+    },
+    {
+     "kind": "talk",
+     "target": "Jargan Nicks",
+     "journal": "Speak with Jargan Nicks.",
+     "says": "Tell Truborne it can be done."
+    },
+    {
+     "kind": "talk",
+     "target": "Truborne Jaegir",
+     "journal": "Speak with Truborne Jaegir.",
+     "says": "Buy lotion from Merchant Ninny, 450 tunar, and bring it."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Ninny",
+     "tunar": 450,
+     "journal": "Bring 450 tunar to Merchant Ninny.",
+     "says": "Lotion, 450.",
+     "rewards": {
+      "items": [
+       "Lotion"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Truborne Jaegir",
+     "items": [
+      {
+       "item": "Lotion",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Lotion to Truborne Jaegir.",
+     "says": "Learn this quickening.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Crude Quickening"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "ribbed snake",
+    "Jargan Nicks"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The ribbed snake and Jargan Nicks are not on this server."
+  },
+  {
+   "key": "1-20/highbourne/alchemist/L15",
+   "name": "Greyvan's Name",
+   "giver": "Truborne Jaegir",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/alchemist/L13"
+   ],
+   "offer": "Tilliam Nebaulm, near the blacksmith, has an errand.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Tiltam Nebaulm",
+     "journal": "Speak with Tiltam Nebaulm.",
+     "says": "Greyvan in Wyndhaven needs help clearing his name."
+    },
+    {
+     "kind": "talk",
+     "target": "Greyvan",
+     "journal": "Speak with Greyvan.",
+     "says": "Bring me feathers from a male and a female giggen aviak, east past the Stoneclaw ravines."
+    },
+    {
+     "kind": "loot",
+     "target": "Giggen Aviak",
+     "items": [
+      {
+       "item": "Giggen Aviak Feather",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Giggen Aviak Feathers from Giggen Aviaks."
+    },
+    {
+     "kind": "give",
+     "target": "Greyvan",
+     "items": [
+      {
+       "item": "Giggen Aviak Feather",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Giggen Aviak Feathers to Greyvan.",
+     "says": "My name is clear. Tell Truborne."
+    },
+    {
+     "kind": "talk",
+     "target": "Truborne Jaegir",
+     "journal": "Speak with Truborne Jaegir.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Giggen Aviak"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Giggen aviaks are not on this server; a male and a female feather are two feathers here."
+  },
+  {
+   "key": "1-20/highbourne/alchemist/L20",
+   "name": "The Sage",
+   "giver": "Truborne Jaegir",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/alchemist/L15"
+   ],
+   "offer": "Speak to the alchemist in Arcadia, in the building before the docks; the dockmaster here sends you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "the alchemist of Arcadia",
+     "journal": "Speak with the alchemist of Arcadia.",
+     "says": "Walk back to the dock."
+    },
+    {
+     "kind": "talk",
+     "target": "Mayor Reively",
+     "journal": "Speak with Mayor Reively.",
+     "says": "See the captain in Murnf's tower."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Randen",
+     "journal": "Speak with Captain Randen.",
+     "says": "The sage in the tower at Gramash Ruins; his guard decides."
+    },
+    {
+     "kind": "talk",
+     "target": "the guard of the sage",
+     "journal": "Speak with the guard of the sage.",
+     "says": "Kill the thief among the Taereg bandits by the lake at Kara Village."
+    },
+    {
+     "kind": "loot",
+     "target": "the thief of the Taereg camp",
+     "items": [
+      {
+       "item": "Thief's Proof",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Thief's Proof from the thief of the Taereg camps."
+    },
+    {
+     "kind": "give",
+     "target": "the guard of the sage",
+     "items": [
+      {
+       "item": "Thief's Proof",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Thief's Proof to the guard of the sage.",
+     "says": "You may see the sage. Touch the orb."
+    },
+    {
+     "kind": "talk",
+     "target": "the sage of Gramash Ruins",
+     "journal": "Speak with the sage of Gramash Ruins.",
+     "says": "You have come far.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "the alchemist of Arcadia",
+    "Mayor Reively",
+    "the guard of the sage",
+    "the thief of the Taereg camp",
+    "the sage of Gramash Ruins"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Most of this guide's people are unnamed and not on this server; the popups at Arcadia's dock, the shiny metal on the sea floor and the charge to the Plane of Sky are left out. The guide offers a choice of Student's Knack or Klick'Anon Cocktail; a quest here gives no choice, so neither is given."
+  },
+  {
+   "key": "1-20/highbourne/cleric/L1",
+   "name": "The Silversun Ring",
+   "giver": "Arch Bishop Erah",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Merchant Kulesh has a silversun ring for you. Get it and show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Kulesh",
+     "journal": "Speak with Merchant Kulesh.",
+     "says": "A silversun ring.",
+     "rewards": {
+      "items": [
+       "silversun ring"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Arch Bishop Erah",
+     "items": [
+      {
+       "item": "silversun ring",
+       "count": 1
+      }
+     ],
+     "journal": "Show silversun ring to Arch Bishop Erah.",
+     "says": "Wear it in the sun's name.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/cleric/L2",
+   "name": "Bound to Highbourne",
+   "giver": "Arch Bishop Erah",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/cleric/L1"
+   ],
+   "offer": "Speak to Spiritmaster Helshah, then Coachman Galdah.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Helshah",
+     "journal": "Speak with Spiritmaster Helshah.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Galdah",
+     "journal": "Speak with Coachman Galdah.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Arch Bishop Erah",
+     "journal": "Speak with Arch Bishop Erah.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/cleric/L3",
+   "name": "Damaged Firefly Wings",
+   "giver": "Bishop Felkahn",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/cleric/L2"
+   ],
+   "offer": "Kill dragonflies and bring me two damaged firefly wings.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Dragonflies",
+     "items": [
+      {
+       "item": "damaged firefly wings",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 damaged firefly wings from Dragonflies."
+    },
+    {
+     "kind": "give",
+     "target": "Bishop Felkahn",
+     "items": [
+      {
+       "item": "damaged firefly wings",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 damaged firefly wings to Bishop Felkahn.",
+     "says": "Learn this blessing.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Minor Blessing"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/cleric/L4",
+   "name": "The Ironsun Mace",
+   "giver": "Bishop Felkahn",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/cleric/L3"
+   ],
+   "offer": "Bring me a leather strip and iron ore from Merchant Shudan by the docks, and a cracked rat tooth.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Shudan",
+     "journal": "Speak with Merchant Shudan.",
+     "says": "A leather strip and iron ore.",
+     "rewards": {
+      "items": [
+       "leather strip",
+       "iron ore"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Rat",
+     "items": [
+      {
+       "item": "Cracked Rat Tooth",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Cracked Rat Tooth from Rats."
+    },
+    {
+     "kind": "give",
+     "target": "Bishop Felkahn",
+     "items": [
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "Cracked Rat Tooth",
+       "count": 1
+      }
+     ],
+     "journal": "Bring leather strip, iron ore and Cracked Rat Tooth to Bishop Felkahn.",
+     "says": "Your mace.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The strip and ore are bought in the guide; here Shudan hands them over. Not on this server, left out of the rewards: the item \"Ironsun Mace\"."
+  },
+  {
+   "key": "1-20/highbourne/cleric/L5",
+   "name": "The Poison Sack",
+   "giver": "Bishop Felkahn",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/cleric/L4"
+   ],
+   "offer": "Kill a banded kingsnake and bring me its poison sack.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "banded kingsnake",
+     "items": [
+      {
+       "item": "Kingsnake Poison Sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Kingsnake Poison Sack from banded kingsnakes."
+    },
+    {
+     "kind": "give",
+     "target": "Bishop Felkahn",
+     "items": [
+      {
+       "item": "Kingsnake Poison Sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Kingsnake Poison Sack to Bishop Felkahn.",
+     "says": "Learn this.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Holy Shock"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "banded kingsnake"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). No banded kingsnakes are on this server."
+  },
+  {
+   "key": "1-20/highbourne/cleric/L7",
+   "name": "The Horn of Silence",
+   "giver": "Bishop Felkahn",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/cleric/L5"
+   ],
+   "offer": "Go talk to Dushuan Anju, the enchanter in the room by the north gate.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dushaun Anju",
+     "journal": "Speak with Dushaun Anju.",
+     "says": "Kill the goblin Nubja, who wanders by the north gate at night, and bring me his horn of silence."
+    },
+    {
+     "kind": "loot",
+     "target": "Nubja",
+     "items": [
+      {
+       "item": "Horn of Silence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Horn of Silence from Nubjas."
+    },
+    {
+     "kind": "give",
+     "target": "Dushaun Anju",
+     "items": [
+      {
+       "item": "Horn of Silence",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Horn of Silence to Dushaun Anju.",
+     "says": "Thank you. Learn this.",
+     "rewards": {
+      "spells": [
+       "Endure Ailment"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Bishop Felkahn",
+     "journal": "Speak with Bishop Felkahn.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Nubja"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). Nubja is not on this server. Not on this server, left out of the rewards: the item \"Light Cloth Pants\"."
+  },
+  {
+   "key": "1-20/highbourne/cleric/L10",
+   "name": "Rory Redface's Ring",
+   "giver": "Bishop Felkahn",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/cleric/L7"
+   ],
+   "offer": "Duke Geoff Melnorn in Hagley, east of Qeynos, needs help; he wants 300 tunar.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Duke Geoff Melnorn",
+     "tunar": 300,
+     "journal": "Bring 300 tunar to Duke Geoff Melnorn.",
+     "says": "Kill Rory Redface on the hill north of the village gate; he comes with the bandits at night."
+    },
+    {
+     "kind": "loot",
+     "target": "Rory Redface",
+     "items": [
+      {
+       "item": "Rory's Ring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Rory's Ring from Rory Redfaces."
+    },
+    {
+     "kind": "give",
+     "target": "Duke Geoff Melnorn",
+     "items": [
+      {
+       "item": "Rory's Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Rory's Ring to Duke Geoff Melnorn.",
+     "says": "Go back to Felkahn."
+    },
+    {
+     "kind": "talk",
+     "target": "Bishop Felkahn",
+     "journal": "Speak with Bishop Felkahn.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Duke Geoff Melnorn",
+    "Rory Redface"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Duke Geoff Melnorn and Rory Redface are not on this server. Not on this server, left out of the rewards: the item \"Ironsun Morningstar\"."
+  },
+  {
+   "key": "1-20/highbourne/cleric/L13",
+   "name": "The Thieves of Blakedown",
+   "giver": "Bishop Felkahn",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/cleric/L10"
+   ],
+   "offer": "Lord Yardley of Blakedown, east of Qeynos, needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Lord Yardley",
+     "journal": "Speak with Lord Yardley.",
+     "says": "Kill Pavel the thief and bring me his love letter."
+    },
+    {
+     "kind": "loot",
+     "target": "Pavel",
+     "items": [
+      {
+       "item": "Love Letter",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Love Letter from Pavels."
+    },
+    {
+     "kind": "give",
+     "target": "Lord Yardley",
+     "items": [
+      {
+       "item": "Love Letter",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Love Letter to Lord Yardley.",
+     "says": "Now see Maxwell Rigar in Forkwatch Keep about Zara."
+    },
+    {
+     "kind": "talk",
+     "target": "Maxwell Reiger",
+     "journal": "Speak with Maxwell Reiger.",
+     "says": "Zara is in one of the four bottom towers. Bring me her necklace."
+    },
+    {
+     "kind": "loot",
+     "target": "Zara",
+     "items": [
+      {
+       "item": "Bandit's Necklace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Bandit's Necklace from Zaras."
+    },
+    {
+     "kind": "give",
+     "target": "Maxwell Reiger",
+     "items": [
+      {
+       "item": "Bandit's Necklace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Bandit's Necklace to Maxwell Reiger.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Bishop Felkahn",
+     "journal": "Speak with Bishop Felkahn.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Disrupt Undead"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). Maxwell Rigar is Maxwell Reiger here."
+  },
+  {
+   "key": "1-20/highbourne/cleric/L15",
+   "name": "Two Signatures",
+   "giver": "Bishop Felkahn",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/cleric/L13"
+   ],
+   "offer": "Mu Nan has a task for you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Mu Nan",
+     "journal": "Speak with Mu Nan.",
+     "says": "See Jeeves the Squire in Bayle Manor, Qeynos."
+    },
+    {
+     "kind": "talk",
+     "target": "Jeeves the Scribe",
+     "journal": "Speak with Jeeves the Scribe.",
+     "says": "I need two signatures: Captain Bordengahst's in Forkwatch Keep and Saerk's at his tower."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Bordengahst",
+     "journal": "Speak with Captain Bordengahst.",
+     "says": "My signature.",
+     "rewards": {
+      "items": [
+       "Bordengahst's Signature"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Saerk",
+     "journal": "Speak with Saerk.",
+     "says": "My signature.",
+     "rewards": {
+      "items": [
+       "Saerk's Signature"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "William Nothard",
+     "items": [
+      {
+       "item": "Bordengahst's Signature",
+       "count": 1
+      },
+      {
+       "item": "Saerk's Signature",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Bordengahst's Signature and Saerk's Signature to William Nothard.",
+     "says": "See Fredrik in the inn at Highpass."
+    },
+    {
+     "kind": "talk",
+     "target": "Fredrik Nothard",
+     "journal": "Speak with Fredrik Nothard.",
+     "says": "Kill the Kithicor thug near Saerk's tower and bring me his letter."
+    },
+    {
+     "kind": "loot",
+     "target": "Kithicor Thug",
+     "items": [
+      {
+       "item": "Thug's Letter",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Thug's Letter from Kithicor Thugs."
+    },
+    {
+     "kind": "give",
+     "target": "Jeeves the Scribe",
+     "items": [
+      {
+       "item": "Thug's Letter",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Thug's Letter to Jeeves the Scribe.",
+     "says": "Good."
+    },
+    {
+     "kind": "talk",
+     "target": "Bishop Felkahn",
+     "journal": "Speak with Bishop Felkahn.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Endure Affliction"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Kithicor Thug"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). The Kithicor thug is not on this server. Not on this server, left out of the rewards: the item \"Guard of Peace\"."
+  },
+  {
+   "key": "1-20/highbourne/cleric/L20",
+   "name": "Jimmy's Pardon",
+   "giver": "Bishop Felkahn",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/cleric/L15"
+   ],
+   "offer": "Captain Ironforge hides in the watch tower north of the prison. He needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Ironforge",
+     "journal": "Speak with Captain Ironforge.",
+     "says": "Talk to Jimmy the Snitch."
+    },
+    {
+     "kind": "talk",
+     "target": "Jimmy the Snitch",
+     "journal": "Speak with Jimmy the Snitch.",
+     "says": "I want a pardon."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Ironforge",
+     "journal": "Speak with Captain Ironforge.",
+     "says": "Jeeves the Scribe in Qeynos writes pardons."
+    },
+    {
+     "kind": "talk",
+     "target": "Jeeves the Scribe",
+     "journal": "Speak with Jeeves the Scribe.",
+     "says": "Kill Grend Darkmaw near Hagley and bring me his tunic."
+    },
+    {
+     "kind": "loot",
+     "target": "Grend Darkmaw",
+     "items": [
+      {
+       "item": "Darkmaw's Tunic",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Darkmaw's Tunic from Grend Darkmaws."
+    },
+    {
+     "kind": "give",
+     "target": "Jeeves the Scribe",
+     "items": [
+      {
+       "item": "Darkmaw's Tunic",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Darkmaw's Tunic to Jeeves the Scribe.",
+     "says": "The pardon.",
+     "rewards": {
+      "items": [
+       "Pardon"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Jimmy the Snitch",
+     "items": [
+      {
+       "item": "Pardon",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Pardon to Jimmy the Snitch.",
+     "says": "Now a suit: Taliana Quickthimble."
+    },
+    {
+     "kind": "talk",
+     "target": "Taliana Quickthimble",
+     "journal": "Speak with Taliana Quickthimble.",
+     "says": "Buy my enchanted needle from Merchant Grieg, 1000 tunar, and bring me Furdle Nimdar's tanned bear hide."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Greig",
+     "tunar": 1000,
+     "journal": "Bring 1000 tunar to Merchant Greig.",
+     "says": "The needle.",
+     "rewards": {
+      "items": [
+       "Enchanted Needle"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Furdle Nimdar",
+     "items": [
+      {
+       "item": "Tanned Bear Hide",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Tanned Bear Hide from Furdle Nimdars."
+    },
+    {
+     "kind": "give",
+     "target": "Taliana Quickthimble",
+     "items": [
+      {
+       "item": "Enchanted Needle",
+       "count": 1
+      },
+      {
+       "item": "Tanned Bear Hide",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Enchanted Needle and Tanned Bear Hide to Taliana Quickthimble.",
+     "says": "The suit is made; tell Jimmy."
+    },
+    {
+     "kind": "talk",
+     "target": "Jimmy the Snitch",
+     "journal": "Speak with Jimmy the Snitch.",
+     "says": "The password is Fuzzy Knuckles. Vernon Blackhand."
+    },
+    {
+     "kind": "loot",
+     "target": "Vernon Blackhand",
+     "items": [
+      {
+       "item": "Blackhand's Gloves",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Blackhand's Gloves from Vernon Blackhands."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Ironforge",
+     "items": [
+      {
+       "item": "Blackhand's Gloves",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Blackhand's Gloves to Captain Ironforge.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Bishop Felkahn",
+     "journal": "Speak with Bishop Felkahn.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Grend Darkmaw"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Grend Darkmaw is not on this server. The guide offers a choice of Disease Ward or Field Dress; a quest here gives no choice, so neither is given."
+  },
+  {
+   "key": "1-20/highbourne/enchanter/L1",
+   "name": "The Keeper's Robe",
+   "giver": "Master Delar",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Get a keeper's robe from Merchant Kulesh; it is free.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Kulesh",
+     "journal": "Speak with Merchant Kulesh.",
+     "says": "A keeper's robe.",
+     "rewards": {
+      "items": [
+       "Keeper's Robe"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Master Delar",
+     "items": [
+      {
+       "item": "Keeper's Robe",
+       "count": 1
+      }
+     ],
+     "journal": "Show Keeper's Robe to Master Delar.",
+     "says": "Welcome, keeper.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/enchanter/L2",
+   "name": "Bound to Highbourne",
+   "giver": "Master Delar",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/enchanter/L1"
+   ],
+   "offer": "Spiritmaster Keyston will bind you, then go to Coachman Galdah.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Keystone",
+     "journal": "Speak with Spiritmaster Keystone.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Galdah",
+     "journal": "Speak with Coachman Galdah.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Master Delar",
+     "journal": "Speak with Master Delar.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/enchanter/L7",
+   "name": "The Rogue Lion",
+   "giver": "Keeper Ilishan",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/enchanter/L2"
+   ],
+   "offer": "Kill the rogue lion along the east road and bring me its pelt.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "rogue lion",
+     "items": [
+      {
+       "item": "Rogue Lion Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Rogue Lion Pelt from rogue lions."
+    },
+    {
+     "kind": "give",
+     "target": "Keeper Ilishan",
+     "items": [
+      {
+       "item": "Rogue Lion Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Rogue Lion Pelt to Keeper Ilishan.",
+     "says": "Learn this, and take these gloves.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Endure Arcane"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "rogue lion"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The guide has no level 3 to 5 quests for this class. The rogue lion is not on this server. Not on this server, left out of the rewards: the item \"Fur Lined Gloves\"."
+  },
+  {
+   "key": "1-20/highbourne/enchanter/L10",
+   "name": "The Traitor Ganron",
+   "giver": "Master Delar",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/enchanter/L7"
+   ],
+   "offer": "Kill the skeletal dogs in the ruins east of the east gate, then I have another task.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Skeletal Dog",
+     "count": 3,
+     "journal": "Slay 3 Skeletal Dogs."
+    },
+    {
+     "kind": "talk",
+     "target": "Master Delar",
+     "journal": "Speak with Master Delar.",
+     "says": "Now the traitor Ganron Blackart, in a cave in the ravine to the east."
+    },
+    {
+     "kind": "loot",
+     "target": "Ganron Blackart",
+     "items": [
+      {
+       "item": "Ganron's Head",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Ganron's Head from Ganron Blackarts."
+    },
+    {
+     "kind": "give",
+     "target": "Master Delar",
+     "items": [
+      {
+       "item": "Ganron's Head",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Ganron's Head to Master Delar.",
+     "says": "The traitor is dead. This staff is yours.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Ganron Blackart"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Ganron Blackart is not on this server; the guide's count of skeletal dogs is ours (3). Not on this server, left out of the rewards: the item \"Keeper's Staff\"."
+  },
+  {
+   "key": "1-20/highbourne/enchanter/L13",
+   "name": "Greyweed",
+   "giver": "keeper Draid",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/enchanter/L10"
+   ],
+   "offer": "Pick greyweed in the graveyard at Druids Watch at night; then Maryan in Stoneclaw has a book for me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Kill the spotted lions west of the walled town and bring me proof."
+    },
+    {
+     "kind": "loot",
+     "target": "Spotted Lion",
+     "items": [
+      {
+       "item": "Spotted Lion Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Spotted Lion Pelt from Spotted Lions."
+    },
+    {
+     "kind": "give",
+     "target": "Maryan",
+     "items": [
+      {
+       "item": "Spotted Lion Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Spotted Lion Pelt to Maryan.",
+     "says": "Take this book back.",
+     "rewards": {
+      "items": [
+       "Maryan's Book"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "keeper Draid",
+     "items": [
+      {
+       "item": "Maryan's Book",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Maryan's Book to keeper Draid.",
+     "says": "Now Guard Smirg, in the watchtower by Qeynos prison."
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Smirg",
+     "journal": "Speak with Guard Smirg.",
+     "says": "Kill Hagar Loftlin, outside the prison, and bring me proof."
+    },
+    {
+     "kind": "loot",
+     "target": "Hagar Loftin",
+     "items": [
+      {
+       "item": "Shackles",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Shackles from Hagar Loftins."
+    },
+    {
+     "kind": "give",
+     "target": "keeper Draid",
+     "items": [
+      {
+       "item": "Shackles",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Shackles to keeper Draid.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Lumbering Arms"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Maryan",
+    "Spotted Lion"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The greyweed popup at Druids Watch is left out (no place is known). Maryan and the spotted lions are not on this server."
+  },
+  {
+   "key": "1-20/highbourne/enchanter/L15",
+   "name": "Toshel's Errands",
+   "giver": "Keeper Asimoz",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/enchanter/L13"
+   ],
+   "offer": "Talk to Toshel, down the hall from Master Veljhan.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Caller Toshei",
+     "journal": "Speak with Caller Toshei.",
+     "says": "See Fenra at the library."
+    },
+    {
+     "kind": "talk",
+     "target": "Fenra",
+     "journal": "Speak with Fenra.",
+     "says": "Go back to Toshel."
+    },
+    {
+     "kind": "talk",
+     "target": "Caller Toshei",
+     "journal": "Speak with Caller Toshei.",
+     "says": "See Maryan in the Stoneclaw ravines."
+    },
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Kill the gangrenous zombie to the north."
+    },
+    {
+     "kind": "kill",
+     "target": "Gangrenous Zombie",
+     "count": 1,
+     "journal": "Slay Gangrenous Zombie."
+    },
+    {
+     "kind": "talk",
+     "target": "Fenra",
+     "journal": "Speak with Fenra.",
+     "says": "See Nalej at the end of Wyndhaven."
+    },
+    {
+     "kind": "talk",
+     "target": "Nalai Belzia",
+     "journal": "Speak with Nalai Belzia.",
+     "says": "Kill the brownie thief at my boat at night."
+    },
+    {
+     "kind": "loot",
+     "target": "Brownie Thief",
+     "items": [
+      {
+       "item": "Stolen Catch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Stolen Catch from Brownie Thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Nalai Belzia",
+     "items": [
+      {
+       "item": "Stolen Catch",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stolen Catch to Nalai Belzia.",
+     "says": "Thank you."
+    },
+    {
+     "kind": "talk",
+     "target": "Vedilion Brithstar",
+     "journal": "Speak with Vedilion Brithstar.",
+     "says": "Tell Toshel."
+    },
+    {
+     "kind": "talk",
+     "target": "Caller Toshei",
+     "journal": "Speak with Caller Toshei.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Alarming Visage"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Fenra",
+    "Maryan",
+    "Brownie Thief"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Toshel is Caller Toshei here and Nalej is Nalai Belzia. Fenra, Maryan and the brownie thief are not on this server. Not on this server, left out of the rewards: the item \"Watersilk Gloves\"."
+  },
+  {
+   "key": "1-20/highbourne/enchanter/L20",
+   "name": "The Star Charts",
+   "giver": "Master Delar",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/enchanter/L15"
+   ],
+   "offer": "Captain Meruin at the docks needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Farny the Woodcutter near Melton has wood for my ship."
+    },
+    {
+     "kind": "give",
+     "target": "Farny the Woodcutter",
+     "tunar": 1300,
+     "journal": "Bring 1300 tunar to Farny the Woodcutter.",
+     "says": "Also kill Goretusk the boar and bring me his hoof."
+    },
+    {
+     "kind": "loot",
+     "target": "Goretusk the Boar",
+     "items": [
+      {
+       "item": "Goretusk's Hoof",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Goretusk's Hoof from Goretusk the Boars."
+    },
+    {
+     "kind": "give",
+     "target": "Farny the Woodcutter",
+     "items": [
+      {
+       "item": "Goretusk's Hoof",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Goretusk's Hoof to Farny the Woodcutter.",
+     "says": "Tell the captain."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Maryan of the aviak village has star charts."
+    },
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Bring me an aviak chick."
+    },
+    {
+     "kind": "loot",
+     "target": "Aviak Chick",
+     "items": [
+      {
+       "item": "Captured Aviak Chick",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Captured Aviak Chick from Aviak Chicks."
+    },
+    {
+     "kind": "give",
+     "target": "Maryan",
+     "items": [
+      {
+       "item": "Captured Aviak Chick",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Captured Aviak Chick to Maryan.",
+     "says": "The star charts.",
+     "rewards": {
+      "items": [
+       "Star Charts"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Captain Meruin",
+     "items": [
+      {
+       "item": "Star Charts",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Star Charts to Captain Meruin.",
+     "says": "Now Mayor Reively in Wyndhaven."
+    },
+    {
+     "kind": "talk",
+     "target": "Mayor Reively",
+     "journal": "Speak with Mayor Reively.",
+     "says": "Kill Blinkbart Bagglebaff on the hill east of the windmill."
+    },
+    {
+     "kind": "kill",
+     "target": "Blinkbart Bagglebaff",
+     "count": 1,
+     "journal": "Slay Blinkbart Bagglebaff."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Master Delar",
+     "journal": "Speak with Master Delar.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Farny the Woodcutter",
+    "Goretusk the Boar",
+    "Maryan",
+    "Mayor Reively",
+    "Blinkbart Bagglebaff"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Farny, Goretusk, Maryan, Mayor Reively and Blinkbart Bagglebaff are not on this server. The guide offers a choice of Glimmering Arcanum (Spacious Mind) or Glimmering Wand (Power Boon); a quest here gives no choice, so neither is given."
+  },
+  {
+   "key": "1-20/highbourne/magician/L1",
+   "name": "The Caller's Robe",
+   "giver": "Master Veljhan",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Get a caller's robe from Merchant Jolral and come back wearing it.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Jolral",
+     "journal": "Speak with Merchant Jolral.",
+     "says": "A caller's robe.",
+     "rewards": {
+      "items": [
+       "Caller's Robe"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Master Veljhan",
+     "items": [
+      {
+       "item": "Caller's Robe",
+       "count": 1
+      }
+     ],
+     "journal": "Show Caller's Robe to Master Veljhan.",
+     "says": "Welcome, caller.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-1 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/highbourne/magician/L2",
+   "name": "Bound to Highbourne",
+   "giver": "Master Veljhan",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/magician/L1"
+   ],
+   "offer": "Spiritmaster Anja will bind you; then see Coachman Galdah.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Anja",
+     "journal": "Speak with Spiritmaster Anja.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Galdah",
+     "journal": "Speak with Coachman Galdah.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Master Veljhan",
+     "journal": "Speak with Master Veljhan.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-2 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/highbourne/magician/L3",
+   "name": "Strands of Rat Fur",
+   "giver": "Caller Arkhad",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/magician/L2"
+   ],
+   "offer": "Bring me two strands of rat fur from the rats in the savannah.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Rat",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Strands of Rat Furs from Rats."
+    },
+    {
+     "kind": "give",
+     "target": "Caller Arkhad",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Strands of Rat Furs to Caller Arkhad.",
+     "says": "Thank you.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/highbourne/magician/L5",
+   "name": "A Poison Sac",
+   "giver": "Master Veljhan",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/magician/L3"
+   ],
+   "offer": "Bring me a poison sac from a banded kingsnake outside town.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "banded kingsnake",
+     "items": [
+      {
+       "item": "Kingsnake Poison Sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Kingsnake Poison Sack from banded kingsnakes."
+    },
+    {
+     "kind": "give",
+     "target": "Master Veljhan",
+     "items": [
+      {
+       "item": "Kingsnake Poison Sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Kingsnake Poison Sack to Master Veljhan.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "banded kingsnake"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The guide has no level 4 quest for this class. No banded kingsnakes are on this server."
+  },
+  {
+   "key": "1-20/highbourne/magician/L7",
+   "name": "A Lion Tail",
+   "giver": "Master Veljhan",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/magician/L5"
+   ],
+   "offer": "Hunt the rogue lions and bring me a tail.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "rogue lion",
+     "items": [
+      {
+       "item": "Lion Tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Lion Tail from rogue lions."
+    },
+    {
+     "kind": "give",
+     "target": "Master Veljhan",
+     "items": [
+      {
+       "item": "Lion Tail",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Lion Tail to Master Veljhan.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "rogue lion"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The rogue lion is not on this server."
+  },
+  {
+   "key": "1-20/highbourne/magician/L10",
+   "name": "The Traitor Ganron",
+   "giver": "Master Veljhan",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/magician/L7"
+   ],
+   "offer": "Kill the skeletal dogs in the ruins east of the east gate and bring me the shredded caller's robe they took.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Skeletal Dog",
+     "items": [
+      {
+       "item": "Shredded Caller's Robe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Shredded Caller's Robe from Skeletal Dogs."
+    },
+    {
+     "kind": "give",
+     "target": "Master Veljhan",
+     "items": [
+      {
+       "item": "Shredded Caller's Robe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Shredded Caller's Robe to Master Veljhan.",
+     "says": "Now the traitor Ganron Blackart, in a cave in the ravine to the east."
+    },
+    {
+     "kind": "loot",
+     "target": "Ganron Blackart",
+     "items": [
+      {
+       "item": "Ganron's Head",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Ganron's Head from Ganron Blackarts."
+    },
+    {
+     "kind": "give",
+     "target": "Master Veljhan",
+     "items": [
+      {
+       "item": "Ganron's Head",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Ganron's Head to Master Veljhan.",
+     "says": "The traitor is dead.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Ganron Blackart"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. Ganron Blackart is not on this server."
+  },
+  {
+   "key": "1-20/highbourne/magician/L13",
+   "name": "Greyweed",
+   "giver": "Caller Toshei",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/magician/L10"
+   ],
+   "offer": "Pick greyweed in the graveyard at Druids Watch at night; then Maryan in Stoneclaw has a book for me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Kill the spotted lions west of the walled town and bring me proof."
+    },
+    {
+     "kind": "loot",
+     "target": "Spotted Lion",
+     "items": [
+      {
+       "item": "Spotted Lion Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Spotted Lion Pelt from Spotted Lions."
+    },
+    {
+     "kind": "give",
+     "target": "Maryan",
+     "items": [
+      {
+       "item": "Spotted Lion Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Spotted Lion Pelt to Maryan.",
+     "says": "Take this book back.",
+     "rewards": {
+      "items": [
+       "Maryan's Book"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Caller Toshei",
+     "items": [
+      {
+       "item": "Maryan's Book",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Maryan's Book to Caller Toshei.",
+     "says": "Now Guard Smirg, in the watchtower by Qeynos prison."
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Smirg",
+     "journal": "Speak with Guard Smirg.",
+     "says": "Kill Hagar Loftlin, outside the prison, and bring me proof."
+    },
+    {
+     "kind": "loot",
+     "target": "Hagar Loftin",
+     "items": [
+      {
+       "item": "Loftlin's Uniform",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Loftlin's Uniform from Hagar Loftins."
+    },
+    {
+     "kind": "give",
+     "target": "Caller Toshei",
+     "items": [
+      {
+       "item": "Loftlin's Uniform",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Loftlin's Uniform to Caller Toshei.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Maryan",
+    "Spotted Lion"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The greyweed popup at Druids Watch is left out (no place is known). Maryan and the spotted lions are not on this server. Keeper Toshel is Caller Toshei here."
+  },
+  {
+   "key": "1-20/highbourne/magician/L15",
+   "name": "Toshel's Errands",
+   "giver": "Master Veljhan",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/magician/L13"
+   ],
+   "offer": "Talk to Toshel, down the hall.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Caller Toshei",
+     "journal": "Speak with Caller Toshei.",
+     "says": "See Fenra at the library."
+    },
+    {
+     "kind": "talk",
+     "target": "Fenra",
+     "journal": "Speak with Fenra.",
+     "says": "Go back to Toshel."
+    },
+    {
+     "kind": "talk",
+     "target": "Caller Toshei",
+     "journal": "Speak with Caller Toshei.",
+     "says": "See Maryan in the Stoneclaw ravines."
+    },
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Kill the gangrenous zombie to the north."
+    },
+    {
+     "kind": "kill",
+     "target": "Gangrenous Zombie",
+     "count": 1,
+     "journal": "Slay Gangrenous Zombie."
+    },
+    {
+     "kind": "talk",
+     "target": "Fenra",
+     "journal": "Speak with Fenra.",
+     "says": "See Nalej at the end of Wyndhaven."
+    },
+    {
+     "kind": "talk",
+     "target": "Nalai Belzia",
+     "journal": "Speak with Nalai Belzia.",
+     "says": "Kill the brownie thief at my boat at night."
+    },
+    {
+     "kind": "loot",
+     "target": "Brownie Thief",
+     "items": [
+      {
+       "item": "Stolen Catch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Stolen Catch from Brownie Thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Nalai Belzia",
+     "items": [
+      {
+       "item": "Stolen Catch",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stolen Catch to Nalai Belzia.",
+     "says": "Thank you."
+    },
+    {
+     "kind": "talk",
+     "target": "Vedilion Brithstar",
+     "journal": "Speak with Vedilion Brithstar.",
+     "says": "Tell Toshel."
+    },
+    {
+     "kind": "talk",
+     "target": "Caller Toshei",
+     "journal": "Speak with Caller Toshei.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Fenra",
+    "Maryan",
+    "Brownie Thief"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Toshel is Caller Toshei here and Nalej is Nalai Belzia. Fenra, Maryan and the brownie thief are not on this server."
+  },
+  {
+   "key": "1-20/highbourne/magician/L20",
+   "name": "The Star Charts",
+   "giver": "Caller Arkhad",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/magician/L15"
+   ],
+   "offer": "Master Delar's man, Captain Meruin at the docks, needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Farny the Woodcutter near Melton has wood for my ship."
+    },
+    {
+     "kind": "give",
+     "target": "Farny the Woodcutter",
+     "tunar": 1300,
+     "journal": "Bring 1300 tunar to Farny the Woodcutter.",
+     "says": "Also kill Goretusk the boar and bring me his hoof."
+    },
+    {
+     "kind": "loot",
+     "target": "Goretusk the Boar",
+     "items": [
+      {
+       "item": "Goretusk's Hoof",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Goretusk's Hoof from Goretusk the Boars."
+    },
+    {
+     "kind": "give",
+     "target": "Farny the Woodcutter",
+     "items": [
+      {
+       "item": "Goretusk's Hoof",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Goretusk's Hoof to Farny the Woodcutter.",
+     "says": "Tell the captain."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Maryan of the aviak village has star charts."
+    },
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Bring me an aviak chick."
+    },
+    {
+     "kind": "loot",
+     "target": "Aviak Chick",
+     "items": [
+      {
+       "item": "Captured Aviak Chick",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Captured Aviak Chick from Aviak Chicks."
+    },
+    {
+     "kind": "give",
+     "target": "Maryan",
+     "items": [
+      {
+       "item": "Captured Aviak Chick",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Captured Aviak Chick to Maryan.",
+     "says": "The star charts.",
+     "rewards": {
+      "items": [
+       "Star Charts"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Captain Meruin",
+     "items": [
+      {
+       "item": "Star Charts",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Star Charts to Captain Meruin.",
+     "says": "Now Mayor Reively in Wyndhaven."
+    },
+    {
+     "kind": "talk",
+     "target": "Mayor Reively",
+     "journal": "Speak with Mayor Reively.",
+     "says": "Kill Blinkbart Bagglebaff on the hill east of the windmill."
+    },
+    {
+     "kind": "kill",
+     "target": "Blinkbart Bagglebaff",
+     "count": 1,
+     "journal": "Slay Blinkbart Bagglebaff."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Caller Arkhad",
+     "journal": "Speak with Caller Arkhad.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Farny the Woodcutter",
+    "Goretusk the Boar",
+    "Maryan",
+    "Mayor Reively",
+    "Blinkbart Bagglebaff"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Farny, Goretusk, Maryan, Mayor Reively and Blinkbart Bagglebaff are not on this server. The guide offers a choice of Frozen Mark or Lava Stone; a quest here gives no choice, so neither is given."
+  },
+  {
+   "key": "1-20/highbourne/necromancer/L1",
+   "name": "A Tattered Robe",
+   "giver": "Retainer Alishal",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Get a tattered robe from Merchant Shansha; it is free.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Shansha",
+     "journal": "Speak with Merchant Shansha.",
+     "says": "A tattered robe.",
+     "rewards": {
+      "items": [
+       "tattered robe"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Retainer Alishal",
+     "items": [
+      {
+       "item": "tattered robe",
+       "count": 1
+      }
+     ],
+     "journal": "Show tattered robe to Retainer Alishal.",
+     "says": "It will do.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/necromancer/L2",
+   "name": "Bound to Highbourne",
+   "giver": "Retainer Alishal",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/necromancer/L1"
+   ],
+   "offer": "Spiritmaster Phendar will bind you; then see Coachman Galdah.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Phendar",
+     "journal": "Speak with Spiritmaster Phendar.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Galdah",
+     "journal": "Speak with Coachman Galdah.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Retainer Alishal",
+     "journal": "Speak with Retainer Alishal.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/necromancer/L3",
+   "name": "Tarantula Leg Tips",
+   "giver": "Retainer Alishal",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/necromancer/L2"
+   ],
+   "offer": "Kill spiders outside the city and bring me two tarantula leg tips.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tarantula",
+     "items": [
+      {
+       "item": "tarantula leg tips",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 tarantula leg tips from Tarantulas."
+    },
+    {
+     "kind": "give",
+     "target": "Retainer Alishal",
+     "items": [
+      {
+       "item": "tarantula leg tips",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 tarantula leg tips to Retainer Alishal.",
+     "says": "Learn this tap.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Life Tap"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/necromancer/L4",
+   "name": "The Staff of Necromancy",
+   "giver": "Retainer Alishal",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/necromancer/L3"
+   ],
+   "offer": "Bring me a leather strap and a wooden shaft from Merchant Shudan, and a cracked rat claw.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Shudan",
+     "journal": "Speak with Merchant Shudan.",
+     "says": "A strap and a shaft.",
+     "rewards": {
+      "items": [
+       "leather strip",
+       "wooden shaft"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Rat",
+     "items": [
+      {
+       "item": "Cracked Rat Claw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Cracked Rat Claw from Rats."
+    },
+    {
+     "kind": "give",
+     "target": "Retainer Alishal",
+     "items": [
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "wooden shaft",
+       "count": 1
+      },
+      {
+       "item": "Cracked Rat Claw",
+       "count": 1
+      }
+     ],
+     "journal": "Bring leather strip, wooden shaft and Cracked Rat Claw to Retainer Alishal.",
+     "says": "Your staff.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The strap and shaft are bought in the guide; here Shudan hands them over. Not on this server, left out of the rewards: the item \"Staff of Necromancy\"."
+  },
+  {
+   "key": "1-20/highbourne/necromancer/L5",
+   "name": "The Poison Sac",
+   "giver": "Duke Morthalis",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/necromancer/L4"
+   ],
+   "offer": "Kill a banded kingsnake, northeast out of the east gate by the rocks, and bring me its poison sac.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "banded kingsnake",
+     "items": [
+      {
+       "item": "Kingsnake Poison Sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Kingsnake Poison Sack from banded kingsnakes."
+    },
+    {
+     "kind": "give",
+     "target": "Duke Morthalis",
+     "items": [
+      {
+       "item": "Kingsnake Poison Sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Kingsnake Poison Sack to Duke Morthalis.",
+     "says": "Learn this.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Rabid Infection"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "banded kingsnake"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). No banded kingsnakes are on this server."
+  },
+  {
+   "key": "1-20/highbourne/necromancer/L7",
+   "name": "The Hollow Lion Fang",
+   "giver": "Retainer Alishal",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/necromancer/L5"
+   ],
+   "offer": "Kill the rogue lions and bring me a hollow lion fang as proof.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "rogue lion",
+     "items": [
+      {
+       "item": "Hollow Lion Fang",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Hollow Lion Fang from rogue lions."
+    },
+    {
+     "kind": "give",
+     "target": "Retainer Alishal",
+     "items": [
+      {
+       "item": "Hollow Lion Fang",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Hollow Lion Fang to Retainer Alishal.",
+     "says": "Learn this.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Strengthen Bone +"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "rogue lion"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The rogue lion is not on this server. Not on this server, left out of the rewards: the item \"Lionskin Belt\"."
+  },
+  {
+   "key": "1-20/highbourne/necromancer/L10",
+   "name": "The Traitor Ganron",
+   "giver": "Retainer Alishal",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/necromancer/L7"
+   ],
+   "offer": "Kill three skeletal dogs in the ruins east of the east gate and bring me their bones.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Skeletal Dog",
+     "items": [
+      {
+       "item": "Skeletal Dog Bone",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Collect 3 Skeletal Dog Bones from Skeletal Dogs."
+    },
+    {
+     "kind": "give",
+     "target": "Retainer Alishal",
+     "items": [
+      {
+       "item": "Skeletal Dog Bone",
+       "count": 3
+      }
+     ],
+     "journal": "Bring 3 Skeletal Dog Bones to Retainer Alishal.",
+     "says": "Now Ganron Blackart, in the cave in the ravines near Stoneclaw."
+    },
+    {
+     "kind": "loot",
+     "target": "Ganron Blackart",
+     "items": [
+      {
+       "item": "Ganron's Necklace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Ganron's Necklace from Ganron Blackarts."
+    },
+    {
+     "kind": "give",
+     "target": "Retainer Alishal",
+     "items": [
+      {
+       "item": "Ganron's Necklace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Ganron's Necklace to Retainer Alishal.",
+     "says": "Take word to Ammathor Lithkin in Qeynos."
+    },
+    {
+     "kind": "talk",
+     "target": "Ammathor Lithkin",
+     "journal": "Speak with Ammathor Lithkin.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Ganron Blackart"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Ganron Blackart is not on this server. Not on this server, left out of the rewards: the item \"Whitebone Dagger\"."
+  },
+  {
+   "key": "1-20/highbourne/necromancer/L13",
+   "name": "Greyweed",
+   "giver": "Duke Morthalis",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/necromancer/L10"
+   ],
+   "offer": "Pick greyweed in the graveyard at Druids Watch at night; then Maryan in Stoneclaw.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Kill the spotted lions west of the walled town and bring me proof."
+    },
+    {
+     "kind": "loot",
+     "target": "Spotted Lion",
+     "items": [
+      {
+       "item": "Spotted Lion Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Spotted Lion Pelt from Spotted Lions."
+    },
+    {
+     "kind": "give",
+     "target": "Maryan",
+     "items": [
+      {
+       "item": "Spotted Lion Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Spotted Lion Pelt to Maryan.",
+     "says": "Take this book back.",
+     "rewards": {
+      "items": [
+       "Maryan's Book"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Duke Morthalis",
+     "items": [
+      {
+       "item": "Maryan's Book",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Maryan's Book to Duke Morthalis.",
+     "says": "Now Guard Smirg, in the watchtower by Qeynos prison."
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Smirg",
+     "journal": "Speak with Guard Smirg.",
+     "says": "Kill Hagar Loftlin, outside the prison, and bring me proof."
+    },
+    {
+     "kind": "loot",
+     "target": "Hagar Loftin",
+     "items": [
+      {
+       "item": "Loftlin's Tunic",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Loftlin's Tunic from Hagar Loftins."
+    },
+    {
+     "kind": "give",
+     "target": "Duke Morthalis",
+     "items": [
+      {
+       "item": "Loftlin's Tunic",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Loftlin's Tunic to Duke Morthalis.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Ward Death"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Maryan",
+    "Spotted Lion"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The greyweed popup at Druids Watch is left out (no place is known). Maryan and the spotted lions are not on this server."
+  },
+  {
+   "key": "1-20/highbourne/necromancer/L15",
+   "name": "The Altered Letter",
+   "giver": "Duke Morthalis",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/necromancer/L13"
+   ],
+   "offer": "See Fenra at the library, top floor.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Fenra",
+     "journal": "Speak with Fenra.",
+     "says": "Go back to the duke."
+    },
+    {
+     "kind": "talk",
+     "target": "Duke Morthalis",
+     "journal": "Speak with Duke Morthalis.",
+     "says": "See Maryan in the Stoneclaw ravines."
+    },
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Kill the gangrenous zombie and bring me its torque."
+    },
+    {
+     "kind": "loot",
+     "target": "Gangrenous Zombie",
+     "items": [
+      {
+       "item": "Zombie's Torque",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Zombie's Torque from Gangrenous Zombies."
+    },
+    {
+     "kind": "give",
+     "target": "Maryan",
+     "items": [
+      {
+       "item": "Zombie's Torque",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Zombie's Torque to Maryan.",
+     "says": "Now Nalej Balzia in Wyndhaven."
+    },
+    {
+     "kind": "talk",
+     "target": "Nalai Belzia",
+     "journal": "Speak with Nalai Belzia.",
+     "says": "Kill the brownie thief at my boat at night and bring me my jar."
+    },
+    {
+     "kind": "loot",
+     "target": "Brownie Thief",
+     "items": [
+      {
+       "item": "Nalej's Jar",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Nalej's Jar from Brownie Thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Nalai Belzia",
+     "items": [
+      {
+       "item": "Nalej's Jar",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Nalej's Jar to Nalai Belzia.",
+     "says": "Thank you."
+    },
+    {
+     "kind": "give",
+     "target": "Tarly Thinhairs",
+     "tunar": 600,
+     "journal": "Bring 600 tunar to Tarly Thinhairs.",
+     "says": "Altered, as asked.",
+     "rewards": {
+      "items": [
+       "Altered Letter"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Duke Morthalis",
+     "items": [
+      {
+       "item": "Altered Letter",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Altered Letter to Duke Morthalis.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Endure Disease"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Fenra",
+    "Maryan",
+    "Brownie Thief"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Fenra, Maryan and the brownie thief are not on this server. The guide spells the scroll Enudre Disease. Not on this server, left out of the rewards: the item \"Robe of the Hidden\"."
+  },
+  {
+   "key": "1-20/highbourne/necromancer/L20",
+   "name": "The Star Charts",
+   "giver": "Retainer Alishal",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/necromancer/L15"
+   ],
+   "offer": "Captain Meruin at the docks needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Farny the Woodcutter near Melton has wood for my ship."
+    },
+    {
+     "kind": "give",
+     "target": "Farny the Woodcutter",
+     "tunar": 1300,
+     "journal": "Bring 1300 tunar to Farny the Woodcutter.",
+     "says": "Also kill Goretusk the boar and bring me his hoof."
+    },
+    {
+     "kind": "loot",
+     "target": "Goretusk the Boar",
+     "items": [
+      {
+       "item": "Goretusk's Hoof",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Goretusk's Hoof from Goretusk the Boars."
+    },
+    {
+     "kind": "give",
+     "target": "Farny the Woodcutter",
+     "items": [
+      {
+       "item": "Goretusk's Hoof",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Goretusk's Hoof to Farny the Woodcutter.",
+     "says": "Tell the captain."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Maryan of the aviak village has star charts."
+    },
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Bring me an aviak chick."
+    },
+    {
+     "kind": "loot",
+     "target": "Aviak Chick",
+     "items": [
+      {
+       "item": "Captured Aviak Chick",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Captured Aviak Chick from Aviak Chicks."
+    },
+    {
+     "kind": "give",
+     "target": "Maryan",
+     "items": [
+      {
+       "item": "Captured Aviak Chick",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Captured Aviak Chick to Maryan.",
+     "says": "The star charts.",
+     "rewards": {
+      "items": [
+       "Star Charts"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Captain Meruin",
+     "items": [
+      {
+       "item": "Star Charts",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Star Charts to Captain Meruin.",
+     "says": "Now Mayor Reively in Wyndhaven."
+    },
+    {
+     "kind": "talk",
+     "target": "Mayor Reively",
+     "journal": "Speak with Mayor Reively.",
+     "says": "Kill Blinkbart Bagglebaff on the hill east of the windmill."
+    },
+    {
+     "kind": "loot",
+     "target": "Blinkbart Bagglebaff",
+     "items": [
+      {
+       "item": "Blinkbart's Lockbox",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Blinkbart's Lockbox from Blinkbart Bagglebaffs."
+    },
+    {
+     "kind": "give",
+     "target": "Mayor Reively",
+     "items": [
+      {
+       "item": "Blinkbart's Lockbox",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Blinkbart's Lockbox to Mayor Reively.",
+     "says": "Thank you."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Retainer Alishal",
+     "journal": "Speak with Retainer Alishal.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Farny the Woodcutter",
+    "Goretusk the Boar",
+    "Maryan",
+    "Mayor Reively",
+    "Blinkbart Bagglebaff"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Farny, Goretusk, Maryan, Mayor Reively and Blinkbart Bagglebaff are not on this server. The guide offers a choice of Power Gate (with a decayed wand) or Blood Gale (with a scythe); a quest here gives no choice, so neither is given."
+  },
+  {
+   "key": "1-20/highbourne/paladin/L1",
+   "name": "The Recruit Belt",
+   "giver": "Zulan Sunshield",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Get a recruit belt from Merchant Kulesh; it is free.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Kulesh",
+     "journal": "Speak with Merchant Kulesh.",
+     "says": "A recruit's belt.",
+     "rewards": {
+      "items": [
+       "recruit's belt"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Zulan Sunshield",
+     "items": [
+      {
+       "item": "recruit's belt",
+       "count": 1
+      }
+     ],
+     "journal": "Show recruit's belt to Zulan Sunshield.",
+     "says": "Welcome, recruit.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/paladin/L2",
+   "name": "Bound to Highbourne",
+   "giver": "Zulan Sunshield",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/paladin/L1"
+   ],
+   "offer": "Spiritmaster Helshah will bind you; then see Coachman Galdah.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Helshah",
+     "journal": "Speak with Spiritmaster Helshah.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Galdah",
+     "journal": "Speak with Coachman Galdah.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Zulan Sunshield",
+     "journal": "Speak with Zulan Sunshield.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/paladin/L3",
+   "name": "Decaying Rat Bones",
+   "giver": "Ulana Stillmind",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/paladin/L2"
+   ],
+   "offer": "Learn to fight: out of the east gate, along the mountain at the valley of the Hidden Temple portal, slay decaying rats and bring me their bones.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "decaying rat",
+     "items": [
+      {
+       "item": "Decaying Rat Bones",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Decaying Rat Bones from decaying rats."
+    },
+    {
+     "kind": "give",
+     "target": "Ulana Stillmind",
+     "items": [
+      {
+       "item": "Decaying Rat Bones",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Decaying Rat Bones to Ulana Stillmind.",
+     "says": "Learn this guard.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Hero Guard"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "decaying rat"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). No decaying rats are on this server."
+  },
+  {
+   "key": "1-20/highbourne/paladin/L4",
+   "name": "The Recruit's Shortsword",
+   "giver": "Ulana Stillmind",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/paladin/L3"
+   ],
+   "offer": "Bring me a leather strip and iron ore from Merchant Shudan, and a beetle leg segment.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Shudan",
+     "journal": "Speak with Merchant Shudan.",
+     "says": "A strip and ore.",
+     "rewards": {
+      "items": [
+       "leather strip",
+       "iron ore"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Spike Beetle",
+     "items": [
+      {
+       "item": "beetle leg segment",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect beetle leg segment from Spike Beetles."
+    },
+    {
+     "kind": "give",
+     "target": "Ulana Stillmind",
+     "items": [
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "beetle leg segment",
+       "count": 1
+      }
+     ],
+     "journal": "Bring leather strip, iron ore and beetle leg segment to Ulana Stillmind.",
+     "says": "Your sword.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The strip and ore are bought in the guide; here Shudan hands them over. The spike beetle by the gate stands in for beetles. Not on this server, left out of the rewards: the item \"Recruit's Shortsword\"."
+  },
+  {
+   "key": "1-20/highbourne/paladin/L5",
+   "name": "The Poison Sac",
+   "giver": "Ulana Stillmind",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/paladin/L4"
+   ],
+   "offer": "Bring me a poison sac from the banded kingsnakes by the rocks out of the east gate.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "banded kingsnake",
+     "items": [
+      {
+       "item": "Kingsnake Poison Sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Kingsnake Poison Sack from banded kingsnakes."
+    },
+    {
+     "kind": "give",
+     "target": "Ulana Stillmind",
+     "items": [
+      {
+       "item": "Kingsnake Poison Sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Kingsnake Poison Sack to Ulana Stillmind.",
+     "says": "Learn to lay on hands.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Lay Hands"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "banded kingsnake"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). No banded kingsnakes are on this server."
+  },
+  {
+   "key": "1-20/highbourne/paladin/L7",
+   "name": "The Horn of Silence",
+   "giver": "Ulana Stillmind",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/paladin/L5"
+   ],
+   "offer": "Talk to Dushan Anju, in the room with the north gate.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dushaun Anju",
+     "journal": "Speak with Dushaun Anju.",
+     "says": "Kill the goblin Nubja at night and bring me his horn of silence."
+    },
+    {
+     "kind": "loot",
+     "target": "Nubja",
+     "items": [
+      {
+       "item": "Horn of Silence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Horn of Silence from Nubjas."
+    },
+    {
+     "kind": "give",
+     "target": "Dushaun Anju",
+     "items": [
+      {
+       "item": "Horn of Silence",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Horn of Silence to Dushaun Anju.",
+     "says": "Thank you."
+    },
+    {
+     "kind": "talk",
+     "target": "Ulana Stillmind",
+     "journal": "Speak with Ulana Stillmind.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 157474,
+      "items": [
+       "Righteous Pants"
+      ],
+      "spells": [
+       "Protectorate"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Nubja"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). Nubja is not on this server."
+  },
+  {
+   "key": "1-20/highbourne/paladin/L10",
+   "name": "Mordschein",
+   "giver": "Ulana Stillmind",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/paladin/L7"
+   ],
+   "offer": "Take 300 tunar to Brother Pendle in the church at Hagley.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Brother Pendle",
+     "tunar": 300,
+     "journal": "Bring 300 tunar to Brother Pendle.",
+     "says": "Kill Rory Redface on the hill north of the gate at night and bring me his gaudy ring."
+    },
+    {
+     "kind": "loot",
+     "target": "Rory Redface",
+     "items": [
+      {
+       "item": "Gaudy Ring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Gaudy Ring from Rory Redfaces."
+    },
+    {
+     "kind": "give",
+     "target": "Brother Pendle",
+     "items": [
+      {
+       "item": "Gaudy Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Gaudy Ring to Brother Pendle.",
+     "says": "Take Mordschein.",
+     "rewards": {
+      "items": [
+       "Mordschien"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Ulana Stillmind",
+     "journal": "Speak with Ulana Stillmind.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Brother Pendle",
+    "Rory Redface"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Brother Pendle and Rory Redface are not on this server."
+  },
+  {
+   "key": "1-20/highbourne/paladin/L13",
+   "name": "The Thieves of Blakedown",
+   "giver": "Ulana Stillmind",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/paladin/L10"
+   ],
+   "offer": "Lord Yardley of Blakedown, in Hagley, needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Lord Yardley",
+     "journal": "Speak with Lord Yardley.",
+     "says": "Kill Pavel the thief and bring me his love letter."
+    },
+    {
+     "kind": "loot",
+     "target": "Pavel",
+     "items": [
+      {
+       "item": "Love Letter",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Love Letter from Pavels."
+    },
+    {
+     "kind": "give",
+     "target": "Lord Yardley",
+     "items": [
+      {
+       "item": "Love Letter",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Love Letter to Lord Yardley.",
+     "says": "Now see Maxwell Rigar in Forkwatch Keep about Zara."
+    },
+    {
+     "kind": "talk",
+     "target": "Maxwell Reiger",
+     "journal": "Speak with Maxwell Reiger.",
+     "says": "Zara is in one of the four bottom towers. Bring me her necklace."
+    },
+    {
+     "kind": "loot",
+     "target": "Zara",
+     "items": [
+      {
+       "item": "Bandit's Necklace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Bandit's Necklace from Zaras."
+    },
+    {
+     "kind": "give",
+     "target": "Maxwell Reiger",
+     "items": [
+      {
+       "item": "Bandit's Necklace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Bandit's Necklace to Maxwell Reiger.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Ulana Stillmind",
+     "journal": "Speak with Ulana Stillmind.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Towering Wall"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/paladin/L15",
+   "name": "Two Signatures",
+   "giver": "Ulana Stillmind",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/paladin/L13"
+   ],
+   "offer": "See Jeeves the Squire in Bayle Manor, Qeynos.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Jeeves the Scribe",
+     "journal": "Speak with Jeeves the Scribe.",
+     "says": "I need two signatures: Captain Bordengahst's in Forkwatch Keep and Saerk's at his tower."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Bordengahst",
+     "journal": "Speak with Captain Bordengahst.",
+     "says": "My signature.",
+     "rewards": {
+      "items": [
+       "Bordengahst's Signature"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Saerk",
+     "journal": "Speak with Saerk.",
+     "says": "My signature.",
+     "rewards": {
+      "items": [
+       "Saerk's Signature"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "William Nothard",
+     "items": [
+      {
+       "item": "Bordengahst's Signature",
+       "count": 1
+      },
+      {
+       "item": "Saerk's Signature",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Bordengahst's Signature and Saerk's Signature to William Nothard.",
+     "says": "See Fredrik in the inn at Highpass."
+    },
+    {
+     "kind": "talk",
+     "target": "Fredrik Nothard",
+     "journal": "Speak with Fredrik Nothard.",
+     "says": "Kill the Kithicor thug near Saerk's tower and bring me his letter."
+    },
+    {
+     "kind": "loot",
+     "target": "Kithicor Thug",
+     "items": [
+      {
+       "item": "Thug's Letter",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Thug's Letter from Kithicor Thugs."
+    },
+    {
+     "kind": "give",
+     "target": "Jeeves the Scribe",
+     "items": [
+      {
+       "item": "Thug's Letter",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Thug's Letter to Jeeves the Scribe.",
+     "says": "Good."
+    },
+    {
+     "kind": "talk",
+     "target": "Ulana Stillmind",
+     "journal": "Speak with Ulana Stillmind.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Knight's Bash"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Kithicor Thug"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). The Kithicor thug is not on this server. Not on this server, left out of the rewards: the item \"Sunhound Tunic\"."
+  },
+  {
+   "key": "1-20/highbourne/paladin/L20",
+   "name": "Jimmy's Pardon",
+   "giver": "Ulana Stillmind",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/paladin/L15"
+   ],
+   "offer": "Captain Ironforge, in the watchtower north of the prison, needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Ironforge",
+     "journal": "Speak with Captain Ironforge.",
+     "says": "Talk to Jimmy the Snitch."
+    },
+    {
+     "kind": "talk",
+     "target": "Jimmy the Snitch",
+     "journal": "Speak with Jimmy the Snitch.",
+     "says": "I want a pardon."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Ironforge",
+     "journal": "Speak with Captain Ironforge.",
+     "says": "Jeeves the Scribe in Qeynos writes pardons."
+    },
+    {
+     "kind": "talk",
+     "target": "Jeeves the Scribe",
+     "journal": "Speak with Jeeves the Scribe.",
+     "says": "Kill Grend Darkmaw near Hagley and bring me his tunic."
+    },
+    {
+     "kind": "loot",
+     "target": "Grend Darkmaw",
+     "items": [
+      {
+       "item": "Darkmaw's Tunic",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Darkmaw's Tunic from Grend Darkmaws."
+    },
+    {
+     "kind": "give",
+     "target": "Jeeves the Scribe",
+     "items": [
+      {
+       "item": "Darkmaw's Tunic",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Darkmaw's Tunic to Jeeves the Scribe.",
+     "says": "The pardon.",
+     "rewards": {
+      "items": [
+       "Pardon"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Jimmy the Snitch",
+     "items": [
+      {
+       "item": "Pardon",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Pardon to Jimmy the Snitch.",
+     "says": "Now a suit: Taliana Quickthimble."
+    },
+    {
+     "kind": "talk",
+     "target": "Taliana Quickthimble",
+     "journal": "Speak with Taliana Quickthimble.",
+     "says": "Buy my enchanted needle from Merchant Grieg, 1000 tunar, and bring me Furdle Nimdar's tanned bear hide."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Greig",
+     "tunar": 1000,
+     "journal": "Bring 1000 tunar to Merchant Greig.",
+     "says": "The needle.",
+     "rewards": {
+      "items": [
+       "Enchanted Needle"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Furdle Nimdar",
+     "items": [
+      {
+       "item": "Tanned Bear Hide",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Tanned Bear Hide from Furdle Nimdars."
+    },
+    {
+     "kind": "give",
+     "target": "Taliana Quickthimble",
+     "items": [
+      {
+       "item": "Enchanted Needle",
+       "count": 1
+      },
+      {
+       "item": "Tanned Bear Hide",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Enchanted Needle and Tanned Bear Hide to Taliana Quickthimble.",
+     "says": "The suit is made; tell Jimmy."
+    },
+    {
+     "kind": "talk",
+     "target": "Jimmy the Snitch",
+     "journal": "Speak with Jimmy the Snitch.",
+     "says": "The password is Fuzzy Knuckles. Vernon Blackhand."
+    },
+    {
+     "kind": "loot",
+     "target": "Vernon Blackhand",
+     "items": [
+      {
+       "item": "Blackhand's Gloves",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Blackhand's Gloves from Vernon Blackhands."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Ironforge",
+     "items": [
+      {
+       "item": "Blackhand's Gloves",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Blackhand's Gloves to Captain Ironforge.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Ulana Stillmind",
+     "journal": "Speak with Ulana Stillmind.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Grend Darkmaw"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Grend Darkmaw is not on this server. The guide offers a choice of Fortify or Shining Bastion; a quest here gives no choice, so neither is given."
+  },
+  {
+   "key": "1-20/highbourne/shadowknight/L1",
+   "name": "A Dusty Vest",
+   "giver": "Desh the Harvester",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Get a dusty vest from Merchant Shansha; it is free.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Shansha",
+     "journal": "Speak with Merchant Shansha.",
+     "says": "A dusty vest.",
+     "rewards": {
+      "items": [
+       "Dusty Vest"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Desh the Harvester",
+     "items": [
+      {
+       "item": "Dusty Vest",
+       "count": 1
+      }
+     ],
+     "journal": "Show Dusty Vest to Desh the Harvester.",
+     "says": "It suits you.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/shadowknight/L2",
+   "name": "Bound to Highbourne",
+   "giver": "Desh the Harvester",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/shadowknight/L1"
+   ],
+   "offer": "Spiritmaster Phendar will bind you; then see Coachman Galdah.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Phendar",
+     "journal": "Speak with Spiritmaster Phendar.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Galdah",
+     "journal": "Speak with Coachman Galdah.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Desh the Harvester",
+     "journal": "Speak with Desh the Harvester.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/shadowknight/L3",
+   "name": "Spider Leg Tips",
+   "giver": "Desh the Harvester",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/shadowknight/L2"
+   ],
+   "offer": "Hone your skills: kill spiders out of town and bring me two spider leg tips.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tarantula",
+     "items": [
+      {
+       "item": "Spider Leg Tip",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Spider Leg Tips from Tarantulas."
+    },
+    {
+     "kind": "give",
+     "target": "Desh the Harvester",
+     "items": [
+      {
+       "item": "Spider Leg Tip",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Spider Leg Tips to Desh the Harvester.",
+     "says": "Learn malice.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Malice"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/shadowknight/L4",
+   "name": "The Wicked Longsword",
+   "giver": "Desh the Harvester",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/shadowknight/L3"
+   ],
+   "offer": "Bring me iron ore and a leather strip from Merchant Shudan, and a flattened tarantula eye.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Shudan",
+     "journal": "Speak with Merchant Shudan.",
+     "says": "Ore and a strip.",
+     "rewards": {
+      "items": [
+       "iron ore",
+       "leather strip"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Tarantula",
+     "items": [
+      {
+       "item": "flattened tarantula eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect flattened tarantula eye from Tarantulas."
+    },
+    {
+     "kind": "give",
+     "target": "Desh the Harvester",
+     "items": [
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "flattened tarantula eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring iron ore, leather strip and flattened tarantula eye to Desh the Harvester.",
+     "says": "Your sword.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The ore and strip are bought in the guide; here Shudan hands them over. Not on this server, left out of the rewards: the item \"Wicked Longsword\"."
+  },
+  {
+   "key": "1-20/highbourne/shadowknight/L5",
+   "name": "The Poison Sac",
+   "giver": "Duke Morthalis",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/shadowknight/L4"
+   ],
+   "offer": "Slay a banded kingsnake and bring me its poison sac.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "banded kingsnake",
+     "items": [
+      {
+       "item": "Kingsnake Poison Sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Kingsnake Poison Sack from banded kingsnakes."
+    },
+    {
+     "kind": "give",
+     "target": "Duke Morthalis",
+     "items": [
+      {
+       "item": "Kingsnake Poison Sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Kingsnake Poison Sack to Duke Morthalis.",
+     "says": "Learn this.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Harm Touch"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "banded kingsnake"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). No banded kingsnakes are on this server."
+  },
+  {
+   "key": "1-20/highbourne/shadowknight/L7",
+   "name": "The Rogue Lion",
+   "giver": "Desh the Harvester",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/shadowknight/L5"
+   ],
+   "offer": "Kill the rogue lion along the east road and bring me its pelt.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "rogue lion",
+     "items": [
+      {
+       "item": "Rogue Lion Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Rogue Lion Pelt from rogue lions."
+    },
+    {
+     "kind": "give",
+     "target": "Desh the Harvester",
+     "items": [
+      {
+       "item": "Rogue Lion Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Rogue Lion Pelt to Desh the Harvester.",
+     "says": "Learn this.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Shadow Tunic"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "rogue lion"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The rogue lion is not on this server. Not on this server, left out of the rewards: the item \"Lion Hide Vest\"."
+  },
+  {
+   "key": "1-20/highbourne/shadowknight/L10",
+   "name": "The Traitor Ganron",
+   "giver": "Duke Morthalis",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/shadowknight/L7"
+   ],
+   "offer": "Kill the skeletal dogs in the ruins east of Highbourne and bring me the robe they took.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Skeletal Dog",
+     "items": [
+      {
+       "item": "Shredded Caller's Robe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Shredded Caller's Robe from Skeletal Dogs."
+    },
+    {
+     "kind": "give",
+     "target": "Duke Morthalis",
+     "items": [
+      {
+       "item": "Shredded Caller's Robe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Shredded Caller's Robe to Duke Morthalis.",
+     "says": "Now the traitor Ganron Blackart, in the ravine east."
+    },
+    {
+     "kind": "loot",
+     "target": "Ganron Blackart",
+     "items": [
+      {
+       "item": "Ganron's Earring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Ganron's Earring from Ganron Blackarts."
+    },
+    {
+     "kind": "give",
+     "target": "Duke Morthalis",
+     "items": [
+      {
+       "item": "Ganron's Earring",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Ganron's Earring to Duke Morthalis.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Ganron Blackart"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Ganron Blackart is not on this server. Not on this server, left out of the rewards: the item \"Grim Longsword\"."
+  },
+  {
+   "key": "1-20/highbourne/shadowknight/L13",
+   "name": "Greyweed",
+   "giver": "Duke Morthalis",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/shadowknight/L10"
+   ],
+   "offer": "Pick greyweed in the graveyard at Druids Watch at night; then Maryan in Stoneclaw.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Kill the spotted lions west of the walled town and bring me proof."
+    },
+    {
+     "kind": "loot",
+     "target": "Spotted Lion",
+     "items": [
+      {
+       "item": "Spotted Lion Eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Spotted Lion Eye from Spotted Lions."
+    },
+    {
+     "kind": "give",
+     "target": "Maryan",
+     "items": [
+      {
+       "item": "Spotted Lion Eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Spotted Lion Eye to Maryan.",
+     "says": "Take this book back.",
+     "rewards": {
+      "items": [
+       "Maryan's Book"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Duke Morthalis",
+     "items": [
+      {
+       "item": "Maryan's Book",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Maryan's Book to Duke Morthalis.",
+     "says": "Now Guard Smirg, in the watchtower by Qeynos prison."
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Smirg",
+     "journal": "Speak with Guard Smirg.",
+     "says": "Kill Hagar Loftlin, outside the prison, and bring me proof."
+    },
+    {
+     "kind": "loot",
+     "target": "Hagar Loftin",
+     "items": [
+      {
+       "item": "Prisoner's Sandals",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Prisoner's Sandals from Hagar Loftins."
+    },
+    {
+     "kind": "give",
+     "target": "Duke Morthalis",
+     "items": [
+      {
+       "item": "Prisoner's Sandals",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Prisoner's Sandals to Duke Morthalis.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Scream of Pain"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Maryan",
+    "Spotted Lion"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The greyweed popup at Druids Watch is left out (no place is known). Maryan and the spotted lions are not on this server."
+  },
+  {
+   "key": "1-20/highbourne/shadowknight/L15",
+   "name": "The Altered Letter",
+   "giver": "Duke Morthalis",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/shadowknight/L13"
+   ],
+   "offer": "See Fenra at the library by the grocers, top floor.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Fenra",
+     "journal": "Speak with Fenra.",
+     "says": "Go back to the duke."
+    },
+    {
+     "kind": "talk",
+     "target": "Duke Morthalis",
+     "journal": "Speak with Duke Morthalis.",
+     "says": "See Maryan in the Stoneclaw ravines."
+    },
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Kill the gangrenous zombie."
+    },
+    {
+     "kind": "kill",
+     "target": "Gangrenous Zombie",
+     "count": 1,
+     "journal": "Slay Gangrenous Zombie."
+    },
+    {
+     "kind": "talk",
+     "target": "Fenra",
+     "journal": "Speak with Fenra.",
+     "says": "See Nalej at the fishing boat."
+    },
+    {
+     "kind": "talk",
+     "target": "Nalai Belzia",
+     "journal": "Speak with Nalai Belzia.",
+     "says": "Kill the brownie thief and his crab, at night."
+    },
+    {
+     "kind": "loot",
+     "target": "Brownie Thief",
+     "items": [
+      {
+       "item": "Stolen Catch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Stolen Catch from Brownie Thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Nalai Belzia",
+     "items": [
+      {
+       "item": "Stolen Catch",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stolen Catch to Nalai Belzia.",
+     "says": "Thank you."
+    },
+    {
+     "kind": "give",
+     "target": "Tarly Thinhairs",
+     "tunar": 600,
+     "journal": "Bring 600 tunar to Tarly Thinhairs.",
+     "says": "Altered.",
+     "rewards": {
+      "items": [
+       "Altered Letter"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Duke Morthalis",
+     "items": [
+      {
+       "item": "Altered Letter",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Altered Letter to Duke Morthalis.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Punish Death"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Fenra",
+    "Maryan",
+    "Brownie Thief"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Toshel is Caller Toshei here and Nalej is Nalai Belzia. Fenra, Maryan and the brownie thief are not on this server. Not on this server, left out of the rewards: the item \"Slayer's Chain Shirt\"."
+  },
+  {
+   "key": "1-20/highbourne/shadowknight/L20",
+   "name": "The Star Charts",
+   "giver": "Desh the Harvester",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/shadowknight/L15"
+   ],
+   "offer": "Captain Meruin at the docks needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Farny the Woodcutter near Melton has wood for my ship."
+    },
+    {
+     "kind": "give",
+     "target": "Farny the Woodcutter",
+     "tunar": 1300,
+     "journal": "Bring 1300 tunar to Farny the Woodcutter.",
+     "says": "Also kill Goretusk the boar and bring me his hoof."
+    },
+    {
+     "kind": "loot",
+     "target": "Goretusk the Boar",
+     "items": [
+      {
+       "item": "Goretusk's Hoof",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Goretusk's Hoof from Goretusk the Boars."
+    },
+    {
+     "kind": "give",
+     "target": "Farny the Woodcutter",
+     "items": [
+      {
+       "item": "Goretusk's Hoof",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Goretusk's Hoof to Farny the Woodcutter.",
+     "says": "Tell the captain."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Maryan of the aviak village has star charts."
+    },
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Bring me an aviak chick."
+    },
+    {
+     "kind": "loot",
+     "target": "Aviak Chick",
+     "items": [
+      {
+       "item": "Captured Aviak Chick",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Captured Aviak Chick from Aviak Chicks."
+    },
+    {
+     "kind": "give",
+     "target": "Maryan",
+     "items": [
+      {
+       "item": "Captured Aviak Chick",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Captured Aviak Chick to Maryan.",
+     "says": "The star charts.",
+     "rewards": {
+      "items": [
+       "Star Charts"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Captain Meruin",
+     "items": [
+      {
+       "item": "Star Charts",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Star Charts to Captain Meruin.",
+     "says": "Now Mayor Reively in Wyndhaven."
+    },
+    {
+     "kind": "talk",
+     "target": "Mayor Reively",
+     "journal": "Speak with Mayor Reively.",
+     "says": "Kill Blinkbart Bagglebaff on the hill east of the windmill."
+    },
+    {
+     "kind": "kill",
+     "target": "Blinkbart Bagglebaff",
+     "count": 1,
+     "journal": "Slay Blinkbart Bagglebaff."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Desh the Harvester",
+     "journal": "Speak with Desh the Harvester.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Farny the Woodcutter",
+    "Goretusk the Boar",
+    "Maryan",
+    "Mayor Reively",
+    "Blinkbart Bagglebaff"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Farny, Goretusk, Maryan, Mayor Reively and Blinkbart Bagglebaff are not on this server. The guide offers a choice of Bloodwasp (with a spetum) or Shadow Tower (with a beheader); a quest here gives no choice, so neither is given."
+  },
+  {
+   "key": "1-20/highbourne/wizard/L1",
+   "name": "A Crimson Robe",
+   "giver": "Master Rayne",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Get a robe from Merchant Felcia; it is free.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Felcia",
+     "journal": "Speak with Merchant Felcia.",
+     "says": "A robe for Rayne's student.",
+     "rewards": {
+      "items": [
+       "tattered robe"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Master Rayne",
+     "items": [
+      {
+       "item": "tattered robe",
+       "count": 1
+      }
+     ],
+     "journal": "Show tattered robe to Master Rayne.",
+     "says": "Welcome.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). The guide's Crimson Robe is a level-60 item here, so a tattered robe stands in at level 1."
+  },
+  {
+   "key": "1-20/highbourne/wizard/L2",
+   "name": "Bound to Highbourne",
+   "giver": "Master Rayne",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/wizard/L1"
+   ],
+   "offer": "Spiritmaster Kaolo will bind you; then see Coachman Galdah.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Kaolo",
+     "journal": "Speak with Spiritmaster Kaolo.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Galdah",
+     "journal": "Speak with Coachman Galdah.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Master Rayne",
+     "journal": "Speak with Master Rayne.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/wizard/L3",
+   "name": "Cracked Ant Pincers",
+   "giver": "keeper Draid",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/wizard/L2"
+   ],
+   "offer": "Head out of town and bring me two cracked ant pincers.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Ant",
+     "items": [
+      {
+       "item": "cracked ant pincer",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 cracked ant pincers from Ants."
+    },
+    {
+     "kind": "give",
+     "target": "keeper Draid",
+     "items": [
+      {
+       "item": "cracked ant pincer",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 cracked ant pincers to keeper Draid.",
+     "says": "Learn these bindings.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Arcane Bindings"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/highbourne/wizard/L4",
+   "name": "The Staff of Evocation",
+   "giver": "keeper Draid",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/wizard/L3"
+   ],
+   "offer": "Bring me a leather strap and a wooden shaft from Merchant Shudan, and a fractured dragonfly thorax.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Shudan",
+     "journal": "Speak with Merchant Shudan.",
+     "says": "A strap and a shaft.",
+     "rewards": {
+      "items": [
+       "leather strip",
+       "wooden shaft"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Dragonflies",
+     "items": [
+      {
+       "item": "fractured dragonfly thorax",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect fractured dragonfly thorax from Dragonflies."
+    },
+    {
+     "kind": "give",
+     "target": "keeper Draid",
+     "items": [
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "wooden shaft",
+       "count": 1
+      },
+      {
+       "item": "fractured dragonfly thorax",
+       "count": 1
+      }
+     ],
+     "journal": "Bring leather strip, wooden shaft and fractured dragonfly thorax to keeper Draid.",
+     "says": "Your staff.",
+     "rewards": {
+      "xp": 17000,
+      "items": [
+       "staff of evocation"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The strap and shaft are bought in the guide; here Shudan hands them over."
+  },
+  {
+   "key": "1-20/highbourne/wizard/L5",
+   "name": "The Poison Sac",
+   "giver": "keeper Draid",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/wizard/L4"
+   ],
+   "offer": "Bring me a poison sac from the banded kingsnakes outside town.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "banded kingsnake",
+     "items": [
+      {
+       "item": "Kingsnake Poison Sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Kingsnake Poison Sack from banded kingsnakes."
+    },
+    {
+     "kind": "give",
+     "target": "keeper Draid",
+     "items": [
+      {
+       "item": "Kingsnake Poison Sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Kingsnake Poison Sack to keeper Draid.",
+     "says": "Learn this.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Shock of Frost"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "banded kingsnake"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). No banded kingsnakes are on this server."
+  },
+  {
+   "key": "1-20/highbourne/wizard/L7",
+   "name": "The Diseased Fur",
+   "giver": "Master Rayne",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/wizard/L5"
+   ],
+   "offer": "Hunt the rogue lion along the east road and bring me its diseased fur.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "rogue lion",
+     "items": [
+      {
+       "item": "Diseased Fur",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Diseased Fur from rogue lions."
+    },
+    {
+     "kind": "give",
+     "target": "Master Rayne",
+     "items": [
+      {
+       "item": "Diseased Fur",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Diseased Fur to Master Rayne.",
+     "says": "Learn this.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Burning Flare"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "rogue lion"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The rogue lion is not on this server. Not on this server, left out of the rewards: the item \"Lion Fur Trousers\"."
+  },
+  {
+   "key": "1-20/highbourne/wizard/L10",
+   "name": "The Necromancer of Stoneclaw",
+   "giver": "Master Rayne",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/wizard/L7"
+   ],
+   "offer": "Kill the skeletal dogs in the ruins east of Highbourne and bring me the robe they took.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Skeletal Dog",
+     "items": [
+      {
+       "item": "Shredded Caller's Robe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Shredded Caller's Robe from Skeletal Dogs."
+    },
+    {
+     "kind": "give",
+     "target": "Master Rayne",
+     "items": [
+      {
+       "item": "Shredded Caller's Robe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Shredded Caller's Robe to Master Rayne.",
+     "says": "Now the necromancer in the ravines near Stoneclaw. Bring me his pendant."
+    },
+    {
+     "kind": "loot",
+     "target": "Ganron Blackart",
+     "items": [
+      {
+       "item": "Necromancer's Pendant",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Necromancer's Pendant from Ganron Blackarts."
+    },
+    {
+     "kind": "give",
+     "target": "Master Rayne",
+     "items": [
+      {
+       "item": "Necromancer's Pendant",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Necromancer's Pendant to Master Rayne.",
+     "says": "Take word to Ammathor Lithkin in Qeynos."
+    },
+    {
+     "kind": "talk",
+     "target": "Ammathor Lithkin",
+     "journal": "Speak with Ammathor Lithkin.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Ganron Blackart"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). The necromancer is Ganron Blackart, the traitor of the other classes' quests; he is not on this server. Not on this server, left out of the rewards: the item \"Crimson Staff\"."
+  },
+  {
+   "key": "1-20/highbourne/wizard/L13",
+   "name": "Greyweed",
+   "giver": "keeper Draid",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/wizard/L10"
+   ],
+   "offer": "Pick greyweed in the graveyard at Druids Watch at night; then Maryan in Stoneclaw.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Kill the spotted lions west of the walled town and bring me proof."
+    },
+    {
+     "kind": "loot",
+     "target": "Spotted Lion",
+     "items": [
+      {
+       "item": "Spotted Lion Fang",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Spotted Lion Fang from Spotted Lions."
+    },
+    {
+     "kind": "give",
+     "target": "Maryan",
+     "items": [
+      {
+       "item": "Spotted Lion Fang",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Spotted Lion Fang to Maryan.",
+     "says": "Take this book back.",
+     "rewards": {
+      "items": [
+       "Maryan's Book"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "keeper Draid",
+     "items": [
+      {
+       "item": "Maryan's Book",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Maryan's Book to keeper Draid.",
+     "says": "Now Guard Smirg, in the watchtower by Qeynos prison."
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Smirg",
+     "journal": "Speak with Guard Smirg.",
+     "says": "Kill Hagar Loftlin, outside the prison, and bring me proof."
+    },
+    {
+     "kind": "loot",
+     "target": "Hagar Loftin",
+     "items": [
+      {
+       "item": "Loftlin's Shackles",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Loftlin's Shackles from Hagar Loftins."
+    },
+    {
+     "kind": "give",
+     "target": "keeper Draid",
+     "items": [
+      {
+       "item": "Loftlin's Shackles",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Loftlin's Shackles to keeper Draid.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Element Guard"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Maryan",
+    "Spotted Lion"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The greyweed popup at Druids Watch is left out (no place is known). Maryan and the spotted lions are not on this server. The guide's Elemental Guard is the level-13 Element Guard here."
+  },
+  {
+   "key": "1-20/highbourne/wizard/L15",
+   "name": "Toshel's Errands",
+   "giver": "keeper Draid",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/wizard/L13"
+   ],
+   "offer": "See Fenra at the library by the grocers, top floor.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Fenra",
+     "journal": "Speak with Fenra.",
+     "says": "Go back to Draid."
+    },
+    {
+     "kind": "talk",
+     "target": "keeper Draid",
+     "journal": "Speak with keeper Draid.",
+     "says": "See Maryan in the Stoneclaw ravines."
+    },
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Kill the gangrenous zombie."
+    },
+    {
+     "kind": "kill",
+     "target": "Gangrenous Zombie",
+     "count": 1,
+     "journal": "Slay Gangrenous Zombie."
+    },
+    {
+     "kind": "talk",
+     "target": "Fenra",
+     "journal": "Speak with Fenra.",
+     "says": "See Nalej at the fishing boat."
+    },
+    {
+     "kind": "talk",
+     "target": "Nalai Belzia",
+     "journal": "Speak with Nalai Belzia.",
+     "says": "Kill the brownie thief and his crab, at night."
+    },
+    {
+     "kind": "loot",
+     "target": "Brownie Thief",
+     "items": [
+      {
+       "item": "Stolen Catch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Stolen Catch from Brownie Thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Nalai Belzia",
+     "items": [
+      {
+       "item": "Stolen Catch",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stolen Catch to Nalai Belzia.",
+     "says": "Thank you."
+    },
+    {
+     "kind": "give",
+     "target": "Vedilion Brithstar",
+     "tunar": 600,
+     "journal": "Bring 600 tunar to Vedilion Brithstar.",
+     "says": "Done. Go back to Draid."
+    },
+    {
+     "kind": "talk",
+     "target": "keeper Draid",
+     "journal": "Speak with keeper Draid.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Shocking Gaze"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Fenra",
+    "Maryan",
+    "Brownie Thief"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Nalej is Nalai Belzia here. Fenra, Maryan and the brownie thief are not on this server. Not on this server, left out of the rewards: the item \"Garnet Pants\"."
+  },
+  {
+   "key": "1-20/highbourne/wizard/L20",
+   "name": "The Star Charts",
+   "giver": "Master Rayne",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/wizard/L15"
+   ],
+   "offer": "Captain Meruin at the docks needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Farny the Woodcutter near Melton has wood for my ship."
+    },
+    {
+     "kind": "give",
+     "target": "Farny the Woodcutter",
+     "tunar": 1300,
+     "journal": "Bring 1300 tunar to Farny the Woodcutter.",
+     "says": "Also kill Goretusk the boar and bring me his hoof."
+    },
+    {
+     "kind": "loot",
+     "target": "Goretusk the Boar",
+     "items": [
+      {
+       "item": "Goretusk's Hoof",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Goretusk's Hoof from Goretusk the Boars."
+    },
+    {
+     "kind": "give",
+     "target": "Farny the Woodcutter",
+     "items": [
+      {
+       "item": "Goretusk's Hoof",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Goretusk's Hoof to Farny the Woodcutter.",
+     "says": "Tell the captain."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Maryan of the aviak village has star charts."
+    },
+    {
+     "kind": "talk",
+     "target": "Maryan",
+     "journal": "Speak with Maryan.",
+     "says": "Bring me an aviak chick."
+    },
+    {
+     "kind": "loot",
+     "target": "Aviak Chick",
+     "items": [
+      {
+       "item": "Captured Aviak Chick",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Captured Aviak Chick from Aviak Chicks."
+    },
+    {
+     "kind": "give",
+     "target": "Maryan",
+     "items": [
+      {
+       "item": "Captured Aviak Chick",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Captured Aviak Chick to Maryan.",
+     "says": "The star charts.",
+     "rewards": {
+      "items": [
+       "Star Charts"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Captain Meruin",
+     "items": [
+      {
+       "item": "Star Charts",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Star Charts to Captain Meruin.",
+     "says": "Now Mayor Reively in Wyndhaven."
+    },
+    {
+     "kind": "talk",
+     "target": "Mayor Reively",
+     "journal": "Speak with Mayor Reively.",
+     "says": "Kill Blinkbart Bagglebaff on the hill east of the windmill."
+    },
+    {
+     "kind": "kill",
+     "target": "Blinkbart Bagglebaff",
+     "count": 1,
+     "journal": "Slay Blinkbart Bagglebaff."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Meruin",
+     "journal": "Speak with Captain Meruin.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Master Rayne",
+     "journal": "Speak with Master Rayne.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Farny the Woodcutter",
+    "Goretusk the Boar",
+    "Maryan",
+    "Mayor Reively",
+    "Blinkbart Bagglebaff"
+   ],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Farny, Goretusk, Maryan, Mayor Reively and Blinkbart Bagglebaff are not on this server. The guide offers a choice of Blazing Clash or Mental Focus; a quest here gives no choice, so neither is given."
+  }
+ ],
+ "items": [
+  {
+   "name": "Altered Letter",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Bandit's Necklace",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Blackhand's Gloves",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Blinkbart's Lockbox",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Bordengahst's Signature",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Captured Aviak Chick",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Cracked Beetle Horn",
+   "description": "",
+   "notrade": true,
+   "like": "damaged bug wings"
+  },
+  {
+   "name": "Darkmaw's Tunic",
+   "description": "",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Decaying Rat Bones",
+   "description": "",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "Diseased Fur",
+   "description": "",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "Dusty Vest",
+   "description": "",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Elusive Stone Ant Poison",
+   "description": "",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Enchanted Needle",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Fisherman's Poison",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Ganron's Earring",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Ganron's Head",
+   "description": "",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "Ganron's Necklace",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Gaudy Ring",
+   "description": "",
+   "notrade": true,
+   "like": "Akuion's insignia"
+  },
+  {
+   "name": "Giggen Aviak Feather",
+   "description": "",
+   "notrade": true,
+   "like": "broken vulture feather"
+  },
+  {
+   "name": "Goretusk's Hoof",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Greyflesh Pike Fillet",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Hollow Lion Fang",
+   "description": "",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Horn of Silence",
+   "description": "",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Keeper's Robe",
+   "description": "",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Kingsnake Poison Sack",
+   "description": "",
+   "notrade": true,
+   "like": "sack of wild herbs"
+  },
+  {
+   "name": "Lion Tail",
+   "description": "",
+   "notrade": true,
+   "like": "bat meat"
+  },
+  {
+   "name": "Loftlin's Shackles",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Loftlin's Tunic",
+   "description": "",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Loftlin's Uniform",
+   "description": "",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Lotion",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Love Letter",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Maryan's Book",
+   "description": "",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "Nalej's Jar",
+   "description": "",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "Necromancer's Pendant",
+   "description": "",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Pardon",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Pike Oil",
+   "description": "",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "Prisoner's Sandals",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Ribbed Snake Poison Sack",
+   "description": "",
+   "notrade": true,
+   "like": "sack of wild herbs"
+  },
+  {
+   "name": "Rogue Lion Pelt",
+   "description": "",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "Rory's Ring",
+   "description": "",
+   "notrade": true,
+   "like": "Akuion's insignia"
+  },
+  {
+   "name": "Saerk's Signature",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Shackles",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Shredded Caller's Robe",
+   "description": "",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Skeletal Dog Bone",
+   "description": "",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "Spider Leg Tip",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Spotted Lion Eye",
+   "description": "",
+   "notrade": true,
+   "like": "raven eye"
+  },
+  {
+   "name": "Spotted Lion Fang",
+   "description": "",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Spotted Lion Pelt",
+   "description": "",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "Star Charts",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Stolen Catch",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Strange Poison Sac",
+   "description": "",
+   "notrade": true,
+   "like": "firespew gland"
+  },
+  {
+   "name": "Tanned Bear Hide",
+   "description": "",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "Thief's Proof",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Thug's Letter",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Zombie's Torque",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  }
+ ]
+}

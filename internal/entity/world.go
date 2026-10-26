@@ -59,6 +59,9 @@ type World struct {
 	casts    []*castState
 	onGate   GateFunc
 	affected map[EntityID]*NPC // creatures with a spell's effect on them
+	// regenAt is when the last regen tick fell (regenSystem): the regular
+	// tick a heal over time's ticks after its first keep to (hot.go)
+	regenAt time.Time
 
 	// Corpses (corpse.go): how long one lies unlooted, how long after it
 	// goes its creature comes back, and the hook told which went.

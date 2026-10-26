@@ -72,7 +72,8 @@ func TestParseSpellText(t *testing.T) {
 			{Kind: EffectHP, Amount: -50, AmountMax: -50, Scale: StatDex, ScalePct: 20}}}},
 		{"Target, Decrease Hitpoints by 200 aoe Decrease Hitpoints by 90 - Lightning Based AoE", SpellDef{Target: TargetSingle, Harmful: true, Effects: []SpellEffect{
 			{Kind: EffectHP, Amount: -200, AmountMax: -200}}}},
-		{"Self Buff MaxHP by 15 & AC by 28", SpellDef{Target: TargetSelf, Effects: []SpellEffect{
+		// a buff with no time lasts buffDuration (spellnotes.go)
+		{"Self Buff MaxHP by 15 & AC by 28", SpellDef{Target: TargetSelf, Duration: buffDuration, Effects: []SpellEffect{
 			{Kind: EffectStat, Stat: StatMaxHP, Amount: 15, AmountMax: 15},
 			{Kind: EffectStat, Stat: StatAC, Amount: 28, AmountMax: 28}}}},
 		{"Target Invis 5min", SpellDef{Target: TargetSingle, Duration: 5 * time.Minute, Effects: []SpellEffect{{Kind: EffectInvis}}}},

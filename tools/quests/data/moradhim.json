@@ -1,0 +1,3683 @@
+{
+ "city": "moradhim",
+ "quests": [
+  {
+   "key": "1-20/moradhim/cleric/L1",
+   "name": "An Acolyte's Robe",
+   "giver": "Bishop Gunder",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A cleric of Moradhim wears the acolyte's robe. Merchant Domdi will give you one for nothing.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Domdi",
+     "journal": "Get an acolyte's robe from Merchant Domdi.",
+     "says": "One robe, freely given.",
+     "rewards": {
+      "items": [
+       "acolyte's robe"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Bishop Gunder",
+     "items": [
+      {
+       "item": "acolyte's robe",
+       "count": 1
+      }
+     ],
+     "journal": "Show the acolyte's robe to Bishop Gundar.",
+     "says": "Welcome to the faith.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 1; github.com/Jadiction/EQOA-Data). Bishop Gundar is the database's Bishop Gunder, Merchant Dondi its Merchant Domdi."
+  },
+  {
+   "key": "1-20/moradhim/cleric/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Spellsmith Huldor",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/cleric/L1"
+   ],
+   "offer": "Spiritmaster Bico will bind you; then see Coachman Doba. Come back after.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Bico",
+     "journal": "Speak with Spiritmaster Bico to be bound.",
+     "says": "Now go and see Coachman Doba."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Doba",
+     "journal": "Speak with Coachman Doba.",
+     "says": "Back to Huldor with you."
+    },
+    {
+     "kind": "talk",
+     "target": "Spellsmith Huldor",
+     "journal": "Return to Spellsmith Huldor.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 2; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/moradhim/cleric/L3",
+   "name": "Badger Meat",
+   "giver": "Spellsmith Huldor",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/cleric/L2"
+   ],
+   "offer": "Your training starts outside the city: hunt badgers and bring me three pieces of their meat.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Badger",
+     "items": [
+      {
+       "item": "piece of badger meat",
+       "count": 1
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Hunt badgers outside Moradhim for three pieces of badger meat."
+    },
+    {
+     "kind": "give",
+     "target": "Spellsmith Huldor",
+     "items": [
+      {
+       "item": "piece of badger meat",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three pieces of badger meat to Spellsmith Huldor.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Minor Blessing"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 3; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/moradhim/cleric/L4",
+   "name": "A New Weapon",
+   "giver": "Spellsmith Huldor",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/cleric/L3"
+   ],
+   "offer": "Spellsmith Doldanaf will make you a new weapon. Bring him a block of ore from Armorer Origson, a crafted handle from Tailor Chloe, a spiderling leg and a chipped raven beak.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Armorer Origson",
+     "journal": "Get a block of ore from Armorer Origson.",
+     "says": "A block of ore.",
+     "rewards": {
+      "items": [
+       "block of ore"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Tailor Chloe",
+     "journal": "Get a crafted handle from Tailor Chloe.",
+     "says": "A crafted handle.",
+     "rewards": {
+      "items": [
+       "Crafted Handle"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Spiderling",
+     "items": [
+      {
+       "item": "small spider leg",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill spiderlings for a spiderling leg."
+    },
+    {
+     "kind": "loot",
+     "target": "Crow",
+     "items": [
+      {
+       "item": "chipped raven beak",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill crows for a chipped raven beak."
+    },
+    {
+     "kind": "give",
+     "target": "Spellsmith Doldanaf",
+     "items": [
+      {
+       "item": "block of ore",
+       "count": 1
+      },
+      {
+       "item": "Crafted Handle",
+       "count": 1
+      },
+      {
+       "item": "small spider leg",
+       "count": 1
+      },
+      {
+       "item": "chipped raven beak",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ore, the handle, the leg and the beak to Spellsmith Doldanaf.",
+     "says": "Here is your weapon.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The spiderling leg is the database's small spider leg. The guide does not name the weapon."
+  },
+  {
+   "key": "1-20/moradhim/cleric/L5",
+   "name": "The Frosteye Shamans",
+   "giver": "Spellsmith Huldor",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/cleric/L4"
+   ],
+   "offer": "Help me rid the land of the Frosteye shamans: northwest along the mountains, at the first river, scan the hills.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Frosteye Shaman",
+     "count": 1,
+     "journal": "Slay a Frosteye shaman northwest of Moradhim."
+    },
+    {
+     "kind": "talk",
+     "target": "Spellsmith Huldor",
+     "journal": "Return to Spellsmith Huldor.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Holy Shock"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 5; github.com/Jadiction/EQOA-Data). One is ours (the guide gives no count; the database has one shaman there). The Holy Shock scroll is the class's level 5 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/cleric/L7",
+   "name": "Raldir",
+   "giver": "Spellsmith Ulla",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/cleric/L5"
+   ],
+   "offer": "Raldir stands by a tree west of the gates, past the first icy river along the zone wall. Talk to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Raldir",
+     "journal": "Find Raldir by a tree west of Moradhim's gates, past the first icy river.",
+     "says": "I am poisoned. Tell Ulla."
+    },
+    {
+     "kind": "talk",
+     "target": "Spellsmith Ulla",
+     "journal": "Return to Spellsmith Ulla.",
+     "says": "Kill the Red Eyed Monster northwest of town, across the river, and bring me what it carries."
+    },
+    {
+     "kind": "loot",
+     "target": "Red Eyed Monster",
+     "items": [
+      {
+       "item": "Red Eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Red Eyed Monster northwest of town, across the river."
+    },
+    {
+     "kind": "give",
+     "target": "Spellsmith Ulla",
+     "items": [
+      {
+       "item": "Red Eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring what the monster carried to Spellsmith Ulla.",
+     "says": "Now go and cure Raldir."
+    },
+    {
+     "kind": "talk",
+     "target": "Raldir",
+     "journal": "Cure Raldir.",
+     "says": "I am well again. Take this note to Ulla.",
+     "rewards": {
+      "items": [
+       "Raldir's Note"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Spellsmith Ulla",
+     "items": [
+      {
+       "item": "Raldir's Note",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Raldir's note to Spellsmith Ulla.",
+     "says": "You have the healer's touch.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Endure Ailment"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Red Eyed Monster",
+    "npc: Raldir"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 7; github.com/Jadiction/EQOA-Data). Raldir is not in the database. The Red Eyed Monster is not in the database. The Endure Ailment scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/cleric/L10",
+   "name": "Diren's Hold",
+   "giver": "Spellsmith Ulla",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/cleric/L5"
+   ],
+   "offer": "Brenn Raven in Diren's Hold, west of Moradhim, on the second floor of the fort's tower, needs a healer.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brenn Raven",
+     "journal": "Find Brenn Raven in Diren's Hold, second floor of the tower.",
+     "says": "Kill a goblin alchemist and bring me its cure."
+    },
+    {
+     "kind": "loot",
+     "target": "Freezeblood Alchemist",
+     "items": [
+      {
+       "item": "Goblin Alchemist's Cure",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a goblin alchemist for its cure."
+    },
+    {
+     "kind": "give",
+     "target": "Brenn Raven",
+     "items": [
+      {
+       "item": "Goblin Alchemist's Cure",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the cure to Brenn Raven.",
+     "says": "Now see Jarvan Tember, leader of the stronghold on the mountain."
+    },
+    {
+     "kind": "talk",
+     "target": "Jarvan Tember",
+     "journal": "Find Jarvan Tember on the mountain by Diren's Hold.",
+     "says": "Frosteye marauders hold a key in the dark tower east of the Hold. Get it and free Amber."
+    },
+    {
+     "kind": "loot",
+     "target": "Frosteye Marauder",
+     "items": [
+      {
+       "item": "Marauders' Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the marauders in the dark tower east of Diren's Hold for their key."
+    },
+    {
+     "kind": "talk",
+     "target": "Amber",
+     "journal": "Free Amber, the little wolf."
+    },
+    {
+     "kind": "talk",
+     "target": "Jarvan Tember",
+     "journal": "Return to Jarvan Tember.",
+     "says": "Amber is free. Thank you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Freezeblood Alchemist",
+    "creature: Frosteye Marauder",
+    "npc: Amber"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 10; github.com/Jadiction/EQOA-Data). Bren Raven is Brenn Raven, Jargon is Jarvan Tember. The goblin alchemist is not in the database. The Frosteye marauders and Amber, the little wolf they hold, are not in the database. It follows L5: L7 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/moradhim/cleric/L13",
+   "name": "The Oversized Claw",
+   "giver": "Spellsmith Ulla",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/cleric/L5"
+   ],
+   "offer": "Go south from the coach to Baga Village and kill its guards at the gate until one drops an oversized claw. Bring it here.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "baga guard",
+     "items": [
+      {
+       "item": "Oversized Claw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill the guards at the gate of Baga Village until one drops an oversized claw."
+    },
+    {
+     "kind": "give",
+     "target": "Spellsmith Ulla",
+     "items": [
+      {
+       "item": "Oversized Claw",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the oversized claw to Spellsmith Ulla.",
+     "says": "Now find the Enclave of the Bear: follow the south mountain behind Baga to the cave entrance by the ranger tree-tower. Bring 225 tunar."
+    },
+    {
+     "kind": "reach",
+     "x": 15324,
+     "y": 81,
+     "z": 11373,
+     "radius": 25,
+     "journal": "Find the Enclave of the Bear's cave and the halfling held prisoner there.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Deep in the Enclave of the Bear, a halfling held prisoner tells you of the Sensei monks of the Seisen monastery."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Spellsmith Ulla",
+     "journal": "Return to Spellsmith Ulla.",
+     "says": "The Sensei monks... that is worth knowing.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Ward Death"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not name the Enclave of the Bear's man who sends you to the halfling prisoner, nor is the prisoner in the database: the visit is a reach step at EQOA-Data's map's place, and the bet is left out. The Ward Death scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10 before it are drafts until its names are in the database."
+  },
+  {
+   "key": "1-20/moradhim/cleric/L15",
+   "name": "Kairan of Chiasta",
+   "giver": "Spellsmith Ulla",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/cleric/L13"
+   ],
+   "offer": "Kairan, in the hidden village of Chiasta east of Moradhim, past the lake and through the tunnel, needs someone he can trust. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Kaiaren",
+     "journal": "Find Kairan in Chiasta, in the oriental-looking building south of the tunnel.",
+     "says": "Bring me a Seisen Gi from a voidfist or an ironskin of the Seisen monastery, and I will trust you."
+    },
+    {
+     "kind": "loot",
+     "target": "seisen ironskin",
+     "items": [
+      {
+       "item": "Seisen Gi",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill voidfists or ironskins in the Seisen monastery until one drops a Seisen Gi."
+    },
+    {
+     "kind": "give",
+     "target": "Kaiaren",
+     "items": [
+      {
+       "item": "Seisen Gi",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Seisen Gi to Kairan.",
+     "says": "Take this key to the arcane chest at the bottom of the monastery and bring me what it holds.",
+     "rewards": {
+      "items": [
+       "Arcane Chest Key"
+      ]
+     }
+    },
+    {
+     "kind": "reach",
+     "x": 16155,
+     "y": 133,
+     "z": 8400,
+     "radius": 15,
+     "journal": "Open the arcane chest at the bottom of the Seisen monastery.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The key turns, and the arcane chest opens."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Contents of the Arcane Chest",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Kaiaren",
+     "items": [
+      {
+       "item": "Contents of the Arcane Chest",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the chest's contents to Kairan.",
+     "says": "Take this letter to Spellsmith Ulla.",
+     "rewards": {
+      "items": [
+       "Letter from Kairan"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Spellsmith Ulla",
+     "items": [
+      {
+       "item": "Letter from Kairan",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Kairan's letter to Spellsmith Ulla.",
+     "says": "You have done well.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Endure Affliction"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 15; github.com/Jadiction/EQOA-Data). Kairan is the database's Kaiaren. The Seisen Gi is the database's; the ironskins (or voidfists) both wear it, and the ironskins stand for both. The chest's place is EQOA-Data's map's; the key is not taken there (a reach step takes no items). The Endure Affliction scroll is the class's level 15 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/cleric/L20",
+   "name": "The Orb of Parathior",
+   "giver": "Spellsmith Ulla",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/cleric/L15"
+   ],
+   "offer": "Elder Joram, in the bank of Halas, has a task worthy of you. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Find Elder Joram in the bank of Halas.",
+     "says": "The Orb of Parathior lies in King Ickcil's throne room, in the Freezeblood goblins' underwater caves west of Halas. Kill his treasurer for the key and bring me the orb."
+    },
+    {
+     "kind": "loot",
+     "target": "Freezeblood Treasurer",
+     "items": [
+      {
+       "item": "Freezeblood Treasurer's Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Fight through the Freezeblood caves to King Ickcil's throne room until the treasurer appears; take his key."
+    },
+    {
+     "kind": "give",
+     "target": "Parathoir Chest",
+     "items": [
+      {
+       "item": "Freezeblood Treasurer's Key",
+       "count": 1
+      }
+     ],
+     "journal": "Open King Ickcil's locked chest with the treasurer's key.",
+     "rewards": {
+      "items": [
+       "Orb of Parathior"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Elder Joram",
+     "items": [
+      {
+       "item": "Orb of Parathior",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Orb of Parathior to Elder Joram.",
+     "says": "Belgar Karakson in Moradhim's residential district knows how to destroy it.",
+     "rewards": {
+      "items": [
+       "Orb of Parathior"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Belgar Karakson",
+     "journal": "Find Belgar Karakson in the last house on the right of Moradhim's residential district.",
+     "says": "Bring me the two pages of Karak's research the orcs of the Druk keep."
+    },
+    {
+     "kind": "loot",
+     "target": "orc acolyte",
+     "items": [
+      {
+       "item": "Karak's Research, Page 1",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill orc acolytes at the bottom of the caves in the Druk for the first page of Karak's research."
+    },
+    {
+     "kind": "loot",
+     "target": "orc prophet",
+     "items": [
+      {
+       "item": "Karak's Research, Page 2",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill orc prophets at the bottom of the caves in the Druk for the second page."
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Return to Elder Joram with the pages.",
+     "says": "Now a goldfeather: kill a Goldfeather aviak by their aerie north of Moradhim's coach."
+    },
+    {
+     "kind": "loot",
+     "target": "golfeather aviak",
+     "items": [
+      {
+       "item": "Goldfeather",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill a Goldfeather aviak by the Goldfeather aerie for a goldfeather."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Joram",
+     "items": [
+      {
+       "item": "Goldfeather",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the goldfeather to Elder Joram.",
+     "says": "I will send you to the lava tubes of Mt. Hatespike. Crush the feather over the orb and drop it in.",
+     "rewards": {
+      "items": [
+       "Goldfeather"
+      ]
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 12914,
+       "y": 176,
+       "z": 11330
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 12914,
+     "y": 176,
+     "z": 11330,
+     "radius": 25,
+     "journal": "Crush the goldfeather over the orb and drop the orb into the lava tubes.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You crush the goldfeather over the Orb of Parathior and drop it into the lava. It is gone."
+      },
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 13460,
+       "y": 56,
+       "z": 4312
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Tell Elder Joram the orb is destroyed.",
+     "says": "Go back to Belgar Karakson with his pages."
+    },
+    {
+     "kind": "give",
+     "target": "Belgar Karakson",
+     "items": [
+      {
+       "item": "Karak's Research, Page 1",
+       "count": 1
+      },
+      {
+       "item": "Karak's Research, Page 2",
+       "count": 1
+      }
+     ],
+     "journal": "Give Belgar Karakson the pages of Karak's research.",
+     "says": "You have earned this.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Freezeblood Treasurer"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). The Freezeblood Treasurer is not in the database (King Ickcil's chest is, as the Parathoir Chest). The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
+  },
+  {
+   "key": "1-20/moradhim/paladin/L1",
+   "name": "A Dwarven Burial Shroud",
+   "giver": "Ungrist the Prophet",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Buy a Dwarven burial shroud from Merchant Domdi and come back to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Domdi",
+     "journal": "Get a Dwarven burial shroud from Merchant Domdi.",
+     "says": "One burial shroud.",
+     "rewards": {
+      "items": [
+       "Dwarven Burial Shroud"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Ungrist the Prophet",
+     "items": [
+      {
+       "item": "Dwarven Burial Shroud",
+       "count": 1
+      }
+     ],
+     "journal": "Show the burial shroud to Ungrist the Prophet.",
+     "says": "Good. Doomwalker Gazad will see to your training now.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 1; github.com/Jadiction/EQOA-Data). The guide gives no price: the shroud is handed over."
+  },
+  {
+   "key": "1-20/moradhim/paladin/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Doomwalker Gazad",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/paladin/L1"
+   ],
+   "offer": "Spiritmaster Bico will bind you and send you to Coachman Doba in the stables. Go back to Bico after, then come to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Bico",
+     "journal": "Speak with Spiritmaster Bico to be bound.",
+     "says": "Now go to Coachman Doba in the stables."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Doba",
+     "journal": "Speak with Coachman Doba in the stables.",
+     "says": "Go back to Bico."
+    },
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Bico",
+     "journal": "Return to Spiritmaster Bico.",
+     "says": "Return to Gazad."
+    },
+    {
+     "kind": "talk",
+     "target": "Doomwalker Gazad",
+     "journal": "Return to Doomwalker Gazad.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 2; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/moradhim/paladin/L3",
+   "name": "Slashed Pawn Belts",
+   "giver": "Doomwalker Gazad",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/paladin/L2"
+   ],
+   "offer": "Bring me slashed pawn belts from the Frosteye runts outside the city.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Frosteye Runt",
+     "items": [
+      {
+       "item": "Slashed Pawn Belt",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill Frosteye runts for two slashed pawn belts."
+    },
+    {
+     "kind": "give",
+     "target": "Doomwalker Gazad",
+     "items": [
+      {
+       "item": "Slashed Pawn Belt",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the two slashed pawn belts to Doomwalker Gazad.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Hero Guard"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 3; github.com/Jadiction/EQOA-Data). Two belts is ours (the guide says some). The Hero Guard scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/paladin/L4",
+   "name": "Doldanaf's Weapon",
+   "giver": "Spellsmith Doldanaf",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/paladin/L3"
+   ],
+   "offer": "I will craft you a weapon if you bring me a cracked snake fang, a chipped raven beak, a block of ore from Armorer Origson and a crafted handle from Merchant Erfila.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Grass Snake",
+     "items": [
+      {
+       "item": "cracked snake fang",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill snakes for a cracked snake fang."
+    },
+    {
+     "kind": "loot",
+     "target": "Crow",
+     "items": [
+      {
+       "item": "chipped raven beak",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill crows for a chipped raven beak."
+    },
+    {
+     "kind": "talk",
+     "target": "Armorer Origson",
+     "journal": "Get a block of ore from Armorer Origson.",
+     "says": "A block of ore.",
+     "rewards": {
+      "items": [
+       "block of ore"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Merchant Erfila",
+     "journal": "Get a crafted handle from Merchant Erfila.",
+     "says": "A crafted handle.",
+     "rewards": {
+      "items": [
+       "Crafted Handle"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Spellsmith Doldanaf",
+     "items": [
+      {
+       "item": "cracked snake fang",
+       "count": 1
+      },
+      {
+       "item": "chipped raven beak",
+       "count": 1
+      },
+      {
+       "item": "block of ore",
+       "count": 1
+      },
+      {
+       "item": "Crafted Handle",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the fang, the beak, the ore and the handle to Spellsmith Doldanaf.",
+     "says": "Here is your weapon.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The snakes are the database's grass snakes by the city. The guide does not name the weapon."
+  },
+  {
+   "key": "1-20/moradhim/paladin/L5",
+   "name": "A Frosteye Talisman",
+   "giver": "Doomwalker Gazad",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/paladin/L4"
+   ],
+   "offer": "The Frosteye shamans are to the northwest: follow the mountains north, take the first river west, and scan the hills. Bring me one of their talismans.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Frosteye Shaman",
+     "items": [
+      {
+       "item": "Frosteye Talisman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill a Frosteye shaman northwest of the city for its talisman."
+    },
+    {
+     "kind": "give",
+     "target": "Doomwalker Gazad",
+     "items": [
+      {
+       "item": "Frosteye Talisman",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the talisman to Doomwalker Gazad.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Lay Hands"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 5; github.com/Jadiction/EQOA-Data). The Lay Hands scroll is the class's level 5 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/paladin/L7",
+   "name": "The Red Eyed Monster",
+   "giver": "Doomwalker Foria",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/paladin/L5"
+   ],
+   "offer": "Logger Kripps, in the house on the road outside the city, has a problem. Help him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Logger Kripps",
+     "journal": "Find Logger Kripps in his house on the road outside the city.",
+     "says": "The Red Eyed Monster, across the river northwest of town, by the frozen lake behind the lone guard. Bring me its eye."
+    },
+    {
+     "kind": "loot",
+     "target": "Red Eyed Monster",
+     "items": [
+      {
+       "item": "Red Eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Red Eyed Monster by the frozen lake northwest of town for its eye."
+    },
+    {
+     "kind": "loot",
+     "target": "Red Eyed Monster",
+     "items": [
+      {
+       "item": "Axelogger Family Ring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the Axelogger family ring from the Red Eyed Monster."
+    },
+    {
+     "kind": "give",
+     "target": "Logger Kripps",
+     "items": [
+      {
+       "item": "Red Eye",
+       "count": 1
+      },
+      {
+       "item": "Axelogger Family Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the eye and the Axelogger family ring to Logger Kripps.",
+     "says": "My family's ring! Take the eye to Foria.",
+     "rewards": {
+      "items": [
+       "Red Eye"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Doomwalker Foria",
+     "items": [
+      {
+       "item": "Red Eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the monster's eye to Doomwalker Foria.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Protectorate"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Red Eyed Monster"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 7; github.com/Jadiction/EQOA-Data). The Red Eyed Monster is not in the database. The Protectorate scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/paladin/L10",
+   "name": "Diren's Hold",
+   "giver": "Doomwalker Foria",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/paladin/L5"
+   ],
+   "offer": "Brenn Raven in Diren's Hold, west of Moradhim, all the way back on the second floor of the fort's tower, needs a paladin.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brenn Raven",
+     "journal": "Find Brenn Raven in Diren's Hold, second floor of the tower.",
+     "says": "Frosteye lurkers northeast of the Hold, by the small river. Bring me a blow gun off one."
+    },
+    {
+     "kind": "loot",
+     "target": "Frosteye Lurker",
+     "items": [
+      {
+       "item": "Frosteye Blow Gun",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill Frosteye lurkers northeast of Diren's Hold for a blow gun."
+    },
+    {
+     "kind": "give",
+     "target": "Brenn Raven",
+     "items": [
+      {
+       "item": "Frosteye Blow Gun",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the blow gun to Brenn Raven.",
+     "says": "Now see Jarvan Tember atop the tall hill by the fort."
+    },
+    {
+     "kind": "talk",
+     "target": "Jarvan Tember",
+     "journal": "Find Jarvan Tember atop the tall hill by Diren's Hold.",
+     "says": "Three marauders in the dark tower east of the Hold keep a key. Get it and set Amber free."
+    },
+    {
+     "kind": "loot",
+     "target": "Frosteye Marauder",
+     "items": [
+      {
+       "item": "Marauders' Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the marauders in the dark tower east of Diren's Hold for their key."
+    },
+    {
+     "kind": "talk",
+     "target": "Amber",
+     "journal": "Set Amber, the little wolf, free."
+    },
+    {
+     "kind": "talk",
+     "target": "Jarvan Tember",
+     "journal": "Return to Jarvan Tember.",
+     "says": "Amber is free. Thank you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Frosteye Lurker",
+    "creature: Frosteye Marauder",
+    "npc: Amber"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 10; github.com/Jadiction/EQOA-Data). Doomseeker Foria is Doomwalker Foria, Bren Raven is Brenn Raven, Jargon is Jarvan Tember. The Frosteye lurkers are not in the database. The Frosteye marauders and Amber, the little wolf they hold, are not in the database. It follows L5: L7 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/moradhim/paladin/L13",
+   "name": "The Oversized Claw",
+   "giver": "Doomwalker Foria",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/paladin/L5"
+   ],
+   "offer": "Go south from the coach to Baga Village and kill its guards at the gate until one drops an oversized claw. Bring it here.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "baga guard",
+     "items": [
+      {
+       "item": "Oversized Claw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill the guards at the gate of Baga Village until one drops an oversized claw."
+    },
+    {
+     "kind": "give",
+     "target": "Doomwalker Foria",
+     "items": [
+      {
+       "item": "Oversized Claw",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the oversized claw to Doomwalker Foria.",
+     "says": "Now find the Enclave of the Bear: follow the south mountain behind Baga to the cave entrance by the ranger tree-tower. Bring 225 tunar."
+    },
+    {
+     "kind": "reach",
+     "x": 15324,
+     "y": 81,
+     "z": 11373,
+     "radius": 25,
+     "journal": "Find the Enclave of the Bear's cave and the halfling held prisoner there.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Deep in the Enclave of the Bear, a halfling held prisoner tells you of the Sensei monks of the Seisen monastery."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Doomwalker Foria",
+     "journal": "Return to Doomwalker Foria.",
+     "says": "The Sensei monks... that is worth knowing.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Towering Wall"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not name the Enclave of the Bear's man who sends you to the halfling prisoner, nor is the prisoner in the database: the visit is a reach step at EQOA-Data's map's place, and the bet is left out. The Towering Wall scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10 before it are drafts until its names are in the database."
+  },
+  {
+   "key": "1-20/moradhim/paladin/L15",
+   "name": "Kairan of Chiasta",
+   "giver": "Doomwalker Foria",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/paladin/L13"
+   ],
+   "offer": "Kairan, in the hidden village of Chiasta east of Moradhim, past the lake and through the tunnel, needs someone he can trust. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Kaiaren",
+     "journal": "Find Kairan in Chiasta, in the oriental-looking building south of the tunnel.",
+     "says": "Bring me a Seisen Gi from a voidfist or an ironskin of the Seisen monastery, and I will trust you."
+    },
+    {
+     "kind": "loot",
+     "target": "seisen ironskin",
+     "items": [
+      {
+       "item": "Seisen Gi",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill voidfists or ironskins in the Seisen monastery until one drops a Seisen Gi."
+    },
+    {
+     "kind": "give",
+     "target": "Kaiaren",
+     "items": [
+      {
+       "item": "Seisen Gi",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Seisen Gi to Kairan.",
+     "says": "Take this key to the arcane chest at the bottom of the monastery and bring me what it holds.",
+     "rewards": {
+      "items": [
+       "Arcane Chest Key"
+      ]
+     }
+    },
+    {
+     "kind": "reach",
+     "x": 16155,
+     "y": 133,
+     "z": 8400,
+     "radius": 15,
+     "journal": "Open the arcane chest at the bottom of the Seisen monastery.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The key turns, and the arcane chest opens."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Contents of the Arcane Chest",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Kaiaren",
+     "items": [
+      {
+       "item": "Contents of the Arcane Chest",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the chest's contents to Kairan.",
+     "says": "Take this letter to Doomwalker Foria.",
+     "rewards": {
+      "items": [
+       "Letter from Kairan"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Doomwalker Foria",
+     "items": [
+      {
+       "item": "Letter from Kairan",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Kairan's letter to Doomwalker Foria.",
+     "says": "You have done well.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Knight's Bash"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 15; github.com/Jadiction/EQOA-Data). Kairan is the database's Kaiaren. The Seisen Gi is the database's; the ironskins (or voidfists) both wear it, and the ironskins stand for both. The chest's place is EQOA-Data's map's; the key is not taken there (a reach step takes no items). The Knight's Bash scroll is the class's level 15 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/paladin/L20",
+   "name": "The Orb of Parathior",
+   "giver": "Ungrist the Prophet",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/paladin/L15"
+   ],
+   "offer": "Elder Joram, in the bank of Halas, has a task worthy of you. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Find Elder Joram in the bank of Halas.",
+     "says": "The Orb of Parathior lies in King Ickcil's throne room, in the Freezeblood goblins' underwater caves west of Halas. Kill his treasurer for the key and bring me the orb."
+    },
+    {
+     "kind": "loot",
+     "target": "Freezeblood Treasurer",
+     "items": [
+      {
+       "item": "Freezeblood Treasurer's Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Fight through the Freezeblood caves to King Ickcil's throne room until the treasurer appears; take his key."
+    },
+    {
+     "kind": "give",
+     "target": "Parathoir Chest",
+     "items": [
+      {
+       "item": "Freezeblood Treasurer's Key",
+       "count": 1
+      }
+     ],
+     "journal": "Open King Ickcil's locked chest with the treasurer's key.",
+     "rewards": {
+      "items": [
+       "Orb of Parathior"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Elder Joram",
+     "items": [
+      {
+       "item": "Orb of Parathior",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Orb of Parathior to Elder Joram.",
+     "says": "Belgar Karakson in Moradhim's residential district knows how to destroy it.",
+     "rewards": {
+      "items": [
+       "Orb of Parathior"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Belgar Karakson",
+     "journal": "Find Belgar Karakson in the last house on the right of Moradhim's residential district.",
+     "says": "Bring me the two pages of Karak's research the orcs of the Druk keep."
+    },
+    {
+     "kind": "loot",
+     "target": "orc acolyte",
+     "items": [
+      {
+       "item": "Karak's Research, Page 1",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill orc acolytes at the bottom of the caves in the Druk for the first page of Karak's research."
+    },
+    {
+     "kind": "loot",
+     "target": "orc prophet",
+     "items": [
+      {
+       "item": "Karak's Research, Page 2",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill orc prophets at the bottom of the caves in the Druk for the second page."
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Return to Elder Joram with the pages.",
+     "says": "Now a goldfeather: kill a Goldfeather aviak by their aerie north of Moradhim's coach."
+    },
+    {
+     "kind": "loot",
+     "target": "golfeather aviak",
+     "items": [
+      {
+       "item": "Goldfeather",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill a Goldfeather aviak by the Goldfeather aerie for a goldfeather."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Joram",
+     "items": [
+      {
+       "item": "Goldfeather",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the goldfeather to Elder Joram.",
+     "says": "I will send you to the lava tubes of Mt. Hatespike. Crush the feather over the orb and drop it in.",
+     "rewards": {
+      "items": [
+       "Goldfeather"
+      ]
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 12914,
+       "y": 176,
+       "z": 11330
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 12914,
+     "y": 176,
+     "z": 11330,
+     "radius": 25,
+     "journal": "Crush the goldfeather over the orb and drop the orb into the lava tubes.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You crush the goldfeather over the Orb of Parathior and drop it into the lava. It is gone."
+      },
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 13460,
+       "y": 56,
+       "z": 4312
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Tell Elder Joram the orb is destroyed.",
+     "says": "Go back to Belgar Karakson with his pages."
+    },
+    {
+     "kind": "give",
+     "target": "Belgar Karakson",
+     "items": [
+      {
+       "item": "Karak's Research, Page 1",
+       "count": 1
+      },
+      {
+       "item": "Karak's Research, Page 2",
+       "count": 1
+      }
+     ],
+     "journal": "Give Belgar Karakson the pages of Karak's research.",
+     "says": "You have earned this.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Freezeblood Treasurer"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 20; github.com/Jadiction/EQOA-Data). The Freezeblood Treasurer is not in the database (King Ickcil's chest is, as the Parathoir Chest). The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
+  },
+  {
+   "key": "1-20/moradhim/rogue/L1",
+   "name": "A Mining Cap",
+   "giver": "Foreman Druza",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Go to Merchant Erfila and get yourself a mining cap. It costs nothing.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Erfila",
+     "journal": "Get a mining cap from Merchant Erfila.",
+     "says": "One mining cap.",
+     "rewards": {
+      "items": [
+       "Mining Cap"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Foreman Druza",
+     "items": [
+      {
+       "item": "Mining Cap",
+       "count": 1
+      }
+     ],
+     "journal": "Show the mining cap to Foreman Druza.",
+     "says": "Now you look like a miner.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 1; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/moradhim/rogue/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Foreman Stolgo",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/rogue/L1"
+   ],
+   "offer": "Talk to Spiritmaster Lesha; she will bind you and send you on to Coachman Doba.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Lesha",
+     "journal": "Talk to Spiritmaster Lesha to be bound.",
+     "says": "Now go and see Coachman Doba."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Doba",
+     "journal": "Talk to Coachman Doba.",
+     "says": "Back to Stolgo."
+    },
+    {
+     "kind": "talk",
+     "target": "Foreman Stolgo",
+     "journal": "Return to Foreman Stolgo.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 2; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/moradhim/rogue/L3",
+   "name": "Smithing Stones",
+   "giver": "Foreman Stolgo",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/rogue/L2"
+   ],
+   "offer": "Head to the quarry, hunt the rats there, and bring me three smithing stones.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Rat",
+     "items": [
+      {
+       "item": "Smithing Stone",
+       "count": 1
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Hunt rats in the quarry for three smithing stones."
+    },
+    {
+     "kind": "give",
+     "target": "Foreman Stolgo",
+     "items": [
+      {
+       "item": "Smithing Stone",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three smithing stones to Foreman Stolgo.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Sneak"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 3; github.com/Jadiction/EQOA-Data). Foreman Stolga is Foreman Stolgo. The Sneak scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/rogue/L4",
+   "name": "Tarnin's Weapon",
+   "giver": "Miner Tarnin",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/rogue/L3"
+   ],
+   "offer": "I will make you a new weapon if you bring me a block of ore from Armorer Origson, a crafted handle from Merchant Erfila, a cracked snake fang and a smashed badger eye.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Armorer Origson",
+     "journal": "Get a block of ore from Armorer Origson.",
+     "says": "A block of ore.",
+     "rewards": {
+      "items": [
+       "block of ore"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Merchant Erfila",
+     "journal": "Get a crafted handle from Merchant Erfila.",
+     "says": "A crafted handle.",
+     "rewards": {
+      "items": [
+       "Crafted Handle"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Grass Snake",
+     "items": [
+      {
+       "item": "cracked snake fang",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill snakes for a cracked snake fang."
+    },
+    {
+     "kind": "loot",
+     "target": "Badger",
+     "items": [
+      {
+       "item": "Smashed Badger Eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill badgers for a smashed badger eye."
+    },
+    {
+     "kind": "give",
+     "target": "Miner Tarnin",
+     "items": [
+      {
+       "item": "block of ore",
+       "count": 1
+      },
+      {
+       "item": "Crafted Handle",
+       "count": 1
+      },
+      {
+       "item": "cracked snake fang",
+       "count": 1
+      },
+      {
+       "item": "Smashed Badger Eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ore, the handle, the fang and the eye to Miner Tarnin.",
+     "says": "Here is your weapon.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon."
+  },
+  {
+   "key": "1-20/moradhim/rogue/L5",
+   "name": "The Frosteye Shamans",
+   "giver": "Foreman Stolgo",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/rogue/L4"
+   ],
+   "offer": "Slay the Frosteye shamans in the area: northwest along the mountains, scan the hills past the first river.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Frosteye Shaman",
+     "count": 1,
+     "journal": "Slay a Frosteye shaman northwest of Moradhim."
+    },
+    {
+     "kind": "talk",
+     "target": "Foreman Stolgo",
+     "journal": "Return to Foreman Stolgo.",
+     "says": "Good work.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Quick Blade"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 5; github.com/Jadiction/EQOA-Data). One is ours. Foreman Stolga is Foreman Stolgo. The Quick Blade scroll is the class's level 5 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/rogue/L7",
+   "name": "The Red Eyed Monster",
+   "giver": "Foreman Druza",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/rogue/L5"
+   ],
+   "offer": "Logger Kripps, in the house on the road outside the city, has a problem. Help him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Logger Kripps",
+     "journal": "Find Logger Kripps in his house on the road outside the city.",
+     "says": "The Red Eyed Monster, northwest of town across the river. Bring me its eye."
+    },
+    {
+     "kind": "loot",
+     "target": "Red Eyed Monster",
+     "items": [
+      {
+       "item": "Red Eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Red Eyed Monster northwest of town for its eye."
+    },
+    {
+     "kind": "give",
+     "target": "Logger Kripps",
+     "items": [
+      {
+       "item": "Red Eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the monster's eye to Logger Kripps.",
+     "says": "Tell Druza it's done."
+    },
+    {
+     "kind": "talk",
+     "target": "Foreman Druza",
+     "journal": "Return to Foreman Druza.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Acrobatics"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Red Eyed Monster"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 7; github.com/Jadiction/EQOA-Data). The Red Eyed Monster is not in the database. The guide ends at Logger Kripps: the return to Druza for the reward is ours. The Acrobatics scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/rogue/L10",
+   "name": "The Goblin Mines",
+   "giver": "Foreman Druza",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/rogue/L5"
+   ],
+   "offer": "Brenn Raven in Diren's Hold, west of Moradhim, on the second floor of the fort's tower, needs someone quick and quiet.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brenn Raven",
+     "journal": "Find Brenn Raven in Diren's Hold, second floor of the tower.",
+     "says": "The goblins set three mines along the river from the dam. Disable them and bring me their springs."
+    },
+    {
+     "kind": "reach",
+     "x": 13381,
+     "y": 40,
+     "z": 8207,
+     "radius": 12,
+     "journal": "Disable the first mine, at the dam.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You work the spring free of the mine. A goblin comes at you!"
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Freezeblood brawler"
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Mine Spring",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 13413,
+     "y": 41,
+     "z": 8207,
+     "radius": 12,
+     "journal": "Disable the second mine up the small river.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You work the spring free of the second mine. Another goblin attacks!"
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Freezeblood brawler"
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Mine Spring",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 13443,
+     "y": 40,
+     "z": 8204,
+     "radius": 12,
+     "journal": "Disable the third mine.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The third mine is harmless now. One more goblin!"
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Freezeblood brawler"
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Mine Spring",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Brenn Raven",
+     "items": [
+      {
+       "item": "Mine Spring",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three springs to Brenn Raven.",
+     "says": "Now see Jarvan Tember atop the tall hill by the fort."
+    },
+    {
+     "kind": "talk",
+     "target": "Jarvan Tember",
+     "journal": "Find Jarvan Tember atop the tall hill by Diren's Hold.",
+     "says": "Three marauders in the dark tower east of the Hold keep a key. Get it and set Amber free."
+    },
+    {
+     "kind": "loot",
+     "target": "Frosteye Marauder",
+     "items": [
+      {
+       "item": "Marauders' Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the marauders in the dark tower east of Diren's Hold for their key."
+    },
+    {
+     "kind": "talk",
+     "target": "Amber",
+     "journal": "Set Amber, the little wolf, free."
+    },
+    {
+     "kind": "talk",
+     "target": "Jarvan Tember",
+     "journal": "Return to Jarvan Tember.",
+     "says": "Amber is free. Thank you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Frosteye Marauder",
+    "npc: Amber"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The mines' places are EQOA-Data's map's; the guide's 30 seconds at each is not in, and the goblin that attacks there is a Freezeblood brawler of the Hold's (the guide says a level 10 goblin). The Frosteye marauders and Amber, the little wolf they hold, are not in the database. It follows L5: L7 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/moradhim/rogue/L13",
+   "name": "The Oversized Claw",
+   "giver": "Foreman Druza",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/rogue/L5"
+   ],
+   "offer": "Go south from the coach to Baga Village and kill its guards at the gate until one drops an oversized claw. Bring it here.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "baga guard",
+     "items": [
+      {
+       "item": "Oversized Claw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill the guards at the gate of Baga Village until one drops an oversized claw."
+    },
+    {
+     "kind": "give",
+     "target": "Foreman Druza",
+     "items": [
+      {
+       "item": "Oversized Claw",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the oversized claw to Foreman Druza.",
+     "says": "Now find the Enclave of the Bear: follow the south mountain behind Baga to the cave entrance by the ranger tree-tower. Bring 225 tunar."
+    },
+    {
+     "kind": "reach",
+     "x": 15324,
+     "y": 81,
+     "z": 11373,
+     "radius": 25,
+     "journal": "Find the Enclave of the Bear's cave and the halfling held prisoner there.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Deep in the Enclave of the Bear, a halfling held prisoner tells you of the Sensei monks of the Seisen monastery."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Foreman Druza",
+     "journal": "Return to Foreman Druza.",
+     "says": "The Sensei monks... that is worth knowing.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Night Breath"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not name the Enclave of the Bear's man who sends you to the halfling prisoner, nor is the prisoner in the database: the visit is a reach step at EQOA-Data's map's place, and the bet is left out. The Night Breath scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10 before it are drafts until its names are in the database."
+  },
+  {
+   "key": "1-20/moradhim/rogue/L15",
+   "name": "Kairan of Chiasta",
+   "giver": "Foreman Druza",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/rogue/L13"
+   ],
+   "offer": "Kairan, in the hidden village of Chiasta east of Moradhim, past the lake and through the tunnel, needs someone he can trust. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Kaiaren",
+     "journal": "Find Kairan in Chiasta, in the oriental-looking building south of the tunnel.",
+     "says": "Bring me a Seisen Gi from a voidfist or an ironskin of the Seisen monastery, and I will trust you."
+    },
+    {
+     "kind": "loot",
+     "target": "seisen ironskin",
+     "items": [
+      {
+       "item": "Seisen Gi",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill voidfists or ironskins in the Seisen monastery until one drops a Seisen Gi."
+    },
+    {
+     "kind": "give",
+     "target": "Kaiaren",
+     "items": [
+      {
+       "item": "Seisen Gi",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Seisen Gi to Kairan.",
+     "says": "Take this key to the arcane chest at the bottom of the monastery and bring me what it holds.",
+     "rewards": {
+      "items": [
+       "Arcane Chest Key"
+      ]
+     }
+    },
+    {
+     "kind": "reach",
+     "x": 16155,
+     "y": 133,
+     "z": 8400,
+     "radius": 15,
+     "journal": "Open the arcane chest at the bottom of the Seisen monastery.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The key turns, and the arcane chest opens."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Contents of the Arcane Chest",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Kaiaren",
+     "items": [
+      {
+       "item": "Contents of the Arcane Chest",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the chest's contents to Kairan.",
+     "says": "Take this letter to Foreman Druza.",
+     "rewards": {
+      "items": [
+       "Letter from Kairan"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Foreman Druza",
+     "items": [
+      {
+       "item": "Letter from Kairan",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Kairan's letter to Foreman Druza.",
+     "says": "You have done well.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Vaulter's Balance"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 15; github.com/Jadiction/EQOA-Data). Kairan is the database's Kaiaren. The Seisen Gi is the database's; the ironskins (or voidfists) both wear it, and the ironskins stand for both. The chest's place is EQOA-Data's map's; the key is not taken there (a reach step takes no items). The Vaulter's Balance scroll is the class's level 15 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/rogue/L20",
+   "name": "The Orb of Parathior",
+   "giver": "Foreman Druza",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/rogue/L15"
+   ],
+   "offer": "Elder Joram, in the bank of Halas, has a task worthy of you. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Find Elder Joram in the bank of Halas.",
+     "says": "The Orb of Parathior lies in King Ickcil's throne room, in the Freezeblood goblins' underwater caves west of Halas. Kill his treasurer for the key and bring me the orb."
+    },
+    {
+     "kind": "loot",
+     "target": "Freezeblood Treasurer",
+     "items": [
+      {
+       "item": "Freezeblood Treasurer's Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Fight through the Freezeblood caves to King Ickcil's throne room until the treasurer appears; take his key."
+    },
+    {
+     "kind": "give",
+     "target": "Parathoir Chest",
+     "items": [
+      {
+       "item": "Freezeblood Treasurer's Key",
+       "count": 1
+      }
+     ],
+     "journal": "Open King Ickcil's locked chest with the treasurer's key.",
+     "rewards": {
+      "items": [
+       "Orb of Parathior"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Elder Joram",
+     "items": [
+      {
+       "item": "Orb of Parathior",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Orb of Parathior to Elder Joram.",
+     "says": "Belgar Karakson in Moradhim's residential district knows how to destroy it.",
+     "rewards": {
+      "items": [
+       "Orb of Parathior"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Belgar Karakson",
+     "journal": "Find Belgar Karakson in the last house on the right of Moradhim's residential district.",
+     "says": "Bring me the two pages of Karak's research the orcs of the Druk keep."
+    },
+    {
+     "kind": "loot",
+     "target": "orc acolyte",
+     "items": [
+      {
+       "item": "Karak's Research, Page 1",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill orc acolytes at the bottom of the caves in the Druk for the first page of Karak's research."
+    },
+    {
+     "kind": "loot",
+     "target": "orc prophet",
+     "items": [
+      {
+       "item": "Karak's Research, Page 2",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill orc prophets at the bottom of the caves in the Druk for the second page."
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Return to Elder Joram with the pages.",
+     "says": "Now a goldfeather: kill a Goldfeather aviak by their aerie north of Moradhim's coach."
+    },
+    {
+     "kind": "loot",
+     "target": "golfeather aviak",
+     "items": [
+      {
+       "item": "Goldfeather",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill a Goldfeather aviak by the Goldfeather aerie for a goldfeather."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Joram",
+     "items": [
+      {
+       "item": "Goldfeather",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the goldfeather to Elder Joram.",
+     "says": "I will send you to the lava tubes of Mt. Hatespike. Crush the feather over the orb and drop it in.",
+     "rewards": {
+      "items": [
+       "Goldfeather"
+      ]
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 12914,
+       "y": 176,
+       "z": 11330
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 12914,
+     "y": 176,
+     "z": 11330,
+     "radius": 25,
+     "journal": "Crush the goldfeather over the orb and drop the orb into the lava tubes.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You crush the goldfeather over the Orb of Parathior and drop it into the lava. It is gone."
+      },
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 13460,
+       "y": 56,
+       "z": 4312
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Tell Elder Joram the orb is destroyed.",
+     "says": "Go back to Belgar Karakson with his pages."
+    },
+    {
+     "kind": "give",
+     "target": "Belgar Karakson",
+     "items": [
+      {
+       "item": "Karak's Research, Page 1",
+       "count": 1
+      },
+      {
+       "item": "Karak's Research, Page 2",
+       "count": 1
+      }
+     ],
+     "journal": "Give Belgar Karakson the pages of Karak's research.",
+     "says": "You have earned this.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Freezeblood Treasurer"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). The Freezeblood Treasurer is not in the database (King Ickcil's chest is, as the Parathoir Chest). The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
+  },
+  {
+   "key": "1-20/moradhim/warrior/L1",
+   "name": "A Recruit Tunic",
+   "giver": "Field General Oxfist",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Every recruit gets a tunic. Merchant Dora will give you one for nothing.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Dora",
+     "journal": "Get a recruit tunic from Merchant Dora.",
+     "says": "One recruit tunic.",
+     "rewards": {
+      "items": [
+       "Recruit Tunic"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Field General Oxfist",
+     "items": [
+      {
+       "item": "Recruit Tunic",
+       "count": 1
+      }
+     ],
+     "journal": "Show the recruit tunic to General Oxfist.",
+     "says": "Good. Report to Sergeant Fortug.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 1; github.com/Jadiction/EQOA-Data). General Oxfist is the database's Field General Oxfist."
+  },
+  {
+   "key": "1-20/moradhim/warrior/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Sergeant Fortug",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/warrior/L1"
+   ],
+   "offer": "See Spiritmaster Codwin to be bound, then Coachman Doba. Report back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Codwin",
+     "journal": "See Spiritmaster Codwin to be bound.",
+     "says": "Now go and see Coachman Doba."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Doba",
+     "journal": "See Coachman Doba.",
+     "says": "Back to Fortug with you."
+    },
+    {
+     "kind": "talk",
+     "target": "Sergeant Fortug",
+     "journal": "Return to Sergeant Fortug.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 2; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/moradhim/warrior/L3",
+   "name": "Rat Fur",
+   "giver": "Sergeant Fortug",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/warrior/L2"
+   ],
+   "offer": "Learn how to fight: head out of town, kill rats, and come back when you have three strands of rat fur.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Rat",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 1
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Kill rats outside Moradhim for three strands of rat fur."
+    },
+    {
+     "kind": "give",
+     "target": "Sergeant Fortug",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three strands of rat fur to Sergeant Fortug.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Kick"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 3; github.com/Jadiction/EQOA-Data). The Kick scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/warrior/L4",
+   "name": "Gordison's Weapon",
+   "giver": "Sergeant Gordison",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/warrior/L3"
+   ],
+   "offer": "I will fashion you a new weapon. Bring me a block of ore from Armorer Origson, a leather strip from Tailor Chloe, a ruined bat wing and a flattened tarantula eye from any spider.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Armorer Origson",
+     "journal": "Get a block of ore from Armorer Origson.",
+     "says": "A block of ore.",
+     "rewards": {
+      "items": [
+       "block of ore"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Tailor Chloe",
+     "journal": "Get a leather strip from Tailor Chloe.",
+     "says": "A leather strip.",
+     "rewards": {
+      "items": [
+       "leather strip"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Bat",
+     "items": [
+      {
+       "item": "ruined bat wing",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill bats for a ruined bat wing."
+    },
+    {
+     "kind": "loot",
+     "target": "Spider",
+     "items": [
+      {
+       "item": "flattened tarantula eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill spiders for a flattened tarantula eye."
+    },
+    {
+     "kind": "give",
+     "target": "Sergeant Gordison",
+     "items": [
+      {
+       "item": "block of ore",
+       "count": 1
+      },
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "ruined bat wing",
+       "count": 1
+      },
+      {
+       "item": "flattened tarantula eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ore, the strip, the wing and the eye to Sergeant Gordison.",
+     "says": "Here is your weapon.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The database has no bats near Moradhim (the nearest are some 3,500 away). The guide does not name the weapon."
+  },
+  {
+   "key": "1-20/moradhim/warrior/L5",
+   "name": "The Frosteye Shamans",
+   "giver": "Sergeant Fortug",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/warrior/L4"
+   ],
+   "offer": "Slay the Frosteye shamans in the area: north-northwest along the mountain, west along the first river, scan the hilltops.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Frosteye Shaman",
+     "count": 1,
+     "journal": "Slay a Frosteye shaman northwest of Moradhim."
+    },
+    {
+     "kind": "talk",
+     "target": "Sergeant Fortug",
+     "journal": "Return to Sergeant Fortug.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Taunt"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 5; github.com/Jadiction/EQOA-Data). One is ours. The Taunt scroll is the class's level 5 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/warrior/L7",
+   "name": "The Red Eyed Rat",
+   "giver": "Lieutenant Adessa",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/warrior/L5"
+   ],
+   "offer": "Logger Kripps, on the second floor of the first little house west of Coachman Doba, has a monster problem. Help him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Logger Kripps",
+     "journal": "Find Logger Kripps west of Coachman Doba.",
+     "says": "The Red Eyed Monster. Find the lone guard past the first river to the north-northwest."
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Reigald",
+     "journal": "Find the lone guard past the first river north-northwest of Moradhim.",
+     "says": "Kill the monster, a red-eyed rat. It is close by."
+    },
+    {
+     "kind": "loot",
+     "target": "Red Eyed Monster",
+     "items": [
+      {
+       "item": "Red Eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the red-eyed rat near the guard and loot it."
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Reigald",
+     "journal": "Talk to the guard again.",
+     "says": "Go back to your lieutenant."
+    },
+    {
+     "kind": "talk",
+     "target": "Lieutenant Adessa",
+     "journal": "Return to Lieutenant Adessa.",
+     "says": "Take the eye to Kripps."
+    },
+    {
+     "kind": "give",
+     "target": "Logger Kripps",
+     "items": [
+      {
+       "item": "Red Eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the eye to Logger Kripps.",
+     "says": "Thank you. Tell Adessa."
+    },
+    {
+     "kind": "talk",
+     "target": "Lieutenant Adessa",
+     "journal": "Return to Lieutenant Adessa.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Furious Defense"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Red Eyed Monster",
+    "npc: Guard Reigald"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 7; github.com/Jadiction/EQOA-Data). The guard is EQOA-Data's map's Guard Reigald (the guide is unsure of the spelling); he is not in the database. The Red Eyed Monster is not in the database. The Furious Defense scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/warrior/L10",
+   "name": "The Dam",
+   "giver": "Lieutenant Adessa",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/warrior/L5"
+   ],
+   "offer": "Brenn Raven in Diren's Hold, west of Moradhim, on the second floor of the fort's tower, needs a warrior.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brenn Raven",
+     "journal": "Find Brenn Raven in Diren's Hold, second floor of the tower.",
+     "says": "Goblin sappers north of the Hold mean to destroy the dam. Kill one and bring me what it carries."
+    },
+    {
+     "kind": "loot",
+     "target": "Freezeblood Sapper",
+     "items": [
+      {
+       "item": "Goblin Sapper's Charges",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a goblin sapper north of Diren's Hold."
+    },
+    {
+     "kind": "give",
+     "target": "Brenn Raven",
+     "items": [
+      {
+       "item": "Goblin Sapper's Charges",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the sapper's charges to Brenn Raven.",
+     "says": "The dam will hold. Now see Jarvan Tember atop the tall hill by the fort."
+    },
+    {
+     "kind": "talk",
+     "target": "Jarvan Tember",
+     "journal": "Find Jarvan Tember atop the tall hill by Diren's Hold.",
+     "says": "Three marauders in the dark tower east of the Hold keep a key. Get it and set Amber free."
+    },
+    {
+     "kind": "loot",
+     "target": "Frosteye Marauder",
+     "items": [
+      {
+       "item": "Marauders' Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the marauders in the dark tower east of Diren's Hold for their key."
+    },
+    {
+     "kind": "talk",
+     "target": "Amber",
+     "journal": "Set Amber, the little wolf, free."
+    },
+    {
+     "kind": "talk",
+     "target": "Jarvan Tember",
+     "journal": "Return to Jarvan Tember.",
+     "says": "Amber is free. Thank you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Freezeblood Sapper",
+    "creature: Frosteye Marauder",
+    "npc: Amber"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). The goblin sappers are not in the database (EQOA-Data's map calls them Freezeblood Sappers). The Frosteye marauders and Amber, the little wolf they hold, are not in the database. It follows L5: L7 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/moradhim/warrior/L13",
+   "name": "The Oversized Claw",
+   "giver": "Lieutenant Adessa",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/warrior/L5"
+   ],
+   "offer": "Go south from the coach to Baga Village and kill its guards at the gate until one drops an oversized claw. Bring it here.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "baga guard",
+     "items": [
+      {
+       "item": "Oversized Claw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill the guards at the gate of Baga Village until one drops an oversized claw."
+    },
+    {
+     "kind": "give",
+     "target": "Lieutenant Adessa",
+     "items": [
+      {
+       "item": "Oversized Claw",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the oversized claw to Lieutenant Adessa.",
+     "says": "Now find the Enclave of the Bear: follow the south mountain behind Baga to the cave entrance by the ranger tree-tower. Bring 225 tunar."
+    },
+    {
+     "kind": "reach",
+     "x": 15324,
+     "y": 81,
+     "z": 11373,
+     "radius": 25,
+     "journal": "Find the Enclave of the Bear's cave and the halfling held prisoner there.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Deep in the Enclave of the Bear, a halfling held prisoner tells you of the Sensei monks of the Seisen monastery."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Lieutenant Adessa",
+     "journal": "Return to Lieutenant Adessa.",
+     "says": "The Sensei monks... that is worth knowing.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Rapid Strike"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not name the Enclave of the Bear's man who sends you to the halfling prisoner, nor is the prisoner in the database: the visit is a reach step at EQOA-Data's map's place, and the bet is left out. The Rapid Strike scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10 before it are drafts until its names are in the database."
+  },
+  {
+   "key": "1-20/moradhim/warrior/L15",
+   "name": "Kairan of Chiasta",
+   "giver": "Lieutenant Adessa",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/warrior/L13"
+   ],
+   "offer": "Kairan, in the hidden village of Chiasta east of Moradhim, past the lake and through the tunnel, needs someone he can trust. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Kaiaren",
+     "journal": "Find Kairan in Chiasta, in the oriental-looking building south of the tunnel.",
+     "says": "Bring me a Seisen Gi from a voidfist or an ironskin of the Seisen monastery, and I will trust you."
+    },
+    {
+     "kind": "loot",
+     "target": "seisen ironskin",
+     "items": [
+      {
+       "item": "Seisen Gi",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill voidfists or ironskins in the Seisen monastery until one drops a Seisen Gi."
+    },
+    {
+     "kind": "give",
+     "target": "Kaiaren",
+     "items": [
+      {
+       "item": "Seisen Gi",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Seisen Gi to Kairan.",
+     "says": "Take this key to the arcane chest at the bottom of the monastery and bring me what it holds.",
+     "rewards": {
+      "items": [
+       "Arcane Chest Key"
+      ]
+     }
+    },
+    {
+     "kind": "reach",
+     "x": 16155,
+     "y": 133,
+     "z": 8400,
+     "radius": 15,
+     "journal": "Open the arcane chest at the bottom of the Seisen monastery.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The key turns, and the arcane chest opens."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Contents of the Arcane Chest",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Kaiaren",
+     "items": [
+      {
+       "item": "Contents of the Arcane Chest",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the chest's contents to Kairan.",
+     "says": "Take this letter to Lieutenant Adessa.",
+     "rewards": {
+      "items": [
+       "Letter from Kairan"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Lieutenant Adessa",
+     "items": [
+      {
+       "item": "Letter from Kairan",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Kairan's letter to Lieutenant Adessa.",
+     "says": "You have done well.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Stomp"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 15; github.com/Jadiction/EQOA-Data). Kairan is the database's Kaiaren. The Seisen Gi is the database's; the ironskins (or voidfists) both wear it, and the ironskins stand for both. The chest's place is EQOA-Data's map's; the key is not taken there (a reach step takes no items). The Stomp scroll is the class's level 15 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/moradhim/warrior/L20",
+   "name": "The Orb of Parathior",
+   "giver": "Lieutenant Adessa",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/warrior/L15"
+   ],
+   "offer": "Elder Joram, in the bank of Halas, has a task worthy of you. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Find Elder Joram in the bank of Halas.",
+     "says": "The Orb of Parathior lies in King Ickcil's throne room, in the Freezeblood goblins' underwater caves west of Halas. Kill his treasurer for the key and bring me the orb."
+    },
+    {
+     "kind": "loot",
+     "target": "Freezeblood Treasurer",
+     "items": [
+      {
+       "item": "Freezeblood Treasurer's Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Fight through the Freezeblood caves to King Ickcil's throne room until the treasurer appears; take his key."
+    },
+    {
+     "kind": "give",
+     "target": "Parathoir Chest",
+     "items": [
+      {
+       "item": "Freezeblood Treasurer's Key",
+       "count": 1
+      }
+     ],
+     "journal": "Open King Ickcil's locked chest with the treasurer's key.",
+     "rewards": {
+      "items": [
+       "Orb of Parathior"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Elder Joram",
+     "items": [
+      {
+       "item": "Orb of Parathior",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Orb of Parathior to Elder Joram.",
+     "says": "Belgar Karakson in Moradhim's residential district knows how to destroy it.",
+     "rewards": {
+      "items": [
+       "Orb of Parathior"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Belgar Karakson",
+     "journal": "Find Belgar Karakson in the last house on the right of Moradhim's residential district.",
+     "says": "Bring me the two pages of Karak's research the orcs of the Druk keep."
+    },
+    {
+     "kind": "loot",
+     "target": "orc acolyte",
+     "items": [
+      {
+       "item": "Karak's Research, Page 1",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill orc acolytes at the bottom of the caves in the Druk for the first page of Karak's research."
+    },
+    {
+     "kind": "loot",
+     "target": "orc prophet",
+     "items": [
+      {
+       "item": "Karak's Research, Page 2",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill orc prophets at the bottom of the caves in the Druk for the second page."
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Return to Elder Joram with the pages.",
+     "says": "Now a goldfeather: kill a Goldfeather aviak by their aerie north of Moradhim's coach."
+    },
+    {
+     "kind": "loot",
+     "target": "golfeather aviak",
+     "items": [
+      {
+       "item": "Goldfeather",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill a Goldfeather aviak by the Goldfeather aerie for a goldfeather."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Joram",
+     "items": [
+      {
+       "item": "Goldfeather",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the goldfeather to Elder Joram.",
+     "says": "I will send you to the lava tubes of Mt. Hatespike. Crush the feather over the orb and drop it in.",
+     "rewards": {
+      "items": [
+       "Goldfeather"
+      ]
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 12914,
+       "y": 176,
+       "z": 11330
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 12914,
+     "y": 176,
+     "z": 11330,
+     "radius": 25,
+     "journal": "Crush the goldfeather over the orb and drop the orb into the lava tubes.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You crush the goldfeather over the Orb of Parathior and drop it into the lava. It is gone."
+      },
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 13460,
+       "y": 56,
+       "z": 4312
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Tell Elder Joram the orb is destroyed.",
+     "says": "Go back to Belgar Karakson with his pages."
+    },
+    {
+     "kind": "give",
+     "target": "Belgar Karakson",
+     "items": [
+      {
+       "item": "Karak's Research, Page 1",
+       "count": 1
+      },
+      {
+       "item": "Karak's Research, Page 2",
+       "count": 1
+      }
+     ],
+     "journal": "Give Belgar Karakson the pages of Karak's research.",
+     "says": "You have earned this.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Freezeblood Treasurer"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). The Freezeblood Treasurer is not in the database (King Ickcil's chest is, as the Parathoir Chest). The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
+  }
+ ],
+ "items": [
+  {
+   "name": "Arcane Chest Key",
+   "description": "Kairan's key to the arcane chest in the Seisen monastery.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Axelogger Family Ring",
+   "description": "The Axelogger family's ring.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Contents of the Arcane Chest",
+   "description": "What the arcane chest in the Seisen monastery held.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Crafted Handle",
+   "description": "A crafted handle for a new weapon.",
+   "notrade": true,
+   "like": "block of ore"
+  },
+  {
+   "name": "Dwarven Burial Shroud",
+   "description": "The burial shroud a Moradhim paladin wears.",
+   "notrade": true,
+   "like": "acolyte's robe"
+  },
+  {
+   "name": "Freezeblood Treasurer's Key",
+   "description": "The key to King Ickcil's locked chest.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Frosteye Blow Gun",
+   "description": "A blow gun of a Frosteye lurker.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Frosteye Talisman",
+   "description": "A talisman from a Frosteye shaman.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Goblin Alchemist's Cure",
+   "description": "A cure taken from a goblin alchemist.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Goblin Sapper's Charges",
+   "description": "The charges a goblin sapper meant for the dam.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Goldfeather",
+   "description": "A golden feather from a Goldfeather aviak.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Karak's Research, Page 1",
+   "description": "The first page of Karak's research.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Karak's Research, Page 2",
+   "description": "The second page of Karak's research.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Letter from Kairan",
+   "description": "A letter from Kairan of Chiasta.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Marauders' Key",
+   "description": "The key the Frosteye marauders keep.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Mine Spring",
+   "description": "The spring of a goblin mine, disabled.",
+   "notrade": true,
+   "like": "block of ore"
+  },
+  {
+   "name": "Mining Cap",
+   "description": "The mining cap of a Moradhim rogue.",
+   "notrade": true,
+   "like": "acolyte's robe"
+  },
+  {
+   "name": "Orb of Parathior",
+   "description": "The Orb of Parathior, from King Ickcil's chest.",
+   "notrade": true,
+   "like": "flattened tarantula eye"
+  },
+  {
+   "name": "Oversized Claw",
+   "description": "An oversized claw taken from a Baga guard.",
+   "notrade": true,
+   "like": "flattened tarantula eye"
+  },
+  {
+   "name": "Raldir's Note",
+   "description": "A note from Raldir, cured.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Recruit Tunic",
+   "description": "The tunic of a Moradhim recruit.",
+   "notrade": true,
+   "like": "acolyte's robe"
+  },
+  {
+   "name": "Red Eye",
+   "description": "The eye of the Red Eyed Monster.",
+   "notrade": true,
+   "like": "flattened tarantula eye"
+  },
+  {
+   "name": "Slashed Pawn Belt",
+   "description": "A slashed belt from a Frosteye runt.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Smashed Badger Eye",
+   "description": "A smashed badger eye.",
+   "notrade": true,
+   "like": "flattened tarantula eye"
+  },
+  {
+   "name": "Smithing Stone",
+   "description": "A smithing stone from the quarry's rats.",
+   "notrade": true,
+   "like": "block of ore"
+  }
+ ]
+}

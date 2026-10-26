@@ -15,6 +15,63 @@ type Config struct {
 	Patch  PatchConfig  `yaml:"patch"`
 	Auth   AuthConfig   `yaml:"auth"`
 	GM     GMConfig     `yaml:"gm"`
+	Voice  VoiceConfig  `yaml:"voice"`
+}
+
+// VoiceConfig is voice chat (internal/voice): a forwarding server inside
+// the game server that every voice-on client connects to (its group's voice
+// and the lobby's rooms), so no player sees another's address. Off unless
+// Enabled.
+type VoiceConfig struct {
+	Enabled bool `yaml:"enabled"`
+
+	// Port is the media port, UDP and TCP (ICE-TCP for a network that
+	// blocks UDP); unset: 3480. The firewall opens both.
+	Port int `yaml:"port"`
+
+	// PublicIP is the address clients reach the media port at; unset:
+	// server.server_ip.
+	PublicIP string `yaml:"public_ip"`
+
+	// TURN is the optional TURN server, for networks that let a client
+	// reach neither of the media port's.
+	TURN VoiceTURNConfig `yaml:"turn"`
+
+	// CredentialTTL is how long a session's TURN credentials last (unset or
+	// 0: 24h); they are sent again before then.
+	CredentialTTL time.Duration `yaml:"credential_ttl"`
+
+	// Demo is the demo's way in, for clients on a server that offers no
+	// voice (internal/voice/demo.go).
+	Demo VoiceDemoConfig `yaml:"demo"`
+}
+
+// VoiceTURNConfig is the optional TURN server: off unless Port is set.
+type VoiceTURNConfig struct {
+	// Port is its UDP and TCP port.
+	Port int `yaml:"port"`
+
+	// Secret mints and checks the sessions' REST credentials: never in a
+	// file anyone else reads, never committed.
+	Secret string `yaml:"secret"`
+
+	// Realm unset: "eqoa".
+	Realm string `yaml:"realm"`
+
+	// RelayMinPort and RelayMaxPort are its relay ports (unset:
+	// 49400-50399), which the firewall opens to UDP.
+	RelayMinPort int `yaml:"relay_min_port"`
+	RelayMaxPort int `yaml:"relay_max_port"`
+}
+
+// VoiceDemoConfig is the demo: a WebSocket on the account server
+// (/api/voice/demo) into the same forwarding server. Off unless Enabled
+// (and voice too).
+type VoiceDemoConfig struct {
+	Enabled bool `yaml:"enabled"`
+
+	// MaxSessions at once; unset: 100.
+	MaxSessions int `yaml:"max_sessions"`
 }
 
 // GMConfig is the GM panel (internal/gmweb): a web page, and the same work

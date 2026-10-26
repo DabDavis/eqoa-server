@@ -475,6 +475,32 @@ bytes, a body to 3,000. Worked out every second and at once after a quest is tak
 advanced, finished or given up (`saveLocked` nudges the engine's goroutine, `QuestEngine.wake`; the
 marks go out then too), sent only when it differs.
 
+**Voice chat** (2026-10-26; `internal/voice`, `entity/voice.go`, `handlers/voice.go`; the user's
+choices: a group's voice and "a free voice chat lobby, anyone can make a room", push to talk, off until
+a player turns it on, "build the voice sfu into the go-eqoa-server so it is one package"). A forwarding
+server (Pion, audio only) runs inside the game server: every voice-on client holds ONE WebRTC
+connection to it (its microphone sendonly; four recvonly slots on which it hears the four loudest of
+those talking to a channel it shares, a 1.5 s hold; each slot one stream, its SSRC its own, sequence
+numbers and timestamps rewritten across talkers, the talker's voice id the CSRC), so no player sees
+another's address and nothing is decoded. Media on ONE port, `voice.port` (3480): UDP (ICE mux) and
+ICE-TCP on the same number, every candidate naming `voice.public_ip` (unset: `server_ip`); an optional
+TURN server (`voice.turn.port`, pion/turn, REST credentials minted per session under
+`voice.turn.secret`, relaying to the forwarding server ONLY) for networks that allow little else.
+Opcodes in their own block, offered as 0x7E01 is (a PS2 ignores them): **0x7E10** offer / the client's
+flags (bit 0 on), **0x7E11** ICE servers (none without TURN), **0x7E12** roster (bit 0 a groupmate,
+bit 1 in its room), **0x7E13** signaling between the client and the forwarding server (chunked <= 900
+bytes, the client offers, the server says bye when it drops a connection, at a restart too),
+**0x7E14** lobby ops (join name + H + unlisted flag / leave / list), **0x7E15** the listed rooms,
+**0x7E16** a join's result. Rooms: 3-24 printable characters, case-folded, the profanity filter's
+(`ProfaneRoomName`), open or locked by a hash H the client brings (the server never sees a password,
+never logs H, and checks one wrong guess per 2 s), unlisted at its maker's choice, alive while occupied
+and 60 s after. A group is channel "g:<id>", kept in step every 5 ticks; leaving the world leaves the
+voice. **The demo** (`voice.demo.enabled`): the account server's `/api/voice/demo` WebSocket, JSON, for
+vanilla clients on a server without voice (Sandstorm); they vouch for themselves ("d:" channels, names
+shown " (demo)"), 100 at once and 4 an address (a /64), idle 10 minutes closed, sharing the lobby with
+the game's players. The wire formats are in `protocol/opcodes.go` and `internal/voice`'s comments; the
+TURN secret lives only in the live `config.yaml`.
+
 **Effects channel (0x43) is as long as its count**: a u32 count and a 132-byte record an effect (icon DictID, name as a wide string of at most 31 characters), 4 bytes when there is none, as CLIENT's `Channel43` reads it and every value in the captures is (136 to 796 bytes). It is the one state channel that changes length (`StateUpdateData.SetSizedData`; DRDP XORs over the shorter of a message and its reference). `#effect <icon hex> [name]` / `#effect clear` sets them by hand: nothing else puts an effect on yet.
 
 ## Configuration
@@ -490,6 +516,25 @@ server:
 ```
 
 `server_ip` used by: `internal/handlers/server.go` (server list), `internal/network/tcp/patchserver.go` (patch XML).
+
+Voice (internal/voice; off unless enabled; the firewall opens UDP and TCP on `port`, and with TURN
+on `turn.port` too, plus UDP on its relay ports):
+
+```yaml
+voice:
+  enabled: true
+  port: 3480              # the media port, UDP and TCP, on server.bind_address
+  public_ip: ""           # unset: server.server_ip
+  turn:                   # optional TURN server: off unless port is set
+    port: 3481
+    secret: "<never committed>"
+    relay_min_port: 49400 # unset: 49400-50399
+    relay_max_port: 50399
+  credential_ttl: 24h
+  demo:
+    enabled: false        # the account server's /api/voice/demo
+    max_sessions: 100
+```
 
 ### The patch manifest is a FOLDER
 

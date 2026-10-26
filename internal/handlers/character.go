@@ -690,6 +690,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	SendQuestMarkersOffer(sess)
 	// and the quest tracker for the HUD (questprogress.go)
 	SendQuestProgressOffer(sess)
+	// Offer group voice (voice.go) when this server has it: a client whose
+	// player turned it on asks for it, a PS2 ignores it
+	SendVoiceOffer(sess)
 
 	// The four weapon sets (gearsets.go): SOE's live client reads them, a PS2
 	// skips them

@@ -85,6 +85,10 @@ type Server struct {
 	// public is gm.public_url parsed; nil when unset (http on Bind:Port).
 	public *url.URL
 
+	// preview is gm.preview_url parsed: the spell-visual preview the Spell
+	// visuals page frames; nil when unset.
+	preview *url.URL
+
 	srv     *http.Server
 	started time.Time
 	build   string
@@ -165,6 +169,13 @@ func New(d Deps) (*Server, error) {
 			return nil, fmt.Errorf("gm.public_url %q is not an http(s) URL", cfg.PublicURL)
 		}
 		s.public = u
+	}
+	if cfg.PreviewURL != "" {
+		u, err := url.Parse(cfg.PreviewURL)
+		if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" || u.User != nil {
+			return nil, fmt.Errorf("gm.preview_url %q is not an http(s) URL", cfg.PreviewURL)
+		}
+		s.preview = u
 	}
 	if err := s.initSchema(); err != nil {
 		return nil, err
@@ -249,6 +260,16 @@ func (s *Server) Stop() {
 	}
 }
 
+// frameSrc is the CSP's frame-src: the spell-visual preview's origin alone
+// (gm.preview_url), framed by the Spell visuals page; else nothing may be
+// framed (default-src 'self' would allow the panel's own pages).
+func (s *Server) frameSrc() string {
+	if s.preview == nil {
+		return "frame-src 'none'; "
+	}
+	return "frame-src " + s.preview.Scheme + "://" + s.preview.Host + "; "
+}
+
 // secure sets the headers every answer carries, and refuses an oversized body.
 func (s *Server) secure(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -259,7 +280,7 @@ func (s *Server) secure(next http.Handler) http.Handler {
 		h.Set("Cross-Origin-Opener-Policy", "same-origin")
 		h.Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; "+
 			"img-src 'self' data: blob:; connect-src 'self'; worker-src 'self' blob:; "+
-			"frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'")
+			s.frameSrc()+"frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'")
 		if s.public != nil && s.public.Scheme == "https" {
 			h.Set("Strict-Transport-Security", "max-age=63072000")
 		}

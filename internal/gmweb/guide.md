@@ -177,7 +177,10 @@ with the row before and after, and `revert_change` undoes a row change.
   revertible; `visual_uses` lists the visuals given so far. The page's Spell visuals lists every visual on
   the GM's disc (238 on the Frontiers disc); an agent has only the DictIDs it is told or reads in rows.
   The same in the game's chat line: `#fx <visual> [seconds]`, `#fx <spell>`, `#spellfx <spell> [<visual> | 0]`
-  (their changes are in `audit_log` too, through "game").
+  (their changes are in `audit_log` too, through "game"). The page also has a Preview (when the server sets
+  one up): a human casting the visual off the GM's disc, at a training dummy for a harmful spell (`spell_visual`'s
+  `harmful`), else on itself; a person watching it can say which visual is right without logging in. An agent
+  cannot see it: ask the person.
 - **Make a potion**: `clone_row` a potion of the same kind on `itempattern` (a draught, a thrown Unstable Potion:
   their icons and wear are the game's), rename it, then `insert_row` its use into `itemeffect`:
   `{patternid, line: "Self, Decrease Hitpoints by 40, Increase Power per tic by 50, 18sec"}` (a draught),

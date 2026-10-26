@@ -82,7 +82,9 @@ edits every table, with the running world kept in step (an NPC edited is changed
 stands), every change audited and revertible. An AI agent (ChatGPT, Claude, Codex, any MCP
 client) can sign in as a GM through OAuth at `<public_url>/mcp`, or use a GM's token with the
 OpenAPI description at `<public_url>/api/openapi.json`. The map and the 3D models are drawn in
-the browser from the GM's own disc image; the server holds no game data.
+the browser from the GM's own disc image; the server holds no game data. With `gm.preview_url`
+the Spell visuals page frames a preview (eqoa-rust-client-vanilla's `web/fxview.html`): a human
+casting a visual as the game plays a cast, off the same disc, without logging in.
 
 Put it on a host name of its own (`gm.example.org`) behind TLS: then no other page shares its
 origin, and its session is a `__Host-` cookie. The admin's tools (raw SQL, settings, backups, a

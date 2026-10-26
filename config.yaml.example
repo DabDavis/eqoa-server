@@ -192,3 +192,11 @@ gm:
   # many requests a minute.
   # session_idle: 2h
   # token_rate: 240
+
+  # The spell-visual preview the Spell visuals page frames: a human casting a
+  # visual as the game plays a cast's 0x00B1, off the GM's own disc, so a
+  # visual can be tried without logging in. It is eqoa-rust-client-vanilla's
+  # web/fxview.html, served with its play page; that host must let this panel
+  # frame it (nginx: Content-Security-Policy "frame-ancestors <public_url's
+  # origin>" on that one file). Empty: no preview.
+  # preview_url: "https://example.org/eqoa/play/fxview.html"

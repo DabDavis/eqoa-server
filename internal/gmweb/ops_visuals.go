@@ -79,6 +79,9 @@ func visualJSON(v handlers.SpellVisual) map[string]any {
 	out := map[string]any{
 		"spellid": v.SpellID, "name": v.Name, "level": v.Level, "castSeconds": v.CastTime.Seconds(),
 		"plays": handlers.Hex32(v.Plays), "summary": v.Describe(),
+		// cast at an enemy (the preview's target: a training dummy), and whom
+		// its line lands on
+		"harmful": v.Harmful, "target": v.Target,
 	}
 	if v.Own != 0 {
 		out["own"] = handlers.Hex32(v.Own)

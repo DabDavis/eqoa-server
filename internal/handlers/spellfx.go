@@ -57,6 +57,28 @@ type SpellVisual struct {
 	// StandIn is the stand-in's kind ("heal", "damage", "buff") when it
 	// plays one, else ""
 	StandIn string
+	// Harmful is its line cast at an enemy (entity.SpellDef.Harmful, the
+	// cast's own test), and Target whom it lands on, its line's first word:
+	// "target", "self", "group", "pet" or "target undead". The panel's
+	// preview stands a training dummy before the caster for a harmful one
+	// and casts anything else on the caster.
+	Harmful bool
+	Target  string
+}
+
+// targetWord is a line's target word as the line writes it.
+func targetWord(t entity.SpellTarget) string {
+	switch t {
+	case entity.TargetSelf:
+		return "self"
+	case entity.TargetGroup:
+		return "group"
+	case entity.TargetPet:
+		return "pet"
+	case entity.TargetUndead:
+		return "target undead"
+	}
+	return "target"
 }
 
 // Describe is the spell's visual in a line: "Ward Death (333): visual
@@ -79,9 +101,10 @@ func SpellVisualOf(r spellVisualReader, spellID int) (SpellVisual, error) {
 	if err != nil {
 		return SpellVisual{}, err
 	}
-	v := SpellVisual{SpellID: sp.SpellID, Name: sp.SpellName, Level: sp.AbilityLvl, CastTime: time.Duration(sp.CastTime) * time.Second, Own: fx, Plays: fx}
+	d := entity.ParseSpellNamed(sp.SpellName, line, sp.SpellDesc)
+	v := SpellVisual{SpellID: sp.SpellID, Name: sp.SpellName, Level: sp.AbilityLvl, CastTime: time.Duration(sp.CastTime) * time.Second, Own: fx, Plays: fx, Harmful: d.Harmful, Target: targetWord(d.Target)}
 	if fx == 0 {
-		v.Plays, v.StandIn = entity.StandInVisual(entity.ParseSpellNamed(sp.SpellName, line, sp.SpellDesc))
+		v.Plays, v.StandIn = entity.StandInVisual(d)
 	}
 	return v, nil
 }

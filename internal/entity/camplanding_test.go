@@ -61,6 +61,16 @@ func TestCampLandingBesideTheCamp(t *testing.T) {
 	}
 }
 
+// A camp on a platform (a keep's floor, a tree's) lands on the terrain
+// beside it.
+func TestCampLandingBesideACampOnAPlatform(t *testing.T) {
+	w := campWorld(flatGround{y: 20}) // the camp 30 above the terrain
+	x, y, z, ok := w.CampLanding("orc", 0, 1020, 1000, 300)
+	if !ok || y != 20 || (x == 1020 && z == 1000) {
+		t.Fatalf("landed (%.0f, %.1f, %.0f) %v, want the terrain beside the platform", x, y, z, ok)
+	}
+}
+
 // The negative controls: no ground, an anchor off the terrain (a cave), a
 // camp with no clear spot round it land on the anchor's own spot; no NPC of
 // the name is no landing.
@@ -73,7 +83,8 @@ func TestCampLandingOnTheAnchorOtherwise(t *testing.T) {
 		}
 	}
 	anchor(campWorld(nil))
-	anchor(campWorld(flatGround{y: 80})) // the terrain 30 above: the camp is in a cave
+	anchor(campWorld(flatGround{y: 80}))  // the terrain 30 above: the camp is under it
+	anchor(campWorld(flatGround{y: -20})) // 70 below: no terrain within reach under it
 	// the terrain round the camp a hole: no floor for a landing
 	anchor(campWorld(flatGround{y: 50, holeX: 1020, holeZ: 1000, hole: 200}))
 	// creatures every 20 out past the furthest landing: no spot with

@@ -12,6 +12,7 @@ const (
 	campClear  = 40  // no creature this near the landing (DefaultAggroRadius is 30)
 	campRise   = 12  // the landing's floor within this of the anchor's
 	campOpen   = 8   // no floor this far above the landing's: under the sky
+	campHigh   = 60  // an anchor at most this above the terrain under it
 	// with no spot campClear from every creature, one with this much room at
 	// least (a single creature's notice, not the whole camp's)
 	campCrowded = 15
@@ -26,14 +27,15 @@ var campSteps = [...]float32{45, 60, 75, 90, 110, 130, 150}
 // name in the world whose spawn is nearest (x, z) within reach, and, when the
 // anchor stands on the world's ground, a spot beside the camp: 45 to 150 off
 // the anchor, no creature (an NPC without the NPC bit, alive, not a dummy)
-// within campClear of it, on the terrain within campRise of the anchor's
-// floor with no floor campOpen above it (the open air, never a tunnel or a
+// within campClear of it, on the terrain within campRise of the terrain at
+// the anchor (under it, for a camp on a keep's floor or a tree's platforms,
+// campHigh at most) with no floor campOpen above it (the open air, never a tunnel or a
 // castle's hall the ground's floors cannot tell from the outside), out of the
 // water, nearest first, the side away from the middle of the camp's creatures
 // first; in a camp with no such spot, the open spot with the most room
-// (campCrowded at least). A camp on a keep's floor (its anchor off the
-// terrain), a world with no ground, or a camp with no open spot (a cave's)
-// lands on the anchor's spawn. ok is false when no NPC of that name is there.
+// (campCrowded at least). A world with no ground, an anchor with no terrain
+// under it, or a camp with no open spot (a cave's) lands on the anchor's
+// spawn. ok is false when no NPC of that name is there.
 func (w *World) CampLanding(name string, world uint8, x, z, reach float32) (lx, ly, lz float32, ok bool) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
@@ -56,9 +58,11 @@ func (w *World) CampLanding(name string, world uint8, x, z, reach float32) (lx, 
 	if w.ground == nil {
 		return
 	}
+	// the terrain the camp stands on, or under it: a camp on a keep's floor,
+	// a tree's platforms or a dock lands on the terrain beside it
 	floor, on := w.ground.Floor(world, a.SpawnX, a.SpawnY, a.SpawnZ)
-	if !on || floor-a.SpawnY > spawnedBelow || a.SpawnY-floor > spawnedAbove {
-		return // a cave, a keep's floor: the anchor's own spot
+	if !on || floor-a.SpawnY > spawnedBelow || a.SpawnY-floor > campHigh {
+		return // no terrain under it within reach: the anchor's own spot
 	}
 	creature := func(npc *NPC) bool {
 		return npc.World == world && !npc.Dead && npc.NPCType&0x80 == 0 && npc.Dummy == NotDummy

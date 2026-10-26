@@ -80,17 +80,73 @@ func (s *Server) registerQuestOps() {
 		"spells":      str("reward: spell ids, comma separated"),
 		"events":      str("what happens when it becomes the step to do (on start) and when it is done (on done): " + eventsHelp),
 	})
+	filterFields := map[string]any{
+		"search":   str("part of a name, giver, note or import key, or a quest's id"),
+		"status":   strEnum("in the game; draft (every draft); ready (a draft nothing keeps out now: every name it uses is here and every quest it requires is in the game or ready too); blocked (a draft that is not ready); empty: all", "", questInGame, "draft", questReady, "blocked"),
+		"city":     str(`the city of its import key ("freeport", "neriak-nektulos"; quest_list's cities lists them); "none": quests of no city`),
+		"class":    integer("a class id (0 Warrior ... 14 Alchemist): the quests for it, and those for any class"),
+		"level":    integer("a level: the quests whose levels take it in"),
+		"minLevel": integer("the quests whose levels reach this one or above"),
+		"maxLevel": integer("the quests whose levels start at this one or below"),
+		"giver":    str("part of the giver's name"),
+		"missing":  str("a name drafts lack (quest_list's missing lists them): the quests that lack it"),
+	}
+	listFields := map[string]any{
+		"limit":  integer("how many quests to return (default 300, at most 2000)"),
+		"offset": integer("how many to skip first"),
+	}
+	for k, v := range filterFields {
+		listFields[k] = v
+	}
 	s.addOp(&Op{
 		Name: "quest_list", Title: "List quests", Scope: scopeRead, Core: true,
-		Description: "Every quest (drafts too) with its giver, levels, step count and how many characters have it under " +
-			"way or finished. search narrows by name, giver or notes.",
-		Input: obj(map[string]any{"search": str("part of a name, giver or note")}),
+		Description: "Every quest (drafts too), as the filters narrow them, in id order: its status (in the game, ready: a draft " +
+			"nothing keeps out now, or draft), why a draft is one (the names it lacks NOW, read off this server's NPCs, items, " +
+			"spells and factions, and a draft quest it requires), its city (its import key's), classes, levels, giver, steps " +
+			"and how many characters have it under way or finished. The answer also gives total (what the filters take), " +
+			"counts by status, every city with its counts, and missing: the names the drafts taken lack, the most wanted " +
+			"first (an NPC placed or an item made frees every quest that lacked only it).",
+		Input: obj(listFields),
 		Handler: func(c *opCtx) (any, error) {
-			var req struct{ Search string }
+			var req struct {
+				questFilter
+				Limit, Offset int
+			}
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			return c.s.questList(req.Search)
+			return c.s.questList(req.questFilter, req.Limit, req.Offset)
+		},
+	})
+	s.addOp(&Op{
+		Name: "quest_set_enabled", Title: "Put quests in the game, or take them out", Scope: scopeWrite, Core: true,
+		Description: "Turn quests on (in the game: their givers offer them) or off (drafts: offered to no one; a character " +
+			"who has one under way goes on with it) in one go: the quests named, or every quest a filter (quest_list's) " +
+			"takes. Turning on takes only ready drafts (see quest_list) unless force, and brings in the ready drafts they " +
+			"require (a chain goes in together); a draft that is not ready is left out with its reasons. Each quest is its " +
+			"own row change, logged and revertible. dryRun says what would change.",
+		Input: obj(map[string]any{
+			"quests":  arr(integer("a quest's id"), "the quests to change (else the filter's)"),
+			"filter":  obj(filterFields),
+			"enabled": boolean("true: in the game; false: drafts"),
+			"dryRun":  boolean("only say what would change"),
+			"force":   boolean("turn on drafts that are not ready too (their reasons are said)"),
+		}, "enabled"),
+		Handler: func(c *opCtx) (any, error) {
+			var req struct {
+				Quests  []int64
+				Filter  *questFilter
+				Enabled *bool
+				DryRun  bool
+				Force   bool
+			}
+			if err := c.decode(&req); err != nil {
+				return nil, err
+			}
+			if req.Enabled == nil {
+				return nil, badRequest("enabled is true or false")
+			}
+			return c.s.questSetEnabled(c.a, req.Quests, req.Filter, *req.Enabled, req.DryRun, req.Force)
 		},
 	})
 	s.addOp(&Op{
@@ -228,27 +284,125 @@ func quests() (*handlers.QuestEngine, error) {
 	return q, nil
 }
 
-func (s *Server) questList(search string) (any, error) {
-	q := `SELECT q.questid, q.name, q.enabled, q.giver, q.minlevel, q.maxlevel, q.source,
-		(SELECT COUNT(*) FROM queststeps st WHERE st.questid = q.questid) AS steps,
-		(SELECT COUNT(*) FROM charquests c WHERE c.questid = q.questid AND c.step > 0) AS underway,
-		(SELECT COUNT(*) FROM charquests c WHERE c.questid = q.questid AND c.done > 0) AS finished
-		FROM quests q`
-	var args []any
-	if search = strings.TrimSpace(search); search != "" {
-		like := "%" + likeEscape(search) + "%"
-		q += ` WHERE q.name LIKE ? ESCAPE '\' OR q.giver LIKE ? ESCAPE '\' OR q.notes LIKE ? ESCAPE '\'`
-		args = append(args, like, like, like)
-		if id, err := parseInt("quest", search); err == nil {
-			q += ` OR q.questid = ?`
-			args = append(args, id)
-		}
-	}
-	rows, err := s.rowsOf(q+` ORDER BY q.questid`, args...)
+func (s *Server) questList(f questFilter, limit, offset int) (any, error) {
+	idx, err := s.loadQuestIndex()
 	if err != nil {
 		return nil, err
 	}
-	return map[string]any{"quests": rows, "total": len(rows), "kinds": database.StepKinds}, nil
+	if limit <= 0 {
+		limit = 300
+	}
+	limit = min(limit, 2000)
+	all := idx.match(f)
+	shown := all[min(max(offset, 0), len(all)):]
+	shown = shown[:min(limit, len(shown))]
+	missing := missingOf(all)
+	if len(missing) > 50 {
+		missing = missing[:50]
+	}
+	if shown == nil {
+		shown = []*questRow{}
+	}
+	return map[string]any{"quests": shown, "total": len(all), "counts": statusCounts(all), "cities": idx.cities(),
+		"missing": missing, "kinds": database.StepKinds}, nil
+}
+
+// questSetEnabled turns quests on or off, each its own audited row change,
+// the game told once at the end.
+func (s *Server) questSetEnabled(a *actor, ids []int64, f *questFilter, on, dry, force bool) (any, error) {
+	if len(ids) == 0 && (f == nil || f.empty()) {
+		return nil, badRequest("name the quests, or give a filter (quest_list's)")
+	}
+	qt, err := s.table("quests")
+	if err != nil {
+		return nil, err
+	}
+	idx, err := s.loadQuestIndex()
+	if err != nil {
+		return nil, err
+	}
+	type item struct {
+		ID       int64  `json:"questid"`
+		Name     string `json:"name"`
+		Why      string `json:"why,omitempty"`
+		Required bool   `json:"required,omitempty"` // brought in as a quest a chosen one requires
+	}
+	var targets []*questRow
+	var skipped []item
+	if len(ids) > 0 {
+		for _, id := range ids {
+			if r := idx.byID[id]; r != nil {
+				targets = append(targets, r)
+			} else {
+				skipped = append(skipped, item{ID: id, Why: "no such quest"})
+			}
+		}
+	} else {
+		targets = idx.match(*f)
+	}
+	chosen := map[int64]bool{}
+	required := map[int64]bool{}
+	var order []*questRow
+	add := func(r *questRow) {
+		if !chosen[r.ID] {
+			chosen[r.ID] = true
+			order = append(order, r)
+		}
+	}
+	for _, r := range targets {
+		switch {
+		case r.Enabled == on:
+			// already so
+		case !on, r.Status == questReady, force:
+			add(r)
+		default:
+			skipped = append(skipped, item{ID: r.ID, Name: r.Name, Why: strings.Join(r.Why, "; ")})
+		}
+	}
+	if on {
+		// the drafts a chosen quest requires go in with it
+		for i := 0; i < len(order); i++ {
+			for _, req := range order[i].Requires {
+				if q := idx.byID[req]; q != nil && !q.Enabled && !chosen[req] && (q.Status == questReady || force) {
+					required[req] = true
+					add(q)
+				}
+			}
+		}
+	}
+	changed := []item{}
+	for _, r := range order {
+		ch, err := s.updateRow(a, qt, map[string]any{"questid": r.ID}, map[string]any{"enabled": boolInt(on)}, nil,
+			writeOpts{Dry: dry, NoLive: true})
+		if err != nil {
+			return nil, fmt.Errorf("quest %d: %w", r.ID, err)
+		}
+		it := item{ID: r.ID, Name: r.Name, Required: required[r.ID]}
+		if on && r.Status != questReady {
+			it.Why = "forced: " + strings.Join(r.Why, "; ")
+		}
+		if ch.Action != "unchanged" {
+			changed = append(changed, it)
+		}
+	}
+	live := "nothing changed"
+	switch {
+	case dry:
+		live = "a dry run: nothing changed"
+	case len(changed) > 0:
+		live = s.liveQuests()
+	}
+	if skipped == nil {
+		skipped = []item{}
+	}
+	return map[string]any{"changed": changed, "skipped": skipped, "enabled": on, "dryRun": dry, "live": live}, nil
+}
+
+func boolInt(b bool) int64 {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 func (s *Server) questGet(id int64) (any, error) {
@@ -268,7 +422,35 @@ func (s *Server) questGet(id int64) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return map[string]any{"quest": quest[0], "steps": steps, "problems": s.questProblems(quest[0], steps), "characters": who}, nil
+	out := map[string]any{"quest": quest[0], "steps": steps, "problems": s.questProblems(quest[0], steps), "characters": who}
+	// where it stands among the rest: its status and why, the quests it
+	// requires and those that require it
+	if idx, err := s.loadQuestIndex(); err == nil {
+		if r := idx.byID[id]; r != nil {
+			out["status"], out["why"], out["city"], out["key"] = r.Status, r.Why, r.City, r.Key
+			type link struct {
+				ID     int64  `json:"questid"`
+				Name   string `json:"name"`
+				Status string `json:"status"`
+			}
+			before, after := []link{}, []link{}
+			for _, req := range r.Requires {
+				if q := idx.byID[req]; q != nil {
+					before = append(before, link{q.ID, q.Name, q.Status})
+				}
+			}
+			for _, q := range idx.rows {
+				for _, req := range q.Requires {
+					if req == id {
+						after = append(after, link{q.ID, q.Name, q.Status})
+						break
+					}
+				}
+			}
+			out["before"], out["after"] = before, after
+		}
+	}
+	return out, nil
 }
 
 // questProblems is what keeps a quest from being done as written: names and
@@ -487,7 +669,7 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 	id, _ := asFloat(quest["questid"])
 	var changes []*change
 	if id <= 0 {
-		ch, err := s.insertRow(a, qt, vals, writeOpts{})
+		ch, err := s.insertRow(a, qt, vals, writeOpts{NoLive: true})
 		if err != nil {
 			return nil, err
 		}
@@ -505,7 +687,7 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 			}
 		}
 		if len(diff) > 0 {
-			ch, err := s.updateRow(a, qt, map[string]any{"questid": int64(id)}, diff, nil, writeOpts{})
+			ch, err := s.updateRow(a, qt, map[string]any{"questid": int64(id)}, diff, nil, writeOpts{NoLive: true})
 			if err != nil {
 				return nil, err
 			}
@@ -536,7 +718,7 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 				}
 			}
 			if len(diff) > 0 {
-				ch, err := s.updateRow(a, st, key, diff, nil, writeOpts{})
+				ch, err := s.updateRow(a, st, key, diff, nil, writeOpts{NoLive: true})
 				if err != nil {
 					return nil, fmt.Errorf("step %d: %w", n, err)
 				}
@@ -545,7 +727,7 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 			continue
 		}
 		v["questid"], v["step"] = int64(id), n
-		ch, err := s.insertRow(a, st, v, writeOpts{})
+		ch, err := s.insertRow(a, st, v, writeOpts{NoLive: true})
 		if err != nil {
 			return nil, fmt.Errorf("step %d: %w", n, err)
 		}
@@ -553,7 +735,7 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 	}
 	for n := range byStep {
 		if n > int64(len(steps)) {
-			ch, err := s.deleteRow(a, st, map[string]any{"questid": int64(id), "step": n}, writeOpts{})
+			ch, err := s.deleteRow(a, st, map[string]any{"questid": int64(id), "step": n}, writeOpts{NoLive: true})
 			if err != nil {
 				return nil, fmt.Errorf("step %d: %w", n, err)
 			}
@@ -568,7 +750,7 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 	m["changes"] = len(changes)
 	live := "nothing changed"
 	if len(changes) > 0 {
-		live = changes[len(changes)-1].Live
+		live = s.liveQuests() // once for the quest and all its steps
 	}
 	m["live"] = live
 	return m, nil

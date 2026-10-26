@@ -124,6 +124,12 @@ func (n *NPC) reachFlag() uint16 {
 	return ReachFlagFor(r, n.Size)
 }
 
+// ReachExtra is the creature's reach allowance (npcReachExtra), for what is
+// done within reach of its body outside this package (a corpse's loot).
+func (n *NPC) ReachExtra() float32 {
+	return npcReachExtra(n)
+}
+
 // npcReachExtra is TargetInRange's allowance for the creature as a target:
 // +3 for a large one, else +5 for a huge one.
 func npcReachExtra(npc *NPC) float32 {

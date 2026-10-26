@@ -14,7 +14,15 @@ import (
 
 // Looting a corpse, as CLIENT asks for it:
 //
-//   - 0x0004 (InteractWithTarget's default) on a dead NPC opens its corpse:
+//   - 0x0015 {u32 id}, the attack button on a target whose channel carries
+//     the corpse bit (ToggleAutoAttack: byte 26's 2, which a creature's
+//     channel takes at its death, entity/visibility.go), is the game's way,
+//     as Sandstorm answers it: the corpse opened (HandleLootCorpse). One out
+//     of reach is answered "Out of range." (ours: no record of Sandstorm's);
+//     one that is no corpse, or gone, 0x0085 2.
+//   - 0x0004 (InteractWithTarget's default) on a dead NPC opens its corpse too
+//     (InteractWithTarget sends nothing for a creature the game shows as
+//     attackable, byte 142 2 or 3, so this is not the game's way for those):
 //     0x0018, the corpse as a VIItemList (buildLoot), each record keyed by
 //     its position. A client not in play answers 0x0016 at once
 //     (LootNoWindow).
@@ -164,6 +172,37 @@ func (h *NPCWindowHandler) resendCorpse(sess *session.Session, ls *lootState, c 
 		return
 	}
 	SendLoot(sess, c.items)
+}
+
+// HandleLootCorpse is 0x0015 {u32 id}: the attack button on a corpse
+// (CLIENT's ToggleAutoAttack). The corpse opens as talking to it does
+// (OpenCorpse) when it lies within reach: InteractRange from its centre, and a
+// large or huge creature's allowance beyond (entity.NPC.ReachExtra), so a
+// dragon's corpse is reached where its body was fought.
+func (h *NPCWindowHandler) HandleLootCorpse(sess *session.Session, msg *protocol.Message) error {
+	data := msg.Data()
+	if len(data) < 4 || h.find == nil || h.playerOf == nil {
+		return nil
+	}
+	id, _ := buffer.NewReader(data).ReadUint32()
+	player := h.playerOf(sess)
+	if player == nil {
+		return nil
+	}
+	ent, found := h.find(sess, id)
+	npc, isNPC := ent.(*entity.NPC)
+	if !found || !isNPC || !npc.Dead {
+		queueReliable(sess, protocol.OpcodeLootOptions, buildLootOption(lootNotLootable))
+		return nil
+	}
+	if reach := entity.InteractRange + npc.ReachExtra(); !entity.InRange(player, npc, reach) {
+		log.Printf("Loot: %s too far from %q's corpse (%.1f > %.1f)", player.Name, npc.Name,
+			entity.DistanceBetween(player, npc), reach)
+		SendColoredChat(sess, "Out of range.", 255, 63, 63)
+		return nil
+	}
+	h.OpenCorpse(sess, npc)
+	return nil
 }
 
 // HandleLootClose is 0x0016 (LootNoWindow): answered with 0x0016. A corpse

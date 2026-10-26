@@ -358,6 +358,20 @@ const (
 	// and a u8 power of 255. Each one is the whole set: an id it leaves out
 	// has no bar.
 	OpcodePowerBarsData GameOpcode = 0x7E02
+
+	// OpcodeQuestMarkers is the quest marks a client draws on its map
+	// (handlers/questmarks.go): a u32 after the opcode, both ways, as
+	// OpcodePowerBars: the server offers it (1) once the player is in the
+	// world; a client that draws them answers 1 to have them and 0 to stop.
+	// A PS2 ignores the offer.
+	OpcodeQuestMarkers GameOpcode = 0x7E03
+
+	// OpcodeQuestMarkersData is the marks, server to a client that asked: a
+	// u8 count, then for each a u8 kind (1 a quest the player may take from
+	// that NPC, 2 a step of the player's to do at it), a u8 world, f32 x and
+	// z (the NPC's spawn), the NPC's name and a u8 count of quest names, each
+	// a u8 length and UTF-8. Each one is the whole set.
+	OpcodeQuestMarkersData GameOpcode = 0x7E04
 )
 
 // =============================================================================
@@ -580,6 +594,10 @@ func (op GameOpcode) String() string {
 		return "PowerBars"
 	case OpcodePowerBarsData:
 		return "PowerBarsData"
+	case OpcodeQuestMarkers:
+		return "QuestMarkers"
+	case OpcodeQuestMarkersData:
+		return "QuestMarkersData"
 	default:
 		return "Unknown"
 	}

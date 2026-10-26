@@ -73,6 +73,8 @@ func enums() map[string][]EnumValue {
 			"Held", "Hands", "Fishing pole", "Bait", "Tool (1)", "Tool (2)", "Tool (3)", "Tool (4)", "Tool (5)", "Tool (6)"),
 		"location":   {{0, "Inventory"}, {1, "Bank"}},
 		"acctstatus": {{1, "Active"}, {0, "Inactive"}, {-1, "Banned"}},
+		// npcmove.roam (entity/movement.go)
+		"roam": {{-1, "As its kind (wildlife wanders)"}, {1, "Wanders"}, {0, "Stands until pulled"}},
 		"bool":       {{0, "No"}, {1, "Yes"}},
 	}
 }
@@ -460,19 +462,25 @@ var catalog = map[string]tableNote{
 	"npcmove": {
 		Label: "Creature movement", Group: "World", Title: "name", Sort: "name",
 		Help: "How the creatures of a name move, by NPC NAME as NPC classes key it (lower case, no trailing space or $; " +
-			"entity/movement.go, water.go): roam 0 stands it on its spawn until a fight takes it (and it goes back there " +
-			"after), 1 it wanders; radius its own wander radius (0: the server's, 75); water what it keeps to: land (it " +
-			"never wanders into the water), both (in and out of it: crocodiles, caiman, crabs), water (it keeps to the " +
-			"water, wandering and fighting), empty by where it spawned. A fight takes a creature where its enemy is, but " +
-			"one of the water stops at the water's edge; no damage crosses the water's edge (a harmful spell is refused, a " +
-			"melee hit lost). A creature that stands off the ground (a keep's floor, a bridge, a dock) does not wander " +
-			"whatever its row says. Rows of source seed are tools/seed_npc_move.py's; the water is the game's own, baked " +
-			"off the disc beside the ground files (worlds/ground/<world>.env).",
+			"entity/movement.go, wildlife.go, water.go). Wanders: as its kind (-1, the default, and what a name with no row " +
+			"does): wildlife wanders round its spawn, anything else stands on its spawn until pulled and goes back there " +
+			"after; 1 wanders, wildlife or not (a camp's roamers, a patrol; townsfolk bodies too); 0 stands until pulled. " +
+			"Wildlife is an animal by its name's last word (Giant Rat, Wolf Pack Leader, red ant warrior: not Fire Giant, Orc " +
+			"Pawn, serpent guardian, nor an undead Skeletal Wolf); an NPC's page says whether it wanders and why. An NPC " +
+			"players talk to (the NPC bit) never wanders: a path walks it. radius its own wander radius (0: the server's, " +
+			"75); water what it keeps to: land (it never wanders into the water), both (in and out of it: crocodiles, " +
+			"caiman, crabs), water (it keeps to the water, wandering and fighting), empty by where it spawned. A fight takes " +
+			"a creature where its enemy is, but one of the water stops at the water's edge; no damage crosses the water's " +
+			"edge (a harmful spell is refused, a melee hit lost). A creature that stands off the ground (a keep's floor, a " +
+			"bridge, a dock) does not wander whatever its row says. Rows of source seed are tools/seed_npc_move.py's (camp " +
+			"guards standing, the water's creatures, animals the words miss by the bodies they wear, the camps EQOA-Data's " +
+			"map says roam); the water is the game's own, baked off the disc beside the ground files " +
+			"(worlds/ground/<world>.env).",
 		Live:   "At once: the next step of every creature of that name uses it.",
 		Search: []string{"name", "water", "note", "source"},
 		Cols: map[string]colNote{
 			"name":   {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
-			"roam":   {Label: "Wanders", Help: "1 wanders round its spawn, 0 stands until pulled"},
+			"roam":   {Label: "Wanders", Enum: "roam", Help: "-1 as its kind (wildlife wanders, the rest stands), 1 wanders, 0 stands until pulled"},
 			"radius": {Label: "Radius", Help: "how far from its spawn it wanders; 0 the server's (75)"},
 			"water":  {Label: "Water", Help: "land, both, water, or empty: by where it spawned (in the water: water)"},
 			"note":   {Label: "Note", Help: "why"},

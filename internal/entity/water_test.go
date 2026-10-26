@@ -270,28 +270,39 @@ func (cliff) Floor(_ uint8, x, y, _ float32) (float32, bool) {
 	return f, f <= y+2
 }
 
-// npcmove's roam 0 stands a creature on its spawn (jib's Hexbones); its own
-// radius is its wander's.
+// npcmove's roam 0 stands a creature on its spawn that its kind would walk
+// (a Giant Rat), 1 walks one its kind would stand (jib's Hexbones, not
+// wildlife), -1 leaves it to its kind; its own radius is its wander's.
 func TestNPCMoveStandsACreature(t *testing.T) {
 	w := roamWorld(t)
-	hex := addNPC(w, 100, "Hexbone", 1005, 1000, creatureModel, 0)
+	rat := addNPC(w, 100, "Giant Rat", 1005, 1000, creatureModel, 0)
+	hex := addNPC(w, 102, "Hexbone", 1006, 1000, creatureModel, 0)
 	w.mu.Lock()
-	wandered := w.wanders(hex)
+	ratWanders, hexWanders := w.wanders(rat), w.wanders(hex)
 	w.mu.Unlock()
-	if !wandered {
-		t.Fatal("a Hexbone with no row does not wander: the test proves nothing")
+	if !ratWanders || hexWanders {
+		t.Fatalf("with no rows: the rat wanders %v (wildlife), the Hexbone %v: the test proves nothing", ratWanders, hexWanders)
 	}
-	w.SetMoveRules(map[string]database.NPCMoveRule{"hexbone": {Roam: false}, "beetle": {Roam: true, Radius: 5}})
+	w.SetMoveRules(map[string]database.NPCMoveRule{"giant rat": {Roam: false}, "hexbone": {Roam: true}, "beetle": {Roam: true, Radius: 5}})
 	beetle := addNPC(w, 101, "beetle", 1005, 1010, creatureModel, 0)
 	w.mu.Lock()
-	defer w.mu.Unlock()
-	if w.wanders(hex) {
-		t.Error("a Hexbone told roam 0 wanders")
+	if w.wanders(rat) {
+		t.Error("a Giant Rat told roam 0 wanders")
+	}
+	if !w.wanders(hex) {
+		t.Error("a Hexbone told roam 1 stands")
 	}
 	for i := 0; i < 50; i++ {
 		x, z := w.roamPointLocked(beetle)
 		if d := distXZ(x, z, beetle.SpawnX, beetle.SpawnZ); d > 5.001 {
 			t.Fatalf("a leg %.2f off the spawn of a creature told radius 5", d)
 		}
+	}
+	w.mu.Unlock()
+	w.SetMoveRules(map[string]database.NPCMoveRule{"giant rat": {ByKind: true}, "hexbone": {ByKind: true, Water: keepsToLand}})
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if !w.wanders(rat) || w.wanders(hex) {
+		t.Errorf("rows of roam -1 (as its kind): the rat wanders %v, the Hexbone %v", w.wanders(rat), w.wanders(hex))
 	}
 }

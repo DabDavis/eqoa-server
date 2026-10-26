@@ -36,6 +36,7 @@ with the row before and after, and `revert_change` undoes a row change.
 | `npcitem` | merchant stock: `npcid` (→ `npcs.id`), `patternid`, `listnumber` (order) | `itemid` |
 | `npcclass` | an NPC NAME's class (lower case), which picks its melee; absent = warrior | `name` |
 | `npcpaths` | the path an NPC walks: `points` (JSON waypoints), `mode`, `pause`, `speed`; use the path operations | `npcid` |
+| `npcundead` | which creatures are undead, by NPC NAME (lower case): `undead` 1 or 0, whatever the name says; a name with no row is undead when its words say so (skeleton, zombie, ghoul, mummy, wraith, ghost...) | `name` |
 | `itempattern` | every item that exists | `patternid` |
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
@@ -101,13 +102,18 @@ with the row before and after, and `revert_change` undoes a row change.
 - **Make a merchant**: set `npc_type` to 129 (0x81), then `insert_row` into `npcitem` one row per item:
   `{npcid, patternid, stackleft: 1, listnumber: 0, 1, 2...}`.
 - **Change what a spell does**: `update_row` on `spelleffect` (`line`). The words the server reads:
-  a target first (`Target`, `Self`, `Group`, `Target undead`), then clauses separated by commas:
+  a target first (`Target`, `Self`, `Group`, `Target undead`: the target, which must be undead, see below), then clauses separated by commas:
   `Decrease Hitpoints by 45` (damage), `Increase HP by 100` (a heal), `Increase HP per tic by 10` (a heal
   over time), `Increase STR by 10` / `Decrease AC by 20` (STR STA AGI DEX WIS INT CHA AC, Max HP,
   Max Power, FR CR PR DR LR AR), `Root`, `Snare` (or `Decrease Movement Speed by 30`), `Sow` (run speed),
   `Invis`, `Return to bind point` (a gate), `+100 hate`; a scale
   `; Increase 15% based on DEX`; a duration `30sec`, `5min`, `2hr`. Example:
   `Target, Decrease Hitpoints by 120 ; Increase 10% based on INT`.
+- **Undead**: a spell whose line starts `Target undead`, and a charm whose name or description says undead (the
+  necromancer's Charm/Command/Control/Coerce Undead), works only on creatures that are undead (`npcundead`); cast at any
+  other it is refused with "This spell only works on the undead." Every other charm fails on undead. To make a creature
+  undead (or not), `insert_row` (or `update_row`) on `npcundead` with its name in lower case and `undead` 1 (or 0); it
+  counts at once. Rows of source `seed` are the seeding tool's guesses from names and bodies: no record says.
 - **Write a quest**: `quest_save` with the quest and its steps in order (look at one with `quest_get` first;
   its answer lists the quest's problems: an NPC this server lacks, a merchant, banker or blacksmith, which
   the game never talks to, a creature that never spawns, words the client cuts). How it plays:

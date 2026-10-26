@@ -115,6 +115,9 @@ type SpellDef struct {
 	// (illusion.go); "" and FormNone for every other spell.
 	Form     string
 	FormKind FormKind
+	// UndeadOnly: the spell works on undead alone (undead.go), a "Target
+	// undead" line or a charm its name or description says is for undead.
+	UndeadOnly bool
 }
 
 // Charms reports whether the spell makes its target the caster's pet.
@@ -234,6 +237,7 @@ func ParseSpellNamed(name, line, desc string) SpellDef {
 	}
 	d := ParseSpell(line, desc)
 	d.readIllusion(name, desc)
+	d.readUndead(name, desc) // undead.go
 	return d
 }
 

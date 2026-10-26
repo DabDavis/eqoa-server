@@ -219,7 +219,8 @@ func gloomPact() CastSpell {
 }
 
 // A pact heals a friend and costs its caster twice that, less its arcane
-// resist's share: at none the whole 50, at 200 half; the line says so.
+// resist's share (resist.go): at none the whole 50, at 210 half; the line
+// says so.
 func TestAPactCostsItsCaster(t *testing.T) {
 	c, friend, fo := pactRig(t)
 	msgs := c.landSeen(t, gloomPact(), fo)
@@ -238,10 +239,42 @@ func TestAPactCostsItsCaster(t *testing.T) {
 	}
 
 	r, friend2, fo2 := pactRig(t)
-	r.p.ArcaneR = 200
+	r.p.ArcaneR = 210
 	r.landSeen(t, gloomPact(), fo2)
 	if friend2.HP != 125 || r.p.HP != 475 {
-		t.Errorf("at arcane resist 200: friend %d, caster %d; want 125 and 475", friend2.HP, r.p.HP)
+		t.Errorf("at arcane resist 210: friend %d, caster %d; want 125 and 475", friend2.HP, r.p.HP)
+	}
+}
+
+// At the resist cap a pact's price is a quarter (13 of 50), but the dice may
+// fail the resist: wholly (the whole 50, "your resist failed") or in part (a
+// share of 45% at the bottom of its range: 28 of 50, "took only 45%").
+func TestAPactAtTheResistCap(t *testing.T) {
+	defer func(f func() float64) { resistRand = f }(resistRand)
+	for _, tt := range []struct {
+		name  string
+		dice  []float64
+		hp    int
+		words string
+	}{
+		{"held", []float64{0.5}, 487, "your resist took 75%"},
+		{"failed", []float64{0.01}, 450, "your resist failed"},
+		{"failed in part", []float64{0.05, 0}, 472, "your resist took only 45%"},
+	} {
+		dice := append([]float64(nil), tt.dice...)
+		resistRand = func() float64 { d := dice[0]; dice = dice[1:]; return d }
+		c, _, fo := pactRig(t)
+		c.p.ArcaneR = 400
+		msgs := c.landSeen(t, gloomPact(), fo)
+		var said bool
+		for _, m := range msgs {
+			if strings.Contains(chatText(m), "Gloom Pact costs you") && strings.Contains(chatText(m), tt.words) {
+				said = true
+			}
+		}
+		if c.p.HP != tt.hp || !said || len(dice) != 0 {
+			t.Errorf("%s: caster %d HP (want %d), said %q %v, dice left %d", tt.name, c.p.HP, tt.hp, tt.words, said, len(dice))
+		}
 	}
 }
 

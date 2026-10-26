@@ -204,6 +204,7 @@ func (s *SpellbookStore) SetSpellVisual(spellID int, fx uint32, who GMEdit, deta
 	if err := tx.Commit(); err != nil {
 		return 0, 0, err
 	}
+	InvalidateSpellFX()
 	return before, audit, nil
 }
 

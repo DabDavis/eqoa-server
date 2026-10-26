@@ -688,6 +688,8 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Offer quest marks for the map (questmarks.go): a client that draws them
 	// asks, a PS2 ignores it
 	SendQuestMarkersOffer(sess)
+	// and the quest tracker for the HUD (questprogress.go)
+	SendQuestProgressOffer(sess)
 
 	// The four weapon sets (gearsets.go): SOE's live client reads them, a PS2
 	// skips them

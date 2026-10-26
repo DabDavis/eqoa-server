@@ -97,6 +97,8 @@ type QuestEngine struct {
 
 	kills chan entity.KillCredit
 	stop  chan struct{}
+	// wake is nudge's: the marks and trackers looked at now
+	wake chan struct{}
 
 	// drop puts a loot step's item on one character's view of a corpse (the
 	// windows' AddQuestDrop, questloot.go); nil drops nothing
@@ -113,8 +115,11 @@ type QuestEngine struct {
 	sessionOf func(serverID uint32) *session.Session
 
 	// the quest marks' (questmarks.go): each quest's words, made at Reload,
-	// and where the quests' NPCs stand, read from the World now and then
+	// and where the quests' NPCs stand, read from the World now and then;
+	// names is the steps' items' names by patternid, for the trackers
+	// (questprogress.go), made at Reload too
 	texts   map[int]*questText
+	names   map[int]string
 	spots   map[string][]entity.NPCSpot
 	spotsAt time.Time
 }
@@ -142,6 +147,10 @@ type questChar struct {
 	// last set it was sent (questmarks.go)
 	marksOn   bool
 	marksSent string
+	// progressOn is whether its client draws the quest tracker,
+	// progressSent the last one it was sent (questprogress.go)
+	progressOn   bool
+	progressSent string
 	// windowOffered is the quests a shop NPC's window has offered this
 	// session (AtWindow): offered once, the next request opens the window
 	windowOffered map[int]bool
@@ -198,6 +207,7 @@ func NewQuestEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manager
 		sm:     sm,
 		chars:  map[uint32]*questChar{},
 		kills:  make(chan entity.KillCredit, 256),
+		wake:   make(chan struct{}, 1),
 		stop:   make(chan struct{}),
 		roll:   rand.Float64,
 	}
@@ -249,10 +259,14 @@ func (q *QuestEngine) run() {
 			return
 		case k := <-q.kills:
 			q.killed(k)
+		case <-q.wake:
+			q.syncMarks(time.Now())
+			q.syncProgress()
 		case <-tick.C:
 			q.checkReach()
 			q.expireSpawns()
 			q.syncMarks(time.Now())
+			q.syncProgress()
 		}
 	}
 }
@@ -273,12 +287,13 @@ func (q *QuestEngine) Reload() error {
 			cat.givers[k] = append(cat.givers[k], qu)
 		}
 	}
-	texts := q.questTexts(cat.all)
+	texts, names := q.questTexts(cat.all)
 	q.mu.Lock()
 	q.cat = cat
-	q.texts = texts
+	q.texts, q.names = texts, names
 	q.spots = nil // the marks read the NPCs' places again
 	q.mu.Unlock()
+	q.nudge() // a GM's edit: the marks and trackers again
 	return nil
 }
 
@@ -453,6 +468,16 @@ func sameLines(a, b []string) bool {
 func (q *QuestEngine) saveLocked(cq *database.CharQuest) {
 	if err := q.store.SaveCharQuest(cq); err != nil {
 		log.Printf("Quests: saving character %d's quest %d: %v", cq.ServerID, cq.QuestID, err)
+	}
+	q.nudge()
+}
+
+// nudge has the worker look at the marks and the trackers at once (a quest
+// taken, counted, advanced, finished or given up), not at its next second.
+func (q *QuestEngine) nudge() {
+	select {
+	case q.wake <- struct{}{}:
+	default:
 	}
 }
 

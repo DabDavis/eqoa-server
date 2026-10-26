@@ -29,8 +29,14 @@ What it decides, and from what (SPECS below, one entry a name):
   Then on the ground: the floor nearest the place's height (the sighting's,
   the anchor's, else the NPCs' round it) in the operator's ground files
   (cmd/groundbake; seed_wildlife.py's reader), or a lower one where the
-  guide says the creature is below ("two levels down"); a place with no
-  floor is left out and listed.
+  guide says the creature is below ("two levels down"), out of the water
+  (the zone leaves' flags, `<world>.env`, seed_pod.py's reader) but for a
+  fish; a place with no floor is left out and listed.
+- Who else: a town's newbie quests' creatures the server has only far off
+  (Surefall Glade's bats, badgers and vipers stood by Qeynos, 6,000 away;
+  Highbourne's rats and tarantulas 4,000 to 17,000), a few of the same
+  name and body outside the town, and the creatures the guides put round
+  a quest NPC's house (the old woman's in Jethro's Cast).
 - What: a body copied from an NPC the server has, every column of its row
   (so it is drawn, sized and dressed as its model): a person of the race
   the guide's words or the place give (charactermodel's bodies; a named
@@ -81,6 +87,11 @@ _spec = importlib.util.spec_from_file_location("seed_wildlife", os.path.join(HER
 _sw = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_sw)
 Ground = _sw.Ground
+# and seed_pod.py the water files
+_spec = importlib.util.spec_from_file_location("seed_pod", os.path.join(HERE, "seed_pod.py"))
+_sp = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_sp)
+Env = _sp.Env
 
 FOE, TALKER = "foe", "talker"
 TYPE = {FOE: 0, TALKER: 128}
@@ -92,6 +103,7 @@ KIND = {
     "aviak": r"\bav[ai][ai]?k\b", "bear": r"\bbear\b", "alligator": r"\balligator\b", "boar": r"\bboar\b",
     "brownie": r"\bbrownie\b", "centipede": r"\b(centipede|crawler)\b", "clockwork": r"\bclockwork\b",
     "crab": r"\bcrab\b", "dog": r"\b(wolf|dog)\b", "fireflies": r"\bfireflies\b", "fire goblin": r"\bfire goblin\b",
+    "freezeblood": r"^freezeblood\b", "frosteye": r"^frosteye\b", "gnoll": r"\bgnoll\b",
     "froglok": r"\bfroglok\b", "ghost": r"\b(ghost|spectre|phantom|wraith)\b", "ghoul": r"\bghoul\b",
     "goblin": r"^goblin\b", "golem": r"\b(stone|granite|clay) golem\b", "hobgoblin": r"\bhobgoblin\b",
     "insect": r"\b(beetle|scarab)\b", "kingsnake": r"\bkingsnake\b", "lion": r"\blion\b",
@@ -101,13 +113,17 @@ KIND = {
 }
 
 
-def S(name, role, body, place, count=1, level=None, note=""):
-    return dict(name=name, role=role, body=body, place=place, count=count, level=level, note=note)
+LAND, WATER, BOTH = "land", "water", "both"
+
+
+def S(name, role, body, place, count=1, level=None, note="", water=LAND):
+    return dict(name=name, role=role, body=body, place=place, count=count, level=level, note=note, water=water)
 
 
 # body: ("race", race, sex) | ("kind", KIND key) | ("npc", name: that row's body)
 # place: ("ff",) | ("poi", "tunaria" | "rathe", poi name) | ("near", npc, distance, world) |
 #        ("at", world, x, z) ; each may be followed by "low" (a lower floor) in the tuple's end
+# water: LAND (out of the water), WATER (a fish: in it) or BOTH (an alligator, a crab)
 SPECS = [
     # --- Freeport ---
     S("Crim Arikson", TALKER, ("race", "human", MALE), ("ff",), note="the forger in Bastable Village"),
@@ -157,8 +173,8 @@ SPECS = [
     S("Traitor", FOE, ("race", "troll", MALE), ("poi", "tunaria", "Traitor"), level=10,
       note="a troll at the mushroom patch"),
     S("Grothmal", FOE, ("kind", "froglok"), ("ff",), note="the mushroom patch west of the war camp, at night"),
-    S("Bogscraper", FOE, ("kind", "alligator"), ("ff",), note="an alligator in the swamps round Clagga Village"),
-    S("Bogwater", FOE, ("kind", "alligator"), ("near", "Bogscraper", 320, 0), level=17,
+    S("Bogscraper", FOE, ("kind", "alligator"), ("ff",), water=BOTH, note="an alligator in the swamps round Clagga Village"),
+    S("Bogwater", FOE, ("kind", "alligator"), ("near", "Bogscraper", 320, 0), level=17, water=BOTH,
       note="the other named alligator, in another of the three swamps"),
     S("Froglok Novitiate", FOE, ("kind", "froglok"), ("ff",), count=4, note="the swamp north-west of Grobb"),
     S("Froglok Apprentice", FOE, ("kind", "froglok"), ("ff",), count=2, note="the Hand of Thule"),
@@ -201,8 +217,8 @@ SPECS = [
     S("Ogre Magi", FOE, ("race", "ogre", MALE), ("poi", "rathe", "Undead Alchemist", "low"), count=2, level=13,
       note="Amog-Thelg's lower levels"),
     S("Necrapede", FOE, ("kind", "centipede"), ("poi", "rathe", "Necrapede"), level=16, note="south of Oggok"),
-    S("Fat Piranha", FOE, ("kind", "piranha"), ("poi", "rathe", "Fat Piranha"), level=13),
-    S("Gruk Crab", FOE, ("kind", "crab"), ("poi", "rathe", "Gruk Crab"), count=3, level=15,
+    S("Fat Piranha", FOE, ("kind", "piranha"), ("poi", "rathe", "Fat Piranha"), level=13, water=WATER),
+    S("Gruk Crab", FOE, ("kind", "crab"), ("poi", "rathe", "Gruk Crab"), count=3, level=15, water=BOTH,
       note="the lake shore north-west of the north gate"),
     S("Burdened Mog Thug", FOE, ("race", "ogre", MALE), ("poi", "rathe", "Burdened Mog Thug"), level=17,
       note="near the Sphinx Pyramids"),
@@ -259,7 +275,7 @@ SPECS = [
     S("Maryan", TALKER, ("race", "human", FEMALE), ("ff",), note="the Stoneclaw ravines"),
     S("Mayor Reively", TALKER, ("race", "human", MALE), ("ff",), note="Wyndhaven"),
     S("Jargan Nicks", TALKER, ("race", "human", MALE), ("ff",), note="Qeynos"),
-    S("Fenra", TALKER, ("npc", "Caller Toshei"), ("near", "Caller Toshei", 22, 0), level=30,
+    S("Fenra", TALKER, ("npc", "Caller Toshei"), ("near", "Caller Toshei", 12, 0), level=30,
       note="at the library (top floor)"),
     S("Blinkbart Bagglebaff", FOE, ("race", "halfling", MALE), ("ff",), note="the hill east of the windmill"),
     S("Rory Redface", FOE, ("race", "human", MALE), ("ff",), note="with the bandits on the hill north of the gate"),
@@ -269,7 +285,7 @@ SPECS = [
     S("Goretusk the Boar", FOE, ("kind", "boar"), ("poi", "tunaria", "Goretusk the Boar"), level=20),
     S("Nubja", FOE, ("kind", "goblin"), ("ff",), note="a goblin by the north gate, at night"),
     S("Brownie Thief", FOE, ("kind", "brownie"), ("ff",), note="at Nalai Belzia's boat, at night"),
-    S("greyflesh pike", FOE, ("kind", "pike"), ("ff",), count=2, note="under the docks"),
+    S("greyflesh pike", FOE, ("kind", "pike"), ("ff",), count=2, water=WATER, note="under the docks"),
     S("banded kingsnake", FOE, ("kind", "kingsnake"), ("ff",), count=4),
     S("ribbed snake", FOE, ("kind", "snake"), ("ff",), count=3),
     S("rogue lion", FOE, ("kind", "lion"), ("ff",), count=3),
@@ -286,6 +302,131 @@ SPECS = [
       note="a tower at Gramash Ruins; the guide names no one"),
     S("Guard of the Sage", TALKER, ("race", "human", MALE), ("near", "Sage of Gramash", 20, 0), level=35,
       note="sends you to Kara Village first; the guide names no one"),
+    # --- Qeynos, Hagley and the coast (the server has no one in Hagley village or Hagley Keep) ---
+    S("Snyde Cragsmear", TALKER, ("race", "human", MALE), ("ff",), note="the rogues' guildmaster"),
+    S("Dilana", TALKER, ("race", "human", FEMALE), ("ff",), note="the inn in Hagley"),
+    S("Sheriff Lordun", TALKER, ("race", "human", MALE), ("ff",), note="Hagley"),
+    S("Tarnina", TALKER, ("race", "human", FEMALE), ("ff",), note="the guard tower near Hagley"),
+    S("Duchess Olinda Melnorn", TALKER, ("race", "human", FEMALE), ("ff",), note="Hagley Keep"),
+    S("Merchant Dwindel", TALKER, ("race", "human", MALE), ("poi", "tunaria", "Merchant Dwindel"), level=20,
+      note="Hagley (sells nothing: the quests hand the glue and the potion over)"),
+    S("Grave Digger Joe", TALKER, ("race", "human", MALE), ("ff",), note="Melton"),
+    S("Guard Opheena", TALKER, ("race", "human", FEMALE), ("ff",), note="Shoalhome; Guard Filgen's wife"),
+    S("Master Nuzaon Sivrendal", TALKER, ("race", "human", MALE), ("ff",), note="the coastal village"),
+    S("Foreman Gerald", TALKER, ("race", "human", MALE), ("ff",), note="over the hill from the coastal village"),
+    S("Mildred Morath", TALKER, ("race", "human", FEMALE), ("ff",), note="the coast south of Qeynos"),
+    S("Smithy Vorgel", TALKER, ("race", "human", MALE), ("ff",), note="Stormhaven"),
+    S("Wilwalt", TALKER, ("race", "human", MALE), ("ff",), note="Stormhaven"),
+    S("Old Woman", TALKER, ("race", "human", FEMALE), ("ff",),
+      note="her house deep in the forest west of Surefall Glade, in Jethro's Cast"),
+    S("Garb", FOE, ("race", "human", MALE), ("ff",), note="the little village east of the Silent Fist"),
+    S("Gilen the Dark Piper", FOE, ("npc", "Dovre the Unfaithful"), ("ff",),
+      note="the lowest level of the Hagley Tomb (Dovre the Unfaithful's look, who is there)"),
+    S("Wyna the Hateful", FOE, ("npc", "Dovre the Unfaithful"), ("ff",), note="the lowest level of the Hagley Tomb"),
+    S("Minia the Twisted", FOE, ("npc", "Dovre the Unfaithful"), ("near", "Gilen the Dark Piper", 15, 0), level=15,
+      note="the lowest level of the Hagley Tomb, with Gilen and Wyna (the map's point lies 160 off the tomb)"),
+    S("Gorbrash Strongarm", FOE, ("kind", "gnoll"), ("ff",), note="leads the gnolls by the Slesher fort"),
+    S("Vithara Swiftpaw", FOE, ("kind", "gnoll"), ("ff",), note="with the gnoll champions north of the Slesher camp"),
+    S("darkpaw sargeant", FOE, ("kind", "gnoll"), ("poi", "tunaria", "darkpaw sargeant"),
+      note="leads the Darkpaw gnolls (the guide's spelling)"),
+    S("darkpaw seer", FOE, ("npc", "gnoll mystic"), ("ff",), note="north past the small gnoll camp"),
+    S("Gnoll Thief", FOE, ("kind", "gnoll"), ("ff",), note="steals from Foreman Gerald's camp"),
+    S("Plague Wolf", FOE, ("kind", "dog"), ("ff",), count=3, note="near the temple"),
+    S("Thick Coat Wolves", FOE, ("kind", "dog"), ("ff",), count=4,
+      note="south of Hagley (the game's name; the files said thick coat wolf)"),
+    S("Undead Wolf Pup", FOE, ("kind", "dog"), ("ff",), count=3, note="south of Hagley"),
+    S("thornless treant", FOE, ("npc", "treant"), ("ff",), count=2, note="near Jethro's Cast"),
+    S("Grave Rat Herald", FOE, ("kind", "rat"), ("ff",), note="near the aviak village"),
+    S("Snow Leopard Herald", FOE, ("npc", "snow leopard"), ("ff",), note="near Greyvax's caves"),
+    S("Young Bear Herald", FOE, ("kind", "bear"), ("ff",)),
+    S("Gugluk", FOE, ("kind", "froglok"), ("ff",),
+      note="the froglok shaman, on a hill south-west of the bridge west of Honjour"),
+    # --- Surefall Glade ---
+    S("Falwyn Breen", TALKER, ("race", "human", MALE), ("ff",), note="the druids' level 4 giver"),
+    S("Aieari Scoutmaster", TALKER, ("npc", "Ranger Sexton"), ("ff",),
+      note="on the mountain side near the Slesher fort (a ranger's look)"),
+    S("Ranger Gaffy", TALKER, ("npc", "Ranger Kjartan"), ("ff",),
+      note="the guard tower west of the glade (the game's name and the map's; the guide's Guard Gaffy)"),
+    S("Gilthar", FOE, ("race", "human", MALE), ("ff",), note="an outcast ranger north-west of Gaffy's tower"),
+    S("Gnoll Champion", FOE, ("kind", "gnoll"), ("poi", "tunaria", "Gnoll Champions"), count=3,
+      note="by the stone north-west of the Slesher fort"),
+    S("Gnoll Runner", FOE, ("kind", "gnoll"), ("ff",), note="near Aieari (the ranger's quest also spawns one by the player)"),
+    S("Gnoll Shaman Forager", FOE, ("npc", "gnoll mystic"), ("ff",),
+      note="the valley near the guard tower west of the glade"),
+    S("Surefall Shambler", FOE, ("npc", "treant"), ("ff",), count=3, note="round the glade (a walking plant's look)"),
+    # --- Halas, Diren's Hold and Moradhim ---
+    S("Iron Eagle", TALKER, ("race", "barbarian", MALE), ("ff",), note="Halas, the rogues' giver"),
+    S("Pratcher", TALKER, ("race", "barbarian", MALE), ("ff",), note="Diren's Hold, by the banker on the tower's second floor"),
+    S("Freezeblood captain", FOE, ("kind", "freezeblood"), ("ff",), count=2, note="the igloo camp west of Halas"),
+    S("Freezeblood Hoarder", FOE, ("kind", "freezeblood"), ("ff",), count=2,
+      note="with the Icemasters and Icecrushers (the game's name and the map's; the guide's Freezeblood Horde)"),
+    S("Freezeblood Icemaster", FOE, ("kind", "freezeblood"), ("poi", "tunaria", "Goblin Icemaster"),
+      note="the Freezeblood camp the warriors' level 7 sends them to (the map's Goblin Icemaster)"),
+    S("Freezeblood Icecrusher", FOE, ("kind", "freezeblood"), ("poi", "tunaria", "Goblin Icecrusher"),
+      note="the same camp (the map's Goblin Icecrusher)"),
+    S("Ice Spider Queen", FOE, ("kind", "spider"), ("ff",), note="far to the west of Halas"),
+    S("Numla", FOE, ("kind", "freezeblood"), ("ff",),
+      note="the assassin, north of the Freezeblood camp by the wooden T at the water (a scavenger stands in for him)"),
+    S("Salmon", FOE, ("npc", "small lake trout"), ("ff",), count=3, water=WATER, note="the river by Diren's Hold"),
+    S("Amber", TALKER, ("kind", "dog"), ("ff",),
+      note="the little wolf the Frosteye marauders hold in the dark tower east of Diren's Hold"),
+    S("Guard Reigald", TALKER, ("npc", "Guard Hargin"), ("ff",),
+      note="the lone guard past the first river north-north-west of Moradhim (a Moradhim guard's look)"),
+    S("Raldir", TALKER, ("race", "dwarf", MALE), ("at", 0, 14320.0, 8720.0), level=10,
+      note="by a tree west of Moradhim, just past the first icy river (the guide's way: the gates, then west along the wall)"),
+    S("Red-Eyed Monster", FOE, ("kind", "rat"), ("ff",),
+      note="a red-eyed rat by the frozen lake behind the lone guard (the game's spelling)"),
+    S("frosteye lurker", FOE, ("kind", "frosteye"), ("ff",), count=2,
+      note="north-east of Diren's Hold by the small river"),
+    S("Frosteye Marauder", FOE, ("kind", "frosteye"), ("ff",), count=3,
+      note="the dark tower east of Diren's Hold (three keep Amber's key)"),
+    S("Freezeblood Alchemist", FOE, ("kind", "freezeblood"), ("poi", "tunaria", "Freezeblood Alchemist")),
+    S("Freezeblood Sapper", FOE, ("kind", "freezeblood"), ("poi", "tunaria", "Freezeblood Sapper"), count=2,
+      note="north of Diren's Hold"),
+    S("Freezeblood treasurer", FOE, ("kind", "freezeblood"), ("ff",),
+      note="King Ickcil's throne room in the Freezeblood caves"),
+    # --- Rivervale, Merry-by-Water and Kithicor ---
+    S("Barnimus Giggletoes", TALKER, ("race", "halfling", MALE), ("poi", "tunaria", "Barnimus Giggletoes"),
+      note="Merry-by-Water"),
+    S("Merchant Fretwater", TALKER, ("race", "halfling", MALE), ("poi", "tunaria", "Merchant Fretwater"), level=20,
+      note="hands over dice and worms (sells nothing)"),
+    S("Stalis Slithertonuge", TALKER, ("race", "halfling", MALE), ("poi", "tunaria", "Stalis Slithertonuge"), level=20,
+      note="south of Kithicor, by the fallen tree"),
+    S("Goblin Foreman", FOE, ("kind", "goblin"), ("ff",), note="the tunnel camp south-west of the commanders"),
+    S("Suspicious Goblin", FOE, ("kind", "goblin"), ("ff",), note="the camp north-east of the wall's gate"),
+    S("Goblin Courier", FOE, ("kind", "goblin"), ("ff",), note="by the goblin tower"),
+    S("Goblin Digger", FOE, ("kind", "goblin"), ("ff",), count=4, note="the west side of the wall"),
+    # --- a town's newbie creatures the server had only far off, outside the town (their bodies the rows') ---
+    # Surefall Glade's: on the flat south of the glade's ridge (its bats, badgers and vipers stood by Qeynos)
+    S("Bat", FOE, ("npc", "Bat"), ("at", 0, 8820.0, 13180.0), count=4, level=1, note="outside Surefall Glade"),
+    S("Badger", FOE, ("npc", "Badger"), ("at", 0, 8980.0, 13180.0), count=4, level=2,
+      note="outside Surefall Glade (FrontiersForge saw a level 2 Badger round it)"),
+    S("Grass Viper", FOE, ("npc", "Grass Viper"), ("at", 0, 8820.0, 13330.0), count=4, level=3,
+      note="outside Surefall Glade"),
+    S("Fireflies", FOE, ("npc", "Fireflies"), ("at", 0, 8980.0, 13330.0), count=4, level=2,
+      note="outside Surefall Glade (the game's name; the file said firefly)"),
+    S("Ant", FOE, ("npc", "Ant"), ("at", 0, 9100.0, 13250.0), count=4, level=2, note="just outside Surefall Glade"),
+    S("firebeetle", FOE, ("npc", "firebeetle"), ("at", 0, 8740.0, 13260.0), count=4, level=3,
+      note="just outside Surefall Glade (the game's spelling, Qeynos's 62)"),
+    # Highbourne's: by the newbie yard east of the city
+    S("Rat", FOE, ("npc", "Rat"), ("near", "decaying rat", 60, 0), count=4, level=2, note="outside Highbourne"),
+    S("Tarantula", FOE, ("npc", "Tarantula"), ("near", "tarantula hatchling", 60, 0), count=4, level=3,
+      note="outside Highbourne"),
+    S("Dragonflies", FOE, ("npc", "Dragonflies"), ("near", "decaying rat", 140, 0), count=4, level=3,
+      note="outside Highbourne"),
+    S("Ant", FOE, ("npc", "Ant"), ("at", 0, 5004.0, 20963.0), count=4, level=1,
+      note="north of Highbourne, where FrontiersForge saw a level 1 Ant"),
+    # the old woman's, round her house in Jethro's Cast (the map's points; her black widows, which it has none of, by her)
+    S("Black Widow", FOE, ("npc", "Black Widow"), ("near", "Old Woman", 70, 0), count=4, level=13,
+      note="near the old woman's house (the server's nearest were 2,500 off)"),
+    S("Giant Beetle", FOE, ("npc", "Giant Beetle"), ("poi", "tunaria", "Giant Beetle"), count=3, level=13,
+      note="near the old woman's house"),
+    S("Tree Viper", FOE, ("npc", "Tree Viper"), ("poi", "tunaria", "tree viper"), count=3, level=13,
+      note="near the old woman's house"),
+    S("Black Wolf Cub", FOE, ("npc", "Black Wolf Cub"), ("poi", "tunaria", "black wolf cub"), count=3, level=13,
+      note="near the old woman's house"),
+    S("Young Wolf", FOE, ("npc", "Young Wolf"), ("poi", "tunaria", "black wolf cub"), count=3, level=13,
+      note="near the old woman's house (the wizards' guide's, at the map's wolf cubs)"),
 ]
 
 # Quest targets that stand as townsfolk (npc_type 0x80): made attackable, the
@@ -301,6 +442,7 @@ OGGOK_MAP = (6855.0, 10988.0)
 SPREAD = (25.0, 120.0)
 SPACING = 12.0
 CLEAR = 3.0     # and this far from any NPC there is
+DECK = 8.0      # a sighting above every floor keeps its height this far round it
 TRIES = 300
 
 
@@ -445,7 +587,10 @@ def load(db):
 
 
 def guides_of(data_dir):
-    """Each unresolved name of the quest files: the guides (1-20/<city>/<class>) it comes from."""
+    """Each name the quest files use (a giver, a step's target, an event's
+    NPC, what is unresolved): the guides (1-20/<city>/<class>) it comes from.
+    Every name, not the unresolved alone, so a map point is picked the same
+    once the files list the name as found."""
     out = collections.defaultdict(set)
     for f in sorted(os.listdir(data_dir)):
         if not f.endswith(".json"):
@@ -453,8 +598,15 @@ def guides_of(data_dir):
         with open(os.path.join(data_dir, f)) as fh:
             quests = json.load(fh)["quests"]
         for q in quests:
-            for u in q.get("unresolved", []):
-                out[key(u.replace(" (attackable)", ""))].add("/".join(q["key"].split("/")[:3]))
+            guide = "/".join(q["key"].split("/")[:3])
+            names = [q.get("giver", "")] + [u.replace(" (attackable)", "") for u in q.get("unresolved", [])]
+            for st in q.get("steps", []):
+                names.append(st.get("target", ""))
+                names += [ev.get("npc", "") for ev in st.get("events", [])]
+            names += [ev.get("npc", "") for ev in q.get("events", [])]
+            for n in names:
+                if n:
+                    out[key(n)].add(guide)
     return out
 
 
@@ -467,8 +619,8 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
         zones = json.load(f)
     sheet = Map(zones, npcs, ff)
     guides = guides_of(quest_dir) if quest_dir and os.path.isdir(quest_dir) else {}
-    rng = random.Random(seed)
-    grounds = {}
+    rng = None   # each entry's own, below
+    grounds, envs = {}, {}
     by_name = collections.defaultdict(list)
     for n in npcs:
         by_name[fold(n["name"])].append(n)
@@ -492,6 +644,15 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
             path = os.path.join(ground_dir, f"{world}.ground")
             grounds[world] = Ground(path) if os.path.exists(path) else None
         return grounds[world]
+
+    def wet(world, x, y, z):
+        """Whether a body standing at y is in the water (or slime): half a
+        unit above its feet, as the server has it; None without the file."""
+        if world not in envs:
+            path = os.path.join(ground_dir, f"{world}.env")
+            envs[world] = Env(path) if os.path.exists(path) else None
+        e = envs[world]
+        return None if e is None else e.flags(x, y + 0.5, z) & 3 != 0
 
     def around_y(world, x, z, r=150.0):
         """The height of the NPC nearest (x, z) within r, one this plan
@@ -523,6 +684,23 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
             return fl[0]
         return min(fl, key=lambda h: abs(h - ref))
 
+    def walked(world, base, x, z):
+        """The floor at (x, z) reached from base (x, z, floor) a step of 2 at a
+        time, each no more than a stair (2.5) above or below the last; None if
+        it cannot be."""
+        g = ground(world)
+        bx, bz, h = base
+        n = max(1, math.ceil(math.hypot(x - bx, z - bz) / 2.0))
+        for k in range(1, n + 1):
+            fl = g.floors(bx + (x - bx) * k / n, bz + (z - bz) * k / n) if g else []
+            if not fl:
+                return None
+            f = min(fl, key=lambda v: abs(v - h))
+            if abs(f - h) > 2.5:
+                return None
+            h = f
+        return h
+
     def template(body, world, x, z):
         kind = body[0]
         if kind == "npc":
@@ -551,7 +729,7 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
             ss = [s for s in ss if s["world"] == 0]
             if not ss:
                 return None, "no FrontiersForge sighting"
-            return [(s["world"], s["x_coord"], s["z_coord"], s["y_coord"], low, s["npc_level"]) for s in ss], "ff"
+            return [(s["world"], s["x_coord"], s["z_coord"], s["y_coord"], low, s["npc_level"], None) for s in ss], "ff"
         if pl[0] == "poi":
             p = sheet.poi(pl[2], guides.get(key(spec["name"]), set()) | guides.get(key(pl[2]), set()))
             if p is None:
@@ -560,9 +738,9 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
             lv = int(m.group(1)) if m else None
             if pl[1] == "rathe":
                 x, z = sheet.rathe_at(p["x"], p["y"])
-                return [(1, x, z, around_y(1, x, z), low, lv)], "map (the Rathe)"
+                return [(1, x, z, around_y(1, x, z), low, lv, None)], "map (the Rathe)"
             x, z = sheet.corrected(p["x"], p["y"])
-            return [(0, x, z, around_y(0, x, z), low, lv)], "map"
+            return [(0, x, z, around_y(0, x, z), low, lv, None)], "map"
         if pl[0] == "near":
             name, dist, world = pl[1], pl[2], pl[3]
             north = len(pl) > 4 and pl[4] == "north"
@@ -572,16 +750,22 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
             if not cands:
                 return None, f"no {name!r} in world {world} to stand by"
             a = cands[0]
+            # where the NPC stands, on its own floor (a talker by it walks there from it)
+            af = floor_at(world, a["x"], a["z"], a["y"], False)
+            base = (a["x"], a["z"], a["y"] if af is None else af)
             if north:   # smaller z is north
-                return [(world, a["x"], a["z"] - dist, a["y"], low, None)], f"north of {name}"
+                return [(world, a["x"], a["z"] - dist, a["y"], low, None, base)], f"north of {name}"
             ang = rng.uniform(0, 2 * math.pi)
-            return [(world, a["x"] + dist * math.cos(ang), a["z"] + dist * math.sin(ang), a["y"], low, None)], f"by {name}"
+            return [(world, a["x"] + dist * math.cos(ang), a["z"] + dist * math.sin(ang), a["y"], low, None, base)], \
+                f"by {name}"
         if pl[0] == "at":
             world, x, z = pl[1], pl[2], pl[3]
-            return [(world, x, z, around_y(world, x, z), low, None)], "the guide's place"
+            return [(world, x, z, around_y(world, x, z), low, None, None)], "the guide's place"
         return None, f"place {pl[0]!r}"
 
     for spec in specs:
+        # each entry draws from its own stream, so one entry's tries never move another's spawns
+        rng = random.Random(f"{seed}/{spec['name']}/{spec['place']!r}")
         places, src = anchor_of(spec)
         if places is None:
             left.append((spec["name"], src))
@@ -589,8 +773,9 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
         want = spec["count"]
         made = 0
         for i in range(want):
-            world, ax, az, ay, low, lv = places[i % len(places)]
+            world, ax, az, ay, low, lv, base = places[i % len(places)]
             first = i < len(places)
+            soaked = False
             for t in range(TRIES):
                 if first and t == 0:
                     x, z = ax, az
@@ -603,10 +788,25 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
                 if crowded(world, x, z):
                     continue
                 y = floor_at(world, x, z, ay, low)
-                # a talker by a townsperson stands on that person's floor (not off a
-                # dock or a storey up); anything else within 30 of its place's height
-                tol = 10.0 if spec["role"] == TALKER and spec["place"][0] == "near" else 30.0
+                if first and src == "ff" and math.hypot(x - ax, z - az) <= DECK and y is not None \
+                        and ay is not None and ay - y > 3.0 and spec["water"] == LAND and wet(world, x, ay, z) is False:
+                    # seen standing on what the ground files lack (a boat's deck, the froglok
+                    # raiders' 13 over the slime they stand above): there, out of the water
+                    y = ay
+                # a talker by a townsperson or where it was seen stands on that floor (not
+                # off a dock or a storey up); anything else within 30 of its place's height
+                tol = 10.0 if spec["role"] == TALKER and spec["place"][0] in ("near", "ff") else 30.0
                 if y is None or (ay is not None and not low and abs(y - ay) > tol):
+                    continue
+                if spec["role"] == TALKER and base is not None:
+                    # a talker by a townsperson stands where one could walk to from it on its
+                    # floor (not the slope outside the room the other is in)
+                    y = walked(world, base, x, z)
+                    if y is None:
+                        continue
+                w = wet(world, x, y, z)
+                if w is not None and spec["water"] != BOTH and w != (spec["water"] == WATER):
+                    soaked = True
                     continue
                 tpl = template(spec["body"], world, x, z)
                 if tpl is None:
@@ -625,7 +825,8 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
                 made += 1
                 break
             else:
-                left.append((spec["name"], f"no floor round ({ax:.0f}, {az:.0f}) in world {world}"))
+                what = ("no floor in the water" if spec["water"] == WATER else "no dry floor") if soaked else "no floor"
+                left.append((spec["name"], f"{what} round ({ax:.0f}, {az:.0f}) in world {world}"))
         if made and made < want:
             left.append((spec["name"], f"{want - made} of {want} spawns found no place"))
     for name in ATTACKABLE:

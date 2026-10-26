@@ -241,10 +241,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Merchant Fretwater"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Merchant Fretwater is not in the database. The guide does not name the weapon, so none is given."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon, so none is given."
   },
   {
    "key": "1-20/rivervale/cleric/L5",
@@ -257,7 +255,7 @@
    "minlevel": 5,
    "maxlevel": 60,
    "requires": [
-    "1-20/rivervale/cleric/L3"
+    "1-20/rivervale/cleric/L4"
    ],
    "offer": "Goblin raiders hunt west of the unfinished wall, northwest of the coach. Kill them and bring me a goblin raider's cap.",
    "accept": "I will do it.",
@@ -298,7 +296,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 5; github.com/Jadiction/EQOA-Data). There are no goblin raiders in the database: the pickclaw shamans by the unfinished wall, where EQOA-Data's map puts the raiders and of their level, stand in; their cap is the database's Raiders Cap. The Holy Shock scroll is the class's level 5 spell, the scroll the guides that name one give for this quest. It follows L3: L4 before it is a draft until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 5; github.com/Jadiction/EQOA-Data). There are no goblin raiders in the database: the pickclaw shamans by the unfinished wall, where EQOA-Data's map puts the raiders and of their level, stand in; their cap is the database's Raiders Cap. The Holy Shock scroll is the class's level 5 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/rivervale/cleric/L7",
@@ -423,7 +421,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 7; github.com/Jadiction/EQOA-Data). Grimble Blimnop by the docks, a stop between Grilsop and Ren, is not in the database: that step is left out. The pinecones are gathered at EQOA-Data's map's place (the guide's other way, buying them from Merchant Fretwater, is not: he is not in the database). The Endure Ailment scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 7; github.com/Jadiction/EQOA-Data). Grimble Blimnop by the docks, a stop between Grilsop and Ren, is not in the database: that step is left out. The pinecones are gathered at EQOA-Data's map's place (the guide's other way, buying them from Merchant Fretwater, is not in). The Endure Ailment scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/rivervale/cleric/L10",
@@ -567,9 +565,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Suspicious Goblin"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 13; github.com/Jadiction/EQOA-Data). The Ward Death scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
   {
@@ -583,7 +579,7 @@
    "minlevel": 15,
    "maxlevel": 60,
    "requires": [
-    "1-20/rivervale/cleric/L10"
+    "1-20/rivervale/cleric/L13"
    ],
    "offer": "Brend Groomer in Bobble-by-Water has had something stolen. Go to him.",
    "accept": "I will do it.",
@@ -695,7 +691,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 15; github.com/Jadiction/EQOA-Data). The guide's goblin commanders of Runnyeye are several named ones here (Commander Drog, Artheg and the rest): the goblin commander by the goblin tower stands for them. The Endure Affliction scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L10: L13 before it is a draft until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 15; github.com/Jadiction/EQOA-Data). The guide's goblin commanders of Runnyeye are several named ones here (Commander Drog, Artheg and the rest): the goblin commander by the goblin tower stands for them. The Endure Affliction scroll is the class's level 15 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/rivervale/cleric/L20",
@@ -890,11 +886,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Barnimus Giggletoes",
-    "Stalis Slithertonuge"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). Barnimus Giggletoes and Phil Wiggins (Merry-by-Water) and Stalis Slithertonuge (south of Kithicor) are not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). Phil Wiggins (Merry-by-Water) is not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
   },
   {
    "key": "1-20/rivervale/druid/L1",
@@ -1136,10 +1129,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Merchant Fretwater"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Merchant Fretwater is not in the database. The raven's beak is the database's chipped raven beak, the rat fur its Strands of Rat Fur. The guide does not name the weapon."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The raven's beak is the database's chipped raven beak, the rat fur its Strands of Rat Fur. The guide does not name the weapon."
   },
   {
    "key": "1-20/rivervale/druid/L5",
@@ -1152,7 +1143,7 @@
    "minlevel": 5,
    "maxlevel": 60,
    "requires": [
-    "1-20/rivervale/druid/L3"
+    "1-20/rivervale/druid/L4"
    ],
    "offer": "Goblin raiders hunt west of the unfinished wall, northwest of the coach. Kill them and bring me a goblin raider's cap.",
    "accept": "I will do it.",
@@ -1193,7 +1184,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 5; github.com/Jadiction/EQOA-Data). There are no goblin raiders in the database: the pickclaw shamans by the unfinished wall, where EQOA-Data's map puts the raiders and of their level, stand in; their cap is the database's Raiders Cap. The Snare scroll is the class's level 5 spell, the scroll the guides that name one give for this quest. It follows L3: L4 before it is a draft until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 5; github.com/Jadiction/EQOA-Data). There are no goblin raiders in the database: the pickclaw shamans by the unfinished wall, where EQOA-Data's map puts the raiders and of their level, stand in; their cap is the database's Raiders Cap. The Snare scroll is the class's level 5 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/rivervale/druid/L7",
@@ -1472,9 +1463,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Goblin Foreman"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not say what the foreman carries: a mallet is ours. The Regenerative Aura scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
   {
@@ -1488,7 +1477,7 @@
    "minlevel": 15,
    "maxlevel": 60,
    "requires": [
-    "1-20/rivervale/druid/L10"
+    "1-20/rivervale/druid/L13"
    ],
    "offer": "Brend Groomer in Bobble-by-Water has had something stolen. Go to him.",
    "accept": "I will do it.",
@@ -1600,7 +1589,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 15; github.com/Jadiction/EQOA-Data). The guide's goblin commanders of Runnyeye are several named ones here (Commander Drog, Artheg and the rest): the goblin commander by the goblin tower stands for them. The Endure Elements scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L10: L13 before it is a draft until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 15; github.com/Jadiction/EQOA-Data). The guide's goblin commanders of Runnyeye are several named ones here (Commander Drog, Artheg and the rest): the goblin commander by the goblin tower stands for them. The Endure Elements scroll is the class's level 15 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/rivervale/druid/L20",
@@ -1795,11 +1784,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Barnimus Giggletoes",
-    "Stalis Slithertonuge"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 20; github.com/Jadiction/EQOA-Data). Barnimus Giggletoes and Phil Wiggins (Merry-by-Water) and Stalis Slithertonuge (south of Kithicor) are not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 20; github.com/Jadiction/EQOA-Data). Phil Wiggins (Merry-by-Water) is not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
   },
   {
    "key": "1-20/rivervale/rogue/L1",
@@ -2501,9 +2487,7 @@
      }
     }
    ],
-   "unresolved": [
-    "goblin courier"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The windmills', the locker's places are EQOA-Data's map's. Mrs. Ghobber is Sophie Ghobber, Old Lady Gubbin is Grandma Gubbin, Mrs. Earblower is Zarene Earblower. The plans stay with you after the locker (a reach step takes no items)."
   },
   {
@@ -2517,7 +2501,7 @@
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
-    "1-20/rivervale/rogue/L7"
+    "1-20/rivervale/rogue/L10"
    ],
    "offer": "Nena Bimberry at the wall knows about the goblin raids. Ask her.",
    "accept": "I will do it.",
@@ -2594,10 +2578,8 @@
      }
     }
    ],
-   "unresolved": [
-    "goblin digger"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 13; github.com/Jadiction/EQOA-Data). Nina Bimberry is the database's Nena Bimberry. The Night Breath scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L7: L10 before it is a draft until its names are in the database."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 13; github.com/Jadiction/EQOA-Data). Nina Bimberry is the database's Nena Bimberry. The Night Breath scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/rivervale/rogue/L15",
@@ -2610,7 +2592,7 @@
    "minlevel": 15,
    "maxlevel": 60,
    "requires": [
-    "1-20/rivervale/rogue/L7"
+    "1-20/rivervale/rogue/L13"
    ],
    "offer": "Brend Groomer in Bobble-by-Water has had something stolen. Go to him.",
    "accept": "I will do it.",
@@ -2722,7 +2704,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 15; github.com/Jadiction/EQOA-Data). The guide's goblin commanders of Runnyeye are several named ones here (Commander Drog, Artheg and the rest): the goblin commander by the goblin tower stands for them. The Vaulter's Balance scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L7: L10, L13 before it are drafts until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 15; github.com/Jadiction/EQOA-Data). The guide's goblin commanders of Runnyeye are several named ones here (Commander Drog, Artheg and the rest): the goblin commander by the goblin tower stands for them. The Vaulter's Balance scroll is the class's level 15 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/rivervale/rogue/L20",
@@ -2917,11 +2899,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Barnimus Giggletoes",
-    "Stalis Slithertonuge"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Barnimus Giggletoes and Phil Wiggins (Merry-by-Water) and Stalis Slithertonuge (south of Kithicor) are not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Phil Wiggins (Merry-by-Water) is not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
   },
   {
    "key": "1-20/rivervale/warrior/L1",
@@ -3623,9 +3602,7 @@
      }
     }
    ],
-   "unresolved": [
-    "goblin courier"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The windmills', the locker's places are EQOA-Data's map's. Mrs. Ghobber is Sophie Ghobber, Old Lady Gubbin is Grandma Gubbin, Mrs. Earblower is Zarene Earblower. The plans stay with you after the locker (a reach step takes no items)."
   },
   {
@@ -3639,7 +3616,7 @@
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
-    "1-20/rivervale/warrior/L7"
+    "1-20/rivervale/warrior/L10"
    ],
    "offer": "Nena Bimberry at the wall knows about the goblin raids. Ask her.",
    "accept": "I will do it.",
@@ -3716,10 +3693,8 @@
      }
     }
    ],
-   "unresolved": [
-    "goblin digger"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 13; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. Nina Bimberry is the database's Nena Bimberry. The Rapid Strike scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L7: L10 before it is a draft until its names are in the database."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 13; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. Nina Bimberry is the database's Nena Bimberry. The Rapid Strike scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/rivervale/warrior/L15",
@@ -3732,7 +3707,7 @@
    "minlevel": 15,
    "maxlevel": 60,
    "requires": [
-    "1-20/rivervale/warrior/L7"
+    "1-20/rivervale/warrior/L13"
    ],
    "offer": "Brend Groomer in Bobble-by-Water has had something stolen. Go to him.",
    "accept": "I will do it.",
@@ -3844,7 +3819,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 15; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The guide's goblin commanders of Runnyeye are several named ones here (Commander Drog, Artheg and the rest): the goblin commander by the goblin tower stands for them. The Stomp scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L7: L10, L13 before it are drafts until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 15; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The guide's goblin commanders of Runnyeye are several named ones here (Commander Drog, Artheg and the rest): the goblin commander by the goblin tower stands for them. The Stomp scroll is the class's level 15 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/rivervale/warrior/L20",
@@ -4039,11 +4014,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Barnimus Giggletoes",
-    "Stalis Slithertonuge"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). Barnimus Giggletoes and Phil Wiggins (Merry-by-Water) and Stalis Slithertonuge (south of Kithicor) are not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's stop at Darm Leafsway is left out. The guide's final choice of reward is not in: the quest gives its experience only."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). Phil Wiggins (Merry-by-Water) is not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's stop at Darm Leafsway is left out. The guide's final choice of reward is not in: the quest gives its experience only."
   }
  ],
  "items": [

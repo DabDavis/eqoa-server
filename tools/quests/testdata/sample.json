@@ -1,0 +1,57 @@
+{
+  "city": "testmoor",
+  "quests": [
+    {
+      "key": "1-20/testmoor/warrior/L1",
+      "name": "Tusks",
+      "giver": "captain brindle",
+      "classes": [0],
+      "races": [],
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "Boars dig up the fields. Bring me two of their tusks.",
+      "accept": "I will.",
+      "decline": "Not now.",
+      "declined": "Then go.",
+      "started": "Be quick.",
+      "events": [{"on": "accept", "do": "popup", "text": "Welcome to Testmoor, %p."}],
+      "steps": [
+        {"kind": "loot", "target": "Field Boar", "items": [{"item": "Boars Tusk", "count": 2}], "count": 2, "chance": 0.5,
+         "journal": "Take two tusks from field boars.",
+         "events": [{"on": "start", "do": "give", "items": [{"item": "Old Spear", "count": 1}]},
+                    {"on": "done", "do": "visual", "fx": "Swipe"}]},
+        {"kind": "give", "target": "Captain Brindle", "items": [{"item": "boar's tusk", "count": 2}], "journal": "Bring the tusks back.",
+         "says": "Good work.", "rewards": {"xp": 430, "spells": ["Swipe"], "items": ["Old Spear"], "factions": [["Testmoor Watch", 10]]}}
+      ],
+      "unresolved": [],
+      "notes": "A made-up quest."
+    },
+    {
+      "key": "1-20/testmoor/warrior/L3",
+      "name": "The Ghost",
+      "giver": "Captain Brindle",
+      "classes": [0],
+      "minlevel": 3,
+      "requires": ["1-20/testmoor/warrior/L1"],
+      "offer": "A ghost walks the moor.",
+      "accept": "I will.",
+      "steps": [{"kind": "kill", "target": "Moor Ghost", "count": 1, "journal": "Kill the moor ghost."}],
+      "unresolved": ["Moor Ghost"]
+    },
+    {
+      "key": "1-20/testmoor/warrior/L5",
+      "name": "After the Ghost",
+      "giver": "Captain Brindle",
+      "classes": [0],
+      "minlevel": 5,
+      "requires": ["1-20/testmoor/warrior/L3"],
+      "offer": "Now the bridge.",
+      "steps": [{"kind": "reach", "world": 0, "x": 25000, "y": 54, "z": 15000, "radius": 20, "journal": "Go to the bridge."}],
+      "unresolved": []
+    }
+  ],
+  "items": [
+    {"name": "Boar's Tusk", "description": "A tusk from a field boar.", "notrade": true, "like": "broken fang"}
+  ]
+}

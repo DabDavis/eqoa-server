@@ -366,9 +366,9 @@ func (h *ClassMasteryHandler) buy(sess *session.Session, token uint32, id int) [
 }
 
 // remove is a removal (sub-op 3): Recv06 and the points (Recv03, which
-// Recv06 does not carry; CLIENT announces the points given back as "You have
-// earned N mastery points.") when removed, else the refusal in red and
-// Recv02.
+// Recv06 does not carry: the spent ones fewer, the unspent as they were, as
+// a removal gives nothing back, so CLIENT announces no points earned) when
+// removed, else the refusal in red and Recv02.
 func (h *ClassMasteryHandler) remove(sess *session.Session, token uint32, id int) [][]byte {
 	if h.gameWorld == nil {
 		return nil
@@ -394,7 +394,7 @@ func (h *ClassMasteryHandler) remove(sess *session.Session, token uint32, id int
 		h.takeAbilities(sess, p, res.Rank.Adds)
 		h.giveAbilities(sess, p, res.Rank.Removes)
 	}
-	SendColoredChat(sess, fmt.Sprintf("You have removed %s: %d mastery points back.", name, res.Paid), 255, 255, 0)
+	SendColoredChat(sess, fmt.Sprintf("You have removed %s: its %d mastery points are gone, to be earned again.", name, res.Paid), 255, 255, 0)
 	list := h.gameWorld.CMList(sess, h.cmBookOf(p))
 	removed := cmBig(func(w *buffer.Writer) {
 		w.WriteByte(cmRespRemoved)

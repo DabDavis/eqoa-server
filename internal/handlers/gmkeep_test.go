@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"net"
 	"testing"
 
@@ -102,6 +103,7 @@ func TestAReplacingLoginKeepsTheLevelReached(t *testing.T) {
 		}
 
 		now := sm.CreateSession(testAddr(2), 2, 2, 2, 2, true)
+		now.SetAccountID(1) // signed in as the character's account
 		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeSelectedChar)
 		msg.SetData(u32b(rec.ServerID))
 		if err := h.HandleSelectedChar(now, msg); err != nil {
@@ -118,4 +120,67 @@ func TestAReplacingLoginKeepsTheLevelReached(t *testing.T) {
 
 func testAddr(n byte) *net.UDPAddr {
 	return &net.UDPAddr{IP: net.IPv4(198, 51, 100, n), Port: 6100 + int(n)}
+}
+
+// A session enters the world only as a character of its own account, and
+// makes and lists only its own (F3 20261026-103415: a session the server had
+// dropped, made anew with no account by the client's next packet, was sent
+// every character on the server and made one under account 1, and select
+// asked no one whose a character was). Each refusal is the login's 0x0729,
+// so the client goes back to its login. The control: the owner's session
+// enters the world, and its list holds its own character only.
+func TestOnlyACharactersOwnAccountMayUseIt(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/owner.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	store := database.NewSQLiteCharacterStore(db)
+	mine := &database.CharacterRecord{CharName: "Mine", AccountID: 5, Level: 1}
+	theirs := &database.CharacterRecord{CharName: "Theirs", AccountID: 6, Level: 1}
+	for _, r := range []*database.CharacterRecord{mine, theirs} {
+		if err := store.Create(r); err != nil {
+			t.Fatal(err)
+		}
+	}
+	w := entity.NewWorld()
+	sm := session.NewManager()
+	w.SessionManager = sm
+	h := &CharacterHandler{store: store, sessionManager: sm, gameWorld: w}
+	sel := func(sess *session.Session, id uint32) {
+		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeSelectedChar)
+		msg.SetData(u32b(id))
+		if err := h.HandleSelectedChar(sess, msg); err != nil {
+			t.Fatal(err)
+		}
+	}
+	refused := func(sess *session.Session) bool { return sentOp(sess, protocol.OpcodeBadLoginPassword) != nil }
+
+	other := sm.CreateSession(testAddr(3), 3, 3, 3, 3, true)
+	other.SetAccountID(5)
+	sel(other, theirs.ServerID)
+	if !refused(other) || w.SessionPlayer(other) != nil {
+		t.Fatal("a session entered the world as another account's character")
+	}
+	none := sm.CreateSession(testAddr(4), 4, 4, 4, 4, true)
+	sel(none, mine.ServerID)
+	if !refused(none) || w.SessionPlayer(none) != nil {
+		t.Fatal("a session with no account entered the world")
+	}
+	list := sm.CreateSession(testAddr(5), 5, 5, 5, 5, true)
+	h.SendCharacterSelectEQOA(list)
+	if !refused(list) || sentOp(list, protocol.OpcodeCharacterSelect) != nil {
+		t.Fatal("a session with no account was sent a character list")
+	}
+
+	own := sm.CreateSession(testAddr(6), 6, 6, 6, 6, true)
+	own.SetAccountID(5)
+	h.SendCharacterSelectEQOA(own)
+	if d := sentOp(own, protocol.OpcodeCharacterSelect); d == nil || !bytes.Contains(d, []byte("Mine")) || bytes.Contains(d, []byte("Theirs")) {
+		t.Fatalf("the control: the owner's list %q", d)
+	}
+	sel(own, mine.ServerID)
+	if refused(own) || w.SessionPlayer(own) == nil {
+		t.Fatal("the control: the owner's session did not enter the world")
+	}
 }

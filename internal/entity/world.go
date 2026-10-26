@@ -874,12 +874,16 @@ func (w *World) awardXP(sess *session.Session, player *Player, xp int) {
 		SendTrainingPoints(sess, player.UnusedTP)
 	}
 	w.sendGrantXP(sess, player.Level, player.XPInLevel)
+	// Sandstorm's words: "You receive N XP." for a kill and a quest alike
+	// (recorded by questrec16, claude-notes/quests-sandstorm-20261025.md),
+	// and for the masteries' share "You received N class mastery XP." alone
+	// when it is all of it (a level 60's Sandstorm session in a client
+	// report's chat, F3 20261025-225337)
+	if levelXP > 0 || cmXP == 0 {
+		w.sendChatToSession(sess, fmt.Sprintf("You receive %d XP.", levelXP))
+	}
 	if cmXP > 0 {
-		w.sendChatToSession(sess, fmt.Sprintf("You receive %d XP (%d to masteries).", xp, cmXP))
-	} else {
-		// Sandstorm's words, for a kill and a quest alike (recorded by
-		// questrec16, claude-notes/quests-sandstorm-20261025.md)
-		w.sendChatToSession(sess, fmt.Sprintf("You receive %d XP.", xp))
+		w.sendChatToSession(sess, fmt.Sprintf("You received %d class mastery XP.", cmXP))
 	}
 	if made > 0 {
 		SendMasteryPoints(sess, player.Mastery)

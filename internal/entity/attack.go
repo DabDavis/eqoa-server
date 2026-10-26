@@ -462,7 +462,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 	w.updateAggro(npc, attacker.ServerID, damage)
 	if killed {
 		w.killNPC(npc)
-		w.awardXP(sess, attacker, npc.Level*100)
+		w.awardKillXPLocked(sess, attacker, npc) // killexp.go
 		w.factionKillLocked(sess, attacker, npc)
 		return true
 	}

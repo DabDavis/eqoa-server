@@ -214,7 +214,11 @@ func SendStatCap(sess *session.Session, level int) {
 
 // masteryLine is what a GM is told of a character's points.
 func masteryLine(m Mastery) string {
-	return fmt.Sprintf("%d unspent, %d spent (at most %d), %d%% of experience to masteries", m.Points, m.Spent, MasteryCap, m.Percent)
+	next := "none past the most"
+	if m.Points+m.Spent < MasteryCap {
+		next = fmt.Sprintf("%d of %d toward the next", m.XP, CMPointXP(m.Points+m.Spent+1))
+	}
+	return fmt.Sprintf("%d unspent, %d spent (at most %d), %d%% of experience to masteries, %s", m.Points, m.Spent, MasteryCap, m.Percent, next)
 }
 
 // MasteryLine is masteryLine for the GM commands.

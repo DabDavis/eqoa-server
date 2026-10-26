@@ -41,6 +41,7 @@ class Names:
             self.npc[fold(name)].append(t or 0)
         self.item = {fold(n) for (n,) in db.execute('SELECT itemname FROM itempattern')}
         self.spell = {fold(n) for (n,) in db.execute('SELECT spellname FROM spellpattern')}
+        db.close()
 
     def attackable(self, name):
         return any(t & 0x80 == 0 for t in self.npc.get(fold(name), []))
@@ -51,6 +52,7 @@ class Check:
         self.names = names
         self.errors = []
         self.warnings = []
+        self.misses = {}   # quest key -> what of it does not resolve (with --db), as `unresolved` must list it
 
     def err(self, where, msg):
         self.errors.append(f'{where}: {msg}')
@@ -204,6 +206,7 @@ class Check:
                 if fold(n) not in self.names.spell:
                     missing.append(n)
             missing += [f'{n} (attackable)' for n in unattackable]
+            self.misses[key] = missing
             want = {fold(m) for m in missing}
             have = {fold(u) for u in q.get('unresolved', [])}
             for m in sorted(want - have):

@@ -289,4 +289,21 @@ func TestALootStepAndEventsAreSaved(t *testing.T) {
 	if chance != 1.5 || !strings.Contains(events, "Nobody At All") {
 		t.Errorf("written: chance %v events %q", chance, events)
 	}
+
+	// a faction this server has moves without a problem; one it lacks has one
+	var faction string
+	if err := f.db.QueryRow(`SELECT name FROM factions ORDER BY name LIMIT 1`).Scan(&faction); err != nil {
+		t.Fatalf("no faction in the fixture: %v", err)
+	}
+	code, out = c.op("quest_save", map[string]any{
+		"quest": map[string]any{"questid": id, "name": "Belts"},
+		"steps": []map[string]any{{"kind": "talk", "target": "Guard Dahvel", "journal": "Go.", "factions": faction + ":+10, Nobody's Friends:-5"}},
+	})
+	if code != 200 {
+		t.Fatalf("quest_save with factions: %d %v", code, out)
+	}
+	ps = problemsOf(out)
+	if strings.Contains(ps, fmt.Sprintf("%q", faction)) || !strings.Contains(ps, `"Nobody's Friends", which this server does not have`) {
+		t.Errorf("the factions' problems:\n%s", ps)
+	}
 }

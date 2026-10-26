@@ -6,6 +6,7 @@ import (
 	"net"
 	"testing"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -125,11 +126,11 @@ func TestAMasteryPointCostsTheLiveTables(t *testing.T) {
 	}
 }
 
-// The share divides each award (0-100 by one, the mastery points window's
-// step), each point made when the masteries' part reaches its cost
-// (CMPointXP of the point it would be); 1500 points held, spent and unspent,
-// all of it goes to the level. The controls: 0% gives the masteries
-// nothing, and a point is not made early.
+// Below the level cap with no debt the share divides each award (0-100 by
+// one, the mastery points window's step), each point made when the
+// masteries' part reaches its cost (CMPointXP of the point it would be);
+// 1500 points held, spent and unspent, all of it goes to the level. The
+// controls: 0% gives the masteries nothing, and a point is not made early.
 func TestTheShareDividesExperience(t *testing.T) {
 	for _, c := range []struct {
 		m              Mastery
@@ -147,9 +148,10 @@ func TestTheShareDividesExperience(t *testing.T) {
 		{Mastery{Percent: 100, Points: 1000, Spent: 500}, 6000, 6000, 0, 0},
 		{Mastery{Percent: 100, Points: 1499, XP: CMPointXP(1500) - 100}, 30000, 0, 30000, 1},
 	} {
-		lvl, cm := splitXP(c.m, c.xp)
-		if lvl != c.lvl || cm != c.cm {
-			t.Errorf("%+v of %d: level %d, masteries %d; want %d, %d", c.m, c.xp, lvl, cm, c.lvl, c.cm)
+		sh := splitXP(c.m, 30, 0, c.xp)
+		lvl, cm := sh.Level, sh.Mastery
+		if lvl != c.lvl || cm != c.cm || sh.Debt != 0 {
+			t.Errorf("%+v of %d: level %d, masteries %d, debt %d; want %d, %d, 0", c.m, c.xp, lvl, cm, sh.Debt, c.lvl, c.cm)
 		}
 		m := c.m
 		if n := gainMastery(&m, cm); n != c.n {
@@ -158,6 +160,55 @@ func TestTheShareDividesExperience(t *testing.T) {
 		if m.Points+m.Spent > MasteryCap {
 			t.Errorf("%+v: %d points held, past %d", c.m, m.Points+m.Spent, MasteryCap)
 		}
+	}
+}
+
+// jib's rules (F3 20261026-042328): at the level cap every bit goes to the
+// masteries whatever the window's share; while a debt is owed half of each
+// award pays it (never more than is owed), at the cap the other half going to
+// the masteries and below it divided by the share; masteries held at 1500 take
+// nothing, their part paying what is left of the debt, then the level's. The
+// controls: below the cap the share still divides an award (a level 59 at 0%
+// gets no mastery experience), and with no debt nothing goes to one.
+func TestTheCapAndTheDebtDivideExperience(t *testing.T) {
+	full := Mastery{Points: 1000, Spent: 500}
+	for _, c := range []struct {
+		name            string
+		m               Mastery
+		level, debt, xp int
+		lvl, cm, paid   int
+	}{
+		{"at the cap the share does not count", Mastery{Percent: 0}, 60, 0, 6000, 0, 6000, 0},
+		{"at the cap, 40%", Mastery{Percent: 40}, 60, 0, 6000, 0, 6000, 0},
+		{"at the cap with a debt, half each", Mastery{Percent: 0}, 60, 100000, 6000, 0, 3000, 3000},
+		{"at the cap, a small debt paid off", Mastery{Percent: 0}, 60, 1000, 6000, 0, 5000, 1000},
+		{"an odd award: the debt the smaller half", Mastery{}, 60, 100000, 6001, 0, 3001, 3000},
+		{"below the cap, the share as before", Mastery{Percent: 25}, 59, 0, 1000, 750, 250, 0},
+		{"below the cap at 0%: nothing to the masteries", Mastery{Percent: 0}, 59, 0, 1000, 1000, 0, 0},
+		{"below the cap with a debt: half paid, the rest by the share", Mastery{Percent: 25}, 30, 100000, 1000, 375, 125, 500},
+		{"masteries full at the cap: their part pays the debt", full, 60, 100000, 6000, 0, 0, 6000},
+		{"masteries full, a small debt: the rest to the level", full, 60, 1000, 6000, 5000, 0, 1000},
+		{"masteries full, no debt: all to the level", full, 60, 0, 6000, 6000, 0, 0},
+		{"a debt below nothing owes nothing", Mastery{}, 60, -50, 6000, 0, 6000, 0},
+		{"nothing awarded", Mastery{Percent: 50}, 60, 100, 0, 0, 0, 0},
+	} {
+		sh := splitXP(c.m, c.level, c.debt, c.xp)
+		if sh.Level != c.lvl || sh.Mastery != c.cm || sh.Debt != c.paid {
+			t.Errorf("%s: %+v; want level %d, masteries %d, debt %d", c.name, sh, c.lvl, c.cm, c.paid)
+		}
+		if sh.Level+sh.Mastery+sh.Debt != max(c.xp, 0) {
+			t.Errorf("%s: %+v does not add up to %d", c.name, sh, c.xp)
+		}
+		if sh.Debt > max(c.debt, 0) {
+			t.Errorf("%s: paid %d of a debt of %d", c.name, sh.Debt, c.debt)
+		}
+	}
+	// the controls
+	if sh := splitXP(Mastery{Percent: 0}, 59, 0, 1000); sh.Mastery != 0 {
+		t.Fatalf("the control: a level 59 at 0%% got %d mastery experience", sh.Mastery)
+	}
+	if sh := splitXP(Mastery{Percent: 0}, 60, 0, 1000); sh.Debt != 0 || sh.Mastery != 1000 {
+		t.Fatalf("the control: no debt, %+v", sh)
 	}
 }
 
@@ -233,5 +284,36 @@ func TestAKillMakesMasteryPointsAndTellsTheCap(t *testing.T) {
 		if protocol.GameOpcode(binary.LittleEndian.Uint16(m.Data())) == protocol.OpcodeClassMasteryServer {
 			t.Fatal("the control: with no share, no mastery points")
 		}
+	}
+}
+
+// The gods' blessings give their resists (jib, F3 20261026-043542: "The
+// first ranks gave +5 of the resist for their corresponding god"): Marr's
+// arcane, Ro's fire, as EQOA-Data lists them (cmcatalog), each rank's figure
+// adding to the ranks' below it as the cap masteries' must for the live 550:
+// Marr Blessing 1 and 2 make 15. The control: none bought, none.
+func TestTheGodsBlessingsGiveTheirResists(t *testing.T) {
+	w := NewWorld()
+	all, races := 32767, 2047
+	w.SetCMCatalog([]database.CMRankRow{
+		{ID: 201, Classes: all, Races: races, Mastery: "Marr Blessing", Rank: 1, Name: "Marr Blessing 1", Cost: 5, Level: 10, Effects: "AR:5", Enabled: true},
+		{ID: 202, Classes: all, Races: races, Mastery: "Marr Blessing", Rank: 2, Name: "Marr Blessing 2", Parent: 201, Cost: 10, Level: 20, Effects: "AR:10", Enabled: true},
+		{ID: 151, Classes: all, Races: races, Mastery: "Ro Blessing", Rank: 1, Name: "Ro Blessing 1", Cost: 5, Level: 10, Effects: "FR:5", Enabled: true},
+	})
+	p := &Player{Level: 60}
+	resists := func(owned map[int]int) (int, int) {
+		p.CMs = owned
+		p.refreshCMLocked(w.cms)
+		p.RecalcStats(false)
+		return p.ArcaneR, p.FireR
+	}
+	if ar, fr := resists(map[int]int{}); ar != 0 || fr != 0 {
+		t.Fatalf("the control: none bought, AR %d FR %d", ar, fr)
+	}
+	if ar, fr := resists(map[int]int{201: 5}); ar != 5 || fr != 0 {
+		t.Errorf("Marr Blessing 1: AR %d FR %d, want 5, 0", ar, fr)
+	}
+	if ar, fr := resists(map[int]int{201: 5, 202: 10, 151: 5}); ar != 15 || fr != 5 {
+		t.Errorf("Marr Blessing 1 and 2, Ro Blessing 1: AR %d FR %d, want 15, 5", ar, fr)
 	}
 }

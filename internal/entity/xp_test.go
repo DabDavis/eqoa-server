@@ -42,18 +42,19 @@ func TestTheKeptExperienceIsTheLevelsBelowAndWhatIsIntoThisOne(t *testing.T) {
 
 // A login puts the kept experience back into the level: a level 10 row that
 // keeps 500 past level 10's start is 500 into it, and a row of before
-// (totalXP 0) is at its level's start.
+// (totalXP 0) is at its level's start; and the debt the row keeps, never
+// below nothing.
 func TestALoginKeepsTheExperienceIntoTheLevel(t *testing.T) {
 	w := NewWorld()
-	p := w.CreatePlayer(nil, &database.CharacterRecord{ServerID: 7, CharName: "Kept", Level: 10, TotalXP: XPBase(10) + 500})
-	if p == nil || p.Level != 10 || p.XPInLevel != 500 || p.TotalXP != XPBase(10)+500 {
+	p := w.CreatePlayer(nil, &database.CharacterRecord{ServerID: 7, CharName: "Kept", Level: 10, TotalXP: XPBase(10) + 500, Debt: 1234})
+	if p == nil || p.Level != 10 || p.XPInLevel != 500 || p.TotalXP != XPBase(10)+500 || p.Debt != 1234 {
 		t.Fatalf("player %+v", p)
 	}
-	q := w.CreatePlayer(nil, &database.CharacterRecord{ServerID: 8, CharName: "Before", Level: 50})
-	if q.XPInLevel != 0 || q.TotalXP != XPBase(50) {
-		t.Fatalf("a row that kept nothing: %d in, %d total", q.XPInLevel, q.TotalXP)
+	q := w.CreatePlayer(nil, &database.CharacterRecord{ServerID: 8, CharName: "Before", Level: 50, Debt: -5})
+	if q.XPInLevel != 0 || q.TotalXP != XPBase(50) || q.Debt != 0 {
+		t.Fatalf("a row that kept nothing: %d in, %d total, debt %d", q.XPInLevel, q.TotalXP, q.Debt)
 	}
-	if level, xp, ok := w.LiveProgress(7); !ok || level != 10 || xp != XPBase(10)+500 {
-		t.Fatalf("LiveProgress = %d, %d, %v", level, xp, ok)
+	if level, xp, debt, ok := w.LiveProgress(7); !ok || level != 10 || xp != XPBase(10)+500 || debt != 1234 {
+		t.Fatalf("LiveProgress = %d, %d, %d, %v", level, xp, debt, ok)
 	}
 }

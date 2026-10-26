@@ -32,8 +32,12 @@ import (
 // ranks are charcms, its points charmastery. What is ours, as no record of
 // the live game's rules exists: the base stats a requirement is checked
 // against (the trainer's base, before items and spells, plus the masteries'
-// own), one Master Class at a time held by refusing a second until the first
-// is removed, and a removal giving back what the rank cost.
+// own), and one Master Class at a time held by refusing a second until the
+// first is removed. A removal gives nothing back, as jib has the live game's
+// (F3 20261026-043542: "permanent unless you delete them, which lowers your
+// total cm's as you do that have to be re-earned"): the rank's points are
+// gone, so under the 1500 the character may hold they are earned again (the
+// next point costing what that point did); a GM's #cmreset gives them back.
 
 // CMSlots is how many stats the window's 29 rows name (STR..CHA, their
 // caps, HP and power maxima, HoT, PoT, AC, OFF and DEF MOD, HP FACTOR, the
@@ -515,9 +519,11 @@ func (w *World) BuyCM(sess *session.Session, id int, book map[int]bool) CMResult
 	return CMResult{Rank: r, Paid: r.Cost, Mastery: p.Mastery, State: p.cmStateLocked()}
 }
 
-// RemoveCM removes a rank the session's player has, giving back what it
-// paid: not one another of its ranks follows, nor one a rank it keeps needs
-// the points spent of.
+// RemoveCM removes a rank the session's player has, giving nothing back
+// (the file's doc): its points leave the spent ones, so the character holds
+// that many fewer and earns them again. Not one another of its ranks
+// follows, nor one a rank it keeps needs the points spent of. Paid is what
+// the rank cost.
 func (w *World) RemoveCM(sess *session.Session, id int) CMResult {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -553,10 +559,9 @@ func (w *World) RemoveCM(sess *session.Session, id int) CMResult {
 		}
 	}
 	delete(p.CMs, id)
-	p.Mastery.Points += paid
 	p.Mastery.Spent = max(0, spent)
 	w.cmChangedLocked(p)
-	log.Printf("Mastery: %s removed %s (%d), %d back: %s", p.Name, name, id, paid, masteryLine(p.Mastery))
+	log.Printf("Mastery: %s removed %s (%d), its %d points gone: %s", p.Name, name, id, paid, masteryLine(p.Mastery))
 	return CMResult{Rank: r, Paid: paid, Mastery: p.Mastery, State: p.cmStateLocked(), Removed: []int{id}}
 }
 

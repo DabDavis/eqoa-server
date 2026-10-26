@@ -518,9 +518,12 @@ func TestCMNeedsAnotherMasterysRank(t *testing.T) {
 	}
 }
 
-// A removal gives back what the rank cost, the later rank first; a rank
-// whose abilities it added takes them back and gives back those it took.
-func TestCMRemoveGivesBackAndKeepsOrder(t *testing.T) {
+// A removal gives nothing back (jib, F3 20261026-043542): the rank's cost
+// leaves the spent points and the unspent stay, so the character holds that
+// many fewer, to earn again; the later rank goes first; a rank whose
+// abilities it added takes them back and gives back those it took. The
+// control: the points Recv03 carries are the unspent as before the removal.
+func TestCMRemoveGivesNothingBackAndKeepsOrder(t *testing.T) {
 	c := newCMTest(t, 0, 0, 60)
 	c.p.Mastery.Points = 100
 	c.send(cmBuy, 1)
@@ -540,8 +543,15 @@ func TestCMRemoveGivesBackAndKeepsOrder(t *testing.T) {
 	if r.err != nil || r.o != len(r.b) {
 		t.Fatalf("Recv06 does not read as CLIENT reads it: %v", r.err)
 	}
-	if c.p.Mastery.Points != 90 || c.p.Mastery.Spent != 10 || c.p.StatCapOf(entity.StatStr) != 415 {
-		t.Errorf("after removing Brawn 2: points %+v, STR cap %d", c.p.Mastery, c.p.StatCapOf(entity.StatStr))
+	if c.p.Mastery.Points != 75 || c.p.Mastery.Spent != 10 || c.p.StatCapOf(entity.StatStr) != 415 {
+		t.Errorf("after removing Brawn 2: points %+v, STR cap %d; want 75 unspent, 10 spent", c.p.Mastery, c.p.StatCapOf(entity.StatStr))
+	}
+	pts := &cmReader{b: rs[1], o: 1}
+	if un, sp := pts.u32(), pts.u32(); pts.err != nil || un != 75 || sp != 10 {
+		t.Errorf("Recv03 after the removal: %d unspent, %d spent; want 75, 10 (nothing back)", un, sp)
+	}
+	if c.kept.rows[c.p.CharServerID].Points != 75 || c.kept.rows[c.p.CharServerID].Spent != 10 {
+		t.Errorf("kept after the removal: %+v", c.kept.rows[c.p.CharServerID])
 	}
 
 	// abilities: Battle Cry 1 adds 501 and takes Taunt (500)

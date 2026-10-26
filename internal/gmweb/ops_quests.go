@@ -390,7 +390,7 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 		}
 		for _, f := range database.ParseFactionDeltas(text(st, "factions")) {
 			var n int
-			s.d.DB.QueryRow(`SELECT COUNT(*) FROM factions WHERE faction = ?`, f.Faction).Scan(&n)
+			s.d.DB.QueryRow(`SELECT COUNT(*) FROM factions WHERE name = ?`, f.Faction).Scan(&n)
 			if n == 0 {
 				add("%s moves faction %q, which this server does not have", where, f.Faction)
 			}

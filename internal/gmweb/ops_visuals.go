@@ -217,22 +217,7 @@ func (s *Server) registerVisualOps() {
 			if err != nil {
 				return nil, err
 			}
-			t, err := c.s.table("spelleffect")
-			if err != nil {
-				return nil, err
-			}
-			key := map[string]any{"spellid": id}
-			var ch *change
-			if _, gerr := getRow(c.s.d.DB, t, key); gerr == nil {
-				ch, err = c.s.updateRow(c.a, t, key, map[string]any{"fxdict": int64(fx)}, nil, writeOpts{})
-			} else {
-				who := c.a.Username
-				if who == "" {
-					who = fmt.Sprintf("of account %d", c.a.AccountID)
-				}
-				ch, err = c.s.insertRow(c.a, t, map[string]any{"spellid": id, "line": "", "fxdict": int64(fx),
-					"source": "visual set by GM " + who}, writeOpts{})
-			}
+			ch, err := c.s.setSpellVisual(c.a, id, fx, "")
 			if err != nil {
 				return nil, err
 			}
@@ -251,6 +236,26 @@ func (s *Server) registerVisualOps() {
 			return c.s.visualUses()
 		},
 	})
+}
+
+// setSpellVisual gives a spell a visual through the audited row edit, a row
+// inserted for a spell with none (its source naming the GM, and why): what
+// set_spell_visual and accept_visual_suggestion do, so either is revertible.
+func (s *Server) setSpellVisual(a *actor, id int64, fx uint32, why string) (*change, error) {
+	t, err := s.table("spelleffect")
+	if err != nil {
+		return nil, err
+	}
+	key := map[string]any{"spellid": id}
+	if _, gerr := getRow(s.d.DB, t, key); gerr == nil {
+		return s.updateRow(a, t, key, map[string]any{"fxdict": int64(fx)}, nil, writeOpts{})
+	}
+	who := a.Username
+	if who == "" {
+		who = fmt.Sprintf("of account %d", a.AccountID)
+	}
+	return s.insertRow(a, t, map[string]any{"spellid": id, "line": "", "fxdict": int64(fx),
+		"source": "visual set by GM " + who + why}, writeOpts{})
 }
 
 // visualUses is visual_uses' answer. Every row is read before anything is

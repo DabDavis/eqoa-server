@@ -407,7 +407,9 @@ func (db *SQLiteDB) initSchema() error {
 	);
 
 	-- classspells: which spells a class has, for a new character given
-	-- them all (world.start_all_spells); tools/import_class_spells.py fills it
+	-- them all (world.start_all_spells); tools/import_class_spells.py fills it;
+	-- a source "eqoa-data cm|epic|mca|master <name>" is a spell no level gives,
+	-- never handed out (grantsource.go)
 	CREATE TABLE IF NOT EXISTS classspells (
 		class   INTEGER NOT NULL,
 		spellid INTEGER NOT NULL,

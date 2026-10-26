@@ -26,7 +26,8 @@ export async function render(box) {
     h('option', { value: 'all' }, 'All'));
   const cls = h('select', { 'aria-label': 'Class' },
     h('option', { value: '' }, 'Every class'), ...CLASSES.map((n, i) => h('option', { value: String(i) }, n)));
-  const standIn = h('input', { type: 'checkbox', checked: true });
+  // every spell by default: a suggestion may correct a visual already given
+  const standIn = h('input', { type: 'checkbox' });
   const countLine = h('span', { class: 'faint small' });
   const listBox = h('div', { class: 'stack' });
 
@@ -64,7 +65,10 @@ export async function render(box) {
 
   function visualRow(sp, v) {
     const waiting = (v.statuses && v.statuses.new) || 0;
-    const bar = h('div', { class: 'share-bar', title: v.share + '%' }, h('span', { style: `width:${Math.max(2, v.share)}%` }));
+    // the width through the style object: the CSP refuses a style attribute
+    const fill = h('span');
+    fill.style.width = Math.max(2, v.share) + '%';
+    const bar = h('div', { class: 'share-bar', title: v.share + '%' }, fill);
     return h('tr', null,
       h('td', { class: 'mono' }, v.visual, v.current ? h('span', { class: 'badge info', title: 'what the spell plays now' }, ' now') : null),
       h('td', null, h('div', { class: 'stack' }, h('strong', null, `${v.count} (${v.share}%)`), bar)),
@@ -122,7 +126,7 @@ export async function render(box) {
   for (const el of [status, cls, standIn]) el.addEventListener('change', load);
 
   const tools = card('Show', h('div', { class: 'stack' },
-    h('div', { class: 'row' }, status, cls, h('label', { class: 'row' }, standIn, 'Only spells still on a stand-in')),
+    h('div', { class: 'row' }, status, cls, h('label', { class: 'check' }, standIn, 'Only spells still on a stand-in')),
     countLine,
     h('p', { class: 'muted small' }, 'Players pick, on the public spell-visual page, which visual they think a spell plays; anyone may send one, no sign-in, one per spell per address. Preview plays a suggestion here; Accept gives the spell that visual from its next cast (revertible in the Audit log).')));
   const cards = [tools, listBox];

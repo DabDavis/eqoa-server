@@ -107,6 +107,8 @@ type World struct {
 	undead map[string]bool
 	// NPCs coming to the help of their own (socialaggro.go)
 	npcSocial npcSocialState
+	// Every item's use, and the hooks that give and take potions (potion.go)
+	potions potionTable
 }
 
 // NewWorld creates and initializes a new game world.

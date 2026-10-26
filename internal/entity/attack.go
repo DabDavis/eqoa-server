@@ -221,6 +221,9 @@ type Swing struct {
 	Delay time.Duration
 	Reach float32 // before the target's allowance (npcReachExtra)
 	Never bool    // the swinging item's attack type is never in reach
+	// Potion is the item id of a potion worn as the thrown weapon, 0 for
+	// none, and PotionLeft how many of it are on the stack (potion.go)
+	Potion, PotionLeft int
 }
 
 // SwingFor is the swing CLIENT's AutoAttackTick would make with this gear:
@@ -398,6 +401,9 @@ func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
 // fights back), and on a kill the XP and the faction hits (faction.go). It
 // reports a kill.
 func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NPC, objectID uint32) bool {
+	if attacker.Swing.Potion != 0 {
+		return w.thrownPotionHitLocked(sess, attacker, npc, objectID) // potion.go
+	}
 	damage := playerMeleeHit(attacker, npc, rand.Intn)
 	if npc.Dummy != NotDummy {
 		// told, taken off nothing; the dummy fights back (dummy.go)

@@ -4,7 +4,7 @@ import "testing"
 
 // The trainer's own rules (VIWndTrainer::Adjust, VIClient::TrainStats):
 // points into a stat whose shown value items hold at the full cap are taken
-// (into its base, as jib's Jibcro's Stamina took 115, F3 20261025-214427);
+// (into its base, as a tester's level-60 Stamina took 115, F3 20261025-214427);
 // past the base cap (m_p44: 400 from level 46, 350 below), more than are
 // left, nothing, or a stat lowered are not.
 func TestTrainRefusal(t *testing.T) {

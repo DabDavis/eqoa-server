@@ -196,3 +196,23 @@ func TestNoTradeItemIsNotOffered(t *testing.T) {
 		t.Errorf("the control: a tradeable potion was not offered (%+v)", me.offers)
 	}
 }
+
+// A thrown potion a GM made after the start is thrown in an auto-attack all
+// the same: its row is read when the World does not know it; an item with no
+// row is no potion.
+func TestThrownPotionKnownFromItsRow(t *testing.T) {
+	f := newScribeFixture(t)
+	w := f.potionWorld()
+	id := f.potion("Volatile Potion", 17, 999, 0, "Target, Decrease Hitpoints by 100", "", "")
+	if w.ThrownPotion(id) {
+		t.Fatal("the control: the World knew the new potion already")
+	}
+	p := &database.ItemPatternRecord{PatternID: id, ItemName: "Volatile Potion", AttackType: 10, EquipSlot: 17}
+	if !thrownPotion(w, f.inv, p) || !w.ThrownPotion(id) {
+		t.Error("a potion with a row is not thrown, or not kept")
+	}
+	knife := &database.ItemPatternRecord{PatternID: f.item("rusty throwing knife", false, 32767, 1, 99), AttackType: 10, EquipSlot: 16}
+	if thrownPotion(w, f.inv, knife) {
+		t.Error("a throwing knife with no row was taken for a potion")
+	}
+}

@@ -99,6 +99,28 @@ func (h *EquipHandler) LoadPotions() {
 	log.Printf("Potion: %d items have a use", len(list))
 }
 
+// thrownPotion is whether a worn item is a potion an auto-attack throws: as
+// the World knows it, else as its itemeffect row says now (a GM's new potion),
+// which the World then keeps.
+func thrownPotion(gw *entity.World, inv *database.InventoryStore, p *database.ItemPatternRecord) bool {
+	if gw == nil {
+		return false
+	}
+	if gw.ThrownPotion(p.PatternID) {
+		return true
+	}
+	if inv == nil || p.AttackType != 10 {
+		return false
+	}
+	r, ok, err := inv.ItemEffect(p.PatternID)
+	if err != nil || !ok {
+		return false
+	}
+	pe := potionFromRow(r, p.ItemName)
+	gw.NotePotionEffect(pe)
+	return pe.Thrown()
+}
+
 // summonItem gives a character the items a spell summoned (entity's
 // SummonItemFunc): the item by the name the spell's words give, else by the
 // spell's own name (EQOA-Data's Neriak Cocktail says it summons a "Grobb

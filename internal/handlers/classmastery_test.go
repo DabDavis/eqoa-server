@@ -562,6 +562,51 @@ func TestCMRemoveGivesNothingBackAndKeepsOrder(t *testing.T) {
 	}
 }
 
+// A rank that adds and removes one spell improves it in place (EQOA-Data's
+// Quick Blade, Hydromancy...; jib's review, F3 pass 19): buying it leaves the
+// spell in the book, so the next rank, which needs the same spell, can be
+// bought; removing it and #cmreset leave it too. The control: Battle Cry 1,
+// which adds one spell and removes another, still swaps them.
+func TestCMRankImprovingASpellKeepsIt(t *testing.T) {
+	rows := append(testCatalog(),
+		database.CMRankRow{ID: 11, Category: 3, Classes: 1 << 0, Races: 2047, Mastery: "Keen Taunt", Rank: 1, Name: "Keen Taunt 1",
+			Cost: 20, Level: 20, Requires: "Taunt@1", RequireSpells: "500", Adds: "Taunt@1", AddSpells: "500",
+			Removes: "Taunt@1", RemoveSpells: "500", Enabled: true},
+		database.CMRankRow{ID: 12, Category: 3, Classes: 1 << 0, Races: 2047, Mastery: "Keen Taunt", Rank: 2, Name: "Keen Taunt 2",
+			Parent: 11, Cost: 20, Level: 30, Requires: "Taunt@1", RequireSpells: "500", Enabled: true})
+	c := newCMTest(t, 0, 0, 60)
+	c.w.gw.SetCMCatalog(rows)
+	c.kept.book = c.book
+	c.p.Mastery.Points = 200
+
+	if rs, red := c.send(cmBuy, 11); len(red) != 0 || rs[0][0] != cmRespBought {
+		t.Fatalf("buying Keen Taunt 1: % x %v", rs, red)
+	}
+	if _, ok := c.book.spells[500]; !ok || len(c.kept.removedSpells) != 0 || len(c.book.added) != 0 {
+		t.Errorf("Keen Taunt 1 changed the book: Taunt kept %v, taken %v, added %v", ok, c.kept.removedSpells, c.book.added)
+	}
+	if rs, red := c.send(cmBuy, 12); len(red) != 0 || rs[0][0] != cmRespBought {
+		t.Errorf("Keen Taunt 2, which needs Taunt, after Keen Taunt 1: % x %v", rs, red)
+	}
+	c.send(cmRemove, 12)
+	if rs, red := c.send(cmRemove, 11); len(red) != 0 || rs[0][0] != cmRespRemoved {
+		t.Fatalf("removing Keen Taunt 1: % x %v", rs, red)
+	}
+	if _, ok := c.book.spells[500]; !ok || len(c.kept.removedSpells) != 0 || len(c.book.added) != 0 {
+		t.Errorf("removing Keen Taunt 1 changed the book: Taunt kept %v, taken %v, added %v", ok, c.kept.removedSpells, c.book.added)
+	}
+	c.send(cmBuy, 11)
+	c.h.GMReset(c.sess, 0)
+	if _, ok := c.book.spells[500]; !ok || len(c.kept.removedSpells) != 0 || len(c.book.added) != 0 {
+		t.Errorf("#cmreset changed the book: Taunt kept %v, taken %v, added %v", ok, c.kept.removedSpells, c.book.added)
+	}
+
+	c.send(cmBuy, 10)
+	if _, ok := c.book.spells[500]; ok || len(c.book.added) != 1 || c.book.added[0] != 501 || !slices.Equal(c.kept.removedSpells, []int{500}) {
+		t.Errorf("the control: Battle Cry 1 added %v and took %v, Taunt kept %v; want 501 added, 500 taken", c.book.added, c.kept.removedSpells, ok)
+	}
+}
+
 // What was bought is the character's after a restart: its ranks put back at
 // the login give the same stats. The control: a player with none has the
 // level's cap alone.

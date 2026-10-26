@@ -254,7 +254,8 @@ with the row before and after, and `revert_change` undoes a row change.
   it names (`require_ranks`, their ids: "6634" for Entrancing Charm 4) are there; one master class
   at a time. `effects` raise stats and the stat caps (a character's cap is the level's, 400 from 46 and 350 below,
   plus its masteries' `STRMax`..`CHAMax`), HP, power, HoT, PoT, AC, resists, the HP factor and the movement rate;
-  `add_spells` are given at the purchase, `remove_spells` taken out. To fix an ability the seed could not find,
+  `add_spells` are given at the purchase, `remove_spells` taken out; a spell in both is kept (the lists' way of a
+  rank improving a spell in place: Quick Blade 1 adds and removes Dancing Blades). To fix an ability the seed could not find,
   put its spell id in the same place of the id list as its name. A new rank: `insert_row` with an unused `id`
   and `parent` the rank before it. Never change an `id` a character owns (`charcms`). In the game `#cm` lists what
   the target (a player) or you bought and `#cmreset` takes it all back, points returned; for a character offline,

@@ -117,6 +117,41 @@ type CMRank struct {
 	Enabled       bool
 }
 
+// BookChange is what buying the rank does to the spell book: the abilities
+// it gives and those it takes out (a removal does the reverse). An ability
+// the rank both adds and removes as one spell is in neither: EQOA-Data's
+// lists write a rank that improves a spell in place so (Quick Blade 1 adds
+// and removes Dancing Blades, Hydromancy 1 Water Elementalkin), the live
+// game swapping in an improved record of the same name, and this server has
+// the one record, which the book keeps (jib's review, F3 pass 19). Until
+// then a purchase gave such a spell and then took it out, so Hydromancy 1
+// cost a magician the Water Elementalkin that Hydromancy 2 needs.
+func (r *CMRank) BookChange() (gives, takes []CMAbility) {
+	added := map[int]bool{}
+	for _, a := range r.Adds {
+		if a.SpellID > 0 {
+			added[a.SpellID] = true
+		}
+	}
+	both := map[int]bool{}
+	for _, a := range r.Removes {
+		if a.SpellID > 0 && added[a.SpellID] {
+			both[a.SpellID] = true
+		}
+	}
+	for _, a := range r.Adds {
+		if !both[a.SpellID] {
+			gives = append(gives, a)
+		}
+	}
+	for _, a := range r.Removes {
+		if !both[a.SpellID] {
+			takes = append(takes, a)
+		}
+	}
+	return gives, takes
+}
+
 // cmCatalog is the ranks by id.
 type cmCatalog struct {
 	byID  map[int]*CMRank

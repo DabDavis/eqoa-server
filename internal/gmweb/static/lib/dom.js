@@ -77,6 +77,7 @@ const ICONS = {
   bolt: 'M13 2 3 14h9l-1 8 10-12h-9z',
   box: 'M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8',
   play: 'M7 4v16l13-8z',
+  flag: 'M5 21V4M5 4h12l-2.5 4L17 12H5',
 };
 
 export function icon(name) {

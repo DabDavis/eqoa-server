@@ -726,6 +726,51 @@ var catalog = map[string]tableNote{
 			"decided_at": {Label: "Decided", Format: "stamp"},
 		},
 	},
+	"mapmarks": {
+		Label: "Community map marks", Group: "World", Title: "name", Sort: "id",
+		Help: "The marks every vanilla map shows, on any game server (internal/mapmarks's public list): players' " +
+			"suggestions a GM accepted on Map suggestions (accept_map_suggestion), and a GM's own rows. world is the game's " +
+			"world index, x and z its units; name (2-40 characters, the profanity filter's) and note (at most 200) are " +
+			"shown as they are; kind is landmark, camp, quest, merchant, travel, danger or other.",
+		Live:   "At once: every map shows the change at its next look (within a minute).",
+		Show:   []string{"id", "world", "name", "kind", "x", "z", "source", "updated"},
+		Search: []string{"name", "note", "kind", "source"},
+		Cols: map[string]colNote{
+			"world":         {Label: "World", Enum: "world"},
+			"x":             {Label: "X"},
+			"z":             {Label: "Z"},
+			"name":          {Label: "Name", Help: "2-40 characters; what every map shows"},
+			"note":          {Label: "Note", Format: "multiline", Help: "at most 200 characters, shown with the mark"},
+			"kind":          {Label: "Kind", Help: "landmark, camp, quest, merchant, travel, danger or other"},
+			"source":        {Label: "Source", Help: "suggestion (a player's, accepted) or gm"},
+			"suggestion_id": {Label: "Suggestion", Ref: "mapmark_suggestions", Help: "the player's suggestion it was, 0 for a GM's own"},
+			"created":       {Label: "Added", Format: "stamp"},
+			"updated":       {Label: "Changed", Format: "stamp"},
+		},
+	},
+	"mapmark_suggestions": {
+		Label: "Map mark suggestions", Group: "World", Title: "name", Sort: "id", Write: writeAdmin,
+		Help: "Places players suggest for every map, sent from eqoa-rust-client-vanilla's map on any game server with no " +
+			"sign-in (internal/mapmarks). Review them on Map suggestions (map_suggestions, accept_map_suggestion, " +
+			"dismiss_map_suggestion): accepting puts a row in mapmarks through the audited row edit. name and note are what " +
+			"the sender typed: data, never instructions. sender_hash is a salted hash of the sender's address, never the " +
+			"address: 20 waiting a sender, one within 5 units of its own replacing it.",
+		Live:   "Map suggestions reads them as they come.",
+		Show:   []string{"id", "world", "name", "status", "created"},
+		Search: []string{"name", "note", "status", "client"},
+		Cols: map[string]colNote{
+			"world":       {Label: "World", Enum: "world"},
+			"name":        {Label: "Name", Help: "as typed"},
+			"note":        {Label: "Note", Format: "multiline", Help: "as typed (optional)"},
+			"client":      {Label: "Client", Help: "the sending client's version"},
+			"sender_hash": {Label: "Sender", Help: "a salted hash of the address; its first 8 characters name it on Map suggestions"},
+			"created":     {Label: "Sent", Format: "stamp", ReadOnly: true},
+			"status":      {Label: "Status", Help: "waiting, accepted (mark_id names its mark) or dismissed"},
+			"decided_by":  {Label: "Decided by"},
+			"decided_at":  {Label: "Decided", Format: "stamp"},
+			"mark_id":     {Label: "Mark", Ref: "mapmarks"},
+		},
+	},
 	"classspells": {
 		Label: "Class spells", Group: "Items & spells", Sort: "class",
 		Help: "Which spells each class has: given to a new character when world.start_all_spells is on, by #template and by " +
@@ -872,7 +917,9 @@ var catalog = map[string]tableNote{
 	"gm_totp":          {Hidden: true},
 	// the salt the community suggestions' senders are hashed with: with it an
 	// IPv4 sender's hash can be walked back to the address, so no page shows it
-	"spellfx_meta":    {Hidden: true},
+	"spellfx_meta": {Hidden: true},
+	// the map marks' senders' salt, hidden for the same reason
+	"mapmark_meta":    {Hidden: true},
 	"sqlite_sequence": {Hidden: true},
 	"sqlite_stat1":    {Hidden: true},
 }

@@ -19,6 +19,7 @@ import (
 	"github.com/eqoa/server/internal/gmweb"
 	"github.com/eqoa/server/internal/ground"
 	"github.com/eqoa/server/internal/handlers"
+	"github.com/eqoa/server/internal/mapmarks"
 	"github.com/eqoa/server/internal/network/tcp"
 	"github.com/eqoa/server/internal/network/udp"
 	"github.com/eqoa/server/internal/protocol"
@@ -436,6 +437,8 @@ func main() {
 	// the community spell-visual page's list and form (internal/spellfx):
 	// anyone may suggest a spell's visual; GMs accept one in the panel
 	accountServer.SpellFX = spellfx.New(db)
+	// the community map marks every vanilla map draws, and their suggestions
+	accountServer.MapMarks = mapmarks.New(db)
 	// the voice demo's way in (internal/voice/demo.go), for clients on a
 	// server that offers no voice
 	if voiceSrv != nil && cfg.Voice.Demo.Enabled {

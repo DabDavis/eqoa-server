@@ -55,6 +55,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.livePetTaps(t.Live)
 	case "charquests":
 		return s.liveCharQuest(before, after)
+	case "mapmarks":
+		return s.liveMapMarks()
 	case "charinventory", "spells", "hotkeys", "charbuffs", "weaponhotbar", "quickslots", "gearsets":
 		row := after
 		if row == nil {

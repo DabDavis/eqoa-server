@@ -594,6 +594,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureSpellFXSuggestions(); err != nil {
 		return err
 	}
+	if err := db.ensureMapMarks(); err != nil {
+		return err
+	}
 	if err := db.ensureNPCMove(); err != nil {
 		return err
 	}

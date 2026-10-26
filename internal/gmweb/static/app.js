@@ -25,6 +25,7 @@ const NAV = [
     ['quests', 'Quests', 'pin'],
     ['visuals', 'Spell visuals', 'play'],
     ['community', 'Community visuals', 'users'],
+    ['mapmarks', 'Map suggestions', 'flag'],
     ['starting', 'New characters', 'book'],
   ]],
   ['Server', [
@@ -54,6 +55,7 @@ const VIEWS = {
   quests: () => import('./views/quests.js'),
   visuals: () => import('./views/visuals.js'),
   community: () => import('./views/community.js'),
+  mapmarks: () => import('./views/mapmarks.js'),
   starting: () => import('./views/starting.js'),
   tables: () => import('./views/tables.js'),
   audit: () => import('./views/audit.js'),

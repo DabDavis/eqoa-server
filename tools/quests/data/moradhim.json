@@ -318,7 +318,7 @@
     },
     {
      "kind": "loot",
-     "target": "Red Eyed Monster",
+     "target": "Red-Eyed Monster",
      "items": [
       {
        "item": "Red Eye",
@@ -371,11 +371,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Red Eyed Monster",
-    "Raldir"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 7; github.com/Jadiction/EQOA-Data). Raldir is not in the database. The Red Eyed Monster is not in the database. The Endure Ailment scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 7; github.com/Jadiction/EQOA-Data). The Endure Ailment scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/moradhim/cleric/L10",
@@ -388,7 +385,7 @@
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
-    "1-20/moradhim/cleric/L5"
+    "1-20/moradhim/cleric/L7"
    ],
    "offer": "Brenn Raven in Diren's Hold, west of Moradhim, on the second floor of the fort's tower, needs a healer.",
    "accept": "I will do it.",
@@ -461,12 +458,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Freezeblood Alchemist",
-    "Frosteye Marauder",
-    "Amber"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 10; github.com/Jadiction/EQOA-Data). Bren Raven is Brenn Raven, Jargon is Jarvan Tember. The goblin alchemist is not in the database. The Frosteye marauders and Amber, the little wolf they hold, are not in the database. It follows L5: L7 before it is a draft until its names are in the database."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 10; github.com/Jadiction/EQOA-Data). Bren Raven is Brenn Raven, Jargon is Jarvan Tember. The goblin alchemist is EQOA-Data's map's Freezeblood Alchemist."
   },
   {
    "key": "1-20/moradhim/cleric/L13",
@@ -479,7 +472,7 @@
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
-    "1-20/moradhim/cleric/L5"
+    "1-20/moradhim/cleric/L10"
    ],
    "offer": "Go south from the coach to Baga Village and kill its guards at the gate until one drops an oversized claw. Bring it here.",
    "accept": "I will do it.",
@@ -542,7 +535,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not name the Enclave of the Bear's man who sends you to the halfling prisoner, nor is the prisoner in the database: the visit is a reach step at EQOA-Data's map's place, and the bet is left out. The Ward Death scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10 before it are drafts until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not name the Enclave of the Bear's man who sends you to the halfling prisoner, nor is the prisoner in the database: the visit is a reach step at EQOA-Data's map's place, and the bet is left out. The Ward Death scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/moradhim/cleric/L15",
@@ -863,10 +856,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Freezeblood Treasurer"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). The Freezeblood Treasurer is not in the database (King Ickcil's chest is, as the Parathoir Chest). The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). King Ickcil's chest is the database's Parathoir Chest. The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
   },
   {
    "key": "1-20/moradhim/paladin/L1",
@@ -1198,7 +1189,7 @@
     },
     {
      "kind": "loot",
-     "target": "Red Eyed Monster",
+     "target": "Red-Eyed Monster",
      "items": [
       {
        "item": "Red Eye",
@@ -1211,7 +1202,7 @@
     },
     {
      "kind": "loot",
-     "target": "Red Eyed Monster",
+     "target": "Red-Eyed Monster",
      "items": [
       {
        "item": "Axelogger Family Ring",
@@ -1262,10 +1253,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Red Eyed Monster"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 7; github.com/Jadiction/EQOA-Data). The Red Eyed Monster is not in the database. The Protectorate scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 7; github.com/Jadiction/EQOA-Data). The Protectorate scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/moradhim/paladin/L10",
@@ -1278,7 +1267,7 @@
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
-    "1-20/moradhim/paladin/L5"
+    "1-20/moradhim/paladin/L7"
    ],
    "offer": "Brenn Raven in Diren's Hold, west of Moradhim, all the way back on the second floor of the fort's tower, needs a paladin.",
    "accept": "I will do it.",
@@ -1351,12 +1340,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Frosteye Lurker",
-    "Frosteye Marauder",
-    "Amber"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 10; github.com/Jadiction/EQOA-Data). Doomseeker Foria is Doomwalker Foria, Bren Raven is Brenn Raven, Jargon is Jarvan Tember. The Frosteye lurkers are not in the database. The Frosteye marauders and Amber, the little wolf they hold, are not in the database. It follows L5: L7 before it is a draft until its names are in the database."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 10; github.com/Jadiction/EQOA-Data). Doomseeker Foria is Doomwalker Foria, Bren Raven is Brenn Raven, Jargon is Jarvan Tember."
   },
   {
    "key": "1-20/moradhim/paladin/L13",
@@ -1369,7 +1354,7 @@
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
-    "1-20/moradhim/paladin/L5"
+    "1-20/moradhim/paladin/L10"
    ],
    "offer": "Go south from the coach to Baga Village and kill its guards at the gate until one drops an oversized claw. Bring it here.",
    "accept": "I will do it.",
@@ -1432,7 +1417,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not name the Enclave of the Bear's man who sends you to the halfling prisoner, nor is the prisoner in the database: the visit is a reach step at EQOA-Data's map's place, and the bet is left out. The Towering Wall scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10 before it are drafts until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not name the Enclave of the Bear's man who sends you to the halfling prisoner, nor is the prisoner in the database: the visit is a reach step at EQOA-Data's map's place, and the bet is left out. The Towering Wall scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/moradhim/paladin/L15",
@@ -1753,10 +1738,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Freezeblood Treasurer"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 20; github.com/Jadiction/EQOA-Data). The Freezeblood Treasurer is not in the database (King Ickcil's chest is, as the Parathoir Chest). The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 20; github.com/Jadiction/EQOA-Data). King Ickcil's chest is the database's Parathoir Chest. The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
   },
   {
    "key": "1-20/moradhim/rogue/L1",
@@ -2069,7 +2052,7 @@
     },
     {
      "kind": "loot",
-     "target": "Red Eyed Monster",
+     "target": "Red-Eyed Monster",
      "items": [
       {
        "item": "Red Eye",
@@ -2105,10 +2088,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Red Eyed Monster"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 7; github.com/Jadiction/EQOA-Data). The Red Eyed Monster is not in the database. The guide ends at Logger Kripps: the return to Druza for the reward is ours. The Acrobatics scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 7; github.com/Jadiction/EQOA-Data). The guide ends at Logger Kripps: the return to Druza for the reward is ours. The Acrobatics scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/moradhim/rogue/L10",
@@ -2121,7 +2102,7 @@
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
-    "1-20/moradhim/rogue/L5"
+    "1-20/moradhim/rogue/L7"
    ],
    "offer": "Brenn Raven in Diren's Hold, west of Moradhim, on the second floor of the fort's tower, needs someone quick and quiet.",
    "accept": "I will do it.",
@@ -2274,11 +2255,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Frosteye Marauder",
-    "Amber"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The mines' places are EQOA-Data's map's; the guide's 30 seconds at each is not in, and the goblin that attacks there is a Freezeblood brawler of the Hold's (the guide says a level 10 goblin). The Frosteye marauders and Amber, the little wolf they hold, are not in the database. It follows L5: L7 before it is a draft until its names are in the database."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The mines' places are EQOA-Data's map's; the guide's 30 seconds at each is not in, and the goblin that attacks there is a Freezeblood brawler of the Hold's (the guide says a level 10 goblin)."
   },
   {
    "key": "1-20/moradhim/rogue/L13",
@@ -2291,7 +2269,7 @@
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
-    "1-20/moradhim/rogue/L5"
+    "1-20/moradhim/rogue/L10"
    ],
    "offer": "Go south from the coach to Baga Village and kill its guards at the gate until one drops an oversized claw. Bring it here.",
    "accept": "I will do it.",
@@ -2354,7 +2332,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not name the Enclave of the Bear's man who sends you to the halfling prisoner, nor is the prisoner in the database: the visit is a reach step at EQOA-Data's map's place, and the bet is left out. The Night Breath scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10 before it are drafts until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not name the Enclave of the Bear's man who sends you to the halfling prisoner, nor is the prisoner in the database: the visit is a reach step at EQOA-Data's map's place, and the bet is left out. The Night Breath scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/moradhim/rogue/L15",
@@ -2675,10 +2653,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Freezeblood Treasurer"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). The Freezeblood Treasurer is not in the database (King Ickcil's chest is, as the Parathoir Chest). The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). King Ickcil's chest is the database's Parathoir Chest. The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
   },
   {
    "key": "1-20/moradhim/warrior/L1",
@@ -2868,7 +2844,7 @@
     },
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "Rabid Bat",
      "items": [
       {
        "item": "ruined bat wing",
@@ -2921,7 +2897,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The database has no bats near Moradhim (the nearest are some 3,500 away). The guide does not name the weapon."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The bats are the database's rabid bats outside the city (its plain bats are some 3,500 away). The guide does not name the weapon."
   },
   {
    "key": "1-20/moradhim/warrior/L5",
@@ -2997,7 +2973,7 @@
     },
     {
      "kind": "loot",
-     "target": "Red Eyed Monster",
+     "target": "Red-Eyed Monster",
      "items": [
       {
        "item": "Red Eye",
@@ -3045,11 +3021,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Red Eyed Monster",
-    "Guard Reigald"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 7; github.com/Jadiction/EQOA-Data). The guard is EQOA-Data's map's Guard Reigald (the guide is unsure of the spelling); he is not in the database. The Red Eyed Monster is not in the database. The Furious Defense scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 7; github.com/Jadiction/EQOA-Data). The guard is EQOA-Data's map's Guard Reigald (the guide is unsure of the spelling). The Furious Defense scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/moradhim/warrior/L10",
@@ -3062,7 +3035,7 @@
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
-    "1-20/moradhim/warrior/L5"
+    "1-20/moradhim/warrior/L7"
    ],
    "offer": "Brenn Raven in Diren's Hold, west of Moradhim, on the second floor of the fort's tower, needs a warrior.",
    "accept": "I will do it.",
@@ -3135,12 +3108,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Freezeblood Sapper",
-    "Frosteye Marauder",
-    "Amber"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). The goblin sappers are not in the database (EQOA-Data's map calls them Freezeblood Sappers). The Frosteye marauders and Amber, the little wolf they hold, are not in the database. It follows L5: L7 before it is a draft until its names are in the database."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). The goblin sappers are EQOA-Data's map's Freezeblood Sappers."
   },
   {
    "key": "1-20/moradhim/warrior/L13",
@@ -3153,7 +3122,7 @@
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
-    "1-20/moradhim/warrior/L5"
+    "1-20/moradhim/warrior/L10"
    ],
    "offer": "Go south from the coach to Baga Village and kill its guards at the gate until one drops an oversized claw. Bring it here.",
    "accept": "I will do it.",
@@ -3216,7 +3185,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not name the Enclave of the Bear's man who sends you to the halfling prisoner, nor is the prisoner in the database: the visit is a reach step at EQOA-Data's map's place, and the bet is left out. The Rapid Strike scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10 before it are drafts until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not name the Enclave of the Bear's man who sends you to the halfling prisoner, nor is the prisoner in the database: the visit is a reach step at EQOA-Data's map's place, and the bet is left out. The Rapid Strike scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/moradhim/warrior/L15",
@@ -3537,10 +3506,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Freezeblood Treasurer"
-   ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). The Freezeblood Treasurer is not in the database (King Ickcil's chest is, as the Parathoir Chest). The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). King Ickcil's chest is the database's Parathoir Chest. The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
   }
  ],
  "items": [

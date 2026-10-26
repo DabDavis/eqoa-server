@@ -23,8 +23,8 @@ const KINDS = {
 const AT_NPC = new Set(['talk', 'show', 'give']);
 
 // A quest's events and a step's (handlers/questevents.go): when, and what.
-const QUEST_WHENS = { accept: 'When it is taken', finish: 'When it is finished' };
-const STEP_WHENS = { start: 'When it becomes the step to do', done: 'When it is done' };
+const QUEST_WHENS = { accept: 'When taken', finish: 'When finished' };
+const STEP_WHENS = { start: 'When it starts', done: 'When it is done' };
 const DOS = {
   popup: 'A window the player closes',
   say: 'An NPC says',

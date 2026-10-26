@@ -170,3 +170,29 @@ func TestSummonedPotionsArrive(t *testing.T) {
 		t.Error("summonCount")
 	}
 }
+
+// A NO TRADE item (itempattern.trade 1, CLIENT's m_noTrade: a crude potion) is
+// never offered in a trade; the control, a tradeable one, is.
+func TestNoTradeItemIsNotOffered(t *testing.T) {
+	f := newScribeFixture(t)
+	w := f.potionWorld()
+	crude := f.potion("Faulty Alacrity Potion", -1, 3, 1, "Self, Sow, 30min", "Crude Quickening", "attack")
+	fine := f.potion("Self Alacrity Potion", -1, 3, 0, "Self, Sow, 30min", "Quickening", "attack")
+	f.own(crude, 3)
+	f.own(fine, 3)
+	f.loadList()
+	other := &entity.Player{ServerID: 1002, Name: "Other"}
+	h := NewTradeHandler(nil, &NPCWindowHandler{inv: f.inv})
+	h.SetGameWorld(w)
+	me := &tradeSide{sess: f.sess, player: f.player, asker: true}
+	you := &tradeSide{sess: testSession(), player: other}
+	tr := &trade{a: me, b: you, open: true}
+	h.offerLocked(tr, me, you, 0, 1)
+	if len(me.offers) != 0 {
+		t.Errorf("a no-trade potion was offered: %+v", me.offers)
+	}
+	h.offerLocked(tr, me, you, 1, 1)
+	if len(me.offers) != 1 {
+		t.Errorf("the control: a tradeable potion was not offered (%+v)", me.offers)
+	}
+}

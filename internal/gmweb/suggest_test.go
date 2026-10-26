@@ -169,3 +169,41 @@ func TestCommunityVisualsShowsTextAsText(t *testing.T) {
 		}
 	}
 }
+
+// The same spell recorded for another class (Return Home's three records) takes
+// the accepted visual too while it is on a stand-in; a namesake with a visual of
+// its own keeps it (the control), and so does a spell of another name.
+func TestAcceptGivesTheVisualToNamesakesOnAStandIn(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	mustExec(t, f.db, `INSERT INTO spellpattern (spellid, abilitylvl, unk2, unk3, range, casttime, power, iconColor, icon,
+		scope, recast, eqprequire, spellname, spelldesc) VALUES
+		(9100, 1, 0, 0, 30, 2000, 5, 0, 0, 0, 6000, 0, 'Minor Healing', ''),
+		(9101, 1, 0, 0, 30, 2000, 5, 0, 0, 0, 6000, 0, 'minor healing ', ''),
+		(9102, 1, 0, 0, 30, 2000, 5, 0, 0, 0, 6000, 0, 'Minor Healing', '')`)
+	mustExec(t, f.db, `INSERT INTO spelleffect (spellid, line, fxdict, source) VALUES (9101, '', 0, 'eqoa-data'), (9102, '', 0x3C001234, 'gm')`)
+	const a = 0x1DAEB5B6
+	suggestFrom(t, f, 100, a, "aaaaaaaa11111111", "Bob", "")
+	code, out := c.op("accept_visual_suggestion", map[string]any{"spell": 100, "visual": "0x1DAEB5B6"})
+	if code != 200 {
+		t.Fatalf("accept: %d %v", code, out)
+	}
+	if got := len(out["namesakes"].([]any)); got != 2 {
+		t.Fatalf("namesakes given the visual: %d (%v)", got, out["namesakes"])
+	}
+	fxOf := func(id int) int64 {
+		var fx int64
+		f.db.QueryRow(`SELECT COALESCE(fxdict, 0) FROM spelleffect WHERE spellid = ?`, id).Scan(&fx)
+		return fx
+	}
+	if fxOf(9100) != a || fxOf(9101) != a {
+		t.Errorf("the namesakes on a stand-in: %#x %#x", fxOf(9100), fxOf(9101))
+	}
+	if fxOf(9102) != 0x3C001234 {
+		t.Errorf("a namesake with a visual of its own was changed: %#x", fxOf(9102))
+	}
+	if fxOf(101) != 0 {
+		t.Errorf("a spell of another name was changed: %#x", fxOf(101))
+	}
+}

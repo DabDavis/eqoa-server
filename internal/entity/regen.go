@@ -59,8 +59,12 @@ func ItemCredit(values []int) int {
 // items' (ItemCredit) and the effects' (food and drink, consumable.go).
 func (p *Player) HoTBase() int { return max(1, p.MaxHPNow()/50) }
 func (p *Player) PoTBase() int { return max(1, p.MaxPowerNow()/50) }
-func (p *Player) HoTNow() int  { return p.HoTBase() + ItemCredit(p.Gear.HoTItems) + p.Mods.HoT }
-func (p *Player) PoTNow() int  { return p.PoTBase() + ItemCredit(p.Gear.PoTItems) + p.Mods.PoT }
+func (p *Player) HoTNow() int {
+	return p.HoTBase() + ItemCredit(p.Gear.HoTItems) + p.Mods.HoT + p.CMEffects[cmSlotHoT]
+}
+func (p *Player) PoTNow() int {
+	return p.PoTBase() + ItemCredit(p.Gear.PoTItems) + p.Mods.PoT + p.CMEffects[cmSlotPoT]
+}
 
 // regenTick gives the player its HoT in hit points and its PoT in power,
 // each within its maximum: what a tick does.

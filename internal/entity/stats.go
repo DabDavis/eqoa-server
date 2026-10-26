@@ -115,7 +115,13 @@ func hpFactor(class int) int {
 // come out the same and 14 from 23 below to 8 above. Worn items' and
 // spells' own hit points come on top (MaxHPNow).
 func CalculateMaxHP(level, class, stamina int) int {
-	hp := (hpFactor(class)*11 + max(stamina, 0)) * max(level, 0) / 11
+	return calculateMaxHPFactor(level, hpFactor(class), stamina)
+}
+
+// calculateMaxHPFactor is CalculateMaxHP with the HP factor given (a
+// mastery's HP FACTOR raises the class's: Player.maxHPFor).
+func calculateMaxHPFactor(level, factor, stamina int) int {
+	hp := (factor*11 + max(stamina, 0)) * max(level, 0) / 11
 	return max(hp, 1)
 }
 

@@ -23,8 +23,16 @@ func (s *SQLiteCharacterStore) LoadMastery(serverID uint32) (MasteryRow, error) 
 
 // SaveMastery keeps a character's mastery points.
 func (s *SQLiteCharacterStore) SaveMastery(serverID uint32, m MasteryRow) error {
-	_, err := s.db.Exec(`INSERT INTO charmastery (serverid, points, spent, percent, xp) VALUES (?, ?, ?, ?, ?)
+	_, err := s.db.Exec(saveMasterySQL, serverID, m.Points, m.Spent, m.Percent, m.XP)
+	return err
+}
+
+const saveMasterySQL = `INSERT INTO charmastery (serverid, points, spent, percent, xp) VALUES (?, ?, ?, ?, ?)
 		ON CONFLICT (serverid) DO UPDATE SET points = excluded.points, spent = excluded.spent,
-		percent = excluded.percent, xp = excluded.xp`, serverID, m.Points, m.Spent, m.Percent, m.XP)
+		percent = excluded.percent, xp = excluded.xp`
+
+// saveMasteryTx is SaveMastery inside a transaction (a purchase's: cmcatalog.go).
+func saveMasteryTx(tx *sql.Tx, serverID uint32, m MasteryRow) error {
+	_, err := tx.Exec(saveMasterySQL, serverID, m.Points, m.Spent, m.Percent, m.XP)
 	return err
 }

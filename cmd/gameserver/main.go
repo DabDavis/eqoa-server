@@ -161,6 +161,13 @@ func main() {
 		log.Printf("WARNING: %v; no pet taps", err)
 	}
 	log.Printf("Pets: %s", gameWorld.PetTapSummary())
+	// The class masteries a character may buy (entity/cmbuy.go, table
+	// cmcatalog): with none, none is offered, and every stat cap is the
+	// level's
+	if _, err := gameWorld.LoadCMCatalog(db); err != nil {
+		log.Printf("WARNING: %v; no mastery can be bought", err)
+	}
+	log.Printf("Characters: %s", gameWorld.CMSummary())
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 

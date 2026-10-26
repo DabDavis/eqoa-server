@@ -123,6 +123,9 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 14px 0; }
 
 /* boot */
 .booting { display: grid; place-items: center; height: 100%; }
+/* The shell fills the window and main scrolls, as .shell and main are written: #app kept its height only
+   while it was .booting, so the whole document scrolled and nothing in main could stay in view (sticky). */
+#app { height: 100%; }
 .boot { font-family: var(--serif); color: var(--faint); letter-spacing: 0.2em; }
 
 /* the frame */
@@ -390,6 +393,19 @@ img.qr { display: block; margin: 10px 0 4px; width: 232px; max-width: 100%; heig
 .path-panel .badge { margin-left: 8px; }
 .path-hint { margin: 0; }
 .fx-preview { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: var(--radius); background: #0b0d12; }
+/* Spell visuals with a preview: the list on the left, the preview beside it held in view while the list
+   scrolls (main is the scroller); one column on a narrow screen, the preview held at the top, shorter. */
+.fx-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 40%); gap: 16px; align-items: start; }
+.fx-main { min-width: 0; }
+.fx-main > * + * { margin-top: 16px; }
+.fx-side { position: sticky; top: 12px; z-index: 5; }
+.fx-side .fx-preview { max-height: calc(100vh - 220px); }
+@media (max-width: 1100px) {
+  .fx-layout { grid-template-columns: minmax(0, 1fr); }
+  .fx-side { order: -1; top: 0; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35); }
+  .fx-side .fx-preview { max-height: 34vh; }
+  .fx-side .fx-help { display: none; }
+}
 .viewer { position: relative; aspect-ratio: 4 / 3; background: radial-gradient(circle at 50% 30%, #222a3a, #0b0d12 75%); border-radius: var(--radius); overflow: hidden; }
 .viewer canvas { width: 100%; height: 100%; display: block; touch-action: none; }
 .viewer .viewer-note { position: absolute; inset: auto 8px 8px 8px; font-size: 12px; color: #9ba4b6; text-align: center; }

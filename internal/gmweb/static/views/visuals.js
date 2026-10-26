@@ -100,7 +100,7 @@ function previewPane() {
     h('div', { class: 'row' }, aim,
       button('Again', { icon: 'refresh', class: 'small', title: 'Cast it again now', onclick: () => started && post({ type: 'fxview-again' }) })),
     status,
-    h('p', { class: 'muted small' }, 'A human casts the visual as the game plays a cast (0x00B1), off your own disc, again and again: Preview on a visual or a spell plays it here. Drag to turn round, wheel to zoom; nothing in the game changes.')));
+    h('p', { class: 'muted small fx-help' }, 'A human casts the visual as the game plays a cast (0x00B1), off your own disc, again and again: Preview on a visual or a spell plays it here. Drag to turn round, wheel to zoom; nothing in the game changes.')));
   pane = p;
   return p;
 }
@@ -194,7 +194,7 @@ export async function render(box, [spellSeg]) {
       body.appendChild(h('tr', { class: current ? 'sel' : '' },
         h('td', { class: 'mono' }, hex(v.id)),
         h('td', { class: 'nowrap' },
-          preview ? button('Preview', { class: 'small', title: 'Play it in the preview above', onclick: () => (spell ? preview.play(hex(v.id), spell.castSeconds * 1000, spell) : previewVisual(v)) }) : null,
+          preview ? button('Preview', { class: 'small', title: 'Play it in the preview', onclick: () => (spell ? preview.play(hex(v.id), spell.castSeconds * 1000, spell) : previewVisual(v)) }) : null,
           preview ? ' ' : null,
           button(preview ? 'In game' : 'Play', { icon: 'play', class: 'small', title: 'Play it in the game, from your character onto its target', onclick: () => playInGame(spell ? { visual: hex(v.id), spell: spell.spellid } : { visual: hex(v.id), seconds: Number(secs.value) || 0 }) }),
           ' ',
@@ -220,15 +220,20 @@ export async function render(box, [spellSeg]) {
       spell.own ? button('Back to its stand-in', { class: 'ghost', onclick: () => useFor({ id: 0 }, spell.spellid) }) : null),
     h('p', { class: 'muted small' }, 'Play a visual on the list to see it in the game, then Use to give it to ' + spell.name + '.'))) : null;
 
-  mount(box,
-    pageHead('Spell visuals', 'Every visual on your disc: what a spell shows when cast (0x00B1\'s DictID). Play one in the game to see it, then give it to a spell.',
-      spell ? h('a', { href: '#/spells/' + spell.spellid }, spell.name) : null),
+  const cards = [
     forCard,
-    preview ? preview.card : null,
     card('Play in game', h('div', { class: 'stack' },
       h('p', { class: 'muted small' }, 'Log in to the game with this account\'s character and target something (nothing targeted: yourself). A visual plays from you onto your target, seen by everyone near; nothing is saved and nothing lands. The cast time is how long its casting part runs.'),
       h('div', { class: 'row' }, fx, h('span', { class: 'row' }, 'cast', secs, 's'), playTyped))),
-    card('On your disc', h('div', { class: 'stack' }, h('div', { class: 'grid-tools' }, search, h('span', { class: 'grow' }), countLine), listBox)));
+    card('On your disc', h('div', { class: 'stack' }, h('div', { class: 'grid-tools' }, search, h('span', { class: 'grow' }), countLine), listBox)),
+  ];
+  mount(box,
+    pageHead('Spell visuals', 'Every visual on your disc: what a spell shows when cast (0x00B1\'s DictID). Play one in the game to see it, then give it to a spell.',
+      spell ? h('a', { href: '#/spells/' + spell.spellid }, spell.name) : null),
+    // with a preview, the list beside it and the preview held in view while the list scrolls, so a
+    // Preview pressed far down the list plays where it can be seen (the user, F3 pass 17)
+    preview ? h('div', { class: 'fx-layout' }, h('div', { class: 'fx-main' }, ...cards), h('div', { class: 'fx-side' }, preview.card)) : null,
+    ...(preview ? [] : cards));
   draw();
   // a spell's own visual plays in the preview at once
   if (preview && spell) preview.play(spell.plays, spell.castSeconds * 1000, spell);

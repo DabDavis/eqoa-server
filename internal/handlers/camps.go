@@ -60,6 +60,71 @@ var campDests = map[string]teleDest{
 	"minotaurs":      {NPC: "Rustel Minotaur", Near: true, X: 13002.0, Y: 59.0, Z: 26869.2, World: 0, Levels: "40-43", Label: "the Gerntar Mines' Rustel minotaurs"},
 }
 
+// campNotes are what the GM panel's map says of each camp (campinfo.go):
+// EQOA-Data's note on it, the guide's levels, the creatures that make it
+// here and EQOA-Data's rare mobs near it, with their levels here and the
+// drops EQOA-Data names them the source of.
+var campNotes = map[string]campNote{
+	"dfc":            {Note: "Deathfist Citadel Zone. One of the best XP camps in the low 30s. Watch for trains and deep pulls.", Guide: "29-34", Creatures: []string{"Deathfist champion", "Deathfist cleric", "Deathfist reaver", "Deathfist slayer", "Deathfist prophet", "Deathfist Fire Weaver", "Deathfist trader"}, Rare: []campRare{}},
+	"alfarak":        {Note: "Al Farak Ruins (S/SE). Spread-out pulls make this a safer alternative to DFC.", Guide: "30-33", Creatures: []string{"Deathfist slayer", "Deathfist reaver"}, Rare: []campRare{}},
+	"hexbones":       {Note: "Zentar's Keep. Caster-heavy mobs. Snow griffons may interfere with pulls.", Guide: "39-44", Creatures: []string{"hexbone", "shriek"}, Rare: []campRare{}},
+	"nasehir":        {Note: "Northern Ro (NW/W). Two separate camps near the coast. Consistent pulls and solid group XP.", Guide: "10-14", Creatures: []string{"Nasehir Lookout", "Nasehir Ranger", "Nasehir Cleric", "Nasehir Wizard", "Nasehir Kresni", "Nasehir Rogue", "Nasehir Warrior"}, Rare: []campRare{}},
+	"nasehir2":       {Note: "Northern Ro (NW/W). Two separate camps near the coast. Consistent pulls and solid group XP.", Guide: "10-14", Creatures: []string{"Nasehir Hunter", "Nasehir Lookout", "Nasehir Ranger", "Nasehir Bard", "Nasehir Cleric", "Nasehir Rogue", "Nasehir Sandcaster", "Nasehir Wizard", "Nasehir Yven"}, Rare: []campRare{}},
+	"hatebone":       {Note: "Halas (Outskirts). A solid beginner camp with tightly packed orcs. Good for melee-heavy groups learning to pull.", Guide: "1-6", Creatures: []string{"hatebone guard", "hatebone oracle", "hatebone orc", "hatebone ritualist", "hatebone ruffian", "hatebone lackey"}, Rare: []campRare{}},
+	"hatebone2":      {Note: "Halas (Outskirts). A solid beginner camp with tightly packed orcs. Good for melee-heavy groups learning to pull.", Guide: "1-6", Creatures: []string{"hatebone thief", "hatebone guard", "hatebone orc", "hatebone ruffian", "hatebone oracle", "hatebone mystic", "hatebone warrior"}, Rare: []campRare{}},
+	"hatebonecave":   {Note: "Halas (Outskirts). A solid beginner camp with tightly packed orcs. Good for melee-heavy groups learning to pull.", Guide: "1-6", Creatures: []string{"hatebone guard", "hatebone oracle", "hatebone mystic", "hatebone warrior", "hatebone guardian", "hatebone ruffian", "hatebone matron", "hatebone orc", "hatebone taskmaster"}, Rare: []campRare{}},
+	"nroundead":      {Note: "Northern Ro (NW/SW). Two undead camps offering reliable experience. Clerics excel here.", Guide: "17-20", Creatures: []string{"skeleton", "decaying zombie", "grave rat", "rotting wolf", "Decaying Skeleton"}, Rare: []campRare{}},
+	"nroundead2":     {Note: "Northern Ro (NW/SW). Two undead camps offering reliable experience. Clerics excel here.", Guide: "17-20", Creatures: []string{"grave rat", "skeleton", "decaying zombie"}, Rare: []campRare{}},
+	"gharial":        {Note: "South of MTG (Ocean). Island clearing camp. Watch for wanderers crossing into camp.", Guide: "35-38", Creatures: []string{"Deep Sea Ghoul", "Gharial"}, Rare: []campRare{}},
+	"tendora":        {Note: "West Toxulia (SW). High-risk, high-reward camp. Hut clearing becomes viable at higher levels.", Guide: "44-53", Creatures: []string{"kerran warrior", "kerran priest", "kerran wizard", "Kerran Elder", "kerran sentry"}, Rare: []campRare{}},
+	"kappa":          {Note: "Slythis Dwell. Often underused camp with strong XP potential.", Guide: "50-55", Creatures: []string{"kappa guard", "kappa slave", "kappa shaman", "kappa worker", "kappa brute"}, Rare: []campRare{}},
+	"kappawarriors":  {Note: "Slythis Dwell. Often underused camp with strong XP potential.", Guide: "50-55", Creatures: []string{"kappa warrior"}, Rare: []campRare{}},
+	"kappaelites":    {Note: "Slythis Dwell (Castle Balcony). Top-floor elite camp. Requires strong tank and healer coordination.", Guide: "53-58", Creatures: []string{"kappa elite guard"}, Rare: []campRare{}},
+	"drudges":        {Note: "Odous / East Plateau. Slower spawn timers but strong experience. North and west of Arcadin.", Guide: "36-44", Creatures: []string{"kappa drudge"}, Rare: []campRare{}},
+	"phantoms":       {Note: "East Plateau (NW of Arcadin). Undead-style camp with valuable scroll drops.", Guide: "50-51", Creatures: []string{"phantom"}, Rare: []campRare{}},
+	"gargoyles":      {Note: "South Barren Coast. Strong melee mobs with quest-related drops.", Guide: "50-53", Creatures: []string{"leering gargoyle", "gargoyle soldier", "gargoyle watcher"}, Rare: []campRare{}},
+	"harpies":        {Note: "Erud's Crossing. Efficient XP with manageable damage output.", Guide: "55-60", Creatures: []string{"shiran harpy", "bloodthirsty harpy", "Shiran Harpy Queen"}, Rare: []campRare{}},
+	"moots":          {Note: "Erud's Crossing (South of Harpies). Fire-based spellcasters. Fire resistance recommended.", Guide: "57-60", Creatures: []string{"guardian of saftemoot"}, Rare: []campRare{}},
+	"blackburrow":    {Note: "Blackburrow Area. Classic early gnoll camp. Watch for adds inside the cave system.", Guide: "1-8", Creatures: []string{"gnoll soldier", "gnoll forager", "gnoll ruffian", "gnoll scout", "gnoll whitepaw", "gnoll redpaw", "gnoll shaman", "gnoll blackpaw", "gnoll enforcer", "gnoll spiritist"}, Rare: []campRare{}},
+	"bloodfoots":     {Note: "Mt. Hatespike (W). Good humanoid camp with manageable aggro ranges. Casters may drop useful shields.", Guide: "26-32", Creatures: []string{"Bloodfoot bandit", "Bloodfoot heavy"}, Rare: []campRare{}},
+	"coldpaw":        {Note: "Klik'Anon (W). Low faction impact compared to other gnolls. Good camp layout for small groups.", Guide: "4-7", Creatures: []string{"coldpaw brawler", "coldpaw shaman", "coldpaw warrior"}, Rare: []campRare{}},
+	"hillgiants":     {Note: "Keliner (NE). Classic giant camp with high HP targets and steady XP.", Guide: "44-49", Creatures: []string{"Hill giant"}, Rare: []campRare{}},
+	"serpents":       {Note: "Bandit Hills (E). Confined cave camp. Bring crowd control to manage close spawns.", Guide: "24-29", Creatures: []string{"serpent guardian", "serpent king"}, Rare: []campRare{}},
+	"cutthroats":     {Note: "Mulin's Reach (SE). Straightforward humanoid camp. Good coin drops and steady experience.", Guide: "14-18", Creatures: []string{"cutthroat", "bandit"}, Rare: []campRare{}},
+	"cutthroats2":    {Note: "Mulin's Reach (SE). Straightforward humanoid camp. Good coin drops and steady experience.", Guide: "23-23", Creatures: []string{"bandit", "cutthroat"}, Rare: []campRare{}},
+	"plainstriders":  {Note: "Mulin's Reach (N/NE). Popular leveling path. Open terrain makes pulling simple.", Guide: "17-21", Creatures: []string{"orc plainstrider", "orc plainsraider", "orc plainsman"}, Rare: []campRare{}},
+	"plainsraiders":  {Note: "Mulin's Reach (N/NE). Popular leveling path. Open terrain makes pulling simple.", Guide: "17-21", Creatures: []string{"orc plainstrider", "orc plainsman", "orc plainsraider"}, Rare: []campRare{{Name: "Chief Klumox", Level: 22, Drops: []string{}}}},
+	"cracktooth":     {Note: "Bobble-By-Water. Excellent faction gains and consistent pulls. Great training camp for tanks.", Guide: "19-24", Creatures: []string{"cracktooth matron", "cracktooth orc", "cracktooth warrior", "Biter Cracktooth"}, Rare: []campRare{}},
+	"cadavers":       {Note: "Qeynos (NW). Reliable undead camp for early levels. Safe pulls with minimal wandering mobs.", Guide: "1-10", Creatures: []string{"druidic cadaver"}, Rare: []campRare{}},
+	"slesher":        {Note: "Surefall Glade. Compact gnoll camp with manageable pulls. Works well for balanced groups.", Guide: "10-14", Creatures: []string{"slesher guard", "slesher elite guard", "gnoll coward", "reanimated gnoll", "gnoll runt", "slesher bloodseeker"}, Rare: []campRare{}},
+	"aviaks":         {Note: "Near Halas. Outdoor camp with roaming aviaks. Good experience but requires awareness.", Guide: "1-1", Creatures: []string{"aviak hatcher", "aviak defender", "aviak villager", "aviak ranger"}, Rare: []campRare{{Name: "Oyric Winterwalk", Level: 0, Drops: []string{}}}},
+	"orctunnel":      {Note: "The Druk (C). High-density orc camp. Be cautious of trains from deeper inside.", Guide: "14-18", Creatures: []string{"orc brute", "orc prophet", "orc henchman"}, Rare: []campRare{}},
+	"gnollfishers":   {Note: "Darkmoor. Riverbank gnolls with moderate social aggro. Solid mid-20s camp.", Guide: "20-26", Creatures: []string{"gnoll fisherman"}, Rare: []campRare{}},
+	"scarecrows":     {Note: "Alseop's Wall (W). Reliable undead-style mobs. Safe rotations for organized groups.", Guide: "21-31", Creatures: []string{"Scarecrow"}, Rare: []campRare{}},
+	"goblincitadel":  {Note: "Runneye Area. Dense goblin camp with solid experience. Crowd control recommended.", Guide: "30-36", Creatures: []string{"Goblin Excavator", "Goblin Miner", "Goblin Veteran", "Goblin Champion", "Goblin Cutthroat", "Goblin Defender", "Goblin Dirtnapper", "Goblin Sentry", "Goblin Sneak", "Goblin Adept", "goblin hoarder", "Goblin Lookout", "Goblin Skirmisher", "Goblin Witchdoctor"}, Rare: []campRare{}},
+	"klickpirates":   {Note: "Klick'Anon Coast. Good coin and experience. Outdoor pulls with roaming patrols.", Guide: "30-38", Creatures: []string{"deckhand", "pirate scout", "pirate stonemason"}, Rare: []campRare{}},
+	"cyclops":        {Note: "Desert Region. High health mobs with strong melee damage. Good for experienced groups.", Guide: "40-46", Creatures: []string{"cyclops guard", "cyclops elite guard", "cyclops", "cyclops watcher"}, Rare: []campRare{}},
+	"siloths":        {Note: "Salt Mine. Dungeon-style camp. Valuable ring drops and strong experience.", Guide: "45-50", Creatures: []string{"Siloth knight", "Siloth ritualist", "Siloth necromancer", "Siloth battlebones", "Siloth guard", "Siloth hound", "Siloth slaver"}, Rare: []campRare{}},
+	"icegiants":      {Note: "Near Northgate. Multiple camps available. Expect heavy melee damage.", Guide: "46-50", Creatures: []string{"Ice giant guard", "Ice giant elite", "Ice giant healer", "Ice giant warder"}, Rare: []campRare{}},
+	"ghosts":         {Note: "Various High-Level Zones. Undead endgame camp. Works well with cleric-heavy groups.", Guide: "58-62", Creatures: []string{"wandering ghost"}, Rare: []campRare{}},
+	"xrag":           {Note: "Elephant Graveyard. High-end named camp. Valuable spell drops and crafting materials.", Guide: "60-62", Creatures: []string{"child of Xrag", "pariah of Xrag", "sphere of annihilation", "Overlord Xrag"}, Rare: []campRare{{Name: "Overlord Xrag", Level: 66, Drops: []string{}}}},
+	"tombrats":       {Note: "Undead", Guide: "1-9", Creatures: []string{"grim rat", "tomb rat"}, Rare: []campRare{}},
+	"gusts":          {Note: "Air & water elementalings", Guide: "13-15", Creatures: []string{"freezing gust", "frost elemental"}, Rare: []campRare{}},
+	"guardianforest": {Note: "Guardian Forest (W). Easy pulls with steady spawn cycles.", Guide: "56-60", Creatures: []string{"Goblin Assassin", "Goblin Soothsayer"}, Rare: []campRare{}},
+	"freezeblood":    {Note: "Everfrost. Undead camp with steady respawns. Casters should watch for wandering adds.", Guide: "10-15", Creatures: []string{"Freezeblood berserker", "Freezeblood cleric", "Freezeblood scout", "Freezeblood grunt", "Freezeblood mystic"}, Rare: []campRare{{Name: "Frostbite", Level: 20, Drops: []string{}}}},
+	"crocodiles":     {Note: "Bobble-By-Water (E). Island-based camp with social aggro. Pull carefully to avoid chain fights.", Guide: "18-20", Creatures: []string{"young crocodile", "caiman"}, Rare: []campRare{{Name: "Alleza", Level: 22, Drops: []string{}}}},
+	"minotaurs":      {Note: "Gerntar Mines (C). High mob density inside caves. Strong XP but can overwhelm unprepared groups.", Guide: "29-38", Creatures: []string{"Rustel Minotaur", "Rustel Minotaur Scout"}, Rare: []campRare{}},
+}
+
+// mapTowns are EQOA-Data's towns outside Tunaria (whose are coachtowns.go's),
+// by its map's fit of their world, for the GM panel's map (campinfo.go).
+var mapTowns = []TownMark{
+	{Name: "Arcadin", World: 2, X: 8813, Z: 4338},
+	{Name: "East Plateau", World: 2, X: 8154, Z: 2423},
+	{Name: "Stone of Morathals (Good)", World: 2, X: 7312, Z: 10606},
+	{Name: "Stone of Morathals (Evil)", World: 2, X: 6928, Z: 10913},
+}
+
 // campAliases are other names a GM may type for a camp.
 var campAliases = map[string]string{
 	"deathfist": "dfc",

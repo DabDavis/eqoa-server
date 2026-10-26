@@ -386,6 +386,12 @@ img.qr { display: block; margin: 10px 0 4px; width: 232px; max-width: 100%; heig
 .map-legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 .map-info { position: absolute; right: 10px; bottom: 10px; z-index: 2; background: rgba(18, 21, 28, 0.9); color: #e7e9ef; border-radius: 8px; padding: 8px 12px; font-size: 12.5px; max-width: 360px; }
 .map-tip { position: absolute; z-index: 3; pointer-events: none; background: rgba(10, 12, 16, 0.92); color: #e7e9ef; border: 1px solid #344058; border-radius: 6px; padding: 5px 9px; font-size: 12px; white-space: nowrap; }
+.map-tip.rich { white-space: normal; max-width: 340px; line-height: 1.4; }
+.map-tip.rich > * + * { margin-top: 2px; }
+.map-info .quest-list { max-height: 200px; overflow-y: auto; }
+.map-info .quest-list .in-game { color: #f5c542; }
+.map-info .quest-list .not-in { color: #9aa1ad; }
+.map-legend canvas.legend-icon { position: static; width: 26px; height: 18px; display: inline-block; cursor: default; }
 .map-wrap.path-editing canvas { cursor: crosshair; }
 .path-panel { position: absolute; right: 10px; top: 56px; z-index: 2; width: min(340px, calc(100% - 20px)); max-height: calc(100% - 66px); overflow: auto; background: rgba(18, 21, 28, 0.94); color: #e7e9ef; border: 1px solid #344058; border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; }
 .path-panel label { color: #9ba4b6; }

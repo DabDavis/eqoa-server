@@ -100,30 +100,57 @@ func TestDrinkPotionTakesOne(t *testing.T) {
 	}
 }
 
-// A thrown potion from a quick slot with no target is refused in red and
-// kept; from the item menu it is worn, not thrown (usesPotion).
+// A thrown potion is a ranged weapon (F3 20261026-014336): a quick slot's Use
+// (as the item menu's) wears it in the ranged slot (0x003F, equip slot 18)
+// and throws nothing; only one worn nowhere (a GM's) is thrown by Use, and
+// with no target refused in red and kept.
 func TestThrownPotionFromAQuickSlot(t *testing.T) {
 	f := newScribeFixture(t)
 	f.potionWorld()
-	p := f.potion("Unstable Potion", 17, 999, 0, "Target, Decrease Hitpoints by 54", "", "")
+	p := f.potion("Unstable Potion", 16, 999, 0, "Target, Decrease Hitpoints by 54", "", "")
 	f.own(p, 5)
 	f.loadList()
 	msgs := f.useAs(0, 0xFFFFFFFF, 1)
+	equipped := false
+	for _, m := range msgs {
+		if bytes.Contains(m, []byte("N\x00o\x00 \x00t\x00a\x00r\x00g\x00e\x00t\x00")) {
+			t.Error("a worn thrown potion was thrown from the quick slot (\"No target.\")")
+		}
+		if protocol.GameOpcode(uint16(m[0])|uint16(m[1])<<8) == protocol.OpcodeEquipItem && len(m) >= 4 && m[3] == 18 {
+			equipped = true
+		}
+	}
+	if !equipped {
+		t.Errorf("sent % X; want 0x003F into the ranged slot (18)", msgs)
+	}
+	if n := f.stackOf("Unstable Potion"); n != 5 {
+		t.Errorf("worn, yet %d left", n)
+	}
+
+	// control: a thrown potion worn nowhere is thrown by Use
+	g := newScribeFixture(t)
+	g.potionWorld()
+	gm := g.potion("Odd Potion", -1, 999, 0, "Target, Decrease Hitpoints by 54", "", "")
+	g.own(gm, 5)
+	g.loadList()
+	msgs = g.useAs(0, 0xFFFFFFFF, 1)
 	if len(msgs) != 1 || !bytes.Contains(msgs[0], []byte("N\x00o\x00 \x00t\x00a\x00r\x00g\x00e\x00t\x00")) {
 		t.Errorf("sent % X; want the red \"No target.\"", msgs)
 	}
-	if n := f.stackOf("Unstable Potion"); n != 5 {
+	if n := g.stackOf("Odd Potion"); n != 5 {
 		t.Errorf("refused, yet %d left", n)
 	}
 
-	pat := database.ItemPatternRecord{EquipSlot: 17}
 	th := entity.NewPotionEffect(1, "Unstable Potion", "Target, Decrease Hitpoints by 54", "", 0, "", 0, 0)
 	dr := entity.NewPotionEffect(2, "Draught", "Self, Increase Power per tic by 25", "", 0, "", 0, 0)
-	if usesPotion(&th, &pat, 0) {
-		t.Error("a thrown potion from the item menu is thrown, not worn")
-	}
-	if !usesPotion(&th, &pat, 1) || !usesPotion(&dr, &database.ItemPatternRecord{EquipSlot: -1}, 0) {
-		t.Error("a quick slot's throw, or a draught from the menu, is not the potion's use")
+	for _, in := range []byte{0, 1} {
+		if usesPotion(&th, &database.ItemPatternRecord{EquipSlot: 16}, in) {
+			t.Errorf("a worn thrown potion is thrown by Use (interaction %d), not worn", in)
+		}
+		if !usesPotion(&th, &database.ItemPatternRecord{EquipSlot: -1}, in) ||
+			!usesPotion(&dr, &database.ItemPatternRecord{EquipSlot: -1}, in) {
+			t.Errorf("a draught, or a thrown potion worn nowhere, is not used (interaction %d)", in)
+		}
 	}
 }
 
@@ -141,6 +168,7 @@ func TestSummonedPotionsArrive(t *testing.T) {
 	f.loadList()
 
 	f.h.summonItem(f.sess, f.sid, "faulty alacrity potion", 0, "Crude Quickening")
+	f.h.summonItem(f.sess, f.sid, "unstable potion", 0, "Unstable Mixture") // no number: three
 	f.h.summonItem(f.sess, f.sid, "unstable potion", 3, "Unstable Mixtures")
 	f.h.summonItem(f.sess, f.sid, "grobb cocktail", 0, "Neriak Cocktail")
 	f.h.summonItem(f.sess, f.sid, "ring to invis", 0, "Phase Ring")
@@ -152,10 +180,10 @@ func TestSummonedPotionsArrive(t *testing.T) {
 			adds++
 		}
 	}
-	if adds != 3 {
-		t.Errorf("%d items arrived (0x003B), want 3 (never a spell's scroll)", adds)
+	if adds != 4 {
+		t.Errorf("%d items arrived (0x003B), want 4 (never a spell's scroll)", adds)
 	}
-	for name, want := range map[string]int{"Faulty Alacrity Potion": 3, "Unstable Potion": 3, "Neriak Cocktail": 1} {
+	for name, want := range map[string]int{"Faulty Alacrity Potion": 3, "Unstable Potion": 6, "Neriak Cocktail": 3} {
 		if n := f.stackOf(name); n != want {
 			t.Errorf("%d %s, want %d", n, name, want)
 		}
@@ -165,8 +193,11 @@ func TestSummonedPotionsArrive(t *testing.T) {
 			t.Error("Neriak Cocktail summoned its spell's scroll, not the potion")
 		}
 	}
-	if summonCount(&database.ItemPatternRecord{PatternID: quick, MaxStack: 3}) != 3 ||
-		summonCount(&database.ItemPatternRecord{MaxStack: 999}) != 1 {
+	if summonCount(&database.ItemPatternRecord{PatternID: quick, MaxStack: 3}, true) != 3 ||
+		summonCount(&database.ItemPatternRecord{MaxStack: 999}, true) != 3 ||
+		summonCount(&database.ItemPatternRecord{MaxStack: 3}, false) != 3 ||
+		summonCount(&database.ItemPatternRecord{MaxStack: 999}, false) != 1 ||
+		summonCount(&database.ItemPatternRecord{MaxStack: 1}, false) != 1 {
 		t.Error("summonCount")
 	}
 }

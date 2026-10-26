@@ -1,0 +1,3386 @@
+{
+ "city": "oggok",
+ "quests": [
+  {
+   "key": "1-20/oggok/necromancer/L1",
+   "name": "The Muddy Robe",
+   "giver": "Asogwe Greth",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Go to Merchant Filgo at the base of the ramp to the south and get a muddy robe. Then show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Filgo",
+     "journal": "Speak with Merchant Filgo.",
+     "says": "A muddy robe. It suits you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "muddy robe",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Asogwe Greth",
+     "items": [
+      {
+       "item": "muddy robe",
+       "count": 1
+      }
+     ],
+     "journal": "Show the muddy robe to Asogwe Greth.",
+     "says": "Good. Now you look like one of us.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 1 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/oggok/necromancer/L2",
+   "name": "Bound to Oggok",
+   "giver": "Asogwe Greth",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/necromancer/L1"
+   ],
+   "offer": "Have Spiritmaster Korg bind your spirit to Oggok, then sign Coachman Dilga's ledger by the great stone doorway. Then come back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Korg",
+     "journal": "Have Spiritmaster Korg bind your spirit to Oggok.",
+     "says": "Your spirit is bound to Oggok. Now go and see Coachman Dilga."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Dilga",
+     "journal": "Sign Coachman Dilga's ledger.",
+     "says": "Sign. Now the coaches know you."
+    },
+    {
+     "kind": "talk",
+     "target": "Asogwe Greth",
+     "journal": "Return to Asogwe Greth.",
+     "says": "Good. Now you always find your way home.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 2 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/oggok/necromancer/L3",
+   "name": "Centipede Meat",
+   "giver": "Asogwe Greth",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/necromancer/L2"
+   ],
+   "offer": "A guard runs around killing centipedes. Help him: kill centipedes and bring me two slivers of centipede meat.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "centipede",
+     "items": [
+      {
+       "item": "sliver of centipede meat",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Take two sliver of centipede meats from the centipedes where the guard hunts them."
+    },
+    {
+     "kind": "give",
+     "target": "Asogwe Greth",
+     "journal": "Bring two sliver of centipede meats to Asogwe Greth.",
+     "items": [
+      {
+       "item": "sliver of centipede meat",
+       "count": 2
+      }
+     ],
+     "says": "Good.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/necromancer/L4",
+   "name": "New Gear",
+   "giver": "Asogwe Greth",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/necromancer/L3"
+   ],
+   "offer": "Buy a strip of leather and a piece of iron ore from Merchant Orf, and bring me a chipped raven beak from the birds beyond the north gate.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Orf",
+     "journal": "Speak with Merchant Orf.",
+     "says": "Here you are.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "leather strip",
+         "count": 1
+        },
+        {
+         "item": "iron ore",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "raven",
+     "items": [
+      {
+       "item": "chipped raven beak",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the chipped raven beak from the birds beyond the north gate."
+    },
+    {
+     "kind": "give",
+     "target": "Asogwe Greth",
+     "journal": "Bring the leather strip, the iron ore and the chipped raven beak to Asogwe Greth.",
+     "items": [
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "chipped raven beak",
+       "count": 1
+      }
+     ],
+     "says": "Everything. Here.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/necromancer/L5",
+   "name": "The Lizardman Outcast",
+   "giver": "Asogwe Greth",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/necromancer/L4"
+   ],
+   "offer": "A lizardman outcast lurks at the abandoned tower south-west of Oggok. Go out the south gate and west, kill it and bring me its scale.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Lizardman Outcast",
+     "items": [
+      {
+       "item": "outcast scale",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the outcast scale from the lizardman outcast at the abandoned tower south-west of Oggok."
+    },
+    {
+     "kind": "give",
+     "target": "Asogwe Greth",
+     "journal": "Bring the outcast scale to Asogwe Greth.",
+     "items": [
+      {
+       "item": "outcast scale",
+       "count": 1
+      }
+     ],
+     "says": "The outcast is dead. Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "unresolved": [
+    "Lizardman Outcast"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/necromancer/L7",
+   "name": "Lork's Killer",
+   "giver": "Si Pwen Noora",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/necromancer/L5"
+   ],
+   "offer": "Guard Fraug at the outpost near Mogguk's Gate knows of an ogre who died badly. Follow the road out of the south gate to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Guard Fraug",
+     "journal": "Speak with Guard Fraug.",
+     "says": "Lork was buried by the catapult on the far side of the building. Go near it."
+    },
+    {
+     "kind": "talk",
+     "target": "Lork",
+     "journal": "Speak with Lork.",
+     "says": "A Craknek camp east along the road holds my shallow grave. Break the fingers there, then come back."
+    },
+    {
+     "kind": "talk",
+     "target": "Lork",
+     "journal": "Return to Lork.",
+     "says": "Gred the Boko killed me. Tell them."
+    },
+    {
+     "kind": "talk",
+     "target": "Si Pwen Noora",
+     "journal": "Return to Si Pwen Noora.",
+     "says": "Gred the Boko. We will remember.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "unresolved": [
+    "Guard Fraug",
+    "Lork"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the shallow grave at the Craknek camp is Lork's second word here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/necromancer/L10",
+   "name": "Korpus",
+   "giver": "Si Pwen Noora",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/necromancer/L7"
+   ],
+   "offer": "Travel to Neriak by the Shimmering Portal behind the boulder past Coachman Dilga, and speak with Pazin J'Esal at the Blind Fish Tavern.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Pazin J`Esal",
+     "journal": "Speak with Pazin J`Esal.",
+     "says": "A human necromancer named Korpus in Freeport crossed me. Buy an anointed sapphire from Merchant Gilgash, then kill him."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Gilgash",
+     "journal": "Buy an anointed sapphire from Merchant Gilgash in Freeport.",
+     "tunar": 250,
+     "says": "An anointed sapphire. 250 tunar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "anointed sapphire",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Korpus",
+     "items": [
+      {
+       "item": "charred sapphire",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the charred sapphire from Korpus, east along the shore of Freeport."
+    },
+    {
+     "kind": "give",
+     "target": "Si Pwen Noora",
+     "journal": "Bring the charred sapphire to Si Pwen Noora.",
+     "items": [
+      {
+       "item": "charred sapphire",
+       "count": 1
+      }
+     ],
+     "says": "Charred. Korpus is dead. Take this staff.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "Korpus"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The sapphire charred at Korpus's death is the charred sapphire he drops here. The guide's Charred Sapphire Staff is not on this server."
+  },
+  {
+   "key": "1-20/oggok/necromancer/L13",
+   "name": "The Seeing Stone",
+   "giver": "Si Pwen Noora",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/necromancer/L10"
+   ],
+   "offer": "I need a pouch for a seeing stone: a lizardman sneak hide from the south shore of the lake, and a basilisk gut from Merchant Filgo.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Lizardman Sneak",
+     "items": [
+      {
+       "item": "lizardman sneak hide",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the lizardman sneak hide from the lizardman sneaks along the south shore of the lake."
+    },
+    {
+     "kind": "talk",
+     "target": "Merchant Filgo",
+     "journal": "Speak with Merchant Filgo.",
+     "says": "A basilisk gut. Fresh.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "basilisk gut",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Si Pwen Noora",
+     "journal": "Bring the lizardman sneak hide and the basilisk gut to Si Pwen Noora.",
+     "items": [
+      {
+       "item": "lizardman sneak hide",
+       "count": 1
+      },
+      {
+       "item": "basilisk gut",
+       "count": 1
+      }
+     ],
+     "says": "Good. The pouch will hold the stone.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Ward Death"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Lizardman Sneak"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the seeing stone on the island south of the gate (its roaches) is left out. The guide's purchase is a hand-over here: the merchant gives the item when spoken to."
+  },
+  {
+   "key": "1-20/oggok/necromancer/L15",
+   "name": "Frada's Remains",
+   "giver": "Si Pwen Noora",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/necromancer/L13"
+   ],
+   "offer": "Buy an anointed ruby from Merchant Filgo. Then go to Neriak by the portal, kill Bouncer Frada by the river, and bring oil from a necrapede south of Oggok.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Filgo",
+     "journal": "Speak with Merchant Filgo.",
+     "says": "An anointed ruby.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "anointed ruby",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Bouncer Frada",
+     "count": 1,
+     "journal": "Slay Bouncer Frada by the river in Neriak."
+    },
+    {
+     "kind": "loot",
+     "target": "Necrapede",
+     "items": [
+      {
+       "item": "necrapede oil",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the necrapede oil from the necrapede south of Oggok."
+    },
+    {
+     "kind": "give",
+     "target": "Si Pwen Noora",
+     "journal": "Bring the anointed ruby and the necrapede oil to Si Pwen Noora.",
+     "items": [
+      {
+       "item": "anointed ruby",
+       "count": 1
+      },
+      {
+       "item": "necrapede oil",
+       "count": 1
+      }
+     ],
+     "says": "Good. We will see what the ruby shows.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "unresolved": [
+    "Necrapede"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). Simplified: anointing and burying Frada's remains on the island topped with mushrooms are left out. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/necromancer/L20",
+   "name": "Argra",
+   "giver": "Asogwe Greth",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/necromancer/L15"
+   ],
+   "offer": "Find an old ogre named Argra. Take the coach to Honjour and ask Grugnik Blackface, north of the coach in the building with a banker.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Grugnik Blackface",
+     "journal": "Speak with Grugnik Blackface.",
+     "says": "Bring me four triad stones from the druid and ranger trainees at the outpost north-west of the western gate."
+    },
+    {
+     "kind": "loot",
+     "target": "Druid Trainee",
+     "items": [
+      {
+       "item": "triad stone",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Take four triad stones from the druid and ranger trainees at the outpost north-west of Honjour."
+    },
+    {
+     "kind": "give",
+     "target": "Grugnik Blackface",
+     "journal": "Bring four triad stones to Grugnik Blackface.",
+     "items": [
+      {
+       "item": "triad stone",
+       "count": 4
+      }
+     ],
+     "says": "Now kill Dertax Redgrin, on the road south of the inn in Wyndhaven."
+    },
+    {
+     "kind": "loot",
+     "target": "Dertax Redgrin",
+     "items": [
+      {
+       "item": "Dertax's head",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Dertax's head from Dertax Redgrin on the road from the inn in Wyndhaven."
+    },
+    {
+     "kind": "give",
+     "target": "Grugnik Blackface",
+     "journal": "Bring Dertax's head and 525 tunar to Grugnik Blackface.",
+     "items": [
+      {
+       "item": "Dertax's head",
+       "count": 1
+      }
+     ],
+     "tunar": 525,
+     "says": "Argra is the big bear Gertrude, in the Bear Cave on the side of the mountain."
+    },
+    {
+     "kind": "talk",
+     "target": "Gertrude",
+     "journal": "Speak with Gertrude.",
+     "says": "*The great bear looks at you with old, knowing eyes.*"
+    },
+    {
+     "kind": "talk",
+     "target": "Asogwe Greth",
+     "journal": "Return to Asogwe Greth.",
+     "says": "You found Argra. Choose your path.",
+     "rewards": {
+      "xp": 2814929,
+      "spells": [
+       "Blood Gale"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Grugnik Blackface",
+    "Druid Trainee"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice; this gives the first: a dagger and the Life path (Blood Gale), or a staff and the Power path. The ranger trainees are the druid trainees' fellows; one name stands for both. Neither weapon is on this server."
+  },
+  {
+   "key": "1-20/oggok/shadowknight/L1",
+   "name": "The Tattered Tunic",
+   "giver": "Greenblood Yurgat",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Merchant Filgo at the bottom of the ramp has a tattered tunic for you. Get it and show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Filgo",
+     "journal": "Speak with Merchant Filgo.",
+     "says": "A tattered tunic. Wear it.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Tattered Tunic",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Greenblood Yurgat",
+     "items": [
+      {
+       "item": "Tattered Tunic",
+       "count": 1
+      }
+     ],
+     "journal": "Show Tattered Tunic to Greenblood Yurgat.",
+     "says": "Good. Now you look like one of us.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 1 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/oggok/shadowknight/L2",
+   "name": "Bound to Oggok",
+   "giver": "Greenblood Yurgat",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shadowknight/L1"
+   ],
+   "offer": "Have Spiritmaster Korg bind your spirit to Oggok, then sign Coachman Dilga's ledger by the great stone doorway. Then come back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Korg",
+     "journal": "Have Spiritmaster Korg bind your spirit to Oggok.",
+     "says": "Your spirit is bound to Oggok. Now go and see Coachman Dilga."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Dilga",
+     "journal": "Sign Coachman Dilga's ledger.",
+     "says": "Sign. Now the coaches know you."
+    },
+    {
+     "kind": "talk",
+     "target": "Greenblood Yurgat",
+     "journal": "Return to Greenblood Yurgat.",
+     "says": "Good. Now you always find your way home.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 2 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/oggok/shadowknight/L3",
+   "name": "Beak and Leg",
+   "giver": "Greenblood Yurgat",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shadowknight/L2"
+   ],
+   "offer": "Go out the north gate, kill birds and spiders, and bring me a chipped raven beak and a tarantula leg.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "raven",
+     "items": [
+      {
+       "item": "chipped raven beak",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the chipped raven beak from the birds beyond the north gate."
+    },
+    {
+     "kind": "loot",
+     "target": "spider",
+     "items": [
+      {
+       "item": "tarantula leg tips",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the tarantula leg tips from the spiders beyond the north gate."
+    },
+    {
+     "kind": "give",
+     "target": "Greenblood Yurgat",
+     "journal": "Bring the chipped raven beak and the tarantula leg tips to Greenblood Yurgat.",
+     "items": [
+      {
+       "item": "chipped raven beak",
+       "count": 1
+      },
+      {
+       "item": "tarantula leg tips",
+       "count": 1
+      }
+     ],
+     "says": "Good. Learn this.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Malice"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/oggok/shadowknight/L4",
+   "name": "New Gear",
+   "giver": "Greenblood Yurgat",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shadowknight/L3"
+   ],
+   "offer": "Buy a cord of rotwood and a block of Rathestone from Merchant Orf, east of Coachman Dilga, and bring me a centipede's eye from the pit in the cave by the southern ramp.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Orf",
+     "journal": "Speak with Merchant Orf.",
+     "says": "Here you are.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "cord of rotwood",
+         "count": 1
+        },
+        {
+         "item": "block of rathestone",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "centipede",
+     "items": [
+      {
+       "item": "damaged centipede eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the damaged centipede eye from the centipedes in the pit by the southern ramp."
+    },
+    {
+     "kind": "give",
+     "target": "Greenblood Yurgat",
+     "journal": "Bring the cord of rotwood, the block of rathestone and the damaged centipede eye to Greenblood Yurgat.",
+     "items": [
+      {
+       "item": "cord of rotwood",
+       "count": 1
+      },
+      {
+       "item": "block of rathestone",
+       "count": 1
+      },
+      {
+       "item": "damaged centipede eye",
+       "count": 1
+      }
+     ],
+     "says": "Everything. Here.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shadowknight/L5",
+   "name": "The Lizardman Outcast",
+   "giver": "Greenblood Yurgat",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shadowknight/L4"
+   ],
+   "offer": "A lizardman outcast lurks at the abandoned tower south-west of Oggok. Go out the south gate and west, kill it and bring me its scale.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Lizardman Outcast",
+     "items": [
+      {
+       "item": "outcast scale",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the outcast scale from the lizardman outcast at the abandoned tower south-west of Oggok."
+    },
+    {
+     "kind": "give",
+     "target": "Greenblood Yurgat",
+     "journal": "Bring the outcast scale to Greenblood Yurgat.",
+     "items": [
+      {
+       "item": "outcast scale",
+       "count": 1
+      }
+     ],
+     "says": "The outcast is dead. Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "unresolved": [
+    "Lizardman Outcast"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shadowknight/L7",
+   "name": "Tainted Rats",
+   "giver": "Greenblood Yurgat",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shadowknight/L5"
+   ],
+   "offer": "Tainted rats overrun the ruins of Amog-Thelg, straight south from the south gate. Kill them and bring me three of their tails.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tainted Rat",
+     "items": [
+      {
+       "item": "tainted rat tail",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three tainted rat tails from the tainted rats in the ruins of Amog-Thelg."
+    },
+    {
+     "kind": "give",
+     "target": "Greenblood Yurgat",
+     "journal": "Bring three tainted rat tails to Greenblood Yurgat.",
+     "items": [
+      {
+       "item": "tainted rat tail",
+       "count": 3
+      }
+     ],
+     "says": "Three. Good.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "unresolved": [
+    "Tainted Rat"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shadowknight/L10",
+   "name": "The Undead Alchemist",
+   "giver": "Greenblood Yurgat",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shadowknight/L7"
+   ],
+   "offer": "Buy rotwood extract from Merchant Zogog by the south gate and take it to Elder Thorg, where the guards kill rats and centipedes.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Zogog",
+     "journal": "Speak with Merchant Zogog.",
+     "says": "Rotwood extract. Mind the smell.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "rotwood extract",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Elder Thorg",
+     "journal": "Bring the rotwood extract to Elder Thorg.",
+     "items": [
+      {
+       "item": "rotwood extract",
+       "count": 1
+      }
+     ],
+     "says": "Throw this potion into the fire at the ruins of Amog-Thelg.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "fire potion",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Undead Alchemist",
+     "items": [
+      {
+       "item": "undead alchemist's remains",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the undead alchemist's remains from the undead alchemist the fire at Amog-Thelg wakes."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Thorg",
+     "journal": "Bring the undead alchemist's remains to Elder Thorg.",
+     "items": [
+      {
+       "item": "undead alchemist's remains",
+       "count": 1
+      }
+     ],
+     "says": "The alchemist is no more. Go back to your guild."
+    },
+    {
+     "kind": "talk",
+     "target": "Greenblood Yurgat",
+     "journal": "Return to Greenblood Yurgat.",
+     "says": "Elder Thorg speaks well of you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "Merchant Zogog",
+    "Undead Alchemist"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the potion thrown into the fire is the hand-over to Elder Thorg; the undead alchemist is fought where it stands. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shadowknight/L13",
+   "name": "Gamor's Note",
+   "giver": "Greenblood Yurgat",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shadowknight/L10"
+   ],
+   "offer": "Elder Thorg has work for you. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elder Thorg",
+     "journal": "Speak with Elder Thorg.",
+     "says": "A mischievous spirit by the lake outside the north gate carries a note for Gamor. Kill it and bring me the note."
+    },
+    {
+     "kind": "loot",
+     "target": "mischievous spirit",
+     "items": [
+      {
+       "item": "Gamor's note",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Gamor's note from the mischievous spirit by the lake outside the north gate."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Thorg",
+     "journal": "Bring Gamor's note to Elder Thorg.",
+     "items": [
+      {
+       "item": "Gamor's note",
+       "count": 1
+      }
+     ],
+     "says": "Get what the note asks for, mineral dust and a kingsnake sac from near Farstone, and take them to Gamor."
+    },
+    {
+     "kind": "loot",
+     "target": "Drunken Dwarf",
+     "items": [
+      {
+       "item": "mineral dust",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the mineral dust from the drunken dwarves near Farstone."
+    },
+    {
+     "kind": "loot",
+     "target": "posionous kingsnake",
+     "items": [
+      {
+       "item": "poisonous kingsnake sac",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the poisonous kingsnake sac from the poisonous kingsnakes near Farstone."
+    },
+    {
+     "kind": "give",
+     "target": "Gamor",
+     "journal": "Bring the mineral dust and the poisonous kingsnake sac to Gamor.",
+     "items": [
+      {
+       "item": "mineral dust",
+       "count": 1
+      },
+      {
+       "item": "poisonous kingsnake sac",
+       "count": 1
+      }
+     ],
+     "says": "Ah, just what I needed."
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Thorg",
+     "journal": "Return to Elder Thorg.",
+     "says": "Gamor has what he wanted.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "unresolved": [
+    "Drunken Dwarf"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide's Poisonous Kingsnake is spelled posionous kingsnake on this server. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shadowknight/L15",
+   "name": "Meals for the Guildmasters",
+   "giver": "Elder Thorg",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shadowknight/L13"
+   ],
+   "offer": "Gamor is cooking for the guildmasters, and needs your help with the ingredients. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Gamor",
+     "journal": "Speak with Gamor.",
+     "says": "Bring me a gruk crab carapace from the lake shore north-west of the north gate, and sap from the trees there."
+    },
+    {
+     "kind": "loot",
+     "target": "Gruk Crab",
+     "items": [
+      {
+       "item": "gruk crab carapace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the gruk crab carapace from the gruk crabs on the lake shore north-west of the north gate."
+    },
+    {
+     "kind": "give",
+     "target": "Gamor",
+     "journal": "Bring the gruk crab carapace to Gamor.",
+     "items": [
+      {
+       "item": "gruk crab carapace",
+       "count": 1
+      }
+     ],
+     "says": "Take the bog juice and the cakes to Elder Thorg.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "bog juice",
+         "count": 1
+        },
+        {
+         "item": "gruk crab cakes",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Elder Thorg",
+     "journal": "Bring the bog juice and the gruk crab cakes to Elder Thorg.",
+     "items": [
+      {
+       "item": "bog juice",
+       "count": 1
+      },
+      {
+       "item": "gruk crab cakes",
+       "count": 1
+      }
+     ],
+     "says": "Meet Lokar outside the south gate with this note.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Thorg's note",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Lokar",
+     "journal": "Bring Thorg's note and 260 tunar to Lokar.",
+     "items": [
+      {
+       "item": "Thorg's note",
+       "count": 1
+      }
+     ],
+     "tunar": 260,
+     "says": "Pay up... and here come my friends.",
+     "events": [
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "orge thug"
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "orge thug"
+      },
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "orge thug"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "orge thug",
+     "count": 3,
+     "journal": "Slay three the three ogres Lokar calls."
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Thorg",
+     "journal": "Return to Elder Thorg.",
+     "says": "You live. Good. The meals go to Gunthak, Yurgat and Brogar.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "unresolved": [
+    "Gruk Crab",
+    "Lokar"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the tree sap and the three meals' deliveries are left out; Lokar's three ogres are made beside the player (the server's ogre thugs). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shadowknight/L20",
+   "name": "Gamor",
+   "giver": "Elder Thorg",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shadowknight/L15"
+   ],
+   "offer": "Gamor sends his charm to the dwarves on the hilltop in view of the Farstone gates. Go to Gamor first.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Gamor",
+     "journal": "Speak with Gamor.",
+     "says": "Take my charm to the dwarves on the hilltop west of Farstone."
+    },
+    {
+     "kind": "talk",
+     "target": "Warlord Brogar",
+     "journal": "Speak with Warlord Brogar.",
+     "says": "My courier was killed in West Feerot. Avenge him: an ogre thug and a dwarf thug."
+    },
+    {
+     "kind": "loot",
+     "target": "orge thug",
+     "items": [
+      {
+       "item": "ogre thug's pendant",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the ogre thug's pendant from the ogre thugs of West Feerot."
+    },
+    {
+     "kind": "loot",
+     "target": "Dwarf Thug",
+     "items": [
+      {
+       "item": "dwarf thug's pendant",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the dwarf thug's pendant from the dwarf thugs of West Feerot."
+    },
+    {
+     "kind": "give",
+     "target": "Warlord Brogar",
+     "journal": "Bring the ogre thug's pendant and the dwarf thug's pendant to Warlord Brogar.",
+     "items": [
+      {
+       "item": "ogre thug's pendant",
+       "count": 1
+      },
+      {
+       "item": "dwarf thug's pendant",
+       "count": 1
+      }
+     ],
+     "says": "Avenged. Go back to Elder Thorg."
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Thorg",
+     "journal": "Return to Elder Thorg.",
+     "says": "Gamor poisoned the dwarves' commander. Take him this antidote.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Thorg's antidote",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Gamor",
+     "count": 1,
+     "journal": "Slay Gamor the poisoner."
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Thorg",
+     "journal": "Return to Elder Thorg.",
+     "says": "Gamor is dead. Choose your path.",
+     "rewards": {
+      "xp": 2814929,
+      "spells": [
+       "Bloodwasp"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Dwarf Thug",
+    "Gamor (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the dwarves, their commander and the meals' remnants are left out. The guide's Warlord Borgar is Warlord Brogar. The guide's ogre thug is the server's orge thug. The guide offers a choice; Bloodwasp is the first of the shadowknight's paths."
+  },
+  {
+   "key": "1-20/oggok/shaman/L1",
+   "name": "The Jungleweed Boots",
+   "giver": "Gunthak",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Merchant Argol has a pair of jungleweed boots for you. Buy them and show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Argol",
+     "journal": "Speak with Merchant Argol.",
+     "says": "Jungleweed boots. Light on the feet.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "jungleweed boots",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Gunthak",
+     "items": [
+      {
+       "item": "jungleweed boots",
+       "count": 1
+      }
+     ],
+     "journal": "Show the jungleweed boots to Gunthak.",
+     "says": "Good. Now you look like one of us.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to."
+  },
+  {
+   "key": "1-20/oggok/shaman/L2",
+   "name": "Bound to Oggok",
+   "giver": "Gunthak",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shaman/L1"
+   ],
+   "offer": "Have Spiritmaster Zarg bind your spirit to Oggok, then sign Coachman Dilga's ledger by the great stone doorway. Then come back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Zarg",
+     "journal": "Have Spiritmaster Zarg bind your spirit to Oggok.",
+     "says": "Your spirit is bound to Oggok. Now go and see Coachman Dilga."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Dilga",
+     "journal": "Sign Coachman Dilga's ledger.",
+     "says": "Sign. Now the coaches know you."
+    },
+    {
+     "kind": "talk",
+     "target": "Gunthak",
+     "journal": "Return to Gunthak.",
+     "says": "Good. Now you always find your way home.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 2 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/oggok/shaman/L3",
+   "name": "Centipede Meat",
+   "giver": "Oligan",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shaman/L2"
+   ],
+   "offer": "Go to the area near Elder Thorg, kill centipedes and bring me three pieces of centipede meat.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "centipede",
+     "items": [
+      {
+       "item": "sliver of centipede meat",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three sliver of centipede meats from the centipedes near Elder Thorg."
+    },
+    {
+     "kind": "give",
+     "target": "Oligan",
+     "journal": "Bring three sliver of centipede meats to Oligan.",
+     "items": [
+      {
+       "item": "sliver of centipede meat",
+       "count": 3
+      }
+     ],
+     "says": "Three. Good.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shaman/L4",
+   "name": "New Gear",
+   "giver": "Oligan",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shaman/L3"
+   ],
+   "offer": "Buy a cord of rotwood and iron ore from Merchant Orf, and bring me a chipped eagle talon from the young eagles.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Orf",
+     "journal": "Speak with Merchant Orf.",
+     "says": "Here you are.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "cord of rotwood",
+         "count": 1
+        },
+        {
+         "item": "iron ore",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "young eagle",
+     "items": [
+      {
+       "item": "chipped eagle talon",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the chipped eagle talon from the young eagles beyond the north gate."
+    },
+    {
+     "kind": "give",
+     "target": "Oligan",
+     "journal": "Bring the cord of rotwood, the iron ore and the chipped eagle talon to Oligan.",
+     "items": [
+      {
+       "item": "cord of rotwood",
+       "count": 1
+      },
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "chipped eagle talon",
+       "count": 1
+      }
+     ],
+     "says": "Everything. Here.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shaman/L5",
+   "name": "The Lizardman Outcast",
+   "giver": "Oligan",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shaman/L4"
+   ],
+   "offer": "A lizardman outcast lurks at the abandoned tower south-west of Oggok. Go out the south gate and west, kill it and bring me its scale.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Lizardman Outcast",
+     "items": [
+      {
+       "item": "outcast scale",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the outcast scale from the lizardman outcast at the abandoned tower south-west of Oggok."
+    },
+    {
+     "kind": "give",
+     "target": "Oligan",
+     "journal": "Bring the outcast scale to Oligan.",
+     "items": [
+      {
+       "item": "outcast scale",
+       "count": 1
+      }
+     ],
+     "says": "The outcast is dead. Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "unresolved": [
+    "Lizardman Outcast"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shaman/L7",
+   "name": "The Meditation Stone",
+   "giver": "Gunthak",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shaman/L5"
+   ],
+   "offer": "Guard Fraug, at the outpost in Mogguk's Gate across the lake to the south-east, will show you a stone where an ogre may learn his past.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Guard Fraug",
+     "journal": "Speak with Guard Fraug.",
+     "says": "Sit at the stone and meditate.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You meditate at the stone. The story of the ogres comes to you: a proud and clever people, until the gods took their wits for their pride."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Gunthak",
+     "journal": "Return to Gunthak.",
+     "says": "Now you know where we came from.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "unresolved": [
+    "Guard Fraug"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide's meditation is a popup at a stone; here it pops up when Guard Fraug sends you there (the stone has no place in the database). The story's words are ours. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shaman/L10",
+   "name": "Nothard's Message",
+   "giver": "Gunthak",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shaman/L7"
+   ],
+   "offer": "Kill a hobgoblin skulk in the hills north of the river and bring me its scarf. Then carry a message to a human in Freeport.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "hobgoblin skulk",
+     "items": [
+      {
+       "item": "hobgoblin scarf",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the hobgoblin scarf from the hobgoblin skulks in the hills north of the river."
+    },
+    {
+     "kind": "give",
+     "target": "Gunthak",
+     "journal": "Bring the hobgoblin scarf to Gunthak.",
+     "items": [
+      {
+       "item": "hobgoblin scarf",
+       "count": 1
+      }
+     ],
+     "says": "Now go by the portal to Neriak, then down the coast to Freeport. Adrassya V'Kar will point you on."
+    },
+    {
+     "kind": "talk",
+     "target": "Adrassya V'Kar",
+     "journal": "Speak with Adrassya V'Kar.",
+     "says": "Commander Nothard? In the Freeport Militia House."
+    },
+    {
+     "kind": "talk",
+     "target": "Commander Nothard",
+     "journal": "Speak with Commander Nothard.",
+     "says": "Gunthak sent you? Take him this.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Nothard's message",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Gunthak",
+     "journal": "Bring Nothard's message to Gunthak.",
+     "items": [
+      {
+       "item": "Nothard's message",
+       "count": 1
+      }
+     ],
+     "says": "Good.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shaman/L13",
+   "name": "The Stolen Stone",
+   "giver": "Oligan",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shaman/L10"
+   ],
+   "offer": "A piece of stone was stolen from a tower. Bouncer Trod at the guard tower north-west of the north entrance knows more.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Bouncer Trod",
+     "journal": "Speak with Bouncer Trod.",
+     "says": "Hobgoblin vandals took it. West by south-west of the second tower, in the valley between the hills."
+    },
+    {
+     "kind": "loot",
+     "target": "Hobgoblin Vandal",
+     "items": [
+      {
+       "item": "vandal's note",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the vandal's note from the hobgoblin vandals in the valley."
+    },
+    {
+     "kind": "give",
+     "target": "Oligan",
+     "journal": "Bring the vandal's note to Oligan.",
+     "items": [
+      {
+       "item": "vandal's note",
+       "count": 1
+      }
+     ],
+     "says": "The stump with a fern, east across the river. Wait there."
+    },
+    {
+     "kind": "loot",
+     "target": "Hobgoblin Initiate",
+     "items": [
+      {
+       "item": "stolen tower stone",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the stolen tower stone from the hobgoblin initiate by the stump with a fern."
+    },
+    {
+     "kind": "give",
+     "target": "Oligan",
+     "journal": "Bring the stolen tower stone to Oligan.",
+     "items": [
+      {
+       "item": "stolen tower stone",
+       "count": 1
+      }
+     ],
+     "says": "The stone is ours again.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "unresolved": [
+    "Bouncer Trod",
+    "Hobgoblin Vandal",
+    "Hobgoblin Initiate"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shaman/L15",
+   "name": "The Split Ruby",
+   "giver": "Oligan",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shaman/L13"
+   ],
+   "offer": "Go south to the outpost, then west to the lizardman camp in Mogguk's Gate. A wandering forager and a fat piranha each hold half a ruby.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Wandering Forager",
+     "items": [
+      {
+       "item": "ruby half",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the ruby half from the wandering forager at the lizardman camp."
+    },
+    {
+     "kind": "loot",
+     "target": "Fat Piranha",
+     "items": [
+      {
+       "item": "ruby half",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the ruby half from the fat piranha."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Argol",
+     "journal": "Buy a snake hide cord from Merchant Argol.",
+     "tunar": 260,
+     "says": "Snake hide cord.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "snake hide cord",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Oligan",
+     "journal": "Bring two ruby halfs and the snake hide cord to Oligan.",
+     "items": [
+      {
+       "item": "ruby half",
+       "count": 2
+      },
+      {
+       "item": "snake hide cord",
+       "count": 1
+      }
+     ],
+     "says": "Bound together. Well done.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "unresolved": [
+    "Wandering Forager",
+    "Fat Piranha"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/shaman/L20",
+   "name": "Your History",
+   "giver": "Grede",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shaman/L15"
+   ],
+   "offer": "Kill basilisks and bring me two cracked basilisk teeth.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "basilisk",
+     "items": [
+      {
+       "item": "cracked basilisk tooth",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Take two cracked basilisk tooths from the basilisks."
+    },
+    {
+     "kind": "give",
+     "target": "Grede",
+     "journal": "Bring two cracked basilisk tooths to Grede.",
+     "items": [
+      {
+       "item": "cracked basilisk tooth",
+       "count": 2
+      }
+     ],
+     "says": "Now go to the odd farmer between the Bear Cave and Honjour."
+    },
+    {
+     "kind": "talk",
+     "target": "odd farmer",
+     "journal": "Speak with the odd farmer.",
+     "says": "*The farmer calls up a spirit, and it tells you of your forebears.*"
+    },
+    {
+     "kind": "talk",
+     "target": "Grede",
+     "journal": "Return to Grede.",
+     "says": "Now kill the ghoul two levels down in the first building south of the south entrance."
+    },
+    {
+     "kind": "loot",
+     "target": "Ghoul",
+     "items": [
+      {
+       "item": "ghoul's book",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the ghoul's book from the ghoul two levels down south of the south entrance."
+    },
+    {
+     "kind": "give",
+     "target": "Grede",
+     "journal": "Bring the ghoul's book to Grede.",
+     "items": [
+      {
+       "item": "ghoul's book",
+       "count": 1
+      }
+     ],
+     "says": "Choose your path.",
+     "rewards": {
+      "xp": 2814929,
+      "spells": [
+       "Decaying Wind"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Ghoul"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice; this gives the first: Decaying Wind and a two-handed club, or Spiritual Guide and a spear."
+  },
+  {
+   "key": "1-20/oggok/warrior/L1",
+   "name": "The Tattered Bracers",
+   "giver": "Warlord Brogar",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Merchant Trad, near me, sells a set of tattered bracers. Buy them and show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Trad",
+     "journal": "Speak with Merchant Trad.",
+     "says": "Tattered bracers. They will do.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Tattered Bracers",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Warlord Brogar",
+     "items": [
+      {
+       "item": "Tattered Bracers",
+       "count": 1
+      }
+     ],
+     "journal": "Show Tattered Bracers to Warlord Brogar.",
+     "says": "Good. Now you look like one of us.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to."
+  },
+  {
+   "key": "1-20/oggok/warrior/L2",
+   "name": "Bound to Oggok",
+   "giver": "Warlord Brogar",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/warrior/L1"
+   ],
+   "offer": "Have Spiritmaster Yerf bind your spirit to Oggok, then sign Coachman Dilga's ledger by the great stone doorway. Then come back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Yerf",
+     "journal": "Have Spiritmaster Yerf bind your spirit to Oggok.",
+     "says": "Your spirit is bound to Oggok. Now go and see Coachman Dilga."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Dilga",
+     "journal": "Sign Coachman Dilga's ledger.",
+     "says": "Sign. Now the coaches know you."
+    },
+    {
+     "kind": "talk",
+     "target": "Warlord Brogar",
+     "journal": "Return to Warlord Brogar.",
+     "says": "Good. Now you always find your way home.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 2 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/oggok/warrior/L3",
+   "name": "Bug Wings",
+   "giver": "Warlord Brogar",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/warrior/L2"
+   ],
+   "offer": "Kill mosquitoes out the south gate and dragonflies out the north gate, and bring me a damaged wing of each.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "mosquito",
+     "items": [
+      {
+       "item": "damaged mosquito wing",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the damaged mosquito wing from the mosquitoes beyond the south gate."
+    },
+    {
+     "kind": "loot",
+     "target": "dragonflies",
+     "items": [
+      {
+       "item": "damaged dragonfly wing",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the damaged dragonfly wing from the dragonflies beyond the north gate."
+    },
+    {
+     "kind": "give",
+     "target": "Warlord Brogar",
+     "journal": "Bring the damaged mosquito wing and the damaged dragonfly wing to Warlord Brogar.",
+     "items": [
+      {
+       "item": "damaged mosquito wing",
+       "count": 1
+      },
+      {
+       "item": "damaged dragonfly wing",
+       "count": 1
+      }
+     ],
+     "says": "Good.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "unresolved": [
+    "mosquito"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/warrior/L4",
+   "name": "New Gear",
+   "giver": "Warlord Brogar",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/warrior/L3"
+   ],
+   "offer": "Buy a block of Rathestone (60 tunar) and a cord of rotwood (40 tunar) from Merchant Orf, and bring me a broken eagle feather from the young eagles.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Merchant Orf",
+     "journal": "Buy a block of Rathestone and a cord of rotwood from Merchant Orf.",
+     "tunar": 100,
+     "says": "Rathestone and rotwood. A hundred tunar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "block of rathestone",
+         "count": 1
+        },
+        {
+         "item": "cord of rotwood",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "young eagle",
+     "items": [
+      {
+       "item": "broken eagle feathers",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the broken eagle feathers from the young eagles beyond the north gate."
+    },
+    {
+     "kind": "give",
+     "target": "Warlord Brogar",
+     "journal": "Bring the block of rathestone, the cord of rotwood and the broken eagle feathers to Warlord Brogar.",
+     "items": [
+      {
+       "item": "block of rathestone",
+       "count": 1
+      },
+      {
+       "item": "cord of rotwood",
+       "count": 1
+      },
+      {
+       "item": "broken eagle feathers",
+       "count": 1
+      }
+     ],
+     "says": "Everything. Here.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/warrior/L5",
+   "name": "The Lizardman Outcast",
+   "giver": "Warlord Brogar",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/warrior/L4"
+   ],
+   "offer": "A lizardman outcast lurks at the abandoned tower south-west of Oggok. Go out the south gate and west, kill it and bring me its scale.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Lizardman Outcast",
+     "items": [
+      {
+       "item": "outcast scale",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the outcast scale from the lizardman outcast at the abandoned tower south-west of Oggok."
+    },
+    {
+     "kind": "give",
+     "target": "Warlord Brogar",
+     "journal": "Bring the outcast scale to Warlord Brogar.",
+     "items": [
+      {
+       "item": "outcast scale",
+       "count": 1
+      }
+     ],
+     "says": "The outcast is dead. Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "unresolved": [
+    "Lizardman Outcast"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/warrior/L7",
+   "name": "Tainted Rats",
+   "giver": "Warlord Brogar",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/warrior/L5"
+   ],
+   "offer": "Tainted rats overrun the ruins of Amog-Thelg, straight south from the south gate. Kill them and bring me three of their teeth.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tainted Rat",
+     "items": [
+      {
+       "item": "tainted rat tooth",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three tainted rat tooths from the tainted rats in the ruins of Amog-Thelg."
+    },
+    {
+     "kind": "give",
+     "target": "Warlord Brogar",
+     "journal": "Bring three tainted rat tooths to Warlord Brogar.",
+     "items": [
+      {
+       "item": "tainted rat tooth",
+       "count": 3
+      }
+     ],
+     "says": "Three. Good.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "unresolved": [
+    "Tainted Rat"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/warrior/L10",
+   "name": "The Undead Alchemist",
+   "giver": "Warlord Brogar",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/warrior/L7"
+   ],
+   "offer": "Buy rotwood extract from Merchant Zogog by the south gate and take it to Elder Thorg, where the guards kill rats and centipedes.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Zogog",
+     "journal": "Speak with Merchant Zogog.",
+     "says": "Rotwood extract. Mind the smell.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "rotwood extract",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Elder Thorg",
+     "journal": "Bring the rotwood extract to Elder Thorg.",
+     "items": [
+      {
+       "item": "rotwood extract",
+       "count": 1
+      }
+     ],
+     "says": "Throw this potion into the fire at the ruins of Amog-Thelg.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "fire potion",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Undead Alchemist",
+     "items": [
+      {
+       "item": "undead alchemist's remains",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the undead alchemist's remains from the undead alchemist the fire at Amog-Thelg wakes."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Thorg",
+     "journal": "Bring the undead alchemist's remains to Elder Thorg.",
+     "items": [
+      {
+       "item": "undead alchemist's remains",
+       "count": 1
+      }
+     ],
+     "says": "The alchemist is no more. Go back to your guild."
+    },
+    {
+     "kind": "talk",
+     "target": "Warlord Brogar",
+     "journal": "Return to Warlord Brogar.",
+     "says": "Elder Thorg speaks well of you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "Merchant Zogog",
+    "Undead Alchemist"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the potion thrown into the fire is the hand-over to Elder Thorg; the undead alchemist is fought where it stands. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/warrior/L13",
+   "name": "The Enchanted Totem",
+   "giver": "Warlord Brogar",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/warrior/L10"
+   ],
+   "offer": "Speak to Elder Thorg, where the guards kill rats and bugs. He needs a warrior for an errand.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elder Thorg",
+     "journal": "Speak with Elder Thorg.",
+     "says": "Bring me two vampire bat wings, a polished anaconda fang and a jar of mudblood from Thodgar."
+    },
+    {
+     "kind": "loot",
+     "target": "vampire bat",
+     "items": [
+      {
+       "item": "vampire bat wing",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Take two vampire bat wings from the vampire bats."
+    },
+    {
+     "kind": "loot",
+     "target": "anaconda",
+     "items": [
+      {
+       "item": "polished anaconda fang",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the polished anaconda fang from the anacondas."
+    },
+    {
+     "kind": "give",
+     "target": "Thodgar",
+     "journal": "Buy a jar of mudblood from Thodgar.",
+     "tunar": 225,
+     "says": "Mudblood. 225 tunar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "jar of mudblood",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Elder Thorg",
+     "journal": "Bring two vampire bat wings, the polished anaconda fang and the jar of mudblood to Elder Thorg.",
+     "items": [
+      {
+       "item": "vampire bat wing",
+       "count": 2
+      },
+      {
+       "item": "polished anaconda fang",
+       "count": 1
+      },
+      {
+       "item": "jar of mudblood",
+       "count": 1
+      }
+     ],
+     "says": "Now kill two ogre magi in the lower levels of Amog-Thelg and bring me their rings.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "unenchanted totem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Ogre Magi",
+     "items": [
+      {
+       "item": "ogre magi ring",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 1.0,
+     "journal": "Take two ogre magi rings from the ogre magi in the lower levels of Amog-Thelg."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Thorg",
+     "journal": "Bring two ogre magi rings to Elder Thorg.",
+     "items": [
+      {
+       "item": "ogre magi ring",
+       "count": 2
+      }
+     ],
+     "says": "Good. Back to the Warlord."
+    },
+    {
+     "kind": "talk",
+     "target": "Warlord Brogar",
+     "journal": "Return to Warlord Brogar.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "unresolved": [
+    "Thodgar",
+    "Ogre Magi"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Simplified: enchanting the totem at the altar in Mogguk's Gate (the words GYTHGOR OGG) is left out. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/warrior/L15",
+   "name": "Stolen Supplies",
+   "giver": "Warlord Brogar",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/warrior/L13"
+   ],
+   "offer": "A burdened Mog thug stole our supplies near the Sphinx Pyramids. Kill him and take the supplies to Provisioner Mogdunk.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Burdened Mog Thug",
+     "items": [
+      {
+       "item": "stolen supplies",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the stolen supplies from the burdened Mog thug near the Sphinx Pyramids."
+    },
+    {
+     "kind": "give",
+     "target": "Provisioner Mogdunk",
+     "journal": "Bring the stolen supplies to Provisioner Mogdunk.",
+     "items": [
+      {
+       "item": "stolen supplies",
+       "count": 1
+      }
+     ],
+     "says": "Take them on to Provisioner Oomgig in Kerplunk.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "stolen supplies",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Provivisioner Oomgig",
+     "journal": "Bring the stolen supplies to Provivisioner Oomgig.",
+     "items": [
+      {
+       "item": "stolen supplies",
+       "count": 1
+      }
+     ],
+     "says": "Now a bundle of spears from a Tae Ew weaponsmith in West Feerot."
+    },
+    {
+     "kind": "loot",
+     "target": "Tae Ew Weaponsmith",
+     "items": [
+      {
+       "item": "bundle of spears",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the bundle of spears from the Tae Ew weaponsmiths of West Feerot."
+    },
+    {
+     "kind": "give",
+     "target": "Provivisioner Oomgig",
+     "journal": "Bring the bundle of spears to Provivisioner Oomgig.",
+     "items": [
+      {
+       "item": "bundle of spears",
+       "count": 1
+      }
+     ],
+     "says": "And a weary troll raider on the hill west of Kerplunk."
+    },
+    {
+     "kind": "loot",
+     "target": "Weary Troll Raider",
+     "items": [
+      {
+       "item": "troll raider's loot",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the troll raider's loot from the weary troll raider west of Kerplunk."
+    },
+    {
+     "kind": "give",
+     "target": "Provivisioner Oomgig",
+     "journal": "Bring the troll raider's loot to Provivisioner Oomgig.",
+     "items": [
+      {
+       "item": "troll raider's loot",
+       "count": 1
+      }
+     ],
+     "says": "Good. Tell Mogdunk."
+    },
+    {
+     "kind": "talk",
+     "target": "Provisioner Mogdunk",
+     "journal": "Return to Provisioner Mogdunk.",
+     "says": "Oomgig is well supplied."
+    },
+    {
+     "kind": "talk",
+     "target": "Warlord Brogar",
+     "journal": "Return to Warlord Brogar.",
+     "says": "Good work.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "unresolved": [
+    "Burdened Mog Thug",
+    "Tae Ew Weaponsmith",
+    "Weary Troll Raider"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Provisioner Oomgig is spelled Provivisioner Oomgig on this server. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/oggok/warrior/L20",
+   "name": "Strategy and Tactics",
+   "giver": "Warlord Brogar",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/warrior/L15"
+   ],
+   "offer": "Craknek warriors must learn strategy and tactics. Speak with Tactician Glognar and help him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Tactician Glognar",
+     "journal": "Speak with Tactician Glognar.",
+     "says": "Bring me a copy of the Izz Ta Geth from a Tae Ew commander."
+    },
+    {
+     "kind": "loot",
+     "target": "Tae Ew Commander",
+     "items": [
+      {
+       "item": "copy of the Izz Ta Geth",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the copy of the Izz Ta Geth from the Tae Ew commanders."
+    },
+    {
+     "kind": "give",
+     "target": "Tactician Glognar",
+     "journal": "Bring the copy of the Izz Ta Geth to Tactician Glognar.",
+     "items": [
+      {
+       "item": "copy of the Izz Ta Geth",
+       "count": 1
+      }
+     ],
+     "says": "Now the ankextet runner north-west of Oggok: his satchel."
+    },
+    {
+     "kind": "loot",
+     "target": "Ankextet Runner",
+     "items": [
+      {
+       "item": "runner's satchel",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the runner's satchel from the ankextet runner north-west of Oggok."
+    },
+    {
+     "kind": "give",
+     "target": "Tactician Glognar",
+     "journal": "Bring the runner's satchel to Tactician Glognar.",
+     "items": [
+      {
+       "item": "runner's satchel",
+       "count": 1
+      }
+     ],
+     "says": "An aviak windstrider's jewelry next: amulet, anklet and bracelet."
+    },
+    {
+     "kind": "loot",
+     "target": "Aviak Windstrider",
+     "items": [
+      {
+       "item": "windstrider jewelry",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three windstrider jewelrys from the aviak windstriders."
+    },
+    {
+     "kind": "give",
+     "target": "Tactician Glognar",
+     "journal": "Bring three windstrider jewelrys to Tactician Glognar.",
+     "items": [
+      {
+       "item": "windstrider jewelry",
+       "count": 3
+      }
+     ],
+     "says": "Last, Scornblade D'Eleth in Neriak has a training manual for us."
+    },
+    {
+     "kind": "talk",
+     "target": "Scornblade D`Eleth",
+     "journal": "Speak with Scornblade D`Eleth.",
+     "says": "Win in my arena, and the manual is yours.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Indigo Brotherhood Manual",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Tactician Glognar",
+     "journal": "Bring Indigo Brotherhood Manual to Tactician Glognar.",
+     "items": [
+      {
+       "item": "Indigo Brotherhood Manual",
+       "count": 1
+      }
+     ],
+     "says": "The Indigo Brotherhood Manual! Report to the Warlord."
+    },
+    {
+     "kind": "talk",
+     "target": "Warlord Brogar",
+     "journal": "Return to Warlord Brogar.",
+     "says": "Choose your path.",
+     "rewards": {
+      "xp": 2814929,
+      "spells": [
+       "Bellow"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Tae Ew Commander",
+    "Ankextet Runner",
+    "Aviak Windstrider"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the arena's three gladiators are left out (none is on this server); the three pieces of jewelry are one item. The guide offers a choice; this gives the first: Bellow and an axe, or Pillar of Might and a sword."
+  }
+ ],
+ "items": [
+  {
+   "name": "muddy robe",
+   "description": "A robe stained with the mud of Oggok.",
+   "notrade": true,
+   "like": "black robe"
+  },
+  {
+   "name": "jungleweed boots",
+   "description": "Boots woven of jungleweed.",
+   "notrade": true,
+   "like": "Battle Worn Boots"
+  },
+  {
+   "name": "outcast scale",
+   "description": "A scale from a lizardman outcast.",
+   "notrade": true,
+   "like": "ruined snake scales"
+  },
+  {
+   "name": "cord of rotwood",
+   "description": "A cord of rotwood.",
+   "notrade": true,
+   "like": "wooden shaft"
+  },
+  {
+   "name": "block of rathestone",
+   "description": "A block of Rathe stone.",
+   "notrade": true,
+   "like": "block of ore"
+  },
+  {
+   "name": "tainted rat tail",
+   "description": "The tail of a tainted rat.",
+   "notrade": true,
+   "like": "albino rat tail"
+  },
+  {
+   "name": "tainted rat tooth",
+   "description": "The tooth of a tainted rat.",
+   "notrade": true,
+   "like": "Cracked Rat Tooth"
+  },
+  {
+   "name": "rotwood extract",
+   "description": "Extract of rotwood.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "fire potion",
+   "description": "Elder Thorg's potion, for the fire at Amog-Thelg.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "undead alchemist's remains",
+   "description": "What is left of the undead alchemist.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "Gamor's note",
+   "description": "A note for Gamor, taken from a mischievous spirit.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "mineral dust",
+   "description": "Mineral dust from a drunken dwarf.",
+   "notrade": true,
+   "like": "block of ore"
+  },
+  {
+   "name": "poisonous kingsnake sac",
+   "description": "A poisonous kingsnake's venom sac.",
+   "notrade": true,
+   "like": "drained poison sac"
+  },
+  {
+   "name": "gruk crab carapace",
+   "description": "A gruk crab's carapace.",
+   "notrade": true,
+   "like": "beetle carapace fragment"
+  },
+  {
+   "name": "tree sap",
+   "description": "Sap from the trees by Greenblood Lake.",
+   "notrade": true,
+   "like": "fish liver oil"
+  },
+  {
+   "name": "bog juice",
+   "description": "Gamor's bog juice.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "gruk crab cakes",
+   "description": "Gamor's gruk crab cakes.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "Thorg's note",
+   "description": "Elder Thorg's note for Lokar.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "anointed sapphire",
+   "description": "An anointed sapphire.",
+   "notrade": true,
+   "like": "sparkling green gem"
+  },
+  {
+   "name": "charred sapphire",
+   "description": "The anointed sapphire, charred by the death of Korpus.",
+   "notrade": true,
+   "like": "sparkling green gem"
+  },
+  {
+   "name": "lizardman sneak hide",
+   "description": "A lizardman sneak's hide.",
+   "notrade": true,
+   "like": "sidewinder skin"
+  },
+  {
+   "name": "basilisk gut",
+   "description": "A basilisk gut.",
+   "notrade": true,
+   "like": "eel venom sac"
+  },
+  {
+   "name": "anointed ruby",
+   "description": "An anointed ruby.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "necrapede oil",
+   "description": "Oil from a necrapede.",
+   "notrade": true,
+   "like": "fish liver oil"
+  },
+  {
+   "name": "triad stone",
+   "description": "A triad stone carried by the trainees of the druids and rangers.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Dertax's head",
+   "description": "Dertax Redgrin's head.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "hobgoblin scarf",
+   "description": "A hobgoblin skulk's scarf.",
+   "notrade": true,
+   "like": "Red Slashers Scarf"
+  },
+  {
+   "name": "Nothard's message",
+   "description": "Commander Nothard's message for Gunthak.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "vandal's note",
+   "description": "A note carried by a hobgoblin vandal.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "stolen tower stone",
+   "description": "The piece of stone stolen from the tower.",
+   "notrade": true,
+   "like": "block of ore"
+  },
+  {
+   "name": "ruby half",
+   "description": "Half of a ruby.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "snake hide cord",
+   "description": "A cord of snake hide.",
+   "notrade": true,
+   "like": "silk cord"
+  },
+  {
+   "name": "cracked basilisk tooth",
+   "description": "A basilisk's cracked tooth.",
+   "notrade": true,
+   "like": "Cracked Rat Tooth"
+  },
+  {
+   "name": "ghoul's book",
+   "description": "A book a ghoul guards.",
+   "notrade": true,
+   "like": "book of alchemical symbols"
+  },
+  {
+   "name": "damaged mosquito wing",
+   "description": "A mosquito's damaged wing.",
+   "notrade": true,
+   "like": "damaged dragonfly wing"
+  },
+  {
+   "name": "vampire bat wing",
+   "description": "A vampire bat's wing.",
+   "notrade": true,
+   "like": "intact bat wing"
+  },
+  {
+   "name": "polished anaconda fang",
+   "description": "An anaconda's polished fang.",
+   "notrade": true,
+   "like": "cracked snake fang"
+  },
+  {
+   "name": "jar of mudblood",
+   "description": "A jar of mudblood.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "unenchanted totem",
+   "description": "An unenchanted totem.",
+   "notrade": true,
+   "like": "cracked symbol of Tunare"
+  },
+  {
+   "name": "ogre magi ring",
+   "description": "An ogre magus's ring.",
+   "notrade": true,
+   "like": "iron ring"
+  },
+  {
+   "name": "stolen supplies",
+   "description": "Supplies stolen by a Mog thug.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "bundle of spears",
+   "description": "A bundle of spears from a Tae Ew weaponsmith.",
+   "notrade": true,
+   "like": "bundle of arrowshafts"
+  },
+  {
+   "name": "troll raider's loot",
+   "description": "What a weary troll raider carried.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "copy of the Izz Ta Geth",
+   "description": "A copy of the Izz Ta Geth, a Tae Ew tome of war.",
+   "notrade": true,
+   "like": "book of alchemical symbols"
+  },
+  {
+   "name": "runner's satchel",
+   "description": "An ankextet runner's satchel.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "windstrider jewelry",
+   "description": "An aviak windstrider's jewelry.",
+   "notrade": true,
+   "like": "bronze ring"
+  },
+  {
+   "name": "Indigo Brotherhood Manual",
+   "description": "A training manual of the Indigo Brotherhood.",
+   "notrade": true,
+   "like": "book of alchemical symbols"
+  },
+  {
+   "name": "ogre thug's pendant",
+   "description": "An ogre thug's pendant.",
+   "notrade": true,
+   "like": "bone earring"
+  },
+  {
+   "name": "dwarf thug's pendant",
+   "description": "A dwarf thug's pendant.",
+   "notrade": true,
+   "like": "bone earring"
+  },
+  {
+   "name": "Thorg's antidote",
+   "description": "Elder Thorg's antidote.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  }
+ ]
+}

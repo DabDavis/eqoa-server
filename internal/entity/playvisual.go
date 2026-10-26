@@ -42,3 +42,19 @@ func (w *World) PlayVisual(sess *session.Session, fx uint32, castTime time.Durat
 	w.broadcastCastLocked(p, target, castTime, fx)
 	return name, true
 }
+
+// NPCVisual is an NPC's cast of a visual onto a target, as a spiritmaster's
+// bind is (Sandstorm's Zole: 0x00B1 from him onto the player, 3000 ms, visual
+// 0x08F3B955): the 0x00B1 to everyone who sees the NPC, the target as each
+// knows it, and nothing else of a cast. It reports whether the NPC is there.
+func (w *World) NPCVisual(npc, target EntityID, castTime time.Duration, fx uint32) bool {
+	castTime = max(0, min(castTime, MaxVisualCast))
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	n := w.NPCs[npc]
+	if n == nil {
+		return false
+	}
+	w.broadcastNPCSwingLocked(n, target, uint32(castTime/time.Millisecond), fx)
+	return true
+}

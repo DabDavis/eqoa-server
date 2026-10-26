@@ -226,8 +226,8 @@ const (
 	OpcodeZoneTransferInit              GameOpcode = 0x07B0 // Recv07B0 0x00BE71B0: a sub-type byte, six sub-handlers (not decompiled)
 	OpcodeZoneTransferConfirm           GameOpcode = 0x07B2 // one raw u32 into +0x7578 (the constructor sets 100); meaning unknown
 	OpcodeGameServers                   GameOpcode = 0x07B3 // Server Listing
-	OpcodeServerUpdatingDC              GameOpcode = 0x07C0 // Disconnect(17): word 718 "We are updating the game, please try again later."
-	OpcodeAdministratorShutdown         GameOpcode = 0x07C1 // Disconnect(18): word 718 "We are updating the game, please try again later."
+	OpcodeServerUpdatingDC              GameOpcode = 0x07C0 // Disconnect(17): word 1024 "The server has been shutdown by a server administrator."
+	OpcodeAdministratorShutdown         GameOpcode = 0x07C1 // Disconnect(18): word 1024 "The server has been shutdown by a server administrator."
 	OpcodeBestEffortPing                GameOpcode = 0x07D0 // Best Effort Ping
 	OpcodeExpansionFlags                GameOpcode = 0x07D1 // u32 into +0x50304, ANDed with the disc's expansion flags (race camera, frame rate)
 	OpcodeCharacterModifiedDisconnect   GameOpcode = 0x07D2 // Disconnect(19): word 1420 (modified by a customer service representative)

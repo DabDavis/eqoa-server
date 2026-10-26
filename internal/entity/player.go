@@ -277,8 +277,10 @@ type Bind struct {
 	Set             bool
 	World           uint8
 	X, Y, Z, Facing float32
-	// By is the spiritmaster who bound it.
-	By string
+	// By is the spiritmaster who bound it; NPC its entity, for the bind's
+	// visual (not kept: a spiritmaster's id is the running world's)
+	By  string
+	NPC EntityID
 }
 
 // GetEntityID returns the player's entity ID.

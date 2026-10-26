@@ -491,9 +491,9 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// so the row is right even if this session never saves.
 	if h.gameWorld != nil {
 		// its level and experience too, dead or alive (savePlayerPosition)
-		level, xp, live := h.gameWorld.LiveProgress(entity.EntityID(record.ServerID))
+		level, xp, debt, live := h.gameWorld.LiveProgress(entity.EntityID(record.ServerID))
 		if live {
-			record.Level, record.TotalXP = level, xp
+			record.Level, record.TotalXP, record.Debt = level, xp, debt
 		}
 		// and its training points (entity/training.go)
 		if unused, total, ok := h.gameWorld.LiveTrainingPoints(entity.EntityID(record.ServerID)); ok {

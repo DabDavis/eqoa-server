@@ -1,0 +1,2696 @@
+{
+ "city": "grobb",
+ "quests": [
+  {
+   "key": "1-20/grobb/shadowknight/L1",
+   "name": "The Nightkeep Gloves",
+   "giver": "Underlord Solthe",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Buy a pair of Nightkeep gloves from Merchant Horgus, then show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Horgus",
+     "journal": "Speak with Merchant Horgus.",
+     "says": "Nightkeep gloves.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Nightkeep Gloves",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Underlord Solthe",
+     "items": [
+      {
+       "item": "Nightkeep Gloves",
+       "count": 1
+      }
+     ],
+     "journal": "Show Nightkeep Gloves to Underlord Solthe.",
+     "says": "Good. Now go make yourself useful.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to."
+  },
+  {
+   "key": "1-20/grobb/shadowknight/L2",
+   "name": "Bound to Grobb",
+   "giver": "Underlord Solthe",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shadowknight/L1"
+   ],
+   "offer": "Have Spiritmaster Griffnik bind your spirit to Grobb, then sign Coachman Zuggug's ledger. Then come back to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Griffnik",
+     "journal": "Have Spiritmaster Griffnik bind your spirit to Grobb.",
+     "says": "Your spirit is bound to Grobb. Now go see Coachman Zuggug."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Zuggug",
+     "journal": "Sign Coachman Zuggug's ledger.",
+     "says": "Sign, and the coaches will know you."
+    },
+    {
+     "kind": "talk",
+     "target": "Underlord Solthe",
+     "journal": "Return to Underlord Solthe.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 2 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/grobb/shadowknight/L3",
+   "name": "Froglok Fishing Nets",
+   "giver": "Crusader Tursk",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shadowknight/L2"
+   ],
+   "offer": "Froglok fishermen roam the swamps just north of Grobb. Kill them and bring me two of their fishing nets.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "froglok fisherman",
+     "items": [
+      {
+       "item": "froglok fishing net",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Take two froglok fishing nets from the froglok fishermen in the swamps north of Grobb."
+    },
+    {
+     "kind": "give",
+     "target": "Crusader Tursk",
+     "journal": "Bring two froglok fishing nets to Crusader Tursk.",
+     "items": [
+      {
+       "item": "froglok fishing net",
+       "count": 2
+      }
+     ],
+     "says": "Two nets. Good.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shadowknight/L4",
+   "name": "A Troll Weapon",
+   "giver": "Smithy Gulkot",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shadowknight/L3"
+   ],
+   "offer": "I will make you a weapon. Bring me a leather strip from Merchant Grott, iron ore from Merchant Beldok, and two froglok tongues.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Grott",
+     "journal": "Speak with Merchant Grott.",
+     "says": "A leather strip.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "leather strip",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Merchant Beldok",
+     "journal": "Speak with Merchant Beldok.",
+     "says": "Iron ore.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "iron ore",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "froglok forager",
+     "items": [
+      {
+       "item": "froglok tongue",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Take two froglok tongues from the frogloks of the hills round Grobb."
+    },
+    {
+     "kind": "give",
+     "target": "Smithy Gulkot",
+     "journal": "Bring the leather strip, the iron ore and two froglok tongues to Smithy Gulkot.",
+     "items": [
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "froglok tongue",
+       "count": 2
+      }
+     ],
+     "says": "Everything. Here is your weapon.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide's random frogloks are the froglok foragers here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shadowknight/L5",
+   "name": "The Casting Stone",
+   "giver": "Crusader Tursk",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shadowknight/L4"
+   ],
+   "offer": "Froglok novitiates practise their magic in the swamp north-west of Grobb. Kill them and bring me a casting stone.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Froglok Novitiate",
+     "items": [
+      {
+       "item": "casting stone",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the casting stone from the froglok novitiates in the swamp north-west of Grobb."
+    },
+    {
+     "kind": "give",
+     "target": "Crusader Tursk",
+     "journal": "Bring the casting stone to Crusader Tursk.",
+     "items": [
+      {
+       "item": "casting stone",
+       "count": 1
+      }
+     ],
+     "says": "A casting stone. Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "unresolved": [
+    "Froglok Novitiate"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shadowknight/L7",
+   "name": "The Royal Tikat",
+   "giver": "Underlord Solthe",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shadowknight/L5"
+   ],
+   "offer": "A froglok page walks between Godhand and the North Crossroads signpost. Kill it and bring me its royal tikat.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Froglok Page",
+     "items": [
+      {
+       "item": "royal tikat",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the royal tikat from the froglok page between Godhand and the North Crossroads."
+    },
+    {
+     "kind": "give",
+     "target": "Underlord Solthe",
+     "journal": "Bring the royal tikat to Underlord Solthe.",
+     "items": [
+      {
+       "item": "royal tikat",
+       "count": 1
+      }
+     ],
+     "says": "Now a froglok squire at Godhand, out at night: bring me its token of Marr."
+    },
+    {
+     "kind": "loot",
+     "target": "Froglok Squire",
+     "items": [
+      {
+       "item": "token of marr",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the token of marr from the froglok squires at Godhand at night."
+    },
+    {
+     "kind": "give",
+     "target": "Underlord Solthe",
+     "journal": "Bring the token of marr to Underlord Solthe.",
+     "items": [
+      {
+       "item": "token of marr",
+       "count": 1
+      }
+     ],
+     "says": "Good.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "unresolved": [
+    "Froglok Page",
+    "Froglok Squire"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shadowknight/L10",
+   "name": "The Traitor",
+   "giver": "Underlord Solthe",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shadowknight/L7"
+   ],
+   "offer": "Grumgra, in a shelter on the shore south of the mountains west of Grobb, has something to show you. Then I have killing for you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Grumgra",
+     "journal": "Speak with Grumgra.",
+     "says": "Search the shoreline. You will know it when you find it."
+    },
+    {
+     "kind": "talk",
+     "target": "Underlord Solthe",
+     "journal": "Return to Underlord Solthe.",
+     "says": "A froglok knight with two squires at the Northern Crossroads carries the Hand of Thule. Kill it."
+    },
+    {
+     "kind": "loot",
+     "target": "Froglok Knight",
+     "items": [
+      {
+       "item": "hand of thule",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the hand of thule from the froglok knight at the Northern Crossroads."
+    },
+    {
+     "kind": "give",
+     "target": "Underlord Solthe",
+     "journal": "Bring the hand of thule to Underlord Solthe.",
+     "items": [
+      {
+       "item": "hand of thule",
+       "count": 1
+      }
+     ],
+     "says": "Now the traitor, a troll, waits at the mushroom patch. Climb the central rock and wait."
+    },
+    {
+     "kind": "loot",
+     "target": "Traitor",
+     "items": [
+      {
+       "item": "traitor's head",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the traitor's head from the traitor at the mushroom patch."
+    },
+    {
+     "kind": "give",
+     "target": "Underlord Solthe",
+     "journal": "Bring the traitor's head to Underlord Solthe.",
+     "items": [
+      {
+       "item": "traitor's head",
+       "count": 1
+      }
+     ],
+     "says": "The traitor is dead.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "Froglok Knight",
+    "Traitor"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the shoreline's popup (random places in the guide) is Grumgra's words here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shadowknight/L13",
+   "name": "Scornblade D'Eleth",
+   "giver": "Underlord Bugrish",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shadowknight/L10"
+   ],
+   "offer": "Scornblade D'Eleth in Neriak wants a troll for a job. Waysender Zapgit by the exit tunnel will send you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Scornblade D`Eleth",
+     "journal": "Speak with Scornblade D`Eleth.",
+     "says": "Dragoon X'Talin, in his tower up the river west of Neriak, needs help first."
+    },
+    {
+     "kind": "talk",
+     "target": "Dragoon X'Talin",
+     "journal": "Speak with Dragoon X'Talin.",
+     "says": "Bring me three shadow cub pelts from east of my tower."
+    },
+    {
+     "kind": "loot",
+     "target": "Shadow Cub",
+     "items": [
+      {
+       "item": "shadow cub pelt",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three shadow cub pelts from the shadow cubs east of X'Talin's tower."
+    },
+    {
+     "kind": "give",
+     "target": "Dragoon X'Talin",
+     "journal": "Bring three shadow cub pelts to Dragoon X'Talin.",
+     "items": [
+      {
+       "item": "shadow cub pelt",
+       "count": 3
+      }
+     ],
+     "says": "Good. Go back to the Scornblade."
+    },
+    {
+     "kind": "talk",
+     "target": "Scornblade D`Eleth",
+     "journal": "Return to Scornblade D'Eleth.",
+     "says": "Now kill the elf paladin at the far end of the arena."
+    },
+    {
+     "kind": "loot",
+     "target": "Elf Paladin",
+     "items": [
+      {
+       "item": "elf paladin's insignia",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the elf paladin's insignia from the elf paladin at the far end of the arena."
+    },
+    {
+     "kind": "give",
+     "target": "Scornblade D`Eleth",
+     "journal": "Bring the elf paladin's insignia to Scornblade D`Eleth.",
+     "items": [
+      {
+       "item": "elf paladin's insignia",
+       "count": 1
+      }
+     ],
+     "says": "Well fought. Go home to Bugrish."
+    },
+    {
+     "kind": "talk",
+     "target": "Underlord Bugrish",
+     "journal": "Return to Underlord Bugrish.",
+     "says": "Good work.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "unresolved": [
+    "Dragoon X'Talin",
+    "Elf Paladin"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's Underlord Burgish is Underlord Bugrish here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shadowknight/L15",
+   "name": "Weapons for Grobb",
+   "giver": "Underlord Bugrish",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shadowknight/L13"
+   ],
+   "offer": "Smithy Cragis in Clagga Village, north-west along the road toward Guk, will make weapons for us. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Smithy Cragis",
+     "journal": "Speak with Smithy Cragis.",
+     "says": "Kill Bogwater, the alligator in the swamps round the village, and bring me its tooth."
+    },
+    {
+     "kind": "loot",
+     "target": "Bogwater",
+     "items": [
+      {
+       "item": "bogwater tooth",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the bogwater tooth from Bogwater in the swamps round Clagga Village."
+    },
+    {
+     "kind": "give",
+     "target": "Smithy Cragis",
+     "journal": "Bring the bogwater tooth to Smithy Cragis.",
+     "items": [
+      {
+       "item": "bogwater tooth",
+       "count": 1
+      }
+     ],
+     "says": "Now see Torgot in the Basher Enclave."
+    },
+    {
+     "kind": "talk",
+     "target": "Torgot",
+     "journal": "Speak with Torgot.",
+     "says": "Kill a lizardman fanatic north of the enclave. Kill the caitiffs in the ring if none is there."
+    },
+    {
+     "kind": "loot",
+     "target": "lizardman fanatic",
+     "items": [
+      {
+       "item": "fanatic pendant",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the fanatic pendant from the lizardman fanatics north of the Basher Enclave."
+    },
+    {
+     "kind": "give",
+     "target": "Torgot",
+     "journal": "Bring the fanatic pendant to Torgot.",
+     "items": [
+      {
+       "item": "fanatic pendant",
+       "count": 1
+      }
+     ],
+     "says": "Good. Go back to Cragis."
+    },
+    {
+     "kind": "talk",
+     "target": "Smithy Cragis",
+     "journal": "Return to Smithy Cragis.",
+     "says": "Ask Scornblade J'Naris in Hazinak if he will send the weapons."
+    },
+    {
+     "kind": "talk",
+     "target": "Scornblade J'Naris",
+     "journal": "Speak with Scornblade J'Naris.",
+     "says": "The weapons will go."
+    },
+    {
+     "kind": "talk",
+     "target": "Smithy Cragis",
+     "journal": "Return to Smithy Cragis.",
+     "says": "Good. Here is a tunic for your trouble.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "unresolved": [
+    "Smithy Cragis",
+    "Bogwater",
+    "Torgot"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Underlord Burgrish is Underlord Bugrish here, and its Turgot is Torgot. The guide's tunic and Torgot's scroll are unnamed. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shadowknight/L20",
+   "name": "Seer Crelga's Trials",
+   "giver": "Underlord Solthe",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shadowknight/L15"
+   ],
+   "offer": "Seer Crelga, in a hut on the east side of Honjour, has trials for you. Waysender Zapgit will send you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Seer Crelga",
+     "journal": "Speak with Seer Crelga.",
+     "says": "First trial: kill farmers in the Bear Cave for three pitchforks."
+    },
+    {
+     "kind": "loot",
+     "target": "farmer",
+     "items": [
+      {
+       "item": "Farmer's Pitchfork",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three Farmer's Pitchforks from the farmers south of Honjour (not the odd farmers)."
+    },
+    {
+     "kind": "give",
+     "target": "Seer Crelga",
+     "journal": "Bring three Farmer's Pitchforks to Seer Crelga.",
+     "items": [
+      {
+       "item": "Farmer's Pitchfork",
+       "count": 3
+      }
+     ],
+     "says": "Second trial: kill a froglok baz in the caves south-west of Honjour."
+    },
+    {
+     "kind": "loot",
+     "target": "froglok baz",
+     "items": [
+      {
+       "item": "froglok wand",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the froglok wand from the froglok baz in the caves south-west of Honjour."
+    },
+    {
+     "kind": "give",
+     "target": "Seer Crelga",
+     "journal": "Bring the froglok wand to Seer Crelga.",
+     "items": [
+      {
+       "item": "froglok wand",
+       "count": 1
+      }
+     ],
+     "says": "Third trial: the festering root of the Wailing Tree. Ask Scornblade J'Naris in Hazinak where it stands."
+    },
+    {
+     "kind": "talk",
+     "target": "Scornblade J'Naris",
+     "journal": "Speak with Scornblade J'Naris.",
+     "says": "Nalzik P'Thek in Freeport knows the way."
+    },
+    {
+     "kind": "talk",
+     "target": "Nalzik P`Thek",
+     "journal": "Speak with Nalzik P`Thek.",
+     "says": "The Wailing Tree stands in the Green Rift, south-west of Neriak. The root spirit lives in the tunnels beneath it."
+    },
+    {
+     "kind": "loot",
+     "target": "root spirit",
+     "items": [
+      {
+       "item": "festering root",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the festering root from the root spirit in the tunnels under the Wailing Tree."
+    },
+    {
+     "kind": "give",
+     "target": "Underlord Solthe",
+     "journal": "Bring the festering root to Underlord Solthe.",
+     "items": [
+      {
+       "item": "festering root",
+       "count": 1
+      }
+     ],
+     "says": "The festering root. Choose your path.",
+     "rewards": {
+      "xp": 2814929,
+      "spells": [
+       "Bloodwasp"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The farmers' pitchforks are the server's Farmer's Pitchfork. The guide offers a choice; this gives the first: Bloodwasp, or Shadow Tower."
+  },
+  {
+   "key": "1-20/grobb/shaman/L1",
+   "name": "The Shaman's Bracers",
+   "giver": "Hierophant Koligo",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Get some bracers from Merchant Risa; they are free. Then show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Risa",
+     "journal": "Speak with Merchant Risa.",
+     "says": "Bracers for a young shaman.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "shaman's bracers",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Hierophant Koligo",
+     "items": [
+      {
+       "item": "shaman's bracers",
+       "count": 1
+      }
+     ],
+     "journal": "Show the shaman's bracers to Hierophant Koligo.",
+     "says": "Good. Now go make yourself useful.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 1 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/grobb/shaman/L2",
+   "name": "Bound to Grobb",
+   "giver": "Hierophant Koligo",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shaman/L1"
+   ],
+   "offer": "Have Spiritmaster Grueldor bind your spirit to Grobb, then sign Coachman Zuggug's ledger. Then come back to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Grueldor",
+     "journal": "Have Spiritmaster Grueldor bind your spirit to Grobb.",
+     "says": "Your spirit is bound to Grobb. Now go see Coachman Zuggug."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Zuggug",
+     "journal": "Sign Coachman Zuggug's ledger.",
+     "says": "Sign, and the coaches will know you."
+    },
+    {
+     "kind": "talk",
+     "target": "Hierophant Koligo",
+     "journal": "Return to Hierophant Koligo.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 2 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/grobb/shaman/L3",
+   "name": "Bat Meat",
+   "giver": "Harbinger Lacra",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shaman/L2"
+   ],
+   "offer": "Slay bats and bring me three slivers of bat meat.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "muck bat",
+     "items": [
+      {
+       "item": "sliver of bat meat",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three sliver of bat meats from the bats round Grobb."
+    },
+    {
+     "kind": "give",
+     "target": "Harbinger Lacra",
+     "journal": "Bring three sliver of bat meats to Harbinger Lacra.",
+     "items": [
+      {
+       "item": "sliver of bat meat",
+       "count": 3
+      }
+     ],
+     "says": "Three. Good.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shaman/L4",
+   "name": "A Shaman Weapon",
+   "giver": "Harbinger Lacra",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shaman/L3"
+   ],
+   "offer": "I will make you a weapon. Bring me a branch from Merchant Risa, a leather strap from Merchant Grott, and two chipped python fangs.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Risa",
+     "journal": "Speak with Merchant Risa.",
+     "says": "A branch.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "branch",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Merchant Grott",
+     "journal": "Speak with Merchant Grott.",
+     "says": "A leather strap.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "leather strap",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "python",
+     "items": [
+      {
+       "item": "chipped python fang",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Take two chipped python fangs from the pythons of the swamp."
+    },
+    {
+     "kind": "give",
+     "target": "Harbinger Lacra",
+     "journal": "Bring the branch, the leather strap and two chipped python fangs to Harbinger Lacra.",
+     "items": [
+      {
+       "item": "branch",
+       "count": 1
+      },
+      {
+       "item": "leather strap",
+       "count": 1
+      },
+      {
+       "item": "chipped python fang",
+       "count": 2
+      }
+     ],
+     "says": "Everything. Here is your weapon.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shaman/L5",
+   "name": "The Casting Stone",
+   "giver": "Harbinger Lacra",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shaman/L4"
+   ],
+   "offer": "Froglok novitiates practise their magic in the swamp north-west of Grobb. Kill them and bring me a casting stone.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Froglok Novitiate",
+     "items": [
+      {
+       "item": "casting stone",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the casting stone from the froglok novitiates in the swamp north-west of Grobb."
+    },
+    {
+     "kind": "give",
+     "target": "Harbinger Lacra",
+     "journal": "Bring the casting stone to Harbinger Lacra.",
+     "items": [
+      {
+       "item": "casting stone",
+       "count": 1
+      }
+     ],
+     "says": "A casting stone. Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "unresolved": [
+    "Froglok Novitiate"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shaman/L7",
+   "name": "Blood and Poison",
+   "giver": "Hierophant Koligo",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shaman/L5"
+   ],
+   "offer": "Kill three bloated mosquitoes in the first swamp west of Grobb, by the Basher camp, and bring me their blood sacks.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "giant mosquitos",
+     "items": [
+      {
+       "item": "blood sack",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three blood sacks from the bloated mosquitoes in the swamp west of Grobb."
+    },
+    {
+     "kind": "give",
+     "target": "Hierophant Koligo",
+     "journal": "Bring three blood sacks to Hierophant Koligo.",
+     "items": [
+      {
+       "item": "blood sack",
+       "count": 3
+      }
+     ],
+     "says": "Now a froglok apprentice on the Hand of Thule, north and east of Grobb. Bring me its poison vial."
+    },
+    {
+     "kind": "loot",
+     "target": "Froglok Apprentice",
+     "items": [
+      {
+       "item": "poison vial",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the poison vial from the froglok apprentices on the Hand of Thule."
+    },
+    {
+     "kind": "give",
+     "target": "Hierophant Koligo",
+     "journal": "Bring the poison vial to Hierophant Koligo.",
+     "items": [
+      {
+       "item": "poison vial",
+       "count": 1
+      }
+     ],
+     "says": "Good.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "unresolved": [
+    "Froglok Apprentice"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide's bloated mosquitoes are the giant mosquitos here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shaman/L10",
+   "name": "The Murderer Krazul",
+   "giver": "Hierophant Koligo",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shaman/L7"
+   ],
+   "offer": "Search the swamp where you found the froglok novitiates, then go to the tower of the crazed troll nearby and wait inside the door for dark.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Vengeful Dead",
+     "items": [
+      {
+       "item": "skeleton note",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the skeleton note from the undead skeletons in the tower at night."
+    },
+    {
+     "kind": "give",
+     "target": "Hierophant Koligo",
+     "journal": "Bring the skeleton note to Hierophant Koligo.",
+     "items": [
+      {
+       "item": "skeleton note",
+       "count": 1
+      }
+     ],
+     "says": "The murderer is Krazul. He walks into the mushroom patch west along the mountain. Kill him."
+    },
+    {
+     "kind": "loot",
+     "target": "Krazul",
+     "items": [
+      {
+       "item": "Krazul's head",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Krazul's head from Krazul at the mushroom patch."
+    },
+    {
+     "kind": "give",
+     "target": "Hierophant Koligo",
+     "journal": "Bring Krazul's head to Hierophant Koligo.",
+     "items": [
+      {
+       "item": "Krazul's head",
+       "count": 1
+      }
+     ],
+     "says": "Krazul is dead.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "Vengeful Dead",
+    "Krazul"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the swamp's popup is left out. The tower's undead skeletons are the warrior's Vengeful Dead. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shaman/L13",
+   "name": "Scornblade D'Eleth",
+   "giver": "Underlord Bugrish",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shaman/L10"
+   ],
+   "offer": "Scornblade D'Eleth in Neriak wants a troll for a job. Waysender Zapgit by the exit tunnel will send you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Scornblade D`Eleth",
+     "journal": "Speak with Scornblade D`Eleth.",
+     "says": "Dragoon X'Talin, in his tower up the river west of Neriak, needs help first."
+    },
+    {
+     "kind": "talk",
+     "target": "Dragoon X'Talin",
+     "journal": "Speak with Dragoon X'Talin.",
+     "says": "Bring me three shadow cub pelts from east of my tower."
+    },
+    {
+     "kind": "loot",
+     "target": "Shadow Cub",
+     "items": [
+      {
+       "item": "shadow cub pelt",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three shadow cub pelts from the shadow cubs east of X'Talin's tower."
+    },
+    {
+     "kind": "give",
+     "target": "Dragoon X'Talin",
+     "journal": "Bring three shadow cub pelts to Dragoon X'Talin.",
+     "items": [
+      {
+       "item": "shadow cub pelt",
+       "count": 3
+      }
+     ],
+     "says": "Good. Go back to the Scornblade."
+    },
+    {
+     "kind": "talk",
+     "target": "Scornblade D`Eleth",
+     "journal": "Return to Scornblade D'Eleth.",
+     "says": "Now kill the imprisoned wizard at the far end of the arena."
+    },
+    {
+     "kind": "loot",
+     "target": "Imprisoned Wizard",
+     "items": [
+      {
+       "item": "wizard's robe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the wizard's robe from the imprisoned wizard at the far end of the arena."
+    },
+    {
+     "kind": "give",
+     "target": "Scornblade D`Eleth",
+     "journal": "Bring the wizard's robe to Scornblade D`Eleth.",
+     "items": [
+      {
+       "item": "wizard's robe",
+       "count": 1
+      }
+     ],
+     "says": "Well fought. Go home to Bugrish."
+    },
+    {
+     "kind": "talk",
+     "target": "Underlord Bugrish",
+     "journal": "Return to Underlord Bugrish.",
+     "says": "Good work.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "unresolved": [
+    "Dragoon X'Talin",
+    "Imprisoned Wizard"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's Underlord Burgish is Underlord Bugrish here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shaman/L15",
+   "name": "Weapons for Grobb",
+   "giver": "Underlord Bugrish",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shaman/L13"
+   ],
+   "offer": "Smithy Cragis in Clagga Village, north-west along the road toward Guk, will make weapons for us. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Smithy Cragis",
+     "journal": "Speak with Smithy Cragis.",
+     "says": "Kill Bogwater, the alligator in the swamps round the village, and bring me its tooth."
+    },
+    {
+     "kind": "loot",
+     "target": "Bogwater",
+     "items": [
+      {
+       "item": "bogwater tooth",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the bogwater tooth from Bogwater in the swamps round Clagga Village."
+    },
+    {
+     "kind": "give",
+     "target": "Smithy Cragis",
+     "journal": "Bring the bogwater tooth to Smithy Cragis.",
+     "items": [
+      {
+       "item": "bogwater tooth",
+       "count": 1
+      }
+     ],
+     "says": "Now see Torgot in the Basher Enclave."
+    },
+    {
+     "kind": "talk",
+     "target": "Torgot",
+     "journal": "Speak with Torgot.",
+     "says": "Kill a lizardman fanatic north of the enclave. Kill the caitiffs in the ring if none is there."
+    },
+    {
+     "kind": "loot",
+     "target": "lizardman fanatic",
+     "items": [
+      {
+       "item": "fanatic pendant",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the fanatic pendant from the lizardman fanatics north of the Basher Enclave."
+    },
+    {
+     "kind": "give",
+     "target": "Torgot",
+     "journal": "Bring the fanatic pendant to Torgot.",
+     "items": [
+      {
+       "item": "fanatic pendant",
+       "count": 1
+      }
+     ],
+     "says": "Good. Go back to Cragis."
+    },
+    {
+     "kind": "talk",
+     "target": "Smithy Cragis",
+     "journal": "Return to Smithy Cragis.",
+     "says": "Ask Scornblade J'Naris in Hazinak if he will send the weapons."
+    },
+    {
+     "kind": "talk",
+     "target": "Scornblade J'Naris",
+     "journal": "Speak with Scornblade J'Naris.",
+     "says": "The weapons will go."
+    },
+    {
+     "kind": "talk",
+     "target": "Smithy Cragis",
+     "journal": "Return to Smithy Cragis.",
+     "says": "Good. Here is a tunic for your trouble.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "unresolved": [
+    "Smithy Cragis",
+    "Bogwater",
+    "Torgot"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Underlord Burgrish is Underlord Bugrish here, and its Turgot is Torgot. The guide's tunic and Torgot's scroll are unnamed. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/shaman/L20",
+   "name": "Seer Crelga's Trials",
+   "giver": "Hierophant Koligo",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shaman/L15"
+   ],
+   "offer": "Seer Crelga, in a hut on the east side of Honjour, has trials for you. Waysender Zapgit will send you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Seer Crelga",
+     "journal": "Speak with Seer Crelga.",
+     "says": "First trial: kill farmers south of Honjour, past the windmill, for three bag of seedss."
+    },
+    {
+     "kind": "loot",
+     "target": "farmer",
+     "items": [
+      {
+       "item": "bag of seeds",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three bag of seeds from the farmers south of Honjour (not the odd farmers)."
+    },
+    {
+     "kind": "give",
+     "target": "Seer Crelga",
+     "journal": "Bring three bag of seeds to Seer Crelga.",
+     "items": [
+      {
+       "item": "bag of seeds",
+       "count": 3
+      }
+     ],
+     "says": "Second trial: kill a Froglok Tuk in the caves south-west of Honjour."
+    },
+    {
+     "kind": "loot",
+     "target": "Froglok Tuk",
+     "items": [
+      {
+       "item": "froglok staff",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the froglok staff from the Froglok Tuk in the caves south-west of Honjour."
+    },
+    {
+     "kind": "give",
+     "target": "Seer Crelga",
+     "journal": "Bring the froglok staff to Seer Crelga.",
+     "items": [
+      {
+       "item": "froglok staff",
+       "count": 1
+      }
+     ],
+     "says": "Third trial: the festering root of the Wailing Tree. Ask Scornblade J'Naris in Hazinak where it stands."
+    },
+    {
+     "kind": "talk",
+     "target": "Scornblade J'Naris",
+     "journal": "Speak with Scornblade J'Naris.",
+     "says": "Nalzik P'Thek in Freeport knows the way."
+    },
+    {
+     "kind": "talk",
+     "target": "Nalzik P`Thek",
+     "journal": "Speak with Nalzik P`Thek.",
+     "says": "The Wailing Tree stands in the Green Rift, south-west of Neriak. The root spirit lives in the tunnels beneath it."
+    },
+    {
+     "kind": "loot",
+     "target": "root spirit",
+     "items": [
+      {
+       "item": "festering root",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the festering root from the root spirit in the tunnels under the Wailing Tree."
+    },
+    {
+     "kind": "give",
+     "target": "Hierophant Koligo",
+     "journal": "Bring the festering root to Hierophant Koligo.",
+     "items": [
+      {
+       "item": "festering root",
+       "count": 1
+      }
+     ],
+     "says": "The festering root. Choose your path.",
+     "rewards": {
+      "xp": 2814929,
+      "spells": [
+       "Decaying Wind"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Froglok Tuk"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide offers a choice; this gives the first: Decaying Wind (the Spell path), or Feral Spirit (the Spiritual path)."
+  },
+  {
+   "key": "1-20/grobb/warrior/L1",
+   "name": "The Basher Shirt",
+   "giver": "Warlord Jurglash",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Merchant Trilip has a basher shirt for you, free. Get it and show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Trilip",
+     "journal": "Speak with Merchant Trilip.",
+     "says": "A basher shirt.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Basher Shirt",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Warlord Jurglash",
+     "items": [
+      {
+       "item": "Basher Shirt",
+       "count": 1
+      }
+     ],
+     "journal": "Show Basher Shirt to Warlord Jurglash.",
+     "says": "Good. Now go make yourself useful.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 1 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/grobb/warrior/L2",
+   "name": "Bound to Grobb",
+   "giver": "Warlord Jurglash",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/warrior/L1"
+   ],
+   "offer": "Have Spiritmaster Gugzug bind your spirit to Grobb, then sign Coachman Zuggug's ledger. Then come back to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Gugzug",
+     "journal": "Have Spiritmaster Gugzug bind your spirit to Grobb.",
+     "says": "Your spirit is bound to Grobb. Now go see Coachman Zuggug."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Zuggug",
+     "journal": "Sign Coachman Zuggug's ledger.",
+     "says": "Sign, and the coaches will know you."
+    },
+    {
+     "kind": "talk",
+     "target": "Warlord Jurglash",
+     "journal": "Return to Warlord Jurglash.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 2 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/grobb/warrior/L3",
+   "name": "Python Scales",
+   "giver": "Underlord Krullik",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/warrior/L2"
+   ],
+   "offer": "Go to the swamp and kill snakes. Bring me three ruined python scales.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "python",
+     "items": [
+      {
+       "item": "ruined python scales",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three ruined python scales from the pythons of the swamp."
+    },
+    {
+     "kind": "give",
+     "target": "Underlord Krullik",
+     "journal": "Bring three ruined python scales to Underlord Krullik.",
+     "items": [
+      {
+       "item": "ruined python scales",
+       "count": 3
+      }
+     ],
+     "says": "Three. Good.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/warrior/L4",
+   "name": "A Warrior Weapon",
+   "giver": "Underlord Krullik",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/warrior/L3"
+   ],
+   "offer": "Kill blood flies or mosquitoes for two fractured thoraxes, buy iron ore from Beldok and a leather strip from Grott, and take it all to Gulkot.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "bloodflies",
+     "items": [
+      {
+       "item": "fractured dragonfly thorax",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Take two fractured dragonfly thoraxs from the blood flies and mosquitoes round Grobb."
+    },
+    {
+     "kind": "talk",
+     "target": "Merchant Beldok",
+     "journal": "Speak with Merchant Beldok.",
+     "says": "Iron ore.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "iron ore",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Merchant Grott",
+     "journal": "Speak with Merchant Grott.",
+     "says": "A leather strip.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "leather strip",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Smithy Gulkot",
+     "journal": "Bring two fractured dragonfly thoraxs, the iron ore and the leather strip to Smithy Gulkot.",
+     "items": [
+      {
+       "item": "fractured dragonfly thorax",
+       "count": 2
+      },
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "leather strip",
+       "count": 1
+      }
+     ],
+     "says": "Here is your weapon."
+    },
+    {
+     "kind": "talk",
+     "target": "Underlord Krullik",
+     "journal": "Return to Underlord Krullik.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's fractured thorax is the server's fractured dragonfly thorax. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/warrior/L5",
+   "name": "The Casting Stone",
+   "giver": "Underlord Krullik",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/warrior/L4"
+   ],
+   "offer": "Froglok novitiates practise their magic in the swamp north-west of Grobb. Kill them and bring me a casting stone.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Froglok Novitiate",
+     "items": [
+      {
+       "item": "casting stone",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the casting stone from the froglok novitiates in the swamp north-west of Grobb."
+    },
+    {
+     "kind": "give",
+     "target": "Underlord Krullik",
+     "journal": "Bring the casting stone to Underlord Krullik.",
+     "items": [
+      {
+       "item": "casting stone",
+       "count": 1
+      }
+     ],
+     "says": "A casting stone. Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "unresolved": [
+    "Froglok Novitiate"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/warrior/L7",
+   "name": "The Froglok Raiders",
+   "giver": "Warlord Jurglash",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/warrior/L5"
+   ],
+   "offer": "A froglok tactician spawns between the raider camps north of Grobb. Kill it and bring me what it carries.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Froglok Tactician",
+     "items": [
+      {
+       "item": "tactician's orders",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the tactician's orders from the froglok tactician between the raider camps north of Grobb."
+    },
+    {
+     "kind": "give",
+     "target": "Warlord Jurglash",
+     "journal": "Bring the tactician's orders to Warlord Jurglash.",
+     "items": [
+      {
+       "item": "tactician's orders",
+       "count": 1
+      }
+     ],
+     "says": "A raiding party forms near God Hand. Kill them and bring me a belt."
+    },
+    {
+     "kind": "loot",
+     "target": "froglok raider",
+     "items": [
+      {
+       "item": "raider belt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the raider belt from the froglok raiding party near God Hand."
+    },
+    {
+     "kind": "give",
+     "target": "Warlord Jurglash",
+     "journal": "Bring the raider belt to Warlord Jurglash.",
+     "items": [
+      {
+       "item": "raider belt",
+       "count": 1
+      }
+     ],
+     "says": "Good.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "unresolved": [
+    "Froglok Tactician"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/warrior/L10",
+   "name": "Grothmal",
+   "giver": "Warlord Jurglash",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/warrior/L7"
+   ],
+   "offer": "Our trolls do not come back from the tower to the north-east. Talk to the crazed troll there and find out why.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "crazed troll",
+     "journal": "Speak with the crazed troll.",
+     "says": "*The troll babbles and will not make sense.*"
+    },
+    {
+     "kind": "loot",
+     "target": "Vengeful Dead",
+     "items": [
+      {
+       "item": "scroll and necklace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the scroll and necklace from the vengeful dead in the tower at night."
+    },
+    {
+     "kind": "give",
+     "target": "Warlord Jurglash",
+     "journal": "Bring the scroll and necklace to Warlord Jurglash.",
+     "items": [
+      {
+       "item": "scroll and necklace",
+       "count": 1
+      }
+     ],
+     "says": "Take this to Hierophant Koligo."
+    },
+    {
+     "kind": "talk",
+     "target": "Hierophant Koligo",
+     "journal": "Speak with Hierophant Koligo.",
+     "says": "Kuthrak, the drunk in the drink place, knows something. He wants a starcrab glog."
+    },
+    {
+     "kind": "talk",
+     "target": "Swillmaster Sturg",
+     "journal": "Speak with Swillmaster Sturg.",
+     "says": "A starcrab glog takes three starcrab shells."
+    },
+    {
+     "kind": "loot",
+     "target": "Star Crab",
+     "items": [
+      {
+       "item": "starcrab shell",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three starcrab shells from the star crabs."
+    },
+    {
+     "kind": "give",
+     "target": "Swillmaster Sturg",
+     "journal": "Bring three starcrab shells to Swillmaster Sturg.",
+     "items": [
+      {
+       "item": "starcrab shell",
+       "count": 3
+      }
+     ],
+     "says": "One starcrab glog.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "starcrab glog",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Kuthrak",
+     "journal": "Bring the starcrab glog to Kuthrak.",
+     "items": [
+      {
+       "item": "starcrab glog",
+       "count": 1
+      }
+     ],
+     "says": "Ahh. The froglok prisoners know of one called Grothmal."
+    },
+    {
+     "kind": "talk",
+     "target": "froglok prisoner",
+     "journal": "Speak with the froglok prisoner.",
+     "says": "Grothmal comes out at night in the mushroom patch west of the war camp."
+    },
+    {
+     "kind": "loot",
+     "target": "Grothmal",
+     "items": [
+      {
+       "item": "ruby pendant",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the ruby pendant from Grothmal at the mushroom patch at night."
+    },
+    {
+     "kind": "give",
+     "target": "Hierophant Koligo",
+     "journal": "Bring the ruby pendant to Hierophant Koligo.",
+     "items": [
+      {
+       "item": "ruby pendant",
+       "count": 1
+      }
+     ],
+     "says": "Take the news to Jurglash."
+    },
+    {
+     "kind": "talk",
+     "target": "Warlord Jurglash",
+     "journal": "Return to Warlord Jurglash.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "Vengeful Dead",
+    "Grothmal"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's Swillmaster is Swillmaster Sturg here; its Crazed Troll's slap is left out. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/warrior/L13",
+   "name": "Scornblade D'Eleth",
+   "giver": "Underlord Bugrish",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/warrior/L10"
+   ],
+   "offer": "Scornblade D'Eleth in Neriak wants a troll for a job. Waysender Zapgit by the exit tunnel will send you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Scornblade D`Eleth",
+     "journal": "Speak with Scornblade D`Eleth.",
+     "says": "Dragoon X'Talin, in his tower up the river west of Neriak, needs help first."
+    },
+    {
+     "kind": "talk",
+     "target": "Dragoon X'Talin",
+     "journal": "Speak with Dragoon X'Talin.",
+     "says": "Bring me three shadow cub pelts from east of my tower."
+    },
+    {
+     "kind": "loot",
+     "target": "Shadow Cub",
+     "items": [
+      {
+       "item": "shadow cub pelt",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three shadow cub pelts from the shadow cubs east of X'Talin's tower."
+    },
+    {
+     "kind": "give",
+     "target": "Dragoon X'Talin",
+     "journal": "Bring three shadow cub pelts to Dragoon X'Talin.",
+     "items": [
+      {
+       "item": "shadow cub pelt",
+       "count": 3
+      }
+     ],
+     "says": "Good. Go back to the Scornblade."
+    },
+    {
+     "kind": "talk",
+     "target": "Scornblade D`Eleth",
+     "journal": "Return to Scornblade D'Eleth.",
+     "says": "Now kill the troll at the far end of the arena."
+    },
+    {
+     "kind": "loot",
+     "target": "Arena Troll",
+     "items": [
+      {
+       "item": "troll's shackle",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the troll's shackle from the troll at the far end of the arena."
+    },
+    {
+     "kind": "give",
+     "target": "Scornblade D`Eleth",
+     "journal": "Bring the troll's shackle to Scornblade D`Eleth.",
+     "items": [
+      {
+       "item": "troll's shackle",
+       "count": 1
+      }
+     ],
+     "says": "Well fought. Go home to Bugrish."
+    },
+    {
+     "kind": "talk",
+     "target": "Underlord Bugrish",
+     "journal": "Return to Underlord Bugrish.",
+     "says": "Good work.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "unresolved": [
+    "Dragoon X'Talin",
+    "Arena Troll"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's Underlord Burgish is Underlord Bugrish here. The guide names no reward but the experience; the experience is the one every city gives for this level. The arena troll is unnamed in the guide."
+  },
+  {
+   "key": "1-20/grobb/warrior/L15",
+   "name": "Weapons for Grobb",
+   "giver": "Underlord Bugrish",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/warrior/L13"
+   ],
+   "offer": "Smithy Cragis in Clagga Village, north-west along the road toward Guk, will make weapons for us. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Smithy Cragis",
+     "journal": "Speak with Smithy Cragis.",
+     "says": "Kill Bogscraper, the alligator in the swamps round the village, and bring me its tooth."
+    },
+    {
+     "kind": "loot",
+     "target": "Bogscraper",
+     "items": [
+      {
+       "item": "bogscraper tooth",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the bogscraper tooth from Bogscraper in the swamps round Clagga Village."
+    },
+    {
+     "kind": "give",
+     "target": "Smithy Cragis",
+     "journal": "Bring the bogscraper tooth to Smithy Cragis.",
+     "items": [
+      {
+       "item": "bogscraper tooth",
+       "count": 1
+      }
+     ],
+     "says": "Now see Torgot in the Basher Enclave."
+    },
+    {
+     "kind": "talk",
+     "target": "Torgot",
+     "journal": "Speak with Torgot.",
+     "says": "Kill a lizardman fanatic north of the enclave. Kill the caitiffs in the ring if none is there."
+    },
+    {
+     "kind": "loot",
+     "target": "lizardman fanatic",
+     "items": [
+      {
+       "item": "fanatic drum",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take the fanatic drum from the lizardman fanatics north of the Basher Enclave."
+    },
+    {
+     "kind": "give",
+     "target": "Torgot",
+     "journal": "Bring the fanatic drum to Torgot.",
+     "items": [
+      {
+       "item": "fanatic drum",
+       "count": 1
+      }
+     ],
+     "says": "Good. Go back to Cragis."
+    },
+    {
+     "kind": "talk",
+     "target": "Smithy Cragis",
+     "journal": "Return to Smithy Cragis.",
+     "says": "Ask Scornblade J'Naris in Hazinak if he will send the weapons."
+    },
+    {
+     "kind": "talk",
+     "target": "Scornblade J'Naris",
+     "journal": "Speak with Scornblade J'Naris.",
+     "says": "The weapons will go."
+    },
+    {
+     "kind": "talk",
+     "target": "Smithy Cragis",
+     "journal": "Return to Smithy Cragis.",
+     "says": "Good. Here is a tunic for your trouble.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "unresolved": [
+    "Smithy Cragis",
+    "Bogscraper",
+    "Torgot"
+   ],
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Underlord Burgrish is Underlord Bugrish here, and its Turgot is Torgot. The guide's tunic and Torgot's scroll are unnamed. The guide names no reward but the experience; the experience is the one every city gives for this level."
+  },
+  {
+   "key": "1-20/grobb/warrior/L20",
+   "name": "Seer Crelga's Trials",
+   "giver": "Warlord Jurglash",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/warrior/L15"
+   ],
+   "offer": "Seer Crelga, in a hut on the east side of Honjour, has trials for you. Waysender Zapgit will send you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Seer Crelga",
+     "journal": "Speak with Seer Crelga.",
+     "says": "First trial: kill farmers south of Honjour, past the windmill, for three bag of grains."
+    },
+    {
+     "kind": "loot",
+     "target": "farmer",
+     "items": [
+      {
+       "item": "bag of grain",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three bag of grains from the farmers south of Honjour (not the odd farmers)."
+    },
+    {
+     "kind": "give",
+     "target": "Seer Crelga",
+     "journal": "Bring three bag of grains to Seer Crelga.",
+     "items": [
+      {
+       "item": "bag of grain",
+       "count": 3
+      }
+     ],
+     "says": "Second trial: kill a froglok ton in the caves south-west of Honjour."
+    },
+    {
+     "kind": "loot",
+     "target": "froglok ton",
+     "items": [
+      {
+       "item": "froglok sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the froglok sword from the froglok ton in the caves south-west of Honjour."
+    },
+    {
+     "kind": "give",
+     "target": "Seer Crelga",
+     "journal": "Bring the froglok sword to Seer Crelga.",
+     "items": [
+      {
+       "item": "froglok sword",
+       "count": 1
+      }
+     ],
+     "says": "Third trial: the festering root of the Wailing Tree. Ask Scornblade J'Naris in Hazinak where it stands."
+    },
+    {
+     "kind": "talk",
+     "target": "Scornblade J'Naris",
+     "journal": "Speak with Scornblade J'Naris.",
+     "says": "Nalzik P'Thek in Freeport knows the way."
+    },
+    {
+     "kind": "talk",
+     "target": "Nalzik P`Thek",
+     "journal": "Speak with Nalzik P`Thek.",
+     "says": "The Wailing Tree stands in the Green Rift, south-west of Neriak. The root spirit lives in the tunnels beneath it."
+    },
+    {
+     "kind": "loot",
+     "target": "root spirit",
+     "items": [
+      {
+       "item": "festering root",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the festering root from the root spirit in the tunnels under the Wailing Tree."
+    },
+    {
+     "kind": "give",
+     "target": "Warlord Jurglash",
+     "journal": "Bring the festering root to Warlord Jurglash.",
+     "items": [
+      {
+       "item": "festering root",
+       "count": 1
+      }
+     ],
+     "says": "The festering root. Choose your path.",
+     "rewards": {
+      "xp": 2814929,
+      "spells": [
+       "Bellow"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's seer of Hagley is Seer Crelga here, and its Wilting Tree the Wailing Tree. The guide offers a choice; this gives the first: Bellow, or Pillar of Might."
+  }
+ ],
+ "items": [
+  {
+   "name": "Nightkeep Gloves",
+   "description": "Gloves of the Nightkeep.",
+   "notrade": true,
+   "like": "tailored gloves"
+  },
+  {
+   "name": "shaman's bracers",
+   "description": "A young shaman's bracers.",
+   "notrade": true,
+   "like": "Tattered Bracers"
+  },
+  {
+   "name": "froglok fishing net",
+   "description": "A froglok fisherman's net.",
+   "notrade": true,
+   "like": "silk cord"
+  },
+  {
+   "name": "froglok tongue",
+   "description": "A froglok's tongue.",
+   "notrade": true,
+   "like": "bat meat"
+  },
+  {
+   "name": "casting stone",
+   "description": "A froglok novitiate's casting stone.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "royal tikat",
+   "description": "A froglok page's royal tikat.",
+   "notrade": true,
+   "like": "cracked symbol of Tunare"
+  },
+  {
+   "name": "token of marr",
+   "description": "A froglok squire's token of Marr.",
+   "notrade": true,
+   "like": "cracked symbol of Tunare"
+  },
+  {
+   "name": "hand of thule",
+   "description": "A froglok knight's Hand of Thule.",
+   "notrade": true,
+   "like": "cracked symbol of Tunare"
+  },
+  {
+   "name": "traitor's head",
+   "description": "The traitor's head.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "shadow cub pelt",
+   "description": "A shadow cub's pelt.",
+   "notrade": true,
+   "like": "sidewinder skin"
+  },
+  {
+   "name": "elf paladin's insignia",
+   "description": "An elf paladin's insignia.",
+   "notrade": true,
+   "like": "cracked symbol of Tunare"
+  },
+  {
+   "name": "wizard's robe",
+   "description": "The imprisoned wizard's robe.",
+   "notrade": true,
+   "like": "damaged robe"
+  },
+  {
+   "name": "troll's shackle",
+   "description": "The arena troll's shackle.",
+   "notrade": true,
+   "like": "iron ring"
+  },
+  {
+   "name": "bogwater tooth",
+   "description": "Bogwater's tooth.",
+   "notrade": true,
+   "like": "Cracked Rat Tooth"
+  },
+  {
+   "name": "bogscraper tooth",
+   "description": "Bogscraper's tooth.",
+   "notrade": true,
+   "like": "Cracked Rat Tooth"
+  },
+  {
+   "name": "fanatic pendant",
+   "description": "A lizardman fanatic's pendant.",
+   "notrade": true,
+   "like": "bone earring"
+  },
+  {
+   "name": "fanatic drum",
+   "description": "A lizardman fanatic's drum.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "froglok wand",
+   "description": "Froglok Baz's wand.",
+   "notrade": true,
+   "like": "wooden shaft"
+  },
+  {
+   "name": "froglok staff",
+   "description": "A froglok tuk's staff.",
+   "notrade": true,
+   "like": "wooden shaft"
+  },
+  {
+   "name": "froglok sword",
+   "description": "A froglok ton's sword.",
+   "notrade": true,
+   "like": "rusted blade"
+  },
+  {
+   "name": "festering root",
+   "description": "A root spirit's festering root.",
+   "notrade": true,
+   "like": "tangle root herb"
+  },
+  {
+   "name": "bag of seeds",
+   "description": "A farmer's bag of seeds.",
+   "notrade": true,
+   "like": "bag of hops seeds"
+  },
+  {
+   "name": "bag of grain",
+   "description": "A farmer's bag of grain.",
+   "notrade": true,
+   "like": "bag of hops seeds"
+  },
+  {
+   "name": "branch",
+   "description": "A good branch.",
+   "notrade": true,
+   "like": "wooden shaft"
+  },
+  {
+   "name": "leather strap",
+   "description": "A leather strap.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "chipped python fang",
+   "description": "A python's chipped fang.",
+   "notrade": true,
+   "like": "cracked snake fang"
+  },
+  {
+   "name": "blood sack",
+   "description": "A bloated mosquito's blood sack.",
+   "notrade": true,
+   "like": "drained poison sac"
+  },
+  {
+   "name": "poison vial",
+   "description": "A froglok apprentice's poison vial.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "skeleton note",
+   "description": "A note an undead skeleton carried.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "Krazul's head",
+   "description": "The murderer Krazul's head.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "ruined python scales",
+   "description": "A python's ruined scales.",
+   "notrade": true,
+   "like": "ruined snake scales"
+  },
+  {
+   "name": "tactician's orders",
+   "description": "The froglok tactician's orders.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "raider belt",
+   "description": "A froglok raider's belt.",
+   "notrade": true,
+   "like": "orc ransacker's belt"
+  },
+  {
+   "name": "scroll and necklace",
+   "description": "A scroll and a necklace the vengeful dead carried.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "starcrab shell",
+   "description": "A star crab's shell.",
+   "notrade": true,
+   "like": "beetle carapace fragment"
+  },
+  {
+   "name": "starcrab glog",
+   "description": "A starcrab glog.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "ruby pendant",
+   "description": "Grothmal's ruby pendant.",
+   "notrade": true,
+   "like": "bone earring"
+  }
+ ]
+}

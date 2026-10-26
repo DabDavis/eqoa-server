@@ -79,16 +79,40 @@ type Mastery struct {
 	Points, Spent, Percent, XP int
 }
 
-// splitXP is an award of xp as the player's mastery share divides it: what
-// goes to the level and what to mastery points. Holding MasteryCap points,
-// all of it goes to the level.
-func splitXP(m Mastery, xp int) (level, mastery int) {
-	if xp <= 0 || m.Points+m.Spent >= MasteryCap {
-		return xp, 0
+// xpShares is an award of experience divided: what goes to the level, to
+// mastery points and to paying the experience debt.
+type xpShares struct {
+	Level, Mastery, Debt int
+}
+
+// splitXP divides an award of xp for a player at level owing debt, as jib has
+// the live game's (F3 20261026-042328): while a debt is owed, half of the
+// award pays it, never more than is owed; the rest goes to mastery points
+// alone at the level cap (MaxLevel), and below it as the mastery points
+// window's share divides it. Holding MasteryCap points, the masteries take
+// nothing: their part pays what is left of the debt, then goes to the level
+// (at the cap nothing comes of it).
+func splitXP(m Mastery, level, debt, xp int) xpShares {
+	var s xpShares
+	if xp <= 0 {
+		return s
 	}
+	debt = max(debt, 0)
+	s.Debt = min(debt, xp/2)
+	rest := xp - s.Debt
 	pct := max(0, min(100, m.Percent))
-	mastery = xp * pct / 100
-	return xp - mastery, mastery
+	if level >= MaxLevel {
+		pct = 100
+	}
+	s.Mastery = rest * pct / 100
+	s.Level = rest - s.Mastery
+	if m.Points+m.Spent >= MasteryCap {
+		pay := min(debt-s.Debt, s.Mastery)
+		s.Debt += pay
+		s.Level += s.Mastery - pay
+		s.Mastery = 0
+	}
+	return s
 }
 
 // gainMastery puts xp of mastery experience on m, each point made when the

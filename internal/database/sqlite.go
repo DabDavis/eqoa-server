@@ -606,6 +606,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCMCatalog(); err != nil {
 		return err
 	}
+	if err := db.ensureSpellArea(); err != nil {
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil

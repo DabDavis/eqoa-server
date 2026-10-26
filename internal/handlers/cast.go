@@ -55,7 +55,7 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 	if err != nil {
 		log.Printf("Cast: %q's effect: %v", e.Pattern.SpellName, err)
 	}
-	h.gameWorld.StartCast(sess, castSpell(e, line, fx), target, time.Now())
+	h.gameWorld.StartCast(sess, h.areaOf(castSpell(e, line, fx)), target, time.Now()) // spellarea.go
 	return nil
 }
 
@@ -67,6 +67,7 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 // database has none.
 func castSpell(e *database.CharSpellEntry, line string, fx uint32) entity.CastSpell {
 	sp := &e.Pattern
+	def := entity.ParseSpellNamed(sp.SpellName, line, sp.SpellDesc)
 	return entity.CastSpell{
 		SpellID:      sp.SpellID,
 		DisplayIndex: e.AddedOrder,
@@ -78,8 +79,9 @@ func castSpell(e *database.CharSpellEntry, line string, fx uint32) entity.CastSp
 		Recast:       time.Duration(sp.Recast) * time.Second,
 		PowerCost:    sp.Power,
 		Range:        math.Float32frombits(abilityRangeBits(sp)),
-		Def:          entity.ParseSpellNamed(sp.SpellName, line, sp.SpellDesc),
+		Def:          def,
 		FX:           fx,
+		Area:         entity.ReadSpellArea(sp.SpellName, line, def), // entity/area.go
 	}
 }
 

@@ -349,15 +349,8 @@ func ParseSpellText(line string) SpellDef {
 		return d
 	}
 	// An area spell's line names the target's share first: "Decrease
-	// Hitpoints by 210 aoe Decrease Hitpoints by 90".
-	if i := strings.Index(text, " aoe "); i >= 0 {
-		end := strings.IndexAny(text[i:], ",;")
-		if end < 0 {
-			text = text[:i]
-		} else {
-			text = text[:i] + text[i+end:]
-		}
-	}
+	// Hitpoints by 210 aoe Decrease Hitpoints by 90" (area.go reads the rest).
+	text = targetsShare(text)
 	for _, a := range spellAliases {
 		text = strings.ReplaceAll(text, a.from, a.to)
 	}

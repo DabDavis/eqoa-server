@@ -69,13 +69,12 @@ func (w *World) playerStatsLocked(p *Player, now time.Time) []string {
 		p.StatNow(StatDex), p.StatNow(StatWis), p.StatNow(StatInt), p.StatNow(StatCha))
 	out = append(out, fmt.Sprintf("Max power %d: %d from the level and stats, %+d items, %+d spells",
 		p.MaxPowerNow(), pw, p.Gear.MaxPower, p.MaxPowerNow()-pw-p.Gear.MaxPower))
-	out = append(out, fmt.Sprintf("HoT %d every 6 s: %d base (max HP/50), %+d items (%d worn), %+d meals and spells",
-		p.HoTNow(), p.HoTBase(), ItemCredit(p.Gear.HoTItems), len(p.Gear.HoTItems), p.Mods.HoT))
-	out = append(out, fmt.Sprintf("PoT %d every 6 s: %d base (max power/50), %+d items (%d worn), %+d drinks and spells",
-		p.PoTNow(), p.PoTBase(), ItemCredit(p.Gear.PoTItems), len(p.Gear.PoTItems), p.Mods.PoT))
+	out = append(out, fmt.Sprintf("HoT %d every 6 s: %d base (max HP/50), %+d items (%d worn), %+d meals and spells, %+d masteries",
+		p.HoTNow(), p.HoTBase(), ItemCredit(p.Gear.HoTItems), len(p.Gear.HoTItems), p.Mods.HoT, p.CMEffects[cmSlotHoT]))
+	out = append(out, fmt.Sprintf("PoT %d every 6 s: %d base (max power/50), %+d items (%d worn), %+d drinks and spells, %+d masteries",
+		p.PoTNow(), p.PoTBase(), ItemCredit(p.Gear.PoTItems), len(p.Gear.PoTItems), p.Mods.PoT, p.CMEffects[cmSlotPoT]))
 
-	limit := p.StatCap()
-	for _, s := range []struct {
+	for i, s := range []struct {
 		name            string
 		st              Stat
 		base, gear, mod int
@@ -88,16 +87,18 @@ func (w *World) playerStatsLocked(p *Player, now time.Time) []string {
 		{"INT", StatInt, p.BaseInt, p.Gear.Int, p.Mods.Int},
 		{"CHA", StatCha, p.BaseCha, p.Gear.Cha, p.Mods.Cha},
 	} {
-		line := fmt.Sprintf("%s %d = base %d %+d items %+d spells", s.name, p.StatNow(s.st), s.base, s.gear, s.mod)
-		if total := s.base + s.gear + s.mod; total > limit {
+		limit := p.StatCapOf(s.st)
+		cm := p.CMEffects[i]
+		line := fmt.Sprintf("%s %d = base %d %+d items %+d spells %+d masteries", s.name, p.StatNow(s.st), s.base, s.gear, s.mod, cm)
+		if total := s.base + s.gear + s.mod + cm; total > limit {
 			line += fmt.Sprintf(" (%d past the cap of %d)", total-limit, limit)
 		} else {
 			line += fmt.Sprintf(" (cap %d)", limit)
 		}
 		out = append(out, line)
 	}
-	out = append(out, fmt.Sprintf("AC %d = %d items %+d spells; resists fire %d, cold %d, lightning %d, arcane %d, poison %d, disease %d",
-		p.StatNow(StatAC), p.Gear.AC, p.Mods.AC, p.StatNow(StatFR), p.StatNow(StatCR), p.StatNow(StatLR),
+	out = append(out, fmt.Sprintf("AC %d = %d items %+d spells %+d masteries; resists fire %d, cold %d, lightning %d, arcane %d, poison %d, disease %d",
+		p.StatNow(StatAC), p.Gear.AC, p.Mods.AC, p.CMEffects[cmSlotAC], p.StatNow(StatFR), p.StatNow(StatCR), p.StatNow(StatLR),
 		p.StatNow(StatAR), p.StatNow(StatPR), p.StatNow(StatDR)))
 
 	foe := &NPC{Level: p.Level}
@@ -123,8 +124,8 @@ func (w *World) playerStatsLocked(p *Player, now time.Time) []string {
 	out = append(out, fmt.Sprintf("Defence: a level %d creature hits for %d-%d (AC %d x %.4f and AGI %d x %.3f off its top, a %s's %+.1f)",
 		p.Level, lo, hi, p.StatNow(StatAC), r.ACSlope, p.StatNow(StatAgi), agiSlope[a], archNames[a], archOffset[a]))
 	out = append(out, fmt.Sprintf("Off/def mod by the old fitted formulas (no roll uses them): OFF %d, DEF %d", p.OffMod, p.DefMod))
-	out = append(out, fmt.Sprintf("Move rate %d (run speed %.2f); training points %d unspent of %d; masteries: %s",
-		p.MoveRate(), p.SpeedNow(), p.UnusedTP, p.TotalTP, MasteryLine(p.Mastery)))
+	out = append(out, fmt.Sprintf("Move rate %d (run speed %.2f); training points %d unspent of %d; masteries: %s, %d bought (#cm lists them)",
+		p.MoveRate(), p.SpeedNow(), p.UnusedTP, p.TotalTP, MasteryLine(p.Mastery), len(p.CMs)))
 	out = append(out, "Effects: "+effectsLine(p.Effects, now))
 	return out
 }

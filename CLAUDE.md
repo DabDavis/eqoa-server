@@ -345,6 +345,22 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   `dismiss_visual_suggestion`, `clear_visual_suggestions` (a sender's rows by hash prefix); the page
   shows them beside the preview (`previewPane`, exported from `visuals.js`), player text as text.
   nginx proxies `/eqoa/account/api/spellfx/{spells,suggest}` (exact locations).
+- **Community map marks** (`internal/mapmarks`, `ops_mapmarks.go`, `views/mapmarks.js`; the user, 2026-10-26: "Players can
+  submit waypoints to be added to the in-game map. Submissions would require official approval, similar to our spellfx",
+  ONE list for every vanilla player on any game server): the account server's two open routes (`tcp.AccountServer.MapMarks`),
+  `GET /api/mapmarks` (`{version, marks:[{id, world, x, z, name, note, kind}]}`, ETag the version, 304 on a match, public
+  for 60 s, rebuilt at once by `database.InvalidateMapMarks`: an accept, a row edit, a revert) and `POST
+  /api/mapmarks/suggest` (`{world 0-29, x, z within 200000, name 2-40 the profanity filter passes, note <= 200 (line
+  breaks as spaces), client <= 32}` -> `{ok, id}` or `{ok:false, error}` a player reads; no sign-in; a sender, an IPv6
+  one by its /64, kept only as a salted hash (`mapmark_meta`, hidden); 20 waiting a sender, one within 5 units of its own
+  waiting in the same world replacing it, 5,000 waiting in all), ACAO `*` on every answer and OPTIONS answered. Tables
+  `mapmark_suggestions` (waiting, accepted with `mark_id`, dismissed) and `mapmarks` (the list; a GM edits or deletes a
+  row through the audited editor, `checkRow` holding it to the route's rules). Ops `map_suggestions` (with the marks
+  within 25 of each), `accept_map_suggestion` (an audited insert, the name, note, kind (landmark, camp, quest, merchant,
+  travel, danger, other) and place the GM's to change first; revertible), `dismiss_map_suggestion`,
+  `clear_map_suggestions` (a sender's waiting rows by hash prefix), `map_marks`; the Map suggestions page and two layers
+  on the World map (community marks, suggested marks; `#/map/<world>/@x,z` opens centred on a place). nginx proxies
+  `/eqoa/account/api/mapmarks` and `/eqoa/account/api/mapmarks/suggest` (exact locations).
 
 Traps: the database has ONE connection (`SetMaxOpenConns(1)`): never query while holding rows
 or a `db.Conn`/transaction from the plain handle — it deadlocks the game (the SQL console once

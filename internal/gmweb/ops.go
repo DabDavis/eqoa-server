@@ -116,6 +116,7 @@ func (s *Server) registerOps() {
 	s.registerVisualOps()
 	s.registerSuggestionOps()
 	s.registerMapLayerOps()
+	s.registerMapMarkOps()
 }
 
 // run calls an operation as an actor, with the scope check, and logs a

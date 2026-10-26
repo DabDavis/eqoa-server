@@ -10,7 +10,10 @@
 // game's routes drawn as lines under every marker); the quest givers
 // (map_quests: a "!", gold for one with a quest in the game, grey for drafts
 // only; click for its quests and where they send players); and the town
-// names, over everything, the same size at every zoom.
+// names, over everything, the same size at every zoom. And the community's
+// map marks (ops_mapmarks.go): those on every map (map_marks, a teal flag) and
+// the places players suggest for them (map_suggestions, an orange flag; click
+// to accept or dismiss). #/map/<world>/@<x>,<z> opens centred on a place.
 
 import { h, mount, pageHead, button, toast, store, debounce, formBox } from '../lib/dom.js';
 import { op } from '../lib/api.js';
@@ -26,7 +29,9 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
   const meta = await describe('npcs');
   const worlds = (meta.enums.world || []).slice(0, 10);
   let world = worldSeg !== undefined ? Number(worldSeg) : Number(store('map.world') || 0);
-  const focus = focusSeg !== undefined ? Number(focusSeg) : null;
+  // a place to centre on (@x,z: Map suggestions' "On the World map") or an NPC
+  const at = typeof focusSeg === 'string' && focusSeg.startsWith('@') ? focusSeg.slice(1).split(',').map(Number) : null;
+  const focus = focusSeg !== undefined && !at ? Number(focusSeg) : null;
 
   const worldSel = h('select', { 'aria-label': 'World' }, ...worlds.map((w) => h('option', { value: w.value, selected: w.value === world }, `${w.label} (${w.value})`)));
   const find = h('input', { type: 'search', placeholder: 'find an NPC or player', 'aria-label': 'Find' });
@@ -37,6 +42,8 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
   const showCoaches = h('input', { type: 'checkbox', checked: store('map.coaches') !== '0', 'aria-label': 'Coaches' });
   const showQuests = h('input', { type: 'checkbox', checked: store('map.quests') !== '0', 'aria-label': 'Quest givers' });
   const showTowns = h('input', { type: 'checkbox', checked: store('map.towns') !== '0', 'aria-label': 'Town names' });
+  const showMarks = h('input', { type: 'checkbox', checked: store('map.cmarks') !== '0', 'aria-label': 'Community marks' });
+  const showSuggested = h('input', { type: 'checkbox', checked: store('map.csugg') !== '0', 'aria-label': 'Suggested marks' });
   const canvas = h('canvas', { 'aria-label': 'World map' });
   const tip = h('div', { class: 'map-tip hidden' });
   const info = h('div', { class: 'map-info hidden' });
@@ -49,7 +56,9 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
       h('label', { class: 'check badge', title: "EQOA-Data's XP camps, as #tele has them" }, showCamps, 'XP camps'),
       h('label', { class: 'check badge', title: 'Every coachman: its town and routes' }, showCoaches, 'coaches'),
       h('label', { class: 'check badge', title: 'Every NPC that gives a quest: gold with one in the game, grey with drafts only' }, showQuests, 'quest givers'),
-      h('label', { class: 'check badge', title: "The towns' names, by EQOA-Data's map" }, showTowns, 'towns'), status),
+      h('label', { class: 'check badge', title: "The towns' names, by EQOA-Data's map" }, showTowns, 'towns'),
+      h('label', { class: 'check badge', title: 'The marks every vanilla map shows (Map suggestions accepted, or a GM\'s own)' }, showMarks, 'community marks'),
+      h('label', { class: 'check badge', title: 'The places players suggest for every map, waiting for a GM' }, showSuggested, 'suggested marks'), status),
     tip, info);
   mount(box, pageHead('World map', 'NPCs as they stand and players online, over the terrain off your game disc: load it once on the Game disc page and this computer keeps the map.'), wrap);
 
@@ -60,7 +69,9 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
   }), h('span', null, h('strong', null, '▲'), ' player'),
     h('span', null, legendIcon((c) => drawXP(c, 13, 9, 1, false)), 'XP camp'),
     h('span', null, coachLegend, 'coach'),
-    h('span', null, legendIcon((c) => drawQuest(c, 13, 9, 1, false, true)), 'quest giver')));
+    h('span', null, legendIcon((c) => drawQuest(c, 13, 9, 1, false, true)), 'quest giver'),
+    h('span', null, legendIcon((c) => drawFlag(c, 13, 9, 1, false, false)), 'community mark'),
+    h('span', null, legendIcon((c) => drawFlag(c, 13, 9, 1, false, true)), 'suggested mark')));
   const coachLegend = legendIcon((c) => drawHorseshoe(c, 13, 9, 1, false));
   stableHorseshoe().then((img) => {
     if (!img) return;
@@ -74,6 +85,7 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
   let npcs = [], names = [], players = [];
   let camps = [], coaches = [], towns = [], you = null; // map_layers
   let givers = []; // map_quests
+  let cmarks = [], csugg = [], kinds = []; // map_marks, map_suggestions (waiting)
   let shoe = null; // the stables' horseshoe off the disc (disc.js), once it is read
   let view = { cx: 0, cz: 0, scale: 0.05 }; // world units -> pixels
   let selected = null, moving = null, hover = null;
@@ -236,6 +248,23 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
         if (view.scale > 0.08) label(c.key + (c.levels ? ' ' + c.levels : ''), sx, sy + 17 * dpr, '#ffe08a');
       }
     }
+    // the community's marks, and the places suggested for them
+    if (showMarks.checked) {
+      for (const m of cmarks) {
+        const [sx, sy] = toScreen(m.x, m.z);
+        if (sx < -30 || sy < -20 || sx > W + 30 || sy > H + 20) continue;
+        drawFlag(ctx, sx, sy, dpr, hover?.kind === 'cmark' && hover.c === m, false);
+        if (view.scale > 0.08) label(m.name, sx, sy + 16 * dpr, '#9fe8dc');
+      }
+    }
+    if (showSuggested.checked) {
+      for (const m of csugg) {
+        const [sx, sy] = toScreen(m.x, m.z);
+        if (sx < -30 || sy < -20 || sx > W + 30 || sy > H + 20) continue;
+        drawFlag(ctx, sx, sy, dpr, hover?.kind === 'csugg' && hover.c === m, true);
+        if (view.scale > 0.08) label(m.name + ' ?', sx, sy + 16 * dpr, '#ffc58a');
+      }
+    }
     ctx.globalAlpha = 1;
     // the town names over every marker, the same size at every zoom, a halo
     // round each so it reads over any zone picture; one that would run into a
@@ -331,6 +360,14 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
           if (d < bl) { bl = d; best = { kind: 'giver', c: g, x: g.x, z: g.z }; }
         }
       }
+      for (const [on, list, kind] of [[showMarks.checked, cmarks, 'cmark'], [showSuggested.checked, csugg, 'csugg']]) {
+        if (!on) continue;
+        for (const m of list) {
+          const [x, y] = toScreen(m.x, m.z);
+          const d = (x - px) ** 2 + (y - py) ** 2;
+          if (d < bl) { bl = d; best = { kind, c: m, x: m.x, z: m.z }; }
+        }
+      }
     }
     if (showNPC.checked && !best) {
       for (const n of npcs) {
@@ -348,6 +385,8 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
     if (sel.kind === 'camp') { campInfo(sel.c); return; }
     if (sel.kind === 'coach') { coachInfo(sel.c); return; }
     if (sel.kind === 'giver') { giverInfo(sel.c); return; }
+    if (sel.kind === 'cmark') { markInfo(sel.c); return; }
+    if (sel.kind === 'csugg') { suggestionInfo(sel.c); return; }
     if (sel.kind === 'npc') {
       const [id, x, z, level, type, flags] = sel.n;
       mount(info, h('strong', null, names[sel.n[6]]), h('div', null, `NPC ${id} · level ${level}${flags & 1 ? ' · dead' : ''}${flags & 2 ? ' · GM spawn' : ''}`),
@@ -400,8 +439,10 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
     hover = sel;
     if (sel) {
       tip.classList.remove('hidden');
-      tip.classList.toggle('rich', sel.kind === 'camp' || sel.kind === 'coach' || sel.kind === 'giver');
+      tip.classList.toggle('rich', ['camp', 'coach', 'giver', 'cmark', 'csugg'].includes(sel.kind));
       if (sel.kind === 'camp') mount(tip, ...campTip(sel.c));
+      else if (sel.kind === 'cmark') mount(tip, h('strong', null, sel.c.name), h('div', null, `community mark · ${sel.c.kind}`), sel.c.note ? h('div', { class: 'muted' }, sel.c.note) : null);
+      else if (sel.kind === 'csugg') mount(tip, h('strong', null, sel.c.name), h('div', null, 'suggested, waiting for a GM'), sel.c.note ? h('div', { class: 'muted' }, sel.c.note) : null);
       else if (sel.kind === 'coach') mount(tip, ...coachTip(sel.c));
       else if (sel.kind === 'giver') mount(tip, ...giverTip(sel.c));
       else tip.textContent = sel.kind === 'npc' ? `${names[sel.n[6]]} (${sel.n[3]})` : `${sel.p.name} (${sel.p.level})`;
@@ -461,6 +502,7 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
 
   async function loadLayers() {
     op('map_quests', { world }).then((out) => { givers = out.givers; draw(); }, (e) => toast(e.message, 'error'));
+    loadCommunity();
     try {
       const out = await op('map_layers', { world });
       camps = out.camps; coaches = out.coaches; towns = out.towns; you = out.you;
@@ -490,6 +532,37 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
       h('div', { class: 'mono small' }, `${g.x}, ${g.z}`),
       h('div', { class: 'row' }, button('Open', { class: 'small', onclick: () => go('npcs/' + g.id) }),
         teleportButton(you ? `Teleport ${you.name} here` : 'Teleport a character here…', { npc: g.id })));
+  }
+
+  // the community's marks: those on every map, and the places suggested
+  function loadCommunity() {
+    op('map_marks', { world }).then((out) => { cmarks = out.marks; kinds = out.kinds; draw(); }, (e) => toast(e.message, 'error'));
+    op('map_suggestions', { world, status: 'waiting' }).then((out) => { csugg = out.suggestions; kinds = out.kinds; draw(); }, (e) => toast(e.message, 'error'));
+  }
+  function markInfo(m) {
+    mount(info, h('strong', null, m.name), h('div', null, `community mark · ${m.kind}` + (m.source === 'gm' ? " · a GM's" : '')),
+      m.note ? h('div', { class: 'small' }, m.note) : null,
+      h('div', { class: 'mono small' }, `${m.x}, ${m.z}`),
+      h('div', { class: 'row' }, button('Edit or delete…', { class: 'small', onclick: () => go('tables/mapmarks/' + m.id) })));
+  }
+  function suggestionInfo(sg) {
+    const kind = h('select', { 'aria-label': 'Kind' }, ...kinds.map((k) => h('option', { value: k }, k)));
+    const decide = async (name, args, done) => {
+      try {
+        const out = await op(name, args);
+        toast(done(out), 'ok', out.change && out.change.live ? out.change.live : '');
+        selected = null; showInfo(null);
+        loadCommunity();
+      } catch (err) { toast(err.message, 'error'); }
+    };
+    mount(info, h('strong', null, sg.name), h('div', null, `suggested · sender ${sg.sender} · ${sg.created}`),
+      sg.note ? h('div', { class: 'small' }, '“', sg.note, '”') : null,
+      sg.near.length ? h('div', { class: 'small muted' }, 'Near it already: ' + sg.near.map((m) => `${m.name} (${m.distance} off)`).join(', ')) : null,
+      h('div', { class: 'mono small' }, `${sg.x}, ${sg.z}`),
+      h('div', { class: 'row' }, kind,
+        button('Accept', { class: 'small primary', title: 'Put it on every map as it is (Map suggestions edits it first)', onclick: () => decide('accept_map_suggestion', { id: sg.id, kind: kind.value }, (out) => out.message) }),
+        button('Dismiss', { class: 'small ghost', onclick: () => decide('dismiss_map_suggestion', { id: sg.id }, () => 'Dismissed') }),
+        button('Edit first…', { class: 'small ghost', onclick: () => go('mapmarks') })));
   }
 
   // XP camps: what a hover says, and the info box (map_camp: its loot)
@@ -577,6 +650,7 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
       if (first) {
         const f = focus !== null ? npcs.find((n) => n[0] === focus) : null;
         if (f) { view.cx = f[1]; view.cz = f[2]; view.scale = 0.8; selected = { kind: 'npc', n: f, x: f[1], z: f[2] }; showInfo(selected); }
+        else if (at && at.length === 2 && at.every(Number.isFinite)) { view.cx = at[0]; view.cz = at[1]; view.scale = 0.8; }
         else fit();
         paths.loadWorld();
         if (f && modeSeg === 'path') { info.classList.add('hidden'); paths.edit(f[0]); }
@@ -624,6 +698,8 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
   showCoaches.addEventListener('change', () => { store('map.coaches', showCoaches.checked ? '1' : '0'); draw(); });
   showQuests.addEventListener('change', () => { store('map.quests', showQuests.checked ? '1' : '0'); draw(); });
   showTowns.addEventListener('change', () => { store('map.towns', showTowns.checked ? '1' : '0'); draw(); });
+  showMarks.addEventListener('change', () => { store('map.cmarks', showMarks.checked ? '1' : '0'); draw(); });
+  showSuggested.addEventListener('change', () => { store('map.csugg', showSuggested.checked ? '1' : '0'); draw(); });
 
   loadLayers();
   await loadMarkers(true);
@@ -723,6 +799,39 @@ function drawCoach(ctx, x, y, d, hot, img) {
   ctx.fillStyle = hot ? 'rgba(243,226,196,0.9)' : 'rgba(18,13,8,0.75)';
   ctx.fill();
   ctx.drawImage(img, x - s / 2, y - s / 2, s, s);
+  ctx.restore();
+}
+
+// A community map mark: a pennant on a pole planted at (x, y), teal for one on
+// every map, orange and hollow for one waiting for a GM.
+function drawFlag(ctx, x, y, d, hot, suggested) {
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  // the pole, its foot on the place
+  ctx.strokeStyle = '#0b0d10';
+  ctx.lineWidth = 3.4 * d;
+  ctx.beginPath(); ctx.moveTo(x - 4 * d, y + 6 * d); ctx.lineTo(x - 4 * d, y - 9 * d); ctx.stroke();
+  ctx.strokeStyle = hot ? '#ffffff' : '#d9dce3';
+  ctx.lineWidth = 1.6 * d;
+  ctx.beginPath(); ctx.moveTo(x - 4 * d, y + 6 * d); ctx.lineTo(x - 4 * d, y - 9 * d); ctx.stroke();
+  // the pennant
+  ctx.beginPath();
+  ctx.moveTo(x - 3.2 * d, y - 9 * d); ctx.lineTo(x + 8 * d, y - 5.5 * d); ctx.lineTo(x - 3.2 * d, y - 2 * d); ctx.closePath();
+  ctx.strokeStyle = '#0b0d10';
+  ctx.lineWidth = 2 * d;
+  ctx.stroke();
+  if (suggested) {
+    ctx.fillStyle = hot ? 'rgba(255,214,170,0.95)' : 'rgba(255,170,90,0.35)';
+    ctx.fill();
+    ctx.strokeStyle = hot ? '#fff1e0' : '#ff9a3d';
+    ctx.lineWidth = 1.4 * d;
+    ctx.setLineDash([2.5 * d, 1.8 * d]);
+    ctx.stroke();
+  } else {
+    ctx.fillStyle = hot ? '#c8fff5' : '#3fd0b8';
+    ctx.fill();
+  }
   ctx.restore();
 }
 

@@ -86,6 +86,11 @@ type AccountServer struct {
 	// both answer 404.
 	SpellFX SpellFXRoutes
 
+	// MapMarks serves the community map marks' two routes, /api/mapmarks and
+	// /api/mapmarks/suggest (package mapmarks), the suggestion handed the
+	// client's address as getClientIP reads it. Nil: both answer 404.
+	MapMarks MapMarksRoutes
+
 	// VoiceDemo is the voice demo's WebSocket, /api/voice/demo (package
 	// voice), handed the client's address as getClientIP reads it. Nil: 404.
 	VoiceDemo VoiceDemoRoute
@@ -100,6 +105,13 @@ type VoiceDemoRoute interface {
 // (spellfx.Service).
 type SpellFXRoutes interface {
 	ServeSpells(w http.ResponseWriter, r *http.Request)
+	ServeSuggest(w http.ResponseWriter, r *http.Request, clientIP string)
+}
+
+// MapMarksRoutes is the community map marks' half of this server
+// (mapmarks.Service).
+type MapMarksRoutes interface {
+	ServeMarks(w http.ResponseWriter, r *http.Request)
 	ServeSuggest(w http.ResponseWriter, r *http.Request, clientIP string)
 }
 
@@ -241,6 +253,20 @@ func (s *AccountServer) Handler() http.Handler {
 			return
 		}
 		s.SpellFX.ServeSuggest(w, r, s.getClientIP(r))
+	})
+	mux.HandleFunc("/api/mapmarks", func(w http.ResponseWriter, r *http.Request) {
+		if s.MapMarks == nil {
+			http.NotFound(w, r)
+			return
+		}
+		s.MapMarks.ServeMarks(w, r)
+	})
+	mux.HandleFunc("/api/mapmarks/suggest", func(w http.ResponseWriter, r *http.Request) {
+		if s.MapMarks == nil {
+			http.NotFound(w, r)
+			return
+		}
+		s.MapMarks.ServeSuggest(w, r, s.getClientIP(r))
 	})
 	mux.HandleFunc("/api/voice/demo", func(w http.ResponseWriter, r *http.Request) {
 		if s.VoiceDemo == nil {

@@ -53,9 +53,13 @@ func pathRecordOf(row map[string]any) (database.NPCPathRecord, error) {
 }
 
 // checkRow refuses a row a table cannot hold although SQLite would: a path
-// the world could not walk. It reads nothing (it runs inside the change's
+// the world could not walk, a map mark the public route would refuse
+// (checkMapMarkRow). It reads nothing (it runs inside the change's
 // transaction, and the database has one connection).
 func checkRow(table string, row map[string]any) error {
+	if table == "mapmarks" && row != nil {
+		return checkMapMarkRow(row)
+	}
 	if table != "npcpaths" || row == nil {
 		return nil
 	}

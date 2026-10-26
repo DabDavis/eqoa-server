@@ -6,6 +6,7 @@ import (
 	"net"
 	"testing"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -283,5 +284,36 @@ func TestAKillMakesMasteryPointsAndTellsTheCap(t *testing.T) {
 		if protocol.GameOpcode(binary.LittleEndian.Uint16(m.Data())) == protocol.OpcodeClassMasteryServer {
 			t.Fatal("the control: with no share, no mastery points")
 		}
+	}
+}
+
+// The gods' blessings give their resists (jib, F3 20261026-043542: "The
+// first ranks gave +5 of the resist for their corresponding god"): Marr's
+// arcane, Ro's fire, as EQOA-Data lists them (cmcatalog), each rank's figure
+// adding to the ranks' below it as the cap masteries' must for the live 550:
+// Marr Blessing 1 and 2 make 15. The control: none bought, none.
+func TestTheGodsBlessingsGiveTheirResists(t *testing.T) {
+	w := NewWorld()
+	all, races := 32767, 2047
+	w.SetCMCatalog([]database.CMRankRow{
+		{ID: 201, Classes: all, Races: races, Mastery: "Marr Blessing", Rank: 1, Name: "Marr Blessing 1", Cost: 5, Level: 10, Effects: "AR:5", Enabled: true},
+		{ID: 202, Classes: all, Races: races, Mastery: "Marr Blessing", Rank: 2, Name: "Marr Blessing 2", Parent: 201, Cost: 10, Level: 20, Effects: "AR:10", Enabled: true},
+		{ID: 151, Classes: all, Races: races, Mastery: "Ro Blessing", Rank: 1, Name: "Ro Blessing 1", Cost: 5, Level: 10, Effects: "FR:5", Enabled: true},
+	})
+	p := &Player{Level: 60}
+	resists := func(owned map[int]int) (int, int) {
+		p.CMs = owned
+		p.refreshCMLocked(w.cms)
+		p.RecalcStats(false)
+		return p.ArcaneR, p.FireR
+	}
+	if ar, fr := resists(map[int]int{}); ar != 0 || fr != 0 {
+		t.Fatalf("the control: none bought, AR %d FR %d", ar, fr)
+	}
+	if ar, fr := resists(map[int]int{201: 5}); ar != 5 || fr != 0 {
+		t.Errorf("Marr Blessing 1: AR %d FR %d, want 5, 0", ar, fr)
+	}
+	if ar, fr := resists(map[int]int{201: 5, 202: 10, 151: 5}); ar != 15 || fr != 5 {
+		t.Errorf("Marr Blessing 1 and 2, Ro Blessing 1: AR %d FR %d, want 15, 5", ar, fr)
 	}
 }

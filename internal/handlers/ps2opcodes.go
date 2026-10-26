@@ -455,26 +455,29 @@ func SendOutMatched(sess *session.Session) {
 }
 
 // buildClassicTargetInfo is opcode 0x0010 — Msg0010 (0x00BD9D60): u8
-// disposition, two more bytes, two fixed 64-unit wide fields read raw (the
-// guild and title lines), and the u32 token of the 0x0010 request it answers.
+// disposition, two more bytes, two fixed 64-unit wide fields read raw, and
+// the u32 token of the 0x0010 request it answers. The first field is the
+// title (VIClient+0x4FCA8, which the info window shows in place of the
+// class) and the second the guild (+0x4FC28, shown under the name), as
+// Msg0010 reads them and VIWndGame::DrawTargetInfo (0x00C51F10) draws them.
 // CLIENT keeps the three bytes only when that token matches the one it sent
 // (SendOpIntInt(16, token, target)): without it the console compares whatever
 // its stack held, which is how the 261-byte replies retail sends leave a PS2's
 // target colours to chance.
-func buildClassicTargetInfo(token uint32, disposition, b, c byte, guild, title string) []byte {
+func buildClassicTargetInfo(token uint32, disposition, b, c byte, title, guild string) []byte {
 	return build(protocol.OpcodeClassicTargetInfo, 2+3+128+128+4, func(w *buffer.Writer) {
 		w.WriteByte(disposition)
 		w.WriteByte(b)
 		w.WriteByte(c)
-		writeFixedWide(w, guild, 64)
 		writeFixedWide(w, title, 64)
+		writeFixedWide(w, guild, 64)
 		w.WriteUint32(token)
 	})
 }
 
 // SendClassicTargetInfo sends opcode 0x0010.
-func SendClassicTargetInfo(sess *session.Session, token uint32, disposition, b, c byte, guild, title string) {
-	queueReliable(sess, protocol.OpcodeClassicTargetInfo, buildClassicTargetInfo(token, disposition, b, c, guild, title))
+func SendClassicTargetInfo(sess *session.Session, token uint32, disposition, b, c byte, title, guild string) {
+	queueReliable(sess, protocol.OpcodeClassicTargetInfo, buildClassicTargetInfo(token, disposition, b, c, title, guild))
 }
 
 // buildAssistTarget is opcode 0x007B — Msg007B: a u32 entity id the client

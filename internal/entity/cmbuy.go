@@ -282,6 +282,38 @@ func (w *World) RestoreCMs(sess *session.Session, owned []database.OwnedCM) {
 	p.RecalcStats(false)
 }
 
+// masterClassLocked is the Master Class the player holds, by its mastery's
+// name ("Spellbinder"; a row with none by the rank's own), "" for none. Of
+// two (a GM's doing: a second cannot be bought) the lowest rank id's.
+func (w *World) masterClassLocked(p *Player) string {
+	if w.cms == nil {
+		return ""
+	}
+	best, name := 0, ""
+	for id := range p.CMs {
+		r := w.cms.byID[id]
+		if r == nil || r.Category != CMCategoryMaster || (best != 0 && id > best) {
+			continue
+		}
+		best, name = id, r.Mastery
+		if name == "" {
+			name = r.Name
+		}
+	}
+	return name
+}
+
+// TargetInfoLines are the two lines 0x0010 carries about a player: its
+// title, which CLIENT's info window shows in place of its class
+// (VIWndGame::DrawTargetInfo), its Master Class (F3 20261026-135950: a
+// Spellbinder is shown as one, not as an Enchanter), and its guild, shown
+// under its name.
+func (w *World) TargetInfoLines(p *Player) (title, guild string) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.masterClassLocked(p), p.GuildName
+}
+
 // CMEntry is one rank as the window lists it.
 type CMEntry struct {
 	ID, Parent, Category, Cost int

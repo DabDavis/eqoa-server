@@ -217,7 +217,7 @@ func TestPlayerRecordWriters(t *testing.T) {
 }
 
 func TestClassicTargetInfoEndsWithTheToken(t *testing.T) {
-	got := buildClassicTargetInfo(0xDEADBEEF, 2, 5, 1, "Guild", "Title")
+	got := buildClassicTargetInfo(0xDEADBEEF, 2, 5, 1, "Title", "Guild")
 	if len(got) != 265 {
 		t.Fatalf("%d bytes, want 265", len(got))
 	}
@@ -236,8 +236,10 @@ func TestClassicTargetInfoEndsWithTheToken(t *testing.T) {
 		}
 		return string(utf16.Decode(u[:n]))
 	}
-	if g, ti := readFixed(), readFixed(); g != "Guild" || ti != "Title" {
-		t.Fatalf("lines %q %q", g, ti)
+	// Msg0010 reads the title first (VIClient+0x4FCA8, shown in place of the
+	// class), then the guild (+0x4FC28, shown under the name)
+	if ti, g := readFixed(), readFixed(); ti != "Title" || g != "Guild" {
+		t.Fatalf("lines %q %q, want the title then the guild", ti, g)
 	}
 	if tok := r.u32(); tok != 0xDEADBEEF {
 		t.Fatalf("token %X", tok)

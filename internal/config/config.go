@@ -15,6 +15,28 @@ type Config struct {
 	Patch  PatchConfig  `yaml:"patch"`
 	Auth   AuthConfig   `yaml:"auth"`
 	GM     GMConfig     `yaml:"gm"`
+	Voice  VoiceConfig  `yaml:"voice"`
+}
+
+// VoiceConfig is group voice chat (entity/voice.go): the clients' media goes
+// through a TURN server (coturn with use-auth-secret) relay-only, so no player
+// sees another's address, and the server mints each session's credentials
+// and relays the signaling between a group's members. Off unless Enabled,
+// with at least one URL and the secret.
+type VoiceConfig struct {
+	Enabled bool `yaml:"enabled"`
+
+	// TurnURLs are the TURN server's URLs as clients use them
+	// ("turn:203.0.113.5:3479?transport=udp", "...?transport=tcp").
+	TurnURLs []string `yaml:"turn_urls"`
+
+	// TurnSecret is coturn's static-auth-secret: never in a file anyone else
+	// reads, never committed.
+	TurnSecret string `yaml:"turn_secret"`
+
+	// CredentialTTL is how long a session's credentials last (unset or 0:
+	// 24h); they are sent again before then.
+	CredentialTTL time.Duration `yaml:"credential_ttl"`
 }
 
 // GMConfig is the GM panel (internal/gmweb): a web page, and the same work

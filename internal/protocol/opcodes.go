@@ -358,6 +358,35 @@ const (
 	// and a u8 power of 255. Each one is the whole set: an id it leaves out
 	// has no bar.
 	OpcodePowerBarsData GameOpcode = 0x7E02
+
+	// Group voice chat (entity/voice.go, handlers/voice.go), relay-only
+	// through the server's TURN (coturn), its signaling over the game's
+	// connection. Strings are a u16 byte length and UTF-8. No retail message
+	// has any of them: a PS2 ignores the offer and never asks.
+	//
+	// OpcodeVoiceOffer: a u32 after the opcode. The server offers voice (1)
+	// once the player is in the world, when it has one; a client answers 1
+	// (voice on) or 0 (off), at once and whenever its option changes.
+	OpcodeVoiceOffer GameOpcode = 0x7E06
+
+	// OpcodeVoiceConfig, server to a client whose voice is on: a u8 count of
+	// ICE servers, each a url, a username and a credential (coturn's REST
+	// credentials: "<unix expiry>:<id>" and base64 HMAC-SHA1 of it under the
+	// TURN secret), then a u32 of seconds they last; sent again before then.
+	OpcodeVoiceConfig GameOpcode = 0x7E07
+
+	// OpcodeVoicePeers, server to a client whose voice is on, whenever the set
+	// changes: a u8 count, then each other voice-on member of its group as a
+	// u32 voice id, a name and a u8 that is 1 where this client makes the offer
+	// (the lower voice id offers).
+	OpcodeVoicePeers GameOpcode = 0x7E08
+
+	// OpcodeVoiceSignal, both ways: a u32 voice id (to, client to server;
+	// from, server to client), a u32 seq, a u8 kind (1 offer, 2 answer, 3 ICE
+	// candidate, 4 bye), a u16 part and u16 parts, and a chunk of at most 900
+	// bytes of the message (clients reassemble by id and seq). Relayed only
+	// between two voice-on members of one group.
+	OpcodeVoiceSignal GameOpcode = 0x7E09
 )
 
 // =============================================================================
@@ -580,6 +609,14 @@ func (op GameOpcode) String() string {
 		return "PowerBars"
 	case OpcodePowerBarsData:
 		return "PowerBarsData"
+	case OpcodeVoiceOffer:
+		return "VoiceOffer"
+	case OpcodeVoiceConfig:
+		return "VoiceConfig"
+	case OpcodeVoicePeers:
+		return "VoicePeers"
+	case OpcodeVoiceSignal:
+		return "VoiceSignal"
 	default:
 		return "Unknown"
 	}

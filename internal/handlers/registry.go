@@ -178,6 +178,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		gameWorld.OnPlayerRespawn(charHandler.respawnPlayer)
 		// Return Home's landing: a teleport there (cast.go)
 		gameWorld.OnGate(charHandler.gatePlayer)
+		// the gates, portals, circles and evacuations (gates.go)
+		gameWorld.OnTravel(charHandler.travelPlayer)
+		gameWorld.SetLoadableWorlds(LoadableWorlds)
 	}
 	authHandler := NewAuthHandlerFull(serverHandler, charHandler, accountStore)
 	r.mu.Lock()

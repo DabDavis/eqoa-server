@@ -726,6 +726,33 @@ var catalog = map[string]tableNote{
 			"note":       {Label: "Note", Help: "why"},
 		},
 	},
+	"spellgates": {
+		Label: "Spell gates", Group: "Items & spells", Title: "spell", Sort: "spell",
+		Help: "Where the spells that teleport send, and whom (entity/gates.go): the wizard's gates, portals and evacuations " +
+			"and the druid's circles, a row a spell by its name in lower case. kind: self sends the caster; group the caster " +
+			"and the members of its group within radius of it as it lands (0: 20, the AE radius Allakhazam's 2004 records " +
+			"give); evac that group to the caster's bind point (where Return Home takes it), world/x/y/z unused (make it " +
+			"group to land it at its place). The landing is open, dry ground near x/y/z, clear of creatures, when the " +
+			"server has the ground files, else x/y/z as written; the group lands round the caster. A spell whose line " +
+			"teleports with no row, or whose world the caster's game cannot load, is refused before its power is spent; " +
+			"a line saying \"Set Maximum Power to 0\" takes the caster's power when it lands. Rows of source seed are " +
+			"tools/seed_spell_gates.py's: the places EQOA-Data's lines name, on CLIENT's zone grid and EQOA-Data's map, ours " +
+			"where no source says the spot.",
+		Live:   "At once: the next cast of the spell uses it.",
+		Search: []string{"spell", "place", "note"},
+		Cols: map[string]colNote{
+			"spell":  {Label: "Spell (key)", Help: "the spell's name in lower case, every record of that name"},
+			"kind":   {Label: "Whom", Help: "self, group or evac"},
+			"place":  {Label: "Place", Help: "as a player reads it"},
+			"world":  {Label: "World", Enum: "world"},
+			"x":      {Label: "X", Section: "Place"},
+			"y":      {Label: "Y (height)", Section: "Place"},
+			"z":      {Label: "Z", Section: "Place"},
+			"radius": {Label: "Group radius", Help: "how near the caster a member must stand; 0 the default, 20"},
+			"note":   {Label: "Note", Help: "where the place came from"},
+			"source": {Label: "Source", Help: "gm, or seed for tools/seed_spell_gates.py's rows (its --undo deletes those no GM changed)"},
+		},
+	},
 	"spellfx_suggestions": {
 		Label: "Community visual suggestions", Group: "Items & spells", Title: "spellid", Sort: "id", Write: writeAdmin,
 		Help: "What players suggest a spell's visual is, sent from the public spell-visual page with no sign-in " +

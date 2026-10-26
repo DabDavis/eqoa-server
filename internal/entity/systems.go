@@ -26,6 +26,7 @@ func (w *World) Tick(now time.Time) {
 	due, gates, gone := w.tickLocked(now)
 	w.runRespawns(due)
 	w.runGates(gates)
+	w.runTravels() // the spells that send players to a named place (gates.go)
 	w.runCorpsesGone(gone)
 }
 

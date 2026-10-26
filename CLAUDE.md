@@ -444,6 +444,32 @@ member (the roster's id, `groupFarID`'s stand-in out of sight), the target and t
 target (the ids the entity channel's bytes 59-62 carry). Players only: an NPC has no power.
 A session that never asks (every PS2, a vanilla build from before it) is sent nothing.
 
+**Group and guild voice chat** (2026-10-26; `entity/voice.go`, `handlers/voice.go`; the user's
+choices: a group's voice, then "also add guild voice chat", push to talk, off until a player
+turns it on, relay-only for privacy). The clients speak WebRTC to each other with relay
+candidates only, through a TURN server (coturn with `use-auth-secret`), so no player learns
+another's address; the server mints credentials and relays the signaling, never the audio.
+Non-retail opcodes, offered as 0x7E01 is: at the first 0x0014 a server with voice
+(`voice.enabled`, `voice.turn_urls`, `voice.turn_secret`; `voice.credential_ttl`, 24h unset)
+sends **0x7E06** (a u32 1); a client answers a u32 of flags (bit 0 voice on, bit 1 in its
+guild's voice channel; 0 off), at once and whenever they change. Then **0x7E07**: each TURN URL
+with coturn's REST credentials (username `<unix expiry>:v<voice id>`, credential
+base64(HMAC-SHA1(secret, username)), `TurnCredential`) and the seconds they last, sent again a
+quarter of the TTL (at most an hour) before they run out; **0x7E08** whenever its set changes:
+each peer's voice id (random a session, never 0), name, whether this client makes the offer
+(the lower id offers) and the channels they share (bit 0 its group's other voice-on members,
+bit 1 the others in its guild's channel; one entry, one connection, a pair); **0x7E09**, the
+signaling (to/from voice id, seq, kind offer/answer/candidate/bye, part of parts, a chunk of at
+most 900 bytes), relayed only to one of the sender's peers, at most 50 messages and 64 KB a
+second a session, anything else dropped (logged once every 10 s a session). A guild's channel
+holds its first 10 to ask (`voiceGuildCap`, by the server's clock); the 11th is told "Your
+guild's voice channel is full (10)." once and gets in, told "You are in your guild's voice
+channel.", as soon as a place frees (a member's voice or wish off, a guild left, a logout:
+`voiceGuildChannelsLocked`, every voice pass, 5 ticks). Groups and guilds may span worlds.
+A session that never answers (every PS2) is sent the offer alone. The strings are a u16 byte
+length and UTF-8. EQOA's TURN is its own coturn instance beside another project's on another
+box; its secret lives only in the live `config.yaml`.
+
 **Effects channel (0x43) is as long as its count**: a u32 count and a 132-byte record an effect (icon DictID, name as a wide string of at most 31 characters), 4 bytes when there is none, as CLIENT's `Channel43` reads it and every value in the captures is (136 to 796 bytes). It is the one state channel that changes length (`StateUpdateData.SetSizedData`; DRDP XORs over the shorter of a message and its reference). `#effect <icon hex> [name]` / `#effect clear` sets them by hand: nothing else puts an effect on yet.
 
 ## Configuration

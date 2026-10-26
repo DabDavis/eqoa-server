@@ -182,6 +182,26 @@ type Player struct {
 	powerBarsSent string
 	powerBarsDue  bool
 
+	// Voice: the player's client has voice chat on (voice.go, opcode 0x7E06);
+	// VoiceID is its voice id for this session (random, never 0), the rest
+	// what it was last sent and how fast it signals.
+	VoiceOn bool
+	VoiceID uint32
+	// VoiceGuild: it wants its guild's voice channel (0x7E06 bit 1);
+	// voiceGuildIn is the guild whose channel it is in (0 none),
+	// voiceGuildSince when it got in, voiceGuildAsked when it asked (the
+	// waiting order), voiceGuildToldFull its "full" line said
+	VoiceGuild         bool
+	voiceGuildIn       uint32
+	voiceGuildSince    time.Time
+	voiceGuildAsked    time.Time
+	voiceGuildToldFull bool
+	voicePeersSent     string
+	voicePeersDue      bool
+	voiceCredsUntil    time.Time
+	voiceRate          voiceRate
+	voiceDropLogged    time.Time
+
 	// Breath / underwater
 	Breath          int    // 0-255 (255 full), as the dump and stat channel byte 232 carry it; 32 every 6 s under liquid
 	Underwater      bool   // under a liquid's surface (UnderLiquid on WalkFlags)

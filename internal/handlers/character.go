@@ -685,6 +685,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// asks for it, a PS2 ignores it
 	SendPowerBarsOffer(sess)
 
+	// Offer group voice (voice.go) when this server has it: a client whose
+	// player turned it on asks for it, a PS2 ignores it
+	SendVoiceOffer(sess)
+
 	// The four weapon sets (gearsets.go): SOE's live client reads them, a PS2
 	// skips them
 	if h.gearSets != nil {

@@ -34,6 +34,7 @@ type World struct {
 
 	guilds      map[uint32]*Guild // guild.go
 	nextGuildID uint32
+	voice       VoiceSettings                     // group voice chat (voice.go); none: off
 	leaving     []func(*Player)                   // OnPlayerLeaving
 	entered     []func(*session.Session, *Player) // OnPlayerEntered
 	respawn     RespawnFunc                       // OnPlayerRespawn (respawn.go)

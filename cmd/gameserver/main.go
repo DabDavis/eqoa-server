@@ -257,6 +257,22 @@ func main() {
 	handlers.SetNPCText(cfg.World.NPCText)
 	handlers.SetMaxEntitySlots(cfg.World.MaxEntitySlots)
 	handlers.SetMaxViewDistance(cfg.World.MaxViewDistance)
+
+	// Group voice chat (entity/voice.go): relay-only through the TURN server
+	// config.yaml's voice names, credentials minted per session here
+	if v := cfg.Voice; v.Enabled {
+		if len(v.TurnURLs) == 0 || v.TurnSecret == "" {
+			log.Printf("Voice: enabled but voice.turn_urls or voice.turn_secret is empty; voice is OFF")
+		} else {
+			ttl := v.CredentialTTL
+			if ttl <= 0 {
+				ttl = entity.DefaultVoiceTTL
+			}
+			gameWorld.SetVoice(entity.VoiceSettings{TurnURLs: v.TurnURLs, Secret: v.TurnSecret, TTL: ttl})
+			handlers.SetVoiceOffered(true)
+			log.Printf("Voice: group voice on, %d TURN URLs, credentials for %v", len(v.TurnURLs), ttl)
+		}
+	}
 	log.Printf("Entity view: up to %d within %d for a client that keeps more than 24 within 300",
 		handlers.MaxEntitySlots(), handlers.MaxViewDistance())
 	if len(cfg.World.NPCText) > 0 {

@@ -35,6 +35,11 @@ func dice(rolls ...int) func(int) int {
 	}
 }
 
+// flatStat is a bearer whose every stat is n.
+func flatStat(n int) func(Stat) int {
+	return func(Stat) int { return n }
+}
+
 // A hit whose description names a proc is the proc's damage, on a friend,
 // for its duration; one whose description does not, or a line with no hit,
 // is as it was. The control: the line alone is a five-minute hit, harmful,

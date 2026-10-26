@@ -178,6 +178,12 @@ type ActiveEffect struct {
 	// Proc is a proc's damage (proc.go): what the bearer's melee hits may do
 	// more, 0 for none; ProcMax the top of its range.
 	Proc, ProcMax int
+	// ProcScale and ProcScalePct: a proc whose scale is its bearer's
+	// (SpellEffect.ScaleBearer) adds that share of the bearer's stat at each
+	// proc; ProcCap is the most a proc does, 0 for no cap.
+	ProcScale    Stat
+	ProcScalePct int
+	ProcCap      int
 	// Form is the body an illusion shows its bearer in (illusion.go), 0 for
 	// none; FormSize its scale, 0 for the bearer's own.
 	Form     uint32
@@ -718,7 +724,16 @@ func spellAmount(e SpellEffect, caster *Player) int {
 			n += bonus
 		}
 	}
-	return n
+	return capAmount(n, e.Cap)
+}
+
+// capAmount is n held to cap either way (an effect's "max N"); cap 0 holds
+// nothing.
+func capAmount(n, cap int) int {
+	if cap <= 0 {
+		return n
+	}
+	return max(min(n, cap), -cap)
 }
 
 // lasting is the part of a spell that stays on its target for the
@@ -737,7 +752,7 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		return nil
 	}
 	ae := &ActiveEffect{SpellID: cs.spell.SpellID, Name: cs.spell.Name, Icon: cs.spell.Icon, Caster: caster.ServerID,
-		Until: now.Add(dur), NextTick: now}
+		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks}
 	any := false
 	for _, e := range d.Effects {
 		switch e.Kind {
@@ -757,9 +772,19 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			ae.Invis = true
 		case EffectProc:
 			// the line's damage as it is (jib: "Damage has no mod"), and a
-			// line's own scale, its caster's (enchanter.go: Stormlord's Rune)
-			bonus := procBonus(e, caster)
-			ae.Proc, ae.ProcMax = e.Amount+bonus, max(e.AmountMax, e.Amount)+bonus
+			// line's own scale: its caster's (enchanter.go: Stormlord's Rune),
+			// or its bearer's at each proc (proc.go)
+			if e.ScaleBearer {
+				ae.Proc, ae.ProcMax = e.Amount, max(e.AmountMax, e.Amount)
+				ae.ProcScale, ae.ProcScalePct = e.Scale, e.ScalePct
+			} else {
+				bonus := procBonus(e, caster)
+				ae.Proc, ae.ProcMax = e.Amount+bonus, max(e.AmountMax, e.Amount)+bonus
+			}
+			ae.ProcCap = e.Cap
+			if e.Cap > 0 && !e.ScaleBearer {
+				ae.Proc, ae.ProcMax = min(ae.Proc, e.Cap), min(ae.ProcMax, e.Cap)
+			}
 		case EffectIllusion:
 			// its body is its bearer's to choose (landIllusionLocked)
 		default:

@@ -126,7 +126,10 @@ with the row before and after, and `revert_change` undoes a row change.
   over time), `Increase STR by 10` / `Decrease AC by 20` (STR STA AGI DEX WIS INT CHA AC, Max HP,
   Max Power, FR CR PR DR LR AR), `Root`, `Snare` (or `Decrease Movement Speed by 30`), `Sow` (run speed),
   `Invis`, `Return to bind point` (a gate), `+100 hate`; a scale
-  `; Increase 15% based on DEX`; a duration `30sec`, `5min`, `2hr`. Example:
+  `; Increase 15% based on DEX` (the caster's stat), or `; Increase 15% based on bearer's DEX` on a proc (the stat
+  of whoever wears it, at each proc); a cap on the clause before it, `; max 250` (the most it does, its scale
+  included); a count `3 ticks` (a heal or power over time ticks exactly that often, the first at its landing,
+  within its duration); a duration `30sec`, `5min`, `2hr`. Example:
   `Target, Decrease Hitpoints by 120 ; Increase 10% based on INT`. Several stats take one number
   (`Increase PR/DR by 35`, `buff DR, PR, FR, CR by 100`). A line that raises stats and gives no
   duration lasts 30 minutes; a heal over time with none, 24 seconds. A radius (`15rad`), a buff's
@@ -155,6 +158,10 @@ with the row before and after, and `revert_change` undoes a row change.
   resist / (resist + 200), and can die of it; such a spell is cast at a friend or oneself).
   A necromancer's summoned pet of level 20 or more casts the necromancer's best single-target tap at or
   below its level every 30 seconds in a fight, so a tap's line is its pets' too.
+- **Summoned pets**: a line that says `Summons a Clay Golem to aid you`, `... to your defense` or `Summons a pet`
+  makes a pet, of the spell's level (never above its caster's) or of the level the line names (`Summons a pet,
+  level 30`). The pet is named after the spell, less a leading `Summon ` (`Summon Stone Servant` makes a Stone
+  Servant); an enchanter's pet named Grand Animation hits twice a round and taunts for 500.
 - **Write a quest**: `quest_save` with the quest and its steps in order (look at one with `quest_get` first;
   its answer lists the quest's problems: an NPC this server lacks, a merchant, banker or blacksmith, which
   the game never talks to, a creature that never spawns, words the client cuts). How it plays:

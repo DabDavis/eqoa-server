@@ -146,10 +146,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "tarantula hatchling"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). No tarantula hatchlings are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "1-20/highbourne/alchemist/L4",
@@ -256,10 +254,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "banded kingsnake"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). No banded kingsnakes are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "1-20/highbourne/alchemist/L7",
@@ -337,10 +333,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "greyflesh pike"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The guildmaster is Jergish Anaebarum. The greyflesh pike is not on this server. Not on this server, left out of the rewards: the item \"Treated Gloves\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The guildmaster is Jergish Anaebarum. Not on this server, left out of the rewards: the item \"Treated Gloves\"."
   },
   {
    "key": "1-20/highbourne/alchemist/L10",
@@ -427,10 +421,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Elusive Stone Ant"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). The fisherman on the raft north of Wyndhaven is Fisherman Bobston. The Elusive Stone Ant is not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). The fisherman on the raft north of Wyndhaven is Fisherman Bobston."
   },
   {
    "key": "1-20/highbourne/alchemist/L13",
@@ -520,11 +512,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "ribbed snake",
-    "Jargan Nicks"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The ribbed snake and Jargan Nicks are not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "1-20/highbourne/alchemist/L15",
@@ -593,10 +582,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Giggen Aviak"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Giggen aviaks are not on this server; a male and a female feather are two feathers here."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). A male and a female feather are two feathers here."
   },
   {
    "key": "1-20/highbourne/alchemist/L20",
@@ -619,7 +606,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "the alchemist of Arcadia",
+     "target": "Alchemist of Arcadia",
      "journal": "Speak with the alchemist of Arcadia.",
      "says": "Walk back to the dock."
     },
@@ -637,13 +624,13 @@
     },
     {
      "kind": "talk",
-     "target": "the guard of the sage",
+     "target": "Guard of the Sage",
      "journal": "Speak with the guard of the sage.",
      "says": "Kill the thief among the Taereg bandits by the lake at Kara Village."
     },
     {
      "kind": "loot",
-     "target": "the thief of the Taereg camp",
+     "target": "taereg jewel thief",
      "items": [
       {
        "item": "Thief's Proof",
@@ -656,7 +643,7 @@
     },
     {
      "kind": "give",
-     "target": "the guard of the sage",
+     "target": "Guard of the Sage",
      "items": [
       {
        "item": "Thief's Proof",
@@ -668,7 +655,7 @@
     },
     {
      "kind": "talk",
-     "target": "the sage of Gramash Ruins",
+     "target": "Sage of Gramash",
      "journal": "Speak with the sage of Gramash Ruins.",
      "says": "You have come far.",
      "rewards": {
@@ -677,13 +664,7 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "the alchemist of Arcadia",
-    "Mayor Reively",
-    "the guard of the sage",
-    "the thief of the Taereg camp",
-    "the sage of Gramash Ruins"
-   ],
+   "unresolved": [],
    "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Most of this guide's people are unnamed and not on this server; the popups at Arcadia's dock, the shiny metal on the sea floor and the charge to the Plane of Sky are left out. The guide offers a choice of Student's Knack or Klick'Anon Cocktail; a quest here gives no choice, so neither is given."
   },
   {
@@ -958,10 +939,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "banded kingsnake"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). No banded kingsnakes are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "1-20/highbourne/cleric/L7",
@@ -1029,10 +1008,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Nubja"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). Nubja is not on this server. Not on this server, left out of the rewards: the item \"Light Cloth Pants\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Light Cloth Pants\"."
   },
   {
    "key": "1-20/highbourne/cleric/L10",
@@ -1096,11 +1073,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Duke Geoff Melnorn",
-    "Rory Redface"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Duke Geoff Melnorn and Rory Redface are not on this server. Not on this server, left out of the rewards: the item \"Ironsun Morningstar\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Ironsun Morningstar\"."
   },
   {
    "key": "1-20/highbourne/cleric/L13",
@@ -1314,10 +1288,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Kithicor Thug"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). The Kithicor thug is not on this server. Not on this server, left out of the rewards: the item \"Guard of Peace\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Guard of Peace\"."
   },
   {
    "key": "1-20/highbourne/cleric/L20",
@@ -1493,11 +1465,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Grend Darkmaw",
-    "Furdle Nimdar (attackable)"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Grend Darkmaw is not on this server. The guide offers a choice of Disease Ward or Field Dress; a quest here gives no choice, so neither is given. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Disease Ward or Field Dress; a quest here gives no choice, so neither is given. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable."
   },
   {
    "key": "1-20/highbourne/enchanter/L1",
@@ -1644,10 +1613,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "rogue lion"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The guide has no level 3 to 5 quests for this class. The rogue lion is not on this server. Not on this server, left out of the rewards: the item \"Fur Lined Gloves\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The guide has no level 3 to 5 quests for this class. Not on this server, left out of the rewards: the item \"Fur Lined Gloves\"."
   },
   {
    "key": "1-20/highbourne/enchanter/L10",
@@ -1710,10 +1677,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Ganron Blackart"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Ganron Blackart is not on this server; the guide's count of skeletal dogs is ours (3). Not on this server, left out of the rewards: the item \"Keeper's Staff\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). The guide's count of skeletal dogs is ours (3). Not on this server, left out of the rewards: the item \"Keeper's Staff\"."
   },
   {
    "key": "1-20/highbourne/enchanter/L13",
@@ -1821,11 +1786,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Maryan",
-    "Spotted Lion"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The greyweed popup at Druids Watch is left out (no place is known). Maryan and the spotted lions are not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The greyweed popup at Druids Watch is left out (no place is known)."
   },
   {
    "key": "1-20/highbourne/enchanter/L15",
@@ -1933,12 +1895,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Fenra",
-    "Maryan",
-    "Brownie Thief"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Toshel is Caller Toshei here and Nalej is Nalai Belzia. Fenra, Maryan and the brownie thief are not on this server. Not on this server, left out of the rewards: the item \"Watersilk Gloves\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Toshel is Caller Toshei here and Nalej is Nalai Belzia. Not on this server, left out of the rewards: the item \"Watersilk Gloves\"."
   },
   {
    "key": "1-20/highbourne/enchanter/L20",
@@ -2080,14 +2038,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Farny the Woodcutter",
-    "Goretusk the Boar",
-    "Maryan",
-    "Mayor Reively",
-    "Blinkbart Bagglebaff"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Farny, Goretusk, Maryan, Mayor Reively and Blinkbart Bagglebaff are not on this server. The guide offers a choice of Glimmering Arcanum (Spacious Mind) or Glimmering Wand (Power Boon); a quest here gives no choice, so neither is given."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Glimmering Arcanum (Spacious Mind) or Glimmering Wand (Power Boon); a quest here gives no choice, so neither is given."
   },
   {
    "key": "1-20/highbourne/magician/L1",
@@ -2283,10 +2235,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "banded kingsnake"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The guide has no level 4 quest for this class. No banded kingsnakes are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The guide has no level 4 quest for this class."
   },
   {
    "key": "1-20/highbourne/magician/L7",
@@ -2337,10 +2287,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "rogue lion"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The rogue lion is not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
   },
   {
    "key": "1-20/highbourne/magician/L10",
@@ -2416,10 +2364,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Ganron Blackart"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. Ganron Blackart is not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
   },
   {
    "key": "1-20/highbourne/magician/L13",
@@ -2524,11 +2470,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Maryan",
-    "Spotted Lion"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The greyweed popup at Druids Watch is left out (no place is known). Maryan and the spotted lions are not on this server. Keeper Toshel is Caller Toshei here."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The greyweed popup at Druids Watch is left out (no place is known). Keeper Toshel is Caller Toshei here."
   },
   {
    "key": "1-20/highbourne/magician/L15",
@@ -2633,12 +2576,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Fenra",
-    "Maryan",
-    "Brownie Thief"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Toshel is Caller Toshei here and Nalej is Nalai Belzia. Fenra, Maryan and the brownie thief are not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Toshel is Caller Toshei here and Nalej is Nalai Belzia."
   },
   {
    "key": "1-20/highbourne/magician/L20",
@@ -2780,14 +2719,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Farny the Woodcutter",
-    "Goretusk the Boar",
-    "Maryan",
-    "Mayor Reively",
-    "Blinkbart Bagglebaff"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Farny, Goretusk, Maryan, Mayor Reively and Blinkbart Bagglebaff are not on this server. The guide offers a choice of Frozen Mark or Lava Stone; a quest here gives no choice, so neither is given."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Frozen Mark or Lava Stone; a quest here gives no choice, so neither is given."
   },
   {
    "key": "1-20/highbourne/necromancer/L1",
@@ -3061,10 +2994,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "banded kingsnake"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). No banded kingsnakes are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "1-20/highbourne/necromancer/L7",
@@ -3118,10 +3049,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "rogue lion"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The rogue lion is not on this server. Not on this server, left out of the rewards: the item \"Lionskin Belt\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Lionskin Belt\"."
   },
   {
    "key": "1-20/highbourne/necromancer/L10",
@@ -3203,10 +3132,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Ganron Blackart"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Ganron Blackart is not on this server. Not on this server, left out of the rewards: the item \"Whitebone Dagger\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Whitebone Dagger\"."
   },
   {
    "key": "1-20/highbourne/necromancer/L13",
@@ -3314,11 +3241,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Maryan",
-    "Spotted Lion"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The greyweed popup at Druids Watch is left out (no place is known). Maryan and the spotted lions are not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The greyweed popup at Druids Watch is left out (no place is known)."
   },
   {
    "key": "1-20/highbourne/necromancer/L15",
@@ -3445,12 +3369,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Fenra",
-    "Maryan",
-    "Brownie Thief"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Fenra, Maryan and the brownie thief are not on this server. The guide spells the scroll Enudre Disease. Not on this server, left out of the rewards: the item \"Robe of the Hidden\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). The guide spells the scroll Enudre Disease. Not on this server, left out of the rewards: the item \"Robe of the Hidden\"."
   },
   {
    "key": "1-20/highbourne/necromancer/L20",
@@ -3611,14 +3531,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Farny the Woodcutter",
-    "Goretusk the Boar",
-    "Maryan",
-    "Mayor Reively",
-    "Blinkbart Bagglebaff"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Farny, Goretusk, Maryan, Mayor Reively and Blinkbart Bagglebaff are not on this server. The guide offers a choice of Power Gate (with a decayed wand) or Blood Gale (with a scythe); a quest here gives no choice, so neither is given."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Power Gate (with a decayed wand) or Blood Gale (with a scythe); a quest here gives no choice, so neither is given."
   },
   {
    "key": "1-20/highbourne/paladin/L1",
@@ -3765,10 +3679,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "decaying rat"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). No decaying rats are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "1-20/highbourne/paladin/L4",
@@ -3894,10 +3806,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "banded kingsnake"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). No banded kingsnakes are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "1-20/highbourne/paladin/L7",
@@ -3966,10 +3876,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Nubja"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). Nubja is not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "1-20/highbourne/paladin/L10",
@@ -4038,11 +3946,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Brother Pendle",
-    "Rory Redface"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Brother Pendle and Rory Redface are not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "1-20/highbourne/paladin/L13",
@@ -4250,10 +4155,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Kithicor Thug"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). The Kithicor thug is not on this server. Not on this server, left out of the rewards: the item \"Sunhound Tunic\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Sunhound Tunic\"."
   },
   {
    "key": "1-20/highbourne/paladin/L20",
@@ -4429,11 +4332,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Grend Darkmaw",
-    "Furdle Nimdar (attackable)"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Grend Darkmaw is not on this server. The guide offers a choice of Fortify or Shining Bastion; a quest here gives no choice, so neither is given. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Fortify or Shining Bastion; a quest here gives no choice, so neither is given. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable."
   },
   {
    "key": "1-20/highbourne/shadowknight/L1",
@@ -4707,10 +4607,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "banded kingsnake"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). No banded kingsnakes are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "1-20/highbourne/shadowknight/L7",
@@ -4764,10 +4662,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "rogue lion"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The rogue lion is not on this server. Not on this server, left out of the rewards: the item \"Lion Hide Vest\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Lion Hide Vest\"."
   },
   {
    "key": "1-20/highbourne/shadowknight/L10",
@@ -4843,10 +4739,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Ganron Blackart"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Ganron Blackart is not on this server. Not on this server, left out of the rewards: the item \"Grim Longsword\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "1-20/highbourne/shadowknight/L13",
@@ -4954,11 +4848,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Maryan",
-    "Spotted Lion"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The greyweed popup at Druids Watch is left out (no place is known). Maryan and the spotted lions are not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The greyweed popup at Druids Watch is left out (no place is known)."
   },
   {
    "key": "1-20/highbourne/shadowknight/L15",
@@ -5072,12 +4963,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Fenra",
-    "Maryan",
-    "Brownie Thief"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Toshel is Caller Toshei here and Nalej is Nalai Belzia. Fenra, Maryan and the brownie thief are not on this server. Not on this server, left out of the rewards: the item \"Slayer's Chain Shirt\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Toshel is Caller Toshei here and Nalej is Nalai Belzia. Not on this server, left out of the rewards: the item \"Slayer's Chain Shirt\"."
   },
   {
    "key": "1-20/highbourne/shadowknight/L20",
@@ -5219,14 +5106,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Farny the Woodcutter",
-    "Goretusk the Boar",
-    "Maryan",
-    "Mayor Reively",
-    "Blinkbart Bagglebaff"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Farny, Goretusk, Maryan, Mayor Reively and Blinkbart Bagglebaff are not on this server. The guide offers a choice of Bloodwasp (with a spetum) or Shadow Tower (with a beheader); a quest here gives no choice, so neither is given."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Bloodwasp (with a spetum) or Shadow Tower (with a beheader); a quest here gives no choice, so neither is given."
   },
   {
    "key": "1-20/highbourne/wizard/L1",
@@ -5503,10 +5384,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "banded kingsnake"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). No banded kingsnakes are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "1-20/highbourne/wizard/L7",
@@ -5560,10 +5439,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "rogue lion"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The rogue lion is not on this server. Not on this server, left out of the rewards: the item \"Lion Fur Trousers\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Lion Fur Trousers\"."
   },
   {
    "key": "1-20/highbourne/wizard/L10",
@@ -5645,9 +5522,7 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Ganron Blackart"
-   ],
+   "unresolved": [],
    "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). The necromancer is Ganron Blackart, the traitor of the other classes' quests; he is not on this server. Not on this server, left out of the rewards: the item \"Crimson Staff\"."
   },
   {
@@ -5756,11 +5631,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Maryan",
-    "Spotted Lion"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The greyweed popup at Druids Watch is left out (no place is known). Maryan and the spotted lions are not on this server. The guide's Elemental Guard is the level-13 Element Guard here."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). The greyweed popup at Druids Watch is left out (no place is known). The guide's Elemental Guard is the level-13 Element Guard here."
   },
   {
    "key": "1-20/highbourne/wizard/L15",
@@ -5863,12 +5735,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Fenra",
-    "Maryan",
-    "Brownie Thief"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Nalej is Nalai Belzia here. Fenra, Maryan and the brownie thief are not on this server. Not on this server, left out of the rewards: the item \"Garnet Pants\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Nalej is Nalai Belzia here. Not on this server, left out of the rewards: the item \"Garnet Pants\"."
   },
   {
    "key": "1-20/highbourne/wizard/L20",
@@ -6010,14 +5878,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Farny the Woodcutter",
-    "Goretusk the Boar",
-    "Maryan",
-    "Mayor Reively",
-    "Blinkbart Bagglebaff"
-   ],
-   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Farny, Goretusk, Maryan, Mayor Reively and Blinkbart Bagglebaff are not on this server. The guide offers a choice of Blazing Clash or Mental Focus; a quest here gives no choice, so neither is given."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Blazing Clash or Mental Focus; a quest here gives no choice, so neither is given."
   }
  ],
  "items": [

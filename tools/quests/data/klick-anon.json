@@ -367,10 +367,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Blackpaw"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). Blackpaw (a bear, CON yellow at 7) is not on this server; a GM may place him south of the city. Not on this server, left out of the rewards: the item \"Silk Spun Gloves\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). A GM may place him south of the city. Not on this server, left out of the rewards: the item \"Silk Spun Gloves\"."
   },
   {
    "key": "1-20/klick-anon/alchemist/L10",
@@ -461,9 +459,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Orc Wizard"
-   ],
+   "unresolved": [],
    "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). No creature is named Orc Wizard here; the orc casters by the Hatebone cave south of Fayspire (orc augur L10, orc witchdoctor L10) could stand in. Not on this server, left out of the rewards: the item \"Brown Gnarled Staff\"."
   },
   {
@@ -560,9 +556,7 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Fire Goblin Alchemist"
-   ],
+   "unresolved": [],
    "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). Goben Gernhard is Groben Grenard here. The guide has the player buy the blue salts; here Goben hands them over. No fire goblin of level 13 is on this server (Lavastorm's are 59-62)."
   },
   {
@@ -669,10 +663,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Grizglurg"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Grizglurg (CON yellow at 15) is not on this server. The guide's mining with a pickaxe is Eldemore handing over the barium; Dreggen's price is not given and is left out. Not on this server, left out of the rewards: the item \"Lanlin's Padded Bracers\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). The guide's mining with a pickaxe is Eldemore handing over the barium; Dreggen's price is not given and is left out. Not on this server, left out of the rewards: the item \"Lanlin's Padded Bracers\"."
   },
   {
    "key": "1-20/klick-anon/alchemist/L20",
@@ -777,10 +769,8 @@
      ]
     }
    ],
-   "unresolved": [
-    "Stoneite Golem"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Student's Knack (with a hammer) or Klick'Anon Cocktail (with a compendium); a quest here gives no choice, so neither is given. Stoneite Golems are not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Student's Knack (with a hammer) or Klick'Anon Cocktail (with a compendium); a quest here gives no choice, so neither is given."
   },
   {
    "key": "1-20/klick-anon/cleric/L1",
@@ -1170,10 +1160,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "goblin burglar"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/cleric.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The gear wheels are bought in the guide; here Samwe hands them over. No goblin burglars are on this server. Not on this server, left out of the rewards: the item \"Teka's Greaves\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/cleric.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). The gear wheels are bought in the guide; here Samwe hands them over. Not on this server, left out of the rewards: the item \"Teka's Greaves\"."
   },
   {
    "key": "1-20/klick-anon/cleric/L10",
@@ -1299,10 +1287,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Stily Hornbar"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/cleric.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Stily Hornbar is not on this server; a GM may place him in the Coldpaw camp west of the city. Not on this server, left out of the rewards: the item \"Dogtooth Mace\"."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/cleric.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). A GM may place him in the Coldpaw camp west of the city. Not on this server, left out of the rewards: the item \"Dogtooth Mace\"."
   },
   {
    "key": "1-20/klick-anon/cleric/L13",
@@ -2189,10 +2175,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "goblin burglar"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The springs are bought in the guide; here Merchant Folsop (by the lava pit) hands them over. No goblin burglars are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The springs are bought in the guide; here Merchant Folsop (by the lava pit) hands them over."
   },
   {
    "key": "1-20/klick-anon/enchanter/L10",
@@ -2327,10 +2311,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Engineer Eagglefoot"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. Engineer Eagglefoot is not on this server (Engineers Hooversal and Macklewok stand at the lake's lab). Savi's ink is left out of her price."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. Savi's ink is left out of her price."
   },
   {
    "key": "1-20/klick-anon/enchanter/L13",
@@ -3207,7 +3189,7 @@
     },
     {
      "kind": "give",
-     "target": "Gligbin",
+     "target": "Gligbin Gearcharmer",
      "items": [
       {
        "item": "Gearcharmer's Device",
@@ -3233,7 +3215,7 @@
     },
     {
      "kind": "give",
-     "target": "Gligbin",
+     "target": "Gligbin Gearcharmer",
      "items": [
       {
        "item": "Witchdoctor's Resin",
@@ -3271,11 +3253,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Orc Thief",
-    "Gligbin"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. No Orc Thieves or Gligbin are on this server (orc burglars south of Fayspire could stand in for the thieves)."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
   },
   {
    "key": "1-20/klick-anon/magician/L13",
@@ -3519,10 +3498,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Trapmaw"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here and Haldrin is Hardlin (Fayspire's guide spells him so). Trapmaw is not on this server (a bear Trapjaw stands south of Moradhim). The guide does not say what the stonemason drops."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here and Haldrin is Hardlin (Fayspire's guide spells him so). The guide does not say what the stonemason drops."
   },
   {
    "key": "1-20/klick-anon/magician/L20",
@@ -4034,9 +4011,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Hazinak Troll"
-   ],
+   "unresolved": [],
    "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The guide does not name the troll in the green tent behind Coachman Droogra (Pulanga and Captain Ogof stand near)."
   },
   {
@@ -4060,7 +4035,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "journal": "Speak with Dragoon X'Talin.",
      "says": "Kill the tomb rats in the tower down the river and bring me the sigil one carries."
     },
@@ -4079,7 +4054,7 @@
     },
     {
      "kind": "give",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "items": [
       {
        "item": "Sigil",
@@ -4104,7 +4079,7 @@
     },
     {
      "kind": "give",
-     "target": "Dragoon X'Talin",
+     "target": "Dragoon X`Talin",
      "items": [
       {
        "item": "Arzen's Paper",
@@ -4150,12 +4125,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Dragoon X'Talin",
-    "Arzen",
-    "Grim"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. Dragoon X'Talin, Arzen and the dog Grim are not on this server (Guryon X`Lottl is). In the guide Arzen and Grim appear with a popup."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. In the guide Arzen and Grim appear with a popup."
   },
   {
    "key": "1-20/klick-anon/necromancer/L13",
@@ -4260,10 +4231,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Helthea"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The tail goes to V'Ekelos here, not to the man in the tavern the guide does not name. Gilgash hands over the nightshade. Helthea (who appears with a popup at the inn's door) is not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The tail goes to V'Ekelos here, not to the man in the tavern the guide does not name. Gilgash hands over the nightshade."
   },
   {
    "key": "1-20/klick-anon/necromancer/L15",
@@ -4339,10 +4308,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Croc"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Croc is not on this server; in the guide Foonklim swims out and taunts him out of his house."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. In the guide Foonklim swims out and taunts him out of his house."
   },
   {
    "key": "1-20/klick-anon/necromancer/L20",
@@ -4442,10 +4409,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Elder of Hodstock"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The Elder of Hodstock is not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
   },
   {
    "key": "1-20/klick-anon/rogue/L1",
@@ -4801,10 +4766,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Model III"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. No Model III clockworks are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
   },
   {
    "key": "1-20/klick-anon/rogue/L10",
@@ -4910,10 +4873,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Jarek's Creation"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. (the guide says 556,000). Jarek's Creation, the insect that kills him and attacks you, is not on this server; the guide's new shank is not named."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. (the guide says 556,000). The guide's new shank is not named."
   },
   {
    "key": "1-20/klick-anon/rogue/L13",
@@ -4959,13 +4920,13 @@
     },
     {
      "kind": "talk",
-     "target": "Dragoon V'Ghen",
+     "target": "Dragoon V`Ghen",
      "journal": "Speak with Dragoon V'Ghen.",
      "says": "My brother has it, in the tent by this tower."
     },
     {
      "kind": "loot",
-     "target": "Valrean V'Ghen",
+     "target": "Valrean V`Ghen",
      "items": [
       {
        "item": "U'Dedne's Chalice",
@@ -5014,11 +4975,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Dragoon V'Ghen",
-    "Valrean V'Ghen"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). Dragoon V'Ghen and Valrean V'Ghen are not on this server (Haltak V`Ghen is). Gilgash hands over the bracelet."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). Gilgash hands over the bracelet."
   },
   {
    "key": "1-20/klick-anon/rogue/L15",
@@ -5130,10 +5088,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Final Thought"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). The Final Thoughts are not on this server. Gilgash hands over the lantern."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Gilgash hands over the lantern."
   },
   {
    "key": "1-20/klick-anon/rogue/L20",
@@ -5650,10 +5606,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "goblin burglar"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/warrior.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. No goblin burglars are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/warrior.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
   },
   {
    "key": "1-20/klick-anon/warrior/L10",
@@ -5826,11 +5780,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Watchman Prit",
-    "Gorged Rat"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/warrior.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. Watchman Prit and the gorged rats are not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/warrior.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
   },
   {
    "key": "1-20/klick-anon/warrior/L13",
@@ -6664,10 +6615,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "goblin burglar"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/wizard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The scroll of Burning Flame is Burning Flare here. No goblin burglars are on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/wizard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The scroll of Burning Flame is Burning Flare here."
   },
   {
    "key": "1-20/klick-anon/wizard/L10",
@@ -6796,11 +6745,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Hosco Brixwak",
-    "Strange Clockwork"
-   ],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. Hosco Brixwak and the strange clockwork are not on this server."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/klick-anon/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
   },
   {
    "key": "1-20/klick-anon/wizard/L13",

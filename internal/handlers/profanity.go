@@ -109,6 +109,13 @@ func profaneName(name string) bool {
 	return false
 }
 
+// ProfaneRoomName is whether a voice room's name is refused (the voice
+// lobby's, internal/voice): a word of it the chat would mask, or a root a
+// character's name may not carry anywhere in it.
+func ProfaneRoomName(name string) bool {
+	return profaneName(name) || maskProfanity(name) != name
+}
+
 // HandleProfanityFilter is 0x0045 from the client: the filter turned over,
 // and its new state told (Msg0045's zigzag). The retail client's menus never
 // send it (no entry carries action 0x0B052000), so /filter in the chat line

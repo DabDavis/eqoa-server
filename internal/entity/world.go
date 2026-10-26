@@ -34,7 +34,8 @@ type World struct {
 
 	guilds      map[uint32]*Guild // guild.go
 	nextGuildID uint32
-	voice       VoiceSettings                     // group voice chat (voice.go); none: off
+	voice       VoiceSettings                     // voice chat (voice.go); none: off
+	voiceIn     map[uint32]*Player                // the voice-on players, by voice id
 	leaving     []func(*Player)                   // OnPlayerLeaving
 	entered     []func(*session.Session, *Player) // OnPlayerEntered
 	respawn     RespawnFunc                       // OnPlayerRespawn (respawn.go)
@@ -366,10 +367,11 @@ func (w *World) PlayerEntered(sess *session.Session) {
 	}
 }
 
-// leavingLocked forgets the player's guild announcement and returns the
-// departure hooks to run once the lock is let go.
+// leavingLocked forgets the player's guild announcement, takes it out of
+// the voice, and returns the departure hooks to run once the lock is let go.
 func (w *World) leavingLocked(p *Player) []func(*Player) {
 	delete(w.announced, p)
+	w.voiceGoneLocked(p)
 	fns := make([]func(*Player), len(w.leaving))
 	copy(fns, w.leaving)
 	return fns

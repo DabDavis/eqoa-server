@@ -366,6 +366,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Register others' power (0x7E01; powerbars.go): a client that draws
 	// power bars under its group's, its target's and their target's health
 	NewPowerBarsHandler(gameWorld).RegisterHandlers(r)
+	NewQuestMarkersHandler(gameWorld).RegisterHandlers(r)
+	NewQuestProgressHandler(gameWorld).RegisterHandlers(r)
 
 	// Register server handlers
 	serverHandler.RegisterHandlers(r)

@@ -444,6 +444,37 @@ member (the roster's id, `groupFarID`'s stand-in out of sight), the target and t
 target (the ids the entity channel's bytes 59-62 carry). Players only: an NPC has no power.
 A session that never asks (every PS2, a vanilla build from before it) is sent nothing.
 
+**Quest marks for a client's map** (F3 pass 18; `handlers/questmarks.go`, `entity/questspots.go`;
+the user's "add quest markers for givers to the map too", "only if eligible for the class/level").
+Beside 0x7E01 the server offers opcode **0x7E03** (`OpcodeQuestMarkers`, a u32 1; not retail). A
+client that draws them (eqoa-rust-client-vanilla's Quest Markers) answers 1 (0 to stop), and from
+then on the quest engine (every second, on its own goroutine) sends **0x7E04**
+(`OpcodeQuestMarkersData`) when the set changed: a u8 count, then each mark's u8 kind (1 a quest
+the player may take from that NPC: `mayTakeLocked`, so its classes, races, levels and required
+quests; 2 a talk, show or give step of the player's to do at that NPC; 3 a kill or loot step's
+creature), u8 world, f32 x and z (the NPC's spawn; a name's two nearest), the NPC's name and a u8
+count of quests, each its name, u8 lowest and highest levels, a line (the start of the giver's
+offer, or the step's journal line) and a detail (the quest's rewards in all, or what the step needs:
+items and tunar, kills or drops done of those needed), each text a u8 byte count and UTF-8 clipped
+to 140; at most 40 marks, 4 quests a mark and 6,000 bytes, the steps' first, then the player's world,
+nearest first. The words are made when the quests are read (`Reload`: items and spells named then,
+never per tick) and the spawns read from the World at most every 30 s. A session that never asks
+(every PS2) is sent nothing.
+
+**The quest tracker for a client's HUD** (F3 pass 18; `handlers/questprogress.go`; the user's "add
+quest progress hud item similar to WoW ... if quest says obtain 3 bat eyes, have 0/3"). Beside
+0x7E03 the server offers opcode **0x7E05** (`OpcodeQuestProgress`, a u32 1; not retail), answered
+the same way (eqoa-rust-client-vanilla's Quest Tracker), and sends **0x7E06**
+(`OpcodeQuestProgressData`) when the tracker changed: a u8 count of quests (the journal's, at most
+eight, in its order), each its name and a u8 count of objectives (at most six), each a text, u16 had
+and u16 needed (needed 0: a thing to do, nothing to count): a show or give step's items held of those
+wanted (counted in the session's own copy of the client's item list, `invList.held`, never the
+database) and its tunar, then "Give to"/"Show to" the NPC; a kill step's kills, a loot step's drops
+taken; a talk step's "Speak with" the NPC; a reach step's journal line. Texts are clipped to 64
+bytes, a body to 3,000. Worked out every second and at once after a quest is taken, counted,
+advanced, finished or given up (`saveLocked` nudges the engine's goroutine, `QuestEngine.wake`; the
+marks go out then too), sent only when it differs.
+
 **Effects channel (0x43) is as long as its count**: a u32 count and a 132-byte record an effect (icon DictID, name as a wide string of at most 31 characters), 4 bytes when there is none, as CLIENT's `Channel43` reads it and every value in the captures is (136 to 796 bytes). It is the one state channel that changes length (`StateUpdateData.SetSizedData`; DRDP XORs over the shorter of a message and its reference). `#effect <icon hex> [name]` / `#effect clear` sets them by hand: nothing else puts an effect on yet.
 
 ## Configuration

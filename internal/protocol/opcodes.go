@@ -358,6 +358,36 @@ const (
 	// and a u8 power of 255. Each one is the whole set: an id it leaves out
 	// has no bar.
 	OpcodePowerBarsData GameOpcode = 0x7E02
+
+	// OpcodeQuestMarkers is the quest marks a client draws on its map
+	// (handlers/questmarks.go): a u32 after the opcode, both ways, as
+	// OpcodePowerBars: the server offers it (1) once the player is in the
+	// world; a client that draws them answers 1 to have them and 0 to stop.
+	// A PS2 ignores the offer.
+	OpcodeQuestMarkers GameOpcode = 0x7E03
+
+	// OpcodeQuestMarkersData is the marks, server to a client that asked: a
+	// u8 count, then for each a u8 kind (1 a quest the player may take from
+	// that NPC, 2 a step of the player's to do at it, 3 a kill or loot step's
+	// creatures), a u8 world, f32 x and z (the NPC's spawn), the NPC's name
+	// and a u8 count of quests, each its name, u8 lowest and highest levels,
+	// its line (the offer's start, the step's journal line) and its detail
+	// (the rewards, what the step needs); a text is a u8 byte count and
+	// UTF-8. Each one is the whole set (handlers/questmarks.go).
+	OpcodeQuestMarkersData GameOpcode = 0x7E04
+
+	// OpcodeQuestProgress is not retail either: the quest tracker for a
+	// client's HUD (handlers/questprogress.go), offered and answered as
+	// OpcodeQuestMarkers is (a u32: the server's offer 1, the client's answer
+	// 1 to have it, 0 to stop).
+	OpcodeQuestProgress GameOpcode = 0x7E05
+
+	// OpcodeQuestProgressData is the tracker, server to a client that asked:
+	// a u8 count of quests (the journal's, in its order), each its name and a
+	// u8 count of objectives, each its text, u16 had and u16 needed (needed
+	// 0: nothing to count); a text is a u8 byte count and UTF-8. Each one is
+	// the whole tracker.
+	OpcodeQuestProgressData GameOpcode = 0x7E06
 )
 
 // =============================================================================
@@ -580,6 +610,14 @@ func (op GameOpcode) String() string {
 		return "PowerBars"
 	case OpcodePowerBarsData:
 		return "PowerBarsData"
+	case OpcodeQuestMarkers:
+		return "QuestMarkers"
+	case OpcodeQuestProgress:
+		return "QuestProgress"
+	case OpcodeQuestProgressData:
+		return "QuestProgressData"
+	case OpcodeQuestMarkersData:
+		return "QuestMarkersData"
 	default:
 		return "Unknown"
 	}

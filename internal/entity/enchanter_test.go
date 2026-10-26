@@ -162,7 +162,8 @@ func TestTheClarityLineIsOneAtATime(t *testing.T) {
 }
 
 // An arcane resist debuff takes its share off a creature's resist rolls:
-// Paralytic Punishment (25 AR) 6 points, worn off none; a proc the creature
+// Paralytic Punishment (25 AR) 6 points, worn off none, with Sting (15) under
+// it still 6 (the strongest counts); a proc the creature
 // resisted at par (a roll of 4 under 5) gets through under it; a charm the
 // creature resisted (a roll of 5 under 10) takes. The controls: no debuff,
 // no points off, and the same rolls resisted.
@@ -178,6 +179,10 @@ func TestAnArcaneDebuffLowersACreaturesResists(t *testing.T) {
 	}
 	if off := npcResistOffPct(npc, now.Add(16*time.Minute)); off != 0 {
 		t.Errorf("worn off: %d off", off)
+	}
+	sting := &ActiveEffect{SpellID: 700992, Until: now.Add(15 * time.Minute), Mods: StatMods{AR: -15}}
+	if off := npcResistOffPct(&NPC{Effects: []*ActiveEffect{sting, npc.Effects[0]}}, now); off != 6 {
+		t.Errorf("Paralytic Sting under Punishment: %d off; want Punishment's 6, the ranks not adding up", off)
 	}
 
 	effects := []*ActiveEffect{{Proc: 64, ProcMax: 64, Until: now.Add(time.Minute)}}

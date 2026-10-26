@@ -19,7 +19,8 @@
 //
 // A sender is counted by address (an IPv6 one by its /64), and kept only as a
 // salted hash: an address holds one live suggestion a spell (a new one
-// replaces it) and sends at most PerHour an hour.
+// replaces it), so it can never hold more rows than there are spells; PerHour,
+// when set above 0, also caps its sends an hour (off by default).
 package spellfx
 
 import (
@@ -45,8 +46,10 @@ import (
 )
 
 const (
-	// DefaultPerHour is how many suggestions an address may send an hour.
-	DefaultPerHour = 120
+	// DefaultPerHour is how many suggestions an address may send an hour: 0,
+	// none (the user, 2026-10-26: a player matching a class's whole list was
+	// stopped at 120; one live suggestion a spell an address bounds the rows).
+	DefaultPerHour = 0
 	// MaxWaiting is how many suggestions may wait for a GM before the form
 	// is refused (a full box, not a spammer's flood filling the disk).
 	MaxWaiting = 100000
@@ -331,8 +334,12 @@ func (s *Service) addrHash(ip string) (string, error) {
 	return hex.EncodeToString(sum[:16]), nil
 }
 
-// allow counts one send from key and says whether it is within PerHour.
+// allow counts one send from key and says whether it is within PerHour
+// (always, with PerHour 0).
 func (s *Service) allow(key string) bool {
+	if s.PerHour <= 0 {
+		return true
+	}
 	s.limitMu.Lock()
 	defer s.limitMu.Unlock()
 	now := s.Now()

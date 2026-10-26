@@ -1,0 +1,3597 @@
+{
+ "city": "tethelin",
+ "quests": [
+  {
+   "key": "1-20/tethelin/bard/L1",
+   "name": "The Songweaver's Tunic",
+   "giver": "Torenia Eaglesong",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Get a songweaver's tunic from Merchant Loramal, then speak to Felthion Lightleaf.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Loramal",
+     "journal": "Speak with Merchant Loramal.",
+     "says": "A songweaver's tunic.",
+     "rewards": {
+      "items": [
+       "Songweaver's Tunic"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Felthion Lightleaf",
+     "items": [
+      {
+       "item": "Songweaver's Tunic",
+       "count": 1
+      }
+     ],
+     "journal": "Show Songweaver's Tunic to Felthion Lightleaf.",
+     "says": "A fine bard you will make.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-1 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/bard/L2",
+   "name": "Bound to Tethelin",
+   "giver": "Torenia Eaglesong",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/bard/L1"
+   ],
+   "offer": "Speak to Spiritmaster Tiladinya, then Coachman Zaris.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Tiladinya",
+     "journal": "Speak with Spiritmaster Tiladinya.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Zaris",
+     "journal": "Speak with Coachman Zaris.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Torenia Eaglesong",
+     "journal": "Speak with Torenia Eaglesong.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-2 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/bard/L3",
+   "name": "Damaged Firefly Wings",
+   "giver": "Torenia Eaglesong",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/bard/L2"
+   ],
+   "offer": "Kill sparkflies and bring me two damaged firefly wings.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Sparkflies",
+     "items": [
+      {
+       "item": "damaged firefly wings",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 damaged firefly wings from Sparkflies."
+    },
+    {
+     "kind": "give",
+     "target": "Torenia Eaglesong",
+     "items": [
+      {
+       "item": "damaged firefly wings",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 damaged firefly wings to Torenia Eaglesong.",
+     "says": "Thank you.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/bard/L4",
+   "name": "A Bard's Weapon",
+   "giver": "Torenia Eaglesong",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/bard/L3"
+   ],
+   "offer": "Buy iron ore and a leather strip from Merchant Efreya, and bring me a bat meat and a rat claw.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Efreya",
+     "journal": "Speak with Merchant Efreya.",
+     "says": "Iron ore and a leather strip.",
+     "rewards": {
+      "items": [
+       "iron ore",
+       "leather strip"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Bat",
+     "items": [
+      {
+       "item": "bat meat",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect bat meat from Bats."
+    },
+    {
+     "kind": "loot",
+     "target": "Rat",
+     "items": [
+      {
+       "item": "Cracked Rat Claw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Cracked Rat Claw from Rats."
+    },
+    {
+     "kind": "give",
+     "target": "Torenia Eaglesong",
+     "items": [
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "bat meat",
+       "count": 1
+      },
+      {
+       "item": "Cracked Rat Claw",
+       "count": 1
+      }
+     ],
+     "journal": "Bring iron ore, leather strip, bat meat and Cracked Rat Claw to Torenia Eaglesong.",
+     "says": "Your weapon will be ready.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The ore and strip are bought in the guide; here Efreya hands them over."
+  },
+  {
+   "key": "1-20/tethelin/bard/L5",
+   "name": "Elddar Seeds",
+   "giver": "Torenia Eaglesong",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/bard/L4"
+   ],
+   "offer": "Kill the hatebone thieves in the hills south of town and bring back the elddar seeds.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "hatebone thief",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect elddar seeds from hatebone thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Torenia Eaglesong",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "journal": "Bring elddar seeds to Torenia Eaglesong.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/bard/L7",
+   "name": "The Lockpicker",
+   "giver": "Torenia Eaglesong",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/bard/L5"
+   ],
+   "offer": "Kill an orc lockpicker just before the bridge and bring me his key.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "orc lockpicker",
+     "items": [
+      {
+       "item": "Bank Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Bank Key from orc lockpickers."
+    },
+    {
+     "kind": "give",
+     "target": "Torenia Eaglesong",
+     "items": [
+      {
+       "item": "Bank Key",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Bank Key to Torenia Eaglesong.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/bard/L10",
+   "name": "Dolby's Mallet",
+   "giver": "Felthion Lightleaf",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/bard/L7"
+   ],
+   "offer": "Dolby, across the bridge to the south, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dolby",
+     "journal": "Speak with Dolby.",
+     "says": "Kill an orc arsonist and bring me his mallet, and an orc chemist for his metal flakes."
+    },
+    {
+     "kind": "loot",
+     "target": "orc arsonist",
+     "items": [
+      {
+       "item": "Arsonist's Mallet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Arsonist's Mallet from orc arsonists."
+    },
+    {
+     "kind": "loot",
+     "target": "orc chemist",
+     "items": [
+      {
+       "item": "Metal Flakes",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Metal Flakes from orc chemists."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Arsonist's Mallet",
+       "count": 1
+      },
+      {
+       "item": "Metal Flakes",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Arsonist's Mallet and Metal Flakes to Dolby.",
+     "says": "Now some powder from Grocer Peltham in Tethelin, up the ramp by the coach. It's free."
+    },
+    {
+     "kind": "talk",
+     "target": "Grocer Peltham",
+     "journal": "Speak with Grocer Peltham.",
+     "says": "Powder, for Dolby.",
+     "rewards": {
+      "items": [
+       "Powder"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Powder",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Powder to Dolby.",
+     "says": "Just what I needed. Thank you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/bard/L13",
+   "name": "Dolby's Ingredients",
+   "giver": "Dolby",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/bard/L10"
+   ],
+   "offer": "Kill a blue-ribboned snake on the hill north of the spire by the barge, and bring me its venom sack.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "blue-ribboned snake",
+     "items": [
+      {
+       "item": "Blue-Ribboned Venom Sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Blue-Ribboned Venom Sack from blue-ribboned snakes."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Blue-Ribboned Venom Sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Blue-Ribboned Venom Sack to Dolby.",
+     "says": "Now a zapper bug's stinger, along the river south of the bridge."
+    },
+    {
+     "kind": "loot",
+     "target": "zapper bug",
+     "items": [
+      {
+       "item": "Zapper Stinger",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Zapper Stinger from zapper bugs."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Zapper Stinger",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Zapper Stinger to Dolby.",
+     "says": "Grocer Peltham in Tethelin has a clay mixing vial for me; it's free."
+    },
+    {
+     "kind": "talk",
+     "target": "Grocer Peltham",
+     "journal": "Speak with Grocer Peltham.",
+     "says": "A clay mixing vial.",
+     "rewards": {
+      "items": [
+       "Clay Mixing Vial"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Clay Mixing Vial",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Clay Mixing Vial to Dolby.",
+     "says": "Now a brown recluse's silk, west of the snake by the snowy area."
+    },
+    {
+     "kind": "loot",
+     "target": "brown recluse",
+     "items": [
+      {
+       "item": "Recluse Spider Silk",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Recluse Spider Silk from brown recluses."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Recluse Spider Silk",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Recluse Spider Silk to Dolby.",
+     "says": "Last, a razorfang piranha's stomach, in the river southwest of the bridge."
+    },
+    {
+     "kind": "loot",
+     "target": "razorfang piranha",
+     "items": [
+      {
+       "item": "Fish Stomach",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Fish Stomach from razorfang piranhas."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Fish Stomach",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Fish Stomach to Dolby.",
+     "says": "Everything. Well done.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/bard/L15",
+   "name": "Orcish War Medallions",
+   "giver": "Dolby",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/bard/L13"
+   ],
+   "offer": "Kill orc brutes northeast of the orcs' lair across the river and bring me two orcish war medallions.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "orc brute",
+     "items": [
+      {
+       "item": "Orcish War Medallion",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Orcish War Medallions from orc brutes."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Orcish War Medallion",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Orcish War Medallions to Dolby.",
+     "says": "Buy me a silver glowing bar from the grocer in Tethelin, 260 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Grocer Peltham",
+     "tunar": 260,
+     "journal": "Bring 260 tunar to Grocer Peltham.",
+     "says": "A silver glowing bar.",
+     "rewards": {
+      "items": [
+       "Silver Glowing Bar"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Silver Glowing Bar",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Silver Glowing Bar to Dolby.",
+     "says": "Take this sealed bag to Arion, beside the Fayspire coach.",
+     "rewards": {
+      "items": [
+       "Sealed Burlap Bag"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Arion Redmoon",
+     "items": [
+      {
+       "item": "Sealed Burlap Bag",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Sealed Burlap Bag to Arion Redmoon.",
+     "says": "Kill an orc raider and bring me an orcish medal of bravery."
+    },
+    {
+     "kind": "loot",
+     "target": "orc raider",
+     "items": [
+      {
+       "item": "Orcish Medal of Bravery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Orcish Medal of Bravery from orc raiders."
+    },
+    {
+     "kind": "give",
+     "target": "Arion Redmoon",
+     "items": [
+      {
+       "item": "Orcish Medal of Bravery",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Orcish Medal of Bravery to Arion Redmoon.",
+     "says": "Go back to Dolby."
+    },
+    {
+     "kind": "talk",
+     "target": "Dolby",
+     "journal": "Speak with Dolby.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/bard/L20",
+   "name": "Tillian Bracelets",
+   "giver": "Torenia Eaglesong",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/bard/L15"
+   ],
+   "offer": "Ullie Darktoe, in Moradhim's bar near the bank, needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ullie Darktoe",
+     "journal": "Speak with Ullie Darktoe.",
+     "says": "Kill the aviak bashers at Goldfeather Eyrie and bring me two Tillian bracelets."
+    },
+    {
+     "kind": "loot",
+     "target": "aviak basher",
+     "items": [
+      {
+       "item": "Tillian Bracelet",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Tillian Bracelets from aviak bashers."
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Tillian Bracelet",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Tillian Bracelets to Ullie Darktoe.",
+     "says": "Buy me a metal testing kit from Trinter Yon, across the road."
+    },
+    {
+     "kind": "talk",
+     "target": "Trinter Yon",
+     "journal": "Speak with Trinter Yon.",
+     "says": "A metal testing kit.",
+     "rewards": {
+      "items": [
+       "Metal Testing Kit"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Metal Testing Kit",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Metal Testing Kit to Ullie Darktoe.",
+     "says": "Now an aviak thrasher's necklace."
+    },
+    {
+     "kind": "loot",
+     "target": "aviak thrasher",
+     "items": [
+      {
+       "item": "Aviak Necklace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Aviak Necklace from aviak thrashers."
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Aviak Necklace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Aviak Necklace to Ullie Darktoe.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Torenia Eaglesong",
+     "journal": "Speak with Torenia Eaglesong.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of Power Dance with the Melodies Dagger, or Sweeping Combat with Harmony's Sword; a quest here gives no choice, so neither is given."
+  },
+  {
+   "key": "1-20/tethelin/druid/L1",
+   "name": "The Evergreen Tunic",
+   "giver": "Dawnseer Mistwelder",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Merchant Whitepaw, in this building, has an evergreen tunic for you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Whitepaw",
+     "journal": "Speak with Merchant Whitepaw.",
+     "says": "An evergreen tunic.",
+     "rewards": {
+      "items": [
+       "Evergreen Tunic"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Dawnseer Mistwelder",
+     "items": [
+      {
+       "item": "Evergreen Tunic",
+       "count": 1
+      }
+     ],
+     "journal": "Show Evergreen Tunic to Dawnseer Mistwelder.",
+     "says": "Welcome.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-1 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/druid/L2",
+   "name": "Bound to Tethelin",
+   "giver": "Dawnseer Mistwelder",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/druid/L1"
+   ],
+   "offer": "See Lirinia Starfire; she will send you on.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Lirinia Starfire",
+     "journal": "Speak with Lirinia Starfire.",
+     "says": "Spiritmaster Alyrik, just outside, will bind you."
+    },
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Alyrik",
+     "journal": "Speak with Spiritmaster Alyrik.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Zaris",
+     "journal": "Speak with Coachman Zaris.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Dawnseer Mistwelder",
+     "journal": "Speak with Dawnseer Mistwelder.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-2 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/druid/L3",
+   "name": "Snake Scales",
+   "giver": "Lirinia Starfire",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/druid/L2"
+   ],
+   "offer": "Bring me two snake scales from the grass snakes down the ramp.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Grass Snake",
+     "items": [
+      {
+       "item": "snake scales",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 snake scales from Grass Snakes."
+    },
+    {
+     "kind": "give",
+     "target": "Lirinia Starfire",
+     "items": [
+      {
+       "item": "snake scales",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 snake scales to Lirinia Starfire.",
+     "says": "Thank you.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/druid/L4",
+   "name": "Salithal's Weapon",
+   "giver": "Salithal Grassweave",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/druid/L3"
+   ],
+   "offer": "I will make you a weapon if you bring me a bough of wood from Derinthal the bowyer, a strip of leather from Merchant Efreya and ruined bat wings from the bats under Tethelin.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Bowyer Derinthal",
+     "journal": "Speak with Bowyer Derinthal.",
+     "says": "A bough of wood.",
+     "rewards": {
+      "items": [
+       "Bough of Wood"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Merchant Efreya",
+     "journal": "Speak with Merchant Efreya.",
+     "says": "A strip of leather.",
+     "rewards": {
+      "items": [
+       "leather strip"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Bat",
+     "items": [
+      {
+       "item": "ruined bat wing",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect ruined bat wing from Bats."
+    },
+    {
+     "kind": "give",
+     "target": "Salithal Grassweave",
+     "items": [
+      {
+       "item": "Bough of Wood",
+       "count": 1
+      },
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "ruined bat wing",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Bough of Wood, leather strip and ruined bat wing to Salithal Grassweave.",
+     "says": "Your weapon will be ready.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The bough and strip are bought in the guide; here they are handed over."
+  },
+  {
+   "key": "1-20/tethelin/druid/L5",
+   "name": "Elddar Seeds",
+   "giver": "Dawnseer Mistwelder",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/druid/L4"
+   ],
+   "offer": "Track down the hatebone orc thieves across the bridge and retrieve the elddar seeds they stole.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "hatebone thief",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect elddar seeds from hatebone thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Dawnseer Mistwelder",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "journal": "Bring elddar seeds to Dawnseer Mistwelder.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/druid/L7",
+   "name": "The Tree Eater",
+   "giver": "Dawnseer Mistwelder",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/druid/L5"
+   ],
+   "offer": "A wasp is eating the trees: the tree eater, in the valley between two hills along the coast to the north. Kill it and bring me its leg.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "tree eater",
+     "items": [
+      {
+       "item": "Tree Eater's Leg",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Tree Eater's Leg from tree eaters."
+    },
+    {
+     "kind": "give",
+     "target": "Dawnseer Mistwelder",
+     "items": [
+      {
+       "item": "Tree Eater's Leg",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Tree Eater's Leg to Dawnseer Mistwelder.",
+     "says": "The forest thanks you.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/druid/L10",
+   "name": "Fibble's Device",
+   "giver": "Dawnseer Mistwelder",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/druid/L7"
+   ],
+   "offer": "Fibble Gearcharmer in Kara Village, east of Fayspire, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Fibble Gearcharmer",
+     "journal": "Speak with Fibble Gearcharmer.",
+     "says": "Three orc thieves south of Kara took my device."
+    },
+    {
+     "kind": "loot",
+     "target": "Orc Thief",
+     "items": [
+      {
+       "item": "Gearcharmer's Device",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.33,
+     "journal": "Collect Gearcharmer's Device from Orc Thieves."
+    },
+    {
+     "kind": "talk",
+     "target": "Fibble Gearcharmer",
+     "journal": "Speak with Fibble Gearcharmer.",
+     "says": "It's broken. Take it to Gligbin Gearcharmer in Klik'Anon; 197 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Gligbin Gearcharmer",
+     "items": [
+      {
+       "item": "Gearcharmer's Device",
+       "count": 1
+      }
+     ],
+     "tunar": 197,
+     "journal": "Bring Gearcharmer's Device and 197 tunar to Gligbin Gearcharmer.",
+     "says": "I need resin from a witchdoctor in the cave near Fayspire."
+    },
+    {
+     "kind": "loot",
+     "target": "orc witchdoctor",
+     "items": [
+      {
+       "item": "Witchdoctor's Resin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Witchdoctor's Resin from orc witchdoctors."
+    },
+    {
+     "kind": "give",
+     "target": "Gligbin Gearcharmer",
+     "items": [
+      {
+       "item": "Witchdoctor's Resin",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Witchdoctor's Resin to Gligbin Gearcharmer.",
+     "says": "Fixed. Take it to Fibble.",
+     "rewards": {
+      "items": [
+       "Repaired Device"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Fibble Gearcharmer",
+     "items": [
+      {
+       "item": "Repaired Device",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Repaired Device to Fibble Gearcharmer.",
+     "says": "Thank you! Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Dawnseer Mistwelder",
+     "journal": "Speak with Dawnseer Mistwelder.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Orc Thief",
+    "Gligbin Gearcharmer"
+   ],
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. No orc thieves or Gligbin are on this server; the orc witchdoctor stands in for the hatebone witchdoctor."
+  },
+  {
+   "key": "1-20/tethelin/druid/L13",
+   "name": "Siltha's Collection",
+   "giver": "Dawnseer Mistwelder",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/druid/L10"
+   ],
+   "offer": "Siltha, in the little elf town north of Tethelin, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Siltha",
+     "journal": "Speak with Siltha.",
+     "says": "Four wings of the royal guard wasps from the hive near Tethelin."
+    },
+    {
+     "kind": "loot",
+     "target": "wasp royal guard",
+     "items": [
+      {
+       "item": "Royal Wasp Guard Wing",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Collect 4 Royal Wasp Guard Wings from wasp royal guards."
+    },
+    {
+     "kind": "give",
+     "target": "Siltha",
+     "items": [
+      {
+       "item": "Royal Wasp Guard Wing",
+       "count": 4
+      }
+     ],
+     "journal": "Bring 4 Royal Wasp Guard Wings to Siltha.",
+     "says": "Now the spyglass of the orc gatewatcher in the Druk cave."
+    },
+    {
+     "kind": "loot",
+     "target": "orc gatewatcher",
+     "items": [
+      {
+       "item": "Spyglass",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Spyglass from orc gatewatchers."
+    },
+    {
+     "kind": "give",
+     "target": "Siltha",
+     "items": [
+      {
+       "item": "Spyglass",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Spyglass to Siltha.",
+     "says": "Last, the skull of Vitsh Sah, from his tomb north of the cave."
+    },
+    {
+     "kind": "loot",
+     "target": "Vitsh'Sah",
+     "items": [
+      {
+       "item": "Skull of Vitsh",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Skull of Vitsh from Vitsh'Sahs."
+    },
+    {
+     "kind": "give",
+     "target": "Siltha",
+     "items": [
+      {
+       "item": "Skull of Vitsh",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Skull of Vitsh to Siltha.",
+     "says": "My collection is complete.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/druid/L15",
+   "name": "Overseer Evief's Barges",
+   "giver": "Dawnseer Mistwelder",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/druid/L13"
+   ],
+   "offer": "Overseer Evief, on a barge northeast of Fayspire, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Overseer Evief",
+     "journal": "Speak with Overseer Evief.",
+     "says": "Talk to Dorrun Hammerfist in Diren Village, west of Moradhim."
+    },
+    {
+     "kind": "talk",
+     "target": "Bomun Hammerfist",
+     "journal": "Speak with Bomun Hammerfist.",
+     "says": "Kill the bear Trapmaw, south of the village along the river."
+    },
+    {
+     "kind": "loot",
+     "target": "Trapmaw",
+     "items": [
+      {
+       "item": "Trapmaw's Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Trapmaw's Pelt from Trapmaws."
+    },
+    {
+     "kind": "give",
+     "target": "Bomun Hammerfist",
+     "items": [
+      {
+       "item": "Trapmaw's Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Trapmaw's Pelt to Bomun Hammerfist.",
+     "says": "The hammer's yours.",
+     "rewards": {
+      "items": [
+       "Stonework Hammer"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Overseer Evief",
+     "items": [
+      {
+       "item": "Stonework Hammer",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stonework Hammer to Overseer Evief.",
+     "says": "Now Hardlin in Freeport."
+    },
+    {
+     "kind": "talk",
+     "target": "Hardlin",
+     "journal": "Speak with Hardlin.",
+     "says": "Kill a Nasehir sandcaster in Northern Ro."
+    },
+    {
+     "kind": "loot",
+     "target": "Nasehir Sandcaster",
+     "items": [
+      {
+       "item": "Sand Rune",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Sand Rune from Nasehir Sandcasters."
+    },
+    {
+     "kind": "give",
+     "target": "Overseer Evief",
+     "items": [
+      {
+       "item": "Sand Rune",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Sand Rune to Overseer Evief.",
+     "says": "Last, the pirate mason by the large rock on the shore east of Fayspire."
+    },
+    {
+     "kind": "loot",
+     "target": "pirate stonemason",
+     "items": [
+      {
+       "item": "Stonemason's Chisel",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Stonemason's Chisel from pirate stonemasons."
+    },
+    {
+     "kind": "give",
+     "target": "Overseer Evief",
+     "items": [
+      {
+       "item": "Stonemason's Chisel",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stonemason's Chisel to Overseer Evief.",
+     "says": "The barges will run again.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Trapmaw"
+   ],
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. Trapmaw is not on this server. The guide does not name the loot."
+  },
+  {
+   "key": "1-20/tethelin/druid/L20",
+   "name": "Yiprew's Research",
+   "giver": "Dawnseer Mistwelder",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/druid/L15"
+   ],
+   "offer": "Yiprew Yuprew, by the well in Kara Village, has research for you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Yiprew Yuprew",
+     "journal": "Speak with Yiprew Yuprew.",
+     "says": "Thailav D'yal, a dark elf necromancer in a tomb north of Fayspire, has the necromancer's handbook."
+    },
+    {
+     "kind": "loot",
+     "target": "Thailav D'yal",
+     "items": [
+      {
+       "item": "Necromancer's Handbook",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Necromancer's Handbook from Thailav D'yals."
+    },
+    {
+     "kind": "give",
+     "target": "Yiprew Yuprew",
+     "items": [
+      {
+       "item": "Necromancer's Handbook",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Necromancer's Handbook to Yiprew Yuprew.",
+     "says": "Now Snafitzer, in his house on mechanical legs."
+    },
+    {
+     "kind": "talk",
+     "target": "Snafitzer",
+     "journal": "Speak with Snafitzer.",
+     "says": "Craftsman Pete in Chiasta, east of Moradhim, has my supplies. 525 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Craftsman Pete",
+     "tunar": 525,
+     "journal": "Bring 525 tunar to Craftsman Pete.",
+     "says": "Snafitzer's supplies.",
+     "rewards": {
+      "items": [
+       "Snafitzer's Supplies"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Snafitzer",
+     "items": [
+      {
+       "item": "Snafitzer's Supplies",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Snafitzer's Supplies to Snafitzer.",
+     "says": "Go back to Yiprew."
+    },
+    {
+     "kind": "talk",
+     "target": "Yiprew Yuprew",
+     "journal": "Speak with Yiprew Yuprew.",
+     "says": "A rib of the crumbling bones in Collonridge Cemetery."
+    },
+    {
+     "kind": "loot",
+     "target": "Crumbling Bones",
+     "items": [
+      {
+       "item": "Rib of a Crumbling Corpse",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Rib of a Crumbling Corpse from Crumbling Bones."
+    },
+    {
+     "kind": "give",
+     "target": "Yiprew Yuprew",
+     "items": [
+      {
+       "item": "Rib of a Crumbling Corpse",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Rib of a Crumbling Corpse to Yiprew Yuprew.",
+     "says": "Now the maundering soul on the Crest of the Duelists."
+    },
+    {
+     "kind": "loot",
+     "target": "Maundering Soul",
+     "items": [
+      {
+       "item": "Essence of a Marauding Soul",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Essence of a Marauding Soul from Maundering Souls."
+    },
+    {
+     "kind": "give",
+     "target": "Yiprew Yuprew",
+     "items": [
+      {
+       "item": "Essence of a Marauding Soul",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Essence of a Marauding Soul to Yiprew Yuprew.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Dawnseer Mistwelder",
+     "journal": "Speak with Dawnseer Mistwelder.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/ranger/L1",
+   "name": "The Woodsman's Vest",
+   "giver": "Lythen Trueshot",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Merchant Kelindira has a woodsman's vest for you; it is free.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Kelindira",
+     "journal": "Speak with Merchant Kelindira.",
+     "says": "A woodsman's vest.",
+     "rewards": {
+      "items": [
+       "Woodsman's Vest"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Lythen Trueshot",
+     "items": [
+      {
+       "item": "Woodsman's Vest",
+       "count": 1
+      }
+     ],
+     "journal": "Show Woodsman's Vest to Lythen Trueshot.",
+     "says": "Welcome, ranger.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-1 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/ranger/L2",
+   "name": "Bound to Tethelin",
+   "giver": "Lythen Trueshot",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/ranger/L1"
+   ],
+   "offer": "See Arelon Evergreen; he will send you on.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Arelon Evergreen",
+     "journal": "Speak with Arelon Evergreen.",
+     "says": "Spiritmaster Perinoth will bind you."
+    },
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Perfinoth",
+     "journal": "Speak with Spiritmaster Perfinoth.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Zaris",
+     "journal": "Speak with Coachman Zaris.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Lythen Trueshot",
+     "journal": "Speak with Lythen Trueshot.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-2 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/ranger/L3",
+   "name": "Slivers of Bat Meat",
+   "giver": "Arelon Evergreen",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/ranger/L2"
+   ],
+   "offer": "Kill bats out of town and bring me three slivers of bat meat.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Bat",
+     "items": [
+      {
+       "item": "sliver of bat meat",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Collect 3 sliver of bat meats from Bats."
+    },
+    {
+     "kind": "give",
+     "target": "Arelon Evergreen",
+     "items": [
+      {
+       "item": "sliver of bat meat",
+       "count": 3
+      }
+     ],
+     "journal": "Bring 3 sliver of bat meats to Arelon Evergreen.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/ranger/L4",
+   "name": "Arlin's Weapon",
+   "giver": "Arlin Arrowcrafter",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/ranger/L3"
+   ],
+   "offer": "Bring me a leather strap and iron ore from Merchant Efreya, and a firefly thorax.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Efreya",
+     "journal": "Speak with Merchant Efreya.",
+     "says": "A strap and ore.",
+     "rewards": {
+      "items": [
+       "leather strip",
+       "iron ore"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Fireflies",
+     "items": [
+      {
+       "item": "fractured firefly thorax",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect fractured firefly thorax from Fireflies."
+    },
+    {
+     "kind": "give",
+     "target": "Arlin Arrowcrafter",
+     "items": [
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "fractured firefly thorax",
+       "count": 1
+      }
+     ],
+     "journal": "Bring leather strip, iron ore and fractured firefly thorax to Arlin Arrowcrafter.",
+     "says": "Your weapon will be ready.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strap and ore are bought in the guide; here Efreya hands them over."
+  },
+  {
+   "key": "1-20/tethelin/ranger/L5",
+   "name": "Elddar Seeds",
+   "giver": "Lythen Trueshot",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/ranger/L4"
+   ],
+   "offer": "Track down the hatebone orc thieves across the bridge and retrieve the elddar seeds they stole.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "hatebone thief",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect elddar seeds from hatebone thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Lythen Trueshot",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "journal": "Bring elddar seeds to Lythen Trueshot.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/ranger/L7",
+   "name": "The Tree Eater",
+   "giver": "Arelon Evergreen",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/ranger/L5"
+   ],
+   "offer": "We can't let Tethelin fall: a new kind of wasp is eating the trees. Kill the tree eater, north along the coast, and bring me its leg.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "tree eater",
+     "items": [
+      {
+       "item": "Tree Eater's Leg",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Tree Eater's Leg from tree eaters."
+    },
+    {
+     "kind": "give",
+     "target": "Arelon Evergreen",
+     "items": [
+      {
+       "item": "Tree Eater's Leg",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Tree Eater's Leg to Arelon Evergreen.",
+     "says": "Tethelin is safe.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/ranger/L10",
+   "name": "Fibble's Device",
+   "giver": "Arelon Evergreen",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/ranger/L7"
+   ],
+   "offer": "Fibble Gearcharmer in Kara Village needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Fibble Gearcharmer",
+     "journal": "Speak with Fibble Gearcharmer.",
+     "says": "Three orc thieves south of Kara took my device."
+    },
+    {
+     "kind": "loot",
+     "target": "Orc Thief",
+     "items": [
+      {
+       "item": "Gearcharmer's Device",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.33,
+     "journal": "Collect Gearcharmer's Device from Orc Thieves."
+    },
+    {
+     "kind": "talk",
+     "target": "Fibble Gearcharmer",
+     "journal": "Speak with Fibble Gearcharmer.",
+     "says": "It's broken. Take it to Gligbin Gearcharmer in Klik'Anon; 197 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Gligbin Gearcharmer",
+     "items": [
+      {
+       "item": "Gearcharmer's Device",
+       "count": 1
+      }
+     ],
+     "tunar": 197,
+     "journal": "Bring Gearcharmer's Device and 197 tunar to Gligbin Gearcharmer.",
+     "says": "I need resin from a witchdoctor in the cave near Fayspire."
+    },
+    {
+     "kind": "loot",
+     "target": "orc witchdoctor",
+     "items": [
+      {
+       "item": "Witchdoctor's Resin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Witchdoctor's Resin from orc witchdoctors."
+    },
+    {
+     "kind": "give",
+     "target": "Gligbin Gearcharmer",
+     "items": [
+      {
+       "item": "Witchdoctor's Resin",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Witchdoctor's Resin to Gligbin Gearcharmer.",
+     "says": "Fixed. Take it to Fibble.",
+     "rewards": {
+      "items": [
+       "Repaired Device"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Fibble Gearcharmer",
+     "items": [
+      {
+       "item": "Repaired Device",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Repaired Device to Fibble Gearcharmer.",
+     "says": "Thank you! Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Arelon Evergreen",
+     "journal": "Speak with Arelon Evergreen.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Orc Thief",
+    "Gligbin Gearcharmer"
+   ],
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. No orc thieves or Gligbin are on this server; the orc witchdoctor stands in for the hatebone witchdoctor."
+  },
+  {
+   "key": "1-20/tethelin/ranger/L13",
+   "name": "Siltha's Collection",
+   "giver": "Arelon Evergreen",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/ranger/L10"
+   ],
+   "offer": "Siltha, in the little elf town north of Tethelin, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Siltha",
+     "journal": "Speak with Siltha.",
+     "says": "Four wings of the royal guard wasps from the hive near Tethelin."
+    },
+    {
+     "kind": "loot",
+     "target": "wasp royal guard",
+     "items": [
+      {
+       "item": "Royal Wasp Guard Wing",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Collect 4 Royal Wasp Guard Wings from wasp royal guards."
+    },
+    {
+     "kind": "give",
+     "target": "Siltha",
+     "items": [
+      {
+       "item": "Royal Wasp Guard Wing",
+       "count": 4
+      }
+     ],
+     "journal": "Bring 4 Royal Wasp Guard Wings to Siltha.",
+     "says": "Now the spyglass of the orc gatewatcher in the Druk cave."
+    },
+    {
+     "kind": "loot",
+     "target": "orc gatewatcher",
+     "items": [
+      {
+       "item": "Spyglass",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Spyglass from orc gatewatchers."
+    },
+    {
+     "kind": "give",
+     "target": "Siltha",
+     "items": [
+      {
+       "item": "Spyglass",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Spyglass to Siltha.",
+     "says": "Last, the skull of Vitsh Sah, from his tomb north of the cave."
+    },
+    {
+     "kind": "loot",
+     "target": "Vitsh'Sah",
+     "items": [
+      {
+       "item": "Skull of Vitsh",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Skull of Vitsh from Vitsh'Sahs."
+    },
+    {
+     "kind": "give",
+     "target": "Siltha",
+     "items": [
+      {
+       "item": "Skull of Vitsh",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Skull of Vitsh to Siltha.",
+     "says": "My collection is complete.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/ranger/L15",
+   "name": "Overseer Evief's Barges",
+   "giver": "Lythen Trueshot",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/ranger/L13"
+   ],
+   "offer": "Overseer Evief, on a barge northeast of Fayspire, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Overseer Evief",
+     "journal": "Speak with Overseer Evief.",
+     "says": "Talk to Dorrun Hammerfist in Diren Village, west of Moradhim."
+    },
+    {
+     "kind": "talk",
+     "target": "Bomun Hammerfist",
+     "journal": "Speak with Bomun Hammerfist.",
+     "says": "Kill the bear Trapmaw, south of the village along the river."
+    },
+    {
+     "kind": "loot",
+     "target": "Trapmaw",
+     "items": [
+      {
+       "item": "Trapmaw's Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Trapmaw's Pelt from Trapmaws."
+    },
+    {
+     "kind": "give",
+     "target": "Bomun Hammerfist",
+     "items": [
+      {
+       "item": "Trapmaw's Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Trapmaw's Pelt to Bomun Hammerfist.",
+     "says": "The hammer's yours.",
+     "rewards": {
+      "items": [
+       "Stonework Hammer"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Overseer Evief",
+     "items": [
+      {
+       "item": "Stonework Hammer",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stonework Hammer to Overseer Evief.",
+     "says": "Now Hardlin in Freeport."
+    },
+    {
+     "kind": "talk",
+     "target": "Hardlin",
+     "journal": "Speak with Hardlin.",
+     "says": "Kill a Nasehir sandcaster in Northern Ro."
+    },
+    {
+     "kind": "loot",
+     "target": "Nasehir Sandcaster",
+     "items": [
+      {
+       "item": "Sand Rune",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Sand Rune from Nasehir Sandcasters."
+    },
+    {
+     "kind": "give",
+     "target": "Overseer Evief",
+     "items": [
+      {
+       "item": "Sand Rune",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Sand Rune to Overseer Evief.",
+     "says": "Last, the pirate mason by the large rock on the shore east of Fayspire."
+    },
+    {
+     "kind": "loot",
+     "target": "pirate stonemason",
+     "items": [
+      {
+       "item": "Stonemason's Chisel",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Stonemason's Chisel from pirate stonemasons."
+    },
+    {
+     "kind": "give",
+     "target": "Overseer Evief",
+     "items": [
+      {
+       "item": "Stonemason's Chisel",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stonemason's Chisel to Overseer Evief.",
+     "says": "The barges will run again.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Trapmaw"
+   ],
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. Trapmaw is not on this server. The guide does not name the loot."
+  },
+  {
+   "key": "1-20/tethelin/ranger/L20",
+   "name": "Yiprew's Research",
+   "giver": "Lythen Trueshot",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/ranger/L15"
+   ],
+   "offer": "Yiprew Yuprew, by the well in Kara Village, has research for you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Yiprew Yuprew",
+     "journal": "Speak with Yiprew Yuprew.",
+     "says": "Thailav D'yal, a dark elf necromancer in a tomb north of Fayspire, has the necromancer's handbook."
+    },
+    {
+     "kind": "loot",
+     "target": "Thailav D'yal",
+     "items": [
+      {
+       "item": "Necromancer's Handbook",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Necromancer's Handbook from Thailav D'yals."
+    },
+    {
+     "kind": "give",
+     "target": "Yiprew Yuprew",
+     "items": [
+      {
+       "item": "Necromancer's Handbook",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Necromancer's Handbook to Yiprew Yuprew.",
+     "says": "Now Snafitzer, in his house on mechanical legs."
+    },
+    {
+     "kind": "talk",
+     "target": "Snafitzer",
+     "journal": "Speak with Snafitzer.",
+     "says": "Craftsman Pete in Chiasta, east of Moradhim, has my supplies. 525 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Craftsman Pete",
+     "tunar": 525,
+     "journal": "Bring 525 tunar to Craftsman Pete.",
+     "says": "Snafitzer's supplies.",
+     "rewards": {
+      "items": [
+       "Snafitzer's Supplies"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Snafitzer",
+     "items": [
+      {
+       "item": "Snafitzer's Supplies",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Snafitzer's Supplies to Snafitzer.",
+     "says": "Go back to Yiprew."
+    },
+    {
+     "kind": "talk",
+     "target": "Yiprew Yuprew",
+     "journal": "Speak with Yiprew Yuprew.",
+     "says": "A rib of the crumbling bones in Collonridge Cemetery."
+    },
+    {
+     "kind": "loot",
+     "target": "Crumbling Bones",
+     "items": [
+      {
+       "item": "Rib of a Crumbling Corpse",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Rib of a Crumbling Corpse from Crumbling Bones."
+    },
+    {
+     "kind": "give",
+     "target": "Yiprew Yuprew",
+     "items": [
+      {
+       "item": "Rib of a Crumbling Corpse",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Rib of a Crumbling Corpse to Yiprew Yuprew.",
+     "says": "Now the maundering soul on the Crest of the Duelists."
+    },
+    {
+     "kind": "loot",
+     "target": "Maundering Soul",
+     "items": [
+      {
+       "item": "Essence of a Marauding Soul",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Essence of a Marauding Soul from Maundering Souls."
+    },
+    {
+     "kind": "give",
+     "target": "Yiprew Yuprew",
+     "items": [
+      {
+       "item": "Essence of a Marauding Soul",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Essence of a Marauding Soul to Yiprew Yuprew.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Lythen Trueshot",
+     "journal": "Speak with Lythen Trueshot.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of the Frozen Dawn Scimitar with Hawk Eye, or the Frozen Dawn Longsword with a sword ability; a quest here gives no choice, so neither is given."
+  },
+  {
+   "key": "1-20/tethelin/rogue/L1",
+   "name": "Forestrunner's Boots",
+   "giver": "Eterin Nitegazer",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Merchant Skysparkle has forestrunner's boots for you; they are free.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Skysparkle",
+     "journal": "Speak with Merchant Skysparkle.",
+     "says": "Forestrunner's boots.",
+     "rewards": {
+      "items": [
+       "Forestrunner's Boots"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Eterin Nitegazer",
+     "items": [
+      {
+       "item": "Forestrunner's Boots",
+       "count": 1
+      }
+     ],
+     "journal": "Show Forestrunner's Boots to Eterin Nitegazer.",
+     "says": "Light on your feet now.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-1 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/rogue/L2",
+   "name": "Bound to Tethelin",
+   "giver": "Teleni Treestrider",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/rogue/L1"
+   ],
+   "offer": "Spiritmaster Marinal will bind you; then see Coachman Zaris.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Marinal",
+     "journal": "Speak with Spiritmaster Marinal.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Zaris",
+     "journal": "Speak with Coachman Zaris.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Teleni Treestrider",
+     "journal": "Speak with Teleni Treestrider.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-2 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/rogue/L3",
+   "name": "Tarantula Leg Tips",
+   "giver": "Teleni Treestrider",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/rogue/L2"
+   ],
+   "offer": "Bring me two tarantula leg tips from the spiders in the area.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Spiderling",
+     "items": [
+      {
+       "item": "tarantula leg tips",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 tarantula leg tips from Spiderlings."
+    },
+    {
+     "kind": "give",
+     "target": "Teleni Treestrider",
+     "items": [
+      {
+       "item": "tarantula leg tips",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 tarantula leg tips to Teleni Treestrider.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/rogue/L4",
+   "name": "Angelith's Weapon",
+   "giver": "Angelith Silvosin",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/rogue/L3"
+   ],
+   "offer": "Bring me a leather strip and a block of ore from Merchant Efreya, and a cracked snake fang.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Efreya",
+     "journal": "Speak with Merchant Efreya.",
+     "says": "A strip and a block of ore.",
+     "rewards": {
+      "items": [
+       "leather strip",
+       "block of ore"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Grass Snake",
+     "items": [
+      {
+       "item": "cracked snake fang",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect cracked snake fang from Grass Snakes."
+    },
+    {
+     "kind": "give",
+     "target": "Angelith Silvosin",
+     "items": [
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "block of ore",
+       "count": 1
+      },
+      {
+       "item": "cracked snake fang",
+       "count": 1
+      }
+     ],
+     "journal": "Bring leather strip, block of ore and cracked snake fang to Angelith Silvosin.",
+     "says": "Your weapon will be ready.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and ore are bought in the guide; here Efreya hands them over."
+  },
+  {
+   "key": "1-20/tethelin/rogue/L5",
+   "name": "Elddar Seeds",
+   "giver": "Eterin Nitegazer",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/rogue/L4"
+   ],
+   "offer": "Kill the hatebone thieves in the hills south of town and bring back the elddar seeds.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "hatebone thief",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect elddar seeds from hatebone thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Eterin Nitegazer",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "journal": "Bring elddar seeds to Eterin Nitegazer.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/rogue/L7",
+   "name": "The Book of the Stars",
+   "giver": "Eterin Nitegazer",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/rogue/L5"
+   ],
+   "offer": "Kelkor, in a small elven village north of the observatory on the mountain, has work.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Kelkor",
+     "journal": "Speak with Kelkor.",
+     "says": "Get me the book of the stars the gnomes keep in their observatory, and 140 tunar."
+    },
+    {
+     "kind": "talk",
+     "target": "gnomish astronomer",
+     "journal": "Speak with gnomish astronomer.",
+     "says": "The book of the stars? Take good care of it.",
+     "rewards": {
+      "items": [
+       "Book of the Stars"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Kelkor",
+     "items": [
+      {
+       "item": "Book of the Stars",
+       "count": 1
+      }
+     ],
+     "tunar": 140,
+     "journal": "Bring Book of the Stars and 140 tunar to Kelkor.",
+     "says": "Take this locked chest to Eterin.",
+     "rewards": {
+      "items": [
+       "Locked Chest"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Eterin Nitegazer",
+     "items": [
+      {
+       "item": "Locked Chest",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Locked Chest to Eterin Nitegazer.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The gnomish astronomer at the observatory hands over the book."
+  },
+  {
+   "key": "1-20/tethelin/rogue/L10",
+   "name": "Fibble's Device",
+   "giver": "Eterin Nitegazer",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/rogue/L7"
+   ],
+   "offer": "Fibble Gearcharmer in Kara Village needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Fibble Gearcharmer",
+     "journal": "Speak with Fibble Gearcharmer.",
+     "says": "Three orc thieves south of Kara took my device."
+    },
+    {
+     "kind": "loot",
+     "target": "Orc Thief",
+     "items": [
+      {
+       "item": "Gearcharmer's Device",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.33,
+     "journal": "Collect Gearcharmer's Device from Orc Thieves."
+    },
+    {
+     "kind": "talk",
+     "target": "Fibble Gearcharmer",
+     "journal": "Speak with Fibble Gearcharmer.",
+     "says": "It's broken. Take it to Gligbin Gearcharmer in Klik'Anon; 197 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Gligbin Gearcharmer",
+     "items": [
+      {
+       "item": "Gearcharmer's Device",
+       "count": 1
+      }
+     ],
+     "tunar": 197,
+     "journal": "Bring Gearcharmer's Device and 197 tunar to Gligbin Gearcharmer.",
+     "says": "I need resin from a witchdoctor in the cave near Fayspire."
+    },
+    {
+     "kind": "loot",
+     "target": "orc witchdoctor",
+     "items": [
+      {
+       "item": "Witchdoctor's Resin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Witchdoctor's Resin from orc witchdoctors."
+    },
+    {
+     "kind": "give",
+     "target": "Gligbin Gearcharmer",
+     "items": [
+      {
+       "item": "Witchdoctor's Resin",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Witchdoctor's Resin to Gligbin Gearcharmer.",
+     "says": "Fixed. Take it to Fibble.",
+     "rewards": {
+      "items": [
+       "Repaired Device"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Fibble Gearcharmer",
+     "items": [
+      {
+       "item": "Repaired Device",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Repaired Device to Fibble Gearcharmer.",
+     "says": "Thank you! Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Eterin Nitegazer",
+     "journal": "Speak with Eterin Nitegazer.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Orc Thief",
+    "Gligbin Gearcharmer"
+   ],
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. No orc thieves or Gligbin are on this server; the orc witchdoctor stands in for the hatebone witchdoctor."
+  },
+  {
+   "key": "1-20/tethelin/rogue/L13",
+   "name": "Siltha's Collection",
+   "giver": "Eterin Nitegazer",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/rogue/L10"
+   ],
+   "offer": "Siltha, in the little elf town north of Tethelin, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Siltha",
+     "journal": "Speak with Siltha.",
+     "says": "Four wings of the royal guard wasps from the hive near Tethelin."
+    },
+    {
+     "kind": "loot",
+     "target": "wasp royal guard",
+     "items": [
+      {
+       "item": "Royal Wasp Guard Wing",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Collect 4 Royal Wasp Guard Wings from wasp royal guards."
+    },
+    {
+     "kind": "give",
+     "target": "Siltha",
+     "items": [
+      {
+       "item": "Royal Wasp Guard Wing",
+       "count": 4
+      }
+     ],
+     "journal": "Bring 4 Royal Wasp Guard Wings to Siltha.",
+     "says": "Now the spyglass of the orc gatewatcher in the Druk cave."
+    },
+    {
+     "kind": "loot",
+     "target": "orc gatewatcher",
+     "items": [
+      {
+       "item": "Spyglass",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Spyglass from orc gatewatchers."
+    },
+    {
+     "kind": "give",
+     "target": "Siltha",
+     "items": [
+      {
+       "item": "Spyglass",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Spyglass to Siltha.",
+     "says": "Last, the skull of Vitsh Sah, from his tomb north of the cave."
+    },
+    {
+     "kind": "loot",
+     "target": "Vitsh'Sah",
+     "items": [
+      {
+       "item": "Skull of Vitsh",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Skull of Vitsh from Vitsh'Sahs."
+    },
+    {
+     "kind": "give",
+     "target": "Siltha",
+     "items": [
+      {
+       "item": "Skull of Vitsh",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Skull of Vitsh to Siltha.",
+     "says": "My collection is complete.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/tethelin/rogue/L15",
+   "name": "Overseer Evief's Barges",
+   "giver": "Eterin Nitegazer",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/rogue/L13"
+   ],
+   "offer": "Overseer Evief, on a barge northeast of Fayspire, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Overseer Evief",
+     "journal": "Speak with Overseer Evief.",
+     "says": "Talk to Dorrun Hammerfist in Diren Village, west of Moradhim."
+    },
+    {
+     "kind": "talk",
+     "target": "Bomun Hammerfist",
+     "journal": "Speak with Bomun Hammerfist.",
+     "says": "Kill the bear Trapmaw, south of the village along the river."
+    },
+    {
+     "kind": "loot",
+     "target": "Trapmaw",
+     "items": [
+      {
+       "item": "Trapmaw's Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Trapmaw's Pelt from Trapmaws."
+    },
+    {
+     "kind": "give",
+     "target": "Bomun Hammerfist",
+     "items": [
+      {
+       "item": "Trapmaw's Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Trapmaw's Pelt to Bomun Hammerfist.",
+     "says": "The hammer's yours.",
+     "rewards": {
+      "items": [
+       "Stonework Hammer"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Overseer Evief",
+     "items": [
+      {
+       "item": "Stonework Hammer",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stonework Hammer to Overseer Evief.",
+     "says": "Now Hardlin in Freeport."
+    },
+    {
+     "kind": "talk",
+     "target": "Hardlin",
+     "journal": "Speak with Hardlin.",
+     "says": "Kill a Nasehir sandcaster in Northern Ro."
+    },
+    {
+     "kind": "loot",
+     "target": "Nasehir Sandcaster",
+     "items": [
+      {
+       "item": "Sand Rune",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Sand Rune from Nasehir Sandcasters."
+    },
+    {
+     "kind": "give",
+     "target": "Overseer Evief",
+     "items": [
+      {
+       "item": "Sand Rune",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Sand Rune to Overseer Evief.",
+     "says": "Last, the pirate mason by the large rock on the shore east of Fayspire."
+    },
+    {
+     "kind": "loot",
+     "target": "pirate stonemason",
+     "items": [
+      {
+       "item": "Stonemason's Chisel",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Stonemason's Chisel from pirate stonemasons."
+    },
+    {
+     "kind": "give",
+     "target": "Overseer Evief",
+     "items": [
+      {
+       "item": "Stonemason's Chisel",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stonemason's Chisel to Overseer Evief.",
+     "says": "The barges will run again.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Trapmaw"
+   ],
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. Trapmaw is not on this server. The guide does not name the loot."
+  },
+  {
+   "key": "1-20/tethelin/rogue/L20",
+   "name": "Yiprew's Research",
+   "giver": "Eterin Nitegazer",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/rogue/L15"
+   ],
+   "offer": "Yiprew Yuprew, by the well in Kara Village, has research for you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Yiprew Yuprew",
+     "journal": "Speak with Yiprew Yuprew.",
+     "says": "Thailav D'yal, a dark elf necromancer in a tomb north of Fayspire, has the necromancer's handbook."
+    },
+    {
+     "kind": "loot",
+     "target": "Thailav D'yal",
+     "items": [
+      {
+       "item": "Necromancer's Handbook",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Necromancer's Handbook from Thailav D'yals."
+    },
+    {
+     "kind": "give",
+     "target": "Yiprew Yuprew",
+     "items": [
+      {
+       "item": "Necromancer's Handbook",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Necromancer's Handbook to Yiprew Yuprew.",
+     "says": "Now Snafitzer, in his house on mechanical legs."
+    },
+    {
+     "kind": "talk",
+     "target": "Snafitzer",
+     "journal": "Speak with Snafitzer.",
+     "says": "Craftsman Pete in Chiasta, east of Moradhim, has my supplies. 525 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Craftsman Pete",
+     "tunar": 525,
+     "journal": "Bring 525 tunar to Craftsman Pete.",
+     "says": "Snafitzer's supplies.",
+     "rewards": {
+      "items": [
+       "Snafitzer's Supplies"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Snafitzer",
+     "items": [
+      {
+       "item": "Snafitzer's Supplies",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Snafitzer's Supplies to Snafitzer.",
+     "says": "Go back to Yiprew."
+    },
+    {
+     "kind": "talk",
+     "target": "Yiprew Yuprew",
+     "journal": "Speak with Yiprew Yuprew.",
+     "says": "A rib of the crumbling bones in Collonridge Cemetery."
+    },
+    {
+     "kind": "loot",
+     "target": "Crumbling Bones",
+     "items": [
+      {
+       "item": "Rib of a Crumbling Corpse",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Rib of a Crumbling Corpse from Crumbling Bones."
+    },
+    {
+     "kind": "give",
+     "target": "Yiprew Yuprew",
+     "items": [
+      {
+       "item": "Rib of a Crumbling Corpse",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Rib of a Crumbling Corpse to Yiprew Yuprew.",
+     "says": "Now the maundering soul on the Crest of the Duelists."
+    },
+    {
+     "kind": "loot",
+     "target": "Maundering Soul",
+     "items": [
+      {
+       "item": "Essence of a Marauding Soul",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Essence of a Marauding Soul from Maundering Souls."
+    },
+    {
+     "kind": "give",
+     "target": "Yiprew Yuprew",
+     "items": [
+      {
+       "item": "Essence of a Marauding Soul",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Essence of a Marauding Soul to Yiprew Yuprew.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Eterin Nitegazer",
+     "journal": "Speak with Eterin Nitegazer.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+  }
+ ],
+ "items": [
+  {
+   "name": "Arsonist's Mallet",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Aviak Necklace",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Bank Key",
+   "description": "",
+   "notrade": true,
+   "like": "shoddy pickclaw key"
+  },
+  {
+   "name": "Blue-Ribboned Venom Sack",
+   "description": "",
+   "notrade": true,
+   "like": "firespew gland"
+  },
+  {
+   "name": "Book of the Stars",
+   "description": "",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "Bough of Wood",
+   "description": "",
+   "notrade": true,
+   "like": "weak roots"
+  },
+  {
+   "name": "Clay Mixing Vial",
+   "description": "",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Essence of a Marauding Soul",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Evergreen Tunic",
+   "description": "",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Fish Stomach",
+   "description": "",
+   "notrade": true,
+   "like": "hearty bread"
+  },
+  {
+   "name": "Forestrunner's Boots",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Gearcharmer's Device",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Locked Chest",
+   "description": "",
+   "notrade": true,
+   "like": "chest of gnoll goods"
+  },
+  {
+   "name": "Metal Flakes",
+   "description": "",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Metal Testing Kit",
+   "description": "",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Necromancer's Handbook",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Orcish Medal of Bravery",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Orcish War Medallion",
+   "description": "",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Powder",
+   "description": "",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Recluse Spider Silk",
+   "description": "",
+   "notrade": true,
+   "like": "bundle of pristine silk"
+  },
+  {
+   "name": "Repaired Device",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Rib of a Crumbling Corpse",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Royal Wasp Guard Wing",
+   "description": "",
+   "notrade": true,
+   "like": "damaged bug wings"
+  },
+  {
+   "name": "Sand Rune",
+   "description": "",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Sealed Burlap Bag",
+   "description": "",
+   "notrade": true,
+   "like": "sack of wild herbs"
+  },
+  {
+   "name": "Silver Glowing Bar",
+   "description": "",
+   "notrade": true,
+   "like": "bag of coins"
+  },
+  {
+   "name": "Skull of Vitsh",
+   "description": "",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "Snafitzer's Supplies",
+   "description": "",
+   "notrade": true,
+   "like": "chest of gnoll goods"
+  },
+  {
+   "name": "Spyglass",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Stonemason's Chisel",
+   "description": "",
+   "notrade": true,
+   "like": "The Foreman's Pick"
+  },
+  {
+   "name": "Stonework Hammer",
+   "description": "",
+   "notrade": true,
+   "like": "The Foreman's Pick"
+  },
+  {
+   "name": "Tillian Bracelet",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Trapmaw's Pelt",
+   "description": "",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "Tree Eater's Leg",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Witchdoctor's Resin",
+   "description": "",
+   "notrade": true,
+   "like": "weak roots"
+  },
+  {
+   "name": "Woodsman's Vest",
+   "description": "",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Zapper Stinger",
+   "description": "",
+   "notrade": true,
+   "like": "firespew gland"
+  }
+ ]
+}

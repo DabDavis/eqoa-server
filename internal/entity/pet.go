@@ -183,6 +183,7 @@ var petClassStandIn = map[int]string{
 }
 
 const (
+	classWarrior       = 0
 	classEnchanter     = 12
 	enchanterAnimation = "animation"
 	// grandAnimation is the Animator's pet (EQOA-Data's enchanter master
@@ -196,7 +197,11 @@ const (
 // does (Attack1), and Grand Animation twice (Attack2), as live EQOA's did
 // (F3 20261025-164209, jib: "enchanter pets should only single hit
 // regardless of level with grand animation dual hitting"). Any other
-// class's pet swings as the creature its body is.
+// class's pet swings as a warrior of its level (newPet), four hits a round
+// from level 35 with no shield (F3 pass 18, the user: "at level 35 and
+// above melee/war classes quad attack, and many pets/mobs are missing
+// that"): a pet took its template creature's npcclass row, and Return
+// Home's made most of them casters (a skeleton, an elementaling).
 func petSwing(class int, spell string) (fixed bool, kind int) {
 	if class != classEnchanter {
 		return false, 0
@@ -297,6 +302,7 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	pet.NPCType = 0 // npc flags 0, as Sandstorm's summoned pet's
 	pet.Faction = FactionFriendly
 	pet.Level = level
+	pet.Class = classWarrior // its swing a warrior's (petSwing has the enchanter's)
 	pet.MaxHP = NPCMaxHP(level)
 	pet.HP = pet.MaxHP
 	pet.OffMod, pet.DefMod, pet.WeaponDamage = NPCOffMod(level), NPCDefMod(level), NPCWeaponDamage(level)

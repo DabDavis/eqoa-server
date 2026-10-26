@@ -58,9 +58,11 @@ type NPCWindowHandler struct {
 	corpseLies  func(entity.EntityID) (time.Time, bool)
 	clearCorpse func(entity.EntityID, time.Time) bool
 
-	// loot is the corpses (loot.go), made on first use.
+	// loot is the corpses (loot.go), made on first use; coinRoll rolls a
+	// corpse's tunar (corpsecoins.go; nil: rand.Intn).
 	loot     *lootState
 	lootOnce sync.Once
+	coinRoll func(int) int
 }
 
 // NewNPCWindowHandler creates the handler. inv may be nil (no database): the
@@ -91,6 +93,7 @@ func (h *NPCWindowHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeBlackSmithMenu, h.HandleBlacksmithOpen)
 	r.Register(protocol.OpcodeRequestRepair, h.HandleRepair)
 	r.Register(protocol.OpcodeCloseBlacksmithMenu, h.HandleBlacksmithClose)
+	r.Register(protocol.OpcodeLootCorpse, h.HandleLootCorpse)
 	r.Register(protocol.OpcodeClientCloseLoot, h.HandleLootClose)
 	r.Register(protocol.OpcodeClientLoot, h.HandleLootItem)
 	r.Register(protocol.OpcodeLootTakeAll, h.HandleLootAll)

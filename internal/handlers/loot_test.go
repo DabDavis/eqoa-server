@@ -154,3 +154,79 @@ func TestAPetsCorpseIsNotLootable(t *testing.T) {
 	f.h.OpenCorpse(f.sess, f.npc)
 	mustOps(t, f.sent(), protocol.OpcodeLoot)
 }
+
+// The attack button on a corpse (CLIENT's ToggleAutoAttack, 0x0015 with its
+// id) opens it, as Sandstorm answers it (F3 20261026-042112: a creature shown
+// as attackable could not be looted at all); a creature alive is no corpse
+// (0x0085 2), and one out of reach is refused in red, nothing opened.
+func TestTheAttackButtonOpensACorpse(t *testing.T) {
+	f := newCorpseFixture(t, 1)
+	const id = 77
+	f.npcs[id] = f.npc
+	lootIt := func() { f.send(protocol.OpcodeLootCorpse, func(w *buffer.Writer) { w.WriteUint32(id) }) }
+
+	lootIt()
+	got := f.sent()
+	mustOps(t, got, protocol.OpcodeLoot)
+	if n := lootCount(t, got[0]); n != 1 {
+		t.Fatalf("%d records, want the corpse's 1", n)
+	}
+
+	f.send(protocol.OpcodeClientCloseLoot, nil)
+	f.sent()
+	f.npc.Dead = false
+	lootIt()
+	got = f.sent()
+	mustOps(t, got, protocol.OpcodeLootOptions)
+	if got[0][2] != lootNotLootable {
+		t.Fatalf("a live creature answered 0x0085 %d", got[0][2])
+	}
+
+	f.npc.Dead = true
+	f.player.X = entity.InteractRange + 1
+	lootIt()
+	got = f.sent()
+	mustOps(t, got, protocol.OpcodeColoredChat)
+	f.player.X = entity.InteractRange - 1
+	lootIt()
+	mustOps(t, f.sent(), protocol.OpcodeLoot)
+}
+
+// A corpse's coins go to its first opener at once, as Sandstorm's did (a
+// level 2 Orc Pawn's 2: 0x0052 with the purse, "You receive 2 tunar from the
+// corpse.", then its items), kept; opened again it holds only its items. The
+// roll is the creature's level to twice it; a pet's corpse carries none.
+func TestACorpsesTunarGoesToItsFirstOpener(t *testing.T) {
+	f := newCorpseFixture(t, 1)
+	f.npc.Level = 2
+	f.h.coinRoll = func(n int) int {
+		if n != 3 {
+			t.Fatalf("rolled over %d, want 0..2 above the level", n)
+		}
+		return 1
+	}
+	f.h.OpenCorpse(f.sess, f.npc)
+	got := f.sent()
+	mustOps(t, got, protocol.OpcodePlayerTunar, protocol.OpcodeClientMessage, protocol.OpcodeLoot)
+	if purse, _ := buffer.NewReader(got[0][2:]).Read7BitEncodedInt64(); purse != 565 || f.player.Tunar != 565 {
+		t.Fatalf("purse %d (player %d), want 562 + 3", purse, f.player.Tunar)
+	}
+	if tunar, _ := f.storedTunar(); tunar != 565 {
+		t.Fatalf("kept %d tunar, want 565", tunar)
+	}
+	if line, _ := readWideLine(got[1][2:]); line != "You receive 3 tunar from the corpse." {
+		t.Fatalf("said %q", line)
+	}
+
+	f.send(protocol.OpcodeClientCloseLoot, nil)
+	f.sent()
+	f.h.OpenCorpse(f.sess, f.npc)
+	mustOps(t, f.sent(), protocol.OpcodeLoot) // the coins gone with the first
+
+	if n := corpseCoins(&entity.NPC{Level: 40, Owner: 1009}, nil); n != 0 {
+		t.Fatalf("a pet's corpse carried %d tunar", n)
+	}
+	if n := corpseCoins(&entity.NPC{Level: 40}, nil); n < 40 || n > 80 {
+		t.Fatalf("a level 40's corpse carried %d tunar, want 40 to 80", n)
+	}
+}

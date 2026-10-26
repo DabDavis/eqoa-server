@@ -21,7 +21,9 @@ database's npcs table holds are written, keyed as the server looks them up
 class here stays a warrior.
 
 The table is this tool's alone: --apply replaces every row in one
-transaction, --clear empties it. Report only by default.
+transaction, --clear empties it. Report only by default. Return Home's
+npc_type is no class for its creatures (Lord Nagafen a magician, a large
+beetle a necromancer): run tools/fix_npc_classes.py --apply after --apply.
 
     tools/import_npc_classes.py [--harvest <recording.json, .tsv or dir> ...]
         [--return-home EQOA_Master.sql] [--db eqoa.db] [--apply | --clear]

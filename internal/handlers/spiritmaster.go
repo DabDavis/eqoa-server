@@ -4,6 +4,7 @@ import (
 	"log"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
@@ -24,6 +25,14 @@ const boundLine = "You are now bound to this place."
 // bindReach is how far in front of a spiritmaster its bind point lies.
 const bindReach = 3.0
 
+// bindVisual and bindCast are the bind's 0x00B1, the spiritmaster's onto the
+// player, as Sandstorm's Spiritmaster Zole cast it (questrec16, the user's
+// "spiritmasters supposed to castingcombat 0x08F3B955 when binding players").
+const (
+	bindVisual uint32 = 0x08F3B955
+	bindCast          = 3 * time.Second
+)
+
 // bindStore keeps bind points (database.SQLiteCharacterStore).
 type bindStore interface {
 	SaveBind(serverID uint32, b database.BindRow) error
@@ -37,7 +46,7 @@ func IsSpiritmaster(name string) bool {
 // bindSpot is the spot right in front of a spiritmaster (inFrontOf).
 func bindSpot(npc *entity.NPC) entity.Bind {
 	x, z, face := inFrontOf(npc.SpawnX, npc.SpawnZ, npc.SpawnFacing)
-	return entity.Bind{Set: true, World: npc.World, X: x, Y: npc.SpawnY, Z: z, Facing: face, By: npc.Name}
+	return entity.Bind{Set: true, World: npc.World, X: x, Y: npc.SpawnY, Z: z, Facing: face, By: npc.Name, NPC: npc.ServerID}
 }
 
 // inFrontOf is the spot bindReach in front of someone standing at (x, z)
@@ -108,5 +117,6 @@ func (h *InteractHandler) answerBind(sess *session.Session, player *entity.Playe
 		}
 	}
 	sess.Queue().AddWithSequence(buildClientMessage(b.By + ": " + boundLine))
+	h.gameWorld.NPCVisual(b.NPC, player.ServerID, bindCast, bindVisual)
 	log.Printf("Bind: %s bound by %s at (%.1f, %.1f, %.1f) world=%d", player.Name, b.By, b.X, b.Y, b.Z, b.World)
 }

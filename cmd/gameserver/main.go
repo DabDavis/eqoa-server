@@ -520,8 +520,10 @@ func main() {
 
 	<-sigChan
 	log.Println("Shutdown signal received, stopping server...")
-	// Everyone in the world is saved as at a logout: their positions and
-	// their spell effects.
+	// Every client told first (0x07C0: the game back at its login with the
+	// shutdown notice), then everyone in the world saved as at a logout: their
+	// positions and their spell effects.
+	udpListener.NoticeShutdown()
 	udpListener.SaveAll()
 
 	log.Println("Server stopped")

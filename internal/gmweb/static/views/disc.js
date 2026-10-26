@@ -90,7 +90,7 @@ export async function render(box) {
         h('div', { class: 'row' }, pick, input),
         statusBox)),
       card('What is kept', h('div', { class: 'stack' },
-        h('p', null, 'So the models and the spell visuals work on your next visit without the disc, four files are kept in this site\'s private storage in your browser (about 160 MB): CHAR.ESF, ITEM.ESF, ITEMICON.ESF and SPELLFX.CSF. Map zones are kept as pictures once drawn.'),
+        h('p', null, 'So the models, the spell visuals and their preview work on your next visit without the disc, seven files are kept in this site\'s private storage in your browser (about 160 MB): CHAR.ESF, ITEM.ESF, ITEMICON.ESF, SPELLFX.CSF, FX.CSF, CHARCUST.CSF and CHARFACE.CSF. Map zones are kept as pictures once drawn.'),
         button('Forget them', { class: 'danger', onclick: async () => {
           if (!(await confirmBox({ title: 'Forget the kept files?', message: 'The models need the disc again next time, and the map is drawn again.', confirmLabel: 'Forget', danger: true }))) return;
           await call('forget');
@@ -115,6 +115,13 @@ export async function spellVisualsOnDisc() {
     visualsOnce.catch(() => { visualsOnce = null; });
   }
   return visualsOnce;
+}
+
+// previewFiles is the files the spell-visual preview asks for, as
+// [[name, Blob]], and the names neither the disc nor the kept copies have.
+export async function previewFiles(names) {
+  await checkKept();
+  return call('previewFiles', { names });
 }
 
 // ---- models and icons for other pages

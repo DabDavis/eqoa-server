@@ -254,6 +254,19 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   in the game), so a visual is seen before it is given; `set_spell_visual` gives a spell one through
   the audited row edit (a row inserted for a spell with none); `spell_visual`, `visual_uses` read.
   The game's `#fx`/`#spellfx` do the same; `gm_audit`'s statement is `database.GMAuditSchema`.
+  **The preview** (F3 pass 17, the user's "a default human casting the spell fx ... so we can change
+  without going in game", "for the castingcombat animation"): with `gm.preview_url` set, the page
+  frames eqoa-rust-client-vanilla's `web/fxview.html` (the client's own `spells.rs` playing the
+  0x00B1 a server sends, on two CSprites: `crates/eqoa/src/fxview.rs`), served with the play page
+  from ITS host, never this server (no binaries here), and talks to it by postMessage only (origins
+  checked both ways; the CSP's `frame-src` is that one origin, `'none'` without it). The disc worker
+  hands it Blobs of the six files it reads (`previewFiles`: CHARCUST/CHARFACE.CSF, CHAR.ESF,
+  SPELLFX.CSF, FX.CSF, ITEM.ESF; FX/CHARCUST/CHARFACE now kept in OPFS too). What a cast lands on
+  (the user's "if offensive spell ... a second human or training dummy for the target"): a spell
+  whose line is harmful (`spell_visual`'s `harmful`, `SpellDef.Harmful`) at a training dummy (body
+  0x66262F1C at the Training Dummy rows' 0.25) before the caster, anything else on the caster; a bare
+  visual at the dummy; the pane's select overrides (dummy, a second human, the caster). The preview's
+  host must allow the frame: nginx `frame-ancestors https://gm.<domain>` on that file alone.
 
 Traps: the database has ONE connection (`SetMaxOpenConns(1)`): never query while holding rows
 or a `db.Conn`/transaction from the plain handle — it deadlocks the game (the SQL console once

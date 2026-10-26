@@ -55,6 +55,13 @@ type GMConfig struct {
 	// TokenRate is how many requests a minute one API token (an AI agent's)
 	// may make.
 	TokenRate int `yaml:"token_rate"`
+
+	// PreviewURL is the spell-visual preview the Spell visuals page frames
+	// (eqoa-rust-client-vanilla's web/fxview.html, served with its play
+	// page: "https://example.org/eqoa/play/fxview.html"): a human casting a
+	// visual as 0x00B1 plays it, off the GM's own disc. Empty: no preview.
+	// Its host must allow the panel to frame it (frame-ancestors).
+	PreviewURL string `yaml:"preview_url"`
 }
 
 // ServerConfig holds network server settings.

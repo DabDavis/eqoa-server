@@ -2,7 +2,9 @@
 // page's thread. The image is read in place (a File is a reference, never
 // copied whole); the four small files the models, the icons and the spell
 // visuals need are kept in this site's private storage (OPFS), so after one
-// load they work without the disc. Nothing read here leaves the browser.
+// load they work without the disc, with the three more the spell-visual
+// preview reads. Nothing read here leaves the browser (the preview is a page
+// in this same browser, handed its files as Blobs).
 
 import { readTOC, WORLD_FILES } from './iso.js';
 import * as esf from './esfcore.js';
@@ -10,7 +12,10 @@ import * as esf from './esfcore.js';
 let disc = null; // {file, files: Map, label}
 const containers = new Map(); // name -> Promise<parsed>
 const zoneTables = new Map(); // world file -> Promise<zones>
-const KEEP = ['DATA/CHAR.ESF', 'DATA/ITEM.ESF', 'DATA/ITEMICON.ESF', 'DATA2/SPELLFX.CSF'];
+const KEEP = ['DATA/CHAR.ESF', 'DATA/ITEM.ESF', 'DATA/ITEMICON.ESF', 'DATA2/SPELLFX.CSF', 'DATA2/FX.CSF', 'DATA2/CHARCUST.CSF', 'DATA2/CHARFACE.CSF'];
+// the files the spell-visual preview asks for, by the names it asks with
+// (eqoa-rust-client-vanilla's fxview::FILES): nothing else is handed to it
+const PREVIEW_FILES = { 'CHARCUST.CSF': 'DATA2/CHARCUST.CSF', 'CHARFACE.CSF': 'DATA2/CHARFACE.CSF', 'CHAR.ESF': 'DATA/CHAR.ESF', 'SPELLFX.CSF': 'DATA2/SPELLFX.CSF', 'FX.CSF': 'DATA2/FX.CSF', 'ITEM.ESF': 'DATA/ITEM.ESF' };
 const OPFS_DIR = 'gm-disc';
 
 const read = (file, off, len) => file.slice(off, off + len).arrayBuffer();
@@ -122,6 +127,22 @@ const ops = {
     const img = esf.surfaceByID(parsed, id | 0);
     if (!img) return { missing: true };
     return { ...img, __transfer: [img.data.buffer] };
+  },
+
+  // previewFiles: the files the spell-visual preview asks for (only those
+  // PREVIEW_FILES names), as Blobs: off the disc when it is open, else the
+  // copies kept; the ones neither has are listed as missing
+  async previewFiles({ names }) {
+    const files = [], missing = [];
+    for (const n of names || []) {
+      const path = PREVIEW_FILES[String(n).toUpperCase()];
+      if (!path) continue;
+      const e = disc?.files.get(path);
+      const blob = e ? disc.file.slice(e.offset, e.offset + e.size) : await opfsFile(path);
+      if (blob) files.push([n, blob]);
+      else missing.push(n);
+    }
+    return { files, missing };
   },
 
   // spellVisuals: every spell visual on the disc (SPELLFX.CSF's 0xC200

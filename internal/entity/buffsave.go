@@ -54,6 +54,9 @@ type savedMods struct {
 	// illusions reads as none
 	Form     uint32  `json:",omitempty"`
 	FormSize float32 `json:",omitempty"`
+	// a heal over time's ticks left (hot.go); a row kept before reads as
+	// none, an effect that ticks until it ends
+	Ticks int `json:",omitempty"`
 }
 
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
@@ -67,7 +70,7 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 		if !e.NextTick.IsZero() && (e.HPTick != 0 || e.PowerTick != 0) {
 			tick = max(0, e.NextTick.Sub(now).Milliseconds())
 		}
-		mods, _ := json.Marshal(savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, Form: e.Form, FormSize: e.FormSize})
+		mods, _ := json.Marshal(savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks})
 		flags := 0
 		for _, f := range []struct {
 			on  bool
@@ -110,6 +113,7 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			_ = json.Unmarshal([]byte(r.Mods), &sm)
 			ae.Mods, ae.Proc, ae.ProcMax = sm.StatMods, sm.Proc, sm.ProcMax
 			ae.Form, ae.FormSize = sm.Form, sm.FormSize
+			ae.Ticks = sm.Ticks
 		}
 		p.Effects = append(p.Effects, ae)
 		if ae.Name != "" && len(p.Buffs) < MaxEffects {

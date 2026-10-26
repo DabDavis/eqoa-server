@@ -129,6 +129,18 @@ func main() {
 		log.Printf("WARNING: %v; creatures attack on sight by the rule alone", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.AggroSummary())
+	// Which creatures are undead, for the spells that take nothing else
+	// (entity/undead.go, table npcundead)
+	if _, _, err := gameWorld.LoadUndeadTags(db); err != nil {
+		log.Printf("WARNING: %v; undead by their names alone", err)
+	}
+	log.Printf("Creatures: %s", gameWorld.UndeadSummary())
+	// NPCs coming to the help of their own (entity/socialaggro.go, table
+	// npcsocial), and creatures healing once a fight is over (npcregen.go)
+	if _, err := gameWorld.LoadSocialRules(db); err != nil {
+		log.Printf("WARNING: %v; no NPC comes to another's help", err)
+	}
+	log.Printf("Creatures: %s; %s", gameWorld.SocialSummary(), entity.NPCRegenSummary())
 	// The necromancer's life taps its pets cast (entity/pettap.go)
 	if _, err := gameWorld.LoadPetTaps(db); err != nil {
 		log.Printf("WARNING: %v; no pet taps", err)

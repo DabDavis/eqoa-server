@@ -49,9 +49,10 @@ func TestTapAndPactWords(t *testing.T) {
 		// what goes on the caster
 		{"Target, Decrease AC by 25, Increase AC by 25 Self", true, 0,
 			[]eff{{EffectStat, StatAC, -25, false, DrainNone, 0}, {EffectStat, StatAC, 25, true, DrainNone, 0}}},
-		{"Target, Increase AC by 300, Decrease AC by 150 to Self", false, 0,
+		// no time given: a line raising stats lasts buffDuration (spellnotes.go), the price too
+		{"Target, Increase AC by 300, Decrease AC by 150 to Self", false, buffDuration,
 			[]eff{{EffectStat, StatAC, 300, false, DrainNone, 0}, {EffectStat, StatAC, -150, true, DrainNone, 0}}},
-		{"Target, Increase AC by 400, Decrease AC to self by 200", false, 0,
+		{"Target, Increase AC by 400, Decrease AC to self by 200", false, buffDuration,
 			[]eff{{EffectStat, StatAC, 400, false, DrainNone, 0}, {EffectStat, StatAC, -200, true, DrainNone, 0}}},
 		{"Target, Increase Hate by 750, Increase AC by 500 for 12 seconds Self Only", true, 12 * time.Second,
 			[]eff{{EffectHate, 0, 750, false, DrainNone, 0}, {EffectStat, StatAC, 500, true, DrainNone, 0}}},

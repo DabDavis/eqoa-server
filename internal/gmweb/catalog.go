@@ -413,6 +413,45 @@ var catalog = map[string]tableNote{
 			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_aggro.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npcundead": {
+		Label: "Undead creatures", Group: "World", Title: "name", Sort: "name",
+		Help: "Which creatures are undead, by NPC NAME (lower case, no trailing $): the spells for undead alone (a " +
+			"\"Target undead\" line, as the ... Death nukes have, and the necromancer's Charm, Command, Control and Coerce " +
+			"Undead) are refused at anything else with \"This spell only works on the undead.\", and every other charm " +
+			"fails on undead. undead 1 makes every NPC of the name undead, 0 none, whatever its name says; a name with no " +
+			"row is undead when its name says so (skeleton, zombie, ghoul, mummy, wraith, spectre, ghost...). Rows of " +
+			"source seed are tools/seed_npc_undead.py's, from the creatures' names and bodies: no record of the live game " +
+			"says which creatures were undead.",
+		Live:   "At once: the next cast at a creature of that name uses it.",
+		Search: []string{"name", "note"},
+		Cols: map[string]colNote{
+			"name":   {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"undead": {Label: "Undead", Help: "1 yes, 0 no"},
+			"note":   {Label: "Note", Help: "why"},
+			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_undead.py's rows (its --undo deletes those)"},
+		},
+	},
+	"npcsocial": {
+		Label: "Social NPCs", Group: "World", Title: "npc_name", Sort: "npc_name",
+		Help: "Which NPCs come to the help of their own, by NPC name (entity/socialaggro.go): when a player (or a player's " +
+			"pet) hits an NPC or casts something hostile on it, every NPC of the same faction whose row says social 1 and " +
+			"stands within its radius of it (default 30, a spell's usual range) joins the fight against that player. " +
+			"faction is the faction (or any group name) it belongs to and helps; an attacked NPC is of its own row's " +
+			"faction and of every faction its kill lowers (Faction hits), so only the NPCs that help need a row. A " +
+			"creature noticing a player on its own calls no one; one already fighting, going home, a pet or with the NPC " +
+			"bit (0x80) does not come. The town guards are tools/seed_npc_social.py's rows, each town's guards under its " +
+			"guard faction (or \"Guards of <town>\"): guards help guards, not townsfolk.",
+		Live:   "At once: the next hit uses it.",
+		Search: []string{"npc_name", "faction", "note", "source"},
+		Cols: map[string]colNote{
+			"npc_name": {Label: "NPC name", Help: "as in NPCs, exactly (a trailing space included)"},
+			"social":   {Label: "Helps", Help: "1 comes to the help of its faction, 0 never"},
+			"faction":  {Label: "Faction", Help: "the faction or group it belongs to and helps; empty: the faction its kill lowers most (Faction hits)"},
+			"radius":   {Label: "Radius", Help: "how near the NPC attacked it must stand; 0 the default, 30"},
+			"note":     {Label: "Note"},
+			"source":   {Label: "Source", Help: "gm, or seed for tools/seed_npc_social.py's rows (its --undo deletes those)"},
+		},
+	},
 	"itempattern": {
 		Label: "Items", Group: "Items & spells", Title: "itemname", Sort: "patternid",
 		Help: "Every item that exists, by patternid. model is the ITEM.ESF DictID worn or held, itemicon the ITEMICON.ESF " +

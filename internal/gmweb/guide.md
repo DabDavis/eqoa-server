@@ -36,6 +36,8 @@ with the row before and after, and `revert_change` undoes a row change.
 | `npcitem` | merchant stock: `npcid` (→ `npcs.id`), `patternid`, `listnumber` (order) | `itemid` |
 | `npcclass` | an NPC NAME's class (lower case), which picks its melee; absent = warrior | `name` |
 | `npcpaths` | the path an NPC walks: `points` (JSON waypoints), `mode`, `pause`, `speed`; use the path operations | `npcid` |
+| `npcundead` | which creatures are undead, by NPC NAME (lower case): `undead` 1 or 0, whatever the name says; a name with no row is undead when its words say so (skeleton, zombie, ghoul, mummy, wraith, ghost...) | `name` |
+| `npcsocial` | which NPCs come to the help of their own when one is attacked, by NPC name: `social` 1, the `faction` (or any group name) they belong to and help, `radius` (0: 30) | `npc_name` |
 | `itempattern` | every item that exists | `patternid` |
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
@@ -68,6 +70,8 @@ with the row before and after, and `revert_change` undoes a row change.
 
 ## What takes effect when
 
+- **Creatures heal fast out of a fight**: 15% of their hit points every six seconds from the third tick after the
+  fight ends (jib's numbers); nothing to set.
 - **NPCs: at once.** An edited NPC leaves every player's view for a second and comes back as edited, alive,
   on its spawn point. A new row spawns; a deleted row leaves. Changes made outside the panel (an importer,
   `sql_execute`) reach the world with `reload_npcs`.
@@ -98,17 +102,40 @@ with the row before and after, and `revert_change` undoes a row change.
   `pause` seconds at every point; `speed` `walk` or `run`. Take places from `online_players` (a GM walking
   the route) or `world_npcs`. `npc_path` shows it and where the NPC is on it; `clear_npc_path` takes it
   away. A pathed NPC does not wander; a fight takes it off its path and it comes back to the nearest leg.
+- **Make NPCs help each other** (a camp of orcs, a town's guards): `insert_row` into `npcsocial` one row per NPC
+  name, `{npc_name, social: 1, faction: "Deathfist Orcs"}` (the same faction or group name for every name that
+  should help the others). When a player, or a player's pet, hits one of them or casts something hostile on it,
+  every one within 30 of it (or its `radius`) joins the fight against that player. An attacked NPC also counts as
+  of every faction its kill lowers (`factionhits`), so a guard with Freeport's militia hits is helped by rows of
+  faction "The Freeport Militia". Not on a creature's own notice of a player, and not by one already fighting.
+  The town guards already have rows (source `seed`). At once.
 - **Make a merchant**: set `npc_type` to 129 (0x81), then `insert_row` into `npcitem` one row per item:
   `{npcid, patternid, stackleft: 1, listnumber: 0, 1, 2...}`.
 - **Change what a spell does**: `update_row` on `spelleffect` (`line`). The words the server reads:
-  a target first (`Target`, `Self`, `Group`, `Target undead`), then clauses separated by commas:
+  a target first (`Target`, `Self`, `Group`, `Target undead`: the target, which must be undead, see below), then clauses separated by commas:
   `Decrease Hitpoints by 45` (damage), `Increase HP by 100` (a heal), `Increase HP per tic by 10` (a heal
   over time), `Increase STR by 10` / `Decrease AC by 20` (STR STA AGI DEX WIS INT CHA AC, Max HP,
   Max Power, FR CR PR DR LR AR), `Root`, `Snare` (or `Decrease Movement Speed by 30`), `Sow` (run speed),
   `Invis`, `Return to bind point` (a gate), `+100 hate`; a scale
   `; Increase 15% based on DEX`; a duration `30sec`, `5min`, `2hr`. Example:
-  `Target, Decrease Hitpoints by 120 ; Increase 10% based on INT`.
-  What a spell takes for its caster or costs it: `Drain HP by 50` (also `Decrease Drain HP by 50`, or
+  `Target, Decrease Hitpoints by 120 ; Increase 10% based on INT`. Several stats take one number
+  (`Increase PR/DR by 35`, `buff DR, PR, FR, CR by 100`). A line that raises stats and gives no
+  duration lasts 30 minutes; a heal over time with none, 24 seconds. A radius (`15rad`), a buff's
+  hate (`218 hate`) and an epic's `Power cost`, `Cast` and `Recast` are read and left alone.
+  The cleric's HP/AC line (Courage, Center, Daring, Bravery, Valor, Resolution, Order, United
+  Faith and the group ranks) also heals as much as it raises maximum HP. **Heals over time**: the
+  first tick lands at once unless the player already has one; a weaker one over a stronger does
+  nothing; a stronger (or equal) one replaces it, no tick at once, and ticks at the next regular
+  (six-second) tick. `spellpattern` ids from 700001 were made by `tools/import_eqoadata_spells.py`
+  from EQOA-Data's class lists: their cast, recast and power are the server's estimates (from
+  another rank of the line), so fix them freely, and a line it left empty (`spelleffect` has no
+  row) is yours to write.
+- **Undead**: a spell whose line starts `Target undead`, and a charm whose name or description says undead (the
+  necromancer's Charm/Command/Control/Coerce Undead), works only on creatures that are undead (`npcundead`); cast at any
+  other it is refused with "This spell only works on the undead." Every other charm fails on undead. To make a creature
+  undead (or not), `insert_row` (or `update_row`) on `npcundead` with its name in lower case and `undead` 1 (or 0); it
+  counts at once. Rows of source `seed` are the seeding tool's guesses from names and bodies: no record says.
+- **Taps and pacts**: what a spell takes for its caster or costs it: `Drain HP by 50` (also `Decrease Drain HP by 50`, or
   `Decrease HP by 50 and transfer to caster` / `give self`): a life tap, the damage dealt heals the caster;
   `Drain Group HP by 125`: it heals the caster's group in range; `Drain STR by 10 and give to self, 60sec`
   or `Drain Power by 39`: the caster gains what the target loses (a stat for the duration). A clause

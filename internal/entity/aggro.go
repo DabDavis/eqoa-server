@@ -51,12 +51,13 @@ import (
 //     charactermodel) nothing attacks but by a GM's rule;
 //   - the radius: the creature's AggroRadius, 30 (the loader's own, under the
 //     38.9 measured), a GM's per name;
-//   - no line of sight and no social pull: nothing measured either;
+//   - no line of sight, and no social pull on sight: the NPCs of a creature's
+//     own come only when a player attacks it (socialaggro.go);
 //   - faction standings make nothing attack yet: every character's starting
 //     standings are one gnome's capture (Qeynos -2000, faction.go), so they
 //     would set Qeynos's guards on every player.
 //
-// The fight it starts is a hit's (updateAggro), so the chase, the leash and
+// The fight it starts is a hit's (addThreatLocked), so the chase, the leash and
 // the way home are the fight's own (chase.go). A creature already fighting,
 // or on its way home after a fight, looks for no one.
 
@@ -246,7 +247,9 @@ func (w *World) aggroSystem(now time.Time) {
 			if d2 > r*r {
 				continue
 			}
-			w.updateAggro(npc, p.ServerID, 1)
+			// a hit's own entry, but no one else told: the NPCs of its
+			// own come only to a player's attack (socialaggro.go)
+			w.addThreatLocked(npc, p.ServerID, 1)
 			log.Printf("Aggro: %s (level %d) attacks %s (level %d) from %.1f away",
 				npc.Name, npc.Level, p.Name, p.Level, math.Sqrt(float64(d2)))
 		}

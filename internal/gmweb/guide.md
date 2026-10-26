@@ -43,6 +43,7 @@ with the row before and after, and `revert_change` undoes a row change.
 | `itemeffect` | what using an item does (the alchemists' potions): `line` in spell words, `Self` drunk or `Target` thrown; `name`/`icon` on the effects list; `breaks` attack/damage; `wear` % a tick; `area` a thrown one's splash | `patternid` |
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
+| `spellarea` | a spell's area where its line's reading is not what you want: `centre` 0 as its line reads, 1 round its target, 2 round its caster, -1 not an area spell; `radius` (0: its line's, else 15, or 10 round a harmful spell's caster); `maxtargets` (0: 8, its own target among them) | `spellid` |
 | `classspells` | which spells each class has (grant_spell "all" and `#template` never give a were form); a `source` of `eqoa-data cm` / `eqoa-data epic` / `eqoa-data mca` / `eqoa-data master <name>` marks a mastery's, an epic's or a master class's spell: listed for the class (the community visual page), never handed out by #template, start_all_spells or grant_spell "all" | `class`+`spellid` |
 | `cmcatalog` | every class mastery a character may buy, a row a rank: `category` 0 general / 1 racial / 2 archetype / 3 class / 4 master class, who (`classes`, `races` bit sets), `parent` (the rank before it), `require_ranks` (other masteries' ranks owned first, their ids), `cost`, `level`, `spent` (points spent first), `minstats`, `effects` (`STR:1,STRMax:15`), the abilities it needs, adds and replaces (names, and their spell ids in `require_spells` / `add_spells` / `remove_spells`), `enabled` | `id` |
 | `charcms` | the masteries each character bought and what each cost it | `serverid`+`cmid` |
@@ -132,8 +133,9 @@ with the row before and after, and `revert_change` undoes a row change.
   within its duration); a duration `30sec`, `5min`, `2hr`. Example:
   `Target, Decrease Hitpoints by 120 ; Increase 10% based on INT`. Several stats take one number
   (`Increase PR/DR by 35`, `buff DR, PR, FR, CR by 100`). A line that raises stats and gives no
-  duration lasts 30 minutes; a heal over time with none, 24 seconds. A radius (`15rad`), a buff's
-  hate (`218 hate`) and an epic's `Power cost`, `Cast` and `Recast` are read and left alone.
+  duration lasts 30 minutes; a heal over time with none, 24 seconds. A buff's hate (`218 hate`)
+  and an epic's `Power cost`, `Cast` and `Recast` are read and left alone; a radius (`15rad`) is
+  a group's area (below).
   The cleric's HP/AC line (Courage, Center, Daring, Bravery, Valor, Resolution, Order, United
   Faith and the group ranks) also heals as much as it raises maximum HP. **Heals over time**: the
   first tick lands at once unless the player already has one; a weaker one over a stronger does
@@ -148,6 +150,16 @@ with the row before and after, and `revert_change` undoes a row change.
   other it is refused with "This spell only works on the undead." Every other charm fails on undead. To make a creature
   undead (or not), `insert_row` (or `update_row`) on `npcundead` with its name in lower case and `undead` 1 (or 0); it
   counts at once. Rows of source `seed` are the seeding tool's guesses from names and bodies: no record says.
+- **Area spells**: a line makes a spell land on everything round its target or its caster, up to 8 (its own target
+  among them, the nearest first): `Target, Decrease Hitpoints by 210 aoe Decrease Hitpoints by 90` (the target takes
+  210, every creature within 15 of it 90; also `Aoe by 8`, `aoe 390`, `AE 856`), a bare `AOE` at the end (the whole
+  spell on all: the shouts, round the caster, within 10), `PB AE` or `around the caster` (round the caster), a group's
+  `Radius 15` / `15rad` (the caster's group within it, and their pets). A harmful one lands on creatures only: never a
+  player, a pet or charmed creature, an NPC with the NPC bit, one across the water's edge, nor (for undead alone)
+  anything living; each hit is the caster's (hate, the faction's helpers, the kill). The cast's visual names up to seven
+  others. To change one without its line, `insert_row` into `spellarea` (`{spellid, centre, radius, maxtargets,
+  note}`): centre 2 makes a spell of one target a blast round its caster, -1 makes an area spell one target's. At
+  the next cast.
 - **Taps and pacts**: what a spell takes for its caster or costs it: `Drain HP by 50` (also `Decrease Drain HP by 50`, or
   `Decrease HP by 50 and transfer to caster` / `give self`): a life tap, the damage dealt heals the caster;
   `Drain Group HP by 125`: it heals the caster's group in range; `Drain STR by 10 and give to self, 60sec`

@@ -30,7 +30,8 @@ func joinStatLists(text string) string {
 }
 
 // reNote is a part of a line that is read and left alone (Ignored): a
-// group heal's radius ("15rad", "Radius 15"), the hate a buff or heal makes
+// group heal's radius ("15rad", "Radius 15"; area.go reads it for the
+// group's area), the hate a buff or heal makes
 // ("218 hate", "52hate", "hate 30", "no hate"), which here is no creature's
 // hate for anyone (no creature is told of a heal), and the epic lists' and a
 // few others' power cost, cast and recast, which the import reads into the

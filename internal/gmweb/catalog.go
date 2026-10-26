@@ -76,6 +76,8 @@ func enums() map[string][]EnumValue {
 		"bool":       {{0, "No"}, {1, "Yes"}},
 		// npcmove.roam (entity/movement.go)
 		"roam": {{-1, "As its kind (wildlife wanders)"}, {1, "Wanders"}, {0, "Stands until pulled"}},
+		// spellarea.centre (entity/area.go)
+		"areacentre": {{0, "As its line reads"}, {1, "Round its target"}, {2, "Round its caster"}, {-1, "Not an area spell"}},
 	}
 }
 
@@ -702,6 +704,26 @@ var catalog = map[string]tableNote{
 			"spellid": {Label: "Spell", Ref: "spellpattern"},
 			"line":    {Label: "What it does", Format: "multiline"},
 			"fxdict":  {Label: "Visual", Format: hex32},
+		},
+	},
+	"spellarea": {
+		Label: "Spell areas", Group: "Items & spells", Title: "spellid", Sort: "spellid",
+		Help: "A spell's area, where its line's reading is not what you want (entity/area.go). A spell's line makes it " +
+			"an area spell: \"Target, Decrease Hitpoints by 210 aoe Decrease Hitpoints by 90\" (the target takes 210, every " +
+			"creature round it 90), a bare \"AOE\" (the shouts: all of it on all), a group heal's \"Radius 15\". A harmful " +
+			"one lands on creatures only (never a player or a pet, nor across the water's edge; a spell for undead alone, " +
+			"undead alone), a group's on the caster's group and their pets. centre: as its line reads, round its target, " +
+			"round its caster, or not an area spell at all; radius how far (0: its line's, else 15 round a target and 10 " +
+			"round a harmful spell's caster); maxtargets the most it lands on, its own target among them (0: 8; the cast's " +
+			"visual names 7 others at most, all the client holds).",
+		Live:   "At once: read at every cast.",
+		Search: []string{"note"},
+		Cols: map[string]colNote{
+			"spellid":    {Label: "Spell", Ref: "spellpattern"},
+			"centre":     {Label: "Centre", Enum: "areacentre", Help: "as its line reads, round its target, round its caster, or not an area spell"},
+			"radius":     {Label: "Radius", Help: "how far round its centre; 0: its line's, else its kind's (15, or 10 round a harmful spell's caster)"},
+			"maxtargets": {Label: "Most targets", Help: "the most it lands on, its own target among them; 0: 8"},
+			"note":       {Label: "Note", Help: "why"},
 		},
 	},
 	"spellfx_suggestions": {

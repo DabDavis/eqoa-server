@@ -991,15 +991,24 @@ func (w *World) sendEntityAction(sess *session.Session, objectID uint32, action 
 // Wire format: opcode(2) + casterObjID(4) + targetObjID(4) + unk(1) + timerMs(2) + pad(2) + animHash(4).
 // Timer >= 3000 = auto-attack, timer > 0 && < 4000 = spell cast.
 // sendCastingCombat sends opcode 0x00B1 — combat action.
-// PS2 func_00BD1F10: source(u32) + target(u32) + addlCount(u8) + castTimeMS(u32) + spellFXDictID(u32)
-func (w *World) sendCastingCombat(sess *session.Session, casterObjectID, targetObjectID uint32, castTimeMS uint32, spellFXDictID uint32) {
+// PS2 func_00BD1F10: source(u32) + target(u32) + addlCount(u8) + addlCount
+// targets(u32) + castTimeMS(u32) + spellFXDictID(u32)
+func (w *World) sendCastingCombat(sess *session.Session, casterObjectID, targetObjectID uint32, castTimeMS uint32, spellFXDictID uint32, others ...uint32) {
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCastingCombat)
 	writer := buffer.NewWriter(msg.Span())
 
 	writer.WriteUint16(uint16(protocol.OpcodeCastingCombat))
 	writer.WriteUint32(casterObjectID)
 	writer.WriteUint32(targetObjectID)
-	writer.WriteByte(0)               // additionalTargetCount = 0
+	// the additional targets: an area spell's others, seven at most, all
+	// CLIENT holds (area.go)
+	if len(others) > areaShown {
+		others = others[:areaShown]
+	}
+	writer.WriteByte(byte(len(others)))
+	for _, o := range others {
+		writer.WriteUint32(o)
+	}
 	writer.WriteUint32(castTimeMS)    // uint32 (PS2 raw(4,1))
 	writer.WriteUint32(spellFXDictID) // spell effect DictID
 

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -33,8 +34,10 @@ func (h *TrainingHandler) RegisterHandlers(r *Registry) {
 }
 
 // HandleUpdateTrainingPoints handles spending training points (0x001D).
-// Client sends 7 x 7BitEncodedInt64 values (one per stat to add).
-// Server responds with 0x001D + total spent (positive = remove from client's remaining).
+// CLIENT's trainer (TrainStats, viwndtrainer.cpp) sends 7 zigzag values, the
+// points added to each stat (STR STA AGI DEX WIS INT CHA), and waits (its mode
+// 4) for the answer: 0x001D with the points spent, which it takes off what it
+// shows (Msg001D: m_p40 -= z) before it lets the player choose again.
 func (h *TrainingHandler) HandleUpdateTrainingPoints(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 7 {
@@ -43,13 +46,11 @@ func (h *TrainingHandler) HandleUpdateTrainingPoints(sess *session.Session, msg 
 
 	reader := buffer.NewReader(data)
 
-	strAdd, _ := reader.Read7BitEncodedInt64()
-	staAdd, _ := reader.Read7BitEncodedInt64()
-	agiAdd, _ := reader.Read7BitEncodedInt64()
-	dexAdd, _ := reader.Read7BitEncodedInt64()
-	wisAdd, _ := reader.Read7BitEncodedInt64()
-	intAdd, _ := reader.Read7BitEncodedInt64()
-	chaAdd, _ := reader.Read7BitEncodedInt64()
+	var adds [7]int64
+	for i := range adds {
+		adds[i], _ = reader.Read7BitEncodedInt64()
+	}
+	strAdd, staAdd, agiAdd, dexAdd, wisAdd, intAdd, chaAdd := adds[0], adds[1], adds[2], adds[3], adds[4], adds[5], adds[6]
 
 	total := int(strAdd + staAdd + agiAdd + dexAdd + wisAdd + intAdd + chaAdd)
 
@@ -65,10 +66,12 @@ func (h *TrainingHandler) HandleUpdateTrainingPoints(sess *session.Session, msg 
 		return nil
 	}
 
-	// Validate: total must be positive and not exceed remaining TP
-	if total <= 0 || total > player.UnusedTP {
-		log.Printf("TrainingPoints: %s tried to spend %d but only has %d remaining",
-			player.Name, total, player.UnusedTP)
+	base := [7]int{player.BaseStr, player.BaseSta, player.BaseAgi, player.BaseDex, player.BaseWis, player.BaseInt, player.BaseCha}
+	if why := trainRefusal(player.Level, base, adds, player.UnusedTP); why != "" {
+		// nothing spent: the trainer goes back to choosing with its points,
+		// where without an answer it waited (mode 4) until it was closed
+		log.Printf("TrainingPoints: %s refused: %s", player.Name, why)
+		SendTrainingPointsSpent(sess, 0)
 		return nil
 	}
 
@@ -110,13 +113,8 @@ func (h *TrainingHandler) HandleUpdateTrainingPoints(sess *session.Session, msg 
 		}
 	}
 
-	// Send response: opcode + total spent
-	resp := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeUpdateTrainingPoints)
-	writer := buffer.NewWriter(resp.Span())
-	writer.WriteUint16(uint16(protocol.OpcodeUpdateTrainingPoints))
-	writer.Write7BitEncodedInt64(int64(total))
-	resp.SetSize(writer.Position())
-	sess.Queue().AddWithSequence(resp)
+	// the points spent, which the trainer takes off what it shows
+	SendTrainingPointsSpent(sess, int32(total))
 
 	// Immediately push updated stat channel so the UI refreshes
 	conn := sess.Connection()
@@ -129,4 +127,31 @@ func (h *TrainingHandler) HandleUpdateTrainingPoints(sess *session.Session, msg 
 	}
 
 	return nil
+}
+
+// trainRefusal is why a training request is not paid, "" when it is, by
+// CLIENT's own trainer's rules (VIWndTrainer::Adjust, VIClient::TrainStats):
+// no stat lowered, something to spend, no more than the points left, and no
+// stat's base raised past the cap before masteries (GetP44Total(-1): m_p44
+// alone, GetBonus(-1) being 0; StatCapBase). A stat whose shown value is held
+// at its full cap by worn items still takes points into its base, as the
+// client lets it: they count once the items stop taking it past the cap.
+func trainRefusal(level int, base [7]int, adds [7]int64, unused int) string {
+	total := int64(0)
+	for i, a := range adds {
+		if a < 0 {
+			return fmt.Sprintf("stat %d lowered by %d", i, -a)
+		}
+		total += a
+		if a > 0 && int64(base[i])+a > int64(entity.StatCapBase(level)) {
+			return fmt.Sprintf("stat %d's base %d + %d past the cap %d", i, base[i], a, entity.StatCapBase(level))
+		}
+	}
+	switch {
+	case total <= 0:
+		return "nothing to spend"
+	case total > int64(unused):
+		return fmt.Sprintf("spends %d with %d left", total, unused)
+	}
+	return ""
 }

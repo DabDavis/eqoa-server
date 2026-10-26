@@ -55,12 +55,12 @@ func (s *Server) registerQuestOps() {
 		"events":     str("what happens when it is taken (on accept) and finished (on finish): " + eventsHelp),
 	})
 	stepSchema := obj(map[string]any{
-		"kind":        strEnum("talk: talk to target; show: talk to target holding items (kept); give: hand target items and tunar (taken); kill: kill count of target; loot: kill target until count of the item in items are held, each kill dropping one on the corpse with chance; reach: come within radius of x, z in world", database.StepKinds...),
+		"kind":        strEnum("talk: talk to target; show: talk to target holding items (kept); give: hand target items and tunar (taken); kill: kill count of target; loot: kill target until count of the item in items have been taken off their corpses during the step, each kill dropping one on the corpse with chance; reach: come within radius of x, z in world", database.StepKinds...),
 		"target":      str("talk/give: the NPC's name; kill/loot: the creature's name"),
 		"npcid":       integer("only that spawn (npcs.id); 0: any of the name"),
 		"items":       str("show/give: items held (show) or handed in (give), patternid*count, comma separated; loot: the item that drops"),
 		"tunar":       integer("show/give: tunar held or handed in"),
-		"count":       integer("kill: how many; loot: how many of the item are to be held"),
+		"count":       integer("kill: how many; loot: how many of the item are to be taken off corpses during the step"),
 		"chance":      number("loot: the chance (0 to 1) that a kill drops the item for a player on the step; 0: every kill"),
 		"world":       integer("reach: the world"),
 		"x":           number("reach: x"),

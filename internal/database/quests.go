@@ -173,7 +173,7 @@ const (
 	StepShow  = "show"  // talk to an NPC (target) holding items, which are kept (Sandstorm's first warrior quest: the bracer)
 	StepGive  = "give"  // hand an NPC (target) items and tunar
 	StepKill  = "kill"  // kill count creatures named target
-	StepLoot  = "loot"  // kill creatures named target until count of the item (items) are held: each kill may drop one on the corpse
+	StepLoot  = "loot"  // kill creatures named target until count of the item (items) are taken off their corpses during the step
 	StepReach = "reach" // come within radius of a place
 )
 
@@ -421,7 +421,8 @@ type QuestStep struct {
 	Target string // talk/give: the NPC's name; kill, loot: the creature's
 	NPCID  int    // talk/give/kill/loot: only that spawn (npcs.id), 0 any of the name
 	// Items are what a show or give step wants held, and a loot step's item
-	// (its first; Count of it, else the item's own count, is to be held).
+	// (its first; Count of it, else the item's own count, is to be taken off
+	// corpses during the step).
 	Items []ItemCount
 	Tunar int
 	Count int
@@ -460,7 +461,7 @@ type QuestStep struct {
 	Spells      []int
 }
 
-// LootItem is a loot step's item and how many of it are to be held: Count,
+// LootItem is a loot step's item and how many of it are to be taken: Count,
 // else the item's own count; ok false when the step names no item.
 func (s *QuestStep) LootItem() (patternID, need int, ok bool) {
 	if len(s.Items) == 0 {

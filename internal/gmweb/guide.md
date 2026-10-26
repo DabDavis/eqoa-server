@@ -174,9 +174,9 @@ with the row before and after, and `revert_change` undoes a row change.
   (talk to it holding `items`, which are kept: the live game's "pick up the bracers from the merchant and come
   back"), `give` (hand it `items` and `tunar`, which are taken; for both, while the items lack the NPC's
   question offers only `notyet` and then says `reminder`), `kill` (`count` creatures named `target`, shared
-  with the group within 200), `loot` (kill creatures named `target` until `count` of the item in `items` are held:
-  each kill credited to a player on the step drops one onto that player's own view of the corpse with `chance`,
-  0 every kill; the step is done when the last one is taken), `reach` (within `radius` of `x`, `z` in
+  with the group within 200), `loot` (kill creatures named `target` until `count` of the item in `items` have been taken
+  off their corpses during the step: each kill credited to a player on the step drops one onto that player's
+  own view of the corpse with `chance`, 0 every kill; items held from before do not count), `reach` (within `radius` of `x`, `z` in
   `world`). A step done says its `says`,
   takes its journal line and adds the next step's ("You have finished a quest!" and "You have received a
   quest!", as Sandstorm announces each step; the last step only the first) and gives its rewards (Sandstorm

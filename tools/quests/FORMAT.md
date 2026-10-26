@@ -38,7 +38,7 @@ with what is missing in its notes, so only whole quests are offered to players.
 
 | field | what |
 |-------|------|
-| `kind` | `talk` (talk to `target`), `show` (show `items`, kept), `give` (hand over `items` and `tunar`), `kill` (`count` of `target`), `loot` (kill `target` until `count` of `items[0]` have dropped: each kill of one drops one with `chance` for a player on this step, onto its corpse), `reach` (`world`, `x`, `y`, `z` within `radius`) |
+| `kind` | `talk` (talk to `target`), `show` (show `items`, kept), `give` (hand over `items` and `tunar`), `kill` (`count` of `target`), `loot` (kill `target` until `count` of `items[0]` have been taken off their corpses during this step: each kill of one drops one with `chance` for a player on this step, onto that player's view of its corpse; what was held before the step does not count), `reach` (`world`, `x`, `y`, `z` within `radius`) |
 | `target` | the NPC or creature, as `npcs.name` spells it |
 | `items` | `[{"item": "<itempattern name>", "count": n}]` |
 | `tunar`, `count`, `chance` | as `kind` needs them; `chance` 0-1 is ours (the guides give none), 0 every kill |

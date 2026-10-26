@@ -82,48 +82,56 @@ func TestALootStepDropsItsItemAtItsChance(t *testing.T) {
 	}
 
 	// taken: the count said; the second does the step
-	f.own(belt, 1)
-	f.qe.Looted(f.tw.s, f.tw.p, belt)
+	f.qe.Looted(f.tw.s, f.tw.p, belt, 1)
 	f.want(f.msgs(), "chat:slashed belt: 1 of 2.")
-	f.qe.Looted(f.tw.s, f.tw.p, f.bone) // another item: nothing
+	f.qe.Looted(f.tw.s, f.tw.p, f.bone, 1) // another item: nothing
 	if m := f.msgs(); len(m) != 0 {
 		t.Errorf("another item counted: %q", m)
 	}
-	f.own(belt, 1)
-	f.qe.Looted(f.tw.s, f.tw.p, belt)
+	f.killFor("Orc Pawn", 806) // 0.1: one of two taken, so another drops
+	if len(*drops) != 2 {
+		t.Fatalf("one of two taken, the next kill dropped nothing: %v", *drops)
+	}
+	f.qe.Looted(f.tw.s, f.tw.p, belt, 1)
 	f.want(f.msgs(), "drop:0", "add:Return to Malsis.")
 	if s, _ := f.progress(60); s != 2 {
 		t.Fatalf("two belts held, the step is %d", s)
 	}
-	// with them held no more drop
+	// the step done, no more drop
 	f.killFor("Orc Pawn", 805)
-	if len(*drops) != 1 {
+	if len(*drops) != 2 {
 		t.Errorf("a drop after the step: %v", *drops)
 	}
 }
 
-// A loot step begun with its items held is done at once; the control: one
-// short of them, it waits.
-func TestALootStepWithItsItemsHeldIsDoneAtOnce(t *testing.T) {
+// A loot step counts what is taken while it is the step to do: items held
+// from before do not do it, nor one taken before the quest; two taken on the
+// step at once (a stack) do. The count outlives the engine.
+func TestALootStepCountsWhatIsTakenOnIt(t *testing.T) {
 	f := newQuestFixture(t)
 	belt := f.pattern("slashed belt", 20)
 	lootQuest(f, belt)
-	f.own(belt, 1)
+	f.own(belt, 2)
+	f.qe.Looted(f.tw.s, f.tw.p, belt, 1) // before the quest: not counted
 	if _, err := f.qe.SetCharacterQuest(f.sid, 60, QuestGive, 0); err != nil {
 		t.Fatal(err)
 	}
 	if s, _ := f.progress(60); s != 1 {
-		t.Fatalf("one belt held, the step is %d, want 1", s)
+		t.Fatalf("two belts held before it, the step is %d, want 1", s)
 	}
-	if _, err := f.qe.SetCharacterQuest(f.sid, 60, QuestGiveUp, 0); err != nil {
+	f.qe.Looted(f.tw.s, f.tw.p, belt, 1)
+	f.msgs()
+	again, err := NewQuestEngine(f.db, f.tw.w, f.tw.mgr, f.inv, nil)
+	if err != nil {
 		t.Fatal(err)
 	}
-	f.own(belt, 1)
-	if _, err := f.qe.SetCharacterQuest(f.sid, 60, QuestGive, 0); err != nil {
-		t.Fatal(err)
+	again.items = f.qe.items
+	if got := again.CharacterQuests(f.sid); len(got) != 1 || got[0].Count != 1 {
+		t.Fatalf("after a restart: %+v, want one taken", got)
 	}
+	f.qe.Looted(f.tw.s, f.tw.p, belt, 2)
 	if s, _ := f.progress(60); s != 2 {
-		t.Fatalf("two belts held, the step is %d, want 2", s)
+		t.Fatalf("three taken on the step, it is %d, want 2", s)
 	}
 }
 

@@ -116,14 +116,18 @@ func (h *NPCWindowHandler) charOf(sess *session.Session) uint32 {
 	return 0
 }
 
-// tellQuestsLooted tells the quests each item a player took off a corpse
-// (a loot step is done when its item is held). Called with no loot lock held.
-func tellQuestsLooted(sess *session.Session, p *entity.Player, patterns []int) {
+// lootTake is how many of an item a player took off a corpse at once.
+type lootTake struct{ pattern, n int }
+
+// tellQuestsLooted tells the quests each item a player took off a corpse (a
+// loot step counts what is taken while it is the step to do). Called with no
+// loot lock held.
+func tellQuestsLooted(sess *session.Session, p *entity.Player, takes []lootTake) {
 	q := Quests()
 	if q == nil || p == nil {
 		return
 	}
-	for _, pid := range patterns {
-		q.Looted(sess, p, pid)
+	for _, t := range takes {
+		q.Looted(sess, p, t.pattern, t.n)
 	}
 }

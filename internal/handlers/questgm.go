@@ -23,8 +23,8 @@ type QuestState struct {
 	Step    int    `json:"step"`            // the step to do, 0 when finished
 	Kind    string `json:"kind,omitempty"`  // that step's kind
 	Steps   int    `json:"steps"`           // how many steps the quest has
-	Count   int    `json:"count,omitempty"` // creatures killed so far on a kill step
-	Need    int    `json:"need,omitempty"`  // how many the kill step wants
+	Count   int    `json:"count,omitempty"` // creatures killed so far on a kill step, items taken on a loot step
+	Need    int    `json:"need,omitempty"`  // how many the kill or loot step wants
 	Done    int    `json:"done"`            // times finished
 	Journal string `json:"journal,omitempty"`
 	Line    int    `json:"line"` // its place in the journal, -1 for none
@@ -67,6 +67,9 @@ func (q *QuestEngine) stateLocked(cq *database.CharQuest, line int) QuestState {
 			s.Kind = st.Kind
 			if st.Kind == database.StepKill {
 				s.Need = max(st.Count, 1)
+			}
+			if _, need, ok := st.LootItem(); ok && st.Kind == database.StepLoot {
+				s.Need = need
 			}
 		}
 	} else {

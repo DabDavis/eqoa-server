@@ -34,11 +34,12 @@ import (
 //     client cannot load is refused).
 //
 // A loot step (kind loot) is a kill step whose kills drop its item: each kill
-// of its creature credited to a player on the step, while the player holds
-// fewer than the step wants, drops one with the step's chance onto that
-// player's own view of the corpse (questloot.go); the step is done when the
-// player takes the last one it needs, or at once when it starts with them
-// held.
+// of its creature credited to a player on the step, while the player has
+// taken fewer than the step wants, drops one with the step's chance onto that
+// player's own view of the corpse (questloot.go); the step counts what the
+// player takes off corpses while it is the step to do (the character's
+// quest count, as a kill step counts kills: an item held from before is not
+// counted, as the content's chains want), and is done at its count.
 
 // questSpawnLife is how long a quest's spawn stays at most.
 const questSpawnLife = 10 * time.Minute
@@ -223,44 +224,16 @@ func (q *QuestEngine) teleportLocked(sess *session.Session, p *entity.Player, qu
 	log.Printf("Quests: %q teleported %s to (%.1f, %.1f, %.1f) world=%d", qu.Name, p.Name, e.X, e.Y, e.Z, world)
 }
 
-// stepStartedLocked is a step become the step to do: its start events, then
-// a loot step whose item is held already is done.
+// stepStartedLocked is a step become the step to do: its start events.
 func (q *QuestEngine) stepStartedLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep) {
 	q.stepEventsLocked(sess, p, c, qu, st, database.EventStart)
-	if st.Kind != database.StepLoot || p == nil {
-		return
-	}
-	if pid, need, ok := st.LootItem(); ok && q.heldOf(p.CharServerID, pid) >= need {
-		q.completeStepLocked(sess, p, c, qu, cq, st, nil)
-	}
-}
-
-// heldOf is how many of an item the character holds unworn in its inventory.
-func (q *QuestEngine) heldOf(serverID uint32, pattern int) int {
-	if q.inv == nil {
-		return 0
-	}
-	rows, err := q.inv.GetCharacterItems(serverID)
-	if err != nil {
-		return 0
-	}
-	n := 0
-	for _, r := range rows {
-		if r.Location == 0 && r.EquipLoc < 0 && r.Pattern.PatternID == pattern {
-			n += r.StackLeft
-		}
-	}
-	return n
 }
 
 // lootKillLocked is a kill on a loot step: its item dropped for the player
-// with the step's chance while it holds fewer than the step wants.
-func (q *QuestEngine) lootKillLocked(k entity.KillCredit, kp entity.KillPlayer, qu *database.Quest, st *database.QuestStep) {
+// with the step's chance while it has taken fewer than the step wants.
+func (q *QuestEngine) lootKillLocked(k entity.KillCredit, kp entity.KillPlayer, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep) {
 	pid, need, ok := st.LootItem()
-	if !ok || q.drop == nil || k.NPCID == 0 {
-		return
-	}
-	if q.heldOf(kp.ServerID, pid) >= need {
+	if !ok || q.drop == nil || k.NPCID == 0 || cq.Count >= need {
 		return
 	}
 	if q.roll() >= database.LootChance(st.Chance) {
@@ -275,10 +248,10 @@ func (q *QuestEngine) lootKillLocked(k entity.KillCredit, kp entity.KillPlayer, 
 	log.Printf("Quests: %q dropped %q for %s (step %d of %q)", k.NPCName, pat.ItemName, kp.Name, st.Step, qu.Name)
 }
 
-// Looted is an item a player took off a corpse: a loot step of that item is
-// done once the step's count of it is held, else the count is said.
-func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern int) {
-	if q == nil || p == nil {
+// Looted is n of an item a player took off a corpse: counted on a loot step
+// of that item, which is done at its count, else the count is said.
+func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern, n int) {
+	if q == nil || p == nil || n < 1 {
 		return
 	}
 	q.mu.Lock()
@@ -297,14 +270,15 @@ func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern in
 		if !ok || pid != pattern {
 			continue
 		}
-		have := q.heldOf(p.CharServerID, pid)
-		if have < need {
+		cq.Count += n
+		if cq.Count < need {
+			q.saveLocked(cq)
 			if sess != nil {
 				name := fmt.Sprintf("item %d", pid)
 				if pat, err := q.items.GetItemPattern(pid); err == nil && pat != nil {
 					name = pat.ItemName
 				}
-				SendClientMessage(sess, fmt.Sprintf("%s: %d of %d.", name, have, need))
+				SendClientMessage(sess, fmt.Sprintf("%s: %d of %d.", name, cq.Count, need))
 			}
 			continue
 		}

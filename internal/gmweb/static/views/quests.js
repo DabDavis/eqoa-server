@@ -310,7 +310,7 @@ async function editor(box, id) {
     } else if (s.kind === 'loot') {
       fields.push(field('Creature', npcInput(s, 'target', 'the creature'), 'its kills drop the item', true),
         field('The item that drops', itemsInput(s, 'items'), "onto the player's own view of the corpse", true),
-        field('How many to hold', num(s, 'count', { min: 1 })),
+        field('How many to take', num(s, 'count', { min: 1 }), 'taken off corpses during the step'),
         field('Drop chance', num(s, 'chance', { min: 0, max: 1, step: 0.05 }), '0 to 1 a kill; 0: every kill'));
     }
     if (s.kind !== 'reach') fields.push(field('Only spawn', num(s, 'npcid', { min: 0 }), '0: any of the name'));

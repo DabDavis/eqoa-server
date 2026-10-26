@@ -115,6 +115,10 @@ LEVELS_WITHIN = 120.0
 # how far from the anchor a rare mob counts as the camp's
 CREATURE_REACH = 150.0
 RARE_REACH = 700.0
+# a town's world: the one whose fit puts its point nearest one of this
+# server's NPCs, within TOWN_REACH (Odus's fit is ~160 off); Tunaria's towns
+# are coachtowns.go's
+TOWN_REACH = 400.0
 
 
 def clean(name):
@@ -274,6 +278,30 @@ def place(spec, zones, rows, fitted):
     }, ""
 
 
+def other_towns(zones, rows, fitted):
+    """EQOA-Data's towns that are not Tunaria's (coachtowns.go's coachTowns
+    hold those, their names fixed there): each in the world whose fit puts
+    it nearest one of this server's NPCs, by that fit; a name the map gives
+    twice told apart by its alignment ("Stone of Morathals (Good)")."""
+    names = collections.Counter(t["name"] for t in zones["towns"])
+    out = []
+    for t in zones["towns"]:
+        best = None
+        for w in FIT_WORLDS:
+            (a, b, c, d), _, _, _ = fitted[w]
+            gx, gz = a * t["x"] + b, c * t["y"] + d
+            near = min((math.hypot(r[2] - gx, r[4] - gz) for r in rows if r[5] == w), default=math.inf)
+            if near <= TOWN_REACH and (best is None or near < best[0]):
+                best = (near, w, gx, gz)
+        if best is None or best[1] == 0:
+            continue
+        name = t["name"]
+        if names[name] > 1 and t.get("alignment"):
+            name = f"{name} ({t['alignment'].capitalize()})"
+        out.append({"name": name, "world": best[1], "x": best[2], "z": best[3]})
+    return out
+
+
 def rare_near(placed, zones, rows, fitted, drops):
     """EQOA-Data's rare mobs within RARE_REACH of each camp: where this
     server's npcs hold one of the name (in the camp's world, the nearest),
@@ -305,7 +333,7 @@ def go_string(s):
     return json.dumps(s, ensure_ascii=False)
 
 
-def render(placed):
+def render(placed, towns=()):
     lines = [
         "// Code written by tools/gen_camp_teles.py; DO NOT EDIT: change the tool",
         "// and run it again.",
@@ -341,6 +369,13 @@ def render(placed):
             f'Creatures: []string{{{", ".join(go_string(x) for x in p["creatures"])}}}, '
             f'Rare: []campRare{{{rare}}}}},'
         )
+    lines.append("}")
+    lines.append("")
+    lines.append("// mapTowns are EQOA-Data's towns outside Tunaria (whose are coachtowns.go's),")
+    lines.append("// by its map's fit of their world, for the GM panel's map (campinfo.go).")
+    lines.append("var mapTowns = []TownMark{")
+    for t in towns:
+        lines.append(f'\t{{Name: {go_string(t["name"])}, World: {t["world"]}, X: {t["x"]:.0f}, Z: {t["z"]:.0f}}},')
     lines.append("}")
     lines.append("")
     lines.append("// campAliases are other names a GM may type for a camp.")
@@ -380,7 +415,9 @@ def main():
     for p in placed:
         if p["rare"]:
             print(f"  {p['key']:15s} rare: " + ", ".join(f"{r['name']} ({r['level'] or '?'})" for r in p["rare"]), file=sys.stderr)
-    text = render(placed)
+    towns = other_towns(zones, rows, fitted)
+    print("  towns outside Tunaria: " + ", ".join(f"{t['name']} (w{t['world']})" for t in towns), file=sys.stderr)
+    text = render(placed, towns)
     if args.out:
         with open(args.out, "w") as f:
             f.write(text)

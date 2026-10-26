@@ -28,7 +28,8 @@ func (s *Server) registerMapLayerOps() {
 			"the place is as written, creatures: the names that make it, rare: EQOA-Data's rare mobs near it with " +
 			"their level here (0: none of the name) and the drops EQOA-Data names). coaches: each coachman (id: " +
 			"its NPC's, name, town, x/y/z: its spawn, routes: the towns its coach menu here offers, every other " +
-			"coach town of the world; live: the towns the live game's coach ran to, EQOA-Data's coach map). you: " +
+			"coach town of the world; live: the towns the live game's coach ran to, EQOA-Data's coach map). towns: " +
+			"the world's towns to name (Tunaria's coach towns, the others by EQOA-Data's map). you: " +
 			"the GM's own character in the game (serverid, name, world), or null: what a camp's Teleport moves. " +
 			"map_camp has a camp's loot tables.",
 		Input: obj(map[string]any{"world": integer("the world index")}, "world"),
@@ -51,13 +52,34 @@ func (s *Server) registerMapLayerOps() {
 					})
 				}
 			}
+			towns := []map[string]any{}
+			for _, t := range handlers.TownMarks(req.World) {
+				towns = append(towns, map[string]any{"name": t.Name, "world": t.World, "x": round1(t.X), "z": round1(t.Z)})
+			}
 			var you any
 			if sess := c.s.gmSession(c.a); sess != nil {
 				if p := c.s.d.World.SessionPlayer(sess); p != nil {
 					you = map[string]any{"serverid": p.CharServerID, "name": p.Name, "world": p.World}
 				}
 			}
-			return map[string]any{"camps": camps, "coaches": coaches, "you": you}, nil
+			return map[string]any{"camps": camps, "coaches": coaches, "towns": towns, "you": you}, nil
+		},
+	})
+	s.addOp(&Op{
+		Name: "map_quests", Title: "Map layer: quest givers", Scope: scopeRead,
+		Description: "The World map's quest givers of one world: every NPC that gives a quest (quests.giver, matched " +
+			"as the engine matches NPC names: trimmed, any case) where it spawns. givers is each such NPC (id, name, " +
+			"x/y/z, status: \"in the game\" when any of its quests is, else \"draft\") with its quests (questid, name, " +
+			"classes, minlevel, maxlevel, status: in the game, ready or draft, as quest_list says) and targets: the " +
+			"NPCs its quests' talk, show and give steps send players to. missing names the givers no NPC of any " +
+			"world is (a GM places one: quest_list's missing says which quests wait on it).",
+		Input: obj(map[string]any{"world": integer("the world index")}, "world"),
+		Handler: func(c *opCtx) (any, error) {
+			var req struct{ World int }
+			if err := c.decode(&req); err != nil {
+				return nil, err
+			}
+			return c.s.mapQuests(req.World)
 		},
 	})
 	s.addOp(&Op{
@@ -87,6 +109,81 @@ func (s *Server) registerMapLayerOps() {
 			return out, nil
 		},
 	})
+}
+
+// mapQuests is map_quests: the world's quest givers where they stand, each
+// with its quests as the quest index has them now (questindex.go).
+func (s *Server) mapQuests(world int) (any, error) {
+	idx, err := s.loadQuestIndex()
+	if err != nil {
+		return nil, err
+	}
+	key := func(name string) string { return strings.ToLower(strings.TrimSpace(name)) }
+	byGiver := map[string][]*questRow{}
+	for _, r := range idx.rows {
+		if k := key(r.Giver); k != "" {
+			byGiver[k] = append(byGiver[k], r)
+		}
+	}
+	type spot struct {
+		id      any
+		name    string
+		x, y, z float64
+	}
+	here := map[string][]spot{}
+	anywhere := map[string]bool{}
+	if s.d.World != nil {
+		for _, n := range s.d.World.NPCStates(-1) {
+			k := key(n.Name)
+			if _, gives := byGiver[k]; !gives || n.Temporary {
+				continue
+			}
+			anywhere[k] = true
+			if int(n.World) == world {
+				here[k] = append(here[k], spot{n.ID, strings.TrimSpace(n.Name), round1(n.SpawnX), round1(n.SpawnY), round1(n.SpawnZ)})
+			}
+		}
+	}
+	givers := []map[string]any{}
+	var missing []string
+	keys := make([]string, 0, len(byGiver))
+	for k := range byGiver {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		rows := byGiver[k]
+		if !anywhere[k] {
+			missing = append(missing, rows[0].Giver)
+			continue
+		}
+		sort.Slice(rows, func(i, j int) bool {
+			if rows[i].MinLevel != rows[j].MinLevel {
+				return rows[i].MinLevel < rows[j].MinLevel
+			}
+			return rows[i].ID < rows[j].ID
+		})
+		status := questDraft
+		var quests []map[string]any
+		var targets []string
+		for _, r := range rows {
+			if r.Enabled {
+				status = questInGame
+			}
+			quests = append(quests, map[string]any{"questid": r.ID, "name": r.Name, "classes": r.Classes,
+				"minlevel": r.MinLevel, "maxlevel": r.MaxLevel, "status": r.Status})
+			for _, t := range r.targets {
+				if key(t) != k && !containsString(targets, t) {
+					targets = append(targets, t)
+				}
+			}
+		}
+		for _, sp := range here[k] {
+			givers = append(givers, map[string]any{"id": sp.id, "name": sp.name, "x": sp.x, "y": sp.y, "z": sp.z,
+				"status": status, "quests": quests, "targets": orEmpty(targets)})
+		}
+	}
+	return map[string]any{"givers": givers, "missing": orEmpty(missing)}, nil
 }
 
 // campJSON is a camp as the map's ops send it.

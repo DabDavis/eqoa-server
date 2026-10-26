@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -61,12 +62,15 @@ type NPCWindowHandler struct {
 	// loot is the corpses (loot.go), made on first use.
 	loot     *lootState
 	lootOnce sync.Once
+
+	// lootIntn is the loot tables' dice (rand.Intn; tests stand in for it).
+	lootIntn func(int) int
 }
 
 // NewNPCWindowHandler creates the handler. inv may be nil (no database): the
 // windows then refuse everything.
 func NewNPCWindowHandler(sessionMgr *session.Manager, inv *database.InventoryStore) *NPCWindowHandler {
-	return &NPCWindowHandler{sessionManager: sessionMgr, inv: inv}
+	return &NPCWindowHandler{sessionManager: sessionMgr, inv: inv, lootIntn: rand.Intn}
 }
 
 // SetGameWorld sets the game world reference.

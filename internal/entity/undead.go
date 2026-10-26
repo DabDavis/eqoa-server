@@ -59,6 +59,7 @@ func (w *World) SetUndeadTags(tags map[string]bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.undead = tags
+	w.forgetWildlifeLocked() // an undead creature is not wildlife (wildlife.go)
 }
 
 // LoadUndeadTags reads table npcundead into the world: at the start and after

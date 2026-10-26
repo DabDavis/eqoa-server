@@ -121,6 +121,8 @@ type NPCState struct {
 	ModelID    int64    `json:"modelID"`
 	NPCType    int      `json:"npcType"`
 	RespawnSec float64  `json:"respawnSec"`
+	// Movement is whether it wanders round its spawn and why (movement.go)
+	Movement string `json:"movement"`
 }
 
 func (w *World) npcStateLocked(npc *NPC) NPCState {
@@ -133,6 +135,8 @@ func (w *World) npcStateLocked(npc *NPC) NPCState {
 		ModelID: npc.ModelID, NPCType: npc.NPCType,
 		RespawnSec: npc.RespawnTime.Seconds(),
 	}
+	_, why, word := w.movementLocked(npc)
+	s.Movement = MoveWhyText(why, word)
 	if p, ok := w.Players[npc.CurrentEnemy]; ok && npc.CurrentEnemy != 0 {
 		s.Fighting = p.Name
 	} else if p, ok := w.Players[npc.DummyTarget]; ok && npc.DummyTarget != 0 {

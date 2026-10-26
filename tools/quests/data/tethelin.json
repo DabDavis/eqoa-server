@@ -1270,11 +1270,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Orc Thief",
-    "Gligbin Gearcharmer"
-   ],
-   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. No orc thieves or Gligbin are on this server; the orc witchdoctor stands in for the hatebone witchdoctor."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The orc witchdoctor stands in for the hatebone witchdoctor."
   },
   {
    "key": "1-20/tethelin/druid/L13",
@@ -1518,10 +1515,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Trapmaw"
-   ],
-   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. Trapmaw is not on this server. The guide does not name the loot."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot."
   },
   {
    "key": "1-20/tethelin/druid/L20",
@@ -2110,11 +2105,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Orc Thief",
-    "Gligbin Gearcharmer"
-   ],
-   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. No orc thieves or Gligbin are on this server; the orc witchdoctor stands in for the hatebone witchdoctor."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The orc witchdoctor stands in for the hatebone witchdoctor."
   },
   {
    "key": "1-20/tethelin/ranger/L13",
@@ -2358,10 +2350,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Trapmaw"
-   ],
-   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. Trapmaw is not on this server. The guide does not name the loot."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot."
   },
   {
    "key": "1-20/tethelin/ranger/L20",
@@ -2966,11 +2956,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Orc Thief",
-    "Gligbin Gearcharmer"
-   ],
-   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. No orc thieves or Gligbin are on this server; the orc witchdoctor stands in for the hatebone witchdoctor."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The orc witchdoctor stands in for the hatebone witchdoctor."
   },
   {
    "key": "1-20/tethelin/rogue/L13",
@@ -3214,10 +3201,8 @@
     }
    ],
    "events": [],
-   "unresolved": [
-    "Trapmaw"
-   ],
-   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. Trapmaw is not on this server. The guide does not name the loot."
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot."
   },
   {
    "key": "1-20/tethelin/rogue/L20",

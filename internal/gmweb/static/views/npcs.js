@@ -60,6 +60,7 @@ export async function render(box, [id, tab]) {
               h('dt', null, 'Health'), h('dd', null, `${live.hp} / ${live.maxHP}`),
               h('dt', null, 'Stands at'), h('dd', null, `${r.worldName}: ${live.x.toFixed(1)}, ${live.y.toFixed(1)}, ${live.z.toFixed(1)}`),
               live.fighting ? [h('dt', null, 'Fighting'), h('dd', null, live.fighting)] : null,
+              live.movement ? [h('dt', null, 'Moves'), h('dd', null, live.movement)] : null,
               h('dt', null, 'Respawns'), h('dd', null, `${live.respawnSec} s after it dies`)),
             canWrite(meta) ? h('div', { class: 'actions' }, act('Respawn', 'respawn'), act('Kill', 'kill', 'small danger'), act('Reload its row', 'refresh'),
               button('Spawn a copy…', { class: 'small', onclick: () => spawnCopy(row) })) : null)

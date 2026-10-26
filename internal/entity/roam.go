@@ -19,11 +19,18 @@ import (
 // Sandstorm's own wander between rests, walking at 5 units a second
 // (pcaps/ps2_sandstorm_1min10secs.pcap); its town guards stand.
 //
-// What wanders: a creature, an NPC with a body of its own (a model, and
-// not one of the players' races, charactermodel: those are the guards, the
-// merchants and the townsfolk) that can be fought (no 0x80 in npc_type: an
-// NPC a player talks to stays put), not a training dummy. It stands while
-// it fights, while a spell roots it, dead, and when no player is near
+// What wanders (movement.go's movementLocked): wildlife (wildlife.go: an
+// animal by its name's head noun, not undead), and any creature table
+// npcmove names a roamer (roam 1), on a body of its own (a model, and not
+// one of the players' races, charactermodel: those are the guards, the
+// merchants and the townsfolk, which a roamer's row moves too), that can be
+// fought (no 0x80 in npc_type: an NPC a player talks to stays put; a path
+// walks it), not a training dummy. Anything else stands on its spawn until
+// pulled and goes back there after (F3 20261026-042712, jib: "Not all mobs
+// are wild life. Fire Giants are roaming currently when they should not be
+// unless otherwise specified / designated as a roamer with a path"); until
+// then every creature that was not on a player's body wandered. It stands
+// while it fights, while a spell roots it, dead, and when no player is near
 // (roamActiveRange): only those near someone move, so the tick is as cheap
 // with 20,000 NPCs as with 200. A snare halves its pace.
 //
@@ -98,18 +105,10 @@ func (w *World) SetPlayerModels(models map[uint32]bool) {
 
 // wanders reports an NPC of the kind that wanders (the file's doc), alive
 // and free to; never a pet, which follows its owner (pet.go), nor one that
-// walks a GM's path (path.go).
+// walks a GM's path (path.go). Must be called with the lock held.
 func (w *World) wanders(npc *NPC) bool {
-	if npc.Dead || npc.RoamRadius <= 0 || npc.Dummy != NotDummy || npc.Owner != 0 {
-		return false
-	}
-	if w.pathedLocked(npc.ServerID) {
-		return false
-	}
-	if npc.NPCType&0x80 != 0 || npc.ModelID == 0 || w.playerModels[uint32(npc.ModelID)] {
-		return false
-	}
-	return !w.standsLocked(npc) // movement.go
+	ok, _, _ := w.movementLocked(npc) // movement.go
+	return ok
 }
 
 // roamSystem walks the creatures near a player (the file's doc). Every

@@ -116,6 +116,10 @@ type World struct {
 	env         Env
 	moveRules   map[string]database.NPCMoveRule
 	apartToldAt map[EntityID]time.Time // when a player was last told its melee crossed the water's edge
+	// Whether each NPC name is wildlife's (wildlife.go), worked out once a
+	// name; its own lock, as the GM panel reads under the World's read lock
+	wildMu    sync.Mutex
+	wildCache map[string]wildKind
 }
 
 // NewWorld creates and initializes a new game world.

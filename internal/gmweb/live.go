@@ -41,6 +41,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveSocial()
 	case "npcmove":
 		return s.liveMove()
+	case "spellgates":
+		return s.liveSpellGates() // live_gates.go
 	case "charfactions":
 		return s.liveCharFaction(before, after)
 	case "cmcatalog":

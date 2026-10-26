@@ -14,12 +14,13 @@ type ClassSpellLine struct {
 	FX      uint32
 }
 
-// ClassSpellLines is every spell of a class, by level: what a necromancer's
-// pet taps with (entity/pettap.go).
+// ClassSpellLines is every spell a character of a class gets by level (not a
+// mastery's, an epic's or a master class's: Granted), by level: what a
+// necromancer's pet taps with (entity/pettap.go).
 func (db *SQLiteDB) ClassSpellLines(class int) ([]ClassSpellLine, error) {
 	rows, err := db.Query(`
 		SELECT sp.spellid, sp.abilitylvl, sp.scope, sp.spellname, COALESCE(sp.spelldesc, ''),
-			COALESCE(se.line, ''), COALESCE(se.fxdict, 0)
+			COALESCE(se.line, ''), COALESCE(se.fxdict, 0), COALESCE(cs.source, '')
 		FROM classspells cs
 		JOIN spellpattern sp ON sp.spellid = cs.spellid
 		LEFT JOIN spelleffect se ON se.spellid = sp.spellid
@@ -33,8 +34,12 @@ func (db *SQLiteDB) ClassSpellLines(class int) ([]ClassSpellLine, error) {
 	for rows.Next() {
 		var l ClassSpellLine
 		var fx int64
-		if err := rows.Scan(&l.SpellID, &l.Level, &l.Scope, &l.Name, &l.Desc, &l.Line, &fx); err != nil {
+		var source string
+		if err := rows.Scan(&l.SpellID, &l.Level, &l.Scope, &l.Name, &l.Desc, &l.Line, &fx, &source); err != nil {
 			return nil, err
+		}
+		if !Granted(source) {
+			continue
 		}
 		l.FX = uint32(fx)
 		out = append(out, l)

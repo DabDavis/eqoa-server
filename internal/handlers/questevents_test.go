@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
@@ -261,4 +262,44 @@ func TestAVisualAndATeleport(t *testing.T) {
 	if f.tw.p.X != 25500 || f.tw.p.Z != 15800 {
 		t.Errorf("after the teleport the player stands at %.0f, %.0f", f.tw.p.X, f.tw.p.Z)
 	}
+}
+
+// A give step at a merchant (CLIENT asks for a merchant's window, never talks
+// to one) is done when its window is asked for with the items held, the
+// window not opened; without them, and once the step is done, the shop opens.
+func TestAStepAtAMerchantIsDoneAtItsWindow(t *testing.T) {
+	f := newQuestFixture(t)
+	gale := &entity.NPC{ServerID: 707, Name: "Merchant Gale", NPCID: 707, NPCType: 0x81, SpawnX: 25403, SpawnY: 54.1, SpawnZ: 15726}
+	id := f.tw.add(6, gale)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (95, 'Pincer sale', 1, 'Malsis')`)
+	f.exec(fmt.Sprintf(`INSERT INTO queststeps (questid, step, kind, target, items, journal, says)
+		VALUES (95, 1, 'give', 'Merchant Gale', '%d', 'Sell Gale a pincer.', 'A fine pincer.')`, f.pincer))
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (95, 2, 'talk', 'Malsis', 'Back to Malsis.')`)
+	f.qe.Reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 95, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	wh := NewNPCWindowHandler(f.tw.mgr, f.inv)
+	wh.playerOf = func(*session.Session) *entity.Player { return f.tw.p }
+	wh.find = func(_ *session.Session, oid uint32) (entity.Entity, bool) { return gale, oid == id }
+	open := func() []string {
+		t.Helper()
+		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeMerchantDiag)
+		msg.SetData(build(protocol.OpcodeMerchantDiag, 8, func(w *buffer.Writer) { w.WriteUint32(id) })[2:])
+		if err := wh.HandleMerchantOpen(f.tw.s, msg); err != nil {
+			t.Fatal(err)
+		}
+		return f.msgs()
+	}
+	shop := fmt.Sprintf("op:%04X", uint16(protocol.OpcodeMerchantBox))
+	f.want(open(), shop) // the control: no pincer, the shop
+	f.own(f.pincer, 1)
+	m := open()
+	f.not(m, shop)
+	f.want(m, fmt.Sprintf("op:%04X", uint16(protocol.OpcodeCancelPending)), "box:Merchant Gale: A fine pincer.", "add:Back to Malsis.")
+	if s, _ := f.progress(95); s != 2 {
+		t.Fatalf("the merchant's step done, the quest is at %d", s)
+	}
+	f.want(open(), shop) // done: the shop again
 }

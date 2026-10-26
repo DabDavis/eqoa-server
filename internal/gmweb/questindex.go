@@ -202,16 +202,16 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 	if err != nil {
 		return nil, err
 	}
-	quests, err := s.rowsOf(`SELECT questid, name, enabled, giver, minlevel, maxlevel, classes, races, requires, source, notes
+	quests, err := s.everyRow(`SELECT questid, name, enabled, giver, minlevel, maxlevel, classes, races, requires, source, notes
 		FROM quests ORDER BY questid`)
 	if err != nil {
 		return nil, err
 	}
-	steps, err := s.rowsOf(`SELECT * FROM queststeps ORDER BY questid, step`)
+	steps, err := s.everyRow(`SELECT * FROM queststeps ORDER BY questid, step`)
 	if err != nil {
 		return nil, err
 	}
-	progress, err := s.rowsOf(`SELECT questid, SUM(CASE WHEN step > 0 THEN 1 ELSE 0 END) AS underway,
+	progress, err := s.everyRow(`SELECT questid, SUM(CASE WHEN step > 0 THEN 1 ELSE 0 END) AS underway,
 		SUM(CASE WHEN done > 0 THEN 1 ELSE 0 END) AS finished FROM charquests GROUP BY questid`)
 	if err != nil {
 		return nil, err
@@ -248,7 +248,7 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 		} else if k, ok := names.npcs[strings.ToLower(r.Giver)]; !ok {
 			r.lack("NPC", r.Giver, "no NPC %q (its giver)", r.Giver)
 		} else if !k.talks {
-			r.why("its giver %q opens a window (merchant, bank or blacksmith): the game never talks to it", r.Giver)
+			r.why("its giver %q opens a window (merchant, bank or blacksmith): the game never talks to it, so it offers nothing", r.Giver)
 		}
 		for _, m := range reNoteName.FindAllStringSubmatch(r.notes, -1) {
 			name := m[1] + m[2]
@@ -277,10 +277,10 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 		target := text(st, "target")
 		switch kind {
 		case database.StepTalk, database.StepShow, database.StepGive:
-			if k, ok := names.npcs[strings.ToLower(target)]; !ok {
+			// an NPC with a window is fine: the step is done when its window
+			// is asked for (handlers.QuestEngine.AtWindow)
+			if _, ok := names.npcs[strings.ToLower(target)]; !ok {
 				r.lack("NPC", target, "no NPC %q (step %d)", target, n)
-			} else if !k.talks {
-				r.why("step %d's NPC %q opens a window: the game never talks to it", n, target)
 			}
 		case database.StepKill, database.StepLoot:
 			if k, ok := names.npcs[strings.ToLower(target)]; !ok {
@@ -560,4 +560,32 @@ func statusCounts(rows []*questRow) map[string]int {
 func (f questFilter) empty() bool {
 	return f.Search == "" && f.Status == "" && f.City == "" && f.Class == nil && f.Level == 0 && f.MinLevel == 0 &&
 		f.MaxLevel == 0 && f.Giver == "" && f.Missing == ""
+}
+
+// everyRow is rowsOf without its cap of a thousand rows: the index reads every
+// quest and every step (746 quests have 3,604).
+func (s *Server) everyRow(query string, args ...any) ([]map[string]any, error) {
+	rs, err := s.d.DB.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rs.Close()
+	cols, _ := rs.Columns()
+	out := []map[string]any{}
+	for rs.Next() {
+		vals := make([]any, len(cols))
+		ptrs := make([]any, len(cols))
+		for i := range vals {
+			ptrs[i] = &vals[i]
+		}
+		if err := rs.Scan(ptrs...); err != nil {
+			return nil, err
+		}
+		m := map[string]any{}
+		for i, c := range cols {
+			m[c] = fromSQL(vals[i])
+		}
+		out = append(out, m)
+	}
+	return out, rs.Err()
 }

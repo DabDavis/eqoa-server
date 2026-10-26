@@ -28,6 +28,14 @@ type Registry struct {
 	invis InvisBreaker
 }
 
+// SetPasswordChecker lets the UDP handshake sign a username with no ticket in
+// by the password its token carries. See AuthHandler.SetPasswordChecker.
+func (r *Registry) SetPasswordChecker(c PasswordChecker) {
+	if r.authHandler != nil {
+		r.authHandler.SetPasswordChecker(c)
+	}
+}
+
 // SetLoginTickets makes the UDP handshake require a completed TCP login. See
 // AuthHandler.SetLoginTickets.
 func (r *Registry) SetLoginTickets(t *auth.TicketStore) {

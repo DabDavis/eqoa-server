@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"net"
 	"sync"
 	"time"
 
@@ -35,6 +36,25 @@ type AuthHandler struct {
 	// loginTickets, when set, requires that a username have completed a TCP
 	// login before the UDP handshake will accept it. Nil disables the check.
 	loginTickets *auth.TicketStore
+	// passwords, when set, checks the password a handshake's token carries
+	// for a username with no ticket (SetPasswordChecker).
+	passwords PasswordChecker
+}
+
+// PasswordChecker checks a password the UDP handshake's token carried as the
+// auth port checks one (tcp.AuthServer.CheckUDPPassword): the account and ""
+// when it signs in, else why not ("address": another account plays from the
+// client's address).
+type PasswordChecker interface {
+	CheckUDPPassword(username, password string, from *net.UDPAddr) (int, string)
+}
+
+// SetPasswordChecker lets a username with no login ticket sign in by the
+// password its handshake token carries: a client back at the server list
+// after a lost connection or a restart, its Station login older than the
+// ticket (auth.ticket_ttl) or made before the restart.
+func (h *AuthHandler) SetPasswordChecker(c PasswordChecker) {
+	h.passwords = c
 }
 
 // SetLoginTickets requires a completed TCP login for each username seen in the
@@ -72,21 +92,64 @@ func (h *AuthHandler) resolveAccount(username string, ticketID int) (*database.A
 	return account, nil
 }
 
-// authorizeUsername reports whether a username seen in the UDP handshake is
-// backed by a recent TCP login, and the account ID that login resolved to.
-func (h *AuthHandler) authorizeUsername(stage, username string) (int, bool) {
+// authorizeUsername reports whether a username seen in the UDP handshake may
+// sign in, and its account ID: a recent TCP login's ticket, else the password
+// its token carries (loginTail), checked as the auth port checks one
+// (SetPasswordChecker). A refusal is told to the client as CLIENT shows one,
+// Disconnect(3) "Bad Login/Password" (its server list then offers STATION's
+// login), or 8 "You have logged in from another location." for another
+// account playing from the address; it used to be told nothing, and the
+// client waited on "Connecting..." for good.
+func (h *AuthHandler) authorizeUsername(sess *session.Session, stage, username string, token []byte) (int, bool) {
 	if h.loginTickets == nil {
 		return 0, true // check disabled
 	}
-	accountID, ok := h.loginTickets.Valid(username)
-	if !ok {
-		log.Printf("%s: REJECTED username %q -- no completed TCP login. "+
-			"The client must authenticate on the auth port first; if this is a "+
-			"legitimate client, its login may have expired (auth.ticket_ttl).",
-			stage, username)
-		return 0, false
+	if accountID, ok := h.loginTickets.Valid(username); ok {
+		return accountID, true
 	}
-	return accountID, true
+	why, op := "no completed TCP login and no password in its token", protocol.OpcodeBadLoginPassword
+	if pw, ok := auth.PasswordFromUDPToken(token); ok && h.passwords != nil {
+		accountID, refusal := h.passwords.CheckUDPPassword(username, pw, sess.RemoteAddr())
+		if refusal == "" {
+			log.Printf("%s: '%s' (ID %d) signed in by its token's password: no login ticket "+
+				"(a restart since its Station login, or the login older than auth.ticket_ttl)", stage, username, accountID)
+			return accountID, true
+		}
+		why = "no completed TCP login, and its token's password refused (" + refusal + ")"
+		if refusal == "address" {
+			op = protocol.OpcodeForceDisconnect
+		}
+	}
+	log.Printf("%s: REJECTED username %q -- %s; told the client (0x%04X)", stage, username, why, uint16(op))
+	SendDisconnect(sess, op)
+	return 0, false
+}
+
+// loginTail reads the tail Authenticate (0x0904) and Authenticate2 (0x0001)
+// share after the version: "EQOA" and the name, each a u32 count and its
+// bytes, a byte 1, then the 32-byte token (STATION's, eqoa-rust-client-
+// vanilla's session.rs). The name is its printable bytes, as before; the
+// token is nil when the message ends short of it.
+func loginTail(data []byte) (username string, token []byte) {
+	for i := 0; i+4 <= len(data); i++ {
+		if data[i] != 'E' || data[i+1] != 'Q' || data[i+2] != 'O' || data[i+3] != 'A' {
+			continue
+		}
+		nameStart := i + 8 // EQOA (4) + the name's count (4)
+		if nameStart >= len(data) {
+			return "", nil
+		}
+		nameEnd := nameStart
+		for nameEnd < len(data) && data[nameEnd] != 0 && data[nameEnd] >= 32 && data[nameEnd] < 127 {
+			nameEnd++
+		}
+		username = string(data[nameStart:nameEnd])
+		if at := nameEnd + 1; at+auth.UDPTokenSize <= len(data) {
+			token = data[at : at+auth.UDPTokenSize]
+		}
+		return username, token
+	}
+	return "", nil
 }
 
 // NewAuthHandler creates a new auth handler.
@@ -235,6 +298,8 @@ func (h *AuthHandler) HandleAuthenticate(sess *session.Session, msg *protocol.Me
 		}
 	}
 
+	_, token := loginTail(data)
+
 	// Also try to read game version
 	gameVersion, _ := reader.ReadByte()
 
@@ -269,7 +334,7 @@ func (h *AuthHandler) HandleAuthenticate(sess *session.Session, msg *protocol.Me
 	// an empty password, which both bypassed authentication and created
 	// credential-less accounts.
 	if username != "" && h.accountStore != nil && sess.AccountID() == 0 {
-		ticketID, ok := h.authorizeUsername("Authenticate", username)
+		ticketID, ok := h.authorizeUsername(sess, "Authenticate", username, token)
 		if !ok {
 			return nil
 		}
@@ -395,7 +460,8 @@ func (h *AuthHandler) HandleAuthenticate2(sess *session.Session, msg *protocol.M
 	log.Printf("Authenticate2: checking account lookup - username='%s', accountStore=%v, currentAccountID=%d",
 		username, h.accountStore != nil, sess.AccountID())
 	if username != "" && h.accountStore != nil && sess.AccountID() == 0 {
-		ticketID, ok := h.authorizeUsername("Authenticate2", username)
+		_, token := loginTail(data)
+		ticketID, ok := h.authorizeUsername(sess, "Authenticate2", username, token)
 		if !ok {
 			return nil
 		}

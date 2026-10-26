@@ -780,9 +780,7 @@ func (w *World) petDamageLocked(ps *petState, t *NPC, n int, now time.Time) bool
 	}
 	t.Effects = nil
 	w.killNPC(t)
-	if sess != nil {
-		w.awardXP(sess, owner, t.Level*100)
-	}
+	w.awardKillXPLocked(sess, owner, t) // the owner's kill (killexp.go)
 	// the owner's faction hits, as its own kill's (faction.go)
 	w.factionKillLocked(sess, owner, t)
 	if owner.AttackTarget == t.ServerID {

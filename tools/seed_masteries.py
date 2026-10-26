@@ -28,7 +28,9 @@ owned first. Cost, level, points spent, the base stats it needs and the stats
 it gives are the list's (effects in its own names: "STR:1,STRMax:15", "HP
 Factor:1", "Pow:500", "MovRate:5"). A rank the list gives no level takes the
 rank before it's (Loping Stride 3: OURS), else 1. The text is the mastery's
-description and the rank's notes.
+description and the rank's notes. A Master Class's first rank is the class
+itself and is named bare, "Spellbinder" for the list's "Spellbinder 1" (F3
+20261026-135728); the ranks after it keep their numbers.
 
 The abilities a rank adds, removes or needs are found among the server's
 spells (spellpattern) by name, as the spell importers match a scroll to its
@@ -88,6 +90,7 @@ SCHEMA = """
 		minstats      TEXT NOT NULL DEFAULT '',
 		requires      TEXT NOT NULL DEFAULT '',
 		require_spells TEXT NOT NULL DEFAULT '',
+		require_ranks TEXT NOT NULL DEFAULT '',
 		effects       TEXT NOT NULL DEFAULT '',
 		adds          TEXT NOT NULL DEFAULT '',
 		add_spells    TEXT NOT NULL DEFAULT '',
@@ -152,6 +155,16 @@ def group_races(name):
     return out
 
 
+def master_class_name(category, rank_index, mastery, name):
+    """A rank's name: a Master Class's first rank is the class itself, named
+    bare ("Spellbinder 1" is "Spellbinder"; F3 20261026-135728, jib); any
+    other rank as the list writes it."""
+    mastery, name = mastery.strip(), name.strip()
+    if category == 4 and rank_index == 0 and name == f"{mastery} 1":
+        return mastery
+    return name
+
+
 def ranks(category, classes, races, base, cms, skipped):
     """The rows of one group's masteries."""
     out = []
@@ -174,9 +187,10 @@ def ranks(category, classes, races, base, cms, skipped):
             else:
                 level = int(lvl)
             text = " ".join([desc] + [n.strip() for n in r.get("notes") or [] if n.strip()]).strip()
+            name = master_class_name(category, ri, cm["name"], r["name"])
             out.append(dict(
                 id=rid, category=category, classes=classes, races=races, mastery=cm["name"].strip(),
-                rank=ri + 1, name=r["name"].strip(), parent=parent, cost=int(r.get("cmCost") or 0),
+                rank=ri + 1, name=name, parent=parent, cost=int(r.get("cmCost") or 0),
                 level=level, spent=int(req.get("spent") or 0),
                 minstats=",".join(f"{k}:{v}" for k, v in (req.get("stats") or {}).items()),
                 effects=",".join(f"{k}:{v}" for k, v in (eff.get("stats") or {}).items()),

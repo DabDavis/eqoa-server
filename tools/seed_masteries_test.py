@@ -132,6 +132,18 @@ class SeedTest(unittest.TestCase):
         self.assertEqual(r[1]["description"], "Strength.")
         self.assertNotIn(2011, r, "the were-hunter mastery is left out")
 
+    def test_a_master_classs_first_rank_is_named_bare(self):
+        # F3 20261026-135728: "Binder 1" is the class itself, "Binder"; the
+        # controls: its second rank, and the first ranks of the other
+        # categories, keep their numbers
+        r = self.rows()
+        enc = 3000 + 300 * ENC
+        self.assertEqual((r[enc + 201]["name"], r[enc + 201]["mastery"]), ("Binder", "Binder"))
+        self.assertEqual(r[enc + 202]["name"], "Binder 2")
+        self.assertEqual((r[1]["name"], r[enc + 1]["name"], r[2001]["name"]), ("Might 1", "Empathy 1", "Hardened 1"))
+        self.assertEqual(sm.master_class_name(4, 0, "Binder", "Binder the First"), "Binder the First",
+                         "a first rank named otherwise is left as the list writes it")
+
     def test_abilities_found(self):
         r = self.rows()
         enc = 3000 + 300 * ENC

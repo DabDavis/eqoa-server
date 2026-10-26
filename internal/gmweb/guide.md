@@ -38,7 +38,7 @@ with the row before and after, and `revert_change` undoes a row change.
 | `npcpaths` | the path an NPC walks: `points` (JSON waypoints), `mode`, `pause`, `speed`; use the path operations | `npcid` |
 | `npcundead` | which creatures are undead, by NPC NAME (lower case): `undead` 1 or 0, whatever the name says; a name with no row is undead when its words say so (skeleton, zombie, ghoul, mummy, wraith, ghost...) | `name` |
 | `npcsocial` | which NPCs come to the help of their own when one is attacked, by NPC name: `social` 1, the `faction` (or any group name) they belong to and help, `radius` (0: 30) | `npc_name` |
-| `npcmove` | how the creatures of a name move, by NPC NAME (lower case): `roam` 0 stands it until pulled, `radius` its own wander radius (0: the server's), `water` land / both / water (empty: by where it spawned) | `name` |
+| `npcmove` | how the creatures of a name move, by NPC NAME (lower case): `roam` -1 as its kind (the default: wildlife wanders, the rest stands), 0 stands it until pulled, 1 wanders whatever it is, `radius` its own wander radius (0: the server's), `water` land / both / water (empty: by where it spawned) | `name` |
 | `itempattern` | every item that exists; `trade` 1 is NO TRADE | `patternid` |
 | `itemeffect` | what using an item does (the alchemists' potions): `line` in spell words, `Self` drunk or `Target` thrown; `name`/`icon` on the effects list; `breaks` attack/damage; `wear` % a tick; `area` a thrown one's splash | `patternid` |
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
@@ -216,8 +216,13 @@ with the row before and after, and `revert_change` undoes a row change.
   other waiting suggestions as dismissed; `dismiss_visual_suggestion` sets one visual's aside;
   `clear_visual_suggestions` deletes every suggestion of one sender (spam; not revertible: ask first). A
   visual most senders agree on is a candidate, not proof: say what you saw.
-- **How a creature moves** (`npcmove`, applied at once): to stand a creature on its spawn until a player pulls it
-  (camp guards, a boss), `insert_row` `{name: "<its name, lower case>", roam: 0}`; to keep a land creature that
+- **How a creature moves** (`npcmove`, applied at once): with no row (or `roam` -1) only wildlife wanders round its
+  spawn (an animal by its name's last word: Giant Rat, Wolf Pack Leader, red ant warrior; not Fire Giant, Orc Pawn,
+  serpent guardian, nor an undead Skeletal Wolf) and everything else stands until a player pulls it and goes back
+  after; `world_npcs` and an NPC's page say which and why (`movement`). To make a camp's creatures roam (a patrol,
+  "designated as a roamer"), `insert_row` `{name: "<its name, lower case>", roam: 1}`, or give one NPC a path; an
+  NPC players talk to never wanders (a path walks it). To stand an animal on its spawn until a player pulls it
+  (a camp's pet, a boss), `roam: 0`; to keep a land creature that
   wades into a river out of it, `water: "land"`; one that lives in and out of the water (a crocodile, a crab, a
   turtle) `water: "both"`; a fish `water: "water"` (a creature that spawned in the water keeps to it already). The
   water is the game's own; a creature standing off the ground (a keep's floor, a dock) does not wander anyway.

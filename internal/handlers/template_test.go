@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/eqoa/server/internal/database"
@@ -229,6 +230,9 @@ func TestTemplateMakesTheCharacterASixty(t *testing.T) {
 	h := &CharacterHandler{store: store, sessionManager: c.sm, gameWorld: c.gw, inventoryStore: f.inv}
 	c.h.SetStores(store, f.inv)
 	c.h.SetTemplate(h.ApplyTemplate)
+	kept := &keptMastery{}
+	c.h.SetMasteryStore(kept)
+	gp.Mastery = entity.Mastery{Points: 40, Spent: 60}
 	gs.SetPlayerObjectID(500000001)
 	gs.Queue().GetPending()
 
@@ -238,6 +242,13 @@ func TestTemplateMakesTheCharacterASixty(t *testing.T) {
 	}
 
 	c.say(gs, "/template")
+	// the mastery points to the most, spent and unspent: 60 spent keeps 1440
+	if gp.Mastery.Points != 1440 || gp.Mastery.Spent != 60 || kept.rows[gp.CharServerID].Points != 1440 {
+		t.Errorf("the mastery points: %+v, kept %+v; want 1440 unspent beside 60 spent", gp.Mastery, kept.rows[gp.CharServerID])
+	}
+	if u, sp, ok := masteryPoints(gs); !ok || u != 1440 || sp != 60 {
+		t.Errorf("the client was told %d/%d (%v), want 1440/60", u, sp, ok)
+	}
 	row, err := store.GetByServerID(f.sid)
 	if err != nil {
 		t.Fatal(err)
@@ -277,7 +288,8 @@ func TestTemplateMakesTheCharacterASixty(t *testing.T) {
 			said = append(said, l.text)
 		}
 	}
-	if len(said) != 3 || said[0] != "[GM] Template: level 60, 1000000 tunar, 2 spells scribed, 2 items worn" {
+	if len(said) != 4 || said[0] != "[GM] Template: level 60, 1000000 tunar, 2 spells scribed, 2 items worn" ||
+		!strings.HasPrefix(said[3], "[GM]   Mastery points: 1400 more, 1440 unspent, 60 spent") {
 		t.Errorf("the answer %q", said)
 	}
 }

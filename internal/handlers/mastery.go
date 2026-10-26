@@ -20,6 +20,26 @@ func (h *ChatHandler) SetClassMastery(cm *ClassMasteryHandler) {
 	h.cm = cm
 }
 
+// giveMastery gives the session's character up to amount mastery points more,
+// unspent, never past entity.MasteryCap spent and unspent together (#grantcm,
+// #template): kept at once and told to the client as a gain is. It reports
+// what it gave, the points now, whether the character is in the world, and
+// a failure to keep them.
+func (h *ChatHandler) giveMastery(sess *session.Session, amount int) (int, entity.Mastery, bool, error) {
+	give, m, ok := h.gameWorld.GrantMastery(sess, amount)
+	if !ok || give == 0 {
+		return give, m, ok, nil
+	}
+	entity.SendMasteryPoints(sess, m)
+	if p := h.gameWorld.SessionPlayer(sess); p != nil && h.mastery != nil {
+		if err := h.mastery.SaveMastery(p.CharServerID, MasteryRow(m)); err != nil {
+			log.Printf("GM: %d mastery points for '%s' not kept: %v", give, p.Name, err)
+			return give, m, true, err
+		}
+	}
+	return give, m, true, nil
+}
+
 // grantMasteryCommand is #grantcm <amount> (F3 20261025-165747): that many
 // mastery points more for the GM's own character, unspent, never past
 // entity.MasteryCap spent and unspent together (with 50 unspent and 50
@@ -45,21 +65,15 @@ func (h *ChatHandler) grantMasteryCommand(sess *session.Session, args []string) 
 		h.gmReply(sess, "Usage: #grantcm <amount> - a number of points, 1 or more")
 		return
 	}
-	give, m, ok := h.gameWorld.GrantMastery(sess, amount)
+	give, m, ok, err := h.giveMastery(sess, amount)
 	if !ok {
 		h.gmReply(sess, "Grant CM: you are not in the world")
 		return
 	}
 	p := h.gameWorld.SessionPlayer(sess)
-	if give > 0 {
-		entity.SendMasteryPoints(sess, m)
-		if p != nil && h.mastery != nil {
-			if err := h.mastery.SaveMastery(p.CharServerID, MasteryRow(m)); err != nil {
-				log.Printf("GM: #grantcm %d for '%s' not kept: %v", give, p.Name, err)
-				h.gmReply(sess, fmt.Sprintf("Granted %d mastery points, but not kept: %v", give, err))
-				return
-			}
-		}
+	if err != nil {
+		h.gmReply(sess, fmt.Sprintf("Granted %d mastery points, but not kept: %v", give, err))
+		return
 	}
 	switch {
 	case give == amount:

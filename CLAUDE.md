@@ -128,7 +128,7 @@ target), `#monstersearch`, `#nearby`; `#faction <faction> [standing]` (a GM's ow
 `sqlite3 eqoa.db "UPDATE accountinfo SET acctlevel = 1 WHERE username = '<name>'"`.
 `#template` (`handlers/template.go`, jib's ask of 2026-10-25) makes the GM's own character a
 60 of its class and race: level 60, every spell of its class (`classspells`; never a were form or a were's ability, `database.IsWereAbility`: the were quests are any class's and the forms past the first are masteries), 1,000,000
-tunar, and per slot the best item of `itempattern` it may wear (CLIENT's `CanUse`: class
+tunar, its mastery points to 1500 spent and unspent (the user's "let template also give 1500 CM points to the GM"), and per slot the best item of `itempattern` it may wear (CLIENT's `CanUse`: class
 and race bits, levelreq <= 60) by AC and stats, the hands by the DMG the melee rolls on,
 worn; all of it written, then a MemoryDump where it stands. `#setlevel` and `#tunar` write
 the row too, and a character's level and the experience into it (`totalXP`: every level
@@ -465,6 +465,16 @@ Two things follow from the protocol that are easy to get wrong:
   username straight out of the packet — without the ticket a client could skip
   the auth server entirely and name any account, making the password check
   pointless. Governed by `auth.require_tcp_login`.
+- **A client with no ticket signs in by its token's password** (`auth.PasswordFromUDPToken`,
+  `tcp.AuthServer.CheckUDPPassword`; F3 pass 17: after a restart, or more than `auth.ticket_ttl`
+  after its Station login, a client back at the server list after a lost connection was refused
+  and told nothing, and waited on "Connecting..." for good). Authenticate and Authenticate2 end
+  with a 32-byte token, the password zero-filled and AES-256-ECB encrypted under a key STATION
+  carries (`claude-notes/auth-server-protocol.md`), so the password is checked as a login is:
+  the guessing limit, the stored hash, a ban; never an account made; one login at a time for
+  the address (the account's own session is the player coming back, and its world entry
+  replaces it). A refusal is sent as CLIENT shows one: 0x0729 "Bad Login/Password" (its server
+  list then offers STATION's login), 0x00EC for another account playing from the address.
 - Accounts with an empty `pwhash` predate password checking. The first login that
   supplies a password adopts it (when `auth.allow_auto_register` is on); after
   that the account is enforced normally.

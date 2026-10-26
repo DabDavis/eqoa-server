@@ -473,6 +473,17 @@ func (h *ChatHandler) templateCommand(sess *session.Session) {
 		h.gmReply(sess, "Template: "+err.Error())
 		return
 	}
+	// and the mastery points, to the most a character holds, spent and
+	// unspent (the user: "let template also give 1500 CM points to the GM")
+	if h.gameWorld != nil {
+		switch give, m, ok, err := h.giveMastery(sess, entity.MasteryCap); {
+		case !ok:
+		case err != nil:
+			lines = append(lines, fmt.Sprintf("  Mastery points: %d more, but not kept: %v", give, err))
+		default:
+			lines = append(lines, fmt.Sprintf("  Mastery points: %d more, %s", give, entity.MasteryLine(m)))
+		}
+	}
 	for _, l := range lines {
 		h.gmReply(sess, l)
 	}

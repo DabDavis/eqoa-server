@@ -240,6 +240,9 @@ var statWords = []struct {
 	{"fr", StatFR}, {"cr", StatCR}, {"pr", StatPR}, {"dr", StatDR}, {"lr", StatLR}, {"ar", StatAR},
 	{"resist arcane", StatAR}, {"resist fire", StatFR}, {"resist cold", StatCR},
 	{"resist poison", StatPR}, {"resist disease", StatDR}, {"resist lightning", StatLR},
+	// cold resist as Allakhazam's pages and the wizard's Element Guard word
+	// it ("Increase Resist Fire & Ice by 45"; jib's review, F3 pass 19)
+	{"resist ice", StatCR},
 }
 
 func statWord(s string) (Stat, bool) {
@@ -602,10 +605,14 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		}
 		return verb
 	}
-	// One stat or several: "STR & DEX", "AGI/STA", "FR & CR", "PR/DR".
+	// One stat or several: "STR & DEX", "AGI/STA", "FR & CR", "PR/DR", and
+	// resists named once for all of them ("Resist Fire & Ice").
 	var stats []Stat
-	for _, w := range reSplit.Split(subject, -1) {
+	for i, w := range reSplit.Split(subject, -1) {
 		st, ok := statWord(w)
+		if !ok && i > 0 && strings.HasPrefix(subject, "resist ") {
+			st, ok = statWord("resist " + w)
+		}
 		if !ok {
 			d.Unread = append(d.Unread, part)
 			return verb

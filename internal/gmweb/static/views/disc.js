@@ -200,6 +200,34 @@ export async function iconInto(canvas, id) {
   } catch { /* no disc */ }
 }
 
+// ---- the stables' horseshoe, for the map's coaches
+
+// The texture of the stable sign by Coachman Ronks in Freeport (the 0x1000
+// record 0x9BE57886 of TUNARIA.ESF's zone round it, on no other file of the
+// disc: found by eqoa-rust-client-vanilla's map, which draws its coaches with
+// it), and where it stands.
+const HORSESHOE = { world: 0, x: 25281, z: 15707, id: 0x9BE57886 | 0 };
+let horseshoe = null;
+
+// stableHorseshoe is that texture as an ImageBitmap: off the GM's disc once,
+// then kept in IndexedDB beside the map's zones; null without either.
+export function stableHorseshoe() {
+  if (!horseshoe) {
+    horseshoe = (async () => {
+      const kept = await tileGet('icon|horseshoe');
+      if (kept?.blob) return createImageBitmap(kept.blob);
+      const img = await call('zoneSurface', HORSESHOE);
+      if (!img || img.missing) return null;
+      const c = new OffscreenCanvas(img.w, img.h);
+      c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(img.data), img.w, img.h), 0, 0);
+      const blob = await c.convertToBlob();
+      tilePut('icon|horseshoe', { blob });
+      return createImageBitmap(blob);
+    })().then((b) => { if (!b) horseshoe = null; return b; }, () => { horseshoe = null; return null; });
+  }
+  return horseshoe;
+}
+
 // ---- the map's terrain: zone pictures, kept in IndexedDB
 
 function idb() {

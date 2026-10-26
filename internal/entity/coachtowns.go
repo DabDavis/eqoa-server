@@ -125,3 +125,18 @@ func coachLabel(npc *NPC) (string, bool) {
 	}
 	return npc.Name, false
 }
+
+// CoachTownMark is one of Tunaria's coach towns where it is (coachTowns).
+type CoachTownMark struct {
+	Name string
+	X, Z float32
+}
+
+// CoachTownMarks are Tunaria's coach towns, for a map's town names.
+func CoachTownMarks() []CoachTownMark {
+	out := make([]CoachTownMark, 0, len(coachTowns))
+	for _, t := range coachTowns {
+		out = append(out, CoachTownMark{Name: t.name, X: t.x, Z: t.z})
+	}
+	return out
+}

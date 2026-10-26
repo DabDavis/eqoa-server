@@ -51,6 +51,7 @@ type questRow struct {
 
 	missing []questMiss // the names behind Why, for the summary
 	notes   string
+	targets []string // the NPCs its talk, show and give steps send players to, in order (the map's givers)
 }
 
 // questMiss is a name a quest uses that this server lacks.
@@ -279,6 +280,9 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 			// is asked for (handlers.QuestEngine.AtWindow)
 			if _, ok := names.npcs[strings.ToLower(target)]; !ok {
 				r.lack("NPC", target, "no NPC %q (step %d)", target, n)
+			}
+			if target != "" && !containsString(r.targets, target) {
+				r.targets = append(r.targets, target)
 			}
 		case database.StepKill, database.StepLoot:
 			if k, ok := names.npcs[strings.ToLower(target)]; !ok {

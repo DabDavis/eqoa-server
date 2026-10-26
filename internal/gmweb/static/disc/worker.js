@@ -168,6 +168,25 @@ const ops = {
     return { zones, file: name, size: e.size, key: `${name}|${e.size}|${disc.label}` };
   },
 
+  // zoneSurface: a surface a world's zones hold, by its DictID, out of the
+  // zones round (x, z): the stable signs' horseshoe for the map's coaches
+  async zoneSurface({ world, x, z, id }) {
+    const name = WORLD_FILES[world];
+    if (!disc || !name) return { missing: true };
+    const e = disc.files.get(name);
+    if (!e) return { missing: true };
+    const zl = await ops.zones({ world });
+    for (const q of zl.zones) {
+      if (!q.bbox || x < q.bbox[0] || x > q.bbox[3] || z < q.bbox[2] || z > q.bbox[5]) continue;
+      const head = new DataView(await read(disc.file, e.offset + q.offset, 12));
+      const len = 12 + head.getInt32(4, true);
+      if (len <= 12 || len > 128 << 20) continue;
+      const img = esf.surfaceByID(esf.parseFrom(await read(disc.file, e.offset + q.offset, len), 0), id | 0);
+      if (img) return { ...img, __transfer: [img.data.buffer] };
+    }
+    return { missing: true };
+  },
+
   async tile({ world, zone, size = 512 }) {
     const name = WORLD_FILES[world];
     if (!disc || !name) throw new Error('load your game disc first');

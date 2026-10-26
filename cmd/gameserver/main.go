@@ -141,6 +141,11 @@ func main() {
 		log.Printf("WARNING: %v; no NPC comes to another's help", err)
 	}
 	log.Printf("Creatures: %s; %s", gameWorld.SocialSummary(), entity.NPCRegenSummary())
+	// The necromancer's life taps its pets cast (entity/pettap.go)
+	if _, err := gameWorld.LoadPetTaps(db); err != nil {
+		log.Printf("WARNING: %v; no pet taps", err)
+	}
+	log.Printf("Pets: %s", gameWorld.PetTapSummary())
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 

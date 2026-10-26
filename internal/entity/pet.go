@@ -120,6 +120,8 @@ type petState struct {
 	// target
 	taunts bool
 	rounds int
+	// tapNext is when its life tap is up again (pettap.go)
+	tapNext time.Time
 }
 
 // petOfLocked is the player's pet, alive, or nil.
@@ -680,6 +682,9 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 	}
 	pet.stopMoving()
 	pet.Facing = headingTo(t.X-pet.X, t.Z-pet.Z)
+	if w.petTapLocked(ps, t, now) { // a necromancer's pet's life tap (pettap.go)
+		return
+	}
 	length, delay, fx, hits := npcRound(pet)
 	if pet.RoundTarget != t.ServerID {
 		pet.endRound()

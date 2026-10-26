@@ -128,7 +128,7 @@ func (s *CastSpell) visual() uint32 {
 // anything else a buff's ("buff").
 func StandInVisual(d SpellDef) (uint32, string) {
 	for _, e := range d.Effects {
-		if (e.Kind == EffectHP || e.Kind == EffectHPTick) && e.Amount > 0 {
+		if (e.Kind == EffectHP || e.Kind == EffectHPTick) && e.Amount > 0 && !e.Self {
 			return fxHeal, "heal"
 		}
 	}
@@ -663,6 +663,10 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 	if len(d.Effects) == 0 {
 		log.Printf("Cast: %s's %q lands: nothing read in its line %v", caster.Name, cs.spell.Name, d.Unread)
 	}
+	// what it does to its caster, once (lifetap.go: a pact's price); the
+	// targets get the rest
+	cs = w.landOnCasterLocked(cs, caster, casterSess, now)
+	d = &cs.spell.Def
 	if d.Summons() {
 		w.summonPetLocked(cs, caster, casterSess, now)
 		return gate
@@ -915,12 +919,17 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		switch e.Kind {
 		case EffectHP:
 			if n := spellAmount(e, caster); n < 0 {
-				if w.spellHitLocked(caster, casterSess, npc, -n) {
+				killed := w.spellHitLocked(caster, casterSess, npc, -n)
+				w.drainLocked(cs, caster, casterSess, e, -n, now) // a life tap's heal (lifetap.go)
+				if killed {
 					return
 				}
 			}
 		case EffectHate:
 			w.updateAggro(npc, caster.ServerID, spellAmount(e, caster))
+		default:
+			// a drained stat or power is the caster's (lifetap.go)
+			w.drainLocked(cs, caster, casterSess, e, -spellAmount(e, caster), now)
 		}
 	}
 	if ae := lasting(cs, caster, now); ae != nil {

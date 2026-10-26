@@ -135,6 +135,16 @@ with the row before and after, and `revert_change` undoes a row change.
   other it is refused with "This spell only works on the undead." Every other charm fails on undead. To make a creature
   undead (or not), `insert_row` (or `update_row`) on `npcundead` with its name in lower case and `undead` 1 (or 0); it
   counts at once. Rows of source `seed` are the seeding tool's guesses from names and bodies: no record says.
+- **Taps and pacts**: what a spell takes for its caster or costs it: `Drain HP by 50` (also `Decrease Drain HP by 50`, or
+  `Decrease HP by 50 and transfer to caster` / `give self`): a life tap, the damage dealt heals the caster;
+  `Drain Group HP by 125`: it heals the caster's group in range; `Drain STR by 10 and give to self, 60sec`
+  or `Drain Power by 39`: the caster gains what the target loses (a stat for the duration). A clause
+  ending `to Self` or `Self Only` (or `Increase Self AC by 50`, `Increase Caster HP by 100`) lands on the
+  caster, once a cast, whoever is targeted: a pact is `Target, Increase Hitpoints by 25, Decrease
+  Hitpoints by 50 to Self` (the target healed, the caster pays 50 less its arcane resist's share,
+  resist / (resist + 200), and can die of it; such a spell is cast at a friend or oneself).
+  A necromancer's summoned pet of level 20 or more casts the necromancer's best single-target tap at or
+  below its level every 30 seconds in a fight, so a tap's line is its pets' too.
 - **Write a quest**: `quest_save` with the quest and its steps in order (look at one with `quest_get` first;
   its answer lists the quest's problems: an NPC this server lacks, a merchant, banker or blacksmith, which
   the game never talks to, a creature that never spawns, words the client cuts). How it plays:

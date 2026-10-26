@@ -6,7 +6,11 @@
 // a toggle kept in this browser (map_layers, ops_maplayers.go): the XP camps
 // of #tele (an XP badge; hover for its levels and EQOA-Data's note, click for
 // its loot tables and a teleport) and the coach stops (a horseshoe, as the
-// stables' signs carry; hover for the town, click for its routes).
+// stables' signs carry; hover for the town, click for its routes; the live
+// game's routes drawn as lines under every marker); the quest givers
+// (map_quests: a "!", gold for one with a quest in the game, grey for drafts
+// only; click for its quests and where they send players); and the town
+// names, over everything, the same size at every zoom.
 
 import { h, mount, pageHead, button, toast, store, debounce, formBox } from '../lib/dom.js';
 import { op } from '../lib/api.js';
@@ -31,6 +35,8 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
   const showTerrain = h('input', { type: 'checkbox', checked: true });
   const showCamps = h('input', { type: 'checkbox', checked: store('map.camps') !== '0', 'aria-label': 'XP camps' });
   const showCoaches = h('input', { type: 'checkbox', checked: store('map.coaches') !== '0', 'aria-label': 'Coaches' });
+  const showQuests = h('input', { type: 'checkbox', checked: store('map.quests') !== '0', 'aria-label': 'Quest givers' });
+  const showTowns = h('input', { type: 'checkbox', checked: store('map.towns') !== '0', 'aria-label': 'Town names' });
   const canvas = h('canvas', { 'aria-label': 'World map' });
   const tip = h('div', { class: 'map-tip hidden' });
   const info = h('div', { class: 'map-info hidden' });
@@ -41,7 +47,9 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
       h('label', { class: 'check badge' }, showNPC, 'NPCs'), h('label', { class: 'check badge' }, showPlayers, 'players'),
       h('label', { class: 'check badge' }, showTerrain, 'terrain'),
       h('label', { class: 'check badge', title: "EQOA-Data's XP camps, as #tele has them" }, showCamps, 'XP camps'),
-      h('label', { class: 'check badge', title: 'Every coachman: its town and routes' }, showCoaches, 'coaches'), status),
+      h('label', { class: 'check badge', title: 'Every coachman: its town and routes' }, showCoaches, 'coaches'),
+      h('label', { class: 'check badge', title: 'Every NPC that gives a quest: gold with one in the game, grey with drafts only' }, showQuests, 'quest givers'),
+      h('label', { class: 'check badge', title: "The towns' names, by EQOA-Data's map" }, showTowns, 'towns'), status),
     tip, info);
   mount(box, pageHead('World map', 'NPCs as they stand and players online, over the terrain off your game disc: load it once on the Game disc page and this computer keeps the map.'), wrap);
 
@@ -51,7 +59,8 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
     return h('span', null, dot, label);
   }), h('span', null, h('strong', null, '▲'), ' player'),
     h('span', null, legendIcon((c) => drawXP(c, 13, 9, 1, false)), 'XP camp'),
-    h('span', null, coachLegend, 'coach')));
+    h('span', null, coachLegend, 'coach'),
+    h('span', null, legendIcon((c) => drawQuest(c, 13, 9, 1, false, true)), 'quest giver')));
   const coachLegend = legendIcon((c) => drawHorseshoe(c, 13, 9, 1, false));
   stableHorseshoe().then((img) => {
     if (!img) return;
@@ -63,7 +72,8 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
   });
   const ctx = canvas.getContext('2d');
   let npcs = [], names = [], players = [];
-  let camps = [], coaches = [], you = null; // map_layers
+  let camps = [], coaches = [], towns = [], you = null; // map_layers
+  let givers = []; // map_quests
   let shoe = null; // the stables' horseshoe off the disc (disc.js), once it is read
   let view = { cx: 0, cz: 0, scale: 0.05 }; // world units -> pixels
   let selected = null, moving = null, hover = null;
@@ -158,6 +168,26 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
       ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(W, sy); ctx.stroke();
       if (Math.round(gz / CELL) % every === 0) ctx.fillText(String(gz), W - 50 * dpr, sy - 3 * dpr);
     }
+    // the coach routes under every marker: the live game's network (EQOA-Data's
+    // coach map, each pair once) from coachman to coachman; the selected or
+    // hovered coach's own brighter
+    ctx.globalAlpha = paths?.editing ? 0.35 : 1;
+    if (showCoaches.checked) {
+      const own = selected?.kind === 'coach' ? selected.c : hover?.kind === 'coach' ? hover.c : null;
+      for (const lit of [false, true]) {
+        for (const [a, b] of coachRoutes()) {
+          if (lit !== Boolean(own && (a === own || b === own))) continue;
+          const [ax, ay] = toScreen(a.x, a.z);
+          const [bx, by] = toScreen(b.x, b.z);
+          ctx.strokeStyle = lit ? 'rgba(255,214,140,0.95)' : 'rgba(236,206,160,0.55)';
+          ctx.lineWidth = (lit ? 3 : 1.5) * dpr;
+          ctx.setLineDash(lit ? [] : [6 * dpr, 4 * dpr]);
+          ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+        }
+      }
+      ctx.setLineDash([]);
+    }
+    ctx.globalAlpha = 1;
     // NPCs
     // small and see-through when far out, where thousands overlap the terrain
     const r = Math.max(1.1, Math.min(5, view.scale * 40)) * dpr;
@@ -187,7 +217,15 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
         const [sx, sy] = toScreen(c.x, c.z);
         if (sx < -20 || sy < -20 || sx > W + 20 || sy > H + 20) continue;
         drawCoach(ctx, sx, sy, dpr, hover?.kind === 'coach' && hover.c === c, shoe);
-        if (view.scale > 0.15) label(c.town, sx, sy + 16 * dpr, '#e8d2b0');
+        // a coach's town is named by the towns' layer when it is on
+        if (view.scale > 0.15 && !(showTowns.checked && c.named)) label(c.town, sx, sy + 16 * dpr, '#e8d2b0');
+      }
+    }
+    if (showQuests.checked) {
+      for (const g of givers) {
+        const [sx, sy] = toScreen(g.x, g.z);
+        if (sx < -20 || sy < -20 || sx > W + 20 || sy > H + 20) continue;
+        drawQuest(ctx, sx, sy, dpr, hover?.kind === 'giver' && hover.c === g, g.status === 'in the game');
       }
     }
     if (showCamps.checked) {
@@ -199,6 +237,31 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
       }
     }
     ctx.globalAlpha = 1;
+    // the town names over every marker, the same size at every zoom, a halo
+    // round each so it reads over any zone picture; one that would run into a
+    // name already drawn waits for a closer zoom
+    if (showTowns.checked) {
+      const drawn = [];
+      ctx.font = `700 ${13 * dpr}px Georgia, 'Times New Roman', serif`;
+      ctx.textAlign = 'center';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 4 * dpr;
+      ctx.strokeStyle = 'rgba(12,9,5,0.92)';
+      ctx.fillStyle = '#f6ecd4';
+      for (const t of towns) {
+        const [sx, py] = toScreen(t.x, t.z);
+        const sy = py - 15 * dpr; // above the coach that stands at most of them
+        const w = ctx.measureText(t.name).width / 2 + 4 * dpr;
+        if (sx + w < 0 || sx - w > W || sy < 0 || sy - 13 * dpr > H) continue;
+        if (drawn.some(([x, y, hw]) => Math.abs(x - sx) < hw + w && Math.abs(y - sy) < 16 * dpr)) continue;
+        drawn.push([sx, sy, w]);
+        ctx.strokeText(t.name, sx, sy);
+        ctx.fillText(t.name, sx, sy);
+      }
+      ctx.textAlign = 'start';
+      ctx.lineJoin = 'miter';
+      ctx.font = `${11 * dpr}px system-ui, sans-serif`;
+    }
     // players
     if (showPlayers.checked) {
       for (const p of players) {
@@ -261,6 +324,13 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
           if (d < bl) { bl = d; best = { kind: 'coach', c, x: c.x, z: c.z }; }
         }
       }
+      if (showQuests.checked) {
+        for (const g of givers) {
+          const [x, y] = toScreen(g.x, g.z);
+          const d = (x - px) ** 2 + (y - py) ** 2;
+          if (d < bl) { bl = d; best = { kind: 'giver', c: g, x: g.x, z: g.z }; }
+        }
+      }
     }
     if (showNPC.checked && !best) {
       for (const n of npcs) {
@@ -277,6 +347,7 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
     info.classList.remove('hidden');
     if (sel.kind === 'camp') { campInfo(sel.c); return; }
     if (sel.kind === 'coach') { coachInfo(sel.c); return; }
+    if (sel.kind === 'giver') { giverInfo(sel.c); return; }
     if (sel.kind === 'npc') {
       const [id, x, z, level, type, flags] = sel.n;
       mount(info, h('strong', null, names[sel.n[6]]), h('div', null, `NPC ${id} · level ${level}${flags & 1 ? ' · dead' : ''}${flags & 2 ? ' · GM spawn' : ''}`),
@@ -329,9 +400,10 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
     hover = sel;
     if (sel) {
       tip.classList.remove('hidden');
-      tip.classList.toggle('rich', sel.kind === 'camp' || sel.kind === 'coach');
+      tip.classList.toggle('rich', sel.kind === 'camp' || sel.kind === 'coach' || sel.kind === 'giver');
       if (sel.kind === 'camp') mount(tip, ...campTip(sel.c));
       else if (sel.kind === 'coach') mount(tip, ...coachTip(sel.c));
+      else if (sel.kind === 'giver') mount(tip, ...giverTip(sel.c));
       else tip.textContent = sel.kind === 'npc' ? `${names[sel.n[6]]} (${sel.n[3]})` : `${sel.p.name} (${sel.p.level})`;
       tip.style.left = e.offsetX + 14 + 'px';
       tip.style.top = e.offsetY + 10 + 'px';
@@ -388,11 +460,36 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
   }
 
   async function loadLayers() {
+    op('map_quests', { world }).then((out) => { givers = out.givers; draw(); }, (e) => toast(e.message, 'error'));
     try {
       const out = await op('map_layers', { world });
-      camps = out.camps; coaches = out.coaches; you = out.you;
+      camps = out.camps; coaches = out.coaches; towns = out.towns; you = out.you;
       draw();
     } catch (e) { toast(e.message, 'error'); }
+  }
+
+  // quest givers: what a hover says, and the info box
+  const CLASS_ABBR = ['WAR', 'RAN', 'PAL', 'SK', 'MNK', 'BRD', 'RGE', 'DRD', 'SHA', 'CL', 'MAG', 'NEC', 'ENC', 'WIZ', 'ALC'];
+  const classesOf = (q) => (q.classes.length ? q.classes.map((c) => CLASS_ABBR[c] || c).join('/') : 'any class');
+  function giverTip(g) {
+    const live = g.quests.filter((q) => q.status === 'in the game').length;
+    return [h('strong', null, 'Quests: ' + g.name),
+      h('div', null, `${g.quests.length} quest${g.quests.length === 1 ? '' : 's'}` + (live ? ` · ${live} in the game` : ' · drafts only')),
+      h('div', { class: 'muted' }, g.quests.slice(0, 4).map((q) => q.name).join(', ') + (g.quests.length > 4 ? ', …' : ''))];
+  }
+  function giverInfo(g) {
+    mount(info, h('strong', null, 'Quests: ' + g.name),
+      h('div', { class: 'quest-list' }, ...g.quests.map((q) => h('div', { class: 'small' },
+        h('a', { href: '#/quests/' + q.questid }, q.name || 'quest ' + q.questid),
+        ` · ${classesOf(q)} · levels ${q.minlevel}-${q.maxlevel} · `,
+        h('span', { class: q.status === 'in the game' ? 'in-game' : 'not-in' }, q.status)))),
+      // a target found on the map as the search box finds it
+      g.targets.length ? h('div', { class: 'small muted' }, 'Its quests send players to: ',
+        ...g.targets.flatMap((t, i) => [i ? ', ' : null, h('a', { href: '#', title: 'Find it on the map',
+          onclick: (e) => { e.preventDefault(); find.value = t; find.dispatchEvent(new Event('input')); } }, t)])) : null,
+      h('div', { class: 'mono small' }, `${g.x}, ${g.z}`),
+      h('div', { class: 'row' }, button('Open', { class: 'small', onclick: () => go('npcs/' + g.id) }),
+        teleportButton(you ? `Teleport ${you.name} here` : 'Teleport a character here…', { npc: g.id })));
   }
 
   // XP camps: what a hover says, and the info box (map_camp: its loot)
@@ -433,6 +530,29 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
       mount(loot, out.loot.length ? h('div', null, ...out.loot.map((t) => h('div', null,
         `${t.table}: ${t.chance}% a kill × ${t.rolls}, ${t.count} items at level ${out.level}` + (t.items.length ? ` (${t.items.join(', ')}${t.count > t.items.length ? ', …' : ''})` : '')))) : 'No loot table is bound to its creatures.');
     } catch (err) { mount(loot, err.message); }
+  }
+
+  // coachRoutes is the live game's coach network as pairs of this world's
+  // coachmen (each pair once), by the towns each coach's `live` names;
+  // a town no coachman serves here (Oggok) draws no line
+  let routesFor = null, routePairs = [];
+  function coachRoutes() {
+    if (routesFor === coaches) return routePairs;
+    const byTown = new Map(coaches.map((c) => [c.town, c]));
+    const seen = new Set();
+    routePairs = [];
+    for (const c of coaches) {
+      for (const t of c.live) {
+        const o = byTown.get(t);
+        if (!o || o === c) continue;
+        const key = [c.id, o.id].sort().join('|');
+        if (seen.has(key)) continue;
+        seen.add(key);
+        routePairs.push([c, o]);
+      }
+    }
+    routesFor = coaches;
+    return routePairs;
   }
 
   // coaches: what a hover says, and the info box
@@ -502,6 +622,8 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
   [showNPC, showPlayers, showTerrain].forEach((c) => c.addEventListener('change', draw));
   showCamps.addEventListener('change', () => { store('map.camps', showCamps.checked ? '1' : '0'); draw(); });
   showCoaches.addEventListener('change', () => { store('map.coaches', showCoaches.checked ? '1' : '0'); draw(); });
+  showQuests.addEventListener('change', () => { store('map.quests', showQuests.checked ? '1' : '0'); draw(); });
+  showTowns.addEventListener('change', () => { store('map.towns', showTowns.checked ? '1' : '0'); draw(); });
 
   loadLayers();
   await loadMarkers(true);
@@ -567,6 +689,26 @@ function drawHorseshoe(ctx, x, y, d, hot) {
     ctx.arc(x + r * Math.cos(t), y - 1 * d + r * Math.sin(t), 0.9 * d, 0, Math.PI * 2);
     ctx.fill();
   }
+  ctx.restore();
+}
+
+// A quest giver's mark: a "!" on a round plate, gold for one with a quest in
+// the game, grey for one with drafts only.
+function drawQuest(ctx, x, y, d, hot, live) {
+  const r = 7.5 * d;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = live ? (hot ? '#fff1b8' : '#f5c542') : (hot ? '#d9dce3' : '#8a8f99');
+  ctx.strokeStyle = '#14100a';
+  ctx.lineWidth = 2 * d;
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#1b1406';
+  ctx.font = `900 ${12 * d}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('!', x, y + 0.5 * d);
   ctx.restore();
 }
 

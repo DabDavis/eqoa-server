@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -327,5 +328,36 @@ func TestAddrKey(t *testing.T) {
 		if got := AddrKey(in); got != want {
 			t.Errorf("AddrKey(%q) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+// A spell no class has by level (a mastery, an epic, a master class's) is
+// listed with how it is got, so the page can say so; one any class gets by
+// level carries no "got", whatever another class's row says.
+func TestTheListSaysHowASpellNoLevelGivesIsGot(t *testing.T) {
+	s, db, now := fixture(t)
+	for _, q := range []string{
+		`INSERT INTO spellpattern (spellid, abilitylvl, unk2, unk3, range, casttime, power, iconColor, icon, scope, recast, eqprequire, spellname, spelldesc) VALUES
+			(110, 55, 0, 0, 30, 3, 50, 0, 0, 0, 6, 0, 'Group Prodigiousness', ''),
+			(111, 60, 0, 0, 30, 3, 50, 0, 0, 0, 6, 0, 'Severupidus'' Cocktail of Death', ''),
+			(112, 60, 0, 0, 30, 3, 50, 0, 0, 0, 6, 0, 'Lich', ''),
+			(113, 30, 0, 0, 30, 3, 50, 0, 0, 0, 6, 0, 'Tide of Life', '')`,
+		`INSERT INTO classspells (class, spellid, source) VALUES
+			(14, 110, 'eqoa-data cm'), (14, 111, 'eqoa-data epic'), (11, 112, 'eqoa-data master Lich'),
+			(9, 113, 'eqoa-data cm'), (7, 113, 'eqoa-data')`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	*now = now.Add(2 * time.Minute) // the list is built again
+	m := list(t, s)
+	for id, want := range map[int][2]string{110: {"mastery", ""}, 111: {"epic", ""}, 112: {"master class", "Lich"}, 113: {"", ""}, 100: {"", ""}} {
+		if sp := m[id]; sp.Got != want[0] || sp.Master != want[1] {
+			t.Errorf("%d %s: got %q master %q, want %q %q", id, sp.Name, sp.Got, sp.Master, want[0], want[1])
+		}
+	}
+	if fmt.Sprint(m[113].Classes) != "[7 9]" {
+		t.Errorf("Tide of Life's classes %v, want both", m[113].Classes)
 	}
 }

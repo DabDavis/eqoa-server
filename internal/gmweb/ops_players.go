@@ -328,7 +328,8 @@ func (s *Server) grantSpell(a *actor, who, what any) (any, error) {
 	}
 	var ids []int64
 	if strings.EqualFold(strings.TrimSpace(fmt.Sprint(what)), "all") {
-		rows, err := s.rowsOf(`SELECT c.spellid, p.spellname, COALESCE(p.spelldesc, '') AS spelldesc FROM classspells c
+		rows, err := s.rowsOf(`SELECT c.spellid, p.spellname, COALESCE(p.spelldesc, '') AS spelldesc,
+			COALESCE(c.source, '') AS source FROM classspells c
 			JOIN spellpattern p ON p.spellid = c.spellid
 			WHERE c.class = ? ORDER BY p.abilitylvl, p.spellname, c.spellid`, class)
 		if err != nil {
@@ -338,6 +339,11 @@ func (s *Server) grantSpell(a *actor, who, what any) (any, error) {
 			// a were form is no class's: a were quest's and a mastery's
 			// (database.IsWereAbility); granted by its id alone
 			if database.IsWereAbility(fmt.Sprint(r["spellname"]), fmt.Sprint(r["spelldesc"])) {
+				continue
+			}
+			// nor a mastery's, an epic's or a master class's (database.Granted):
+			// no level gives those; granted by id alone
+			if !database.Granted(fmt.Sprint(r["source"])) {
 				continue
 			}
 			v, _ := asFloat(r["spellid"])

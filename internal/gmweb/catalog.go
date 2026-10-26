@@ -604,10 +604,15 @@ var catalog = map[string]tableNote{
 	},
 	"classspells": {
 		Label: "Class spells", Group: "Items & spells", Sort: "class",
-		Help: "Which spells each class has: given to a new character when world.start_all_spells is on, and by grant_spell's \"all\".",
+		Help: "Which spells each class has: given to a new character when world.start_all_spells is on, by #template and by " +
+			"grant_spell's \"all\", and listed with their classes on the community spell-visual page. A row whose source is " +
+			"\"eqoa-data cm\" (a class mastery), \"eqoa-data epic\" (a level-60 epic), \"eqoa-data mca\" or \"eqoa-data master " +
+			"<name>\" (a master class's) is a spell no level gives: listed, never handed out by those grants.",
 		Cols: map[string]colNote{
 			"class":   {Label: "Class", Enum: "class"},
 			"spellid": {Label: "Spell", Ref: "spellpattern"},
+			"source": {Label: "Source", Help: "where the row came from: dump, vendor or eqoa-data (got by level, handed out); " +
+				"eqoa-data cm, eqoa-data epic, eqoa-data mca, eqoa-data master <name> (not got by level: never handed out)"},
 		},
 	},
 	"defaultcharacter": {

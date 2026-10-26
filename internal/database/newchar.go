@@ -185,10 +185,12 @@ func (s *SQLiteCharacterStore) grantSpells(serverID uint32, spells []int) (int, 
 // GrantClassSpells puts every spell of a class (classspells) that the
 // character lacks in its book: in level, then name order after what it has,
 // off the bar, with no lockout and -1 at VIAbility+0x14, as a scribed spell
-// goes in. A were form or a were's ability is not a class's (IsWereAbility):
-// it is never given this way. It returns how many went in.
+// goes in. A were form or a were's ability is not a class's (IsWereAbility),
+// and a mastery's, an epic's or a master class's row (Granted: its source)
+// is not got by level: neither is ever given this way. It returns how many
+// went in.
 func (s *SQLiteCharacterStore) GrantClassSpells(serverID uint32, class int) (int, error) {
-	rows, err := s.db.Query(`SELECT c.spellid, p.spellname, COALESCE(p.spelldesc, '') FROM classspells c
+	rows, err := s.db.Query(`SELECT c.spellid, p.spellname, COALESCE(p.spelldesc, ''), COALESCE(c.source, '') FROM classspells c
 		JOIN spellpattern p ON p.spellid = c.spellid
 		WHERE c.class = ? AND c.spellid NOT IN (SELECT spellid FROM spells WHERE serverid = ?)
 		ORDER BY p.abilitylvl, p.spellname, c.spellid`, class, serverID)
@@ -198,12 +200,12 @@ func (s *SQLiteCharacterStore) GrantClassSpells(serverID uint32, class int) (int
 	var ids []int
 	for rows.Next() {
 		var id int
-		var name, desc string
-		if err := rows.Scan(&id, &name, &desc); err != nil {
+		var name, desc, source string
+		if err := rows.Scan(&id, &name, &desc, &source); err != nil {
 			rows.Close()
 			return 0, err
 		}
-		if !IsWereAbility(name, desc) {
+		if !IsWereAbility(name, desc) && Granted(source) {
 			ids = append(ids, id)
 		}
 	}

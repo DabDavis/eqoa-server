@@ -269,7 +269,9 @@ func TestThePetFightsWhatItIsToldTo(t *testing.T) {
 			}
 		}
 	}
-	if !r.enemy.Dead || swings == 0 || hits == 0 || r.p.TotalXP != xp+34*100 {
+	// the owner's kill, the game's model (killexp.go): a level 34 crab to a
+	// level 45, LevelExp(34) 82,320 x 0.45
+	if !r.enemy.Dead || swings == 0 || hits == 0 || r.p.TotalXP != xp+37044 {
 		t.Fatalf("the fight: crab dead %v (%d HP), %d swings, %d hits, XP %d -> %d", r.enemy.Dead, r.enemy.HP, swings, hits, xp, r.p.TotalXP)
 	}
 	if distXZ(pet.X, pet.Z, r.enemy.X, r.enemy.Z) > petReach {

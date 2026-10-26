@@ -450,6 +450,20 @@ nearest first. The words are made when the quests are read (`Reload`: items and 
 never per tick) and the spawns read from the World at most every 30 s. A session that never asks
 (every PS2) is sent nothing.
 
+**The quest tracker for a client's HUD** (F3 pass 18; `handlers/questprogress.go`; the user's "add
+quest progress hud item similar to WoW ... if quest says obtain 3 bat eyes, have 0/3"). Beside
+0x7E03 the server offers opcode **0x7E05** (`OpcodeQuestProgress`, a u32 1; not retail), answered
+the same way (eqoa-rust-client-vanilla's Quest Tracker), and sends **0x7E06**
+(`OpcodeQuestProgressData`) when the tracker changed: a u8 count of quests (the journal's, at most
+eight, in its order), each its name and a u8 count of objectives (at most six), each a text, u16 had
+and u16 needed (needed 0: a thing to do, nothing to count): a show or give step's items held of those
+wanted (counted in the session's own copy of the client's item list, `invList.held`, never the
+database) and its tunar, then "Give to"/"Show to" the NPC; a kill step's kills, a loot step's drops
+taken; a talk step's "Speak with" the NPC; a reach step's journal line. Texts are clipped to 64
+bytes, a body to 3,000. Worked out every second and at once after a quest is taken, counted,
+advanced, finished or given up (`saveLocked` nudges the engine's goroutine, `QuestEngine.wake`; the
+marks go out then too), sent only when it differs.
+
 **Effects channel (0x43) is as long as its count**: a u32 count and a 132-byte record an effect (icon DictID, name as a wide string of at most 31 characters), 4 bytes when there is none, as CLIENT's `Channel43` reads it and every value in the captures is (136 to 796 bytes). It is the one state channel that changes length (`StateUpdateData.SetSizedData`; DRDP XORs over the shorter of a message and its reference). `#effect <icon hex> [name]` / `#effect clear` sets them by hand: nothing else puts an effect on yet.
 
 ## Configuration

@@ -384,8 +384,9 @@ func encodeQuestMarks(marks []questMark) []byte {
 // questTexts makes the quests' words for the marks: the start of each offer
 // (its first line, the giver's name left off), its rewards in all, and each
 // step's needs, naming items and spells from the database (when the quests
-// are read: never per tick).
-func (q *QuestEngine) questTexts(all []*database.Quest) map[int]*questText {
+// are read: never per tick); and the names of every item a step wants, by
+// patternid, for the trackers.
+func (q *QuestEngine) questTexts(all []*database.Quest) (map[int]*questText, map[int]string) {
 	itemName := map[int]string{}
 	nameOf := func(id int) string {
 		if n, ok := itemName[id]; ok {
@@ -459,5 +460,5 @@ func (q *QuestEngine) questTexts(all []*database.Quest) map[int]*questText {
 		t.rewards = strings.Join(append(reward, got...), ", ")
 		out[qu.ID] = t
 	}
-	return out
+	return out, itemName
 }

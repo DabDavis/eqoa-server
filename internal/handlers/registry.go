@@ -367,6 +367,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// power bars under its group's, its target's and their target's health
 	NewPowerBarsHandler(gameWorld).RegisterHandlers(r)
 	NewQuestMarkersHandler(gameWorld).RegisterHandlers(r)
+	NewQuestProgressHandler(gameWorld).RegisterHandlers(r)
 
 	// Register server handlers
 	serverHandler.RegisterHandlers(r)

@@ -134,20 +134,18 @@ func New(cfg Config) (*Server, error) {
 	se.SetICETCPMux(webrtc.NewICETCPMux(nil, tcp, 8))
 	se.SetNetworkTypes([]webrtc.NetworkType{webrtc.NetworkTypeUDP4, webrtc.NetworkTypeTCP4})
 	se.SetICEMulticastDNSMode(ice.MulticastDNSModeDisabled)
-	bind := net.ParseIP(cfg.BindIP)
-	if bind == nil || !bind.Equal(public) {
-		// the ports are opened on another address than the one players
-		// reach (every address, or one behind a 1:1 NAT): candidates name
-		// the public one
-		if err := se.SetICEAddressRewriteRules(webrtc.ICEAddressRewriteRule{
-			External: []string{public.String()}, AsCandidateType: webrtc.ICECandidateTypeHost,
-			Mode: webrtc.ICEAddressRewriteReplace,
-		}); err != nil {
-			udp.Close()
-			tcp.Close()
-			return nil, err
-		}
+	// every candidate names the public address: the ports may be opened on
+	// every address or behind a 1:1 NAT, and the ICE-TCP candidates come off
+	// the interfaces' own addresses even when the port is opened on one
+	if err := se.SetICEAddressRewriteRules(webrtc.ICEAddressRewriteRule{
+		External: []string{public.String()}, AsCandidateType: webrtc.ICECandidateTypeHost,
+		Mode: webrtc.ICEAddressRewriteReplace,
+	}); err != nil {
+		udp.Close()
+		tcp.Close()
+		return nil, err
 	}
+	bind := net.ParseIP(cfg.BindIP)
 	if public.IsLoopback() || bind != nil && bind.IsLoopback() {
 		se.SetIncludeLoopbackCandidate(true) // a private server on 127.x, the tests
 	}

@@ -87,6 +87,10 @@ func flagSets() map[string][]FlagBit {
 	for _, e := range enums()["race"][:10] {
 		races = append(races, FlagBit{1 << e.Value, e.Label, ""})
 	}
+	allRaces := []FlagBit{}
+	for _, e := range enums()["race"] {
+		allRaces = append(allRaces, FlagBit{1 << e.Value, e.Label, ""})
+	}
 	return map[string][]FlagBit{
 		// npcs.npc_type, stored byte-reversed from the wire's m_npcFlags
 		// (entity/statesync.go); the bits the server and CLIENT act on
@@ -99,8 +103,9 @@ func flagSets() map[string][]FlagBit {
 			{0x400, "Large (+3 reach)", "players reach it from 3 further (CLIENT's TargetInRange)"},
 			{0x800, "Huge (+5 reach)", "players reach it from 5 further"},
 		},
-		"classmask": classes, // itempattern.classuse: 32767 = every class
-		"racemask":  races,   // itempattern.raceuse: 1023 = every race
+		"classmask":  classes,  // itempattern.classuse: 32767 = every class
+		"racemask":   races,    // itempattern.raceuse: 1023 = every race
+		"racemask11": allRaces, // cmcatalog.races: 2047 = every race, the froglok too
 	}
 }
 
@@ -472,6 +477,74 @@ var catalog = map[string]tableNote{
 			"water":  {Label: "Water", Help: "land, both, water, or empty: by where it spawned (in the water: water)"},
 			"note":   {Label: "Note", Help: "why"},
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_move.py's rows (its --undo deletes those)"},
+		},
+	},
+	"cmcatalog": {
+		Label: "Class masteries", Group: "Items & spells", Title: "name", Sort: "id",
+		Help: "Every class mastery a character may buy in the Class Mastery window, a row a rank (entity/cmbuy.go). " +
+			"category is the window's: 0 General, 1 Racial, 2 Archetype, 3 Class, 4 Master Class (one master class at " +
+			"a time). id is the window's skill id; parent the rank before it, which must be owned first. A rank is " +
+			"listed to the classes and races its bit sets name, and buyable (\"known\") once the character's level, " +
+			"the points it has spent, its base stats (minstats, \"STR:100,STA:150\"), the abilities it needs " +
+			"(require_spells) and its parent are there; the cost is then taken from its unspent points. effects is " +
+			"what it gives, in EQOA-Data's names: STR..CHA, STRMax..CHAMax (the stat caps: a character's cap is the " +
+			"level's, 400 from 46 and 350 below, plus what its masteries raise), HP, Pow, HoT, PoT, AC, Off Mod and " +
+			"Def Mod (shown), HP Factor (a level's HP each), FR CR LR AR PR DR, MovRate (20 a run, 100 Spirit of the " +
+			"Wolf). add_spells are given at the purchase, remove_spells taken out (gone at the next login); a name " +
+			"with no id shows and gives nothing. A removal gives back what the rank cost. Rows of source " +
+			"\"eqoa-data cms\" are tools/seed_masteries.py's, from EQOA-Data's lists (its --undo deletes those).",
+		Live:   "At once: every list opened from now on, and the stats of the characters online who own the rank.",
+		Search: []string{"name", "mastery", "effects", "adds", "description"},
+		Show:   []string{"id", "name", "category", "cost", "level", "spent", "parent", "effects", "adds", "enabled"},
+		Cols: map[string]colNote{
+			"id":             {Label: "Id", Help: "the window's skill id; never change one a character owns (charcms)"},
+			"category":       {Label: "Category", Help: "0 General, 1 Racial, 2 Archetype, 3 Class, 4 Master Class"},
+			"classes":        {Label: "Classes", Flags: "classmask"},
+			"races":          {Label: "Races", Flags: "racemask11"},
+			"mastery":        {Label: "Mastery", Help: "the mastery the rank is of (Brawn); a master class's ranks share one"},
+			"rank":           {Label: "Rank"},
+			"name":           {Label: "Name", Help: "as the window lists it, at most 63 characters"},
+			"parent":         {Label: "Rank before", Ref: "cmcatalog", Help: "owned first; 0 for a first rank"},
+			"cost":           {Label: "Cost", Help: "mastery points"},
+			"level":          {Label: "Level"},
+			"spent":          {Label: "Points spent", Help: "the mastery points the character must have spent already"},
+			"minstats":       {Label: "Base stats needed", Help: "STR:100,STA:150 (base and training, and what masteries add)"},
+			"requires":       {Label: "Abilities needed", Help: "Name@level; ... as shown"},
+			"require_spells": {Label: "Abilities needed (spells)", Help: "their spellpattern ids, in the same order: the book must hold them; 0 is not checked"},
+			"effects":        {Label: "Gives", Help: "STR:1,STRMax:15 in EQOA-Data's names (the table's help lists them)"},
+			"adds":           {Label: "Adds abilities", Help: "Name@level; ... as shown"},
+			"add_spells":     {Label: "Adds (spells)", Help: "their spellpattern ids, put in the book at the purchase"},
+			"removes":        {Label: "Replaces abilities", Help: "Name@level; ... as shown"},
+			"remove_spells":  {Label: "Replaces (spells)", Help: "their spellpattern ids, taken out of the book at the purchase (given back at a removal)"},
+			"description":    {Label: "Text", Help: "the inspect window's, at most 255 characters with the cost the server adds"},
+			"enabled":        {Label: "Offered", Enum: "bool"},
+			"source":         {Label: "Source", Help: "gm, or eqoa-data cms for tools/seed_masteries.py's rows"},
+		},
+	},
+	"charcms": {
+		Label: "Character masteries", Group: "Players", Sort: "serverid",
+		Help: "The class masteries each character bought (Class masteries) and what each cost it; its points are " +
+			"Character mastery points. A row deleted here gives no points back: in the game #cmreset does both.",
+		Live: "At once where the character stands (its stats and caps), else at its next login.",
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"cmid":     {Label: "Mastery", Ref: "cmcatalog"},
+			"cost":     {Label: "Paid", Help: "what a removal gives back"},
+			"bought":   {Label: "Bought", Help: "Unix time"},
+		},
+	},
+	"charmastery": {
+		Label: "Character mastery points", Group: "Players", Sort: "serverid",
+		Help: "Each character's mastery points: unspent, spent (at most 1500 together), the share of experience " +
+			"going to them (0-100) and the experience toward the next point.",
+		Live: "At the character's next login; a character in the world saves its own over it at its logout (in the " +
+			"game #grantcm gives points at once).",
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"points":   {Label: "Unspent"},
+			"spent":    {Label: "Spent"},
+			"percent":  {Label: "Share of experience"},
+			"xp":       {Label: "Toward the next point"},
 		},
 	},
 	"itemeffect": {

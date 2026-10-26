@@ -43,6 +43,10 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveMove()
 	case "charfactions":
 		return s.liveCharFaction(before, after)
+	case "cmcatalog":
+		return s.liveCMCatalog()
+	case "charcms":
+		return s.liveCharCMs(before, after)
 	case "quests", "queststeps":
 		return s.liveQuests()
 	case "spellpattern", "spelleffect", "classspells":
@@ -141,6 +145,40 @@ func (s *Server) liveMove() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return "at once: the next step of every creature of that name uses it"
+}
+
+// liveCMCatalog reads the class masteries again (entity/cmbuy.go; the change
+// is committed: the database is free).
+func (s *Server) liveCMCatalog() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	n, err := s.d.World.LoadCMCatalog(s.d.DB)
+	if err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return fmt.Sprintf("at once: %d ranks; every list opened from now on, and the stats of the characters online", n)
+}
+
+// liveCharCMs puts a character's masteries, as charcms holds them now, on it
+// where it stands.
+func (s *Server) liveCharCMs(before, after map[string]any) string {
+	row := after
+	if row == nil {
+		row = before
+	}
+	id, ok := asFloat(row["serverid"])
+	if !ok || s.d.World == nil || s.d.DB == nil {
+		return "at the character's next login"
+	}
+	owned, err := database.NewSQLiteCharacterStore(s.d.DB).LoadOwnedCMs(uint32(id))
+	if err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	if name, online := s.d.World.ReloadCMs(uint32(id), owned); online {
+		return fmt.Sprintf("at once: %s holds %d masteries now (its points are not changed: #cmreset in the game gives them back)", name, len(owned))
+	}
+	return "at the character's next login"
 }
 
 // liveCharFaction applies a charfactions edit where the character stands, so

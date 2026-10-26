@@ -130,7 +130,7 @@ func ParseCMRank(r database.CMRankRow) *CMRank {
 			c.Effects[s] += v
 		}
 	}
-	c.Requires = parseAbilities(r.Requires, "")
+	c.Requires = parseAbilities(r.Requires, r.RequireSpells)
 	c.Adds = parseAbilities(r.Adds, r.AddSpells)
 	c.Removes = parseAbilities(r.Removes, r.RemoveSpells)
 	return c
@@ -333,8 +333,9 @@ func (w *World) CMStateOf(sess *session.Session) (CMState, bool) {
 func CMStateOfPlayer(p *Player) CMState { return p.cmStateLocked() }
 
 // cmBlockLocked is why the player cannot buy the rank now, "" when it can
-// (the points aside): what makes it "known" in the window.
-func (w *World) cmBlockLocked(p *Player, r *CMRank, book map[string]bool) string {
+// (the points aside): what makes it "known" in the window. book is the
+// spells in its spell book, by id.
+func (w *World) cmBlockLocked(p *Player, r *CMRank, book map[int]bool) string {
 	if _, ok := p.CMs[r.ID]; ok {
 		return "You already have that mastery."
 	}
@@ -360,7 +361,7 @@ func (w *World) cmBlockLocked(p *Player, r *CMRank, book map[string]bool) string
 		}
 	}
 	for _, a := range r.Requires {
-		if !book[strings.ToLower(a.Name)] {
+		if a.SpellID > 0 && !book[a.SpellID] { // a name never found is not checked
 			return fmt.Sprintf("You must know %s to buy %s.", a.Name, r.Name)
 		}
 	}
@@ -376,8 +377,8 @@ func (w *World) cmBlockLocked(p *Player, r *CMRank, book map[string]bool) string
 
 // CMList is the window's list for the session's player: every rank its
 // class and race are offered, owned and known flags its own. book is the
-// abilities in its spell book, by lower-case name.
-func (w *World) CMList(sess *session.Session, book map[string]bool) []CMEntry {
+// spells in its spell book, by id.
+func (w *World) CMList(sess *session.Session, book map[int]bool) []CMEntry {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	p := w.sessionPlayerLocked(sess)
@@ -398,7 +399,7 @@ func (w *World) CMList(sess *session.Session, book map[string]bool) []CMEntry {
 
 // CMNodeOf is one rank opened for the session's player; false when it is
 // not offered to it.
-func (w *World) CMNodeOf(sess *session.Session, id int, book map[string]bool) (CMNode, bool) {
+func (w *World) CMNodeOf(sess *session.Session, id int, book map[int]bool) (CMNode, bool) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	p := w.sessionPlayerLocked(sess)
@@ -464,7 +465,7 @@ type CMResult struct {
 
 // BuyCM buys a rank for the session's player: its points and ranks changed
 // and its stats again; the caller keeps it and grants the abilities.
-func (w *World) BuyCM(sess *session.Session, id int, book map[string]bool) CMResult {
+func (w *World) BuyCM(sess *session.Session, id int, book map[int]bool) CMResult {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
@@ -538,6 +539,50 @@ func (w *World) RemoveCM(sess *session.Session, id int) CMResult {
 	w.cmChangedLocked(p)
 	log.Printf("Mastery: %s removed %s (%d), %d back: %s", p.Name, name, id, paid, masteryLine(p.Mastery))
 	return CMResult{Rank: r, Paid: paid, Mastery: p.Mastery, State: p.cmStateLocked(), Removed: []int{id}}
+}
+
+// CMRankByID is a rank of the catalog (nil when none). The catalog is never
+// changed in place (a GM's edit loads a new one), so the rank may be read
+// without the lock.
+func (w *World) CMRankByID(id int) *CMRank {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.cmRank(id)
+}
+
+// CMSubject is whose masteries a GM's #cm and #cmreset are about: the player
+// the GM targets, else the GM.
+func (w *World) CMSubject(sess *session.Session, objectID uint32) *session.Session {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if objectID != 0 && objectID != 0xFFFFFFFF && w.SessionManager != nil {
+		if ent, ok := w.findEntityByObjectIDLocked(sess, objectID); ok {
+			if t, ok := ent.(*Player); ok {
+				if s := w.findSessionByEntityIDLocked(t.ServerID); s != nil {
+					return s
+				}
+			}
+		}
+	}
+	return sess
+}
+
+// ReloadCMs puts a character's ranks, as charcms holds them now, on it where
+// it stands (a GM's edit of its rows in the panel): its name, and false when
+// it is not in the world.
+func (w *World) ReloadCMs(serverID uint32, owned []database.OwnedCM) (string, bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.playerByCharacterLocked(serverID)
+	if p == nil {
+		return "", false
+	}
+	p.CMs = make(map[int]int, len(owned))
+	for _, o := range owned {
+		p.CMs[o.ID] = o.Cost
+	}
+	w.cmChangedLocked(p)
+	return p.Name, true
 }
 
 func (w *World) cmRank(id int) *CMRank {

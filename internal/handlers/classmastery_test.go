@@ -166,7 +166,7 @@ func testCatalog() []database.CMRankRow {
 		{ID: 3, Category: 0, Classes: all, Races: races, Mastery: "Godborn", Rank: 1, Name: "Godborn", Cost: 100, Level: 50, Spent: 500,
 			Effects: "STRMax:25,STAMax:25,AGIMax:25,DEXMax:25,WISMax:25,INTMax:25,CHAMax:25", Enabled: true},
 		{ID: 10, Category: 3, Classes: 1 << 0, Races: races, Mastery: "Battle Cry", Rank: 1, Name: "Battle Cry 1", Cost: 20, Level: 20,
-			Requires: "Taunt@1", Effects: "AC:25,HP Factor:1", Adds: "Battle Cry@20", AddSpells: "501", Removes: "Taunt@1", RemoveSpells: "500", Enabled: true},
+			Requires: "Taunt@1", RequireSpells: "500", Effects: "AC:25,HP Factor:1", Adds: "Battle Cry@20", AddSpells: "501", Removes: "Taunt@1", RemoveSpells: "500", Enabled: true},
 		{ID: 20, Category: 4, Classes: 1 << 0, Races: races, Mastery: "Destroyer", Rank: 1, Name: "Destroyer 1", Cost: 200, Level: 55,
 			Effects: "STR:20,STRMax:50", Enabled: true},
 		{ID: 21, Category: 4, Classes: 1 << 0, Races: races, Mastery: "Defender", Rank: 1, Name: "Defender 1", Cost: 200, Level: 55,
@@ -432,6 +432,21 @@ func TestCMBuyAndItsRefusals(t *testing.T) {
 	if _, red := weak.send(cmBuy, 1); len(red) != 1 || !strings.Contains(red[0], "STR must be at least 100") {
 		t.Errorf("STR 90 buying Brawn 1: %v", red)
 	}
+
+	// an ability it needs (by the spell it was found as) must be in the book;
+	// one never found is shown and not checked
+	untaught := newCMTest(t, 0, 0, 60)
+	untaught.p.Mastery.Points = 50
+	delete(untaught.book.spells, 500)
+	if _, red := untaught.send(cmBuy, 10); len(red) != 1 || !strings.Contains(red[0], "must know Taunt") {
+		t.Errorf("buying Battle Cry 1 without Taunt: %v", red)
+	}
+	rows := testCatalog()
+	rows[3].RequireSpells = "0"
+	untaught.w.gw.SetCMCatalog(rows)
+	if rs, red := untaught.send(cmBuy, 10); len(red) != 0 || rs[0][0] != cmRespBought {
+		t.Errorf("buying it when Taunt was never found: % x %v", rs, red)
+	}
 }
 
 // A removal gives back what the rank cost, the later rank first; a rank
@@ -595,11 +610,12 @@ func TestTheShareIsKept(t *testing.T) {
 }
 
 // keptMastery is a store of mastery rows, ranks owned and spells taken out,
-// by character.
+// by character; with a book, a spell taken out leaves it.
 type keptMastery struct {
 	rows          map[uint32]database.MasteryRow
 	owned         map[uint32]map[int]int
 	removedSpells []int
+	book          *fakeBook
 }
 
 func (k *keptMastery) SaveMastery(id uint32, m database.MasteryRow) error {
@@ -630,5 +646,8 @@ func (k *keptMastery) RemoveCMs(id uint32, ids []int, m database.MasteryRow) err
 
 func (k *keptMastery) RemoveSpellFromBook(_ uint32, spellID int) (bool, error) {
 	k.removedSpells = append(k.removedSpells, spellID)
+	if k.book != nil {
+		delete(k.book.spells, spellID)
+	}
 	return true, nil
 }

@@ -369,7 +369,7 @@
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
-    "1-20/halas/warrior/L7"
+    "1-20/halas/warrior/L5"
    ],
    "offer": "Go to Ferris McDougal at the barbarian camp south of the monolith and buy burlap thread for 145 tunar. Bring it here.",
    "accept": "I will do it.",
@@ -431,7 +431,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). There is no White Owl in the database: the owls northwest of Ferris McDougal's camp stand in."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). There is no White Owl in the database: the owls northwest of Ferris McDougal's camp stand in. It follows L5: L7 before it is a draft until its names are in the database."
   },
   {
    "key": "1-20/halas/warrior/L13",
@@ -464,12 +464,15 @@
      "journal": "Return to Elder Joram.",
      "says": "Gunkat will trouble no more travellers. Well done.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "spells": [
+       "Rapid Strike"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 13; github.com/Jadiction/EQOA-Data). Eldar Joram is the database's Elder Joram, and Gunkat its Guntak (the rogue's guide spells him so). The guide's two chests are left out. The Rabid Strike scroll is what the other cities' warrior guides give at level 13. Reward left out (not in the database): spell Rabid Strike."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 13; github.com/Jadiction/EQOA-Data). Eldar Joram is the database's Elder Joram, and Gunkat its Guntak (the rogue's guide spells him so). The guide's two chests are left out. The Rapid Strike scroll (the guides spell it Rabid) is what the other cities' warrior guides give at level 13."
   },
   {
    "key": "1-20/halas/warrior/L15",
@@ -1031,7 +1034,7 @@
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
-    "1-20/halas/rogue/L10"
+    "1-20/halas/rogue/L7"
    ],
    "offer": "Freezeblood captains have been seen west of Halas, south by the spider queens, at a camp with an igloo. They carry battle plans. Bring me two.",
    "accept": "I will do it.",
@@ -1075,7 +1078,7 @@
     "creature: Freezeblood Captain",
     "npc: Iron Eagle"
    ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 13; github.com/Jadiction/EQOA-Data)."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 13; github.com/Jadiction/EQOA-Data). It follows L7: L10 before it is a draft until its names are in the database."
   },
   {
    "key": "1-20/halas/rogue/L15",
@@ -1088,7 +1091,7 @@
    "minlevel": 15,
    "maxlevel": 60,
    "requires": [
-    "1-20/halas/rogue/L13"
+    "1-20/halas/rogue/L7"
    ],
    "offer": "The plans name an assassin, Numla, in the Freezeblood camp by the water, near a large wooden T. Slay him before he finishes his work and bring me his bag of tricks. Then buy a raven's tail feather from Shawndy McKibbin and bring it as well.",
    "accept": "I will do it.",
@@ -1147,7 +1150,7 @@
     "creature: Numla",
     "npc: Iron Eagle"
    ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 15; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Shwandy McKibbin is Shawndy McKibbin. Reward left out (not in the database): item Raven Stalkers."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 15; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Shwandy McKibbin is Shawndy McKibbin. It follows L7: L10, L13 before it are drafts until its names are in the database. Reward left out (not in the database): item Raven Stalkers."
   },
   {
    "key": "1-20/halas/rogue/L20",
@@ -1160,7 +1163,7 @@
    "minlevel": 20,
    "maxlevel": 60,
    "requires": [
-    "1-20/halas/rogue/L15"
+    "1-20/halas/rogue/L7"
    ],
    "offer": "The Freezebloods plan another attack: each clan sends someone to speak with Yarn Icefrost, camped south among the trees he planted. Take him this sealed letter and do as he says.",
    "accept": "I will do it.",
@@ -1281,7 +1284,7 @@
     "creature: Salmon",
     "npc: Iron Eagle"
    ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Defensive or offensive, the offensive a backstab.) Bren Raven is Brenn Raven."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Defensive or offensive, the offensive a backstab.) Bren Raven is Brenn Raven. It follows L7: L10, L13, L15 before it are drafts until its names are in the database."
   },
   {
    "key": "1-20/halas/shaman/L1",
@@ -1418,12 +1421,15 @@
      "journal": "Bring the three strands of rat fur to Beril O'Leary.",
      "says": "These will do.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "spells": [
+       "Tribal Toughness"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 3; github.com/Jadiction/EQOA-Data). The guide's rat furs are the database's Strands of Rat Fur, from the large rats outside the gates."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 3; github.com/Jadiction/EQOA-Data). The guide's rat furs are the database's Strands of Rat Fur, from the large rats outside the gates. The Tribal Toughness scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/halas/shaman/L4",
@@ -1537,12 +1543,15 @@
      "journal": "Return to Beril O'Leary.",
      "says": "The spirits are pleased.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "spells": [
+       "Blighting Mist"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 5; github.com/Jadiction/EQOA-Data). The guide gives no count: three is ours."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 5; github.com/Jadiction/EQOA-Data). The guide gives no count: three is ours. The Blighting Mist scroll is the class's level 5 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/halas/shaman/L7",
@@ -1588,14 +1597,17 @@
      "journal": "Bring the two steel bars to Beril O'Leary.",
      "says": "Good steel.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "spells": [
+       "Minor Malady"
+      ]
      }
     }
    ],
    "unresolved": [
     "creature: Freezeblood Horde"
    ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 7; github.com/Jadiction/EQOA-Data)."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 7; github.com/Jadiction/EQOA-Data). The Minor Malady scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/halas/shaman/L10",
@@ -1608,7 +1620,7 @@
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
-    "1-20/halas/shaman/L7"
+    "1-20/halas/shaman/L5"
    ],
    "offer": "Go to Nilmo at the barbarian camp south of the monolith, west along the mountains. He has work for you.",
    "accept": "I will do it.",
@@ -1658,7 +1670,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 10; github.com/Jadiction/EQOA-Data). There is no White Owl in the database: the owls northwest of Ferris McDougal's camp stand in. Nilmo is the database's Nilmo McPherson."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 10; github.com/Jadiction/EQOA-Data). There is no White Owl in the database: the owls northwest of Ferris McDougal's camp stand in. Nilmo is the database's Nilmo McPherson. It follows L5: L7 before it is a draft until its names are in the database."
   },
   {
    "key": "1-20/halas/shaman/L13",
@@ -1704,12 +1716,15 @@
      "journal": "Bring the three Tribunal Rings to Elder Felligan.",
      "says": "These rings should never have left the Tribunal.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "spells": [
+       "Tribal Brawn"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 13; github.com/Jadiction/EQOA-Data)."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 13; github.com/Jadiction/EQOA-Data). The Tribal Brawn scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/halas/shaman/L15",
@@ -1767,12 +1782,15 @@
      "journal": "Return to Elder Felligan.",
      "says": "You have done well.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "spells": [
+       "Endure Poison"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 15; github.com/Jadiction/EQOA-Data)."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 15; github.com/Jadiction/EQOA-Data). The Endure Poison scroll is the class's level 15 spell, the scroll the guides that name one give for this quest."
   },
   {
    "key": "1-20/halas/shaman/L20",

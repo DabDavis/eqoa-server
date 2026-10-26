@@ -212,6 +212,17 @@ func petName(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }
 
+// petSpellName is the name of the pet a summoning spell makes: the spell's,
+// less a leading "Summon " ("Summon Stone Servant" makes a Stone Servant),
+// which is the name its swing and taunt go by.
+func petSpellName(spell string) string {
+	s := strings.TrimSpace(spell)
+	if len(s) > 7 && strings.EqualFold(s[:7], "summon ") {
+		return strings.TrimSpace(s[7:])
+	}
+	return s
+}
+
 // petTemplateLocked is the NPC a pet of spell is made after: among this
 // server's own NPCs (not pets, not a GM's copies) of each name in turn, the
 // spell's, the creature its line names, the spell name's last word after a
@@ -322,6 +333,7 @@ func besideOwner(p *Player) (x, y, z float32) {
 // gone. Must be called with the lock held.
 func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Session, now time.Time) {
 	spell := &cs.spell
+	name := petSpellName(spell.Name)
 	t := w.petTemplateLocked(spell.Name, spell.Def.Pet, caster.Class)
 	if t == nil {
 		log.Printf("Pet: %s's %q: no creature of its name, its line's %q or its class's stand-in in this world: no pet",
@@ -332,8 +344,11 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 		w.dismissPetLocked(old, sess, "")
 	}
 	level := petLevel(spell.Level, caster.Level)
-	pet := newPet(t, w.allocFreeIDLocked(), caster, spell.Name, level)
-	pet.SwingFixed, pet.SwingKind = petSwing(caster.Class, spell.Name)
+	if spell.Def.PetLevel > 0 {
+		level = petLevel(spell.Def.PetLevel, caster.Level) // its line's "level N"
+	}
+	pet := newPet(t, w.allocFreeIDLocked(), caster, name, level)
+	pet.SwingFixed, pet.SwingKind = petSwing(caster.Class, name)
 	w.NPCs[pet.ServerID] = pet
 	w.SpatialIndex.Insert(pet.ServerID, pet.X, pet.Z)
 	if w.pets == nil {

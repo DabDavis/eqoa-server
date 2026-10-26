@@ -45,6 +45,9 @@ func activeHoT(p *Player, now time.Time) *ActiveEffect {
 // reports whether it goes on at all. A heal it replaces comes off here.
 func (w *World) placeHoTLocked(t *Player, ae *ActiveEffect, now time.Time) bool {
 	ticks := hotTicks(ae.Until.Sub(now))
+	if ae.Ticks > 0 {
+		ticks = ae.Ticks // its line's own count ("3 ticks")
+	}
 	old := activeHoT(t, now)
 	switch {
 	case old == nil:

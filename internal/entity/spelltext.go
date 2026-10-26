@@ -99,6 +99,13 @@ type SpellEffect struct {
 	// its caster (or the caster's group), a drained stat or power is the
 	// caster's (lifetap.go)
 	Drain DrainTo
+	// ScaleBearer: the scale is its bearer's stat, taken each time it is
+	// used ("; Increase 20% based on bearer's STR"): a proc's, the stat of
+	// the one whose hits proc it, not its caster's at its landing (proc.go)
+	ScaleBearer bool
+	// Cap is the most the effect does, its scale included ("max 250"); 0
+	// for no cap
+	Cap int
 }
 
 // SpellDef is a spell's line, read: whom it lands on, what it does, how
@@ -130,6 +137,13 @@ type SpellDef struct {
 	// UndeadOnly: the spell works on undead alone (undead.go), a "Target
 	// undead" line or a charm its name or description says is for undead.
 	UndeadOnly bool
+	// Ticks is how many times what it gives over time ticks ("3 ticks"),
+	// the first at its landing; 0: every six seconds for its duration.
+	Ticks int
+	// PetLevel is the level of the pet a summoning line makes when it says
+	// ("Summons a pet, level 30"), at most the caster's; 0: the spell's own
+	// (pet.go).
+	PetLevel int
 }
 
 // Charms reports whether the spell makes its target the caster's pet.
@@ -161,6 +175,7 @@ func (d *SpellDef) Summons() bool {
 // a ring to invis" make items, not pets, and say neither.
 var (
 	reSummons  = regexp.MustCompile(`\bsumm[ou]ns?\b`)
+	rePetLevel = regexp.MustCompile(`\blevel\s+(\d+)\b`)
 	reSummonOf = regexp.MustCompile(`\bsumm[ou]ns?\s+(?:a\s+|an\s+|the\s+)?(.+?)\s+(?:to aid you|to your defense|pet)\b`)
 )
 
@@ -184,7 +199,9 @@ func summonLine(text string) (bool, string) {
 var (
 	reDuration = regexp.MustCompile(`^(?:for\s+)?(\d+(?:\.\d+)?)\s*(sec|secs|second|seconds|s|min|mins|minute|minutes|hr|hrs|hour|hours)$`)
 	reFor      = regexp.MustCompile(`\s+for\s+(\d+(?:\.\d+)?)\s*(sec|secs|second|seconds|s|min|mins|minute|minutes)$`)
-	reScale    = regexp.MustCompile(`^(?:increase|modified|mod)?\s*(\d+)\s*%\s*(?:based on|mod by|modified by|by)\s+([a-z]+)\.?$`)
+	reScale    = regexp.MustCompile(`^(?:increase|modified|mod)?\s*(\d+)\s*%\s*(?:based on|mod by|modified by|by)\s+((?:bearer|wearer)'?s\s+)?([a-z]+)\.?$`)
+	reCap      = regexp.MustCompile(`^(?:max|at most)\s+(\d+)$`)
+	reTicks    = regexp.MustCompile(`^(\d+)\s+ticks?$`)
 	reScaleIn  = regexp.MustCompile(`\s+(?:modified|mod)\s+(\d+)\s*%\s*(?:based on|by)\s+([a-z]+)\w*$`)
 	reBy       = regexp.MustCompile(`^(.*?)\s+by\s+(\d+)(?:\s+to\s+(\d+))?(?:\s+x\d+)?$`)
 	reVerb     = regexp.MustCompile(`^(increase|decrease|buff|debuff|drain|raise|lower|heal)\s+(.*)$`)
@@ -299,7 +316,8 @@ func (d SpellDef) asProc() SpellDef {
 	hit := d.Effects[at]
 	effects := append([]SpellEffect(nil), d.Effects...)
 	// its scale stays its own (enchanter.go: Stormlord's Rune's DEX)
-	effects[at] = SpellEffect{Kind: EffectProc, Amount: -hit.AmountMax, AmountMax: -hit.Amount, Scale: hit.Scale, ScalePct: hit.ScalePct}
+	effects[at] = SpellEffect{Kind: EffectProc, Amount: -hit.AmountMax, AmountMax: -hit.Amount, Scale: hit.Scale, ScalePct: hit.ScalePct,
+		ScaleBearer: hit.ScaleBearer, Cap: hit.Cap}
 	d.Effects = effects
 	d.Harmful = false
 	for _, e := range d.Effects {
@@ -325,6 +343,9 @@ func ParseSpellText(line string) SpellDef {
 		d.Target = TargetSelf
 		d.Effects = []SpellEffect{{Kind: EffectSummon}}
 		d.Pet = name
+		if m := rePetLevel.FindStringSubmatch(text); m != nil {
+			d.PetLevel, _ = strconv.Atoi(m[1])
+		}
 		return d
 	}
 	// An area spell's line names the target's share first: "Decrease
@@ -364,11 +385,20 @@ func ParseSpellText(line string) SpellDef {
 				continue
 			}
 			if m := reScale.FindStringSubmatch(part); m != nil {
-				if st, ok := statWord(m[2]); ok && last >= 0 {
+				if st, ok := statWord(m[3]); ok && last >= 0 {
 					d.Effects[last].Scale = st
 					d.Effects[last].ScalePct, _ = strconv.Atoi(m[1])
+					d.Effects[last].ScaleBearer = m[2] != ""
 					continue
 				}
+			}
+			if m := reCap.FindStringSubmatch(part); m != nil && last >= 0 {
+				d.Effects[last].Cap, _ = strconv.Atoi(m[1])
+				continue
+			}
+			if m := reTicks.FindStringSubmatch(part); m != nil {
+				d.Ticks, _ = strconv.Atoi(m[1])
+				continue
 			}
 			if spellNote(part) { // spellnotes.go
 				d.Ignored = append(d.Ignored, part)

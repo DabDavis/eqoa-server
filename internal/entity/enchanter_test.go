@@ -183,10 +183,10 @@ func TestAnArcaneDebuffLowersACreaturesResists(t *testing.T) {
 	}
 
 	effects := []*ActiveEffect{{Proc: 64, ProcMax: 64, Until: now.Add(time.Minute)}}
-	if hits, resisted := procRolls(effects, 100, 30, 30, 0, now, dice(0, 4)); len(hits) != 0 || resisted != 1 {
+	if hits, resisted := procRolls(effects, flatStat(100), 30, 30, 0, now, dice(0, 4)); len(hits) != 0 || resisted != 1 {
 		t.Errorf("a proc at par, no debuff (control): hits %v, resisted %d", hits, resisted)
 	}
-	if hits, resisted := procRolls(effects, 100, 30, 30, 6, now, dice(0, 4)); len(hits) != 1 || resisted != 0 {
+	if hits, resisted := procRolls(effects, flatStat(100), 30, 30, 6, now, dice(0, 4)); len(hits) != 1 || resisted != 0 {
 		t.Errorf("a proc under Paralytic Punishment: hits %v, resisted %d", hits, resisted)
 	}
 

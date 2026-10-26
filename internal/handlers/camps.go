@@ -116,6 +116,15 @@ var campNotes = map[string]campNote{
 	"minotaurs":      {Note: "Gerntar Mines (C). High mob density inside caves. Strong XP but can overwhelm unprepared groups.", Guide: "29-38", Creatures: []string{"Rustel Minotaur", "Rustel Minotaur Scout"}, Rare: []campRare{}},
 }
 
+// mapTowns are EQOA-Data's towns outside Tunaria (whose are coachtowns.go's),
+// by its map's fit of their world, for the GM panel's map (campinfo.go).
+var mapTowns = []TownMark{
+	{Name: "Arcadin", World: 2, X: 8813, Z: 4338},
+	{Name: "East Plateau", World: 2, X: 8154, Z: 2423},
+	{Name: "Stone of Morathals (Good)", World: 2, X: 7312, Z: 10606},
+	{Name: "Stone of Morathals (Evil)", World: 2, X: 6928, Z: 10913},
+}
+
 // campAliases are other names a GM may type for a camp.
 var campAliases = map[string]string{
 	"deathfist": "dfc",

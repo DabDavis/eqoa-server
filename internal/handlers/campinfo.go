@@ -8,7 +8,8 @@ import (
 
 // The XP camps as the GM panel's map draws them (F3 pass 18, the user: "add
 // the camps and coaches to the GM panel map too"): each #tele camp (camps.go)
-// at its anchor as the world has it now, with what campNotes says of it.
+// at its anchor as the world has it now, with what campNotes says of it; and
+// the towns the map names ("add town names to the map too").
 
 // campNote is what tools/gen_camp_teles.py writes of a camp beside its
 // shortcut: EQOA-Data's note on it, the guide's levels, the creatures that make
@@ -100,4 +101,29 @@ func CampMarkerOf(gw *entity.World, name string) (CampMarker, bool) {
 		}
 	}
 	return CampMarker{}, false
+}
+
+// TownMark is a town to name on a map.
+type TownMark struct {
+	Name  string
+	World uint8
+	X, Z  float32
+}
+
+// TownMarks are the towns of world (every world's when world < 0): Tunaria's
+// coach towns as coachtowns.go places and names them, the others by
+// EQOA-Data's map (mapTowns, camps.go).
+func TownMarks(world int) []TownMark {
+	var out []TownMark
+	if world <= 0 {
+		for _, t := range entity.CoachTownMarks() {
+			out = append(out, TownMark{Name: t.Name, X: t.X, Z: t.Z})
+		}
+	}
+	for _, t := range mapTowns {
+		if world < 0 || int(t.World) == world {
+			out = append(out, t)
+		}
+	}
+	return out
 }

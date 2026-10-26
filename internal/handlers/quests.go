@@ -132,6 +132,9 @@ type questChar struct {
 	// name is its player's, for %p in what is said (Sandstorm's Nothard puts
 	// it in an answer: "My name is <the player's name>.")
 	name string
+	// windowOffered is the quests a shop NPC's window has offered this
+	// session (AtWindow): offered once, the next request opens the window
+	windowOffered map[int]bool
 }
 
 // say is a text with %p the player's name (left as it is while the name is

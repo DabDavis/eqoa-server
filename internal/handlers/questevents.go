@@ -290,8 +290,10 @@ func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern, n
 // never talks to such an NPC (InteractWithTarget asks for its window
 // instead), so a talk, show or give step to do at it is done here, first, when
 // it can be done now (a show or give step's items and tunar held); else the
-// window opens as ever. It reports whether the quests answered (the window is
-// not opened then). A quest such an NPC offers is never offered.
+// window opens as ever. A quest it gives is offered first too, as a talk offers
+// one (the user's "have shop NPCs offer the quest first"), once a session a
+// quest: declined or left unanswered, the next request opens the window. It
+// reports whether the quests answered (the window is not opened then).
 func (q *QuestEngine) AtWindow(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
 	if q == nil || p == nil || npc == nil || npc.Dead {
 		return false
@@ -314,6 +316,19 @@ func (q *QuestEngine) AtWindow(sess *session.Session, p *entity.Player, npc *ent
 		c.box = nil
 		q.atNPCLocked(sess, p, c, qu, cq, st, false)
 		log.Printf("Quests: %s's window answered for %q step %d", npc.Name, qu.Name, st.Step)
+		return true
+	}
+	for _, qu := range q.cat.givers[foldName(npc.Name)] {
+		if c.windowOffered[qu.ID] || q.mayTakeLocked(p, c, qu) != "" {
+			continue
+		}
+		if c.windowOffered == nil {
+			c.windowOffered = make(map[int]bool)
+		}
+		c.windowOffered[qu.ID] = true
+		c.box = nil
+		q.offerLocked(sess, p, c, qu)
+		log.Printf("Quests: %s's window offered %q first", npc.Name, qu.Name)
 		return true
 	}
 	return false

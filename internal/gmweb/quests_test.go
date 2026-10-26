@@ -461,18 +461,21 @@ func TestTheQuestListFiltersImportedQuests(t *testing.T) {
 	}
 	f.exec(`UPDATE npcs SET npc_name = 'Guard Dahvel' WHERE id = 500`)
 
-	// a merchant offers nothing (the game asks for its window), though a step
-	// at one is fine (done at its window): the first is a draft, the control not
+	// a merchant offers its quest at its window and a step at one is done there
+	// (the game asks for its window, never talks to it): both ready; the
+	// control, a giver no NPC is, a draft
 	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel, classes, source) VALUES
-		(100007, 'Shop', 0, 'Merchant Shadehand', 1, 60, '', 'gm'), (100008, 'Shop step', 0, 'Guard Dahvel', 1, 60, '', 'gm')`)
+		(100007, 'Shop', 0, 'Merchant Shadehand', 1, 60, '', 'gm'), (100008, 'Shop step', 0, 'Guard Dahvel', 1, 60, '', 'gm'),
+		(100009, 'Shop nobody', 0, 'Merchant Nobody', 1, 60, '', 'gm')`)
 	f.exec(`INSERT INTO queststeps (questid, step, kind, target, count, journal) VALUES
-		(100007, 1, 'talk', 'Guard Dahvel', 1, 'Talk.'), (100008, 1, 'talk', 'Merchant Shadehand', 1, 'See the merchant.')`)
+		(100007, 1, 'talk', 'Guard Dahvel', 1, 'Talk.'), (100008, 1, 'talk', 'Merchant Shadehand', 1, 'See the merchant.'),
+		(100009, 1, 'talk', 'Guard Dahvel', 1, 'Talk.')`)
 	code, out = c.op("quest_list", map[string]any{"search": "shop"})
-	if code != 200 || !strings.Contains(fmt.Sprint(out["quests"]), "offers nothing") {
+	if code != 200 || strings.Contains(fmt.Sprint(out["quests"]), "offers nothing") {
 		t.Errorf("a merchant giver: %d %v", code, out["quests"])
 	}
-	if got := fmt.Sprint(c.questIDs(t, map[string]any{"search": "shop", "status": questReady})); got != "[100008]" {
-		t.Errorf("a step at a merchant should be ready: %s", got)
+	if got := fmt.Sprint(c.questIDs(t, map[string]any{"search": "shop", "status": questReady})); got != "[100007 100008]" {
+		t.Errorf("a merchant's quest and a step at a merchant should be ready: %s", got)
 	}
 }
 

@@ -303,3 +303,44 @@ func TestAStepAtAMerchantIsDoneAtItsWindow(t *testing.T) {
 	}
 	f.want(open(), shop) // done: the shop again
 }
+
+// A merchant that gives a quest offers it first when its window is asked for
+// (the user: "have shop NPCs offer the quest first"; CLIENT never talks to a
+// merchant), the shop not opened; once a session: the next request opens the
+// shop whether the offer was taken or not. The control: a player the quest is
+// not for gets the shop at once.
+func TestAMerchantOffersItsQuestAtItsWindow(t *testing.T) {
+	f := newQuestFixture(t)
+	gale := &entity.NPC{ServerID: 708, Name: "Merchant Gale", NPCID: 708, NPCType: 0x81, SpawnX: 25403, SpawnY: 54.1, SpawnZ: 15726}
+	id := f.tw.add(7, gale)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel, classes, offer, accept, decline, started)
+		VALUES (96, 'Gale''s errand', 1, 'Merchant Gale', 1, 10, '', 'Merchant Gale: Will you run an errand for me?', 'I will.', 'Not now.', 'Merchant Gale: Off you go.')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (96, 1, 'talk', 'Malsis', 'Tell Malsis the news.')`)
+	f.qe.Reload()
+	f.msgs()
+	wh := NewNPCWindowHandler(f.tw.mgr, f.inv)
+	wh.playerOf = func(*session.Session) *entity.Player { return f.tw.p }
+	wh.find = func(_ *session.Session, oid uint32) (entity.Entity, bool) { return gale, oid == id }
+	open := func() []string {
+		t.Helper()
+		msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeMerchantDiag)
+		msg.SetData(build(protocol.OpcodeMerchantDiag, 8, func(w *buffer.Writer) { w.WriteUint32(id) })[2:])
+		if err := wh.HandleMerchantOpen(f.tw.s, msg); err != nil {
+			t.Fatal(err)
+		}
+		return f.msgs()
+	}
+	shop := fmt.Sprintf("op:%04X", uint16(protocol.OpcodeMerchantBox))
+
+	level := f.tw.p.Level
+	f.tw.p.Level = 30 // the control: past the quest's levels
+	f.want(open(), shop)
+	f.tw.p.Level = level
+
+	m := open()
+	f.not(m, shop)
+	if !strings.Contains(strings.Join(m, "\n"), "Will you run an errand for me?") {
+		t.Fatalf("the window offered no quest: %q", m)
+	}
+	f.want(open(), shop) // offered once this session: the shop now
+}

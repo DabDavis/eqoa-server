@@ -117,7 +117,6 @@ type questNames struct {
 
 type npcKind struct {
 	attackable bool // a spawn without the NPC bit 0x80
-	talks      bool // a spawn the game talks to (no merchant, bank or blacksmith bits)
 }
 
 func (s *Server) loadQuestNames() (*questNames, error) {
@@ -149,7 +148,6 @@ func (s *Server) loadQuestNames() (*questNames, error) {
 			}
 			cur := m[k]
 			cur.attackable = cur.attackable || t&0x80 == 0
-			cur.talks = cur.talks || t&0x0B == 0
 			m[k] = cur
 		}
 		return nil
@@ -245,11 +243,11 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 	for _, r := range idx.rows {
 		if r.Giver == "" {
 			r.why("it has no giver: no one offers it")
-		} else if k, ok := names.npcs[strings.ToLower(r.Giver)]; !ok {
+		} else if _, ok := names.npcs[strings.ToLower(r.Giver)]; !ok {
 			r.lack("NPC", r.Giver, "no NPC %q (its giver)", r.Giver)
-		} else if !k.talks {
-			r.why("its giver %q opens a window (merchant, bank or blacksmith): the game never talks to it, so it offers nothing", r.Giver)
 		}
+		// a giver with a window (merchant, bank or blacksmith) offers at its
+		// window, first (handlers.QuestEngine.AtWindow)
 		for _, m := range reNoteName.FindAllStringSubmatch(r.notes, -1) {
 			name := m[1] + m[2]
 			bare := strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(name), "(attackable)"))

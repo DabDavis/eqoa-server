@@ -285,6 +285,14 @@ func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, ob
 		buf := SerializeNPCUpdate(objectID, npc)
 		if npc.Dead {
 			buf[58] = 0x0e // AnimationState.Die
+			// a corpse, as Sandstorm turns a kill's channel: byte 26 (CLIENT's
+			// VIEntity +0x18: 1 selectable, 2 a corpse) 3, health 0. The corpse
+			// bit is what makes CLIENT's attack button ask for the loot
+			// (ToggleAutoAttack's 0x0015, handlers/loot.go); without it a
+			// creature the game shows as attackable could not be looted at all
+			// (InteractWithTarget sends nothing for one: F3 20261026-042112)
+			buf[26] = 3
+			buf[27] = 0
 		}
 		w.putChannelTargetLocked(sess, npc, buf)
 		return buf

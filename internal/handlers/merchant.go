@@ -91,6 +91,7 @@ func (h *NPCWindowHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeBlackSmithMenu, h.HandleBlacksmithOpen)
 	r.Register(protocol.OpcodeRequestRepair, h.HandleRepair)
 	r.Register(protocol.OpcodeCloseBlacksmithMenu, h.HandleBlacksmithClose)
+	r.Register(protocol.OpcodeLootCorpse, h.HandleLootCorpse)
 	r.Register(protocol.OpcodeClientCloseLoot, h.HandleLootClose)
 	r.Register(protocol.OpcodeClientLoot, h.HandleLootItem)
 	r.Register(protocol.OpcodeLootTakeAll, h.HandleLootAll)

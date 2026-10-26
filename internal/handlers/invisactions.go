@@ -36,6 +36,7 @@ var invisActions = map[protocol.GameOpcode]string{
 	protocol.OpcodeAuctionRequest:    "the auction",
 	protocol.OpcodeTradeRequest:      "a trade",
 	protocol.OpcodeTradeUI:           "a trade",
+	protocol.OpcodeLootCorpse:        "looting",
 	protocol.OpcodeClientLoot:        "looting",
 	protocol.OpcodeLootTakeAll:       "looting",
 	protocol.OpcodePetCommands:       "a pet command",

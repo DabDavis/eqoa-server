@@ -305,6 +305,12 @@ func main() {
 	}
 	log.Printf("Auth: at most %d failed logins an account and %d an address every %v (addresses %v not counted)",
 		auth.FailsPerName, auth.FailsPerAddr, auth.FailWindow, exempt)
+	if cfg.Auth.RequireTCPLogin {
+		// a client back at the server list with no ticket (a restart since its
+		// Station login, or the login older than auth.ticket_ttl) signs in by
+		// the password its handshake token carries, checked as a login is
+		handlerRegistry.SetPasswordChecker(authHandler)
+	}
 	authListener := tcp.NewListener(cfg, authHandler)
 	if err := authListener.Start(); err != nil {
 		log.Fatalf("Failed to start auth server: %v", err)

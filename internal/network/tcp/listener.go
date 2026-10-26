@@ -578,9 +578,15 @@ func (s *AuthServer) authenticate(username string, passwordField []byte) (int, b
 		log.Printf("Auth: login for '%s' rejected — %v", username, err)
 		return 0, false, false
 	}
+	return s.checkPassword(username, password, s.autoRegister.Load())
+}
 
+// checkPassword checks password against the account's stored credential:
+// authenticate's after the decryption, and CheckUDPPassword's with register
+// false (an unknown account, or one with no password, is then refused).
+func (s *AuthServer) checkPassword(username, password string, register bool) (int, bool, bool) {
 	cost := s.cfg.Auth.BCryptCost
-	autoRegister := s.autoRegister.Load()
+	autoRegister := register
 
 	account, err := s.store.GetByUsername(username)
 	if err != nil {
@@ -652,6 +658,86 @@ func (s *AuthServer) authenticate(username string, passwordField []byte) (int, b
 		log.Printf("Auth: login for '%s' (ID: %d) rejected — wrong password", username, account.ID)
 		return account.ID, false, false
 	}
+}
+
+// UDPRefusedAddress is CheckUDPPassword's refusal for another account playing
+// from the client's address; any other refusal is "password".
+const UDPRefusedAddress = "address"
+
+// CheckUDPPassword checks a password the UDP handshake's token carried
+// (auth.PasswordFromUDPToken) for a client with no login ticket: the server
+// restarted since its Station login, or the login is older than
+// auth.ticket_ttl, and the client is back after a lost connection, at the
+// server list, with no new Station login (F3 pass 17: it waited on
+// "Connecting..." for good). It is checked as the auth port checks one: the
+// guessing limit first (the address a relayed player's own), then the stored
+// hash, a ban refused, never an account made. One login at a time holds for
+// the address (another account playing from it: "address"); the account's
+// own session in the game is the player coming back, and its world entry
+// replaces it, as within a ticket. It grants the ticket and returns the
+// account and "", or the refusal.
+func (s *AuthServer) CheckUDPPassword(username, password string, from *net.UDPAddr) (int, string) {
+	if s.store == nil {
+		return 0, "password"
+	}
+	var ip net.IP
+	if from != nil {
+		ip = from.IP
+		if s.clientIP != nil {
+			ip = s.clientIP(from.IP, from.Port)
+		}
+	}
+	addr := ""
+	if ip != nil && !inPrefixes(ip, s.limitExempt) {
+		addr = ip.String()
+	}
+	if s.limiter != nil {
+		if wait := s.limiter.Begin(addr, username); wait > 0 {
+			log.Printf("Auth: UDP login for '%s' from %v refused: too many failed logins", username, ip)
+			return 0, "password"
+		}
+		release, free := s.limiter.Slot(10 * time.Second)
+		if !free {
+			log.Printf("Auth: UDP login for '%s' from %v refused: no free password check", username, ip)
+			return 0, "password"
+		}
+		accountID, ok, _ := s.checkPassword(username, password, false)
+		release()
+		if !ok {
+			return accountID, "password"
+		}
+		s.limiter.Succeed(addr, username)
+		return s.udpLoginStands(username, accountID, ip)
+	}
+	accountID, ok, _ := s.checkPassword(username, password, false)
+	if !ok {
+		return accountID, "password"
+	}
+	return s.udpLoginStands(username, accountID, ip)
+}
+
+// udpLoginStands is CheckUDPPassword after the password: the address rule,
+// then the ticket.
+func (s *AuthServer) udpLoginStands(username string, accountID int, ip net.IP) (int, string) {
+	if s.liveLogin != nil {
+		checkIP := ip
+		if ip != nil && s.exemptIP(ip) {
+			checkIP = nil
+		}
+		var ipOf func(*net.UDPAddr) net.IP
+		if s.clientIP != nil {
+			ipOf = func(a *net.UDPAddr) net.IP { return s.clientIP(a.IP, a.Port) }
+		}
+		if s.liveLogin(accountID, checkIP, ipOf) == UDPRefusedAddress {
+			log.Printf("Auth: UDP login for '%s' (ID: %d) from %v refused: that address already has a session in the game", username, accountID, ip)
+			return accountID, UDPRefusedAddress
+		}
+	}
+	if s.tickets != nil {
+		s.tickets.Grant(username, accountID)
+	}
+	log.Printf("Auth: UDP login for '%s' (ID: %d) from %v by its token's password", username, accountID, ip)
+	return accountID, ""
 }
 
 // buildLoginFailResponse builds a bad password response (168 bytes).

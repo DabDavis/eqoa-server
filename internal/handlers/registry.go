@@ -368,6 +368,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewPowerBarsHandler(gameWorld).RegisterHandlers(r)
 	NewQuestMarkersHandler(gameWorld).RegisterHandlers(r)
 	NewQuestProgressHandler(gameWorld).RegisterHandlers(r)
+	NewVoiceHandler(gameWorld).RegisterHandlers(r)
 
 	// Register server handlers
 	serverHandler.RegisterHandlers(r)

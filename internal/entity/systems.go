@@ -62,6 +62,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.visibilitySystem()
 	w.groupSyncSystem()
 	w.powerSyncSystem()
+	w.voiceSyncSystem(now) // a voice-on client's peers and credentials (voice.go)
 	return due, gates, gone
 }
 

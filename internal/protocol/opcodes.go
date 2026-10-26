@@ -388,6 +388,49 @@ const (
 	// 0: nothing to count); a text is a u8 byte count and UTF-8. Each one is
 	// the whole tracker.
 	OpcodeQuestProgressData GameOpcode = 0x7E06
+
+	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
+	// block of their own; a PS2 ignores them. Strings are a u16 byte length
+	// and UTF-8.
+	//
+	// OpcodeVoiceOffer: a u32 after the opcode. The server offers voice (1)
+	// at the first 0x0014; a client answers with flags, bit 0 voice on (0
+	// off), at once and whenever they change.
+	OpcodeVoiceOffer GameOpcode = 0x7E10
+
+	// OpcodeVoiceConfig, server to a client whose voice is on: a u8 count of
+	// ICE servers, each a url, a username and a credential (this server's
+	// TURN, when it has one, with REST credentials: "<unix expiry>:v<voice
+	// id>" and base64 HMAC-SHA1 of it under the TURN secret; none: 0), then a
+	// u32 of seconds they last; sent again before then.
+	OpcodeVoiceConfig GameOpcode = 0x7E11
+
+	// OpcodeVoiceRoster, server to a client whose voice is on, whenever it
+	// changes: a u8 count, then each it may hear as a u32 voice id, a name and
+	// a u8 of channels (bit 0 a groupmate, bit 1 in its room). Empty when its
+	// voice goes off.
+	OpcodeVoiceRoster GameOpcode = 0x7E12
+
+	// OpcodeVoiceSignal, both ways, between a client and the forwarding
+	// server: a u32 seq (the sender's message number), a u8 kind (1 offer,
+	// client to server; 2 answer; 3 ICE candidate, JSON; 4 bye), a u16 part
+	// and u16 parts, and a chunk of at most 900 bytes (reassembled by seq).
+	OpcodeVoiceSignal GameOpcode = 0x7E13
+
+	// OpcodeVoiceRoom, client to server: a u8 op, 1 join (a room's name, its
+	// lock's H or empty, a u8 of flags: bit 0 unlisted, for the join that
+	// makes it), 2 leave, 3 list.
+	OpcodeVoiceRoom GameOpcode = 0x7E14
+
+	// OpcodeVoiceLobby, server to client after a list and after its own join
+	// or leave: a u16 count, then each listed room's name, a u16 of members
+	// and a u8, 1 when it is locked; most members first, at most 200.
+	OpcodeVoiceLobby GameOpcode = 0x7E15
+
+	// OpcodeVoiceRoomState, server to client after a join or a leave: a u8
+	// result (0 in the room, 1 wrong password, 2 name refused, 3 left) and the
+	// room's name.
+	OpcodeVoiceRoomState GameOpcode = 0x7E16
 )
 
 // =============================================================================
@@ -618,6 +661,20 @@ func (op GameOpcode) String() string {
 		return "QuestProgressData"
 	case OpcodeQuestMarkersData:
 		return "QuestMarkersData"
+	case OpcodeVoiceOffer:
+		return "VoiceOffer"
+	case OpcodeVoiceConfig:
+		return "VoiceConfig"
+	case OpcodeVoiceRoster:
+		return "VoiceRoster"
+	case OpcodeVoiceSignal:
+		return "VoiceSignal"
+	case OpcodeVoiceRoom:
+		return "VoiceRoom"
+	case OpcodeVoiceLobby:
+		return "VoiceLobby"
+	case OpcodeVoiceRoomState:
+		return "VoiceRoomState"
 	default:
 		return "Unknown"
 	}

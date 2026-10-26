@@ -85,6 +85,15 @@ type AccountServer struct {
 	// suggestion handed the client's address as getClientIP reads it. Nil:
 	// both answer 404.
 	SpellFX SpellFXRoutes
+
+	// VoiceDemo is the voice demo's WebSocket, /api/voice/demo (package
+	// voice), handed the client's address as getClientIP reads it. Nil: 404.
+	VoiceDemo VoiceDemoRoute
+}
+
+// VoiceDemoRoute is the voice demo's half of this server (voice.Demo).
+type VoiceDemoRoute interface {
+	ServeDemo(w http.ResponseWriter, r *http.Request, clientIP string)
 }
 
 // SpellFXRoutes is the community spell-visual page's half of this server
@@ -232,6 +241,13 @@ func (s *AccountServer) Handler() http.Handler {
 			return
 		}
 		s.SpellFX.ServeSuggest(w, r, s.getClientIP(r))
+	})
+	mux.HandleFunc("/api/voice/demo", func(w http.ResponseWriter, r *http.Request) {
+		if s.VoiceDemo == nil {
+			http.NotFound(w, r)
+			return
+		}
+		s.VoiceDemo.ServeDemo(w, r, s.getClientIP(r))
 	})
 	return mux
 }

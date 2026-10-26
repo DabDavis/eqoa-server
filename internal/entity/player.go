@@ -1,6 +1,10 @@
 package entity
 
-import "time"
+import (
+	"time"
+
+	"github.com/eqoa/server/internal/voice"
+)
 
 // Player is a flat struct containing all player fields.
 // Replaces 15+ ECS components with direct field access.
@@ -181,6 +185,18 @@ type Player struct {
 	PowerBars     bool
 	powerBarsSent string
 	powerBarsDue  bool
+
+	// Voice: the player's client has voice chat on (voice.go, opcode
+	// 0x7E10); VoiceID is its voice id in the forwarding server while it is
+	// (never 0), the rest its voice's state
+	VoiceOn         bool
+	VoiceID         uint32
+	voiceGroup      string // the group's channel the forwarding server has
+	voiceSink       *voiceSink
+	voiceCredsUntil time.Time
+	voiceRate       voice.Rate
+	voiceAsm        voice.Assembler
+	voiceDropLogged time.Time
 
 	// Breath / underwater
 	Breath          int    // 0-255 (255 full), as the dump and stat channel byte 232 carry it; 32 every 6 s under liquid

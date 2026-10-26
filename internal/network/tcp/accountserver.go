@@ -1141,9 +1141,16 @@ func (s *AccountServer) handleAPICreateCharacter(w http.ResponseWriter, r *http.
 		CurrentPower: 100,
 		Breath:       255,
 		Speed:        8.0,
+		// the create screen's 20 training points, none spent: the page has
+		// no stat page, so they wait in the game's trainer (entity's
+		// CreationTrainingPoints); none at all before
+		UnusedTP: 20,
+		TotalTP:  20,
 	}
 
-	// at the start level, with the class's spells when the server gives them
+	// at the start level, in its home city (a human in the east's) with its
+	// class's first abilities, or all its class's spells when the server
+	// gives them (database/newchar.go)
 	spells, err := s.charStore.CreateNew(record)
 	if err != nil && record.ServerID == 0 {
 		log.Printf("AccountServer: failed to create character: %v", err)

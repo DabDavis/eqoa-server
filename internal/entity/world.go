@@ -802,7 +802,7 @@ func (w *World) addThreatLocked(npc *NPC, attackerID EntityID, damage int) {
 	if npc.Dummy != NotDummy {
 		return
 	}
-	npc.calmTicks = 0 // in a fight: no regeneration after it for a while (npcregen.go)
+	npc.calmTicks, npc.healing = 0, false // in a fight: no regeneration after it for a while (npcregen.go)
 	if npc.Threats == nil {
 		npc.Threats = make(map[EntityID]int64)
 	}

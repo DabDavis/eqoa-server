@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -49,7 +50,15 @@ func (w *World) npcRegenSystem(now time.Time) {
 		if npc.calmTicks <= npcCalmTicks || npc.HP >= npc.MaxHP {
 			continue
 		}
+		was := npc.HP
 		npc.HP = min(npc.HP+max(1, npc.MaxHP*npcCalmHealPct/100), npc.MaxHP)
+		if !npc.healing { // its first heal since its fight: one line, and one when whole
+			log.Printf("Regen: %s heals out of its fight (%d -> %d of %d)", npc.Name, was, npc.HP, npc.MaxHP)
+		}
+		npc.healing = npc.HP < npc.MaxHP
+		if !npc.healing {
+			log.Printf("Regen: %s is whole again", npc.Name)
+		}
 	}
 }
 

@@ -1,0 +1,1888 @@
+{
+ "city": "surefall-glade",
+ "quests": [
+  {
+   "key": "1-20/surefall-glade/druid/L1",
+   "name": "A Leaf Covered Jerkin",
+   "giver": "Shiol Anara",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A druid of the glade wears the leaves of the forest. Merchant Lensian, downstairs, will give you a leaf covered jerkin for nothing. Show me when you have it.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Lensian",
+     "journal": "Get a leaf covered jerkin from Merchant Lensian downstairs.",
+     "says": "One jerkin, freely given.",
+     "rewards": {
+      "items": [
+       "leaf covered jerkin"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Shiol Anara",
+     "items": [
+      {
+       "item": "leaf covered jerkin",
+       "count": 1
+      }
+     ],
+     "journal": "Show the leaf covered jerkin to Shiol Anara.",
+     "says": "It suits a child of the forest.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 1; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/surefall-glade/druid/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Shiol Anara",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/druid/L1"
+   ],
+   "offer": "Speak with Spiritmaster Terent just outside the guild, then with Coachman Frender to the southwest. Then come back to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Terent",
+     "journal": "Speak with Spiritmaster Terent outside the guild.",
+     "says": "Now go southwest to Coachman Frender."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Frender",
+     "journal": "Speak with Coachman Frender, southwest of the spiritmaster.",
+     "says": "My coaches are yours. Shiol will want to know."
+    },
+    {
+     "kind": "talk",
+     "target": "Shiol Anara",
+     "journal": "Return to Shiol Anara.",
+     "says": "Good. The glade is your home now.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 2; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/surefall-glade/druid/L3",
+   "name": "Bat Meat",
+   "giver": "Shiol Anara",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/druid/L2"
+   ],
+   "offer": "Polish your fighting skills: kill bats outside the glade and bring me three slivers of bat meat.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Bat",
+     "items": [
+      {
+       "item": "sliver of bat meat",
+       "count": 1
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Kill bats outside Surefall Glade for three slivers of bat meat."
+    },
+    {
+     "kind": "give",
+     "target": "Shiol Anara",
+     "items": [
+      {
+       "item": "sliver of bat meat",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three slivers of bat meat to Shiol Anara.",
+     "says": "You are learning.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Fiery Burst"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 3; github.com/Jadiction/EQOA-Data). The database has no bats near Surefall Glade: the nearest are by Qeynos, some 6,000 away, so the glade's newbie yard needs spawns for this quest to be close to home. The Fiery Burst scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/surefall-glade/druid/L4",
+   "name": "A Glade Staff",
+   "giver": "Falwyn Breen",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/druid/L3"
+   ],
+   "offer": "I will make you a new weapon. Bring me a walking stick from Merchant Lensian in the guild, falcon feathers from Bowyer Aymrite by the lake, shattered ant chitin from the ants and a cracked beetle mandible from the firebeetles outside the glade.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Lensian",
+     "journal": "Get a walking stick from Merchant Lensian in the druids' guild.",
+     "says": "A walking stick for Falwyn.",
+     "rewards": {
+      "items": [
+       "Plain Walking Stick"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Bowyer Aymrite",
+     "journal": "Get falcon feathers from Bowyer Aymrite near the lake by the shooting range.",
+     "says": "A pouch of falcon feathers.",
+     "rewards": {
+      "items": [
+       "pouch of falcon feathers"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Ant",
+     "items": [
+      {
+       "item": "shattered ant chitin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill ants for shattered ant chitin."
+    },
+    {
+     "kind": "loot",
+     "target": "Fire Beetle",
+     "items": [
+      {
+       "item": "cracked beetle mandible",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill firebeetles for a cracked beetle mandible."
+    },
+    {
+     "kind": "give",
+     "target": "Falwyn Breen",
+     "items": [
+      {
+       "item": "Plain Walking Stick",
+       "count": 1
+      },
+      {
+       "item": "pouch of falcon feathers",
+       "count": 1
+      },
+      {
+       "item": "shattered ant chitin",
+       "count": 1
+      },
+      {
+       "item": "cracked beetle mandible",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the stick, the feathers, the chitin and the mandible to Falwyn Breen.",
+     "says": "Here is your staff.",
+     "rewards": {
+      "xp": 17000,
+      "items": [
+       "crafted glade staff"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "npc: Falwyn Breen"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The database has no ants or firebeetles near Surefall Glade: the nearest are by Qeynos, some 6,000 away, so the glade's newbie yard needs spawns for this quest to be close to home. The crafted glade staff is the database's level 4 druid weapon of Surefall's quest items (the guide does not name it)."
+  },
+  {
+   "key": "1-20/surefall-glade/druid/L5",
+   "name": "The Surefall Shamblers",
+   "giver": "Shiol Anara",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/druid/L3"
+   ],
+   "offer": "Surefall shamblers roam southwest into the hills and along the outer wall of the glade. Kill them and bring me their eyes.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Surefall Shambler",
+     "items": [
+      {
+       "item": "shambler's eye",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill Surefall shamblers southwest of the glade for two of their eyes."
+    },
+    {
+     "kind": "give",
+     "target": "Shiol Anara",
+     "items": [
+      {
+       "item": "shambler's eye",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the shamblers' eyes to Shiol Anara.",
+     "says": "The glade is safer for it.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Snare"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Surefall Shambler"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 5; github.com/Jadiction/EQOA-Data). Two eyes is ours. The Snare scroll is the class's level 5 spell, the scroll the guides that name one give for this quest. It follows L3: L4 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/surefall-glade/druid/L7",
+   "name": "The Stonehenge",
+   "giver": "Shiol Anara",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/druid/L3"
+   ],
+   "offer": "East of the glade stands a druidic stonehenge. Go into its center and bring me what you find there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "reach",
+     "x": 9714,
+     "y": 40,
+     "z": 13174,
+     "radius": 15,
+     "journal": "Go to the center of the druidic stonehenge east of Surefall Glade.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "In the center of the standing stones lies an old bow of wood, cracked along its length. You pick it up."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "cracked bow",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Shiol Anara",
+     "items": [
+      {
+       "item": "cracked bow",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the cracked bow to Shiol Anara.",
+     "says": "Take this ward stone back to the stonehenge and set it in the center.",
+     "rewards": {
+      "items": [
+       "ward stone"
+      ]
+     }
+    },
+    {
+     "kind": "reach",
+     "x": 9714,
+     "y": 40,
+     "z": 13174,
+     "radius": 15,
+     "journal": "Set the ward stone in the center of the stonehenge.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You set the ward stone in the center of the standing stones. It hums with druidic power."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Shiol Anara",
+     "journal": "Return to Shiol Anara.",
+     "says": "The stones are warded again. Take this cap.",
+     "rewards": {
+      "xp": 157474,
+      "items": [
+       "light leaf cap"
+      ],
+      "spells": [
+       "Nature's Blessing"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 7; github.com/Jadiction/EQOA-Data). The stonehenge's place is EQOA-Data's map's, on the database's terrain. The ward stone is not taken from you when you set it (a reach step takes no items). The light leaf cap is the database's level 7 druid reward of Surefall's quest items. The Nature's Blessing scroll is the class's level 7 spell, the scroll the guides that name one give for this quest. It follows L3: L4, L5 before it are drafts until its names are in the database."
+  },
+  {
+   "key": "1-20/surefall-glade/druid/L10",
+   "name": "Herbs and a Totem",
+   "giver": "Shiol Anara",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/druid/L7"
+   ],
+   "offer": "A gnoll shaman forages for herbs in a valley between two small hills near the guard tower west of the glade. Kill it and bring me its herbs.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Gnoll Shaman Forager",
+     "items": [
+      {
+       "item": "sack of wild herbs",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the gnoll shaman forager in the valley near the guard tower west of the glade."
+    },
+    {
+     "kind": "give",
+     "target": "Shiol Anara",
+     "items": [
+      {
+       "item": "sack of wild herbs",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the wild herbs to Shiol Anara.",
+     "says": "Take them to Vedilion in Qeynos, on the right of the main hall of the southern corridor."
+    },
+    {
+     "kind": "give",
+     "target": "Vedilion Brithstar",
+     "items": [
+      {
+       "item": "sack of wild herbs",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the wild herbs to Vedilion in Qeynos.",
+     "says": "Purified. Now go to Quartermaster Derosh in Wymondham, northeast of the glade's entrance.",
+     "rewards": {
+      "items": [
+       "sack of purified herbs"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Quartermaster Derosh",
+     "journal": "Speak with Quartermaster Derosh in Wymondham.",
+     "says": "Shiol will be waiting for those herbs."
+    },
+    {
+     "kind": "give",
+     "target": "Shiol Anara",
+     "items": [
+      {
+       "item": "sack of purified herbs",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the purified herbs to Shiol Anara.",
+     "says": "Now the gnolls: their champions gather by a stone northwest of the Slesher fort. Bring me Furspirit's totem."
+    },
+    {
+     "kind": "loot",
+     "target": "Gnoll Champion",
+     "items": [
+      {
+       "item": "furspirit's totem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill the gnoll champions by the stone northwest of the Slesher fort for Furspirit's totem."
+    },
+    {
+     "kind": "give",
+     "target": "Shiol Anara",
+     "items": [
+      {
+       "item": "furspirit's totem",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Furspirit's totem to Shiol Anara.",
+     "says": "The gnolls have lost their spirit.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Gnoll Champion",
+    "creature: Gnoll Shaman Forager"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 10; github.com/Jadiction/EQOA-Data). Vendilion is the database's Vedilion Brithstar. The herbs are the database's sack of wild herbs and sack of purified herbs."
+  },
+  {
+   "key": "1-20/surefall-glade/druid/L13",
+   "name": "Captain Pejon's Gnolls",
+   "giver": "Shiol Anara",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/druid/L7"
+   ],
+   "offer": "Captain Pejon of Qeynos, in the second guard tower north of the coach, needs a druid's help. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Pejon",
+     "journal": "Report to Captain Pejon in the second guard tower north of the Qeynos coach.",
+     "says": "Kill the gnoll elder at the northern camp and bring me its staff."
+    },
+    {
+     "kind": "loot",
+     "target": "gnoll elder",
+     "items": [
+      {
+       "item": "gnoll staff",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the gnoll elder at the northern camp for its staff."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Pejon",
+     "items": [
+      {
+       "item": "gnoll staff",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the gnoll staff to Captain Pejon.",
+     "says": "Now the gnoll blacksmith at another northern camp: bring me its mace."
+    },
+    {
+     "kind": "loot",
+     "target": "gnoll blacksmith",
+     "items": [
+      {
+       "item": "gnoll mace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the gnoll blacksmith at the northern camp for its mace."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Pejon",
+     "items": [
+      {
+       "item": "gnoll mace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the gnoll mace to Captain Pejon.",
+     "says": "Last, a froglok elder meets with the gnolls in the Fog Marsh southeast of the glade. Bring me its totem."
+    },
+    {
+     "kind": "loot",
+     "target": "froglok seer",
+     "items": [
+      {
+       "item": "froglok totem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill the froglok elder in the Fog Marsh for its totem."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Pejon",
+     "items": [
+      {
+       "item": "froglok totem",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the froglok totem to Captain Pejon.",
+     "says": "Qeynos thanks you, druid.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Regenerative Aura"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 13; github.com/Jadiction/EQOA-Data). The Gnoll Elder and Blacksmith are the database's gnoll elder and gnoll blacksmith (EQOA-Data's map's Darkpaw elder and blacksmith). The Froglok Elder is not in the database: the froglok seers at the gnoll and froglok meeting in the Fog Marsh, where EQOA-Data's map places him, stand in. The Regenerative Aura scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L7: L10 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/surefall-glade/druid/L15",
+   "name": "Farmer Hops",
+   "giver": "Shiol Anara",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/druid/L13"
+   ],
+   "offer": "Farmer Hops, near Hagley in the Crethley Manor lands, has trouble. Go and help him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Farmer Hops",
+     "journal": "Find Farmer Hops near Hagley, southwest of the south guard tower.",
+     "says": "Gnolls raid my fields from the north. Bring me something off them."
+    },
+    {
+     "kind": "loot",
+     "target": "Gnoll Raider",
+     "items": [
+      {
+       "item": "gnoll cap",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill the gnoll raiders north of Hops's farm for a cap."
+    },
+    {
+     "kind": "give",
+     "target": "Farmer Hops",
+     "items": [
+      {
+       "item": "gnoll cap",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the gnoll cap to Farmer Hops.",
+     "says": "Thank you. Guard Wayosh, in the tower to the north, knows of the other farms."
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Wayosh",
+     "journal": "Speak with Guard Wayosh outside the tower north of the farm.",
+     "says": "A hungry zombie has been at the farms' food. Kill it and bring the food back."
+    },
+    {
+     "kind": "loot",
+     "target": "Hungry Zombie",
+     "items": [
+      {
+       "item": "pouch of stolen berries",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the hungry zombie northwest of Guard Wayosh for the stolen food."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Wayosh",
+     "items": [
+      {
+       "item": "pouch of stolen berries",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the stolen food to Guard Wayosh.",
+     "says": "Take word back to Hops."
+    },
+    {
+     "kind": "give",
+     "target": "Farmer Hops",
+     "tunar": 260,
+     "journal": "Give Farmer Hops 260 tunar for new seed.",
+     "says": "Now take 130 of it to Bebbin Mossfoot in Rivervale and buy me seeds."
+    },
+    {
+     "kind": "give",
+     "target": "Bebbin Mossfoot",
+     "tunar": 130,
+     "journal": "Buy seeds from Bebbin Mossfoot in Rivervale for 130 tunar.",
+     "says": "A bag of hops seeds for Farmer Hops.",
+     "rewards": {
+      "items": [
+       "bag of hops seeds"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Farmer Hops",
+     "items": [
+      {
+       "item": "bag of hops seeds",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bag of hops seeds to Farmer Hops.",
+     "says": "My fields will grow again. Thank you.",
+     "rewards": {
+      "xp": 883791,
+      "items": [
+       "light leaf leggings"
+      ],
+      "spells": [
+       "Endure Elements"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 15; github.com/Jadiction/EQOA-Data). The raiders' boots or cap are the database's gnoll cap, the zombie's food its pouch of stolen berries. The guide has Hops ask 260 tunar and the seeds cost 130 of it. The light leaf leggings are the database's level 15 druid reward of Surefall's quest items. The Endure Elements scroll is the class's level 15 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/surefall-glade/druid/L20",
+   "name": "Crethley Manor",
+   "giver": "Shiol Anara",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/druid/L15"
+   ],
+   "offer": "Guard Darek, at the top of the second watchtower from the north at Crethley Manor, has need of you. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Guard Darek",
+     "journal": "Report to Guard Darek in the Crethley Manor watchtower.",
+     "says": "Syndia, west of the manor across the river, carries a book of disease. Bring it to me."
+    },
+    {
+     "kind": "loot",
+     "target": "Syndia",
+     "items": [
+      {
+       "item": "Syndia's Book of Disease",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Syndia west of Crethley Manor for her book of disease."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Darek",
+     "items": [
+      {
+       "item": "Syndia's Book of Disease",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the book of disease to Guard Darek.",
+     "says": "In the manor's basement is an abomination. Kill it and bring me its shackles."
+    },
+    {
+     "kind": "loot",
+     "target": "abomination",
+     "items": [
+      {
+       "item": "abomination's hide",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the abomination in the basement of Crethley Manor."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Darek",
+     "items": [
+      {
+       "item": "abomination's hide",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the abomination's remains to Guard Darek.",
+     "says": "Scribe Jahar keeps a dark journal in the cellar. Bring it."
+    },
+    {
+     "kind": "loot",
+     "target": "Scribe Jahar",
+     "items": [
+      {
+       "item": "Dark Journal",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Find Scribe Jahar in the cellar and take his dark journal."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Darek",
+     "items": [
+      {
+       "item": "Dark Journal",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the dark journal to Guard Darek.",
+     "says": "Now a rare herb from the froglok shaman Gugluk, in the swamp south of the glade."
+    },
+    {
+     "kind": "loot",
+     "target": "Gugluk",
+     "items": [
+      {
+       "item": "tangle root herb",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Gather the rare herb from the froglok shaman Gugluk in the Fog Marsh."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Darek",
+     "items": [
+      {
+       "item": "tangle root herb",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the rare herb to Guard Darek.",
+     "says": "Last, slime from the slith tar harvester northeast of Wymondham."
+    },
+    {
+     "kind": "loot",
+     "target": "slith tar grub",
+     "items": [
+      {
+       "item": "slith tar slime",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Gather slime from the slith tar harvester northeast of Wymondham."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Darek",
+     "items": [
+      {
+       "item": "slith tar slime",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the slime to Guard Darek.",
+     "says": "That is all. Return to Shiol with my thanks."
+    },
+    {
+     "kind": "talk",
+     "target": "Shiol Anara",
+     "journal": "Return to Shiol Anara.",
+     "says": "You are a true druid of the glade.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Gugluk"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. The abomination's shackles are the database's abomination's hide, its quest item for the abomination. Gugluk, the froglok shaman with the rare herb, is not in the database. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Enkindle and the Tree Shroud, or Creeping Health and the Dark Oak Staff.)"
+  },
+  {
+   "key": "1-20/surefall-glade/ranger/L1",
+   "name": "A Wolf Fang Pendant",
+   "giver": "Sigmor Fallbourne",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Every ranger of the glade wears the wolf fang. Merchant Lendal will give you a pendant for nothing. Show it to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Lendal",
+     "journal": "Get a wolf fang pendant from Merchant Lendal.",
+     "says": "A wolf fang pendant, freely given.",
+     "rewards": {
+      "items": [
+       "wolf fang pendant"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Sigmor Fallbourne",
+     "items": [
+      {
+       "item": "wolf fang pendant",
+       "count": 1
+      }
+     ],
+     "journal": "Show the wolf fang pendant to Sigmor Fallbourne.",
+     "says": "Wear it with pride.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 1; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/surefall-glade/ranger/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Sigmor Fallbourne",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/ranger/L1"
+   ],
+   "offer": "Spiritmaster Barkwillow will bind you to the glade; then speak with Coachman Frender. Come back when you have.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Barkwillow",
+     "journal": "Speak with Spiritmaster Barkwillow to be bound.",
+     "says": "Now go to Coachman Frender."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Frender",
+     "journal": "Speak with Coachman Frender.",
+     "says": "My coaches will carry you. Back to Sigmor with you."
+    },
+    {
+     "kind": "talk",
+     "target": "Sigmor Fallbourne",
+     "journal": "Return to Sigmor Fallbourne.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 2; github.com/Jadiction/EQOA-Data). Coachman Frendor is the database's Coachman Frender."
+  },
+  {
+   "key": "1-20/surefall-glade/ranger/L3",
+   "name": "Badger Meat",
+   "giver": "Sigmor Fallbourne",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/ranger/L2"
+   ],
+   "offer": "Hone your fighting skills: go out of town, battle badgers, and bring me back three pieces of badger meat.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Badger",
+     "items": [
+      {
+       "item": "piece of badger meat",
+       "count": 1
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Kill badgers for three pieces of badger meat."
+    },
+    {
+     "kind": "give",
+     "target": "Sigmor Fallbourne",
+     "items": [
+      {
+       "item": "piece of badger meat",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three pieces of badger meat to Sigmor Fallbourne.",
+     "says": "Good hunting.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Swift Blade"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 3; github.com/Jadiction/EQOA-Data). The database has no badgers near Surefall Glade: the nearest are by Qeynos, some 6,000 away, so the glade's newbie yard needs spawns for this quest to be close to home. The Swift Blade scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/surefall-glade/ranger/L4",
+   "name": "A New Bow",
+   "giver": "Sigmor Fallbourne",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/ranger/L3"
+   ],
+   "offer": "Stannis Domor will make you a new bow if you bring him what he needs. Go and see him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Stannis Domor",
+     "journal": "Speak with Stannis Domor.",
+     "says": "Bring me a block of elm wood from Bowyer Aymrite, silk twine from Tailor Fendhope, a fractured firefly thorax and a snake fang from the grass vipers."
+    },
+    {
+     "kind": "talk",
+     "target": "Bowyer Aymrite",
+     "journal": "Get a block of elm wood from Bowyer Aymrite.",
+     "says": "A block of elm wood.",
+     "rewards": {
+      "items": [
+       "block of elm wood"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Tailor Fendhope",
+     "journal": "Get silk twine from Tailor Fendhope.",
+     "says": "A spool of silk twine.",
+     "rewards": {
+      "items": [
+       "silk twine"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "firefly",
+     "items": [
+      {
+       "item": "fractured firefly thorax",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill fireflies or emberflies for a fractured firefly thorax."
+    },
+    {
+     "kind": "loot",
+     "target": "Grass Viper",
+     "items": [
+      {
+       "item": "cracked snake fang",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill grass vipers for a snake fang."
+    },
+    {
+     "kind": "give",
+     "target": "Stannis Domor",
+     "items": [
+      {
+       "item": "block of elm wood",
+       "count": 1
+      },
+      {
+       "item": "silk twine",
+       "count": 1
+      },
+      {
+       "item": "fractured firefly thorax",
+       "count": 1
+      },
+      {
+       "item": "cracked snake fang",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the elm wood, the twine, the thorax and the fang to Stannis Domor.",
+     "says": "Here is your bow.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: firefly"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The fractured snake fang is the database's cracked snake fang. The database has no grass vipers near Surefall Glade: the nearest are by Qeynos, some 6,000 away, so the glade's newbie yard needs spawns for this quest to be close to home. The guide does not name the bow, so none is given."
+  },
+  {
+   "key": "1-20/surefall-glade/ranger/L5",
+   "name": "The Surefall Shamblers",
+   "giver": "Sigmor Fallbourne",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/ranger/L3"
+   ],
+   "offer": "Surefall shamblers roam southwest into the hills and along the outer wall of the glade. Kill one and bring me its eye.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Surefall Shambler",
+     "items": [
+      {
+       "item": "shambler's eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill Surefall shamblers southwest of the glade for an eye."
+    },
+    {
+     "kind": "give",
+     "target": "Sigmor Fallbourne",
+     "items": [
+      {
+       "item": "shambler's eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the shambler's eye to Sigmor Fallbourne.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Forage Berries"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Surefall Shambler"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 5; github.com/Jadiction/EQOA-Data). The Forage Berries scroll is the class's level 5 spell, the scroll the guides that name one give for this quest. It follows L3: L4 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/surefall-glade/ranger/L7",
+   "name": "The Scoutmaster",
+   "giver": "Sigmor Fallbourne",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/ranger/L3"
+   ],
+   "offer": "Aieari, our scoutmaster, watches the large Slesher fort southeast of the glade, on the mountain side. Find her and bring me her findings.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Aieari Scoutmaster",
+     "journal": "Find Aieari Scoutmaster on the mountain side near the Slesher fort.",
+     "says": "A gnoll runner is about to slip past. Kill it and bring me what it carries.",
+     "events": [
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Gnoll Runner"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Gnoll Runner",
+     "items": [
+      {
+       "item": "slesher's note",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the gnoll runner near Aieari."
+    },
+    {
+     "kind": "give",
+     "target": "Aieari Scoutmaster",
+     "items": [
+      {
+       "item": "slesher's note",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the gnoll runner's note to Aieari.",
+     "says": "Take this to Sigmor."
+    },
+    {
+     "kind": "talk",
+     "target": "Sigmor Fallbourne",
+     "journal": "Return to Sigmor Fallbourne with Aieari's note.",
+     "says": "Good work, scout.",
+     "rewards": {
+      "xp": 157474,
+      "items": [
+       "bracers of the glade"
+      ],
+      "spells": [
+       "Tangling Weeds"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Gnoll Runner",
+    "npc: Aieari Scoutmaster",
+    "npc: Gnoll Runner"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 7; github.com/Jadiction/EQOA-Data). The bracers of the glade are the database's level 7 ranger reward of Surefall's quest items. The Tangling Weeds scroll is the class's level 7 spell, the scroll the guides that name one give for this quest. It follows L3: L4, L5 before it are drafts until its names are in the database."
+  },
+  {
+   "key": "1-20/surefall-glade/ranger/L10",
+   "name": "Arrows for the Glade",
+   "giver": "Sigmor Fallbourne",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/ranger/L3"
+   ],
+   "offer": "Guard Gaffy, at the guard tower west of the glade, has trouble with outcast rangers. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Guard Gaffy",
+     "journal": "Speak with Guard Gaffy at the guard tower west of the glade.",
+     "says": "The outcast rangers Gilthar and Brombar roam northwest of here. Bring me a rusted blade off one of them."
+    },
+    {
+     "kind": "loot",
+     "target": "Gilthar",
+     "items": [
+      {
+       "item": "rusted blade",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the outcast ranger Gilthar or Brombar northwest of Gaffy's tower for a rusted blade."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Gaffy",
+     "items": [
+      {
+       "item": "rusted blade",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the rusted blade to Guard Gaffy.",
+     "says": "Here are arrow shafts for Sigmor.",
+     "rewards": {
+      "items": [
+       "bundle of arrowshafts"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Sigmor Fallbourne",
+     "items": [
+      {
+       "item": "bundle of arrowshafts",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the arrow shafts to Sigmor Fallbourne.",
+     "says": "Now go to Samnar, the blacksmith in the northwest corner of Qeynos."
+    },
+    {
+     "kind": "talk",
+     "target": "Samnar",
+     "journal": "Speak with Samnar, the blacksmith in Qeynos.",
+     "says": "Tell Sigmor the arrowheads will be ready."
+    },
+    {
+     "kind": "talk",
+     "target": "Sigmor Fallbourne",
+     "journal": "Return to Sigmor Fallbourne.",
+     "says": "Now see Quartermaster Derosh in Wymondham, west and then northeast past the stonehenge."
+    },
+    {
+     "kind": "talk",
+     "target": "Quartermaster Derosh",
+     "journal": "Speak with Quartermaster Derosh in Wymondham.",
+     "says": "Take this note back to Surefall.",
+     "rewards": {
+      "items": [
+       "note from derosh"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Sigmor Fallbourne",
+     "items": [
+      {
+       "item": "note from derosh",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Derosh's note to Sigmor Fallbourne.",
+     "says": "The Mirgmor Stalker leads a gnoll force at the Slesher fort. Kill it and bring me its bow."
+    },
+    {
+     "kind": "loot",
+     "target": "Mirgmor Stalker",
+     "items": [
+      {
+       "item": "mirgmor's bow",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Mirgmor Stalker at the Slesher fort for its bow."
+    },
+    {
+     "kind": "give",
+     "target": "Sigmor Fallbourne",
+     "items": [
+      {
+       "item": "mirgmor's bow",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Mirgmor Stalker's bow to Sigmor Fallbourne.",
+     "says": "You are a ranger of the glade.",
+     "rewards": {
+      "xp": 556753,
+      "items": [
+       "shortsword of the glade"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Gilthar",
+    "npc: Guard Gaffy"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 10; github.com/Jadiction/EQOA-Data). Ranger Gaffy is Guard Gaffy in the guide; neither he nor the outcast rangers Gilthar and Brombar are in the database (either one's blade is enough). The shortsword of the glade is the database's level 10 ranger reward of Surefall's quest items. It follows L3: L4, L5, L7 before it are drafts until its names are in the database."
+  },
+  {
+   "key": "1-20/surefall-glade/ranger/L13",
+   "name": "Captain Pejon's Gnolls",
+   "giver": "Sigmor Fallbourne",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/ranger/L3"
+   ],
+   "offer": "Report to Captain Pejon in the second tower north of Qeynos: follow the path north from the Qeynos coachman, past the glowing druid ring.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Pejon",
+     "journal": "Report to Captain Pejon in the second guard tower north of Qeynos.",
+     "says": "Kill the gnoll elder at the northern camp and bring me its runes."
+    },
+    {
+     "kind": "loot",
+     "target": "gnoll elder",
+     "items": [
+      {
+       "item": "gnoll runes",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the gnoll elder at the northern camp for its runes."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Pejon",
+     "items": [
+      {
+       "item": "gnoll runes",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the gnoll runes to Captain Pejon.",
+     "says": "Now the gnoll blacksmith at another northern camp: bring me its spear."
+    },
+    {
+     "kind": "loot",
+     "target": "gnoll blacksmith",
+     "items": [
+      {
+       "item": "gnoll spear",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the gnoll blacksmith at the northern camp for its spear."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Pejon",
+     "items": [
+      {
+       "item": "gnoll spear",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the gnoll spear to Captain Pejon.",
+     "says": "Gnolls and frogloks are meeting north of Slesher Village. Kill them and bring me their battle plans."
+    },
+    {
+     "kind": "loot",
+     "target": "froglok seer",
+     "items": [
+      {
+       "item": "Gnoll Battle Plans",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Break up the gnoll and froglok meeting in the Fog Marsh and take the battle plans."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Pejon",
+     "items": [
+      {
+       "item": "Gnoll Battle Plans",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the battle plans to Captain Pejon.",
+     "says": "Take this note to Sigmor.",
+     "rewards": {
+      "items": [
+       "note from pejon"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Sigmor Fallbourne",
+     "items": [
+      {
+       "item": "note from pejon",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Captain Pejon's note to Sigmor Fallbourne.",
+     "says": "Qeynos speaks well of you.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Flametongue"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 13; github.com/Jadiction/EQOA-Data). The Gnoll Elder and Blacksmith are the database's gnoll elder and gnoll blacksmith. The Froglok Elder is not in the database: the froglok seers at the gnoll and froglok meeting in the Fog Marsh, where EQOA-Data's map places him, stand in. The Flametongue scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L3: L4, L5, L7, L10 before it are drafts until its names are in the database."
+  },
+  {
+   "key": "1-20/surefall-glade/ranger/L15",
+   "name": "Farmer Hops",
+   "giver": "Sigmor Fallbourne",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/ranger/L13"
+   ],
+   "offer": "Farmer Hops, in the farmlands north of Hagley in the Crethley Manor lands, needs help. Bring 390 tunar with you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Farmer Hops",
+     "journal": "Find Farmer Hops at the third farm north of Hagley.",
+     "says": "Gnoll raiders plague my farm. Bring me their gloves."
+    },
+    {
+     "kind": "loot",
+     "target": "Gnoll Raider",
+     "items": [
+      {
+       "item": "pair of gnoll gloves",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Slay the gnoll raiders near Hops's farm for a pair of their gloves."
+    },
+    {
+     "kind": "give",
+     "target": "Farmer Hops",
+     "items": [
+      {
+       "item": "pair of gnoll gloves",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the gnoll raider gloves to Farmer Hops.",
+     "says": "Guard Wayosh, at the guard tower north of my farm, knows of the other farms."
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Wayosh",
+     "journal": "Speak with Guard Wayosh at the guard tower north of Hops's farm.",
+     "says": "A hungry zombie northwest of here stole our milk. Kill it and bring the milk back."
+    },
+    {
+     "kind": "loot",
+     "target": "Hungry Zombie",
+     "items": [
+      {
+       "item": "stolen milk",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the hungry zombie northwest of Guard Wayosh for the stolen milk."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Wayosh",
+     "items": [
+      {
+       "item": "stolen milk",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the stolen milk to Guard Wayosh.",
+     "says": "Thank you. Hops will want to hear."
+    },
+    {
+     "kind": "give",
+     "target": "Farmer Hops",
+     "tunar": 260,
+     "journal": "Give Farmer Hops 260 tunar for new seed.",
+     "says": "Now buy seeds from Bebbin Mossfoot in Misty Thicket for 130 tunar; Waysender Naelarie can bring you back."
+    },
+    {
+     "kind": "give",
+     "target": "Bebbin Mossfoot",
+     "tunar": 130,
+     "journal": "Buy seeds from Bebbin Mossfoot in Misty Thicket for 130 tunar.",
+     "says": "A bag of hops seeds for Farmer Hops.",
+     "rewards": {
+      "items": [
+       "bag of hops seeds"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Farmer Hops",
+     "items": [
+      {
+       "item": "bag of hops seeds",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bag of hops seeds to Farmer Hops.",
+     "says": "My farm will grow again.",
+     "rewards": {
+      "xp": 883791,
+      "items": [
+       "tunic of the glade"
+      ],
+      "spells": [
+       "Tangling Roots"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 15; github.com/Jadiction/EQOA-Data). The tunic of the glade is the database's level 15 ranger reward of Surefall's quest items. The Tangling Roots scroll is the class's level 15 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/surefall-glade/ranger/L20",
+   "name": "Crethley Manor",
+   "giver": "Sigmor Fallbourne",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/ranger/L15"
+   ],
+   "offer": "Guard Darek, at the top of the second watchtower of Crethley Manor, has need of a ranger. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Guard Darek",
+     "journal": "Report to Guard Darek in the Crethley Manor watchtower.",
+     "says": "Kill Syndia, west of the manor, and bring me her book of disease."
+    },
+    {
+     "kind": "loot",
+     "target": "Syndia",
+     "items": [
+      {
+       "item": "Syndia's Book of Disease",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Syndia west of Crethley Manor for her book of disease."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Darek",
+     "items": [
+      {
+       "item": "Syndia's Book of Disease",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the book of disease to Guard Darek.",
+     "says": "An abomination lurks in the manor's basement. Kill it and bring me its shackles."
+    },
+    {
+     "kind": "loot",
+     "target": "abomination",
+     "items": [
+      {
+       "item": "abomination's hide",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the abomination in the basement of Crethley Manor."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Darek",
+     "items": [
+      {
+       "item": "abomination's hide",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the abomination's remains to Guard Darek.",
+     "says": "Kill Scribe Jahar in the cellar and bring me his dark journal."
+    },
+    {
+     "kind": "loot",
+     "target": "Scribe Jahar",
+     "items": [
+      {
+       "item": "Dark Journal",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Scribe Jahar in the cellar for his dark journal."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Darek",
+     "items": [
+      {
+       "item": "Dark Journal",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the dark journal to Guard Darek.",
+     "says": "Now a rare herb from the froglok shaman Gugluk in the Fog Marsh southwest of the glade."
+    },
+    {
+     "kind": "loot",
+     "target": "Gugluk",
+     "items": [
+      {
+       "item": "tangle root herb",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Gather the rare herb from the froglok shaman Gugluk in the Fog Marsh."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Darek",
+     "items": [
+      {
+       "item": "tangle root herb",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the rare herb to Guard Darek.",
+     "says": "Last, slime from the slith tar harvester northeast of Wymondham."
+    },
+    {
+     "kind": "loot",
+     "target": "slith tar grub",
+     "items": [
+      {
+       "item": "slith tar slime",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Gather slime from the slith tar harvester northeast of Wymondham."
+    },
+    {
+     "kind": "give",
+     "target": "Guard Darek",
+     "items": [
+      {
+       "item": "slith tar slime",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the slime to Guard Darek.",
+     "says": "Go back to Sigmor with my thanks."
+    },
+    {
+     "kind": "talk",
+     "target": "Sigmor Fallbourne",
+     "journal": "Return to Sigmor Fallbourne.",
+     "says": "You have served the glade and Qeynos both.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Gugluk"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. Sigmor Felborne is Sigmor Fallbourne. The abomination's shackles are the database's abomination's hide, its quest item for the abomination. Gugluk, the froglok shaman with the rare herb, is not in the database. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Sparrow Eye and the Oak Handled Scimitar, or Strikeblade and the Pine Spirit.)"
+  }
+ ],
+ "items": [
+  {
+   "name": "Dark Journal",
+   "description": "Scribe Jahar's dark journal.",
+   "notrade": true,
+   "like": "scroll of dark bindings"
+  },
+  {
+   "name": "Gnoll Battle Plans",
+   "description": "Battle plans carried to a meeting of gnolls and frogloks.",
+   "notrade": true,
+   "like": "slesher's note"
+  },
+  {
+   "name": "Plain Walking Stick",
+   "description": "A plain walking stick of the kind Merchant Lensian sells to the druids of Surefall Glade.",
+   "notrade": true,
+   "like": "rusted blade"
+  },
+  {
+   "name": "Syndia's Book of Disease",
+   "description": "Syndia's book of diseases, taken from her body.",
+   "notrade": true,
+   "like": "scroll of dark bindings"
+  }
+ ]
+}

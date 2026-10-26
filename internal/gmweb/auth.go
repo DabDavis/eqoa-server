@@ -228,6 +228,10 @@ func (s *Server) sessionInfo(accountID int, sess *gmSession, admin bool) map[str
 			"restart": s.d.Restart != nil,
 		},
 	}
+	// the spell-visual preview the Spell visuals page frames (gm.preview_url)
+	if s.preview != nil {
+		out["preview"] = s.preview.String()
+	}
 	if sess != nil {
 		out["csrf"] = sess.CSRF
 		out["expires"] = stamp(sess.Created.Add(sessionMaxAge))

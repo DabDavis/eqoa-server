@@ -94,6 +94,14 @@ func main() {
 	} else {
 		log.Printf("Creatures: no ground (%v): they keep their heights as they move", err)
 	}
+	// Where the water is (entity/water.go): each world's BSP and its leaves'
+	// flags, baked beside the ground (<world>.env, cmd/groundbake); without
+	// them no creature keeps to or out of the water and damage crosses it.
+	if e, err := ground.OpenEnv(filepath.Join(worlds.Dir(cfg.Patch.WorldsDir), "ground")); err != nil {
+		log.Printf("WARNING: %v; no water known", err)
+	} else if e.Worlds() > 0 {
+		gameWorld.SetEnv(e)
+	}
 	// The bodies' sizes (entity/reach.go), baked from the disc by
 	// cmd/modelbake into <worlds>/models.txt: a large creature is reached,
 	// and reaches, from further off (CLIENT's TargetInRange +3 or +5).
@@ -141,6 +149,12 @@ func main() {
 		log.Printf("WARNING: %v; no NPC comes to another's help", err)
 	}
 	log.Printf("Creatures: %s; %s", gameWorld.SocialSummary(), entity.NPCRegenSummary())
+	// How the creatures of a name move (entity/movement.go, table npcmove):
+	// standing until pulled, their own radius, and the water they keep to
+	if _, err := gameWorld.LoadMoveRules(db); err != nil {
+		log.Printf("WARNING: %v; every creature wanders and keeps to where it spawned", err)
+	}
+	log.Printf("Creatures: %s", gameWorld.MoveSummary())
 	// The necromancer's life taps its pets cast (entity/pettap.go)
 	if _, err := gameWorld.LoadPetTaps(db); err != nil {
 		log.Printf("WARNING: %v; no pet taps", err)

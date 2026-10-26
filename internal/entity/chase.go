@@ -164,6 +164,14 @@ func (w *World) chaseLocked(npc *NPC, x, z, vx, vz float32, now time.Time) (inRe
 		return d <= reach, false
 	}
 	ux, uz := (x-npc.X)/d, (z-npc.Z)/d
+	if w.staysInWaterLocked(npc) && !w.waterAheadLocked(npc, npc.X+ux*step, npc.Z+uz*step) {
+		// a creature of the water stops at its edge, turned to its enemy
+		// (water.go)
+		if npc.moving() {
+			npc.stopMoving()
+		}
+		return d <= reach, false
+	}
 	oldX, oldZ := npc.X, npc.Z
 	npc.X += ux * step
 	npc.Z += uz * step

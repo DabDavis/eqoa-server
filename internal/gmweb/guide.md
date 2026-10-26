@@ -38,6 +38,7 @@ with the row before and after, and `revert_change` undoes a row change.
 | `npcpaths` | the path an NPC walks: `points` (JSON waypoints), `mode`, `pause`, `speed`; use the path operations | `npcid` |
 | `npcundead` | which creatures are undead, by NPC NAME (lower case): `undead` 1 or 0, whatever the name says; a name with no row is undead when its words say so (skeleton, zombie, ghoul, mummy, wraith, ghost...) | `name` |
 | `npcsocial` | which NPCs come to the help of their own when one is attacked, by NPC name: `social` 1, the `faction` (or any group name) they belong to and help, `radius` (0: 30) | `npc_name` |
+| `npcmove` | how the creatures of a name move, by NPC NAME (lower case): `roam` 0 stands it until pulled, `radius` its own wander radius (0: the server's), `water` land / both / water (empty: by where it spawned) | `name` |
 | `itempattern` | every item that exists; `trade` 1 is NO TRADE | `patternid` |
 | `itemeffect` | what using an item does (the alchemists' potions): `line` in spell words, `Self` drunk or `Target` thrown; `name`/`icon` on the effects list; `breaks` attack/damage; `wear` % a tick; `area` a thrown one's splash | `patternid` |
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
@@ -190,6 +191,13 @@ with the row before and after, and `revert_change` undoes a row change.
   A spell gives it when its line says `Summon <the item's name>` (`x3` for three; no number: three of a potion,
   else one). A thrown potion is worn by every Use and thrown only by the auto-attack (one worn nowhere is
   thrown by Use at the target); a drunk one is used from the item menu or a quick slot.
+- **How a creature moves** (`npcmove`, applied at once): to stand a creature on its spawn until a player pulls it
+  (camp guards, a boss), `insert_row` `{name: "<its name, lower case>", roam: 0}`; to keep a land creature that
+  wades into a river out of it, `water: "land"`; one that lives in and out of the water (a crocodile, a crab, a
+  turtle) `water: "both"`; a fish `water: "water"` (a creature that spawned in the water keeps to it already). The
+  water is the game's own; a creature standing off the ground (a keep's floor, a dock) does not wander anyway.
+  No damage crosses the water's edge: a spell at a creature in the water from the shore is refused ("Your target is
+  in the water."), and melee across it is lost, both ways.
 - **Give a player something**: `give_item` (an item by name or id), `grant_spell` (one, or "all" of its
   class), `set_character` (level, tunar, heal).
 - **Moderate**: `message_player`, `broadcast`, `kick_player`, `ban_account` (with a reason).

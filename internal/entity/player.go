@@ -147,11 +147,16 @@ type Player struct {
 	AutoAttack bool
 
 	// The fight a 0x000F engaged (attack.go): the NPC, the object id the
-	// player named it by, when the next swing is due and what it swings.
+	// player named it by, when the next swing is due and what it swings,
+	// and when the press's button is read (a tap starts no round).
 	AttackTarget   EntityID
 	AttackObjectID uint32
 	NextSwing      time.Time
 	Swing          Swing
+	ButtonReadAt   time.Time
+	// roundWaits: the next round waits for the button and the reach, and
+	// begins with the tick that sees both (attack.go)
+	roundWaits bool
 
 	// The melee round in hand (attack.go): when it began and how many of its
 	// hits have come due.

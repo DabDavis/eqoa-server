@@ -32,12 +32,12 @@ import (
 //     after the release (two more hits after it in the live run, and the
 //     same between a PS2's taps in pcaps/ps2_main_capture.pcap).
 //
-// So the rule here: a 0x000F on an attackable NPC engages it and schedules a
-// swing one delay later. When a swing comes due, it lands if the player is in
-// reach (CLIENT's TargetInRange) AND either byte 36 is up or the NPC is
-// fighting this player back (its CurrentEnemy); with neither, the
-// engagement ends. Out of reach, the due swing waits for reach. A change of
-// target (0x0010), the NPC's death or the player's ends it.
+// So the rule here: a 0x000F on an attackable NPC engages it, its first
+// round counted from the press and begun if the button is still down a
+// moment later (firstRound); a round begins only with byte 36 up and the
+// player in reach (CLIENT's TargetInRange), and waits for both, the fight
+// kept. A change of target (0x0010), the NPC's death or the player's, or the
+// NPC gone from view ends it.
 
 // Swing kinds, CLIENT's GetSwing (0x00CBDEF8 [A]); VISwing::Effect
 // (0x00CBE0A8 [A]) names a spell effect for each and VISwing::Delay
@@ -295,7 +295,11 @@ func (w *World) EngageAttack(sess *session.Session, objectID uint32, swing Swing
 	p.AttackTarget = npc.ServerID
 	p.AttackObjectID = objectID
 	p.RoundStart, p.RoundHits = time.Time{}, 0
-	p.NextSwing = now.Add(firstRound)
+	// the first round is the press's: its hits on the press's clock, its
+	// button read a moment later (firstRound)
+	p.NextSwing = now
+	p.ButtonReadAt = now.Add(firstRound)
+	p.roundWaits = false
 	w.breakInvisLocked(p, "an attack") // invis.go
 	log.Printf("Combat: %s engages %s (swing %d, %v, reach %.1f)", p.Name, npc.Name, swing.Kind, swing.Delay, swing.Reach)
 	return true
@@ -316,24 +320,44 @@ func (p *Player) disengage() {
 	p.AttackTarget = 0
 	p.AttackObjectID = 0
 	p.NextSwing = time.Time{}
+	p.ButtonReadAt = time.Time{}
+	p.roundWaits = false
 	p.RoundStart, p.RoundHits = time.Time{}, 0
 }
 
-// firstRound is how long after its 0x000F a fight's first round begins.
-// Sandstorm's first hit came 0.56 to 0.76 s after the 0x000F in 17 of 20
-// fights (the hit 0.5 s into the round), and a tap, the button up again
-// 0.2 s later, started none: the round's start is where the button is read.
+// Attacking reports whether the player's auto-attack is on now: a fight
+// with the attack button down, or a round in hand. A fight kept while the
+// button is up (attackSystem waits for it) is not: what ends on an attack
+// (a meal, a potion's effect) and an aggressive pet go by this.
+func (p *Player) Attacking() bool {
+	if p.AttackTarget == 0 {
+		return false
+	}
+	pressed := p.RoundStart.IsZero() && !p.roundWaits // a 0x000F's first round, not read yet
+	inHand := !p.RoundStart.IsZero() && p.RoundHits < len(swingHits(p.Swing.Kind))
+	return p.AutoAttack || pressed || inHand
+}
+
+// firstRound is how long after its 0x000F the first round's button is
+// read. The round itself is the press's: its hits on the press's clock, the
+// first 0.5 s after it (Attack1's), as the client's own swing, which plays
+// at the press (AutoAttackTick). Sandstorm's first hit came 0.56 to 0.76 s
+// after the 0x000F in 17 of 20 fights, round trip included, and a tap, the
+// button up again 0.2 s later, started none: a round read 0.25 s in and
+// counted from the press is both (F3 20261026-015610: counted from the read,
+// as until then, every hit landed 0.25 s after the client's swing struck).
 const firstRound = 250 * time.Millisecond
 
 // attackSystem runs every engaged player's melee in rounds, as Sandstorm's
 // (rounds.go): a round every swing delay, its hits at the swing's times
 // (swingHits), each in reach a hit (playerHitLocked) and out of it lost. A
 // round begins only with the attack button held (0x40 byte 36) and the
-// target in reach (it waits for reach); the round in hand lands whole, the
-// button up or not, as Sandstorm's did (a bard's hits went on 1.15 s past
-// the release, and no further, the training dummy still hitting him). The
-// player's own swing is played by its client: no 0x00B1. Every tick; must be
-// called with the lock held.
+// target in reach, and waits for both with the fight kept; the round in hand
+// lands whole, the button up or not, as Sandstorm's did (a bard's hits went
+// on 1.15 s past the release, and no further, the training dummy still
+// hitting him), and a press between the client's swings, which sends no
+// 0x000F, takes the fight up again. The player's own swing is played by its
+// client: no 0x00B1. Every tick; must be called with the lock held.
 func (w *World) attackSystem(now time.Time) {
 	for _, p := range w.Players {
 		if p.AttackTarget == 0 {
@@ -348,20 +372,26 @@ func (w *World) attackSystem(now time.Time) {
 		if !p.RoundStart.IsZero() && w.playerRoundHitsLocked(p, npc, now) {
 			continue // the fight ended
 		}
-		if now.Before(p.NextSwing) {
+		if now.Before(p.NextSwing) || now.Before(p.ButtonReadAt) {
 			continue
 		}
-		if !p.AutoAttack {
-			// The button is up: a tap that never held, or the fight let go.
-			p.disengage()
+		if !p.AutoAttack || !inReach(p, npc) {
+			// The round waits, and begins with the button down again (a tap
+			// that never held, a release, a toggled button) and in reach.
+			// The fight is kept: CLIENT sends no new 0x000F for a press that
+			// comes between its swings, so a fight let go on a release never
+			// came back while the client swung on (F3 20261026-020605: one
+			// hit, then only the swings).
+			p.roundWaits = true
 			continue
 		}
-		if !inReach(p, npc) {
-			p.NextSwing = now // the round waits for reach, and begins with it
-			continue
+		// at its due time, not the tick's: a steady cadence; one that waited
+		// begins with this tick
+		start := p.NextSwing
+		if p.roundWaits {
+			start, p.roundWaits = now, false
 		}
-		// at its due time, not the tick's: a steady cadence
-		p.RoundStart, p.RoundHits = p.NextSwing, 0
+		p.RoundStart, p.RoundHits = start, 0
 		p.NextSwing = p.RoundStart.Add(p.Swing.Delay)
 		w.breakInvisLocked(p, "a swing") // invis.go
 		w.playerRoundHitsLocked(p, npc, now)

@@ -158,43 +158,54 @@ func TestAutoAttackTapStartsNothing(t *testing.T) {
 	if len(f.damage(t)) != 0 || f.npc.HP != f.npc.MaxHP {
 		t.Fatalf("a tap hit: %v", f.damage(t))
 	}
-	if f.p.AttackTarget != 0 {
-		t.Error("the engagement outlived its first swing")
+	// the fight is kept, waiting for the button: no round while it is up
+	if f.p.AttackTarget == 0 || f.p.Attacking() {
+		t.Errorf("after a tap: engaged %v, attacking %v; want engaged and not attacking", f.p.AttackTarget != 0, f.p.Attacking())
 	}
 }
 
 // Held: rounds of the swing (Attack4: four hits, 0.5, 1, 1.7 and 2.4 s into a
-// round every 6 s), the first round 0.25 s after the 0x000F, each hit a
-// 0x00DB from me to the NPC; let go, the round in hand lands whole and no
-// other begins, though the NPC fights on (Sandstorm: a bard's hits went on
-// 1.15 s past the release, and no further).
+// round every 6 s), the first round the press's (its hits from the 0x000F,
+// as the client's swing, its button read 0.25 s in), each hit a 0x00DB from
+// me to the NPC; let go, the round in hand lands whole and no other begins,
+// though the NPC fights on (Sandstorm: a bard's hits went on 1.15 s past the
+// release, and no further); pressed again, with no 0x000F, the next round
+// begins (F3 20261026-020605).
 func TestAutoAttackRounds(t *testing.T) {
 	f := newFight(t)
 	f.w.EngageAttack(f.sess, f.npcID, swing6s, f.t0)
 	f.p.AutoAttack = true
 	at := func(d time.Duration) int { f.tick(d); return len(f.damage(t)) }
-	if at(249*time.Millisecond) != 0 || at(749*time.Millisecond) != 0 {
+	if at(249*time.Millisecond) != 0 || at(499*time.Millisecond) != 0 {
 		t.Fatal("hit before the first round's first hit was due")
 	}
-	if at(750*time.Millisecond) != 1 {
-		t.Fatal("no first hit 0.5 s into the first round")
+	if at(500*time.Millisecond) != 1 {
+		t.Fatal("no first hit 0.5 s after the press")
 	}
 	d := f.damage(t)
 	if d[0][0] != int64(f.me) || d[0][1] >= 0 || d[0][2] != int64(f.npcID) {
 		t.Fatalf("first hit %v, want (me, -n, crab)", d[0])
 	}
-	if at(1250*time.Millisecond) != 2 || at(1949*time.Millisecond) != 2 || at(1950*time.Millisecond) != 3 {
+	if at(1000*time.Millisecond) != 2 || at(1699*time.Millisecond) != 2 || at(1700*time.Millisecond) != 3 {
 		t.Fatal("the second and third hits off their times")
 	}
 	f.p.AutoAttack = false // released before the round's last hit
-	if at(2650*time.Millisecond) != 4 {
+	if at(2400*time.Millisecond) != 4 {
 		t.Fatal("the round in hand did not land whole after the release")
 	}
 	if f.npc.CurrentEnemy != f.p.ServerID {
 		t.Fatal("the NPC was hit and does not fight back")
 	}
-	if at(6250*time.Millisecond) != 4 || at(7000*time.Millisecond) != 4 || f.p.AttackTarget != 0 {
+	if at(6000*time.Millisecond) != 4 || at(7000*time.Millisecond) != 4 {
 		t.Error("a new round with the button up")
+	}
+	if f.p.AttackTarget == 0 || f.p.Attacking() {
+		t.Fatal("the fight was let go with the button up, or still counts as attacking")
+	}
+	// pressed again between the client's swings: no 0x000F, the round begins
+	f.p.AutoAttack = true
+	if at(8000*time.Millisecond) != 4 || at(8499*time.Millisecond) != 4 || at(8500*time.Millisecond) != 5 {
+		t.Error("pressed again, the next round did not begin with the press's tick (first hit 0.5 s in)")
 	}
 }
 
@@ -211,8 +222,8 @@ func TestAutoAttackRoundsByClass(t *testing.T) {
 		swing Swing
 		times []time.Duration // the hits of the first two rounds
 	}{
-		{"enchanter 49", SwingFor(12, 49, primary, true, 3, 0), []time.Duration{750 * time.Millisecond, 3750 * time.Millisecond}},
-		{"shadow knight 50, sword and shield", SwingFor(3, 50, primaryShield, true, 1, 0), []time.Duration{750 * time.Millisecond, 1250 * time.Millisecond, 4750 * time.Millisecond, 5250 * time.Millisecond}},
+		{"enchanter 49", SwingFor(12, 49, primary, true, 3, 0), []time.Duration{500 * time.Millisecond, 3500 * time.Millisecond}},
+		{"shadow knight 50, sword and shield", SwingFor(3, 50, primaryShield, true, 1, 0), []time.Duration{500 * time.Millisecond, 1000 * time.Millisecond, 4500 * time.Millisecond, 5000 * time.Millisecond}},
 	}
 	for _, c := range cases {
 		f := newFight(t)
@@ -327,4 +338,52 @@ func TestNPCSwingCarriesSandstormsEffect(t *testing.T) {
 		return
 	}
 	t.Fatal("no 0x00B1 for the NPC's swing")
+}
+
+// A fight waiting for the button (a release, a tap) is taken up by the next
+// press with no 0x000F, as CLIENT sends none for a press between its swings;
+// a new 0x000F on another NPC starts that fight on its own press's clock.
+// The control: with the old rule (the fight let go when the button was up at
+// a round's start), the press after the release lands nothing.
+func TestAutoAttackPressAgainWithoutAnother0x000F(t *testing.T) {
+	f := newFight(t)
+	f.w.EngageAttack(f.sess, f.npcID, SwingFor(11, 60, [21]bool{}, false, 0, 0), f.t0) // a necro's Attack1
+	f.p.AutoAttack = true
+	f.tick(250 * time.Millisecond)
+	f.tick(500 * time.Millisecond)
+	if len(f.damage(t)) != 1 {
+		t.Fatal("no first hit")
+	}
+	f.p.AutoAttack = false // the button let go (a toggle pressed off, a release)
+	f.tick(3000 * time.Millisecond)
+	f.tick(3100 * time.Millisecond)
+	f.p.AutoAttack = true // and on again: the client swings, no 0x000F
+	for at := 3200 * time.Millisecond; at <= 12*time.Second; at += 100 * time.Millisecond {
+		f.tick(at)
+	}
+	// rounds every 3 s from the press at 3.2 s: hits at 3.7, 6.7, 9.7
+	if n := len(f.damage(t)); n != 4 {
+		t.Fatalf("%d hits after pressing again, want 4 (the first and three more)", n)
+	}
+
+	// another NPC: its own first round, from its 0x000F, read 0.25 s in
+	other := &NPC{ServerID: 2003, Name: "Crab", Level: 15, HP: 100000, MaxHP: 100000, X: 101, Y: 10, Z: 101}
+	f.w.NPCs[other.ServerID] = other
+	vs := GetOrCreateVisibility(f.sess)
+	vs.ChannelEntity[1] = other.ServerID
+	vs.ChannelObjectID[1] = 0x0131_3012
+	f.p.AutoAttack = false
+	f.tick(12100 * time.Millisecond) // waiting again
+	f.w.EngageAttack(f.sess, 0x0131_3012, f.p.Swing, f.t0.Add(13*time.Second))
+	if !f.p.Attacking() {
+		t.Error("a fresh 0x000F does not count as attacking before its button is read")
+	}
+	f.p.AutoAttack = true
+	f.tick(13250 * time.Millisecond)
+	f.tick(13499 * time.Millisecond)
+	before := len(f.damage(t))
+	f.tick(13500 * time.Millisecond)
+	if len(f.damage(t)) != before+1 || other.HP == other.MaxHP {
+		t.Error("the new fight's first hit did not come 0.5 s after its 0x000F")
+	}
 }

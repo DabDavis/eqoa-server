@@ -995,3 +995,30 @@ func TestATeleportGoesWhereTheGameLoads(t *testing.T) {
 		t.Fatalf("world 8 by coordinates: %d %v", code, out)
 	}
 }
+
+// grant_spell's "all" gives a character every spell of its class a level
+// gives, never a mastery's, an epic's or a master class's (database.Granted):
+// the fixture's two spells and not a third on an "eqoa-data cm" row. The
+// control: the same row as a leveled one is given.
+func TestGrantSpellAllSkipsWhatNoLevelGives(t *testing.T) {
+	for _, c := range []struct {
+		source string
+		want   int
+	}{{"eqoa-data cm", 2}, {"eqoa-data epic", 2}, {"eqoa-data master Hero", 2}, {"eqoa-data", 3}} {
+		t.Run(c.source, func(t *testing.T) {
+			f := newFixture(t)
+			mustExec(t, f.db, `INSERT INTO spellpattern (spellid, abilitylvl, unk2, unk3, range, casttime, power, iconColor, icon,
+				scope, recast, eqprequire, spellname, spelldesc) VALUES (700902, 51, 0, 0, 30, 2000, 5, 0, 0, 0, 6000, 0, 'Guard', '')`)
+			mustExec(t, f.db, `INSERT INTO classspells (class, spellid, source) VALUES (0, 700902, ?)`, c.source)
+			cl := f.browser()
+			cl.login("gm")
+			code, out := cl.op("grant_spell", map[string]any{"character": "Hero", "spell": "all"})
+			if code != 200 {
+				t.Fatalf("grant: %d %v", code, out)
+			}
+			if n := len(out["added"].([]any)); n != c.want {
+				t.Errorf("added %d (%v), want %d", n, out["added"], c.want)
+			}
+		})
+	}
+}

@@ -43,7 +43,7 @@ with the row before and after, and `revert_change` undoes a row change.
 | `itemeffect` | what using an item does (the alchemists' potions): `line` in spell words, `Self` drunk or `Target` thrown; `name`/`icon` on the effects list; `breaks` attack/damage; `wear` % a tick; `area` a thrown one's splash | `patternid` |
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
-| `classspells` | which spells each class has (grant_spell "all" and `#template` never give a were form) | `class`+`spellid` |
+| `classspells` | which spells each class has (grant_spell "all" and `#template` never give a were form); a `source` of `eqoa-data cm` / `eqoa-data epic` / `eqoa-data mca` / `eqoa-data master <name>` marks a mastery's, an epic's or a master class's spell: listed for the class (the community visual page), never handed out by #template, start_all_spells or grant_spell "all" | `class`+`spellid` |
 | `spellfx_suggestions` | the players' suggestions of a spell's visual, from the public spell-visual page: `fxdict`, the sender's `name`/`note` as typed, `status` new/accepted/dismissed; use the operations below | `id` |
 | `defaultcharacter` | where a new character starts, per race, home city (`humType`: a human's east 1, west 2) and class: `x`, `y`, `z`, `facing` (radians), `world`; it is bound there until a spiritmaster binds it; read at each creation | `defaultCharacterID` |
 | `quests` | a quest: its giver (an NPC's name), levels, classes, races, quests first, what the giver says (`offer`, `accept`, `started`); `enabled` 0 is a draft | `questid` |

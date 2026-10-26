@@ -13,7 +13,8 @@
 // nginx proxies at /eqoa/account/api/spellfx/{spells,suggest}:
 //
 //	GET  /api/spellfx/spells   {"spells":[{"id","name","level","classes","line",
-//	                            "harmful","target","cast","visual","standin"}]}
+//	                            "harmful","target","cast","visual","standin",
+//	                            "kind"?, "got"?, "master"?}]}
 //	POST /api/spellfx/suggest  {"spell","visual","name","note"} -> {"ok","count"}
 //
 // A sender is counted by address (an IPv6 one by its /64), and kept only as a
@@ -75,6 +76,13 @@ type Spell struct {
 	StandIn bool    `json:"standin"`
 	// Kind is the stand-in's kind (heal, damage, buff) when it plays one.
 	Kind string `json:"kind,omitempty"`
+	// Got is how the spell is got when no class has it by level: "mastery"
+	// (a class mastery), "epic" (a level-60 epic) or "master class"
+	// (database.GotBy of its classspells rows' sources); empty when any class
+	// gets it by level. Master is the master class a "master class" spell is
+	// a power of, when the row names one ("Lich").
+	Got    string `json:"got,omitempty"`
+	Master string `json:"master,omitempty"`
 }
 
 // Service is the two routes over the database.
@@ -119,22 +127,23 @@ func targetName(t entity.SpellTarget) string {
 // database has one connection.
 func (s *Service) Spells() ([]Spell, error) {
 	type row struct {
-		id, level, class int
-		name, desc, line string
-		cast             int64
-		fx               int64
+		id, level, class         int
+		name, desc, line, source string
+		cast                     int64
+		fx                       int64
 	}
 	rs, err := s.db.Query(`SELECT p.spellid, p.abilitylvl, p.spellname, p.spelldesc, p.casttime,
-			COALESCE(e.line, ''), COALESCE(e.fxdict, 0), cs.class
+			COALESCE(e.line, ''), COALESCE(e.fxdict, 0), cs.class, COALESCE(cs.source, '')
 		FROM classspells cs JOIN spellpattern p ON p.spellid = cs.spellid
-		LEFT JOIN spelleffect e ON e.spellid = p.spellid`)
+		LEFT JOIN spelleffect e ON e.spellid = p.spellid
+		ORDER BY cs.class, p.spellid`)
 	if err != nil {
 		return nil, err
 	}
 	var rows []row
 	for rs.Next() {
 		var r row
-		if err := rs.Scan(&r.id, &r.level, &r.name, &r.desc, &r.cast, &r.line, &r.fx, &r.class); err != nil {
+		if err := rs.Scan(&r.id, &r.level, &r.name, &r.desc, &r.cast, &r.line, &r.fx, &r.class, &r.source); err != nil {
 			rs.Close()
 			return nil, err
 		}
@@ -145,13 +154,21 @@ func (s *Service) Spells() ([]Spell, error) {
 		return nil, err
 	}
 	byID := map[int]*Spell{}
+	leveled := map[int]bool{} // a class gets it by level: no "got"
 	var order []int
 	// the longest cast the list gives: the preview's (and play_visual's) most
 	maxCast := entity.MaxVisualCast.Seconds()
 	for _, r := range rows {
+		got := database.GotBy(r.source)
+		if got == "" {
+			leveled[r.id] = true
+		}
 		if sp := byID[r.id]; sp != nil {
 			if !containsInt(sp.Classes, r.class) {
 				sp.Classes = append(sp.Classes, r.class)
+			}
+			if sp.Got == "" && got != "" {
+				sp.Got, sp.Master = got, database.MasterOf(r.source)
 			}
 			continue
 		}
@@ -164,12 +181,18 @@ func (s *Service) Spells() ([]Spell, error) {
 			fx, kind := entity.StandInVisual(d)
 			sp.Visual, sp.StandIn, sp.Kind = handlers.Hex32(fx), true, kind
 		}
+		if got != "" {
+			sp.Got, sp.Master = got, database.MasterOf(r.source)
+		}
 		byID[r.id] = sp
 		order = append(order, r.id)
 	}
 	out := make([]Spell, 0, len(order))
 	for _, id := range order {
 		sp := byID[id]
+		if leveled[id] {
+			sp.Got, sp.Master = "", ""
+		}
 		sort.Ints(sp.Classes)
 		out = append(out, *sp)
 	}

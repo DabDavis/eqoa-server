@@ -11,7 +11,13 @@ An ability record (spellpattern) names no class. Three sources do:
 - Sandstorm's spell vendors (the same recordings): each scroll's class mask,
   and the scroll's name is its spell's.
 - The EQOA-Data project's per-class lists (Information/databases/spells/
-  <class>.json), by name: merchant, quest, CM and other spells alike.
+  <class>.json), by name: merchant, quest, CM and other spells alike. A
+  spell the lists give a class only as a mastery ("CM"), a level-60 epic or a
+  master class's ("MCA", "<master class> MCA") gets its row with that kind's
+  source ("eqoa-data cm", "eqoa-data epic", "eqoa-data mca", "eqoa-data
+  master <name>": tools/import_eqoadata_mastery_spells.py's kind_source),
+  which no class grant hands out (internal/database/grantsource.go); a name
+  the lists give the class by a level too has a plain "eqoa-data" row.
 
 A were form or a were's ability (Ratwere, Feral Lion Form, "Wererat Melee
 Ability"...) is no class's, whoever's dump holds it: the were quests are any
@@ -40,6 +46,9 @@ import re
 import sqlite3
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from import_eqoadata_mastery_spells import kind_source, leveled  # noqa: E402
+
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
 CLASSES = "WAR RAN PAL SK MNK BRD RGE DRD SHA CL MAG NEC ENC WIZ ALC".split()
 CLASS_FILES = ["warrior", "ranger", "paladin", "shadowknight", "monk", "bard", "rogue", "druid",
@@ -53,7 +62,7 @@ DDL = """
 CREATE TABLE IF NOT EXISTS classspells (
     class   INTEGER NOT NULL,  -- WAR=0 ... ALC=14
     spellid INTEGER NOT NULL,
-    source  TEXT NOT NULL,     -- dump, vendor or eqoa-data
+    source  TEXT NOT NULL,     -- dump, vendor, eqoa-data, or eqoa-data cm|epic|mca|master <name>
     PRIMARY KEY (class, spellid)
 );
 """
@@ -148,7 +157,9 @@ def main():
                     if w["class_mask"] >> cls & 1:
                         by_name(cls, spell_name(w["name"]), "vendor")
 
-    # 3. EQOA-Data's lists
+    # 3. EQOA-Data's lists: what a level gives first, then what only a
+    # mastery, an epic or a master class gives (a row of that kind's source)
+    entries = []
     for cls, fname in enumerate(CLASS_FILES):
         path = os.path.join(a.eqoa_data, fname + ".json")
         if not os.path.exists(path):
@@ -157,7 +168,13 @@ def main():
             data = json.load(fh)
         for lv in data["list"]:
             for ab in lv["abilities"]:
-                by_name(cls, spell_name(ab["name"]), "eqoa-data")
+                entries.append((cls, spell_name(ab["name"]), (ab.get("source") or "").strip()))
+    for cls, name, how in entries:
+        if leveled(how) or kind_source(how) is None:
+            by_name(cls, name, "eqoa-data")
+    for cls, name, how in entries:
+        if not leveled(how) and kind_source(how) is not None:
+            by_name(cls, name, kind_source(how))
 
     rows = sorted({(cls, sid, src) for cls in range(len(CLASSES)) for sid, src in got[cls].values()})
     # one name's two dump ids are both kept; the plain-name entry repeats one of them
@@ -167,8 +184,9 @@ def main():
     print(f"spellpattern rows {len(level) + len(were)} ({len(were)} were abilities, no class's); class spells {len(rows)}")
     for cls, name in enumerate(CLASSES):
         top = max([level[s] for (c, s), _ in rows if c == cls] or [0])
+        kept = sum(n for (c, src), n in srcs.items() if c == cls and src.startswith("eqoa-data "))
         print(f"  {name:3s} {per[cls]:3d} spells (dump {srcs[(cls, 'dump')]}, vendor {srcs[(cls, 'vendor')]}, "
-              f"eqoa-data {srcs[(cls, 'eqoa-data')]}), levels up to {top}")
+              f"eqoa-data {srcs[(cls, 'eqoa-data')]}, not given out {kept}), levels up to {top}")
     if not a.apply:
         print("(report only: --apply to write it)")
         return

@@ -2,6 +2,8 @@ package entity
 
 import (
 	"log"
+	"math"
+	"time"
 
 	"github.com/eqoa/server/internal/session"
 )
@@ -20,6 +22,8 @@ const KillShareRange float32 = 200
 type KillCredit struct {
 	NPCName  string
 	NPCSpawn EntityID // its spawn row (npcs.id); 0 for a GM's #spawn copy (no row, its original's name)
+	NPCID    EntityID // the creature itself, whose corpse a loot step's drop goes on
+	Died     time.Time
 	Level    int
 	World    uint8
 	Players  []KillPlayer
@@ -52,7 +56,7 @@ func (w *World) creditKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	if npc.Temporary {
 		spawn = 0
 	}
-	c := KillCredit{NPCName: npc.Name, NPCSpawn: spawn, Level: npc.Level, World: npc.World}
+	c := KillCredit{NPCName: npc.Name, NPCSpawn: spawn, NPCID: npc.ServerID, Died: npc.DeathTime, Level: npc.Level, World: npc.World}
 	c.Players = append(c.Players, KillPlayer{Session: sess, ServerID: p.CharServerID, Name: p.Name})
 	if g := w.groups[p.GroupID]; p.GroupID != 0 && g != nil {
 		for _, id := range g.Members {
@@ -124,4 +128,61 @@ func (w *World) PlayerPlace(p *Player) (world uint8, x, y, z float32, ok bool) {
 		return 0, 0, 0, 0, false
 	}
 	return p.World, p.X, p.Y, p.Z, true
+}
+
+// QuestSpawnAhead is how far in front of the player a quest's spawn stands.
+const QuestSpawnAhead float32 = 4
+
+// SpawnForQuest places a copy of the NPC named name (SpawnNPCCopy's pick) a
+// few steps in front of the player, facing it: a quest step's spawn event.
+// A hostile one may be attacked (the NPC bit 0x80 cleared) and attacks the
+// player at once. It returns the copy's id and the name as the NPC spells it.
+func (w *World) SpawnForQuest(name string, p *Player, hostile bool) (EntityID, string, bool) {
+	if p == nil {
+		return 0, "", false
+	}
+	w.mu.RLock()
+	x, y, z, world, facing := p.X, p.Y, p.Z, p.World, float64(p.Facing)
+	w.mu.RUnlock()
+	// the facing CLIENT reads: the direction (sin h, cos h) (npcmove.go)
+	sx := x + QuestSpawnAhead*float32(math.Sin(facing))
+	sz := z + QuestSpawnAhead*float32(math.Cos(facing))
+	id, spelled, ok := w.SpawnNPCCopy(name, sx, y, sz, headingTo(x-sx, z-sz), world)
+	if !ok {
+		return 0, "", false
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if c := w.NPCs[id]; c != nil {
+		c.QuestSpawn = true
+		if hostile {
+			c.NPCType &^= 0x80
+			if cur, found := w.Players[p.ServerID]; found && cur == p && !p.IsDead() {
+				w.addThreatLocked(c, p.ServerID, 1)
+			}
+		}
+	}
+	return id, spelled, true
+}
+
+// PlayVisualOn plays a spell visual from sess's player onto itself, as
+// PlayVisual does onto its target: a quest's visual event.
+func (w *World) PlayVisualOn(sess *session.Session, fx uint32, castTime time.Duration) bool {
+	castTime = max(0, min(castTime, MaxVisualCast))
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || !sess.CharacterInWorld() {
+		return false
+	}
+	w.broadcastCastLocked(p, p.ServerID, castTime, fx)
+	return true
+}
+
+// NPCAlive is whether the NPC of that id is in the world and not dead.
+func (w *World) NPCAlive(id EntityID) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	n, ok := w.NPCs[id]
+	return ok && !n.Dead
 }

@@ -43,6 +43,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveCharFaction(before, after)
 	case "quests", "queststeps":
 		return s.liveQuests()
+	case "spellpattern", "spelleffect", "classspells":
+		return s.livePetTaps(t.Live)
 	case "charquests":
 		return s.liveCharQuest(before, after)
 	case "charinventory", "spells", "hotkeys", "charbuffs", "weaponhotbar", "quickslots", "gearsets":
@@ -74,6 +76,19 @@ func (s *Server) liveFactions(table string) string {
 		return "at once: every faction window and the next kill read it"
 	}
 	return "at once: the next kill of that NPC uses it"
+}
+
+// livePetTaps reads the necromancer's pets' life taps again (entity/
+// pettap.go; the change is committed: the database is free), after a spell's
+// row, line or class changed; the table's own words say the rest.
+func (s *Server) livePetTaps(live string) string {
+	if s.d.World == nil || s.d.DB == nil {
+		return live
+	}
+	if _, err := s.d.World.LoadPetTaps(s.d.DB); err != nil {
+		return live + " (the pets' life taps not read again: " + err.Error() + ")"
+	}
+	return live + " A necromancer's pet's life tap follows it at once."
 }
 
 // liveAggro reads the creatures' aggro rules again (entity/aggro.go; the

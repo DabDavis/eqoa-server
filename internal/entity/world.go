@@ -91,6 +91,9 @@ type World struct {
 	// Summoned pets by their owners' ids (pet.go)
 	pets map[EntityID]*petState
 
+	// The life taps a necromancer's pets cast, by level (pettap.go)
+	petTaps []PetTap
+
 	// The factions' starting standings and what a kill does (faction.go)
 	factions factionTable
 

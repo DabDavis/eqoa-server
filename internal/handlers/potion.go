@@ -13,14 +13,20 @@ import (
 
 // Potions (entity/potion.go; F3 20261025-223151, -223841, -223959): an item
 // with a row in itemeffect is used, not worn. The item menu's Use
-// (UseItem(i, 0)) or an item quick slot's (UseItem(i, 1)) drinks one, or
-// throws one at the client's target (0x003E carries m_target); one leaves the
-// stack by 0x003C as a used scroll does. A thrown potion is a thrown weapon
-// too (wear 17): the item menu wears it, a quick slot throws it.
+// (UseItem(i, 0)) or an item quick slot's (UseItem(i, 1)) drinks one; one
+// leaves the stack by 0x003C as a used scroll does. A thrown potion is a
+// ranged weapon (F3 20261026-014336, jib: "equips in the range attack slot,
+// like a bow, and fires as a range auto attack. Currently its a useable
+// potion"): wear 16, a bow's (and the rusty throwing knife's), so every Use
+// wears it in the ranged slot and takes the hands off as a bow does, and the
+// ranged auto-attack throws it; no Use throws one. Only a thrown potion worn
+// nowhere (a GM's) is thrown by Use, at the client's target (0x003E carries
+// m_target).
 //
 // An alchemist's spell gives potions at its landing (summonItem), as a
-// merchant's sale gives an item (GiveItemNow, 0x003B); an auto-attack's
-// throw takes one off the worn stack (potionThrown).
+// merchant's sale gives an item (GiveItemNow, 0x003B), three of a potion
+// (jib: "stacks of 3"); an auto-attack's throw takes one off the worn stack
+// (potionThrown).
 
 // potionOf is the item's use, if it has one: its itemeffect row, read now, so
 // a GM's change counts at the next use.
@@ -44,9 +50,12 @@ func potionFromRow(r database.ItemEffectRow, itemName string) entity.PotionEffec
 }
 
 // usesPotion is whether this Use is the potion's use rather than the wear: a
-// thrown potion is worn from the item menu and thrown from a quick slot.
+// potion drunk is used from the item menu and a quick slot alike; a thrown
+// one is a ranged weapon, worn by every Use (the ranged auto-attack throws
+// it), unless it is worn nowhere. interaction (the menu's 0, a quick slot's
+// 1) changes nothing.
 func usesPotion(pe *entity.PotionEffect, p *database.ItemPatternRecord, interaction byte) bool {
-	return !pe.Thrown() || interaction == 1 || p.EquipSlot < 0
+	return !pe.Thrown() || p.EquipSlot < 0
 }
 
 // usePotion answers a Use of the potion at list index idx (row): used and one
@@ -124,9 +133,7 @@ func thrownPotion(gw *entity.World, inv *database.InventoryStore, p *database.It
 // summonItem gives a character the items a spell summoned (entity's
 // SummonItemFunc): the item by the name the spell's words give, else by the
 // spell's own name (EQOA-Data's Neriak Cocktail says it summons a "Grobb
-// Cocktail"); count the words' xN, else three of an item that stacks to three
-// (a draught, a quickening, a sublimation: jib's "a stack of 3") and one of
-// anything else (a thrown potion: its Mixtures say x3).
+// Cocktail"); count the words' xN, else summonCount's.
 func (h *EquipHandler) summonItem(sess *session.Session, charServerID uint32, item string, count int, spell string) {
 	if h.inventoryStore == nil || h.gameWorld == nil {
 		return
@@ -144,7 +151,8 @@ func (h *EquipHandler) summonItem(sess *session.Session, charServerID uint32, it
 		return
 	}
 	if count <= 0 {
-		count = summonCount(&pattern)
+		_, potion := h.potionOf(&pattern)
+		count = summonCount(&pattern, potion)
 	}
 	p := h.gameWorld.SessionPlayer(sess)
 	if p == nil || p.CharServerID != charServerID {
@@ -159,10 +167,14 @@ func (h *EquipHandler) summonItem(sess *session.Session, charServerID uint32, it
 }
 
 // summonCount is how many of an item a spell summons when its words say no
-// number.
-func summonCount(p *database.ItemPatternRecord) int {
-	if p.MaxStack == 3 {
-		return 3
+// number: three of a potion (an item with a use: jib, "a stack of 3" of a
+// draught, a quickening or a sublimation, and of the thrown mixtures, "It
+// also should come in stacks of 3, not one", F3 20261026-014336) or of
+// anything else that stacks to three, one of anything else (the magician's
+// Phase Staff).
+func summonCount(p *database.ItemPatternRecord, potion bool) int {
+	if potion || p.MaxStack == 3 {
+		return 3 // GiveItemNow makes three of an item that does not stack
 	}
 	return 1
 }

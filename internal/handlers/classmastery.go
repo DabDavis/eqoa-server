@@ -216,9 +216,9 @@ func b2u8(b bool) byte {
 	return 0
 }
 
-// cmBookOf is the abilities in the player's spell book, by lower-case name.
-func (h *ClassMasteryHandler) cmBookOf(p *entity.Player) map[string]bool {
-	out := map[string]bool{}
+// cmBookOf is the spells in the player's spell book, by id.
+func (h *ClassMasteryHandler) cmBookOf(p *entity.Player) map[int]bool {
+	out := map[int]bool{}
 	if h.book == nil || p == nil {
 		return out
 	}
@@ -228,7 +228,7 @@ func (h *ClassMasteryHandler) cmBookOf(p *entity.Player) map[string]bool {
 		return out
 	}
 	for _, e := range book {
-		out[strings.ToLower(strings.TrimSpace(e.Pattern.SpellName))] = true
+		out[e.Pattern.SpellID] = true
 	}
 	return out
 }
@@ -510,4 +510,65 @@ func MasteryRow(m entity.Mastery) database.MasteryRow {
 // PlayerMastery is a charmastery row as the player holds it.
 func PlayerMastery(r database.MasteryRow) entity.Mastery {
 	return entity.Mastery{Points: r.Points, Spent: r.Spent, Percent: r.Percent, XP: r.XP}
+}
+
+// GMLines is #cm: the masteries of the player the GM targets, else the GM's
+// own, with their points and what they give.
+func (h *ClassMasteryHandler) GMLines(sess *session.Session, objectID uint32) []string {
+	if h.gameWorld == nil {
+		return []string{"#cm: no world"}
+	}
+	who := h.gameWorld.CMSubject(sess, objectID)
+	lines := h.gameWorld.CMLines(who)
+	if len(lines) == 0 {
+		return []string{"#cm: not in the world"}
+	}
+	return append(lines, h.gameWorld.CMSummary())
+}
+
+// GMReset is #cmreset: every mastery of the player the GM targets (else the
+// GM's own) taken away and what they cost given back, the abilities they
+// added taken out and those they replaced given back, kept, and told to its
+// client (Recv06 a rank, then the points). What is said to the GM.
+func (h *ClassMasteryHandler) GMReset(sess *session.Session, objectID uint32) string {
+	if h.gameWorld == nil {
+		return "#cmreset: no world"
+	}
+	who := h.gameWorld.CMSubject(sess, objectID)
+	p := h.gameWorld.SessionPlayer(who)
+	if p == nil {
+		return "#cmreset: not in the world"
+	}
+	res := h.gameWorld.ResetCMs(who)
+	if res.Refusal != "" {
+		return "#cmreset: " + res.Refusal
+	}
+	if len(res.Removed) == 0 {
+		return fmt.Sprintf("%s has no masteries: %s", p.Name, entity.MasteryLine(res.Mastery))
+	}
+	if h.store != nil {
+		if err := h.store.RemoveCMs(p.CharServerID, res.Removed, MasteryRow(res.Mastery)); err != nil {
+			log.Printf("GM: #cmreset of '%s' not kept: %v", p.Name, err)
+			return fmt.Sprintf("%s's masteries were reset but not kept: %v", p.Name, err)
+		}
+	}
+	list := h.gameWorld.CMList(who, h.cmBookOf(p))
+	for _, id := range res.Removed {
+		if r := h.gameWorld.CMRankByID(id); r != nil {
+			h.takeAbilities(who, p, r.Adds)
+			h.giveAbilities(who, p, r.Removes)
+		}
+		queueReliable(who, protocol.OpcodeClassMasteryServer, cmBig(func(w *buffer.Writer) {
+			w.WriteByte(cmRespRemoved)
+			w.WriteUint32(0)
+			w.WriteUint32(uint32(id))
+			writeCMState(w, res.State, list)
+		}))
+	}
+	queueReliable(who, protocol.OpcodeClassMasteryServer, cmPoints(res.Mastery))
+	if who != sess {
+		SendColoredChat(who, fmt.Sprintf("A GM has reset your masteries: %d mastery points back.", res.Paid), 255, 255, 0)
+	}
+	log.Printf("GM: masteries of '%s' reset, %d ranks, %d points back (%s)", p.Name, len(res.Removed), res.Paid, entity.MasteryLine(res.Mastery))
+	return fmt.Sprintf("%s: %d masteries taken away, %d points back: %s", p.Name, len(res.Removed), res.Paid, entity.MasteryLine(res.Mastery))
 }

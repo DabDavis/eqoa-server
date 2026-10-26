@@ -56,7 +56,8 @@ type ChatHandler struct {
 	progress progressStore
 	purse    purseStore
 	template func(*session.Session) ([]string, error)
-	mastery  masteryStore // #grantcm's (mastery.go)
+	mastery  masteryStore         // #grantcm's (mastery.go)
+	cm       *ClassMasteryHandler // #cm's and #cmreset's (classmastery.go)
 
 	visuals spellVisualStore // #fx's and #spellfx's spells (spellfx.go)
 }
@@ -816,6 +817,24 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #grantcm <amount>: mastery points, never past 1500 in all
 		// (mastery.go)
 		h.grantMasteryCommand(sess, parts[1:])
+	case "#cm":
+		// #cm: the masteries the target (a player) or the GM bought
+		// (classmastery.go)
+		if h.cm == nil {
+			h.gmReply(sess, "#cm: masteries are not served here")
+			break
+		}
+		for _, l := range h.cm.GMLines(sess, player.TargetObjectID) {
+			h.gmReply(sess, l)
+		}
+	case "#cmreset":
+		// #cmreset: every mastery of the target (a player) or the GM taken
+		// away, what they cost given back
+		if h.cm == nil {
+			h.gmReply(sess, "#cmreset: masteries are not served here")
+			break
+		}
+		h.gmReply(sess, h.cm.GMReset(sess, player.TargetObjectID))
 	case "#aggro":
 		// #aggro [on|off]: whether creatures attack you on sight (aggrocmd.go)
 		h.aggroCommand(sess, parts[1:])
@@ -848,6 +867,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear active effects")
 		h.gmReply(sess, "  #faction <faction> [standing] - your standing with a faction, or set it")
 		h.gmReply(sess, "  #grantcm <amount> - mastery points, never past 1500 spent and unspent")
+		h.gmReply(sess, "  #cm - the masteries your target (a player) or you bought; #cmreset takes them all back, points returned")
 		h.gmReply(sess, "  #aggro [on|off] - whether creatures attack you on sight (off until #aggro on)")
 		h.gmReply(sess, "  #fx <visual> [seconds] | <spell> - play a spell visual (0x1DAEB5B6) on your target, nothing saved")
 		h.gmReply(sess, "  #spellfx <spell> [<visual> | 0] - a spell's visual, or give it one (0: its stand-in)")

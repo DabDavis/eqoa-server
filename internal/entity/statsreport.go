@@ -62,13 +62,14 @@ func (w *World) playerStatsLocked(p *Player, now time.Time) []string {
 		p.Name, p.Level, nameIn(raceNames, p.Race), nameIn(classNames, p.Class), archNames[a],
 		p.HP, p.MaxHPNow(), p.Power, p.MaxPowerNow())}
 
-	hp := CalculateMaxHP(p.Level, p.Class, p.StatNow(StatSta))
-	out = append(out, fmt.Sprintf("Max HP %d: %d from the level and STA, %+d items, %+d spells",
-		p.MaxHPNow(), hp, p.Gear.MaxHP, p.MaxHPNow()-hp-p.Gear.MaxHP))
+	c := &p.CMEffects
+	hp := p.maxHPFor(p.StatNow(StatSta))
+	out = append(out, fmt.Sprintf("Max HP %d: %d from the level and STA (HP factor %d), %+d items, %+d masteries, %+d spells",
+		p.MaxHPNow(), hp, hpFactor(p.Class)+c[cmSlotHPFactor], p.Gear.MaxHP, c[cmSlotHP], p.MaxHPNow()-hp-p.Gear.MaxHP-c[cmSlotHP]))
 	pw := CalculateMaxPower(p.Level, p.Class, p.StatNow(StatStr), p.StatNow(StatSta), p.StatNow(StatAgi),
 		p.StatNow(StatDex), p.StatNow(StatWis), p.StatNow(StatInt), p.StatNow(StatCha))
-	out = append(out, fmt.Sprintf("Max power %d: %d from the level and stats, %+d items, %+d spells",
-		p.MaxPowerNow(), pw, p.Gear.MaxPower, p.MaxPowerNow()-pw-p.Gear.MaxPower))
+	out = append(out, fmt.Sprintf("Max power %d: %d from the level and stats, %+d items, %+d masteries, %+d spells",
+		p.MaxPowerNow(), pw, p.Gear.MaxPower, c[cmSlotPower], p.MaxPowerNow()-pw-p.Gear.MaxPower-c[cmSlotPower]))
 	out = append(out, fmt.Sprintf("HoT %d every 6 s: %d base (max HP/50), %+d items (%d worn), %+d meals and spells, %+d masteries",
 		p.HoTNow(), p.HoTBase(), ItemCredit(p.Gear.HoTItems), len(p.Gear.HoTItems), p.Mods.HoT, p.CMEffects[cmSlotHoT]))
 	out = append(out, fmt.Sprintf("PoT %d every 6 s: %d base (max power/50), %+d items (%d worn), %+d drinks and spells, %+d masteries",

@@ -15,6 +15,11 @@ func (h *ChatHandler) SetMasteryStore(m masteryStore) {
 	h.mastery = m
 }
 
+// SetClassMastery gives #cm and #cmreset the masteries' handler.
+func (h *ChatHandler) SetClassMastery(cm *ClassMasteryHandler) {
+	h.cm = cm
+}
+
 // grantMasteryCommand is #grantcm <amount> (F3 20261025-165747): that many
 // mastery points more for the GM's own character, unspent, never past
 // entity.MasteryCap spent and unspent together (with 50 unspent and 50

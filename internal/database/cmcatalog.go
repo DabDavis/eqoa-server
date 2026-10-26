@@ -17,11 +17,15 @@ import (
 //     sub-ops 5, 2, 3) and the key its window chains ranks by; parent is the
 //     previous rank's id (0 for a first rank), which must be owned first.
 //   - classes and races are bit sets as itempattern's classuse and raceuse
-//     (bit 1<<class, 1<<race; 32767 every class, 1023 every race): who the
-//     rank is listed for. An archetype's rows carry its classes.
+//     (bit 1<<class, 1<<race; 32767 every class, 2047 every race, the
+//     froglok's 1<<10 included): who the rank is listed for. An archetype's
+//     rows carry its classes.
 //   - cost, level and spent (the points the character must have spent
 //     already) are the purchase's; minstats the base stats it needs
-//     ("STR:100,STA:150"); requires the abilities it needs, by name.
+//     ("STR:100,STA:150"); requires the abilities it needs ("Name@level;
+//     ...", shown) and require_spells the spellpattern ids they were found
+//     as, which the spell book must hold (a name not found is shown and not
+//     checked).
 //   - effects is what it gives, by EQOA-Data's stat names ("STR:1,STRMax:15",
 //     "HP Factor:1", "Pow:500", "HoT:5", "MovRate:5", resists "FR".."DR");
 //     adds and removes the abilities it gives and takes ("Name@level; ...",
@@ -35,7 +39,7 @@ const cmCatalogSchema = `
 		id            INTEGER PRIMARY KEY,
 		category      INTEGER NOT NULL DEFAULT 0,
 		classes       INTEGER NOT NULL DEFAULT 32767,
-		races         INTEGER NOT NULL DEFAULT 1023,
+		races         INTEGER NOT NULL DEFAULT 2047,
 		mastery       TEXT NOT NULL DEFAULT '',
 		rank          INTEGER NOT NULL DEFAULT 1,
 		name          TEXT NOT NULL DEFAULT '',
@@ -45,6 +49,7 @@ const cmCatalogSchema = `
 		spent         INTEGER NOT NULL DEFAULT 0,
 		minstats      TEXT NOT NULL DEFAULT '',
 		requires      TEXT NOT NULL DEFAULT '',
+		require_spells TEXT NOT NULL DEFAULT '',
 		effects       TEXT NOT NULL DEFAULT '',
 		adds          TEXT NOT NULL DEFAULT '',
 		add_spells    TEXT NOT NULL DEFAULT '',
@@ -77,7 +82,8 @@ type CMRankRow struct {
 	Rank                         int
 	Name                         string
 	Parent, Cost, Level, Spent   int
-	MinStats, Requires, Effects  string
+	MinStats, Effects            string
+	Requires, RequireSpells      string
 	Adds, AddSpells              string
 	Removes, RemoveSpells        string
 	Description                  string
@@ -88,7 +94,7 @@ type CMRankRow struct {
 // CMCatalog is every row of cmcatalog, by id order.
 func (db *SQLiteDB) CMCatalog() ([]CMRankRow, error) {
 	rows, err := db.Query(`SELECT id, category, classes, races, mastery, rank, name, parent, cost, level, spent,
-		minstats, requires, effects, adds, add_spells, removes, remove_spells, description, enabled, source
+		minstats, requires, require_spells, effects, adds, add_spells, removes, remove_spells, description, enabled, source
 		FROM cmcatalog ORDER BY id`)
 	if err != nil {
 		return nil, err
@@ -99,7 +105,7 @@ func (db *SQLiteDB) CMCatalog() ([]CMRankRow, error) {
 		var r CMRankRow
 		var enabled int
 		if err := rows.Scan(&r.ID, &r.Category, &r.Classes, &r.Races, &r.Mastery, &r.Rank, &r.Name, &r.Parent,
-			&r.Cost, &r.Level, &r.Spent, &r.MinStats, &r.Requires, &r.Effects, &r.Adds, &r.AddSpells,
+			&r.Cost, &r.Level, &r.Spent, &r.MinStats, &r.Requires, &r.RequireSpells, &r.Effects, &r.Adds, &r.AddSpells,
 			&r.Removes, &r.RemoveSpells, &r.Description, &enabled, &r.Source); err != nil {
 			return nil, err
 		}

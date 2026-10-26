@@ -556,6 +556,20 @@ var teleDests = map[string]teleDest{
 		X:   13000, Y: 400, Z: 23000, World: 9,
 		Label: "Widows Peak (world 9, HDD)",
 	},
+	// The Plane of Disease's arrival (the Secrets world, 5) and the Dead
+	// Hills (NW) of the Rathe (world 1), where Necrologist Zizclank sends a
+	// player there (waysender.go); the fallbacks are where tools/seed_pod.py
+	// puts them.
+	"pod": {
+		NPC: "Portal to the Dead Hills",
+		X:   5063, Y: -25.3, Z: 3881, World: 5,
+		Label: "the Plane of Disease (Portal to the Dead Hills)",
+	},
+	"deadhills": {
+		NPC: "Necrologist Zizclank",
+		X:   4280, Y: 97.8, Z: 6412, World: 1,
+		Label: "the Dead Hills (Necrologist Zizclank)",
+	},
 }
 
 // teleNames lists the shortcut names in a stable order — map iteration is

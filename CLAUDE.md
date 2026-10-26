@@ -444,31 +444,31 @@ member (the roster's id, `groupFarID`'s stand-in out of sight), the target and t
 target (the ids the entity channel's bytes 59-62 carry). Players only: an NPC has no power.
 A session that never asks (every PS2, a vanilla build from before it) is sent nothing.
 
-**Group and guild voice chat** (2026-10-26; `entity/voice.go`, `handlers/voice.go`; the user's
-choices: a group's voice, then "also add guild voice chat", push to talk, off until a player
-turns it on, relay-only for privacy). The clients speak WebRTC to each other with relay
-candidates only, through a TURN server (coturn with `use-auth-secret`), so no player learns
-another's address; the server mints credentials and relays the signaling, never the audio.
-Non-retail opcodes, offered as 0x7E01 is: at the first 0x0014 a server with voice
-(`voice.enabled`, `voice.turn_urls`, `voice.turn_secret`; `voice.credential_ttl`, 24h unset)
-sends **0x7E06** (a u32 1); a client answers a u32 of flags (bit 0 voice on, bit 1 in its
-guild's voice channel; 0 off), at once and whenever they change. Then **0x7E07**: each TURN URL
-with coturn's REST credentials (username `<unix expiry>:v<voice id>`, credential
-base64(HMAC-SHA1(secret, username)), `TurnCredential`) and the seconds they last, sent again a
-quarter of the TTL (at most an hour) before they run out; **0x7E08** whenever its set changes:
-each peer's voice id (random a session, never 0), name, whether this client makes the offer
-(the lower id offers) and the channels they share (bit 0 its group's other voice-on members,
-bit 1 the others in its guild's channel; one entry, one connection, a pair); **0x7E09**, the
-signaling (to/from voice id, seq, kind offer/answer/candidate/bye, part of parts, a chunk of at
-most 900 bytes), relayed only to one of the sender's peers, at most 50 messages and 64 KB a
-second a session, anything else dropped (logged once every 10 s a session). A guild's channel
-holds its first 10 to ask (`voiceGuildCap`, by the server's clock); the 11th is told "Your
-guild's voice channel is full (10)." once and gets in, told "You are in your guild's voice
-channel.", as soon as a place frees (a member's voice or wish off, a guild left, a logout:
-`voiceGuildChannelsLocked`, every voice pass, 5 ticks). Groups and guilds may span worlds.
-A session that never answers (every PS2) is sent the offer alone. The strings are a u16 byte
-length and UTF-8. EQOA's TURN is its own coturn instance beside another project's on another
-box; its secret lives only in the live `config.yaml`.
+**Voice chat** (2026-10-26; `internal/voice`, `entity/voice.go`, `handlers/voice.go`; the user's
+choices: a group's voice and "a free voice chat lobby, anyone can make a room", push to talk, off until
+a player turns it on, "build the voice sfu into the go-eqoa-server so it is one package"). A forwarding
+server (Pion, audio only) runs inside the game server: every voice-on client holds ONE WebRTC
+connection to it (its microphone sendonly; four recvonly slots on which it hears the four loudest of
+those talking to a channel it shares, a 1.5 s hold; each slot one stream, its SSRC its own, sequence
+numbers and timestamps rewritten across talkers, the talker's voice id the CSRC), so no player sees
+another's address and nothing is decoded. Media on ONE port, `voice.port` (3480): UDP (ICE mux) and
+ICE-TCP on the same number, every candidate naming `voice.public_ip` (unset: `server_ip`); an optional
+TURN server (`voice.turn.port`, pion/turn, REST credentials minted per session under
+`voice.turn.secret`, relaying to the forwarding server ONLY) for networks that allow little else.
+Opcodes in their own block, offered as 0x7E01 is (a PS2 ignores them): **0x7E10** offer / the client's
+flags (bit 0 on), **0x7E11** ICE servers (none without TURN), **0x7E12** roster (bit 0 a groupmate,
+bit 1 in its room), **0x7E13** signaling between the client and the forwarding server (chunked <= 900
+bytes, the client offers, the server says bye when it drops a connection, at a restart too),
+**0x7E14** lobby ops (join name + H + unlisted flag / leave / list), **0x7E15** the listed rooms,
+**0x7E16** a join's result. Rooms: 3-24 printable characters, case-folded, the profanity filter's
+(`ProfaneRoomName`), open or locked by a hash H the client brings (the server never sees a password,
+never logs H, and checks one wrong guess per 2 s), unlisted at its maker's choice, alive while occupied
+and 60 s after. A group is channel "g:<id>", kept in step every 5 ticks; leaving the world leaves the
+voice. **The demo** (`voice.demo.enabled`): the account server's `/api/voice/demo` WebSocket, JSON, for
+vanilla clients on a server without voice (Sandstorm); they vouch for themselves ("d:" channels, names
+shown " (demo)"), 100 at once and 4 an address (a /64), idle 10 minutes closed, sharing the lobby with
+the game's players. The wire formats are in `protocol/opcodes.go` and `internal/voice`'s comments; the
+TURN secret lives only in the live `config.yaml`.
 
 **Effects channel (0x43) is as long as its count**: a u32 count and a 132-byte record an effect (icon DictID, name as a wide string of at most 31 characters), 4 bytes when there is none, as CLIENT's `Channel43` reads it and every value in the captures is (136 to 796 bytes). It is the one state channel that changes length (`StateUpdateData.SetSizedData`; DRDP XORs over the shorter of a message and its reference). `#effect <icon hex> [name]` / `#effect clear` sets them by hand: nothing else puts an effect on yet.
 
@@ -485,6 +485,25 @@ server:
 ```
 
 `server_ip` used by: `internal/handlers/server.go` (server list), `internal/network/tcp/patchserver.go` (patch XML).
+
+Voice (internal/voice; off unless enabled; the firewall opens UDP and TCP on `port`, and with TURN
+on `turn.port` too, plus UDP on its relay ports):
+
+```yaml
+voice:
+  enabled: true
+  port: 3480              # the media port, UDP and TCP, on server.bind_address
+  public_ip: ""           # unset: server.server_ip
+  turn:                   # optional TURN server: off unless port is set
+    port: 3481
+    secret: "<never committed>"
+    relay_min_port: 49400 # unset: 49400-50399
+    relay_max_port: 50399
+  credential_ttl: 24h
+  demo:
+    enabled: false        # the account server's /api/voice/demo
+    max_sessions: 100
+```
 
 ### The patch manifest is a FOLDER
 

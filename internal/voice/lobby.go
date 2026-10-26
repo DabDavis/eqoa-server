@@ -169,15 +169,17 @@ func (s *Server) expireRoomsLocked(now time.Time) {
 	}
 }
 
-// Lobby lists the rooms (an unlisted one never), most members first, at
-// most 200.
+// Lobby lists the rooms with anyone in them (an unlisted one never), most
+// members first, at most 200. An empty room's minute keeps its name and lock
+// for those coming back, out of the list: a room of "0 people" read as a
+// dead one (F3 pass 18, the voice window's two-client run).
 func (s *Server) Lobby() []Room {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.expireRoomsLocked(s.clock())
 	out := make([]Room, 0, len(s.rooms))
 	for _, r := range s.rooms {
-		if !r.unlisted {
+		if !r.unlisted && r.members > 0 {
 			out = append(out, Room{Name: r.name, Members: r.members, Locked: r.hash != ""})
 		}
 	}

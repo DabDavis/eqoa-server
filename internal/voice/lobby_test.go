@@ -96,22 +96,33 @@ func TestRoomsOpenAndLocked(t *testing.T) {
 	}
 }
 
-// A room lives while anyone is in it and 60 s after: its lock still holds
-// in that minute (a wrong H refused), then the name is free to make anew.
+// A room lives while anyone is in it and 60 s after: in that minute it is
+// out of the list (no "0 people" room) but its lock still holds (a wrong H
+// refused) and its own come back into it; then the name is free to make anew.
 func TestAnEmptyRoomGoesAfterAMinute(t *testing.T) {
 	s, clk := newLobbyServer(t)
 	a, b := s.Join("A", "", newTestSink()), s.Join("B", "", newTestSink())
 	h := roomH("Camp", "pw")
 	s.JoinRoom(a, "Camp", h, false)
+	if got, ok := lobbyOf(s)["Camp"]; !ok || got.Members != 1 {
+		t.Fatalf("the control: listed with its one member: %+v %v", got, ok)
+	}
 	s.LeaveRoom(a)
 	clk.t = clk.t.Add(59 * time.Second)
-	if got, ok := lobbyOf(s)["Camp"]; !ok || got.Members != 0 {
-		t.Fatalf("59 s after it emptied: %+v %v", got, ok)
+	if got, ok := lobbyOf(s)["Camp"]; ok {
+		t.Fatalf("59 s after it emptied it is listed: %+v", got)
 	}
 	if r, _ := s.JoinRoom(b, "Camp", "", false); r != RoomWrongPassword {
 		t.Fatalf("its lock in its last minute: %d", r)
 	}
-	clk.t = clk.t.Add(2 * time.Second)
+	if r, _ := s.JoinRoom(a, "Camp", h, false); r != RoomIn {
+		t.Fatalf("its own back in its last minute: %d", r)
+	}
+	if got, ok := lobbyOf(s)["Camp"]; !ok || got.Members != 1 || !got.Locked {
+		t.Fatalf("listed again with its member back: %+v %v", got, ok)
+	}
+	s.LeaveRoom(a)
+	clk.t = clk.t.Add(61 * time.Second)
 	if _, ok := lobbyOf(s)["Camp"]; ok {
 		t.Fatal("61 s after it emptied it is still listed")
 	}
@@ -123,8 +134,8 @@ func TestAnEmptyRoomGoesAfterAMinute(t *testing.T) {
 	}
 	// a session leaving the voice leaves its room
 	s.Leave(b, false)
-	if got := lobbyOf(s)["Camp"]; got.Members != 0 {
-		t.Fatalf("after its one member left the voice: %+v", got)
+	if got, ok := lobbyOf(s)["Camp"]; ok {
+		t.Fatalf("after its one member left the voice it is listed: %+v", got)
 	}
 }
 

@@ -237,7 +237,7 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 	if e1 != nil || e2 != nil {
 		return nil
 	}
-	var looted []int
+	var looted []lootTake
 	var player *entity.Player
 	defer func() { tellQuestsLooted(sess, player, looted) }() // after the lock (questloot.go)
 	ls := h.loots()
@@ -265,7 +265,7 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 		} else {
 			queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k))
 			ls.tookLocked(id, c, char, i, took)
-			looted = append(looted, rec.Pattern.PatternID)
+			looted = append(looted, lootTake{rec.Pattern.PatternID, took})
 			log.Printf("Loot: %s took %d %q", player.Name, took, rec.Pattern.ItemName)
 		}
 	}
@@ -276,7 +276,7 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 // HandleLootAll is 0x001A (RequestLootAll): 0x001A back, and the server does
 // what Msg001A does on the client, record by record.
 func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Message) error {
-	var looted []int
+	var looted []lootTake
 	var player *entity.Player
 	defer func() { tellQuestsLooted(sess, player, looted) }() // after the lock (questloot.go)
 	ls := h.loots()
@@ -304,7 +304,7 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 		}
 		if took > 0 {
 			ls.tookLocked(id, c, char, i, took)
-			looted = append(looted, rec.Pattern.PatternID)
+			looted = append(looted, lootTake{rec.Pattern.PatternID, took})
 		}
 		if took != rec.StackLeft {
 			i++

@@ -766,8 +766,8 @@ var catalog = map[string]tableNote{
 		Help: "A quest's steps in order (step 1, 2, ...). kind talk: talk to the NPC named target (answering it when answer " +
 			"is set); show: talk to it holding items, which are kept; give: hand that NPC items (patternid*count, comma " +
 			"separated) and tunar, which are taken; kill: kill count creatures " +
-			"named target; loot: kill creatures named target until count of the item in items are held, each kill dropping " +
-			"one on the corpse with chance for a player on the step; reach: come within radius of x, y, z in world. journal is " +
+			"named target; loot: kill creatures named target until count of the item in items are taken off their corpses " +
+			"during the step, each kill dropping one on the corpse with chance for a player on the step; reach: come within radius of x, y, z in world. journal is " +
 			"the journal's line while it is the step to do; says is the NPC's words when it is done; the rewards are given " +
 			"then; events are what happens when it becomes the step to do (start) and when it is done (done).",
 		Live:   "At once: the next talk, kill or step uses it.",

@@ -786,7 +786,7 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 			}
 			st := qu.Step(cq.Step)
 			if st != nil && st.Kind == database.StepLoot && stepNPC(st, k.NPCName, k.NPCSpawn) {
-				q.lootKillLocked(k, kp, qu, st) // questevents.go
+				q.lootKillLocked(k, kp, qu, cq, st) // questevents.go
 				continue
 			}
 			if st == nil || st.Kind != database.StepKill || !stepNPC(st, k.NPCName, k.NPCSpawn) {

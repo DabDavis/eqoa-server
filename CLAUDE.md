@@ -278,14 +278,17 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   "Take the N in the game out" for what the filters show (a dry run's dialog first), and on a quest's page
   "Where it stands" with its chain and Put in / Take out. A GM's mended draft goes in from the panel at once; the
   importer's re-run (server stopped) is for new content files, and leaves a quest a GM has changed alone.
-- **The map's XP camps and coaches** (`ops_maplayers.go`, `views/map.js`; F3 pass 18, the user's "add the camps and
-  coaches to the GM panel map too"): two layers, each a toggle kept in the browser: the #tele camps as an XP badge
-  (`handlers.CampMarkers`: where the anchor stands now, else as written; hover: levels, the guide's, EQOA-Data's
-  note; click: the creatures, rare mobs, the loot tables they roll by `map_camp`, a teleport to the camp) and the
-  coachmen as a horseshoe drawn by the page (`World.CoachMarkers`: the town, the coach menu's towns, the live game's
-  routes off EQOA-Data's coach map in `entity/coachroutes.go`, written by `tools/gen_coach_routes.py`; click: the
-  NPC's page, a teleport). `tools/gen_camp_teles.py` writes each camp's notes beside its shortcut (`campNotes`).
-  No game data: the places and names are the server's own.
+- **The map's layers: XP camps, coaches, quest givers, towns** (`ops_maplayers.go`, `views/map.js`; F3 pass 18, the
+  user's "add the camps and coaches to the GM panel map too", then quest givers, coach routes and town names), each
+  a toggle kept in the browser. The #tele camps as an XP badge (`handlers.CampMarkers`: where the anchor stands now,
+  else as written; click: the creatures, rare mobs, the loot tables they roll by `map_camp`, a teleport); the
+  coachmen as the stables' own horseshoe, read off the GM's disc by the worker (`zoneSurface`: TUNARIA.ESF's surface
+  0x9BE57886, kept in IndexedDB; a drawn one until then), with `World.CoachMarkers`' towns, the coach menu's and the
+  live game's routes (EQOA-Data's coach map, `entity/coachroutes.go` by `tools/gen_coach_routes.py`) drawn as lines
+  under every marker, a selected coach's lit; the quest givers as a "!" (`map_quests` over `questindex.go`: gold with
+  a quest in the game, grey with drafts only; click: its quests, the NPCs its steps send players to); the town names
+  over everything, decluttered (`handlers.TownMarks`: Tunaria's `coachTowns`, Odus's `mapTowns` by its fit, which
+  `tools/gen_camp_teles.py` writes beside each camp's `campNotes`). No game data: places and names are the server's.
 - **NPC paths** (`ops_paths.go`, `static/views/paths.js`): the World map's path editor (an NPC's Path…, or
   Path on the map on its page: `#/map/<world>/<npc>/path`): click to add points, drag to move, click a
   line to insert, Delete to remove; mode, pause, speed; Save, Revert, Remove path; the view fits the path,

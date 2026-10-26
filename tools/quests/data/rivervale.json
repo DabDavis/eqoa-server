@@ -117,7 +117,7 @@
      "items": [
       {
        "item": "broken raven feathers",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -242,7 +242,7 @@
     }
    ],
    "unresolved": [
-    "npc: Merchant Fretwater"
+    "Merchant Fretwater"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Merchant Fretwater is not in the database. The guide does not name the weapon, so none is given."
   },
@@ -383,7 +383,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -468,7 +469,8 @@
        "do": "popup",
        "text": "At the top of the tower, Jilo is surrounded by goblins."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "kill",
@@ -566,7 +568,7 @@
     }
    ],
    "unresolved": [
-    "creature: Suspicious Goblin"
+    "Suspicious Goblin"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 13; github.com/Jadiction/EQOA-Data). The Ward Death scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
@@ -632,7 +634,7 @@
      "items": [
       {
        "item": "Goblin Anklet",
-       "count": 1
+       "count": 4
       }
      ],
      "count": 4,
@@ -792,7 +794,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -819,7 +822,8 @@
        "do": "popup",
        "text": "You open the jar and the bees fly out into Phil Wiggins's house."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -887,8 +891,8 @@
     }
    ],
    "unresolved": [
-    "npc: Barnimus Giggletoes",
-    "npc: Stalis Slithertonuge"
+    "Barnimus Giggletoes",
+    "Stalis Slithertonuge"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). Barnimus Giggletoes and Phil Wiggins (Merry-by-Water) and Stalis Slithertonuge (south of Kithicor) are not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
   },
@@ -1008,7 +1012,7 @@
      "items": [
       {
        "item": "bat meat",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -1133,7 +1137,7 @@
     }
    ],
    "unresolved": [
-    "npc: Merchant Fretwater"
+    "Merchant Fretwater"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Merchant Fretwater is not in the database. The raven's beak is the database's chipped raven beak, the rat fur its Strands of Rat Fur. The guide does not name the weapon."
   },
@@ -1258,7 +1262,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -1283,7 +1288,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -1467,7 +1473,7 @@
     }
    ],
    "unresolved": [
-    "creature: Goblin Foreman"
+    "Goblin Foreman"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not say what the foreman carries: a mallet is ours. The Regenerative Aura scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
   },
@@ -1533,7 +1539,7 @@
      "items": [
       {
        "item": "Goblin Talisman",
-       "count": 1
+       "count": 4
       }
      ],
      "count": 4,
@@ -1693,7 +1699,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -1720,7 +1727,8 @@
        "do": "popup",
        "text": "You open the jar and the bees fly out into Phil Wiggins's house."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -1788,8 +1796,8 @@
     }
    ],
    "unresolved": [
-    "npc: Barnimus Giggletoes",
-    "npc: Stalis Slithertonuge"
+    "Barnimus Giggletoes",
+    "Stalis Slithertonuge"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 20; github.com/Jadiction/EQOA-Data). Barnimus Giggletoes and Phil Wiggins (Merry-by-Water) and Stalis Slithertonuge (south of Kithicor) are not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
   },
@@ -1909,7 +1917,7 @@
      "items": [
       {
        "item": "Strands of Rat Fur",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -2135,7 +2143,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -2167,7 +2176,8 @@
        "do": "popup",
        "text": "You tuck the extra bag back into the hollowed tree trunk."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -2227,7 +2237,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -2252,7 +2263,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -2277,7 +2289,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -2302,7 +2315,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -2474,7 +2488,8 @@
        "do": "popup",
        "text": "You slip the goblin courier's plans into the sheriff's locker."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -2487,7 +2502,7 @@
     }
    ],
    "unresolved": [
-    "creature: goblin courier"
+    "goblin courier"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The windmills', the locker's places are EQOA-Data's map's. Mrs. Ghobber is Sophie Ghobber, Old Lady Gubbin is Grandma Gubbin, Mrs. Earblower is Zarene Earblower. The plans stay with you after the locker (a reach step takes no items)."
   },
@@ -2553,7 +2568,7 @@
      "items": [
       {
        "item": "Goblin Pickaxe",
-       "count": 1
+       "count": 4
       }
      ],
      "count": 4,
@@ -2580,7 +2595,7 @@
     }
    ],
    "unresolved": [
-    "creature: goblin digger"
+    "goblin digger"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 13; github.com/Jadiction/EQOA-Data). Nina Bimberry is the database's Nena Bimberry. The Night Breath scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L7: L10 before it is a draft until its names are in the database."
   },
@@ -2646,7 +2661,7 @@
      "items": [
       {
        "item": "Goblin Belt",
-       "count": 1
+       "count": 4
       }
      ],
      "count": 4,
@@ -2806,7 +2821,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -2833,7 +2849,8 @@
        "do": "popup",
        "text": "You open the jar and the bees fly out into Phil Wiggins's house."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -2901,8 +2918,8 @@
     }
    ],
    "unresolved": [
-    "npc: Barnimus Giggletoes",
-    "npc: Stalis Slithertonuge"
+    "Barnimus Giggletoes",
+    "Stalis Slithertonuge"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Barnimus Giggletoes and Phil Wiggins (Merry-by-Water) and Stalis Slithertonuge (south of Kithicor) are not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
   },
@@ -3022,7 +3039,7 @@
      "items": [
       {
        "item": "Strands of Rat Fur",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -3248,7 +3265,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -3280,7 +3298,8 @@
        "do": "popup",
        "text": "You tuck the extra bag back into the hollowed tree trunk."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -3340,7 +3359,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -3365,7 +3385,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -3390,7 +3411,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -3415,7 +3437,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -3587,7 +3610,8 @@
        "do": "popup",
        "text": "You slip the goblin courier's plans into the sheriff's locker."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -3600,7 +3624,7 @@
     }
    ],
    "unresolved": [
-    "creature: goblin courier"
+    "goblin courier"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The windmills', the locker's places are EQOA-Data's map's. Mrs. Ghobber is Sophie Ghobber, Old Lady Gubbin is Grandma Gubbin, Mrs. Earblower is Zarene Earblower. The plans stay with you after the locker (a reach step takes no items)."
   },
@@ -3666,7 +3690,7 @@
      "items": [
       {
        "item": "Goblin Pickaxe",
-       "count": 1
+       "count": 4
       }
      ],
      "count": 4,
@@ -3693,7 +3717,7 @@
     }
    ],
    "unresolved": [
-    "creature: goblin digger"
+    "goblin digger"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 13; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. Nina Bimberry is the database's Nena Bimberry. The Rapid Strike scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L7: L10 before it is a draft until its names are in the database."
   },
@@ -3759,7 +3783,7 @@
      "items": [
       {
        "item": "Goblin Belt",
-       "count": 1
+       "count": 4
       }
      ],
      "count": 4,
@@ -3919,7 +3943,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -3946,7 +3971,8 @@
        "do": "popup",
        "text": "You open the jar and the bees fly out into Phil Wiggins's house."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -4014,8 +4040,8 @@
     }
    ],
    "unresolved": [
-    "npc: Barnimus Giggletoes",
-    "npc: Stalis Slithertonuge"
+    "Barnimus Giggletoes",
+    "Stalis Slithertonuge"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). Barnimus Giggletoes and Phil Wiggins (Merry-by-Water) and Stalis Slithertonuge (south of Kithicor) are not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's stop at Darm Leafsway is left out. The guide's final choice of reward is not in: the quest gives its experience only."
   }

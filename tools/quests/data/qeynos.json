@@ -117,7 +117,7 @@
      "items": [
       {
        "item": "sliver of bat meat",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -342,7 +342,8 @@
        "do": "popup",
        "text": "You find the missing guard's tracks, and his fate. Lieutenant Geebis must hear of it."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -489,9 +490,9 @@
     }
    ],
    "unresolved": [
-    "creature: Gorbrash Strongarm",
-    "npc: Duke Geoff Melnorn",
-    "npc: Wilwalt"
+    "Gorbrash Strongarm",
+    "Duke Geoff Melnorn",
+    "Wilwalt"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). Wilwalt, Duke Geoff Melnorn and Gorbrash Strongarm are not in the database; the coastline's bandits are the database's bandits."
   },
@@ -894,7 +895,7 @@
     }
    ],
    "unresolved": [
-    "creature: Gugluk"
+    "Gugluk"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. The abomination's shackles are the database's abomination's hide. Gugluk is not in the database. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of reward is not in: the quest gives its experience only."
   },
@@ -1014,7 +1015,7 @@
      "items": [
       {
        "item": "Cracked Rat Claw",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -1248,8 +1249,8 @@
     }
    ],
    "unresolved": [
-    "creature: undead wolf pup",
-    "npc: Brother Pendle"
+    "undead wolf pup",
+    "Brother Pendle"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/cleric.json, Level 7; github.com/Jadiction/EQOA-Data). Hagley's people (Brother Pendle, Sheriff Lordun, Dilana, Tarnina, Duke and Duchess Melnorn, Merchant Dwindel) are not in the database. The undead wolf pups are not in the database either. The Endure Ailment scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
@@ -1376,7 +1377,7 @@
     }
    ],
    "unresolved": [
-    "creature: plague wolf"
+    "plague wolf"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/cleric.json, Level 10; github.com/Jadiction/EQOA-Data). Defender Morlon is the database's Defender Morion. The plague wolves are not in the database. It follows L5: L7 before it is a draft until its names are in the database. Reward left out (not in the database): item Battered Defender's Club."
   },
@@ -1434,7 +1435,7 @@
      "items": [
       {
        "item": "Black Widow Silk",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -1495,7 +1496,7 @@
     }
    ],
    "unresolved": [
-    "npc: old woman"
+    "old woman"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/cleric.json, Level 13; github.com/Jadiction/EQOA-Data). Innkeeper Martha is the database's Innkeep Martha. The old woman of Jethro's Cast is not in the database, nor are her black widows, beetles, vipers and wolves near her house. The Ward Death scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10 before it are drafts until its names are in the database."
   },
@@ -1623,8 +1624,8 @@
     }
    ],
    "unresolved": [
-    "npc: Brother Pendle",
-    "npc: Grave Digger Joe"
+    "Brother Pendle",
+    "Grave Digger Joe"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/cleric.json, Level 15; github.com/Jadiction/EQOA-Data). Brother Pendle (Hagley) and Grave Digger Joe (Melton) are not in the database. Dovre's remains come from Dovre the Unfaithful, in the tomb. The Endure Affliction scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10, L13 before it are drafts until its names are in the database."
   },
@@ -1876,7 +1877,7 @@
      "items": [
       {
        "item": "ruined bat wing",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -2121,7 +2122,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -2152,7 +2154,7 @@
     }
    ],
    "unresolved": [
-    "npc: Tarnina"
+    "Tarnina"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/wizard.json, Level 7; github.com/Jadiction/EQOA-Data). Hagley's people (Brother Pendle, Sheriff Lordun, Dilana, Tarnina, Duke and Duchess Melnorn, Merchant Dwindel) are not in the database. The portal's place is EQOA-Data's map's (it is not in the database, and opens at any hour here). The Burning Flare scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
@@ -2276,10 +2278,10 @@
     }
    ],
    "unresolved": [
-    "creature: darkpaw sargeant",
-    "creature: gnoll thief",
-    "npc: Foreman Gerald",
-    "npc: Master Nuzaon Sivrendal"
+    "darkpaw sargeant",
+    "gnoll thief",
+    "Foreman Gerald",
+    "Master Nuzaon Sivrendal"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/wizard.json, Level 10; github.com/Jadiction/EQOA-Data). Master Nuzaon Sivrendal, Foreman Gerald, the gnoll thief and the Darkpaw sargeant are not in the database. It follows L5: L7 before it is a draft until its names are in the database. Reward left out (not in the database): item Small Stiletto."
   },
@@ -2337,7 +2339,7 @@
      "items": [
       {
        "item": "Black Widow Silk",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -2398,7 +2400,7 @@
     }
    ],
    "unresolved": [
-    "npc: old woman"
+    "old woman"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/wizard.json, Level 13; github.com/Jadiction/EQOA-Data). Innkeeper Martha is the database's Innkeep Martha. The old woman of Jethro's Cast is not in the database, nor are her black widows, beetles, vipers and wolves near her house. The Element Guard scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10 before it are drafts until its names are in the database."
   },
@@ -2526,9 +2528,9 @@
     }
    ],
    "unresolved": [
-    "creature: Minia the Twisted",
-    "npc: Brother Pendle",
-    "npc: Grave Digger Joe"
+    "Minia the Twisted",
+    "Brother Pendle",
+    "Grave Digger Joe"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/wizard.json, Level 15; github.com/Jadiction/EQOA-Data). Brother Pendle (Hagley) and Grave Digger Joe (Melton) are not in the database. Minia the Twisted is not in the database. The Shocking Gaze scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10, L13 before it are drafts until its names are in the database."
   },
@@ -2786,7 +2788,7 @@
      "items": [
       {
        "item": "Cracked Rat Claw",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -3025,7 +3027,7 @@
     }
    ],
    "unresolved": [
-    "npc: Sheriff Lordun"
+    "Sheriff Lordun"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/paladin.json, Level 7; github.com/Jadiction/EQOA-Data). Hagley's people (Brother Pendle, Sheriff Lordun, Dilana, Tarnina, Duke and Duchess Melnorn, Merchant Dwindel) are not in the database. The Protectorate scroll is the class's level 7 spell, the scroll the guides that name one give for this quest. Reward left out (not in the database): item Squire's Bracers."
   },
@@ -3142,8 +3144,8 @@
     }
    ],
    "unresolved": [
-    "creature: darkpaw seer",
-    "npc: Guard Opheena"
+    "darkpaw seer",
+    "Guard Opheena"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/paladin.json, Level 10; github.com/Jadiction/EQOA-Data). Guard Opheena and the Darkpaw seer are not in the database. It follows L5: L7 before it is a draft until its names are in the database. Reward left out (not in the database): item Guard's Claymore."
   },
@@ -3201,7 +3203,7 @@
      "items": [
       {
        "item": "Black Widow Silk",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -3262,7 +3264,7 @@
     }
    ],
    "unresolved": [
-    "npc: old woman"
+    "old woman"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/paladin.json, Level 13; github.com/Jadiction/EQOA-Data). Innkeeper Martha is the database's Innkeep Martha. The old woman of Jethro's Cast is not in the database, nor are her black widows, beetles, vipers and wolves near her house. The Towering Wall scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10 before it are drafts until its names are in the database."
   },
@@ -3387,9 +3389,9 @@
     }
    ],
    "unresolved": [
-    "creature: Wyna the Hateful",
-    "npc: Brother Pendle",
-    "npc: Grave Digger Joe"
+    "Wyna the Hateful",
+    "Brother Pendle",
+    "Grave Digger Joe"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/paladin.json, Level 15; github.com/Jadiction/EQOA-Data). Brother Pendle (Hagley) and Grave Digger Joe (Melton) are not in the database. Wyna the Hateful is not in the database. The Knight's Bash scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10, L13 before it are drafts until its names are in the database. Reward left out (not in the database): item Etched Knight's Boots."
   },
@@ -3641,7 +3643,7 @@
      "items": [
       {
        "item": "Smashed Badger Eye",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -3875,7 +3877,7 @@
     }
    ],
    "unresolved": [
-    "creature: Nubja"
+    "Nubja"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/monk.json, Level 7; github.com/Jadiction/EQOA-Data). Nubja is not in the database. The guide does not say who takes the horn: Dushaun Anju is ours. The Sprint scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
@@ -3941,8 +3943,8 @@
     }
    ],
    "unresolved": [
-    "creature: Rory Redface",
-    "npc: Duke Geoff Melnorn"
+    "Rory Redface",
+    "Duke Geoff Melnorn"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/monk.json, Level 10; github.com/Jadiction/EQOA-Data). Hagley's people (Brother Pendle, Sheriff Lordun, Dilana, Tarnina, Duke and Duchess Melnorn, Merchant Dwindel) are not in the database. Rory Redface is not in the database either. It follows L5: L7 before it is a draft until its names are in the database. Reward left out (not in the database): item Brass Knuckles."
   },
@@ -4154,7 +4156,7 @@
     }
    ],
    "unresolved": [
-    "creature: Kithicor Thug"
+    "Kithicor Thug"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/monk.json, Level 15; github.com/Jadiction/EQOA-Data). The thieves (the guide's Kithicor thug) are not in the database. The Bandage scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. Reward left out (not in the database): item Earthen Gi."
   },
@@ -4328,9 +4330,10 @@
     }
    ],
    "unresolved": [
-    "creature: Grend Darkmaw"
+    "Grend Darkmaw",
+    "Furdle Nimdar (attackable)"
    ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/monk.json, Level 20; github.com/Jadiction/EQOA-Data). Grend Darkmaw is not in the database. The guide's final choice of reward is not in: the quest gives its experience only. It follows L13: L15 before it is a draft until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/monk.json, Level 20; github.com/Jadiction/EQOA-Data). Grend Darkmaw is not in the database. The guide's final choice of reward is not in: the quest gives its experience only. It follows L13: L15 before it is a draft until its names are in the database. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable."
   },
   {
    "key": "1-20/qeynos/rogue/L1",
@@ -4377,7 +4380,7 @@
     }
    ],
    "unresolved": [
-    "npc: Snyde Cragsmear"
+    "Snyde Cragsmear"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/rogue.json, Level 1; github.com/Jadiction/EQOA-Data). Snyde Cragsmear, the guildmaster, is not in the database."
   },
@@ -4421,7 +4424,7 @@
     }
    ],
    "unresolved": [
-    "npc: Snyde Cragsmear"
+    "Snyde Cragsmear"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/rogue.json, Level 2; github.com/Jadiction/EQOA-Data). Snyde Cragsmear is not in the database. It follows nothing: L1 before it is a draft until its names are in the database."
   },
@@ -4448,7 +4451,7 @@
      "items": [
       {
        "item": "Smashed Badger Eye",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -4660,7 +4663,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -4704,8 +4708,8 @@
     }
    ],
    "unresolved": [
-    "npc: Dilana",
-    "npc: Snyde Cragsmear"
+    "Dilana",
+    "Snyde Cragsmear"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/rogue.json, Level 7; github.com/Jadiction/EQOA-Data). Hagley's people (Brother Pendle, Sheriff Lordun, Dilana, Tarnina, Duke and Duchess Melnorn, Merchant Dwindel) are not in the database. The gem's place is EQOA-Data's map's. The Acrobatics scroll is the class's level 7 spell, the scroll the guides that name one give for this quest. Reward left out (not in the database): item Black Padded Leggings."
   },
@@ -4819,8 +4823,8 @@
     }
    ],
    "unresolved": [
-    "npc: Mildred Morath",
-    "npc: Snyde Cragsmear"
+    "Mildred Morath",
+    "Snyde Cragsmear"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). Snyde Cragsmear and Mildred Morath are not in the database. The chests are the database's Sand Covered Chest and Treasure Chest, and Naerlik its Nearlik. It follows L5: L7 before it is a draft until its names are in the database. Reward left out (not in the database): item Crow's Parrying Dagger."
   },
@@ -4878,7 +4882,7 @@
      "items": [
       {
        "item": "Black Widow Silk",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -4939,8 +4943,8 @@
     }
    ],
    "unresolved": [
-    "npc: Snyde Cragsmear",
-    "npc: old woman"
+    "Snyde Cragsmear",
+    "old woman"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/rogue.json, Level 13; github.com/Jadiction/EQOA-Data). Innkeeper Martha is the database's Innkeep Martha. The old woman of Jethro's Cast is not in the database, nor are her black widows, beetles, vipers and wolves near her house. Snyde Cragsmear is not in the database. Jasmine is the database's Merchant Jasmine. The Night Breath scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10 before it are drafts until its names are in the database."
   },
@@ -5068,9 +5072,9 @@
     }
    ],
    "unresolved": [
-    "creature: Gilen the Dark Piper",
-    "npc: Brother Pendle",
-    "npc: Grave Digger Joe"
+    "Gilen the Dark Piper",
+    "Brother Pendle",
+    "Grave Digger Joe"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/rogue.json, Level 15; github.com/Jadiction/EQOA-Data). Brother Pendle (Hagley) and Grave Digger Joe (Melton) are not in the database. Gilen the Dark Piper is not in the database. The Vaulter's Balance scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L5: L7, L10, L13 before it are drafts until its names are in the database."
   },
@@ -5322,7 +5326,7 @@
      "items": [
       {
        "item": "cracked firebeetle mandible",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -5612,7 +5616,7 @@
      "items": [
       {
        "item": "Thick Coat Wolf Pelt",
-       "count": 1
+       "count": 4
       }
      ],
      "count": 4,
@@ -5735,8 +5739,8 @@
     }
    ],
    "unresolved": [
-    "creature: Vithara Swiftpaw",
-    "creature: thick coat wolf"
+    "Vithara Swiftpaw",
+    "thick coat wolf"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/bard.json, Level 10; github.com/Jadiction/EQOA-Data). The thick coat wolves and Vithara Swiftpaw are not in the database. Reward left out (not in the database): item Messenger's Blade."
   },
@@ -6139,7 +6143,7 @@
     }
    ],
    "unresolved": [
-    "creature: Gugluk"
+    "Gugluk"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/bard.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. The abomination's shackles are the database's abomination's hide. Gugluk is not in the database. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of reward is not in: the quest gives its experience only."
   },
@@ -6259,7 +6263,7 @@
      "items": [
       {
        "item": "ruined bat wing",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -6286,7 +6290,7 @@
     }
    ],
    "unresolved": [
-    "npc: Selathan Wierdling"
+    "Selathan Wierdling"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/enchanter.json, Level 3; github.com/Jadiction/EQOA-Data). Selathan Wierdling is not in the database. The Crawling Skin scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
   },
@@ -6380,7 +6384,7 @@
     }
    ],
    "unresolved": [
-    "npc: Selathan Wierdling"
+    "Selathan Wierdling"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/enchanter.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. It follows L2: L3 before it is a draft until its names are in the database."
   },
@@ -6436,7 +6440,7 @@
     }
    ],
    "unresolved": [
-    "npc: Selathan Wierdling"
+    "Selathan Wierdling"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/enchanter.json, Level 5; github.com/Jadiction/EQOA-Data). The gnoll leaders northeast of Qeynos are the database's Fippy, Tippy, Lippy and Welsish Darkpaw: Fippy stands for them. The Heavy Arms scroll is the class's level 5 spell, the scroll the guides that name one give for this quest. It follows L2: L3, L4 before it are drafts until its names are in the database."
   },
@@ -6507,7 +6511,7 @@
     }
    ],
    "unresolved": [
-    "creature: Nubja"
+    "Nubja"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/enchanter.json, Level 7; github.com/Jadiction/EQOA-Data). Nubja is not in the database. The Endure Arcane scroll is the class's level 7 spell, the scroll the guides that name one give for this quest. It follows L2: L3, L4, L5 before it are drafts until its names are in the database."
   },
@@ -6576,8 +6580,8 @@
     }
    ],
    "unresolved": [
-    "creature: Rory Redface",
-    "npc: Duchess Olinda Melnorn"
+    "Rory Redface",
+    "Duchess Olinda Melnorn"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/enchanter.json, Level 10; github.com/Jadiction/EQOA-Data). Hagley's people (Brother Pendle, Sheriff Lordun, Dilana, Tarnina, Duke and Duchess Melnorn, Merchant Dwindel) are not in the database. Rory Redface is not in the database either. It follows L2: L3, L4, L5, L7 before it are drafts until its names are in the database."
   },
@@ -6777,7 +6781,7 @@
     }
    ],
    "unresolved": [
-    "creature: Kithicor Thug"
+    "Kithicor Thug"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/enchanter.json, Level 15; github.com/Jadiction/EQOA-Data). The thieves (the guide's Kithicor thug) are not in the database. The Alarming Visage scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. Reward left out (not in the database): item Ambassador's Tunic."
   },
@@ -6951,9 +6955,10 @@
     }
    ],
    "unresolved": [
-    "creature: Grend Darkmaw"
+    "Grend Darkmaw",
+    "Furdle Nimdar (attackable)"
    ],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/enchanter.json, Level 20; github.com/Jadiction/EQOA-Data). Grend Darkmaw is not in the database. The guide's final choice of reward is not in: the quest gives its experience only. It follows L13: L15 before it is a draft until its names are in the database."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/enchanter.json, Level 20; github.com/Jadiction/EQOA-Data). Grend Darkmaw is not in the database. The guide's final choice of reward is not in: the quest gives its experience only. It follows L13: L15 before it is a draft until its names are in the database. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable."
   },
   {
    "key": "1-20/qeynos/magician/L1",
@@ -7071,7 +7076,7 @@
      "items": [
       {
        "item": "cracked snake fang",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -7278,7 +7283,8 @@
        "do": "popup",
        "text": "On Elina's desk you find a note: she was experimenting with the scroll."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -7293,7 +7299,8 @@
        "do": "popup",
        "text": "Elina has been turned to stone, the scroll in her hand. A note in it says to rub henigal fungus on her to counter its magic; it grows on a rock below the keep, guarded by sludge golems."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -7318,7 +7325,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -7343,7 +7351,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -7463,7 +7472,7 @@
     }
    ],
    "unresolved": [
-    "npc: Smithy Vorgel"
+    "Smithy Vorgel"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/magician.json, Level 10; github.com/Jadiction/EQOA-Data). Sir Paerin Lyvrien is the database's Sir Paerin. Smithy Vorgel is not in the database. Reward left out (not in the database): item Knotted Pine Staff."
   },
@@ -7521,7 +7530,7 @@
      "items": [
       {
        "item": "Black Widow Silk",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -7582,7 +7591,7 @@
     }
    ],
    "unresolved": [
-    "npc: old woman"
+    "old woman"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/magician.json, Level 13; github.com/Jadiction/EQOA-Data). Innkeeper Martha is the database's Innkeep Martha. The old woman of Jethro's Cast is not in the database, nor are her black widows, beetles, vipers and wolves near her house. The Lava Wind scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L7: L10 before it is a draft until its names are in the database."
   },
@@ -7707,8 +7716,8 @@
     }
    ],
    "unresolved": [
-    "npc: Brother Pendle",
-    "npc: Grave Digger Joe"
+    "Brother Pendle",
+    "Grave Digger Joe"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/magician.json, Level 15; github.com/Jadiction/EQOA-Data). Brother Pendle (Hagley) and Grave Digger Joe (Melton) are not in the database. The Endure Fire scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L7: L10, L13 before it are drafts until its names are in the database."
   },
@@ -8281,7 +8290,7 @@
     }
    ],
    "unresolved": [
-    "creature: Garb"
+    "Garb"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/alchemist.json, Level 10; github.com/Jadiction/EQOA-Data). Mechanic Dweezle is the database's Mechanic Dwazzle. Garb and the petroleum ooze are not in the database. The jar is not used from the inventory here: the ooze's kill fills it. Reward left out (not in the database): item Small Dagger."
   },
@@ -8369,7 +8378,8 @@
        "do": "popup",
        "text": "As you near the guildhouse the wind picks up and blows a piece of the map from your hands, high over the front gates!"
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -8384,7 +8394,8 @@
        "do": "popup",
        "text": "At the inner gates you see the piece of map fly to the top of the clocktower."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -8399,7 +8410,8 @@
        "do": "popup",
        "text": "Just as you reach for it, the wind lifts it again, over the city wall."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -8414,7 +8426,8 @@
        "do": "popup",
        "text": "Near the guildhouse you find the piece of map at your feet."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -8472,7 +8485,7 @@
     }
    ],
    "unresolved": [
-    "npc: Merchant Dwindel"
+    "Merchant Dwindel"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/alchemist.json, Level 13; github.com/Jadiction/EQOA-Data). The wind's places are the guildhouse (Jergish), the inner gates (by Captain Momar's tower) and the clocktower (Mechanic Dwazzle). Merchant Dwindel is not in the database. The Crude Quickening scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L7: L10 before it is a draft until its names are in the database."
   },
@@ -8598,8 +8611,8 @@
     }
    ],
    "unresolved": [
-    "creature: thornless treant",
-    "npc: Merchant Dwindel"
+    "thornless treant",
+    "Merchant Dwindel"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/alchemist.json, Level 15; github.com/Jadiction/EQOA-Data). Merchant Dwindel, the thornless treants and the frantic badgers are not in the database. The poacher boss is the database's Poacher Boss Cyrus; the potion's badger form is not in. The Faulty Refinement scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L7: L10, L13 before it are drafts until its names are in the database. Reward left out (not in the database): item Jergish's Bracers."
   },
@@ -8755,10 +8768,10 @@
     }
    ],
    "unresolved": [
-    "creature: Grave Rat Herald",
-    "creature: Snow Leopard Herald",
-    "creature: Young Bear Herald",
-    "npc: Merchant Dwindel"
+    "Grave Rat Herald",
+    "Snow Leopard Herald",
+    "Young Bear Herald",
+    "Merchant Dwindel"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/alchemist.json, Level 20; github.com/Jadiction/EQOA-Data). The heralds and Merchant Dwindel are not in the database. Earnum's concoction to return is not in. The guide's final choice of reward is not in: the quest gives its experience only. It follows L7: L10, L13, L15 before it are drafts until its names are in the database."
   }

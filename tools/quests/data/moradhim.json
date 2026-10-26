@@ -117,7 +117,7 @@
      "items": [
       {
        "item": "piece of badger meat",
-       "count": 1
+       "count": 3
       }
      ],
      "count": 3,
@@ -372,8 +372,8 @@
     }
    ],
    "unresolved": [
-    "creature: Red Eyed Monster",
-    "npc: Raldir"
+    "Red Eyed Monster",
+    "Raldir"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 7; github.com/Jadiction/EQOA-Data). Raldir is not in the database. The Red Eyed Monster is not in the database. The Endure Ailment scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
@@ -462,9 +462,9 @@
     }
    ],
    "unresolved": [
-    "creature: Freezeblood Alchemist",
-    "creature: Frosteye Marauder",
-    "npc: Amber"
+    "Freezeblood Alchemist",
+    "Frosteye Marauder",
+    "Amber"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 10; github.com/Jadiction/EQOA-Data). Bren Raven is Brenn Raven, Jargon is Jarvan Tember. The goblin alchemist is not in the database. The Frosteye marauders and Amber, the little wolf they hold, are not in the database. It follows L5: L7 before it is a draft until its names are in the database."
   },
@@ -525,7 +525,8 @@
        "do": "popup",
        "text": "Deep in the Enclave of the Bear, a halfling held prisoner tells you of the Sensei monks of the Seisen monastery."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -621,7 +622,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -832,7 +834,8 @@
        "y": 56,
        "z": 4312
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -861,7 +864,7 @@
     }
    ],
    "unresolved": [
-    "creature: Freezeblood Treasurer"
+    "Freezeblood Treasurer"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). The Freezeblood Treasurer is not in the database (King Ickcil's chest is, as the Parathoir Chest). The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
   },
@@ -987,7 +990,7 @@
      "items": [
       {
        "item": "Slashed Pawn Belt",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -1260,7 +1263,7 @@
     }
    ],
    "unresolved": [
-    "creature: Red Eyed Monster"
+    "Red Eyed Monster"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 7; github.com/Jadiction/EQOA-Data). The Red Eyed Monster is not in the database. The Protectorate scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
@@ -1349,9 +1352,9 @@
     }
    ],
    "unresolved": [
-    "creature: Frosteye Lurker",
-    "creature: Frosteye Marauder",
-    "npc: Amber"
+    "Frosteye Lurker",
+    "Frosteye Marauder",
+    "Amber"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 10; github.com/Jadiction/EQOA-Data). Doomseeker Foria is Doomwalker Foria, Bren Raven is Brenn Raven, Jargon is Jarvan Tember. The Frosteye lurkers are not in the database. The Frosteye marauders and Amber, the little wolf they hold, are not in the database. It follows L5: L7 before it is a draft until its names are in the database."
   },
@@ -1412,7 +1415,8 @@
        "do": "popup",
        "text": "Deep in the Enclave of the Bear, a halfling held prisoner tells you of the Sensei monks of the Seisen monastery."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -1508,7 +1512,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -1719,7 +1724,8 @@
        "y": 56,
        "z": 4312
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -1748,7 +1754,7 @@
     }
    ],
    "unresolved": [
-    "creature: Freezeblood Treasurer"
+    "Freezeblood Treasurer"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/paladin.json, Level 20; github.com/Jadiction/EQOA-Data). The Freezeblood Treasurer is not in the database (King Ickcil's chest is, as the Parathoir Chest). The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
   },
@@ -1868,7 +1874,7 @@
      "items": [
       {
        "item": "Smithing Stone",
-       "count": 1
+       "count": 3
       }
      ],
      "count": 3,
@@ -2100,7 +2106,7 @@
     }
    ],
    "unresolved": [
-    "creature: Red Eyed Monster"
+    "Red Eyed Monster"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 7; github.com/Jadiction/EQOA-Data). The Red Eyed Monster is not in the database. The guide ends at Logger Kripps: the return to Druza for the reward is ours. The Acrobatics scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
@@ -2157,7 +2163,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -2187,7 +2194,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "reach",
@@ -2217,7 +2225,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -2266,8 +2275,8 @@
     }
    ],
    "unresolved": [
-    "creature: Frosteye Marauder",
-    "npc: Amber"
+    "Frosteye Marauder",
+    "Amber"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The mines' places are EQOA-Data's map's; the guide's 30 seconds at each is not in, and the goblin that attacks there is a Freezeblood brawler of the Hold's (the guide says a level 10 goblin). The Frosteye marauders and Amber, the little wolf they hold, are not in the database. It follows L5: L7 before it is a draft until its names are in the database."
   },
@@ -2328,7 +2337,8 @@
        "do": "popup",
        "text": "Deep in the Enclave of the Bear, a halfling held prisoner tells you of the Sensei monks of the Seisen monastery."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -2424,7 +2434,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -2635,7 +2646,8 @@
        "y": 56,
        "z": 4312
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -2664,7 +2676,7 @@
     }
    ],
    "unresolved": [
-    "creature: Freezeblood Treasurer"
+    "Freezeblood Treasurer"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). The Freezeblood Treasurer is not in the database (King Ickcil's chest is, as the Parathoir Chest). The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
   },
@@ -2784,7 +2796,7 @@
      "items": [
       {
        "item": "Strands of Rat Fur",
-       "count": 1
+       "count": 3
       }
      ],
      "count": 3,
@@ -3034,8 +3046,8 @@
     }
    ],
    "unresolved": [
-    "creature: Red Eyed Monster",
-    "npc: Guard Reigald"
+    "Red Eyed Monster",
+    "Guard Reigald"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 7; github.com/Jadiction/EQOA-Data). The guard is EQOA-Data's map's Guard Reigald (the guide is unsure of the spelling); he is not in the database. The Red Eyed Monster is not in the database. The Furious Defense scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
@@ -3124,9 +3136,9 @@
     }
    ],
    "unresolved": [
-    "creature: Freezeblood Sapper",
-    "creature: Frosteye Marauder",
-    "npc: Amber"
+    "Freezeblood Sapper",
+    "Frosteye Marauder",
+    "Amber"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). The goblin sappers are not in the database (EQOA-Data's map calls them Freezeblood Sappers). The Frosteye marauders and Amber, the little wolf they hold, are not in the database. It follows L5: L7 before it is a draft until its names are in the database."
   },
@@ -3187,7 +3199,8 @@
        "do": "popup",
        "text": "Deep in the Enclave of the Bear, a halfling held prisoner tells you of the Sensei monks of the Seisen monastery."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -3283,7 +3296,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -3494,7 +3508,8 @@
        "y": 56,
        "z": 4312
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -3523,7 +3538,7 @@
     }
    ],
    "unresolved": [
-    "creature: Freezeblood Treasurer"
+    "Freezeblood Treasurer"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). The Freezeblood Treasurer is not in the database (King Ickcil's chest is, as the Parathoir Chest). The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
   }

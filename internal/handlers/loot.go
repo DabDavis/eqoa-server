@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -96,6 +97,14 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 		if err != nil {
 			log.Printf("Loot: %q (npc %d): %v", npc.Name, npc.NPCID, err)
 		}
+		// and what its loot tables roll at this death (loottables, npcloot)
+		if rolls, err := h.inv.NPCLootRolls(npc.Name, npc.Level); err != nil {
+			log.Printf("Loot: %q's loot tables: %v", npc.Name, err)
+		} else if len(rolls) > 0 {
+			got := rollLoot(rolls, h.lootIntn)
+			items = append(items, got...)
+			log.Printf("Loot: %q (level %d) rolled %d of its tables' items", npc.Name, npc.Level, len(got))
+		}
 		for i := range items {
 			items[i] = catalogRecord(items[i])
 		}
@@ -108,6 +117,39 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 	SendLoot(sess, c.items)
 	log.Printf("Loot: %s opened %q: %d items", sessName(h, sess), npc.Name, len(c.items))
 	return true
+}
+
+// rollLoot is what a creature's loot tables give its corpse at a death: each
+// table rolled its rolls times, each roll at its chance (percent) taking one
+// of the table's items for the creature's level by weight. intn is the dice
+// (rand.Intn when nil).
+func rollLoot(rolls []database.LootRoll, intn func(int) int) []database.CharInventoryEntry {
+	if intn == nil {
+		intn = rand.Intn
+	}
+	var out []database.CharInventoryEntry
+	for _, r := range rolls {
+		total := 0
+		for _, c := range r.Choices {
+			total += max(c.Weight, 0)
+		}
+		if total == 0 {
+			continue
+		}
+		for n := 0; n < r.Rolls; n++ {
+			if intn(100) >= r.Chance {
+				continue
+			}
+			pick := intn(total)
+			for _, c := range r.Choices {
+				if pick -= max(c.Weight, 0); pick < 0 {
+					out = append(out, c.Item)
+					break
+				}
+			}
+		}
+	}
+	return out
 }
 
 // corpseOf is whether the NPC's corpse lies to be looted, and the death it

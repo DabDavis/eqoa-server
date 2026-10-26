@@ -135,6 +135,26 @@ the row too, and a character's level and the experience into it (`totalXP`: ever
 below plus this one's, `entity.TotalXP`) are kept by the logout save, the shutdown's and a
 replacing login's: until then a level gained or set was gone at the next login.
 
+**The XP camps are `#tele` shortcuts** (`handlers/camps.go`, written by `tools/gen_camp_teles.py`;
+the user's "add popular xp camps to the gm tele port like /tele dfc (deathfist citadel) /tele
+hexbones"): EQOA-Data's XP-camp guide (its map's 69 camps with a note, `Map/zones.json`) placed
+over the game by a fit of its map to the NPCs it names (Tunaria: the game is 2.13078 × the map
+plus an offset, a median of 6.6 units off over 385 points; Odus has its own, looser, 164), and
+anchored on the camp's commonest creature in the server's npcs at its densest cluster near that
+point; 49 camps (`dfc`, `hexbones`, `kappa`, `tendora`, `harpies`, `xrag`, ...; aliases such as
+`deathfist`, `shrieks`), each in `#tele`'s list by its creatures' levels here (not the guide's),
+`#tele camps` with where each is. A camp's anchor is the creature of the anchor's name nearest
+the spawn written in the table (within 300; never a GM's copy), else that spawn, and `#tele` lands
+**beside** it, facing it (`World.CampLanding`, `entity/camplanding.go`): 45 to 150 out, the side away
+from the camp's middle first, on the terrain within 12 of the terrain at the anchor (under it for a
+camp on a keep's floor or a tree's platforms), under the open sky (no floor 8 above: never a tunnel
+or a castle's hall), out of the water, no creature within 40 by where it stands or spawned (one with
+15 at least where none has 40); a camp in a cave lands on the anchor (the Goblin Citadel, the Druk's
+orc tunnel). A level 60 GM landing in the Deathfist Citadel's middle died in three seconds; beside it
+a roamer still comes by. Without the ground files every camp lands on its anchor. `#goto <camp>` and
+the GM panel's teleport list take them too. Run the tool again (it gofmts its output) after moving a
+camp's creatures.
+
 A place may also be named by the people standing there: a word of the names of NPCs that
 stand together in one world (`NamesakePlace`: `/goto guk` lands among Guk's "froglok guk ..."
 in Tunaria, on the one nearest their middle; guards along a road are listed instead). The
@@ -321,6 +341,7 @@ OAuth flow, and the official MCP Python SDK was run against it end to end.
 - Basic combat (attack command, damage, death; a player respawns at its bind point, else the login spawn, 15 s after dying)
 - NPC AI (aggro, melee in Sandstorm's rounds — `entity/rounds.go`, leash, respawn; NPCs helping their own and healing out of a fight — `entity/socialaggro.go`, `npcregen.go`)
 - Corpses as live EQOA's: lie 3 minutes unless emptied (an empty one opens "Empty"), emptied and closed they go at once, and the creature returns a minute after its corpse went (`entity/corpse.go`); wildlife wanders round its spawn, every other creature and the townsfolk stand until pulled unless a GM's Creature movement row says otherwise (`entity/roam.go`, `wildlife.go`)
+- **Loot tables** (`database/loottables.go`, `handlers/loot.go`'s `rollLoot`; F3 pass 18, the user's "if you see the loot tables for them add them"): a corpse holds its `npcitem` rows and what the tables bound to its NAME roll at its death (once a death, when first opened): table `loottables` (a row an item of a table: weight, the creature levels it drops for; GM panel "Loot tables") and `npcloot` (NPC name as npcclass keys it → table, a roll's chance in percent, rolls a kill; "Creature loot"), both read at every corpse, so live. `tools/seed_camp_loot.py --db eqoa.db --eqoa-data ../external/EQOA-Data [--apply|--undo]` writes EQOA-Data's own (its items' sources: 13 biome tables "arctic" ... "generic", 3,283 items matched by name to itempattern, each for creatures within 5 levels of its own, 55 and up to 70) and binds the 49 XP camps' creatures (`#tele camps`, 155 names) to their zone's biome table on EQOA-Data's map (a zone's biomes are its NW, NE, SW, SE quadrants, the order neighbouring zones agree on) at 25% a kill and to "generic" at 15%; Odus's zones have no biomes, so its camps get generic only; rathe mountains, red desert, deep jungle, wetlands, wastelands and the Khals' are written but bound to no one. **The chances, one roll a table and the level window are ours**; every row logged in `camp_loot_seed`, `--undo` deletes those no GM changed. No restart needed
 - Wildlife where no import has any (F3 20261025-172939, -173551): `tools/seed_wildlife.py` turns FrontiersForge's sightings (`npcs_ff_import`) of generic creatures in Klick'Anon (levels 1-12) and the Rogue Clockworks (11-23) into a few spawns round each, copying a namesake row's body (a name with none is left out and listed), on the ground files' terrain, out of towns (`towns.go`'s, 120 off) and apart; a camp's creature round the camp; `--with-guide-species` adds the Klick'Anon guides' bats, rats, snakes and fireflies. Dry run by default, `--apply`, `--undo` (every row back), logged per row in `wildlife_seed_npcs`; stop the server to apply and start it after. The counts and spreads are ours
 - HP/Power regen system
 - Breath and drowning (`systems.go` `breathSystem`): under liquid (the 0x40's UnderLiquid) Sandstorm's breath, eight steps of 32 every 6 s, on the stat channel's byte 232; then a tenth of the maximum health every 6 s until dead (F3 20261026-020342, jib's; Sandstorm's one recorded drowning, a level 1, lost 2 a step)

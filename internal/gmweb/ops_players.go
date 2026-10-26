@@ -115,7 +115,8 @@ func (s *Server) registerPlayerOps() {
 	s.addOp(&Op{
 		Name: "grant_spell", Title: "Give a spell", Scope: scopeWrite, Core: true,
 		Description: "Put a spell in a character's spell book (by spellid or exact name), or every spell of its " +
-			"class with spell \"all\" (the classspells table). One in the world gets it at once, as scribing a " +
+			"class with spell \"all\" (the classspells table; were forms and a were's abilities are no class's and " +
+			"come only by their own id). One in the world gets it at once, as scribing a " +
 			"scroll gives it; one offline at its next login. A spell it knows already is skipped.",
 		Input: obj(map[string]any{
 			"character": idOrName("the character, by name or serverid"),
@@ -327,12 +328,18 @@ func (s *Server) grantSpell(a *actor, who, what any) (any, error) {
 	}
 	var ids []int64
 	if strings.EqualFold(strings.TrimSpace(fmt.Sprint(what)), "all") {
-		rows, err := s.rowsOf(`SELECT c.spellid FROM classspells c JOIN spellpattern p ON p.spellid = c.spellid
+		rows, err := s.rowsOf(`SELECT c.spellid, p.spellname, COALESCE(p.spelldesc, '') AS spelldesc FROM classspells c
+			JOIN spellpattern p ON p.spellid = c.spellid
 			WHERE c.class = ? ORDER BY p.abilitylvl, p.spellname, c.spellid`, class)
 		if err != nil {
 			return nil, err
 		}
 		for _, r := range rows {
+			// a were form is no class's: a were quest's and a mastery's
+			// (database.IsWereAbility); granted by its id alone
+			if database.IsWereAbility(fmt.Sprint(r["spellname"]), fmt.Sprint(r["spelldesc"])) {
+				continue
+			}
 			v, _ := asFloat(r["spellid"])
 			ids = append(ids, int64(v))
 		}

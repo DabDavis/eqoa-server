@@ -13,6 +13,11 @@ An ability record (spellpattern) names no class. Three sources do:
 - The EQOA-Data project's per-class lists (Information/databases/spells/
   <class>.json), by name: merchant, quest, CM and other spells alike.
 
+A were form or a were's ability (Ratwere, Feral Lion Form, "Wererat Melee
+Ability"...) is no class's, whoever's dump holds it: the were quests are any
+class's and the forms past the first are masteries (F3 20261025-220040). It
+is left out, by the server's own rule (database.IsWereAbility).
+
 A name is compared as the server's scribe compares it (no trailing class
 tag, no bard '+', any case). A name with several spellpattern rows gives the
 class one of them: the class's own dump's id, else an id any class's dump
@@ -40,6 +45,9 @@ CLASSES = "WAR RAN PAL SK MNK BRD RGE DRD SHA CL MAG NEC ENC WIZ ALC".split()
 CLASS_FILES = ["warrior", "ranger", "paladin", "shadowknight", "monk", "bard", "rogue", "druid",
                "shaman", "cleric", "magician", "necromancer", "enchanter", "wizard", "alchemist"]
 SCROLL_ICON = -607649328
+# database.IsWereAbility's pattern, over a spell's name and description
+WERE = re.compile(r"(?i)\bwere(rat|wolf|bear|lion|gator)|(rat|lion|wolf|bear|gator)were\b"
+                  r"|power of the beast|^assume the form of|^cm: illusion\.?$")
 
 DDL = """
 CREATE TABLE IF NOT EXISTS classspells (
@@ -86,7 +94,12 @@ def main():
 
     ids_by_name = collections.defaultdict(list)
     level = {}
-    for sid, name, lvl in db.execute("SELECT spellid, spellname, abilitylvl FROM main.spellpattern ORDER BY spellid"):
+    were = set()
+    for sid, name, lvl, desc in db.execute(
+            "SELECT spellid, spellname, abilitylvl, COALESCE(spelldesc, '') FROM main.spellpattern ORDER BY spellid"):
+        if WERE.search(name or "") or WERE.search(desc):
+            were.add(sid)
+            continue
         ids_by_name[spell_name(name)].append(sid)
         level[sid] = lvl
 
@@ -151,7 +164,7 @@ def main():
     rows = sorted({(c, s): src for c, s, src in rows}.items())
     per = collections.Counter(c for (c, _), _ in rows)
     srcs = collections.Counter((c, src) for (c, _), src in rows)
-    print(f"spellpattern rows {len(level)}; class spells {len(rows)}")
+    print(f"spellpattern rows {len(level) + len(were)} ({len(were)} were abilities, no class's); class spells {len(rows)}")
     for cls, name in enumerate(CLASSES):
         top = max([level[s] for (c, s), _ in rows if c == cls] or [0])
         print(f"  {name:3s} {per[cls]:3d} spells (dump {srcs[(cls, 'dump')]}, vendor {srcs[(cls, 'vendor')]}, "

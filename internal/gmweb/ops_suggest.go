@@ -276,7 +276,9 @@ func (s *Server) registerSuggestionOps() {
 		Name: "accept_visual_suggestion", Title: "Accept a community visual", Scope: scopeWrite,
 		Description: "Give a spell the visual players suggested for it: spelleffect.fxdict set through the audited row edit " +
 			"(as set_spell_visual; revert_change undoes it), from its next cast. That spell's waiting suggestions of this " +
-			"visual become accepted and its other waiting ones dismissed. Look at it first (the page's preview, or " +
+			"visual become accepted and its other waiting ones dismissed. The spell's namesakes (the same spell recorded " +
+			"for another class: Return Home) still on a stand-in get the same visual too, each through its own audited " +
+			"row edit; one with a visual of its own is left alone. Look at it first (the page's preview, or " +
 			"play_visual in the game).",
 		Input: obj(map[string]any{
 			"spell":  idOrName("the spell, by spellid or exact name"),
@@ -324,9 +326,18 @@ func (s *Server) registerSuggestionOps() {
 			if err != nil {
 				return nil, err
 			}
-			log.Printf("GM %s (%s): accepted the community's visual %s for spell %d (%d suggestions decided)", c.a.Username, c.a.Via, handlers.Hex32(fx), id, n)
-			return map[string]any{"change": ch, "visual": visualJSON(v), "decided": n,
-				"message": fmt.Sprintf("%s now plays %s from its next cast", v.Name, handlers.Hex32(fx))}, nil
+			// the same spell recorded for other classes (the user: "i still see on the spellfx page
+			// spells that have been approved": Return Home's other records)
+			shared, err := c.s.shareVisualWithNamesakes(c.a, id, v.Name, fx)
+			if err != nil {
+				return nil, err
+			}
+			log.Printf("GM %s (%s): accepted the community's visual %s for spell %d (%d suggestions decided, %d namesakes given it)", c.a.Username, c.a.Via, handlers.Hex32(fx), id, n, len(shared))
+			msg := fmt.Sprintf("%s now plays %s from its next cast", v.Name, handlers.Hex32(fx))
+			if len(shared) > 0 {
+				msg += fmt.Sprintf(", and so do its %d namesakes that were on a stand-in", len(shared))
+			}
+			return map[string]any{"change": ch, "visual": visualJSON(v), "decided": n, "namesakes": shared, "message": msg}, nil
 		},
 	})
 	s.addOp(&Op{
@@ -385,4 +396,43 @@ func (s *Server) registerSuggestionOps() {
 			return map[string]any{"deleted": n}, nil
 		},
 	})
+}
+
+// shareVisualWithNamesakes gives fx to every other spell of name still on a
+// stand-in (no spelleffect row, or fxdict 0), each through setSpellVisual's
+// audited row edit, and settles their waiting suggestions as the accept did
+// the spell's own. The rows are read whole first: the database has one
+// connection. It answers the spells it changed.
+func (s *Server) shareVisualWithNamesakes(a *actor, id int64, name string, fx uint32) ([]map[string]any, error) {
+	rs, err := s.d.DB.Query(`SELECT p.spellid FROM spellpattern p LEFT JOIN spelleffect e ON e.spellid = p.spellid
+		WHERE lower(trim(p.spellname)) = lower(trim(?)) AND p.spellid != ? AND COALESCE(e.fxdict, 0) = 0
+		ORDER BY p.spellid`, name, id)
+	if err != nil {
+		return nil, err
+	}
+	var ids []int64
+	for rs.Next() {
+		var other int64
+		if err := rs.Scan(&other); err != nil {
+			rs.Close()
+			return nil, err
+		}
+		ids = append(ids, other)
+	}
+	rs.Close()
+	if err := rs.Err(); err != nil {
+		return nil, err
+	}
+	out := []map[string]any{}
+	for _, other := range ids {
+		ch, err := s.setSpellVisual(a, other, fx, fmt.Sprintf(", as its namesake %d's (the community's suggestions)", id))
+		if err != nil {
+			return out, err
+		}
+		if _, err := s.d.DB.DecideSpellFXSuggestions(int(other), fx, database.SpellFXAccepted, database.SpellFXDismissed, a.Username, time.Now()); err != nil {
+			return out, err
+		}
+		out = append(out, map[string]any{"spellid": other, "change": ch})
+	}
+	return out, nil
 }

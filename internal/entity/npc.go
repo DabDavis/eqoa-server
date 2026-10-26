@@ -120,6 +120,9 @@ type NPC struct {
 	// once dead it leaves the world after its corpse time instead of
 	// respawning.
 	Temporary bool
+	// QuestSpawn is a Temporary copy a quest step's spawn event placed
+	// (SpawnForQuest): the quests take it away when the step is done.
+	QuestSpawn bool
 
 	// Its melee round (rounds.go): when it began, how many of its hits
 	// have landed, and at whom.

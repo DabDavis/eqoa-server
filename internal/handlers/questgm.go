@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -113,6 +114,11 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 	if q.sessionOf != nil {
 		sess = q.sessionOf(serverID)
 	}
+	// the player in the world, for the quest's events (questevents.go)
+	var p *entity.Player
+	if sess != nil && q.playerOf != nil {
+		p = q.playerOf(sess)
+	}
 	where := "at the character's next login"
 	if sess != nil {
 		where = "in their journal now"
@@ -122,7 +128,7 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 		if qu == nil {
 			return "", fmt.Errorf("no quest %d", questID)
 		}
-		if why := q.startLocked(sess, nil, c, qu, step, true); why != "" {
+		if why := q.startLocked(sess, p, c, qu, step, true); why != "" {
 			return "", errors.New(why)
 		}
 		return fmt.Sprintf("%q is under way at step %d, %s", qu.Name, c.quests[questID].Step, where), nil
@@ -135,13 +141,14 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 			return "", fmt.Errorf("%q has no step %d", qu.Name, step)
 		}
 		if cq == nil || !cq.Active() {
-			if why := q.startLocked(sess, nil, c, qu, step, true); why != "" {
+			if why := q.startLocked(sess, p, c, qu, step, true); why != "" {
 				return "", errors.New(why)
 			}
 			return fmt.Sprintf("%q given at step %d, %s", qu.Name, step, where), nil
 		}
 		idx := c.index(questID)
 		old := q.lineLocked(cq)
+		q.clearSpawnsLocked(serverID, questID, cq.Step)
 		cq.Step, cq.Count = st.Step, 0
 		if text := q.lineLocked(cq); text != old {
 			q.dropLineLocked(sess, c, idx)
@@ -149,6 +156,7 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 			q.addLineLocked(sess, c, text)
 		}
 		q.saveLocked(cq)
+		q.stepStartedLocked(sess, p, c, qu, cq, st)
 		return fmt.Sprintf("%q is at step %d, %s", qu.Name, step, where), nil
 	case QuestComplete:
 		if cq == nil {
@@ -158,6 +166,7 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 		if cq.Active() {
 			q.dropLineLocked(sess, c, c.index(questID))
 		}
+		q.clearSpawnsLocked(serverID, questID, 0)
 		cq.Step, cq.Count = 0, 0
 		cq.Done++
 		q.saveLocked(cq)
@@ -177,6 +186,7 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 		if cq.Active() {
 			q.dropLineLocked(sess, c, c.index(questID))
 		}
+		q.clearSpawnsLocked(serverID, questID, 0)
 		if err := q.store.DeleteCharQuest(serverID, questID); err != nil {
 			return "", err
 		}

@@ -62,6 +62,23 @@ func sessionInvList(sess *session.Session) *invList {
 	return l
 }
 
+// held is how many of an item the list holds, all its stacks (the quest
+// tracker's count, questprogress.go: the list, not the database).
+func (l *invList) held(patternID int) int {
+	if l == nil {
+		return 0
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	n := 0
+	for _, r := range l.recs {
+		if r.patternID == patternID {
+			n += r.qty
+		}
+	}
+	return n
+}
+
 // index is VIItemList::Find (0x00BDFFA8): the list index of the record with
 // that key, or -1.
 func (l *invList) index(key uint32) int {

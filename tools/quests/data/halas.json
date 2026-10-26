@@ -1,0 +1,2001 @@
+{
+ "city": "halas",
+ "quests": [
+  {
+   "key": "1-20/halas/warrior/L1",
+   "name": "A Warrior's Tunic",
+   "giver": "Marik McPherson",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Every warrior of Halas starts in the tunic of the guild. Go to Tailor Freya; she will give you one for nothing. Show it to me when you wear it.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Tailor Freya",
+     "journal": "Get a Warrior's Tunic from Tailor Freya.",
+     "says": "Here is your tunic. Wear it well.",
+     "rewards": {
+      "items": [
+       "Warrior's Tunic"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Marik McPherson",
+     "items": [
+      {
+       "item": "Warrior's Tunic",
+       "count": 1
+      }
+     ],
+     "journal": "Show the Warrior's Tunic to Marik McPherson.",
+     "says": "Good. Now you look the part.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 1; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/halas/warrior/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Marik McPherson",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/warrior/L1"
+   ],
+   "offer": "A warrior who dies far from home is no use to anyone. Have the spiritmaster bind you, then see Coachman Dudley by the tunnel so you know the roads. Then come back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Dean",
+     "journal": "Speak with the spiritmaster to be bound.",
+     "says": "You are bound to Halas now. Coachman Dudley waits by the tunnel."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Dudley",
+     "journal": "Speak with Coachman Dudley by the tunnel.",
+     "says": "Sign here, and you can ride my coaches. Marik will want to hear of it."
+    },
+    {
+     "kind": "talk",
+     "target": "Marik McPherson",
+     "journal": "Return to Marik McPherson.",
+     "says": "Bound and ready to travel. Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 2; github.com/Jadiction/EQOA-Data). Spiritmaster Kere is not in the database: Spiritmaster Dean, the spiritmaster beside Marik McPherson, binds instead."
+  },
+  {
+   "key": "1-20/halas/warrior/L3",
+   "name": "Rat Furs",
+   "giver": "Marik McPherson",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/warrior/L2"
+   ],
+   "offer": "The rats outside the gates are fat and bold. Go and kill them until you have three strands of their fur, and bring them to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Large Rat",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 1
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Kill rats outside Halas for three strands of rat fur."
+    },
+    {
+     "kind": "give",
+     "target": "Marik McPherson",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three strands of rat fur to Marik McPherson.",
+     "says": "Three furs. You can swing a blade, then.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Kick"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 3; github.com/Jadiction/EQOA-Data). The guide's rat furs are the database's Strands of Rat Fur, from the large rats outside the gates. The Kick scroll is what the other cities' warrior guides give at level 3."
+  },
+  {
+   "key": "1-20/halas/warrior/L4",
+   "name": "A New Weapon",
+   "giver": "Derry McQuaid",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/warrior/L3"
+   ],
+   "offer": "I will make you a proper weapon, but I need materials: an oilstone from Merchant Mallie, iron ore from Benen O'Leary in the tunnel, and a ruined bat wing from the bats outside.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Mallie",
+     "journal": "Get an oilstone from Merchant Mallie.",
+     "says": "One oilstone. Keep it dry.",
+     "rewards": {
+      "items": [
+       "oilstone"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Benen O'leary",
+     "journal": "Get iron ore from Benen O'Leary in the tunnel.",
+     "says": "Good Halas iron. Mind the weight.",
+     "rewards": {
+      "items": [
+       "iron ore"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Bat",
+     "items": [
+      {
+       "item": "ruined bat wing",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill bats outside Halas for a ruined bat wing."
+    },
+    {
+     "kind": "give",
+     "target": "Derry McQuaid",
+     "items": [
+      {
+       "item": "oilstone",
+       "count": 1
+      },
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "ruined bat wing",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the oilstone, iron ore and bat wing to Derry McQuaid.",
+     "says": "That is all I need. Here is your weapon.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon Derry makes, so none is given."
+  },
+  {
+   "key": "1-20/halas/warrior/L5",
+   "name": "The Freezeblood Wardens",
+   "giver": "Marik McPherson",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/warrior/L4"
+   ],
+   "offer": "Freezeblood goblins have set wardens in the Everfrost, southeast of the town entrance. Kill three of them and come back to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "freezeblood warden",
+     "count": 3,
+     "journal": "Kill three Freezeblood Wardens southeast of the town entrance."
+    },
+    {
+     "kind": "talk",
+     "target": "Marik McPherson",
+     "journal": "Return to Marik McPherson.",
+     "says": "The wardens will think twice before coming so close again.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Taunt"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 5; github.com/Jadiction/EQOA-Data). The guide gives no count: three is ours. The Taunt scroll is what the other cities' warrior guides give at level 5."
+  },
+  {
+   "key": "1-20/halas/warrior/L7",
+   "name": "Three Tasks",
+   "giver": "Marik McPherson",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/warrior/L5"
+   ],
+   "offer": "I have three tasks for you, west by northwest of Halas. Kill a Freezeblood Icemaster and bring me its ice axe, kill an Icecrusher for its icycap, and buy a Wolves of the North sash from Misty Trailer for 140 tunar. Bring me all three.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Freezeblood Icemaster",
+     "items": [
+      {
+       "item": "Goblin Ice Axe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill a Freezeblood Icemaster west by northwest of Halas for its ice axe."
+    },
+    {
+     "kind": "loot",
+     "target": "Freezeblood Icecrusher",
+     "items": [
+      {
+       "item": "Icycap",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill a Freezeblood Icecrusher for its icycap."
+    },
+    {
+     "kind": "give",
+     "target": "Armorer Misty Traer",
+     "tunar": 140,
+     "journal": "Buy a Wolves of the North sash from Misty Trailer at the barbarian camp south of the monolith.",
+     "says": "One sash, 140 tunar. Wear it proudly.",
+     "rewards": {
+      "items": [
+       "Wolves of the North Sash"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Marik McPherson",
+     "items": [
+      {
+       "item": "Goblin Ice Axe",
+       "count": 1
+      },
+      {
+       "item": "Icycap",
+       "count": 1
+      },
+      {
+       "item": "Wolves of the North Sash",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ice axe, the icycap and the sash to Marik McPherson.",
+     "says": "All three. You did well.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Furious Defense"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Freezeblood Icecrusher",
+    "creature: Freezeblood Icemaster"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 7; github.com/Jadiction/EQOA-Data). Misty Trailer is the database's Armorer Misty Traer at Ferris McDougal's camp. The Furious Defense scroll is what the other cities' warrior guides give at level 7."
+  },
+  {
+   "key": "1-20/halas/warrior/L10",
+   "name": "Thread and Feather",
+   "giver": "Marik McPherson",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/warrior/L5"
+   ],
+   "offer": "Go to Ferris McDougal at the barbarian camp south of the monolith and buy burlap thread for 145 tunar. Bring it here.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Ferris McDougal",
+     "tunar": 145,
+     "journal": "Buy burlap thread from Ferris McDougal for 145 tunar.",
+     "says": "Burlap thread, 145 tunar. Marik sent you, did he?",
+     "rewards": {
+      "items": [
+       "Burlap Thread"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Marik McPherson",
+     "items": [
+      {
+       "item": "Burlap Thread",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the burlap thread to Marik McPherson.",
+     "says": "Good. Now I need an owl's feather: there are owls northwest of Ferris's camp. Kill one and bring me its feather."
+    },
+    {
+     "kind": "loot",
+     "target": "owl",
+     "items": [
+      {
+       "item": "White Owl Feather",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill an owl northwest of Ferris McDougal's camp for its feather."
+    },
+    {
+     "kind": "give",
+     "target": "Marik McPherson",
+     "items": [
+      {
+       "item": "White Owl Feather",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the owl feather to Marik McPherson.",
+     "says": "A fine feather. Here is your reward.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). There is no White Owl in the database: the owls northwest of Ferris McDougal's camp stand in. It follows L5: L7 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/halas/warrior/L13",
+   "name": "Gunkat",
+   "giver": "Elder Joram",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/warrior/L10"
+   ],
+   "offer": "A Freezeblood goblin named Gunkat guards a lone igloo west of the Halas tunnel, past the three guard towers and over the hill. Kill him and come back to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Guntak",
+     "count": 1,
+     "journal": "Kill the Freezeblood goblin Gunkat at the guarded igloo west of Halas."
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Return to Elder Joram.",
+     "says": "Gunkat will trouble no more travellers. Well done.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Rapid Strike"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 13; github.com/Jadiction/EQOA-Data). Eldar Joram is the database's Elder Joram, and Gunkat its Guntak (the rogue's guide spells him so). The guide's two chests are left out. The Rapid Strike scroll (the guides spell it Rabid) is what the other cities' warrior guides give at level 13."
+  },
+  {
+   "key": "1-20/halas/warrior/L15",
+   "name": "Trukat",
+   "giver": "Elder Joram",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/warrior/L13"
+   ],
+   "offer": "Trukat, another Freezeblood, waits on the hill across from Gunkat's igloo. Kill him and bring me his knife. Then take 495 tunar to Ferris McDougal and buy a blued bear skin fur and a blued bear skin sash, and bring me those too.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Trukat",
+     "items": [
+      {
+       "item": "Trukat's Knife",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Trukat on the hill across from the guarded igloo for his knife."
+    },
+    {
+     "kind": "give",
+     "target": "Ferris McDougal",
+     "tunar": 495,
+     "journal": "Buy a blued bear skin fur and sash from Ferris McDougal for 495 tunar.",
+     "says": "The fur and the sash, 495 tunar.",
+     "rewards": {
+      "items": [
+       "Blued Bear Skin Fur",
+       "Blued Bear Skin Sash"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Elder Joram",
+     "items": [
+      {
+       "item": "Trukat's Knife",
+       "count": 1
+      },
+      {
+       "item": "Blued Bear Skin Fur",
+       "count": 1
+      },
+      {
+       "item": "Blued Bear Skin Sash",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the knife, the fur and the sash to Elder Joram.",
+     "says": "You have done all I asked. Here is your reward.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Stomp"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 15; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The Stomp scroll is what the other cities' warrior guides give at level 15."
+  },
+  {
+   "key": "1-20/halas/warrior/L20",
+   "name": "The River Road",
+   "giver": "Marik McPherson",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/warrior/L15"
+   ],
+   "offer": "There is word to carry south along the river. Find Yarn Icefrost in his igloo west of the river, and do what he asks.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Yarn Icefrost",
+     "journal": "Find Yarn Icefrost in his igloo west of the river.",
+     "says": "Marik sent you? Then go to Pratcher in Diren's Hold, beside the banker on the second floor of the tower."
+    },
+    {
+     "kind": "talk",
+     "target": "Pratcher",
+     "journal": "Find Pratcher in Diren's Hold, beside the banker on the second floor.",
+     "says": "Bring me two salmon from the river by the Hold."
+    },
+    {
+     "kind": "loot",
+     "target": "Salmon",
+     "items": [
+      {
+       "item": "Salmon",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill salmon in the river near Diren's Hold for two salmon."
+    },
+    {
+     "kind": "give",
+     "target": "Pratcher",
+     "items": [
+      {
+       "item": "Salmon",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the two salmon to Pratcher.",
+     "says": "Fine fish. Now go up the mountain to Jarvan Tember."
+    },
+    {
+     "kind": "talk",
+     "target": "Jarvan Tember",
+     "journal": "Climb the mountain beside Diren's Hold to Jarvan Tember.",
+     "says": "Tell Marik his warrior has done well."
+    },
+    {
+     "kind": "talk",
+     "target": "Marik McPherson",
+     "journal": "Return to Marik McPherson.",
+     "says": "Elder Joram is waiting for you."
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Joram",
+     "journal": "Speak with Elder Joram for your reward.",
+     "says": "You have earned your place among the warriors of Halas.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Salmon",
+    "npc: Pratcher"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Life Path: Blade of War and Pillar of Might; Strength Path: Bellow and a Sword of Rage.) Eldar Joram is Elder Joram."
+  },
+  {
+   "key": "1-20/halas/rogue/L1",
+   "name": "A Rogue's Tunic",
+   "giver": "Juno Felligan",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Before anything else, you need to look like one of us. Tailor McQuaid has a Rogue's Tunic for you. Fetch it and come back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Tailor McQuaid",
+     "journal": "Get a Rogue's Tunic from Tailor McQuaid.",
+     "says": "One Rogue's Tunic. Quietly, now.",
+     "rewards": {
+      "items": [
+       "Rogue's Tunic"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Juno Felligan",
+     "items": [
+      {
+       "item": "Rogue's Tunic",
+       "count": 1
+      }
+     ],
+     "journal": "Show the Rogue's Tunic to Juno Felligan.",
+     "says": "It suits you.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 1; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/halas/rogue/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Juno Felligan",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/rogue/L1"
+   ],
+   "offer": "Speak to Spiritmaster Dean and be bound here. Then see Coachman Dudley, just before the tunnel. Report back to me after.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Dean",
+     "journal": "Speak with Spiritmaster Dean to be bound.",
+     "says": "You are bound to Halas. Coachman Dudley is just before the tunnel."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Dudley",
+     "journal": "Speak with Coachman Dudley before the tunnel.",
+     "says": "Now you can ride the coaches. Off you go back to Juno."
+    },
+    {
+     "kind": "talk",
+     "target": "Juno Felligan",
+     "journal": "Return to Juno Felligan.",
+     "says": "Good. You know your way out of town now.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 2; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/halas/rogue/L3",
+   "name": "A Secret Seasoning",
+   "giver": "Juno Felligan",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/rogue/L2"
+   ],
+   "offer": "The Seeing Eye is low on its secret seasoning: spider eyes. The spiders inside the gates of Halas have them. Bring me two.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Spiderling",
+     "items": [
+      {
+       "item": "small spider eye",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill spiderlings by the gates of Halas for two spider eyes."
+    },
+    {
+     "kind": "give",
+     "target": "Juno Felligan",
+     "items": [
+      {
+       "item": "small spider eye",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the spider eyes to Juno Felligan.",
+     "says": "The Seeing Eye thanks you, even if it does not know it.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Sneak"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 3; github.com/Jadiction/EQOA-Data). Two eyes is ours (the guide gives no count); they are the database's small spider eye, from the spiderlings by the gates."
+  },
+  {
+   "key": "1-20/halas/rogue/L4",
+   "name": "Gannon's Knife",
+   "giver": "Gannon Macgibson",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/rogue/L3"
+   ],
+   "offer": "I will make you a knife, but I need an oilstone from Merchant Mallie, iron ore from Benen O'Leary in the tunnel out of town, and two chipped raven beaks from the birds outside Halas.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Mallie",
+     "journal": "Get an oilstone from Merchant Mallie.",
+     "says": "One oilstone.",
+     "rewards": {
+      "items": [
+       "oilstone"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Benen O'leary",
+     "journal": "Get iron ore from Benen O'Leary in the tunnel.",
+     "says": "Iron ore for Gannon, is it?",
+     "rewards": {
+      "items": [
+       "iron ore"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Crow",
+     "items": [
+      {
+       "item": "chipped raven beak",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill crows outside Halas for two chipped raven beaks."
+    },
+    {
+     "kind": "give",
+     "target": "Gannon Macgibson",
+     "items": [
+      {
+       "item": "oilstone",
+       "count": 1
+      },
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "chipped raven beak",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the oilstone, iron ore and two beaks to Gannon MacGibson.",
+     "says": "Here is your knife. Keep it sharp.",
+     "rewards": {
+      "xp": 17000,
+      "items": [
+       "Raven Beak Knife"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Merchant Millie is Merchant Mallie and Bennon O'Leary is Benen O'Leary. The beaks come from the crows outside the gates (the guide's ravens, crows and magpies). The Chipped Raven's Beak Knife is the database's Raven Beak Knife."
+  },
+  {
+   "key": "1-20/halas/rogue/L5",
+   "name": "The Warden's Headband",
+   "giver": "Juno Felligan",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/rogue/L4"
+   ],
+   "offer": "A band of goblins is headed toward Halas. Slay one of their wardens and bring me its headband.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "freezeblood warden",
+     "items": [
+      {
+       "item": "Goblin Warden's Headband",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Slay a Freezeblood Warden southeast of the entrance for its headband."
+    },
+    {
+     "kind": "give",
+     "target": "Juno Felligan",
+     "items": [
+      {
+       "item": "Goblin Warden's Headband",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Warden's Headband to Juno Felligan.",
+     "says": "They will know we are watching.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Quick Blade"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 5; github.com/Jadiction/EQOA-Data). The Warden's Headband is the database's Goblin Warden's Headband."
+  },
+  {
+   "key": "1-20/halas/rogue/L7",
+   "name": "Watcher's Vest",
+   "giver": "Juno Felligan",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/rogue/L5"
+   ],
+   "offer": "Ice Fang spiderlings have been scaring the women out of the caravans and fouling the food. Slay one south of the Halas gates and bring me a fang.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Icefang Spiderling",
+     "items": [
+      {
+       "item": "Icefang Spiderling Fang",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.75,
+     "journal": "Slay an Icefang Spiderling south of the Halas gates for a fang."
+    },
+    {
+     "kind": "give",
+     "target": "Juno Felligan",
+     "items": [
+      {
+       "item": "Icefang Spiderling Fang",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the fang to Juno Felligan.",
+     "says": "The caravans can rest easier. Take this vest.",
+     "rewards": {
+      "xp": 157500,
+      "spells": [
+       "Acrobatics"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 7; github.com/Jadiction/EQOA-Data). Reward left out (not in the database): item Watcher's Vest."
+  },
+  {
+   "key": "1-20/halas/rogue/L10",
+   "name": "The Ice Spider Queen",
+   "giver": "Juno Felligan",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/rogue/L7"
+   ],
+   "offer": "Let us see what you have learned. Far to the west lives the Ice Spider Queen, sometimes among wolves. Slay her and bring me two strands of her silk, and I will forge you a weapon.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Ice Spider Queen",
+     "items": [
+      {
+       "item": "Strand of Spider Silk",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 1.0,
+     "journal": "Slay the Ice Spider Queen far to the west for two strands of spider silk."
+    },
+    {
+     "kind": "give",
+     "target": "Juno Felligan",
+     "items": [
+      {
+       "item": "Strand of Spider Silk",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the two strands of spider silk to Juno Felligan.",
+     "says": "This silk will bind a fine blade.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Ice Spider Queen"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). Reward left out (not in the database): item The Slicer's Special."
+  },
+  {
+   "key": "1-20/halas/rogue/L13",
+   "name": "Battle Plans",
+   "giver": "Iron Eagle",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/rogue/L7"
+   ],
+   "offer": "Freezeblood captains have been seen west of Halas, south by the spider queens, at a camp with an igloo. They carry battle plans. Bring me two.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Freezeblood Captain",
+     "items": [
+      {
+       "item": "Freezeblood Battle Plans",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill Freezeblood captains at the igloo camp west of Halas for two battle plans."
+    },
+    {
+     "kind": "give",
+     "target": "Iron Eagle",
+     "items": [
+      {
+       "item": "Freezeblood Battle Plans",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the two battle plans to Iron Eagle.",
+     "says": "These plans tell us much.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Night Breath"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Freezeblood Captain",
+    "npc: Iron Eagle"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 13; github.com/Jadiction/EQOA-Data). It follows L7: L10 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/halas/rogue/L15",
+   "name": "Numla",
+   "giver": "Iron Eagle",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/rogue/L7"
+   ],
+   "offer": "The plans name an assassin, Numla, in the Freezeblood camp by the water, near a large wooden T. Slay him before he finishes his work and bring me his bag of tricks. Then buy a raven's tail feather from Shawndy McKibbin and bring it as well.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Numla",
+     "items": [
+      {
+       "item": "Bag of Tricks",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Slay the assassin Numla north of the Freezeblood camp, by the wooden T at the water."
+    },
+    {
+     "kind": "talk",
+     "target": "Shawndy McKibbin",
+     "journal": "Buy a raven's tail feather from Shawndy McKibbin.",
+     "says": "One raven's tail feather.",
+     "rewards": {
+      "items": [
+       "Raven's Tail Feather"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Iron Eagle",
+     "items": [
+      {
+       "item": "Bag of Tricks",
+       "count": 1
+      },
+      {
+       "item": "Raven's Tail Feather",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bag of tricks and the feather to Iron Eagle.",
+     "says": "Numla is finished, and so is his mission.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Vaulter's Balance"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Numla",
+    "npc: Iron Eagle"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 15; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Shwandy McKibbin is Shawndy McKibbin. It follows L7: L10, L13 before it are drafts until its names are in the database. Reward left out (not in the database): item Raven Stalkers."
+  },
+  {
+   "key": "1-20/halas/rogue/L20",
+   "name": "Yarn's Answer",
+   "giver": "Juno Felligan",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/rogue/L7"
+   ],
+   "offer": "The Freezebloods plan another attack: each clan sends someone to speak with Yarn Icefrost, camped south among the trees he planted. Take him this sealed letter and do as he says.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Juno Felligan",
+     "journal": "Take the sealed letter from Juno Felligan.",
+     "says": "Here is the letter.",
+     "rewards": {
+      "items": [
+       "Sealed Letter"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Yarn Icefrost",
+     "items": [
+      {
+       "item": "Sealed Letter",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the sealed letter to Yarn Icefrost in his cabin among the trees west of the river.",
+     "says": "Take this to Brenn Raven across the river to the south, and wait there for word from me.",
+     "rewards": {
+      "items": [
+       "Letter from Yarn Icefrost"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Brenn Raven",
+     "items": [
+      {
+       "item": "Letter from Yarn Icefrost",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Yarn's letter to Brenn Raven.",
+     "says": "While you wait, catch two salmon for our dinner."
+    },
+    {
+     "kind": "loot",
+     "target": "Salmon",
+     "items": [
+      {
+       "item": "Salmon",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill salmon in the river for two salmon."
+    },
+    {
+     "kind": "give",
+     "target": "Brenn Raven",
+     "items": [
+      {
+       "item": "Salmon",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the two salmon to Brenn Raven.",
+     "says": "Good. Now see Jarvan Tember on the hill behind the village."
+    },
+    {
+     "kind": "talk",
+     "target": "Jarvan Tember",
+     "journal": "See Jarvan Tember on the hill behind Brenn's village.",
+     "says": "Take this letter back to Juno.",
+     "rewards": {
+      "items": [
+       "Letter from Jarvan Tember"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Juno Felligan",
+     "items": [
+      {
+       "item": "Letter from Jarvan Tember",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Jarvan's letter to Juno Felligan.",
+     "says": "Now take my letter to Iron Eagle.",
+     "rewards": {
+      "items": [
+       "Letter from Juno Felligan"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Iron Eagle",
+     "items": [
+      {
+       "item": "Letter from Juno Felligan",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Juno's letter to Iron Eagle.",
+     "says": "You have served Halas well.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Salmon",
+    "npc: Iron Eagle"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Defensive or offensive, the offensive a backstab.) Bren Raven is Brenn Raven. It follows L7: L10, L13, L15 before it are drafts until its names are in the database."
+  },
+  {
+   "key": "1-20/halas/shaman/L1",
+   "name": "A Shepherd's Mantle",
+   "giver": "Beril O'Leary",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A shaman of Halas wears the Shepherd's Mantle. Tailor Akesson will give you one for nothing. Show it to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Tailor Akesson",
+     "journal": "Get a Shepherd's Mantle from Tailor Akesson.",
+     "says": "Here is your mantle.",
+     "rewards": {
+      "items": [
+       "Shepherd's Mantle"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Beril O'Leary",
+     "items": [
+      {
+       "item": "Shepherd's Mantle",
+       "count": 1
+      }
+     ],
+     "journal": "Show the Shepherd's Mantle to Beril O'Leary.",
+     "says": "The spirits will know you now.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 1; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/halas/shaman/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Beril O'Leary",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/shaman/L1"
+   ],
+   "offer": "Talk to Spiritmaster Lera; she will bind you. Then go and see Coachman Dudley, and come back to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Lera",
+     "journal": "Speak with Spiritmaster Lera to be bound.",
+     "says": "You are bound to Halas. Go and see Coachman Dudley."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Dudley",
+     "journal": "Speak with Coachman Dudley by the tunnel.",
+     "says": "Now you know the coaches. Back to Beril with you."
+    },
+    {
+     "kind": "talk",
+     "target": "Beril O'Leary",
+     "journal": "Return to Beril O'Leary.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 2; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/halas/shaman/L3",
+   "name": "Rat Fur",
+   "giver": "Beril O'Leary",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/shaman/L2"
+   ],
+   "offer": "Kill the rats outside town and bring me three strands of their fur.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Large Rat",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 1
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Kill rats outside Halas for three strands of rat fur."
+    },
+    {
+     "kind": "give",
+     "target": "Beril O'Leary",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three strands of rat fur to Beril O'Leary.",
+     "says": "These will do.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Tribal Toughness"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 3; github.com/Jadiction/EQOA-Data). The guide's rat furs are the database's Strands of Rat Fur, from the large rats outside the gates. The Tribal Toughness scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/halas/shaman/L4",
+   "name": "Trista's Weapon",
+   "giver": "Trista",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/shaman/L3"
+   ],
+   "offer": "I will make you a new weapon if you bring me an oilstone from Merchant Mallie, a bar of iron ore from Benen O'Leary, and small spider eyes from the spiderlings.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Mallie",
+     "journal": "Get an oilstone from Merchant Mallie.",
+     "says": "One oilstone.",
+     "rewards": {
+      "items": [
+       "oilstone"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Benen O'leary",
+     "journal": "Get a bar of iron ore from Benen O'Leary in the tunnel.",
+     "says": "A bar of iron ore.",
+     "rewards": {
+      "items": [
+       "iron ore"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Spiderling",
+     "items": [
+      {
+       "item": "small spider eye",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill spiderlings for two small spider eyes."
+    },
+    {
+     "kind": "give",
+     "target": "Trista",
+     "items": [
+      {
+       "item": "oilstone",
+       "count": 1
+      },
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "small spider eye",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the oilstone, iron ore and spider eyes to Trista.",
+     "says": "Here is your weapon.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Two eyes is ours. The guide does not name the weapon, so none is given."
+  },
+  {
+   "key": "1-20/halas/shaman/L5",
+   "name": "The Freezeblood Wardens",
+   "giver": "Beril O'Leary",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/shaman/L4"
+   ],
+   "offer": "Freezeblood wardens lurk in the Everfrost, southeast of the town entrance. Kill three of them.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "freezeblood warden",
+     "count": 3,
+     "journal": "Kill three Freezeblood Wardens southeast of the town entrance."
+    },
+    {
+     "kind": "talk",
+     "target": "Beril O'Leary",
+     "journal": "Return to Beril O'Leary.",
+     "says": "The spirits are pleased.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Blighting Mist"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 5; github.com/Jadiction/EQOA-Data). The guide gives no count: three is ours. The Blighting Mist scroll is the class's level 5 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/halas/shaman/L7",
+   "name": "Steel Bars",
+   "giver": "Beril O'Leary",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/shaman/L5"
+   ],
+   "offer": "The Freezeblood hordes carry steel bars. They camp with the icemasters and icecrushers west by northwest of Halas. Bring me two.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Freezeblood Horde",
+     "items": [
+      {
+       "item": "Steel Bar",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill Freezeblood hordes west by northwest of Halas for two steel bars."
+    },
+    {
+     "kind": "give",
+     "target": "Beril O'Leary",
+     "items": [
+      {
+       "item": "Steel Bar",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the two steel bars to Beril O'Leary.",
+     "says": "Good steel.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Minor Malady"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Freezeblood Horde"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 7; github.com/Jadiction/EQOA-Data). The Minor Malady scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/halas/shaman/L10",
+   "name": "Nilmo's Feathers",
+   "giver": "Beril O'Leary",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/shaman/L5"
+   ],
+   "offer": "Go to Nilmo at the barbarian camp south of the monolith, west along the mountains. He has work for you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Nilmo McPherson",
+     "journal": "Find Nilmo at the barbarian camp south of the monolith.",
+     "says": "Beril sent you? Kill two owls northwest of here and bring me their feathers."
+    },
+    {
+     "kind": "loot",
+     "target": "owl",
+     "items": [
+      {
+       "item": "White Owl Feather",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill owls northwest of Nilmo's camp for two feathers."
+    },
+    {
+     "kind": "give",
+     "target": "Nilmo McPherson",
+     "items": [
+      {
+       "item": "White Owl Feather",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the two feathers to Nilmo.",
+     "says": "Thank you. Tell Beril I am grateful."
+    },
+    {
+     "kind": "talk",
+     "target": "Beril O'Leary",
+     "journal": "Return to Beril O'Leary.",
+     "says": "Nilmo speaks well of you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 10; github.com/Jadiction/EQOA-Data). There is no White Owl in the database: the owls northwest of Ferris McDougal's camp stand in. Nilmo is the database's Nilmo McPherson. It follows L5: L7 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/halas/shaman/L13",
+   "name": "Tribunal Rings",
+   "giver": "Elder Felligan",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/shaman/L10"
+   ],
+   "offer": "Freezeblood scavengers wander west of the gate, past the Icecrusher lake and the guard towers, where Trukat and Gunkat spawn. Kill them and bring me three Tribunal Rings.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Freezeblood scavenger",
+     "items": [
+      {
+       "item": "Tribunal Ring",
+       "count": 1
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Kill Freezeblood scavengers west of Halas for three Tribunal Rings."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Felligan",
+     "items": [
+      {
+       "item": "Tribunal Ring",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three Tribunal Rings to Elder Felligan.",
+     "says": "These rings should never have left the Tribunal.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Tribal Brawn"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 13; github.com/Jadiction/EQOA-Data). The Tribal Brawn scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/halas/shaman/L15",
+   "name": "Kurnor",
+   "giver": "Elder Felligan",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/shaman/L13"
+   ],
+   "offer": "The Freezebloods' leader, Kurnor, keeps an igloo west beyond the guard towers, past the gap in the mountains, left along the river. Kill him and bring me his necklace.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Kurnor",
+     "items": [
+      {
+       "item": "Kurnor's Necklace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Kurnor at his igloo west of Halas for his necklace."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Felligan",
+     "items": [
+      {
+       "item": "Kurnor's Necklace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Kurnor's necklace to Elder Felligan.",
+     "says": "Kurnor is gone. Go and tell Beril O'Leary."
+    },
+    {
+     "kind": "talk",
+     "target": "Beril O'Leary",
+     "journal": "Tell Beril O'Leary of Kurnor's fall.",
+     "says": "Good news. Go back to Elder Felligan."
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Felligan",
+     "journal": "Return to Elder Felligan.",
+     "says": "You have done well.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Endure Poison"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 15; github.com/Jadiction/EQOA-Data). The Endure Poison scroll is the class's level 15 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/halas/shaman/L20",
+   "name": "The River Road",
+   "giver": "Beril O'Leary",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/shaman/L15"
+   ],
+   "offer": "Find Yarn Icefrost in his igloo west of the river south of Halas, and do what he asks.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Yarn Icefrost",
+     "journal": "Find Yarn Icefrost in his igloo west of the river.",
+     "says": "Go to Firemaster Drumm in Diren's Hold, beside the banker on the second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Firemaster Drumm",
+     "journal": "Find Firemaster Drumm in Diren's Hold.",
+     "says": "Bring me two salmon from the river by the Hold."
+    },
+    {
+     "kind": "loot",
+     "target": "Salmon",
+     "items": [
+      {
+       "item": "Salmon",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill salmon in the river near Diren's Hold for two salmon."
+    },
+    {
+     "kind": "give",
+     "target": "Firemaster Drumm",
+     "items": [
+      {
+       "item": "Salmon",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the two salmon to Firemaster Drumm.",
+     "says": "Now go to Jarvan Tember on the mountain top."
+    },
+    {
+     "kind": "talk",
+     "target": "Jarvan Tember",
+     "journal": "Climb the mountain beside Diren's Hold to Jarvan Tember.",
+     "says": "Go home to Beril."
+    },
+    {
+     "kind": "talk",
+     "target": "Beril O'Leary",
+     "journal": "Return to Beril O'Leary.",
+     "says": "Elder Felligan has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Elder Felligan",
+     "journal": "Speak with Elder Felligan for your reward.",
+     "says": "The spirits of Halas walk with you.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Salmon"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (A one-handed weapon and a pet buff, or a two-handed spear and Decaying Wind.) The guide says 2 million XP; the other cities' level 20 guides give 2,814,929."
+  }
+ ],
+ "items": [
+  {
+   "name": "Bag of Tricks",
+   "description": "The assassin Numla's bag of tricks.",
+   "notrade": true,
+   "like": "Strands of Rat Fur"
+  },
+  {
+   "name": "Blued Bear Skin Fur",
+   "description": "A bear skin fur dyed blue.",
+   "notrade": true,
+   "like": "Strands of Rat Fur"
+  },
+  {
+   "name": "Blued Bear Skin Sash",
+   "description": "A sash of blue-dyed bear skin.",
+   "notrade": true,
+   "like": "Strands of Rat Fur"
+  },
+  {
+   "name": "Burlap Thread",
+   "description": "A spool of coarse burlap thread.",
+   "notrade": true,
+   "like": "Strands of Rat Fur"
+  },
+  {
+   "name": "Freezeblood Battle Plans",
+   "description": "Battle plans carried by a Freezeblood captain.",
+   "notrade": true,
+   "like": "Strands of Rat Fur"
+  },
+  {
+   "name": "Icefang Spiderling Fang",
+   "description": "The fang of an Icefang Spiderling.",
+   "notrade": true,
+   "like": "small spider eye"
+  },
+  {
+   "name": "Icycap",
+   "description": "A frost-rimed cap taken from a Freezeblood Icecrusher.",
+   "notrade": true,
+   "like": "Goblin Warden's Headband"
+  },
+  {
+   "name": "Kurnor's Necklace",
+   "description": "The necklace of Kurnor, leader of the Freezebloods.",
+   "notrade": true,
+   "like": "Goblin Warden's Headband"
+  },
+  {
+   "name": "Letter from Jarvan Tember",
+   "description": "A letter from Jarvan Tember for Juno Felligan.",
+   "notrade": true,
+   "like": "Strands of Rat Fur"
+  },
+  {
+   "name": "Letter from Juno Felligan",
+   "description": "A letter from Juno Felligan for Iron Eagle.",
+   "notrade": true,
+   "like": "Strands of Rat Fur"
+  },
+  {
+   "name": "Letter from Yarn Icefrost",
+   "description": "Yarn Icefrost's answer, for Brenn Raven.",
+   "notrade": true,
+   "like": "Strands of Rat Fur"
+  },
+  {
+   "name": "Raven's Tail Feather",
+   "description": "A long tail feather of a raven.",
+   "notrade": true,
+   "like": "ruined owl feathers"
+  },
+  {
+   "name": "Salmon",
+   "description": "A fat river salmon.",
+   "notrade": true,
+   "like": "ruined owl feathers"
+  },
+  {
+   "name": "Sealed Letter",
+   "description": "A sealed letter for Yarn Icefrost.",
+   "notrade": true,
+   "like": "Strands of Rat Fur"
+  },
+  {
+   "name": "Steel Bar",
+   "description": "A bar of steel carried by the Freezeblood hordes.",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Strand of Spider Silk",
+   "description": "A strand of silk from the Ice Spider Queen.",
+   "notrade": true,
+   "like": "shimmering silk strand"
+  },
+  {
+   "name": "Tribunal Ring",
+   "description": "A ring the Freezeblood scavengers carry.",
+   "notrade": true,
+   "like": "Goblin Warden's Headband"
+  },
+  {
+   "name": "Trukat's Knife",
+   "description": "The knife of the Freezeblood goblin Trukat.",
+   "notrade": true,
+   "like": "Goblin Ice Axe"
+  },
+  {
+   "name": "White Owl Feather",
+   "description": "A white feather from an owl of the Everfrost.",
+   "notrade": true,
+   "like": "ruined owl feathers"
+  },
+  {
+   "name": "Wolves of the North Sash",
+   "description": "A sash worn by the Wolves of the North.",
+   "notrade": true,
+   "like": "Goblin Warden's Headband"
+  }
+ ]
+}

@@ -1,0 +1,4217 @@
+{
+ "city": "rivervale",
+ "quests": [
+  {
+   "key": "1-20/rivervale/cleric/L1",
+   "name": "An Acolyte's Robe",
+   "giver": "Pora Meepup",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Every cleric of Rivervale starts in the acolyte's robe. Tailor Sylle will give you one for nothing.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Tailor Sylle",
+     "journal": "Get an acolyte's robe from Tailor Sylle.",
+     "says": "Here is your robe.",
+     "rewards": {
+      "items": [
+       "acolyte's robe"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Pora Meepup",
+     "items": [
+      {
+       "item": "acolyte's robe",
+       "count": 1
+      }
+     ],
+     "journal": "Show the acolyte's robe to Pora Meepup.",
+     "says": "Now you look like one of us.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 1; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/rivervale/cleric/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Pora Meepup",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/cleric/L1"
+   ],
+   "offer": "Speak to Spiritmaster Lily; she will bind you here. Then seek out Coachman Huff.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Lily",
+     "journal": "Speak with Spiritmaster Lily to be bound.",
+     "says": "Now seek out Coachman Huff."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Huff",
+     "journal": "Speak with Coachman Huff.",
+     "says": "Back to Pora with you."
+    },
+    {
+     "kind": "talk",
+     "target": "Pora Meepup",
+     "journal": "Return to Pora Meepup.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 2; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/rivervale/cleric/L3",
+   "name": "Raven Feathers",
+   "giver": "Pora Meepup",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/cleric/L2"
+   ],
+   "offer": "You need some experience of battle. Bring me two broken raven feathers from the magpies in Misty Thicket.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Magpie",
+     "items": [
+      {
+       "item": "broken raven feathers",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill magpies in Misty Thicket for two broken raven feathers."
+    },
+    {
+     "kind": "give",
+     "target": "Pora Meepup",
+     "items": [
+      {
+       "item": "broken raven feathers",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the two broken raven feathers to Pora Meepup.",
+     "says": "You did well.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Minor Blessing"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 3; github.com/Jadiction/EQOA-Data). The Minor Blessing scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/rivervale/cleric/L4",
+   "name": "A New Weapon",
+   "giver": "Darm Leafsway",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/cleric/L3"
+   ],
+   "offer": "I will make you a new weapon. Bring me dice from Merchant Fretwater, charcoal from Merchant Mintopp, a firefly wing and a rat claw.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Fretwater",
+     "journal": "Get dice from Merchant Fretwater.",
+     "says": "Dice for Darm.",
+     "rewards": {
+      "items": [
+       "dice"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Merchant Mintopp",
+     "journal": "Get charcoal from Merchant Mintopp.",
+     "says": "A bit of charcoal.",
+     "rewards": {
+      "items": [
+       "bit of charcoal"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Fireflies",
+     "items": [
+      {
+       "item": "damaged firefly wings",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill fireflies for a firefly wing."
+    },
+    {
+     "kind": "loot",
+     "target": "Rat",
+     "items": [
+      {
+       "item": "Cracked Rat Claw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill rats for a rat claw."
+    },
+    {
+     "kind": "give",
+     "target": "Darm Leafsway",
+     "items": [
+      {
+       "item": "dice",
+       "count": 1
+      },
+      {
+       "item": "bit of charcoal",
+       "count": 1
+      },
+      {
+       "item": "damaged firefly wings",
+       "count": 1
+      },
+      {
+       "item": "Cracked Rat Claw",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the dice, the charcoal, the wing and the claw to Darm Leafsway.",
+     "says": "Here is your weapon.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [
+    "npc: Merchant Fretwater"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Merchant Fretwater is not in the database. The guide does not name the weapon, so none is given."
+  },
+  {
+   "key": "1-20/rivervale/cleric/L5",
+   "name": "Goblin Raiders",
+   "giver": "Pora Meepup",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/cleric/L3"
+   ],
+   "offer": "Goblin raiders hunt west of the unfinished wall, northwest of the coach. Kill them and bring me a goblin raider's cap.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Pickclaw Shaman",
+     "items": [
+      {
+       "item": "Raiders Cap",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill goblin raiders west of the unfinished wall for a raider's cap."
+    },
+    {
+     "kind": "give",
+     "target": "Pora Meepup",
+     "items": [
+      {
+       "item": "Raiders Cap",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the goblin raider's cap to Pora Meepup.",
+     "says": "Rivervale is safer for it.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Holy Shock"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 5; github.com/Jadiction/EQOA-Data). There are no goblin raiders in the database: the pickclaw shamans by the unfinished wall, where EQOA-Data's map puts the raiders and of their level, stand in; their cap is the database's Raiders Cap. The Holy Shock scroll is the class's level 5 spell, the scroll the guides that name one give for this quest. It follows L3: L4 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/rivervale/cleric/L7",
+   "name": "Cleric Regents",
+   "giver": "Pora Meepup",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/cleric/L5"
+   ],
+   "offer": "I need regents for our work. Ask Deputy Grilsop by the Kithicor tunnel at the East Gate.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Deputy Grilsop",
+     "journal": "Speak to Deputy Grilsop by the Kithicor tunnel at the East Gate.",
+     "says": "Ren Deeppockets at the druids' guild, northeast of the West Gate, can help."
+    },
+    {
+     "kind": "talk",
+     "target": "Ren Deeppockets",
+     "journal": "Talk to Ren Deeppockets at the druids' guild, northeast of the West Gate.",
+     "says": "I can, but tell Deputy Grilsop first."
+    },
+    {
+     "kind": "talk",
+     "target": "Deputy Grilsop",
+     "journal": "Go back to Deputy Grilsop.",
+     "says": "Good. Go and tell Pora."
+    },
+    {
+     "kind": "talk",
+     "target": "Pora Meepup",
+     "journal": "Speak to Pora Meepup.",
+     "says": "Take this bag of old items to Ren.",
+     "rewards": {
+      "items": [
+       "Bag of Old Items"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Ren Deeppockets",
+     "items": [
+      {
+       "item": "Bag of Old Items",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bag of old items to Ren Deeppockets.",
+     "says": "Now I need three Kithicor pinecones, out the East Gate."
+    },
+    {
+     "kind": "reach",
+     "x": 19696,
+     "y": 54,
+     "z": 10828,
+     "radius": 20,
+     "journal": "Gather three Kithicor pinecones out the East Gate.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You gather three pinecones from under the Kithicor pines."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Kithicor Pinecone",
+         "count": 3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Ren Deeppockets",
+     "items": [
+      {
+       "item": "Kithicor Pinecone",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three pinecones to Ren Deeppockets.",
+     "says": "Here are your regents.",
+     "rewards": {
+      "items": [
+       "Cleric Regents"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Pora Meepup",
+     "items": [
+      {
+       "item": "Cleric Regents",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the cleric regents to Pora Meepup.",
+     "says": "Exactly what we needed.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Endure Ailment"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 7; github.com/Jadiction/EQOA-Data). Grimble Blimnop by the docks, a stop between Grilsop and Ren, is not in the database: that step is left out. The pinecones are gathered at EQOA-Data's map's place (the guide's other way, buying them from Merchant Fretwater, is not: he is not in the database). The Endure Ailment scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/rivervale/cleric/L10",
+   "name": "Apprentice Jilo",
+   "giver": "Pora Meepup",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/cleric/L7"
+   ],
+   "offer": "One of the guards at the inn was hurt in a goblin attack. Go and hear what he has to say.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Deputy Viggo",
+     "journal": "Speak with the guard at the inn who was hurt in the goblin attack.",
+     "says": "Apprentice Jilo went after the goblins. Tell Pora."
+    },
+    {
+     "kind": "talk",
+     "target": "Pora Meepup",
+     "journal": "Return to Pora Meepup.",
+     "says": "Jilo is in the tower west of the unfinished wall. Fight your way to the top and clear it of goblins."
+    },
+    {
+     "kind": "reach",
+     "x": 17504,
+     "y": 76,
+     "z": 10711,
+     "radius": 20,
+     "journal": "Fight your way to the top of the tower west of the unfinished wall.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "At the top of the tower, Jilo is surrounded by goblins."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Goblin Hurler",
+     "count": 1,
+     "journal": "Kill the goblins on the tower."
+    },
+    {
+     "kind": "talk",
+     "target": "Pora Meepup",
+     "journal": "Return to Pora Meepup.",
+     "says": "Jilo is safe at home, thanks to you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 10; github.com/Jadiction/EQOA-Data). The guard at the inn is the database's Deputy Viggo, the deputy nearest EQOA-Data's map's place for him. Jilo and the goblin catcher are not in the database: the tower's own goblins (its Goblin Hurler) are the fight, and Jilo's walk home is left out."
+  },
+  {
+   "key": "1-20/rivervale/cleric/L13",
+   "name": "The Suspicious Goblin",
+   "giver": "Darm Leafsway",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/cleric/L10"
+   ],
+   "offer": "Follow the road out from the wall's gate northeast over the hill to a camp of goblin warriors and champions. Kill the suspicious goblin there and bring me what it carries.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Suspicious Goblin",
+     "items": [
+      {
+       "item": "Suspicious Looking Stone",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the suspicious goblin at the camp northeast of the wall's gate."
+    },
+    {
+     "kind": "give",
+     "target": "Darm Leafsway",
+     "items": [
+      {
+       "item": "Suspicious Looking Stone",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the suspicious looking stone to Darm Leafsway.",
+     "says": "Now go north to the goblin tunnel and kill a goblin shaman there. Bring me its staff."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin shaman",
+     "items": [
+      {
+       "item": "Goblin Shaman's Staff",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill a goblin shaman at the entrance of the goblin tunnel for its staff."
+    },
+    {
+     "kind": "give",
+     "target": "Darm Leafsway",
+     "items": [
+      {
+       "item": "Goblin Shaman's Staff",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the goblin shaman's staff to Darm Leafsway.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Ward Death"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Suspicious Goblin"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 13; github.com/Jadiction/EQOA-Data). The Ward Death scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/rivervale/cleric/L15",
+   "name": "Brindo's Idol",
+   "giver": "Darm Leafsway",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/cleric/L10"
+   ],
+   "offer": "Brend Groomer in Bobble-by-Water has had something stolen. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brend Groomer",
+     "journal": "Find Brend Groomer in Bobble-by-Water, in the house north of the coach.",
+     "says": "Dark elves to the south, toward Neriak, stole from us. Kill them until it turns up."
+    },
+    {
+     "kind": "loot",
+     "target": "Dark Elf Raider",
+     "items": [
+      {
+       "item": "Brindo's Magical Idol",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25,
+     "journal": "Kill dark elf raiders at their camp south of Bobble-by-Water until it turns up."
+    },
+    {
+     "kind": "give",
+     "target": "Brend Groomer",
+     "items": [
+      {
+       "item": "Brindo's Magical Idol",
+       "count": 1
+      }
+     ],
+     "journal": "Bring it back to Brend Groomer.",
+     "says": "Thank you. Darm Leafsway will be glad."
+    },
+    {
+     "kind": "talk",
+     "target": "Darm Leafsway",
+     "journal": "Return to Darm Leafsway.",
+     "says": "The goblin commanders of Runnyeye: bring me four of what they wear."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin commander",
+     "items": [
+      {
+       "item": "Goblin Anklet",
+       "count": 1
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill goblin commanders for four of what they wear."
+    },
+    {
+     "kind": "give",
+     "target": "Darm Leafsway",
+     "items": [
+      {
+       "item": "Goblin Anklet",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four to Darm Leafsway.",
+     "says": "Take this letter to Captain Rolley in the tower at the Misty Thicket wall.",
+     "rewards": {
+      "items": [
+       "Letter for Captain Rolley"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Captain Rolley",
+     "items": [
+      {
+       "item": "Letter for Captain Rolley",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the letter to Captain Rolley at the Misty Thicket wall.",
+     "says": "Take my answer back.",
+     "rewards": {
+      "items": [
+       "Letter from Captain Rolley"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Darm Leafsway",
+     "items": [
+      {
+       "item": "Letter from Captain Rolley",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Captain Rolley's letter to Darm Leafsway.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Endure Affliction"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 15; github.com/Jadiction/EQOA-Data). The guide's goblin commanders of Runnyeye are several named ones here (Commander Drog, Artheg and the rest): the goblin commander by the goblin tower stands for them. The Endure Affliction scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L10: L13 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/rivervale/cleric/L20",
+   "name": "The Long Road",
+   "giver": "Darm Leafsway",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/cleric/L15"
+   ],
+   "offer": "I have a long road for you, starting with Brend Gromer in Bobble-by-Water.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brend Groomer",
+     "journal": "Find Brend Gromer in Bobble-by-Water, north of the coach.",
+     "says": "Orial Magal, north of here, knows more."
+    },
+    {
+     "kind": "talk",
+     "target": "Orial Magal",
+     "journal": "Find Orial Magal, north of Brend in Bobble-by-Water.",
+     "says": "Deputy Pendy, by the northern entrance, will tell you the rest."
+    },
+    {
+     "kind": "talk",
+     "target": "Deputy Pendy",
+     "journal": "Find Deputy Pendy by the northern entrance of Bobble-by-Water.",
+     "says": "Dark elf spoilers took our rations north along the river. Bring them back."
+    },
+    {
+     "kind": "loot",
+     "target": "Dark Elf Spoiler",
+     "items": [
+      {
+       "item": "Lost Rations",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill dark elf spoilers north along the river for what they took."
+    },
+    {
+     "kind": "give",
+     "target": "Deputy Pendy",
+     "items": [
+      {
+       "item": "Lost Rations",
+       "count": 1
+      }
+     ],
+     "journal": "Bring it back to Deputy Pendy.",
+     "says": "Thank you. Go back to Darm Leafsway."
+    },
+    {
+     "kind": "talk",
+     "target": "Darm Leafsway",
+     "journal": "Return to Darm Leafsway.",
+     "says": "Now go to Barnimus Giggletoes in Merry-by-Water."
+    },
+    {
+     "kind": "talk",
+     "target": "Barnimus Giggletoes",
+     "journal": "Find Barnimus Giggletoes in Merry-by-Water.",
+     "says": "Catch five bees in a jar southeast of town, between the two towers."
+    },
+    {
+     "kind": "reach",
+     "x": 14977,
+     "y": 54,
+     "z": 13093,
+     "radius": 20,
+     "journal": "Catch five bees in a jar southeast of Merry-by-Water.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You coax five buzzing bees into a jar."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Jar of Bees",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Barnimus Giggletoes",
+     "items": [
+      {
+       "item": "Jar of Bees",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the jar of bees to Barnimus Giggletoes.",
+     "says": "Now let them loose in Phil Wiggins's house."
+    },
+    {
+     "kind": "reach",
+     "x": 14908,
+     "y": 62,
+     "z": 12972,
+     "radius": 15,
+     "journal": "Release the bees in Phil Wiggins's house.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You open the jar and the bees fly out into Phil Wiggins's house."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Barnimus Giggletoes",
+     "journal": "Return to Barnimus Giggletoes.",
+     "says": "Ha! Go tell Darm Leafsway."
+    },
+    {
+     "kind": "talk",
+     "target": "Darm Leafsway",
+     "journal": "Return to Darm Leafsway.",
+     "says": "Kill the goblin hoarder in Runnyeye and bring me his totem."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin hoarder",
+     "items": [
+      {
+       "item": "Goblin Hoarder's Totem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill the goblin hoarder in Runnyeye until it drops."
+    },
+    {
+     "kind": "give",
+     "target": "Darm Leafsway",
+     "items": [
+      {
+       "item": "Goblin Hoarder's Totem",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the hoarder's treasure to Darm Leafsway.",
+     "says": "Last, buy supplies from Stalis Slithertonuge south of Kithicor, by the fallen tree."
+    },
+    {
+     "kind": "give",
+     "target": "Stalis Slithertonuge",
+     "tunar": 1050,
+     "journal": "Buy supplies from Stalis Slithertonuge south of Kithicor for 1050 tunar.",
+     "says": "Your supplies.",
+     "rewards": {
+      "items": [
+       "Bag of Supplies"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Darm Leafsway",
+     "items": [
+      {
+       "item": "Bag of Supplies",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the supplies to Darm Leafsway.",
+     "says": "You have done Rivervale proud.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "npc: Barnimus Giggletoes",
+    "npc: Stalis Slithertonuge"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). Barnimus Giggletoes and Phil Wiggins (Merry-by-Water) and Stalis Slithertonuge (south of Kithicor) are not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
+  },
+  {
+   "key": "1-20/rivervale/druid/L1",
+   "name": "A Stormweave Tunic",
+   "giver": "Deke Gabbins",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A druid of Rivervale wears the Stormweave tunic. Tailor Vali will give you one; it costs nothing.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Tailor Vali",
+     "journal": "Get a Stormweave Tunic from Tailor Vali.",
+     "says": "Here is your tunic.",
+     "rewards": {
+      "items": [
+       "Stormweave Tunic"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Deke Gabbins",
+     "items": [
+      {
+       "item": "Stormweave Tunic",
+       "count": 1
+      }
+     ],
+     "journal": "Show the Stormweave Tunic to Deke.",
+     "says": "It suits you.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 1; github.com/Jadiction/EQOA-Data). The guide's tunic from Tailor Vili is the database's Stormweave Tunic from Tailor Vali (EQOA-Data's item list sells it there)."
+  },
+  {
+   "key": "1-20/rivervale/druid/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Deke Gabbins",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/druid/L1"
+   ],
+   "offer": "Talk to Spiritmaster Thom, and then to Coachman Huff.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Thom",
+     "journal": "Talk to Spiritmaster Thom.",
+     "says": "Now go and see Coachman Huff."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Huff",
+     "journal": "Talk to Coachman Huff.",
+     "says": "Back to Deke with you."
+    },
+    {
+     "kind": "talk",
+     "target": "Deke Gabbins",
+     "journal": "Return to Deke.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 2; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/rivervale/druid/L3",
+   "name": "Bat Meat",
+   "giver": "Deke Gabbins",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/druid/L2"
+   ],
+   "offer": "Practise your fighting skills: go to Kithicor, kill bats, and bring me two pieces of bat meat.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Bat",
+     "items": [
+      {
+       "item": "bat meat",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill bats in Kithicor for two pieces of bat meat."
+    },
+    {
+     "kind": "give",
+     "target": "Deke Gabbins",
+     "items": [
+      {
+       "item": "bat meat",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the two pieces of bat meat to Deke.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Fiery Burst"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 3; github.com/Jadiction/EQOA-Data). The Fiery Burst scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/rivervale/druid/L4",
+   "name": "Ren's Weapon",
+   "giver": "Ren Deeppockets",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/druid/L3"
+   ],
+   "offer": "I will make you a weapon. Bring me fishing worms from Fretwater, line from Mintopp, a raven's beak from the crows and ravens, and rat fur.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Fretwater",
+     "journal": "Get fishing worms from Merchant Fretwater.",
+     "says": "Fishing worms.",
+     "rewards": {
+      "items": [
+       "fishing worms"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Merchant Mintopp",
+     "journal": "Get fishing line from Merchant Mintopp.",
+     "says": "A line.",
+     "rewards": {
+      "items": [
+       "fishing line"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Crow",
+     "items": [
+      {
+       "item": "chipped raven beak",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill crows or ravens for a raven's beak."
+    },
+    {
+     "kind": "loot",
+     "target": "Rat",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill rats for rat fur."
+    },
+    {
+     "kind": "give",
+     "target": "Ren Deeppockets",
+     "items": [
+      {
+       "item": "fishing worms",
+       "count": 1
+      },
+      {
+       "item": "fishing line",
+       "count": 1
+      },
+      {
+       "item": "chipped raven beak",
+       "count": 1
+      },
+      {
+       "item": "Strands of Rat Fur",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the worms, the line, the beak and the fur to Ren Deeppockets.",
+     "says": "Here is your weapon.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [
+    "npc: Merchant Fretwater"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Merchant Fretwater is not in the database. The raven's beak is the database's chipped raven beak, the rat fur its Strands of Rat Fur. The guide does not name the weapon."
+  },
+  {
+   "key": "1-20/rivervale/druid/L5",
+   "name": "Goblin Raiders",
+   "giver": "Deke Gabbins",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/druid/L3"
+   ],
+   "offer": "Goblin raiders hunt west of the unfinished wall, northwest of the coach. Kill them and bring me a goblin raider's cap.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Pickclaw Shaman",
+     "items": [
+      {
+       "item": "Raiders Cap",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill goblin raiders west of the unfinished wall for a raider's cap."
+    },
+    {
+     "kind": "give",
+     "target": "Deke Gabbins",
+     "items": [
+      {
+       "item": "Raiders Cap",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the goblin raider's cap to Deke.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Snare"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 5; github.com/Jadiction/EQOA-Data). There are no goblin raiders in the database: the pickclaw shamans by the unfinished wall, where EQOA-Data's map puts the raiders and of their level, stand in; their cap is the database's Raiders Cap. The Snare scroll is the class's level 5 spell, the scroll the guides that name one give for this quest. It follows L3: L4 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/rivervale/druid/L7",
+   "name": "Rondo's Report",
+   "giver": "Deke Gabbins",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/druid/L5"
+   ],
+   "offer": "Rondo Thistlefoot watches near the Standing Stones Wall, northeast of the Misty Thicket tunnel exit, in the shape of a bear. Get his report.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Rondo Thistlefoot",
+     "journal": "Find Rondo Thistlefoot near the Standing Stones Wall.",
+     "says": "Here is my report. Take it to Deke."
+    },
+    {
+     "kind": "talk",
+     "target": "Deke Gabbins",
+     "journal": "Return to Deke with Rondo's report.",
+     "says": "Now I need three reagents: venom from a thicket viper, moss from a fallen tree in the Kithicor forest, and scrapings from the standing stone in Misty Thicket."
+    },
+    {
+     "kind": "loot",
+     "target": "thicket viper",
+     "items": [
+      {
+       "item": "Thicket Viper Venom",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill a thicket viper for its venom."
+    },
+    {
+     "kind": "reach",
+     "x": 20075,
+     "y": 55,
+     "z": 11132,
+     "radius": 20,
+     "journal": "Take moss from a fallen tree in the Kithicor forest.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You scrape a handful of moss from the fallen tree."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Kithicor Moss",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 17793,
+     "y": 54,
+     "z": 11409,
+     "radius": 20,
+     "journal": "Take scrapings from the standing stone in Misty Thicket, along the wall.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You scrape a little dust from the standing stone."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Standing Stone Scrapings",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Deke Gabbins",
+     "items": [
+      {
+       "item": "Thicket Viper Venom",
+       "count": 1
+      },
+      {
+       "item": "Kithicor Moss",
+       "count": 1
+      },
+      {
+       "item": "Standing Stone Scrapings",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the venom, the moss and the scrapings to Deke.",
+     "says": "The mixture will be strong.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Nature's Blessing"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 7; github.com/Jadiction/EQOA-Data). The fallen tree's and the standing stone's places are EQOA-Data's map's. The Nature's Blessing scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/rivervale/druid/L10",
+   "name": "The Goblin Thief",
+   "giver": "Deke Gabbins",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/druid/L7"
+   ],
+   "offer": "Go back to Rondo Thistlefoot at the standing stones past the goblin tower; he has another report.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Rondo Thistlefoot",
+     "journal": "Find Rondo Thistlefoot at the standing stones past the goblin tower.",
+     "says": "A goblin thief prowls around the goblin tower by the wall. Tell Deke."
+    },
+    {
+     "kind": "talk",
+     "target": "Deke Gabbins",
+     "journal": "Return to Deke.",
+     "says": "Kill that thief and bring me what he stole."
+    },
+    {
+     "kind": "loot",
+     "target": "Goblin Thief",
+     "items": [
+      {
+       "item": "stolen goods",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the goblin thief roaming around the goblin tower by the wall."
+    },
+    {
+     "kind": "give",
+     "target": "Deke Gabbins",
+     "items": [
+      {
+       "item": "stolen goods",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the stolen goods to Deke.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 10; github.com/Jadiction/EQOA-Data). The thief's loot is the database's stolen goods."
+  },
+  {
+   "key": "1-20/rivervale/druid/L13",
+   "name": "Goblin Leaders",
+   "giver": "Ren Deeppockets",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/druid/L10"
+   ],
+   "offer": "Nena Bimberry, near the unfinished wall, has news of the goblins. Go and hear it.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Nena Bimberry",
+     "journal": "Speak with Nena Bimberry near the unfinished wall.",
+     "says": "Tell Ren the goblins are gathering."
+    },
+    {
+     "kind": "talk",
+     "target": "Ren Deeppockets",
+     "journal": "Return to Ren Deeppockets.",
+     "says": "Kill a goblin commander at the camp past the wall, southwest of the goblin tower, and bring me his headdress."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin commander",
+     "items": [
+      {
+       "item": "Goblin Commander's Headdress",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill a goblin commander for his headdress."
+    },
+    {
+     "kind": "give",
+     "target": "Ren Deeppockets",
+     "items": [
+      {
+       "item": "Goblin Commander's Headdress",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the headdress to Ren Deeppockets.",
+     "says": "Now the goblin foreman, at the tunnel camp further southwest."
+    },
+    {
+     "kind": "loot",
+     "target": "Goblin Foreman",
+     "items": [
+      {
+       "item": "Goblin Foreman's Mallet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the goblin foreman at the tunnel camp southwest of the commanders."
+    },
+    {
+     "kind": "give",
+     "target": "Ren Deeppockets",
+     "items": [
+      {
+       "item": "Goblin Foreman's Mallet",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the foreman's mallet to Ren Deeppockets.",
+     "says": "The goblins will think twice.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Regenerative Aura"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: Goblin Foreman"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 13; github.com/Jadiction/EQOA-Data). The guide does not say what the foreman carries: a mallet is ours. The Regenerative Aura scroll is the class's level 13 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/rivervale/druid/L15",
+   "name": "Kimpar's Lucky Stone",
+   "giver": "Ren Deeppockets",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/druid/L10"
+   ],
+   "offer": "Brend Groomer in Bobble-by-Water has had something stolen. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brend Groomer",
+     "journal": "Find Brend Groomer in Bobble-by-Water, in the house north of the coach.",
+     "says": "Dark elves to the south, toward Neriak, stole from us. Kill them until it turns up."
+    },
+    {
+     "kind": "loot",
+     "target": "Dark Elf Raider",
+     "items": [
+      {
+       "item": "Kimpar's Lucky Stone",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25,
+     "journal": "Kill dark elf raiders at their camp south of Bobble-by-Water until it turns up."
+    },
+    {
+     "kind": "give",
+     "target": "Brend Groomer",
+     "items": [
+      {
+       "item": "Kimpar's Lucky Stone",
+       "count": 1
+      }
+     ],
+     "journal": "Bring it back to Brend Groomer.",
+     "says": "Thank you. Ren Deeppockets will be glad."
+    },
+    {
+     "kind": "talk",
+     "target": "Ren Deeppockets",
+     "journal": "Return to Ren Deeppockets.",
+     "says": "The goblin commanders of Runnyeye: bring me four of what they wear."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin commander",
+     "items": [
+      {
+       "item": "Goblin Talisman",
+       "count": 1
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill goblin commanders for four of what they wear."
+    },
+    {
+     "kind": "give",
+     "target": "Ren Deeppockets",
+     "items": [
+      {
+       "item": "Goblin Talisman",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four to Ren Deeppockets.",
+     "says": "Take this letter to Captain Rolley in the tower at the Misty Thicket wall.",
+     "rewards": {
+      "items": [
+       "Letter for Captain Rolley"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Captain Rolley",
+     "items": [
+      {
+       "item": "Letter for Captain Rolley",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the letter to Captain Rolley at the Misty Thicket wall.",
+     "says": "Take my answer back.",
+     "rewards": {
+      "items": [
+       "Letter from Captain Rolley"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Ren Deeppockets",
+     "items": [
+      {
+       "item": "Letter from Captain Rolley",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Captain Rolley's letter to Ren Deeppockets.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Endure Elements"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 15; github.com/Jadiction/EQOA-Data). The guide's goblin commanders of Runnyeye are several named ones here (Commander Drog, Artheg and the rest): the goblin commander by the goblin tower stands for them. The Endure Elements scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L10: L13 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/rivervale/druid/L20",
+   "name": "The Long Road",
+   "giver": "Ren Deeppockets",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/druid/L15"
+   ],
+   "offer": "I have a long road for you, starting with Brend Gromer in Bobble-by-Water.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brend Groomer",
+     "journal": "Find Brend Gromer in Bobble-by-Water, north of the coach.",
+     "says": "Orial Magal, north of here, knows more."
+    },
+    {
+     "kind": "talk",
+     "target": "Orial Magal",
+     "journal": "Find Orial Magal, north of Brend in Bobble-by-Water.",
+     "says": "Deputy Pendy, by the northern entrance, will tell you the rest."
+    },
+    {
+     "kind": "talk",
+     "target": "Deputy Pendy",
+     "journal": "Find Deputy Pendy by the northern entrance of Bobble-by-Water.",
+     "says": "Dark elf spoilers took our rations north along the river. Bring them back."
+    },
+    {
+     "kind": "loot",
+     "target": "Dark Elf Spoiler",
+     "items": [
+      {
+       "item": "Lost Rations",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill dark elf spoilers north along the river for what they took."
+    },
+    {
+     "kind": "give",
+     "target": "Deputy Pendy",
+     "items": [
+      {
+       "item": "Lost Rations",
+       "count": 1
+      }
+     ],
+     "journal": "Bring it back to Deputy Pendy.",
+     "says": "Thank you. Go back to Ren Deeppockets."
+    },
+    {
+     "kind": "talk",
+     "target": "Ren Deeppockets",
+     "journal": "Return to Ren Deeppockets.",
+     "says": "Now go to Barnimus Giggletoes in Merry-by-Water."
+    },
+    {
+     "kind": "talk",
+     "target": "Barnimus Giggletoes",
+     "journal": "Find Barnimus Giggletoes in Merry-by-Water.",
+     "says": "Catch five bees in a jar southeast of town, between the two towers."
+    },
+    {
+     "kind": "reach",
+     "x": 14977,
+     "y": 54,
+     "z": 13093,
+     "radius": 20,
+     "journal": "Catch five bees in a jar southeast of Merry-by-Water.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You coax five buzzing bees into a jar."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Jar of Bees",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Barnimus Giggletoes",
+     "items": [
+      {
+       "item": "Jar of Bees",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the jar of bees to Barnimus Giggletoes.",
+     "says": "Now let them loose in Phil Wiggins's house."
+    },
+    {
+     "kind": "reach",
+     "x": 14908,
+     "y": 62,
+     "z": 12972,
+     "radius": 15,
+     "journal": "Release the bees in Phil Wiggins's house.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You open the jar and the bees fly out into Phil Wiggins's house."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Barnimus Giggletoes",
+     "journal": "Return to Barnimus Giggletoes.",
+     "says": "Ha! Go tell Ren Deeppockets."
+    },
+    {
+     "kind": "talk",
+     "target": "Ren Deeppockets",
+     "journal": "Return to Ren Deeppockets.",
+     "says": "Kill the goblin hoarder in Runnyeye and bring me his totem."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin hoarder",
+     "items": [
+      {
+       "item": "Goblin Hoarder's Totem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill the goblin hoarder in Runnyeye until it drops."
+    },
+    {
+     "kind": "give",
+     "target": "Ren Deeppockets",
+     "items": [
+      {
+       "item": "Goblin Hoarder's Totem",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the hoarder's treasure to Ren Deeppockets.",
+     "says": "Last, buy supplies from Stalis Slithertonuge south of Kithicor, by the fallen tree."
+    },
+    {
+     "kind": "give",
+     "target": "Stalis Slithertonuge",
+     "tunar": 1050,
+     "journal": "Buy supplies from Stalis Slithertonuge south of Kithicor for 1050 tunar.",
+     "says": "Your supplies.",
+     "rewards": {
+      "items": [
+       "Bag of Supplies"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Ren Deeppockets",
+     "items": [
+      {
+       "item": "Bag of Supplies",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the supplies to Ren Deeppockets.",
+     "says": "You are a true druid of Rivervale.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "npc: Barnimus Giggletoes",
+    "npc: Stalis Slithertonuge"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 20; github.com/Jadiction/EQOA-Data). Barnimus Giggletoes and Phil Wiggins (Merry-by-Water) and Stalis Slithertonuge (south of Kithicor) are not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
+  },
+  {
+   "key": "1-20/rivervale/rogue/L1",
+   "name": "A Six Pocket Shirt",
+   "giver": "Walt Deeppockets",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Buy yourself a Six Pocket Shirt; Tailor Vali has them for free.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Tailor Vali",
+     "journal": "Get a Six Pocket Shirt from Tailor Vali.",
+     "says": "Here's your shirt. Six pockets!",
+     "rewards": {
+      "items": [
+       "Six Pocket Shirt"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Six Pocket Shirt",
+       "count": 1
+      }
+     ],
+     "journal": "Show the Six Pocket Shirt to Walt Deeppockets.",
+     "says": "Plenty of pockets.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 1; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/rivervale/rogue/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Walt Deeppockets",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/rogue/L1"
+   ],
+   "offer": "Talk to Spiritmaster Willa; she will bind you and send you to Coachman Huff.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Willa",
+     "journal": "Talk to Spiritmaster Willa.",
+     "says": "Now go and talk to Coachman Huff."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Huff",
+     "journal": "Talk to Coachman Huff.",
+     "says": "Back to Walt with you."
+    },
+    {
+     "kind": "talk",
+     "target": "Walt Deeppockets",
+     "journal": "Return to Walt Deeppockets.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 2; github.com/Jadiction/EQOA-Data)."
+  },
+  {
+   "key": "1-20/rivervale/rogue/L3",
+   "name": "Rat Fur",
+   "giver": "Walt Deeppockets",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/rogue/L2"
+   ],
+   "offer": "Bring me two strands of rat fur from the rats just outside town.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Rat",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill rats just outside town for two strands of rat fur."
+    },
+    {
+     "kind": "give",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the two strands of rat fur to Walt Deeppockets.",
+     "says": "Nice work.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Sneak"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 3; github.com/Jadiction/EQOA-Data). The Sneak scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/rivervale/rogue/L4",
+   "name": "Thom's Weapon",
+   "giver": "Thom Gubbin",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/rogue/L3"
+   ],
+   "offer": "I'll make you a new weapon. Bring me iron ore and a bit of charcoal from Merchant Mintopp, and a firefly wing.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Mintopp",
+     "journal": "Get iron ore and a bit of charcoal from Merchant Mintopp.",
+     "says": "Iron ore and charcoal for Thom.",
+     "rewards": {
+      "items": [
+       "iron ore",
+       "bit of charcoal"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Fireflies",
+     "items": [
+      {
+       "item": "damaged firefly wings",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill fireflies for a firefly wing."
+    },
+    {
+     "kind": "give",
+     "target": "Thom Gubbin",
+     "items": [
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "bit of charcoal",
+       "count": 1
+      },
+      {
+       "item": "damaged firefly wings",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the iron ore, the charcoal and the wing to Thom Gubbin.",
+     "says": "Here's your weapon.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon."
+  },
+  {
+   "key": "1-20/rivervale/rogue/L5",
+   "name": "Goblin Raiders",
+   "giver": "Walt Deeppockets",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/rogue/L4"
+   ],
+   "offer": "Head west, a short way past the Misty Thicket wall, kill goblin raiders and bring me back a goblin raider's cap.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Pickclaw Shaman",
+     "items": [
+      {
+       "item": "Raiders Cap",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill goblin raiders past the Misty Thicket wall for a raider's cap."
+    },
+    {
+     "kind": "give",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Raiders Cap",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the goblin raider's cap to Walt Deeppockets.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Quick Blade"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 5; github.com/Jadiction/EQOA-Data). There are no goblin raiders in the database: the pickclaw shamans by the unfinished wall, where EQOA-Data's map puts the raiders and of their level, stand in; their cap is the database's Raiders Cap. The Quick Blade scroll is the class's level 5 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/rivervale/rogue/L7",
+   "name": "The Thief's Hiding Place",
+   "giver": "Walt Deeppockets",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/rogue/L5"
+   ],
+   "offer": "Find Deputy Jonkers at the gate of the big wall west of Rivervale. He saw something you should know about.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Deputy Jonkers",
+     "journal": "Find Deputy Jonkers at the gate of the big wall west of Rivervale.",
+     "says": "Get me a thicketberry pie from the grocer at the north end of the wall and I'll tell you."
+    },
+    {
+     "kind": "give",
+     "target": "Grocer Sloan",
+     "tunar": 94,
+     "journal": "Buy a thicketberry pie from the grocer at the north end of the wall for 94 tunar.",
+     "says": "One thicketberry pie.",
+     "rewards": {
+      "items": [
+       "Thicketberry Pie"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Deputy Jonkers",
+     "items": [
+      {
+       "item": "Thicketberry Pie",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the thicketberry pie to Deputy Jonkers.",
+     "says": "I watched the thief hide his loot in a hollowed tree trunk on the east side of the lake, the northernmost one."
+    },
+    {
+     "kind": "reach",
+     "x": 19097,
+     "y": 52,
+     "z": 10679,
+     "radius": 15,
+     "journal": "Find the hollowed tree trunk on the east side of the lake.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Inside the hollowed tree trunk you find bags of the thief's loot."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Thief's Loot Bag",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Thief's Loot Bag",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the thief's loot to Walt Deeppockets.",
+     "says": "That's more than we need. Put this extra bag back in the stump.",
+     "rewards": {
+      "items": [
+       "Extra Loot Bag"
+      ]
+     }
+    },
+    {
+     "kind": "reach",
+     "x": 19097,
+     "y": 52,
+     "z": 10679,
+     "radius": 15,
+     "journal": "Put the extra bag back in the hollowed tree trunk.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You tuck the extra bag back into the hollowed tree trunk."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Walt Deeppockets",
+     "journal": "Return to Walt Deeppockets.",
+     "says": "Nobody will know a thing.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Acrobatics"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 7; github.com/Jadiction/EQOA-Data). The grocer at the north end of the wall is the database's Grocer Sloan; the tree trunk's place is EQOA-Data's map's. The extra bag stays with you when you put it back (a reach step takes no items). The Acrobatics scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/rivervale/rogue/L10",
+   "name": "Bags of Gems",
+   "giver": "Walt Deeppockets",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/rogue/L7"
+   ],
+   "offer": "Bags of gems are hidden inside the windmills: three on this side of the lake and one near the Misty Thicket wall. Find all four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "reach",
+     "x": 18961,
+     "y": 54,
+     "z": 10898,
+     "radius": 12,
+     "journal": "Find the bag of gems in a windmill on Walt's side of the lake.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You find a bag of gems hidden in the windmill."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bag of Gems",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 18959,
+     "y": 54,
+     "z": 10798,
+     "radius": 12,
+     "journal": "Find the bag of gems in another windmill on Walt's side of the lake.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You find another bag of gems."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bag of Gems",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 19074,
+     "y": 54,
+     "z": 11205,
+     "radius": 12,
+     "journal": "Find the bag of gems in the third windmill on Walt's side of the lake.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You find a third bag of gems."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bag of Gems",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 17870,
+     "y": 54,
+     "z": 10885,
+     "radius": 12,
+     "journal": "Find the bag of gems in the windmill near the Misty Thicket wall.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You find the fourth bag of gems."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bag of Gems",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Bag of Gems",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four bags of gems to Walt Deeppockets.",
+     "says": "There's a fifth at the windmill across the lake. Talk to Donpo Risslemit there."
+    },
+    {
+     "kind": "talk",
+     "target": "Donpo Risslemit",
+     "journal": "Talk to Donpo Risslemit at the windmill across the lake.",
+     "says": "Do a few errands for me first: this bag of grain goes to Mrs. Ghobber, in the house west of the windmill.",
+     "rewards": {
+      "items": [
+       "Bag of Grain"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Sophie Ghobber",
+     "items": [
+      {
+       "item": "Bag of Grain",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bag of grain to Mrs. Ghobber, west of the windmill.",
+     "says": "Thank you, dear."
+    },
+    {
+     "kind": "talk",
+     "target": "Donpo Risslemit",
+     "journal": "Return to Donpo Risslemit.",
+     "says": "Now this bag to Old Lady Gubbin, north of the windmill.",
+     "rewards": {
+      "items": [
+       "Bag of Grain"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Grandma Gubbin",
+     "items": [
+      {
+       "item": "Bag of Grain",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bag to Old Lady Gubbin, north of the windmill.",
+     "says": "Bless you."
+    },
+    {
+     "kind": "talk",
+     "target": "Donpo Risslemit",
+     "journal": "Return to Donpo Risslemit.",
+     "says": "This one to Fanny Diggs, southwest of the windmill.",
+     "rewards": {
+      "items": [
+       "Bag of Grain"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Fanny Diggs",
+     "items": [
+      {
+       "item": "Bag of Grain",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bag to Fanny Diggs, southwest of the windmill.",
+     "says": "Lovely."
+    },
+    {
+     "kind": "talk",
+     "target": "Donpo Risslemit",
+     "journal": "Return to Donpo Risslemit.",
+     "says": "And this to Mrs. Earblower, north of the bank.",
+     "rewards": {
+      "items": [
+       "Bag of Grain"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Zarene Earblower",
+     "items": [
+      {
+       "item": "Bag of Grain",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bag to Mrs. Earblower, north of the bank.",
+     "says": "How kind."
+    },
+    {
+     "kind": "talk",
+     "target": "Donpo Risslemit",
+     "journal": "Return to Donpo Risslemit.",
+     "says": "Here's the fifth bag for Walt.",
+     "rewards": {
+      "items": [
+       "Bag of Gems"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Bag of Gems",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the fifth bag of gems to Walt Deeppockets.",
+     "says": "Now a goblin courier near the goblin tower carries plans. Kill it and bring them."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin courier",
+     "items": [
+      {
+       "item": "Goblin Courier's Plans",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Wait by the goblin tower and kill the goblin courier for its plans."
+    },
+    {
+     "kind": "give",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Goblin Courier's Plans",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the courier's plans to Walt Deeppockets.",
+     "says": "Slip these into the sheriff's locker in the warriors' guild.",
+     "rewards": {
+      "items": [
+       "Goblin Courier's Plans"
+      ]
+     }
+    },
+    {
+     "kind": "reach",
+     "x": 18778,
+     "y": 62,
+     "z": 10941,
+     "radius": 10,
+     "journal": "Put the plans in the sheriff's locker in the warriors' guild.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You slip the goblin courier's plans into the sheriff's locker."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Walt Deeppockets",
+     "journal": "Return to Walt Deeppockets.",
+     "says": "Nicely done.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: goblin courier"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The windmills', the locker's places are EQOA-Data's map's. Mrs. Ghobber is Sophie Ghobber, Old Lady Gubbin is Grandma Gubbin, Mrs. Earblower is Zarene Earblower. The plans stay with you after the locker (a reach step takes no items)."
+  },
+  {
+   "key": "1-20/rivervale/rogue/L13",
+   "name": "The Goblin Surveyor",
+   "giver": "Thom Gubbin",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/rogue/L7"
+   ],
+   "offer": "Nena Bimberry at the wall knows about the goblin raids. Ask her.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Nena Bimberry",
+     "journal": "Ask Nena Bimberry at the wall about the goblin raids.",
+     "says": "Tell Thom the goblins are surveying the land."
+    },
+    {
+     "kind": "talk",
+     "target": "Thom Gubbin",
+     "journal": "Return to Thom Gubbin.",
+     "says": "Get the spyglass from the goblin surveyor at the camp west-southwest of the goblin tower."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin surveyor",
+     "items": [
+      {
+       "item": "Goblin Spyglass",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the goblin surveyor west-southwest of the goblin tower for its spyglass."
+    },
+    {
+     "kind": "give",
+     "target": "Thom Gubbin",
+     "items": [
+      {
+       "item": "Goblin Spyglass",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the spyglass to Thom Gubbin.",
+     "says": "Now four goblin pickaxes from the diggers on the west side of the wall, near the mountains."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin digger",
+     "items": [
+      {
+       "item": "Goblin Pickaxe",
+       "count": 1
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill goblin diggers on the west side of the wall for four pickaxes."
+    },
+    {
+     "kind": "give",
+     "target": "Thom Gubbin",
+     "items": [
+      {
+       "item": "Goblin Pickaxe",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four goblin pickaxes to Thom Gubbin.",
+     "says": "That'll slow them down.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Night Breath"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: goblin digger"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 13; github.com/Jadiction/EQOA-Data). Nina Bimberry is the database's Nena Bimberry. The Night Breath scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L7: L10 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/rivervale/rogue/L15",
+   "name": "Fredly's Gold Ring",
+   "giver": "Thom Gubbin",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/rogue/L7"
+   ],
+   "offer": "Brend Groomer in Bobble-by-Water has had something stolen. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brend Groomer",
+     "journal": "Find Brend Groomer in Bobble-by-Water, in the house north of the coach.",
+     "says": "Dark elves to the south, toward Neriak, stole from us. Kill them until it turns up."
+    },
+    {
+     "kind": "loot",
+     "target": "Dark Elf Raider",
+     "items": [
+      {
+       "item": "Fredly's Gold Ring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25,
+     "journal": "Kill dark elf raiders at their camp south of Bobble-by-Water until it turns up."
+    },
+    {
+     "kind": "give",
+     "target": "Brend Groomer",
+     "items": [
+      {
+       "item": "Fredly's Gold Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Bring it back to Brend Groomer.",
+     "says": "Thank you. Thom Gubbin will be glad."
+    },
+    {
+     "kind": "talk",
+     "target": "Thom Gubbin",
+     "journal": "Return to Thom Gubbin.",
+     "says": "The goblin commanders of Runnyeye: bring me four of what they wear."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin commander",
+     "items": [
+      {
+       "item": "Goblin Belt",
+       "count": 1
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill goblin commanders for four of what they wear."
+    },
+    {
+     "kind": "give",
+     "target": "Thom Gubbin",
+     "items": [
+      {
+       "item": "Goblin Belt",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four to Thom Gubbin.",
+     "says": "Take this letter to Captain Rolley in the tower at the Misty Thicket wall.",
+     "rewards": {
+      "items": [
+       "Letter for Captain Rolley"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Captain Rolley",
+     "items": [
+      {
+       "item": "Letter for Captain Rolley",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the letter to Captain Rolley at the Misty Thicket wall.",
+     "says": "Take my answer back.",
+     "rewards": {
+      "items": [
+       "Letter from Captain Rolley"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Thom Gubbin",
+     "items": [
+      {
+       "item": "Letter from Captain Rolley",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Captain Rolley's letter to Thom Gubbin.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Vaulter's Balance"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 15; github.com/Jadiction/EQOA-Data). The guide's goblin commanders of Runnyeye are several named ones here (Commander Drog, Artheg and the rest): the goblin commander by the goblin tower stands for them. The Vaulter's Balance scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L7: L10, L13 before it are drafts until its names are in the database."
+  },
+  {
+   "key": "1-20/rivervale/rogue/L20",
+   "name": "The Long Road",
+   "giver": "Thom Gubbin",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/rogue/L15"
+   ],
+   "offer": "I have a long road for you, starting with Brend Gromer in Bobble-by-Water.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brend Groomer",
+     "journal": "Find Brend Gromer in Bobble-by-Water, north of the coach.",
+     "says": "Orial Magal, north of here, knows more."
+    },
+    {
+     "kind": "talk",
+     "target": "Orial Magal",
+     "journal": "Find Orial Magal, north of Brend in Bobble-by-Water.",
+     "says": "Deputy Pendy, by the northern entrance, will tell you the rest."
+    },
+    {
+     "kind": "talk",
+     "target": "Deputy Pendy",
+     "journal": "Find Deputy Pendy by the northern entrance of Bobble-by-Water.",
+     "says": "Dark elf spoilers took our rations north along the river. Bring them back."
+    },
+    {
+     "kind": "loot",
+     "target": "Dark Elf Spoiler",
+     "items": [
+      {
+       "item": "Quiver of Arrows",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill dark elf spoilers north along the river for what they took."
+    },
+    {
+     "kind": "give",
+     "target": "Deputy Pendy",
+     "items": [
+      {
+       "item": "Quiver of Arrows",
+       "count": 1
+      }
+     ],
+     "journal": "Bring it back to Deputy Pendy.",
+     "says": "Thank you. Go back to Thom Gubbin."
+    },
+    {
+     "kind": "talk",
+     "target": "Thom Gubbin",
+     "journal": "Return to Thom Gubbin.",
+     "says": "Now go to Barnimus Giggletoes in Merry-by-Water."
+    },
+    {
+     "kind": "talk",
+     "target": "Barnimus Giggletoes",
+     "journal": "Find Barnimus Giggletoes in Merry-by-Water.",
+     "says": "Catch five bees in a jar southeast of town, between the two towers."
+    },
+    {
+     "kind": "reach",
+     "x": 14977,
+     "y": 54,
+     "z": 13093,
+     "radius": 20,
+     "journal": "Catch five bees in a jar southeast of Merry-by-Water.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You coax five buzzing bees into a jar."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Jar of Bees",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Barnimus Giggletoes",
+     "items": [
+      {
+       "item": "Jar of Bees",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the jar of bees to Barnimus Giggletoes.",
+     "says": "Now let them loose in Phil Wiggins's house."
+    },
+    {
+     "kind": "reach",
+     "x": 14908,
+     "y": 62,
+     "z": 12972,
+     "radius": 15,
+     "journal": "Release the bees in Phil Wiggins's house.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You open the jar and the bees fly out into Phil Wiggins's house."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Barnimus Giggletoes",
+     "journal": "Return to Barnimus Giggletoes.",
+     "says": "Ha! Go tell Thom Gubbin."
+    },
+    {
+     "kind": "talk",
+     "target": "Thom Gubbin",
+     "journal": "Return to Thom Gubbin.",
+     "says": "Kill the goblin hoarder in Runnyeye and bring me his totem."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin hoarder",
+     "items": [
+      {
+       "item": "Goblin Hoarder's Chalice",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill the goblin hoarder in Runnyeye until it drops."
+    },
+    {
+     "kind": "give",
+     "target": "Thom Gubbin",
+     "items": [
+      {
+       "item": "Goblin Hoarder's Chalice",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the hoarder's treasure to Thom Gubbin.",
+     "says": "Last, buy supplies from Stalis Slithertonuge south of Kithicor, by the fallen tree."
+    },
+    {
+     "kind": "give",
+     "target": "Stalis Slithertonuge",
+     "tunar": 1050,
+     "journal": "Buy supplies from Stalis Slithertonuge south of Kithicor for 1050 tunar.",
+     "says": "Your supplies.",
+     "rewards": {
+      "items": [
+       "Bag of Supplies"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Thom Gubbin",
+     "items": [
+      {
+       "item": "Bag of Supplies",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the supplies to Thom Gubbin.",
+     "says": "You've earned your keep.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "npc: Barnimus Giggletoes",
+    "npc: Stalis Slithertonuge"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Barnimus Giggletoes and Phil Wiggins (Merry-by-Water) and Stalis Slithertonuge (south of Kithicor) are not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
+  },
+  {
+   "key": "1-20/rivervale/warrior/L1",
+   "name": "A Six Pocket Shirt",
+   "giver": "Walt Deeppockets",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Buy yourself a Six Pocket Shirt; Tailor Vali has them for free.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Tailor Vali",
+     "journal": "Get a Six Pocket Shirt from Tailor Vali.",
+     "says": "Here's your shirt. Six pockets!",
+     "rewards": {
+      "items": [
+       "Six Pocket Shirt"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Six Pocket Shirt",
+       "count": 1
+      }
+     ],
+     "journal": "Show the Six Pocket Shirt to Walt Deeppockets.",
+     "says": "Plenty of pockets.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 1; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written."
+  },
+  {
+   "key": "1-20/rivervale/warrior/L2",
+   "name": "The Spiritmaster and the Coachman",
+   "giver": "Walt Deeppockets",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/warrior/L1"
+   ],
+   "offer": "Talk to Spiritmaster Willa; she will bind you and send you to Coachman Huff.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Willa",
+     "journal": "Talk to Spiritmaster Willa.",
+     "says": "Now go and talk to Coachman Huff."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Huff",
+     "journal": "Talk to Coachman Huff.",
+     "says": "Back to Walt with you."
+    },
+    {
+     "kind": "talk",
+     "target": "Walt Deeppockets",
+     "journal": "Return to Walt Deeppockets.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 2; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written."
+  },
+  {
+   "key": "1-20/rivervale/warrior/L3",
+   "name": "Rat Fur",
+   "giver": "Walt Deeppockets",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/warrior/L2"
+   ],
+   "offer": "Bring me two strands of rat fur from the rats just outside town.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Rat",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 1
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill rats just outside town for two strands of rat fur."
+    },
+    {
+     "kind": "give",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 2
+      }
+     ],
+     "journal": "Bring the two strands of rat fur to Walt Deeppockets.",
+     "says": "Nice work.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Kick"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 3; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The Kick scroll is the class's level 3 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/rivervale/warrior/L4",
+   "name": "Thom's Weapon",
+   "giver": "Thom Gubbin",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/warrior/L3"
+   ],
+   "offer": "I'll make you a new weapon. Bring me iron ore and a bit of charcoal from Merchant Mintopp, and a firefly wing.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Mintopp",
+     "journal": "Get iron ore and a bit of charcoal from Merchant Mintopp.",
+     "says": "Iron ore and charcoal for Thom.",
+     "rewards": {
+      "items": [
+       "iron ore",
+       "bit of charcoal"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Fireflies",
+     "items": [
+      {
+       "item": "damaged firefly wings",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill fireflies for a firefly wing."
+    },
+    {
+     "kind": "give",
+     "target": "Thom Gubbin",
+     "items": [
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "bit of charcoal",
+       "count": 1
+      },
+      {
+       "item": "damaged firefly wings",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the iron ore, the charcoal and the wing to Thom Gubbin.",
+     "says": "Here's your weapon.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon."
+  },
+  {
+   "key": "1-20/rivervale/warrior/L5",
+   "name": "Goblin Raiders",
+   "giver": "Walt Deeppockets",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/warrior/L4"
+   ],
+   "offer": "Head west, a short way past the Misty Thicket wall, kill goblin raiders and bring me back a goblin raider's cap.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Pickclaw Shaman",
+     "items": [
+      {
+       "item": "Raiders Cap",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill goblin raiders past the Misty Thicket wall for a raider's cap."
+    },
+    {
+     "kind": "give",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Raiders Cap",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the goblin raider's cap to Walt Deeppockets.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Taunt"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 5; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. There are no goblin raiders in the database: the pickclaw shamans by the unfinished wall, where EQOA-Data's map puts the raiders and of their level, stand in; their cap is the database's Raiders Cap. The Taunt scroll is the class's level 5 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/rivervale/warrior/L7",
+   "name": "The Thief's Hiding Place",
+   "giver": "Walt Deeppockets",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/warrior/L5"
+   ],
+   "offer": "Find Deputy Jonkers at the gate of the big wall west of Rivervale. He saw something you should know about.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Deputy Jonkers",
+     "journal": "Find Deputy Jonkers at the gate of the big wall west of Rivervale.",
+     "says": "Get me a thicketberry pie from the grocer at the north end of the wall and I'll tell you."
+    },
+    {
+     "kind": "give",
+     "target": "Grocer Sloan",
+     "tunar": 94,
+     "journal": "Buy a thicketberry pie from the grocer at the north end of the wall for 94 tunar.",
+     "says": "One thicketberry pie.",
+     "rewards": {
+      "items": [
+       "Thicketberry Pie"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Deputy Jonkers",
+     "items": [
+      {
+       "item": "Thicketberry Pie",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the thicketberry pie to Deputy Jonkers.",
+     "says": "I watched the thief hide his loot in a hollowed tree trunk on the east side of the lake, the northernmost one."
+    },
+    {
+     "kind": "reach",
+     "x": 19097,
+     "y": 52,
+     "z": 10679,
+     "radius": 15,
+     "journal": "Find the hollowed tree trunk on the east side of the lake.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Inside the hollowed tree trunk you find bags of the thief's loot."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Thief's Loot Bag",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Thief's Loot Bag",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the thief's loot to Walt Deeppockets.",
+     "says": "That's more than we need. Put this extra bag back in the stump.",
+     "rewards": {
+      "items": [
+       "Extra Loot Bag"
+      ]
+     }
+    },
+    {
+     "kind": "reach",
+     "x": 19097,
+     "y": 52,
+     "z": 10679,
+     "radius": 15,
+     "journal": "Put the extra bag back in the hollowed tree trunk.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You tuck the extra bag back into the hollowed tree trunk."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Walt Deeppockets",
+     "journal": "Return to Walt Deeppockets.",
+     "says": "Nobody will know a thing.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Furious Defense"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 7; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The grocer at the north end of the wall is the database's Grocer Sloan; the tree trunk's place is EQOA-Data's map's. The extra bag stays with you when you put it back (a reach step takes no items). The Furious Defense scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
+  },
+  {
+   "key": "1-20/rivervale/warrior/L10",
+   "name": "Bags of Gems",
+   "giver": "Walt Deeppockets",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/warrior/L7"
+   ],
+   "offer": "Bags of gems are hidden inside the windmills: three on this side of the lake and one near the Misty Thicket wall. Find all four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "reach",
+     "x": 18961,
+     "y": 54,
+     "z": 10898,
+     "radius": 12,
+     "journal": "Find the bag of gems in a windmill on Walt's side of the lake.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You find a bag of gems hidden in the windmill."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bag of Gems",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 18959,
+     "y": 54,
+     "z": 10798,
+     "radius": 12,
+     "journal": "Find the bag of gems in another windmill on Walt's side of the lake.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You find another bag of gems."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bag of Gems",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 19074,
+     "y": 54,
+     "z": 11205,
+     "radius": 12,
+     "journal": "Find the bag of gems in the third windmill on Walt's side of the lake.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You find a third bag of gems."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bag of Gems",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "x": 17870,
+     "y": 54,
+     "z": 10885,
+     "radius": 12,
+     "journal": "Find the bag of gems in the windmill near the Misty Thicket wall.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You find the fourth bag of gems."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bag of Gems",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Bag of Gems",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four bags of gems to Walt Deeppockets.",
+     "says": "There's a fifth at the windmill across the lake. Talk to Donpo Risslemit there."
+    },
+    {
+     "kind": "talk",
+     "target": "Donpo Risslemit",
+     "journal": "Talk to Donpo Risslemit at the windmill across the lake.",
+     "says": "Do a few errands for me first: this bag of grain goes to Mrs. Ghobber, in the house west of the windmill.",
+     "rewards": {
+      "items": [
+       "Bag of Grain"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Sophie Ghobber",
+     "items": [
+      {
+       "item": "Bag of Grain",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bag of grain to Mrs. Ghobber, west of the windmill.",
+     "says": "Thank you, dear."
+    },
+    {
+     "kind": "talk",
+     "target": "Donpo Risslemit",
+     "journal": "Return to Donpo Risslemit.",
+     "says": "Now this bag to Old Lady Gubbin, north of the windmill.",
+     "rewards": {
+      "items": [
+       "Bag of Grain"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Grandma Gubbin",
+     "items": [
+      {
+       "item": "Bag of Grain",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bag to Old Lady Gubbin, north of the windmill.",
+     "says": "Bless you."
+    },
+    {
+     "kind": "talk",
+     "target": "Donpo Risslemit",
+     "journal": "Return to Donpo Risslemit.",
+     "says": "This one to Fanny Diggs, southwest of the windmill.",
+     "rewards": {
+      "items": [
+       "Bag of Grain"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Fanny Diggs",
+     "items": [
+      {
+       "item": "Bag of Grain",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bag to Fanny Diggs, southwest of the windmill.",
+     "says": "Lovely."
+    },
+    {
+     "kind": "talk",
+     "target": "Donpo Risslemit",
+     "journal": "Return to Donpo Risslemit.",
+     "says": "And this to Mrs. Earblower, north of the bank.",
+     "rewards": {
+      "items": [
+       "Bag of Grain"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Zarene Earblower",
+     "items": [
+      {
+       "item": "Bag of Grain",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bag to Mrs. Earblower, north of the bank.",
+     "says": "How kind."
+    },
+    {
+     "kind": "talk",
+     "target": "Donpo Risslemit",
+     "journal": "Return to Donpo Risslemit.",
+     "says": "Here's the fifth bag for Walt.",
+     "rewards": {
+      "items": [
+       "Bag of Gems"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Bag of Gems",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the fifth bag of gems to Walt Deeppockets.",
+     "says": "Now a goblin courier near the goblin tower carries plans. Kill it and bring them."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin courier",
+     "items": [
+      {
+       "item": "Goblin Courier's Plans",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Wait by the goblin tower and kill the goblin courier for its plans."
+    },
+    {
+     "kind": "give",
+     "target": "Walt Deeppockets",
+     "items": [
+      {
+       "item": "Goblin Courier's Plans",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the courier's plans to Walt Deeppockets.",
+     "says": "Slip these into the sheriff's locker in the warriors' guild.",
+     "rewards": {
+      "items": [
+       "Goblin Courier's Plans"
+      ]
+     }
+    },
+    {
+     "kind": "reach",
+     "x": 18778,
+     "y": 62,
+     "z": 10941,
+     "radius": 10,
+     "journal": "Put the plans in the sheriff's locker in the warriors' guild.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You slip the goblin courier's plans into the sheriff's locker."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Walt Deeppockets",
+     "journal": "Return to Walt Deeppockets.",
+     "says": "Nicely done.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: goblin courier"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The windmills', the locker's places are EQOA-Data's map's. Mrs. Ghobber is Sophie Ghobber, Old Lady Gubbin is Grandma Gubbin, Mrs. Earblower is Zarene Earblower. The plans stay with you after the locker (a reach step takes no items)."
+  },
+  {
+   "key": "1-20/rivervale/warrior/L13",
+   "name": "The Goblin Surveyor",
+   "giver": "Thom Gubbin",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/warrior/L7"
+   ],
+   "offer": "Nena Bimberry at the wall knows about the goblin raids. Ask her.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Nena Bimberry",
+     "journal": "Ask Nena Bimberry at the wall about the goblin raids.",
+     "says": "Tell Thom the goblins are surveying the land."
+    },
+    {
+     "kind": "talk",
+     "target": "Thom Gubbin",
+     "journal": "Return to Thom Gubbin.",
+     "says": "Get the spyglass from the goblin surveyor at the camp west-southwest of the goblin tower."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin surveyor",
+     "items": [
+      {
+       "item": "Goblin Spyglass",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the goblin surveyor west-southwest of the goblin tower for its spyglass."
+    },
+    {
+     "kind": "give",
+     "target": "Thom Gubbin",
+     "items": [
+      {
+       "item": "Goblin Spyglass",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the spyglass to Thom Gubbin.",
+     "says": "Now four goblin pickaxes from the diggers on the west side of the wall, near the mountains."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin digger",
+     "items": [
+      {
+       "item": "Goblin Pickaxe",
+       "count": 1
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill goblin diggers on the west side of the wall for four pickaxes."
+    },
+    {
+     "kind": "give",
+     "target": "Thom Gubbin",
+     "items": [
+      {
+       "item": "Goblin Pickaxe",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four goblin pickaxes to Thom Gubbin.",
+     "says": "That'll slow them down.",
+     "rewards": {
+      "xp": 550698,
+      "spells": [
+       "Rapid Strike"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "creature: goblin digger"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 13; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. Nina Bimberry is the database's Nena Bimberry. The Rapid Strike scroll is the class's level 13 spell, the scroll the guides that name one give for this quest. It follows L7: L10 before it is a draft until its names are in the database."
+  },
+  {
+   "key": "1-20/rivervale/warrior/L15",
+   "name": "Fredly's Gold Ring",
+   "giver": "Thom Gubbin",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/warrior/L7"
+   ],
+   "offer": "Brend Groomer in Bobble-by-Water has had something stolen. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brend Groomer",
+     "journal": "Find Brend Groomer in Bobble-by-Water, in the house north of the coach.",
+     "says": "Dark elves to the south, toward Neriak, stole from us. Kill them until it turns up."
+    },
+    {
+     "kind": "loot",
+     "target": "Dark Elf Raider",
+     "items": [
+      {
+       "item": "Fredly's Gold Ring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25,
+     "journal": "Kill dark elf raiders at their camp south of Bobble-by-Water until it turns up."
+    },
+    {
+     "kind": "give",
+     "target": "Brend Groomer",
+     "items": [
+      {
+       "item": "Fredly's Gold Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Bring it back to Brend Groomer.",
+     "says": "Thank you. Thom Gubbin will be glad."
+    },
+    {
+     "kind": "talk",
+     "target": "Thom Gubbin",
+     "journal": "Return to Thom Gubbin.",
+     "says": "The goblin commanders of Runnyeye: bring me four of what they wear."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin commander",
+     "items": [
+      {
+       "item": "Goblin Belt",
+       "count": 1
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill goblin commanders for four of what they wear."
+    },
+    {
+     "kind": "give",
+     "target": "Thom Gubbin",
+     "items": [
+      {
+       "item": "Goblin Belt",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four to Thom Gubbin.",
+     "says": "Take this letter to Captain Rolley in the tower at the Misty Thicket wall.",
+     "rewards": {
+      "items": [
+       "Letter for Captain Rolley"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Captain Rolley",
+     "items": [
+      {
+       "item": "Letter for Captain Rolley",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the letter to Captain Rolley at the Misty Thicket wall.",
+     "says": "Take my answer back.",
+     "rewards": {
+      "items": [
+       "Letter from Captain Rolley"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Thom Gubbin",
+     "items": [
+      {
+       "item": "Letter from Captain Rolley",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Captain Rolley's letter to Thom Gubbin.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791,
+      "spells": [
+       "Stomp"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 15; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The guide's goblin commanders of Runnyeye are several named ones here (Commander Drog, Artheg and the rest): the goblin commander by the goblin tower stands for them. The Stomp scroll is the class's level 15 spell, the scroll the guides that name one give for this quest. It follows L7: L10, L13 before it are drafts until its names are in the database."
+  },
+  {
+   "key": "1-20/rivervale/warrior/L20",
+   "name": "The Long Road",
+   "giver": "Marshall Drake",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/warrior/L15"
+   ],
+   "offer": "I have a long road for you, starting with Brend Gromer in Bobble-by-Water.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brend Groomer",
+     "journal": "Find Brend Gromer in Bobble-by-Water, north of the coach.",
+     "says": "Orial Magal, north of here, knows more."
+    },
+    {
+     "kind": "talk",
+     "target": "Orial Magal",
+     "journal": "Find Orial Magal, north of Brend in Bobble-by-Water.",
+     "says": "Deputy Pendy, by the northern entrance, will tell you the rest."
+    },
+    {
+     "kind": "talk",
+     "target": "Deputy Pendy",
+     "journal": "Find Deputy Pendy by the northern entrance of Bobble-by-Water.",
+     "says": "Dark elf spoilers took our rations north along the river. Bring them back."
+    },
+    {
+     "kind": "loot",
+     "target": "Dark Elf Spoiler",
+     "items": [
+      {
+       "item": "Lost Rations",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill dark elf spoilers north along the river for what they took."
+    },
+    {
+     "kind": "give",
+     "target": "Deputy Pendy",
+     "items": [
+      {
+       "item": "Lost Rations",
+       "count": 1
+      }
+     ],
+     "journal": "Bring it back to Deputy Pendy.",
+     "says": "Thank you. Go back to Marshall Drake."
+    },
+    {
+     "kind": "talk",
+     "target": "Marshall Drake",
+     "journal": "Return to Marshall Drake.",
+     "says": "Now go to Barnimus Giggletoes in Merry-by-Water."
+    },
+    {
+     "kind": "talk",
+     "target": "Barnimus Giggletoes",
+     "journal": "Find Barnimus Giggletoes in Merry-by-Water.",
+     "says": "Catch five bees in a jar southeast of town, between the two towers."
+    },
+    {
+     "kind": "reach",
+     "x": 14977,
+     "y": 54,
+     "z": 13093,
+     "radius": 20,
+     "journal": "Catch five bees in a jar southeast of Merry-by-Water.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You coax five buzzing bees into a jar."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Jar of Bees",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Barnimus Giggletoes",
+     "items": [
+      {
+       "item": "Jar of Bees",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the jar of bees to Barnimus Giggletoes.",
+     "says": "Now let them loose in Phil Wiggins's house."
+    },
+    {
+     "kind": "reach",
+     "x": 14908,
+     "y": 62,
+     "z": 12972,
+     "radius": 15,
+     "journal": "Release the bees in Phil Wiggins's house.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You open the jar and the bees fly out into Phil Wiggins's house."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Barnimus Giggletoes",
+     "journal": "Return to Barnimus Giggletoes.",
+     "says": "Ha! Go tell Marshall Drake."
+    },
+    {
+     "kind": "talk",
+     "target": "Marshall Drake",
+     "journal": "Return to Marshall Drake.",
+     "says": "Kill the goblin hoarder in Runnyeye and bring me his totem."
+    },
+    {
+     "kind": "loot",
+     "target": "goblin hoarder",
+     "items": [
+      {
+       "item": "Goblin Hoarder's Totem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill the goblin hoarder in Runnyeye until it drops."
+    },
+    {
+     "kind": "give",
+     "target": "Marshall Drake",
+     "items": [
+      {
+       "item": "Goblin Hoarder's Totem",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the hoarder's treasure to Marshall Drake.",
+     "says": "Last, buy supplies from Stalis Slithertonuge south of Kithicor, by the fallen tree."
+    },
+    {
+     "kind": "give",
+     "target": "Stalis Slithertonuge",
+     "tunar": 1050,
+     "journal": "Buy supplies from Stalis Slithertonuge south of Kithicor for 1050 tunar.",
+     "says": "Your supplies.",
+     "rewards": {
+      "items": [
+       "Bag of Supplies"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Marshall Drake",
+     "items": [
+      {
+       "item": "Bag of Supplies",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the supplies to Marshall Drake.",
+     "says": "You are a warrior of Rivervale.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "unresolved": [
+    "npc: Barnimus Giggletoes",
+    "npc: Stalis Slithertonuge"
+   ],
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). Barnimus Giggletoes and Phil Wiggins (Merry-by-Water) and Stalis Slithertonuge (south of Kithicor) are not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's stop at Darm Leafsway is left out. The guide's final choice of reward is not in: the quest gives its experience only."
+  }
+ ],
+ "items": [
+  {
+   "name": "Bag of Gems",
+   "description": "A bag of gems hidden in one of Rivervale's windmills.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Bag of Grain",
+   "description": "A bag of grain from Donpo Risslemit's windmill.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Bag of Old Items",
+   "description": "A bag of old items for Ren Deeppockets.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Bag of Supplies",
+   "description": "Supplies bought from Stalis Slithertonuge.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Brindo's Magical Idol",
+   "description": "Brindo's magical idol, stolen by the dark elves.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Cleric Regents",
+   "description": "The regents a Rivervale cleric needs, gathered by Ren Deeppockets.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Extra Loot Bag",
+   "description": "The extra bag of the thief's loot, to go back in the tree trunk.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Fredly's Gold Ring",
+   "description": "Fredly's gold ring, stolen by the dark elves.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Goblin Anklet",
+   "description": "An anklet worn by a goblin commander.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Goblin Belt",
+   "description": "A belt worn by a goblin commander.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Goblin Commander's Headdress",
+   "description": "The headdress of a goblin commander.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Goblin Courier's Plans",
+   "description": "Plans carried by a goblin courier.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Goblin Foreman's Mallet",
+   "description": "The mallet of a goblin foreman.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Goblin Hoarder's Chalice",
+   "description": "The chalice of the goblin hoarder of Runnyeye.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Goblin Hoarder's Totem",
+   "description": "The totem of the goblin hoarder of Runnyeye.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Goblin Pickaxe",
+   "description": "A pickaxe of a goblin digger.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Goblin Shaman's Staff",
+   "description": "The staff of a goblin shaman.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Goblin Spyglass",
+   "description": "The spyglass of a goblin surveyor.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Goblin Talisman",
+   "description": "A talisman worn by a goblin commander.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Jar of Bees",
+   "description": "A jar of five buzzing bees.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Kimpar's Lucky Stone",
+   "description": "Kimpar's lucky stone, stolen by the dark elves.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Kithicor Moss",
+   "description": "Moss from a fallen tree in the Kithicor woods.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Kithicor Pinecone",
+   "description": "A pinecone from the Kithicor woods.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Letter for Captain Rolley",
+   "description": "A letter for Captain Rolley at the Misty Thicket wall.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Letter from Captain Rolley",
+   "description": "Captain Rolley's answer.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Lost Rations",
+   "description": "Rations the dark elves took from Bobble-by-Water.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Quiver of Arrows",
+   "description": "A quiver of arrows the dark elves took.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Standing Stone Scrapings",
+   "description": "Scrapings from the standing stone in Misty Thicket.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Suspicious Looking Stone",
+   "description": "A stone carried by a suspicious goblin.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Thicket Viper Venom",
+   "description": "Venom from a thicket viper.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Thicketberry Pie",
+   "description": "A thicketberry pie from the grocer at the wall.",
+   "notrade": true,
+   "like": "fishing worms"
+  },
+  {
+   "name": "Thief's Loot Bag",
+   "description": "A bag of loot the thief hid in a hollowed tree trunk.",
+   "notrade": true,
+   "like": "fishing worms"
+  }
+ ]
+}

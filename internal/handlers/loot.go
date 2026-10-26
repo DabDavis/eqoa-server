@@ -51,11 +51,13 @@ type lootState struct {
 	mu      sync.Mutex
 	corpses map[entity.EntityID]*corpse
 	open    map[*session.Session]entity.EntityID
+	drops   map[entity.EntityID]*questDrops // loot steps' drops (questloot.go)
 }
 
 func (h *NPCWindowHandler) loots() *lootState {
 	h.lootOnce.Do(func() {
-		h.loot = &lootState{corpses: map[entity.EntityID]*corpse{}, open: map[*session.Session]entity.EntityID{}}
+		h.loot = &lootState{corpses: map[entity.EntityID]*corpse{}, open: map[*session.Session]entity.EntityID{},
+			drops: map[entity.EntityID]*questDrops{}}
 	})
 	return h.loot
 }
@@ -94,8 +96,9 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 		ls.corpses[npc.ServerID] = c
 	}
 	ls.open[sess] = npc.ServerID
-	SendLoot(sess, c.items)
-	log.Printf("Loot: %s opened %q: %d items", sessName(h, sess), npc.Name, len(c.items))
+	view := ls.viewLocked(npc.ServerID, c, h.charOf(sess))
+	SendLoot(sess, view)
+	log.Printf("Loot: %s opened %q: %d items", sessName(h, sess), npc.Name, len(view))
 	return true
 }
 
@@ -128,6 +131,7 @@ func (h *NPCWindowHandler) corpseGoneLocked(ls *lootState, id entity.EntityID) {
 		}
 	}
 	delete(ls.corpses, id)
+	delete(ls.drops, id)
 }
 
 // CorpsesGone is the World's hook for corpses that decayed (OnCorpseGone):
@@ -155,15 +159,16 @@ func sessName(h *NPCWindowHandler, sess *session.Session) string {
 // and closed it goes (emptiedLocked).
 func (h *NPCWindowHandler) resendCorpse(sess *session.Session, ls *lootState, c *corpse) {
 	queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
-	if len(c.items) == 0 {
-		id, open := ls.open[sess]
+	id, open := ls.open[sess]
+	view := ls.viewLocked(id, c, h.charOf(sess))
+	if len(view) == 0 {
 		delete(ls.open, sess)
-		if open {
+		if open && ls.emptyLocked(id, c) {
 			h.emptiedLocked(ls, id, c)
 		}
 		return
 	}
-	SendLoot(sess, c.items)
+	SendLoot(sess, view)
 }
 
 // HandleLootClose is 0x0016 (LootNoWindow): answered with 0x0016. A corpse
@@ -174,7 +179,7 @@ func (h *NPCWindowHandler) HandleLootClose(sess *session.Session, msg *protocol.
 	id, open := ls.open[sess]
 	delete(ls.open, sess)
 	queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
-	if c := ls.corpses[id]; open && c != nil && len(c.items) == 0 {
+	if c := ls.corpses[id]; open && c != nil && ls.emptyLocked(id, c) {
 		h.emptiedLocked(ls, id, c)
 	}
 	ls.mu.Unlock()
@@ -190,6 +195,9 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 	if e1 != nil || e2 != nil {
 		return nil
 	}
+	var looted []int
+	var player *entity.Player
+	defer func() { tellQuestsLooted(sess, player, looted) }() // after the lock (questloot.go)
 	ls := h.loots()
 	ls.mu.Lock()
 	defer ls.mu.Unlock()
@@ -198,12 +206,14 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 		queueReliable(sess, protocol.OpcodeClientCloseLoot, closeLootPayload())
 		return nil
 	}
+	id, char := ls.open[sess], player.CharServerID
+	view := ls.viewLocked(id, c, char)
 	i := int(key)
-	if i < 0 || i >= len(c.items) || n == 0 {
+	if i < 0 || i >= len(view) || n == 0 {
 		h.resendCorpse(sess, ls, c)
 		return nil
 	}
-	rec := c.items[i]
+	rec := view[i]
 	count := min(int(n), rec.StackLeft)
 	took := inv.wouldAdd(rec.Pattern.PatternID, count, rec.Pattern.MaxStack)
 	if took > 0 {
@@ -212,10 +222,8 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 			log.Printf("Loot: %s: %v", player.Name, err)
 		} else {
 			queueReliable(sess, protocol.OpcodeAddInvItem, addInvItemPayload(out, k))
-			c.items[i].StackLeft -= took
-			if c.items[i].StackLeft <= 0 {
-				c.items = append(c.items[:i], c.items[i+1:]...)
-			}
+			ls.tookLocked(id, c, char, i, took)
+			looted = append(looted, rec.Pattern.PatternID)
 			log.Printf("Loot: %s took %d %q", player.Name, took, rec.Pattern.ItemName)
 		}
 	}
@@ -226,6 +234,9 @@ func (h *NPCWindowHandler) HandleLootItem(sess *session.Session, msg *protocol.M
 // HandleLootAll is 0x001A (RequestLootAll): 0x001A back, and the server does
 // what Msg001A does on the client, record by record.
 func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Message) error {
+	var looted []int
+	var player *entity.Player
+	defer func() { tellQuestsLooted(sess, player, looted) }() // after the lock (questloot.go)
 	ls := h.loots()
 	ls.mu.Lock()
 	defer ls.mu.Unlock()
@@ -235,8 +246,13 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 	queueReliable(sess, protocol.OpcodeLootTakeAll, buildLootTakeAll())
-	for i := 0; i < len(c.items); {
-		rec := c.items[i]
+	id, char := ls.open[sess], player.CharServerID
+	for i := 0; ; {
+		view := ls.viewLocked(id, c, char)
+		if i >= len(view) {
+			break
+		}
+		rec := view[i]
 		took := inv.wouldAdd(rec.Pattern.PatternID, rec.StackLeft, rec.Pattern.MaxStack)
 		if took > 0 {
 			if _, _, err := h.giveItem(player, inv, rec, took, 0); err != nil {
@@ -244,14 +260,15 @@ func (h *NPCWindowHandler) HandleLootAll(sess *session.Session, msg *protocol.Me
 				took = 0
 			}
 		}
-		c.items[i].StackLeft -= took
-		if c.items[i].StackLeft <= 0 {
-			c.items = append(c.items[:i], c.items[i+1:]...)
-		} else if took != rec.StackLeft {
+		if took > 0 {
+			ls.tookLocked(id, c, char, i, took)
+			looted = append(looted, rec.Pattern.PatternID)
+		}
+		if took != rec.StackLeft {
 			i++
 		}
 	}
-	log.Printf("Loot: %s took everything; %d records left", player.Name, len(c.items))
+	log.Printf("Loot: %s took everything; %d records left", player.Name, len(ls.viewLocked(id, c, char)))
 	h.resendCorpse(sess, ls, c)
 	return nil
 }

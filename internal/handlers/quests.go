@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"sort"
 	"strings"
 	"sync"
@@ -97,6 +98,15 @@ type QuestEngine struct {
 	kills chan entity.KillCredit
 	stop  chan struct{}
 
+	// drop puts a loot step's item on one character's view of a corpse (the
+	// windows' AddQuestDrop, questloot.go); nil drops nothing
+	drop func(npc entity.EntityID, died time.Time, serverID uint32, rec database.CharInventoryEntry)
+	// roll is a loot step's draw in [0, 1) (tests fix it)
+	roll func() float64
+	// spawns are the NPCs steps' spawn events placed, by character
+	// (questevents.go)
+	spawns map[uint32][]questSpawn
+
 	// playerOf and sessionOf find a session's player and a character's
 	// in-world session (tests stand in for them)
 	playerOf  func(*session.Session) *entity.Player
@@ -176,6 +186,7 @@ func NewQuestEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manager
 		chars:  map[uint32]*questChar{},
 		kills:  make(chan entity.KillCredit, 256),
 		stop:   make(chan struct{}),
+		roll:   rand.Float64,
 	}
 	if gw != nil {
 		q.playerOf = gw.SessionPlayer
@@ -227,6 +238,7 @@ func (q *QuestEngine) run() {
 			q.killed(k)
 		case <-tick.C:
 			q.checkReach()
+			q.expireSpawns()
 		}
 	}
 }
@@ -602,6 +614,9 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 		who = p.Name
 	}
 	log.Printf("Quests: %s took %q (step %d)", who, qu.Name, st.Step)
+	// its events (questevents.go): the quest's on taking it, then its step's
+	q.questEventsLocked(sess, p, c, qu, database.EventAccept)
+	q.stepStartedLocked(sess, p, c, qu, cq, st)
 	return ""
 }
 
@@ -744,6 +759,7 @@ func (q *QuestEngine) HandleDrop(sess *session.Session, msg *protocol.Message) e
 // giveUpLocked ends a quest under way unfinished: forgotten when it was never
 // finished, else left finished as many times as it was.
 func (q *QuestEngine) giveUpLocked(cq *database.CharQuest) {
+	q.clearSpawnsLocked(cq.ServerID, cq.QuestID, 0)
 	cq.Step, cq.Count = 0, 0
 	if cq.Done == 0 {
 		if err := q.store.DeleteCharQuest(cq.ServerID, cq.QuestID); err != nil {
@@ -769,6 +785,10 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 				continue
 			}
 			st := qu.Step(cq.Step)
+			if st != nil && st.Kind == database.StepLoot && stepNPC(st, k.NPCName, k.NPCSpawn) {
+				q.lootKillLocked(k, kp, qu, st) // questevents.go
+				continue
+			}
 			if st == nil || st.Kind != database.StepKill || !stepNPC(st, k.NPCName, k.NPCSpawn) {
 				continue
 			}
@@ -880,6 +900,16 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 		}
 		q.gw.ApplyFactionHits(sess, p, hits)
 	}
+	// the events (questevents.go): the step's on its doing, its spawns gone,
+	// then the quest's on its finish or the next step's on its start
+	q.stepEventsLocked(sess, p, c, qu, st, database.EventDone)
+	q.clearSpawnsLocked(c.serverID, qu.ID, st.Step)
+	if next == nil {
+		q.questEventsLocked(sess, p, c, qu, database.EventFinish)
+		q.clearSpawnsLocked(c.serverID, qu.ID, 0)
+		return
+	}
+	q.stepStartedLocked(sess, p, c, qu, cq, next)
 }
 
 // rewardLocked gives a step's tunar, items and spells (experience and

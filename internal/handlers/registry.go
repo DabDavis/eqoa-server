@@ -357,6 +357,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		if qe, err := NewQuestEngine(charStore.DB(), gameWorld, sessionMgr, invStore, spellStore); err != nil {
 			log.Printf("Quests: not running: %v", err)
 		} else {
+			qe.drop = npcWindowHandler.AddQuestDrop // a loot step's drops (questloot.go)
 			qe.Start()
 			r.Register(protocol.OpcodeDeleteQuest, qe.HandleDrop)
 		}

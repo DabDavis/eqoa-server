@@ -3,7 +3,6 @@ package entity
 import (
 	"log"
 	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -35,9 +34,13 @@ import (
 //     charm takes is what its words say ("Charms up to level 54 mobs", the
 //     bard's "Charm up to level 54"), else the spell's own level (jib: "If the
 //     mob is at or below the charm level, it should cast").
-//   - at its landing a resist: undead (by name: no record says) and training
-//     dummies always, else 10% less the line's CHA share ("Increase 25%
-//     based on CHA": 25% of CHA, in tenths of a percent), never under 2%.
+//   - at its landing a resist: undead (undead.go's tag, by name: no record
+//     says) and training dummies always, else 10% less the line's CHA share
+//     ("Increase 25% based on CHA": 25% of CHA, in tenths of a percent),
+//     never under 2%. The necromancer's undead charms (Charm, Command,
+//     Control and Coerce Undead, F3 20261025-220159) are the other way round:
+//     refused at their start on anything not undead (undead.go), and the
+//     roll alone on undead.
 //     Resisted, it fights the caster. Not measured: Sandstorm's one charm
 //     that took was on a level 1 ant.
 //   - taken, the creature is the caster's pet (pet.go) as it is: its level,
@@ -108,21 +111,6 @@ func charmResistPct(e SpellEffect, cha int) int {
 	return max(charmResistBase-share, charmResistFloor)
 }
 
-// undeadWords mark a creature as undead by its name: nothing in this
-// server's records does (Sandstorm resisted a charm on "Rotting Flesh").
-var undeadWords = []string{"skeleton", "skeletal", "zombie", "ghoul", "ghost", "spectre", "specter", "wraith",
-	"lich", "mummy", "rotting", "undead", "decaying", "revenant", "bone"}
-
-func isUndead(npc *NPC) bool {
-	n := strings.ToLower(npc.Name)
-	for _, w := range undeadWords {
-		if strings.Contains(n, w) {
-			return true
-		}
-	}
-	return false
-}
-
 // charmStartLocked checks a charm as it begins: the refusal's line, and
 // whether it fizzles (a brief cast is shown). Must be called with the lock
 // held.
@@ -151,7 +139,10 @@ func (w *World) charmLandLocked(cs *castState, caster *Player, sess *session.Ses
 		}
 		return
 	}
-	if npc.Dummy != NotDummy || isUndead(npc) || charmIntn(100) < charmResistPct(charmEffect(&cs.spell.Def), caster.StatNow(StatCha)) {
+	// undead resist every charm but the necromancer's undead line, which
+	// takes nothing else (undead.go: refused at its start)
+	undead := w.undeadLocked(npc) && !cs.spell.Def.undeadOnly()
+	if npc.Dummy != NotDummy || undead || charmIntn(100) < charmResistPct(charmEffect(&cs.spell.Def), caster.StatNow(StatCha)) {
 		if sess != nil {
 			w.sendColoredLocked(sess, charmResisted, castRefusalRGB)
 		}

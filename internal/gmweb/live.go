@@ -35,6 +35,10 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveFactions(t.Name)
 	case "npcaggro":
 		return s.liveAggro()
+	case "npcundead":
+		return s.liveUndead()
+	case "npcsocial":
+		return s.liveSocial()
 	case "charfactions":
 		return s.liveCharFaction(before, after)
 	case "quests", "queststeps":
@@ -97,6 +101,30 @@ func (s *Server) liveAggro() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return "at once: the next look round (half a second) and the next target box use it"
+}
+
+// liveUndead reads the undead tags again (entity/undead.go; the change is
+// committed: the database is free).
+func (s *Server) liveUndead() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	if _, _, err := s.d.World.LoadUndeadTags(s.d.DB); err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return "at once: the next cast at a creature of that name uses it"
+}
+
+// liveSocial reads which NPCs come to the help of their own again
+// (entity/socialaggro.go; the change is committed: the database is free).
+func (s *Server) liveSocial() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	if _, err := s.d.World.LoadSocialRules(s.d.DB); err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return "at once: the next hit uses it"
 }
 
 // liveCharFaction applies a charfactions edit where the character stands, so

@@ -36,7 +36,8 @@ with the row before and after, and `revert_change` undoes a row change.
 | `npcitem` | merchant stock: `npcid` (→ `npcs.id`), `patternid`, `listnumber` (order) | `itemid` |
 | `npcclass` | an NPC NAME's class (lower case), which picks its melee; absent = warrior | `name` |
 | `npcpaths` | the path an NPC walks: `points` (JSON waypoints), `mode`, `pause`, `speed`; use the path operations | `npcid` |
-| `itempattern` | every item that exists | `patternid` |
+| `itempattern` | every item that exists; `trade` 1 is NO TRADE | `patternid` |
+| `itemeffect` | what using an item does (the alchemists' potions): `line` in spell words, `Self` drunk or `Target` thrown; `name`/`icon` on the effects list; `breaks` attack/damage; `wear` % a tick; `area` a thrown one's splash | `patternid` |
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
 | `classspells` | which spells each class has | `class`+`spellid` |
@@ -140,6 +141,13 @@ with the row before and after, and `revert_change` undoes a row change.
   the GM's disc (238 on the Frontiers disc); an agent has only the DictIDs it is told or reads in rows.
   The same in the game's chat line: `#fx <visual> [seconds]`, `#fx <spell>`, `#spellfx <spell> [<visual> | 0]`
   (their changes are in `audit_log` too, through "game").
+- **Make a potion**: `clone_row` a potion of the same kind on `itempattern` (a draught, a thrown Unstable Potion:
+  their icons and wear are the game's), rename it, then `insert_row` its use into `itemeffect`:
+  `{patternid, line: "Self, Decrease Hitpoints by 40, Increase Power per tic by 50, 18sec"}` (a draught),
+  `"Target, Decrease Hitpoints by 300 ; Increase 15% based on WIS"` (thrown; wear 17, attack type 10 and
+  `unk5` 20, the range, make it a thrown weapon too), `"Self, Sow, 30min"` with `name` and `breaks: "attack"`.
+  A spell gives it when its line says `Summon <the item's name>` (`x3` for three; no number: three of an item
+  stacking to three, else one). Used from the item menu a thrown potion is worn; from a quick slot, thrown.
 - **Give a player something**: `give_item` (an item by name or id), `grant_spell` (one, or "all" of its
   class), `set_character` (level, tunar, heal).
 - **Moderate**: `message_player`, `broadcast`, `kick_player`, `ban_account` (with a reason).

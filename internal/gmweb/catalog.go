@@ -413,6 +413,28 @@ var catalog = map[string]tableNote{
 			"source":     {Label: "Source", Help: "gm, or seed for tools/seed_npc_aggro.py's rows (its --undo deletes those)"},
 		},
 	},
+	"itemeffect": {
+		Label: "Item uses", Group: "Items & spells", Title: "patternid", Sort: "patternid",
+		Help: "What using an item does (entity/potion.go): the alchemists' potions, drunk or thrown. line is in a spell " +
+			"line's words, its first word on whom: Self (drunk) or Target (thrown at the creature targeted, within 20). " +
+			"name is the effect's name on the effects list (empty: the item's), icon its icon there (an ability's icon, " +
+			"spellpattern.icon). breaks: attack (ended by its bearer's attack, harmful cast or throw), damage (by a hit), " +
+			"both as attack,damage. wear: the percent chance each six-second tick that it wears off. area: a thrown " +
+			"one's splash round its target. A thrown potion worn as a thrown weapon (wear 17, attack type 10) is each " +
+			"auto-attack's throw. Spells give potions by their words (\"Summon Watery Draught\", \"x3\"), the item by name.",
+		Live:   "At once: read at every use. Which items are thrown in an auto-attack is read at the server's start.",
+		Search: []string{"line", "name"},
+		Cols: map[string]colNote{
+			"patternid": {Label: "Item", Ref: "itempattern"},
+			"line":      {Label: "What it does", Help: "spelleffect's words: Self, Decrease Hitpoints by 20, Increase Power per tic by 25, 18sec"},
+			"name":      {Label: "Effect name", Help: "on the effects list; empty: the item's name"},
+			"icon":      {Label: "Effect icon", Format: hex32, Help: "an ability's front icon (spellpattern.icon)"},
+			"breaks":    {Label: "Ends on", Help: "attack, damage, or attack,damage"},
+			"wear":      {Label: "Wears off", Help: "percent a six-second tick"},
+			"area":      {Label: "Splash", Help: "a thrown one's: how far round its target creatures take it too"},
+			"source":    {Label: "Source", Help: "gm, or potions for tools/seed_potions.py's rows (its --undo deletes those)"},
+		},
+	},
 	"itempattern": {
 		Label: "Items", Group: "Items & spells", Title: "itemname", Sort: "patternid",
 		Help: "Every item that exists, by patternid. model is the ITEM.ESF DictID worn or held, itemicon the ITEMICON.ESF " +
@@ -436,7 +458,7 @@ var catalog = map[string]tableNote{
 			"maxstack":     {Label: "Stacks to", Section: "Use"},
 			"maxhp":        {Label: "Condition (max)", Section: "Use"},
 			"duration":     {Section: "Use"},
-			"trade":        {Label: "Tradeable", Section: "Use"},
+			"trade":        {Label: "No trade", Help: "1: it can never be traded (the client's m_noTrade: its info says NO TRADE)", Section: "Use"},
 			"rent":         {Section: "Use"},
 			"lore":         {Label: "Lore", Section: "Use"},
 			"craft":        {Section: "Use"},

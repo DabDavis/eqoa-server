@@ -517,26 +517,41 @@ type questMissCount struct {
 	Quests int    `json:"quests"`
 }
 
-// missing is what the given drafts lack, the most wanted first.
+// missing is what the given drafts lack, the most wanted first: a name once
+// whatever it was lacked as (a step's creature, the content's note), its
+// kinds joined.
 func missingOf(rows []*questRow) []questMissCount {
-	type k struct{ kind, name string }
-	count := map[k]int{}
+	type entry struct {
+		name  string
+		kinds []string
+		n     int
+	}
+	by := map[string]*entry{}
 	for _, r := range rows {
 		if r.Enabled {
 			continue
 		}
-		seen := map[k]bool{}
+		seen := map[string]bool{}
 		for _, m := range r.missing {
-			key := k{m.Kind, m.Name}
-			if !seen[key] {
-				seen[key] = true
-				count[key]++
+			k := foldQuestName(m.Name)
+			e := by[k]
+			if e == nil {
+				e = &entry{name: m.Name}
+				by[k] = e
+			}
+			if !containsString(e.kinds, m.Kind) {
+				e.kinds = append(e.kinds, m.Kind)
+			}
+			if !seen[k] {
+				seen[k] = true
+				e.n++
 			}
 		}
 	}
-	out := make([]questMissCount, 0, len(count))
-	for key, n := range count {
-		out = append(out, questMissCount{Kind: key.kind, Name: key.name, Quests: n})
+	out := make([]questMissCount, 0, len(by))
+	for _, e := range by {
+		sort.Strings(e.kinds)
+		out = append(out, questMissCount{Kind: strings.Join(e.kinds, "/"), Name: e.name, Quests: e.n})
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Quests != out[j].Quests {
@@ -545,6 +560,15 @@ func missingOf(rows []*questRow) []questMissCount {
 		return out[i].Name < out[j].Name
 	})
 	return out
+}
+
+func containsString(v []string, s string) bool {
+	for _, x := range v {
+		if x == s {
+			return true
+		}
+	}
+	return false
 }
 
 // statusCounts is how many of the rows are in the game, ready and drafts.

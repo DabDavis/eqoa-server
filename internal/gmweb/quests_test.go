@@ -405,6 +405,13 @@ func TestTheQuestListFiltersImportedQuests(t *testing.T) {
 	if m := fmt.Sprint(out["missing"]); !strings.Contains(m, "name:Maryan") || !strings.Contains(m, "name:Smithy Cragis") {
 		t.Errorf("missing: %s", m)
 	}
+	// a name lacked two ways (a step's creature and the content's note) is one entry
+	f.exec(`UPDATE quests SET notes = 'A draft until these are here: the file''s unresolved ''Guard Dahvel (attackable)''.' WHERE questid = 100005`)
+	_, out2 := c.op("quest_list", map[string]any{"missing": "Guard Dahvel"})
+	if m := fmt.Sprint(out2["missing"]); strings.Count(m, "name:Guard Dahvel") != 1 || !strings.Contains(m, "NPC/creature") {
+		t.Errorf("a name lacked two ways: %s", m)
+	}
+	f.exec(`UPDATE quests SET notes = '' WHERE questid = 100005`)
 
 	for _, tc := range []struct {
 		filter map[string]any
@@ -444,6 +451,15 @@ func TestTheQuestListFiltersImportedQuests(t *testing.T) {
 	if got := fmt.Sprint(c.questIDs(t, map[string]any{"status": questReady})); got != "[100002 100003 100004]" {
 		t.Errorf("Maryan placed, the ready ones are %s", got)
 	}
+
+	// an NPC whose name has a trailing space is the name all the same, as the
+	// engine matches it (623 of the live npcs rows): no problem on its quest page
+	f.exec(`UPDATE npcs SET npc_name = 'Guard Dahvel ' WHERE id = 500`)
+	code, out = c.op("quest_get", map[string]any{"quest": 100001})
+	if code != 200 || strings.Contains(problemsOf(out), "no NPC") {
+		t.Errorf("a name with a trailing space: %d %s", code, problemsOf(out))
+	}
+	f.exec(`UPDATE npcs SET npc_name = 'Guard Dahvel' WHERE id = 500`)
 
 	// a merchant offers nothing (the game asks for its window), though a step
 	// at one is fine (done at its window): the first is a draft, the control not

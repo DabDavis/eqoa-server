@@ -250,7 +250,7 @@ func titleWords(s string) string {
 func (s *Server) resolveDraft(d *eqoaDraft) {
 	if d.Giver != "" {
 		var n int
-		s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(npc_name) = LOWER(?)`, d.Giver).Scan(&n)
+		s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(TRIM(npc_name)) = LOWER(TRIM(?))`, d.Giver).Scan(&n)
 		d.GiverFound = n > 0
 		if !d.GiverFound {
 			d.Unresolved = append(d.Unresolved, "NPC "+d.Giver)

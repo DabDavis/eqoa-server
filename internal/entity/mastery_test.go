@@ -11,37 +11,39 @@ import (
 )
 
 // The stat cap before masteries is what SOE's live server sent: 400 at
-// level 60 (Corsten's VIPlayer m_p44), 350 at 45 (Lostologist's). With the
-// general masteries a level allows, level 60's is 550: the cap jib gives
-// "including the normal 5 ranks" (F3 20261025-163704), and a master
-// class's +50 his 600. The control: the server's old flat 475 is neither.
-func TestStatCapsAreSOEsAndTheMasteries(t *testing.T) {
-	for _, c := range []struct{ level, base, raise, cap int }{
-		{1, 350, 0, 350},
-		{10, 350, 15, 365},
-		{30, 350, 60, 410},
-		{45, 350, 90, 440},
-		{46, 400, 90, 490},
-		{50, 400, 115, 515},
-		{59, 400, 115, 515},
-		{60, 400, 150, 550},
-	} {
-		p := &Player{Level: c.level}
+// level 60 (Corsten's VIPlayer m_p44), 350 at 45 (Lostologist's). A cap
+// rises only by the masteries the character BOUGHT (cmbuy.go): its STR MAX
+// to CHA MAX, so the five general ranks of a stat and Godborn make 550 at 60
+// (jib's cap "including the normal 5 ranks", F3 20261025-163704) and a
+// master class's +50 600. The controls: the server's old flat 475 is neither
+// base, a character who bought nothing has the base alone (until F3 pass 17
+// every character counted the general ranks as held: 550 at 60), and a cap
+// raise of one stat leaves the others.
+func TestStatCapsAreSOEsAndTheMasteriesBought(t *testing.T) {
+	for _, c := range []struct{ level, base int }{{1, 350}, {10, 350}, {45, 350}, {46, 400}, {60, 400}} {
 		if got := StatCapBase(c.level); got != c.base {
 			t.Errorf("level %d: base cap %d, want %d", c.level, got, c.base)
 		}
-		if got := GeneralCapRaise(c.level); got != c.raise {
-			t.Errorf("level %d: raise %d, want %d", c.level, got, c.raise)
-		}
-		if got := p.StatCap(); got != c.cap {
-			t.Errorf("level %d: cap %d, want %d", c.level, got, c.cap)
+		p := &Player{Level: c.level}
+		for st := StatStr; st <= StatCha; st++ {
+			if got := p.StatCapOf(st); got != c.base {
+				t.Errorf("level %d, nothing bought: stat %d's cap %d, want %d", c.level, st, got, c.base)
+			}
 		}
 	}
 	if old := 475; old == StatCapBase(60) || old == StatCapBase(45) {
 		t.Fatal("the control: the old flat cap must differ from SOE's")
 	}
-	if got := (&Player{Level: 60}).StatCap() + 50; got != 600 {
-		t.Errorf("level 60 with a master class's +50: %d, want jib's 600", got)
+	p := &Player{Level: 60}
+	p.CMEffects[cmSlotCap] = 15 + 20 + 25 + 30 + 35 + 25 // Brawn 1-5, Godborn
+	if got := p.StatCapOf(StatStr); got != 550 {
+		t.Errorf("STR with Brawn 1-5 and Godborn: cap %d, want jib's 550", got)
+	}
+	if got := p.StatCapOf(StatSta); got != 400 {
+		t.Errorf("STA beside them: cap %d, want 400 (the control: STR's ranks raise STR's alone)", got)
+	}
+	if p.CMEffects[cmSlotCap] += 50; p.StatCapOf(StatStr) != 600 {
+		t.Errorf("with a master class's +50: %d, want jib's 600", p.StatCapOf(StatStr))
 	}
 }
 
@@ -52,6 +54,9 @@ func TestStatCapsAreSOEsAndTheMasteries(t *testing.T) {
 func TestStatsPastTheCapCountForNothing(t *testing.T) {
 	p := &Player{Level: 60, Class: 12, BaseStr: 50, BaseSta: 80, BaseAgi: 70, BaseDex: 70, BaseWis: 55, BaseInt: 110, BaseCha: 60}
 	p.Gear = Gear{Sta: 606, Agi: 725, Int: 870, Str: 355}
+	for i := 0; i < 7; i++ {
+		p.CMEffects[cmSlotCap+i] = 150 // every stat's five general ranks and Godborn bought: 550
+	}
 	p.RecalcStats(true)
 	stat := func(off int) int {
 		return int(int32(binary.LittleEndian.Uint32(SerializeStatUpdate(p)[off:])))

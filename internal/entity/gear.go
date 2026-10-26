@@ -80,22 +80,25 @@ func (g *Gear) Add(id, v int) {
 // maxima (a login).
 func (p *Player) RecalcStats(fill bool) {
 	g := &p.Gear
-	p.Str = p.capStat(p.BaseStr + g.Str)
-	p.Sta = p.capStat(p.BaseSta + g.Sta)
-	p.Agi = p.capStat(p.BaseAgi + g.Agi)
-	p.Dex = p.capStat(p.BaseDex + g.Dex)
-	p.Wis = p.capStat(p.BaseWis + g.Wis)
-	p.Int = p.capStat(p.BaseInt + g.Int)
-	p.Cha = p.capStat(p.BaseCha + g.Cha)
-	p.MaxHP = CalculateMaxHP(p.Level, p.Class, p.Sta) + g.MaxHP
-	p.MaxPower = CalculateMaxPower(p.Level, p.Class, p.Str, p.Sta, p.Agi, p.Dex, p.Wis, p.Int, p.Cha) + g.MaxPower
-	p.AC = g.AC
-	p.PoisonR, p.DiseaseR, p.FireR, p.ColdR, p.LightningR, p.ArcaneR = g.PR, g.DR, g.FR, g.CR, g.LR, g.AR
+	c := &p.CMEffects // what its masteries give (cmbuy.go)
+	p.Str = p.capStat(StatStr, p.BaseStr+g.Str+c[0])
+	p.Sta = p.capStat(StatSta, p.BaseSta+g.Sta+c[1])
+	p.Agi = p.capStat(StatAgi, p.BaseAgi+g.Agi+c[2])
+	p.Dex = p.capStat(StatDex, p.BaseDex+g.Dex+c[3])
+	p.Wis = p.capStat(StatWis, p.BaseWis+g.Wis+c[4])
+	p.Int = p.capStat(StatInt, p.BaseInt+g.Int+c[5])
+	p.Cha = p.capStat(StatCha, p.BaseCha+g.Cha+c[6])
+	p.MaxHP = p.maxHPFor(p.Sta) + g.MaxHP + c[cmSlotHP]
+	p.MaxPower = CalculateMaxPower(p.Level, p.Class, p.Str, p.Sta, p.Agi, p.Dex, p.Wis, p.Int, p.Cha) + g.MaxPower + c[cmSlotPower]
+	p.AC = g.AC + c[cmSlotAC]
+	p.PoisonR, p.DiseaseR, p.FireR = g.PR+c[cmSlotPR], g.DR+c[cmSlotDR], g.FR+c[cmSlotFR]
+	p.ColdR, p.LightningR, p.ArcaneR = g.CR+c[cmSlotCR], g.LR+c[cmSlotLR], g.AR+c[cmSlotAR]
 	// The old OFF/DEF placeholders (stats.go), which nothing rolls on any
 	// more: an NPC's melee is defence.go's on the AC and AGI, the player's
-	// offence.go's on the worn weapon (Gear).
-	p.OffMod = CalculateOffMod(p.BaseStr, p.BaseDex, p.Level)
-	p.DefMod = CalculateDefMod(50, p.BaseAgi, p.Level)
+	// offence.go's on the worn weapon (Gear). A mastery's OFF/DEF MOD only
+	// shows.
+	p.OffMod = CalculateOffMod(p.BaseStr, p.BaseDex, p.Level) + c[cmSlotOff]
+	p.DefMod = CalculateDefMod(50, p.BaseAgi, p.Level) + c[cmSlotDef]
 	p.WeaponDamage = p.Level / 3
 	if fill {
 		p.HP, p.Power = p.MaxHPNow(), p.MaxPowerNow()
@@ -108,7 +111,13 @@ func (p *Player) RecalcStats(fill bool) {
 // Sandstorm sends it: what all the stamina gives, the worn and the spells'
 // included, without anything's own hit points.
 func (p *Player) BaseMaxHP() int {
-	return CalculateMaxHP(p.Level, p.Class, p.StatNow(StatSta))
+	return p.maxHPFor(p.StatNow(StatSta))
+}
+
+// maxHPFor is CalculateMaxHP for the player with a stamina, its masteries'
+// HP FACTOR on the class's (Hearty: "Hearty increases your hit points").
+func (p *Player) maxHPFor(sta int) int {
+	return calculateMaxHPFactor(p.Level, hpFactor(p.Class)+p.CMEffects[cmSlotHPFactor], sta)
 }
 
 // BaseMaxPower is the stat channel's base maximum power (byte 156) as

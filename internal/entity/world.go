@@ -105,6 +105,8 @@ type World struct {
 
 	// The GMs' undead tags by NPC name, table npcundead (undead.go)
 	undead map[string]bool
+	// The masteries a character may buy, table cmcatalog (cmbuy.go)
+	cms *cmCatalog
 	// NPCs coming to the help of their own (socialaggro.go)
 	npcSocial npcSocialState
 	// Every item's use, and the hooks that give and take potions (potion.go)

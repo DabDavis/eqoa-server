@@ -109,6 +109,7 @@ func (h *CombatHandler) swingFor(sess *session.Session, p *entity.Player) entity
 	var worn [21]bool
 	hasItem := false
 	var attackType, itemRange int
+	potion, potionLeft := 0, 0 // a potion worn as the thrown weapon (potion.go)
 	if h.inventoryStore != nil {
 		rows, err := h.inventoryStore.GetCharacterItems(p.CharServerID)
 		if err != nil {
@@ -123,10 +124,15 @@ func (h *CombatHandler) swingFor(sess *session.Session, p *entity.Player) entity
 			if !hasItem && (e == 14 || e == 16 || e == 18) {
 				hasItem = true
 				attackType, itemRange = r.Pattern.AttackType, r.Pattern.Unk5
+				if h.gameWorld != nil && h.gameWorld.ThrownPotion(r.Pattern.PatternID) {
+					potion, potionLeft = r.Pattern.PatternID, r.StackLeft
+				}
 			}
 		}
 	}
-	return entity.SwingFor(p.Class, p.Level, worn, hasItem, attackType, itemRange)
+	s := entity.SwingFor(p.Class, p.Level, worn, hasItem, attackType, itemRange)
+	s.Potion, s.PotionLeft = potion, potionLeft
+	return s
 }
 
 // inventoryListOrder is the carried items (not the bank) in the order the

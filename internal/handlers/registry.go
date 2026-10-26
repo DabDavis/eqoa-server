@@ -207,6 +207,13 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		equipHandler.SetGameWorld(gameWorld)
 	}
 	charHandler.gearSets = equipHandler.SendGearSets
+	// potions: every item's use, the spells that give them, the throws that
+	// take them (potion.go, entity/potion.go)
+	if gameWorld != nil {
+		equipHandler.LoadPotions()
+		gameWorld.OnSummonItem(equipHandler.summonItem)
+		gameWorld.OnPotionThrown(equipHandler.potionThrown)
+	}
 	interactHandler := NewInteractHandler(sessionMgr)
 	if gameWorld != nil {
 		interactHandler.SetGameWorld(gameWorld)

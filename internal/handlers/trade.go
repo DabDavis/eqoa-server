@@ -292,6 +292,12 @@ func (h *TradeHandler) offerLocked(t *trade, me, you *tradeSide, key uint32, n i
 		log.Printf("Trade: %s offers %q while wearing it", me.player.Name, row.Pattern.ItemName)
 		return
 	}
+	if row.Pattern.Trade > 0 {
+		// itempattern.trade is CLIENT's m_noTrade (VIItem +0x1C): its info
+		// window says NO TRADE, and such an item stays its owner's
+		log.Printf("Trade: %s offers %q, which is no trade", me.player.Name, row.Pattern.ItemName)
+		return
+	}
 	at := -1
 	for i, o := range me.offers {
 		if o.key == key {

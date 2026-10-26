@@ -96,6 +96,9 @@ type World struct {
 
 	// Creatures attacking a player on sight (aggro.go)
 	aggro aggroState
+
+	// Every item's use, and the hooks that give and take potions (potion.go)
+	potions potionTable
 }
 
 // NewWorld creates and initializes a new game world.

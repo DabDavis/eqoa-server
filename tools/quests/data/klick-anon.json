@@ -4459,7 +4459,7 @@
    "minlevel": 1,
    "maxlevel": 60,
    "requires": [],
-   "offer": "Get yourself a junker's tunic. Merchant Folsop gives them away; fetch one and show me.",
+   "offer": "Get yourself a tunic. Merchant Folsop gives them away; fetch one and show me.",
    "accept": "I will do it.",
    "decline": "Not now.",
    "declined": "Then come back to me when you are ready.",
@@ -4469,10 +4469,10 @@
      "kind": "talk",
      "target": "Merchant Folsop",
      "journal": "Speak with Merchant Folsop.",
-     "says": "A junker's tunic. Don't tell anyone I gave it away.",
+     "says": "A tunic. Don't tell anyone I gave it away.",
      "rewards": {
       "items": [
-       "Junker's Tunic"
+       "Tattered Tunic"
       ]
      }
     },
@@ -4481,11 +4481,11 @@
      "target": "Mistress Briva",
      "items": [
       {
-       "item": "Junker's Tunic",
+       "item": "Tattered Tunic",
        "count": 1
       }
      ],
-     "journal": "Show Junker's Tunic to Mistress Briva.",
+     "journal": "Show Tattered Tunic to Mistress Briva.",
      "says": "Now you look like you belong down here.",
      "rewards": {
       "xp": 430
@@ -4494,7 +4494,7 @@
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-1 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-1 quest gives in EQOA-Data's guides. The guide's Junker's Tunic is a level-15 item here (the guide's level-15 reward), so a tattered tunic stands in at level 1."
   },
   {
    "key": "1-20/klick-anon/rogue/L2",

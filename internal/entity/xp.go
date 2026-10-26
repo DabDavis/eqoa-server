@@ -1,5 +1,9 @@
 package entity
 
+// MaxLevel is the highest level a character reaches: what experience goes to
+// past it is mastery points (mastery.go splitXP).
+const MaxLevel = 60
+
 // CharXPDict maps level -> XP required to advance past that level: CLIENT's
 // ExpForLevel(level+1) (killexp.go), what the HUD's experience bar divides by.
 // The C# table it was copied from (CharacterUtilities.CharXPDict) took the

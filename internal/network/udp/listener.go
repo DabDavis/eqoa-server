@@ -538,6 +538,7 @@ func (l *Listener) savePlayerPosition(sess *session.Session) {
 	// level gained, and a level a GM set, was gone at the next login.
 	record.Level = player.Level
 	record.TotalXP = entity.TotalXP(player.Level, player.XPInLevel)
+	record.Debt = player.Debt // what experience has not yet paid (awardXP)
 	record.UnusedTP, record.TotalTP = player.UnusedTP, player.TotalTP
 
 	// A death's place is not where the next login starts: the respawn would

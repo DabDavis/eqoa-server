@@ -60,7 +60,7 @@ func TestSpellNotesAndDefaults(t *testing.T) {
 				"recast: 4. 60 epic: 85+10%wis to all resists (target)"}}},
 		// a debuff with no time is left as it is
 		{"Weaken Death", "Target undead, Decrease STR/AGI by 27 ; Increase 15% based on WIS",
-			SpellDef{Target: TargetUndead, Harmful: true, Effects: []SpellEffect{
+			SpellDef{Target: TargetUndead, Harmful: true, UndeadOnly: true, Effects: []SpellEffect{
 				stat(StatStr, -27), {Kind: EffectStat, Stat: StatAgi, Amount: -27, AmountMax: -27, Scale: StatWis, ScalePct: 15}}}},
 	}
 	for _, c := range cases {

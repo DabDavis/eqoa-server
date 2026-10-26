@@ -247,7 +247,7 @@ func ParseSpellNamed(name, line, desc string) SpellDef {
 	d := ParseSpell(line, desc)
 	d.readIllusion(name, desc)
 	d.readUndead(name, desc) // undead.go
-	d.healWithMaxHP(name) // spellnotes.go
+	d.healWithMaxHP(name)    // spellnotes.go
 	return d
 }
 

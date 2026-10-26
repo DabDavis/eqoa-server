@@ -160,6 +160,11 @@ type NPC struct {
 	// back when the charm ends or it comes back after dying; nil for a
 	// creature no one charmed.
 	Charm *charmHold
+
+	// calmTicks counts the six-second ticks it has been out of a fight;
+	// past npcCalmTicks it heals fast (npcregen.go). Any threat puts it
+	// back to 0.
+	calmTicks int
 }
 
 // GetEntityID returns the NPC's entity ID.

@@ -8,7 +8,7 @@ import (
 )
 
 // An enchanter's pet swings once a round whatever its level, Grand
-// Animation twice, and a magician's as the creature its body is (F3
+// Animation twice, and a magician's as a warrior of its level (F3
 // 20261025-164209: "Enchanter pets currently dual hit (20+) and quad"). The
 // control: the same level 44 golem without the enchanter's swing makes the
 // report's four hits a round (a warrior's Attack4 from level 35).
@@ -42,7 +42,7 @@ func TestAnEnchantersPetSwingsOnceARound(t *testing.T) {
 	m := newPetRig(t) // a magician of 45
 	fe, _ := m.summon(t, fireElemental(), 0)
 	if n, fx, _ := hits(fe); fe.SwingFixed || n != 4 || fx != "Attack4" {
-		t.Errorf("a magician's level 44 Fire Elemental: %d hits (%s), fixed %v; want its body's Attack4", n, fx, fe.SwingFixed)
+		t.Errorf("a magician's level 44 Fire Elemental: %d hits (%s), fixed %v; want a warrior's Attack4", n, fx, fe.SwingFixed)
 	}
 }
 

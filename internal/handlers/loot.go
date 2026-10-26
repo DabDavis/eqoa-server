@@ -53,6 +53,7 @@ import (
 type corpse struct {
 	died  time.Time // the death it is the loot of
 	items []database.CharInventoryEntry
+	tunar int // its coins until the first opener takes them (corpsecoins.go)
 }
 
 // lootState is the corpses and who has which one open.
@@ -107,10 +108,12 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 		for i := range items {
 			items[i] = catalogRecord(items[i])
 		}
-		c = &corpse{died: died, items: items}
+		c = &corpse{died: died, items: items, tunar: corpseCoins(npc, h.coinRoll)}
 		ls.corpses[npc.ServerID] = c
 	}
 	ls.open[sess] = npc.ServerID
+	h.giveCorpseCoins(sess, npc, c.tunar)
+	c.tunar = 0
 	SendLoot(sess, c.items)
 	log.Printf("Loot: %s opened %q: %d items", sessName(h, sess), npc.Name, len(c.items))
 	return true

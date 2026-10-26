@@ -103,9 +103,10 @@ func TestACorpseHoldsWhatItsTablesRolled(t *testing.T) {
 		return 0 // every roll lands, each takes the first item (the sword)
 	}
 	f.h.OpenCorpse(f.sess, f.npc)
+	// its coins first (corpsecoins.go), then the items
 	got := f.sent()
-	mustOps(t, got, protocol.OpcodeLoot)
-	if n := lootCount(t, got[0]); n != 3 {
+	mustOps(t, got, protocol.OpcodePlayerTunar, protocol.OpcodeClientMessage, protocol.OpcodeLoot)
+	if n := lootCount(t, got[2]); n != 3 {
 		t.Fatalf("%d records, want the npcitem row and two rolled", n)
 	}
 	before := calls
@@ -120,7 +121,8 @@ func TestACorpseHoldsWhatItsTablesRolled(t *testing.T) {
 	bindLoot(t, g, "beetle", 50, 2)
 	g.h.lootIntn = func(n int) int { return n - 1 }
 	g.h.OpenCorpse(g.sess, g.npc)
-	if n := lootCount(t, g.sent()[0]); n != 1 {
+	got = g.sent()
+	if n := lootCount(t, got[len(got)-1]); n != 1 {
 		t.Fatalf("every roll missed: %d records, want 1", n)
 	}
 }

@@ -1,0 +1,5064 @@
+{
+ "city": "fayspire",
+ "quests": [
+  {
+   "key": "1-20/fayspire/alchemist/L1",
+   "name": "The Thick Blue Uniform",
+   "giver": "Silnea Aesiowe",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Go to Initiate Firebringer and get your thick blue uniform; it is free. Then come back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Initiate Firebringer",
+     "journal": "Speak with Initiate Firebringer.",
+     "says": "A thick blue uniform.",
+     "rewards": {
+      "items": [
+       "Thick Blue Uniform"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Silnea Aesiowe",
+     "items": [
+      {
+       "item": "Thick Blue Uniform",
+       "count": 1
+      }
+     ],
+     "journal": "Show Thick Blue Uniform to Silnea Aesiowe.",
+     "says": "Welcome.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/fayspire/alchemist/L2",
+   "name": "Bound to Fayspire",
+   "giver": "Silnea Aesiowe",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/alchemist/L1"
+   ],
+   "offer": "Go to Elinos, the spiritmaster, to be bound; then seek out Coachman Thirtreel.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Elinos",
+     "journal": "Speak with Spiritmaster Elinos.",
+     "says": "Your spirit is bound. Coachman Thirtreel is next."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Thirtreel",
+     "journal": "Speak with Coachman Thirtreel.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Silnea Aesiowe",
+     "journal": "Speak with Silnea Aesiowe.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/fayspire/alchemist/L3",
+   "name": "Venathorn's Components",
+   "giver": "Silnea Aesiowe",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/alchemist/L2"
+   ],
+   "offer": "Talk to Venathorn, in his residence in the center courtyard.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Venathorn",
+     "journal": "Speak with Venathorn.",
+     "says": "Bring me a damaged firefly wing from the sparkflies and tarantula leg tips from the spiderlings, south of the courtyard."
+    },
+    {
+     "kind": "loot",
+     "target": "Sparkflies",
+     "items": [
+      {
+       "item": "damaged firefly wings",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect damaged firefly wings from Sparkflies."
+    },
+    {
+     "kind": "loot",
+     "target": "Spiderling",
+     "items": [
+      {
+       "item": "tarantula leg tips",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect tarantula leg tips from Spiderlings."
+    },
+    {
+     "kind": "give",
+     "target": "Venathorn",
+     "items": [
+      {
+       "item": "damaged firefly wings",
+       "count": 1
+      },
+      {
+       "item": "tarantula leg tips",
+       "count": 1
+      }
+     ],
+     "journal": "Bring damaged firefly wings and tarantula leg tips to Venathorn.",
+     "says": "Learn this hardening agent.",
+     "rewards": {
+      "xp": 6900,
+      "spells": [
+       "Hardening Agent"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/fayspire/alchemist/L4",
+   "name": "Venomguard Bracers",
+   "giver": "Venathorn",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/alchemist/L3"
+   ],
+   "offer": "Bring me a drained poison sac from the green snakes in the forest, and burlap bracers from Tailor Sinthios.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tree Snake",
+     "items": [
+      {
+       "item": "drained poison sac",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect drained poison sac from Tree Snakes."
+    },
+    {
+     "kind": "talk",
+     "target": "Tailor Sinthios",
+     "journal": "Speak with Tailor Sinthios.",
+     "says": "Burlap bracers.",
+     "rewards": {
+      "items": [
+       "Burlap Bracers"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Venathorn",
+     "items": [
+      {
+       "item": "drained poison sac",
+       "count": 1
+      },
+      {
+       "item": "Burlap Bracers",
+       "count": 1
+      }
+     ],
+     "journal": "Bring drained poison sac and Burlap Bracers to Venathorn.",
+     "says": "Your bracers.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The bracers are bought in the guide; here Sinthios hands them over. The tree snakes stand in for green snakes. Not on this server, left out of the rewards: the item \"Venomguard Bracers\"."
+  },
+  {
+   "key": "1-20/fayspire/alchemist/L5",
+   "name": "Grethmyrk the Shade",
+   "giver": "Venathorn",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/alchemist/L4"
+   ],
+   "offer": "A shipment of potion components was stolen by the hatebone orc thief Grethmyrk the Shade, at an orc camp southeast down the road. Get it back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Gethmyrk the Shade",
+     "items": [
+      {
+       "item": "stolen goods",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect stolen goods from Gethmyrk the Shades."
+    },
+    {
+     "kind": "give",
+     "target": "Venathorn",
+     "items": [
+      {
+       "item": "stolen goods",
+       "count": 1
+      }
+     ],
+     "journal": "Bring stolen goods to Venathorn.",
+     "says": "My components! Learn this.",
+     "rewards": {
+      "xp": 36500,
+      "spells": [
+       "Crude Refinement"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/fayspire/alchemist/L7",
+   "name": "The Shalebone Wolf",
+   "giver": "Venathorn",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/alchemist/L5"
+   ],
+   "offer": "Bring me the pelt of the shalebone wolf that wanders the shores to the north.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "shalebone wolf",
+     "items": [
+      {
+       "item": "Shalebone Wolf Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Shalebone Wolf Pelt from shalebone wolves."
+    },
+    {
+     "kind": "give",
+     "target": "Venathorn",
+     "items": [
+      {
+       "item": "Shalebone Wolf Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Shalebone Wolf Pelt to Venathorn.",
+     "says": "Learn this, and take these boots.",
+     "rewards": {
+      "xp": 157474,
+      "spells": [
+       "Crude Sublimation"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Frostguard Boots\"."
+  },
+  {
+   "key": "1-20/fayspire/alchemist/L10",
+   "name": "Wings for Amelie",
+   "giver": "Amelie",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/alchemist/L7"
+   ],
+   "offer": "Bring me radiant sunfly wings from the sunflies at the Druk and pixie nettle wings from the pixie nettles of Shon-To.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Sunfly",
+     "items": [
+      {
+       "item": "Radiant Sunfly Wing",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Radiant Sunfly Wing from Sunflies."
+    },
+    {
+     "kind": "loot",
+     "target": "Pixie Nettle",
+     "items": [
+      {
+       "item": "Pixie Nettle Wing",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Pixie Nettle Wing from Pixie Nettles."
+    },
+    {
+     "kind": "give",
+     "target": "Amelie",
+     "items": [
+      {
+       "item": "Radiant Sunfly Wing",
+       "count": 1
+      },
+      {
+       "item": "Pixie Nettle Wing",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Radiant Sunfly Wing and Pixie Nettle Wing to Amelie.",
+     "says": "Go to Venathorn for your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Venathorn",
+     "journal": "Speak with Venathorn.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 528916
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Amelie",
+    "Sunfly",
+    "Pixie Nettle"
+   ],
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Amelie, the sunflies and the pixie nettles are not on this server. Not on this server, left out of the rewards: the item \"Alchemist Apprentice Staff\"."
+  },
+  {
+   "key": "1-20/fayspire/alchemist/L13",
+   "name": "Red Burn Berries",
+   "giver": "Venathorn",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/alchemist/L10"
+   ],
+   "offer": "Bring me a green lightning wing from the green lightning bugs by the mindwhipper hive east of here.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Green Lightning Bugs",
+     "items": [
+      {
+       "item": "Green Lightning Wing",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Green Lightning Wing from Green Lightning Bugs."
+    },
+    {
+     "kind": "give",
+     "target": "Venathorn",
+     "items": [
+      {
+       "item": "Green Lightning Wing",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Green Lightning Wing to Venathorn.",
+     "says": "Now red burn berries from Nindle Longsho in the Shon-To Monastery, 225 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Nindle Longsho",
+     "tunar": 225,
+     "journal": "Bring 225 tunar to Nindle Longsho.",
+     "says": "Red burn berries.",
+     "rewards": {
+      "items": [
+       "Red Burn Berries"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Venathorn",
+     "items": [
+      {
+       "item": "Red Burn Berries",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Red Burn Berries to Venathorn.",
+     "says": "Learn this quickening.",
+     "rewards": {
+      "xp": 523785,
+      "spells": [
+       "Crude Quickening"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "1-20/fayspire/alchemist/L15",
+   "name": "Yellowjack Water",
+   "giver": "Venathorn",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/alchemist/L13"
+   ],
+   "offer": "Bring me a forger wolf fang, from the narrow passage into Misty Thicket.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Forger Wolf",
+     "items": [
+      {
+       "item": "Forger Wolf Fang",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Forger Wolf Fang from Forger Wolves."
+    },
+    {
+     "kind": "give",
+     "target": "Venathorn",
+     "items": [
+      {
+       "item": "Forger Wolf Fang",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Forger Wolf Fang to Venathorn.",
+     "says": "Now go to Anduon Twotoe in the inn at Rivervale."
+    },
+    {
+     "kind": "talk",
+     "target": "Anduon Twotoe",
+     "journal": "Speak with Anduon Twotoe.",
+     "says": "Yellowjack water, for Venathorn.",
+     "rewards": {
+      "items": [
+       "Yellowjack Water"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Venathorn",
+     "items": [
+      {
+       "item": "Yellowjack Water",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Yellowjack Water to Venathorn.",
+     "says": "Learn this.",
+     "rewards": {
+      "xp": 830764,
+      "spells": [
+       "Faulty Refinement"
+      ]
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Robe of Wonders\" (a level-47 item here)."
+  },
+  {
+   "key": "1-20/fayspire/alchemist/L20",
+   "name": "The Book of Solutions",
+   "giver": "Venathorn",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/alchemist/L15"
+   ],
+   "offer": "A book of solutions has fallen into the wrong hands: Mathew has it. Speak to Drindan Lightfoot in Kara Village's inn.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Drindan Lightfoot",
+     "journal": "Speak with Drindan Lightfoot.",
+     "says": "Mathew sits by a mushroom patch inside the gates of Collonridge Cemetery. Get the book back."
+    },
+    {
+     "kind": "loot",
+     "target": "Mathew",
+     "items": [
+      {
+       "item": "Book of Solutions",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Book of Solutions from Mathews."
+    },
+    {
+     "kind": "give",
+     "target": "Drindan Lightfoot",
+     "items": [
+      {
+       "item": "Book of Solutions",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Book of Solutions to Drindan Lightfoot.",
+     "says": "Take it back to Venathorn."
+    },
+    {
+     "kind": "talk",
+     "target": "Venathorn",
+     "journal": "Speak with Venathorn.",
+     "says": "Fetch me a locking book safe from Trulen next door, 550 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Trulen",
+     "tunar": 550,
+     "journal": "Bring 550 tunar to Trulen.",
+     "says": "A locking book safe.",
+     "rewards": {
+      "items": [
+       "Locking Book Safe"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Venathorn",
+     "items": [
+      {
+       "item": "Locking Book Safe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Locking Book Safe to Venathorn.",
+     "says": "The book is safe. Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of a mace and Student's Knack or a book and Klick'Anon Cocktail; a quest here gives no choice, so neither is given."
+  },
+  {
+   "key": "1-20/fayspire/cleric/L1",
+   "name": "Nature's Mantle",
+   "giver": "Tessarina Starshimmer",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Priestess Misona has a mantle for you; it is free. Fetch it and show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Priestess Misona",
+     "journal": "Speak with Priestess Misona.",
+     "says": "Your mantle.",
+     "rewards": {
+      "items": [
+       "acolyte's robe"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Tessarina Starshimmer",
+     "items": [
+      {
+       "item": "acolyte's robe",
+       "count": 1
+      }
+     ],
+     "journal": "Show acolyte's robe to Tessarina Starshimmer.",
+     "says": "Welcome.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-1 quest gives in EQOA-Data's guides. The guide's Nature's Mantle is a level-60 item here, so an acolyte's robe stands in."
+  },
+  {
+   "key": "1-20/fayspire/cleric/L2",
+   "name": "Bound to Fayspire",
+   "giver": "Priest Elgares",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/cleric/L1"
+   ],
+   "offer": "Spiritmaster Muselender will bind you; then see Coachman Thirtreel.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Muselender",
+     "journal": "Speak with Spiritmaster Muselender.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Thirtreel",
+     "journal": "Speak with Coachman Thirtreel.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Priest Elgares",
+     "journal": "Speak with Priest Elgares.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-2 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/cleric/L3",
+   "name": "Sparkfly Wings",
+   "giver": "Priest Lighthand",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/cleric/L2"
+   ],
+   "offer": "Bring me two sparkfly wings.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Sparkflies",
+     "items": [
+      {
+       "item": "damaged firefly wings",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 damaged firefly wings from Sparkflies."
+    },
+    {
+     "kind": "give",
+     "target": "Priest Lighthand",
+     "items": [
+      {
+       "item": "damaged firefly wings",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 damaged firefly wings to Priest Lighthand.",
+     "says": "Thank you.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. A sparkfly's wing is the damaged firefly wings here."
+  },
+  {
+   "key": "1-20/fayspire/cleric/L4",
+   "name": "Bellia's Weapon",
+   "giver": "Bellia Silkspinner",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/cleric/L3"
+   ],
+   "offer": "Bring me a strip of leather and iron ore from Merchant Grener, and two cracked rat claws.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Grener",
+     "journal": "Speak with Merchant Grener.",
+     "says": "A strip of leather and iron ore.",
+     "rewards": {
+      "items": [
+       "leather strip",
+       "iron ore"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Rat",
+     "items": [
+      {
+       "item": "Cracked Rat Claw",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Cracked Rat Claws from Rats."
+    },
+    {
+     "kind": "give",
+     "target": "Bellia Silkspinner",
+     "items": [
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "Cracked Rat Claw",
+       "count": 2
+      }
+     ],
+     "journal": "Bring leather strip, iron ore and 2 Cracked Rat Claws to Bellia Silkspinner.",
+     "says": "Your weapon will be ready.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and ore are bought in the guide; here Grener hands them over."
+  },
+  {
+   "key": "1-20/fayspire/cleric/L5",
+   "name": "The Hatebone Tome",
+   "giver": "Tessarina Starshimmer",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/cleric/L4"
+   ],
+   "offer": "Kill the hatebone thieves in the hills south of town and bring me the tome they carry.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "hatebone thief",
+     "items": [
+      {
+       "item": "Hatebone Tome",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Hatebone Tome from hatebone thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Tessarina Starshimmer",
+     "items": [
+      {
+       "item": "Hatebone Tome",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Hatebone Tome to Tessarina Starshimmer.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/cleric/L7",
+   "name": "The Bank Key",
+   "giver": "Tessarina Starshimmer",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/cleric/L5"
+   ],
+   "offer": "An orc lockpicker by the bridge on the south road has a bank key. Bring it to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "orc lockpicker",
+     "items": [
+      {
+       "item": "Bank Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Bank Key from orc lockpickers."
+    },
+    {
+     "kind": "give",
+     "target": "Tessarina Starshimmer",
+     "items": [
+      {
+       "item": "Bank Key",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Bank Key to Tessarina Starshimmer.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/cleric/L10",
+   "name": "Dolby's Mallet",
+   "giver": "Tessarina Starshimmer",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/cleric/L7"
+   ],
+   "offer": "Dolby, across the bridge to the south, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dolby",
+     "journal": "Speak with Dolby.",
+     "says": "Kill an orc arsonist and bring me his mallet, and an orc chemist for his metal flakes."
+    },
+    {
+     "kind": "loot",
+     "target": "orc arsonist",
+     "items": [
+      {
+       "item": "Arsonist's Mallet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Arsonist's Mallet from orc arsonists."
+    },
+    {
+     "kind": "loot",
+     "target": "orc chemist",
+     "items": [
+      {
+       "item": "Metal Flakes",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Metal Flakes from orc chemists."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Arsonist's Mallet",
+       "count": 1
+      },
+      {
+       "item": "Metal Flakes",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Arsonist's Mallet and Metal Flakes to Dolby.",
+     "says": "Now some powder from Grocer Peltham in Tethelin, up the ramp by the coach. It's free."
+    },
+    {
+     "kind": "talk",
+     "target": "Grocer Peltham",
+     "journal": "Speak with Grocer Peltham.",
+     "says": "Powder, for Dolby.",
+     "rewards": {
+      "items": [
+       "Powder"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Powder",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Powder to Dolby.",
+     "says": "Just what I needed. Thank you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/cleric/L13",
+   "name": "Dolby's Ingredients",
+   "giver": "Dolby",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/cleric/L10"
+   ],
+   "offer": "Kill a blue-ribboned snake on the hill north of the spire by the barge, and bring me its venom sack.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "blue-ribboned snake",
+     "items": [
+      {
+       "item": "Blue-Ribboned Venom Sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Blue-Ribboned Venom Sack from blue-ribboned snakes."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Blue-Ribboned Venom Sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Blue-Ribboned Venom Sack to Dolby.",
+     "says": "Now a zapper bug's stinger, along the river south of the bridge."
+    },
+    {
+     "kind": "loot",
+     "target": "zapper bug",
+     "items": [
+      {
+       "item": "Zapper Stinger",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Zapper Stinger from zapper bugs."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Zapper Stinger",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Zapper Stinger to Dolby.",
+     "says": "Grocer Peltham in Tethelin has a clay mixing vial for me; it's free."
+    },
+    {
+     "kind": "talk",
+     "target": "Grocer Peltham",
+     "journal": "Speak with Grocer Peltham.",
+     "says": "A clay mixing vial.",
+     "rewards": {
+      "items": [
+       "Clay Mixing Vial"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Clay Mixing Vial",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Clay Mixing Vial to Dolby.",
+     "says": "Now a brown recluse's silk, west of the snake by the snowy area."
+    },
+    {
+     "kind": "loot",
+     "target": "brown recluse",
+     "items": [
+      {
+       "item": "Recluse Spider Silk",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Recluse Spider Silk from brown recluses."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Recluse Spider Silk",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Recluse Spider Silk to Dolby.",
+     "says": "Last, a razorfang piranha's stomach, in the river southwest of the bridge."
+    },
+    {
+     "kind": "loot",
+     "target": "razorfang piranha",
+     "items": [
+      {
+       "item": "Fish Stomach",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Fish Stomach from razorfang piranhas."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Fish Stomach",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Fish Stomach to Dolby.",
+     "says": "Everything. Well done.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/cleric/L15",
+   "name": "Orcish War Medallions",
+   "giver": "Dolby",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/cleric/L13"
+   ],
+   "offer": "Kill orc brutes northeast of the orcs' lair across the river and bring me two orcish war medallions.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "orc brute",
+     "items": [
+      {
+       "item": "Orcish War Medallion",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Orcish War Medallions from orc brutes."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Orcish War Medallion",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Orcish War Medallions to Dolby.",
+     "says": "Buy me a silver glowing bar from the grocer in Tethelin, 260 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Grocer Peltham",
+     "tunar": 260,
+     "journal": "Bring 260 tunar to Grocer Peltham.",
+     "says": "A silver glowing bar.",
+     "rewards": {
+      "items": [
+       "Silver Glowing Bar"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Silver Glowing Bar",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Silver Glowing Bar to Dolby.",
+     "says": "Take this sealed bag to Arion, beside the Fayspire coach.",
+     "rewards": {
+      "items": [
+       "Sealed Burlap Bag"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Arion Redmoon",
+     "items": [
+      {
+       "item": "Sealed Burlap Bag",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Sealed Burlap Bag to Arion Redmoon.",
+     "says": "Kill an orc raider and bring me an orcish medal of bravery."
+    },
+    {
+     "kind": "loot",
+     "target": "orc raider",
+     "items": [
+      {
+       "item": "Orcish Medal of Bravery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Orcish Medal of Bravery from orc raiders."
+    },
+    {
+     "kind": "give",
+     "target": "Arion Redmoon",
+     "items": [
+      {
+       "item": "Orcish Medal of Bravery",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Orcish Medal of Bravery to Arion Redmoon.",
+     "says": "Go back to Dolby."
+    },
+    {
+     "kind": "talk",
+     "target": "Dolby",
+     "journal": "Speak with Dolby.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/cleric/L20",
+   "name": "Tillian Bracelets",
+   "giver": "Tessarina Starshimmer",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/cleric/L15"
+   ],
+   "offer": "Ullie Darktoe, in the inn just north of Coachman Doba in Moradhim, needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ullie Darktoe",
+     "journal": "Speak with Ullie Darktoe.",
+     "says": "Kill the aviak bashers at Goldfeather Eyrie and bring me two Tillian bracelets."
+    },
+    {
+     "kind": "loot",
+     "target": "aviak basher",
+     "items": [
+      {
+       "item": "Tillian Bracelet",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Tillian Bracelets from aviak bashers."
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Tillian Bracelet",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Tillian Bracelets to Ullie Darktoe.",
+     "says": "Buy me a metal testing kit from Trinter Yon, across the road."
+    },
+    {
+     "kind": "talk",
+     "target": "Trinter Yon",
+     "journal": "Speak with Trinter Yon.",
+     "says": "A metal testing kit.",
+     "rewards": {
+      "items": [
+       "Metal Testing Kit"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Metal Testing Kit",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Metal Testing Kit to Ullie Darktoe.",
+     "says": "Now an aviak thrasher's necklace."
+    },
+    {
+     "kind": "loot",
+     "target": "aviak thrasher",
+     "items": [
+      {
+       "item": "Aviak Necklace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Aviak Necklace from aviak thrashers."
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Aviak Necklace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Aviak Necklace to Ullie Darktoe.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Tessarina Starshimmer",
+     "journal": "Speak with Tessarina Starshimmer.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/enchanter/L1",
+   "name": "A Blue Student's Robe",
+   "giver": "Casalandria Lyssia",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Initiate Firebringer has a blue student's robe for you. Fetch it and show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Initiate Firebringer",
+     "journal": "Speak with Initiate Firebringer.",
+     "says": "A blue student's robe.",
+     "rewards": {
+      "items": [
+       "Blue Student's Robe"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Casalandria Lyssia",
+     "items": [
+      {
+       "item": "Blue Student's Robe",
+       "count": 1
+      }
+     ],
+     "journal": "Show Blue Student's Robe to Casalandria Lyssia.",
+     "says": "Welcome.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-1 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/enchanter/L2",
+   "name": "Bound to Fayspire",
+   "giver": "Professor Earthbearer",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/enchanter/L1"
+   ],
+   "offer": "Spiritmaster Elinos will bind you; then register with Coachman Thirtreel.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Elinos",
+     "journal": "Speak with Spiritmaster Elinos.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Thirtreel",
+     "journal": "Speak with Coachman Thirtreel.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Professor Earthbearer",
+     "journal": "Speak with Professor Earthbearer.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-2 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/enchanter/L3",
+   "name": "Snake Scales",
+   "giver": "Professor Earthbearer",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/enchanter/L2"
+   ],
+   "offer": "Bring me two snake scales from the snakes outside of town.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Grass Snake",
+     "items": [
+      {
+       "item": "snake scales",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 snake scales from Grass Snakes."
+    },
+    {
+     "kind": "give",
+     "target": "Professor Earthbearer",
+     "items": [
+      {
+       "item": "snake scales",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 snake scales to Professor Earthbearer.",
+     "says": "Thank you.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/enchanter/L4",
+   "name": "Salithal's Staff",
+   "giver": "Salithal Grassweave",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/enchanter/L3"
+   ],
+   "offer": "I will make you a staff if you bring me a bough of wood from Derinthal the bowyer, a strip of leather from Merchant Efreya and two ruined bat wings.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Bowyer Derinthal",
+     "journal": "Speak with Bowyer Derinthal.",
+     "says": "A bough of wood.",
+     "rewards": {
+      "items": [
+       "Bough of Wood"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Merchant Efreya",
+     "journal": "Speak with Merchant Efreya.",
+     "says": "A strip of leather.",
+     "rewards": {
+      "items": [
+       "leather strip"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Bat",
+     "items": [
+      {
+       "item": "ruined bat wing",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 ruined bat wings from Bats."
+    },
+    {
+     "kind": "give",
+     "target": "Salithal Grassweave",
+     "items": [
+      {
+       "item": "Bough of Wood",
+       "count": 1
+      },
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "ruined bat wing",
+       "count": 2
+      }
+     ],
+     "journal": "Bring Bough of Wood, leather strip and 2 ruined bat wings to Salithal Grassweave.",
+     "says": "Your staff will be ready.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The bough and strip are bought in the guide; here they are handed over."
+  },
+  {
+   "key": "1-20/fayspire/enchanter/L5",
+   "name": "Elddar Seeds",
+   "giver": "Dawnseer Mistwelder",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/enchanter/L4"
+   ],
+   "offer": "Kill the hatebone thieves in the hills south of town and bring me the elddar seeds they stole.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "hatebone thief",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect elddar seeds from hatebone thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Dawnseer Mistwelder",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "journal": "Bring elddar seeds to Dawnseer Mistwelder.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/enchanter/L7",
+   "name": "The Lockpicker's Keys",
+   "giver": "Casalandria Lyssia",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/enchanter/L5"
+   ],
+   "offer": "Kill an orc lockpicker on this side of the bridge on the way to Tethelin and bring me the keys.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "orc lockpicker",
+     "items": [
+      {
+       "item": "Lockpicker's Keys",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Lockpicker's Keys from orc lockpickers."
+    },
+    {
+     "kind": "give",
+     "target": "Casalandria Lyssia",
+     "items": [
+      {
+       "item": "Lockpicker's Keys",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Lockpicker's Keys to Casalandria Lyssia.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/enchanter/L10",
+   "name": "Dolby's Mallet",
+   "giver": "Casalandria Lyssia",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/enchanter/L7"
+   ],
+   "offer": "Dolby, across the bridge to the south, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dolby",
+     "journal": "Speak with Dolby.",
+     "says": "Kill an orc arsonist and bring me his mallet, and an orc chemist for his metal flakes."
+    },
+    {
+     "kind": "loot",
+     "target": "orc arsonist",
+     "items": [
+      {
+       "item": "Arsonist's Mallet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Arsonist's Mallet from orc arsonists."
+    },
+    {
+     "kind": "loot",
+     "target": "orc chemist",
+     "items": [
+      {
+       "item": "Metal Flakes",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Metal Flakes from orc chemists."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Arsonist's Mallet",
+       "count": 1
+      },
+      {
+       "item": "Metal Flakes",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Arsonist's Mallet and Metal Flakes to Dolby.",
+     "says": "Now some powder from Grocer Peltham in Tethelin, up the ramp by the coach. It's free."
+    },
+    {
+     "kind": "talk",
+     "target": "Grocer Peltham",
+     "journal": "Speak with Grocer Peltham.",
+     "says": "Powder, for Dolby.",
+     "rewards": {
+      "items": [
+       "Powder"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Powder",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Powder to Dolby.",
+     "says": "Just what I needed. Thank you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/enchanter/L13",
+   "name": "Dolby's Ingredients",
+   "giver": "Dolby",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/enchanter/L10"
+   ],
+   "offer": "Kill a blue-ribboned snake on the hill north of the spire by the barge, and bring me its venom sack.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "blue-ribboned snake",
+     "items": [
+      {
+       "item": "Blue-Ribboned Venom Sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Blue-Ribboned Venom Sack from blue-ribboned snakes."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Blue-Ribboned Venom Sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Blue-Ribboned Venom Sack to Dolby.",
+     "says": "Now a zapper bug's stinger, along the river south of the bridge."
+    },
+    {
+     "kind": "loot",
+     "target": "zapper bug",
+     "items": [
+      {
+       "item": "Zapper Stinger",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Zapper Stinger from zapper bugs."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Zapper Stinger",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Zapper Stinger to Dolby.",
+     "says": "Grocer Peltham in Tethelin has a clay mixing vial for me; it's free."
+    },
+    {
+     "kind": "talk",
+     "target": "Grocer Peltham",
+     "journal": "Speak with Grocer Peltham.",
+     "says": "A clay mixing vial.",
+     "rewards": {
+      "items": [
+       "Clay Mixing Vial"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Clay Mixing Vial",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Clay Mixing Vial to Dolby.",
+     "says": "Now a brown recluse's silk, west of the snake by the snowy area."
+    },
+    {
+     "kind": "loot",
+     "target": "brown recluse",
+     "items": [
+      {
+       "item": "Recluse Spider Silk",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Recluse Spider Silk from brown recluses."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Recluse Spider Silk",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Recluse Spider Silk to Dolby.",
+     "says": "Last, a razorfang piranha's stomach, in the river southwest of the bridge."
+    },
+    {
+     "kind": "loot",
+     "target": "razorfang piranha",
+     "items": [
+      {
+       "item": "Fish Stomach",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Fish Stomach from razorfang piranhas."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Fish Stomach",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Fish Stomach to Dolby.",
+     "says": "Everything. Well done.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/enchanter/L15",
+   "name": "Orcish War Medallions",
+   "giver": "Dolby",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/enchanter/L13"
+   ],
+   "offer": "Kill orc brutes northeast of the orcs' lair across the river and bring me two orcish war medallions.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "orc brute",
+     "items": [
+      {
+       "item": "Orcish War Medallion",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Orcish War Medallions from orc brutes."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Orcish War Medallion",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Orcish War Medallions to Dolby.",
+     "says": "Buy me a silver glowing bar from the grocer in Tethelin, 260 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Grocer Peltham",
+     "tunar": 260,
+     "journal": "Bring 260 tunar to Grocer Peltham.",
+     "says": "A silver glowing bar.",
+     "rewards": {
+      "items": [
+       "Silver Glowing Bar"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Silver Glowing Bar",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Silver Glowing Bar to Dolby.",
+     "says": "Take this sealed bag to Arion, beside the Fayspire coach.",
+     "rewards": {
+      "items": [
+       "Sealed Burlap Bag"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Arion Redmoon",
+     "items": [
+      {
+       "item": "Sealed Burlap Bag",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Sealed Burlap Bag to Arion Redmoon.",
+     "says": "Kill an orc raider and bring me an orcish medal of bravery."
+    },
+    {
+     "kind": "loot",
+     "target": "orc raider",
+     "items": [
+      {
+       "item": "Orcish Medal of Bravery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Orcish Medal of Bravery from orc raiders."
+    },
+    {
+     "kind": "give",
+     "target": "Arion Redmoon",
+     "items": [
+      {
+       "item": "Orcish Medal of Bravery",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Orcish Medal of Bravery to Arion Redmoon.",
+     "says": "Go back to Dolby."
+    },
+    {
+     "kind": "talk",
+     "target": "Dolby",
+     "journal": "Speak with Dolby.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/enchanter/L20",
+   "name": "Tillian Bracelets",
+   "giver": "Casalandria Lyssia",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/enchanter/L15"
+   ],
+   "offer": "Ullie Darktoe, in the inn just north of Coachman Doba in Moradhim, needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ullie Darktoe",
+     "journal": "Speak with Ullie Darktoe.",
+     "says": "Kill the aviak bashers at Goldfeather Eyrie and bring me two Tillian bracelets."
+    },
+    {
+     "kind": "loot",
+     "target": "aviak basher",
+     "items": [
+      {
+       "item": "Tillian Bracelet",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Tillian Bracelets from aviak bashers."
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Tillian Bracelet",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Tillian Bracelets to Ullie Darktoe.",
+     "says": "Buy me a metal testing kit from Trinter Yon, across the road."
+    },
+    {
+     "kind": "talk",
+     "target": "Trinter Yon",
+     "journal": "Speak with Trinter Yon.",
+     "says": "A metal testing kit.",
+     "rewards": {
+      "items": [
+       "Metal Testing Kit"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Metal Testing Kit",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Metal Testing Kit to Ullie Darktoe.",
+     "says": "Now an aviak thrasher's necklace."
+    },
+    {
+     "kind": "loot",
+     "target": "aviak thrasher",
+     "items": [
+      {
+       "item": "Aviak Necklace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Aviak Necklace from aviak thrashers."
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Aviak Necklace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Aviak Necklace to Ullie Darktoe.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Casalandria Lyssia",
+     "journal": "Speak with Casalandria Lyssia.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide calls the guildmaster Cassandra."
+  },
+  {
+   "key": "1-20/fayspire/magician/L1",
+   "name": "A Red Student's Robe",
+   "giver": "Fethinar Silspin",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Initiate Firebringer has a red student's robe for you; it is free. Fetch it and show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Initiate Firebringer",
+     "journal": "Speak with Initiate Firebringer.",
+     "says": "A red student's robe.",
+     "rewards": {
+      "items": [
+       "Red Student's Robe"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Fethinar Silspin",
+     "items": [
+      {
+       "item": "Red Student's Robe",
+       "count": 1
+      }
+     ],
+     "journal": "Show Red Student's Robe to Fethinar Silspin.",
+     "says": "Welcome.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-1 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/magician/L2",
+   "name": "Bound to Fayspire",
+   "giver": "Professor Skysign",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/magician/L1"
+   ],
+   "offer": "Spiritmaster Elinos will bind you; then see Coachman Thirtreel.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Elinos",
+     "journal": "Speak with Spiritmaster Elinos.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Thirtreel",
+     "journal": "Speak with Coachman Thirtreel.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Professor Skysign",
+     "journal": "Speak with Professor Skysign.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-2 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/magician/L3",
+   "name": "Tarantula Leg Tips",
+   "giver": "Professor Skysign",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/magician/L2"
+   ],
+   "offer": "Kill spiders out of town and bring me two tarantula leg tips.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Spiderling",
+     "items": [
+      {
+       "item": "tarantula leg tips",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 tarantula leg tips from Spiderlings."
+    },
+    {
+     "kind": "give",
+     "target": "Professor Skysign",
+     "items": [
+      {
+       "item": "tarantula leg tips",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 tarantula leg tips to Professor Skysign.",
+     "says": "Thank you.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/magician/L4",
+   "name": "Ghelwin's Staff",
+   "giver": "Ghelwin Lightweaver",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/magician/L3"
+   ],
+   "offer": "Bring me a strip of leather from Merchant Grener, a bough of wood from Lylora the bowyer and two firefly thoraxes.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Grener",
+     "journal": "Speak with Merchant Grener.",
+     "says": "A strip of leather.",
+     "rewards": {
+      "items": [
+       "leather strip"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Bowyer Lylora",
+     "journal": "Speak with Bowyer Lylora.",
+     "says": "A bough of wood.",
+     "rewards": {
+      "items": [
+       "Bough of Wood"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Fireflies",
+     "items": [
+      {
+       "item": "fractured firefly thorax",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 fractured firefly thoraxes from Fireflies."
+    },
+    {
+     "kind": "give",
+     "target": "Ghelwin Lightweaver",
+     "items": [
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "Bough of Wood",
+       "count": 1
+      },
+      {
+       "item": "fractured firefly thorax",
+       "count": 2
+      }
+     ],
+     "journal": "Bring leather strip, Bough of Wood and 2 fractured firefly thoraxes to Ghelwin Lightweaver.",
+     "says": "Your staff will be ready.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and bough are bought in the guide; here they are handed over."
+  },
+  {
+   "key": "1-20/fayspire/magician/L5",
+   "name": "The Elddar Tome",
+   "giver": "Fethinar Silspin",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/magician/L4"
+   ],
+   "offer": "Hatebone thieves stole the Elddar tome. Kill them in the hills south of town and get the seeds back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "hatebone thief",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect elddar seeds from hatebone thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Fethinar Silspin",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "journal": "Bring elddar seeds to Fethinar Silspin.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/magician/L7",
+   "name": "The Bank Keys",
+   "giver": "Fethinar Silspin",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/magician/L5"
+   ],
+   "offer": "Get the bank keys from the orc lockpicker west of the bridge, on the path to Tethelin.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "orc lockpicker",
+     "items": [
+      {
+       "item": "Bank Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Bank Key from orc lockpickers."
+    },
+    {
+     "kind": "give",
+     "target": "Fethinar Silspin",
+     "items": [
+      {
+       "item": "Bank Key",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Bank Key to Fethinar Silspin.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/magician/L10",
+   "name": "Dolby's Mallet",
+   "giver": "Fethinar Silspin",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/magician/L7"
+   ],
+   "offer": "Dolby, across the bridge to the south, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dolby",
+     "journal": "Speak with Dolby.",
+     "says": "Kill an orc arsonist and bring me his mallet, and an orc chemist for his metal flakes."
+    },
+    {
+     "kind": "loot",
+     "target": "orc arsonist",
+     "items": [
+      {
+       "item": "Arsonist's Mallet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Arsonist's Mallet from orc arsonists."
+    },
+    {
+     "kind": "loot",
+     "target": "orc chemist",
+     "items": [
+      {
+       "item": "Metal Flakes",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Metal Flakes from orc chemists."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Arsonist's Mallet",
+       "count": 1
+      },
+      {
+       "item": "Metal Flakes",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Arsonist's Mallet and Metal Flakes to Dolby.",
+     "says": "Now some powder from Grocer Peltham in Tethelin, up the ramp by the coach. It's free."
+    },
+    {
+     "kind": "talk",
+     "target": "Grocer Peltham",
+     "journal": "Speak with Grocer Peltham.",
+     "says": "Powder, for Dolby.",
+     "rewards": {
+      "items": [
+       "Powder"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Powder",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Powder to Dolby.",
+     "says": "Just what I needed. Thank you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/magician/L13",
+   "name": "Dolby's Ingredients",
+   "giver": "Dolby",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/magician/L10"
+   ],
+   "offer": "Kill a blue-ribboned snake on the hill north of the spire by the barge, and bring me its venom sack.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "blue-ribboned snake",
+     "items": [
+      {
+       "item": "Blue-Ribboned Venom Sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Blue-Ribboned Venom Sack from blue-ribboned snakes."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Blue-Ribboned Venom Sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Blue-Ribboned Venom Sack to Dolby.",
+     "says": "Now a zapper bug's stinger, along the river south of the bridge."
+    },
+    {
+     "kind": "loot",
+     "target": "zapper bug",
+     "items": [
+      {
+       "item": "Zapper Stinger",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Zapper Stinger from zapper bugs."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Zapper Stinger",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Zapper Stinger to Dolby.",
+     "says": "Grocer Peltham in Tethelin has a clay mixing vial for me; it's free."
+    },
+    {
+     "kind": "talk",
+     "target": "Grocer Peltham",
+     "journal": "Speak with Grocer Peltham.",
+     "says": "A clay mixing vial.",
+     "rewards": {
+      "items": [
+       "Clay Mixing Vial"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Clay Mixing Vial",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Clay Mixing Vial to Dolby.",
+     "says": "Now a brown recluse's silk, west of the snake by the snowy area."
+    },
+    {
+     "kind": "loot",
+     "target": "brown recluse",
+     "items": [
+      {
+       "item": "Recluse Spider Silk",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Recluse Spider Silk from brown recluses."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Recluse Spider Silk",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Recluse Spider Silk to Dolby.",
+     "says": "Last, a razorfang piranha's stomach, in the river southwest of the bridge."
+    },
+    {
+     "kind": "loot",
+     "target": "razorfang piranha",
+     "items": [
+      {
+       "item": "Fish Stomach",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Fish Stomach from razorfang piranhas."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Fish Stomach",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Fish Stomach to Dolby.",
+     "says": "Everything. Well done.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/magician/L15",
+   "name": "Orcish War Medallions",
+   "giver": "Dolby",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/magician/L13"
+   ],
+   "offer": "Kill orc brutes northeast of the orcs' lair across the river and bring me two orcish war medallions.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "orc brute",
+     "items": [
+      {
+       "item": "Orcish War Medallion",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Orcish War Medallions from orc brutes."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Orcish War Medallion",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Orcish War Medallions to Dolby.",
+     "says": "Buy me a silver glowing bar from the grocer in Tethelin, 260 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Grocer Peltham",
+     "tunar": 260,
+     "journal": "Bring 260 tunar to Grocer Peltham.",
+     "says": "A silver glowing bar.",
+     "rewards": {
+      "items": [
+       "Silver Glowing Bar"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Silver Glowing Bar",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Silver Glowing Bar to Dolby.",
+     "says": "Take this sealed bag to Arion, beside the Fayspire coach.",
+     "rewards": {
+      "items": [
+       "Sealed Burlap Bag"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Arion Redmoon",
+     "items": [
+      {
+       "item": "Sealed Burlap Bag",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Sealed Burlap Bag to Arion Redmoon.",
+     "says": "Kill an orc raider and bring me an orcish medal of bravery."
+    },
+    {
+     "kind": "loot",
+     "target": "orc raider",
+     "items": [
+      {
+       "item": "Orcish Medal of Bravery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Orcish Medal of Bravery from orc raiders."
+    },
+    {
+     "kind": "give",
+     "target": "Arion Redmoon",
+     "items": [
+      {
+       "item": "Orcish Medal of Bravery",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Orcish Medal of Bravery to Arion Redmoon.",
+     "says": "Go back to Dolby."
+    },
+    {
+     "kind": "talk",
+     "target": "Dolby",
+     "journal": "Speak with Dolby.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/magician/L20",
+   "name": "Tillian Bracelets",
+   "giver": "Fethinar Silspin",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/magician/L15"
+   ],
+   "offer": "Ullie Darktoe, in the inn just north of Coachman Doba in Moradhim, needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ullie Darktoe",
+     "journal": "Speak with Ullie Darktoe.",
+     "says": "Kill the aviak bashers at Goldfeather Eyrie and bring me two Tillian bracelets."
+    },
+    {
+     "kind": "loot",
+     "target": "aviak basher",
+     "items": [
+      {
+       "item": "Tillian Bracelet",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Tillian Bracelets from aviak bashers."
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Tillian Bracelet",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Tillian Bracelets to Ullie Darktoe.",
+     "says": "Buy me a metal testing kit from Trinter Yon, across the road."
+    },
+    {
+     "kind": "talk",
+     "target": "Trinter Yon",
+     "journal": "Speak with Trinter Yon.",
+     "says": "A metal testing kit.",
+     "rewards": {
+      "items": [
+       "Metal Testing Kit"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Metal Testing Kit",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Metal Testing Kit to Ullie Darktoe.",
+     "says": "Now an aviak thrasher's necklace."
+    },
+    {
+     "kind": "loot",
+     "target": "aviak thrasher",
+     "items": [
+      {
+       "item": "Aviak Necklace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Aviak Necklace from aviak thrashers."
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Aviak Necklace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Aviak Necklace to Ullie Darktoe.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Fethinar Silspin",
+     "journal": "Speak with Fethinar Silspin.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/paladin/L1",
+   "name": "The Crusader's Tunic",
+   "giver": "Sir Lothwin Galiel",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Get a crusader's tunic from Merchant Elwarn, free, and report to Itheria Silverwind.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Elwarn",
+     "journal": "Speak with Merchant Elwarn.",
+     "says": "A crusader's tunic.",
+     "rewards": {
+      "items": [
+       "Crusader's Tunic"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Itheria Silverwind",
+     "items": [
+      {
+       "item": "Crusader's Tunic",
+       "count": 1
+      }
+     ],
+     "journal": "Show Crusader's Tunic to Itheria Silverwind.",
+     "says": "Welcome, crusader.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-1 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/paladin/L2",
+   "name": "Bound to Fayspire",
+   "giver": "Itheria Silverwind",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/paladin/L1"
+   ],
+   "offer": "Spiritmaster Tintal will bind you; then see Coachman Thirtreel.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Tintal",
+     "journal": "Speak with Spiritmaster Tintal.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Thirtreel",
+     "journal": "Speak with Coachman Thirtreel.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Itheria Silverwind",
+     "journal": "Speak with Itheria Silverwind.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-2 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/paladin/L3",
+   "name": "Slivers of Bat Meat",
+   "giver": "Itheria Silverwind",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/paladin/L2"
+   ],
+   "offer": "Learn to fight: kill bats and bring me two slivers of bat meat.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Bat",
+     "items": [
+      {
+       "item": "sliver of bat meat",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 sliver of bat meats from Bats."
+    },
+    {
+     "kind": "give",
+     "target": "Itheria Silverwind",
+     "items": [
+      {
+       "item": "sliver of bat meat",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 sliver of bat meats to Itheria Silverwind.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/paladin/L4",
+   "name": "Johandar's Sword",
+   "giver": "Johandar Elthiron",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/paladin/L3"
+   ],
+   "offer": "Bring me a strip of leather and iron ore from Merchant Grener, and two spider eyes.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Grener",
+     "journal": "Speak with Merchant Grener.",
+     "says": "A strip of leather and iron ore.",
+     "rewards": {
+      "items": [
+       "leather strip",
+       "iron ore"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Spiderling",
+     "items": [
+      {
+       "item": "small spider eye",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 small spider eyes from Spiderlings."
+    },
+    {
+     "kind": "give",
+     "target": "Johandar Elthiron",
+     "items": [
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "iron ore",
+       "count": 1
+      },
+      {
+       "item": "small spider eye",
+       "count": 2
+      }
+     ],
+     "journal": "Bring leather strip, iron ore and 2 small spider eyes to Johandar Elthiron.",
+     "says": "Your sword will be ready.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and ore are bought in the guide; here Grener hands them over."
+  },
+  {
+   "key": "1-20/fayspire/paladin/L5",
+   "name": "Elddar Seeds",
+   "giver": "Sir Lothwin Galiel",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/paladin/L4"
+   ],
+   "offer": "Kill the hatebone thieves in the hills south of town and bring back the elddar seeds.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "hatebone thief",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect elddar seeds from hatebone thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Sir Lothwin Galiel",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "journal": "Bring elddar seeds to Sir Lothwin Galiel.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/paladin/L7",
+   "name": "The Bank Keys",
+   "giver": "Sir Lothwin Galiel",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/paladin/L5"
+   ],
+   "offer": "Get the bank keys from the orc lockpicker west of the bridge, on the path to Tethelin.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "orc lockpicker",
+     "items": [
+      {
+       "item": "Bank Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Bank Key from orc lockpickers."
+    },
+    {
+     "kind": "give",
+     "target": "Sir Lothwin Galiel",
+     "items": [
+      {
+       "item": "Bank Key",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Bank Key to Sir Lothwin Galiel.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/paladin/L10",
+   "name": "Hammer and Flint",
+   "giver": "Sir Lothwin Galiel",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/paladin/L7"
+   ],
+   "offer": "Dolby, on the road east of the bridge to Tethelin, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dolby",
+     "journal": "Speak with Dolby.",
+     "says": "Get me a hammer from an orc arsonist and flint from an orc chemist, on the hill east of the bridge."
+    },
+    {
+     "kind": "loot",
+     "target": "orc arsonist",
+     "items": [
+      {
+       "item": "Arsonist's Hammer",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Arsonist's Hammer from orc arsonists."
+    },
+    {
+     "kind": "loot",
+     "target": "orc chemist",
+     "items": [
+      {
+       "item": "Chemist's Flint",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Chemist's Flint from orc chemists."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Arsonist's Hammer",
+       "count": 1
+      },
+      {
+       "item": "Chemist's Flint",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Arsonist's Hammer and Chemist's Flint to Dolby.",
+     "says": "Tell Sir Lothwin."
+    },
+    {
+     "kind": "talk",
+     "target": "Sir Lothwin Galiel",
+     "journal": "Speak with Sir Lothwin Galiel.",
+     "says": "Go back to Dolby."
+    },
+    {
+     "kind": "talk",
+     "target": "Dolby",
+     "journal": "Speak with Dolby.",
+     "says": "Thank you.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/paladin/L13",
+   "name": "Dolby's Ingredients",
+   "giver": "Dolby",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/paladin/L10"
+   ],
+   "offer": "Kill a blue-ribboned snake on the hill north of the spire by the barge, and bring me its venom sack.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "blue-ribboned snake",
+     "items": [
+      {
+       "item": "Blue-Ribboned Venom Sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Blue-Ribboned Venom Sack from blue-ribboned snakes."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Blue-Ribboned Venom Sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Blue-Ribboned Venom Sack to Dolby.",
+     "says": "Now a zapper bug's stinger, along the river south of the bridge."
+    },
+    {
+     "kind": "loot",
+     "target": "zapper bug",
+     "items": [
+      {
+       "item": "Zapper Stinger",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Zapper Stinger from zapper bugs."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Zapper Stinger",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Zapper Stinger to Dolby.",
+     "says": "Grocer Peltham in Tethelin has a clay mixing vial for me; it's free."
+    },
+    {
+     "kind": "talk",
+     "target": "Grocer Peltham",
+     "journal": "Speak with Grocer Peltham.",
+     "says": "A clay mixing vial.",
+     "rewards": {
+      "items": [
+       "Clay Mixing Vial"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Clay Mixing Vial",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Clay Mixing Vial to Dolby.",
+     "says": "Now a brown recluse's silk, west of the snake by the snowy area."
+    },
+    {
+     "kind": "loot",
+     "target": "brown recluse",
+     "items": [
+      {
+       "item": "Recluse Spider Silk",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Recluse Spider Silk from brown recluses."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Recluse Spider Silk",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Recluse Spider Silk to Dolby.",
+     "says": "Last, a razorfang piranha's stomach, in the river southwest of the bridge."
+    },
+    {
+     "kind": "loot",
+     "target": "razorfang piranha",
+     "items": [
+      {
+       "item": "Fish Stomach",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Fish Stomach from razorfang piranhas."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Fish Stomach",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Fish Stomach to Dolby.",
+     "says": "Everything. Well done.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/paladin/L15",
+   "name": "Orcish War Medallions",
+   "giver": "Dolby",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/paladin/L13"
+   ],
+   "offer": "Kill orc brutes northeast of the orcs' lair across the river and bring me two orcish war medallions.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "orc brute",
+     "items": [
+      {
+       "item": "Orcish War Medallion",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Orcish War Medallions from orc brutes."
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Orcish War Medallion",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Orcish War Medallions to Dolby.",
+     "says": "Buy me a silver glowing bar from the grocer in Tethelin, 260 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Grocer Peltham",
+     "tunar": 260,
+     "journal": "Bring 260 tunar to Grocer Peltham.",
+     "says": "A silver glowing bar.",
+     "rewards": {
+      "items": [
+       "Silver Glowing Bar"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dolby",
+     "items": [
+      {
+       "item": "Silver Glowing Bar",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Silver Glowing Bar to Dolby.",
+     "says": "Take this sealed bag to Arion, beside the Fayspire coach.",
+     "rewards": {
+      "items": [
+       "Sealed Burlap Bag"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Arion Redmoon",
+     "items": [
+      {
+       "item": "Sealed Burlap Bag",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Sealed Burlap Bag to Arion Redmoon.",
+     "says": "Kill an orc raider and bring me an orcish medal of bravery."
+    },
+    {
+     "kind": "loot",
+     "target": "orc raider",
+     "items": [
+      {
+       "item": "Orcish Medal of Bravery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Orcish Medal of Bravery from orc raiders."
+    },
+    {
+     "kind": "give",
+     "target": "Arion Redmoon",
+     "items": [
+      {
+       "item": "Orcish Medal of Bravery",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Orcish Medal of Bravery to Arion Redmoon.",
+     "says": "Go back to Dolby."
+    },
+    {
+     "kind": "talk",
+     "target": "Dolby",
+     "journal": "Speak with Dolby.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/paladin/L20",
+   "name": "Tillian Bracelets",
+   "giver": "Sir Lothwin Galiel",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/paladin/L15"
+   ],
+   "offer": "Ullie Darktoe, in the inn just north of Coachman Doba in Moradhim, needs you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ullie Darktoe",
+     "journal": "Speak with Ullie Darktoe.",
+     "says": "Kill the aviak bashers at Goldfeather Eyrie and bring me two Tillian bracelets."
+    },
+    {
+     "kind": "loot",
+     "target": "aviak basher",
+     "items": [
+      {
+       "item": "Tillian Bracelet",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Tillian Bracelets from aviak bashers."
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Tillian Bracelet",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Tillian Bracelets to Ullie Darktoe.",
+     "says": "Buy me a metal testing kit from Trinter Yon, across the road."
+    },
+    {
+     "kind": "talk",
+     "target": "Trinter Yon",
+     "journal": "Speak with Trinter Yon.",
+     "says": "A metal testing kit.",
+     "rewards": {
+      "items": [
+       "Metal Testing Kit"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Metal Testing Kit",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Metal Testing Kit to Ullie Darktoe.",
+     "says": "Now an aviak thrasher's necklace."
+    },
+    {
+     "kind": "loot",
+     "target": "aviak thrasher",
+     "items": [
+      {
+       "item": "Aviak Necklace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Aviak Necklace from aviak thrashers."
+    },
+    {
+     "kind": "give",
+     "target": "Ullie Darktoe",
+     "items": [
+      {
+       "item": "Aviak Necklace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Aviak Necklace to Ullie Darktoe.",
+     "says": "Go back to the one who sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Sir Lothwin Galiel",
+     "journal": "Speak with Sir Lothwin Galiel.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/wizard/L1",
+   "name": "Robe of the Initiate",
+   "giver": "Lyriam Kaelean",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Get a robe of the initiate from Initiate Firebringer and show me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Initiate Firebringer",
+     "journal": "Speak with Initiate Firebringer.",
+     "says": "A robe of the initiate.",
+     "rewards": {
+      "items": [
+       "Robe of the Initiate"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Lyriam Kaelean",
+     "items": [
+      {
+       "item": "Robe of the Initiate",
+       "count": 1
+      }
+     ],
+     "journal": "Show Robe of the Initiate to Lyriam Kaelean.",
+     "says": "Welcome.",
+     "rewards": {
+      "xp": 430
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 1\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-1 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/wizard/L2",
+   "name": "Bound to Fayspire",
+   "giver": "Professor Blacklake",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 2,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/wizard/L1"
+   ],
+   "offer": "Spiritmaster Elinos will bind you; then see Coachman Thirtreel.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Spiritmaster Elinos",
+     "journal": "Speak with Spiritmaster Elinos.",
+     "says": "Your spirit is bound."
+    },
+    {
+     "kind": "talk",
+     "target": "Coachman Thirtreel",
+     "journal": "Speak with Coachman Thirtreel.",
+     "says": "Signed."
+    },
+    {
+     "kind": "talk",
+     "target": "Professor Blacklake",
+     "journal": "Speak with Professor Blacklake.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 2200
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 2\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-2 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/wizard/L3",
+   "name": "Rat Furs",
+   "giver": "Professor Blacklake",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 3,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/wizard/L2"
+   ],
+   "offer": "Bring me two rat furs from the rats out of town.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Rat",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 Strands of Rat Furs from Rats."
+    },
+    {
+     "kind": "give",
+     "target": "Professor Blacklake",
+     "items": [
+      {
+       "item": "Strands of Rat Fur",
+       "count": 2
+      }
+     ],
+     "journal": "Bring 2 Strands of Rat Furs to Professor Blacklake.",
+     "says": "Thank you.",
+     "rewards": {
+      "xp": 6900
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/wizard/L4",
+   "name": "Ghelwin's Staff",
+   "giver": "Ghelwin Lightweaver",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 4,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/wizard/L3"
+   ],
+   "offer": "Bring me a strip of leather from Merchant Grener, a bough of wood from Lylora the bowyer and two cracked snake fangs.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Merchant Grener",
+     "journal": "Speak with Merchant Grener.",
+     "says": "A strip of leather.",
+     "rewards": {
+      "items": [
+       "leather strip"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Bowyer Lylora",
+     "journal": "Speak with Bowyer Lylora.",
+     "says": "A bough of wood.",
+     "rewards": {
+      "items": [
+       "Bough of Wood"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Grass Snake",
+     "items": [
+      {
+       "item": "cracked snake fang",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Collect 2 cracked snake fangs from Grass Snakes."
+    },
+    {
+     "kind": "give",
+     "target": "Ghelwin Lightweaver",
+     "items": [
+      {
+       "item": "leather strip",
+       "count": 1
+      },
+      {
+       "item": "Bough of Wood",
+       "count": 1
+      },
+      {
+       "item": "cracked snake fang",
+       "count": 2
+      }
+     ],
+     "journal": "Bring leather strip, Bough of Wood and 2 cracked snake fangs to Ghelwin Lightweaver.",
+     "says": "Your staff will be ready.",
+     "rewards": {
+      "xp": 17000
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and bough are bought in the guide; here they are handed over."
+  },
+  {
+   "key": "1-20/fayspire/wizard/L5",
+   "name": "Elddar Seeds",
+   "giver": "Lyriam Kaelean",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 5,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/wizard/L4"
+   ],
+   "offer": "Kill the hatebone thieves in the hills south of town and bring back the elddar seeds.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "hatebone thief",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect elddar seeds from hatebone thieves."
+    },
+    {
+     "kind": "give",
+     "target": "Lyriam Kaelean",
+     "items": [
+      {
+       "item": "elddar seeds",
+       "count": 1
+      }
+     ],
+     "journal": "Bring elddar seeds to Lyriam Kaelean.",
+     "says": "Good.",
+     "rewards": {
+      "xp": 36500
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/wizard/L7",
+   "name": "The Wasp of Kara",
+   "giver": "Lyriam Kaelean",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 7,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/wizard/L5"
+   ],
+   "offer": "Werlib Quackook, straight back from the entrance, has a task for you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Werlib Quack",
+     "journal": "Speak with Werlib Quack.",
+     "says": "Talk to Zidgar in Kara Village, the one with an air elemental beside him."
+    },
+    {
+     "kind": "talk",
+     "target": "Zidgar",
+     "journal": "Speak with Zidgar.",
+     "says": "Kill the wasp directly north of me and bring me its eye."
+    },
+    {
+     "kind": "loot",
+     "target": "Mindwhipper Wasp",
+     "items": [
+      {
+       "item": "Mindwhipper Wasp Eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Mindwhipper Wasp Eye from Mindwhipper Wasps."
+    },
+    {
+     "kind": "give",
+     "target": "Zidgar",
+     "items": [
+      {
+       "item": "Mindwhipper Wasp Eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Mindwhipper Wasp Eye to Zidgar.",
+     "says": "Ha! Go back to Lyriam."
+    },
+    {
+     "kind": "talk",
+     "target": "Lyriam Kaelean",
+     "journal": "Speak with Lyriam Kaelean.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 157474
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/wizard/L10",
+   "name": "Fibble's Device",
+   "giver": "Lyriam Kaelean",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 10,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/wizard/L7"
+   ],
+   "offer": "Fibble Gearcharmer, on the right side of Kara Village, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Fibble Gearcharmer",
+     "journal": "Speak with Fibble Gearcharmer.",
+     "says": "Three orc thieves south of Kara took my device."
+    },
+    {
+     "kind": "loot",
+     "target": "Orc Thief",
+     "items": [
+      {
+       "item": "Gearcharmer's Device",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.33,
+     "journal": "Collect Gearcharmer's Device from Orc Thieves."
+    },
+    {
+     "kind": "talk",
+     "target": "Fibble Gearcharmer",
+     "journal": "Speak with Fibble Gearcharmer.",
+     "says": "It's broken. Take it to Gligbin Gearcharmer in Klik'Anon; 197 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Gligbin Gearcharmer",
+     "items": [
+      {
+       "item": "Gearcharmer's Device",
+       "count": 1
+      }
+     ],
+     "tunar": 197,
+     "journal": "Bring Gearcharmer's Device and 197 tunar to Gligbin Gearcharmer.",
+     "says": "I need resin from a witchdoctor in the cave near Fayspire."
+    },
+    {
+     "kind": "loot",
+     "target": "orc witchdoctor",
+     "items": [
+      {
+       "item": "Witchdoctor's Resin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Witchdoctor's Resin from orc witchdoctors."
+    },
+    {
+     "kind": "give",
+     "target": "Gligbin Gearcharmer",
+     "items": [
+      {
+       "item": "Witchdoctor's Resin",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Witchdoctor's Resin to Gligbin Gearcharmer.",
+     "says": "Fixed. Take it to Fibble.",
+     "rewards": {
+      "items": [
+       "Repaired Device"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Fibble Gearcharmer",
+     "items": [
+      {
+       "item": "Repaired Device",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Repaired Device to Fibble Gearcharmer.",
+     "says": "Thank you! Go back to Lyriam."
+    },
+    {
+     "kind": "talk",
+     "target": "Lyriam Kaelean",
+     "journal": "Speak with Lyriam Kaelean.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 556753
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Orc Thief",
+    "Gligbin Gearcharmer"
+   ],
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. No orc thieves or Gligbin are on this server; the orc witchdoctor stands in for the hatebone witchdoctor."
+  },
+  {
+   "key": "1-20/fayspire/wizard/L13",
+   "name": "Siltha's Collection",
+   "giver": "Lyriam Kaelean",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 13,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/wizard/L10"
+   ],
+   "offer": "Siltha, in the small elf town north of Tethelin, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Siltha",
+     "journal": "Speak with Siltha.",
+     "says": "Four wings of the royal guard wasps from the nest near Tethelin."
+    },
+    {
+     "kind": "loot",
+     "target": "wasp royal guard",
+     "items": [
+      {
+       "item": "Royal Wasp Guard Wing",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Collect 4 Royal Wasp Guard Wings from wasp royal guards."
+    },
+    {
+     "kind": "give",
+     "target": "Siltha",
+     "items": [
+      {
+       "item": "Royal Wasp Guard Wing",
+       "count": 4
+      }
+     ],
+     "journal": "Bring 4 Royal Wasp Guard Wings to Siltha.",
+     "says": "Now the spyglass of the orc gatewatcher in the Druk cave."
+    },
+    {
+     "kind": "loot",
+     "target": "orc gatewatcher",
+     "items": [
+      {
+       "item": "Spyglass",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Spyglass from orc gatewatchers."
+    },
+    {
+     "kind": "give",
+     "target": "Siltha",
+     "items": [
+      {
+       "item": "Spyglass",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Spyglass to Siltha.",
+     "says": "Last, the skull of Vitsh Sah, from his tomb north of the cave."
+    },
+    {
+     "kind": "loot",
+     "target": "Vitsh'Sah",
+     "items": [
+      {
+       "item": "Skull of Vitsh",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Skull of Vitsh from Vitsh'Sahs."
+    },
+    {
+     "kind": "give",
+     "target": "Siltha",
+     "items": [
+      {
+       "item": "Skull of Vitsh",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Skull of Vitsh to Siltha.",
+     "says": "My collection is complete.",
+     "rewards": {
+      "xp": 550698
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+  },
+  {
+   "key": "1-20/fayspire/wizard/L15",
+   "name": "Overseer Evief's Barges",
+   "giver": "Lyriam Kaelean",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/wizard/L13"
+   ],
+   "offer": "Overseer Evief, on a barge northeast of Fayspire, needs help.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Overseer Evief",
+     "journal": "Speak with Overseer Evief.",
+     "says": "Talk to Dorrun Hammerfist in Diren Village, west of Moradhim."
+    },
+    {
+     "kind": "talk",
+     "target": "Bomun Hammerfist",
+     "journal": "Speak with Bomun Hammerfist.",
+     "says": "Kill the bear Trapmaw, south of the village along the small river."
+    },
+    {
+     "kind": "loot",
+     "target": "Trapmaw",
+     "items": [
+      {
+       "item": "Trapmaw's Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Trapmaw's Pelt from Trapmaws."
+    },
+    {
+     "kind": "give",
+     "target": "Bomun Hammerfist",
+     "items": [
+      {
+       "item": "Trapmaw's Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Trapmaw's Pelt to Bomun Hammerfist.",
+     "says": "The hammer's yours.",
+     "rewards": {
+      "items": [
+       "Stonework Hammer"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Overseer Evief",
+     "items": [
+      {
+       "item": "Stonework Hammer",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stonework Hammer to Overseer Evief.",
+     "says": "Now Hardlin in Freeport."
+    },
+    {
+     "kind": "talk",
+     "target": "Hardlin",
+     "journal": "Speak with Hardlin.",
+     "says": "Kill a Nasehir sandcaster in Northern Ro."
+    },
+    {
+     "kind": "loot",
+     "target": "Nasehir Sandcaster",
+     "items": [
+      {
+       "item": "Sand Rune",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Sand Rune from Nasehir Sandcasters."
+    },
+    {
+     "kind": "give",
+     "target": "Overseer Evief",
+     "items": [
+      {
+       "item": "Sand Rune",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Sand Rune to Overseer Evief.",
+     "says": "Last, the pirate mason by the large rock on the shore east of Fayspire."
+    },
+    {
+     "kind": "loot",
+     "target": "pirate stonemason",
+     "items": [
+      {
+       "item": "Stonemason's Chisel",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Stonemason's Chisel from pirate stonemasons."
+    },
+    {
+     "kind": "give",
+     "target": "Overseer Evief",
+     "items": [
+      {
+       "item": "Stonemason's Chisel",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Stonemason's Chisel to Overseer Evief.",
+     "says": "The barges will run again.",
+     "rewards": {
+      "xp": 883791
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [
+    "Trapmaw"
+   ],
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. Trapmaw is not on this server. The guide does not name the loot."
+  },
+  {
+   "key": "1-20/fayspire/wizard/L20",
+   "name": "Yiprew's Research",
+   "giver": "Lyriam Kaelean",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/wizard/L15"
+   ],
+   "offer": "Yiprew Yuprew, by the well in Kara Village, has research for you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back to me when you are ready.",
+   "started": "Good. Come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Yiprew Yuprew",
+     "journal": "Speak with Yiprew Yuprew.",
+     "says": "Thailav D'yal, a dark elf necromancer in a tomb north of Fayspire, has the necromancer's handbook."
+    },
+    {
+     "kind": "loot",
+     "target": "Thailav D'yal",
+     "items": [
+      {
+       "item": "Necromancer's Handbook",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Collect Necromancer's Handbook from Thailav D'yals."
+    },
+    {
+     "kind": "give",
+     "target": "Yiprew Yuprew",
+     "items": [
+      {
+       "item": "Necromancer's Handbook",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Necromancer's Handbook to Yiprew Yuprew.",
+     "says": "Now Snafitzer, in his house."
+    },
+    {
+     "kind": "talk",
+     "target": "Snafitzer",
+     "journal": "Speak with Snafitzer.",
+     "says": "Pete in Chiasta, east of Moradhim, has my supplies. 525 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Craftsman Pete",
+     "tunar": 525,
+     "journal": "Bring 525 tunar to Craftsman Pete.",
+     "says": "Snafitzer's supplies.",
+     "rewards": {
+      "items": [
+       "Snafitzer's Supplies"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Snafitzer",
+     "items": [
+      {
+       "item": "Snafitzer's Supplies",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Snafitzer's Supplies to Snafitzer.",
+     "says": "Go back to Yiprew."
+    },
+    {
+     "kind": "talk",
+     "target": "Yiprew Yuprew",
+     "journal": "Speak with Yiprew Yuprew.",
+     "says": "A rib of the crumbling bones in Collonridge Cemetery."
+    },
+    {
+     "kind": "loot",
+     "target": "Crumbling Bones",
+     "items": [
+      {
+       "item": "Rib of a Crumbling Corpse",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Rib of a Crumbling Corpse from Crumbling Bones."
+    },
+    {
+     "kind": "give",
+     "target": "Yiprew Yuprew",
+     "items": [
+      {
+       "item": "Rib of a Crumbling Corpse",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Rib of a Crumbling Corpse to Yiprew Yuprew.",
+     "says": "Now the maundering soul on the Crest of the Duelists."
+    },
+    {
+     "kind": "loot",
+     "target": "Maundering Soul",
+     "items": [
+      {
+       "item": "Essence of a Marauding Soul",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Collect Essence of a Marauding Soul from Maundering Souls."
+    },
+    {
+     "kind": "give",
+     "target": "Yiprew Yuprew",
+     "items": [
+      {
+       "item": "Essence of a Marauding Soul",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Essence of a Marauding Soul to Yiprew Yuprew.",
+     "says": "Go back to Lyriam."
+    },
+    {
+     "kind": "talk",
+     "target": "Lyriam Kaelean",
+     "journal": "Speak with Lyriam Kaelean.",
+     "says": "You are a wizard of Fayspire.",
+     "rewards": {
+      "xp": 2814929
+     }
+    }
+   ],
+   "events": [],
+   "unresolved": [],
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of Burning Clash with the Deep Flame Staff, or Mental Focus with the Deep Flame Wand; a quest here gives no choice, so neither is given."
+  }
+ ],
+ "items": [
+  {
+   "name": "Arsonist's Hammer",
+   "description": "",
+   "notrade": true,
+   "like": "The Foreman's Pick"
+  },
+  {
+   "name": "Arsonist's Mallet",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Aviak Necklace",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Bank Key",
+   "description": "",
+   "notrade": true,
+   "like": "shoddy pickclaw key"
+  },
+  {
+   "name": "Blue-Ribboned Venom Sack",
+   "description": "",
+   "notrade": true,
+   "like": "firespew gland"
+  },
+  {
+   "name": "Book of Solutions",
+   "description": "",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "Bough of Wood",
+   "description": "",
+   "notrade": true,
+   "like": "weak roots"
+  },
+  {
+   "name": "Chemist's Flint",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Clay Mixing Vial",
+   "description": "",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Crusader's Tunic",
+   "description": "",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Essence of a Marauding Soul",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Fish Stomach",
+   "description": "",
+   "notrade": true,
+   "like": "hearty bread"
+  },
+  {
+   "name": "Forger Wolf Fang",
+   "description": "",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Gearcharmer's Device",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Green Lightning Wing",
+   "description": "",
+   "notrade": true,
+   "like": "damaged bug wings"
+  },
+  {
+   "name": "Hatebone Tome",
+   "description": "",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "Locking Book Safe",
+   "description": "",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "Lockpicker's Keys",
+   "description": "",
+   "notrade": true,
+   "like": "shoddy pickclaw key"
+  },
+  {
+   "name": "Metal Flakes",
+   "description": "",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Metal Testing Kit",
+   "description": "",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Mindwhipper Wasp Eye",
+   "description": "",
+   "notrade": true,
+   "like": "damaged bug wings"
+  },
+  {
+   "name": "Necromancer's Handbook",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Orcish Medal of Bravery",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Orcish War Medallion",
+   "description": "",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Pixie Nettle Wing",
+   "description": "",
+   "notrade": true,
+   "like": "damaged bug wings"
+  },
+  {
+   "name": "Powder",
+   "description": "",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Radiant Sunfly Wing",
+   "description": "",
+   "notrade": true,
+   "like": "damaged bug wings"
+  },
+  {
+   "name": "Recluse Spider Silk",
+   "description": "",
+   "notrade": true,
+   "like": "bundle of pristine silk"
+  },
+  {
+   "name": "Red Burn Berries",
+   "description": "",
+   "notrade": true,
+   "like": "hearty bread"
+  },
+  {
+   "name": "Red Student's Robe",
+   "description": "",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Repaired Device",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Rib of a Crumbling Corpse",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Robe of the Initiate",
+   "description": "",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Royal Wasp Guard Wing",
+   "description": "",
+   "notrade": true,
+   "like": "damaged bug wings"
+  },
+  {
+   "name": "Sand Rune",
+   "description": "",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Sealed Burlap Bag",
+   "description": "",
+   "notrade": true,
+   "like": "sack of wild herbs"
+  },
+  {
+   "name": "Shalebone Wolf Pelt",
+   "description": "",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "Silver Glowing Bar",
+   "description": "",
+   "notrade": true,
+   "like": "bag of coins"
+  },
+  {
+   "name": "Skull of Vitsh",
+   "description": "",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "Snafitzer's Supplies",
+   "description": "",
+   "notrade": true,
+   "like": "chest of gnoll goods"
+  },
+  {
+   "name": "Spyglass",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Stonemason's Chisel",
+   "description": "",
+   "notrade": true,
+   "like": "The Foreman's Pick"
+  },
+  {
+   "name": "Stonework Hammer",
+   "description": "",
+   "notrade": true,
+   "like": "The Foreman's Pick"
+  },
+  {
+   "name": "Thick Blue Uniform",
+   "description": "",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Tillian Bracelet",
+   "description": "",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Trapmaw's Pelt",
+   "description": "",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "Witchdoctor's Resin",
+   "description": "",
+   "notrade": true,
+   "like": "weak roots"
+  },
+  {
+   "name": "Yellowjack Water",
+   "description": "",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "Zapper Stinger",
+   "description": "",
+   "notrade": true,
+   "like": "firespew gland"
+  }
+ ]
+}

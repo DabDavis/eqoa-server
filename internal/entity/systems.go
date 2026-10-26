@@ -45,6 +45,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	gates := w.castSystem(now)
 	w.effectSystem(now)
 	w.consumableSystem(now)
+	w.potionSystem(now)
 	gone := w.corpseSystem(now)
 	w.roamSystem(now)
 	w.pathSystem(now)

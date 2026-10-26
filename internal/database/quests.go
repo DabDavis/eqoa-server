@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -38,7 +39,8 @@ CREATE TABLE IF NOT EXISTS quests (
 	declined   TEXT NOT NULL DEFAULT '',
 	started    TEXT NOT NULL DEFAULT '',
 	source     TEXT NOT NULL DEFAULT '',
-	notes      TEXT NOT NULL DEFAULT ''
+	notes      TEXT NOT NULL DEFAULT '',
+	events     TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS queststeps (
 	questid     INTEGER NOT NULL,
@@ -65,6 +67,8 @@ CREATE TABLE IF NOT EXISTS queststeps (
 	rewarditems TEXT NOT NULL DEFAULT '',
 	factions    TEXT NOT NULL DEFAULT '',
 	spells      TEXT NOT NULL DEFAULT '',
+	chance      REAL NOT NULL DEFAULT 0,
+	events      TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (questid, step)
 );
 CREATE TABLE IF NOT EXISTS charquests (
@@ -90,15 +94,18 @@ func (db *SQLiteDB) initQuests() error {
 	if _, err := db.Exec(questSchema); err != nil {
 		return err
 	}
-	for _, c := range []struct{ table, col string }{
-		{"quests", "declined"}, {"queststeps", "notyet"}, {"queststeps", "reminder"},
+	for _, c := range []struct{ table, col, decl string }{
+		{"quests", "declined", `TEXT NOT NULL DEFAULT ''`}, {"queststeps", "notyet", `TEXT NOT NULL DEFAULT ''`},
+		{"queststeps", "reminder", `TEXT NOT NULL DEFAULT ''`},
+		{"quests", "events", `TEXT NOT NULL DEFAULT ''`}, {"queststeps", "events", `TEXT NOT NULL DEFAULT ''`},
+		{"queststeps", "chance", `REAL NOT NULL DEFAULT 0`},
 	} {
 		has, err := hasColumn(db.DB, c.table, c.col)
 		if err != nil {
 			return err
 		}
 		if !has {
-			if _, err := db.Exec(`ALTER TABLE ` + c.table + ` ADD COLUMN ` + c.col + ` TEXT NOT NULL DEFAULT ''`); err != nil {
+			if _, err := db.Exec(`ALTER TABLE ` + c.table + ` ADD COLUMN ` + c.col + ` ` + c.decl); err != nil {
 				return err
 			}
 		}
@@ -166,11 +173,175 @@ const (
 	StepShow  = "show"  // talk to an NPC (target) holding items, which are kept (Sandstorm's first warrior quest: the bracer)
 	StepGive  = "give"  // hand an NPC (target) items and tunar
 	StepKill  = "kill"  // kill count creatures named target
+	StepLoot  = "loot"  // kill creatures named target until count of the item (items) are taken off their corpses during the step
 	StepReach = "reach" // come within radius of a place
 )
 
 // StepKinds is every step kind, in the order the panel offers them.
-var StepKinds = []string{StepTalk, StepShow, StepGive, StepKill, StepReach}
+var StepKinds = []string{StepTalk, StepShow, StepGive, StepKill, StepLoot, StepReach}
+
+// When a quest's events happen: a quest's when it is taken and when it is
+// finished, a step's when it becomes the step to do and when it is done.
+const (
+	EventAccept = "accept"
+	EventFinish = "finish"
+	EventStart  = "start"
+	EventDone   = "done"
+)
+
+// What an event does.
+const (
+	EventPopup    = "popup"    // a window the player closes: text, its one answer
+	EventSay      = "say"      // an NPC's words to the player, a box a line
+	EventGive     = "give"     // items into the player's inventory
+	EventSpawn    = "spawn"    // a copy of an NPC beside the player, for the step
+	EventVisual   = "visual"   // a spell visual played on the player
+	EventTeleport = "teleport" // the player moved to a place
+)
+
+// QuestEventWhens are the times a quest's own events may name, StepEventWhens
+// a step's; QuestEventActions every action, in the order the panel offers them.
+var (
+	QuestEventWhens   = []string{EventAccept, EventFinish}
+	StepEventWhens    = []string{EventStart, EventDone}
+	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventVisual, EventTeleport}
+)
+
+// QuestEvent is one thing a quest or a step does at one of its times, kept as
+// a JSON array in the events column.
+type QuestEvent struct {
+	On      string  `json:"on"`                // when: accept or finish (a quest's), start or done (a step's)
+	Do      string  `json:"do"`                // what: popup, say, give, spawn, visual, teleport
+	Text    string  `json:"text,omitempty"`    // popup, say: the words (%p the player's name)
+	Answer  string  `json:"answer,omitempty"`  // popup: its one answer ("OK" when none)
+	NPC     string  `json:"npc,omitempty"`     // say: who says it (nobody: no name before it); spawn: whom
+	Items   string  `json:"items,omitempty"`   // give: patternid*count, comma separated
+	Hostile bool    `json:"hostile,omitempty"` // spawn: it may be attacked, and attacks the player
+	FX      string  `json:"fx,omitempty"`      // visual: its DictID (0x1DAEB5B6)
+	Seconds float64 `json:"seconds,omitempty"` // visual: its casting part (0 to 30)
+	World   int     `json:"world,omitempty"`   // teleport: the world
+	X       float32 `json:"x,omitempty"`       // teleport: the place
+	Y       float32 `json:"y,omitempty"`
+	Z       float32 `json:"z,omitempty"`
+}
+
+// ParseQuestEvents reads an events column: a JSON array of QuestEvent, ""
+// none. When and what are lowered and trimmed.
+func ParseQuestEvents(s string) ([]QuestEvent, error) {
+	if strings.TrimSpace(s) == "" {
+		return nil, nil
+	}
+	var out []QuestEvent
+	if err := json.Unmarshal([]byte(s), &out); err != nil {
+		return nil, err
+	}
+	for i := range out {
+		out[i].On = strings.ToLower(strings.TrimSpace(out[i].On))
+		out[i].Do = strings.ToLower(strings.TrimSpace(out[i].Do))
+	}
+	return out, nil
+}
+
+// FormatQuestEvents writes events as ParseQuestEvents reads them ("" none).
+func FormatQuestEvents(v []QuestEvent) string {
+	if len(v) == 0 {
+		return ""
+	}
+	b, err := json.Marshal(v)
+	if err != nil {
+		return ""
+	}
+	return string(b)
+}
+
+// EventProblems is what is wrong with an events column for a quest (step
+// false) or a step: unreadable JSON, a time or an action there is not, an
+// event missing what it needs. It checks nothing in the database.
+func EventProblems(s string, step bool) []string {
+	evs, err := ParseQuestEvents(s)
+	if err != nil {
+		return []string{"its events are not a JSON list of events: " + err.Error()}
+	}
+	whens := QuestEventWhens
+	if step {
+		whens = StepEventWhens
+	}
+	var out []string
+	add := func(i int, format string, a ...any) {
+		out = append(out, fmt.Sprintf("event %d: ", i+1)+fmt.Sprintf(format, a...))
+	}
+	for i, e := range evs {
+		if !containsString(whens, e.On) {
+			add(i, "on %q is not one of %s", e.On, strings.Join(whens, ", "))
+		}
+		switch e.Do {
+		case EventPopup, EventSay:
+			if strings.TrimSpace(e.Text) == "" {
+				add(i, "%s says nothing (text)", e.Do)
+			}
+		case EventGive:
+			if len(ParseItemCounts(e.Items)) == 0 {
+				add(i, "give names no items (patternid*count)")
+			}
+		case EventSpawn:
+			if strings.TrimSpace(e.NPC) == "" {
+				add(i, "spawn names no NPC")
+			}
+			if !step {
+				add(i, "a spawn is a step's: it goes when the step is done")
+			}
+		case EventVisual:
+			if _, ok := ParseVisualID(e.FX); !ok {
+				add(i, "visual's fx %q is not a DictID (0x1DAEB5B6)", e.FX)
+			}
+		case EventTeleport:
+			if e.X == 0 && e.Z == 0 {
+				add(i, "teleport's place is 0, 0")
+			}
+		default:
+			add(i, "do %q is not one of %s", e.Do, strings.Join(QuestEventActions, ", "))
+		}
+	}
+	return out
+}
+
+// ParseVisualID reads a visual's DictID as handlers.ParseVisual does (0x and
+// 1 to 8 hex digits, or exactly eight hex digits); 0 is no visual.
+func ParseVisualID(s string) (uint32, bool) {
+	t := strings.TrimSpace(s)
+	switch {
+	case len(t) > 2 && (t[:2] == "0x" || t[:2] == "0X"):
+		t = t[2:]
+		if len(t) > 8 {
+			return 0, false
+		}
+	case len(t) != 8:
+		return 0, false
+	}
+	v, err := strconv.ParseUint(t, 16, 32)
+	if err != nil || v == 0 {
+		return 0, false
+	}
+	return uint32(v), true
+}
+
+func containsString(v []string, s string) bool {
+	for _, x := range v {
+		if x == s {
+			return true
+		}
+	}
+	return false
+}
+
+// LootChance is a loot step's chance that a kill drops its item: the step's,
+// every kill when it gives none (0) or more than 1.
+func LootChance(c float64) float64 {
+	if c <= 0 || c > 1 {
+		return 1
+	}
+	return c
+}
 
 // AtNPC is whether a step kind is done by talking to its NPC.
 func AtNPC(kind string) bool { return kind == StepTalk || kind == StepShow || kind == StepGive }
@@ -201,7 +372,20 @@ type Quest struct {
 	Started  string // the giver's words once it is taken
 	Source   string
 	Notes    string
-	Steps    []QuestStep
+	// Events are what happens when it is taken (accept) and finished (finish).
+	Events []QuestEvent
+	Steps  []QuestStep
+}
+
+// EventsOn is the events of one time, in order.
+func EventsOn(evs []QuestEvent, on string) []QuestEvent {
+	var out []QuestEvent
+	for _, e := range evs {
+		if e.On == on {
+			out = append(out, e)
+		}
+	}
+	return out
 }
 
 // Step is the quest's step n (from 1), or nil.
@@ -234,11 +418,20 @@ type QuestStep struct {
 	Quest  int
 	Step   int
 	Kind   string
-	Target string // talk/give: the NPC's name; kill: the creature's
-	NPCID  int    // talk/give/kill: only that spawn (npcs.id), 0 any of the name
-	Items  []ItemCount
-	Tunar  int
-	Count  int
+	Target string // talk/give: the NPC's name; kill, loot: the creature's
+	NPCID  int    // talk/give/kill/loot: only that spawn (npcs.id), 0 any of the name
+	// Items are what a show or give step wants held, and a loot step's item
+	// (its first; Count of it, else the item's own count, is to be taken off
+	// corpses during the step).
+	Items []ItemCount
+	Tunar int
+	Count int
+	// Chance is a loot step's chance (0-1) that a kill drops its item for a
+	// player on the step (LootChance: 0 is every kill).
+	Chance float64
+	// Events are what happens when it becomes the step to do (start) and when
+	// it is done (done).
+	Events []QuestEvent
 	World  int
 	X, Y   float32
 	Z      float32
@@ -266,6 +459,19 @@ type QuestStep struct {
 	RewardItems []ItemCount
 	Factions    []FactionDelta
 	Spells      []int
+}
+
+// LootItem is a loot step's item and how many of it are to be taken: Count,
+// else the item's own count; ok false when the step names no item.
+func (s *QuestStep) LootItem() (patternID, need int, ok bool) {
+	if len(s.Items) == 0 {
+		return 0, 0, false
+	}
+	need = s.Count
+	if need < 1 {
+		need = max(s.Items[0].Count, 1)
+	}
+	return s.Items[0].PatternID, need, true
 }
 
 // ItemCount is count of an item (itempattern.patternid).
@@ -303,7 +509,7 @@ func NewQuestStore(db *SQLiteDB) *QuestStore { return &QuestStore{db: db} }
 // LoadQuests reads every quest, drafts too, with its steps in order.
 func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	rs, err := s.db.Query(`SELECT questid, name, enabled, giver, minlevel, maxlevel, classes, races, requires,
-		repeatable, offer, accept, decline, declined, started, source, notes FROM quests ORDER BY questid`)
+		repeatable, offer, accept, decline, declined, started, source, notes, events FROM quests ORDER BY questid`)
 	if err != nil {
 		return nil, err
 	}
@@ -312,14 +518,17 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	for rs.Next() {
 		var q Quest
 		var enabled, repeatable int
-		var classes, races, requires string
+		var classes, races, requires, events string
 		if err := rs.Scan(&q.ID, &q.Name, &enabled, &q.Giver, &q.MinLevel, &q.MaxLevel, &classes, &races, &requires,
-			&repeatable, &q.Offer, &q.Accept, &q.Decline, &q.Declined, &q.Started, &q.Source, &q.Notes); err != nil {
+			&repeatable, &q.Offer, &q.Accept, &q.Decline, &q.Declined, &q.Started, &q.Source, &q.Notes, &events); err != nil {
 			rs.Close()
 			return nil, err
 		}
 		q.Enabled, q.Repeatable = enabled != 0, repeatable != 0
 		q.Classes, q.Races, q.Requires = ParseIntList(classes), ParseIntList(races), ParseIntList(requires)
+		if q.Events, err = ParseQuestEvents(events); err != nil {
+			log.Printf("Quests: quest %d's events are not read: %v", q.ID, err)
+		}
 		byID[q.ID] = len(out)
 		out = append(out, q)
 	}
@@ -328,7 +537,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		return nil, err
 	}
 	srs, err := s.db.Query(`SELECT questid, step, kind, target, npcid, items, tunar, count, world, x, y, z, radius,
-		journal, answer, says, waiting, notyet, reminder, xp, rewardtunar, rewarditems, factions, spells
+		journal, answer, says, waiting, notyet, reminder, xp, rewardtunar, rewarditems, factions, spells, chance, events
 		FROM queststeps ORDER BY questid, step`)
 	if err != nil {
 		return nil, err
@@ -336,16 +545,19 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	defer srs.Close()
 	for srs.Next() {
 		var st QuestStep
-		var items, rewardItems, factions, spells string
+		var items, rewardItems, factions, spells, events string
 		if err := srs.Scan(&st.Quest, &st.Step, &st.Kind, &st.Target, &st.NPCID, &items, &st.Tunar, &st.Count, &st.World,
 			&st.X, &st.Y, &st.Z, &st.Radius, &st.Journal, &st.Answer, &st.Says, &st.Waiting, &st.NotYet, &st.Reminder,
 			&st.XP, &st.RewardTunar,
-			&rewardItems, &factions, &spells); err != nil {
+			&rewardItems, &factions, &spells, &st.Chance, &events); err != nil {
 			return nil, err
 		}
 		st.Kind = strings.ToLower(strings.TrimSpace(st.Kind))
 		st.Items, st.RewardItems = ParseItemCounts(items), ParseItemCounts(rewardItems)
 		st.Factions, st.Spells = ParseFactionDeltas(factions), ParseIntList(spells)
+		if st.Events, err = ParseQuestEvents(events); err != nil {
+			log.Printf("Quests: quest %d step %d's events are not read: %v", st.Quest, st.Step, err)
+		}
 		if i, ok := byID[st.Quest]; ok {
 			out[i].Steps = append(out[i].Steps, st)
 		}

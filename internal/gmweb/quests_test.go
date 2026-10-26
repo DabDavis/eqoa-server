@@ -230,3 +230,80 @@ func TestEQOADataGuidesBecomeDrafts(t *testing.T) {
 		t.Errorf("an imported draft is not said to be one: %d %s", code, problemsOf(out))
 	}
 }
+
+// A loot step and events saved through the panel: written as the editor sends
+// them (chance a number, events a JSON list), read back by the engine; their
+// problems named (an item not here, a chance past 1, an event the engine has
+// not, a spawn of an NPC this server lacks); the control: right ones none.
+func TestALootStepAndEventsAreSaved(t *testing.T) {
+	f := newFixture(t)
+	q := f.questEngine()
+	c := f.browser()
+	c.login("gm")
+	good := `[{"on":"start","do":"popup","text":"Find the belts."},{"on":"done","do":"spawn","npc":"Guard Dahvel","hostile":true}]`
+	code, out := c.op("quest_save", map[string]any{
+		"quest": map[string]any{"name": "Belts", "enabled": 1, "giver": "Guard Dahvel",
+			"events": `[{"on":"accept","do":"say","npc":"Guard Dahvel","text":"Go."}]`},
+		"steps": []map[string]any{
+			{"kind": "loot", "target": "a decaying skeleton", "items": "11", "count": 2, "chance": 0.5, "journal": "Bring two loaves.", "events": good},
+		},
+	})
+	if code != 200 {
+		t.Fatalf("quest_save: %d %v", code, out)
+	}
+	if ps := problemsOf(out); strings.Contains(ps, "step 1") || strings.Contains(ps, "event") {
+		t.Errorf("the control: a right loot step and events have problems:\n%s", ps)
+	}
+	id, _ := asFloat(out["quest"].(map[string]any)["questid"])
+	if got := q.CharacterQuests(7); len(got) != 0 {
+		t.Fatalf("no one has it yet: %+v", got)
+	}
+	if code, out := c.op("character_quest_set", map[string]any{"character": "Hero", "quest": id, "action": "give"}); code != 200 {
+		t.Fatalf("give: %d %v", code, out)
+	}
+	if got := q.CharacterQuests(7); len(got) != 1 || got[0].Journal != "Bring two loaves." {
+		t.Fatalf("Hero's quests: %+v", got)
+	}
+
+	code, out = c.op("quest_save", map[string]any{
+		"quest": map[string]any{"questid": id, "name": "Belts", "events": `[{"on":"start","do":"dance"}]`},
+		"steps": []map[string]any{
+			{"kind": "loot", "target": "a decaying skeleton", "items": "999", "count": 2, "chance": 1.5, "journal": "Bring two.",
+				"events": `[{"on":"start","do":"spawn","npc":"Nobody At All"}, {"on":"done","do":"visual","fx":"Fade"}]`},
+		},
+	})
+	if code != 200 {
+		t.Fatalf("quest_save again: %d %v", code, out)
+	}
+	ps := problemsOf(out)
+	for _, want := range []string{"step 1 drops item 999, which does not exist", "chance 1.5 is not between 0 and 1",
+		`the quest's event 1: on "start" is not one of accept, finish`, `the quest's event 1: do "dance" is not one of`,
+		`spawns "Nobody At All", which this server has no NPC of`, `fx "Fade" is not a DictID`} {
+		if !strings.Contains(ps, want) {
+			t.Errorf("problems lack %q:\n%s", want, ps)
+		}
+	}
+	var chance float64
+	var events string
+	f.db.QueryRow(`SELECT chance, events FROM queststeps WHERE questid = ? AND step = 1`, int64(id)).Scan(&chance, &events)
+	if chance != 1.5 || !strings.Contains(events, "Nobody At All") {
+		t.Errorf("written: chance %v events %q", chance, events)
+	}
+
+	// a faction this server has moves without a problem; one it lacks has one
+	var faction string
+	if err := f.db.QueryRow(`SELECT name FROM factions ORDER BY name LIMIT 1`).Scan(&faction); err != nil {
+		t.Fatalf("no faction in the fixture: %v", err)
+	}
+	code, out = c.op("quest_save", map[string]any{
+		"quest": map[string]any{"questid": id, "name": "Belts"},
+		"steps": []map[string]any{{"kind": "talk", "target": "Guard Dahvel", "journal": "Go.", "factions": faction + ":+10, Nobody's Friends:-5"}},
+	})
+	if code != 200 {
+		t.Fatalf("quest_save with factions: %d %v", code, out)
+	}
+	ps = problemsOf(out)
+	if strings.Contains(ps, fmt.Sprintf("%q", faction)) || !strings.Contains(ps, `"Nobody's Friends", which this server does not have`) {
+		t.Errorf("the factions' problems:\n%s", ps)
+	}
+}

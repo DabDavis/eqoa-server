@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -22,8 +23,8 @@ type QuestState struct {
 	Step    int    `json:"step"`            // the step to do, 0 when finished
 	Kind    string `json:"kind,omitempty"`  // that step's kind
 	Steps   int    `json:"steps"`           // how many steps the quest has
-	Count   int    `json:"count,omitempty"` // creatures killed so far on a kill step
-	Need    int    `json:"need,omitempty"`  // how many the kill step wants
+	Count   int    `json:"count,omitempty"` // creatures killed so far on a kill step, items taken on a loot step
+	Need    int    `json:"need,omitempty"`  // how many the kill or loot step wants
 	Done    int    `json:"done"`            // times finished
 	Journal string `json:"journal,omitempty"`
 	Line    int    `json:"line"` // its place in the journal, -1 for none
@@ -66,6 +67,9 @@ func (q *QuestEngine) stateLocked(cq *database.CharQuest, line int) QuestState {
 			s.Kind = st.Kind
 			if st.Kind == database.StepKill {
 				s.Need = max(st.Count, 1)
+			}
+			if _, need, ok := st.LootItem(); ok && st.Kind == database.StepLoot {
+				s.Need = need
 			}
 		}
 	} else {
@@ -113,6 +117,11 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 	if q.sessionOf != nil {
 		sess = q.sessionOf(serverID)
 	}
+	// the player in the world, for the quest's events (questevents.go)
+	var p *entity.Player
+	if sess != nil && q.playerOf != nil {
+		p = q.playerOf(sess)
+	}
 	where := "at the character's next login"
 	if sess != nil {
 		where = "in their journal now"
@@ -122,7 +131,7 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 		if qu == nil {
 			return "", fmt.Errorf("no quest %d", questID)
 		}
-		if why := q.startLocked(sess, nil, c, qu, step, true); why != "" {
+		if why := q.startLocked(sess, p, c, qu, step, true); why != "" {
 			return "", errors.New(why)
 		}
 		return fmt.Sprintf("%q is under way at step %d, %s", qu.Name, c.quests[questID].Step, where), nil
@@ -135,13 +144,14 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 			return "", fmt.Errorf("%q has no step %d", qu.Name, step)
 		}
 		if cq == nil || !cq.Active() {
-			if why := q.startLocked(sess, nil, c, qu, step, true); why != "" {
+			if why := q.startLocked(sess, p, c, qu, step, true); why != "" {
 				return "", errors.New(why)
 			}
 			return fmt.Sprintf("%q given at step %d, %s", qu.Name, step, where), nil
 		}
 		idx := c.index(questID)
 		old := q.lineLocked(cq)
+		q.clearSpawnsLocked(serverID, questID, cq.Step)
 		cq.Step, cq.Count = st.Step, 0
 		if text := q.lineLocked(cq); text != old {
 			q.dropLineLocked(sess, c, idx)
@@ -149,6 +159,7 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 			q.addLineLocked(sess, c, text)
 		}
 		q.saveLocked(cq)
+		q.stepStartedLocked(sess, p, c, qu, cq, st)
 		return fmt.Sprintf("%q is at step %d, %s", qu.Name, step, where), nil
 	case QuestComplete:
 		if cq == nil {
@@ -158,6 +169,7 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 		if cq.Active() {
 			q.dropLineLocked(sess, c, c.index(questID))
 		}
+		q.clearSpawnsLocked(serverID, questID, 0)
 		cq.Step, cq.Count = 0, 0
 		cq.Done++
 		q.saveLocked(cq)
@@ -177,6 +189,7 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 		if cq.Active() {
 			q.dropLineLocked(sess, c, c.index(questID))
 		}
+		q.clearSpawnsLocked(serverID, questID, 0)
 		if err := q.store.DeleteCharQuest(serverID, questID); err != nil {
 			return "", err
 		}

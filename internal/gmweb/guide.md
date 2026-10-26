@@ -50,7 +50,7 @@ with the row before and after, and `revert_change` undoes a row change.
 | `spellfx_suggestions` | the players' suggestions of a spell's visual, from the public spell-visual page: `fxdict`, the sender's `name`/`note` as typed, `status` new/accepted/dismissed; use the operations below | `id` |
 | `defaultcharacter` | where a new character starts, per race, home city (`humType`: a human's east 1, west 2) and class: `x`, `y`, `z`, `facing` (radians), `world`; it is bound there until a spiritmaster binds it; read at each creation | `defaultCharacterID` |
 | `quests` | a quest: its giver (an NPC's name), levels, classes, races, quests first, what the giver says (`offer`, `accept`, `started`); `enabled` 0 is a draft | `questid` |
-| `queststeps` | a quest's steps in order: `kind` talk / show / give / kill / reach, `target` (an NPC's or creature's name), `items` (`patternid*count, ...`), the `journal` line, the NPC's words, the rewards | `questid`+`step` |
+| `queststeps` | a quest's steps in order: `kind` talk / show / give / kill / loot / reach, `target` (an NPC's or creature's name), `items` (`patternid*count, ...`), `chance` (a loot step's), the `journal` line, the NPC's words, the rewards, `events` | `questid`+`step` |
 | `charquests` | how far a character has come in a quest: `step` (0 finished), `count` (kills so far), `done` (times finished) | `serverid`+`questid` |
 
 ## Conventions
@@ -174,11 +174,20 @@ with the row before and after, and `revert_change` undoes a row change.
   (talk to it holding `items`, which are kept: the live game's "pick up the bracers from the merchant and come
   back"), `give` (hand it `items` and `tunar`, which are taken; for both, while the items lack the NPC's
   question offers only `notyet` and then says `reminder`), `kill` (`count` creatures named `target`, shared
-  with the group within 200), `reach` (within `radius` of `x`, `z` in `world`). A step done says its `says`,
+  with the group within 200), `loot` (kill creatures named `target` until `count` of the item in `items` are held:
+  each kill credited to a player on the step drops one onto that player's own view of the corpse with `chance`,
+  0 every kill; the step is done when the last one is taken), `reach` (within `radius` of `x`, `z` in
+  `world`). A step done says its `says`,
   takes its journal line and adds the next step's ("You have finished a quest!" and "You have received a
   quest!", as Sandstorm announces each step; the last step only the first) and gives its rewards (Sandstorm
   gives them at the last step only): `xp`, `rewardtunar`,
-  `rewarditems`, `factions` (`Faction Name:+10`), `spells` (ids). The journal holds eight quests. Keep a quest
+  `rewarditems`, `factions` (`Faction Name:+10`), `spells` (ids). **Events** (`events` on the quest: `on`
+  `accept` or `finish`; on a step: `start` or `done`) are a JSON list run after the engine's own words at that
+  moment, in order: `{"on":"accept","do":"popup","text":"...","answer":"OK"}` (a window the player closes),
+  `say` (`npc`, `text`), `give` (`items`: `patternid*count`), `spawn` (`npc`, `hostile`: a copy before the
+  player for that step, gone when it is done; hostile, it may be attacked and attacks), `visual` (`fx`, a
+  0x00B1 DictID like `0x1DAEB5B6`, `seconds`), `teleport` (`world`, `x`, `y`, `z`); one popup at a time (the
+  client shows one question box at once). The journal holds eight quests. Keep a quest
   a draft (`enabled` 0) until it is right; `quest_try` gives it to your own character in the world to play.
 - **A player's quests**: `character_quests`, then `character_quest_set` with `give` (a step, or its first),
   `step`, `complete` (no reward), `giveup` or `reset` (forgotten: it may be taken again). Logged and revertible.

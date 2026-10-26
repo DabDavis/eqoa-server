@@ -17,9 +17,22 @@ const KINDS = {
   show: 'Show an NPC items (kept)',
   give: 'Hand an NPC items (taken)',
   kill: 'Kill creatures',
+  loot: 'Loot items off creatures',
   reach: 'Reach a place',
 };
 const AT_NPC = new Set(['talk', 'show', 'give']);
+
+// A quest's events and a step's (handlers/questevents.go): when, and what.
+const QUEST_WHENS = { accept: 'When it is taken', finish: 'When it is finished' };
+const STEP_WHENS = { start: 'When it becomes the step to do', done: 'When it is done' };
+const DOS = {
+  popup: 'A window the player closes',
+  say: 'An NPC says',
+  give: 'Give items',
+  spawn: 'Spawn an NPC for the step',
+  visual: 'Play a spell visual on the player',
+  teleport: 'Teleport the player',
+};
 
 export async function render(box, parts) {
   const [seg, arg] = parts;
@@ -191,12 +204,69 @@ function itemsInput(obj, key) {
   return h('div', { class: 'with' }, i, add);
 }
 
+// eventsEditor edits obj[key], a JSON list of events (handlers/questevents.go),
+// a row an event: when, what, and what that needs. Text that is not such a
+// list is shown as it is, to be mended by hand.
+function eventsEditor(obj, key, whens, worlds) {
+  const box = h('div', { class: 'stack' });
+  let list;
+  try {
+    list = obj[key] ? JSON.parse(obj[key]) : [];
+    if (!Array.isArray(list)) throw new Error('not a list');
+  } catch (e) {
+    mount(box, h('p', { class: 'err small' }, "These events are not a JSON list (" + e.message + "): mend them here."), area(obj, key, 4));
+    return box;
+  }
+  const keep = () => { obj[key] = list.length ? JSON.stringify(list) : ''; };
+  box.addEventListener('input', keep);
+  box.addEventListener('change', keep);
+  const flag = (e, k, label) => {
+    const c = h('input', { type: 'checkbox', checked: !!e[k] });
+    c.addEventListener('change', () => { if (c.checked) e[k] = true; else delete e[k]; keep(); });
+    return h('label', { class: 'check' }, c, label);
+  };
+  const row = (e, i) => {
+    const when = h('select', null, ...Object.entries(whens).map(([k, label]) => h('option', { value: k, selected: e.on === k }, label)));
+    when.addEventListener('change', () => { e.on = when.value; });
+    const what = h('select', null, ...Object.entries(DOS).map(([k, label]) => h('option', { value: k, selected: e.do === k }, label)));
+    what.addEventListener('change', () => { e.do = what.value; keep(); draw(); });
+    const fields = [field('When', when), field('What', what)];
+    if (e.do === 'popup') {
+      fields.push(field('Text', area(e, 'text', 2), '%p: the player\'s name; its last 127 characters ask', true),
+        field('Its answer', text(e, 'answer', { placeholder: 'OK' })));
+    } else if (e.do === 'say') {
+      fields.push(field('Who', npcInput(e, 'npc', 'who says it'), 'empty: no name before the words', true),
+        field('Words', area(e, 'text', 2), 'a line a box', true));
+    } else if (e.do === 'give') {
+      fields.push(field('Items', itemsInput(e, 'items'), null, true));
+    } else if (e.do === 'spawn') {
+      fields.push(field('Whom', npcInput(e, 'npc', 'the NPC to copy'), 'a copy before the player, gone when the step is done', true),
+        field('', flag(e, 'hostile', 'Hostile: it may be attacked, and attacks the player')));
+    } else if (e.do === 'visual') {
+      fields.push(field('Visual', text(e, 'fx', { placeholder: '0x1DAEB5B6', class: 'mono' }), "a 0x00B1 DictID (the Spell visuals page lists them)"),
+        field('Casting part', num(e, 'seconds', { min: 0, max: 30, step: 0.1 }), 'seconds'));
+    } else if (e.do === 'teleport') {
+      const w = h('select', null, ...(worlds.length ? worlds : [{ value: 0, label: 'World 0' }]).map((x) => h('option', { value: x.value, selected: Number(e.world || 0) === x.value }, x.label)));
+      w.addEventListener('change', () => { e.world = Number(w.value); });
+      fields.push(field('World', w), field('x', num(e, 'x', { step: 'any' })), field('y', num(e, 'y', { step: 'any' })), field('z', num(e, 'z', { step: 'any' })));
+    }
+    const move = (d) => { const j = i + d; if (j < 0 || j >= list.length) return; [list[i], list[j]] = [list[j], list[i]]; keep(); draw(); };
+    return h('div', { class: 'stack' }, h('div', { class: 'fields' }, ...fields),
+      h('div', { class: 'row' }, button('↑', { title: 'Earlier', onclick: () => move(-1) }), button('↓', { title: 'Later', onclick: () => move(1) }),
+        button('Remove event', { icon: 'trash', onclick: () => { list.splice(i, 1); keep(); draw(); } })));
+  };
+  const draw = () => mount(box, ...list.map(row), list.length ? null : h('p', { class: 'muted small' }, 'No events.'),
+    button('Add an event', { icon: 'plus', onclick: () => { list.push({ on: Object.keys(whens)[0], do: 'popup', text: '' }); keep(); draw(); } }));
+  draw();
+  return box;
+}
+
 // ---- the editor
 
 async function editor(box, id) {
   let data = {
     quest: { name: '', enabled: 0, giver: '', minlevel: 1, maxlevel: 60, classes: '', races: '', requires: '', repeatable: 0,
-      offer: '', accept: '', decline: '', declined: '', started: '', source: 'gm', notes: '' },
+      offer: '', accept: '', decline: '', declined: '', started: '', source: 'gm', notes: '', events: '' },
     steps: [], problems: [], characters: [],
   };
   if (id) {
@@ -223,7 +293,8 @@ async function editor(box, id) {
     steps.length ? null : empty('No steps yet: a quest needs one to be taken.'),
     button('Add a step', { icon: 'plus', onclick: () => {
       steps.push({ kind: 'talk', target: q.giver || '', npcid: 0, items: '', tunar: 0, count: 1, world: 0, x: 0, y: 0, z: 0, radius: 15,
-        journal: '', answer: '', says: '', waiting: '', notyet: '', reminder: '', xp: 0, rewardtunar: 0, rewarditems: '', factions: '', spells: '' });
+        journal: '', answer: '', says: '', waiting: '', notyet: '', reminder: '', xp: 0, rewardtunar: 0, rewarditems: '', factions: '', spells: '',
+        chance: 0, events: '' });
       drawSteps();
     } }));
 
@@ -236,6 +307,11 @@ async function editor(box, id) {
     } else if (s.kind === 'kill') {
       fields.push(field('Creature', npcInput(s, 'target', 'the creature'), 'every one of the name counts', true),
         field('How many', num(s, 'count', { min: 1 })));
+    } else if (s.kind === 'loot') {
+      fields.push(field('Creature', npcInput(s, 'target', 'the creature'), 'its kills drop the item', true),
+        field('The item that drops', itemsInput(s, 'items'), "onto the player's own view of the corpse", true),
+        field('How many to hold', num(s, 'count', { min: 1 })),
+        field('Drop chance', num(s, 'chance', { min: 0, max: 1, step: 0.05 }), '0 to 1 a kill; 0: every kill'));
     }
     if (s.kind !== 'reach') fields.push(field('Only spawn', num(s, 'npcid', { min: 0 }), '0: any of the name'));
     if (s.kind === 'show' || s.kind === 'give') {
@@ -271,7 +347,8 @@ async function editor(box, id) {
       field('Reward: experience', num(s, 'xp', { min: 0 })), field('Reward: tunar', num(s, 'rewardtunar', { min: 0 })),
       field('Reward: items', itemsInput(s, 'rewarditems'), null, true),
       field('Reward: faction changes', text(s, 'factions', { placeholder: 'Faction Name:+10, ...' }), null, true),
-      field('Reward: spells taught', text(s, 'spells', { placeholder: 'spell ids, comma separated', class: 'mono' }), null, true));
+      field('Reward: spells taught', text(s, 'spells', { placeholder: 'spell ids, comma separated', class: 'mono' }), null, true),
+      field('Events', eventsEditor(s, 'events', STEP_WHENS, worlds), 'run in order after the step\'s own words', true));
     const move = (d) => { const j = i + d; if (j < 0 || j >= steps.length) return; [steps[i], steps[j]] = [steps[j], steps[i]]; drawSteps(); };
     return card(`Step ${i + 1} · ${KINDS[s.kind] || s.kind}`, h('div', { class: 'fields' }, ...fields),
       button('↑', { title: 'Earlier', onclick: () => move(-1) }), button('↓', { title: 'Later', onclick: () => move(1) }),
@@ -334,6 +411,8 @@ async function editor(box, id) {
           field('Reply to a refusal', area(q, 'declined', 2), 'said as written, no name put before it', true),
           field('Once taken', area(q, 'started', 3), 'a line a box', true),
           h('p', { class: 'muted small field wide' }, "An NPC's lines are shown with its name before them, as Sandstorm's are, unless they begin with it."))),
+        card('Events', h('div', { class: 'fields' },
+          field('', eventsEditor(q, 'events', QUEST_WHENS, worlds), "run in order after the giver's words when it is taken, and after the last step's when it is finished", true))),
         card('Steps', stepsBox)),
       h('div', { class: 'stack' },
         card('Problems', problems),

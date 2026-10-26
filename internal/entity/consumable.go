@@ -68,7 +68,7 @@ func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) erro
 	if p == nil || p.IsDead() {
 		return ErrConsumeNoPlayer
 	}
-	if p.AttackTarget != 0 {
+	if p.Attacking() {
 		return ErrConsumeFighting
 	}
 	ae := &ActiveEffect{SpellID: c.effectID(), Name: c.Name, Icon: c.Icon, Caster: p.ServerID,
@@ -95,7 +95,7 @@ func (w *World) consumableSystem(now time.Time) {
 				continue
 			}
 			since := ae.Until.Add(-ConsumableDuration)
-			if p.AttackTarget == 0 && !p.LastCombatTime.After(since) {
+			if !p.Attacking() && !p.LastCombatTime.After(since) {
 				continue
 			}
 			w.removeEffectLocked(p, ae.SpellID)

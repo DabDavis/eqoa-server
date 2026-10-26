@@ -221,8 +221,8 @@ func TestBreathStepsAsSandstormsAndReachesTheStatChannel(t *testing.T) {
 		w.TickCount = 6
 		w.breathSystem(time.Now())
 	}
-	if p.HP != 48 {
-		t.Fatalf("HP %d 6 s after the breath ran out, want 48", p.HP)
+	if p.HP != 45 {
+		t.Fatalf("HP %d 6 s after the breath ran out, want 45 (a tenth of 50)", p.HP)
 	}
 	// the control: a player out of the water is full on the wire
 	q := &Player{Breath: BreathFull}
@@ -288,5 +288,35 @@ func TestHeadingRoundTripsThroughTheServer(t *testing.T) {
 	}
 	if _, ok := ClientUpdateFacing(make([]byte, 22)); ok {
 		t.Error("a 0x40 that ends before byte 22 has no heading")
+	}
+}
+
+// Drowning takes a tenth of the maximum health every 6 s until dead (jib, F3
+// 20261026-020342): a 1,000 loses 100 a step and drowns on the tenth, from
+// full; a tiny maximum still loses 1 a step. The control: the step before
+// the tenth leaves it alive.
+func TestDrowningTakesATenthOfTheMaximum(t *testing.T) {
+	w := NewWorld()
+	w.SessionManager = session.NewManager()
+	p := &Player{ServerID: 7, HP: 1000, MaxHP: 1000, Breath: 0, WalkFlags: 0x0004, HasWalkFlags: true}
+	w.Players[p.ServerID] = p
+	step := func() {
+		for range 10 {
+			w.TickCount = 6
+			w.breathSystem(time.Now())
+		}
+	}
+	for i := 1; i <= 9; i++ {
+		step()
+		if p.HP != 1000-100*i || p.IsDead() {
+			t.Fatalf("after %d steps: HP %d, dead %v; want %d, alive", i, p.HP, p.IsDead(), 1000-100*i)
+		}
+	}
+	step()
+	if p.HP != 0 || !p.respawnPending() {
+		t.Fatalf("after ten steps: HP %d, dead %v; want drowned", p.HP, p.respawnPending())
+	}
+	if got := drowningDamage(&Player{HP: 4, MaxHP: 4}); got != 1 {
+		t.Errorf("a maximum of 4 loses %d a step, want 1", got)
 	}
 }

@@ -184,10 +184,12 @@ with the row before and after, and `revert_change` undoes a row change.
 - **Make a potion**: `clone_row` a potion of the same kind on `itempattern` (a draught, a thrown Unstable Potion:
   their icons and wear are the game's), rename it, then `insert_row` its use into `itemeffect`:
   `{patternid, line: "Self, Decrease Hitpoints by 40, Increase Power per tic by 50, 18sec"}` (a draught),
-  `"Target, Decrease Hitpoints by 300 ; Increase 15% based on WIS"` (thrown; wear 17, attack type 10 and
-  `unk5` 20, the range, make it a thrown weapon too), `"Self, Sow, 30min"` with `name` and `breaks: "attack"`.
-  A spell gives it when its line says `Summon <the item's name>` (`x3` for three; no number: three of an item
-  stacking to three, else one). Used from the item menu a thrown potion is worn; from a quick slot, thrown.
+  `"Target, Decrease Hitpoints by 300 ; Increase 15% based on WIS"` (thrown: a ranged weapon, so `equipslot`
+  16 as a bow's, `procanim` 0, attack type 10 and `unk5` 20, the range: worn in the ranged slot it is each
+  ranged auto-attack's throw), `"Self, Sow, 30min"` with `name` and `breaks: "attack"`.
+  A spell gives it when its line says `Summon <the item's name>` (`x3` for three; no number: three of a potion,
+  else one). A thrown potion is worn by every Use and thrown only by the auto-attack (one worn nowhere is
+  thrown by Use at the target); a drunk one is used from the item menu or a quick slot.
 - **Give a player something**: `give_item` (an item by name or id), `grant_spell` (one, or "all" of its
   class), `set_character` (level, tunar, heal).
 - **Moderate**: `message_player`, `broadcast`, `kick_player`, `ban_account` (with a reason).

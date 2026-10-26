@@ -50,6 +50,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.pathSystem(now)
 	due := w.playerRespawnSystem(now)
 	w.regenSystem(now)
+	w.npcRegenSystem(now) // creatures out of a fight (npcregen.go)
 	w.breathSystem(now)
 	w.stateSyncSystem()
 	w.entityChannelSyncSystem()

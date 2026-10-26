@@ -111,6 +111,12 @@ type QuestEngine struct {
 	// in-world session (tests stand in for them)
 	playerOf  func(*session.Session) *entity.Player
 	sessionOf func(serverID uint32) *session.Session
+
+	// the quest marks' (questmarks.go): each quest's words, made at Reload,
+	// and where the quests' NPCs stand, read from the World now and then
+	texts   map[int]*questText
+	spots   map[string][]entity.NPCSpot
+	spotsAt time.Time
 }
 
 // questCatalog is the quests as last read.
@@ -132,6 +138,10 @@ type questChar struct {
 	// name is its player's, for %p in what is said (Sandstorm's Nothard puts
 	// it in an answer: "My name is <the player's name>.")
 	name string
+	// marksOn is whether its client draws the quest marks, marksSent the
+	// last set it was sent (questmarks.go)
+	marksOn   bool
+	marksSent string
 	// windowOffered is the quests a shop NPC's window has offered this
 	// session (AtWindow): offered once, the next request opens the window
 	windowOffered map[int]bool
@@ -242,6 +252,7 @@ func (q *QuestEngine) run() {
 		case <-tick.C:
 			q.checkReach()
 			q.expireSpawns()
+			q.syncMarks(time.Now())
 		}
 	}
 }
@@ -262,8 +273,11 @@ func (q *QuestEngine) Reload() error {
 			cat.givers[k] = append(cat.givers[k], qu)
 		}
 	}
+	texts := q.questTexts(cat.all)
 	q.mu.Lock()
 	q.cat = cat
+	q.texts = texts
+	q.spots = nil // the marks read the NPCs' places again
 	q.mu.Unlock()
 	return nil
 }

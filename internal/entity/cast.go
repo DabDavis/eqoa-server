@@ -414,6 +414,9 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	}
 	targets, refusal := w.castTargetsLocked(sess, p, &spell, targetObjectID)
 	fizzle := false
+	if refusal == "" && spell.Def.undeadOnly() {
+		refusal, fizzle = w.undeadStartLocked(targets) // undead.go
+	}
 	if refusal == "" && spell.Def.Charms() {
 		refusal, fizzle = w.charmStartLocked(p, &spell, targets) // charm.go
 	}

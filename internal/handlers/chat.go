@@ -741,8 +741,13 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		}
 		worldChanged := player.World != world
 		player.World = world
-		h.gameWorld.UpdatePosition(player.ServerID, x, y, z, player.Facing)
-		sendTeleportGM(sess, x, y, z, player.Facing, world)
+		facing := player.Facing
+		if _, d, _ := findTeleDest(name); d.Near && (d.X != x || d.Z != z) {
+			// beside a camp: facing it (CLIENT's heading, VIVect3::HPR)
+			facing = float32(math.Atan2(float64(d.X-x), float64(d.Z-z)))
+		}
+		h.gameWorld.UpdatePosition(player.ServerID, x, y, z, facing)
+		sendTeleportGM(sess, x, y, z, facing, world)
 		beginWorldLoad(sess, worldChanged)
 		h.gmReply(sess, fmt.Sprintf("Teleported to %s - (%.0f, %.0f, %.0f) world=%s",
 			via, x, y, z, worldName(world)))

@@ -79,6 +79,19 @@ type AccountServer struct {
 	// server's one limiter, shared with the game's login and the GM panel, so
 	// guesses spread over them add up. Nil: not counted.
 	Limiter *auth.Limiter
+
+	// SpellFX serves the community spell-visual page's two routes,
+	// /api/spellfx/spells and /api/spellfx/suggest (package spellfx), the
+	// suggestion handed the client's address as getClientIP reads it. Nil:
+	// both answer 404.
+	SpellFX SpellFXRoutes
+}
+
+// SpellFXRoutes is the community spell-visual page's half of this server
+// (spellfx.Service).
+type SpellFXRoutes interface {
+	ServeSpells(w http.ResponseWriter, r *http.Request)
+	ServeSuggest(w http.ResponseWriter, r *http.Request, clientIP string)
 }
 
 // checkPassword is a page's password check under the limiter: counted by the
@@ -174,6 +187,23 @@ func (s *AccountServer) cleanupSessions() {
 
 // Start starts the account registration server.
 func (s *AccountServer) Start() error {
+	s.server = &http.Server{
+		Addr:    fmt.Sprintf(":%d", s.port),
+		Handler: s.Handler(),
+	}
+
+	go func() {
+		log.Printf("Account registration server starting on port %d", s.port)
+		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Printf("Account server error: %v", err)
+		}
+	}()
+
+	return nil
+}
+
+// Handler is the account server's routes.
+func (s *AccountServer) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.handleIndex)
 	mux.HandleFunc("/register", s.handleRegisterPage)
@@ -189,20 +219,21 @@ func (s *AccountServer) Start() error {
 	mux.HandleFunc("/api/teleport/destinations", s.handleAPITeleportDests)
 	mux.HandleFunc("/api/creation", s.handleAPICreation)
 	mux.HandleFunc("/api/logout", s.handleAPILogoutSessions)
-
-	s.server = &http.Server{
-		Addr:    fmt.Sprintf(":%d", s.port),
-		Handler: mux,
-	}
-
-	go func() {
-		log.Printf("Account registration server starting on port %d", s.port)
-		if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Printf("Account server error: %v", err)
+	mux.HandleFunc("/api/spellfx/spells", func(w http.ResponseWriter, r *http.Request) {
+		if s.SpellFX == nil {
+			http.NotFound(w, r)
+			return
 		}
-	}()
-
-	return nil
+		s.SpellFX.ServeSpells(w, r)
+	})
+	mux.HandleFunc("/api/spellfx/suggest", func(w http.ResponseWriter, r *http.Request) {
+		if s.SpellFX == nil {
+			http.NotFound(w, r)
+			return
+		}
+		s.SpellFX.ServeSuggest(w, r, s.getClientIP(r))
+	})
+	return mux
 }
 
 // Stop stops the account server.

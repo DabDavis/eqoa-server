@@ -736,6 +736,23 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// 0x0020 is level and exp: sending HP there set the PS2's LEVEL.
 		h.gmReply(sess, fmt.Sprintf("HP set to %d/%d", player.HP, player.MaxHP))
 
+	case "#debt":
+		// #debt [amount]: the GM's experience debt, or set it (0 clears;
+		// entity/deathdebt.go)
+		if len(parts) < 2 {
+			debt, _ := h.gameWorld.DebtOf(player.ServerID)
+			h.gmReply(sess, fmt.Sprintf("Experience debt: %d (a death at level %d adds %d). Usage: #debt <amount>, 0 clears",
+				debt, player.Level, entity.DeathDebt(player.Level)))
+			return
+		}
+		amount, err := strconv.Atoi(parts[1])
+		if err != nil || amount < 0 {
+			h.gmReply(sess, "Usage: #debt <amount>, 0 clears")
+			return
+		}
+		h.gameWorld.SetDebt(player.ServerID, amount)
+		h.gmReply(sess, fmt.Sprintf("Experience debt set to %d", amount))
+
 	case "#tunar":
 		// #tunar <amount>
 		if len(parts) < 2 {
@@ -881,6 +898,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear active effects")
 		h.gmReply(sess, "  #faction <faction> [standing] - your standing with a faction, or set it")
 		h.gmReply(sess, "  #grantcm <amount> - mastery points, never past 1500 spent and unspent")
+		h.gmReply(sess, "  #debt [amount] - your experience debt, or set it (0 clears)")
 		h.gmReply(sess, "  #cm - the masteries your target (a player) or you bought; #cmreset takes them all back, points returned")
 		h.gmReply(sess, "  #aggro [on|off] - whether creatures attack you on sight (off until #aggro on)")
 		h.gmReply(sess, "  #fx <visual> [seconds] | <spell> - play a spell visual (0x1DAEB5B6) on your target, nothing saved")

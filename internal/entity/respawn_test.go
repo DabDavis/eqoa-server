@@ -192,3 +192,55 @@ func TestCorpseDoesNotRegenerate(t *testing.T) {
 		t.Errorf("the living player did not regenerate: %d HP", f.other.HP)
 	}
 }
+
+// A death leaves the live game's experience debt for its level (the wiki's
+// unrezzed chart, which SOE's Corsten state bears out: five level 49 deaths,
+// 30,689,845 owed), told to the client (0x00D9, the debt itself) and added to
+// what was owed; below level 6 a death costs nothing. The chart's blanks lie
+// on its curve: 51 and 53 between their neighbours, 60 above 54.
+func TestADeathLeavesTheLiveGamesDebt(t *testing.T) {
+	debtSent := func(s *session.Session) []uint32 {
+		var out []uint32
+		for _, m := range s.Queue().PeekPending() {
+			d := m.Data()
+			if len(d) >= 6 && protocol.GameOpcode(binary.LittleEndian.Uint16(d)) == protocol.OpcodeExpDebt {
+				out = append(out, binary.LittleEndian.Uint32(d[2:]))
+			}
+		}
+		return out
+	}
+	f := newDeathFixture(t)
+	f.p.Level = 49
+	f.kill(t)
+	if f.p.Debt != 6137969 {
+		t.Fatalf("a level 49 death owes %d, want the chart's 6137969", f.p.Debt)
+	}
+	if got := debtSent(f.sess); len(got) != 1 || got[0] != 6137969 {
+		t.Fatalf("0x00D9 sent %v, want the debt", got)
+	}
+	f.w.mu.Lock()
+	f.p.DiedAt, f.p.HP = time.Time{}, 1 // back up, and down again
+	f.w.mu.Unlock()
+	f.kill(t)
+	if f.p.Debt != 2*6137969 {
+		t.Fatalf("two deaths owe %d, want %d", f.p.Debt, 2*6137969)
+	}
+	if 5*DeathDebt(49) != 30689845 {
+		t.Fatalf("five level 49 deaths are %d, not Corsten's 30689845", 5*DeathDebt(49))
+	}
+
+	low := newDeathFixture(t)
+	low.p.Level = 5
+	low.kill(t)
+	if low.p.Debt != 0 || len(debtSent(low.sess)) != 0 {
+		t.Fatalf("a level 5 death owes %d, sent %v; want nothing", low.p.Debt, debtSent(low.sess))
+	}
+	for _, l := range []int{51, 53} {
+		if d := DeathDebt(l); d <= DeathDebt(l-1) || d >= DeathDebt(l+1) {
+			t.Errorf("level %d's debt %d is not between %d and %d", l, d, DeathDebt(l-1), DeathDebt(l+1))
+		}
+	}
+	if d := DeathDebt(60); d < 13_700_000 || d > 13_900_000 {
+		t.Errorf("level 60's debt %d is off the chart's curve (~13.8M)", d)
+	}
+}

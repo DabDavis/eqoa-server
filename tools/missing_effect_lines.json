@@ -1,0 +1,3348 @@
+{
+ "about": "Effect lines for the class spells that had none, by class (WAR=0 ... ALC=14), name and level: the line, where it comes from, the page it was read off, what the server's reader makes of it (internal/entity/missinglines_test.go holds every one to that) and the words it leaves unread with why; hold: written by no one, and why; none: the spells that keep no line, and why. tools/fix_missing_effect_lines.py writes them.",
+ "lines": [
+  {
+   "classes": [
+    8
+   ],
+   "name": "Blighting Aura",
+   "level": 1,
+   "line": "Target, Decrease Hitpoints by 10, Decrease HP per tic by 2, 24sec",
+   "desc": "",
+   "source": "allakhazam eqoaspell=568, the 2004-04-28 import archived 2006-07-28",
+   "page": {
+    "scope": "Single Target",
+    "duration": "Instant",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "12",
+    "resist": "Poison",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 10",
+     "Decrease HP per tic by 2 for 24 seconds"
+    ],
+    "url": "https://web.archive.org/web/20060728003133/http://eqoa.allakhazam.com/spell.html?eqoaspell=568"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 24.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -10",
+     "hptick -2"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Inner Fire",
+   "level": 1,
+   "line": "Target, Increase Maximum HP by 10, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=567, the 2004-04-28 import archived 2006-07-27",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "2s",
+    "power": "10",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase Maximum HP by 10"
+    ],
+    "url": "https://web.archive.org/web/20060727124057/http://eqoa.allakhazam.com/spell.html?eqoaspell=567"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "maxhp +10"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Sleet",
+   "level": 1,
+   "line": "Target, Decrease Hitpoints by 10 ; Increase 5% based on DEX",
+   "desc": "",
+   "source": "allakhazam eqoaspell=342, the 2004-04-28 import archived 2006-07-26",
+   "page": {
+    "scope": "Single Target",
+    "duration": "Instant",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "7",
+    "resist": "Ice",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 10 ; Increase 5% based on DEX"
+    ],
+    "url": "https://web.archive.org/web/20060726125217/http://eqoa.allakhazam.com/spell.html?eqoaspell=342"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -10 +5% dex"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Tribal Toughness",
+   "level": 3,
+   "line": "Target, Increase STR by 15, Increase STA by 15, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=143, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "20",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase STR by 15",
+     "Increase STA by 15"
+    ],
+    "url": "https://web.archive.org/web/20120206075235/http://eqoa.allakhazam.com/spell.html?eqoaspell=143"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +15",
+     "sta +15"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Shock of Spirits",
+   "level": 4,
+   "line": "Target, Decrease Hitpoints by 20 ; Increase 10% based on DEX",
+   "desc": "",
+   "source": "allakhazam eqoaspell=147, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "Instant",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "17",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 20 ; Increase 10% based on DEX"
+    ],
+    "url": "https://web.archive.org/web/20120206073153/http://eqoa.allakhazam.com/spell.html?eqoaspell=147"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -20 +10% dex"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Stumbling Fever",
+   "level": 4,
+   "line": "Target, Decrease STR by 5, Decrease AGI by 5 ; Increase 20% based on WIS, Decrease DEX by 5 ; Increase 20% based on WIS, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=331, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "2s",
+    "recast": "1s",
+    "power": "25",
+    "resist": "Disease",
+    "radius": "0",
+    "effects": [
+     "Decrease STR by 5",
+     "Decrease AGI by 5 ; Increase 20% based on WIS",
+     "Decrease DEX by 5 ; Increase 20% based on WIS"
+    ],
+    "url": "https://web.archive.org/web/20120206074901/http://eqoa.allakhazam.com/spell.html?eqoaspell=331"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str -5",
+     "agi -5 +20% wis",
+     "dex -5 +20% wis"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Blighting Mist",
+   "level": 5,
+   "line": "Target, Decrease Hitpoints by 24, Decrease HP per tic by 6, 24sec",
+   "desc": "",
+   "source": "allakhazam eqoaspell=142, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "Instant",
+    "cast": "1s",
+    "recast": "1s",
+    "power": "33",
+    "resist": "Poison",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 24",
+     "Decrease HP per tic by 6 for 24 seconds"
+    ],
+    "url": "https://web.archive.org/web/20120206073108/http://eqoa.allakhazam.com/spell.html?eqoaspell=142"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 24.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -24",
+     "hptick -6"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Minor Malady",
+   "level": 7,
+   "line": "Target, Decrease STR by 10 ; Increase 15% based on WIS, Decrease DEX by 10 ; Increase 15% based on WIS, Decrease AGI by 10 ; Increase 20% based on WIS, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=246, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "2s",
+    "recast": "1s",
+    "power": "35",
+    "resist": "Disease",
+    "radius": "0",
+    "effects": [
+     "Decrease STR by 10 ; Increase 15% based on WIS",
+     "Decrease DEX by 10 ; Increase 15% based on WIS",
+     "Decrease AGI by 10 ; Increase 20% based on WIS"
+    ],
+    "url": "https://web.archive.org/web/20120206073008/http://eqoa.allakhazam.com/spell.html?eqoaspell=246"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str -10 +15% wis",
+     "dex -10 +15% wis",
+     "agi -10 +20% wis"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Corrosive Spray",
+   "level": 8,
+   "line": "Target, Decrease HP per tic by 8, Decrease Hitpoints by 34, 24sec",
+   "desc": "",
+   "source": "allakhazam eqoaspell=149, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "24 seconds",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "48",
+    "resist": "Poison",
+    "radius": "0",
+    "effects": [
+     "Decrease HP per tic by 8",
+     "Decrease Hitpoints by 34"
+    ],
+    "url": "https://web.archive.org/web/20120206075349/http://eqoa.allakhazam.com/spell.html?eqoaspell=149"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 24.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hptick -8",
+     "hp -34"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Finesse",
+   "level": 8,
+   "line": "Target, Increase DEX by 15, Increase AGI by 15, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=148, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "25",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase DEX by 15",
+     "Increase AGI by 15"
+    ],
+    "url": "https://web.archive.org/web/20120206072941/http://eqoa.allakhazam.com/spell.html?eqoaspell=148"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "dex +15",
+     "agi +15"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8,
+    13
+   ],
+   "name": "Invisibilty",
+   "level": 8,
+   "line": "Target, Invisibility, 5.5min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=343, the 2004-04-28 import archived 2012-02-06; the wizard's, eqoaspell=30, the same (EQOA-Data's wizard list says 5min)",
+   "page": {
+    "scope": "Single Target",
+    "duration": "5.5 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "15",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Invisibility"
+    ],
+    "url": "https://web.archive.org/web/20120206075807/http://eqoa.allakhazam.com/spell.html?eqoaspell=343"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 330.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "invis"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Kindred Spirit",
+   "level": 12,
+   "line": "Summons a wolf to aid you",
+   "desc": "",
+   "source": "allakhazam eqoaspell=329, the 2004-04-28 import archived 2012-02-06; the wolf from Sandstorm's scroll (\"Summons a wolf to aid you.\", harvests/sandstorm-spells-20261021)",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "3s",
+    "recast": "20s",
+    "power": "92",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Summon Pet"
+    ],
+    "url": "https://web.archive.org/web/20120206074529/http://eqoa.allakhazam.com/spell.html?eqoaspell=329"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "wolf",
+    "effects": [
+     "summon"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Stinging Sleet",
+   "level": 12,
+   "line": "Target, Decrease Hitpoints by 32 ; Increase 15% based on DEX",
+   "desc": "",
+   "source": "allakhazam eqoaspell=328, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "Instant",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "32",
+    "resist": "Ice",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 32 ; Increase 15% based on DEX"
+    ],
+    "url": "https://web.archive.org/web/20120206073813/http://eqoa.allakhazam.com/spell.html?eqoaspell=328"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -32 +15% dex"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Tribal Brawn",
+   "level": 13,
+   "line": "Target, Increase STR by 25, Increase STA by 25, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=330, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "59",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase STR by 25",
+     "Increase STA by 25"
+    ],
+    "url": "https://web.archive.org/web/20120206073422/http://eqoa.allakhazam.com/spell.html?eqoaspell=330"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +25",
+     "sta +25"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Endure Poison",
+   "level": 15,
+   "line": "Target, Increase Resist Poison by 25 ; Increase 5% based on CHA, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1438, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "2s",
+    "power": "90",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase Resist Poison by 25 ; Increase 5% based on CHA"
+    ],
+    "url": "https://web.archive.org/web/20120206072738/http://eqoa.allakhazam.com/spell.html?eqoaspell=1438"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "pr +25 +5% cha"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Lesser Malady",
+   "level": 15,
+   "line": "Target, Decrease STR by 25 ; Increase 15% based on WIS, Decrease DEX by 25 ; Increase 15% based on WIS, Decrease AGI by 25 ; Increase 20% based on WIS, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=337, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "135",
+    "resist": "Disease",
+    "radius": "0",
+    "effects": [
+     "Decrease STR by 25 ; Increase 15% based on WIS",
+     "Decrease DEX by 25 ; Increase 15% based on WIS",
+     "Decrease AGI by 25 ; Increase 20% based on WIS"
+    ],
+    "url": "https://web.archive.org/web/20120206073211/http://eqoa.allakhazam.com/spell.html?eqoaspell=337"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str -25 +15% wis",
+     "dex -25 +15% wis",
+     "agi -25 +20% wis"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Deftness",
+   "level": 16,
+   "line": "Target, Increase DEX by 25, Increase AGI by 25, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=333, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "75",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase DEX by 25",
+     "Increase AGI by 25"
+    ],
+    "url": "https://web.archive.org/web/20120206075550/http://eqoa.allakhazam.com/spell.html?eqoaspell=333"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "dex +25",
+     "agi +25"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Group Deftness",
+   "level": 16,
+   "line": "Group, Increase DEX by 25, Increase AGI by 25, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3673, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Group",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "75",
+    "resist": "Arcane",
+    "radius": "30",
+    "effects": [
+     "Increase DEX by 25",
+     "Increase AGI by 25"
+    ],
+    "url": "https://web.archive.org/web/20120206074727/http://eqoa.allakhazam.com/spell.html?eqoaspell=3673"
+   },
+   "expect": {
+    "target": "group",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "dex +25",
+     "agi +25"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Spirit Slam",
+   "level": 16,
+   "line": "Target, Decrease Hitpoints by 42 ; Increase 15% based on DEX",
+   "desc": "",
+   "source": "allakhazam eqoaspell=340, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "Instant",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "44",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 42 ; Increase 15% based on DEX"
+    ],
+    "url": "https://web.archive.org/web/20120206074354/http://eqoa.allakhazam.com/spell.html?eqoaspell=340"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -42 +15% dex"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Corrosive Jet",
+   "level": 20,
+   "line": "Target, Decrease HP per tic by 24, Decrease Hitpoints by 94, 24sec",
+   "desc": "",
+   "source": "allakhazam eqoaspell=341, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "24 seconds",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "134",
+    "resist": "Poison",
+    "radius": "0",
+    "effects": [
+     "Decrease HP per tic by 24",
+     "Decrease Hitpoints by 94"
+    ],
+    "url": "https://web.archive.org/web/20120206074610/http://eqoa.allakhazam.com/spell.html?eqoaspell=341"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 24.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hptick -24",
+     "hp -94"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Decaying Wind",
+   "level": 20,
+   "line": "Target, Decrease STA by 25, Decrease Maximum HP by 120, Decrease AC by 106, Radius 15, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1598, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "300s",
+    "power": "200",
+    "resist": "Disease",
+    "radius": "15",
+    "effects": [
+     "Decrease STA by 25",
+     "Decrease Maximum HP by 120",
+     "Decrease AC by 106"
+    ],
+    "url": "https://web.archive.org/web/20120206074235/http://eqoa.allakhazam.com/spell.html?eqoaspell=1598"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "sta -25",
+     "maxhp -120",
+     "ac -106"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Feral Spirit",
+   "level": 20,
+   "line": "Summons a wolf to aid you",
+   "desc": "",
+   "source": "allakhazam eqoaspell=338, the 2004-04-28 import archived 2012-02-06; the wolf from Sandstorm's scroll (\"Summons a wolf to aid you.\", harvests/sandstorm-spells-20261021); the page's Increase STR by 0 left out (nothing)",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "4s",
+    "recast": "30s",
+    "power": "206",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Summon Pet",
+     "Increase STR by 0"
+    ],
+    "url": "https://web.archive.org/web/20120206073352/http://eqoa.allakhazam.com/spell.html?eqoaspell=338"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "wolf",
+    "effects": [
+     "summon"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Minor Cannibalize",
+   "level": 20,
+   "line": "Self, Decrease Hitpoints by 200, Increase Power by 50",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3683, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "3s",
+    "recast": "12s",
+    "power": "0",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 200",
+     "Increase Power by 50"
+    ],
+    "url": "https://web.archive.org/web/20120206074407/http://eqoa.allakhazam.com/spell.html?eqoaspell=3683"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -200",
+     "power +50"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Spiritual Guide",
+   "level": 20,
+   "line": "Summons a pet",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1600, the 2004-04-28 import archived 2012-02-06, its Summon Pet in the lists' words",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "6s",
+    "recast": "30s",
+    "power": "344",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Summon Pet"
+    ],
+    "url": "https://web.archive.org/web/20120206074909/http://eqoa.allakhazam.com/spell.html?eqoaspell=1600"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "summon"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Ursus Guise",
+   "level": 20,
+   "line": "Self, Form, Increase STR by 65, Increase Maximum HP by 150, Increase Hitpoints by 150, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=151, the 2004-04-28 import archived 2012-02-06, its Sprite Change in the lists' word (Form of the Great Bear's Form)",
+   "page": {
+    "scope": "Self Only",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "27s",
+    "power": "186",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Sprite Change",
+     "Increase STR by 65",
+     "Increase Maximum HP by 150",
+     "Increase Hitpoints by 150"
+    ],
+    "url": "https://web.archive.org/web/20120206075902/http://eqoa.allakhazam.com/spell.html?eqoaspell=151"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +65",
+     "maxhp +150",
+     "hp +150"
+    ]
+   },
+   "unread": [
+    {
+     "part": "form",
+     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
+    }
+   ]
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Group Tribal Strength",
+   "level": 23,
+   "line": "Group, Increase STR by 35, Increase STA by 35, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3680, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Group",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "138",
+    "resist": "Arcane",
+    "radius": "30",
+    "effects": [
+     "Increase STR by 35",
+     "Increase STA by 35"
+    ],
+    "url": "https://web.archive.org/web/20120206072841/http://eqoa.allakhazam.com/spell.html?eqoaspell=3680"
+   },
+   "expect": {
+    "target": "group",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +35",
+     "sta +35"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Tribal Strength",
+   "level": 23,
+   "line": "Target, Increase STR by 35, Increase STA by 35, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1645, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "138",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase STR by 35",
+     "Increase STA by 35"
+    ],
+    "url": "https://web.archive.org/web/20120206074219/http://eqoa.allakhazam.com/spell.html?eqoaspell=1645"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +35",
+     "sta +35"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Accuracy",
+   "level": 24,
+   "line": "Target, Increase DEX by 30, Increase AGI by 30, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=543, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "4s",
+    "recast": "1s",
+    "power": "144",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase DEX by 30",
+     "Increase AGI by 30"
+    ],
+    "url": "https://web.archive.org/web/20120206074423/http://eqoa.allakhazam.com/spell.html?eqoaspell=543"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "dex +30",
+     "agi +30"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Group Accuracy",
+   "level": 24,
+   "line": "Group, Increase DEX by 30, Increase AGI by 30, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3674, the 2004-04-28 import archived 2006-05-10",
+   "page": {
+    "scope": "Group",
+    "duration": "30 minutes",
+    "cast": "4s",
+    "recast": "1s",
+    "power": "144",
+    "resist": "Arcane",
+    "radius": "30",
+    "effects": [
+     "Increase DEX by 30",
+     "Increase AGI by 30"
+    ],
+    "url": "https://web.archive.org/web/20060510144742/http://eqoa.allakhazam.com/spell.html?eqoaspell=3674"
+   },
+   "expect": {
+    "target": "group",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "dex +30",
+     "agi +30"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Spirit Strike",
+   "level": 24,
+   "line": "Target, Decrease Hitpoints by 108 ; Increase 15% based on DEX",
+   "desc": "",
+   "source": "allakhazam eqoaspell=537, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "Instant",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "95",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 108 ; Increase 15% based on DEX"
+    ],
+    "url": "https://web.archive.org/web/20120206073611/http://eqoa.allakhazam.com/spell.html?eqoaspell=537"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -108 +15% dex"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Affliction",
+   "level": 27,
+   "line": "Target, Decrease STR by 30 ; Increase 15% based on WIS, Decrease DEX by 30 ; Increase 15% based on WIS, Decrease AGI by 30 ; Increase 15% based on WIS, Decrease HP per tic by 27, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3666, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "243",
+    "resist": "Disease",
+    "radius": "0",
+    "effects": [
+     "Decrease STR by 30 ; Increase 15% based on WIS",
+     "Decrease DEX by 30 ; Increase 15% based on WIS",
+     "Decrease AGI by 30 ; Increase 15% based on WIS",
+     "Decrease HP per tic by 27"
+    ],
+    "url": "https://web.archive.org/web/20120206075959/http://eqoa.allakhazam.com/spell.html?eqoaspell=3666"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str -30 +15% wis",
+     "dex -30 +15% wis",
+     "agi -30 +15% wis",
+     "hptick -27"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Malady",
+   "level": 27,
+   "line": "Target, Decrease STR by 30 ; Increase 15% based on WIS, Decrease DEX by 30 ; Increase 15% based on WIS, Decrease AGI by 30 ; Increase 15% based on WIS, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1648, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "243",
+    "resist": "Disease",
+    "radius": "0",
+    "effects": [
+     "Decrease STR by 30 ; Increase 15% based on WIS",
+     "Decrease DEX by 30 ; Increase 15% based on WIS",
+     "Decrease AGI by 30 ; Increase 15% based on WIS"
+    ],
+    "url": "https://web.archive.org/web/20120206072547/http://eqoa.allakhazam.com/spell.html?eqoaspell=1648"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str -30 +15% wis",
+     "dex -30 +15% wis",
+     "agi -30 +15% wis"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Bear Form",
+   "level": 29,
+   "line": "Self, Form, Increase STR by 75, Increase Maximum HP by 225, Increase Hitpoints by 225, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=563, the 2004-04-28 import archived 2012-02-06, its Sprite Change in the lists' word (Form of the Great Bear's Form)",
+   "page": {
+    "scope": "Self Only",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "27s",
+    "power": "270",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Sprite Change",
+     "Increase STR by 75",
+     "Increase Maximum HP by 225",
+     "Increase Hitpoints by 225"
+    ],
+    "url": "https://web.archive.org/web/20120206073407/http://eqoa.allakhazam.com/spell.html?eqoaspell=563"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +75",
+     "maxhp +225",
+     "hp +225"
+    ]
+   },
+   "unread": [
+    {
+     "part": "form",
+     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
+    }
+   ]
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Companion Spirit",
+   "level": 29,
+   "line": "Summons a companion spirit to aid you",
+   "desc": "",
+   "source": "allakhazam eqoaspell=534, the 2004-04-28 import archived 2012-02-06; the words from Sandstorm's scroll (\"Summons a companion spirit to aid you.\", harvests/sandstorm-spells-20261021)",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "4s",
+    "recast": "30s",
+    "power": "431",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Summon Pet"
+    ],
+    "url": "https://web.archive.org/web/20120206075324/http://eqoa.allakhazam.com/spell.html?eqoaspell=534"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "companion spirit",
+    "effects": [
+     "summon"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Venom Cloud",
+   "level": 29,
+   "line": "Target, Decrease HP per tic by 35, Decrease Hitpoints by 138, 24sec",
+   "desc": "",
+   "source": "allakhazam eqoaspell=540, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "24 seconds",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "195",
+    "resist": "Poison",
+    "radius": "0",
+    "effects": [
+     "Decrease HP per tic by 35",
+     "Decrease Hitpoints by 138"
+    ],
+    "url": "https://web.archive.org/web/20120206072849/http://eqoa.allakhazam.com/spell.html?eqoaspell=540"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 24.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hptick -35",
+     "hp -138"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Lesser Cannibalize",
+   "level": 30,
+   "line": "Self, Decrease Hitpoints by 400, Increase Power by 100",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3684, the 2004-04-28 import archived 2006-07-25",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "3s",
+    "recast": "12s",
+    "power": "0",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 400",
+     "Increase Power by 100"
+    ],
+    "url": "https://web.archive.org/web/20060725105332/http://eqoa.allakhazam.com/spell.html?eqoaspell=3684"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -400",
+     "power +100"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Sickening Wind",
+   "level": 30,
+   "line": "Target, Decrease STA by 35, Decrease Maximum HP by 180, Decrease AC by 160, Radius 15, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1686, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "300s",
+    "power": "300",
+    "resist": "Disease",
+    "radius": "15",
+    "effects": [
+     "Decrease STA by 35",
+     "Decrease Maximum HP by 180",
+     "Decrease AC by 160"
+    ],
+    "url": "https://web.archive.org/web/20120206073123/http://eqoa.allakhazam.com/spell.html?eqoaspell=1686"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "sta -35",
+     "maxhp -180",
+     "ac -160"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Spiritual Guard",
+   "level": 30,
+   "line": "Summons a pet",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1734, the 2004-04-28 import archived 2012-02-06, its Summon Pet in the lists' words",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "6s",
+    "recast": "30s",
+    "power": "666",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Summon Pet"
+    ],
+    "url": "https://web.archive.org/web/20120206074007/http://eqoa.allakhazam.com/spell.html?eqoaspell=1734"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "summon"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Group Tribal Force",
+   "level": 33,
+   "line": "Group, Increase STR by 45, Increase STA by 45, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3678, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Group",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "198",
+    "resist": "Arcane",
+    "radius": "30",
+    "effects": [
+     "Increase STR by 45",
+     "Increase STA by 45"
+    ],
+    "url": "https://web.archive.org/web/20120206073447/http://eqoa.allakhazam.com/spell.html?eqoaspell=3678"
+   },
+   "expect": {
+    "target": "group",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +45",
+     "sta +45"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Tribal Force",
+   "level": 33,
+   "line": "Target, Increase STR by 45, Increase STA by 45, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1646, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "198",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase STR by 45",
+     "Increase STA by 45"
+    ],
+    "url": "https://web.archive.org/web/20120206075833/http://eqoa.allakhazam.com/spell.html?eqoaspell=1646"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +45",
+     "sta +45"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Group Precision",
+   "level": 34,
+   "line": "Group, Increase DEX by 40, Increase AGI by 40, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3675, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Group",
+    "duration": "30 minutes",
+    "cast": "4s",
+    "recast": "1s",
+    "power": "204",
+    "resist": "Arcane",
+    "radius": "30",
+    "effects": [
+     "Increase DEX by 40",
+     "Increase AGI by 40"
+    ],
+    "url": "https://web.archive.org/web/20120206073345/http://eqoa.allakhazam.com/spell.html?eqoaspell=3675"
+   },
+   "expect": {
+    "target": "group",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "dex +40",
+     "agi +40"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Precision",
+   "level": 34,
+   "line": "Target, Increase DEX by 40, Increase AGI by 40, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=544, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "4s",
+    "recast": "1s",
+    "power": "204",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase DEX by 40",
+     "Increase AGI by 40"
+    ],
+    "url": "https://web.archive.org/web/20120206075946/http://eqoa.allakhazam.com/spell.html?eqoaspell=544"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "dex +40",
+     "agi +40"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Spirit Blast",
+   "level": 34,
+   "line": "Target, Decrease Hitpoints by 156 ; Increase 15% based on DEX",
+   "desc": "",
+   "source": "allakhazam eqoaspell=538, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "Instant",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "136",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 156 ; Increase 15% based on DEX"
+    ],
+    "url": "https://web.archive.org/web/20120206073804/http://eqoa.allakhazam.com/spell.html?eqoaspell=538"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -156 +15% dex"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Improved Invisibilty",
+   "level": 35,
+   "line": "Self, Invisibility, 10min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1653, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Self Only",
+    "duration": "10 minutes",
+    "cast": "3s",
+    "recast": "5s",
+    "power": "175",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Invisibility"
+    ],
+    "url": "https://web.archive.org/web/20120206074940/http://eqoa.allakhazam.com/spell.html?eqoaspell=1653"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 600.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "invis"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Greater Affliction",
+   "level": 37,
+   "line": "Target, Decrease STR by 35 ; Increase 15% based on WIS, Decrease DEX by 35 ; Increase 15% based on WIS, Decrease AGI by 35 ; Increase 20% based on WIS, Decrease HP per tic by 53, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3665, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "333",
+    "resist": "Disease",
+    "radius": "0",
+    "effects": [
+     "Decrease STR by 35 ; Increase 15% based on WIS",
+     "Decrease DEX by 35 ; Increase 15% based on WIS",
+     "Decrease AGI by 35 ; Increase 20% based on WIS",
+     "Decrease HP per tic by 53"
+    ],
+    "url": "https://web.archive.org/web/20120206073827/http://eqoa.allakhazam.com/spell.html?eqoaspell=3665"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str -35 +15% wis",
+     "dex -35 +15% wis",
+     "agi -35 +20% wis",
+     "hptick -53"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Greater Malady",
+   "level": 37,
+   "line": "Target, Decrease STR by 35 ; Increase 15% based on WIS, Decrease DEX by 35 ; Increase 15% based on WIS, Decrease AGI by 35 ; Increase 15% based on WIS, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1649, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "333",
+    "resist": "Disease",
+    "radius": "0",
+    "effects": [
+     "Decrease STR by 35 ; Increase 15% based on WIS",
+     "Decrease DEX by 35 ; Increase 15% based on WIS",
+     "Decrease AGI by 35 ; Increase 15% based on WIS"
+    ],
+    "url": "https://web.archive.org/web/20120206075758/http://eqoa.allakhazam.com/spell.html?eqoaspell=1649"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str -35 +15% wis",
+     "dex -35 +15% wis",
+     "agi -35 +15% wis"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Gale of Poison",
+   "level": 39,
+   "line": "Target, Decrease HP per tic by 64, Decrease Hitpoints by 258, 24sec",
+   "desc": "",
+   "source": "allakhazam eqoaspell=541, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "24 seconds",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "270",
+    "resist": "Poison",
+    "radius": "0",
+    "effects": [
+     "Decrease HP per tic by 64",
+     "Decrease Hitpoints by 258"
+    ],
+    "url": "https://web.archive.org/web/20120206075906/http://eqoa.allakhazam.com/spell.html?eqoaspell=541"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 24.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hptick -64",
+     "hp -258"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Roaring Mask",
+   "level": 39,
+   "line": "Self, Form, Increase STR by 85, Increase Maximum HP by 275, Increase Hitpoints by 275, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=564, the 2004-04-28 import archived 2012-02-06, its Sprite Change in the lists' word (Form of the Great Bear's Form)",
+   "page": {
+    "scope": "Self Only",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "27s",
+    "power": "363",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Sprite Change",
+     "Increase STR by 85",
+     "Increase Maximum HP by 275",
+     "Increase Hitpoints by 275"
+    ],
+    "url": "https://web.archive.org/web/20120206073535/http://eqoa.allakhazam.com/spell.html?eqoaspell=564"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +85",
+     "maxhp +275",
+     "hp +275"
+    ]
+   },
+   "unread": [
+    {
+     "part": "form",
+     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
+    }
+   ]
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Vigilant Spirit",
+   "level": 39,
+   "line": "Summons a vigilant spirit to aid you",
+   "desc": "",
+   "source": "allakhazam eqoaspell=535, the 2004-04-28 import archived 2012-02-06; the words from Sandstorm's scroll (\"Summons a vigilant spirit to aid you.\", harvests/sandstorm-spells-20261021)",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "7s",
+    "recast": "45s",
+    "power": "621",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Summon Pet"
+    ],
+    "url": "https://web.archive.org/web/20120206073022/http://eqoa.allakhazam.com/spell.html?eqoaspell=535"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "vigilant spirit",
+    "effects": [
+     "summon"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Cannibalize",
+   "level": 40,
+   "line": "Self, Decrease Hitpoints by 700, Increase Power by 175",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3685, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "3s",
+    "recast": "12s",
+    "power": "0",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 700",
+     "Increase Power by 175"
+    ],
+    "url": "https://web.archive.org/web/20120206072911/http://eqoa.allakhazam.com/spell.html?eqoaspell=3685"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -700",
+     "power +175"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Spiritual Hunter",
+   "level": 40,
+   "line": "Summons a pet",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1735, the 2004-04-28 import archived 2012-02-06, its Summon Pet in the lists' words",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "8s",
+    "recast": "45s",
+    "power": "885",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Summon Pet"
+    ],
+    "url": "https://web.archive.org/web/20120206074509/http://eqoa.allakhazam.com/spell.html?eqoaspell=1735"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "summon"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Wilting Wind",
+   "level": 40,
+   "line": "Target, Decrease STA by 45, Decrease Maximum HP by 245, Decrease AC by 213, Radius 15, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1687, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "300s",
+    "power": "400",
+    "resist": "Disease",
+    "radius": "15",
+    "effects": [
+     "Decrease STA by 45",
+     "Decrease Maximum HP by 245",
+     "Decrease AC by 213"
+    ],
+    "url": "https://web.archive.org/web/20120206075148/http://eqoa.allakhazam.com/spell.html?eqoaspell=1687"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "sta -45",
+     "maxhp -245",
+     "ac -213"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Group Tribal Might",
+   "level": 43,
+   "line": "Group, Increase STR by 55, Increase STA by 55, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3679, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Group",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "258",
+    "resist": "Arcane",
+    "radius": "30",
+    "effects": [
+     "Increase STR by 55",
+     "Increase STA by 55"
+    ],
+    "url": "https://web.archive.org/web/20120206074836/http://eqoa.allakhazam.com/spell.html?eqoaspell=3679"
+   },
+   "expect": {
+    "target": "group",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +55",
+     "sta +55"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Tribal Might",
+   "level": 43,
+   "line": "Target, Increase STR by 55, Increase STA by 55, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1647, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "258",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase STR by 55",
+     "Increase STA by 55"
+    ],
+    "url": "https://web.archive.org/web/20120206072512/http://eqoa.allakhazam.com/spell.html?eqoaspell=1647"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +55",
+     "sta +55"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Exactness",
+   "level": 44,
+   "line": "Target, Increase DEX by 50, Increase AGI by 50, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=545, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "4s",
+    "recast": "1s",
+    "power": "264",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase DEX by 50",
+     "Increase AGI by 50"
+    ],
+    "url": "https://web.archive.org/web/20120206072809/http://eqoa.allakhazam.com/spell.html?eqoaspell=545"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "dex +50",
+     "agi +50"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Group Exactness",
+   "level": 44,
+   "line": "Group, Increase DEX by 50, Increase AGI by 50, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3676, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Group",
+    "duration": "30 minutes",
+    "cast": "4s",
+    "recast": "1s",
+    "power": "264",
+    "resist": "Arcane",
+    "radius": "30",
+    "effects": [
+     "Increase DEX by 50",
+     "Increase AGI by 50"
+    ],
+    "url": "https://web.archive.org/web/20120206074754/http://eqoa.allakhazam.com/spell.html?eqoaspell=3676"
+   },
+   "expect": {
+    "target": "group",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "dex +50",
+     "agi +50"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Shrieking Spirits",
+   "level": 44,
+   "line": "Target, Decrease Hitpoints by 276 ; Increase 15% based on DEX",
+   "desc": "",
+   "source": "allakhazam eqoaspell=539, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "Instant",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "182",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 276 ; Increase 15% based on DEX"
+    ],
+    "url": "https://web.archive.org/web/20120206074932/http://eqoa.allakhazam.com/spell.html?eqoaspell=539"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -276 +15% dex"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Spirit Walk",
+   "level": 45,
+   "line": "Self, Invisibility, Form, Sow, 10min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1654, the 2004-04-28 import archived 2012-02-06, its Sprite Change in the lists' word (Form of the Great Bear's Form)",
+   "page": {
+    "scope": "Self Only",
+    "duration": "10 minutes",
+    "cast": "6s",
+    "recast": "5s",
+    "power": "225",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Invisibility",
+     "Sprite Change",
+     "Increase SoW by 0"
+    ],
+    "url": "https://web.archive.org/web/20120206075204/http://eqoa.allakhazam.com/spell.html?eqoaspell=1654"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 600.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "invis",
+     "speed"
+    ]
+   },
+   "unread": [
+    {
+     "part": "form",
+     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
+    }
+   ],
+   "ours": "its Increase SoW by 0 read as Spirit of the Wolf's run speed, the way the same import prints Spirit of the Wolf's own (eqoaspell=150)"
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Ancient Affliction",
+   "level": 47,
+   "line": "Target, Decrease STR by 40 ; Increase 15% based on WIS, Decrease DEX by 40 ; Increase 15% based on WIS, Decrease AGI by 40 ; Increase 15% based on WIS, Decrease HP per tic by 73, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3664, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "5s",
+    "power": "440",
+    "resist": "Disease",
+    "radius": "0",
+    "effects": [
+     "Decrease STR by 40 ; Increase 15% based on WIS",
+     "Decrease DEX by 40 ; Increase 15% based on WIS",
+     "Decrease AGI by 40 ; Increase 15% based on WIS",
+     "Decrease HP per tic by 73"
+    ],
+    "url": "https://web.archive.org/web/20120206074521/http://eqoa.allakhazam.com/spell.html?eqoaspell=3664"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str -40 +15% wis",
+     "dex -40 +15% wis",
+     "agi -40 +15% wis",
+     "hptick -73"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Ancient Malady",
+   "level": 47,
+   "line": "Target, Decrease STR by 40 ; Increase 15% based on WIS, Decrease DEX by 40 ; Increase 15% based on WIS, Decrease AGI by 40 ; Increase 15% based on WIS, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1650, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "5s",
+    "power": "440",
+    "resist": "Disease",
+    "radius": "0",
+    "effects": [
+     "Decrease STR by 40 ; Increase 15% based on WIS",
+     "Decrease DEX by 40 ; Increase 15% based on WIS",
+     "Decrease AGI by 40 ; Increase 15% based on WIS"
+    ],
+    "url": "https://web.archive.org/web/20120206073100/http://eqoa.allakhazam.com/spell.html?eqoaspell=1650"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str -40 +15% wis",
+     "dex -40 +15% wis",
+     "agi -40 +15% wis"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Wailing Spirits",
+   "level": 48,
+   "line": "Target, Decrease Hitpoints by 330 ; Increase 15% based on DEX",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1656, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "Instant",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "218",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 330 ; Increase 15% based on DEX"
+    ],
+    "url": "https://web.archive.org/web/20120206074949/http://eqoa.allakhazam.com/spell.html?eqoaspell=1656"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -330 +15% dex"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Atrophic Wind",
+   "level": 49,
+   "line": "Target, Decrease STA by 65, Decrease Maximum HP by 325, Decrease AC by 313, Radius 15, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1689, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "300s",
+    "power": "500",
+    "resist": "Disease",
+    "radius": "15",
+    "effects": [
+     "Decrease STA by 65",
+     "Decrease Maximum HP by 325",
+     "Decrease AC by 313"
+    ],
+    "url": "https://web.archive.org/web/20120206072936/http://eqoa.allakhazam.com/spell.html?eqoaspell=1689"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "sta -65",
+     "maxhp -325",
+     "ac -313"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Form of the Mauler",
+   "level": 49,
+   "line": "Self, Form, Increase STR by 95, Increase Maximum HP by 350, Increase Hitpoints by 350, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=565, the 2004-04-28 import archived 2012-02-06, its Sprite Change in the lists' word (Form of the Great Bear's Form)",
+   "page": {
+    "scope": "Self Only",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "27s",
+    "power": "456",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Sprite Change",
+     "Increase STR by 95",
+     "Increase Maximum HP by 350",
+     "Increase Hitpoints by 350"
+    ],
+    "url": "https://web.archive.org/web/20120206074736/http://eqoa.allakhazam.com/spell.html?eqoaspell=565"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +95",
+     "maxhp +350",
+     "hp +350"
+    ]
+   },
+   "unread": [
+    {
+     "part": "form",
+     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
+    }
+   ]
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Frenzied Spirit",
+   "level": 49,
+   "line": "Summons a pet",
+   "desc": "",
+   "source": "Sandstorm's scroll (harvests/sandstorm-spells-20261021): Level 49 - SHA Pet Summon (its Allakhazam page, eqoaspell=536, is not archived)",
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "summon"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Savage Healing",
+   "level": 49,
+   "line": "Self, Increase HP per tic by 250, Dispel Effect, 60sec",
+   "desc": "",
+   "source": "allakhazam eqoaspell=4092, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Self Only",
+    "duration": "60 seconds",
+    "cast": "0s",
+    "recast": "1s",
+    "power": "0",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase HP per tic by 250",
+     "Dispel Effect"
+    ],
+    "url": "https://web.archive.org/web/20120206073602/http://eqoa.allakhazam.com/spell.html?eqoaspell=4092"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 60.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hptick +250"
+    ]
+   },
+   "unread": [
+    {
+     "part": "dispel effect",
+     "why": "the server takes no effect off its bearer by a spell"
+    }
+   ],
+   "hold": "an effect, not a spell cast: its page has no cast time and no power, as Tribal Healing's (what Tribal Ward fires), and as a class spell the line would be a castable self heal at its record's cost"
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Spiritual Slayer",
+   "level": 49,
+   "line": "Summons a pet",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1737, the 2004-04-28 import archived 2012-02-06, its Summon Pet in the lists' words",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "9s",
+    "recast": "60s",
+    "power": "1221",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Summon Pet"
+    ],
+    "url": "https://web.archive.org/web/20120206080101/http://eqoa.allakhazam.com/spell.html?eqoaspell=1737"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "summon"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Spiritual Warrior",
+   "level": 49,
+   "line": "Summons a pet",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1736, the 2004-04-28 import archived 2012-02-06, its Summon Pet in the lists' words",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "9s",
+    "recast": "60s",
+    "power": "1221",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Summon Pet"
+    ],
+    "url": "https://web.archive.org/web/20120206072654/http://eqoa.allakhazam.com/spell.html?eqoaspell=1736"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "summon"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Tribal Healing",
+   "level": 49,
+   "line": "Self, Increase HP per tic by 550, Dispel Effect Tribal Ward, 24sec",
+   "desc": "",
+   "source": "allakhazam eqoaspell=4038, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Self Only",
+    "duration": "24 seconds",
+    "cast": "0s",
+    "recast": "1s",
+    "power": "0",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase HP per tic by 550",
+     "Dispel Effect Tribal Ward"
+    ],
+    "url": "https://web.archive.org/web/20120206080057/http://eqoa.allakhazam.com/spell.html?eqoaspell=4038"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 24.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hptick +550"
+    ]
+   },
+   "unread": [
+    {
+     "part": "dispel effect tribal ward",
+     "why": "the server takes no effect off its bearer by a spell"
+    }
+   ],
+   "hold": "what Tribal Ward fires when its bearer is hit (Tribal Ward's page, eqoaspell=4037: \"Add Defensive Proc: Tribal Healing\"), not a spell cast: its page has no cast time and no power, and as a class spell the line would be a castable self heal at its record's cost"
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Venom Bolt",
+   "level": 49,
+   "line": "Target, Decrease HP per tic by 93, Decrease Hitpoints by 374, 24sec",
+   "desc": "",
+   "source": "allakhazam eqoaspell=542, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "24 seconds",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "393",
+    "resist": "Poison",
+    "radius": "0",
+    "effects": [
+     "Decrease HP per tic by 93",
+     "Decrease Hitpoints by 374"
+    ],
+    "url": "https://web.archive.org/web/20120206074038/http://eqoa.allakhazam.com/spell.html?eqoaspell=542"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 24.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hptick -93",
+     "hp -374"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Withering Wind",
+   "level": 49,
+   "line": "Target, Decrease STA by 55, Decrease Maximum HP by 300, Decrease AC by 261, Radius 15, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1688, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "300s",
+    "power": "500",
+    "resist": "Disease",
+    "radius": "15",
+    "effects": [
+     "Decrease STA by 55",
+     "Decrease Maximum HP by 300",
+     "Decrease AC by 261"
+    ],
+    "url": "https://web.archive.org/web/20120206075357/http://eqoa.allakhazam.com/spell.html?eqoaspell=1688"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "sta -55",
+     "maxhp -300",
+     "ac -261"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Greater Cannibalize",
+   "level": 50,
+   "line": "Self, Decrease Hitpoints by 1000, Increase Power by 250",
+   "desc": "",
+   "source": "allakhazam eqoaspell=1655, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "3s",
+    "recast": "12s",
+    "power": "0",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 1000",
+     "Increase Power by 250"
+    ],
+    "url": "https://web.archive.org/web/20120206073149/http://eqoa.allakhazam.com/spell.html?eqoaspell=1655"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -1000",
+     "power +250"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Spiritform",
+   "level": 50,
+   "line": "Self, Set Maximum HP to 0, Invulnerable, Form, 20sec",
+   "desc": "",
+   "source": "allakhazam eqoaspell=2506, the 2004-04-28 import archived 2012-02-06, its Sprite Change in the lists' word (Form of the Great Bear's Form)",
+   "page": {
+    "scope": "Self Only",
+    "duration": "20 seconds",
+    "cast": "10s",
+    "recast": "0s",
+    "power": "1000",
+    "resist": "General Melee",
+    "radius": "0",
+    "effects": [
+     "Set Maximum HP to 0",
+     "Invulnerable",
+     "Sprite Change"
+    ],
+    "url": "https://web.archive.org/web/20120206073031/http://eqoa.allakhazam.com/spell.html?eqoaspell=2506"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 20.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": []
+   },
+   "unread": [
+    {
+     "part": "set maximum hp to 0",
+     "why": "a maximum set, not raised or lowered: the reader has no such clause"
+    },
+    {
+     "part": "invulnerable",
+     "why": "the server has no invulnerability"
+    },
+    {
+     "part": "form",
+     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
+    }
+   ]
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Avatar",
+   "level": 51,
+   "line": "Target, Increase DEX by 150 ; Increase 10% based on WIS, Increase AGI by 150 ; Increase 10% based on WIS, Increase STA by 150 ; Increase 10% based on WIS, Increase STR by 150, Increase Maximum HP by 1500, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3167, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "4s",
+    "recast": "1800s",
+    "power": "330",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase DEX by 150 ; Increase 10% based on WIS",
+     "Increase AGI by 150 ; Increase 10% based on WIS",
+     "Increase STA by 150 ; Increase 10% based on WIS",
+     "Increase STR by 150",
+     "Increase Maximum HP by 1500"
+    ],
+    "url": "https://web.archive.org/web/20120206074921/http://eqoa.allakhazam.com/spell.html?eqoaspell=3167"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "dex +150 +10% wis",
+     "agi +150 +10% wis",
+     "sta +150 +10% wis",
+     "str +150",
+     "maxhp +1500"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Group Tribal Thew",
+   "level": 51,
+   "line": "Group, Increase STR by 65, Increase STA by 65, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3681, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Group",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "306",
+    "resist": "Arcane",
+    "radius": "30",
+    "effects": [
+     "Increase STR by 65",
+     "Increase STA by 65"
+    ],
+    "url": "https://web.archive.org/web/20120206075950/http://eqoa.allakhazam.com/spell.html?eqoaspell=3681"
+   },
+   "expect": {
+    "target": "group",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +65",
+     "sta +65"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Tribal Thew",
+   "level": 51,
+   "line": "Target, Increase STR by 65, Increase STA by 65, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3071, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "306",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase STR by 65",
+     "Increase STA by 65"
+    ],
+    "url": "https://web.archive.org/web/20120206074957/http://eqoa.allakhazam.com/spell.html?eqoaspell=3071"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str +65",
+     "sta +65"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Spirit's Boon",
+   "level": 54,
+   "line": "Target, Invisibility, Sow, 10min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3072, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "10 minutes",
+    "cast": "6s",
+    "recast": "5s",
+    "power": "597",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Invisibility",
+     "Increase SoW by 0"
+    ],
+    "url": "https://web.archive.org/web/20120206073145/http://eqoa.allakhazam.com/spell.html?eqoaspell=3072"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 600.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "invis",
+     "speed"
+    ]
+   },
+   "unread": [],
+   "ours": "its Increase SoW by 0 read as Spirit of the Wolf's run speed, the way the same import prints Spirit of the Wolf's own (eqoaspell=150)"
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Acumen",
+   "level": 55,
+   "line": "Target, Increase DEX by 60, Increase AGI by 60, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=2749, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "4s",
+    "recast": "1s",
+    "power": "330",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Increase DEX by 60",
+     "Increase AGI by 60"
+    ],
+    "url": "https://web.archive.org/web/20120206075648/http://eqoa.allakhazam.com/spell.html?eqoaspell=2749"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "dex +60",
+     "agi +60"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Group Acumen",
+   "level": 55,
+   "line": "Group, Increase DEX by 60, Increase AGI by 60, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3677, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Group",
+    "duration": "30 minutes",
+    "cast": "4s",
+    "recast": "1s",
+    "power": "330",
+    "resist": "Arcane",
+    "radius": "30",
+    "effects": [
+     "Increase DEX by 60",
+     "Increase AGI by 60"
+    ],
+    "url": "https://web.archive.org/web/20120206073514/http://eqoa.allakhazam.com/spell.html?eqoaspell=3677"
+   },
+   "expect": {
+    "target": "group",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "dex +60",
+     "agi +60"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Howling Spirits",
+   "level": 55,
+   "line": "Target, Decrease Hitpoints by 392 ; Increase 15% based on DEX",
+   "desc": "",
+   "source": "allakhazam eqoaspell=2751, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "Instant",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "261",
+    "resist": "Arcane",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 392 ; Increase 15% based on DEX"
+    ],
+    "url": "https://web.archive.org/web/20120206080041/http://eqoa.allakhazam.com/spell.html?eqoaspell=2751"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -392 +15% dex"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Primal Affliction",
+   "level": 57,
+   "line": "Target, Decrease STR by 50 ; Increase 15% based on WIS, Decrease DEX by 50 ; Increase 15% based on WIS, Decrease AGI by 50 ; Increase 20% based on WIS, Decrease HP per tic by 91, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3667, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "5s",
+    "power": "513",
+    "resist": "Disease",
+    "radius": "0",
+    "effects": [
+     "Decrease STR by 50 ; Increase 15% based on WIS",
+     "Decrease DEX by 50 ; Increase 15% based on WIS",
+     "Decrease AGI by 50 ; Increase 20% based on WIS",
+     "Decrease HP per tic by 91"
+    ],
+    "url": "https://web.archive.org/web/20120206072746/http://eqoa.allakhazam.com/spell.html?eqoaspell=3667"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str -50 +15% wis",
+     "dex -50 +15% wis",
+     "agi -50 +20% wis",
+     "hptick -91"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Primal Malady",
+   "level": 57,
+   "line": "Target, Decrease STR by 50 ; Increase 15% based on WIS, Decrease DEX by 50 ; Increase 15% based on WIS, Decrease AGI by 50 ; Increase 15% based on WIS, 2min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3073, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "2 minutes",
+    "cast": "3s",
+    "recast": "5s",
+    "power": "513",
+    "resist": "Disease",
+    "radius": "0",
+    "effects": [
+     "Decrease STR by 50 ; Increase 15% based on WIS",
+     "Decrease DEX by 50 ; Increase 15% based on WIS",
+     "Decrease AGI by 50 ; Increase 15% based on WIS"
+    ],
+    "url": "https://web.archive.org/web/20120206075152/http://eqoa.allakhazam.com/spell.html?eqoaspell=3073"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 120.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "str -50 +15% wis",
+     "dex -50 +15% wis",
+     "agi -50 +15% wis"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Acidic Storm",
+   "level": 60,
+   "line": "Target, Decrease HP per tic by 114, Decrease Hitpoints by 456, Radius 25, 24sec",
+   "desc": "",
+   "source": "allakhazam eqoaspell=4244, the 2004-04-28 import archived 2012-02-06",
+   "page": {
+    "scope": "Single Target",
+    "duration": "24 seconds",
+    "cast": "2s",
+    "recast": "30s",
+    "power": "780",
+    "resist": "Poison",
+    "radius": "25",
+    "effects": [
+     "Decrease HP per tic by 114",
+     "Decrease Hitpoints by 456"
+    ],
+    "url": "https://web.archive.org/web/20120206074231/http://eqoa.allakhazam.com/spell.html?eqoaspell=4244"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 24.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hptick -114",
+     "hp -456"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    10
+   ],
+   "name": "Glaciation",
+   "level": 44,
+   "line": "Target, Decrease Hitpoints by 552 ; Increase 15% based on DEX",
+   "desc": "Single target cold spell. Resisted by CR",
+   "source": "allakhazam eqoaspell=485, the 2004-04-28 import archived 2012-03-30; EQOA-Data's magician list words Conglaciation the same",
+   "ours": "Glaciation taken for Conglaciation: its record's class, level 44, cast 2, recast 3 and power 182 are that page's, and Sandstorm's scroll calls it the magician's single target ice spell",
+   "page": {
+    "scope": "Single Target",
+    "duration": "Instant",
+    "cast": "2s",
+    "recast": "3s",
+    "power": "182",
+    "resist": "Ice",
+    "radius": "0",
+    "effects": [
+     "Decrease Hitpoints by 552 ; Increase 15% based on DEX"
+    ],
+    "url": "https://web.archive.org/web/20120330052444/http://eqoa.allakhazam.com/spell.html?eqoaspell=485"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "hp -552 +15% dex"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    13
+   ],
+   "name": "O'Keil's Radiation",
+   "level": 1,
+   "line": "Self Debuff Hp by 6 Damage Shield 5min",
+   "desc": "Fire damage Shield",
+   "source": "eqoa-data wizard (Merchant), as O'Keils Radiation; allakhazam eqoaspell=393, the 2004-04-28 import archived 2012-02-06 (Add Defensive Proc: its proc, eqoaspell=394, Decrease Hitpoints by 6; 5 minutes)",
+   "page": {
+    "scope": "Self Only",
+    "duration": "5 minutes",
+    "cast": "2s",
+    "recast": "4s",
+    "power": "10",
+    "resist": "Will",
+    "radius": "0",
+    "effects": [
+     "Add Defensive Proc: O'Keils Radiation Proc"
+    ],
+    "url": "https://web.archive.org/web/20120206181139/http://eqoa.allakhazam.com/spell.html?eqoaspell=393",
+    "proc": {
+     "scope": "Single Target",
+     "duration": "Instant",
+     "cast": "0s",
+     "recast": "0s",
+     "power": "0",
+     "resist": "Fire",
+     "radius": "0",
+     "effects": [
+      "Decrease Hitpoints by 6"
+     ],
+     "url": "https://web.archive.org/web/20120206145931/http://eqoa.allakhazam.com/spell.html?eqoaspell=394"
+    }
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 300,
+    "ticks": 0,
+    "pet": "",
+    "effects": []
+   },
+   "unread": [
+    {
+     "part": "hp by 6 damage shield",
+     "why": "a damage shield: the server returns no damage to an attacker yet; the line is EQOA-Data's own for the spell, word for word, as the wizard's other record of it (O'Keils Radiation) has it"
+    }
+   ]
+  },
+  {
+   "classes": [
+    13
+   ],
+   "name": "Arcane Bindings-Wiz",
+   "level": 3,
+   "line": "Target, Root, 36sec",
+   "desc": "Root Spell",
+   "source": "eqoa-data wizard (Quest), as Arcane Bindings: Root 36 sec; allakhazam eqoaspell=27, the 2004-04-28 import archived 2012-02-06 (Set Movement Speed to 0, 36 seconds; its record's cast 3, recast 6 and power 20 are that page's)",
+   "page": {
+    "scope": "Single Target",
+    "duration": "36 seconds",
+    "cast": "3s",
+    "recast": "6s",
+    "power": "20",
+    "resist": "Will",
+    "radius": "0",
+    "effects": [
+     "Set Movement Speed to 0"
+    ],
+    "url": "https://web.archive.org/web/20120206160513/http://eqoa.allakhazam.com/spell.html?eqoaspell=27"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": true,
+    "seconds": 36,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "root"
+    ]
+   },
+   "unread": []
+  },
+  {
+   "classes": [
+    14
+   ],
+   "name": "Surefall Potion",
+   "level": 20,
+   "line": "Self, Teleport",
+   "desc": "",
+   "source": "allakhazam eqoaspell=3471, the 2004-04-28 import archived 2012-02-06 (an alchemist's)",
+   "page": {
+    "scope": "Self Only",
+    "duration": "Instant",
+    "cast": "5s",
+    "recast": "0s",
+    "power": "0",
+    "resist": "N/A",
+    "radius": "0",
+    "effects": [
+     "Teleport"
+    ],
+    "url": "https://web.archive.org/web/20120206071631/http://eqoa.allakhazam.com/spell.html?eqoaspell=3471"
+   },
+   "expect": {
+    "target": "self",
+    "harmful": false,
+    "seconds": 0,
+    "ticks": 0,
+    "pet": "",
+    "effects": []
+   },
+   "unread": [
+    {
+     "part": "teleport",
+     "why": "a teleport to a fixed place: the server has no player-cast one (its page names no place; the name says Surefall)"
+    }
+   ]
+  },
+  {
+   "classes": [
+    14
+   ],
+   "name": "Inspiration",
+   "level": 55,
+   "line": "Target, Increase AGI by 50, Increase INT by 50, Radius 15, 30min",
+   "desc": "",
+   "source": "allakhazam eqoaspell=4141, the 2004-04-28 import archived 2012-02-06 (an alchemist's)",
+   "page": {
+    "scope": "Single Target",
+    "duration": "30 minutes",
+    "cast": "3s",
+    "recast": "1s",
+    "power": "330",
+    "resist": "Arcane",
+    "radius": "15",
+    "effects": [
+     "Increase AGI by 50",
+     "Increase INT by 50"
+    ],
+    "url": "https://web.archive.org/web/20120206035244/http://eqoa.allakhazam.com/spell.html?eqoaspell=4141"
+   },
+   "expect": {
+    "target": "target",
+    "harmful": false,
+    "seconds": 1800.0,
+    "ticks": 0,
+    "pet": "",
+    "effects": [
+     "agi +50",
+     "int +50"
+    ]
+   },
+   "unread": []
+  }
+ ],
+ "none": [
+  {
+   "classes": [
+    0,
+    5,
+    12
+   ],
+   "name": "Remove Illusion",
+   "level": 6,
+   "why": "it works by its name already (illusion.go ends an illusion for Remove Illusion); EQOA-Data's general masteries (Cancels illusion/mask buffs) and Sandstorm's record (removes the current illusion on you) say no more"
+  },
+  {
+   "classes": [
+    0
+   ],
+   "name": "Iron Resolution",
+   "level": 49,
+   "why": "not in Allakhazam's archived class lists (the 2004-04-28 import); Sandstorm's scroll says Level 49 - Buff AC and its record a buff that increases the armor of your group, with no number"
+  },
+  {
+   "classes": [
+    3
+   ],
+   "name": "Shroud of Hate",
+   "level": 6,
+   "why": "not in Allakhazam's archived class lists (the 2004-04-28 import); EQOA-Data's racial masteries say SELF damage shield and its record Defensive Proc, with no number"
+  },
+  {
+   "classes": [
+    3
+   ],
+   "name": "Tormented Scream",
+   "level": 25,
+   "why": "the mastery rank (Primal Scream 1) that replaces Scream of Torment and improves its AC drain: Allakhazam has only the base rank (eqoaspell=2065, AC 45 for 5 minutes), and no source gives this one's numbers"
+  },
+  {
+   "classes": [
+    3
+   ],
+   "name": "Despairing Scream",
+   "level": 35,
+   "why": "the mastery rank (Primal Scream 2) that replaces Scream of Despair and improves its AC drain: Allakhazam has only the base rank (eqoaspell=1886, AC 85 for 5 minutes), and no source gives this one's numbers"
+  },
+  {
+   "classes": [
+    3
+   ],
+   "name": "Blessing of Valentina",
+   "level": 50,
+   "why": "not in Allakhazam's archived class lists (the 2004-04-28 import); its record says your body and mind are strengthened, with no stat or number"
+  },
+  {
+   "classes": [
+    5,
+    10
+   ],
+   "name": "Leadership",
+   "level": 6,
+   "why": "not in Allakhazam's archived class lists (the 2004-04-28 import); EQOA-Data's racial masteries say Group WIS/STA buff and its record increasing stamina and wisdom for all nearby allies, with no number"
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Spiritual Renewal",
+   "level": 20,
+   "why": "its Allakhazam page is not archived; EQOA-Data's shaman masteries say 35% reduction rez, but the druid's own pair disagrees (Nature Renewal: 40% reduction rez; Nature's Renewal's line: restore 25% experience debt), so the figure is no line's"
+  },
+  {
+   "classes": [
+    8
+   ],
+   "name": "Vessel Spirit",
+   "level": 46,
+   "why": "its page gives no effect (its one clause is Increase by 0: self, 30 seconds)"
+  },
+  {
+   "classes": [
+    10
+   ],
+   "name": "Summon: Unfiltered Water",
+   "level": 1,
+   "why": "not in Allakhazam's archived class lists (the 2004-04-28 import); it creates a drink (Sandstorm's scroll: drinks that give PoT out of combat), and no drink of its name is an item here, only its scroll, whose name is the spell's: a summoning finds the item by its name, else by the spell's (handlers/potion.go), so a line would hand out the scroll"
+  },
+  {
+   "classes": [
+    10
+   ],
+   "name": "Enduring Motivate",
+   "level": 5,
+   "why": "the mastery rank of Motivate: Allakhazam has only the plain rank (eqoaspell=467, STR and DEX 10 for 5 minutes on the pet), and its record's words (dexterity, strength, stamina and healing over time, modified by AGI) give no number"
+  },
+  {
+   "classes": [
+    10
+   ],
+   "name": "Summon: Weak Ale",
+   "level": 8,
+   "why": "not in Allakhazam's archived class lists (the 2004-04-28 import); it creates a drink (Sandstorm's scroll: drinks that give PoT out of combat), and no drink of its name is an item here, only its scroll, whose name is the spell's: a summoning finds the item by its name, else by the spell's (handlers/potion.go), so a line would hand out the scroll"
+  },
+  {
+   "classes": [
+    10
+   ],
+   "name": "Summon: Citrus Mixture",
+   "level": 16,
+   "why": "not in Allakhazam's archived class lists (the 2004-04-28 import); it creates a drink (Sandstorm's scroll: drinks that give PoT out of combat), and no drink of its name is an item here, only its scroll, whose name is the spell's: a summoning finds the item by its name, else by the spell's (handlers/potion.go), so a line would hand out the scroll"
+  },
+  {
+   "classes": [
+    10
+   ],
+   "name": "Summon: Ginger root ale",
+   "level": 24,
+   "why": "not in Allakhazam's archived class lists (the 2004-04-28 import); it creates a drink (Sandstorm's scroll: drinks that give PoT out of combat), and no drink of its name is an item here, only its scroll, whose name is the spell's: a summoning finds the item by its name, else by the spell's (handlers/potion.go), so a line would hand out the scroll"
+  },
+  {
+   "classes": [
+    10
+   ],
+   "name": "Summon: Bitter draft",
+   "level": 44,
+   "why": "not in Allakhazam's archived class lists (the 2004-04-28 import); it creates a drink (Sandstorm's scroll: drinks that give PoT out of combat), and no drink of its name is an item here, only its scroll, whose name is the spell's: a summoning finds the item by its name, else by the spell's (handlers/potion.go), so a line would hand out the scroll"
+  },
+  {
+   "classes": [
+    12
+   ],
+   "name": "Arcane Beckon",
+   "level": 15,
+   "why": "not in Allakhazam's archived class lists (the 2004-04-28 import); its record says increasing charisma, with no number: the server's own default line (spelltext.go defaultSpellLines, CHA 15 for 30 minutes, ours) stands in"
+  },
+  {
+   "classes": [
+    14
+   ],
+   "name": "Create Transformative",
+   "level": 60,
+   "why": "no Allakhazam page is archived (eqoaspell=4060), and EQOA-Data's alchemist list says Unknown"
+  },
+  {
+   "classes": [
+    14
+   ],
+   "name": "Serpent's Heart",
+   "level": 60,
+   "why": "no Allakhazam page is archived (eqoaspell=2825), and EQOA-Data's alchemist list says Unknown"
+  }
+ ]
+}

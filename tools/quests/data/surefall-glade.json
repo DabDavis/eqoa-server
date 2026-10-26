@@ -117,7 +117,7 @@
      "items": [
       {
        "item": "sliver of bat meat",
-       "count": 1
+       "count": 3
       }
      ],
      "count": 3,
@@ -245,7 +245,7 @@
     }
    ],
    "unresolved": [
-    "npc: Falwyn Breen"
+    "Falwyn Breen"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The database has no ants or firebeetles near Surefall Glade: the nearest are by Qeynos, some 6,000 away, so the glade's newbie yard needs spawns for this quest to be close to home. The crafted glade staff is the database's level 4 druid weapon of Surefall's quest items (the guide does not name it)."
   },
@@ -274,7 +274,7 @@
      "items": [
       {
        "item": "shambler's eye",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -301,7 +301,7 @@
     }
    ],
    "unresolved": [
-    "creature: Surefall Shambler"
+    "Surefall Shambler"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 5; github.com/Jadiction/EQOA-Data). Two eyes is ours. The Snare scroll is the class's level 5 spell, the scroll the guides that name one give for this quest. It follows L3: L4 before it is a draft until its names are in the database."
   },
@@ -347,7 +347,8 @@
         }
        ]
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "give",
@@ -379,7 +380,8 @@
        "do": "popup",
        "text": "You set the ward stone in the center of the standing stones. It hums with druidic power."
       }
-     ]
+     ],
+     "world": 0
     },
     {
      "kind": "talk",
@@ -509,8 +511,8 @@
     }
    ],
    "unresolved": [
-    "creature: Gnoll Champion",
-    "creature: Gnoll Shaman Forager"
+    "Gnoll Champion",
+    "Gnoll Shaman Forager"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 10; github.com/Jadiction/EQOA-Data). Vendilion is the database's Vedilion Brithstar. The herbs are the database's sack of wild herbs and sack of purified herbs."
   },
@@ -910,7 +912,7 @@
     }
    ],
    "unresolved": [
-    "creature: Gugluk"
+    "Gugluk"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/druid.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. The abomination's shackles are the database's abomination's hide, its quest item for the abomination. Gugluk, the froglok shaman with the rare herb, is not in the database. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Enkindle and the Tree Shroud, or Creeping Health and the Dark Oak Staff.)"
   },
@@ -1030,7 +1032,7 @@
      "items": [
       {
        "item": "piece of badger meat",
-       "count": 1
+       "count": 3
       }
      ],
      "count": 3,
@@ -1161,7 +1163,7 @@
     }
    ],
    "unresolved": [
-    "creature: firefly"
+    "firefly"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The fractured snake fang is the database's cracked snake fang. The database has no grass vipers near Surefall Glade: the nearest are by Qeynos, some 6,000 away, so the glade's newbie yard needs spawns for this quest to be close to home. The guide does not name the bow, so none is given."
   },
@@ -1217,7 +1219,7 @@
     }
    ],
    "unresolved": [
-    "creature: Surefall Shambler"
+    "Surefall Shambler"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 5; github.com/Jadiction/EQOA-Data). The Forage Berries scroll is the class's level 5 spell, the scroll the guides that name one give for this quest. It follows L3: L4 before it is a draft until its names are in the database."
   },
@@ -1295,9 +1297,8 @@
     }
    ],
    "unresolved": [
-    "creature: Gnoll Runner",
-    "npc: Aieari Scoutmaster",
-    "npc: Gnoll Runner"
+    "Gnoll Runner",
+    "Aieari Scoutmaster"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 7; github.com/Jadiction/EQOA-Data). The bracers of the glade are the database's level 7 ranger reward of Surefall's quest items. The Tangling Weeds scroll is the class's level 7 spell, the scroll the guides that name one give for this quest. It follows L3: L4, L5 before it are drafts until its names are in the database."
   },
@@ -1436,8 +1437,8 @@
     }
    ],
    "unresolved": [
-    "creature: Gilthar",
-    "npc: Guard Gaffy"
+    "Gilthar",
+    "Guard Gaffy"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 10; github.com/Jadiction/EQOA-Data). Ranger Gaffy is Guard Gaffy in the guide; neither he nor the outcast rangers Gilthar and Brombar are in the database (either one's blade is enough). The shortsword of the glade is the database's level 10 ranger reward of Surefall's quest items. It follows L3: L4, L5, L7 before it are drafts until its names are in the database."
   },
@@ -1854,7 +1855,7 @@
     }
    ],
    "unresolved": [
-    "creature: Gugluk"
+    "Gugluk"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/surefall-glade/ranger.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. Sigmor Felborne is Sigmor Fallbourne. The abomination's shackles are the database's abomination's hide, its quest item for the abomination. Gugluk, the froglok shaman with the rare herb, is not in the database. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Sparrow Eye and the Oak Handled Scimitar, or Strikeblade and the Pine Spirit.)"
   }

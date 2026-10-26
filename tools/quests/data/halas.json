@@ -117,7 +117,7 @@
      "items": [
       {
        "item": "Strands of Rat Fur",
-       "count": 1
+       "count": 3
       }
      ],
      "count": 3,
@@ -353,8 +353,8 @@
     }
    ],
    "unresolved": [
-    "creature: Freezeblood Icecrusher",
-    "creature: Freezeblood Icemaster"
+    "Freezeblood Icecrusher",
+    "Freezeblood Icemaster"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 7; github.com/Jadiction/EQOA-Data). Misty Trailer is the database's Armorer Misty Traer at Ferris McDougal's camp. The Furious Defense scroll is what the other cities' warrior guides give at level 7."
   },
@@ -586,7 +586,7 @@
      "items": [
       {
        "item": "Salmon",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -628,8 +628,8 @@
     }
    ],
    "unresolved": [
-    "creature: Salmon",
-    "npc: Pratcher"
+    "Salmon",
+    "Pratcher"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Life Path: Blade of War and Pillar of Might; Strength Path: Bellow and a Sword of Rage.) Eldar Joram is Elder Joram."
   },
@@ -749,7 +749,7 @@
      "items": [
       {
        "item": "small spider eye",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -825,7 +825,7 @@
      "items": [
       {
        "item": "chipped raven beak",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -995,7 +995,7 @@
      "items": [
       {
        "item": "Strand of Spider Silk",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -1019,7 +1019,7 @@
     }
    ],
    "unresolved": [
-    "creature: Ice Spider Queen"
+    "Ice Spider Queen"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). Reward left out (not in the database): item The Slicer's Special."
   },
@@ -1048,7 +1048,7 @@
      "items": [
       {
        "item": "Freezeblood Battle Plans",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -1075,8 +1075,8 @@
     }
    ],
    "unresolved": [
-    "creature: Freezeblood Captain",
-    "npc: Iron Eagle"
+    "Freezeblood Captain",
+    "Iron Eagle"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 13; github.com/Jadiction/EQOA-Data). It follows L7: L10 before it is a draft until its names are in the database."
   },
@@ -1147,8 +1147,8 @@
     }
    ],
    "unresolved": [
-    "creature: Numla",
-    "npc: Iron Eagle"
+    "Numla",
+    "Iron Eagle"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 15; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Shwandy McKibbin is Shawndy McKibbin. It follows L7: L10, L13 before it are drafts until its names are in the database. Reward left out (not in the database): item Raven Stalkers."
   },
@@ -1217,7 +1217,7 @@
      "items": [
       {
        "item": "Salmon",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -1281,8 +1281,8 @@
     }
    ],
    "unresolved": [
-    "creature: Salmon",
-    "npc: Iron Eagle"
+    "Salmon",
+    "Iron Eagle"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Defensive or offensive, the offensive a backstab.) Bren Raven is Brenn Raven. It follows L7: L10, L13, L15 before it are drafts until its names are in the database."
   },
@@ -1402,7 +1402,7 @@
      "items": [
       {
        "item": "Strands of Rat Fur",
-       "count": 1
+       "count": 3
       }
      ],
      "count": 3,
@@ -1478,7 +1478,7 @@
      "items": [
       {
        "item": "small spider eye",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -1578,7 +1578,7 @@
      "items": [
       {
        "item": "Steel Bar",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -1605,7 +1605,7 @@
     }
    ],
    "unresolved": [
-    "creature: Freezeblood Horde"
+    "Freezeblood Horde"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 7; github.com/Jadiction/EQOA-Data). The Minor Malady scroll is the class's level 7 spell, the scroll the guides that name one give for this quest."
   },
@@ -1640,7 +1640,7 @@
      "items": [
       {
        "item": "White Owl Feather",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -1697,7 +1697,7 @@
      "items": [
       {
        "item": "Tribunal Ring",
-       "count": 1
+       "count": 3
       }
      ],
      "count": 3,
@@ -1829,7 +1829,7 @@
      "items": [
       {
        "item": "Salmon",
-       "count": 1
+       "count": 2
       }
      ],
      "count": 2,
@@ -1871,7 +1871,7 @@
     }
    ],
    "unresolved": [
-    "creature: Salmon"
+    "Salmon"
    ],
    "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (A one-handed weapon and a pet buff, or a two-handed spear and Decaying Wind.) The guide says 2 million XP; the other cities' level 20 guides give 2,814,929."
   }

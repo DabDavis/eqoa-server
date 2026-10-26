@@ -30,7 +30,8 @@ import (
 // Death debuffs and Disable/Harm/Destroy Undead), or a charm whose name or
 // description says undead (the necromancer's Charm, Command, Control and
 // Coerce Undead: "CM: Charm an Undead.", their lines a plain "Target, Charm
-// ; Increase 25% based on CHA"). Cast at a creature that is not undead it is
+// ; Increase 25% based on CHA"), or a harmful spell whose name ends "Undead"
+// (Annihilate Undead). Cast at a creature that is not undead it is
 // refused at its start with castNotUndead in red (EverQuest's words: no
 // recording of the live game's refusal exists), a brief cast (the fizzle a
 // refused charm makes) and no power taken, no lockout. An undead-only charm
@@ -96,6 +97,12 @@ func (d *SpellDef) readUndead(name, desc string) {
 		return
 	}
 	if d.Charms() && (strings.Contains(strings.ToLower(name), "undead") || strings.Contains(strings.ToLower(desc), "undead")) {
+		d.UndeadOnly = true
+	}
+	// a harmful spell named for the undead: Annihilate Undead, the last rank of
+	// the cleric's Undead line (area.go), whose line in EQOA-Data's list says
+	// "Target," where its ranks' say "Target undead" (jib's review, F3 pass 19)
+	if d.Harmful && strings.HasSuffix(strings.ToLower(strings.TrimSpace(name)), " undead") {
 		d.UndeadOnly = true
 	}
 }

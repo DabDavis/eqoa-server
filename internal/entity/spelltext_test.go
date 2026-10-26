@@ -38,6 +38,15 @@ func TestParseSpellText(t *testing.T) {
 			SpellDef{Target: TargetSingle, Duration: 30 * time.Minute, Effects: []SpellEffect{
 				{Kind: EffectStat, Stat: StatFR, Amount: 20, AmountMax: 20},
 				{Kind: EffectStat, Stat: StatCR, Amount: 20, AmountMax: 20, Scale: StatWis, ScalePct: 15}}}},
+		// "Resist Ice" is cold resist, named once or for a list (the wizard's
+		// Element Guard; jib's review, F3 pass 19): without it both were unread
+		{"Self, Increase Resist Ice by 30, 10min",
+			SpellDef{Target: TargetSelf, Duration: 10 * time.Minute, Effects: []SpellEffect{
+				{Kind: EffectStat, Stat: StatCR, Amount: 30, AmountMax: 30}}}},
+		{"Target, Increase Resist Fire & Ice by 45",
+			SpellDef{Target: TargetSingle, Duration: buffDuration, Effects: []SpellEffect{
+				{Kind: EffectStat, Stat: StatFR, Amount: 45, AmountMax: 45},
+				{Kind: EffectStat, Stat: StatCR, Amount: 45, AmountMax: 45}}}},
 		{"Target, Decrease Hitpoints by 12 and roots, 30sec",
 			SpellDef{Target: TargetSingle, Duration: 30 * time.Second, Harmful: true, Effects: []SpellEffect{
 				{Kind: EffectRoot},

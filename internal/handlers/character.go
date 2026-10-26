@@ -88,11 +88,6 @@ func raceUseForWire(mask int) int {
 	return mask
 }
 
-// humanTypeEast is the "Humans of the east" city index. IsValidRaceClassCityCombo
-// hardcodes class mask 0x7E69 for it, and city is a human-only concept — every
-// other race reads its own mask and ignores the field.
-const humanTypeEast = 1
-
 // FrogloklModelID is the CHAR.ESF CSprite the froglok renders as in-world. There
 // is no female froglok, so both sexes use it. It is deliberately NOT in any
 // CHARSEL container, so the character create/select screens cannot draw it —
@@ -141,7 +136,6 @@ type CharacterHandler struct {
 	gameWorld      *entity.World
 	inventoryStore *database.InventoryStore
 	spellbookStore *database.SpellbookStore
-	defaults       *database.DefaultCharacterStore
 	// gearSets sends the session's weapon sets at world entry
 	// (EquipHandler.SendGearSets, gearsets.go)
 	gearSets func(*session.Session)
@@ -154,7 +148,6 @@ func NewCharacterHandler(store *database.SQLiteCharacterStore, sessionManager *s
 		sessionManager: sessionManager,
 		inventoryStore: invStore,
 		spellbookStore: spellStore,
-		defaults:       database.NewDefaultCharacterStore(store.DB()),
 	}
 
 	// Log existing characters
@@ -356,11 +349,10 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 		TotalTP:      20,
 	}
 
-	h.applyFrogloklSpawn(record)
-
-	// Save to database, at the start level and with the class's spells when
-	// the server gives them (database/newchar.go): the level the message
-	// carried is not taken
+	// Save to database, at the start level, in the home city (a froglok in
+	// a human of the east's) and with its class's first abilities or, when
+	// the server gives them, all its class's spells (database/newchar.go):
+	// the level the message carried is not taken
 	spells, err := h.store.CreateNew(record)
 	if err != nil && record.ServerID == 0 {
 		if err == database.ErrCharacterExists {
@@ -389,36 +381,6 @@ func (h *CharacterHandler) HandleCreateCharacter(sess *session.Session, msg *pro
 	h.SendCharacterSelectEQOA(sess)
 
 	return nil
-}
-
-// applyFrogloklSpawn gives a newly created froglok Human East's start point.
-//
-// Scoped to race 10 on purpose. The defaultcharacter table is loaded at startup
-// but GetDefaults has no callers, so today EVERY race is created at (0,0,0) and
-// world 0; switching that on for all ten existing races is a separate change
-// with its own blast radius. Race 10 has no rows of its own and the whole point
-// of stage 1 is that it borrows Human East, so it reads race 0 / humType 1.
-func (h *CharacterHandler) applyFrogloklSpawn(record *database.CharacterRecord) {
-	if record.Race != int(RaceFroglok) || h.defaults == nil {
-		return
-	}
-	d := h.defaults.GetDefaults(record.TClass, int(RaceHuman), humanTypeEast)
-	if d == nil {
-		log.Printf("CreateCharacter: no defaultcharacter row for Human East class %d; "+
-			"froglok '%s' spawns at the origin", record.TClass, record.CharName)
-		return
-	}
-	// Human East is missing a Cleric (class 9) row, so GetDefaults' fallback can
-	// hand back a Western row. Say so rather than spawning silently in the wrong city.
-	if d.HumType != humanTypeEast {
-		log.Printf("CreateCharacter: Human East has no class %d row; froglok '%s' "+
-			"falls back to humType %d", record.TClass, record.CharName, d.HumType)
-	}
-	record.X, record.Y, record.Z = d.X, d.Y, d.Z
-	record.Facing = d.Facing
-	record.World = d.World
-	log.Printf("CreateCharacter: froglok '%s' spawning at Human East (%.1f, %.1f, %.1f) world %d",
-		record.CharName, d.X, d.Y, d.Z, d.World)
 }
 
 // getModelID returns the model ID for a race/gender combination

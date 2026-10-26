@@ -309,7 +309,8 @@ func (s *Server) Join(name, group string, sink Sink) uint32 {
 		return 0
 	}
 	id := s.newIDLocked()
-	p := &peer{id: id, name: name, ch: chans{group}, sink: sink, sigs: make(chan sig, 32)}
+	// rosterSent none yet: its first roster goes, empty or not
+	p := &peer{id: id, name: name, ch: chans{group}, sink: sink, sigs: make(chan sig, 32), rosterSent: "\x00"}
 	s.peers[id] = p
 	s.wg.Add(1)
 	go s.runPeer(p)

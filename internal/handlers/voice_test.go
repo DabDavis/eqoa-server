@@ -9,6 +9,7 @@ import (
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/voice"
 )
 
 // opsQueued is the opcodes queued for s, in order.
@@ -22,13 +23,18 @@ func opsQueued(s *session.Session) []protocol.GameOpcode {
 	return out
 }
 
-// A server with voice offers it at the world entry (0x7E06, a u32 1), one
+// A server with voice offers it at the world entry (0x7E10, a u32 1), one
 // without offers nothing; a client that never answers (a PS2) is sent
-// nothing more however long it plays, and one that answers 1 gets its
-// credentials and its peers.
+// nothing more however long it plays, and one that answers 1 gets its ICE
+// servers and its roster.
 func TestVoiceIsOfferedAndOnlySentToAClientThatAsks(t *testing.T) {
 	tw := newTalkWorld(t, 25403, 15725)
-	tw.w.SetVoice(entity.VoiceSettings{TurnURLs: []string{"turn:203.0.113.5:3479?transport=udp"}, Secret: "a-test-secret-only"})
+	srv, err := voice.New(voice.Config{BindIP: "127.0.0.1", PublicIP: "127.0.0.1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer srv.Close()
+	tw.w.SetVoice(entity.VoiceSettings{SFU: srv})
 	defer SetVoiceOffered(false)
 
 	SetVoiceOffered(false)
@@ -47,7 +53,7 @@ func TestVoiceIsOfferedAndOnlySentToAClientThatAsks(t *testing.T) {
 		tw.w.Tick(time.Now())
 	}
 	for _, op := range opsQueued(tw.s) {
-		if op == protocol.OpcodeVoiceConfig || op == protocol.OpcodeVoicePeers || op == protocol.OpcodeVoiceSignal {
+		if op >= protocol.OpcodeVoiceOffer && op <= protocol.OpcodeVoiceRoomState {
 			t.Fatalf("a client that never asked was sent %v", op)
 		}
 	}
@@ -59,8 +65,26 @@ func TestVoiceIsOfferedAndOnlySentToAClientThatAsks(t *testing.T) {
 	if err := h.HandleVoiceOn(tw.s, msg); err != nil {
 		t.Fatal(err)
 	}
-	got := opsQueued(tw.s)
-	if len(got) != 2 || got[0] != protocol.OpcodeVoiceConfig || got[1] != protocol.OpcodeVoicePeers {
-		t.Fatalf("voice on: sent %v, want the config and the peers", got)
+	got := map[protocol.GameOpcode]int{}
+	for _, op := range opsQueued(tw.s) {
+		got[op]++
+	}
+	if got[protocol.OpcodeVoiceConfig] != 1 || got[protocol.OpcodeVoiceRoster] != 1 {
+		t.Fatalf("voice on: sent %v, want the ICE servers and the roster", got)
+	}
+}
+
+// A room's name is refused for a word the chat masks or a root a
+// character's name may not carry; fair names that hold such letters pass.
+func TestProfaneRoomName(t *testing.T) {
+	for _, n := range []string{"Fuck Club", "the ass room", "Shitlord Hall", "BITCHES"} {
+		if !ProfaneRoomName(n) {
+			t.Errorf("%q passed", n)
+		}
+	}
+	for _, n := range []string{"Bass Players", "Assist Squad", "Hancock's Inn", "Cockatrice Hunters", "Freeport Docks"} {
+		if ProfaneRoomName(n) {
+			t.Errorf("%q refused", n)
+		}
 	}
 }

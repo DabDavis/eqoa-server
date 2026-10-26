@@ -24,6 +24,7 @@ import (
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 	"github.com/eqoa/server/internal/spellfx"
+	"github.com/eqoa/server/internal/voice"
 	"github.com/eqoa/server/internal/worlds"
 )
 
@@ -258,19 +259,34 @@ func main() {
 	handlers.SetMaxEntitySlots(cfg.World.MaxEntitySlots)
 	handlers.SetMaxViewDistance(cfg.World.MaxViewDistance)
 
-	// Group voice chat (entity/voice.go): relay-only through the TURN server
-	// config.yaml's voice names, credentials minted per session here
+	// Voice chat (internal/voice): the forwarding server every voice-on
+	// client connects to, on its own media port, with an optional TURN server
+	var voiceSrv *voice.Server
 	if v := cfg.Voice; v.Enabled {
-		if len(v.TurnURLs) == 0 || v.TurnSecret == "" {
-			log.Printf("Voice: enabled but voice.turn_urls or voice.turn_secret is empty; voice is OFF")
+		port, public := v.Port, v.PublicIP
+		if port == 0 {
+			port = 3480
+		}
+		if public == "" {
+			public = cfg.Server.ServerIP
+		}
+		var err error
+		voiceSrv, err = voice.New(voice.Config{
+			BindIP: cfg.Server.BindAddress, PublicIP: public, Port: port,
+			TURN: voice.TURNConfig{Port: v.TURN.Port, Secret: v.TURN.Secret, Realm: v.TURN.Realm,
+				RelayMinPort: v.TURN.RelayMinPort, RelayMaxPort: v.TURN.RelayMaxPort},
+			RefuseRoom: handlers.ProfaneRoomName,
+		})
+		if err != nil {
+			log.Printf("Voice: %v; voice is OFF", err)
 		} else {
 			ttl := v.CredentialTTL
 			if ttl <= 0 {
 				ttl = entity.DefaultVoiceTTL
 			}
-			gameWorld.SetVoice(entity.VoiceSettings{TurnURLs: v.TurnURLs, Secret: v.TurnSecret, TTL: ttl})
+			gameWorld.SetVoice(entity.VoiceSettings{SFU: voiceSrv, TurnURLs: voiceSrv.TURNURLs(), Secret: voiceSrv.TURNSecret(), TTL: ttl})
 			handlers.SetVoiceOffered(true)
-			log.Printf("Voice: group voice on, %d TURN URLs, credentials for %v", len(v.TurnURLs), ttl)
+			log.Printf("Voice: forwarding on %s:%d (UDP and TCP), TURN %v", public, voiceSrv.Port(), voiceSrv.TURNURLs() != nil)
 		}
 	}
 	log.Printf("Entity view: up to %d within %d for a client that keeps more than 24 within 300",
@@ -420,6 +436,12 @@ func main() {
 	// the community spell-visual page's list and form (internal/spellfx):
 	// anyone may suggest a spell's visual; GMs accept one in the panel
 	accountServer.SpellFX = spellfx.New(db)
+	// the voice demo's way in (internal/voice/demo.go), for clients on a
+	// server that offers no voice
+	if voiceSrv != nil && cfg.Voice.Demo.Enabled {
+		accountServer.VoiceDemo = voice.NewDemo(voiceSrv, voice.DemoConfig{MaxSessions: cfg.Voice.Demo.MaxSessions, TTL: cfg.Voice.CredentialTTL})
+		log.Printf("Voice: the demo on the account server's /api/voice/demo")
+	}
 
 	if err := accountServer.Start(); err != nil {
 		log.Fatalf("Failed to start account server: %v", err)
@@ -539,6 +561,11 @@ func main() {
 	// Every client told first (0x07C0: the game back at its login with the
 	// shutdown notice), then everyone in the world saved as at a logout: their
 	// positions and their spell effects.
+	// voice first: its byes ride the flush NoticeShutdown makes (a client
+	// offers again to the server that comes back)
+	if voiceSrv != nil {
+		voiceSrv.Close()
+	}
 	udpListener.NoticeShutdown()
 	udpListener.SaveAll()
 

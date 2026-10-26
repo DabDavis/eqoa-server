@@ -359,34 +359,48 @@ const (
 	// has no bar.
 	OpcodePowerBarsData GameOpcode = 0x7E02
 
-	// Group voice chat (entity/voice.go, handlers/voice.go), relay-only
-	// through the server's TURN (coturn), its signaling over the game's
-	// connection. Strings are a u16 byte length and UTF-8. No retail message
-	// has any of them: a PS2 ignores the offer and never asks.
+	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
+	// block of their own; a PS2 ignores them. Strings are a u16 byte length
+	// and UTF-8.
 	//
 	// OpcodeVoiceOffer: a u32 after the opcode. The server offers voice (1)
-	// once the player is in the world, when it has one; a client answers 1
-	// (voice on) or 0 (off), at once and whenever its option changes.
-	OpcodeVoiceOffer GameOpcode = 0x7E06
+	// at the first 0x0014; a client answers with flags, bit 0 voice on (0
+	// off), at once and whenever they change.
+	OpcodeVoiceOffer GameOpcode = 0x7E10
 
 	// OpcodeVoiceConfig, server to a client whose voice is on: a u8 count of
-	// ICE servers, each a url, a username and a credential (coturn's REST
-	// credentials: "<unix expiry>:<id>" and base64 HMAC-SHA1 of it under the
-	// TURN secret), then a u32 of seconds they last; sent again before then.
-	OpcodeVoiceConfig GameOpcode = 0x7E07
+	// ICE servers, each a url, a username and a credential (this server's
+	// TURN, when it has one, with REST credentials: "<unix expiry>:v<voice
+	// id>" and base64 HMAC-SHA1 of it under the TURN secret; none: 0), then a
+	// u32 of seconds they last; sent again before then.
+	OpcodeVoiceConfig GameOpcode = 0x7E11
 
-	// OpcodeVoicePeers, server to a client whose voice is on, whenever the set
-	// changes: a u8 count, then each other voice-on member of its group as a
-	// u32 voice id, a name and a u8 that is 1 where this client makes the offer
-	// (the lower voice id offers).
-	OpcodeVoicePeers GameOpcode = 0x7E08
+	// OpcodeVoiceRoster, server to a client whose voice is on, whenever it
+	// changes: a u8 count, then each it may hear as a u32 voice id, a name and
+	// a u8 of channels (bit 0 a groupmate, bit 1 in its room). Empty when its
+	// voice goes off.
+	OpcodeVoiceRoster GameOpcode = 0x7E12
 
-	// OpcodeVoiceSignal, both ways: a u32 voice id (to, client to server;
-	// from, server to client), a u32 seq, a u8 kind (1 offer, 2 answer, 3 ICE
-	// candidate, 4 bye), a u16 part and u16 parts, and a chunk of at most 900
-	// bytes of the message (clients reassemble by id and seq). Relayed only
-	// between two voice-on members of one group.
-	OpcodeVoiceSignal GameOpcode = 0x7E09
+	// OpcodeVoiceSignal, both ways, between a client and the forwarding
+	// server: a u32 seq (the sender's message number), a u8 kind (1 offer,
+	// client to server; 2 answer; 3 ICE candidate, JSON; 4 bye), a u16 part
+	// and u16 parts, and a chunk of at most 900 bytes (reassembled by seq).
+	OpcodeVoiceSignal GameOpcode = 0x7E13
+
+	// OpcodeVoiceRoom, client to server: a u8 op, 1 join (a room's name, its
+	// lock's H or empty, a u8 of flags: bit 0 unlisted, for the join that
+	// makes it), 2 leave, 3 list.
+	OpcodeVoiceRoom GameOpcode = 0x7E14
+
+	// OpcodeVoiceLobby, server to client after a list and after its own join
+	// or leave: a u16 count, then each listed room's name, a u16 of members
+	// and a u8, 1 when it is locked; most members first, at most 200.
+	OpcodeVoiceLobby GameOpcode = 0x7E15
+
+	// OpcodeVoiceRoomState, server to client after a join or a leave: a u8
+	// result (0 in the room, 1 wrong password, 2 name refused, 3 left) and the
+	// room's name.
+	OpcodeVoiceRoomState GameOpcode = 0x7E16
 )
 
 // =============================================================================
@@ -613,10 +627,16 @@ func (op GameOpcode) String() string {
 		return "VoiceOffer"
 	case OpcodeVoiceConfig:
 		return "VoiceConfig"
-	case OpcodeVoicePeers:
-		return "VoicePeers"
+	case OpcodeVoiceRoster:
+		return "VoiceRoster"
 	case OpcodeVoiceSignal:
 		return "VoiceSignal"
+	case OpcodeVoiceRoom:
+		return "VoiceRoom"
+	case OpcodeVoiceLobby:
+		return "VoiceLobby"
+	case OpcodeVoiceRoomState:
+		return "VoiceRoomState"
 	default:
 		return "Unknown"
 	}

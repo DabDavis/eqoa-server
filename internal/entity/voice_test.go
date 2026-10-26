@@ -6,21 +6,50 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/voice"
 )
 
-// Group voice (voice.go) on the assist world (assist_test.go): the asker and
-// the leader grouped, and a third player of no group.
+// Voice's game half (voice.go) on the assist world (assist_test.go): the
+// asker and the leader, grouped, and a third player of no group, against a
+// real forwarding server (no media here: internal/voice's tests have that)
+// whose signals are recorded.
 
-// testVoice is a voice of made-up URLs and secret.
-var testVoice = VoiceSettings{
-	TurnURLs: []string{"turn:203.0.113.5:3479?transport=udp", "turn:203.0.113.5:3479?transport=tcp"},
-	Secret:   "a-test-secret-only",
-	TTL:      2 * time.Hour,
+// recSFU is the forwarding server with its signals and leaves recorded.
+type recSFU struct {
+	*voice.Server
+	mu     sync.Mutex
+	sigs   []recSig
+	leaves []recLeave
+}
+
+type recSig struct {
+	id   uint32
+	kind byte
+	text string
+}
+
+type recLeave struct {
+	id  uint32
+	bye bool
+}
+
+func (r *recSFU) Signal(id uint32, kind byte, text string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.sigs = append(r.sigs, recSig{id, kind, text})
+}
+
+func (r *recSFU) Leave(id uint32, bye bool) {
+	r.mu.Lock()
+	r.leaves = append(r.leaves, recLeave{id, bye})
+	r.mu.Unlock()
+	r.Server.Leave(id, bye)
 }
 
 var voiceT0 = time.Unix(1_800_000_000, 0)
@@ -45,44 +74,50 @@ func drainVoice(ss ...*session.Session) {
 // voiceStr reads a voice string (u16 length, UTF-8) off b.
 func voiceStr(t *testing.T, b []byte) (string, []byte) {
 	t.Helper()
-	if len(b) < 2 {
+	s, rest, ok := readVoiceString(b)
+	if !ok {
 		t.Fatalf("no string in %x", b)
 	}
-	n := int(binary.LittleEndian.Uint16(b))
-	if len(b) < 2+n {
-		t.Fatalf("a %d-byte string in %d bytes", n, len(b)-2)
-	}
-	return string(b[2 : 2+n]), b[2+n:]
+	return s, rest
 }
 
-type peerRow struct {
+type rosterRow struct {
 	id       uint32
 	name     string
-	offerer  bool
 	channels byte
 }
 
-// peersOf decodes an OpcodeVoicePeers body.
-func peersOf(t *testing.T, b []byte) []peerRow {
+// rosterOf decodes a 0x7E12 body.
+func rosterOf(t *testing.T, b []byte) []rosterRow {
 	t.Helper()
 	n := int(b[0])
 	b = b[1:]
-	var out []peerRow
+	out := []rosterRow{}
 	for i := 0; i < n; i++ {
 		id := binary.LittleEndian.Uint32(b)
 		name, rest := voiceStr(t, b[4:])
-		out = append(out, peerRow{id, name, rest[0] == 1, rest[1]})
-		b = rest[2:]
+		out = append(out, rosterRow{id, name, rest[0]})
+		b = rest[1:]
 	}
 	if len(b) != 0 {
-		t.Fatalf("%d bytes past the peers", len(b))
+		t.Fatalf("%d bytes past the roster", len(b))
 	}
 	return out
 }
 
+// lastRoster is the last roster queued for s (nil: none).
+func lastRoster(t *testing.T, s *session.Session) []rosterRow {
+	t.Helper()
+	got := voiceMsgs(s, protocol.OpcodeVoiceRoster)
+	if len(got) == 0 {
+		return nil
+	}
+	return rosterOf(t, got[len(got)-1])
+}
+
 type iceRow struct{ url, user, cred string }
 
-// configOf decodes an OpcodeVoiceConfig body.
+// configOf decodes a 0x7E11 body.
 func configOf(t *testing.T, b []byte) ([]iceRow, uint32) {
 	t.Helper()
 	n := int(b[0])
@@ -101,19 +136,30 @@ func configOf(t *testing.T, b []byte) ([]iceRow, uint32) {
 	return out, binary.LittleEndian.Uint32(b)
 }
 
-// newVoiceWorld is the assist world with voice, its two grouped, and a third
-// player of no group on its own session.
-func newVoiceWorld(t *testing.T) (*assistWorld, *session.Session, *Player) {
+// newVoiceWorld is the assist world, grouped, with a recorded forwarding
+// server and a third player of no group on its own session.
+func newVoiceWorld(t *testing.T, turn bool) (*assistWorld, *recSFU, *session.Session, *Player) {
 	t.Helper()
 	aw := newAssistWorld(t)
 	aw.group()
-	aw.w.SetVoice(testVoice)
+	srv, err := voice.New(voice.Config{BindIP: "127.0.0.1", PublicIP: "127.0.0.1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(srv.Close)
+	rec := &recSFU{Server: srv}
+	v := VoiceSettings{SFU: rec}
+	if turn {
+		v.TurnURLs = []string{"turn:203.0.113.5:3481?transport=udp", "turn:203.0.113.5:3481?transport=tcp"}
+		v.Secret, v.TTL = "a-test-secret-only", 2*time.Hour
+	}
+	aw.w.SetVoice(v)
 	c := &Player{ServerID: 1003, Name: "Loner", Level: 20}
 	s := aw.w.SessionManager.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 0, 0, 10), Port: 7010}, 10, 1, 1, 2, true)
 	aw.w.Players[c.ServerID] = c
 	s.SetECSEntity(c)
 	s.SetCharacterInWorld(true)
-	return aw, s, c
+	return aw, rec, s, c
 }
 
 func (aw *assistWorld) voicePass(now time.Time) {
@@ -123,97 +169,95 @@ func (aw *assistWorld) voicePass(now time.Time) {
 	aw.w.mu.Unlock()
 }
 
-// coturn's REST credential, against a vector made with Python's hmac; the
-// control: another secret gives another.
-func TestTurnCredentialIsCoturns(t *testing.T) {
-	if got := TurnCredential("a-test-secret-only", "1700000000:v0000002a"); got != "fL+E108VuYhsBuWvBPKRHO+mbiA=" {
-		t.Fatalf("credential %q", got)
-	}
-	if got := TurnCredential("another-secret", "1700000000:v0000002a"); got != "cFEbMLOsDCLnJBmBOQ0Zc24eseI=" || got == TurnCredential("a-test-secret-only", "1700000000:v0000002a") {
-		t.Fatalf("another secret: %q", got)
-	}
-}
-
-// Voice on: the credentials at once (every URL, the username's expiry the
-// TTL from now, the credential coturn's), then the peers: none while the
-// other member's voice is off, each other once it is on, exactly one of the
-// two making the offer; a player of no group, its voice on, in no one's set.
-// Off: the player's own set emptied at once, and the other's at the next pass.
-func TestVoicePeersAreTheGroupsVoiceOnMembers(t *testing.T) {
-	aw, loner, c := newVoiceWorld(t)
-	if !aw.w.SetVoiceOn(loner, true, voiceT0) {
-		t.Fatal("the loner has a player")
-	}
-	if !aw.w.SetVoiceOn(aw.asker, true, voiceT0) {
-		t.Fatal("the asker has a player")
+// Voice on: in the forwarding server under a voice id, its ICE servers sent
+// at once: none without a TURN server (and 0 seconds), with one its URLs,
+// the username the TTL from now and the credential coturn's formula's,
+// renewed half an hour before a 2-hour TTL runs out and not sooner.
+func TestVoiceOnSendsTheICEServers(t *testing.T) {
+	aw, _, _, _ := newVoiceWorld(t, false)
+	if !aw.w.SetVoiceFlags(aw.asker, VoiceFlagOn, voiceT0) || !aw.a.VoiceOn || aw.a.VoiceID == 0 {
+		t.Fatalf("voice on: %v %08x", aw.a.VoiceOn, aw.a.VoiceID)
 	}
 	cfg := voiceMsgs(aw.asker, protocol.OpcodeVoiceConfig)
 	if len(cfg) != 1 {
-		t.Fatalf("%d configs, want 1", len(cfg))
+		t.Fatalf("%d configs", len(cfg))
 	}
-	ice, secs := configOf(t, cfg[0])
-	if len(ice) != 2 || secs != 7200 || ice[0].url != testVoice.TurnURLs[0] || ice[1].url != testVoice.TurnURLs[1] {
-		t.Fatalf("ice %+v, %d s", ice, secs)
-	}
-	want := fmt.Sprintf("%d:v%08x", voiceT0.Add(2*time.Hour).Unix(), aw.a.VoiceID)
-	if ice[0].user != want || ice[0].cred != TurnCredential(testVoice.Secret, want) || ice[1].user != want {
-		t.Fatalf("username %q (want %q), credential %q", ice[0].user, want, ice[0].cred)
-	}
-	if got := voiceMsgs(aw.asker, protocol.OpcodeVoicePeers); len(got) != 1 || len(peersOf(t, got[0])) != 0 {
-		t.Fatalf("the leader's voice is off: peers %x", got)
-	}
-	drainVoice(aw.asker, aw.leader, loner)
-
-	aw.w.SetVoiceOn(aw.leader, true, voiceT0)
-	aw.voicePass(voiceT0)
-	pa, pb := voiceMsgs(aw.asker, protocol.OpcodeVoicePeers), voiceMsgs(aw.leader, protocol.OpcodeVoicePeers)
-	if len(pa) != 1 || len(pb) != 1 {
-		t.Fatalf("peers sent %d and %d times, want once each", len(pa), len(pb))
-	}
-	ra, rb := peersOf(t, pa[0]), peersOf(t, pb[0])
-	if len(ra) != 1 || ra[0].id != aw.b.VoiceID || ra[0].name != "Leader" || len(rb) != 1 || rb[0].id != aw.a.VoiceID || rb[0].name != "Asker" {
-		t.Fatalf("asker's peers %+v, leader's %+v", ra, rb)
-	}
-	if ra[0].channels != voiceChanGroup || rb[0].channels != voiceChanGroup {
-		t.Fatalf("channels %d and %d, want the group's", ra[0].channels, rb[0].channels)
-	}
-	if ra[0].offerer == rb[0].offerer || ra[0].offerer != (aw.a.VoiceID < aw.b.VoiceID) {
-		t.Fatalf("offerers: asker %v, leader %v (ids %08x, %08x)", ra[0].offerer, rb[0].offerer, aw.a.VoiceID, aw.b.VoiceID)
-	}
-	if got := voiceMsgs(loner, protocol.OpcodeVoicePeers); len(got) != 0 {
-		t.Fatalf("the loner's set changed: %x", got)
-	}
-	for _, r := range append(ra, rb...) {
-		if r.id == c.VoiceID {
-			t.Fatal("a player of no group is a peer")
-		}
-	}
-	drainVoice(aw.asker, aw.leader, loner)
-
-	aw.voicePass(voiceT0) // unchanged: nothing
-	if got := append(voiceMsgs(aw.asker, protocol.OpcodeVoicePeers), voiceMsgs(aw.leader, protocol.OpcodeVoicePeers)...); len(got) != 0 {
-		t.Fatalf("unchanged peers sent again: %x", got)
+	if ice, secs := configOf(t, cfg[0]); len(ice) != 0 || secs != 0 {
+		t.Fatalf("no TURN: %+v, %d s", ice, secs)
 	}
 
-	aw.w.SetVoiceOn(aw.asker, false, voiceT0)
-	if got := voiceMsgs(aw.asker, protocol.OpcodeVoicePeers); len(got) != 1 || len(peersOf(t, got[0])) != 0 {
-		t.Fatalf("off: the asker's own set %x, want one empty", got)
+	aw2, _, _, _ := newVoiceWorld(t, true)
+	aw2.w.SetVoiceFlags(aw2.asker, VoiceFlagOn, voiceT0)
+	ice, secs := configOf(t, voiceMsgs(aw2.asker, protocol.OpcodeVoiceConfig)[0])
+	want := fmt.Sprintf("%d:v%08x", voiceT0.Add(2*time.Hour).Unix(), aw2.a.VoiceID)
+	if len(ice) != 2 || secs != 7200 || ice[0].url != "turn:203.0.113.5:3481?transport=udp" || ice[1].user != want ||
+		ice[0].user != want || ice[0].cred != voice.Credential("a-test-secret-only", want) {
+		t.Fatalf("TURN: %+v, %d s (want %q)", ice, secs, want)
 	}
-	aw.voicePass(voiceT0)
-	if got := voiceMsgs(aw.leader, protocol.OpcodeVoicePeers); len(got) != 1 || len(peersOf(t, got[0])) != 0 {
-		t.Fatalf("the asker off: the leader's set %x, want one empty", got)
+	drainVoice(aw2.asker)
+	aw2.voicePass(voiceT0.Add(89 * time.Minute))
+	if got := voiceMsgs(aw2.asker, protocol.OpcodeVoiceConfig); len(got) != 0 {
+		t.Fatal("renewed 89 minutes into 2 hours")
 	}
-	drainVoice(aw.asker)
-	aw.voicePass(voiceT0)
-	if got := voiceMsgs(aw.asker, protocol.OpcodeVoicePeers); len(got) != 0 {
-		t.Fatalf("voice off, sent peers: %x", got)
+	aw2.voicePass(voiceT0.Add(91 * time.Minute))
+	if got := voiceMsgs(aw2.asker, protocol.OpcodeVoiceConfig); len(got) != 1 {
+		t.Fatal("not renewed half an hour before they run out")
 	}
 }
 
-// signal builds a client's OpcodeVoiceSignal (after the opcode).
-func signal(to, seq uint32, kind byte, part, parts uint16, chunk string) []byte {
-	b := binary.LittleEndian.AppendUint32(nil, to)
-	b = binary.LittleEndian.AppendUint32(b, seq)
+// A roster: the groupmate with voice on (bit 0), not a voice-off one (it
+// appears when its voice comes on) nor a player of no group; out of the
+// group, at the next pass, gone; voice off, the player's own roster emptied.
+func TestVoiceRostersFollowTheGroup(t *testing.T) {
+	aw, _, loner, c := newVoiceWorld(t, false)
+	aw.w.SetVoiceFlags(aw.asker, VoiceFlagOn, voiceT0)
+	aw.w.SetVoiceFlags(loner, VoiceFlagOn, voiceT0)
+	aw.voicePass(voiceT0)
+	if r := lastRoster(t, aw.asker); len(r) != 0 {
+		t.Fatalf("the leader's voice is off: %+v", r)
+	}
+	aw.w.SetVoiceFlags(aw.leader, VoiceFlagOn, voiceT0)
+	aw.voicePass(voiceT0)
+	if r := lastRoster(t, aw.asker); len(r) != 1 || r[0] != (rosterRow{aw.b.VoiceID, "Leader", 1}) {
+		t.Fatalf("the asker's roster %+v", r)
+	}
+	if r := lastRoster(t, aw.leader); len(r) != 1 || r[0].id != aw.a.VoiceID {
+		t.Fatalf("the leader's roster %+v", r)
+	}
+	if r := lastRoster(t, loner); len(r) != 0 {
+		t.Fatalf("a player of no group: %+v", r)
+	}
+	c.GroupID = 8 // another group: no one the asker's
+	aw.voicePass(voiceT0)
+	if r := lastRoster(t, aw.asker); len(r) != 1 || r[0].id != aw.b.VoiceID {
+		t.Fatalf("a player of another group in the asker's roster: %+v", r)
+	}
+	c.GroupID = 0
+	aw.voicePass(voiceT0)
+	drainVoice(aw.asker, aw.leader)
+	aw.b.GroupID = 0
+	aw.voicePass(voiceT0)
+	if r := lastRoster(t, aw.asker); r == nil || len(r) != 0 {
+		t.Fatalf("the leader out of the group: %+v", r)
+	}
+	aw.b.GroupID = 7
+	aw.voicePass(voiceT0)
+	drainVoice(aw.asker, aw.leader)
+	aw.w.SetVoiceFlags(aw.leader, 0, voiceT0)
+	if r := lastRoster(t, aw.leader); r == nil || len(r) != 0 {
+		t.Fatalf("voice off: its own roster %+v", r)
+	}
+	if r := lastRoster(t, aw.asker); r == nil || len(r) != 0 {
+		t.Fatalf("the leader's voice off: the asker's roster %+v", r)
+	}
+	if aw.b.VoiceOn || aw.b.VoiceID != 0 {
+		t.Fatal("voice off kept its id")
+	}
+}
+
+// signalPart builds a client's 0x7E13 (after the opcode).
+func signalPart(seq uint32, kind byte, part, parts uint16, chunk string) []byte {
+	b := binary.LittleEndian.AppendUint32(nil, seq)
 	b = append(b, kind)
 	b = binary.LittleEndian.AppendUint16(b, part)
 	b = binary.LittleEndian.AppendUint16(b, parts)
@@ -221,277 +265,208 @@ func signal(to, seq uint32, kind byte, part, parts uint16, chunk string) []byte 
 	return append(b, chunk...)
 }
 
-// A signal goes to the peer it names, named in its turn by the sender: a
-// three-part offer arrives whole, in order; dropped are a signal to a player
-// of another group, one from a voice-off sender, to a voice id no peer has,
-// a chunk over 900 bytes, a length that does not add up, a kind of none of
-// four, and the 51st message of one second.
-func TestVoiceSignalsGoOnlyToAPeer(t *testing.T) {
-	aw, loner, c := newVoiceWorld(t)
-	for _, s := range []*session.Session{aw.asker, aw.leader, loner} {
-		aw.w.SetVoiceOn(s, true, voiceT0)
-	}
-	drainVoice(aw.asker, aw.leader, loner)
-	sdp := strings.Repeat("v=0 o=- 46117 2 IN IP4 127.0.0.1 ", 80) // ~2.6 KB
-	var parts []string
-	for i := 0; i < len(sdp); i += 900 {
-		parts = append(parts, sdp[i:min(i+900, len(sdp))])
-	}
+// A client's offer in three parts reaches the forwarding server whole, once;
+// dropped are a part from a voice-off player, an answer (a client never
+// sends one), a part past its count, a chunk of 901 bytes, a length that does
+// not add up, and the 51st message in a second.
+func TestVoiceSignalsReachTheForwardingServer(t *testing.T) {
+	aw, rec, _, _ := newVoiceWorld(t, false)
+	aw.w.SetVoiceFlags(aw.asker, VoiceFlagOn, voiceT0)
+	offer := strings.Repeat("v=0 o=- 46117 2 IN IP4 127.0.0.1 ", 80)
+	parts := voice.Split(offer)
 	for i, p := range parts {
-		if why := aw.w.RelayVoiceSignal(aw.asker, signal(aw.b.VoiceID, 7, voiceKindOffer, uint16(i), uint16(len(parts)), p), voiceT0); why != "" {
+		if why := aw.w.VoiceSignalIn(aw.asker, signalPart(9, voice.KindOffer, uint16(i), uint16(len(parts)), p), voiceT0); why != "" {
 			t.Fatalf("part %d dropped: %s", i, why)
 		}
 	}
-	got := voiceMsgs(aw.leader, protocol.OpcodeVoiceSignal)
-	if len(got) != len(parts) {
-		t.Fatalf("%d parts relayed, want %d", len(got), len(parts))
+	if len(rec.sigs) != 1 || rec.sigs[0] != (recSig{aw.a.VoiceID, voice.KindOffer, offer}) {
+		t.Fatalf("the forwarding server got %d signals", len(rec.sigs))
 	}
-	var whole []byte
-	for i, m := range got {
-		if from := binary.LittleEndian.Uint32(m); from != aw.a.VoiceID {
-			t.Fatalf("part %d from %08x, want the asker's %08x", i, from, aw.a.VoiceID)
-		}
-		if part := binary.LittleEndian.Uint16(m[9:]); int(part) != i {
-			t.Fatalf("part %d came as %d", i, part)
-		}
-		chunk, rest := voiceStr(t, m[13:])
-		if len(rest) != 0 {
-			t.Fatalf("part %d: %d bytes past its chunk", i, len(rest))
-		}
-		whole = append(whole, chunk...)
-	}
-	if !bytes.Equal(whole, []byte(sdp)) {
-		t.Fatal("the offer did not arrive whole")
-	}
-	drainVoice(aw.leader)
-
-	cases := []struct {
-		name string
-		from *session.Session
-		data []byte
+	for name, c := range map[string]struct {
+		s *session.Session
+		b []byte
 	}{
-		{"to a player of no group", aw.asker, signal(c.VoiceID, 8, voiceKindOffer, 0, 1, "x")},
-		{"from a player of no group", loner, signal(aw.a.VoiceID, 1, voiceKindOffer, 0, 1, "x")},
-		{"to no peer's id", aw.asker, signal(aw.a.VoiceID^0xFFFF, 9, voiceKindOffer, 0, 1, "x")},
-		{"a 901-byte chunk", aw.asker, signal(aw.b.VoiceID, 10, voiceKindOffer, 0, 1, strings.Repeat("y", 901))},
-		{"a length that does not add up", aw.asker, signal(aw.b.VoiceID, 11, voiceKindAnswer, 0, 1, "xy")[:16]},
-		{"kind 5", aw.asker, signal(aw.b.VoiceID, 12, 5, 0, 1, "x")},
-		{"part past its parts", aw.asker, signal(aw.b.VoiceID, 13, voiceKindCandidate, 2, 2, "x")},
-	}
-	for _, k := range cases {
-		if why := aw.w.RelayVoiceSignal(k.from, k.data, voiceT0); why == "" {
-			t.Errorf("%s: relayed", k.name)
+		"from a voice-off player": {aw.leader, signalPart(1, voice.KindOffer, 0, 1, "x")},
+		"an answer":               {aw.asker, signalPart(10, voice.KindAnswer, 0, 1, "x")},
+		"a part past its count":   {aw.asker, signalPart(11, voice.KindCandidate, 1, 1, "x")},
+		"901 bytes":               {aw.asker, signalPart(12, voice.KindOffer, 0, 1, strings.Repeat("y", 901))},
+		"a length short":          {aw.asker, signalPart(13, voice.KindCandidate, 0, 1, "xy")[:12]},
+	} {
+		if why := aw.w.VoiceSignalIn(c.s, c.b, voiceT0); why == "" {
+			t.Errorf("%s: taken", name)
 		}
 	}
-	if got := append(append(voiceMsgs(aw.asker, protocol.OpcodeVoiceSignal), voiceMsgs(aw.leader, protocol.OpcodeVoiceSignal)...), voiceMsgs(loner, protocol.OpcodeVoiceSignal)...); len(got) != 0 {
-		t.Fatalf("dropped signals reached someone: %d", len(got))
+	if len(rec.sigs) != 1 {
+		t.Fatalf("dropped parts reached the forwarding server: %d", len(rec.sigs))
 	}
-
-	aw.w.SetVoiceOn(aw.leader, false, voiceT0)
-	if why := aw.w.RelayVoiceSignal(aw.asker, signal(aw.b.VoiceID, 14, voiceKindBye, 0, 1, ""), voiceT0); why == "" {
-		t.Error("to a member whose voice is off: relayed")
-	}
-	if why := aw.w.RelayVoiceSignal(aw.leader, signal(aw.a.VoiceID, 1, voiceKindBye, 0, 1, ""), voiceT0); why == "" {
-		t.Error("from a member whose voice is off: relayed")
-	}
-
-	aw.w.SetVoiceOn(aw.leader, true, voiceT0)
-	drainVoice(aw.asker, aw.leader)
-	later := voiceT0.Add(time.Minute) // a full allowance
+	later := voiceT0.Add(time.Minute)
 	n := 0
-	for i := 0; i < voiceMsgsPerSec+1; i++ {
-		if aw.w.RelayVoiceSignal(aw.asker, signal(aw.b.VoiceID, uint32(100+i), voiceKindCandidate, 0, 1, "{}"), later) == "" {
+	for i := 0; i < voice.RateMsgs+1; i++ {
+		if aw.w.VoiceSignalIn(aw.asker, signalPart(uint32(100+i), voice.KindCandidate, 0, 1, "{}"), later) == "" {
 			n++
 		}
 	}
-	if n != voiceMsgsPerSec {
-		t.Fatalf("%d of %d relayed in one second, want %d", n, voiceMsgsPerSec+1, voiceMsgsPerSec)
-	}
-	if aw.w.RelayVoiceSignal(aw.asker, signal(aw.b.VoiceID, 999, voiceKindCandidate, 0, 1, "{}"), later.Add(time.Second)) != "" {
-		t.Fatal("a second later the allowance did not refill")
+	if n != voice.RateMsgs || len(rec.sigs) != 1+voice.RateMsgs {
+		t.Fatalf("%d of %d taken in a second (%d signals)", n, voice.RateMsgs+1, len(rec.sigs))
 	}
 }
 
-// Credentials go again before they run out (a quarter of a 2 h TTL, 30
-// minutes, before), not sooner.
-func TestVoiceCredentialsAreRenewedBeforeTheyRunOut(t *testing.T) {
-	aw, _, _ := newVoiceWorld(t)
-	aw.w.SetVoiceOn(aw.asker, true, voiceT0)
+// The forwarding server's answer goes down in parts of at most 900 bytes,
+// one seq, put back whole; the next message is the next seq.
+func TestVoiceSinkSendsSignalsInParts(t *testing.T) {
+	aw, _, _, _ := newVoiceWorld(t, false)
+	aw.w.SetVoiceFlags(aw.asker, VoiceFlagOn, voiceT0)
 	drainVoice(aw.asker)
-	aw.voicePass(voiceT0.Add(89 * time.Minute))
-	if got := voiceMsgs(aw.asker, protocol.OpcodeVoiceConfig); len(got) != 0 {
-		t.Fatalf("renewed 89 minutes in: %d", len(got))
+	answer := strings.Repeat("a=candidate:1 1 udp 2130706431 127.0.0.1 3480 typ host\r\n", 40)
+	aw.a.voiceSink.Signal(voice.KindAnswer, answer)
+	aw.a.voiceSink.Signal(voice.KindBye, "")
+	msgs := voiceMsgs(aw.asker, protocol.OpcodeVoiceSignal)
+	if len(msgs) < 4 {
+		t.Fatalf("%d messages", len(msgs))
 	}
-	aw.voicePass(voiceT0.Add(91 * time.Minute))
-	got := voiceMsgs(aw.asker, protocol.OpcodeVoiceConfig)
-	if len(got) != 1 {
-		t.Fatalf("not renewed 91 minutes in: %d", len(got))
-	}
-	ice, _ := configOf(t, got[0])
-	if want := fmt.Sprintf("%d:", voiceT0.Add(91*time.Minute+2*time.Hour).Unix()); !strings.HasPrefix(ice[0].user, want) {
-		t.Fatalf("renewed as %q, want a username from %q", ice[0].user, want)
-	}
-}
-
-// A server without voice (no URL or no secret) sends nothing and relays
-// nothing, whatever a client asks.
-func TestNoVoiceWithoutASecret(t *testing.T) {
-	aw := newAssistWorld(t)
-	aw.group()
-	aw.w.SetVoice(VoiceSettings{TurnURLs: testVoice.TurnURLs})
-	aw.w.SetVoiceOn(aw.asker, true, voiceT0)
-	aw.w.SetVoiceOn(aw.leader, true, voiceT0)
-	aw.voicePass(voiceT0)
-	for _, op := range []protocol.GameOpcode{protocol.OpcodeVoiceConfig, protocol.OpcodeVoicePeers} {
-		if got := append(voiceMsgs(aw.asker, op), voiceMsgs(aw.leader, op)...); len(got) != 0 {
-			t.Fatalf("no secret: sent %v %x", op, got)
+	var whole bytes.Buffer
+	var seq uint32
+	for i, m := range msgs[:len(msgs)-1] {
+		s, k := binary.LittleEndian.Uint32(m), m[4]
+		part, parts := binary.LittleEndian.Uint16(m[5:]), binary.LittleEndian.Uint16(m[7:])
+		chunk, rest := voiceStr(t, m[9:])
+		if k != voice.KindAnswer || int(part) != i || int(parts) != len(msgs)-1 || len(chunk) > voice.MaxChunk || len(rest) != 0 {
+			t.Fatalf("part %d: kind %d, %d of %d, %d bytes", i, k, part, parts, len(chunk))
 		}
-	}
-	if aw.w.RelayVoiceSignal(aw.asker, signal(aw.b.VoiceID, 1, voiceKindOffer, 0, 1, "x"), voiceT0) == "" {
-		t.Fatal("no secret: relayed")
-	}
-}
-
-// told counts the chat lines queued for s that say text.
-func told(s *session.Session, text string) int {
-	n := 0
-	for _, m := range voiceMsgs(s, protocol.OpcodeClientMessage) {
-		if bytes.Contains(m, wide16(text)) {
-			n++
+		if i > 0 && s != seq {
+			t.Fatalf("part %d of another seq", i)
 		}
+		seq = s
+		whole.WriteString(chunk)
 	}
-	return n
+	if whole.String() != answer {
+		t.Fatal("not put back whole")
+	}
+	bye := msgs[len(msgs)-1]
+	if binary.LittleEndian.Uint32(bye) != seq+1 || bye[4] != voice.KindBye {
+		t.Fatalf("the bye: seq %d kind %d", binary.LittleEndian.Uint32(bye), bye[4])
+	}
 }
 
-// guildFolk are n players of guild g on sessions of their own, no group,
-// their entity ids from base.
-func guildFolk(t *testing.T, w *World, g uint32, n int, base EntityID) ([]*Player, []*session.Session) {
+// roomOp builds a client's 0x7E14 (after the opcode).
+func roomOp(op byte, name, hash string, flags ...byte) []byte {
+	b := []byte{op}
+	if op == voiceRoomJoin {
+		b = appendVoiceString(b, name, 1000)
+		b = appendVoiceString(b, hash, 1000)
+		b = append(b, flags...)
+	}
+	return b
+}
+
+type lobbyRow struct {
+	name    string
+	members int
+	locked  bool
+}
+
+func lobbyOf(t *testing.T, b []byte) []lobbyRow {
 	t.Helper()
-	var ps []*Player
-	var ss []*session.Session
+	n := int(binary.LittleEndian.Uint16(b))
+	b = b[2:]
+	var out []lobbyRow
 	for i := 0; i < n; i++ {
-		p := &Player{ServerID: base + EntityID(i), Name: fmt.Sprintf("Guildie%d", int(base)+i), Level: 30, GuildID: g}
-		s := w.SessionManager.CreateSession(&net.UDPAddr{IP: net.IPv4(10, byte(base>>8), byte(base), byte(i+1)), Port: 8000 + i}, uint32(base)+uint32(i), 1, 1, 2, true)
-		w.Players[p.ServerID] = p
-		s.SetECSEntity(p)
-		s.SetCharacterInWorld(true)
-		ps, ss = append(ps, p), append(ss, s)
+		name, rest := voiceStr(t, b)
+		out = append(out, lobbyRow{name, int(binary.LittleEndian.Uint16(rest)), rest[2] == 1})
+		b = rest[3:]
 	}
-	return ps, ss
+	return out
 }
 
-// A guild's voice channel holds the first ten to ask (the user's "also add
-// guild voice chat", a channel of at most 10): each told it is in and each a
-// peer of the other nine, on the guild's channel bit; the eleventh told once
-// that it is full and no one's peer, its signal to one of them dropped; the
-// first leaving lets it in, told so, and the first is then in no one's set.
-// A member of another guild asking is in another channel.
-func TestAGuildsVoiceChannelHoldsTen(t *testing.T) {
-	aw := newAssistWorld(t)
-	aw.w.SetVoice(testVoice)
-	ps, ss := guildFolk(t, aw.w, 5, 11, 3000)
-	for i, s := range ss {
-		aw.w.SetVoiceFlags(s, VoiceFlagOn|VoiceFlagGuild, voiceT0.Add(time.Duration(i)*time.Millisecond))
+// roomState is the last 0x7E16 queued for s.
+func roomState(t *testing.T, s *session.Session) (byte, string) {
+	t.Helper()
+	got := voiceMsgs(s, protocol.OpcodeVoiceRoomState)
+	if len(got) == 0 {
+		t.Fatal("no room state")
 	}
-	aw.voicePass(voiceT0.Add(time.Second))
-	for i := 0; i < 10; i++ {
-		if told(ss[i], voiceGuildIn) != 1 || told(ss[i], voiceGuildFull) != 0 {
-			t.Fatalf("guildie %d: told in %d times, full %d", i, told(ss[i], voiceGuildIn), told(ss[i], voiceGuildFull))
-		}
-	}
-	if told(ss[10], voiceGuildFull) != 1 || told(ss[10], voiceGuildIn) != 0 {
-		t.Fatalf("the eleventh: told full %d times, in %d", told(ss[10], voiceGuildFull), told(ss[10], voiceGuildIn))
-	}
-	last := func(s *session.Session) []peerRow {
-		got := voiceMsgs(s, protocol.OpcodeVoicePeers)
-		if len(got) == 0 {
-			return nil
-		}
-		return peersOf(t, got[len(got)-1])
-	}
-	first := last(ss[0])
-	if len(first) != 9 {
-		t.Fatalf("the first has %d peers, want the other nine", len(first))
-	}
-	for _, r := range first {
-		if r.channels != voiceChanGuild || r.id == ps[10].VoiceID {
-			t.Fatalf("the first's peer %+v", r)
-		}
-	}
-	if got := last(ss[10]); len(got) != 0 {
-		t.Fatalf("the eleventh, waiting, has peers %+v", got)
-	}
-	if aw.w.RelayVoiceSignal(ss[10], signal(ps[1].VoiceID, 1, voiceKindOffer, 0, 1, "x"), voiceT0.Add(time.Second)) == "" {
-		t.Fatal("the eleventh, waiting, signaled one of the ten")
-	}
-	for _, s := range ss {
-		drainVoice(s)
-	}
-
-	aw.w.SetVoiceFlags(ss[0], VoiceFlagOn, voiceT0.Add(2*time.Second)) // the first leaves the channel
-	aw.voicePass(voiceT0.Add(3 * time.Second))
-	if told(ss[10], voiceGuildIn) != 1 {
-		t.Fatalf("a place freed: the eleventh told in %d times", told(ss[10], voiceGuildIn))
-	}
-	if got := last(ss[10]); len(got) != 9 {
-		t.Fatalf("the eleventh in: %d peers, want nine", len(got))
-	}
-	if got := last(ss[1]); len(got) != 9 {
-		t.Fatalf("the second: %d peers, want nine (the first out, the eleventh in)", len(got))
-	} else {
-		for _, r := range got {
-			if r.id == ps[0].VoiceID {
-				t.Fatal("the first, out of the channel, is still a peer")
-			}
-		}
-	}
-	if got := last(ss[0]); len(got) != 0 {
-		t.Fatalf("the first, out of the channel and in no group, has peers %+v", got)
-	}
-	if aw.w.RelayVoiceSignal(ss[10], signal(ps[1].VoiceID, 2, voiceKindOffer, 0, 1, "x"), voiceT0.Add(3*time.Second)) != "" {
-		t.Fatal("in the channel, the eleventh's signal was dropped")
-	}
-
-	_, os := guildFolk(t, aw.w, 6, 1, 3900)
-	if len(aw.w.Players) != 2+11+1 {
-		t.Fatalf("%d players, want 14", len(aw.w.Players))
-	}
-	aw.w.SetVoiceFlags(os[0], VoiceFlagOn|VoiceFlagGuild, voiceT0.Add(4*time.Second))
-	aw.voicePass(voiceT0.Add(5 * time.Second))
-	if told(os[0], voiceGuildIn) != 1 || len(last(os[0])) != 0 {
-		t.Fatal("another guild's member: not in its own, empty channel")
-	}
-	if aw.w.RelayVoiceSignal(os[0], signal(ps[1].VoiceID, 1, voiceKindOffer, 0, 1, "x"), voiceT0.Add(5*time.Second)) == "" {
-		t.Fatal("another guild's member signaled into guild 5's channel")
-	}
+	name, _ := voiceStr(t, got[len(got)-1][1:])
+	return got[len(got)-1][0], name
 }
 
-// A groupmate also in the guild's channel is one peer of both channels; gone
-// to another guild it is the group's alone at the next pass (in its new
-// guild's channel, not the old one's).
-func TestAGroupmateInTheGuildChannelIsOnePeer(t *testing.T) {
-	aw := newAssistWorld(t)
-	aw.group()
-	aw.w.SetVoice(testVoice)
-	aw.a.GuildID, aw.b.GuildID = 9, 9
-	aw.w.SetVoiceFlags(aw.asker, VoiceFlagOn|VoiceFlagGuild, voiceT0)
-	aw.w.SetVoiceFlags(aw.leader, VoiceFlagOn|VoiceFlagGuild, voiceT0)
-	aw.voicePass(voiceT0)
-	got := voiceMsgs(aw.asker, protocol.OpcodeVoicePeers)
-	if rows := peersOf(t, got[len(got)-1]); len(rows) != 1 || rows[0].channels != voiceChanGroup|voiceChanGuild {
-		t.Fatalf("the asker's peers %+v, want the leader once, of both channels", rows)
+func lastLobby(t *testing.T, s *session.Session) []lobbyRow {
+	t.Helper()
+	got := voiceMsgs(s, protocol.OpcodeVoiceLobby)
+	if len(got) == 0 {
+		t.Fatal("no lobby")
 	}
+	return lobbyOf(t, got[len(got)-1])
+}
+
+// The lobby over the game's opcodes: a join answered with the room's state
+// and the lobby; a second player in by the name; the roster's bit 1; a
+// locked room refusing a wrong H; an unlisted room in no list; a leave; a
+// list with voice off answered, a join with voice off dropped.
+func TestVoiceLobbyOverTheGame(t *testing.T) {
+	aw, _, loner, c := newVoiceWorld(t, false)
+	for _, s := range []*session.Session{aw.asker, aw.leader, loner} {
+		aw.w.SetVoiceFlags(s, VoiceFlagOn, voiceT0)
+	}
+	if why := aw.w.VoiceRoomOp(loner, roomOp(voiceRoomJoin, "Tavern", "", 0), voiceT0); why != "" {
+		t.Fatal(why)
+	}
+	if r, n := roomState(t, loner); r != voice.RoomIn || n != "Tavern" {
+		t.Fatalf("making it: %d %q", r, n)
+	}
+	if lb := lastLobby(t, loner); len(lb) != 1 || lb[0] != (lobbyRow{"Tavern", 1, false}) {
+		t.Fatalf("the lobby %+v", lb)
+	}
+	aw.w.VoiceRoomOp(aw.asker, roomOp(voiceRoomJoin, "tavern", ""), voiceT0) // no flags byte: none
+	if r, _ := roomState(t, aw.asker); r != voice.RoomIn {
+		t.Fatalf("joining it: %d", r)
+	}
+	if r := lastRoster(t, aw.asker); len(r) != 2 || r[1] != (rosterRow{c.VoiceID, "Loner", 2}) {
+		t.Fatalf("the asker's roster %+v", r)
+	}
+	h := strings.Repeat("ab", 32)
+	aw.w.VoiceRoomOp(aw.leader, roomOp(voiceRoomJoin, "Vault", h, 1), voiceT0)
+	aw.w.VoiceRoomOp(loner, roomOp(voiceRoomJoin, "Vault", strings.Repeat("cd", 32), 0), voiceT0)
+	if r, _ := roomState(t, loner); r != voice.RoomWrongPassword {
+		t.Fatalf("a wrong password: %d", r)
+	}
+	aw.w.VoiceRoomOp(aw.asker, roomOp(voiceRoomList, "", ""), voiceT0)
+	if lb := lastLobby(t, aw.asker); len(lb) != 1 || lb[0].name != "Tavern" || lb[0].members != 2 {
+		t.Fatalf("an unlisted room listed, or a refused join counted: %+v", lb)
+	}
+	aw.w.VoiceRoomOp(aw.asker, roomOp(voiceRoomLeave, "", ""), voiceT0)
+	if r, n := roomState(t, aw.asker); r != voice.RoomLeft || n != "Tavern" {
+		t.Fatalf("leaving: %d %q", r, n)
+	}
+	aw.w.SetVoiceFlags(aw.asker, 0, voiceT0)
 	drainVoice(aw.asker)
-	aw.b.GuildID = 10
-	aw.voicePass(voiceT0.Add(time.Second))
-	got = voiceMsgs(aw.asker, protocol.OpcodeVoicePeers)
-	if len(got) != 1 {
-		t.Fatalf("out of the guild: %d sets, want one", len(got))
+	if why := aw.w.VoiceRoomOp(aw.asker, roomOp(voiceRoomList, "", ""), voiceT0); why != "" || len(lastLobby(t, aw.asker)) != 1 {
+		t.Fatalf("a list with voice off: %q", why)
 	}
-	if rows := peersOf(t, got[0]); len(rows) != 1 || rows[0].channels != voiceChanGroup {
-		t.Fatalf("out of the guild: %+v, want the leader of the group alone", rows)
+	if why := aw.w.VoiceRoomOp(aw.asker, roomOp(voiceRoomJoin, "Tavern", ""), voiceT0); why == "" {
+		t.Fatal("a join with voice off was taken")
 	}
-	if aw.b.voiceGuildIn != 10 {
-		t.Fatalf("the leader is in guild %d's channel, want its new guild's", aw.b.voiceGuildIn)
+	if why := aw.w.VoiceRoomOp(aw.asker, []byte{9}, voiceT0); why == "" {
+		t.Fatal("op 9 was taken")
+	}
+}
+
+// A voice-on player leaving the world leaves the voice at once, its
+// connection ended with a bye; its groupmate's roster drops it.
+func TestVoiceLeavesWithThePlayer(t *testing.T) {
+	aw, rec, _, _ := newVoiceWorld(t, false)
+	aw.w.SetVoiceFlags(aw.asker, VoiceFlagOn, voiceT0)
+	aw.w.SetVoiceFlags(aw.leader, VoiceFlagOn, voiceT0)
+	id := aw.b.VoiceID
+	drainVoice(aw.asker)
+	aw.w.RemovePlayer(aw.b.ServerID)
+	if len(rec.leaves) != 1 || rec.leaves[0] != (recLeave{id, true}) {
+		t.Fatalf("leaves %+v", rec.leaves)
+	}
+	if r := lastRoster(t, aw.asker); r == nil || len(r) != 0 {
+		t.Fatalf("the asker's roster %+v", r)
+	}
+	aw.voicePass(voiceT0)
+	if len(rec.leaves) != 1 {
+		t.Fatalf("left twice: %+v", rec.leaves)
 	}
 }

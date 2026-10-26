@@ -313,6 +313,26 @@ func (w *World) GroupLeave(sess *session.Session) {
 	}
 }
 
+// rejoinGroupLocked gives a character logging in again the group its old
+// Player is still in: a login that replaces a session makes a new Player
+// under the same ServerID, the old one never leaves (its session's removal
+// finds the new one in the map and does nothing), and the group kept the id.
+// The new Player came with no GroupID, so the roster still named both while
+// every test of p.GroupID (the group bar's channel, voice, the group's chat)
+// found none (F3 pass 18, voice's two-client run). Its roster is sent again,
+// in the new session's ids. Called by CreatePlayer before p takes the map.
+func (w *World) rejoinGroupLocked(p *Player) {
+	for _, g := range w.groups {
+		for _, id := range g.Members {
+			if id == p.ServerID {
+				p.GroupID = g.ID
+				delete(g.lastRoster, p.ServerID)
+				return
+			}
+		}
+	}
+}
+
 // leaveGroupLocked takes p out of its group (it has already cleared its
 // own); one left alone is told the group is disbanded.
 func (w *World) leaveGroupLocked(p *Player) {

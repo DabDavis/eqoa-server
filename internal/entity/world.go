@@ -273,6 +273,7 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 	p.StoodY = storedY
 
 	w.rejoinGuildLocked(p)
+	w.rejoinGroupLocked(p)
 	w.Players[id] = p
 	w.SpatialIndex.Insert(id, p.X, p.Z)
 

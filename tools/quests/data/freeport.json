@@ -7235,21 +7235,21 @@
      "target": "Nanik Novandear",
      "items": [
       {
-       "item": "nanik's eye",
+       "item": "Nanik's eye",
        "count": 1
       }
      ],
      "count": 1,
      "chance": 1.0,
-     "journal": "Take the nanik's eye from Nanik Novandear at the broken bridge north of Freeport."
+     "journal": "Take Nanik's eye from Nanik Novandear at the broken bridge north of Freeport."
     },
     {
      "kind": "give",
      "target": "Malethai Crimsonhand",
-     "journal": "Bring the nanik's eye to Malethai Crimsonhand.",
+     "journal": "Bring Nanik's eye to Malethai Crimsonhand.",
      "items": [
       {
-       "item": "nanik's eye",
+       "item": "Nanik's eye",
        "count": 1
       }
      ],
@@ -8569,7 +8569,7 @@
    "like": "stolen goods"
   },
   {
-   "name": "nanik's eye",
+   "name": "Nanik's eye",
    "description": "The eye of Nanik Novandear.",
    "notrade": true,
    "like": "warm heart"

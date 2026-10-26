@@ -3079,14 +3079,11 @@
     "seconds": 300,
     "ticks": 0,
     "pet": "",
-    "effects": []
+    "effects": [
+     "shield +6"
+    ]
    },
-   "unread": [
-    {
-     "part": "hp by 6 damage shield",
-     "why": "a damage shield: the server returns no damage to an attacker yet; the line is EQOA-Data's own for the spell, word for word, as the wizard's other record of it (O'Keils Radiation) has it"
-    }
-   ]
+   "unread": []
   },
   {
    "classes": [

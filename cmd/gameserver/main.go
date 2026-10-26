@@ -170,6 +170,12 @@ func main() {
 		log.Printf("WARNING: %v; no mastery can be bought", err)
 	}
 	log.Printf("Characters: %s", gameWorld.CMSummary())
+	// Where the gates, portals, circles and evacuations send (entity/gates.go,
+	// table spellgates): with none, each is refused as it begins
+	if _, err := gameWorld.LoadSpellGates(db); err != nil {
+		log.Printf("WARNING: %v; every teleport spell is refused", err)
+	}
+	log.Printf("Spells: %s", gameWorld.SpellGatesSummary())
 
 	log.Printf("Entity world: %d players, %d NPCs", gameWorld.PlayerCount(), gameWorld.NPCCount())
 

@@ -442,6 +442,9 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	if refusal == "" && spell.Def.Resurrects() > 0 {
 		refusal, fizzle = w.rezStartLocked(targets, &spell.Def, now) // resurrect.go
 	}
+	if refusal == "" {
+		refusal = w.gateStartLocked(sess, &spell) // gates.go
+	}
 	if refusal == "" && p.Power < spell.PowerCost {
 		refusal = castNoPower
 	}
@@ -689,6 +692,9 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 		}
 	}
 	if w.summonItemsLocked(cs, caster, casterSess) && len(d.Effects) == 0 { // potion.go
+		return gate
+	}
+	if w.gateLandLocked(cs, caster, casterSess) && len(d.Effects) == 0 { // gates.go
 		return gate
 	}
 	if len(d.Effects) == 0 {

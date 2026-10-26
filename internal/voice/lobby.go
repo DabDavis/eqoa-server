@@ -27,6 +27,10 @@ const (
 	roomNameMax = 24
 	roomGrace   = 60 * time.Second
 	lobbyMax    = 200
+
+	// roomRetry is how long a session that brought a wrong H waits before
+	// its next join to a locked room is checked at all: a guess every 2 s
+	roomRetry = 2 * time.Second
 )
 
 // room is one room of the lobby.
@@ -105,7 +109,11 @@ func (s *Server) JoinRoom(id uint32, name, hash string, unlisted bool) (byte, st
 	if r != nil && p.room == r {
 		return RoomIn, r.name
 	}
+	if r != nil && r.hash != "" && now.Sub(p.wrongAt) < roomRetry {
+		return RoomWrongPassword, r.name
+	}
 	if r != nil && subtle.ConstantTimeCompare([]byte(r.hash), []byte(h)) != 1 {
+		p.wrongAt = now
 		return RoomWrongPassword, r.name
 	}
 	if r == nil {

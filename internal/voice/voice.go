@@ -252,9 +252,11 @@ type peer struct {
 	name string
 	ch   chans
 	room *room
-	sink Sink
-	sigs chan sig
-	gone bool
+	// wrongAt is when it last brought a wrong H (roomRetry)
+	wrongAt time.Time
+	sink    Sink
+	sigs    chan sig
+	gone    bool
 
 	// the connection; gen counts them, so a callback of an old one is
 	// told apart

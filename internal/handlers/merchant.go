@@ -242,6 +242,11 @@ func (h *NPCWindowHandler) HandleMerchantOpen(sess *session.Session, msg *protoc
 		refuse(sess)
 		return nil
 	}
+	// a quest's step to do at it is done first (questevents.go: CLIENT
+	// never talks to an NPC with a window)
+	if questsAtWindow(sess, player, npc) {
+		return nil
+	}
 	var catalog []database.CharInventoryEntry
 	if h.inv != nil {
 		if catalog, err = h.inv.GetNPCItems(npc.NPCID); err != nil {

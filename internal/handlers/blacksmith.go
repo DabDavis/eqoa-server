@@ -53,6 +53,11 @@ func (h *NPCWindowHandler) HandleBlacksmithOpen(sess *session.Session, msg *prot
 	if !ok {
 		return nil
 	}
+	// a quest's step to do at it is done first (questevents.go: CLIENT
+	// never talks to an NPC with a window)
+	if questsAtWindow(sess, player, npc) {
+		return nil
+	}
 	queueReliable(sess, protocol.OpcodeBlackSmithMenu, blacksmithPayload(id))
 	log.Printf("Blacksmith: %s opened %q", player.Name, npc.Name)
 	return nil

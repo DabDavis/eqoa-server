@@ -7,12 +7,16 @@ import (
 )
 
 // How the creatures of a name move: table npcmove (database/npcmove.go; the
-// GM panel's "Creature movement", applied at once). roam 0 stands a
-// creature on its spawn until a fight takes it (F3 20261026-021730, jib:
-// "hexbones in zentaurs keep do NOT roam, they are static spawn until
-// agrod"); radius is its own wander radius; water what it keeps to
-// (water.go). With no row a creature wanders the server's radius and keeps
-// to where it spawned.
+// GM panel's "Creature movement", applied at once). Whether a creature
+// wanders is its row's roam: 1 it wanders (a designated roamer, wildlife or
+// not: Klik'Anon's pirate patrols), 0 it stands on its spawn until a fight
+// takes it (F3 20261026-021730, jib: "hexbones in zentaurs keep do NOT roam,
+// they are static spawn until agrod"), -1 (the default) or no row as its
+// kind: wildlife wanders (wildlife.go) and anything else stands (F3
+// 20261026-042712: "Not all mobs are wild life. Fire Giants are roaming
+// currently when they should not be unless otherwise specified / designated
+// as a roamer with a path"). A path (path.go) walks any NPC. radius is its
+// own wander radius; water what it keeps to (water.go).
 //
 // Wherever it wanders, a creature must be able to stand all along the leg
 // (legOKLocked): one on the ground finds a floor at every two units and no
@@ -20,9 +24,9 @@ import (
 // keeping to the land meets no water, one keeping to the water leaves none
 // and passes under no rising sea floor. And one that stands off the ground
 // (on what the ground leaves out: a keep's floor, a bridge, a dock; or with
-// no floor under it) does not wander at all, but for one swimming where it
-// spawned: walked at its spawn's height it would float wherever the floor
-// beneath it fell away (F3 20261026-021425).
+// no floor under it) does not wander at all, whatever its row says, but for
+// one swimming where it spawned: walked at its spawn's height it would float
+// wherever the floor beneath it fell away (F3 20261026-021425).
 
 // legSample is the spacing of the points a wander leg is tried at, and
 // legDrop how far the floor may fall between two of them (51 degrees).
@@ -55,9 +59,13 @@ func (w *World) LoadMoveRules(db *database.SQLiteDB) (int, error) {
 func (w *World) MoveSummary() string {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	stand, both, water := 0, 0, 0
+	stand, roam, both, water := 0, 0, 0, 0
 	for _, r := range w.moveRules {
-		if !r.Roam {
+		switch {
+		case r.ByKind:
+		case r.Roam:
+			roam++
+		default:
 			stand++
 		}
 		switch r.Water {
@@ -71,7 +79,8 @@ func (w *World) MoveSummary() string {
 	if w.env != nil {
 		where = "the water known"
 	}
-	return fmt.Sprintf("movement: %d names in npcmove (%d stand, %d go in and out of the water, %d keep to it), %s", len(w.moveRules), stand, both, water, where)
+	return fmt.Sprintf("movement: %d names in npcmove (%d stand, %d wander whatever their kind, the rest as their kind: wildlife wanders; "+
+		"%d go in and out of the water, %d keep to it), %s", len(w.moveRules), stand, roam, both, water, where)
 }
 
 // moveRuleLocked is a creature's row of npcmove, false with none. Must be
@@ -81,14 +90,106 @@ func (w *World) moveRuleLocked(npc *NPC) (database.NPCMoveRule, bool) {
 	return r, ok
 }
 
-// standsLocked reports a creature that does not wander: its row says roam
-// 0, or it stands off the ground and is not swimming where it spawned. Must
-// be called with the lock held.
-func (w *World) standsLocked(npc *NPC) bool {
-	if r, ok := w.moveRuleLocked(npc); ok && !r.Roam {
-		return true
+// moveWhy is why an NPC wanders or stands (movementLocked), said in a GM's
+// words by MoveWhyText.
+type moveWhy uint8
+
+const (
+	whyDead moveWhy = iota
+	whyPet
+	whyDummy
+	whyPath
+	whyNoBody
+	whyTalkedTo
+	whyNoRadius
+	whyRowStands
+	whyRowWanders
+	whyTownsfolk
+	whyWildlife
+	whyUndead
+	whyNotWildlife
+	whyOffGround
+)
+
+// MoveWhyText says why, in a GM's words (the panel's NPC page); word is the
+// name's animal noun for whyWildlife and whyUndead.
+func MoveWhyText(why moveWhy, word string) string {
+	switch why {
+	case whyDead:
+		return "dead"
+	case whyPet:
+		return "a pet: it follows its owner"
+	case whyDummy:
+		return "a training dummy: it stands"
+	case whyPath:
+		return "it walks its path"
+	case whyNoBody:
+		return "no body: it stands"
+	case whyTalkedTo:
+		return "an NPC players talk to (the NPC bit): it stands; a path walks it"
+	case whyNoRadius:
+		return "nothing wanders on this server (world.roam_radius 0)"
+	case whyRowStands:
+		return "it stands on its spawn until pulled: Creature movement says so"
+	case whyRowWanders:
+		return "it wanders: Creature movement says so"
+	case whyTownsfolk:
+		return "townsfolk (a player race's body): it stands"
+	case whyWildlife:
+		return fmt.Sprintf("it wanders: wildlife (its name's %q)", word)
+	case whyUndead:
+		return "undead: it stands on its spawn until pulled"
+	case whyNotWildlife:
+		return "not wildlife: it stands on its spawn until pulled (Creature movement's Wanders 1 makes it wander)"
+	case whyOffGround:
+		return "it stands off the ground (a keep's floor, a bridge, a dock): it does not wander"
 	}
-	return w.ground != nil && !w.spawnOnGroundLocked(npc) && !w.spawnInWaterLocked(npc)
+	return ""
+}
+
+// movementLocked is whether an NPC wanders round its spawn, and why (the
+// file's comment and roam.go's); word is the name's animal noun, if any. Must
+// be called with the lock held (a read lock will do).
+func (w *World) movementLocked(npc *NPC) (wanders bool, why moveWhy, word string) {
+	switch {
+	case npc.Dead:
+		return false, whyDead, ""
+	case npc.Owner != 0:
+		return false, whyPet, ""
+	case npc.Dummy != NotDummy:
+		return false, whyDummy, ""
+	case w.pathedLocked(npc.ServerID):
+		return false, whyPath, ""
+	case npc.ModelID == 0:
+		return false, whyNoBody, ""
+	case npc.NPCType&0x80 != 0:
+		return false, whyTalkedTo, ""
+	case npc.RoamRadius <= 0:
+		return false, whyNoRadius, ""
+	}
+	if r, ok := w.moveRuleLocked(npc); ok && !r.ByKind {
+		if !r.Roam {
+			return false, whyRowStands, ""
+		}
+		why = whyRowWanders
+	} else if w.playerModels[uint32(npc.ModelID)] {
+		return false, whyTownsfolk, ""
+	} else {
+		var wild bool
+		word, wild = w.wildlifeLocked(npc)
+		switch {
+		case wild:
+			why = whyWildlife
+		case word != "":
+			return false, whyUndead, word
+		default:
+			return false, whyNotWildlife, ""
+		}
+	}
+	if w.ground != nil && !w.spawnOnGroundLocked(npc) && !w.spawnInWaterLocked(npc) {
+		return false, whyOffGround, word
+	}
+	return true, why, word
 }
 
 // roamRadiusLocked is how far from its spawn a creature wanders: its row's

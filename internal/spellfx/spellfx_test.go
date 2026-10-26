@@ -238,6 +238,21 @@ func TestTheSenderIsKeptOnlyAsASaltedHash(t *testing.T) {
 	}
 }
 
+// By default an address sends as many as it likes (one live suggestion a
+// spell bounds what it holds).
+func TestNoHourlyLimitByDefault(t *testing.T) {
+	s, _, _ := fixture(t)
+	if s.PerHour != 0 {
+		t.Fatalf("the default hourly limit is %d, want none", s.PerHour)
+	}
+	for i := 0; i < 300; i++ {
+		spell := 100 + i%2
+		if code, out := suggest(t, s, "203.0.113.7", map[string]any{"spell": spell, "visual": fmt.Sprintf("0x%08X", i+1)}); code != 200 {
+			t.Fatalf("send %d: %d %v", i, code, out)
+		}
+	}
+}
+
 func TestAnAddressSendsAtMostPerHour(t *testing.T) {
 	s, _, now := fixture(t)
 	s.PerHour = 3

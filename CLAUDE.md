@@ -289,7 +289,7 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   `database.InvalidateSpellFX` (`SetSpellVisual`, a row edit of spellpattern/spelleffect/classspells)
   or after a minute) and `POST /api/spellfx/suggest` (`{spell, visual, name, note}`: a 32-bit hex
   DictID, a name of 32 characters and a note of 300 at most, plain text; an address, an IPv6 one by
-  its /64, holds one live suggestion a spell, a new one replacing it, and sends 120 an hour; 100,000
+  its /64, holds one live suggestion a spell, a new one replacing it, with no hourly cap (`spellfx.DefaultPerHour` 0; a player matching a class's whole list was stopped at 120); 100,000
   waiting is a full box). Table `spellfx_suggestions` keeps the sender only as a salted hash
   (`spellfx_meta`'s salt, made once and hidden from every page: with it an IPv4 hash walks back). The
   ops `visual_suggestions`, `accept_visual_suggestion` (set_spell_visual's audited row edit, so

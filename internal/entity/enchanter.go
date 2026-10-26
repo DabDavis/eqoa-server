@@ -45,7 +45,9 @@ import (
 //     server rolls an arcane resist for: a proc (proc.go) and a charm
 //     (charm.go). By resist.go's own scale (ResistShare: 75% at 315), N AR
 //     off takes that share of a hundred off the creature's chance in percent
-//     (25 AR: 6 points). Nothing else a player casts at a creature is
+//     (25 AR: 6 points). The strongest one counts: the five Paralytic ranks
+//     are one line, and cast one over another they do not add up (ours, as
+//     the clarity line). Nothing else a player casts at a creature is
 //     resisted on this server yet.
 
 // procFamilies are the names (lower case, a prefix) of the lines that are
@@ -162,15 +164,16 @@ func (w *World) placeClarityLocked(caster *Player, casterSess *session.Session, 
 }
 
 // npcResistOffPct is how many points the arcane resist debuffs on a creature
-// take off its chance to resist, in percent (see the file's comment).
+// take off its chance to resist, in percent (see the file's comment): the
+// strongest one's.
 func npcResistOffPct(npc *NPC, now time.Time) int {
 	if npc == nil {
 		return 0
 	}
 	off := 0
 	for _, e := range npc.Effects {
-		if e.Mods.AR < 0 && now.Before(e.Until) {
-			off -= e.Mods.AR
+		if now.Before(e.Until) {
+			off = max(off, -e.Mods.AR)
 		}
 	}
 	if off == 0 {

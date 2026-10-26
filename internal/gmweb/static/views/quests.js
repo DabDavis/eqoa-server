@@ -38,8 +38,28 @@ export async function render(box, parts) {
   const [seg, arg] = parts;
   if (seg === 'characters') return characters(box, arg);
   if (seg === 'import') return importer(box);
-  if (seg === undefined || seg === '') return list(box);
+  if (seg === undefined || seg === '') return list(box, {});
+  if (seg === 'f') return list(box, Object.fromEntries(new URLSearchParams(arg || '')));
   return editor(box, seg === 'new' ? 0 : Number(seg));
+}
+
+// A quest's status, as quest_list gives it (questindex.go).
+const STATUS = {
+  'in the game': ['ok', 'in the game'],
+  ready: ['info', 'ready'],
+  draft: ['warn', 'draft'],
+};
+const SHORT = ['WAR', 'RNG', 'PAL', 'SK', 'MNK', 'BRD', 'RGE', 'DRU', 'SHA', 'CLR', 'MAG', 'NEC', 'ENC', 'WIZ', 'ALC'];
+const CITY_NAMES = { 'klick-anon': "Klick'Anon", 'neriak-nektulos': 'Neriak' };
+
+function cityName(c) {
+  if (!c) return '—';
+  return CITY_NAMES[c] || c.split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ');
+}
+
+function statusBadge(st) {
+  const [kind, label] = STATUS[st] || ['', st];
+  return h('span', { class: 'badge ' + kind }, label);
 }
 
 function tabs(on) {
@@ -50,35 +70,122 @@ function tabs(on) {
 
 // ---- the list
 
-async function list(box) {
-  const search = h('input', { type: 'search', placeholder: 'Search by name, giver or note', 'aria-label': 'Search quests' });
+// list is every quest a filter takes (the address keeps the filter:
+// #/quests/f/status=draft&city=freeport): its status and why, the counts,
+// what the drafts lack, and the quests a GM puts in the game or takes out in
+// one go (quest_set_enabled, each quest an audited row).
+async function list(box, params) {
+  const f = { ...params };
+  const keep = () => {
+    const q = new URLSearchParams(Object.entries(f).filter(([, v]) => v !== '' && v !== undefined)).toString();
+    history.replaceState(null, '', q ? '#/quests/f/' + encodeURIComponent(q) : '#/quests');
+  };
+  const input = (key, attrs) => {
+    const i = h('input', { value: f[key] ?? '', ...attrs });
+    i.addEventListener('input', debounce(() => { f[key] = i.value.trim(); keep(); load(); }, 300));
+    return i;
+  };
+  const select = (key, label, options) => {
+    const sel = h('select', { 'aria-label': label }, ...options.map(([v, l]) => h('option', { value: v, selected: String(f[key] ?? '') === String(v) }, l)));
+    sel.addEventListener('change', () => { f[key] = sel.value; keep(); load(); });
+    return sel;
+  };
+  const search = input('search', { type: 'search', placeholder: 'Search by name, giver, note or key', 'aria-label': 'Search quests' });
+  const status = select('status', 'Status', [['', 'every status'], ['in the game', 'in the game'], ['draft', 'every draft'],
+    ['ready', 'drafts ready to go in'], ['blocked', 'drafts not ready']]);
+  const citySel = select('city', 'City', [['', 'every city']]);
+  const klass = select('class', 'Class', [['', 'every class'], ...CLASSES.map((c, i) => [String(i), c])]);
+  const level = input('level', { type: 'number', min: 1, max: 60, placeholder: 'for level', 'aria-label': 'For a level', class: 'narrow' });
+  const giver = input('giver', { type: 'search', placeholder: 'giver', 'aria-label': 'Giver' });
+  const chips = h('div', { class: 'row' });
+  const summary = h('div', { class: 'row' });
+  const actions = h('div', { class: 'row' });
+  const lacks = h('div');
   const body = h('div');
   mount(box,
     pageHead('Quests', "What NPCs give. A quest's giver offers it when talked to; its steps are done by talking to an NPC, " +
-      'showing or handing one items, killing creatures and reaching places; the journal shows the step to do. ' +
-      'A draft is offered to no one, but a GM can try it.', null,
+      'showing or handing one items, killing creatures, looting their drops and reaching places. A draft is offered to ' +
+      'no one; a ready one is a draft nothing keeps out now (every name it uses is on this server, every quest it ' +
+      'requires in the game or ready): put it in the game here.', null,
     button('New quest', { class: 'primary', icon: 'plus', onclick: () => go('quests/new') })),
-    tabs('list'), card(null, h('div', { class: 'stack' }, search, body)));
+    tabs('list'),
+    card(null, h('div', { class: 'stack' },
+      h('div', { class: 'row quest-tools' }, h('div', { class: 'grow' }, search), status, citySel, klass, level, giver),
+      chips, summary, actions, lacks, body)));
+  let last = null;
   const load = async () => {
+    const args = { limit: 2000 };
+    for (const k of ['search', 'status', 'city', 'giver', 'missing']) if (f[k]) args[k] = f[k];
+    if (f.class !== undefined && f.class !== '') args.class = Number(f.class);
+    if (f.level) args.level = Number(f.level);
+    let out;
     try {
-      const out = await op('quest_list', { search: search.value.trim() });
-      if (!out.quests.length) {
-        mount(body, empty(search.value ? 'No quest matches.' : 'No quests yet: make one, or make drafts out of EQOA-Data.'));
-        return;
-      }
-      const rows = out.quests.map((q) => h('tr', { onclick: () => go('quests/' + q.questid) },
-        h('td', { class: 'mono' }, String(q.questid)), h('td', null, q.name || '(no name)'),
-        h('td', null, Number(q.enabled) ? h('span', { class: 'badge' }, 'in the game') : h('span', { class: 'muted' }, 'draft')),
-        h('td', null, q.giver || '—'), h('td', null, `${q.minlevel}–${q.maxlevel || 'any'}`), h('td', null, String(q.steps)),
-        h('td', null, String(q.underway)), h('td', null, String(q.finished)), h('td', { class: 'muted small' }, q.source || '')));
-      mount(body, h('div', { class: 'grid-scroll' }, h('table', { class: 'grid' },
-        h('thead', null, h('tr', null, ...['#', 'Name', '', 'Giver', 'Levels', 'Steps', 'Under way', 'Finished', 'Source'].map((c) => h('th', null, c)))),
-        h('tbody', null, ...rows))));
+      out = await op('quest_list', args);
     } catch (e) {
       mount(body, h('p', { class: 'err' }, e.message));
+      return;
     }
+    last = out;
+    // the cities, with their counts, kept in the choice
+    const have = f.city ?? '';
+    mount(citySel, h('option', { value: '' }, 'every city'),
+      ...out.cities.map((c) => h('option', { value: c.city || 'none', selected: have === (c.city || 'none') },
+        `${c.city ? cityName(c.city) : 'no city (a GM\'s)'} · ${c.quests}${c.drafts ? `, ${c.drafts} drafts` : ''}${c.ready ? `, ${c.ready} ready` : ''}`)));
+    mount(chips, f.missing ? h('span', { class: 'chip' }, 'lacking ' + f.missing,
+      h('button', { type: 'button', 'aria-label': 'Clear', onclick: () => { delete f.missing; keep(); load(); } }, '×')) : null);
+    const c = out.counts;
+    mount(summary, h('strong', null, `${out.total} quest${out.total === 1 ? '' : 's'}`),
+      h('span', { class: 'muted' }, `${c['in the game']} in the game · ${c.ready} ready · ${c.draft} drafts not ready`),
+      out.quests.length < out.total ? h('span', { class: 'muted small' }, `(the first ${out.quests.length} shown)`) : null);
+    const filterArgs = () => { const a = { ...args }; delete a.limit; return a; };
+    mount(actions,
+      c.ready ? button(`Put the ${c.ready} ready in the game`, { class: 'primary', onclick: () => setEnabled({ ...filterArgs(), status: 'ready' }, true) }) : null,
+      c['in the game'] ? button(`Take the ${c['in the game']} in the game out`, { onclick: () => setEnabled({ ...filterArgs(), status: 'in the game' }, false) }) : null);
+    mount(lacks, out.missing.length && !f.missing
+      ? h('div', { class: 'stack' }, h('span', { class: 'muted small' }, 'What the drafts shown lack, the most wanted first (placing that NPC, or making that item, frees every quest that lacked only it; click one for its quests):'),
+        h('div', { class: 'row quest-lacks' }, ...out.missing.slice(0, 24).map((m) =>
+          h('a', { href: '#', class: 'badge warn', title: `${m.kind}: ${m.quests} quest(s) lack it`,
+            onclick: (e) => { e.preventDefault(); f.missing = m.name; f.status = ''; status.value = ''; keep(); load(); } }, `${m.name} · ${m.quests}`))))
+      : null);
+    if (!out.quests.length) {
+      mount(body, empty(Object.keys(args).length > 1 ? 'No quest matches.' : 'No quests yet: make one, or import the city quests (tools/import_quests.py).'));
+      return;
+    }
+    const rows = out.quests.map((q) => h('tr', { onclick: () => go('quests/' + q.questid) },
+      h('td', { class: 'mono' }, String(q.questid)), h('td', null, q.name || '(no name)'), h('td', null, statusBadge(q.status)),
+      h('td', null, cityName(q.city)),
+      h('td', { class: 'small' }, q.classes.length ? q.classes.map((i) => SHORT[i] ?? i).join(' ') : 'any'),
+      h('td', { class: 'num' }, `${q.minlevel}–${q.maxlevel || 'any'}`), h('td', null, q.giver || '—'),
+      h('td', { class: 'num' }, String(q.steps)), h('td', { class: 'num' }, String(q.underway)), h('td', { class: 'num' }, String(q.finished)),
+      h('td', { class: 'small muted', title: (q.why || []).join('\n') }, (q.why || []).length ? q.why[0] + (q.why.length > 1 ? ` (+${q.why.length - 1})` : '') : '')));
+    mount(body, h('div', { class: 'grid-scroll' }, h('table', { class: 'grid' },
+      h('thead', null, h('tr', null, ...['#', 'Name', 'Status', 'City', 'Classes', 'Levels', 'Giver', 'Steps', 'Under way', 'Finished', 'Why it is a draft'].map((x) => h('th', null, x)))),
+      h('tbody', null, ...rows))));
   };
-  search.addEventListener('input', debounce(load, 250));
+  // turning many on or off: a dry run, what it does, then for real
+  const setEnabled = async (filter, on) => {
+    let dry;
+    try {
+      dry = await op('quest_set_enabled', { filter, enabled: on, dryRun: true });
+    } catch (e) { toast(e.message, 'error'); return; }
+    if (!dry.changed.length) { toast('Nothing to change', 'ok'); return; }
+    const req = dry.changed.filter((x) => x.required);
+    const msg = h('div', { class: 'stack' },
+      h('p', null, on
+        ? `${dry.changed.length} quest(s) go in the game: their givers offer them from now on.`
+        : `${dry.changed.length} quest(s) become drafts: offered to no one, a character who has one under way goes on with it.`),
+      req.length ? h('p', { class: 'muted small' }, `With them, ${req.length} quest(s) they require: ${req.slice(0, 6).map((x) => x.name).join(', ')}${req.length > 6 ? '…' : ''}`) : null,
+      dry.skipped.length ? h('p', { class: 'muted small' }, `${dry.skipped.length} left out (not ready).`) : null,
+      h('p', { class: 'muted small' }, 'Each quest is its own row change, logged and revertible.'));
+    const ok = await confirmBox({ title: on ? 'Put these quests in the game?' : 'Take these quests out of the game?', message: msg,
+      confirmLabel: on ? 'Put them in' : 'Take them out' });
+    if (!ok) return;
+    try {
+      const out = await op('quest_set_enabled', { filter, enabled: on });
+      toast(`${out.changed.length} quest(s) ${on ? 'in the game' : 'out of the game'}`, 'ok', out.live);
+      load();
+    } catch (e) { toast(e.message, 'error'); }
+  };
   await load();
 }
 
@@ -383,6 +490,34 @@ async function editor(box, id) {
     } catch (e) { toast(e.message, 'error'); }
   } }) : null;
 
+  // where it stands among the rest (quest_get's status, why and chain) and
+  // putting it in the game or taking it out (quest_set_enabled)
+  const links = (list) => list?.length
+    ? h('ul', { class: 'steps' }, ...list.map((x) => h('li', null, h('a', { href: '#/quests/' + x.questid }, x.name || 'quest ' + x.questid), ' ', statusBadge(x.status))))
+    : h('p', { class: 'muted small' }, 'none');
+  const flip = async (on) => {
+    try {
+      const dry = await op('quest_set_enabled', { quests: [id], enabled: on, dryRun: true });
+      if (!dry.changed.length) {
+        toast(dry.skipped.length ? 'Not ready: ' + dry.skipped[0].why : 'Nothing to change', dry.skipped.length ? 'error' : 'ok');
+        return;
+      }
+      const more = dry.changed.filter((x) => x.required);
+      if (more.length && !(await confirmBox({ title: 'Put it in the game with the quests it requires?',
+        message: `It requires ${more.map((x) => x.name).join(', ')}, a draft as well: they go in with it.`, confirmLabel: 'Put them in' }))) return;
+      const out = await op('quest_set_enabled', { quests: [id], enabled: on });
+      toast(on ? 'In the game' : 'A draft again', 'ok', out.live);
+      editor(box, id);
+    } catch (e) { toast(e.message, 'error'); }
+  };
+  const stands = id ? h('div', { class: 'stack' },
+    h('div', { class: 'row' }, statusBadge(data.status), data.city ? h('span', { class: 'muted small' }, cityName(data.city) + (data.key ? ' · ' + data.key : '')) : null),
+    data.why?.length ? h('ul', { class: 'steps' }, ...data.why.map((w) => h('li', { class: 'err' }, w))) : null,
+    h('div', null, h('strong', { class: 'small' }, 'Before it'), links(data.before)),
+    h('div', null, h('strong', { class: 'small' }, 'After it'), links(data.after)),
+    data.status === 'ready' ? button('Put it in the game', { class: 'primary', onclick: () => flip(true) }) : null,
+    data.status === 'in the game' ? button('Take it out of the game', { onclick: () => flip(false) }) : null) : null;
+
   const who = data.characters?.length
     ? h('ul', { class: 'steps' }, ...data.characters.map((c) => h('li', null,
       h('a', { href: '#/quests/characters/' + c.serverid }, c.charName || 'character ' + c.serverid), ' · ',
@@ -415,6 +550,7 @@ async function editor(box, id) {
           field('', eventsEditor(q, 'events', QUEST_WHENS, worlds), "run in order after the giver's words when it is taken, and after the last step's when it is finished", true))),
         card('Steps', stepsBox)),
       h('div', { class: 'stack' },
+        stands ? card('Where it stands', stands) : null,
         card('Problems', problems),
         card('Who has it', who),
         card('Notes', h('div', { class: 'fields' }, field('', area(q, 'notes', 10), null, true))))));
@@ -483,6 +619,8 @@ async function characters(box, who) {
 // ---- drafts out of EQOA-Data
 
 async function importer(box) {
+  const note = h('div', { class: 'notice info' }, "The city quests (1-20) come in whole from tools/import_quests.py, which the server's operator runs: " +
+    'this makes one-step drafts of any OTHER guide, and skips a section the import made.');
   const folder = h('input', { type: 'file', multiple: true });
   folder.setAttribute('webkitdirectory', '');
   const some = h('input', { type: 'file', multiple: true, accept: '.json,application/json' });
@@ -493,7 +631,7 @@ async function importer(box) {
       "items where this server has them by name, one step to talk to its giver, and the guide's words in its notes. Drafts are " +
       'offered to no one: write each one\'s steps from its notes and tick In the game. A guide imported before is skipped.'),
     tabs('import'),
-    card('The guides', h('div', { class: 'stack' },
+    card('The guides', h('div', { class: 'stack' }, note,
       h('label', null, 'The Quests folder: ', folder),
       h('label', null, 'or some of its files: ', some),
       body)));

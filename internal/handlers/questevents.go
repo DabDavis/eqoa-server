@@ -285,3 +285,48 @@ func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern, n
 		q.completeStepLocked(sess, p, c, qu, cq, st, nil)
 	}
 }
+
+// AtWindow is a merchant's, banker's or blacksmith's window asked for: CLIENT
+// never talks to such an NPC (InteractWithTarget asks for its window
+// instead), so a talk, show or give step to do at it is done here, first, when
+// it can be done now (a show or give step's items and tunar held); else the
+// window opens as ever. It reports whether the quests answered (the window is
+// not opened then). A quest such an NPC offers is never offered.
+func (q *QuestEngine) AtWindow(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
+	if q == nil || p == nil || npc == nil || npc.Dead {
+		return false
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	c := q.namedLocked(p.CharServerID, p.Name)
+	for _, cq := range c.active() {
+		qu := q.cat.byID[cq.QuestID]
+		if qu == nil {
+			continue
+		}
+		st := qu.Step(cq.Step)
+		if st == nil || !database.AtNPC(st.Kind) || !stepNPC(st, npc.Name, npc.ServerID) {
+			continue
+		}
+		if (st.Kind == database.StepGive || st.Kind == database.StepShow) && q.lackingLocked(p, st) != "" {
+			continue
+		}
+		c.box = nil
+		q.atNPCLocked(sess, p, c, qu, cq, st, false)
+		log.Printf("Quests: %s's window answered for %q step %d", npc.Name, qu.Name, st.Step)
+		return true
+	}
+	return false
+}
+
+// questsAtWindow is AtWindow on the running engine, the client's pending
+// request cleared first (0x00D7) so its boxes show: true when the quests
+// answered and the window is not to open.
+func questsAtWindow(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
+	q := Quests()
+	if q == nil || !q.AtWindow(sess, p, npc) {
+		return false
+	}
+	refuse(sess)
+	return true
+}

@@ -49,7 +49,7 @@ const DUMMY = { model: '0x66262F1C', size: 0.25 };
 // previewPane is the framed preview: a default human casting a visual as a
 // cast's 0x00B1 plays it, at a training dummy (a harmful spell's), a second
 // human, or itself (anything else's). Null with no gm.preview_url.
-function previewPane() {
+export function previewPane() {
   const url = state.session?.preview;
   if (!url) return null;
   let origin;

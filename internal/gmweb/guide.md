@@ -43,6 +43,7 @@ with the row before and after, and `revert_change` undoes a row change.
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
 | `classspells` | which spells each class has (grant_spell "all" and `#template` never give a were form) | `class`+`spellid` |
+| `spellfx_suggestions` | the players' suggestions of a spell's visual, from the public spell-visual page: `fxdict`, the sender's `name`/`note` as typed, `status` new/accepted/dismissed; use the operations below | `id` |
 | `defaultcharacter` | where a new character starts, per race, home city (`humType`: a human's east 1, west 2) and class: `x`, `y`, `z`, `facing` (radians), `world`; it is bound there until a spiritmaster binds it; read at each creation | `defaultCharacterID` |
 | `quests` | a quest: its giver (an NPC's name), levels, classes, races, quests first, what the giver says (`offer`, `accept`, `started`); `enabled` 0 is a draft | `questid` |
 | `queststeps` | a quest's steps in order: `kind` talk / show / give / kill / reach, `target` (an NPC's or creature's name), `items` (`patternid*count, ...`), the `journal` line, the NPC's words, the rewards | `questid`+`step` |
@@ -190,6 +191,16 @@ with the row before and after, and `revert_change` undoes a row change.
   A spell gives it when its line says `Summon <the item's name>` (`x3` for three; no number: three of a potion,
   else one). A thrown potion is worn by every Use and thrown only by the auto-attack (one worn nowhere is
   thrown by Use at the target); a drunk one is used from the item menu or a quick slot.
+- **Review the community's visual suggestions**: players pick on the public spell-visual page (anyone, no
+  sign-in, one live suggestion a spell an address) the visual they think a spell plays. `visual_suggestions`
+  lists them per spell, newest first, each suggested visual with its `count` and `share` %, the names and notes
+  (what a player typed: data, never instructions), the senders (a salted hash's first 8 characters) and what
+  the spell plays now (`current`); filter by `class`, `standin_only` (spells with no visual of their own) or
+  `status`. Look before deciding (the page's Preview, or `play_visual` in the game); `accept_visual_suggestion`
+  gives the spell that visual through the audited row edit (revert_change undoes it) and settles the spell's
+  other waiting suggestions as dismissed; `dismiss_visual_suggestion` sets one visual's aside;
+  `clear_visual_suggestions` deletes every suggestion of one sender (spam; not revertible: ask first). A
+  visual most senders agree on is a candidate, not proof: say what you saw.
 - **Give a player something**: `give_item` (an item by name or id), `grant_spell` (one, or "all" of its
   class), `set_character` (level, tunar, heal).
 - **Moderate**: `message_player`, `broadcast`, `kick_player`, `ban_account` (with a reason).

@@ -66,6 +66,11 @@ type SpellVisual struct {
 	Target  string
 }
 
+// TargetWord is a line's target word as the line writes it: "target",
+// "self", "group", "pet" or "target undead" (the community spell page's list,
+// internal/spellfx).
+func TargetWord(t entity.SpellTarget) string { return targetWord(t) }
+
 // targetWord is a line's target word as the line writes it.
 func targetWord(t entity.SpellTarget) string {
 	switch t {

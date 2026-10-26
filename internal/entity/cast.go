@@ -192,6 +192,9 @@ type ActiveEffect struct {
 	// (hot.go); 0 for an effect that ticks until it ends (a creature's, a
 	// pet's, one kept from before ticks were counted).
 	Ticks int
+	// Shield is a damage shield or a defensive proc (dshield.go), nil for
+	// none
+	Shield *Shield
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -787,6 +790,8 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			}
 		case EffectIllusion:
 			// its body is its bearer's to choose (landIllusionLocked)
+		case EffectShield, EffectDefProc:
+			ae.Shield = ae.Shield.with(e, cs, caster) // dshield.go
 		default:
 			continue
 		}

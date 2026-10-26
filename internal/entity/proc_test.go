@@ -66,8 +66,9 @@ func TestTheChaoticLineIsAProc(t *testing.T) {
 		"Delivers arcane based damage to the target. Modified by DEX."); !d.Harmful || d.Effects[0].Kind != EffectHP {
 		t.Errorf("Chaotic Feedback, a nuke: %+v", d)
 	}
+	// its "Add DS" is a damage shield (dshield.go), no proc
 	if d := ParseSpell("Pet, Increase INT by 35, Add Offensive Proc:, Add DS, 10min", "Arcane Offensive Proc"); d.Harmful ||
-		len(d.Effects) != 1 || d.Effects[0].Kind != EffectStat {
+		len(d.Effects) != 2 || d.Effects[0].Kind != EffectStat || d.Effects[1].Kind != EffectShield {
 		t.Errorf("Burning Mark, no damage named: %+v", d)
 	}
 }

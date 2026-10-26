@@ -213,6 +213,14 @@ func (w *World) LoadSocialRules(db *database.SQLiteDB) (int, error) {
 	return social, nil
 }
 
+// SocialRuleFor is the GMs' rule for the NPCs of a name, if there is one.
+func (w *World) SocialRuleFor(name string) (SocialRule, bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	r, ok := w.npcSocial.rules[name]
+	return r, ok
+}
+
 // SocialSummary is a line for the server's start: how many NPC names come to
 // the help of their faction.
 func (w *World) SocialSummary() string {

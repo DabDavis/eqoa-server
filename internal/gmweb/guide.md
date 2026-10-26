@@ -36,6 +36,7 @@ with the row before and after, and `revert_change` undoes a row change.
 | `npcitem` | merchant stock: `npcid` (→ `npcs.id`), `patternid`, `listnumber` (order) | `itemid` |
 | `npcclass` | an NPC NAME's class (lower case), which picks its melee; absent = warrior | `name` |
 | `npcpaths` | the path an NPC walks: `points` (JSON waypoints), `mode`, `pause`, `speed`; use the path operations | `npcid` |
+| `npcsocial` | which NPCs come to the help of their own when one is attacked, by NPC name: `social` 1, the `faction` (or any group name) they belong to and help, `radius` (0: 30) | `npc_name` |
 | `itempattern` | every item that exists | `patternid` |
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
@@ -68,6 +69,8 @@ with the row before and after, and `revert_change` undoes a row change.
 
 ## What takes effect when
 
+- **Creatures heal fast out of a fight**: 15% of their hit points every six seconds from the third tick after the
+  fight ends (jib's numbers); nothing to set.
 - **NPCs: at once.** An edited NPC leaves every player's view for a second and comes back as edited, alive,
   on its spawn point. A new row spawns; a deleted row leaves. Changes made outside the panel (an importer,
   `sql_execute`) reach the world with `reload_npcs`.
@@ -98,6 +101,13 @@ with the row before and after, and `revert_change` undoes a row change.
   `pause` seconds at every point; `speed` `walk` or `run`. Take places from `online_players` (a GM walking
   the route) or `world_npcs`. `npc_path` shows it and where the NPC is on it; `clear_npc_path` takes it
   away. A pathed NPC does not wander; a fight takes it off its path and it comes back to the nearest leg.
+- **Make NPCs help each other** (a camp of orcs, a town's guards): `insert_row` into `npcsocial` one row per NPC
+  name, `{npc_name, social: 1, faction: "Deathfist Orcs"}` (the same faction or group name for every name that
+  should help the others). When a player, or a player's pet, hits one of them or casts something hostile on it,
+  every one within 30 of it (or its `radius`) joins the fight against that player. An attacked NPC also counts as
+  of every faction its kill lowers (`factionhits`), so a guard with Freeport's militia hits is helped by rows of
+  faction "The Freeport Militia". Not on a creature's own notice of a player, and not by one already fighting.
+  The town guards already have rows (source `seed`). At once.
 - **Make a merchant**: set `npc_type` to 129 (0x81), then `insert_row` into `npcitem` one row per item:
   `{npcid, patternid, stackleft: 1, listnumber: 0, 1, 2...}`.
 - **Change what a spell does**: `update_row` on `spelleffect` (`line`). The words the server reads:

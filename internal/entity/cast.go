@@ -498,6 +498,9 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 				ids = append(ids, m.ServerID)
 			}
 		}
+		if d.hasProc() {
+			ids = w.groupProcPetsLocked(p, ids, spell.Range) // enchanter.go
+		}
 		return ids, ""
 	}
 	if targetObjectID == 0 || targetObjectID == 0xFFFFFFFF {
@@ -752,8 +755,10 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		case EffectInvis:
 			ae.Invis = true
 		case EffectProc:
-			// no mod: the line's damage as it is (jib: "Damage has no mod")
-			ae.Proc, ae.ProcMax = e.Amount, max(e.AmountMax, e.Amount)
+			// the line's damage as it is (jib: "Damage has no mod"), and a
+			// line's own scale, its caster's (enchanter.go: Stormlord's Rune)
+			bonus := procBonus(e, caster)
+			ae.Proc, ae.ProcMax = e.Amount+bonus, max(e.AmountMax, e.Amount)+bonus
 		case EffectIllusion:
 			// its body is its bearer's to choose (landIllusionLocked)
 		default:
@@ -796,7 +801,8 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			illusion = true
 		}
 	}
-	if ae := lasting(cs, caster, now); ae != nil && (ae.HPTick <= 0 || w.placeHoTLocked(t, ae, now)) { // hot.go
+	if ae := lasting(cs, caster, now); ae != nil && (ae.HPTick <= 0 || w.placeHoTLocked(t, ae, now)) && // hot.go
+		w.placeClarityLocked(caster, casterSess, t, ae, now) { // enchanter.go
 		if illusion {
 			w.landIllusionLocked(cs, t, ae) // illusion.go
 		}

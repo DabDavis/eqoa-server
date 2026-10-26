@@ -163,6 +163,16 @@ func petLevel(spellLevel, casterLevel int) int {
 	return max(l, 1)
 }
 
+// petBodyAliases are the creatures a pet whose spell names none in the world
+// wears instead: the enchanter's Earthen Golem a granite golem's body,
+// Ferrous Golem an iron golem's (ours: no NPC of either name exists, and the
+// class's stand-in, an animation, is no golem). Its level and swing are still
+// the spell's.
+var petBodyAliases = map[string]string{
+	"earthen golem": "granite golem",
+	"ferrous golem": "iron golem",
+}
+
 // petClassStandIn is the creature a class's pet is when nothing of its own
 // name is in the world: a necromancer's skeleton, a magician's elementaling,
 // an enchanter's animation.
@@ -221,6 +231,7 @@ func (w *World) petTemplateLocked(spellName, lineName string, class int) *NPC {
 		}
 	}
 	add(spellName)
+	add(petBodyAliases[petName(spellName)])
 	add(lineName)
 	if i := strings.Index(spellName, "'s "); i >= 0 {
 		add(spellName[i+3:])

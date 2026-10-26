@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 	"testing"
 	"unicode/utf16"
@@ -446,6 +447,74 @@ func TestCMBuyAndItsRefusals(t *testing.T) {
 	untaught.w.gw.SetCMCatalog(rows)
 	if rs, red := untaught.send(cmBuy, 10); len(red) != 0 || rs[0][0] != cmRespBought {
 		t.Errorf("buying it when Taunt was never found: % x %v", rs, red)
+	}
+}
+
+// A rank may need another mastery's rank (require_ranks): it is refused, not
+// known and said in the window until that rank is owned, and the rank it
+// needs is not removed before it. An id the catalog lacks is not checked.
+// The control: the same rank with nothing in require_ranks is bought at once.
+func TestCMNeedsAnotherMasterysRank(t *testing.T) {
+	needs := func(ids string) []database.CMRankRow {
+		rows := testCatalog()
+		for i := range rows {
+			if rows[i].ID == 20 {
+				rows[i].RequireRanks = ids
+			}
+		}
+		return rows
+	}
+	known := func(c *cmTest, id int) bool {
+		for _, e := range c.w.gw.CMList(c.sess, map[int]bool{500: true}) {
+			if e.ID == id {
+				return e.Known
+			}
+		}
+		return false
+	}
+
+	control := newCMTest(t, 0, 0, 60)
+	control.p.Mastery.Points = 600
+	if rs, red := control.send(cmBuy, 20); len(red) != 0 || rs[0][0] != cmRespBought {
+		t.Fatalf("the control: Destroyer 1 with no rank needed: % x %v", rs, red)
+	}
+
+	c := newCMTest(t, 0, 0, 60)
+	c.w.gw.SetCMCatalog(needs("2"))
+	c.p.Mastery.Points = 600
+	if known(c, 20) {
+		t.Error("Destroyer 1 is known without Brawn 2")
+	}
+	if n, ok := c.w.gw.CMNodeOf(c.sess, 20, nil); !ok || !slices.Contains(n.Masteries, "Brawn 2") || !strings.Contains(n.Text, "Brawn 2") {
+		t.Errorf("the window does not say Brawn 2 is needed: %v %+v", ok, n)
+	}
+	before := c.p.Mastery
+	if _, red := c.send(cmBuy, 20); len(red) != 1 || !strings.Contains(red[0], "You must have Brawn 2 first.") || c.p.Mastery != before {
+		t.Errorf("buying Destroyer 1 without Brawn 2: %v", red)
+	}
+	c.send(cmBuy, 1)
+	c.send(cmBuy, 2)
+	if !known(c, 20) {
+		t.Error("Destroyer 1 is not known with Brawn 2 owned")
+	}
+	if rs, red := c.send(cmBuy, 20); len(red) != 0 || rs[0][0] != cmRespBought {
+		t.Fatalf("buying Destroyer 1 with Brawn 2: % x %v", rs, red)
+	}
+	if n, _ := c.w.gw.CMNodeOf(c.sess, 21, nil); slices.Contains(n.Masteries, "Brawn 2") {
+		t.Errorf("Defender 1 says a rank it does not need: %v", n.Masteries)
+	}
+	if _, red := c.send(cmRemove, 2); len(red) != 1 || !strings.Contains(red[0], "Remove Destroyer 1 before Brawn 2") {
+		t.Errorf("removing Brawn 2 under Destroyer 1: %v", red)
+	}
+	if _, ok := c.p.CMs[2]; !ok {
+		t.Error("Brawn 2 was removed")
+	}
+
+	unknown := newCMTest(t, 0, 0, 60)
+	unknown.w.gw.SetCMCatalog(needs("999"))
+	unknown.p.Mastery.Points = 600
+	if rs, red := unknown.send(cmBuy, 20); len(red) != 0 || rs[0][0] != cmRespBought {
+		t.Errorf("a rank needed that the catalog lacks blocked Destroyer 1: % x %v", rs, red)
 	}
 }
 

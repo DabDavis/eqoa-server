@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"log"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -103,10 +104,13 @@ type CMRank struct {
 	Parent, Cost, Level, Spent   int
 	MinStats                     [7]int
 	Requires                     []CMAbility
-	Effects                      [CMSlots]int
-	Adds, Removes                []CMAbility
-	Description                  string
-	Enabled                      bool
+	// RequireRanks are other masteries' ranks owned first (require_ranks);
+	// one the catalog lacks is not checked
+	RequireRanks  []int
+	Effects       [CMSlots]int
+	Adds, Removes []CMAbility
+	Description   string
+	Enabled       bool
 }
 
 // cmCatalog is the ranks by id.
@@ -131,6 +135,7 @@ func ParseCMRank(r database.CMRankRow) *CMRank {
 		}
 	}
 	c.Requires = parseAbilities(r.Requires, r.RequireSpells)
+	c.RequireRanks = database.SpellIDs(r.RequireRanks) // a list of ids, as the spells' are
 	c.Adds = parseAbilities(r.Adds, r.AddSpells)
 	c.Removes = parseAbilities(r.Removes, r.RemoveSpells)
 	return c
@@ -348,6 +353,13 @@ func (w *World) cmBlockLocked(p *Player, r *CMRank, book map[int]bool) string {
 			return fmt.Sprintf("You must have %s first.", name)
 		}
 	}
+	for _, id := range r.RequireRanks {
+		if o := w.cms.byID[id]; o != nil {
+			if _, ok := p.CMs[id]; !ok {
+				return fmt.Sprintf("You must have %s first.", o.Name)
+			}
+		}
+	}
 	if p.Level < r.Level {
 		return fmt.Sprintf("You must be level %d to buy %s.", r.Level, r.Name)
 	}
@@ -448,6 +460,13 @@ func (w *World) CMNodeOf(sess *session.Session, id int, book map[int]bool) (CMNo
 			}
 		}
 	}
+	for _, id := range r.RequireRanks {
+		if o := w.cms.byID[id]; o != nil {
+			if _, ok := p.CMs[id]; !ok {
+				n.Masteries = append(n.Masteries, o.Name)
+			}
+		}
+	}
 	return n, true
 }
 
@@ -518,9 +537,9 @@ func (w *World) RemoveCM(sess *session.Session, id int) CMResult {
 	if r != nil {
 		name = r.Name
 	}
-	// a later rank of it first
+	// a later rank of it first, and a rank of another mastery that needs it
 	for oid := range p.CMs {
-		if o := w.cmRank(oid); o != nil && o.Parent == id {
+		if o := w.cmRank(oid); o != nil && (o.Parent == id || slices.Contains(o.RequireRanks, id)) {
 			return CMResult{Refusal: fmt.Sprintf("Remove %s before %s.", o.Name, name), Rank: r}
 		}
 	}

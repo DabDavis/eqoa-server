@@ -486,7 +486,8 @@ var catalog = map[string]tableNote{
 			"a time). id is the window's skill id; parent the rank before it, which must be owned first. A rank is " +
 			"listed to the classes and races its bit sets name, and buyable (\"known\") once the character's level, " +
 			"the points it has spent, its base stats (minstats, \"STR:100,STA:150\"), the abilities it needs " +
-			"(require_spells) and its parent are there; the cost is then taken from its unspent points. effects is " +
+			"(require_spells), its parent and the other masteries' ranks it needs (require_ranks) are there; the cost " +
+			"is then taken from its unspent points. effects is " +
 			"what it gives, in EQOA-Data's names: STR..CHA, STRMax..CHAMax (the stat caps: a character's cap is the " +
 			"level's, 400 from 46 and 350 below, plus what its masteries raise), HP, Pow, HoT, PoT, AC, Off Mod and " +
 			"Def Mod (shown), HP Factor (a level's HP each), FR CR LR AR PR DR, MovRate (20 a run, 100 Spirit of the " +
@@ -510,6 +511,7 @@ var catalog = map[string]tableNote{
 			"spent":          {Label: "Points spent", Help: "the mastery points the character must have spent already"},
 			"minstats":       {Label: "Base stats needed", Help: "STR:100,STA:150 (base and training, and what masteries add)"},
 			"requires":       {Label: "Abilities needed", Help: "Name@level; ... as shown"},
+			"require_ranks":  {Label: "Masteries needed", Help: "other masteries' ranks owned first, their ids (6634, ...); the rank before it in its own line is Rank before; an id the catalog lacks is not checked, and a rank another one needs is not removed before it"},
 			"require_spells": {Label: "Abilities needed (spells)", Help: "their spellpattern ids, in the same order: the book must hold them; 0 is not checked"},
 			"effects":        {Label: "Gives", Help: "STR:1,STRMax:15 in EQOA-Data's names (the table's help lists them)"},
 			"adds":           {Label: "Adds abilities", Help: "Name@level; ... as shown"},

@@ -278,6 +278,24 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   0x66262F1C at the Training Dummy rows' 0.25) before the caster, anything else on the caster; a bare
   visual at the dummy; the pane's select overrides (dummy, a second human, the caster). The preview's
   host must allow the frame: nginx `frame-ancestors https://gm.<domain>` on that file alone.
+- **Community visuals** (`ops_suggest.go`, `views/community.js`; F3 pass 17, the user's "our community
+  effort to help match the spell fx to the correct spells", "no sign in gates", "GMs accept in the
+  panel"): players send from the public spell-visual page (eqoa-rust-client-vanilla's
+  `web/spellfx.html`) which visual they think a spell plays, through the ACCOUNT server's two open
+  routes (`internal/spellfx`, wired as `tcp.AccountServer.SpellFX`): `GET /api/spellfx/spells` (every
+  class spell with its classes, line, harmful, target word, cast held to 30 s, and the visual it plays
+  now, `standin` when that is its kind's stand-in; one query, cached, rebuilt by
+  `database.InvalidateSpellFX` (`SetSpellVisual`, a row edit of spellpattern/spelleffect/classspells)
+  or after a minute) and `POST /api/spellfx/suggest` (`{spell, visual, name, note}`: a 32-bit hex
+  DictID, a name of 32 characters and a note of 300 at most, plain text; an address, an IPv6 one by
+  its /64, holds one live suggestion a spell, a new one replacing it, and sends 120 an hour; 100,000
+  waiting is a full box). Table `spellfx_suggestions` keeps the sender only as a salted hash
+  (`spellfx_meta`'s salt, made once and hidden from every page: with it an IPv4 hash walks back). The
+  ops `visual_suggestions`, `accept_visual_suggestion` (set_spell_visual's audited row edit, so
+  revertible; that visual's suggestions accepted, the spell's other waiting ones dismissed),
+  `dismiss_visual_suggestion`, `clear_visual_suggestions` (a sender's rows by hash prefix); the page
+  shows them beside the preview (`previewPane`, exported from `visuals.js`), player text as text.
+  nginx proxies `/eqoa/account/api/spellfx/{spells,suggest}` (exact locations).
 
 Traps: the database has ONE connection (`SetMaxOpenConns(1)`): never query while holding rows
 or a `db.Conn`/transaction from the plain handle — it deadlocks the game (the SQL console once

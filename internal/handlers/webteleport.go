@@ -93,9 +93,11 @@ func ResolveTeleDest(gw *entity.World, name string) (x, y, z float32, world byte
 	if dest.NPC != "" && gw != nil {
 		spawnOf := gw.SpawnOfNPC
 		if dest.Near {
-			// a camp's: its own creature of the name, not one across the world
+			// a camp's: beside its own creatures of the name, not on one, nor
+			// at a namesake across the world (entity/camplanding.go)
 			spawnOf = func(name string) (float32, float32, float32, float32, uint8, bool) {
-				return gw.SpawnOfNPCNear(name, dest.World, dest.X, dest.Z, campAnchorReach)
+				x, y, z, ok := gw.CampLanding(name, dest.World, dest.X, dest.Z, campAnchorReach)
+				return x, y, z, 0, dest.World, ok
 			}
 		}
 		if nx, ny, nz, _, nw, spawned := spawnOf(dest.NPC); spawned {

@@ -489,6 +489,34 @@ func (l *Listener) saveMastery(sess *session.Session) {
 // SaveAll saves every player in the world as a logout would (position, spell
 // effects, standings and mastery points), for a shutdown: a restart is a logout for everyone
 // in it, and before this one the state since each login was lost.
+// NoticeShutdown tells every client (each session is a game connected, in
+// the world or before it) that the server is going: 0x07C0, CLIENT's Disconnect(17), "The server has been shutdown by a
+// server administrator." (ConnectStatusString's word 1024), so the game goes
+// back to its login with that notice. Without it a restart left each game in a
+// world that no longer answered until its own timeout, every creature carried
+// along its last word (F3 20261026-063102: a pet ran on into the sea). Flushed
+// at once, and again past RetransmitDelay for a datagram that was lost, as
+// nothing would resend it once the process ends. It returns how many were told.
+func (l *Listener) NoticeShutdown() int {
+	var told []*session.Session
+	l.sessionManager.ForEach(func(sess *session.Session) bool {
+		told = append(told, sess)
+		return true
+	})
+	for _, sess := range told {
+		handlers.SendDisconnect(sess, protocol.OpcodeServerUpdatingDC)
+		l.flushSession(sess)
+	}
+	if len(told) > 0 {
+		time.Sleep(RetransmitDelay + 100*time.Millisecond)
+		for _, sess := range told {
+			l.flushSession(sess)
+		}
+	}
+	log.Printf("NoticeShutdown: %d clients told", len(told))
+	return len(told)
+}
+
 func (l *Listener) SaveAll() {
 	if l.gameWorld == nil || l.charStore == nil {
 		return

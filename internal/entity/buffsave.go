@@ -61,6 +61,9 @@ type savedMods struct {
 	// a heal over time's ticks left (hot.go); a row kept before reads as
 	// none, an effect that ticks until it ends
 	Ticks int `json:",omitempty"`
+	// a damage shield or defensive proc (dshield.go); a row kept before
+	// reads as none
+	Shield *Shield `json:",omitempty"`
 }
 
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
@@ -75,7 +78,7 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 			tick = max(0, e.NextTick.Sub(now).Milliseconds())
 		}
 		mods, _ := json.Marshal(savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, ProcScale: e.ProcScale, ProcScalePct: e.ProcScalePct,
-			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks})
+			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield})
 		flags := 0
 		for _, f := range []struct {
 			on  bool
@@ -120,6 +123,7 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			ae.ProcScale, ae.ProcScalePct, ae.ProcCap = sm.ProcScale, sm.ProcScalePct, sm.ProcCap
 			ae.Form, ae.FormSize = sm.Form, sm.FormSize
 			ae.Ticks = sm.Ticks
+			ae.Shield = sm.Shield
 		}
 		p.Effects = append(p.Effects, ae)
 		if ae.Name != "" && len(p.Buffs) < MaxEffects {

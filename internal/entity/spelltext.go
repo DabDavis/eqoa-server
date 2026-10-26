@@ -55,6 +55,8 @@ const (
 	EffectCharm                         // the target becomes the caster's pet (charm.go)
 	EffectIllusion                      // the bearer shown in another body (illusion.go): SpellDef.Form
 	EffectEndIllusion                   // the bearer's own body back (illusion.go)
+	EffectShield                        // a creature's melee hit on the bearer takes Amount back (dshield.go)
+	EffectDefProc                       // a creature's melee hit on the bearer may take Amount back (dshield.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -106,6 +108,8 @@ type SpellEffect struct {
 	// Cap is the most the effect does, its scale included ("max 250"); 0
 	// for no cap
 	Cap int
+	// Undead: a shield that answers undead attackers alone (dshield.go)
+	Undead bool
 }
 
 // SpellDef is a spell's line, read: whom it lands on, what it does, how
@@ -274,6 +278,7 @@ func ParseSpellNamed(name, line, desc string) SpellDef {
 	d.readUndead(name, desc)  // undead.go
 	d.readEnchanterProc(name) // enchanter.go
 	d.healWithMaxHP(name)     // spellnotes.go
+	d.readShield(name, desc)  // dshield.go
 	return d
 }
 
@@ -362,6 +367,7 @@ func ParseSpellText(line string) SpellDef {
 		text = strings.ReplaceAll(text, a.from, a.to)
 	}
 	text = joinStatLists(text) // spellnotes.go
+	text = shieldWords(text)   // dshield.go
 	// The verb a clause without one goes on with ("Increase AC by 12,
 	// Maximum Power by 5"), and the effect a scale clause belongs to.
 	verb := ""
@@ -492,6 +498,10 @@ func (d *SpellDef) parsePart(part, verb string) string {
 	}
 	if m := reHate.FindStringSubmatch(part); m != nil {
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectHate, Amount: atoi(m[1]), AmountMax: atoi(m[1])})
+		return verb
+	}
+	if e, ok := shieldPart(part); ok { // dshield.go
+		d.Effects = append(d.Effects, e)
 		return verb
 	}
 	scale, scalePct := StatNone, 0

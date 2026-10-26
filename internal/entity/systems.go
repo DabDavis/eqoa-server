@@ -213,7 +213,9 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	if player.HP <= 0 {
 		w.playerDiedLocked(sess, player, now)
 		log.Printf("Combat: player %s has died!", sess.RemoteAddr())
+		return
 	}
+	w.playerShieldsLocked(sess, player, npc, now) // its damage shield and defensive procs (dshield.go)
 }
 
 // regenSystem gives every player its HoT in hit points and its PoT in power

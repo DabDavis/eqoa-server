@@ -92,6 +92,15 @@ func dialClient(t *testing.T, s *Server, name, group string) *testClient {
 	if c.id == 0 {
 		t.Fatal("no voice id")
 	}
+	c.connect(name, func(sdp string) { s.Signal(c.id, KindOffer, sdp) }, func() string { return c.waitSignal(KindAnswer) })
+	return c
+}
+
+// connect makes the client's connection as the game's clients do, its offer
+// and the answer carried by the two functions.
+func (c *testClient) connect(name string, offerOut func(string), answerIn func() string) {
+	t := c.t
+	t.Helper()
 	m := &webrtc.MediaEngine{}
 	if err := m.RegisterCodec(webrtc.RTPCodecParameters{RTPCodecCapability: opusCap, PayloadType: 111}, webrtc.RTPCodecTypeAudio); err != nil {
 		t.Fatal(err)
@@ -165,8 +174,8 @@ func dialClient(t *testing.T, s *Server, name, group string) *testClient {
 		t.Fatal(err)
 	}
 	<-gathered
-	s.Signal(c.id, KindOffer, pc.LocalDescription().SDP)
-	answer := c.waitSignal(KindAnswer)
+	offerOut(pc.LocalDescription().SDP)
+	answer := answerIn()
 	if err := pc.SetRemoteDescription(webrtc.SessionDescription{Type: webrtc.SDPTypeAnswer, SDP: answer}); err != nil {
 		t.Fatal(err)
 	}
@@ -183,7 +192,6 @@ func dialClient(t *testing.T, s *Server, name, group string) *testClient {
 	if c.ext == 0 {
 		t.Fatal("no audio level extension negotiated")
 	}
-	return c
 }
 
 func (c *testClient) waitSignal(kind byte) string {

@@ -46,7 +46,7 @@ func lobbyOf(s *Server) map[string]Room {
 // none) and takes the right one; the lobby lists both with their members,
 // most first.
 func TestRoomsOpenAndLocked(t *testing.T) {
-	s, _ := newLobbyServer(t)
+	s, clk := newLobbyServer(t)
 	var ids []uint32
 	for i := 0; i < 4; i++ {
 		ids = append(ids, s.Join("P", "", newTestSink()))
@@ -73,6 +73,10 @@ func TestRoomsOpenAndLocked(t *testing.T) {
 	if got := lobbyOf(s)["Guildhall"]; got.Members != 1 || !got.Locked {
 		t.Fatalf("refused joins changed the room: %+v", got)
 	}
+	if r, _ := s.JoinRoom(ids[3], "GUILDHALL", h, false); r != RoomWrongPassword {
+		t.Fatalf("the right password within 2 s of a wrong one was checked: %d", r)
+	}
+	clk.t = clk.t.Add(roomRetry)
 	if r, _ := s.JoinRoom(ids[3], "GUILDHALL", h, false); r != RoomIn {
 		t.Fatalf("the right password: %d", r)
 	}

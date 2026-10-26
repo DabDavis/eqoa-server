@@ -524,11 +524,78 @@ func init() {
 // is not loaded — an unrecognised name in this table would otherwise silently
 // become "teleport to the origin", which in world 9 is 12,000 units outside the
 // only zone that has terrain.
+//
+// A camp's shortcut (campDests, camps.go) is one creature of many of its name:
+// Near takes the NPC of that name in its world nearest the literal spawn
+// (within campAnchorReach), so the camp's own creature, not a namesake across
+// the world; Levels is the camp's creatures' levels, for the list.
 type teleDest struct {
 	NPC     string  // NPC whose spawn point defines this destination, if any
 	X, Y, Z float32 // fallback, used only when that NPC is not loaded
 	World   byte
 	Label   string
+	Near    bool   // the NPC of that name nearest X, Z in World (a camp's)
+	Levels  string // a camp's creatures' levels here
+}
+
+// campAnchorReach is how far from its written spawn a camp's anchor may have
+// moved and still be the camp's.
+const campAnchorReach = 300
+
+// findTeleDest is a #tele name's shortcut: a place's (teleDests), else a
+// camp's by its name or an alias (campDests, campAliases), and the name it is
+// listed by.
+func findTeleDest(name string) (string, teleDest, bool) {
+	key := strings.ToLower(strings.TrimSpace(name))
+	if d, ok := teleDests[key]; ok {
+		return key, d, true
+	}
+	if a, ok := campAliases[key]; ok {
+		key = a
+	}
+	d, ok := campDests[key]
+	return key, d, ok
+}
+
+// campNames lists the camps by their creatures' lowest level, then name.
+func campNames() []string {
+	names := make([]string, 0, len(campDests))
+	for n := range campDests {
+		names = append(names, n)
+	}
+	low := func(n string) int {
+		v, _ := strconv.Atoi(strings.SplitN(campDests[n].Levels, "-", 2)[0])
+		return v
+	}
+	sort.Slice(names, func(i, j int) bool {
+		if a, b := low(names[i]), low(names[j]); a != b {
+			return a < b
+		}
+		return names[i] < names[j]
+	})
+	return names
+}
+
+// campListLines is the camps as #tele lists them: "dfc 33-40" a camp, as
+// many to a line as fit in width.
+func campListLines(width int) []string {
+	var lines []string
+	line := ""
+	for _, n := range campNames() {
+		item := n + " " + campDests[n].Levels
+		if line != "" && len(line)+2+len(item) > width {
+			lines = append(lines, line)
+			line = ""
+		}
+		if line != "" {
+			line += ", "
+		}
+		line += item
+	}
+	if line != "" {
+		lines = append(lines, line)
+	}
+	return lines
 }
 
 // teleDests are the named GM teleport shortcuts, keyed lower-case.
@@ -640,11 +707,23 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 				d := teleDests[n]
 				h.gmReply(sess, fmt.Sprintf("  %s - %s", n, d.Label))
 			}
+			h.gmReply(sess, "XP camps (their creatures' levels here; #tele camps says where each is):")
+			for _, l := range campListLines(70) {
+				h.gmReply(sess, "  "+l)
+			}
 			return
 		}
-		name := strings.ToLower(parts[1])
-		if _, ok := teleDests[name]; !ok {
-			h.gmReply(sess, fmt.Sprintf("Unknown place %q. Try: %s",
+		if strings.EqualFold(parts[1], "camps") {
+			h.gmReply(sess, "XP camps, from EQOA-Data's map (#tele <name>):")
+			for _, n := range campNames() {
+				d := campDests[n]
+				h.gmReply(sess, fmt.Sprintf("  %s %s - %s (%s)", n, d.Levels, d.Label, worldName(d.World)))
+			}
+			return
+		}
+		name, _, ok := findTeleDest(parts[1])
+		if !ok {
+			h.gmReply(sess, fmt.Sprintf("Unknown place %q. Try: %s, or a camp (#tele lists them)",
 				parts[1], strings.Join(teleNames(), ", ")))
 			return
 		}

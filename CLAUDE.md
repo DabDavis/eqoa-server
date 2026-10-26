@@ -135,6 +135,19 @@ the row too, and a character's level and the experience into it (`totalXP`: ever
 below plus this one's, `entity.TotalXP`) are kept by the logout save, the shutdown's and a
 replacing login's: until then a level gained or set was gone at the next login.
 
+**The XP camps are `#tele` shortcuts** (`handlers/camps.go`, written by `tools/gen_camp_teles.py`;
+the user's "add popular xp camps to the gm tele port like /tele dfc (deathfist citadel) /tele
+hexbones"): EQOA-Data's XP-camp guide (its map's 69 camps with a note, `Map/zones.json`) placed
+over the game by a fit of its map to the NPCs it names (Tunaria: the game is 2.13078 × the map
+plus an offset, a median of 6.6 units off over 385 points; Odus has its own, looser, 164), and
+anchored on the camp's commonest creature in the server's npcs at its densest cluster near that
+point; 49 camps (`dfc`, `hexbones`, `kappa`, `tendora`, `harpies`, `xrag`, ...; aliases such as
+`deathfist`, `shrieks`), each in `#tele`'s list by its creatures' levels here (not the guide's),
+`#tele camps` with where each is. A camp resolves to the creature of the anchor's name nearest
+the spawn written in the table (`World.SpawnOfNPCNear`, within 300; never a GM's copy), else that
+spawn; `#goto <camp>` and the GM panel's teleport list take them too. Run the tool again (it
+gofmts its output) after moving a camp's creatures.
+
 A place may also be named by the people standing there: a word of the names of NPCs that
 stand together in one world (`NamesakePlace`: `/goto guk` lands among Guk's "froglok guk ..."
 in Tunaria, on the one nearest their middle; guards along a road are listed instead). The

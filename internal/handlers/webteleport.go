@@ -30,10 +30,15 @@ type TeleDestInfo struct {
 // help does.
 func TeleDestinations() []TeleDestInfo {
 	names := teleNames()
-	out := make([]TeleDestInfo, 0, len(names))
+	out := make([]TeleDestInfo, 0, len(names)+len(campDests))
 	for _, n := range names {
 		d := teleDests[n]
 		out = append(out, TeleDestInfo{Name: n, Label: d.Label, World: d.World})
+	}
+	// then the XP camps, by level (camps.go)
+	for _, n := range campNames() {
+		d := campDests[n]
+		out = append(out, TeleDestInfo{Name: n, Label: fmt.Sprintf("XP camp, levels %s: %s", d.Levels, d.Label), World: d.World})
 	}
 	return out
 }
@@ -62,7 +67,7 @@ func WarpDestinations(gw *entity.World) []TeleDestInfo {
 // the thing that defines it is gone. Extracted from the #tele handler so the web
 // route cannot answer this question differently.
 func ResolveTeleDest(gw *entity.World, name string) (x, y, z float32, world byte, via string, ok bool) {
-	dest, found := teleDests[strings.ToLower(strings.TrimSpace(name))]
+	_, dest, found := findTeleDest(name)
 	if !found {
 		// Not a #tele shortcut, so try the travel NPCs — the account pages offer
 		// exactly what a Harbormaster offers, and name a route by the NPC that
@@ -86,7 +91,14 @@ func ResolveTeleDest(gw *entity.World, name string) (x, y, z float32, world byte
 	x, y, z, world = dest.X, dest.Y, dest.Z, dest.World
 	via = dest.Label
 	if dest.NPC != "" && gw != nil {
-		if nx, ny, nz, _, nw, spawned := gw.SpawnOfNPC(dest.NPC); spawned {
+		spawnOf := gw.SpawnOfNPC
+		if dest.Near {
+			// a camp's: its own creature of the name, not one across the world
+			spawnOf = func(name string) (float32, float32, float32, float32, uint8, bool) {
+				return gw.SpawnOfNPCNear(name, dest.World, dest.X, dest.Z, campAnchorReach)
+			}
+		}
+		if nx, ny, nz, _, nw, spawned := spawnOf(dest.NPC); spawned {
 			x, y, z, world = nx, ny, nz, nw
 		} else {
 			via = dest.Label + " [fallback: " + dest.NPC + " not loaded]"

@@ -23,6 +23,7 @@ import (
 	"github.com/eqoa/server/internal/network/udp"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
+	"github.com/eqoa/server/internal/spellfx"
 	"github.com/eqoa/server/internal/worlds"
 )
 
@@ -373,6 +374,9 @@ func main() {
 	}
 	accountServer.EndSessions = sessionMgr.EndAccount
 	accountServer.Limiter = loginLimiter
+	// the community spell-visual page's list and form (internal/spellfx):
+	// anyone may suggest a spell's visual; GMs accept one in the panel
+	accountServer.SpellFX = spellfx.New(db)
 
 	if err := accountServer.Start(); err != nil {
 		log.Fatalf("Failed to start account server: %v", err)

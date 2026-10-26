@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"math"
 	"math/rand"
 	"time"
 
@@ -319,13 +320,26 @@ func isSwimAnimation(anim byte) bool {
 	return anim == AnimSwimFast || anim == AnimSwimSlow || anim == AnimSwimRightPunch
 }
 
+// drowningShare is the share of the player's maximum health a drowning step
+// takes (jib's "about 10% of max hp per tick").
+const drowningShare = 0.10
+
+// drowningDamage is one drowning step on the player: a tenth of its maximum
+// health now, at least 1, so ten steps (a minute) drown anyone at full.
+func drowningDamage(p *Player) int {
+	return max(1, int(math.Round(float64(p.MaxHPNow())*drowningShare)))
+}
+
 // breathSystem handles breath depletion underwater and drowning damage.
 // Runs every 6 ticks (0.6s). Breath is 0-255, 255 full, the byte the client's
 // breath gauge draws (the dump's and stat channel 0x42's byte 232): under
 // liquid it loses BreathStep every 6 s, as Sandstorm's did in
 // pcaps/breath_capture.pcap (in the water at 34.6 s, 0xDF at 35.9 s, 0 at
-// 78.3 s); once it is gone, 2 HP every 6 s, with DamageIndication (0x00DB)
-// and the drowning action (0x0775, action 34), as Sandstorm does.
+// 78.3 s); once it is gone, a tenth of the player's maximum health every 6 s
+// until it is dead (jib, F3 20261026-020342: "about 10% of max hp per tick,
+// until dead"; Sandstorm's one recorded drowning, a level 1, took 2 a step),
+// with DamageIndication (0x00DB) and the drowning action (0x0775, action 34),
+// as Sandstorm does.
 // Underwater is the client's own IsUnderLiquid, out of the walker flags in
 // its 0x40 (UnderLiquid): in a liquid and not at its surface, which is when
 // the client draws the breath gauge. The swim animation alone said nothing
@@ -361,12 +375,9 @@ func (w *World) breathSystem(now time.Time) {
 				// Out of breath: drowning damage every 6 s
 				if p.DrowningCounter >= 60 {
 					p.DrowningCounter = 0
-
-					// Deal 2 HP drowning damage
-					p.HP -= 2
-					if p.HP < 0 {
-						p.HP = 0
-					}
+					damage := drowningDamage(p)
+					p.HP = max(p.HP-damage, 0)
+					p.StatsDirty = true
 
 					sess := w.findSessionByEntityIDLocked(p.ServerID)
 					if sess == nil {
@@ -377,11 +388,11 @@ func (w *World) breathSystem(now time.Time) {
 					}
 
 					playerObjectID := sess.PlayerObjectID()
-					w.sendDamageIndication(sess, playerObjectID, -2, playerObjectID)
+					w.sendDamageIndication(sess, playerObjectID, -damage, playerObjectID)
 					w.sendEntityAction(sess, playerObjectID, actionDrowning)
 
-					log.Printf("Drowning: %s took 2 drowning damage (HP: %d/%d, breath: %d)",
-						p.Name, p.HP, p.MaxHP, p.Breath)
+					log.Printf("Drowning: %s took %d drowning damage (HP: %d/%d, breath: %d)",
+						p.Name, damage, p.HP, p.MaxHPNow(), p.Breath)
 
 					if p.HP <= 0 {
 						w.playerDiedLocked(sess, p, now)

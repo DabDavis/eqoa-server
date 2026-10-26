@@ -637,7 +637,7 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 		return
 	}
 	if ps.stance == petAggressive {
-		if t := w.NPCs[owner.AttackTarget]; owner.AttackTarget != 0 && petMayFight(pet, t) {
+		if t := w.NPCs[owner.AttackTarget]; owner.Attacking() && petMayFight(pet, t) {
 			ps.target = t.ServerID
 			return
 		}

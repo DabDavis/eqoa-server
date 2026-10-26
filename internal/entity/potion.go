@@ -411,7 +411,7 @@ func (w *World) potionSystem(now time.Time) {
 		if len(p.Effects) == 0 {
 			continue
 		}
-		attacking := p.AttackTarget != 0 || (p.Casting != nil && p.Casting.spell.Def.Harmful && now.Before(p.Casting.lands))
+		attacking := p.Attacking() || (p.Casting != nil && p.Casting.spell.Def.Harmful && now.Before(p.Casting.lands))
 		for _, ae := range append([]*ActiveEffect(nil), p.Effects...) {
 			id, ok := potionOfEffect(ae.SpellID)
 			if !ok {

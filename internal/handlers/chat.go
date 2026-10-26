@@ -827,6 +827,9 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 			debt, _ := h.gameWorld.DebtOf(player.ServerID)
 			h.gmReply(sess, fmt.Sprintf("Experience debt: %d (a death at level %d adds %d). Usage: #debt <amount>, 0 clears",
 				debt, player.Level, entity.DeathDebt(player.Level)))
+			if rez, left, _ := h.gameWorld.RezOf(player.ServerID, time.Now()); rez > 0 { // entity/resurrect.go
+				h.gmReply(sess, fmt.Sprintf("A rez may give back a share of the %d your last death added, for %v more", rez, left.Round(time.Second)))
+			}
 			return
 		}
 		amount, err := strconv.Atoi(parts[1])

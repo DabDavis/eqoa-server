@@ -551,6 +551,12 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 				log.Printf("SelectedChar: could not keep '%s' replaced session's mastery points: %v", record.CharName, err)
 			}
 		}
+		// and its chance of a rez, beside the debt (entity/resurrect.go)
+		if row, ok := h.gameWorld.SavedRez(entity.EntityID(record.ServerID), time.Now()); ok {
+			if err := h.store.SaveRez(record.ServerID, row); err != nil {
+				log.Printf("SelectedChar: could not keep '%s' replaced session's chance of a rez: %v", record.CharName, err)
+			}
+		}
 	}
 
 	// Where the session starts (loginSpawn): where the character logged out,
@@ -595,6 +601,13 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 			log.Printf("SelectedChar: '%s' mastery points: %v", record.CharName, err)
 		} else {
 			h.gameWorld.RestoreMastery(sess, PlayerMastery(m))
+		}
+		// and what a rez may still give back of its last death's debt, its
+		// time running again (entity/resurrect.go)
+		if row, err := h.store.LoadRez(record.ServerID); err != nil {
+			log.Printf("SelectedChar: '%s' chance of a rez: %v", record.CharName, err)
+		} else if h.gameWorld.RestoreRez(sess, row, time.Now()) {
+			log.Printf("SelectedChar: '%s' may still be rezzed for a share of %d", record.CharName, row.Debt)
 		}
 		// and the masteries it bought (entity/cmbuy.go), before its gear,
 		// whose RecalcStats counts them

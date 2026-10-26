@@ -182,6 +182,10 @@ type ActiveEffect struct {
 	// none; FormSize its scale, 0 for the bearer's own.
 	Form     uint32
 	FormSize float32
+	// Ticks is how many ticks a heal over time on a player has left
+	// (hot.go); 0 for an effect that ticks until it ends (a creature's, a
+	// pet's, one kept from before ticks were counted).
+	Ticks int
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -756,9 +760,17 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 // then what lasts, on the effects channel.
 func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *session.Session, t *Player, now time.Time) {
 	illusion := false
+	// a spell that raises the maximum heals after the raise (spellnotes.go),
+	// or a target at full health would get none of it
+	raises := cs.spell.Def.RaisesMaxHP()
+	var heals []int
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:
+			if raises {
+				heals = append(heals, spellAmount(e, caster))
+				continue
+			}
 			w.healLocked(caster, casterSess, t, spellAmount(e, caster))
 		case EffectPower:
 			if n := spellAmount(e, caster); n > 0 {
@@ -771,11 +783,14 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			illusion = true
 		}
 	}
-	if ae := lasting(cs, caster, now); ae != nil {
+	if ae := lasting(cs, caster, now); ae != nil && (ae.HPTick <= 0 || w.placeHoTLocked(t, ae, now)) { // hot.go
 		if illusion {
 			w.landIllusionLocked(cs, t, ae) // illusion.go
 		}
 		w.addEffectLocked(t, ae, now)
+	}
+	for _, n := range heals {
+		w.healLocked(caster, casterSess, t, n)
 	}
 	log.Printf("Cast: %s's %q lands on %s (%d/%d HP, %d effects)", caster.Name, cs.spell.Name, t.Name, t.HP, t.MaxHPNow(), len(t.Effects))
 }
@@ -871,7 +886,7 @@ func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 	if ae.NextTick.IsZero() || now.Before(ae.NextTick) || (ae.HPTick == 0 && ae.PowerTick == 0) {
 		return
 	}
-	ae.NextTick = ae.NextTick.Add(effectTick)
+	w.advanceTickLocked(ae, now) // hot.go
 	if ae.HPTick > 0 {
 		// the caster may be gone (logged out, or the effect kept over a
 		// logout): the figure is then the target's own, as Sandstorm's first
@@ -972,6 +987,9 @@ func (w *World) effectSystem(now time.Time) {
 		}
 		for _, ae := range append([]*ActiveEffect(nil), p.Effects...) {
 			if !now.Before(ae.Until) {
+				if ae.Ticks > 0 {
+					w.tickEffectLocked(p, ae, now) // a heal's last tick due as it ends (hot.go)
+				}
 				w.removeEffectLocked(p, ae.SpellID)
 				log.Printf("Cast: %q wears off %s", ae.Name, p.Name)
 				continue

@@ -39,8 +39,8 @@ with the row before and after, and `revert_change` undoes a row change.
 | `itempattern` | every item that exists | `patternid` |
 | `spellpattern` | every spell and ability: level, cast/recast ms, power, range, icon | `spellid` |
 | `spelleffect` | what a spell does, as a line of words (below) | `spellid` |
-| `classspells` | which spells each class has | `class`+`spellid` |
-| `defaultcharacter` | starting template per race, home city and class | `defaultCharacterID` |
+| `classspells` | which spells each class has (grant_spell "all" and `#template` never give a were form) | `class`+`spellid` |
+| `defaultcharacter` | where a new character starts, per race, home city (`humType`: a human's east 1, west 2) and class: `x`, `y`, `z`, `facing` (radians), `world`; it is bound there until a spiritmaster binds it; read at each creation | `defaultCharacterID` |
 | `quests` | a quest: its giver (an NPC's name), levels, classes, races, quests first, what the giver says (`offer`, `accept`, `started`); `enabled` 0 is a draft | `questid` |
 | `queststeps` | a quest's steps in order: `kind` talk / show / give / kill / reach, `target` (an NPC's or creature's name), `items` (`patternid*count, ...`), the `journal` line, the NPC's words, the rewards | `questid`+`step` |
 | `charquests` | how far a character has come in a quest: `step` (0 finished), `count` (kills so far), `done` (times finished) | `serverid`+`questid` |

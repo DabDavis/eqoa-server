@@ -80,6 +80,7 @@ func (w *World) playerDiedLocked(sess *session.Session, p *Player, now time.Time
 	w.dropAggroLocked(p.ServerID)
 	debt := DeathDebt(p.Level)
 	p.Debt += debt
+	p.noteRezChance(debt, now) // resurrect.go: what a rez may give back of it
 	if sess != nil {
 		w.sendPlayerDied(sess)
 		if debt > 0 {

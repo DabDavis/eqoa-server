@@ -434,6 +434,9 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	if refusal == "" && spell.Def.Charms() {
 		refusal, fizzle = w.charmStartLocked(p, &spell, targets) // charm.go
 	}
+	if refusal == "" && spell.Def.Resurrects() > 0 {
+		refusal, fizzle = w.rezStartLocked(targets, &spell.Def, now) // resurrect.go
+	}
 	if refusal == "" && p.Power < spell.PowerCost {
 		refusal = castNoPower
 	}
@@ -483,6 +486,11 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		return []EntityID{p.ServerID}, ""
 	case FormGroup:
 		return w.glamourTargetsLocked(sess, p, spell, targetObjectID)
+	}
+	// a resurrection whose line says Self goes on its caster, whatever its
+	// record's scope (resurrect.go: the paladin's self-rez)
+	if d.Target == TargetSelf && d.Resurrects() > 0 {
+		return []EntityID{p.ServerID}, ""
 	}
 	switch spell.Scope {
 	case 0:
@@ -689,6 +697,7 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 	}
 	for _, id := range cs.targets {
 		if t := w.Players[id]; t != nil {
+			w.rezLandLocked(cs, caster, casterSess, t, now) // resurrect.go: on the dead too
 			if !t.IsDead() {
 				w.landOnPlayerLocked(cs, caster, casterSess, t, now)
 			}

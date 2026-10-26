@@ -14,8 +14,8 @@ import "math"
 // Ours: no debt below level 6, where the chart starts; its blanks, 51 and 53
 // the geometric mean of their neighbours, 55 to 60 the chart's own curve on
 // from 54 (from 49 to 54 the debt grows as the fourth power of the level,
-// within 0.2%). A resurrection, which the live game's restored part of the
-// debt with, is not in this server yet.
+// within 0.2%). A resurrection gives back its share of what the latest death
+// added (resurrect.go).
 
 // deathDebtChart is the live game's unrezzed debt by level.
 var deathDebtChart = map[int]int{

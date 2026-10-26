@@ -55,6 +55,7 @@ const (
 	EffectCharm                         // the target becomes the caster's pet (charm.go)
 	EffectIllusion                      // the bearer shown in another body (illusion.go): SpellDef.Form
 	EffectEndIllusion                   // the bearer's own body back (illusion.go)
+	EffectResurrect                     // Amount% of the latest death's debt given back (resurrect.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -411,6 +412,8 @@ func ParseSpellText(line string) SpellDef {
 			}
 		}
 	}
+	// a resurrection's share of the latest death's debt (resurrect.go)
+	d.readResurrect()
 	// Cast at an enemy: what takes hit points or a stat, holds or slows, or
 	// works on hate. Power is not counted: "Decrease Power by 1" is in Minor
 	// Healing's line.

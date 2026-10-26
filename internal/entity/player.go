@@ -88,6 +88,10 @@ type Player struct {
 	UnusedTP  int
 	TotalTP   int
 
+	// Rez is what a resurrection may still give back of the latest death's
+	// debt (resurrect.go)
+	Rez RezChance
+
 	// Class mastery points and the share of experience going to them
 	// (mastery.go); the stat caps are the level's plus what its masteries
 	// raise (StatCapOf)

@@ -2,8 +2,8 @@
 """tools/fix_enchanter_lines.py against a made-up database: the four rows it
 fixes (a missing row, an empty one a GM gave a visual, two of the lists'
 words), and the rows it must leave alone (another class's spell of a fixed
-name, a line a GM wrote, a line that is not the expected one, a row of the
-private migration). No game data.
+name, a line a GM wrote, a line that is not the expected one, a row another
+source wrote). No game data.
 
     python3 tools/fix_enchanter_lines_test.py
 """
@@ -101,14 +101,14 @@ class FixEnchanterLines(unittest.TestCase):
         self.assertEqual(dump(self.db), before, "--undo puts the database back as it was")
 
     def test_left_alone(self):
-        # a line a GM wrote, a line not the expected one, the private migration's row
+        # a line a GM wrote, a line not the expected one, a row another source wrote
         make(self.db, """
             INSERT INTO spelleffect VALUES (516, 'Target, Charm ; Increase 50% based on CHA', 0, 'gm');
             INSERT INTO gm_audit (tbl, rowkey) VALUES ('spelleffect', '{"spellid":516}');
         """)
         c = sqlite3.connect(self.db)
         c.execute("UPDATE spelleffect SET line = 'Group, Decrease Hitpoints by 150, 5min' WHERE spellid = 700969")
-        c.execute("UPDATE spelleffect SET source = 'someone; user-authorized private migration 2026-10-25' WHERE spellid = 701218")
+        c.execute("UPDATE spelleffect SET source = 'another import of its own' WHERE spellid = 701218")
         c.commit()
         c.close()
         out = run(self.db, "--apply")
@@ -116,7 +116,7 @@ class FixEnchanterLines(unittest.TestCase):
         self.assertEqual(r[516][0], "Target, Charm ; Increase 50% based on CHA")
         self.assertEqual(r[700969][0], "Group, Decrease Hitpoints by 150, 5min")
         self.assertEqual(r[701218][0], "Target, Weapon proc, 30min")
-        self.assertIn("private migration", out)
+        self.assertIn("another source wrote its row", out)
         self.assertEqual(r[510][0], "Summons a pet", "the one row it may still fill (control)")
 
 

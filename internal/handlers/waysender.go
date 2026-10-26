@@ -78,6 +78,38 @@ var wayRoutes = map[string][]wayRoute{
 	"Waysender Brindel": {
 		{To: "Lavastorm", Arrive: "Explorer Springa", MinLevel: 55},
 	},
+
+	// The Plane of Disease (F3 pass 17, "unable to travel to PoD"), the
+	// Secrets world's "Last Home" (world 5): "Log the quest by speaking to
+	// Necrologist Zizclank and his assistant Necroloigst Xeptip. Then you want
+	// to enter the mausoleum in the middle" (portal/plane-of-disease, "Dead
+	// Hills (NW)", the Rathe's: world 1). The live game's flag quest is not
+	// in, so Zizclank sends anyone of the quest's level, 50, to the portal
+	// players arrive at, which sends them back. tools/seed_pod.py places
+	// these NPCs.
+	"Necrologist Zizclank": {
+		{To: "the Plane of Disease", Arrive: "Portal to the Dead Hills", MinLevel: 50},
+	},
+	"Portal to the Dead Hills": {
+		{To: "the Dead Hills", Arrive: "Necrologist Zizclank"},
+	},
+	// Inside PoD: Queen Qy'tha "inside whirling portal within the lake in
+	// entrance area" ("be ported to the wasp hive"), and the Twins and
+	// Bertoxxulous through the Bloody Portal ("you can use Noroxus Blood to
+	// open the Bloody Portal and pass through to the twins"); live's
+	// quests open them, here level 60.
+	"Whirling Portal": {
+		{To: "the wasp hive", Arrive: "Portal to the Lake", MinLevel: 60},
+	},
+	"Portal to the Lake": {
+		{To: "the lake", Arrive: "Whirling Portal"},
+	},
+	"Bloody Portal": {
+		{To: "the Twins' valley", Arrive: "Portal of the Twins", MinLevel: 60},
+	},
+	"Portal of the Twins": {
+		{To: "the Bloody Portal", Arrive: "Bloody Portal"},
+	},
 }
 
 // The waysender's words. A trip is asked as Sandstorm's dockmasters ask one
@@ -88,9 +120,10 @@ const (
 	wayGo      = "Very well."
 )
 
-// IsWaysender is whether the NPC of that name is a waysender.
+// IsWaysender is whether the NPC of that name is a waysender: one so named,
+// or one with trips here (a portal, the Plane of Disease's necrologist).
 func IsWaysender(name string) bool {
-	return strings.HasPrefix(name, "Waysender ")
+	return strings.HasPrefix(name, "Waysender ") || len(wayRoutes[name]) > 0
 }
 
 // wayAskOne is the question for a waysender's one trip.

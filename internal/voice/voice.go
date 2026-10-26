@@ -270,6 +270,7 @@ type peer struct {
 	// as a talker: its {"send": B}, whether its microphone track came, its
 	// last packet and its loudness (127 - the RFC 6464 -dBov, smoothed)
 	send     byte
+	dcRate   Rate
 	hasTrack bool
 	lastPkt  time.Time
 	loud     float64

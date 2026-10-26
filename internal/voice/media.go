@@ -398,10 +398,11 @@ func (s *Server) onDataChannel(p *peer, gen int, dc *webrtc.DataChannel) {
 }
 
 // setSend makes the channels a talker sends to what its client says; off
-// every seat at once when it sends to none.
+// every seat at once when it sends to none. Its changes are held to the
+// signaling's allowance.
 func (s *Server) setSend(p *peer, gen int, b byte) {
 	s.mu.Lock()
-	if p.gen != gen || p.gone || p.send == b {
+	if p.gen != gen || p.gone || p.send == b || !p.dcRate.Take(1, time.Now()) {
 		s.mu.Unlock()
 		return
 	}

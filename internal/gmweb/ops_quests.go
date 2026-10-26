@@ -520,7 +520,7 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 				add("%s names no creature", where)
 			} else {
 				var n int
-				s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(npc_name) = LOWER(?)`, t).Scan(&n)
+				s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(TRIM(npc_name)) = LOWER(TRIM(?))`, t).Scan(&n)
 				if n == 0 {
 					add("%s: no creature named %q spawns here, so it cannot be done", where, t)
 				}
@@ -533,7 +533,7 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 				add("%s names no creature", where)
 			} else {
 				var n int
-				s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(npc_name) = LOWER(?)`, t).Scan(&n)
+				s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(TRIM(npc_name)) = LOWER(TRIM(?))`, t).Scan(&n)
 				if n == 0 {
 					add("%s: no creature named %q spawns here, so nothing drops its item", where, t)
 				}
@@ -587,7 +587,7 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 // instead, so it offers nothing; a step at one is done when its window is
 // asked for, handlers.QuestEngine.AtWindow).
 func (s *Server) npcProblems(name, what string, window bool, add func(string, ...any)) {
-	rows, err := s.rowsOf(`SELECT npc_type FROM npcs WHERE LOWER(npc_name) = LOWER(?) LIMIT 20`, name)
+	rows, err := s.rowsOf(`SELECT npc_type FROM npcs WHERE LOWER(TRIM(npc_name)) = LOWER(TRIM(?)) LIMIT 20`, name)
 	if err != nil {
 		return
 	}
@@ -619,7 +619,7 @@ func (s *Server) eventProblems(events string, step bool, what string, add func(s
 		switch e.Do {
 		case database.EventSpawn:
 			var n int
-			s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(npc_name) = LOWER(?)`, strings.TrimSpace(e.NPC)).Scan(&n)
+			s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(TRIM(npc_name)) = LOWER(TRIM(?))`, strings.TrimSpace(e.NPC)).Scan(&n)
 			if n == 0 && strings.TrimSpace(e.NPC) != "" {
 				add("%s spawns %q, which this server has no NPC of", where, e.NPC)
 			}

@@ -9,6 +9,7 @@ import json
 import math
 import os
 import sqlite3
+import struct
 import sys
 import tempfile
 import unittest
@@ -27,6 +28,18 @@ SCHEMA = [
     "CREATE TABLE npcs_ff_import (id INTEGER PRIMARY KEY AUTOINCREMENT, npc_name TEXT, npc_level INTEGER, "
     "world INTEGER, x_coord REAL, y_coord REAL, z_coord REAL, pos_suspect INTEGER NOT NULL DEFAULT 0)",
 ]
+
+
+def write_env(path, x0, top):
+    """A water file (seed_pod.py's Env reads it): the one zone is water east
+    of x0 up to the height top, dry everywhere else."""
+    leaf = 0x40000000
+    nodes = [(1.0, 0.0, 0.0, -x0, 1, leaf | 0), (0.0, -1.0, 0.0, top, leaf | 1, leaf | 0)]
+    out = b"EQEV" + struct.pack("<I", 1) + struct.pack("<2I", 0, 1) + struct.pack("<I", 0) + struct.pack("<I", 1)
+    out += struct.pack("<2I", len(nodes), 2) + b"".join(struct.pack("<4f2I", *n) for n in nodes)
+    out += struct.pack("<2I", 0, 1)
+    with open(path, "wb") as f:
+        f.write(out)
 
 
 def npc(db, name, x, z, model, level=10, ntype=0, world=0, torso=3):
@@ -120,6 +133,29 @@ class World(unittest.TestCase):
             for b in pts[i + 1:]:
                 self.assertGreaterEqual(math.hypot(a[0] - b[0], a[1] - b[1]), sq.SPACING)
 
+    def test_the_water_keeps_land_and_fish_apart_and_a_deck_keeps_its_height(self):
+        write_env(os.path.join(self.ground, "0.env"), 11500.0, wt.PLAIN + 2.0)
+        db = sqlite3.connect(self.db_path)
+        db.execute("INSERT INTO npcs_ff_import (npc_name, npc_level, world, x_coord, y_coord, z_coord) "
+                   "VALUES ('On Deck', 5, 0, 11700.0, ?, 5100.0)", (wt.PLAIN + 5.0,))
+        db.commit()
+        db.close()
+        p = self.plan([sq.S("Wader", sq.FOE, ("kind", "bear"), ("at", 0, 11600.0, 5000.0)),
+                       sq.S("Swimmer", sq.FOE, ("kind", "bear"), ("at", 0, 11600.0, 5000.0), water=sq.WATER),
+                       sq.S("Walker", sq.FOE, ("kind", "bear"), ("at", 0, 11400.0, 5000.0), water=sq.WATER),
+                       sq.S("On Deck", sq.TALKER, ("race", "human", sq.MALE), ("ff",))])
+        got = {r["name"]: r["row"] for r in p["rows"]}
+        self.assertEqual(sorted(got), ["On Deck", "Swimmer"], p["left"])
+        self.assertGreaterEqual(got["Swimmer"]["x_coord"], 11500.0)
+        self.assertIn(("Wader", "no dry floor round (11600, 5000) in world 0"), p["left"])
+        self.assertIn(("Walker", "no floor in the water round (11400, 5000) in world 0"), p["left"])
+        # seen above every floor, out of the water: on whatever it stood on
+        self.assertEqual((got["On Deck"]["x_coord"], got["On Deck"]["y_coord"]), (11700.0, wt.PLAIN + 5.0))
+        # the control: without the water file the wader stands in the pond
+        os.remove(os.path.join(self.ground, "0.env"))
+        p = self.plan([sq.S("Wader", sq.FOE, ("kind", "bear"), ("at", 0, 11600.0, 5000.0))])
+        self.assertEqual(len(p["rows"]), 1, p["left"])
+
     def test_no_floor_no_npc(self):
         p = self.plan([sq.S("Lost", sq.FOE, ("kind", "bear"), ("at", 0, 30000.0, 30000.0))])
         self.assertEqual(p["rows"], [])
@@ -162,8 +198,10 @@ class Specs(unittest.TestCase):
     def test_every_spec_is_well_formed(self):
         names = set()
         for s in sq.SPECS:
-            self.assertNotIn(sq.fold(s["name"]), names, s["name"])
-            names.add(sq.fold(s["name"]))
+            # a name may stand in two places (a creature by two towns), an entry not twice
+            self.assertNotIn((sq.fold(s["name"]), s["place"]), names, s["name"])
+            names.add((sq.fold(s["name"]), s["place"]))
+            self.assertIn(s["water"], (sq.LAND, sq.WATER, sq.BOTH))
             self.assertIn(s["role"], (sq.FOE, sq.TALKER))
             kind = s["body"][0]
             self.assertIn(kind, ("race", "kind", "npc"))

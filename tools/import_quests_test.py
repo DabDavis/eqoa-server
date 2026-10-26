@@ -108,6 +108,19 @@ class ImportQuests(unittest.TestCase):
         self.assertIn("a draft", after["notes"])
         self.assertEqual(ghost["requires"], str(first["questid"]), "the chain by ids")
 
+    def test_a_gms_mended_draft_frees_the_quests_after_it(self):
+        iq.write(self.db, iq.plan(self.db, self.files))
+        ghost, _ = self.quest("1-20/testmoor/warrior/L3")
+        self.db.execute("UPDATE queststeps SET target = 'Field Boar' WHERE questid = ?", (ghost["questid"],))
+        self.db.execute("UPDATE quests SET enabled = 1 WHERE questid = ?", (ghost["questid"],))
+        written, kept, _ = iq.write(self.db, iq.plan(self.db, self.files))
+        self.assertEqual(kept, ["1-20/testmoor/warrior/L3"])
+        self.assertEqual(self.quest("1-20/testmoor/warrior/L5")[0]["enabled"], 1, "the GM's whole quest frees the one after it")
+        # the control: the GM turns it off again, and the one after is a draft at the next run
+        self.db.execute("UPDATE quests SET enabled = 0 WHERE questid = ?", (ghost["questid"],))
+        iq.write(self.db, iq.plan(self.db, self.files))
+        self.assertEqual(self.quest("1-20/testmoor/warrior/L5")[0]["enabled"], 0)
+
     def test_again_is_a_no_op_and_keeps_a_gms_change_and_undo_is_exact(self):
         before = state(self.db)
         written, kept, made = iq.write(self.db, iq.plan(self.db, self.files))

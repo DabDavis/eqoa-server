@@ -13,6 +13,7 @@ import sqlite3
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import seed_masteries as sm  # noqa: E402
@@ -84,7 +85,13 @@ def write_lists(root):
                      need=[("Empathetic Breeze", 25)])]}]
             groups[1]["cms"] = [{"name": "Binder", "ranks": [
                 rank("Binder 1", 200, 55, {"INT": 150, "CHA": 225}, {"CHA": 20, "CHAMax": 50, "Pow": 500}, spent=500),
-                rank("Binder 2", 75, 60, add=[("Grasp", 60)])]}]
+                rank("Binder 2", 75, 60, add=[("Grasp", 60)]),  # found as the spell "Grasp Binder"
+                rank("Binder 3", 75, 60, add=[("Chant", 60)]),  # no spell of the name
+                rank("Binder 4", 75, 60, effects={"CHAMax": 25}),  # stats alone
+                # it needs and replaces Binder 2's Grasp: it improves it
+                rank("Binder 5", 0, 60, add=[("Tight Grasp", 60)], remove=[("Grasp", 60)], need=[("Grasp", 60)]),
+                rank("Binder 6", 1, 60, add=[("Rune", 60)]),
+                rank("Binder 7", 50, 60, add=[("Bolt", 60), ("Ward", 60)])]}]  # several, in no table
         put(f, {"class": f.title(), "type": TYPES[c], "groups": groups})
 
 
@@ -139,10 +146,48 @@ class SeedTest(unittest.TestCase):
         r = self.rows()
         enc = 3000 + 300 * ENC
         self.assertEqual((r[enc + 201]["name"], r[enc + 201]["mastery"]), ("Binder", "Binder"))
-        self.assertEqual(r[enc + 202]["name"], "Binder 2")
         self.assertEqual((r[1]["name"], r[enc + 1]["name"], r[2001]["name"]), ("Might 1", "Empathy 1", "Hardened 1"))
         self.assertEqual(sm.master_class_name(4, 0, "Binder", "Binder the First"), "Binder the First",
                          "a first rank named otherwise is left as the list writes it")
+
+    def test_a_master_classs_abilities_need_only_the_class(self):
+        # F3 20261026-222613, jib: "Tag *unlocks* the 2, but isn't a singular
+        # master class purchase chain": each rank after the first has the
+        # master class itself as its parent, but one improving an earlier
+        # rank's ability (it needs or replaces it, or MASTER_UPGRADES says so)
+        # keeps that rank. The controls: a class mastery and a general one
+        # are chains still.
+        enc = 3000 + 300 * ENC + 200
+        with mock.patch.dict(sm.MASTER_UPGRADES, {("binder", 6): (3, "test: Rune improves Chant")}):
+            r = self.rows()
+        self.assertEqual([r[enc + i]["parent"] for i in range(1, 8)],
+                         [0, enc + 1, enc + 1, enc + 1, enc + 2, enc + 3, enc + 1])
+        self.assertEqual([bool(r[enc + i]["kept"]) for i in range(2, 8)], [False, False, False, True, True, False])
+        self.assertIn("Grasp", r[enc + 5]["kept"])
+        empathy = 3000 + 300 * ENC
+        self.assertEqual((r[empathy + 2]["parent"], r[2]["parent"]), (empathy + 1, 1), "the controls: chains")
+        with mock.patch.dict(sm.MASTER_UPGRADES, {("binder", 6): (6, "after itself")}):
+            with self.assertRaises(SystemExit):
+                self.rows()
+
+    def test_a_master_classs_abilities_named_for_what_they_give(self):
+        # jib: "named what they are ... and not "Transmuter 2"": the one
+        # ability a rank adds, as the server's spell is named, as the list
+        # names it when no spell is found, else MASTER_ABILITY_NAMES; a rank
+        # adding several and in no table keeps its name (the control)
+        enc = 3000 + 300 * ENC + 200
+        with mock.patch.dict(sm.MASTER_ABILITY_NAMES, {("binder", 4): ("Binder's Ward", "test")}):
+            r = self.rows()
+        self.assertEqual([r[enc + i]["name"] for i in range(1, 8)],
+                         ["Binder", "Grasp Binder", "Chant", "Binder's Ward", "Tight Grasp", "Rune", "Binder 7"])
+        self.assertEqual(r[enc + 2]["add_spells"], "5", "named for the spell it was found as")
+        self.assertEqual(r[enc + 4]["named"], "test")
+        self.assertEqual(r[enc + 3]["mastery"], "Binder", "the mastery is still the master class")
+        self.assertEqual(self.rows()[enc + 4]["name"], "Binder 4", "the control: in no table, stats alone keep it")
+        # read off a row as cmcatalog keeps it: a spell given since names it
+        row = dict(r[enc + 3], add_spells="7")
+        self.assertEqual(sm.ability_rank_name(row, {7: "Chant of Binding$"})[0], "Chant of Binding")
+        self.assertEqual(sm.ability_rank_name(dict(row, add_spells="0"), {})[0], "Chant")
 
     def test_abilities_found(self):
         r = self.rows()

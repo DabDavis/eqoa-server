@@ -185,8 +185,8 @@ PLAN = [
     # on its floor's dry north end, clear of its rocks and trees by 13 all
     # along his body, the lake to his east and the raid's landing by it to
     # his south-east ("All necs stack down by the rocks near the water (to
-    # the S/E of nox)"), 70 from Uzrathixius (their reach on sight, 30 each,
-    # apart), facing the way the portal brings the raid in. His body is
+    # the S/E of nox)"), the lobe his and his raid's alone, facing the way
+    # the portal brings the raid in. His body is
     # the green three-headed hydra of eqoa.live's wiki picture of him (red
     # crests; CHAR.ESF's other three hydras are tan, grey and red), at 1.1:
     # 14 tall, twice the dead tree (8.5) beside him in that picture, eight
@@ -207,36 +207,52 @@ PLAN = [
     dict(name="Yarfsnoogle", body="necrologist ipstok", level=55, kind=FRIEND, world=5,
          at=(5690, 3140), y=-21.7, facing=128, role="the PoD spell quest (not in)"),
 
-    # ---- the Twins and Bertoxxulous, "through the same portal": the zone has
-    # four portal pads (EC4AB525: the arrival's, the middle valley's south
-    # end, the north-west lake's island and that lobe's south-west pocket),
-    # each in one of two ground fogs (E3B08E91 the arrival's and the pocket's,
-    # FFC8B09E the middle's and the island's); Bert on the island ("You get
-    # hit with a disease spell just swimming across the lake towards him"),
-    # always up (no spawn by event here), the Twins and the patrons away from
-    # the landing. eqoa.live's wiki map has the Twins and Bert in the middle
-    # valley instead (Bert and his throne on its island, past the crescent
-    # pool), and this lobe Noroxus's: they stay here until jib says. Bert
-    # wears his own body (jib: "He has his own dedicated unique player
-    # model"; hooded, red-faced, a round belly in a tattered black vest; no
-    # row has it), at 1.3 (3.85 tall, a little over twice a man, as a
-    # screenshot of him in a fight shows him); the ghoul reaver's row gives
+    # ---- the Twins and Bertoxxulous, "through the same portal", in the
+    # middle valley, as eqoa.live's wiki map has them (its central oval: Bert
+    # and his throne at the top, past the pool, the Twins left and right in
+    # the middle, a portal pad at the bottom). The valley, sunken in the
+    # hills, is a crescent slime pool (the "moat") round the north island
+    # with the throne (15681FC3, facing south), a floor south of it and a
+    # portal pad at its south end, one of the zone's four (EC4AB525: the
+    # arrival's, this one, the north-west lake's island and that lobe's
+    # south-west pocket, each in one of two ground fogs, E3B08E91 or
+    # FFC8B09E). The Bloody Portal is the guide's Closed Portal: "head all
+    # the way around the circle past Honcho Ulgurglch to the Closed Portal",
+    # clockwise from the arrival, so on the ring's south-east arc, where the
+    # wiki map draws a structure and the zone has its slime fall (a slime pool
+    # on a raised rock pouring down between two pillars, the wiki's PoD
+    # screenshot 7): in front of it, facing north, a level 60's way to the
+    # valley's pad, where the Portal of the Twins (moved from the north-west
+    # pocket, whose pad is left empty) sends players back. Bert stands
+    # between the two standing stones before the throne, facing the moat
+    # ("You get hit with a disease spell just swimming across the lake
+    # towards him"); the Twins "spawn to the left and the right, above the
+    # rocks, near the moat", Uzrathixius west and Poxathixius east as the map
+    # has them, facing the pad, 130 apart and 103 from it; the patrons (on no
+    # map) on Bert's island, three each side of him, 59-63 off, past his
+    # reach on sight (30) and their wander (20). Always up (no spawn by event
+    # here). Bert wears his own body (jib: "He has his own dedicated unique
+    # player model"; hooded, red-faced, a round belly in a tattered black
+    # vest; no row has it), at 1.3 (3.85 tall, a little over twice a man, as
+    # a screenshot of him in a fight shows him); the ghoul reaver's row gives
     # the rest of his look. Not a players' race's body, he attacks on sight
     # by nature (entity/aggro.go): no npcaggro rule. The Twins wear the green
     # dragon (Cyrcalis's row; eqoa.live's wiki picture of Uzrathixius), at 1.5
     dict(name="Bloody Portal", body="dark portal", level=60, kind=TRAVEL, world=5,
-         at=(4872, 2980), y=-19.9, facing=0, role="to the Twins' valley, level 60 (live: Noroxus's blood)"),
+         at=(5243, 3175), y=-25.1, facing=128, role="to the Twins' valley, level 60 (live: Noroxus's blood)"),
     dict(name="Portal of the Twins", body="dark portal", level=60, kind=TRAVEL, world=5,
-         at=(4166, 2318), y=-16.4, facing=64, role="back to the Bloody Portal"),
+         at=(4872, 2987), y=-19.9, facing=128, role="back to the Bloody Portal"),
     dict(name="Bertoxxulous the Plaguebringer", body="ghoul reaver", wear=0xA6320E74, level=66,
-         kind=HOSTILE, world=5, scale=1.3, at=(4416, 2113), y=-22.2, facing=192, roam=0, undead=True,
+         kind=HOSTILE, world=5, scale=1.3, at=(4842, 2750), y=-23.6, facing=0, roam=0, undead=True,
          role="boss (\"Hard, full guild needed\"): soul dust x2"),
     dict(name="Poxathixius", body="cyrcalis", level=65, kind=HOSTILE, world=5,
-         scale=1.5, at=(4130, 2170), y=-18.2, roam=0, role="one of the Twins"),
+         scale=1.5, at=(4937, 2904), y=-22.1, facing=229, roam=0, role="one of the Twins"),
     dict(name="Uzrathixius", body="cyrcalis", level=65, kind=HOSTILE, world=5,
-         scale=1.5, at=(4190, 2140), y=-19.3, roam=0, role="one of the Twins"),
+         scale=1.5, at=(4807, 2904), y=-23.6, facing=27, roam=0, role="one of the Twins"),
     dict(name="Patron of Bertoxxulous", body="decaying zombie", level=59, kind=HOSTILE, world=5, undead=True,
-         at=(4220, 2200), y=-16.4, count=6, radius=20.0, role="hunt and gather: zombie patron skins"),
+         at=(4783, 2728), y=-25.7, count=3, radius=20.0, role="hunt and gather: zombie patron skins"),
+    dict(name="Patron of Bertoxxulous", body="decaying zombie", level=59, kind=HOSTILE, world=5, undead=True,
+         at=(4888, 2713), y=-24.0, count=3, radius=20.0, role="hunt and gather: zombie patron skins"),
 
     # ---- the weapon quest's pocket of seven pools, north-east: "After exiting
     # this tunnel, right below is the NPC Witchdoctor Yurplag"; larvae ("con db
@@ -276,8 +292,8 @@ PLAN = [
     # the middle of all 3 pools ... Once the portal is open, all people with a
     # skin can go through"; live: the hearts' item opens it, here level 60, as
     # the other bosses' portals), and the way back on his lobe's dry shore,
-    # 59 from him, its arrivals landing on its west side, 56 from him and 55
-    # from Uzrathixius (no pad there: the island's, in the lake, is Bert's)
+    # 59 from him, its arrivals landing on its west side, 56 from him (the
+    # island's pad stands in the middle of the lake)
     dict(name="Fuming Portal", body="dark portal", level=60, kind=TRAVEL, world=5,
          at=(5620, 3060), y=-30.5, facing=54, role="to Noroxus's lair, level 60 (live: the slime hearts' item)"),
     dict(name="Portal to the Cauldron", body="dark portal", level=60, kind=TRAVEL, world=5,

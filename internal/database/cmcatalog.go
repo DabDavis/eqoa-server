@@ -15,7 +15,11 @@ import (
 //
 //   - id is the skill id the client sends to browse, buy and remove (0x1401
 //     sub-ops 5, 2, 3) and the key its window chains ranks by; parent is the
-//     previous rank's id (0 for a first rank), which must be owned first.
+//     rank that must be owned first, the previous rank's id (0 for a first
+//     rank), but a Master Class's abilities (its ranks after the first) the
+//     class's first rank, so they are bought in any order, one improving
+//     another's ability that one (tools/seed_masteries.py). The window chains
+//     by the parent a rank is listed with (entity.cmListParentsLocked).
 //   - classes and races are bit sets as itempattern's classuse and raceuse
 //     (bit 1<<class, 1<<race; 32767 every class, 2047 every race, the
 //     froglok's 1<<10 included): who the rank is listed for. An archetype's

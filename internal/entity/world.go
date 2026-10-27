@@ -645,7 +645,7 @@ func NPCFromRecord(rec *database.NPCRecord, class int, ranged map[uint32]byte) *
 		SpawnFacing:     facing,
 		RespawnTime:     DefaultRespawnAfter,
 		AggroRadius:     30.0,
-		LeashRadius:     100.0,
+		LeashRadius:     DefaultLeash,
 		RoamRadius:      DefaultRoamRadius,
 
 		// SOE combat stats — estimated from level

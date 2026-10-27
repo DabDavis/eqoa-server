@@ -58,6 +58,7 @@ const (
 	EffectResurrect                     // Amount% of the latest death's debt given back (resurrect.go)
 	EffectShield                        // a creature's melee hit on the bearer takes Amount back (dshield.go)
 	EffectDefProc                       // a creature's melee hit on the bearer may take Amount back (dshield.go)
+	EffectPowerCap                      // the bearer's maximum power at most Amount while it lasts; lasting no time, its power taken down to it (powercap.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -501,6 +502,10 @@ func (d *SpellDef) parsePart(part, verb string) string {
 	}
 	if e, ok := shieldPart(part); ok { // dshield.go
 		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if n, ok := powerCapPart(part); ok { // powercap.go
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectPowerCap, Amount: n, AmountMax: n})
 		return verb
 	}
 	scale, scalePct := StatNone, 0

@@ -280,7 +280,8 @@ func TestThrownPotionWornIsTheAutoAttack(t *testing.T) {
 }
 
 // A spell's words that summon an item are handed to the hook at its landing,
-// with the count its words give (0: the item's own); a pet's words are not.
+// with the count its words give (0: the item's own), Allakhazam's "Summon
+// Item: X" too; a pet's words are not, nor a line that names no item.
 func TestSummonedItemsGoToTheHook(t *testing.T) {
 	type got struct {
 		item  string
@@ -307,6 +308,11 @@ func TestSummonedItemsGoToTheHook(t *testing.T) {
 	if g := <-ch; g != (got{"unstable potion", 3, "Unstable Mixtures"}) {
 		t.Errorf("Unstable Mixtures summoned %+v", g)
 	}
+	land("Forage Berries", "Self, Summon Item: foraged berries")
+	if g := <-ch; g != (got{"foraged berries", 0, "Forage Berries"}) {
+		t.Errorf("Forage Berries summoned %+v", g)
+	}
+	land("Forage Grub", "Creates no trade/no rent food.") // names no item: nothing
 	land("Summon Golem", "Summons an Iron Golem to your defense")
 	land("Wilting Flesh", "Summons a zombie to your aid") // a pet the pet words miss
 	select {

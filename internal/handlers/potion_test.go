@@ -247,3 +247,29 @@ func TestThrownPotionKnownFromItsRow(t *testing.T) {
 		t.Error("a throwing knife with no row was taken for a potion")
 	}
 }
+
+// A ranger's Forage spell summons its food as the game's records name it
+// (Allakhazam's archived AK 209: "Summon Item: foraged berries"; jib's bug
+// report of 2026-10-27, RNG-1; tools/fix_archived_spells.py makes the
+// items): one of it, a meal eaten as a grocer's is, its own HoT. The
+// control: the line's old words ("creates food") name no item, and nothing
+// arrives.
+func TestForagedFoodArrivesAsAMeal(t *testing.T) {
+	f := newScribeFixture(t)
+	f.potionWorld()
+	f.ware("foraged berries", "Berries foraged from the wild, a meal that will increase health regeneration.", -1, 5, 5, 0)
+	f.loadList()
+	f.h.summonItem(f.sess, f.sid, "creates food", 0, "Forage Berries")
+	if n := len(f.rowsOf()); n != 0 {
+		t.Fatalf("the control: %d items from words that name none", n)
+	}
+	f.h.summonItem(f.sess, f.sid, "foraged berries", 0, "Forage Berries")
+	rows := f.rowsOf()
+	if len(rows) != 1 || rows[0].Pattern.ItemName != "foraged berries" || rows[0].StackLeft != 1 {
+		t.Fatalf("summoned %+v, want one foraged berries", rows)
+	}
+	c, ok := consumableOf(&rows[0].Pattern)
+	if !ok || c.Drink || c.Amount != 5 {
+		t.Errorf("foraged berries eaten as %+v (%v), want a meal of 5", c, ok)
+	}
+}

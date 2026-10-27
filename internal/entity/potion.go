@@ -327,9 +327,12 @@ func (w *World) thrownPotionHitLocked(sess *session.Session, p *Player, npc *NPC
 }
 
 // reSummonItem is a summoning of an item in a line's unread words: "summon
-// watery draught", "summons unstable potion x3" (after any "(sow)" is cut).
+// watery draught", "summons unstable potion x3" (after any "(sow)" is cut),
+// and the game's own record's words as Allakhazam's archived pages give them,
+// "Summon Item: foraged berries" (a ranger's Forage Berries, AK 209; jib's
+// bug report of 2026-10-27, RNG-1).
 var (
-	reSummonItem = regexp.MustCompile(`^summ[ou]ns?\s+(?:an?\s+|the\s+)?(.+?)(?:\s+x\s*(\d+))?$`)
+	reSummonItem = regexp.MustCompile(`^summ[ou]ns?\s+(?:item\s*:?\s*)?(?:an?\s+|the\s+)?(.+?)(?:\s+x\s*(\d+))?$`)
 	reParens     = regexp.MustCompile(`\s*\([^)]*\)`)
 	// a creature's summoning the pet words miss ("Summons a zombie to your
 	// aid", "Summons a familar creature"): no item

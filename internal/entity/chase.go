@@ -25,9 +25,11 @@ import (
 //     is out of reach are lost (the next round begins in reach);
 //   - in reach, fights its rounds (rounds.go), turned to its enemy every
 //     tick, and once it has closed in, stands;
-//   - gives up past its leash (LeashRadius from where the fight began, 100
-//     for every NPC loaded) or when its enemy is far off or gone to another
-//     world: its threats are dropped and it runs back to where the fight
+//   - gives up past its leash (LeashRadius from where the fight began, 300
+//     for every NPC loaded: F3 20261027-170731, jib's "at least 3 times the
+//     range" of the 100 it was, which PoD's Twins left after about 30 m) or
+//     when its enemy is far off or gone to another world: its threats are
+//     dropped and it runs back to where the fight
 //     began, a creature that does not wander (a guard at its post) facing
 //     as it was spawned. Hit on the way, it fights again.
 //
@@ -72,8 +74,9 @@ func npcStop(npc *NPC) float32 {
 // (a teleport, a fast runner long gone): past every client's view.
 const npcGiveUp float32 = 300
 
-// DefaultLeash is the leash of an NPC that has none set.
-const DefaultLeash float32 = 100
+// DefaultLeash is the leash of an NPC that has none set, and of every NPC
+// loaded (ours: three times the 100 it was, F3 20261027-170731).
+const DefaultLeash float32 = 300
 
 // chaseState is a fight's movement: where it began (the leash's centre, and
 // home after it), its last step, and the way home.

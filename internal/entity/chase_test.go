@@ -209,7 +209,7 @@ func TestACreatureGivesUpPastItsLeashAndRunsHome(t *testing.T) {
 
 	var gaveUp time.Duration
 	d := time.Duration(0)
-	for ; d <= 30*time.Second; d += 100 * time.Millisecond {
+	for ; d <= 60*time.Second; d += 100 * time.Millisecond {
 		c.chaseTick(d)
 		if c.npc.CurrentEnemy == 0 {
 			gaveUp = d
@@ -218,7 +218,7 @@ func TestACreatureGivesUpPastItsLeashAndRunsHome(t *testing.T) {
 		c.p.X += 1.2 // 12 a second: faster than the creature
 	}
 	if gaveUp == 0 {
-		t.Fatalf("still chasing after 30 s, %.1f from where it began", c.npc.X-102)
+		t.Fatalf("still chasing after 60 s, %.1f from where it began", c.npc.X-102)
 	}
 	if c.npc.Threats != nil || !c.npc.RoundStart.IsZero() || !c.npc.chase.returning {
 		t.Errorf("gave up but kept its threats %v or round, or is not going home", c.npc.Threats)
@@ -230,7 +230,7 @@ func TestACreatureGivesUpPastItsLeashAndRunsHome(t *testing.T) {
 	if !c.npc.moving() || c.npc.Loco != LocoRun || c.npc.VelX >= 0 {
 		t.Errorf("not running home: velocity (%.2f, %.2f), loco %d", c.npc.VelX, c.npc.VelZ, c.npc.Loco)
 	}
-	for e := d + 200*time.Millisecond; e <= d+20*time.Second && c.npc.chase.returning; e += 100 * time.Millisecond {
+	for e := d + 200*time.Millisecond; e <= d+60*time.Second && c.npc.chase.returning; e += 100 * time.Millisecond {
 		c.chaseTick(e)
 	}
 	if c.npc.chase.returning || c.npc.X != 102 || c.npc.Z != 100 || c.npc.moving() {

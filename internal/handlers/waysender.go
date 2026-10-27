@@ -110,6 +110,17 @@ var wayRoutes = map[string][]wayRoute{
 	"Portal of the Twins": {
 		{To: "the Bloody Portal", Arrive: "Bloody Portal"},
 	},
+	// Noroxus "Take the combined item to the big cauldron in the middle of
+	// all 3 pools to open fuming portal ... This leads to Noroxus" (F3 pass
+	// 21, jib: he stood at "his portal entrance, not his arena"): the
+	// Fuming Portal at the cauldron, to his lair, the north-west lake's lobe
+	// (eqoa.live's wiki map); live's slime hearts open it, here level 60.
+	"Fuming Portal": {
+		{To: "Noroxus's lair", Arrive: "Portal to the Cauldron", MinLevel: 60},
+	},
+	"Portal to the Cauldron": {
+		{To: "the cauldron", Arrive: "Fuming Portal"},
+	},
 }
 
 // The waysender's words. A trip is asked as Sandstorm's dockmasters ask one

@@ -534,7 +534,9 @@ var catalog = map[string]tableNote{
 		Label: "Class masteries", Group: "Items & spells", Title: "name", Sort: "id",
 		Help: "Every class mastery a character may buy in the Class Mastery window, a row a rank (entity/cmbuy.go). " +
 			"category is the window's: 0 General, 1 Racial, 2 Archetype, 3 Class, 4 Master Class (one master class at " +
-			"a time). id is the window's skill id; parent the rank before it, which must be owned first. A rank is " +
+			"a time). id is the window's skill id; parent the rank owned first: the rank before it, but a master " +
+			"class's abilities (its ranks after the first) the master class's first rank, so they are bought in any " +
+			"order once it is. A rank is " +
 			"listed to the classes and races its bit sets name, and buyable (\"known\") once the character's level, " +
 			"the points it has spent, its base stats (minstats, \"STR:100,STA:150\"), the abilities it needs " +
 			"(require_spells), its parent and the other masteries' ranks it needs (require_ranks) are there; the cost " +
@@ -543,7 +545,7 @@ var catalog = map[string]tableNote{
 			"level's, 400 from 46 and 350 below, plus what its masteries raise), HP, Pow, HoT, PoT, AC, Off Mod and " +
 			"Def Mod (shown), HP Factor (a level's HP each), FR CR LR AR PR DR, MovRate (20 a run, 100 Spirit of the " +
 			"Wolf). add_spells are given at the purchase, remove_spells taken out (gone at the next login); a name " +
-			"with no id shows and gives nothing. A removal gives back what the rank cost. Rows of source " +
+			"with no id shows and gives nothing. A removal gives nothing back (#cmreset does). Rows of source " +
 			"\"eqoa-data cms\" are tools/seed_masteries.py's, from EQOA-Data's lists (its --undo deletes those).",
 		Live:   "At once: every list opened from now on, and the stats of the characters online who own the rank.",
 		Search: []string{"name", "mastery", "effects", "adds", "description"},
@@ -556,7 +558,7 @@ var catalog = map[string]tableNote{
 			"mastery":        {Label: "Mastery", Help: "the mastery the rank is of (Brawn); a master class's ranks share one"},
 			"rank":           {Label: "Rank"},
 			"name":           {Label: "Name", Help: "as the window lists it, at most 63 characters"},
-			"parent":         {Label: "Rank before", Ref: "cmcatalog", Help: "owned first; 0 for a first rank"},
+			"parent":         {Label: "Rank before", Ref: "cmcatalog", Help: "owned first: the rank before it, or for a master class's ability the master class (its first rank); 0 for a first rank"},
 			"cost":           {Label: "Cost", Help: "mastery points"},
 			"level":          {Label: "Level"},
 			"spent":          {Label: "Points spent", Help: "the mastery points the character must have spent already"},

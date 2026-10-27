@@ -477,7 +477,83 @@ func (w *World) CMList(sess *session.Session, book map[int]bool) []CMEntry {
 		out = append(out, CMEntry{ID: r.ID, Parent: r.Parent, Category: r.Category, Cost: r.Cost,
 			Owned: owned, Known: !owned && w.cmBlockLocked(p, r, book) == "", Name: r.Name})
 	}
+	w.cmListParentsLocked(out)
 	return out
+}
+
+// cmListParentsLocked sets the parent key each master class's ability is
+// listed with. A purchase checks the catalog's parent (cmBlockLocked); the
+// window reads the listed one only to sort a category into chains (decomp
+// viwndclassmastery.cpp, SelectCategory and Chain: a skill whose parent is
+// no listed skill's key, then one at a time the first whose parent is the
+// last one's key; Owned shows each chain's LAST skill, Available each
+// chain's FIRST, "???" and "Locked" unless known). The keys come with the
+// list, at the window's opening (Recv08), and stay through a purchase
+// (Recv05 brings the flags alone). A master class's abilities need only the
+// class, its first rank (tools/seed_masteries.py; F3 20261026-222613), and
+// are listed:
+//   - the class owned: with no parent (0), so Owned shows the class and every
+//     ability bought, and Available every one to buy; one improving another
+//     (its parent another ability, Immortal Guard Guard's) keeps it, shown in
+//     its place once owned;
+//   - the class buyable now: as the catalog has them, so once it is bought in
+//     this window every ability is a chain of its own (each ability past the
+//     first a "???" of its own until then);
+//   - else: one after another in rank order, the first under the class, so a
+//     locked master class is one "???", as when its ranks were a chain.
+func (w *World) cmListParentsLocked(out []CMEntry) {
+	at := make(map[int]int, len(out))
+	for i, e := range out {
+		at[e.ID] = i
+	}
+	abilities := map[int][]int{} // a master class's first rank: its abilities listed
+	for i, e := range out {
+		if e.Category != CMCategoryMaster || e.Parent == 0 {
+			continue
+		}
+		if tag := w.cmMasterClassOf(e.ID); tag != 0 {
+			if _, ok := at[tag]; ok {
+				abilities[tag] = append(abilities[tag], i)
+			}
+		}
+	}
+	for tag, idx := range abilities {
+		switch class := out[at[tag]]; {
+		case class.Owned:
+			for _, i := range idx {
+				if out[i].Parent == tag {
+					out[i].Parent = 0
+				}
+			}
+		case class.Known:
+		default:
+			sort.SliceStable(idx, func(a, b int) bool {
+				ra, rb := w.cms.byID[out[idx[a]].ID], w.cms.byID[out[idx[b]].ID]
+				return ra.Rank < rb.Rank || ra.Rank == rb.Rank && ra.ID < rb.ID
+			})
+			prev := tag
+			for _, i := range idx {
+				out[i].Parent, prev = prev, out[i].ID
+			}
+		}
+	}
+}
+
+// cmMasterClassOf is the first rank of the master class a rank is of: its
+// parents followed to one with none, every one a Master Class rank; 0 when
+// not, or past a loop a GM's rows could make.
+func (w *World) cmMasterClassOf(id int) int {
+	for range 16 {
+		r := w.cms.byID[id]
+		if r == nil || r.Category != CMCategoryMaster {
+			return 0
+		}
+		if r.Parent == 0 {
+			return id
+		}
+		id = r.Parent
+	}
+	return 0
 }
 
 // CMNodeOf is one rank opened for the session's player; false when it is

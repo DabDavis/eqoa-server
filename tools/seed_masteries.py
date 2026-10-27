@@ -30,7 +30,21 @@ Factor:1", "Pow:500", "MovRate:5"). A rank the list gives no level takes the
 rank before it's (Loping Stride 3: OURS), else 1. The text is the mastery's
 description and the rank's notes. A Master Class's first rank is the class
 itself and is named bare, "Spellbinder" for the list's "Spellbinder 1" (F3
-20261026-135728); the ranks after it keep their numbers.
+20261026-135728).
+
+A Master Class's ranks after the first are its abilities, which the lists
+write as a chain ("Transmuter 2", "Transmuter 3"), and they are not one (F3
+20261026-222613, jib: "Tag *unlocks* the 2, but isn't a singular master class
+purchase chain"): each has the master class itself (its first rank) as its
+parent, so once that is bought they are bought in any order. One that
+improves another rank's ability keeps that rank before it: a rank needing or
+replacing an ability an earlier rank of its master class adds, and those in
+MASTER_UPGRADES (Defender 3, Immortal Guard, free after Guard). Each is named
+for what it gives (jib: "named what they are"): the one ability it adds, as
+the server's spell is named (as the list names it when no spell is found),
+else MASTER_ABILITY_NAMES (a rank of stats alone, or of several abilities:
+the rank's notes', EQOA-Data's spell lists', or OURS), where a few that
+would read wrong under their spell's name are too.
 
 The abilities a rank adds, removes or needs are found among the server's
 spells (spellpattern) by name, as the spell importers match a scroll to its
@@ -113,6 +127,47 @@ LOG_DDL = """CREATE TABLE IF NOT EXISTS cmcatalog_seed (
     note TEXT NOT NULL DEFAULT ''
 )"""
 
+MASTER = 4  # the Master Class category
+
+# A master class's ability that keeps a rank of its own before it, as it
+# improves that rank's ability (the rest need only the master class):
+# (master class, rank): (the rank it improves, why). The lists' own sign, a
+# rank needing or replacing an ability an earlier rank adds, is read from
+# them besides (none today).
+MASTER_UPGRADES = {
+    ("defender", 3): (2, "Immortal Guard, free (cost 0), improves Guard: both lines a self AC buff "
+                         "of about 1000 for ten minutes"),
+}
+
+# What a master class's ability rank is named when it adds no single ability
+# (stats alone, or several), and the few whose one spell's name would read
+# wrong: (master class, rank): (name, why). A rank's notes or EQOA-Data's
+# spell lists name some, the rest are OURS; the live game's names are asked
+# of jib, who knows them (F3 20261026-222613).
+MASTER_ABILITY_NAMES = {
+    ("defender", 4): ("Defender's Toughness", "EQOA-Data's warrior spell list: a Defender MCA ability, "
+                                              "all six resists +25, perm, as this rank gives"),
+    ("hero", 2): ("Hero's Mantle", "EQOA-Data's warrior spell list: the Hero MCA's permanent stat ability "
+                                   "(DEX +50, HP +500, OFF +2 there), its other one Hero 3's Hero's Blow"),
+    ("soldier", 2): ("Veteran", "the rank's notes in the warrior's, paladin's and shadow knight's lists"),
+    ("soldier", 3): ("Soldier's Cry", "the ability it adds (the paladin's list writes it in the notes)"),
+    ("diviner", 3): ("Soothing Prayer", "the rank's notes in the druid's list, the same master class as "
+                                        "the shaman's and cleric's"),
+    ("guardian", 2): ("Guardian's Resistance", "OURS: all six resists +20, HP +350, AC +100"),
+    ("gypsy", 3): ("Gypsy's Stride", "OURS: movement +25, OFF and DEF MOD +2"),
+    ("metabolist", 3): ("Metabolist's Vigor", "OURS: HP +200, HoT +10, AGI and DEX +25, resists +10"),
+    ("slayer", 3): ("Slayer's Touch", "OURS: four of the knight's spells for four others; its notes: "
+                                      "\"Slayers can drain health with a brush of their hands.\""),
+    ("sensei", 2): ("Heal Other", "OURS: the monk's six own heals for six that heal others "
+                                  "(Mend Other ... Heal Wounds)"),
+    ("exorcist", 3): ("Exorcise", "OURS: the one of its four abilities the spell lists give the Exorcist "
+                                  "MCA; the other three replace the cleric's Holy Word, Retribution and Justice"),
+    ("lich", 2): ("Lich Form", "OURS: its spell is named Lich, as the master class itself is; "
+                               "Lich Form is what it does"),
+    ("slayer", 4): ("Curse of Bertoxxulous", "its spell, as the knight's mastery list spells it "
+                                             "(the spell list's record says \"BertoCMCMulous\")"),
+}
+
 RACES = {"human": 0, "elf": 1, "dark elf": 2, "gnome": 3, "dwarf": 4, "troll": 5, "barbarian": 6,
          "halfling": 7, "erudite": 8, "ogre": 9}
 ARCHETYPES = ("tank", "healer", "melee", "caster")
@@ -165,6 +220,27 @@ def master_class_name(category, rank_index, mastery, name):
     return name
 
 
+def master_parent(mastery, ri, first, rank, added):
+    """A master class's ability's parent (its rank counted from 0, ri >= 1;
+    first + n is its rank n's id): the master class itself (rank 1), or the
+    earlier rank whose ability it improves, MASTER_UPGRADES' or one adding an
+    ability it needs or replaces (added: an ability's name, lower case, to the
+    rank adding it). (parent, why it is kept; "" for the master class)."""
+    up = MASTER_UPGRADES.get((mastery.strip().lower(), ri + 1))
+    if up:
+        if not 2 <= up[0] <= ri:
+            sys.exit(f"MASTER_UPGRADES: {mastery} {ri + 1} after rank {up[0]}, which is not an ability before it")
+        return first + up[0], up[1]
+    req = rank.get("requirements") or {}
+    eff = rank.get("effects") or {}
+    for a in (req.get("requiredAbilities") or []) + (eff.get("removeAbilities") or []):
+        name = (a.get("name") or "").strip()
+        if name.lower() in added:
+            rid = added[name.lower()]
+            return rid, f"it improves {name}, which rank {rid - first} adds"
+    return first + 1, ""
+
+
 def ranks(category, classes, races, base, cms, skipped):
     """The rows of one group's masteries."""
     out = []
@@ -172,7 +248,8 @@ def ranks(category, classes, races, base, cms, skipped):
         if is_were(cm["name"]):
             skipped[f"{cm['name']} (a were mastery)"] += len(cm.get("ranks", []))
             continue
-        parent, level = 0, 1
+        prev, level = 0, 1
+        added = {}  # a master class's abilities by name: the rank adding each
         desc = (cm.get("description") or "").strip()
         for ri, r in enumerate(cm.get("ranks", [])):
             if ri > 9:
@@ -180,6 +257,9 @@ def ranks(category, classes, races, base, cms, skipped):
             req = r.get("requirements") or {}
             eff = r.get("effects") or {}
             rid = base + 10 * mi + ri + 1
+            parent, kept = prev, ""
+            if category == MASTER and ri:
+                parent, kept = master_parent(cm["name"], ri, base + 10 * mi, r, added)
             lvl = req.get("level")
             note = []
             if lvl is None:
@@ -195,9 +275,43 @@ def ranks(category, classes, races, base, cms, skipped):
                 minstats=",".join(f"{k}:{v}" for k, v in (req.get("stats") or {}).items()),
                 effects=",".join(f"{k}:{v}" for k, v in (eff.get("stats") or {}).items()),
                 need=list(req.get("requiredAbilities") or []), add=list(eff.get("addAbilities") or []),
-                remove=list(eff.get("removeAbilities") or []), description=text, note="; ".join(note)))
-            parent = rid
+                remove=list(eff.get("removeAbilities") or []), description=text, note="; ".join(note),
+                list_name=r["name"].strip(), kept=kept))
+            if category == MASTER:
+                for a in eff.get("addAbilities") or []:
+                    added.setdefault((a.get("name") or "").strip().lower(), rid)
+            prev = rid
     return out
+
+
+def ability_rank_name(row, spell_names):
+    """A master class's ability rank's name (category 4, rank 2 on): its
+    MASTER_ABILITY_NAMES entry, else the one ability it adds as the server's
+    spell is named (spell_names: spellpattern id to name), as the list names
+    it when no spell was found; a rank adding several and in no table keeps
+    its name. Read off the row as cmcatalog keeps it (adds, add_spells), so a
+    spell a GM gave the rank since names it too. (name, why)."""
+    key = (str(row["mastery"]).strip().lower(), int(row["rank"]))
+    if key in MASTER_ABILITY_NAMES:
+        return MASTER_ABILITY_NAMES[key]
+    adds = [a.strip() for a in str(row.get("adds") or "").split(";") if a.strip()]
+    if len(adds) != 1:
+        return row["name"], f"it adds {len(adds)} abilities and is in no table: its name kept"
+    try:
+        sid = int(str(row.get("add_spells") or "").split(",")[0].strip())
+    except ValueError:
+        sid = 0
+    spelled = (spell_names.get(sid) or "").strip().rstrip("$").strip() if sid > 0 else ""
+    if spelled:
+        return spelled, f"the ability it adds, spell {sid}"
+    return adds[0].split("@")[0].strip(), "the ability it adds, as the list names it (no spell found)"
+
+
+def name_abilities(rows, spell_names):
+    """Every master class's ability rank named for what it gives."""
+    for r in rows:
+        if r["category"] == MASTER and r["rank"] > 1:
+            r["name"], r["named"] = ability_rank_name(r, spell_names)
 
 
 def plan_rows(data, skipped):
@@ -353,7 +467,9 @@ def resolve(rows, spells):
 def plan(db, data):
     skipped = collections.Counter()
     rows = plan_rows(data, skipped)
-    tally, found = resolve(rows, Spells(db))
+    spells = Spells(db)
+    tally, found = resolve(rows, spells)
+    name_abilities(rows, {sid: name for sid, (_, name) in spells.rows.items()})
     have = {}
     if db.execute("SELECT count(*) FROM sqlite_master WHERE name = 'cmcatalog'").fetchone()[0]:
         have = {i: s for i, s in db.execute("SELECT id, source FROM cmcatalog")}
@@ -384,6 +500,17 @@ def report(p, full=False):
     for r in rows:
         if r["note"]:
             print(f"  {r['name']}: {r['note']}")
+    abilities = [r for r in rows if r["category"] == MASTER and r["rank"] > 1]
+    kept = [r for r in abilities if r["kept"]]
+    print(f"master class abilities: {len(abilities)}, each needing only its master class but {len(kept)} "
+          f"kept behind the rank whose ability it improves")
+    for r in kept:
+        print(f"  {r['name']} ({CLASS_NAMES[r['classes'].bit_length() - 1]}, {r['list_name']}): after "
+              f"{r['parent']}: {r['kept']}")
+    for r in abilities:
+        if not r.get("named", "").startswith("the ability it adds"):
+            print(f"  {r['list_name']} ({CLASS_NAMES[r['classes'].bit_length() - 1]}) named {r['name']!r}: "
+                  f"{r.get('named', '')}")
     if full:
         for r in rows:
             print(f"{r['id']:5d} {CATEGORY_NAMES[r['category']]:12s} {r['name']:32s} parent {r['parent']:5d} "

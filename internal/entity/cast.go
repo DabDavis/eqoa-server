@@ -197,6 +197,11 @@ type ActiveEffect struct {
 	// Shield is a damage shield or a defensive proc (dshield.go), nil for
 	// none
 	Shield *Shield
+	// PowerCap is the most the bearer's maximum power is while it lasts,
+	// when PowerCapped (powercap.go: the ranger's Eye line, "Set Maximum
+	// Power to 0")
+	PowerCap    int
+	PowerCapped bool
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -334,7 +339,8 @@ func (p *Player) MaxHPNow() int {
 	return max(n, 1)
 }
 
-// MaxPowerNow is the maximum power with effects, as MaxHPNow.
+// MaxPowerNow is the maximum power with effects, as MaxHPNow, and at most
+// the lowest ceiling an effect puts on it (powercap.go).
 func (p *Player) MaxPowerNow() int {
 	n := p.MaxPower + p.Mods.MaxPower
 	m := p.Mods
@@ -342,6 +348,9 @@ func (p *Player) MaxPowerNow() int {
 		n += CalculateMaxPower(p.Level, p.Class, p.StatNow(StatStr), p.StatNow(StatSta), p.StatNow(StatAgi), p.StatNow(StatDex),
 			p.StatNow(StatWis), p.StatNow(StatInt), p.StatNow(StatCha)) -
 			CalculateMaxPower(p.Level, p.Class, p.Str, p.Sta, p.Agi, p.Dex, p.Wis, p.Int, p.Cha)
+	}
+	if top, ok := p.powerCap(); ok {
+		n = min(n, top)
 	}
 	return max(n, 0)
 }
@@ -694,7 +703,9 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 	if w.summonItemsLocked(cs, caster, casterSess) && len(d.Effects) == 0 { // potion.go
 		return gate
 	}
-	if w.gateLandLocked(cs, caster, casterSess) && len(d.Effects) == 0 { // gates.go
+	// a gate's line may read as its price alone ("Set Maximum Power to 0"),
+	// which is its caster's (gates.go), never its travellers'
+	if w.gateLandLocked(cs, caster, casterSess) && (len(d.Effects) == 0 || d.onlyPowerCaps()) { // gates.go
 		return gate
 	}
 	if len(d.Effects) == 0 {
@@ -812,6 +823,10 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			// its body is its bearer's to choose (landIllusionLocked)
 		case EffectShield, EffectDefProc:
 			ae.Shield = ae.Shield.with(e, cs, caster) // dshield.go
+		case EffectPowerCap:
+			if !ae.PowerCapped || e.Amount < ae.PowerCap {
+				ae.PowerCap, ae.PowerCapped = e.Amount, true
+			}
 		default:
 			continue
 		}
@@ -844,6 +859,13 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 		case EffectPower:
 			if n := spellAmount(e, caster); n > 0 {
 				t.Power = min(t.Power+n, t.MaxPowerNow())
+				t.StatsDirty = true
+			}
+		case EffectPowerCap:
+			// lasting no time, the ceiling is a price paid now (powercap.go);
+			// one that lasts holds the power down as it goes on
+			if !cs.spell.Def.lasts() && t.Power > e.Amount {
+				t.Power = max(e.Amount, 0)
 				t.StatsDirty = true
 			}
 		case EffectEndIllusion:

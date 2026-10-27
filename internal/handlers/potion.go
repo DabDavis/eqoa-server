@@ -132,8 +132,10 @@ func thrownPotion(gw *entity.World, inv *database.InventoryStore, p *database.It
 
 // summonItem gives a character the items a spell summoned (entity's
 // SummonItemFunc): the item by the name the spell's words give, else by the
-// spell's own name (EQOA-Data's Neriak Cocktail says it summons a "Grobb
-// Cocktail"); count the words' xN, else summonCount's.
+// spell's own name (a database seeded before 2026-10-27 has Neriak Cocktail's
+// "Grobb Cocktail", as its words and the game's own record name it, under the
+// spell's name: tools/fix_archived_spells.py renames it); count the words'
+// xN, else summonCount's.
 func (h *EquipHandler) summonItem(sess *session.Session, charServerID uint32, item string, count int, spell string) {
 	if h.inventoryStore == nil || h.gameWorld == nil {
 		return

@@ -91,11 +91,16 @@ var (
 )
 
 // gateLine reads a line for a gate's travel and its price: whether it
-// teleports, and whether it takes its caster's power.
+// teleports, and whether it takes its caster's power (a clause the line
+// reader reads as a ceiling of 0, powercap.go, or one it leaves unread with
+// the teleport: "Set Maximum Power to 0 and Teleport to Melton").
 func gateLine(d *SpellDef) (teleports, drains bool) {
 	for _, u := range d.Unread {
 		teleports = teleports || reGateTeleport.MatchString(u)
 		drains = drains || reGateDrain.MatchString(u)
+	}
+	for _, e := range d.Effects {
+		drains = drains || (e.Kind == EffectPowerCap && e.Amount == 0)
 	}
 	return
 }

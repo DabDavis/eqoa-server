@@ -133,10 +133,13 @@ POTIONS = [
     ("Kinetic Potion", "Kinetic Mixture", 55, "hit", hit(1256), "", 0),
     ("Freezing Potion", "Freezing Mixture", 57, "hit", hit(1302), "", 0),
     ("Septic Potion", "Septic Mixture", 60, "dot", dot(193, 30), "", 0),
-    # the cocktails: the "<town> Fire Potion" lines, a splash of 10 (ours)
+    # the cocktails: the "<town> Fire Potion" lines, a splash of 10 (ours).
+    # Neriak Cocktail summons a Grobb Cocktail, as its line says and the
+    # game's own record has it (Allakhazam's archived AK 3902, "Summon Item:
+    # Grobb Cocktail"; jib's bug report of 2026-10-27, ALC-3)
     ("Klik'Anon Cocktail", "Klik'Anon Cocktail", 20, "cocktail", "Target, Decrease Hitpoints by 214", "", 10),
     ("Moradhim Cocktail", "Moradhim Cocktail", 30, "cocktail", "Target, Decrease Hitpoints by 338", "", 10),
-    ("Neriak Cocktail", "Neriak Cocktail", 40, "cocktail", "Target, Decrease Hitpoints by 626", "", 10),
+    ("Grobb Cocktail", "Neriak Cocktail", 40, "cocktail", "Target, Decrease Hitpoints by 626", "", 10),
     ("Freeport Cocktail", "Freeport Cocktail", 49, "cocktail", "Target, Decrease Hitpoints by 1122", "", 10),
     ("Qeynos Cocktail", "Qeynos Cocktail", 49, "cocktail", "Target, Decrease Hitpoints by 842", "", 10),
     # the Refinement line

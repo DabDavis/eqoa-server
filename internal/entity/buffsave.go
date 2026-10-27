@@ -64,6 +64,9 @@ type savedMods struct {
 	// a damage shield or defensive proc (dshield.go); a row kept before
 	// reads as none
 	Shield *Shield `json:",omitempty"`
+	// a ceiling on the maximum power (powercap.go); a row kept before reads
+	// as none
+	PowerCap *int `json:",omitempty"`
 }
 
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
@@ -77,8 +80,13 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 		if !e.NextTick.IsZero() && (e.HPTick != 0 || e.PowerTick != 0) {
 			tick = max(0, e.NextTick.Sub(now).Milliseconds())
 		}
-		mods, _ := json.Marshal(savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, ProcScale: e.ProcScale, ProcScalePct: e.ProcScalePct,
-			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield})
+		sm := savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, ProcScale: e.ProcScale, ProcScalePct: e.ProcScalePct,
+			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield}
+		if e.PowerCapped {
+			top := e.PowerCap
+			sm.PowerCap = &top
+		}
+		mods, _ := json.Marshal(sm)
 		flags := 0
 		for _, f := range []struct {
 			on  bool
@@ -124,6 +132,9 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			ae.Form, ae.FormSize = sm.Form, sm.FormSize
 			ae.Ticks = sm.Ticks
 			ae.Shield = sm.Shield
+			if sm.PowerCap != nil {
+				ae.PowerCap, ae.PowerCapped = *sm.PowerCap, true
+			}
 		}
 		p.Effects = append(p.Effects, ae)
 		if ae.Name != "" && len(p.Buffs) < MaxEffects {
@@ -136,6 +147,9 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 		m.sum(e.Mods)
 	}
 	p.Mods = m
+	if top, ok := p.powerCap(); ok && p.Power > top { // powercap.go
+		p.Power = max(top, 0)
+	}
 	p.StatsDirty = true
 	return n
 }

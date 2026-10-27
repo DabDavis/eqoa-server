@@ -1,26 +1,33 @@
 #!/usr/bin/env python3
 """The Plane of Disease's bosses on a database tools/seed_pod.py seeded before
 F3 pass 21, made what its plan gives now (jib's reports 20261026-154852,
--155140 and -155308):
+-155140 and -155308, and eqoa.live's wiki map of the zone followed all the
+way, so a Noroxus raid has his lobe to itself):
 
 - Noroxus wears the green three-headed hydra (CHAR.ESF A18F3F22) at 1.1 and
   stands in his arena, the north-west lake's lobe, not by the cauldron;
-- Bertoxxulous the Plaguebringer wears his own body (A6320E74) at 1.3 where
-  he stands, and his npcaggro rule, written for the human body he wore, is
-  taken out: he attacks on sight by nature now (entity/aggro.go);
-- Poxathixius and Uzrathixius wear the green dragon (B5C8A651) at 1.5 where
-  they stand;
+- Bertoxxulous the Plaguebringer wears his own body (A6320E74) at 1.3 and
+  stands before his throne in the middle valley, not on the lake's island;
+  his npcaggro rule, written for the human body he wore, is taken out: he
+  attacks on sight by nature now (entity/aggro.go);
+- Poxathixius and Uzrathixius wear the green dragon (B5C8A651) at 1.5, in
+  the middle valley near its moat, and the six Patrons of Bertoxxulous stand
+  on his island, three each side of him;
+- the Bloody Portal moves to the ring's south-east arc (the guide's Closed
+  Portal, "all the way around the circle past Honcho Ulgurglch") and the
+  Portal of the Twins, its way back, from the north-west pocket to the
+  valley's pad;
 - the Fuming Portal (at the cauldron, to Noroxus's lair) and the Portal to
   the Cauldron (in his lobe, back) are added as seed rows (pod_seed_npcs, so
   seed_pod.py --undo takes them too), and pod_seed_meta's counts follow.
 
-A boss's row is changed only while it is still, column for column, what the
-old plan wrote (OLD below, through seed_pod.py's own plan) and no GM has
-edited it through the panel (gm_audit): any other is left as it is and
-listed, as is a rule a GM changed since. A row already as the plan has it
-is left too. A portal is added only where no NPC has its name. The columns a
-row takes are the plan's: its body row's look (the cave hydra's, the ghoul
-reaver's, Cyrcalis's), the body worn, the size, and Noroxus's place.
+A row is changed only while it is still, column for column, what the old
+plan wrote (OLD below, through seed_pod.py's own plan) and no GM has edited
+it through the panel (gm_audit): any other is left as it is and listed, as
+is a rule a GM changed since. A row already as the plan has it is left too.
+A portal is added only where no NPC has its name. The columns a row takes
+are the plan's: its body row's look (the cave hydra's, the ghoul reaver's,
+Cyrcalis's), the body worn, the size and its place.
 
 Everything written is logged in pod_boss_fix_log (each row's columns before
 and after, a rule row taken out whole with its rowid, the npcs sequence);
@@ -47,18 +54,25 @@ import seed_pod  # noqa: E402
 DEFAULT_DB = seed_pod.DEFAULT_DB
 DEFAULT_GROUND = seed_pod.DEFAULT_GROUND
 LOG = "pod_boss_fix_log"
-BOSSES = ("Noroxus", "Bertoxxulous the Plaguebringer", "Poxathixius", "Uzrathixius")
-# the rows the plan has that the old one had not (no other row is added: a
-# seeded row a GM deleted stays deleted)
+# the seed's rows this tool changes, by name (the patrons' six in the plan's
+# order), and the rows the plan has that the old one had not (no other row is
+# added: a seeded row a GM deleted stays deleted)
+CHANGED = ("Noroxus", "Bertoxxulous the Plaguebringer", "Poxathixius", "Uzrathixius", "Patron of Bertoxxulous",
+           "Bloody Portal", "Portal of the Twins")
 ADDED = ("Fuming Portal", "Portal to the Cauldron")
-HOSTILE = seed_pod.HOSTILE
+HOSTILE, TRAVEL = seed_pod.HOSTILE, seed_pod.TRAVEL
 
-# The bosses as tools/seed_pod.py's plan had them until F3 pass 21, its
-# default facings written out (they counted the rows before them): what a
-# seeded row of theirs holds while no one has changed it.
+# Those rows as tools/seed_pod.py's plan had them until F3 pass 21, one entry
+# a row, at the spot it was given and its default facing written out (both
+# counted the rows before them): what a seeded row holds while no one has
+# changed it.
 OLD = [
     dict(name="Noroxus", body="ghoul reaver", level=65, kind=HOSTILE, world=5, scale=2.0,
          at=(5620, 3060), y=-30.5, facing=243, roam=0, role="boss (\"Guild needed\"): fetid rotting gland"),
+    dict(name="Bloody Portal", body="dark portal", level=60, kind=TRAVEL, world=5,
+         at=(4872, 2980), y=-19.9, facing=0, role="to the Twins' valley, level 60 (live: Noroxus's blood)"),
+    dict(name="Portal of the Twins", body="dark portal", level=60, kind=TRAVEL, world=5,
+         at=(4166, 2318), y=-16.4, facing=64, role="back to the Bloody Portal"),
     dict(name="Bertoxxulous the Plaguebringer", body="disciple of plague", model=0x70D898C6, level=66,
          kind=HOSTILE, world=5, scale=1.6, at=(4416, 2113), y=-22.2, facing=192, roam=0, undead=True,
          aggro=True, role="boss (\"Hard, full guild needed\"): soul dust x2"),
@@ -66,7 +80,14 @@ OLD = [
          scale=1.5, at=(4130, 2170), y=-18.2, facing=209, roam=0, role="one of the Twins"),
     dict(name="Uzrathixius", body="emerald drake", model=0x5C9A274E, level=65, kind=HOSTILE, world=5,
          scale=1.5, at=(4190, 2140), y=-19.3, facing=246, roam=0, role="one of the Twins"),
+] + [
+    dict(name="Patron of Bertoxxulous", body="decaying zombie", level=59, kind=HOSTILE, world=5, undead=True,
+         at=at, y=y, facing=facing, radius=20.0, role="hunt and gather: zombie patron skins")
+    for at, y, facing in (((4220.0, 2200.0), -16.4, 27), ((4226.0, 2200.0), -16.4, 64), ((4223.0, 2205.2), -16.4, 101),
+                          ((4217.0, 2205.2), -16.4, 138), ((4214.0, 2200.0), -16.6, 175), ((4217.0, 2194.8), -17.1, 212))
 ]
+# the name the old boss list had (kept for anything that imported it)
+BOSSES = CHANGED
 
 LOG_DDL = f"""CREATE TABLE {LOG} (
     seq    INTEGER PRIMARY KEY,
@@ -137,42 +158,48 @@ def rule_key(r):
     return tbl, key
 
 
+def by_name(rows):
+    """A plan's rows by name, each name's in the plan's order."""
+    out = {}
+    for r in rows:
+        out.setdefault(r["row"]["npc_name"], []).append(r)
+    return out
+
+
 def work(db, old, new):
     """What to do: old is the old plan's (OLD's) rows and rules, new the plan's
-    now. Returns the boss rows to change, those left (and why), the portals to
-    add, the rules to take out and to add, and what is already done."""
+    now. Returns the rows to change, those left (and why), the portals to add,
+    the rules to take out and to add, and what is already done. A name's seeded
+    rows (pod_seed_npcs, in their order) meet its old and new rows in theirs."""
     seeded = db.execute("SELECT npc_row, name, body_row, role FROM pod_seed_npcs ORDER BY npc_row").fetchall()
     gm = gm_edited(db)
-    old_rows = {r["row"]["npc_name"]: r for r in old["rows"]}
-    new_rows = {}
-    for r in new["rows"]:
-        new_rows.setdefault(r["row"]["npc_name"], []).append(r)
+    old_rows, new_rows = by_name(old["rows"]), by_name(new["rows"])
     cols = [c for c in cols_of(db, "npcs") if c != "id"]
     change, left, done = [], [], []
-    for name in BOSSES:
-        rows = [s for s in seeded if s[1] == name]
-        if len(rows) != 1 or name not in old_rows or len(new_rows.get(name, [])) != 1:
-            left.append((name, None, f"{len(rows)} seeded rows of that name, not one"))
+    for name in CHANGED:
+        mine = [s[0] for s in seeded if s[1] == name]
+        olds, news = old_rows.get(name, []), new_rows.get(name, [])
+        if not mine or not len(mine) == len(olds) == len(news):
+            left.append((name, None, f"{len(mine)} seeded rows of that name, {len(olds)} in the old plan, "
+                                     f"{len(news)} in the plan: not matched"))
             continue
-        npc_row = rows[0][0]
-        now = row_dict(db, "npcs", "id = ?", (npc_row,))
-        want = new_rows[name][0]
-        if now is None:
-            left.append((name, npc_row, "the row is gone"))
-            continue
-        if all(same(now[c], want["row"].get(c)) for c in cols):
-            done.append((name, npc_row))
-            continue
-        was = old_rows[name]["row"]
-        differs = [c for c in cols if not same(now[c], was.get(c))]
-        if differs or npc_row in gm:
-            why = f"changed since the seed ({', '.join(differs)})" if differs else "a GM edited it (gm_audit)"
-            left.append((name, npc_row, why))
-            continue
-        diff = [c for c in cols if not same(now[c], want["row"].get(c))]
-        change.append(dict(name=name, npc_row=npc_row, before={c: now[c] for c in diff},
-                           after={c: want["row"].get(c) for c in diff}, body=want["body"],
-                           body_row=want["body_row"], role=want["role"]))
+        for npc_row, was, want in zip(mine, olds, news):
+            now = row_dict(db, "npcs", "id = ?", (npc_row,))
+            if now is None:
+                left.append((name, npc_row, "the row is gone"))
+                continue
+            if all(same(now[c], want["row"].get(c)) for c in cols):
+                done.append((name, npc_row))
+                continue
+            differs = [c for c in cols if not same(now[c], was["row"].get(c))]
+            if differs or npc_row in gm:
+                why = f"changed since the seed ({', '.join(differs)})" if differs else "a GM edited it (gm_audit)"
+                left.append((name, npc_row, why))
+                continue
+            diff = [c for c in cols if not same(now[c], want["row"].get(c))]
+            change.append(dict(name=name, npc_row=npc_row, before={c: now[c] for c in diff},
+                               after={c: want["row"].get(c) for c in diff}, body=want["body"],
+                               body_row=want["body_row"], role=want["role"]))
     add = []
     for name in ADDED:
         mine = [s[0] for s in seeded if s[1] == name]
@@ -185,7 +212,7 @@ def work(db, old, new):
             continue
         add.extend(new_rows.get(name, []))
     old_rules = {rule_key(r): r for r in old["rules"]}
-    new_rules = {rule_key(r): r for r in new["rules"] if r[2].strip().lower() in {b.lower() for b in BOSSES}}
+    new_rules = {rule_key(r): r for r in new["rules"] if r[2].strip().lower() in {b.lower() for b in CHANGED}}
     take_out, put_in = [], []
     for k, (tbl, keycol, key, vals) in old_rules.items():
         if k in new_rules or not has_table(db, tbl):
@@ -233,7 +260,7 @@ def report(w):
         print(f"  put in {p['tbl']} {p['key']!r}")
     for name, npc_row, why in w["left"]:
         print(f"  left: {name}" + (f" (row {npc_row})" if npc_row is not None else "") + f": {why}")
-    print(f"{len(w['change'])} bosses to change, {len(w['done'])} already done, {len(w['left'])} left; "
+    print(f"{len(w['change'])} rows to change, {len(w['done'])} already done, {len(w['left'])} left; "
           f"{len(w['add'])} portals to add; {len(w['take_out'])} rules to take out, {len(w['put_in'])} to put in")
 
 
@@ -307,11 +334,21 @@ def undo(db):
         sys.exit(f"nothing of this tool's to undo here (no {LOG})")
     logged = db.execute(f"SELECT seq, kind, tbl, row, before, after, note FROM {LOG} ORDER BY seq DESC").fetchall()
     back, left = 0, []
+    # an NPC changed since (a GM's) keeps its seed log row as this tool left it
+    stuck = set()
+    for seq, kind, tbl, row, before, after, note in logged:
+        if tbl == "npcs" and kind in ("update", "insert"):
+            now = row_dict(db, "npcs", "id = ?", (row,))
+            if now is not None and any(not same(now.get(c), v) for c, v in json.loads(after).items()):
+                stuck.add(row)
     db.execute("BEGIN IMMEDIATE")
     try:
         for seq, kind, tbl, row, before, after, note in logged:
             before = None if before is None else json.loads(before)
             after = None if after is None else json.loads(after)
+            if tbl == "pod_seed_npcs" and row in stuck:
+                left.append(f"{tbl} row {row} ({note}): its NPC changed since, left with it")
+                continue
             if kind == "update":
                 key = "id" if tbl == "npcs" else "npc_row"
                 now = row_dict(db, tbl, f"{key} = ?", (row,))

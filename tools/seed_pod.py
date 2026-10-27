@@ -13,21 +13,31 @@ SECRETS.ESF) has two zones with anything in them; CLIENT's ZoneName names
 zone 0's cell "Last Home" and zone 5's "Zaoran Plateau" (the vampires'
 Sanctuary). The guides port to PoD "from the Last Home" and put Yarfsnoogle
 "in the Noroxus pools area in the Plane of Disease (Last Home E)"; zone 0
-(x 4031-5985, z 2000-4000) is a ring of canyon round a raised middle, slime
-pools strung along it (the zone BSP's slime leaves, internal/ground/env.go),
-a pocket of seven pools to the north-east, a lake with an island to the
-north-west and, south-east, a bowl no walk reaches. The Dead Hills are the
-Rathe's cell (world 1, row 2, col 1): their NW ninth holds a fenced yard of
-tombs at (4333, 6405), "the mausoleum in the middle".
+(x 4031-5985, z 2000-4000) is a ring of canyon round high hills that hold a
+sunken valley in the middle (a crescent slime pool round an island with a
+throne), slime pools strung along the ring (the zone BSP's slime leaves,
+internal/ground/env.go), a pocket of seven pools to the north-east, a slime
+lake to the north-west whose island holds a portal pad in a ring of twelve
+standing stones and, south-east, a bowl no walk reaches. eqoa.live's wiki
+map of the zone (its Plane of Disease page's interactive map, whose points
+land on its drawing flipped top to bottom) has Noroxus in that north-west
+lake's lobe (drawn on the map's east side, turned half round: the island
+with its ring of stones in the pool), the Queen in the bowl, and the Twins
+and Bertoxxulous in the middle valley (claude-notes/plane-of-disease-20261027.md).
+The Dead Hills are the Rathe's cell (world 1, row 2, col 1): their NW ninth
+holds a fenced yard of tombs at (4333, 6405), "the mausoleum in the middle".
 
 What is ours: every spot (the guides say "across the first pond", "behind
 tree next to banker", "end of valley just before nox pools"; the anchors
 follow them over the ground), every level (the guides give cons to a level
 60: "db and lb", "1/2 red"), every body (copied from a namesake's or kin's
 row on this server: no model id is guessed; a name with several bodies is
-pinned to one), the banker's name, the jellies', piranhas' and wasps' names,
-the portals' names and that they need only a level (the live game's flag
-quest, its Queen and Noroxus quests and Bert's scepter are not in). Not
+pinned to one; the three bosses jib named theirs, F3 pass 21: Noroxus the
+green three-headed hydra of eqoa.live's wiki picture, Bertoxxulous his own
+body, the Twins the green dragon), every size, the banker's name, the
+jellies', piranhas' and wasps' names, the portals' names and that they need
+only a level (the live game's flag quest, its Queen and Noroxus quests and
+Bert's scepter are not in). Not
 placed: the sanitorium's staff (Fatima, Rebo, Medelonia, the Last House's
 physician and pharmacist, the orderlies), who belong to the flag quest and
 its building, and the rare spawns' placeholders and the quests' own spawns
@@ -44,7 +54,9 @@ are written where no row of that name exists, logged in pod_seed_rules, and
 --undo deletes exactly what a run wrote (a GM's own rows are never touched).
 The plan is refused when a ground file differs from the one its anchors were
 read off. A copy of the database is made first (--no-backup to skip). Stop
-the server to apply, start it after.
+the server to apply, start it after. A database seeded before F3 pass 21
+(Noroxus by the cauldron, the three bosses in borrowed bodies) is brought to
+this plan by tools/fix_pod_bosses.py.
 """
 import argparse
 import collections
@@ -73,14 +85,18 @@ HOSTILE, FRIEND, BANKER, TRAVEL = 0, 0x80, 0x82, 0x180
 # the floors at the anchor, the nearest; every spot of a group within NEAR of
 # it, dry or in a pool as asked, at most SPREAD off), checked against the
 # ground files when the plan is made. The anchors were read off the baked
-# ground and the zone's actors (claude-notes/plane-of-disease-20261026.md):
+# ground and the zone's actors (claude-notes/plane-of-disease-20261027.md):
 # every one is on the canyon's floor (or a pool's), and reachable on foot from
 # the arrival at the walk's 60-degree slope, but for the Queen's bowl, which
-# nothing reaches but its portal.
+# nothing reaches but its portal, and the north-west lake's lobe, which the
+# ground joins to the ring only over ridges steeper than 31 degrees.
 #
 # body: the row (by name, lower case; model: of that name, the one with this
 # CHAR.ESF body) every look column is copied from; its size times scale.
-# Levels, counts and all the friendly NPCs' and portals' spots are ours.
+# wear: a body no row of this server has (a CHAR.ESF DictID), put in place of
+# the copied row's own. Levels, counts and all the friendly NPCs' and
+# portals' spots are ours. New entries go at the end: a row's default facing
+# counts the rows before it, so one put in the middle turns every row after.
 PLAN = [
     # ---- the Dead Hills (NW), the Rathe (world 1): the necrologists, outside
     # the tomb yard's fence on its west, where the tombs' doors face ("Log the
@@ -159,10 +175,20 @@ PLAN = [
 
     # ---- the nox pools ("Last Home E"): Rotwood "end of valley just before
     # nox pools" among the deadwood arborians ("farm yellow/red"), Rawgl and
-    # the viscera scavengers "surrounding nox pools", Noroxus at the pools'
-    # centrepiece (live: through a portal, after a quest), Honcho Ulgurglch
+    # the viscera scavengers "surrounding nox pools", Honcho Ulgurglch
     # "almost all the way around the circle clockwise", Yarfsnoogle "across
-    # the valley, straight south of Honcho" (each at a camp's props)
+    # the valley, straight south of Honcho" (each at a camp's props).
+    # Noroxus is not at the pools: "Take the combined item to the big cauldron
+    # in the middle of all 3 pools to open fuming portal ... This leads to
+    # Noroxus" (the Fuming Portal, at the end of the plan), into the north-west
+    # lake's lobe (the wiki map's; the island's ring of stones is its pad),
+    # on its floor's dry north end, the lake and the rocks by it to his south
+    # and east ("All necs stack down by the rocks near the water (to the S/E
+    # of nox)"), facing the way the portal brings the raid in. His body is
+    # the green three-headed hydra of eqoa.live's wiki picture of him (red
+    # crests; CHAR.ESF's other three hydras are tan, grey and red), at 1.1:
+    # 14 tall, twice the dead tree (8.5) beside him in that picture, eight
+    # men; the cave hydra's row gives the rest of his look, as hydras have it
     dict(name="deadwood arborian", body="deadwood", level=60, kind=HOSTILE, world=5,
          at=(5500, 2860), y=-25.4, count=5, role="before the nox pools"),
     dict(name="Rotwood the Hollow", body="deadwood", level=61, kind=HOSTILE, world=5, scale=1.6,
@@ -171,30 +197,41 @@ PLAN = [
          at=(5640, 3100), y=-31.8, count=5, role="surrounding the nox pools"),
     dict(name="Rawgl the Carnage Hound", body="chaos hound", level=61, kind=HOSTILE, world=5, scale=1.6,
          at=(5540, 3080), y=-30.7, roam=0, role="rare: fetid rotting skull x2"),
-    dict(name="Noroxus", body="ghoul reaver", level=65, kind=HOSTILE, world=5, scale=2.0,
-         at=(5620, 3060), y=-30.5, roam=0, role="boss (\"Guild needed\"): fetid rotting gland"),
+    dict(name="Noroxus", body="cave hydra", wear=0xA18F3F22, level=65, kind=HOSTILE, world=5, scale=1.1,
+         at=(4155, 2100), y=-20.8, facing=90, roam=0,
+         role="boss (\"Guild needed\"): fetid rotting gland; in his arena, through the Fuming Portal"),
     dict(name="Honcho Ulgurglch", body="enthralled goblin", level=55, kind=FRIEND, world=5,
          at=(5585, 2905), y=-25.3, facing=0, role="Noroxus's quest (not in)"),
     dict(name="Yarfsnoogle", body="necrologist ipstok", level=55, kind=FRIEND, world=5,
          at=(5690, 3140), y=-21.7, facing=128, role="the PoD spell quest (not in)"),
 
-    # ---- the Twins and Bertoxxulous, "through the same portal": the zone's
-    # middle holds the second set of portal pieces (FFC8B09E, which only the
-    # north-west lake's island shares), the north-west pocket the only other
-    # E3B08E91 (the arrival's piece); Bert on the island ("You get hit with a
-    # disease spell just swimming across the lake towards him"), always up
-    # (no spawn by event here), and he attacks on sight (a human's body:
-    # npcaggro); the Twins and the patrons away from the landing
+    # ---- the Twins and Bertoxxulous, "through the same portal": the zone has
+    # four portal pads (EC4AB525: the arrival's, the middle valley's south
+    # end, the north-west lake's island and that lobe's south-west pocket),
+    # each in one of two ground fogs (E3B08E91 the arrival's and the pocket's,
+    # FFC8B09E the middle's and the island's); Bert on the island ("You get
+    # hit with a disease spell just swimming across the lake towards him"),
+    # always up (no spawn by event here), the Twins and the patrons away from
+    # the landing. eqoa.live's wiki map has the Twins and Bert in the middle
+    # valley instead (Bert and his throne on its island, past the crescent
+    # pool), and this lobe Noroxus's: they stay here until jib says. Bert
+    # wears his own body (jib: "He has his own dedicated unique player
+    # model"; hooded, red-faced, a round belly in a tattered black vest; no
+    # row has it), at 1.3 (3.85 tall, a little over twice a man, as a
+    # screenshot of him in a fight shows him); the ghoul reaver's row gives
+    # the rest of his look. Not a players' race's body, he attacks on sight
+    # by nature (entity/aggro.go): no npcaggro rule. The Twins wear the green
+    # dragon (Cyrcalis's row; eqoa.live's wiki picture of Uzrathixius), at 1.5
     dict(name="Bloody Portal", body="dark portal", level=60, kind=TRAVEL, world=5,
          at=(4872, 2980), y=-19.9, facing=0, role="to the Twins' valley, level 60 (live: Noroxus's blood)"),
     dict(name="Portal of the Twins", body="dark portal", level=60, kind=TRAVEL, world=5,
          at=(4166, 2318), y=-16.4, facing=64, role="back to the Bloody Portal"),
-    dict(name="Bertoxxulous the Plaguebringer", body="disciple of plague", model=0x70D898C6, level=66,
-         kind=HOSTILE, world=5, scale=1.6, at=(4416, 2113), y=-22.2, facing=192, roam=0, undead=True,
-         aggro=True, role="boss (\"Hard, full guild needed\"): soul dust x2"),
-    dict(name="Poxathixius", body="emerald drake", model=0x5C9A274E, level=65, kind=HOSTILE, world=5,
+    dict(name="Bertoxxulous the Plaguebringer", body="ghoul reaver", wear=0xA6320E74, level=66,
+         kind=HOSTILE, world=5, scale=1.3, at=(4416, 2113), y=-22.2, facing=192, roam=0, undead=True,
+         role="boss (\"Hard, full guild needed\"): soul dust x2"),
+    dict(name="Poxathixius", body="cyrcalis", level=65, kind=HOSTILE, world=5,
          scale=1.5, at=(4130, 2170), y=-18.2, roam=0, role="one of the Twins"),
-    dict(name="Uzrathixius", body="emerald drake", model=0x5C9A274E, level=65, kind=HOSTILE, world=5,
+    dict(name="Uzrathixius", body="cyrcalis", level=65, kind=HOSTILE, world=5,
          scale=1.5, at=(4190, 2140), y=-19.3, roam=0, role="one of the Twins"),
     dict(name="Patron of Bertoxxulous", body="decaying zombie", level=59, kind=HOSTILE, world=5, undead=True,
          at=(4220, 2200), y=-16.4, count=6, radius=20.0, role="hunt and gather: zombie patron skins"),
@@ -230,6 +267,19 @@ PLAN = [
          at=(5725, 3745), y=-21.1, roam=0, role="boss: fetid rotting eyeball, the stinger"),
     dict(name="plague wasp", body="giant wasp", level=58, kind=HOSTILE, world=5,
          at=(5770, 3770), y=-19.9, count=4, roam=0, role="the Queen's (the name is ours)"),
+
+    # ---- Noroxus's way in (F3 pass 21, jib: "Noroxus is currently spawning at
+    # his portal entrance, not his arena"): the Fuming Portal where he stood,
+    # at the cauldron's east side, facing away from it ("the big cauldron in
+    # the middle of all 3 pools ... Once the portal is open, all people with a
+    # skin can go through"; live: the hearts' item opens it, here level 60, as
+    # the other bosses' portals), and the way back on the dry north end of
+    # his lobe's floor, 63 from him, facing it (no pad there: the island's,
+    # in the lake, is Bert's spot)
+    dict(name="Fuming Portal", body="dark portal", level=60, kind=TRAVEL, world=5,
+         at=(5620, 3060), y=-30.5, facing=54, role="to Noroxus's lair, level 60 (live: the slime hearts' item)"),
+    dict(name="Portal to the Cauldron", body="dark portal", level=60, kind=TRAVEL, world=5,
+         at=(4205, 2062), y=-21.7, facing=224, role="back to the Fuming Portal"),
 ]
 
 
@@ -386,7 +436,10 @@ def plan(db, ground_dir):
                        facing=e.get("facing", (37 * (len(rows) + 1)) % 256),
                        size=round(float(b.get("size") or 1.0) * e.get("scale", 1.0), 3),
                        npc_id=0, dt_kill=None, zone=0)
-            rows.append(dict(row=row, body=e["body"], body_row=b["id"], role=e["role"]))
+            if e.get("wear") is not None:
+                row["modelid"] = e["wear"]
+            look = e["body"] if e.get("wear") is None else f"{e['body']}, wearing {e['wear']:08X}"
+            rows.append(dict(row=row, body=look, body_row=b["id"], role=e["role"]))
     rules = []
     seen = set()
     for e in PLAN:

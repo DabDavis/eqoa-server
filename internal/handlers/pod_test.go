@@ -120,12 +120,68 @@ func TestPoDPortalsSendPlayersOn(t *testing.T) {
 	}
 }
 
+// The Fuming Portal at the cauldron sends a level 60 to Noroxus's lair, in
+// front of the Portal to the Cauldron in the north-west lake's lobe, and that
+// portal sends anyone back in front of the Fuming Portal (F3 pass 21, jib:
+// Noroxus stood "at his portal entrance, not his arena"). The control: a
+// level 59 is too weak for the lair and is sent nowhere.
+func TestFumingPortalSendsTheRaidToNoroxus(t *testing.T) {
+	tw := newTalkWorld(t, 5623, 3061)
+	tw.p.World, tw.p.Y, tw.p.Level = 5, -30.5, 59
+	// facing bytes 54 and 224 (tools/seed_pod.py), in radians as the loader has them
+	fuming := tw.add(1, &entity.NPC{ServerID: 1, Name: "Fuming Portal", World: 5, SpawnX: 5620, SpawnY: -30.54, SpawnZ: 3060,
+		SpawnFacing: 54.0 / 256 * 2 * math.Pi})
+	back := &entity.NPC{ServerID: 2, Name: "Portal to the Cauldron", World: 5, SpawnX: 4205, SpawnY: -21.69, SpawnZ: 2062,
+		SpawnFacing: 224.0 / 256 * 2 * math.Pi}
+	tw.w.NPCs[2] = back
+
+	tw.talk(fuming)
+	if box := boxSaid(tw.s); !strings.Contains(box, "too weak") || !strings.Contains(box, "Noroxus's lair") {
+		t.Fatalf("a level 59 at the Fuming Portal was told %q, want too weak for Noroxus's lair", box)
+	}
+	tw.s.Queue().GetPending()
+	tw.pick(fuming, 0)
+	if _, _, _, moved := teleported(tw.s); moved {
+		t.Fatal("the control: a level 59 was sent to Noroxus's lair")
+	}
+
+	tw.p.Level = 60
+	tw.talk(fuming)
+	if got := optionBox(t, tw.s); !slices.Equal(got, []string{"Yes", "No"}) {
+		t.Fatalf("a level 60 at the Fuming Portal was offered %q, want Yes and No", got)
+	}
+	tw.pick(fuming, 0)
+	fx, fz, _ := inFrontOf(back.SpawnX, back.SpawnZ, back.SpawnFacing)
+	x, z, world, moved := teleported(tw.s)
+	if !moved || world != 5 || math.Abs(float64(x-fx)) > 0.01 || math.Abs(float64(z-fz)) > 0.01 {
+		t.Errorf("the Fuming Portal sent a level 60 to (%.1f, %.1f) world %d (%v), want (%.1f, %.1f), in front of the Portal to the Cauldron",
+			x, z, world, moved, fx, fz)
+	}
+	// in front of the way back is south-west of it, on its lobe's floor
+	if fx >= back.SpawnX || fz <= back.SpawnZ {
+		t.Errorf("the landing (%.1f, %.1f) is not south-west of the Portal to the Cauldron", fx, fz)
+	}
+
+	// the trip stayed in world 5: the way back is in view, and leads to the cauldron
+	tw.s.Queue().GetPending()
+	tw.p.X, tw.p.Y, tw.p.Z, tw.p.Level = fx, -21.69, fz, 1
+	way := tw.add(3, back)
+	tw.talk(way)
+	tw.s.Queue().GetPending()
+	tw.pick(way, 0)
+	cx, cz, _ := inFrontOf(5620, 3060, 54.0/256*2*math.Pi)
+	if x, z, world, moved := teleported(tw.s); !moved || world != 5 || math.Abs(float64(x-cx)) > 0.01 || math.Abs(float64(z-cz)) > 0.01 {
+		t.Errorf("the Portal to the Cauldron sent a level 1 to (%.1f, %.1f) world %d (%v), want (%.1f, %.1f), in front of the Fuming Portal",
+			x, z, world, moved, cx, cz)
+	}
+}
+
 // Every trip of the Plane of Disease's lands on an NPC that has a trip back
 // to where it began, so no portal strands a player; and an NPC is a waysender
 // by its trips (the control: a name with none is not).
 func TestPoDTripsGoBothWays(t *testing.T) {
 	pod := []string{"Necrologist Zizclank", "Portal to the Dead Hills", "Whirling Portal", "Portal to the Lake",
-		"Bloody Portal", "Portal of the Twins"}
+		"Bloody Portal", "Portal of the Twins", "Fuming Portal", "Portal to the Cauldron"}
 	for _, from := range pod {
 		if !IsWaysender(from) {
 			t.Errorf("%s is not a waysender", from)

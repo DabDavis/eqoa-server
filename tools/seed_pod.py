@@ -88,8 +88,8 @@ HOSTILE, FRIEND, BANKER, TRAVEL = 0, 0x80, 0x82, 0x180
 # ground and the zone's actors (claude-notes/plane-of-disease-20261027.md):
 # every one is on the canyon's floor (or a pool's), and reachable on foot from
 # the arrival at the walk's 60-degree slope, but for the Queen's bowl, which
-# nothing reaches but its portal, and the north-west lake's lobe, which the
-# ground joins to the ring only over ridges steeper than 31 degrees.
+# nothing reaches but its portal (Noroxus's lobe, the north-west lake's, is
+# joined to the ring only over ridges steeper than 31 degrees).
 #
 # body: the row (by name, lower case; model: of that name, the one with this
 # CHAR.ESF body) every look column is copied from; its size times scale.

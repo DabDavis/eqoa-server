@@ -868,7 +868,8 @@ func (s *Server) characterQuestSet(a *actor, who any, questID int, action string
 	return map[string]any{"message": fmt.Sprintf("%s: %s", name, msg), "quests": q.CharacterQuests(uint32(id))}, nil
 }
 
-// gmSession is the actor's own character in the world, or nil.
+// gmSession is the actor's own character in the world, or nil; of several
+// windows the account has in the world, the one heard from last.
 func (s *Server) gmSession(a *actor) *session.Session {
 	if s.d.Sessions == nil || s.d.World == nil {
 		return nil
@@ -881,9 +882,11 @@ func (s *Server) gmSession(a *actor) *session.Session {
 		if _, replaced := sess.ReplacedFor(); replaced {
 			return true
 		}
+		if found != nil && !sess.LastActivity().After(found.LastActivity()) {
+			return true
+		}
 		if p := s.d.World.SessionPlayer(sess); p != nil && s.d.World.IsLivePlayer(p) {
 			found = sess
-			return false
 		}
 		return true
 	})

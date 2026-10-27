@@ -476,6 +476,21 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 		return nil
 	}
 
+	// One window a character: an account may have several in the game, each
+	// on its own character, and a character already in the game in another
+	// window stays there. This one is told as CLIENT tells a character it
+	// cannot enter (CharSelectMsg, word 676 "That character is in an area of
+	// the world that is currently unavailable.  Please try again later.") and
+	// stays at character select to choose another. A closed or crashed window
+	// holds its character until the in-game timeout.
+	if h.sessionManager != nil && h.sessionManager.LiveCharacter(uint32(record.ServerID), sess) {
+		log.Printf("SelectedChar: REFUSED '%s' (serverID=%d) from %s: already in the game in another window; told so (0x%04X)",
+			record.CharName, charID, sess.RemoteAddr(), uint16(protocol.OpcodeCharSelectAreaUnavailable))
+		SendCharSelectNotice(sess, protocol.OpcodeCharSelectAreaUnavailable)
+		sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
+		return nil
+	}
+
 	log.Printf("SelectedChar: selected '%s' (level %d race=%d class=%d)", record.CharName, record.Level, record.Race, record.TClass)
 
 	// Promote to a master session HERE, not when the character list was sent.

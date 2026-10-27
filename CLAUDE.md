@@ -624,6 +624,16 @@ Two things follow from the protocol that are easy to get wrong:
   the address (the account's own session is the player coming back, and its world entry
   replaces it). A refusal is sent as CLIENT shows one: 0x0729 "Bad Login/Password" (its server
   list then offers STATION's login), 0x00EC for another account playing from the address.
+- **One login at a time** (`auth.one_login`, default on): the Station login refuses an account
+  already in the game ("You are already logged in."; the page's "Log out the other window") and
+  an address with a game in it (`auth.one_login_exempt` aside), so no multiboxing. **Off on
+  eqoaclassic since 2026-10-27** (the user: "lets remove mutlibox limit", "you can lift the one
+  window per account also", "just not same char"): an account and an address may play several
+  windows. **A character is in one window at a time either way** (`HandleSelectedChar`,
+  `session.LiveCharacter`): the first keeps it, and a second window choosing it is told with
+  CLIENT's character-select notice 0x07F0 (word 676, "That character is in an area of the world
+  that is currently unavailable. Please try again later.": CLIENT has no word of its own for
+  it) and may choose another; a closed or crashed window holds it until the in-game timeout.
 - Accounts with an empty `pwhash` predate password checking. The first login that
   supplies a password adopts it (when `auth.allow_auto_register` is on); after
   that the account is enforced normally.

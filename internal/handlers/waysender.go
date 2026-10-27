@@ -96,8 +96,12 @@ var wayRoutes = map[string][]wayRoute{
 	// Inside PoD: Queen Qy'tha "inside whirling portal within the lake in
 	// entrance area" ("be ported to the wasp hive"), and the Twins and
 	// Bertoxxulous through the Bloody Portal ("you can use Noroxus Blood to
-	// open the Bloody Portal and pass through to the twins"); live's
-	// quests open them, here level 60.
+	// open the Bloody Portal and pass through to the twins"): the guide's
+	// Closed Portal, "all the way around the circle past Honcho Ulgurglch"
+	// (the ring's south-east arc, at the slime fall), to the middle valley's
+	// pad, where the Portal of the Twins stands (F3 pass 21: the twins and
+	// Bert were in the north-west lake's lobe, Noroxus's); live's quests
+	// open them, here level 60.
 	"Whirling Portal": {
 		{To: "the wasp hive", Arrive: "Portal to the Lake", MinLevel: 60},
 	},
@@ -109,6 +113,17 @@ var wayRoutes = map[string][]wayRoute{
 	},
 	"Portal of the Twins": {
 		{To: "the Bloody Portal", Arrive: "Bloody Portal"},
+	},
+	// Noroxus "Take the combined item to the big cauldron in the middle of
+	// all 3 pools to open fuming portal ... This leads to Noroxus" (F3 pass
+	// 21, jib: he stood at "his portal entrance, not his arena"): the
+	// Fuming Portal at the cauldron, to his lair, the north-west lake's lobe
+	// (eqoa.live's wiki map); live's slime hearts open it, here level 60.
+	"Fuming Portal": {
+		{To: "Noroxus's lair", Arrive: "Portal to the Cauldron", MinLevel: 60},
+	},
+	"Portal to the Cauldron": {
+		{To: "the cauldron", Arrive: "Fuming Portal"},
 	},
 }
 

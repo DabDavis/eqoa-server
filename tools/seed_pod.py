@@ -184,7 +184,8 @@ PLAN = [
     # lake's lobe (the wiki map's; the island's ring of stones is its pad),
     # on its floor's dry north end, the lake and the rocks by it to his south
     # and east ("All necs stack down by the rocks near the water (to the S/E
-    # of nox)"), facing the way the portal brings the raid in. His body is
+    # of nox)"), 65 from Uzrathixius (their reach on sight, 30 each, apart),
+    # facing the way the portal brings the raid in. His body is
     # the green three-headed hydra of eqoa.live's wiki picture of him (red
     # crests; CHAR.ESF's other three hydras are tan, grey and red), at 1.1:
     # 14 tall, twice the dead tree (8.5) beside him in that picture, eight
@@ -198,7 +199,7 @@ PLAN = [
     dict(name="Rawgl the Carnage Hound", body="chaos hound", level=61, kind=HOSTILE, world=5, scale=1.6,
          at=(5540, 3080), y=-30.7, roam=0, role="rare: fetid rotting skull x2"),
     dict(name="Noroxus", body="cave hydra", wear=0xA18F3F22, level=65, kind=HOSTILE, world=5, scale=1.1,
-         at=(4155, 2100), y=-20.8, facing=90, roam=0,
+         at=(4155, 2085), y=-21.7, facing=82, roam=0,
          role="boss (\"Guild needed\"): fetid rotting gland; in his arena, through the Fuming Portal"),
     dict(name="Honcho Ulgurglch", body="enthralled goblin", level=55, kind=FRIEND, world=5,
          at=(5585, 2905), y=-25.3, facing=0, role="Noroxus's quest (not in)"),
@@ -274,8 +275,8 @@ PLAN = [
     # the middle of all 3 pools ... Once the portal is open, all people with a
     # skin can go through"; live: the hearts' item opens it, here level 60, as
     # the other bosses' portals), and the way back on the dry north end of
-    # his lobe's floor, 63 from him, facing it (no pad there: the island's,
-    # in the lake, is Bert's spot)
+    # his lobe's floor, 55 from him, its arrivals landing south-west of it,
+    # 52 from him (no pad there: the island's, in the lake, is Bert's spot)
     dict(name="Fuming Portal", body="dark portal", level=60, kind=TRAVEL, world=5,
          at=(5620, 3060), y=-30.5, facing=54, role="to Noroxus's lair, level 60 (live: the slime hearts' item)"),
     dict(name="Portal to the Cauldron", body="dark portal", level=60, kind=TRAVEL, world=5,

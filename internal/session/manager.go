@@ -380,13 +380,7 @@ func (m *Manager) LiveLogin(accountID int, ip net.IP, ipOf func(*net.UDPAddr) ne
 	var hit string
 	m.sessions.Range(func(_, value interface{}) bool {
 		sess := value.(*Session)
-		if !sess.InGame() && !sess.CharacterInWorld() {
-			return true
-		}
-		if _, replaced := sess.ReplacedFor(); replaced || sess.PendingTermination() {
-			return true
-		}
-		if now.Sub(sess.LastActivity()) > LiveWithin {
+		if !holdsLogin(sess, now) {
 			return true
 		}
 		if accountID != 0 && sess.AccountID() == accountID {
@@ -407,6 +401,39 @@ func (m *Manager) LiveLogin(accountID int, ip net.IP, ipOf func(*net.UDPAddr) ne
 		return true
 	})
 	return hit
+}
+
+// LiveCharacter reports whether the character (by serverID) is in the game
+// in a session other than except, live as LiveLogin counts one: the first
+// window keeps its character, and character select refuses it to another.
+func (m *Manager) LiveCharacter(charServerID uint32, except *Session) bool {
+	if charServerID == 0 {
+		return false
+	}
+	now := time.Now()
+	live := false
+	m.sessions.Range(func(_, value interface{}) bool {
+		sess := value.(*Session)
+		if sess != except && sess.CharacterServerID() == charServerID && holdsLogin(sess, now) {
+			live = true
+			return false
+		}
+		return true
+	})
+	return live
+}
+
+// holdsLogin reports whether sess holds its login (LiveLogin, LiveCharacter):
+// in the game, not on its way out (replaced or terminating), and heard from
+// within LiveWithin.
+func holdsLogin(sess *Session, now time.Time) bool {
+	if !sess.InGame() && !sess.CharacterInWorld() {
+		return false
+	}
+	if _, replaced := sess.ReplacedFor(); replaced || sess.PendingTermination() {
+		return false
+	}
+	return now.Sub(sess.LastActivity()) <= LiveWithin
 }
 
 // EndAccount ends every session the account holds: one in the game is told

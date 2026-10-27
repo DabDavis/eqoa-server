@@ -265,7 +265,10 @@ type AuthConfig struct {
 
 	// OneLogin refuses a login while the same account, or (for a client that
 	// is not exempt) the same address, already has a live session in the
-	// game: the first window keeps playing, and multiboxing is stopped.
+	// game: the first window keeps playing, and multiboxing is stopped. Off,
+	// an account and an address may play several windows; a character is in
+	// one window at a time either way (character select refuses it to a
+	// second, HandleSelectedChar).
 	OneLogin bool `yaml:"one_login"`
 
 	// OneLoginExempt lists addresses (IPs or CIDR prefixes) the address rule

@@ -58,16 +58,17 @@ func visualArg(v any) (uint32, error) {
 }
 
 // gameSession is the session of the actor's own character in the game, or
-// nil (one login at a time per account: at most one).
+// nil; of several windows the account has in the game, the one heard from
+// last.
 func (s *Server) gameSession(a *actor) *session.Session {
 	var found *session.Session
 	if s.d.Sessions == nil {
 		return nil
 	}
 	s.d.Sessions.ForEach(func(sess *session.Session) bool {
-		if sess.AccountID() == a.AccountID && sess.CharacterInWorld() {
+		if sess.AccountID() == a.AccountID && sess.CharacterInWorld() &&
+			(found == nil || sess.LastActivity().After(found.LastActivity())) {
 			found = sess
-			return false
 		}
 		return true
 	})

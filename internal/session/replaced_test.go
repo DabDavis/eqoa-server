@@ -103,6 +103,50 @@ func TestLiveLogin(t *testing.T) {
 	}
 }
 
+// LiveCharacter: a character in the game in one window is held from another
+// window of the same account and address, while that account's other
+// characters are not; a lobby session, the asking session itself, one on its
+// way out and one long silent hold nothing.
+func TestLiveCharacter(t *testing.T) {
+	m := NewManager()
+	ip := net.IPv4(203, 0, 113, 7)
+	first := m.CreateSession(&net.UDPAddr{IP: ip, Port: 40001}, 0x1001, 1, 0x1111, 0xB991, true)
+	second := m.CreateSession(&net.UDPAddr{IP: ip, Port: 40002}, 0x1002, 2, 0x2222, 0xFFFE, false)
+	first.SetAccountID(8)
+	second.SetAccountID(8)
+	first.SetCharacterServerID(41)
+	first.UpdateActivity()
+
+	if m.LiveCharacter(41, second) {
+		t.Error("a lobby session held its character")
+	}
+	first.SetInGame(true)
+	if !m.LiveCharacter(41, second) {
+		t.Error("the first window's character was free to the second")
+	}
+	if m.LiveCharacter(42, second) {
+		t.Error("the account's other character was held")
+	}
+	if m.LiveCharacter(41, first) {
+		t.Error("a session held its character from itself")
+	}
+	if m.LiveCharacter(0, second) {
+		t.Error("serverID 0 matched")
+	}
+
+	first.mu.Lock()
+	first.lastActivity = time.Now().Add(-LiveWithin - time.Second)
+	first.mu.Unlock()
+	if m.LiveCharacter(41, second) {
+		t.Error("a session silent past LiveWithin still holds its character")
+	}
+	first.UpdateActivity()
+	first.MarkReplaced()
+	if m.LiveCharacter(41, second) {
+		t.Error("a replaced session still holds its character")
+	}
+}
+
 // EndAccount (the page's "log out the other window"): the account's in-game
 // session is told and kept to hear it, its lobby session dropped, another
 // account's left alone; told once.

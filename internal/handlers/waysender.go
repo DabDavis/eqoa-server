@@ -96,8 +96,12 @@ var wayRoutes = map[string][]wayRoute{
 	// Inside PoD: Queen Qy'tha "inside whirling portal within the lake in
 	// entrance area" ("be ported to the wasp hive"), and the Twins and
 	// Bertoxxulous through the Bloody Portal ("you can use Noroxus Blood to
-	// open the Bloody Portal and pass through to the twins"); live's
-	// quests open them, here level 60.
+	// open the Bloody Portal and pass through to the twins"): the guide's
+	// Closed Portal, "all the way around the circle past Honcho Ulgurglch"
+	// (the ring's south-east arc, at the slime fall), to the middle valley's
+	// pad, where the Portal of the Twins stands (F3 pass 21: the twins and
+	// Bert were in the north-west lake's lobe, Noroxus's); live's quests
+	// open them, here level 60.
 	"Whirling Portal": {
 		{To: "the wasp hive", Arrive: "Portal to the Lake", MinLevel: 60},
 	},

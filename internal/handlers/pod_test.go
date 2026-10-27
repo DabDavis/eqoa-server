@@ -176,6 +176,54 @@ func TestFumingPortalSendsTheRaidToNoroxus(t *testing.T) {
 	}
 }
 
+// The Bloody Portal, the guide's Closed Portal on the ring's south-east arc,
+// sends a level 60 into the middle valley, in front of the Portal of the
+// Twins on its pad, and that portal sends anyone back in front of the Bloody
+// Portal (F3 pass 21: the Twins and Bertoxxulous moved there, as eqoa.live's
+// wiki map has them). The control: a level 59 is too weak for the valley.
+func TestBloodyPortalSendsTheRaidToTheTwins(t *testing.T) {
+	tw := newTalkWorld(t, 5243, 3172)
+	tw.p.World, tw.p.Y, tw.p.Level = 5, -25.08, 59
+	// facing bytes 128 both (tools/seed_pod.py): north, into the valley
+	bloody := tw.add(1, &entity.NPC{ServerID: 1, Name: "Bloody Portal", World: 5, SpawnX: 5243, SpawnY: -25.08, SpawnZ: 3175,
+		SpawnFacing: math.Pi})
+	twins := &entity.NPC{ServerID: 2, Name: "Portal of the Twins", World: 5, SpawnX: 4872, SpawnY: -19.94, SpawnZ: 2987,
+		SpawnFacing: math.Pi}
+	tw.w.NPCs[2] = twins
+
+	tw.talk(bloody)
+	if box := boxSaid(tw.s); !strings.Contains(box, "too weak") || !strings.Contains(box, "the Twins' valley") {
+		t.Fatalf("a level 59 at the Bloody Portal was told %q, want too weak for the Twins' valley", box)
+	}
+	tw.s.Queue().GetPending()
+	tw.pick(bloody, 0)
+	if _, _, _, moved := teleported(tw.s); moved {
+		t.Fatal("the control: a level 59 was sent to the Twins' valley")
+	}
+
+	tw.p.Level = 60
+	tw.talk(bloody)
+	tw.s.Queue().GetPending()
+	tw.pick(bloody, 0)
+	// in front of the Portal of the Twins: 3 north of the pad, into the valley
+	x, z, world, moved := teleported(tw.s)
+	if !moved || world != 5 || math.Abs(float64(x-4872)) > 0.01 || math.Abs(float64(z-(2987-bindReach))) > 0.01 {
+		t.Errorf("the Bloody Portal sent a level 60 to (%.1f, %.1f) world %d (%v), want (4872, %.0f), in front of the Portal of the Twins",
+			x, z, world, moved, 2987-bindReach)
+	}
+
+	tw.s.Queue().GetPending()
+	tw.p.X, tw.p.Y, tw.p.Z, tw.p.Level = 4872, -19.94, 2987-bindReach, 1
+	back := tw.add(3, twins)
+	tw.talk(back)
+	tw.s.Queue().GetPending()
+	tw.pick(back, 0)
+	if x, z, world, moved := teleported(tw.s); !moved || world != 5 || math.Abs(float64(x-5243)) > 0.01 || math.Abs(float64(z-(3175-bindReach))) > 0.01 {
+		t.Errorf("the Portal of the Twins sent a level 1 to (%.1f, %.1f) world %d (%v), want (5243, %.0f), in front of the Bloody Portal",
+			x, z, world, moved, 3175-bindReach)
+	}
+}
+
 // Every trip of the Plane of Disease's lands on an NPC that has a trip back
 // to where it began, so no portal strands a player; and an NPC is a waysender
 // by its trips (the control: a name with none is not).

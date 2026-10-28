@@ -41,11 +41,13 @@ by name is used as it is.
 - fishcatch: the catches, every world and anywhere unless a row says where
   (the quest fish in the Oasis's and Hazinak's 2000-square, the salmon in
   Halas's, the bream there and on Odus), source seed.
-- Sellers: every "Fisherman <name>" NPC players talk to (the NPC bit) sells
-  a Fishing Pole and a can of worms (the merchant flag, npc_type & 1; a
-  catalog in npcitem), as the patch notes' NPCs "near each starting city
-  that can walk you through the basic steps of how to begin fishing" might
-  have; a fisherman whose catalog is a GM's is left alone.
+- Sellers: the live game's own. Its NPCs (Return Home's rows) hold a "Pole
+  Merchant <name>" and a "Tacklemaster <name>" standing side by side, with
+  the merchant flag and nothing to sell, at 36 places: Freeport's docks, the
+  Oasis and Hazinak among them, where the guides fish. Every pole merchant
+  players talk to (the NPC bit) sells the Fishing Pole and every tacklemaster
+  the can of worms (npcitem; the merchant flag, npc_type & 1, where it
+  lacks); one whose catalog is a GM's is left alone.
 
 Every change is recorded in fishing_seed (what it was) and --undo puts it
 back; an item a character holds is not deleted (said). Both take a copy of
@@ -156,9 +158,9 @@ CATCHES = [
          row(25, box=HALAS, world=TUNARIA, note="Halas's ice fishing (the producer's letter, 17 April 2003)")),
     # the jellies
     Catch("Bank Jelly", "jelly", 1, 3, 20, "A quivering jelly from the river bank.",
-          ("jelly", "stomach", "venom sack"), (row(4, note="ours: common"),)),
+          ("jelly", "venom sack", "grass carp"), (row(4, note="ours: common"),)),
     Catch("Muddy Jellyfish", "jelly", 1, 3, 20, "A jellyfish caked in mud.",
-          ("jelly", "stomach", "venom sack"), (row(4, note="ours: common"),)),
+          ("jelly", "venom sack", "grass carp"), (row(4, note="ours: common"),)),
     # the junk ("Yes, you will still catch that occasional old cruddy sandal")
     junk("Child's Doll", "A sodden child's doll.", ("doll",), row(4, note="junk")),
     junk("Broken Lantern", "A rusted lantern, its glass broken.", ("lantern",), row(4, note="junk")),
@@ -177,7 +179,8 @@ CATCHES = [
 BAIT = "can of worms"
 POLE = "Fishing Pole"
 PRICES = {POLE: 40, BAIT: 2}  # ours
-SELLER_PREFIX = "fisherman "
+# who sells what, by the start of the name (lower case)
+SELLERS = (("pole merchant ", POLE), ("tacklemaster ", BAIT))
 NPC_BIT, MERCHANT = 0x80, 0x01
 
 
@@ -263,14 +266,14 @@ def plan(db):
         if not cost:
             cols.append((pid, "itemcost", cost, PRICES[POLE]))
     sellers = []
-    if by_name(db, POLE) is not None and bait:
-        for i, name, typ, npc_id in db.execute("SELECT id, npc_name, npc_type, npc_id FROM npcs ORDER BY id"):
-            if not (name or "").lower().startswith(SELLER_PREFIX) or not (typ or 0) & NPC_BIT:
-                continue
-            key = npc_id or i
-            if db.execute("SELECT 1 FROM npcitem WHERE npcid = ? LIMIT 1", (key,)).fetchone():
-                continue  # a catalog already: a GM's, or this tool's
-            sellers.append((i, name, typ or 0, npc_id or 0))
+    for i, name, typ, npc_id in db.execute("SELECT id, npc_name, npc_type, npc_id FROM npcs ORDER BY id"):
+        ware = next((w for pre, w in SELLERS if (name or "").lower().startswith(pre)), None)
+        if ware is None or by_name(db, ware) is None or not (typ or 0) & NPC_BIT:
+            continue
+        key = npc_id or i
+        if db.execute("SELECT 1 FROM npcitem WHERE npcid = ? LIMIT 1", (key,)).fetchone():
+            continue  # a catalog already: a GM's, or this tool's
+        sellers.append((i, name, typ or 0, npc_id or 0, ware))
     return make, have, rows, cols, sellers, missing
 
 
@@ -299,19 +302,16 @@ def apply(db, make, have, rows, cols, sellers):
             minskill, months, note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'seed')""",
                          (ids[name], r["count"], r["weight"], r["world"], *box, r["skill"], r["months"], r["note"]))
         log.append(("catch", cur.lastrowid, None, None))
-    pole, bait = by_name(db, POLE), by_name(db, BAIT)
-    for i, _, typ, npc_id in sellers:
+    for i, _, typ, npc_id, ware in sellers:
         if not typ & MERCHANT:
             db.execute("UPDATE npcs SET npc_type = ? WHERE id = ?", (typ | MERCHANT, i))
             log.append(("npc_type", i, None, str(typ)))
         if not npc_id:
             db.execute("UPDATE npcs SET npc_id = ? WHERE id = ?", (i, i))
             log.append(("npc_id", i, None, str(npc_id)))
-        key = npc_id or i
-        for n, p in enumerate((pole, bait)):
-            cur = db.execute("""INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid,
-                equiploc, location, listnumber) VALUES (?, 1, 0, 0, ?, -1, 1, ?)""", (key, p, n))
-            log.append(("catalog", cur.lastrowid, None, None))
+        cur = db.execute("""INSERT INTO npcitem (npcid, stackleft, remainHP, remaincharge, patternid,
+            equiploc, location, listnumber) VALUES (?, 1, 0, 0, ?, -1, 1, 0)""", (npc_id or i, by_name(db, ware)))
+        log.append(("catalog", cur.lastrowid, None, None))
     db.executemany("INSERT INTO fishing_seed (what, key, col, old) VALUES (?, ?, ?, ?)", log)
     db.execute("COMMIT")
     return collections.Counter(w for w, *_ in log)
@@ -377,8 +377,8 @@ def main(argv=None):
     print(f"{len(rows)} fishcatch rows")
     for pid, col, old, new in cols:
         print(f"item {pid}: {col} {old} -> {new}")
-    for i, name, typ, _ in sellers:
-        print(f"seller: {name} (row {i}{'' if typ & MERCHANT else ', the merchant flag added'})")
+    for i, name, typ, _, ware in sellers:
+        print(f"seller: {name} (row {i}) sells {ware!r}{'' if typ & MERCHANT else ', the merchant flag added'}")
     if not a.apply:
         print("(report only: --apply writes them)")
         return 0

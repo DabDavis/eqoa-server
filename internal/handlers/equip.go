@@ -417,6 +417,10 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 	}
 	if fishAfter {
 		h.fishing.StartFishing(sess)
+	} else if _, row, err := invItemByKey(items, sessionInvList(sess), key); plan.equip && h.fishing != nil &&
+		err == nil && row.Pattern.EquipSlot == wearFishingPole {
+		// the item menu's Equip cannot open the window (the menu is up): say how
+		fishSayGood(sess, fishHowTo)
 	}
 	return nil
 }

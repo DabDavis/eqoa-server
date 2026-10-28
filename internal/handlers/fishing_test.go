@@ -626,9 +626,24 @@ func TestFishingFromTheQuickSlot(t *testing.T) {
 	if loc := f.equipLoc(f.pole); loc != -1 {
 		t.Errorf("the item menu left the pole at %d", loc)
 	}
+	msgs = use(0, 0) // the item menu's Equip: on, and the line saying how to fish, no window
+	if len(msgs) == 0 || opOf(msgs[len(msgs)-1]) != protocol.OpcodeColoredChat || !bytes.Contains(msgs[len(msgs)-1], utf16le(fishHowTo)) {
+		t.Errorf("the item menu's Equip: %s", ops(msgs))
+	}
+	for _, m := range msgs {
+		if opOf(m) == OpcodeFishing {
+			t.Error("the item menu's Equip fished")
+		}
+	}
+	use(0, 0) // off again
 	msgs = use(0, 1)
 	if len(msgs) < 2 || opOf(msgs[len(msgs)-1]) != OpcodeFishing || sub0F02(msgs[len(msgs)-1]) != fishStart {
 		t.Errorf("an unworn pole from the quick slot: %s", ops(msgs))
+	}
+	for _, m := range msgs {
+		if bytes.Contains(m, utf16le(fishHowTo)) {
+			t.Error("the quick slot said how to fish")
+		}
 	}
 	if loc := f.equipLoc(f.pole); loc != 14 {
 		t.Errorf("the pole is at %d, want 14", loc)
@@ -673,5 +688,64 @@ func TestFishingSlashFish(t *testing.T) {
 		if opOf(m) == OpcodeFishing {
 			t.Errorf("/fishy fished")
 		}
+	}
+}
+
+// A gear set whose main hand is a fishing pole fishes once it is on (0x003F
+// to 14 and 15, then the window); the control is a set of a sword, which
+// only equips.
+func TestFishingFromAGearSet(t *testing.T) {
+	f := newGearFixture(t)
+	pole := f.own(f.pattern("Fishing Pole", 20, 0, 0), 14)
+	bait := f.own(f.pattern("can of worms", 21, 0, 0), 15)
+	sword := f.own(f.pattern("Blade", 12, 1, 0), -1)
+	f.loadList()
+	fh := NewFishingHandler(f.db, nil, f.inv)
+	fh.view = func(*session.Session, time.Time) (entity.FishingView, bool) {
+		return entity.FishingView{Name: "Gear", CharServerID: f.sid}, true
+	}
+	f.h.fishing = fh
+	f.send(protocol.OpcodePrepareWeapon, func(w *buffer.Writer) {
+		w.WriteByte(0)
+		writeWideString(w, "Fish", 64)
+	})
+	for _, c := range []equipChange{{pole, -1}, {bait, -1}, {sword, 14}} {
+		if err := f.inv.SetEquipLoc(f.sid, c.itemID, c.equipLoc); err != nil {
+			t.Fatal(err)
+		}
+	}
+	f.send(protocol.OpcodePrepareWeapon, func(w *buffer.Writer) {
+		w.WriteByte(1)
+		writeWideString(w, "Fight", 64)
+	})
+	use := func(set byte) [][]byte {
+		return f.send(protocol.OpcodeUseWeaponSet, func(w *buffer.Writer) { w.WriteByte(set) })
+	}
+	out := use(0)
+	if len(out) < 3 || sub0F02(out[len(out)-1]) != fishStart {
+		t.Fatalf("the fishing set: %s", ops(out))
+	}
+	if w := f.worn(); w[14] != pole || w[15] != bait {
+		t.Fatalf("worn after the fishing set: %v", w)
+	}
+	for _, m := range use(1) {
+		if opOf(m) == OpcodeFishing {
+			t.Errorf("the sword's set fished")
+		}
+	}
+	if w := f.worn(); w[14] != sword {
+		t.Errorf("worn after the sword's set: %v", w)
+	}
+}
+
+// An item's Fish stat goes out as CLIENT's stat 28 (its stat words' "Fish"),
+// and only when it has one: the control.
+func TestItemFishStat(t *testing.T) {
+	five, zero := 5, 0
+	if s := itemPatternStats(&database.ItemPatternRecord{Fish: &five}); s[28] != 5 || len(s) != 1 {
+		t.Errorf("fish 5: %v", s)
+	}
+	if s := itemPatternStats(&database.ItemPatternRecord{Fish: &zero}); len(s) != 0 {
+		t.Errorf("fish 0: %v", s)
 	}
 }

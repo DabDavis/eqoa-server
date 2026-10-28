@@ -1796,6 +1796,7 @@ func itemPatternStats(p *database.ItemPatternRecord) map[int]int {
 	addStat(25, p.CR)
 	addStat(26, p.LR)
 	addStat(27, p.AR)
+	addStat(28, p.Fish) // CLIENT's stat words name 28 "Fish" (VIKeyFlash's table): fishing.go adds it to the skill
 	return stats
 }
 

@@ -63,11 +63,11 @@ class SeedFishingTest(unittest.TestCase):
         self.pole = item(db, "Fishing Pole", 777, slot=20)
         self.bait = item(db, "can of worms", 888, slot=-1, cls=0, race=0, stack=99)
         item(db, "Salmon", 999, cls=0, race=0, stack=99)
-        db.execute("INSERT INTO npcs VALUES (10, 'Fisherman Able', 128, 0)")
-        db.execute("INSERT INTO npcs VALUES (11, 'Fisherman Baker', 129, 5011)")
-        db.execute("INSERT INTO npcs VALUES (12, 'Fisherman Cane', 0, 0)")       # no NPC bit: a creature
-        db.execute("INSERT INTO npcs VALUES (13, 'Fisherman Dory', 129, 5013)")  # a GM's catalog
-        db.execute("INSERT INTO npcs VALUES (14, 'gnoll fisherman', 128, 0)")    # not "Fisherman <name>"
+        db.execute("INSERT INTO npcs VALUES (10, 'Pole Merchant Able', 128, 0)")    # no merchant flag yet
+        db.execute("INSERT INTO npcs VALUES (11, 'Tacklemaster Baker', 129, 5011)")
+        db.execute("INSERT INTO npcs VALUES (12, 'Pole Merchant Cane', 0, 0)")      # no NPC bit: no window
+        db.execute("INSERT INTO npcs VALUES (13, 'Tacklemaster Dory', 129, 5013)")  # a GM's catalog
+        db.execute("INSERT INTO npcs VALUES (14, 'Fisherman Eel', 128, 0)")         # sells nothing
         db.execute("INSERT INTO npcitem (npcid, patternid, listnumber) VALUES (5013, 1, 0)")
         db.close()
 
@@ -84,7 +84,7 @@ class SeedFishingTest(unittest.TestCase):
         self.assertEqual(made["Child's Doll"][1], "a rag doll")  # not the scroll
         self.assertEqual(made["Moldy Bone"][1], "rat bones")
         self.assertEqual(made["Waterlogged Lute"][1], "locked box")  # no lute here: a box
-        self.assertEqual(made["Bank Jelly"][1], "venom sack")
+        self.assertEqual(made["Bank Jelly"][1], "venom sack")  # not a stomach (the grocers' bread tile)
         self.assertIn("grass carp", have)
         self.assertIn("Salmon", have)
         self.assertNotIn("grass carp", made)
@@ -95,7 +95,8 @@ class SeedFishingTest(unittest.TestCase):
         self.assertEqual(sorted((p, c) for p, c, _, _ in cols),
                          [(self.pole, "itemcost"), (self.bait, "classuse"), (self.bait, "equipslot"),
                           (self.bait, "itemcost"), (self.bait, "raceuse")])
-        self.assertEqual([s[1] for s in sellers], ["Fisherman Able", "Fisherman Baker"])
+        self.assertEqual([(s[1], s[4]) for s in sellers],
+                         [("Pole Merchant Able", "Fishing Pole"), ("Tacklemaster Baker", "can of worms")])
 
     def test_no_donor_no_item(self):
         db = self.db()
@@ -133,8 +134,7 @@ class SeedFishingTest(unittest.TestCase):
         sellers = db.execute("SELECT id, npc_type, npc_id FROM npcs ORDER BY id").fetchall()
         self.assertEqual(sellers, [(10, 129, 10), (11, 129, 5011), (12, 0, 0), (13, 129, 5013), (14, 128, 0)])
         stock = db.execute("SELECT npcid, patternid, listnumber FROM npcitem ORDER BY itemid").fetchall()
-        self.assertEqual(stock, [(5013, 1, 0), (10, self.pole, 0), (10, self.bait, 1),
-                                 (5011, self.pole, 0), (5011, self.bait, 1)])
+        self.assertEqual(stock, [(5013, 1, 0), (10, self.pole, 0), (5011, self.bait, 0)])
         # a second --apply is refused
         with self.assertRaises(SystemExit):
             sf.main(["--db", self.path, "--apply", "--no-backup"])

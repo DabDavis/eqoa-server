@@ -339,6 +339,10 @@ func (h *EquipHandler) HandleUseWeaponSet(sess *session.Session, msg *protocol.M
 		log.Printf("UseWeaponSet: serverID=%d set %d %q: its off hand (item %d) is not in the inventory", serverID, set, g.Name, g.OffItem)
 	}
 	h.charHandler.applyEquipmentFromDB(player, serverID, false)
+	// a set whose main hand is a fishing pole fishes (fishing.go)
+	if main.Pattern.EquipSlot == wearFishingPole && h.fishing != nil {
+		h.fishing.StartFishing(sess)
+	}
 	return nil
 }
 

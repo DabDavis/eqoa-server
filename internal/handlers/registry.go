@@ -308,6 +308,21 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Tradeskills (craft.go): 0x1101, a stand-in recipe book
 	NewCraftHandler().RegisterHandlers(r)
 
+	// Fishing (fishing.go): 0x0F01, and the sessions a fishing pole used from
+	// the HUD, a gear set holding one and /fish start
+	var fishDB *database.SQLiteDB
+	if charStore != nil {
+		fishDB = charStore.DB()
+	}
+	fishing := NewFishingHandler(fishDB, charStore, invStore)
+	fishing.SetGameWorld(gameWorld)
+	fishing.RegisterHandlers(r)
+	if gameWorld != nil {
+		fishing.Start()
+	}
+	equipHandler.fishing = fishing
+	chatHandler.fishing = fishing
+
 	// Register who handlers
 	whoHandler.RegisterHandlers(r)
 

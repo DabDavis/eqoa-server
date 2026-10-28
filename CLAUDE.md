@@ -135,6 +135,25 @@ the row too, and a character's level and the experience into it (`totalXP`: ever
 below plus this one's, `entity.TotalXP`) are kept by the logout save, the shutdown's and a
 replacing login's: until then a level gained or set was gone at the next login.
 
+**The GM's TEST menu** (`handlers/gmchannel.go`, `entity/gmchannel.go`; CLIENT's VIClientPart382E8,
+`claude-notes/vanilla-decomp-ports-20261028.md`; the user's "lets add it", 2026-10-28): a GM's client
+(acctlevel 1 or more) gets 0x0700 {35, 1} after its MemoryDump, and the start menu shows TEST.
+Each 0x0701 (a sub-op and its fields, as viadmin.cpp writes them) is checked again as it comes
+(anyone else's is dropped) and runs this server's own command where one fits: Toggle Invis
+(no effect, nothing breaks it), Buff PC (a level), Summon Item, Give Item (the item's name asked
+first with 0x0700 50; Yes 48 gives it, No 49 drops it), Change/Revert Sprite ("model [scale]"),
+Goto Location ("world x y z"), Goto Spawner, Force/Kill/Unkill Spawner (by NPCID or ServerID; a
+held NPC stays dead until released or a restart), Kick, Silence (a toggle: say, shout, tells,
+group and guild), Goto/Summon Player, Where Is, Who Is, BROADCAST, Safe Mode (#aggro's flag),
+KILL (an NPC, or a player: a death with its debt), HEAL, Change Name (the creation's rules, 12 at
+most, kept in `characters`), Snoop/End Snoop, Remove 1/All Debt, Debug NPC (#npcinfo), Disband
+Guild (a member's name), Freeze (speed 0), Network Stats (0x07E0 to the player, its 0x07E1 relayed),
+/create ("item|id [count]"), /mastery (#grantcm); with no target, Buff PC, Give Item, the debts,
+Change Name and Network Stats act on the GM. 0x0702 (TRIGGER) is answered with a line. The
+network simulation, SERVER LOAD (no 0x44..0x6B readouts are sent), Toggle NPC, history tokens and
+/tradelvl answer that this server has nothing for them. What the TEST menu sets lasts the server's
+run (but a rename).
+
 **The XP camps are `#tele` shortcuts** (`handlers/camps.go`, written by `tools/gen_camp_teles.py`;
 the user's "add popular xp camps to the gm tele port like /tele dfc (deathfist citadel) /tele
 hexbones"): EQOA-Data's XP-camp guide (its map's 69 camps with a note, `Map/zones.json`) placed

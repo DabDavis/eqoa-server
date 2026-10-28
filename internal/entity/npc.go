@@ -170,6 +170,10 @@ type NPC struct {
 	// log's one line a fight).
 	calmTicks int
 	healing   bool
+
+	// GMHeld keeps it from coming back after its death: a GM's Kill
+	// Spawner (gmchannel.go), until Unkill Spawner or a restart.
+	GMHeld bool
 }
 
 // GetEntityID returns the NPC's entity ID.

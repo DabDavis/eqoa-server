@@ -247,6 +247,14 @@ type Player struct {
 	// StatsDirty sends the stat and effect channels on the next tick, not
 	// at the next 2 s round: a cast's cost goes out with its start.
 	StatsDirty bool
+
+	// What the GM's TEST menu sets (gmchannel.go), until the next login: the
+	// GM's own invisibility (no effect, so nothing breaks it), the body it
+	// shows (0 its own), and a player frozen where it stands.
+	GMHidden   bool
+	GMForm     uint32
+	GMFormSize float32
+	Frozen     bool
 }
 
 // BuffSlot is one active effect as CLIENT's Channel43 reads it into

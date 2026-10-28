@@ -60,6 +60,8 @@ type ChatHandler struct {
 	cm       *ClassMasteryHandler // #cm's and #cmreset's (classmastery.go)
 
 	visuals spellVisualStore // #fx's and #spellfx's spells (spellfx.go)
+
+	fishing *FishingHandler // /fish (fishing.go)
 }
 
 // NewChatHandler creates a new chat handler.
@@ -156,6 +158,15 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	// menu of the retail client, so a player had no way to it.
 	if word, _, _ := strings.Cut(strings.ToLower(message), " "); word == "/filter" || word == "/profanity" {
 		return h.HandleProfanityFilter(sess, nil)
+	}
+
+	// /fish (or #fish): a fishing session with the pole in the hand, everyone's
+	// (fishing.go). A PS2 keeps an unknown /command to itself, so this comes
+	// only from a client that forwards it; a PS2 uses the pole from a quick
+	// slot instead.
+	if word, _, _ := strings.Cut(strings.ToLower(message), " "); (word == "/fish" || word == "#fish") && h.fishing != nil {
+		h.fishing.StartFishing(sess)
+		return nil
 	}
 
 	// GM commands start with #

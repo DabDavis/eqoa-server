@@ -140,6 +140,9 @@ type CharacterHandler struct {
 	// gearSets sends the session's weapon sets at world entry
 	// (EquipHandler.SendGearSets, gearsets.go)
 	gearSets func(*session.Session)
+	// gmChannel gives a GM's client the GM's channel at world entry
+	// (ChatHandler.SendGMChannel, gmchannel.go)
+	gmChannel func(*session.Session)
 }
 
 // NewCharacterHandler creates a new character handler with SQLite persistence.
@@ -1368,6 +1371,11 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 	// The tick routine won't run until CharacterInWorld is true, but the client
 	// needs state channels BEFORE it will send CharacterInWorld
 	h.flushStateChannels(sess)
+
+	// a GM's client: the TEST menu (gmchannel.go)
+	if h.gmChannel != nil {
+		h.gmChannel(sess)
+	}
 }
 
 // queueMemoryDump builds the MemoryDump (0x000D) out of the Player struct

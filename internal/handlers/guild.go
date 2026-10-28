@@ -71,6 +71,10 @@ type GuildHandler struct {
 
 	mu      sync.Mutex
 	invites map[entity.EntityID]guildInvite // invitee → its waiting invitation
+
+	// chatGate is a guild line's check (a GM's Silence and Snoop,
+	// gmchannel.go): false keeps it from the guild.
+	chatGate func(sess *session.Session, p *entity.Player, kind, text string) bool
 }
 
 type guildInvite struct {
@@ -147,6 +151,9 @@ func (h *GuildHandler) HandleGuildCommand(sess *session.Session, msg *protocol.M
 		g := h.gameWorld.GuildOf(p)
 		if g == nil {
 			queueReliable(sess, protocol.OpcodeGuildCommandFailed, buildGuildFailed(guildCmdChat, guildFailNotInGuild))
+			return nil
+		}
+		if h.chatGate != nil && !h.chatGate(sess, p, "guild", text) {
 			return nil
 		}
 		h.broadcast(g, nil, entity.BuildGuildChat(0, p.Name+": "+text))

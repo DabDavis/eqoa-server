@@ -202,7 +202,9 @@ const (
 // =============================================================================
 
 const (
-	OpcodeAdminCode                     GameOpcode = 0x0700 // Admin Code
+	OpcodeAdminCode                     GameOpcode = 0x0700 // Admin Code: the GM's channel (handlers/gmchannel.go)
+	OpcodeGMCommand                     GameOpcode = 0x0701 // a GM's TEST menu command (client)
+	OpcodeGMTrigger                     GameOpcode = 0x0702 // the TEST menu's TRIGGER (client)
 	OpcodeServerNotReadyDC              GameOpcode = 0x0728 // Disconnect(6): word 620 "Server not ready, please try again later. (nodbs)"
 	OpcodeServerNotReadyLoginDC         GameOpcode = 0x072A // Disconnect(7): word 621 "Server not ready, please try again later. (loginto)"
 	OpcodeBadLoginPassword              GameOpcode = 0x0729 // Disconnect(3): word 270 "Bad Login/Password"

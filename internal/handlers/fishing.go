@@ -137,9 +137,9 @@ type FishingHandler struct {
 	// the dice, now the clock, after a timer (tests stand in for each)
 	view     func(*session.Session, time.Time) (entity.FishingView, bool)
 	playerOf func(*session.Session) *entity.Player
-	rnd   func(int) int
-	now   func() time.Time
-	after func(time.Duration, func()) *time.Timer
+	rnd      func(int) int
+	now      func() time.Time
+	after    func(time.Duration, func()) *time.Timer
 
 	mu     sync.Mutex
 	active map[*session.Session]*fishState

@@ -253,6 +253,18 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	}
 	chatHandler.SetClassMastery(classMasteryHandler)
 	connStatsHandler := NewConnStatsHandler()
+	// the GM's channel (gmchannel.go): sent at world entry, its items and
+	// renames kept, a player's counters relayed, chat gated, a leaver forgotten
+	var names nameStore
+	if charStore != nil {
+		names = charStore
+	}
+	chatHandler.SetGMStores(invStore, names)
+	charHandler.gmChannel = chatHandler.SendGMChannel
+	connStatsHandler.relay = chatHandler.gmNetStats
+	if gameWorld != nil {
+		gameWorld.OnPlayerLeaving(chatHandler.gmLeft)
+	}
 	trainingHandler := NewTrainingHandler(sessionMgr, charStore)
 	if gameWorld != nil {
 		trainingHandler.SetGameWorld(gameWorld)
@@ -270,6 +282,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 	// Register chat handlers
 	chatHandler.RegisterHandlers(r)
+	chatHandler.RegisterGMChannel(r)
 
 	// Register target handlers
 	targetHandler.RegisterHandlers(r)
@@ -324,6 +337,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	if gameWorld != nil {
 		guildHandler.SetGameWorld(gameWorld)
 	}
+	guildHandler.chatGate = chatHandler.gmChatGate
 	guildHandler.RegisterHandlers(r)
 
 	// Register group handlers (the group is the World's: entity/group.go)

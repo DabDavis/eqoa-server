@@ -177,3 +177,8 @@ func (w *World) DisbandGuildOfMember(name string) (*Guild, []*Player, error) {
 	delete(w.guilds, g.ID)
 	return g, online, nil
 }
+
+// RaceName and ClassName are a race's and a class's names as #stats writes
+// them (a number for one out of range).
+func RaceName(race int) string   { return nameIn(raceNames, race) }
+func ClassName(class int) string { return nameIn(classNames, class) }

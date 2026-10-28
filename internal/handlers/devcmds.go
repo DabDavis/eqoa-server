@@ -420,6 +420,12 @@ func (h *ChatHandler) nearbyCommand(sess *session.Session, player *entity.Player
 // set was gone at the next login (Jibrish 60 in the game and 1 in the
 // database, F3 pass 13).
 func (h *ChatHandler) setLevel(sess *session.Session, player *entity.Player, level int) {
+	h.setLevelFor(sess, sess, player, level)
+}
+
+// setLevelFor is setLevel on player, whose session is sess, said to gm (the
+// GM's channel's Buff PC sets another player's).
+func (h *ChatHandler) setLevelFor(gm, sess *session.Session, player *entity.Player, level int) {
 	level = max(1, min(60, level))
 	before := player.UnusedTP
 	h.gameWorld.SetPlayerLevel(player.CharServerID, level)
@@ -435,14 +441,18 @@ func (h *ChatHandler) setLevel(sess *session.Session, player *entity.Player, lev
 			}
 		}
 	}
+	said := "Level"
+	if gm != sess {
+		said = player.Name + "'s level"
+	}
 	if h.progress != nil {
 		if err := h.progress.SetProgress(player.CharServerID, level, entity.TotalXP(level, 0)); err != nil {
 			log.Printf("GM: #setlevel %d for '%s' not kept: %v", level, player.Name, err)
-			h.gmReply(sess, fmt.Sprintf("Level set to %d, but not kept: %v", level, err))
+			h.gmReply(gm, fmt.Sprintf("%s set to %d, but not kept: %v", said, level, err))
 			return
 		}
 	}
-	h.gmReply(sess, fmt.Sprintf("Level set to %d", level))
+	h.gmReply(gm, fmt.Sprintf("%s set to %d", said, level))
 }
 
 // setTunar is #tunar: the purse where the game holds it, told to the client

@@ -568,13 +568,13 @@ func TestFishCatchApplies(t *testing.T) {
 	}{
 		{0, 100, 200, 20, 1, true},
 		{0, 300, 400, 99, 12, true},
-		{1, 150, 250, 20, 1, false},  // another world
-		{0, 99, 250, 20, 1, false},   // west of the box
-		{0, 150, 401, 20, 1, false},  // north of it
-		{0, 150, 250, 19, 1, false},  // too little skill
-		{0, 150, 250, 20, 3, false},  // March
-		{0, 150, 250, 20, 2, true},   // February
-		{0, 150, 250, 20, 13, true},  // no month: every month
+		{1, 150, 250, 20, 1, false}, // another world
+		{0, 99, 250, 20, 1, false},  // west of the box
+		{0, 150, 401, 20, 1, false}, // north of it
+		{0, 150, 250, 19, 1, false}, // too little skill
+		{0, 150, 250, 20, 3, false}, // March
+		{0, 150, 250, 20, 2, true},  // February
+		{0, 150, 250, 20, 13, true}, // no month: every month
 	} {
 		if got := box.Applies(c.world, c.x, c.z, c.skill, c.month); got != c.want {
 			t.Errorf("%+v: %v", c, got)

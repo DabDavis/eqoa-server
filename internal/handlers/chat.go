@@ -60,6 +60,8 @@ type ChatHandler struct {
 	cm       *ClassMasteryHandler // #cm's and #cmreset's (classmastery.go)
 
 	visuals spellVisualStore // #fx's and #spellfx's spells (spellfx.go)
+
+	gm gmChannel // the GM's TEST menu (gmchannel.go)
 }
 
 // NewChatHandler creates a new chat handler.
@@ -165,7 +167,9 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	}
 
 	if name, body, isTell := parseTell(message); isTell {
-		h.tell(sess, player, name, body)
+		if h.gmChatGate(sess, player, "tell "+name, body) {
+			h.tell(sess, player, name, body)
+		}
 		return nil
 	}
 
@@ -188,6 +192,9 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	if !h.gmChatGate(sess, player, chatModeName(h.chatMode(player)), message) {
+		return nil // a GM's Silence (gmchannel.go)
+	}
 	switch h.chatMode(player) {
 	case ChatModeGroup:
 		h.groupChat(sess, player, message)
@@ -223,6 +230,9 @@ func (h *ChatHandler) HandleShoutChat(sess *session.Session, msg *protocol.Messa
 	player := h.gameWorld.SessionPlayer(sess)
 	if player == nil {
 		log.Printf("ShoutChat: sender has no player entity, playerObjectID=%d", sess.PlayerObjectID())
+		return nil
+	}
+	if !h.gmChatGate(sess, player, "shout", message) {
 		return nil
 	}
 	h.shout(sess, player, message)

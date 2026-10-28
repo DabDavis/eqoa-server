@@ -27,7 +27,11 @@ import (
 // Confirmed identical in shape on pcaps/ps2_sandstorm.pcap (packet #115,
 // 512-byte payload) and on our own server, so this is retail behaviour and not
 // something the Sandstorm patch introduced.
-type ConnStatsHandler struct{}
+type ConnStatsHandler struct {
+	// relay hands the counters to the GMs who asked for them (the GM's
+	// channel's Network Stats, gmchannel.go)
+	relay func(sess *session.Session, text string)
+}
 
 // NewConnStatsHandler creates a new connection statistics handler.
 func NewConnStatsHandler() *ConnStatsHandler { return &ConnStatsHandler{} }
@@ -103,6 +107,9 @@ func (h *ConnStatsHandler) HandleConnStats(sess *session.Session, msg *protocol.
 	} else {
 		log.Printf("ConnStats from %s: %s", sess.RemoteAddr(),
 			strings.ReplaceAll(strings.TrimSpace(text), "\n", "; "))
+	}
+	if h.relay != nil {
+		h.relay(sess, text)
 	}
 
 	return nil

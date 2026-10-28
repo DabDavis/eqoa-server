@@ -140,8 +140,8 @@ func (w *World) corpseSystem(now time.Time) []EntityID {
 			log.Printf("CorpseSystem: removed spawned NPC '%s' (entity ID=%d)", npc.Name, npc.ServerID)
 			continue
 		}
-		if now.Sub(npc.CorpseGone) < npc.RespawnTime {
-			continue
+		if now.Sub(npc.CorpseGone) < npc.RespawnTime || npc.GMHeld {
+			continue // a GM's Kill Spawner holds it (gmchannel.go)
 		}
 		w.respawnNPCLocked(npc)
 		log.Printf("CorpseSystem: respawned NPC '%s' (entity ID=%d)", npc.Name, npc.ServerID)

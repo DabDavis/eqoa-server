@@ -358,6 +358,9 @@ func (p *Player) MaxPowerNow() int {
 // Invisible is whether an effect hides the player (entity state byte 154,
 // which Sandstorm's Camouflage set on the caster's own channel).
 func (p *Player) Invisible() bool {
+	if p.GMHidden {
+		return true
+	}
 	for _, e := range p.Effects {
 		if e.Invis {
 			return true
@@ -395,6 +398,9 @@ func (p *Player) MoveRate() int {
 // SpeedNow is the run speed with effects (0x00F8): the movement rate as a
 // speed, 20 the run speed and 100 Spirit of the Wolf's to the bit.
 func (p *Player) SpeedNow() float32 {
+	if p.Frozen {
+		return 0 // a GM's freeze (gmchannel.go)
+	}
 	switch r := p.MoveRate(); {
 	case r <= moveRateBase:
 		return p.Speed

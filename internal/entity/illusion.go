@@ -143,6 +143,12 @@ func (w *World) illusionBodyLocked(form string, bearer *Player) (model uint32, s
 // illusion's (its body, at the creature's size or the player's own), else
 // its own.
 func (p *Player) Body() (model uint32, size float32) {
+	if p.GMForm != 0 { // a GM's Change Sprite (gmchannel.go)
+		if p.GMFormSize > 0 {
+			return p.GMForm, p.GMFormSize
+		}
+		return p.GMForm, p.Size
+	}
 	for i := len(p.Effects) - 1; i >= 0; i-- {
 		if e := p.Effects[i]; e.Form != 0 {
 			if e.FormSize > 0 {

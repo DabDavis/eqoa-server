@@ -112,6 +112,7 @@ const (
 	fishFull       = "Your inventory is full."
 	fishSkillUp    = "You have become better at fishing! (%d)"
 	fishNothingYet = "Nothing bites in these waters."
+	fishHowTo      = "To fish, use the pole from a quick slot or a weapon set, or say /fish."
 )
 
 // fishState is one angler's session.

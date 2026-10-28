@@ -63,6 +63,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "spellgates" && row != nil {
 		return checkSpellGateRow(row) // live_gates.go
 	}
+	if table == "gmtriggers" && row != nil {
+		return checkTriggerRow(row) // ops_triggers.go
+	}
 	if table != "npcpaths" || row == nil {
 		return nil
 	}

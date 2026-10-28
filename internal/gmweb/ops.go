@@ -117,6 +117,7 @@ func (s *Server) registerOps() {
 	s.registerSuggestionOps()
 	s.registerMapLayerOps()
 	s.registerMapMarkOps()
+	s.registerTriggerOps() // ops_triggers.go
 }
 
 // run calls an operation as an actor, with the scope check, and logs a

@@ -189,40 +189,40 @@ async function list(box, params) {
   await load();
 }
 
-// ---- inputs bound to an object's keys
+// ---- inputs bound to an object's keys (the Triggers page's too)
 
-function field(label, input, hint, wide) {
+export function field(label, input, hint, wide) {
   return h('div', { class: 'field' + (wide ? ' wide' : '') },
     h('label', null, label, hint ? h('span', { class: 'hint' }, ' · ' + hint) : null), input);
 }
 
-function text(obj, key, attrs = {}) {
+export function text(obj, key, attrs = {}) {
   const i = h('input', { type: 'text', value: obj[key] ?? '', ...attrs });
   i.addEventListener('input', () => { obj[key] = i.value; });
   return i;
 }
 
-function num(obj, key, attrs = {}) {
+export function num(obj, key, attrs = {}) {
   const i = h('input', { type: 'number', value: obj[key] ?? 0, ...attrs });
   i.addEventListener('input', () => { obj[key] = i.value === '' ? 0 : Number(i.value); });
   return i;
 }
 
-function area(obj, key, rows = 3) {
+export function area(obj, key, rows = 3) {
   const t = h('textarea', { rows });
   t.value = obj[key] ?? '';
   t.addEventListener('input', () => { obj[key] = t.value; });
   return t;
 }
 
-function check(obj, key, label) {
+export function check(obj, key, label) {
   const c = h('input', { type: 'checkbox', checked: !!Number(obj[key]) });
   c.addEventListener('change', () => { obj[key] = c.checked ? 1 : 0; });
   return h('label', { class: 'check' }, c, label);
 }
 
 // counted is a text input that says how many of max characters it holds.
-function counted(obj, key, max) {
+export function counted(obj, key, max) {
   const i = text(obj, key);
   const n = h('span', { class: 'hint' });
   const show = () => {
@@ -279,7 +279,7 @@ function pick(kind, title) {
 }
 
 // npcInput is an NPC's name with a picker and a link to it on the map.
-function npcInput(obj, key, what) {
+export function npcInput(obj, key, what) {
   const i = text(obj, key, { placeholder: 'its name as the game shows it' });
   const pickB = button('Pick', { onclick: async () => {
     const r = await pick('npc', 'Pick ' + what);
@@ -298,7 +298,7 @@ function npcInput(obj, key, what) {
 }
 
 // itemsInput is "patternid*count, ..." with a picker that adds one.
-function itemsInput(obj, key) {
+export function itemsInput(obj, key) {
   const i = text(obj, key, { placeholder: 'patternid*count, ...', class: 'mono' });
   const add = button('Add', { title: 'Pick an item to add', onclick: async () => {
     const r = await pick('item', 'Add an item');

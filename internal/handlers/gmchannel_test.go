@@ -96,6 +96,19 @@ func gmSent(s *session.Session) [][]byte {
 	return out
 }
 
+// sentAll is every message of opcode op queued for s, its payload after the
+// opcode.
+func sentAll(s *session.Session, op protocol.GameOpcode) [][]byte {
+	var out [][]byte
+	for _, m := range s.Queue().PeekPending() {
+		d := m.Data()
+		if len(d) >= 2 && protocol.GameOpcode(binary.LittleEndian.Uint16(d)) == op {
+			out = append(out, d[2:])
+		}
+	}
+	return out
+}
+
 // gm sends one 0x0701 from s, its payload as hex.
 func (c *chatWorld) gm(s *session.Session, h string) {
 	c.t.Helper()
@@ -139,8 +152,9 @@ func hasLine(lines []string, part string) bool {
 	return false
 }
 
-// The channel goes to a GM alone, at world entry: 0x0700 {35, zigzag 1}. The
-// control: the player is sent nothing, nor anyone with no levels known.
+// The channel goes to a GM alone, at world entry: 0x0700 {35, zigzag 1},
+// then the triggers' names offered (0x7E07, a u32 1). The control: the
+// player is sent neither, nor anyone with no levels known.
 func TestGMChannelIsAGMs(t *testing.T) {
 	c, gs, _, ps, _ := gmWorld(t)
 	c.h.SendGMChannel(gs)
@@ -148,8 +162,14 @@ func TestGMChannelIsAGMs(t *testing.T) {
 	if got := gmSent(gs); len(got) != 1 || hex.EncodeToString(got[0]) != "2302" {
 		t.Fatalf("the GM's 0x0700: %x", got)
 	}
+	if got := sentAll(gs, protocol.OpcodeGMTriggers); len(got) != 1 || hex.EncodeToString(got[0]) != "01000000" {
+		t.Fatalf("the GM's names offer: %x", got)
+	}
 	if got := gmSent(ps); len(got) != 0 {
 		t.Fatalf("the player's 0x0700: %x", got)
+	}
+	if got := sentAll(ps, protocol.OpcodeGMTriggers); len(got) != 0 {
+		t.Fatalf("the player's names offer: %x", got)
 	}
 	c.h.SetAccessLevels(nil)
 	gs.Queue().GetPending()
@@ -170,7 +190,8 @@ func (c *chatWorld) npcSeen(s *session.Session, npc *entity.NPC) uint32 {
 
 // A command is a GM's: the player's KILL and HEAL do nothing, the GM's kill
 // and heal; a second KILL says it is dead already; a trigger answers the GM
-// alone, and a 0x0702 that is no trigger nobody.
+// alone (line 3 is slot 4: with no engine running, it says so), and a
+// 0x0702 that is no trigger nobody.
 func TestGMCommandsAreAGMsAloneOnTheChannel(t *testing.T) {
 	c, gs, _, ps, _ := gmWorld(t)
 	npc := &entity.NPC{ServerID: 900, Name: "Orc Pawn", HP: 10, MaxHP: 100, Level: 3}
@@ -209,7 +230,7 @@ func TestGMCommandsAreAGMsAloneOnTheChannel(t *testing.T) {
 		}
 	}
 	trig(gs, "6403")
-	if got := gmReplies(t, gs); len(got) != 1 || !strings.Contains(got[0], "Trigger 3") {
+	if got := gmReplies(t, gs); len(got) != 1 || !strings.Contains(got[0], "Trigger 4") {
 		t.Fatalf("the GM's trigger: %q", got)
 	}
 	trig(ps, "6403")

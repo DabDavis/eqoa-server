@@ -43,6 +43,8 @@ type EquipHandler struct {
 	// (SetGameWorld); tests stand in for them.
 	playerOf func(*session.Session) *entity.Player
 	eat      func(*session.Session, entity.Consumable, time.Time) error
+
+	fishing *FishingHandler // a fishing pole used from the HUD (fishing.go)
 }
 
 // NewEquipHandler creates the handler. spells may be nil: no scroll is then
@@ -366,6 +368,19 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		return nil
 	}
 
+	// A fishing pole used from the HUD (an item quick slot: UseItem(i, 1))
+	// fishes (fishing.go): one in the hand stays there, one not yet worn is
+	// put in it first. The item menu's Equip and Unequip stay a toggle.
+	fishAfter := false
+	if _, row, err := invItemByKey(items, sessionInvList(sess), key); err == nil &&
+		interaction == 1 && row.Pattern.EquipSlot == wearFishingPole && h.fishing != nil {
+		if row.EquipLoc == equipPole {
+			h.fishing.StartFishing(sess)
+			return nil
+		}
+		fishAfter = true
+	}
+
 	// A spell scroll is scribed, and a meal or a drink taken (consume.go),
 	// not worn.
 	if idx, row, err := invItemByKey(items, sessionInvList(sess), key); err == nil {
@@ -399,6 +414,9 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 	// show up on the character. (A test's handler may have no CharacterHandler.)
 	if h.charHandler != nil {
 		h.charHandler.applyEquipmentFromDB(player, serverID, false)
+	}
+	if fishAfter {
+		h.fishing.StartFishing(sess)
 	}
 	return nil
 }

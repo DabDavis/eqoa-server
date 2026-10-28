@@ -615,6 +615,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureSpellGates(); err != nil { // spellgates.go
 		return err
 	}
+	if err := db.ensureFishCatch(); err != nil { // fishing.go
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil

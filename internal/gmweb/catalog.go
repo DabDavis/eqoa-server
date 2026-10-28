@@ -757,6 +757,33 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm, or seed for tools/seed_fishing.py's rows (its --undo deletes those)"},
 		},
 	},
+	"gmtriggers": {
+		Label: "Triggers", Group: "World", Title: "name", Sort: "slot",
+		Help: "The GMs' scripted events (handlers/gmtriggers.go; edit them on the Triggers page): a row a trigger. " +
+			"Slots 1 to 8 are the lines of the GM's TEST > Programming > TRIGGER menu, top to bottom (a PS2 shows eight " +
+			"TRIGGERs, vanilla each one's name); a slot past 8 is fired by #trigger or the panel alone. A firing is a " +
+			"run: its steps in order at its place (world -1: where the GM who fires it stands; else world, x, y, z), " +
+			"each step that reaches players reaching those its scope takes there as the step runs (near: within " +
+			"radius, 0 being 100; gm: the GM alone; world: its world; all: everyone). steps is a JSON list: " +
+			triggerStepsHelp + ". A trigger with a problem (trigger_get lists them) cannot fire; enabled 0 keeps it " +
+			"from firing.",
+		Live:   "At once: the next firing runs it, and vanilla's TEST menu shows its name.",
+		Show:   []string{"slot", "name", "enabled", "scope", "radius", "world"},
+		Search: []string{"name", "notes", "steps"},
+		Cols: map[string]colNote{
+			"slot":    {Label: "Slot", Help: "1 to 8: the TEST menu's TRIGGER line, top to bottom; past 8: #trigger and the panel alone"},
+			"name":    {Label: "Name", Help: "vanilla's TEST menu shows it (32 bytes)"},
+			"enabled": {Label: "On", Enum: "bool"},
+			"scope":   {Label: "Reaches", Help: "near, gm, world or all"},
+			"radius":  {Label: "Radius", Help: "near: how far from its place; 0: 100"},
+			"world":   {Label: "World", Help: "-1: where the GM who fires it stands; else its own place's world (0 Tunaria, 2 Odus...)"},
+			"x":       {Label: "X", Section: "Its own place"},
+			"y":       {Label: "Y (height)", Section: "Its own place"},
+			"z":       {Label: "Z", Section: "Its own place"},
+			"steps":   {Label: "Steps", Help: "a JSON list of steps; the Triggers page edits them"},
+			"notes":   {Label: "Notes", Help: "for GMs"},
+		},
+	},
 	"spellgates": {
 		Label: "Spell gates", Group: "Items & spells", Title: "spell", Sort: "spell",
 		Help: "Where the spells that teleport send, and whom (entity/gates.go): the wizard's gates, portals and evacuations " +

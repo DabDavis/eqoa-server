@@ -334,6 +334,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	if Quests().Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
+	// A GM trigger's popup (gmtriggers.go): its one answer changes nothing.
+	if IsTriggerBox(targetObjectID) {
+		return nil
+	}
 
 	// The technician's menu, before the travel list is consulted. A pick is
 	// just a number; only the menu the player has open says what it means, and

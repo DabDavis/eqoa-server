@@ -98,6 +98,8 @@ with the row before and after, and `revert_change` undoes a row change.
   not: `charmastery` is read at the next login, and a character in the world saves its own over it at logout).
 - **Quests: at once.** A quest or step saved is used by the next talk, kill or step; a character's quest set
   with `character_quest_set` (or its `charquests` row edited) redraws the journal of a character in the world.
+- **Triggers: at once.** A trigger saved is what its next firing runs, and its name is on vanilla's TEST menu
+  line at once; a run already going keeps the steps it started with.
 
 ## Recipes
 
@@ -272,6 +274,22 @@ with the row before and after, and `revert_change` undoes a row change.
   and `parent` the rank before it. Never change an `id` a character owns (`charcms`). In the game `#cm` lists what
   the target (a player) or you bought and `#cmreset` takes it all back, points returned; for a character offline,
   delete its `charcms` rows and add their `cost` back to its `charmastery` `points` (and take it off `spent`).
+- **Stage an event** (an invasion, a fair, a holiday's fireworks): a trigger is a script of steps a GM fires.
+  `trigger_save` with `{slot, name, enabled: 1, scope, radius, world, x, y, z, steps}`: slot 1 to 8 is the line
+  of the GM's TEST > Programming > TRIGGER menu in the game (top to bottom; vanilla shows the name, about a
+  dozen characters of it), a slot past 8 is fired by `#trigger <n>` in the game or `trigger_fire` here. world -1
+  makes it happen where the firing GM stands (your character must be in the world to fire it from here); a
+  world and x/y/z give it a place of its own. scope says whom the steps that reach players reach: `near` (within
+  radius, 0 being 100, of the place), `gm` (the GM who fired it), `world`, `all`. steps, in order:
+  `{"do":"broadcast","text":"The ground shakes, %p!"}`, `{"do":"say","npc":"Rift Warden","text":"..."}`,
+  `{"do":"popup","text":"...","answer":"OK"}`, `{"do":"give","items":"1310*2"}`,
+  `{"do":"visual","fx":"0x1DAEB5B6","seconds":2}`, `{"do":"teleport","world":0,"x":25300,"y":54,"z":15700}`,
+  `{"do":"spawn","npc":"Decaying Skeleton","count":4,"spread":12,"minutes":10,"hostile":true}` (copies of an NPC
+  by its name in the game, round the place or a `world`/x/y/z of their own, gone after `minutes` alive; hostile
+  ones may be attacked and attack any player on sight, a GM too: Safe Mode or `#aggro off` keeps them off you),
+  `{"do":"despawn"}` (this run's spawns, or `npc`'s), `{"do":"wait","seconds":30}` (the rest later),
+  `{"do":"stop","slot":3}` (trigger 3's runs ended; 0 every other run). `trigger_get` lists what keeps one
+  from firing (problems); `trigger_runs` shows what runs; `trigger_stop` ends runs (their spawns taken away).
 - **Give a player something**: `give_item` (an item by name or id), `grant_spell` (one, or "all" of its
   class), `set_character` (level, tunar, heal).
 - **Moderate**: `message_player`, `broadcast`, `kick_player`, `ban_account` (with a reason).

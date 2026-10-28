@@ -154,12 +154,16 @@ func (w *World) hostileLocked(npc *NPC) bool {
 }
 
 // threatensLocked reports a creature that attacks p on sight: alive, its own
-// (no owner, not a dummy), hostile by nature and p within its level range.
+// (no owner, not a dummy), hostile by nature and p within its level range;
+// a GM trigger's hostile spawn attacks every player (gmtriggers.go).
 // Whether it has noticed p is aggroSystem's. Must be called with the lock
 // held.
 func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 	if npc.Dead || npc.Owner != 0 || npc.Dummy != NotDummy {
 		return false
+	}
+	if npc.EventAggro {
+		return true
 	}
 	return inAggroLevels(npc.Level, p.Level) && w.hostileLocked(npc)
 }

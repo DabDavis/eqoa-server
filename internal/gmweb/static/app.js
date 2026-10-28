@@ -18,6 +18,7 @@ const NAV = [
   ['World', [
     ['npcs', 'NPCs', 'skull'],
     ['merchants', 'Merchants', 'shop'],
+    ['triggers', 'Triggers', 'bolt'],
   ]],
   ['Content', [
     ['items', 'Items', 'sword'],
@@ -50,6 +51,7 @@ const VIEWS = {
   characters: () => import('./views/characters.js'),
   npcs: () => import('./views/npcs.js'),
   merchants: () => import('./views/merchants.js'),
+  triggers: () => import('./views/triggers.js'),
   items: () => import('./views/items.js'),
   spells: () => import('./views/spells.js'),
   quests: () => import('./views/quests.js'),

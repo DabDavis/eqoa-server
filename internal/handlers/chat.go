@@ -985,6 +985,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #spellfx <spell> [<visual> | 0]: a spell's visual, said or set
 		// (spellfx.go)
 		h.spellFXCommand(sess, parts[1:])
+	case "#trigger":
+		// #trigger [n | name | stop [n]]: the GMs' scripted events
+		// (gmtriggers.go)
+		h.triggerCommand(sess, parts[1:])
 
 	case "#help":
 		h.gmReply(sess, "GM Commands (each also as /name):")
@@ -1011,6 +1015,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #aggro [on|off] - whether creatures attack you on sight (off until #aggro on)")
 		h.gmReply(sess, "  #fx <visual> [seconds] | <spell> - play a spell visual (0x1DAEB5B6) on your target, nothing saved")
 		h.gmReply(sess, "  #spellfx <spell> [<visual> | 0] - a spell's visual, or give it one (0: its stand-in)")
+		h.gmReply(sess, "  #trigger [n | name | stop [n]] - the triggers (the GM panel's), fire one, or stop their runs")
 		h.gmReply(sess, "  #kill - kill target")
 		h.gmReply(sess, "  #npcinfo - the target's ids, model, size, level, spawn and gear")
 		h.gmReply(sess, "  #stats - HoT, PoT, stats and caps, the melee rolls, hate: the target's or your own")

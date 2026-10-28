@@ -43,6 +43,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveMove()
 	case "spellgates":
 		return s.liveSpellGates() // live_gates.go
+	case "gmtriggers":
+		return s.liveTriggers() // ops_triggers.go
 	case "charfactions":
 		return s.liveCharFaction(before, after)
 	case "cmcatalog":

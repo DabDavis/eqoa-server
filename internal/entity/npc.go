@@ -123,6 +123,9 @@ type NPC struct {
 	// QuestSpawn is a Temporary copy a quest step's spawn event placed
 	// (SpawnForQuest): the quests take it away when the step is done.
 	QuestSpawn bool
+	// EventAggro is a GM trigger's hostile spawn (gmtriggers.go): it
+	// attacks any player on sight, in a town too, whatever their levels.
+	EventAggro bool
 
 	// Its melee round (rounds.go): when it began, how many of its hits
 	// have landed, and at whom.

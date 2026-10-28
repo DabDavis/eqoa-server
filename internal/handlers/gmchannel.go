@@ -27,7 +27,8 @@ import (
 //	                            words for giving an item and the name (31
 //	                            units at most); Yes sends 0x0701 48, No 49
 //	C>S 0x0701 {u8 sub-op, ...} one command, its fields as gmFields says
-//	C>S 0x0702 {100, u8 x}      the TRIGGER entry's number
+//	C>S 0x0702 {100, u8 x}      the TRIGGER entry's number: the trigger in
+//	                            slot x+1 fired (gmtriggers.go)
 //
 // Only a GM (accountinfo.acctlevel 1 or more: devcmds.go's isGM) is sent the
 // channel, at its world entry, and each 0x0701 and 0x0702 is checked again
@@ -266,10 +267,12 @@ func (h *ChatHandler) SetGMStores(inv *database.InventoryStore, names nameStore)
 	h.gm.inv, h.gm.names = inv, names
 }
 
-// RegisterGMChannel registers 0x0701 and 0x0702.
+// RegisterGMChannel registers 0x0701 and 0x0702, and the triggers' names'
+// answer (0x7E07, gmtriggers.go).
 func (h *ChatHandler) RegisterGMChannel(r *Registry) {
 	r.Register(protocol.OpcodeGMCommand, h.HandleGMCommand)
 	r.Register(protocol.OpcodeGMTrigger, h.HandleGMTrigger)
+	r.Register(protocol.OpcodeGMTriggers, h.HandleGMTriggerNames)
 }
 
 // buildGMEnabled is 0x0700 {35, zigzag n}.
@@ -289,13 +292,15 @@ func buildGMPrompt(name string) []byte {
 }
 
 // SendGMChannel gives a GM's client the channel (0x0700 35, on) at its world
-// entry; anyone else's is sent nothing. A client keeps it until its next
-// login (vanilla) or the console's next boot (a PS2), whichever comes.
+// entry, and offers it the triggers' names (0x7E07, gmtriggers.go); anyone
+// else's is sent nothing. A client keeps the channel until its next login
+// (vanilla) or the console's next boot (a PS2), whichever comes.
 func (h *ChatHandler) SendGMChannel(sess *session.Session) {
 	if !h.isGM(sess) {
 		return
 	}
 	queueReliable(sess, protocol.OpcodeAdminCode, buildGMEnabled(1))
+	queueReliable(sess, protocol.OpcodeGMTriggers, buildTriggerNamesOffer())
 	log.Printf("GM channel: sent to account %d", sess.AccountID())
 }
 
@@ -322,8 +327,8 @@ func (h *ChatHandler) HandleGMCommand(sess *session.Session, msg *protocol.Messa
 	return nil
 }
 
-// HandleGMTrigger is 0x0702 {100, x}: the TEST menu's TRIGGER, logged and
-// told back; nothing on this server listens for one.
+// HandleGMTrigger is 0x0702 {100, x}: the TEST menu's TRIGGER line x (0 the
+// top), which fires the trigger in slot x+1 (gmtriggers.go).
 func (h *ChatHandler) HandleGMTrigger(sess *session.Session, msg *protocol.Message) error {
 	d := msg.Data()
 	if len(d) < 2 || d[0] != gmTrigger {
@@ -334,8 +339,15 @@ func (h *ChatHandler) HandleGMTrigger(sess *session.Session, msg *protocol.Messa
 		log.Printf("GM channel: trigger %d from account %d, not a GM: dropped", d[1], sess.AccountID())
 		return nil
 	}
-	log.Printf("GM channel: trigger %d from account %d", d[1], sess.AccountID())
-	h.gmReply(sess, fmt.Sprintf("Trigger %d: nothing on this server answers a trigger", d[1]))
+	if h.gameWorld == nil {
+		return nil
+	}
+	gm := h.gameWorld.SessionPlayer(sess)
+	if gm == nil {
+		return nil
+	}
+	log.Printf("GM channel: %s: TRIGGER line %d", gm.Name, d[1])
+	h.fireTrigger(sess, gm, int(d[1])+1)
 	return nil
 }
 

@@ -124,7 +124,7 @@ A GM may also spell any of them `/name`: eqoa-rs forwards a `/command` it does n
 Sandstorm's S2 does), a retail PS2 keeps an unknown one to itself. The dev console of F3
 20261021-003556: `#goto x y z [world] | <town or NPC>` (`#teleport` too), `#gotoplayer`,
 `#summon`, `#spawn <name>` (a temporary copy, gone after its corpse time; `#despawn` the
-target), `#monstersearch`, `#nearby`; `#faction <faction> [standing]` (a GM's own standing); `#aggro [on|off]` (whether creatures attack the GM on sight, `entity/aggro.go`; off until `#aggro on` or a restart); `#npcinfo` (the target's ids, model, size, level, spawn and gear in a box: what talking to an NPC with nothing to say showed everyone until F3 20261025-171528; such an NPC now answers nothing); `#stats` (F3 20261026-014422, jib's "a gm /command to display extended states": `entity/statsreport.go`, the target's or the GM's own in chat: max HP and power by their parts, HoT/PoT, each stat as base + items + spells against its cap, AC, resists, the melee and defence rolls, the old fitted OFF/DEF MOD said unused, move rate, training points, masteries, effects with their time; a creature's round, its roll on the GM and the GM's on it, reach, aggro, undead, who it helps, its hate list). **Spell visuals by hand** (`handlers/spellfx.go`, F3 pass 16, the user's ask): `#fx <visual> [seconds]` plays a visual (0x00B1's DictID, a 0xC200 record of SPELLFX.CSF, as `0x1DAEB5B6` or the eight digits) from the GM onto its target now (`World.PlayVisual`: a cast's 0x00B1 to all who see the GM, nothing else of a cast), `#fx <spell>` what a spell plays; `#spellfx <spell> [<visual> | 0]` says or sets `spelleffect.fxdict` (0: the stand-in of its kind, `entity.StandInVisual`), the change written to `gm_audit` in its own transaction as the panel writes a row edit (via `game`, `database.SetSpellVisual`), so the panel lists and reverts it. Until 2026-10-21 every player was a GM. Make one:
+target), `#monstersearch`, `#nearby`; `#faction <faction> [standing]` (a GM's own standing); `#aggro [on|off]` (whether creatures attack the GM on sight, `entity/aggro.go`; off until `#aggro on` or a restart); `#npcinfo` (the target's ids, model, size, level, spawn and gear in a box: what talking to an NPC with nothing to say showed everyone until F3 20261025-171528; such an NPC now answers nothing); `#stats` (F3 20261026-014422, jib's "a gm /command to display extended states": `entity/statsreport.go`, the target's or the GM's own in chat: max HP and power by their parts, HoT/PoT, each stat as base + items + spells against its cap, AC, resists, the melee and defence rolls, the old fitted OFF/DEF MOD said unused, move rate, training points, masteries, effects with their time; a creature's round, its roll on the GM and the GM's on it, reach, aggro, undead, who it helps, its hate list); `#trigger [n | name | stop [n]]` (the GMs' scripted events: below). **Spell visuals by hand** (`handlers/spellfx.go`, F3 pass 16, the user's ask): `#fx <visual> [seconds]` plays a visual (0x00B1's DictID, a 0xC200 record of SPELLFX.CSF, as `0x1DAEB5B6` or the eight digits) from the GM onto its target now (`World.PlayVisual`: a cast's 0x00B1 to all who see the GM, nothing else of a cast), `#fx <spell>` what a spell plays; `#spellfx <spell> [<visual> | 0]` says or sets `spelleffect.fxdict` (0: the stand-in of its kind, `entity.StandInVisual`), the change written to `gm_audit` in its own transaction as the panel writes a row edit (via `game`, `database.SetSpellVisual`), so the panel lists and reverts it. Until 2026-10-21 every player was a GM. Make one:
 `sqlite3 eqoa.db "UPDATE accountinfo SET acctlevel = 1 WHERE username = '<name>'"`.
 `#template` (`handlers/template.go`, jib's ask of 2026-10-25) makes the GM's own character a
 60 of its class and race: level 60, every spell of its class (`classspells`; never a were form or a were's ability, `database.IsWereAbility`: the were quests are any class's and the forms past the first are masteries), 1,000,000
@@ -149,10 +149,33 @@ KILL (an NPC, or a player: a death with its debt), HEAL, Change Name (the creati
 most, kept in `characters`), Snoop/End Snoop, Remove 1/All Debt, Debug NPC (#npcinfo), Disband
 Guild (a member's name), Freeze (speed 0), Network Stats (0x07E0 to the player, its 0x07E1 relayed),
 /create ("item|id [count]"), /mastery (#grantcm); with no target, Buff PC, Give Item, the debts,
-Change Name and Network Stats act on the GM. 0x0702 (TRIGGER) is answered with a line. The
+Change Name and Network Stats act on the GM. 0x0702 (TRIGGER) fires a trigger (below). The
 network simulation, SERVER LOAD (no 0x44..0x6B readouts are sent), Toggle NPC, history tokens and
 /tradelvl answer that this server has nothing for them. What the TEST menu sets lasts the server's
 run (but a rename).
+
+**The GMs' triggers: scripted events** (`handlers/gmtriggers.go`, `database/gmtriggers.go`,
+`entity/gmtriggers.go`, the GM panel's Triggers page; the user's "lets build it as gm scripted
+events", 2026-10-28; `claude-notes/gm-trigger-0702-20261028.md`): TEST > Programming > TRIGGER is
+eight lines sending 0x0702 {100, line}, and no record says what SOE's server did with one, so line n
+fires the trigger in slot n+1 of table `gmtriggers` (a slot past 8: `#trigger <n|name>` or the
+panel alone; `#trigger` lists them, `#trigger stop [n]` ends runs). A firing is a run: its `steps`
+(a JSON list) in order at its place (`world` -1: where the firing GM stands; else world, x, y, z),
+each step that reaches players reaching those its `scope` takes as the step runs (`near` within
+`radius`, 0 being 100; `gm` the firing GM; `world`; `all`): broadcast (a line in the GMs' yellow),
+popup (a 0x0034 of one answer under id mark 0x52000000, which HandleDialogueOption ignores), say
+(0x0046 boxes, a speaker's name before them), give, visual, teleport (as a travel NPC's warp), spawn
+(copies of an NPC by name round the place on the ground's floor, facing it, Temporary, gone after
+`minutes` alive; `hostile` clears the NPC bit and sets `NPC.EventAggro`, so it attacks any player on
+sight, in a town and at any level: the GM too), despawn, stop (another trigger's runs) and wait (the
+rest later: the engine looks once a second). Bounds and problems are `database.TriggerProblems`'s; a
+trigger with a problem or off does not fire. A trigger fired while it runs runs again beside it; a
+run ends when its steps are done and none of its spawns lives, or when stopped (its spawns taken away).
+The firing GM is told each step's line. **Vanilla shows the names** (not retail, both GM-only):
+0x7E07 is offered with the GM channel and a client that answers 1 gets 0x7E08 (the menu's slots:
+index, flags on/running, name of at most 32 bytes) at once and whenever a trigger is saved or a run
+starts or ends; a PS2 ignores the offer and shows eight TRIGGERs. Firing and stopping from the panel
+are logged (`gm_audit` action `live`); a saved trigger is a row change, revertible.
 
 **The XP camps are `#tele` shortcuts** (`handlers/camps.go`, written by `tools/gen_camp_teles.py`;
 the user's "add popular xp camps to the gm tele port like /tele dfc (deathfist citadel) /tele
@@ -297,6 +320,15 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   "Take the N in the game out" for what the filters show (a dry run's dialog first), and on a quest's page
   "Where it stands" with its chain and Put in / Take out. A GM's mended draft goes in from the panel at once; the
   importer's re-run (server stopped) is for new content files, and leaves a quest a GM has changed alone.
+- **Triggers** (`ops_triggers.go`, `static/views/triggers.js`; the GMs' scripted events, above): `trigger_list`,
+  `trigger_get` (with its problems: `database.TriggerProblems` and a spawn's NPC or a give's item this server
+  lacks), `trigger_save` (its row by slot, steps given as a list or its JSON and kept in `TriggerStep`'s own
+  form; a row change, revertible), `trigger_delete`, `trigger_fire` (from the GM's character in the world when
+  it has one, needed for a trigger at the GM's place), `trigger_stop`, `trigger_runs`; none is a core
+  operation (the custom GPT's list is full at 30). The page lists the TEST menu's eight lines (empty ones
+  offered), every run (every 3 s) with Stop, and edits a trigger with a card a step (`quests.js`'s inputs,
+  exported). A `gmtriggers` edit anywhere (the generic table page too) reloads the engine (`liveTriggers`),
+  which sends the names to vanilla; `checkTriggerRow` holds a row to its slot, scope, world and a steps list.
 - **The map's layers: XP camps, coaches, quest givers, towns** (`ops_maplayers.go`, `views/map.js`; F3 pass 18, the
   user's "add the camps and coaches to the GM panel map too", then quest givers, coach routes and town names), each
   a toggle kept in the browser. The #tele camps as an XP badge (`handlers.CampMarkers`: where the anchor stands now,

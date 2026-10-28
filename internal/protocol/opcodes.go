@@ -391,6 +391,22 @@ const (
 	// the whole tracker.
 	OpcodeQuestProgressData GameOpcode = 0x7E06
 
+	// OpcodeGMTriggers is not retail either: the names of a GM's triggers for
+	// its TEST menu (handlers/gmtriggers.go), a u32 after the opcode, both
+	// ways. The server offers it (1) to a GM's client right after the GM
+	// channel's 0x0700 {35, n}; a client that shows the names answers 1 to
+	// have them and 0 to stop. A PS2 ignores the offer.
+	OpcodeGMTriggers GameOpcode = 0x7E07
+
+	// OpcodeGMTriggersData is the names, server to a client that asked: a u8
+	// count, then each trigger of the menu's eight lines: a u8 index (0-7,
+	// the line top to bottom, the number 0x0702 sends back), u8 flags (bit 0
+	// on, bit 1 running now) and its name (a u8 byte count and UTF-8, at most
+	// 32 bytes). Each one is the whole set: a line it leaves out shows the
+	// client's own word, TRIGGER. Sent after the client's 1 and whenever a
+	// trigger is saved, deleted, starts or ends.
+	OpcodeGMTriggersData GameOpcode = 0x7E08
+
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length
 	// and UTF-8.
@@ -663,6 +679,10 @@ func (op GameOpcode) String() string {
 		return "QuestProgressData"
 	case OpcodeQuestMarkersData:
 		return "QuestMarkersData"
+	case OpcodeGMTriggers:
+		return "GMTriggers"
+	case OpcodeGMTriggersData:
+		return "GMTriggersData"
 	case OpcodeVoiceOffer:
 		return "VoiceOffer"
 	case OpcodeVoiceConfig:

@@ -728,6 +728,35 @@ var catalog = map[string]tableNote{
 			"note":       {Label: "Note", Help: "why"},
 		},
 	},
+	"fishcatch": {
+		Label: "Fishing catches", Group: "Items & spells", Title: "itemid", Sort: "id",
+		Help: "What a cast brings up (handlers/fishing.go): a row an item, picked by weight among the rows that apply " +
+			"where the line went in (ten ahead of the angler) and when. world: -1 every world; the box minx..maxx, " +
+			"minz..maxz (all four, or none: anywhere in the world); minskill the angler's fishing skill it needs " +
+			"(characters.fishing, 0 to 100, plus the worn items' Fish stat; a catch may teach a point); months a bit a " +
+			"month, January 1, February 2, March 4 ... December 2048 (0 the whole year); count how many of it come up at " +
+			"once (one of an item that does not stack). With no row that applies a cast says nothing bites and keeps " +
+			"the bait. A fishing session starts when a player uses a fishing pole (wear slot Fishing pole) from a HUD " +
+			"quick slot, uses a gear set holding one, or says /fish; casting needs bait (wear slot Bait) worn. Rows of " +
+			"source seed are tools/seed_fishing.py's: the catches of April 2003 (Allakhazam), the quest fish where " +
+			"EQOA-Data's guides fish for them; the weights, skills and seasons are ours.",
+		Live:   "At once: read at every cast.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"itemid":   {Label: "Item", Ref: "itempattern"},
+			"count":    {Label: "How many", Help: "at once; one of an item that does not stack"},
+			"weight":   {Label: "Weight", Help: "its share among the rows that apply; 0 never"},
+			"world":    {Label: "World", Help: "-1 every world, else the world's number (0 Tunaria, 2 Odus...)"},
+			"minx":     {Label: "West edge (x)", Section: "Box"},
+			"minz":     {Label: "South edge (z)", Section: "Box"},
+			"maxx":     {Label: "East edge (x)", Section: "Box"},
+			"maxz":     {Label: "North edge (z)", Section: "Box"},
+			"minskill": {Label: "Skill", Help: "the fishing skill it needs, 0 to 100"},
+			"months":   {Label: "Months", Help: "a bit a month: January 1 ... December 2048; 0 the whole year"},
+			"note":     {Label: "Note", Help: "why"},
+			"source":   {Label: "Source", Help: "gm, or seed for tools/seed_fishing.py's rows (its --undo deletes those)"},
+		},
+	},
 	"spellgates": {
 		Label: "Spell gates", Group: "Items & spells", Title: "spell", Sort: "spell",
 		Help: "Where the spells that teleport send, and whom (entity/gates.go): the wizard's gates, portals and evacuations " +

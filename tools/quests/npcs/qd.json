@@ -1090,6 +1090,169 @@
    "count": 1,
    "note": "spawns in place of a tenacious frost giant at the ice giant camps, Snowblind Plains (S)",
    "water": "land"
+  },
+  {
+   "name": "Kerran Escapee",
+   "role": "talker",
+   "body": [
+    "npc",
+    "kerran villager"
+   ],
+   "place": [
+    "at",
+    2,
+    7376.0,
+    9500.0
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Paineel (S), standing between a circle of trees, west of Naris (the place is ours, between Naris and Balidos as the sheet has them)",
+   "water": "land"
+  },
+  {
+   "name": "Arjinn Jais",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Arjinn Jais"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "Bandit Hills (NW), on top of a hill just west of the bandit camp by the lake where Cogwhisker is",
+   "water": "land"
+  },
+  {
+   "name": "Nolram Barro",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Nolram Barro"
+   ],
+   "count": 1,
+   "level": 46,
+   "note": "on a hill at the north-west corner outside Takish'Hiz (C), with Nayr Nonnahs and Rian Buesh",
+   "water": "land"
+  },
+  {
+   "name": "The Dead Acolyte",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "The Dead Acolyte"
+   ],
+   "count": 1,
+   "level": 48,
+   "note": "Takish'Hiz (SE), Lord Chardith's spawn point, behind the archmagus",
+   "water": "land"
+  },
+  {
+   "name": "Excavation Leader",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Excavation team",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the room with the kings in the Tomb of Kings, by the chest (with the excavation team)",
+   "water": "land"
+  },
+  {
+   "name": "Stranger",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Stranger"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "at the very top of the ramp into Neriak",
+   "water": "land"
+  },
+  {
+   "name": "Old Man",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    4720.0,
+    4419.0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Permafrost (NW), on the coast as far north as you can get, west of Castle Vox (the map's point)",
+   "water": "land"
+  },
+  {
+   "name": "Dercas Warden",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Dercas Warden"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Dinbak (S), by the chest that holds the second page's piece",
+   "water": "land"
+  },
+  {
+   "name": "The Dead Guardian",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "near",
+    "Kizdean Gix",
+    15,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "spawned by Kizdean Gix in Neriak (E)",
+   "water": "land"
   }
  ]
 }

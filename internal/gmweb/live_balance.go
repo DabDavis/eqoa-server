@@ -29,6 +29,17 @@ func (s *Server) liveBalance() string {
 func checkBalanceRow(table string, row map[string]any) error {
 	key := "level"
 	cols := []string{"hp_pct", "damage_pct", "pet_hp_pct", "pet_damage_pct"}
+	if table == "balancelevel" {
+		if v, present := row["con_pct"]; present && v != nil {
+			p, ok := asFloat(v)
+			if !ok {
+				return badRequest("%s: con_pct is a number", table)
+			}
+			if why := database.BalanceConPctProblem(p); why != "" {
+				return badRequest("%s: %s", table, why)
+			}
+		}
+	}
 	if table == "balancecon" {
 		key, cols = "diff", []string{"damage_pct", "taken_pct"}
 	}

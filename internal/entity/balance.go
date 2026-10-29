@@ -22,7 +22,11 @@ import (
 //   - what a player or a pet does to an NPC (melee, spells and their ticks,
 //     procs, damage shields, a pet's hits, taunts and taps), by the NPC's
 //     con on the attacker: takenLocked;
-//   - a summoned pet's hit points and all its damage, by its level.
+//   - a summoned pet's hit points and all its damage, by its owner's level,
+//     and its fights con as its owner's would (balanceLevelOf): the spells'
+//     pets lag their owners by up to thirteen levels at 60 (a magician's
+//     last pet of its levels is Ghilan, 47), and a pet is its owner's
+//     weapon. A charmed creature is still a creature: its own level's.
 //
 // The con is the NPC's level less its foe's (calcConColor's: 1-2 yellow, 3
 // and more red). Training dummies are left as measured. Why the seed rows
@@ -77,7 +81,7 @@ func between(x, x0, x1 int, y0, y1 float64) float64 {
 // between the rows on either side, or the nearest end's; every percent 100
 // with no rows.
 func (b *Balance) Level(level int) database.BalanceLevel {
-	out := database.BalanceLevel{Level: level, HPPct: 100, DamagePct: 100, PetHPPct: 100, PetDamagePct: 100}
+	out := database.BalanceLevel{Level: level, HPPct: 100, DamagePct: 100, ConPct: 100, PetHPPct: 100, PetDamagePct: 100}
 	if b == nil || len(b.levels) == 0 {
 		return out
 	}
@@ -92,6 +96,7 @@ func (b *Balance) Level(level int) database.BalanceLevel {
 		a, c := rows[i-1], rows[i]
 		out.HPPct = between(level, a.Level, c.Level, a.HPPct, c.HPPct)
 		out.DamagePct = between(level, a.Level, c.Level, a.DamagePct, c.DamagePct)
+		out.ConPct = between(level, a.Level, c.Level, a.ConPct, c.ConPct)
 		out.PetHPPct = between(level, a.Level, c.Level, a.PetHPPct, c.PetHPPct)
 		out.PetDamagePct = between(level, a.Level, c.Level, a.PetDamagePct, c.PetDamagePct)
 	}
@@ -171,14 +176,29 @@ func (w *World) LoadBalance(db *database.SQLiteDB) (levels, cons int, err error)
 // (dummy.go), whose fights are Sandstorm's as measured.
 func balanced(npc *NPC) bool { return npc != nil && npc.Dummy == NotDummy }
 
+// summoned is whether the NPC is a summoned pet (a charmed creature is not).
+func summoned(npc *NPC) bool { return npc.Owner != 0 && npc.Charm == nil }
+
+// balanceLevelOf is the level the balance takes an NPC at: a summoned pet's
+// owner's (while the owner is in the world), anything else its own.
+func (w *World) balanceLevelOf(npc *NPC) int {
+	if summoned(npc) {
+		if o := w.Players[npc.Owner]; o != nil {
+			return o.Level
+		}
+	}
+	return npc.Level
+}
+
 // applyBalanceLocked gives an NPC the hit points the balance gives its level
-// (a summoned pet its pet's), whole: at its spawn (applyNPCSettingsLocked).
+// (a summoned pet its pet's of its owner's level: the base its own level's),
+// whole: at its spawn (applyNPCSettingsLocked) or its summoning.
 func (w *World) applyBalanceLocked(npc *NPC) {
 	if !balanced(npc) {
 		return
 	}
-	if npc.Owner != 0 && npc.Charm == nil {
-		npc.MaxHP = w.balance.PetMaxHP(npc.Level)
+	if summoned(npc) {
+		npc.MaxHP = pct(NPCMaxHP(npc.Level), w.balance.Level(w.balanceLevelOf(npc)).PetHPPct)
 	} else {
 		npc.MaxHP = w.balance.NPCMaxHP(npc.Level)
 	}
@@ -200,6 +220,16 @@ func (w *World) rebalanceLocked(npc *NPC) {
 	npc.HP = max(int(math.Round(share*float64(npc.MaxHP))), min(1, npc.HP))
 }
 
+// ConAt is the con table at a diff as an NPC of the level takes it: its
+// level's con_pct of the way from 100 to the table's percents.
+func (b *Balance) ConAt(level, diff int) database.BalanceCon {
+	c := b.Con(diff)
+	share := b.Level(level).ConPct / 100
+	c.DamagePct = 100 + (c.DamagePct-100)*share
+	c.TakenPct = 100 + (c.TakenPct-100)*share
+	return c
+}
+
 // npcHitLocked is an NPC's melee hit of n on a foe of the level: times its
 // level's damage and its con's on that foe.
 func (w *World) npcHitLocked(npc *NPC, foeLevel, n int) int {
@@ -207,7 +237,7 @@ func (w *World) npcHitLocked(npc *NPC, foeLevel, n int) int {
 		return n
 	}
 	b := w.balance
-	return pct(pct(n, b.Level(npc.Level).DamagePct), b.Con(npc.Level-foeLevel).DamagePct)
+	return pct(pct(n, b.Level(npc.Level).DamagePct), b.ConAt(npc.Level, npc.Level-foeLevel).DamagePct)
 }
 
 // takenLocked is n of damage on an NPC from an attacker of the level: times
@@ -216,18 +246,19 @@ func (w *World) takenLocked(npc *NPC, attackerLevel, n int) int {
 	if !balanced(npc) {
 		return n
 	}
-	return pct(n, w.balance.Con(npc.Level-attackerLevel).TakenPct)
+	return pct(n, w.balance.ConAt(npc.Level, npc.Level-attackerLevel).TakenPct)
 }
 
-// petDealtLocked is n of a pet's damage on an NPC: times its level's pet
-// damage (a charmed creature's own, an NPC's: none), then as takenLocked by
-// the pet's own level.
+// petDealtLocked is n of a pet's damage on an NPC: a summoned pet's times its
+// owner's level's pet damage (a charmed creature's own, an NPC's: none),
+// then as takenLocked at the pet's balance level (balanceLevelOf).
 func (w *World) petDealtLocked(pet, npc *NPC, n int) int {
 	if !balanced(npc) {
 		return n
 	}
-	if pet.Charm == nil {
-		n = pct(n, w.balance.Level(pet.Level).PetDamagePct)
+	lvl := w.balanceLevelOf(pet)
+	if summoned(pet) {
+		n = pct(n, w.balance.Level(lvl).PetDamagePct)
 	}
-	return w.takenLocked(npc, pet.Level, n)
+	return w.takenLocked(npc, lvl, n)
 }

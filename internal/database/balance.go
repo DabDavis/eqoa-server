@@ -13,8 +13,11 @@ import (
 // balancelevel, by an NPC's level (the levels between two rows take the
 // straight line between them; below the first and past the last, the end
 // row's): hp_pct its hit points (a percent of the server's 60 a level),
-// damage_pct its melee hits, and pet_hp_pct and pet_damage_pct a summoned
-// pet's of that level (its hit points, and all the damage it deals).
+// damage_pct its melee hits, con_pct how much of balancecon's effect its
+// level takes (0 none: a low level's own hit points and floor already climb
+// a third or more in three levels; 100 all of it), and pet_hp_pct and
+// pet_damage_pct a summoned pet's of that level (its hit points, and all
+// the damage it deals).
 //
 // balancecon, by an NPC's level minus its foe's (a player's, or a pet's
 // own), the con: damage_pct the NPC's melee hits on that foe, taken_pct the
@@ -30,6 +33,7 @@ const balanceSchema = `
 		level          INTEGER PRIMARY KEY,
 		hp_pct         REAL NOT NULL DEFAULT 100,
 		damage_pct     REAL NOT NULL DEFAULT 100,
+		con_pct        REAL NOT NULL DEFAULT 100,
 		pet_hp_pct     REAL NOT NULL DEFAULT 100,
 		pet_damage_pct REAL NOT NULL DEFAULT 100,
 		note           TEXT NOT NULL DEFAULT '',
@@ -45,6 +49,7 @@ const balanceSchema = `
 
 // BalanceLevel is one row of balancelevel.
 type BalanceLevel struct {
+	ConPct                 float64
 	Level                  int
 	HPPct, DamagePct       float64
 	PetHPPct, PetDamagePct float64
@@ -75,8 +80,8 @@ func (db *SQLiteDB) ensureBalance() error {
 	}
 	if fresh["balancelevel"] {
 		for _, r := range BalanceSeedLevels {
-			if _, err := db.Exec(`INSERT OR IGNORE INTO balancelevel (level, hp_pct, damage_pct, pet_hp_pct, pet_damage_pct, note, source)
-				VALUES (?, ?, ?, ?, ?, ?, 'seed')`, r.Level, r.HPPct, r.DamagePct, r.PetHPPct, r.PetDamagePct, r.Note); err != nil {
+			if _, err := db.Exec(`INSERT OR IGNORE INTO balancelevel (level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct, note, source)
+				VALUES (?, ?, ?, ?, ?, ?, ?, 'seed')`, r.Level, r.HPPct, r.DamagePct, r.ConPct, r.PetHPPct, r.PetDamagePct, r.Note); err != nil {
 				return fmt.Errorf("balancelevel: %w", err)
 			}
 		}
@@ -94,7 +99,7 @@ func (db *SQLiteDB) ensureBalance() error {
 
 // BalanceLevels is every row of balancelevel, by level.
 func (db *SQLiteDB) BalanceLevels() ([]BalanceLevel, error) {
-	rows, err := db.Query(`SELECT level, hp_pct, damage_pct, pet_hp_pct, pet_damage_pct, note FROM balancelevel ORDER BY level`)
+	rows, err := db.Query(`SELECT level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct, note FROM balancelevel ORDER BY level`)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +107,7 @@ func (db *SQLiteDB) BalanceLevels() ([]BalanceLevel, error) {
 	var out []BalanceLevel
 	for rows.Next() {
 		var r BalanceLevel
-		if err := rows.Scan(&r.Level, &r.HPPct, &r.DamagePct, &r.PetHPPct, &r.PetDamagePct, &r.Note); err != nil {
+		if err := rows.Scan(&r.Level, &r.HPPct, &r.DamagePct, &r.ConPct, &r.PetHPPct, &r.PetDamagePct, &r.Note); err != nil {
 			return nil, err
 		}
 		out = append(out, r)
@@ -129,8 +134,9 @@ func (db *SQLiteDB) BalanceCons() ([]BalanceCon, error) {
 }
 
 // BalanceProblems is what is wrong with a row of either table, "" for
-// nothing: a percent below 1 or past 10000, a level below 1 or past 100, a
-// diff past 20 either way.
+// nothing: a percent below 1 or past 10000 (con_pct is checked as
+// BalanceConPctProblem), a level below 1 or past 100, a diff past 20 either
+// way.
 func BalanceProblems(table string, level int, pcts ...float64) string {
 	var bad []string
 	switch table {
@@ -149,4 +155,13 @@ func BalanceProblems(table string, level int, pcts ...float64) string {
 		}
 	}
 	return strings.Join(bad, "; ")
+}
+
+// BalanceConPctProblem is what is wrong with a con_pct, "" for nothing: it is
+// 0 to 100.
+func BalanceConPctProblem(p float64) string {
+	if p < 0 || p > 100 || p != p {
+		return fmt.Sprintf("con_pct %g is not 0-100", p)
+	}
+	return ""
 }

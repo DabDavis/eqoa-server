@@ -7,11 +7,11 @@
 //	balancesim -db eqoa.db [-balance db|seed|none] [-classes 0,6,9,13]
 //	    [-levels 1,10,20,30,40,50,60] [-diffs 0,1,2,3,4,5] [-fights 40]
 //	    [-tier 0.5] [-pets] [-limit 10m]
-//	    [-try-level 1:300:200,60:500:300] [-try-con 1:115:95,5:200:60]
+//	    [-try-level 1:300:200:0,60:500:300:100] [-try-con 1:115:95,5:200:60]
 //
 // -try-level and -try-con try rows before they are written: level:hp_pct:
-// damage_pct[:pet_hp_pct:pet_damage_pct] and diff:damage_pct:taken_pct, in
-// place of the tables' (balance db or seed) rows.
+// damage_pct[:con_pct[:pet_hp_pct:pet_damage_pct]] and diff:damage_pct:
+// taken_pct, in place of the tables' (balance db or seed) rows.
 //
 // The database is copied first and the copy opened (opening runs the schema
 // setup); the original is never written. Players are kitted from its own
@@ -61,6 +61,7 @@ func main() {
 	fights := flag.Int("fights", 40, "fights a cell")
 	tier := flag.Float64("tier", 0.5, "the gear's place among the last ten levels' items (0 worst, 1 best)")
 	pets := flag.Bool("pets", false, "classes with a summoning also fight with their pet")
+	petAlone := flag.Bool("petalone", false, "with -pets, the pet fights alone (its owner casts nothing): won is the pet's")
 	limit := flag.Duration("limit", 10*time.Minute, "longest fight")
 	tryLevel := flag.String("try-level", "", "level rows to try: level:hp:damage[:pethp:petdamage],...")
 	tryCon := flag.String("try-con", "", "con rows to try: diff:damage:taken,...")
@@ -94,9 +95,12 @@ func main() {
 		if *tryLevel != "" {
 			ls = nil
 			for _, r := range rows(*tryLevel, 3) {
-				l := database.BalanceLevel{Level: int(r[0]), HPPct: r[1], DamagePct: r[2], PetHPPct: 100, PetDamagePct: 100}
-				if len(r) >= 5 {
-					l.PetHPPct, l.PetDamagePct = r[3], r[4]
+				l := database.BalanceLevel{Level: int(r[0]), HPPct: r[1], DamagePct: r[2], ConPct: 100, PetHPPct: 100, PetDamagePct: 100}
+				if len(r) >= 4 {
+					l.ConPct = r[3]
+				}
+				if len(r) >= 6 {
+					l.PetHPPct, l.PetDamagePct = r[4], r[5]
 				}
 				ls = append(ls, l)
 			}
@@ -129,6 +133,9 @@ func main() {
 				k := pl
 				if pet {
 					k.Play.Pet, k.Play.Melee = true, false
+					if *petAlone {
+						k.Play.Spells = false
+					}
 				}
 				fmt.Printf("%-4s %-6s %3d %-4v", classNames[class], entity.ArchetypeName(class), level, pet)
 				for _, d := range ds {

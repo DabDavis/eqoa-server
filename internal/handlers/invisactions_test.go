@@ -90,6 +90,9 @@ func TestInvisActionsAreHandled(t *testing.T) {
 		if e := Triggers(); e != nil {
 			e.Stop()
 		}
+		if a := Auctions(); a != nil {
+			a.Stop()
+		}
 	})
 	for op, why := range invisActions {
 		if _, ok := r.Get(op); !ok {

@@ -1023,22 +1023,35 @@ func (db *SQLiteDB) AuctionSettleDue(now time.Time) (AuctionSweep, error) {
 		}
 	}
 	// a lead whose character is gone: the lot goes on as if it had no bids,
-	// and what was held for it went with the character
-	if err := db.auctionTx(func(tx *sql.Tx) error {
-		if _, err := tx.Exec(`UPDATE auction_lots SET high_bidder = 0, high_name = '', high_max = 0, price = 0
-			WHERE state = ? AND high_bidder != 0 AND NOT EXISTS
-			(SELECT 1 FROM characters c WHERE c.serverid = auction_lots.high_bidder)`, AuctionOpen); err != nil {
-			return err
-		}
-		if _, err := tx.Exec(`UPDATE auction_bids SET escrow = 0 WHERE escrow != 0 AND NOT EXISTS
-			(SELECT 1 FROM characters c WHERE c.serverid = auction_bids.bidder)`); err != nil {
-			return err
-		}
-		_, err := tx.Exec(`UPDATE auction_lots SET delivered = 1 WHERE state != ? AND delivered = 0 AND NOT EXISTS
-			(SELECT 1 FROM characters c WHERE c.serverid = auction_lots.holder)`, AuctionOpen)
-		return err
-	}); err != nil {
+	// and what was held for it went with the character (looked for first: a
+	// sweep that finds nothing writes nothing)
+	var gone int
+	if err := db.QueryRow(`SELECT
+		(SELECT COUNT(*) FROM auction_lots l WHERE l.state = ? AND l.high_bidder != 0 AND NOT EXISTS
+			(SELECT 1 FROM characters c WHERE c.serverid = l.high_bidder)) +
+		(SELECT COUNT(*) FROM auction_bids b WHERE b.escrow != 0 AND NOT EXISTS
+			(SELECT 1 FROM characters c WHERE c.serverid = b.bidder)) +
+		(SELECT COUNT(*) FROM auction_lots l WHERE l.state != ? AND l.delivered = 0 AND NOT EXISTS
+			(SELECT 1 FROM characters c WHERE c.serverid = l.holder))`, AuctionOpen, AuctionOpen).Scan(&gone); err != nil {
 		return sw, err
+	}
+	if gone > 0 {
+		if err := db.auctionTx(func(tx *sql.Tx) error {
+			if _, err := tx.Exec(`UPDATE auction_lots SET high_bidder = 0, high_name = '', high_max = 0, price = 0
+				WHERE state = ? AND high_bidder != 0 AND NOT EXISTS
+				(SELECT 1 FROM characters c WHERE c.serverid = auction_lots.high_bidder)`, AuctionOpen); err != nil {
+				return err
+			}
+			if _, err := tx.Exec(`UPDATE auction_bids SET escrow = 0 WHERE escrow != 0 AND NOT EXISTS
+				(SELECT 1 FROM characters c WHERE c.serverid = auction_bids.bidder)`); err != nil {
+				return err
+			}
+			_, err := tx.Exec(`UPDATE auction_lots SET delivered = 1 WHERE state != ? AND delivered = 0 AND NOT EXISTS
+				(SELECT 1 FROM characters c WHERE c.serverid = auction_lots.holder)`, AuctionOpen)
+			return err
+		}); err != nil {
+			return sw, err
+		}
 	}
 	due, err := auctionLots(db, `WHERE l.state = ? AND l.ends_at <= ? ORDER BY l.ends_at, l.lot`, AuctionOpen, now.Unix())
 	if err != nil {

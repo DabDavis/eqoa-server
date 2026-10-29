@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -140,9 +141,17 @@ func (a *AuctionHouse) SetGameWorld(gw *entity.World) {
 	}
 }
 
+// auctionHouse is the process's running house (Auctions), as Quests is
+// the quest engine: a test that builds the registry stops it.
+var auctionHouse atomic.Pointer[AuctionHouse]
+
+// Auctions is the running auction house, nil before one starts.
+func Auctions() *AuctionHouse { return auctionHouse.Load() }
+
 // Start runs the sweep: at once (what ended while the server was down), then
 // every auctionSweepEvery.
 func (a *AuctionHouse) Start() {
+	auctionHouse.Store(a)
 	go func() {
 		t := time.NewTicker(auctionSweepEvery)
 		defer t.Stop()

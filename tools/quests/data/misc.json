@@ -3275,6 +3275,543 @@
     "Arctic Spiritcaller"
    ],
    "notes": "From EQOA-Data Quests/Misc/zentars-keep-pet.json, # Zentar's Keep Pet Quest, steps 9-11 (github.com/Jadiction/EQOA-Data, MIT). The guide's frost item is an archetype's own (tanks' Frost Emblem, melees' Frost Talisman, casters' Frost Essence, healers' Frost Rune) with a stack that differs too: one frost and four frost giant staves (the melees') for every class here. The Arctic Spiritcaller stands at the camp (FrontiersForge saw one) instead of spawning in a giant's place; the Arctic Adept is left out. Not on this server, left out of the rewards: the archetype rewards (tanks' Snow Fighter, melees' Snow Gladiator, casters' snowman form) and their recharge."
+  },
+  {
+   "key": "Misc/paineel/p1",
+   "name": "Escaping Kerran",
+   "giver": "Kerran Escapee",
+   "classes": [],
+   "races": [],
+   "minlevel": 45,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Our escape was betrayed! Someone in Freeport sold the plans. Find Setham on the docks there, by the waysenders to Odus. He was to help us. Find out who betrayed us.",
+   "accept": "I will find the traitor.",
+   "decline": "Not now.",
+   "declined": "Then we are lost.",
+   "started": "Hurry. Setham is in Freeport.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Setham",
+     "journal": "Find Setham on Freeport's docks, with the waysenders to Odus.",
+     "says": "Betrayed? Then it was Balidos. He stands against a tree in Paineel (S), north of Oakbrow. Tell him you came about a job."
+    },
+    {
+     "kind": "talk",
+     "target": "Balidos",
+     "journal": "Find Balidos against a tree in Paineel (S) and tell him you came about a job.",
+     "says": "A job? You came for me! Die!",
+     "answer": "I came about a job."
+    },
+    {
+     "kind": "loot",
+     "target": "Balidos",
+     "journal": "Defeat Balidos and take his papers.",
+     "items": [
+      {
+       "item": "Balidos's Papers",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Setham",
+     "journal": "Bring Balidos's papers to Setham on Freeport's docks.",
+     "items": [
+      {
+       "item": "Balidos's Papers",
+       "count": 1
+      }
+     ],
+     "says": "These name Naris, in Paineel (SE), just east of the escapee. Go carefully: his recovery agents guard him."
+    },
+    {
+     "kind": "talk",
+     "target": "Naris",
+     "journal": "Find Naris in Paineel (SE), guarded by three Paineel recovery agents.",
+     "says": "An agent of the Kerran? My orders are with my men. Take them if you can."
+    },
+    {
+     "kind": "loot",
+     "target": "paineel recovery agent",
+     "journal": "Take the orders off a Paineel recovery agent.",
+     "items": [
+      {
+       "item": "Recovery Agent's Orders",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Naris",
+     "journal": "Bring the orders to Naris.",
+     "items": [
+      {
+       "item": "Recovery Agent's Orders",
+       "count": 1
+      }
+     ],
+     "says": "So you have them. Arjinn Jais, on a hill in Bandit Hills (NW), keeps a stone for those with the code."
+    },
+    {
+     "kind": "talk",
+     "target": "Arjinn Jais",
+     "journal": "Find Arjinn Jais on a hill west of the bandit camp in Bandit Hills (NW) and give him the code.",
+     "says": "The right code. Take the stone to whoever sent you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Arjinn's Stone",
+         "count": 1
+        }
+       ]
+      }
+     ],
+     "answer": "6642a"
+    },
+    {
+     "kind": "give",
+     "target": "Naris",
+     "journal": "Bring Arjinn's stone to Naris.",
+     "items": [
+      {
+       "item": "Arjinn's Stone",
+       "count": 1
+      }
+     ],
+     "says": "Now go to Mikti, in the big black brick building at the east edge of the fort, Paineel (W)."
+    },
+    {
+     "kind": "talk",
+     "target": "Mikti",
+     "journal": "Find Mikti down the ramp of the black brick building at the fort, Paineel (W).",
+     "says": "Maous ran. The orb took care of the rest. Go back to Naris: he is not what he seems."
+    },
+    {
+     "kind": "talk",
+     "target": "Naris",
+     "journal": "Return to Naris in Paineel (SE).",
+     "says": "You fool. General Dorganun, kill this one!"
+    },
+    {
+     "kind": "kill",
+     "target": "General Dorganun",
+     "journal": "Kill General Dorganun.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "General Dorganun",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Setham",
+     "journal": "Return to Setham on Freeport's docks.",
+     "says": "Naris betrayed us all along. The Kerran are free because of you. Take what you need."
+    },
+    {
+     "kind": "talk",
+     "target": "The Storyteller",
+     "journal": "Tell The Storyteller in Baga Village (NE), by the well, the tale.",
+     "says": "Betrayal and escape! A fine tale.",
+     "rewards": {
+      "factions": [
+       [
+        "The Storyteller",
+        50
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Kerran Escapee",
+    "Arjinn Jais"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/paineel.json, # Paineel Quest (github.com/Jadiction/EQOA-Data, MIT). The guide gives no level or class: level 45 here (its recovery agents are red to a 60). Balidos's items (the guide's talk after his death) are his drop here; the popup needed to talk to Naris is left out. A wrong code (6642a is right) would have you kill Arjinn: left out. Not on this server, left out of the rewards: Setham's choice of nine items (Str/Dex ... HP/Pwr; the AC/HP one is the Acaesdin Choker): the engine cannot offer a choice, and none of the nine is in itempattern."
+  },
+  {
+   "key": "Misc/the-temple-of-light/p1",
+   "name": "The Code of the Old Scroll",
+   "giver": "William Nothard",
+   "classes": [],
+   "races": [],
+   "minlevel": 46,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A traveller named Nolram Barro camps on a hill at the north-west corner outside Takish'Hiz. He carries an old scroll in a code I have long wanted. Bring it to me, and we will see what it hides.",
+   "accept": "I will bring the scroll.",
+   "decline": "Not now.",
+   "declined": "Then the code keeps its secret.",
+   "started": "Nolram camps north-west of Takish'Hiz.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Nolram Barro",
+     "journal": "Kill Nolram Barro on the hill at the north-west corner outside Takish'Hiz (C).",
+     "items": [
+      {
+       "item": "Old Scroll",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "show",
+     "target": "William Nothard",
+     "journal": "Show the old scroll to William Nothard in Freeport.",
+     "items": [
+      {
+       "item": "Old Scroll",
+       "count": 1
+      }
+     ],
+     "says": "A code. In Takish'Hiz, where Lord Chardith rises, a book behind the archmagus tells how to read it."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 19500,
+     "y": 35,
+     "z": 27400,
+     "radius": 25,
+     "journal": "Read the book behind the archmagus at Lord Chardith's spawn point, Takish'Hiz (SE).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The book explains the code. As you read, something stirs behind you!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "The Dead Acolyte",
+     "journal": "Kill the Dead Acolyte.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "The Dead Acolyte",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "William Nothard",
+     "journal": "Return to William Nothard in Freeport with what the code says.",
+     "says": "'The secret lies within the tombs of the Rowen'dal. An incredible power waits to be unleashed.' The Tomb of Kings, then."
+    }
+   ],
+   "unresolved": [
+    "Nolram Barro",
+    "The Dead Acolyte",
+    "The Dead Acolyte"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/the-temple-of-light.json, # The Temple of Light Quest, steps 1-4 (github.com/Jadiction/EQOA-Data, MIT). The guide's first popup (the quest received near Nolram's camp) is this giver: the guide says Nothard gives it anyway. Nayr Nonnahs and Rian Buesh, who camp with Nolram, are left out (only he is killed). The book's popup is a reach step at Lord Chardith's spawn point."
+  },
+  {
+   "key": "Misc/the-temple-of-light/p2",
+   "name": "The Tomb of the Rowen'dal",
+   "giver": "William Nothard",
+   "classes": [],
+   "races": [],
+   "minlevel": 46,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/the-temple-of-light/p1"
+   ],
+   "offer": "The Tomb of Kings holds what the scroll speaks of. Find the room with the kings and open the chest there. Then follow wherever it leads.",
+   "accept": "I will go to the Tomb of Kings.",
+   "decline": "Not now.",
+   "declined": "Then the power sleeps.",
+   "started": "The Tomb of Kings, then.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 21055,
+     "y": 44,
+     "z": 14268,
+     "radius": 25,
+     "journal": "Open the chest in the room with the kings in the Tomb of Kings.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The chest is empty. A voice behind you: \"Looking for what was in it?\""
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Excavation Leader",
+     "journal": "Kill the Excavation Leader.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Excavation Leader",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Stranger",
+     "journal": "Climb to the top of the ramp leading into Neriak and speak with the Stranger.",
+     "says": "The Excavation Leader shipped it to Neriak. Come with me.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 25368.0,
+       "y": 15.0,
+       "z": 8771.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Kizdean Gix",
+     "journal": "Speak with Kizdean Gix in Neriak (E).",
+     "says": "The tome is torn. An old man in Permafrost, west of Castle Vox, as far north as the coast goes, has a page."
+    }
+   ],
+   "unresolved": [
+    "Excavation Leader",
+    "Excavation Leader",
+    "Stranger"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/the-temple-of-light.json, # The Temple of Light Quest, steps 5-7 (github.com/Jadiction/EQOA-Data, MIT). The guide's entry popup ('you have received a quest') and its chest, which spawns the Excavation Leader, are one reach step in the kings' room here (at the excavation team's place). The Stranger's port is a teleport to Kizdean Gix."
+  },
+  {
+   "key": "Misc/the-temple-of-light/p3",
+   "name": "The Dercas Emot",
+   "giver": "Kizdean Gix",
+   "classes": [],
+   "races": [],
+   "minlevel": 46,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/the-temple-of-light/p2"
+   ],
+   "offer": "The Dercas Emot, the sacred tome, was torn apart and hidden. An old man in Permafrost (NW) keeps a page. He has bodyguards. Get the page, have it read in Freeport, find the piece, and bring it to me.",
+   "accept": "I will find the pages.",
+   "decline": "Not now.",
+   "declined": "Then the tome stays in pieces.",
+   "started": "Permafrost, far to the north-west.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Voxite mage",
+     "journal": "Approach the Old Man in Permafrost (NW) and kill the bodyguards that come.",
+     "count": 3,
+     "events": [
+      {
+       "on": "start",
+       "do": "popup",
+       "text": "\"Stay away!\" Bodyguards come at you."
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Voxite mage",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Voxite mage",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Voxite mage",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Old Man",
+     "journal": "Speak with the Old Man on the coast of Permafrost (NW).",
+     "says": "Fine, take the page. The key to reading it is in Freeport.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Ripped Page",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Nebur Hael",
+     "journal": "Show the ripped page to Nebur Hael, who roams Freeport's inn.",
+     "items": [
+      {
+       "item": "Ripped Page",
+       "count": 1
+      }
+     ],
+     "says": "'Land of the reptiles that walk like men... arrangements made to keep it off the mainlands.' Dinbak, south."
+    },
+    {
+     "kind": "talk",
+     "target": "Dercas Warden",
+     "journal": "Find the Dercas Warden and his chest in Dinbak (S).",
+     "says": "You know of the Emot? Then the piece is yours.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Piece of the Dercas Emot",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Kizdean Gix",
+     "journal": "Bring the page and the piece to Kizdean Gix in Neriak (E).",
+     "items": [
+      {
+       "item": "Ripped Page",
+       "count": 1
+      },
+      {
+       "item": "Piece of the Dercas Emot",
+       "count": 1
+      }
+     ],
+     "says": "At last! But we are not alone. Its guardian wakes!"
+    },
+    {
+     "kind": "kill",
+     "target": "The Dead Guardian",
+     "journal": "Kill the Dead Guardian.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "The Dead Guardian",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Kizdean Gix",
+     "journal": "Speak with Kizdean Gix again.",
+     "says": "Now, to the Temple of Light. Sir Roger Rodgers guards the way."
+    }
+   ],
+   "unresolved": [
+    "Old Man",
+    "Dercas Warden",
+    "The Dead Guardian",
+    "The Dead Guardian"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/the-temple-of-light.json, # The Temple of Light Quest, steps 8-11 (github.com/Jadiction/EQOA-Data, MIT). The guide's five bodyguards (drake guards, unnamed) are three Voxite mages here, the creature FrontiersForge saw at the Old Man's spot (dark blue to a 60). The old man hands out one of three pages at random; the second (Dinbak, the Dercas Warden and his chest, no fight) is the one here."
+  },
+  {
+   "key": "Misc/the-temple-of-light/p4",
+   "name": "The Temple of Light",
+   "giver": "Kizdean Gix",
+   "classes": [],
+   "races": [],
+   "minlevel": 46,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/the-temple-of-light/p3"
+   ],
+   "offer": "The way is open. Go to the Temple of Light and face Sir Roger Rodgers. He will not let you pass alive, so he must fall. Then come back to me.",
+   "accept": "I will face him.",
+   "decline": "Not now.",
+   "declined": "Then wait.",
+   "started": "The Temple of Light awaits.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sir Roger Rodgers",
+     "journal": "Speak with Sir Roger Rodgers at the Temple of Light.",
+     "says": "Kizdean sent you? Then you have been used, and you will die for it!"
+    },
+    {
+     "kind": "kill",
+     "target": "Sir Roger Rodgers",
+     "journal": "Kill Sir Roger Rodgers.",
+     "count": 1
+    },
+    {
+     "kind": "talk",
+     "target": "Kizdean Gix",
+     "journal": "Return to Kizdean Gix in Neriak (E).",
+     "says": "You have been used, and well. Here is your pay. Now go: the docks of Freeport.",
+     "rewards": {
+      "xp": 63000000,
+      "tunar": 100000
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 25400.0,
+       "y": 54.0,
+       "z": 15795.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "The Storyteller",
+     "journal": "Tell The Storyteller in Baga Village (NE), by the well, the tale.",
+     "says": "Used by a dark elf, and lived to tell it! A fine tale.",
+     "rewards": {
+      "factions": [
+       [
+        "The Storyteller",
+        75
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/the-temple-of-light.json, # The Temple of Light Quest, steps 12-13 (github.com/Jadiction/EQOA-Data, MIT). The guide's port to Freeport's docks is a teleport by Setham's dock. The quest is not repeatable (the guide)."
   }
  ],
  "items": [
@@ -3559,6 +4096,42 @@
    "description": "A frost item dropped by an arctic ice giant caster.",
    "notrade": true,
    "like": "Final Thought Gem"
+  },
+  {
+   "name": "Balidos's Papers",
+   "description": "The papers Balidos carried: plans to sell out the Kerran escape.",
+   "notrade": true,
+   "like": "Thug's Letter"
+  },
+  {
+   "name": "Recovery Agent's Orders",
+   "description": "Orders carried by a Paineel recovery agent.",
+   "notrade": true,
+   "like": "Sealed Letter"
+  },
+  {
+   "name": "Arjinn's Stone",
+   "description": "The stone Arjinn Jais keeps for whoever knows the code.",
+   "notrade": true,
+   "like": "Suspicious Looking Stone"
+  },
+  {
+   "name": "Old Scroll",
+   "description": "An old scroll in a code, taken from Nolram Barro.",
+   "notrade": true,
+   "like": "Ancient Scroll"
+  },
+  {
+   "name": "Ripped Page",
+   "description": "A ripped page of the Dercas Emot ('sacred tome', backwards).",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Piece of the Dercas Emot",
+   "description": "A piece of the Dercas Emot, found in Dinbak.",
+   "notrade": true,
+   "like": "Karak's Research, Page 1"
   }
  ]
 }

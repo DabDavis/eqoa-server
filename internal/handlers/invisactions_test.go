@@ -80,6 +80,17 @@ func TestInvisActionsAreHandled(t *testing.T) {
 	r := NewRegistry()
 	RegisterDefaultHandlers(r, database.NewSQLiteCharacterStore(db), database.NewSQLiteAccountStore(db),
 		session.NewManager(), "127.0.0.1", entity.NewWorld(), database.NewInventoryStore(db), database.NewSpellbookStore(db))
+	// the registry starts the quest and trigger engines, which are the
+	// process's (Quests, Triggers): stopped here, or every later test (and
+	// -count's next run) finds them running over this closed database
+	t.Cleanup(func() {
+		if q := Quests(); q != nil {
+			q.Stop()
+		}
+		if e := Triggers(); e != nil {
+			e.Stop()
+		}
+	})
 	for op, why := range invisActions {
 		if _, ok := r.Get(op); !ok {
 			t.Errorf("0x%04X (%s) has no handler", uint16(op), why)

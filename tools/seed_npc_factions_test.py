@@ -38,7 +38,8 @@ CREATE TABLE factionstart (id INTEGER PRIMARY KEY AUTOINCREMENT, race INTEGER, c
 """
 ELF, HUMAN, GHOUL, CAT, GOBLIN = 0x11111111, 0x22222222, 0x33333333, 0x44444444, 0x55555555
 FACTIONS = {"Citizens of Neriak": 1, "Citizens of Qeynos": -2000, "The Qeynos Guard": -2000, "House Do`Vexis": 1,
-            "Pickclaw Goblins": -500, "The Stoneguard": 1, "Undead Frogloks": -500}
+            "Pickclaw Goblins": -500, "The Stoneguard": 1, "Undead Frogloks": -500,
+            "Denizens of the Plane of Sky": 200, "Citizens of Graumord": -150, "Lord Nagafen": -500}
 
 
 class SeedNPCFactionsTest(unittest.TestCase):
@@ -89,6 +90,15 @@ class SeedNPCFactionsTest(unittest.TestCase):
         # a gnoll camp far out
         for j in range(3):
             npc("gnoll", 20000 + 10 * j, 20000, GOBLIN)
+        # the named (NAMED): an essence of the Plane of Sky and its NPC-bit namesake, a guardian
+        # beside them (fought), Graumord's citizens, the Fire Giant Magus; Kithgrin left
+        npc("essence of day", 5600, 5100, GHOUL, world=4)
+        npc("essence of day", 5400, 4700, GHOUL, typ=0x80, world=4)
+        npc("guardian gargoyle", 5610, 5100, GHOUL, world=4)
+        npc("Graumord citizen", 24500, 3380, GHOUL)
+        npc("Graumord citizen", 24520, 3390, GHOUL)
+        npc("Fire Giant Magus", 4632, 4654, GOBLIN, world=3)
+        npc("Kithgrin", 25714, 3228, GHOUL)
         db.executemany("INSERT INTO npcs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", rows)
         db.execute("INSERT INTO npcaggro VALUES ('Kindred Spirit', 0, 0, 'a pet', 'seed')")
         db.close()
@@ -118,6 +128,8 @@ class SeedNPCFactionsTest(unittest.TestCase):
             ("lerda stoneguard", -1, "Citizens of Qeynos"),  # named for a faction of no kind: the town's
             ("decaying zombie", 0, "Citizens of Qeynos"),    # a place: the wild's zombie is not the town's
         }
+        want |= {("essence of day", 4, "Denizens of the Plane of Sky"), ("graumord citizen", 0, "Citizens of Graumord"),
+                 ("fire giant magus", 3, "Lord Nagafen")}
         for j in range(16):
             want.add((f"elf {j}", -1, "Citizens of Neriak"))
         for j in range(10):
@@ -131,8 +143,11 @@ class SeedNPCFactionsTest(unittest.TestCase):
         self.assertEqual(left["a pet or made peaceful (npcaggro)"], ["Kindred Spirit (Neriak, Nektulos)"])
         self.assertEqual(left["an object"], ["Chest (Neriak, Nektulos)"])
         self.assertEqual(left["namesakes inside its place"], ["mummy (Qeynos: 1 more)"])
+        self.assertEqual([n.split(":")[0] for n in left["left to a GM"]], ["kithgrin"])
+        essence = next(r for r in p["rows"] if r[0] == "essence of day")
+        self.assertEqual(len(essence[7]), 2)  # its NPC-bit namesake too: a face, no attack
         names = {k for k, *_ in p["rows"]}
-        for k in ("spider", "grass snake", "gnoll", "signpost"):
+        for k in ("spider", "grass snake", "gnoll", "signpost", "guardian gargoyle", "kithgrin"):
             self.assertNotIn(k, names)
 
     def test_the_impact_and_the_start_check(self):
@@ -178,7 +193,7 @@ class SeedNPCFactionsTest(unittest.TestCase):
         code, out = self.run_tool("--apply", "--no-backup", "--quiet")
         self.assertEqual(code, 0, out)
         seeded = db.execute("SELECT name, source FROM npcfaction WHERE source = 'seed'").fetchall()
-        self.assertEqual(len(seeded), 34)
+        self.assertEqual(len(seeded), 37)
         self.assertNotIn(("citizen 3", "seed"), seeded)
         with self.assertRaises(SystemExit):
             with contextlib.redirect_stderr(io.StringIO()):

@@ -45,7 +45,9 @@ edited in the panel (gm_audit) is left. Everything written is logged in table
 factionstart_seed; --undo deletes the rows and the factions it added and puts
 the standings back, but not what was changed since (said), and drops the
 log. A second --apply is refused while the log is there, and so is an
---apply with a defaultcharacter combo unmeasured (--partial writes anyway).
+--apply with a defaultcharacter combo unmeasured (--partial writes anyway: a
+race not all measured gets a row a measured combo, so its other classes and
+cities keep what they had).
 Both take a copy of the database first (<db>.bak-<when>-pre-factionstart).
 Report only by default.
 
@@ -148,15 +150,21 @@ def mode(values, prefer=None):
     return prefer if prefer in tied else max(tied)
 
 
-def compress(values, base):
+def compress(values, base, combos=None):
     """The rows (race, class, humtype, standing) one faction's measured starts
-    need on top of base, the faction's own (the file's doc)."""
+    need on top of base, the faction's own (the file's doc). A race whose
+    combos (defaultcharacter's, when given) are not all measured gets a row a
+    measured combo that differs, so nothing is said for the classes and cities
+    not measured yet (--partial)."""
     rows = []
     by_race = collections.defaultdict(dict)
     for combo, v in values.items():
         by_race[combo[0]][combo] = v
     for race in sorted(by_race):
         items = by_race[race]
+        if combos is not None and any(c not in items for c in combos if c[0] == race):
+            rows.extend((r, c, h, v) for (r, c, h), v in sorted(items.items()) if v != base)
+            continue
         r_val = mode(list(items.values()), base)
         if r_val != base:
             rows.append((race, -1, -1, r_val))
@@ -292,7 +300,7 @@ def plan(db, measured, keep_defaults=False):
                 shared.append((faction, v, base))  # a GM's own standing: left, said
                 continue
             kept_table.append((faction, v, base))  # --keep-defaults: a row a race says it
-        for race, cls, hum, v in compress(values, base):
+        for race, cls, hum, v in compress(values, base, combos):
             if (race, cls, hum, faction) in gm_keys:
                 kept_gm.append((race, cls, hum, faction, v))
                 continue
@@ -459,7 +467,8 @@ def main(argv=None):
     ap.add_argument("--undo", action="store_true", help="put back what --apply wrote")
     ap.add_argument("--keep-defaults", action="store_true",
                     help="leave each faction's own standing; the rows say every difference from it")
-    ap.add_argument("--partial", action="store_true", help="--apply with a defaultcharacter combo unmeasured")
+    ap.add_argument("--partial", action="store_true",
+                    help="--apply with a defaultcharacter combo unmeasured (a race not all measured gets a row a combo)")
     ap.add_argument("--no-backup", action="store_true", help="write without a copy first")
     ap.add_argument("--quiet", action="store_true", help="the counts, not every row")
     a = ap.parse_args(argv)

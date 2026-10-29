@@ -179,7 +179,11 @@ class SeedFactionStartsTest(unittest.TestCase):
         self.assertEqual(db.execute("SELECT COUNT(*) FROM factionstart").fetchone(), (0,))
         code, out = self.run_tool("--measured", partial, "--apply", "--partial", "--no-backup", "--quiet")
         self.assertEqual(code, 0, out)
-        self.assertGreater(db.execute("SELECT COUNT(*) FROM factionstart").fetchone()[0], 0)
+        # four human combos of five measured: a row a measured combo, none for the west's ranger
+        rows = db.execute("SELECT race, class, humtype FROM factionstart WHERE race = 0").fetchall()
+        self.assertTrue(rows)
+        self.assertTrue(all(c >= 0 and h >= 0 for _, c, h in rows), rows)
+        self.assertNotIn((0, 1, 2), rows)
 
     def test_apply_then_undo(self):
         db = self.db()

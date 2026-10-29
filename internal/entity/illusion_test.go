@@ -247,7 +247,7 @@ func TestTrueFormEndsEveryLook(t *testing.T) {
 		illusionSpell(9301, "Wolf Form", "Self, Worf form, Increase AGI by 9, MaxHP by 90, 30min", ""),
 		illusionSpell(9304, "Illusion: Stone Golem", "Self, Form, 10min", "Illusion only"), // no Stone Golem in the rig
 		illusionSpell(9302, "Glamour: Elf", "Elf form, Faction Change, Increase DEX by 10, DR by 10, 10min", "CM: Illusion and faction change."),
-		illusionSpell(9303, "Grim Mask", "Self, Troll Mask, 5min", ""),
+		illusionSpell(9303, "Grim Mask", "Self, Gargoyle Mask, 5min", ""), // a mask of no race: a look, no body
 	}
 	plain := illusionSpell(9305, "Stoneskin", "Self, Increase AC by 15, 30min", "")
 	for i, sp := range append(looks, plain) {
@@ -276,6 +276,53 @@ func TestTrueFormEndsEveryLook(t *testing.T) {
 	}
 	if model, _ := channelBody(c.p); model != gnomeMale {
 		t.Errorf("body %#x, want the gnome's own", model)
+	}
+}
+
+// A mask is an illusion of the race its line names (the user's ruling of
+// 2026-10-29, "Rogue masks were illusions"), shown as an illusion's body;
+// Remove Mask ends the masks alone, a form that is no mask staying on with
+// its stats. The controls: a mask naming no race is a look with no body,
+// and Remove Mask's own line lists names, not effects, so nothing of it is
+// unread.
+func TestMasksAreIllusionsAndRemoveMaskEndsThem(t *testing.T) {
+	for _, c := range []struct {
+		name, line, form string
+		dur              time.Duration
+	}{
+		{"Grim Mask", "Self, Troll Mask, 5min", "troll", 5 * time.Minute},
+		{"Fey Mask", "Self, elf Mask, 7min", "elf", 7 * time.Minute},
+		{"Shade Mask", "Self, dark elf Mask", "dark elf", illusionDuration},
+	} {
+		d := ParseSpellNamed(c.name, c.line, c.line)
+		if d.FormKind != FormSelf || d.Form != c.form || d.Duration != c.dur || !d.Appearance || d.Harmful || len(d.Unread) != 0 {
+			t.Errorf("%q: kind %d form %q for %v look %v harmful %v unread %q, want the caster's %q for %v",
+				c.name, d.FormKind, d.Form, d.Duration, d.Appearance, d.Harmful, d.Unread, c.form, c.dur)
+		}
+	}
+	if d := ParseSpellNamed("Blank Mask", "Self, Sprite Change Race, Faction Change, 10min", ""); d.FormKind != FormNone || !d.Appearance {
+		t.Errorf("the control: a mask naming no race: kind %d look %v, want no illusion and a look", d.FormKind, d.Appearance)
+	}
+	end := ParseSpellNamed("Remove Mask", "Self, Dispel Mask Effects; Grim, Fey", "")
+	if end.FormKind != FormEnd || len(end.Unread) != 0 || !slices.ContainsFunc(end.Effects, func(e SpellEffect) bool {
+		return e.Kind == EffectEndIllusion && e.Masks
+	}) {
+		t.Errorf("Remove Mask: kind %d unread %q effects %+v, want an end of masks", end.FormKind, end.Unread, end.Effects)
+	}
+
+	c := illusionRig(t)
+	wolf := illusionSpell(9401, "Wolf Form", "Self, Worf form, Increase AGI by 9, 30min", "")
+	mask := illusionSpell(9402, "Grim Mask", "Self, Troll Mask, 5min", "Self, Troll Mask, 5min")
+	c.land(t, wolf, c.me, 0)
+	c.land(t, mask, c.me, 10*time.Second)
+	if m, _ := channelBody(c.p); m != trollMale || len(c.p.Effects) != 2 {
+		t.Fatalf("masked: model %d, %d effects; want the troll's %d and two", m, len(c.p.Effects), trollMale)
+	}
+	rm := illusionSpell(9403, "Remove Mask", "Self, Dispel Mask Effects; Grim, Fey", "")
+	rm.Scope = 0
+	c.land(t, rm, 0xFFFFFFFF, 20*time.Second)
+	if m, _ := channelBody(c.p); m != gnomeMale || len(c.p.Effects) != 1 || c.p.Effects[0].SpellID != wolf.SpellID || c.p.Mods.Agi != 9 {
+		t.Fatalf("after Remove Mask: model %d, effects %+v, AGI %d; want the gnome's %d, the wolf form and its 9", m, c.p.Effects, c.p.Mods.Agi, gnomeMale)
 	}
 }
 

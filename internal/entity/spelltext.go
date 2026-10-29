@@ -120,6 +120,9 @@ type SpellEffect struct {
 	// the difference from the bearer's own stat as the spell lands
 	// (vampire.go's setStatsLocked)
 	Set bool
+	// Masks: an end of looks that ends the rogue's masks alone, Remove
+	// Mask's (illusion.go)
+	Masks bool
 }
 
 // SpellDef is a spell's line, read: whom it lands on, what it does, how

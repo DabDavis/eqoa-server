@@ -297,12 +297,13 @@ func TestAGateToAWorldTheGameCannotLoadIsRefused(t *testing.T) {
 
 // An evacuation takes the group near its caster to the caster's home (the
 // travel hook resolves it as Return Home's), the group round the caster, and
-// its line leaves the caster no power. The control: the same row made a
-// group gate lands at its place instead.
+// its line leaves the caster and each member it sends no power; a member it
+// leaves behind keeps theirs. The control: the same row made a group gate
+// lands at its place instead, and an evacuation's price is still the group's.
 func TestAnEvacuationSendsTheGroupHome(t *testing.T) {
 	f := newGateFixture(t)
-	f.member(1002, "Near", 1005, 50, 1000)
-	f.member(1003, "Far", 1100, 50, 1000)
+	near, _ := f.member(1002, "Near", 1005, 50, 1000)
+	far, _ := f.member(1003, "Far", 1100, 50, 1000)
 	row := database.SpellGate{Spell: "Melton Evacuation", Kind: database.GateEvac, Place: "Melton", World: 0, X: 6780, Y: 60, Z: 19450}
 	f.gate(row)
 	if !f.cast(meltonEvacuation()) {
@@ -316,14 +317,15 @@ func TestAnEvacuationSendsTheGroupHome(t *testing.T) {
 			t.Errorf("%s: home %d ring %d, want the caster's home, ring %d", tr.P.Name, tr.Home, tr.Ring, i)
 		}
 	}
-	if f.caster.Power != 0 {
-		t.Errorf("power %d, want 0", f.caster.Power)
+	if f.caster.Power != 0 || near.Power != 0 || far.Power != 500 {
+		t.Errorf("power: caster %d, near %d (want 0, 0), far %d (want 500: not sent)", f.caster.Power, near.Power, far.Power)
 	}
 
-	// the control: made a group gate, it lands at its place
+	// the control: made a group gate, it lands at its place, and the group
+	// still pays (an evacuation by its name)
 	f.sent = nil
 	f.caster.Lockouts = nil
-	f.caster.Power = 2000
+	f.caster.Power, near.Power = 2000, 500
 	row.Kind = database.GateGroup
 	f.gate(row)
 	if !f.cast(meltonEvacuation()) {
@@ -331,6 +333,9 @@ func TestAnEvacuationSendsTheGroupHome(t *testing.T) {
 	}
 	if len(f.sent) != 2 || f.sent[0].Home != 0 || f.sent[0].To.X != 6780 {
 		t.Errorf("the control: sent %+v", f.sent)
+	}
+	if f.caster.Power != 0 || near.Power != 0 {
+		t.Errorf("the control: power caster %d, near %d, want 0 and 0", f.caster.Power, near.Power)
 	}
 }
 

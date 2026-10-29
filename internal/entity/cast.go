@@ -1021,7 +1021,11 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 				t.StatsDirty = true
 			}
 		case EffectEndIllusion:
-			w.endAppearancesLocked(t) // illusion.go
+			if e.Masks {
+				w.endMasksLocked(t) // illusion.go
+			} else {
+				w.endAppearancesLocked(t) // illusion.go
+			}
 		case EffectIllusion:
 			illusion = true
 		}

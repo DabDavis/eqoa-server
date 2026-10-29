@@ -26,7 +26,7 @@ import (
 //
 // A spell that lasts no time has nothing to keep a ceiling on: its clause
 // takes the bearer's power down to N at once. The gates' "Set Maximum Power
-// to 0" is such a price, and stays the caster's alone (gates.go).
+// to 0" is such a price: the caster's, and an evacuation's members' (gates.go).
 var (
 	rePowerCap   = regexp.MustCompile(`^(?:set\s+)?max(?:imum)?\s*power\s+(?:to|at)\s+(\d+)$`)
 	rePowerCapAt = regexp.MustCompile(`^caps?\s+(?:max(?:imum)?\s*)?power\s+at\s+(\d+)$`)
@@ -72,7 +72,7 @@ func (d *SpellDef) lasts() bool {
 }
 
 // onlyPowerCaps is whether every effect the line read is a power ceiling
-// (and there is one): a gate's line, whose price is its caster's alone.
+// (and there is one): a gate's line, whose price gates.go takes itself.
 func (d *SpellDef) onlyPowerCaps() bool {
 	for _, e := range d.Effects {
 		if e.Kind != EffectPowerCap {

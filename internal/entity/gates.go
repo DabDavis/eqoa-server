@@ -32,9 +32,11 @@ import (
 // lanes' report of 2026-10-29: as evacuations they sent the group to the
 // caster's bind); the kind stays for a GM's row. A line that says "Set Maximum Power to 0"
 // (Allakhazam: a 1 to 10 second effect of the fast group teleports) leaves
-// its caster no power when it lands: ours, the caster's alone (the records
-// do not say whose). What else the line says lands as any spell's (Commons
-// Escape's "Increase Maximum Power by 10 for 12 seconds").
+// its caster no power when it lands, and on an evacuation each member it
+// sends none too (the records do not say whose; the user's ruling of
+// 2026-10-29: "the group pays for evacuations (as well as the caster), the
+// caster just pays for circles"). What else the line says lands as any
+// spell's (Commons Escape's "Increase Maximum Power by 10 for 12 seconds").
 //
 // Refused as the cast begins, before its power is spent and with no lockout:
 // a line that teleports with no row here, and a row in a world the caster's
@@ -245,10 +247,11 @@ func (w *World) gateLandLocked(cs *castState, caster *Player, casterSess *sessio
 	if !ok {
 		return false
 	}
-	if _, drains := gateLine(&cs.spell.Def); drains && caster.Power > 0 {
-		caster.Power = 0
-		caster.StatsDirty = true
+	_, drains := gateLine(&cs.spell.Def)
+	if drains {
+		takeAllPower(caster)
 	}
+	groupPays := drains && gateTakesGroupPower(cs.spell.Name, g)
 	var at GateSpot
 	where := "its caster's bind point"
 	if g.Kind != database.GateEvac {
@@ -265,6 +268,9 @@ func (w *World) gateLandLocked(cs *castState, caster *Player, casterSess *sessio
 		if sess == nil {
 			continue
 		}
+		if groupPays && t != caster {
+			takeAllPower(t)
+		}
 		tr := GateTravel{Sess: sess, P: t, To: at, Ring: i, Spell: cs.spell.Name}
 		if g.Kind == database.GateEvac {
 			tr.Home = caster.ServerID
@@ -274,6 +280,22 @@ func (w *World) gateLandLocked(cs *castState, caster *Player, casterSess *sessio
 	}
 	log.Printf("Gate: %s's %q (%s) sends %s to %s", caster.Name, cs.spell.Name, g.Kind, strings.Join(names, ", "), where)
 	return true
+}
+
+// gateTakesGroupPower reports whether a gate's price, "Set Maximum Power to
+// 0", is each member's it sends as well as its caster's: an evacuation's, by
+// its row's kind or its name (the wizard's three are group gates by row,
+// tools/seed_spell_gates.py). A circle's or a portal's is its caster's alone.
+func gateTakesGroupPower(name string, g database.SpellGate) bool {
+	return g.Kind == database.GateEvac || strings.Contains(strings.ToLower(name), "evacuation")
+}
+
+// takeAllPower leaves p no power (a gate's price).
+func takeAllPower(p *Player) {
+	if p.Power > 0 {
+		p.Power = 0
+		p.StatsDirty = true
+	}
 }
 
 // gateTravellersLocked is whom a gate sends, its caster first: the caster

@@ -811,13 +811,14 @@
     0
    ],
    "place": [
-    "poi",
-    "tunaria",
-    "Farmer Rulug"
+    "near",
+    "Grocer Tralis",
+    45,
+    0
    ],
    "count": 1,
    "level": 30,
-   "note": "Kerplunk Outpost, north along the lake's coast",
+   "note": "Kerplunk Outpost, north along the lake's coast (the map's point is in the lake: beside the outpost's north end)",
    "water": "land"
   },
   {

@@ -1084,6 +1084,86 @@
    "water": "land"
   },
   {
+   "name": "Trillon Zeber",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the enchanters' guildmaster, west side of Castle Lightwolf, second floor (Group 2)",
+   "water": "land"
+  },
+  {
+   "name": "Tralum Lelam",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "the rogues' guildmaster, west side of Castle Lightwolf, second floor (Group 2)",
+   "water": "land"
+  },
+  {
+   "name": "Sean Warlot",
+   "role": "talker",
+   "body": [
+    "race",
+    "barbarian",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "the shamans' guildmaster, west side of Castle Lightwolf, second floor (Group 2)",
+   "water": "land"
+  },
+  {
+   "name": "Hilarn Strongfist",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "the warriors' guildmaster, west side of Castle Lightwolf, second floor (Group 2)",
+   "water": "land"
+  },
+  {
+   "name": "Elder Gabgug",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "the druid rock circle in the east of Guardian Forest: the shamans' level 49 reward (Group 5)",
+   "water": "land"
+  },
+  {
    "name": "Palidan Talimas",
    "role": "talker",
    "body": [

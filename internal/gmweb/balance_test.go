@@ -104,3 +104,20 @@ func TestBalanceClassEdits(t *testing.T) {
 		t.Errorf("a share of 0 was taken: %v", out)
 	}
 }
+
+// A root's chances are percents of 0-100.
+func TestBalanceRootChanceBounds(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	for _, bad := range []map[string]any{{"root_resist_pct": 120}, {"root_break_pct": -1}} {
+		if code, out := c.op("update_row", map[string]any{"table": "balancecon", "key": map[string]any{"diff": 3},
+			"values": bad}); code == 200 {
+			t.Errorf("%v was taken: %v", bad, out)
+		}
+	}
+	if code, out := c.op("update_row", map[string]any{"table": "balancecon", "key": map[string]any{"diff": 3},
+		"values": map[string]any{"root_resist_pct": 40, "root_break_pct": 30}}); code != 200 {
+		t.Errorf("40/30 was refused: %d %v", code, out)
+	}
+}

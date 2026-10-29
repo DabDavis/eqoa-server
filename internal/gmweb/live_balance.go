@@ -21,7 +21,8 @@ func (s *Server) liveBalance() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return fmt.Sprintf("at once (%d level rows, %d con rows): every NPC's hit points are its level's now, "+
-		"each keeping its share of them, and the next hit of every fight uses it, the next combat art its cooldown; "+
+		"each keeping its share of them, and the next hit of every fight uses it (a root's next landing and the next "+
+		"hit on a rooted NPC too), the next combat art its cooldown; "+
 		"a summoned pet's at its next summoning", levels, cons)
 }
 
@@ -53,6 +54,17 @@ func checkBalanceRow(table string, row map[string]any) error {
 	switch table {
 	case "balancecon":
 		key, cols = "diff", []string{"damage_pct", "taken_pct"}
+		for _, c := range []string{"root_resist_pct", "root_break_pct"} {
+			if v, present := row[c]; present && v != nil {
+				p, ok := asFloat(v)
+				if !ok {
+					return badRequest("%s: %s is a number", table, c)
+				}
+				if why := database.BalanceChanceProblem(c, p); why != "" {
+					return badRequest("%s: %s", table, why)
+				}
+			}
+		}
 	case "balanceclass":
 		key, cols = "class", []string{"melee_taken_pct"}
 	}

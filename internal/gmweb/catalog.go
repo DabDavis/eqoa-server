@@ -640,7 +640,10 @@ var catalog = map[string]tableNote{
 		Help: "The game's balance by the con, an NPC's level less its foe's (entity/balance.go; the target box's colours: " +
 			"1-2 yellow, 3 and more red, 0 white, below blue and green): damage_pct the NPC's melee hits on that foe, a " +
 			"player or a pet (by the pet's own level); taken_pct the damage that foe deals it (melee, spells and their " +
-			"ticks, procs, damage shields, a pet's hits), so a red NPC takes less from the one it cons red to. A diff " +
+			"ticks, procs, damage shields, a pet's hits), so a red NPC takes less from the one it cons red to; " +
+			"root_resist_pct the chance a root (a snare too) that foe casts on it does not take when it lands, and " +
+			"root_break_pct the chance each hit by that foe frees it from every root on it (entity/root.go; neither " +
+			"scaled by the level's con_pct). A diff " +
 			"between two rows takes the line between them, one past the ends the end row's; no rows, 100 everywhere. " +
 			"Rows of source seed are the tuning of 2026-10-29 (claude-notes/balance-20261029.md); cmd/balancesim's " +
 			"-try-con tries rows before they are written.",
@@ -650,8 +653,11 @@ var catalog = map[string]tableNote{
 			"diff":       {Label: "NPC level less its foe's", Help: "-20 to 20: 2 a yellow, 4 a red"},
 			"damage_pct": {Label: "Its melee damage %", Help: "of each of its hits on that foe"},
 			"taken_pct":  {Label: "Damage taken %", Help: "of what that foe deals it"},
-			"note":       {Label: "Note"},
-			"source":     {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
+			"root_resist_pct": {Label: "Root resist %", Help: "0-100: the chance a root (or a snare) cast by that foe " +
+				"does not take when it lands"},
+			"root_break_pct": {Label: "Root break %", Help: "0-100: the chance each hit by that foe frees it from its roots"},
+			"note":           {Label: "Note"},
+			"source":         {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},
 	},
 	"npcmove": {

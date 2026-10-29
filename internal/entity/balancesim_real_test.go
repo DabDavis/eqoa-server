@@ -69,7 +69,8 @@ func TestRealBalanceProbe(t *testing.T) {
 }
 
 // TestRealBalanceOneFight logs one fight as the server logs it
-// (EQOA_SIM_ONE=class,level,npclevel[,pet]).
+// (EQOA_SIM_ONE=class,level,npclevel[,play]: play 1 with its pet, 2
+// rooting).
 func TestRealBalanceOneFight(t *testing.T) {
 	spec := os.Getenv("EQOA_SIM_ONE")
 	if spec == "" {
@@ -82,8 +83,11 @@ func TestRealBalanceOneFight(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if pet != 0 {
+	switch pet {
+	case 1:
 		pl.Play.Pet, pl.Play.Melee = true, false
+	case 2:
+		pl.Play.Root, pl.Play.Melee = true, false // a rooting caster
 	}
 	for _, s := range pl.Spells {
 		t.Logf("book: L%d %q role %d cast %v recast %v power %d dmg %.0f heal %.0f", s.Level, s.Name, simRole(&s), s.CastTime, s.Recast, s.PowerCost, simDamage(&s, &Player{}), simHeal(&s, &Player{}))
@@ -144,6 +148,30 @@ func TestRealBalanceSeedOnRealKits(t *testing.T) {
 				t.Errorf("class %d L%d with no balance: +5 won %.0f%% with %.0f%% HP left (the control)", class, level,
 					100*was.WinShare(), 100*was.HPLeft)
 			}
+		}
+	}
+}
+
+// On a server's own kits (EQOA_REAL_DB): a rooting druid and wizard of 50
+// (root, then their spells from range) lose a red five up under the seed's
+// root chances, and win it nearly always with the chances at 0 (the
+// control: the game before them, every root held to its end).
+func TestRealRootPlayHeldToTheCon(t *testing.T) {
+	db := simRealDB(t)
+	none := SeedBalance().WithConColumn([][2]float64{{0, 0}}, func(r *database.BalanceCon, v float64) {
+		r.RootResistPct, r.RootBreakPct = v, v
+	})
+	for _, class := range []int{7, 13} {
+		pl, err := SimKitFromDB(db, class, 0, 50, 0.5)
+		if err != nil {
+			t.Fatal(err)
+		}
+		pl.Play.Root, pl.Play.Melee = true, false
+		if red := SimCellOf(pl, SimNPC{}, 5, SeedBalance(), 16, 1, 10*time.Minute); red.WinShare() > 0.4 {
+			t.Errorf("class %d rooting under the seed: +5 won %.0f%%", class, 100*red.WinShare())
+		}
+		if was := SimCellOf(pl, SimNPC{}, 5, none, 8, 1, 10*time.Minute); was.WinShare() < 0.85 {
+			t.Errorf("class %d rooting with no root chances: +5 won only %.0f%% (the control)", class, 100*was.WinShare())
 		}
 	}
 }

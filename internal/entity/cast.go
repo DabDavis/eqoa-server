@@ -1081,7 +1081,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 			w.drainLocked(cs, caster, casterSess, e, -spellAmount(e, caster), now)
 		}
 	}
-	if ae := lasting(cs, caster, now); ae != nil {
+	if ae := lasting(cs, caster, now); ae != nil && w.rootResistLocked(caster, casterSess, npc, ae, now) { // root.go
 		for i, old := range npc.Effects {
 			if old.SpellID == ae.SpellID {
 				npc.Effects = append(npc.Effects[:i], npc.Effects[i+1:]...)
@@ -1095,8 +1095,10 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		w.affected[npc.ServerID] = npc
 		w.tickNPCEffectLocked(npc, ae, now)
 	}
-	// a spell that only holds or slows still angers it
-	w.updateAggro(npc, caster.ServerID, 0)
+	// a spell that only holds or slows still angers it, a resisted root too
+	// (root.go): hate of 1, as a resisted charm's, since a hate of none makes
+	// no enemy (addThreatLocked takes the highest above 0)
+	w.updateAggro(npc, caster.ServerID, 1)
 }
 
 // spellHitLocked is a spell's damage on a creature: the figure to the
@@ -1113,6 +1115,7 @@ func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc 
 	npc.HP = max(npc.HP-n, 0)
 	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n)
 	w.updateAggro(npc, caster.ServerID, n)
+	w.rootBreakLocked(npc, caster.Level) // root.go
 	log.Printf("Cast: %s's spell hit %s for %d (HP %d/%d)", caster.Name, npc.Name, n, npc.HP, npc.MaxHP)
 	if npc.HP > 0 {
 		return false

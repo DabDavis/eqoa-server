@@ -9,6 +9,7 @@
 //	    [-tier 0.5] [-pets] [-limit 10m]
 //	    [-try-level 1:300:200:0,60:500:300:100] [-try-con 1:115:95,5:200:60]
 //	    [-try-art 1:0,30:1500,60:2000] [-try-class 1:80,5:80,6:80]
+//	    [-root] [-try-root 0:0:5,3:35:20,5:65:30]
 //	balancesim -db eqoa.db -lines [-classes ...]
 //
 // -lines prints each class's buff lines instead: the spells of one line, of
@@ -18,7 +19,11 @@
 // damage_pct[:con_pct[:pet_hp_pct:pet_damage_pct]] and diff:damage_pct:
 // taken_pct, in place of the tables' (balance db or seed) rows; -try-art
 // the arts' cooldown by the player's level (level:ms), the line through them;
-// -try-class class:melee_taken_pct rows in place of the class table's.
+// -try-class class:melee_taken_pct rows in place of the class table's;
+// -try-root a root's resist and break chances by the con (diff:resist:break).
+// With -root the classes that have a root also fight as a rooting caster
+// does (entity.SimPlay.Root): the root first, then their spells from range,
+// the root again whenever it is off; the column "pet" reads "root".
 //
 // The database is copied first and the copy opened (opening runs the schema
 // setup); the original is never written. Players are kitted from its own
@@ -76,6 +81,9 @@ func main() {
 	lines := flag.Bool("lines", false, "print each class's buff lines (only the best of a line counts) and stop")
 	tryArt := flag.String("try-art", "", "the arts' cooldown to try, by the player's level: level:ms,...")
 	tryClass := flag.String("try-class", "", "class rows to try: class:melee_taken_pct,... (in place of the table's)")
+	tryRoot := flag.String("try-root", "", "a root's resist and break chances to try, by the con: diff:resist:break,...")
+	rootPlay := flag.Bool("root", false, "classes with a root also fight rooting and casting from range, no pet")
+	only := flag.String("only", "", "only this play's rows: false (hand to hand), true (the pet) or root")
 	flag.Parse()
 	if *dbPath == "" {
 		flag.Usage()
@@ -139,6 +147,15 @@ func main() {
 		}
 		b = b.WithClasses(cls)
 	}
+	if *tryRoot != "" {
+		var resist, brk [][2]float64
+		for _, r := range rows(*tryRoot, 3) {
+			resist = append(resist, [2]float64{r[0], r[1]})
+			brk = append(brk, [2]float64{r[0], r[2]})
+		}
+		b = b.WithConColumn(resist, func(r *database.BalanceCon, v float64) { r.RootResistPct = v })
+		b = b.WithConColumn(brk, func(r *database.BalanceCon, v float64) { r.RootBreakPct = v })
+	}
 	if *tryArt != "" {
 		b = b.WithLevelColumn(points(*tryArt), func(r *database.BalanceLevel, v float64) { r.ArtCooldownMS = v })
 	}
@@ -154,19 +171,28 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			modes := []bool{false}
+			modes := []string{"false"}
 			if *pets && entity.SimHasPet(pl) {
-				modes = append(modes, true)
+				modes = append(modes, "true")
 			}
-			for _, pet := range modes {
+			if *rootPlay && entity.SimHasRoot(pl) {
+				modes = append(modes, "root")
+			}
+			for _, mode := range modes {
+				if *only != "" && mode != *only {
+					continue
+				}
 				k := pl
-				if pet {
+				switch mode {
+				case "true":
 					k.Play.Pet, k.Play.Melee = true, false
 					if *petAlone {
 						k.Play.Spells = false
 					}
+				case "root":
+					k.Play.Root, k.Play.Melee = true, false
 				}
-				fmt.Printf("%-4s %-6s %3d %-4v", classNames[class], entity.ArchetypeName(class), level, pet)
+				fmt.Printf("%-4s %-6s %3d %-4v", classNames[class], entity.ArchetypeName(class), level, mode)
 				for _, d := range ds {
 					c := entity.SimCellOf(k, entity.SimNPC{}, d, b, *fights, 1, *limit)
 					fmt.Printf(" | %3.0f%% %3.0f%% %4.0f", 100*c.WinShare(), 100*c.HPLeft, c.Secs)

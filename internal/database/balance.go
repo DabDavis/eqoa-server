@@ -23,7 +23,11 @@ import (
 // own), the con: damage_pct the NPC's melee hits on that foe, taken_pct the
 // damage the foe deals the NPC (melee, spells, damage over time, procs,
 // shields; a pet's too). Between two rows the line; past the last, the end
-// row's.
+// row's. root_resist_pct and root_break_pct are a root's (and the resist a
+// snare's) on an NPC of that con on its caster: the chance it does not take
+// hold when it lands, and the chance each hit on a rooted NPC frees it (a
+// hit by anyone, at the attacker's con); neither is scaled by the level's
+// con_pct.
 //
 // balanceclass, by a player's class (0 warrior ... 14 alchemist):
 // melee_taken_pct the share of an NPC's melee hit the class takes (after
@@ -56,6 +60,8 @@ const balanceSchema = `
 		diff       INTEGER PRIMARY KEY,
 		damage_pct REAL NOT NULL DEFAULT 100,
 		taken_pct  REAL NOT NULL DEFAULT 100,
+		root_resist_pct REAL NOT NULL DEFAULT 0,
+		root_break_pct  REAL NOT NULL DEFAULT 0,
 		note       TEXT NOT NULL DEFAULT '',
 		source     TEXT NOT NULL DEFAULT 'gm'
 	);
@@ -93,6 +99,20 @@ type balanceColumn struct {
 
 // balanceColumns are the columns added since 2026-10-29's first tables.
 var balanceColumns = []balanceColumn{
+	{"balancecon", "root_resist_pct", "REAL NOT NULL DEFAULT 0", "diff", func() map[int]float64 {
+		m := map[int]float64{}
+		for _, r := range BalanceSeedCons {
+			m[r.Diff] = r.RootResistPct
+		}
+		return m
+	}},
+	{"balancecon", "root_break_pct", "REAL NOT NULL DEFAULT 0", "diff", func() map[int]float64 {
+		m := map[int]float64{}
+		for _, r := range BalanceSeedCons {
+			m[r.Diff] = r.RootBreakPct
+		}
+		return m
+	}},
 	{"balancelevel", "art_cooldown_ms", "REAL NOT NULL DEFAULT 0", "level", func() map[int]float64 {
 		m := map[int]float64{}
 		for _, r := range BalanceSeedLevels {
@@ -129,7 +149,10 @@ func (db *SQLiteDB) ensureBalanceColumns() error {
 type BalanceCon struct {
 	Diff                int
 	DamagePct, TakenPct float64
-	Note                string
+	// RootResistPct and RootBreakPct: a root's on an NPC of this con (the
+	// file's doc)
+	RootResistPct, RootBreakPct float64
+	Note                        string
 }
 
 // ensureBalance makes tables balancelevel and balancecon (initSchema), each
@@ -161,8 +184,9 @@ func (db *SQLiteDB) ensureBalance() error {
 	}
 	if fresh["balancecon"] {
 		for _, r := range BalanceSeedCons {
-			if _, err := db.Exec(`INSERT OR IGNORE INTO balancecon (diff, damage_pct, taken_pct, note, source)
-				VALUES (?, ?, ?, ?, 'seed')`, r.Diff, r.DamagePct, r.TakenPct, r.Note); err != nil {
+			if _, err := db.Exec(`INSERT OR IGNORE INTO balancecon (diff, damage_pct, taken_pct, root_resist_pct, root_break_pct,
+				note, source) VALUES (?, ?, ?, ?, ?, ?, 'seed')`, r.Diff, r.DamagePct, r.TakenPct, r.RootResistPct,
+				r.RootBreakPct, r.Note); err != nil {
 				return fmt.Errorf("balancecon: %w", err)
 			}
 		}
@@ -217,7 +241,7 @@ func (db *SQLiteDB) BalanceLevels() ([]BalanceLevel, error) {
 
 // BalanceCons is every row of balancecon, by diff.
 func (db *SQLiteDB) BalanceCons() ([]BalanceCon, error) {
-	rows, err := db.Query(`SELECT diff, damage_pct, taken_pct, note FROM balancecon ORDER BY diff`)
+	rows, err := db.Query(`SELECT diff, damage_pct, taken_pct, root_resist_pct, root_break_pct, note FROM balancecon ORDER BY diff`)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +249,7 @@ func (db *SQLiteDB) BalanceCons() ([]BalanceCon, error) {
 	var out []BalanceCon
 	for rows.Next() {
 		var r BalanceCon
-		if err := rows.Scan(&r.Diff, &r.DamagePct, &r.TakenPct, &r.Note); err != nil {
+		if err := rows.Scan(&r.Diff, &r.DamagePct, &r.TakenPct, &r.RootResistPct, &r.RootBreakPct, &r.Note); err != nil {
 			return nil, err
 		}
 		out = append(out, r)
@@ -266,6 +290,15 @@ func BalanceProblems(table string, level int, pcts ...float64) string {
 func BalanceMSProblem(col string, ms float64) string {
 	if ms < 0 || ms > 60000 || ms != ms {
 		return fmt.Sprintf("%s %g is not 0-60000", col, ms)
+	}
+	return ""
+}
+
+// BalanceChanceProblem is what is wrong with a chance in percent, "" for
+// nothing: 0 to 100.
+func BalanceChanceProblem(col string, p float64) string {
+	if p < 0 || p > 100 || p != p {
+		return fmt.Sprintf("%s %g is not 0-100", col, p)
 	}
 	return ""
 }

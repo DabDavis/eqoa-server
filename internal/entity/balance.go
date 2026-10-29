@@ -29,6 +29,8 @@ import (
 //     pets lag their owners by up to thirteen levels at 60 (a magician's
 //     last pet of its levels is Ghilan, 47), and a pet is its owner's
 //     weapon. A charmed creature is still a creature: its own level's.
+//   - a root on an NPC, by its con on the root's caster: resisted at its
+//     landing, freed by a hit (root.go);
 //   - the combat arts' global cooldown, by the player's level (ArtCooldown):
 //     an art (an ability with no cast time cast at a creature) started keeps
 //     every other art from starting for that long; one sent in it is not
@@ -150,6 +152,26 @@ func (b *Balance) WithLevelColumn(points [][2]float64, set func(*database.Balanc
 	return NewBalance(ls, cs).WithClasses(b.ClassRows())
 }
 
+// WithConColumn is WithLevelColumn for the con table: one column of it made
+// the line through points (diff, value).
+func (b *Balance) WithConColumn(points [][2]float64, set func(*database.BalanceCon, float64)) *Balance {
+	ls, cs := b.Rows()
+	have := map[int]bool{}
+	for _, r := range cs {
+		have[r.Diff] = true
+	}
+	for _, p := range points {
+		if d := int(p[0]); !have[d] {
+			have[d] = true
+			cs = append(cs, b.Con(d))
+		}
+	}
+	for i := range cs {
+		set(&cs[i], curve(points, float64(cs[i].Diff)))
+	}
+	return NewBalance(ls, cs).WithClasses(b.ClassRows())
+}
+
 // SeedBalance is the seed rows' balance (database.BalanceSeedLevels and
 // BalanceSeedCons): what a database made today starts with.
 func SeedBalance() *Balance {
@@ -226,6 +248,8 @@ func (b *Balance) Con(diff int) database.BalanceCon {
 		a, c := rows[i-1], rows[i]
 		out.DamagePct = between(diff, a.Diff, c.Diff, a.DamagePct, c.DamagePct)
 		out.TakenPct = between(diff, a.Diff, c.Diff, a.TakenPct, c.TakenPct)
+		out.RootResistPct = between(diff, a.Diff, c.Diff, a.RootResistPct, c.RootResistPct)
+		out.RootBreakPct = between(diff, a.Diff, c.Diff, a.RootBreakPct, c.RootBreakPct)
 	}
 	out.Diff = diff
 	return out

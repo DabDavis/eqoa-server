@@ -459,6 +459,7 @@ func (w *World) playerHitLocked(sess *session.Session, attacker *Player, npc *NP
 		dist3(attacker.X, attacker.Y, attacker.Z, npc.X, npc.Y, npc.Z), attacker.Swing.Reach+npcReachExtra(npc))
 
 	w.updateAggro(npc, attacker.ServerID, damage)
+	w.rootBreakLocked(npc, attacker.Level) // root.go
 	if killed {
 		w.killNPC(npc)
 		w.awardKillXPLocked(sess, attacker, npc) // killexp.go

@@ -297,20 +297,25 @@ func TestASnapshotLinkExpiresAndIsReplaced(t *testing.T) {
 		t.Errorf("the new link: %d", resp.StatusCode)
 	}
 
-	// one left unused expires, and its file goes with it
+	// one left unused expires, and its file goes with it (the timer's line
+	// in the audit log comes after the file is deleted)
 	f.s.snap.ttl = 150 * time.Millisecond
 	_, out := boss.op("download_snapshot", nil)
-	time.Sleep(600 * time.Millisecond)
+	all := ""
+	for deadline := time.Now().Add(10 * time.Second); time.Now().Before(deadline); time.Sleep(100 * time.Millisecond) {
+		_, log := boss.op("audit_log", map[string]any{"action": "snapshot"})
+		if all = fmt.Sprint(log["entries"]); strings.Contains(all, "expired unused") {
+			break
+		}
+	}
+	if !strings.Contains(all, "expired unused") || !strings.Contains(all, "replaced by a new one") {
+		t.Errorf("the audit log does not say so: %s", all)
+	}
 	if n := len(snapshotFiles(t, f)); n != 0 {
 		t.Errorf("an expired link's file was kept")
 	}
-	if resp, _ := fetch(t, "GET", out["url"].(string)); resp.StatusCode != 404 {
+	if resp, _ := fetch(t, "GET", out["url"].(string)); resp.StatusCode != 404 && resp.StatusCode != 410 {
 		t.Errorf("an expired link: %d", resp.StatusCode)
-	}
-	_, log := boss.op("audit_log", map[string]any{"action": "snapshot"})
-	all := fmt.Sprint(log["entries"])
-	if !strings.Contains(all, "expired unused") || !strings.Contains(all, "replaced by a new one") {
-		t.Errorf("the audit log does not say so: %s", all)
 	}
 
 	// and an admin makes at most a few at once

@@ -102,13 +102,14 @@ func (s *Server) clearSnapshotDir() {
 func (s *Server) registerSnapshotOps() {
 	s.addOp(&Op{
 		Name: "download_snapshot", Title: "A sanitised copy of the database", Scope: scopeAdmin,
-		Description: "A copy of the live database for your own machine, with every credential and person's data taken out " +
-			"(password hashes, API/OAuth tokens, authenticator secrets, OAuth clients, the audit log, the work board, e-mail " +
-			"and IP addresses, the address salts; a player's login name becomes account-<id>) and the game's content whole. " +
-			"Answers a link to the gzipped SQLite file that works ONCE, for 10 minutes, while you are an admin: run the " +
-			"answer's fetch command (curl), gunzip the file and run the server's real-data tests on it " +
-			"(EQOA_REAL_DB=<file> go test ./internal/... -run Real). Never commit, attach or share the file: it is the " +
-			"server's content. At most 6 an hour; refused, naming the table, when one holds something the sanitiser has no rule for.",
+		Description: fmt.Sprintf("A copy of the live database for your own machine, with every credential and person's data "+
+			"taken out (password hashes, API/OAuth tokens, authenticator secrets, OAuth clients, the audit log, the work board, "+
+			"e-mail and IP addresses, the address salts; a player's login name becomes account-<id>) and the game's content "+
+			"whole. Answers a link to the gzipped SQLite file that works ONCE, for %d minutes, while you are an admin: run the "+
+			"answer's fetch command (curl), gunzip the file and run the server's real-data tests on it "+
+			"(EQOA_REAL_DB=<file> go test ./internal/... -run Real). Never commit, attach or share the file: it is the "+
+			"server's content. At most %d an hour; refused, naming the table, when one holds something the sanitiser has no "+
+			"rule for.", int(snapshotTTL/time.Minute), snapshotPerHour),
 		Handler: func(c *opCtx) (any, error) { return c.s.makeSnapshot(c) },
 	})
 }
@@ -352,8 +353,8 @@ func (s *Server) handleSnapshotDownload(w http.ResponseWriter, r *http.Request) 
 	st.mu.Unlock()
 	if link == nil || !strings.HasPrefix(ticket, snapshotTicket) {
 		s.badTokens.allow(limit)
-		writeError(w, http.StatusNotFound, "no such snapshot link: a link works once, for ten minutes, and not after the "+
-			"server restarts; ask for a new one (download_snapshot)")
+		writeError(w, http.StatusNotFound, fmt.Sprintf("no such snapshot link: a link works once, for %d minutes, and not "+
+			"after the server restarts; ask for a new one (download_snapshot)", int(snapshotTTL/time.Minute)))
 		return
 	}
 	if r.Method == http.MethodHead {
@@ -363,7 +364,8 @@ func (s *Server) handleSnapshotDownload(w http.ResponseWriter, r *http.Request) 
 	}
 	defer os.Remove(link.path)
 	who := &actor{AccountID: link.accountID, Username: link.username, Via: "snapshot link", IP: ip}
-	if time.Now().After(link.expires) {
+	if time.Now().After(link.expires) { // its timer was about to run
+		s.audit(who, "snapshot", "", nil, nil, nil, fmt.Sprintf("the link to the sanitised snapshot %s was used after it expired; its file was deleted", link.file))
 		writeError(w, http.StatusGone, "this snapshot link expired; ask for a new one (download_snapshot)")
 		return
 	}

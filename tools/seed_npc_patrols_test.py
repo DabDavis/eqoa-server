@@ -60,15 +60,20 @@ class SeedNPCPatrols(unittest.TestCase):
             (6, "Giant Rat", 1400, 1000, 0),
         ])
         db.execute("INSERT INTO npcpaths VALUES (5, 0, 'loop', 0, 'walk', '[]')")
+        db.execute("CREATE TABLE npcmove (name TEXT PRIMARY KEY, roam INTEGER NOT NULL DEFAULT -1, radius REAL NOT NULL DEFAULT 0, "
+                   "water TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm')")
+        db.execute("INSERT INTO npcs VALUES (7, 'Lost Wisp', 1700, 1000, 0)")
         db.commit()
         db.close()
         rows = []
         square = [(1000, 1000), (1040, 1000), (1040, 1040), (1000, 1040), (1000, 1000)]
         walk(rows, 11, "Guard Rounds", square + square[1:], pace=4.0, pause=2.0)
         walk(rows, 13, "Piker Pace", [(1100, 1000), (1112, 1000), (1100, 1000), (1112, 1000), (1100, 1000)], pace=3.12, pause=10.0)
-        # one leg, then out of view
-        rows += [{"t": 0, "id": 14, "name": "Walker Once", "x": 1200, "y": 10, "z": 1000, "v": [5, 0, 0]},
-                 {"t": 4000, "id": 14, "name": "Walker Once", "x": 1220, "y": 10, "z": 1000, "v": [5, 0, 0]}]
+        # one leg at a patrol's pace, then out of view
+        rows += [{"t": 0, "id": 14, "name": "Walker Once", "x": 1200, "y": 10, "z": 1000, "v": [3, 0, 0]},
+                 {"t": 6600, "id": 14, "name": "Walker Once", "x": 1220, "y": 10, "z": 1000, "v": [3, 0, 0]}]
+        # a wanderer: Sandstorm's wander pace, legs that never come round
+        walk(rows, 19, "Lost Wisp", [(1700, 1000), (1720, 1010), (1705, 1030), (1690, 1015), (1712, 990)], pace=4.95, pause=6.0)
         walk(rows, 15, "Guard Kept", [(1300, 1000), (1330, 1000), (1300, 1000)])
         walk(rows, 16, "Giant Rat", [(1400, 1000), (1420, 1000), (1400, 1000)])
         rows += [{"t": t, "id": 17, "name": "Guard Still", "x": 1500, "y": 10, "z": 1000, "v": [0, 0, 0]} for t in range(0, 20000, 500)]
@@ -102,7 +107,7 @@ class SeedNPCPatrols(unittest.TestCase):
     def test_apply_and_undo(self):
         before = self.paths()
         out = self.run_tool().stdout
-        self.assertIn("3 patrols", out)
+        self.assertIn("3 patrols (0 NPCs to make), 1 names to wander", out)
         self.assertIn("left: Guard Kept (a GM gave it a path)", out)
         self.run_tool("--apply")
         p = self.paths()
@@ -117,9 +122,16 @@ class SeedNPCPatrols(unittest.TestCase):
         self.assertEqual(p[5], before[5])          # the GM's
         self.assertNotIn(2, p)                       # the far namesake
         self.assertNotIn(6, p)                       # the rat
+        self.assertNotIn(7, p)                       # a wanderer: no path, but it wanders
+        c = sqlite3.connect(self.db)
+        self.assertEqual(c.execute("SELECT name, roam, radius, source FROM npcmove").fetchall(), [("lost wisp", 1, 21.0, "patrol-seed")])
+        c.close()
         self.assertNotEqual(self.run_tool("--apply", ok=False).returncode, 0)
         self.run_tool("--undo")
         self.assertEqual(self.paths(), before)
+        c = sqlite3.connect(self.db)
+        self.assertEqual(c.execute("SELECT count(*) FROM npcmove").fetchall(), [(0,)])
+        c.close()
 
 
 class AddMissing(unittest.TestCase):

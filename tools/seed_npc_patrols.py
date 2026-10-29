@@ -31,6 +31,16 @@ changes with no stop).
 - The pause is the median of its stops; a point's own where its stops differ
   by 2 s or more.
 
+**A wanderer is no patrol.** Sandstorm's creatures that roam (Highbourne's
+Lost Souls) walk at its wander's pace, 4.93-4.98 (4.42 over slopes; roam.go's
+5 is it), in
+legs that never come round, with rests of seconds between; a patrol walks
+slower (3.02-3.12, Halas' guards 3.94) or comes round. A walker at
+WANDER_PACE never seen to repeat is a wanderer: its name gets an npcmove row
+(roam 1: it wanders, as roam.go wanders wildlife; radius the farthest it was
+seen from the middle of its walk, 15 to 75), never a path, and no NPC is
+made for one; a name with an npcmove row already is left.
+
 Who is left out: an animal by its name (seed_npc_move.py's wildlife_word, the
 server's own list), the watcher itself, and every player: an id of
 PLAYER_IDS or more (the channels give players and NPCs one kind; Sandstorm's
@@ -83,6 +93,13 @@ TURN = math.radians(15)
 MATCH = 150.0         # a route to an NPC of its name whose spawn is this near it
 OWN_PAUSE = 2.0       # a point's own pause when its stops differ by this
 PLAYER_IDS = 100_000_000  # an id this or more is a player's, never an NPC's
+WANDER_PACE = (4.3, 5.4)  # Sandstorm's wander (4.93-4.98 measured, 4.42 over slopes; roam.go's 5); patrols 3.02-3.94
+WANDER_RADIUS = (15.0, 75.0)
+MOVE_LOG = """CREATE TABLE npcmove_seed (
+    name   TEXT PRIMARY KEY,   -- npcmove.name written
+    after  TEXT NOT NULL,      -- the row written, JSON
+    source TEXT NOT NULL
+)"""
 LOG_SCHEMA = """CREATE TABLE npcpaths_seed (
     npcid  INTEGER PRIMARY KEY,
     before TEXT,             -- the npcpaths row before, JSON, or NULL for none
@@ -216,7 +233,10 @@ def route(samples):
         own = round(statistics.median(ps), 1) if ps else None
         points.append((round(x, 1), round(y, 2), round(z, 1), own if own is not None and abs(own - pause) >= OWN_PAUSE else None))
     pace = round(statistics.median(speed(u) for u in legs), 2)
-    return points, mode, pace, pause, full
+    mx = statistics.median(u["x"] for u in ups)
+    mz = statistics.median(u["z"] for u in ups)
+    spread = max(math.hypot(u["x"] - mx, u["z"] - mz) for u in ups)
+    return points, mode, pace, pause, full, spread
 
 
 def ours(db):
@@ -277,6 +297,7 @@ def plan(db, files, add=False):
             logged = {i for (i,) in db.execute("SELECT npcid FROM npcpaths_seed")}
         gm = {i: True for (i,) in db.execute("SELECT npcid FROM npcpaths") if i not in logged}
     used, out, left = set(), [], []
+    wanders = {}
     cols = [r[1] for r in db.execute("PRAGMA table_info(npcs)")]
     hp_by_level = {}
     if add:
@@ -295,7 +316,10 @@ def plan(db, files, add=False):
             r = route(samples)
             if r is None:
                 continue
-            points, mode, pace, pause, full = r
+            points, mode, pace, pause, full, spread = r
+            if WANDER_PACE[0] <= pace <= WANDER_PACE[1] and not full:
+                wanders.setdefault(key(name), (name, spread, f"{os.path.basename(path)} {sid}"))
+                continue
             cands = [c for c in npcs.get(key(name), []) if world is None or c[3] == world]
             best = None
             for c in cands:
@@ -328,7 +352,16 @@ def plan(db, files, add=False):
                    "points": json.dumps([{"x": x, "y": y, "z": z, **({"pause": p} if p is not None else {})} for x, y, z, p in points])}
             note = f"{len(points)} points, {mode}, {pace:g}/s, pause {pause:g}s" + ("" if full else " (route not seen to repeat)")
             out.append((npc[0], name, row, f"{os.path.basename(path)} {sid}", note, None))
-    return out, left
+    moves = []
+    have = {key(n) for (n,) in db.execute("SELECT name FROM npcmove")} if has_table(db, "npcmove") else set()
+    for k, (name, spread, source) in sorted(wanders.items()):
+        if k in have:
+            left.append((name, "wanders on Sandstorm; an npcmove row says how it moves already"))
+            continue
+        radius = round(min(max(spread, WANDER_RADIUS[0]), WANDER_RADIUS[1]))
+        moves.append({"name": k, "roam": 1, "radius": radius, "water": "", "note": "wanders as Sandstorm's (tools/seed_npc_patrols.py)",
+                      "source": "patrol-seed", "_shown": name, "_from": source})
+    return out, left, moves
 
 
 def nearest_world(db, points):
@@ -386,29 +419,47 @@ def main():
                     gone += 1
                 if m.get("faction_row"):
                     db.execute("DELETE FROM npcfaction WHERE id = ? AND source = 'patrol-seed'", (m["faction_row"],))
+        moved = 0
+        if has_table(db, "npcmove_seed"):
+            for name, after in db.execute("SELECT name, after FROM npcmove_seed").fetchall():
+                r = json.loads(after)
+                now = db.execute("SELECT name, roam, radius, water, note, source FROM npcmove WHERE name = ?", (name,)).fetchone()
+                if now is not None and dict(zip(("name", "roam", "radius", "water", "note", "source"), now)) == r:
+                    db.execute("DELETE FROM npcmove WHERE name = ?", (name,))
+                    moved += 1
+            db.execute("DROP TABLE npcmove_seed")
         db.execute("DROP TABLE npcpaths_seed")
         db.execute("COMMIT")
-        print(f"put back {back} paths and took away {gone} NPCs made, {kept} changed since left as they are; restart the server")
+        print(f"put back {back} paths, took away {gone} NPCs made and {moved} wandering names, {kept} changed since left "
+              "as they are; restart the server")
         return
     if a.apply and has_table(db, "npcpaths_seed"):
         sys.exit("npcpaths_seed is there: applied already (--undo first)")
     files = track_files(a.tracks)
     if not files:
         sys.exit("no track files: give --tracks")
-    changes, left = plan(db, files, add=a.add)
+    changes, left, moves = plan(db, files, add=a.add)
     for npcid, name, row, source, note, made in changes:
         print(f"{npcid if npcid else 'new':>7} {name}: {note}  [{source}]")
+    for m in moves:
+        print(f"wander  {m['_shown']}: every NPC of the name wanders, radius {m['radius']}  [{m['_from']}]")
     for name, why in left:
         print(f"left: {name} ({why})")
     made_n = sum(1 for c in changes if c[5])
-    print(f"{len(changes)} patrols ({made_n} NPCs to make) from {len(files)} track files, {len(left)} left")
-    if not a.apply or not changes:
+    print(f"{len(changes)} patrols ({made_n} NPCs to make), {len(moves)} names to wander, from {len(files)} track files, "
+          f"{len(left)} left")
+    if not a.apply or not (changes or moves):
         if not a.apply:
             print("report only: --apply to write")
         return
     db.execute("BEGIN IMMEDIATE")
     try:
         db.execute(LOG_SCHEMA)
+        db.execute(MOVE_LOG)
+        for m in moves:
+            row = {k: v for k, v in m.items() if not k.startswith("_")}
+            db.execute(f"INSERT INTO npcmove ({', '.join(row)}) VALUES ({', '.join('?' * len(row))})", list(row.values()))
+            db.execute("INSERT INTO npcmove_seed VALUES (?, ?, ?)", (row["name"], json.dumps(row, sort_keys=True), m["_from"]))
         for npcid, name, row, source, note, made in changes:
             log_made = None
             if made:
@@ -431,7 +482,8 @@ def main():
     except BaseException:
         db.execute("ROLLBACK")
         raise
-    print(f"wrote {len(changes)} paths ({made_n} NPCs made); restart the server (NPCs and paths are read at its start)")
+    print(f"wrote {len(changes)} paths ({made_n} NPCs made) and {len(moves)} wandering names; restart the server "
+          "(NPCs, paths and movement are read at its start)")
 
 
 if __name__ == "__main__":

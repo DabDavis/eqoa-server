@@ -3049,53 +3049,14 @@
       }
      ],
      "journal": "Give the clay, stone and bronze tablets and Crikston's note to Crikston Gundlefop.",
-     "says": "Clay, stone and bronze! Your trainer in Forkwatch shall hear of this. Take what you have earned: your path is yours.",
+     "says": "Clay, stone and bronze! Your path is yours. Your trainer in Forkwatch has your reward.",
      "rewards": {
-      "xp": 7890859,
-      "byclass": {
-       "2": {
-        "spells": [
-         "Gleaming Bastion"
-        ],
-        "items": [
-         "Sword of Purity"
-        ]
-       },
-       "9": {
-        "spells": [
-         "Poison Ward"
-        ],
-        "items": [
-         "Benevolent Battlehammer"
-        ]
-       },
-       "13": {
-        "spells": [
-         "Static Clash"
-        ],
-        "items": [
-         "Staff of Tears"
-        ]
-       },
-       "5": {
-        "spells": [
-         "Power Twist"
-        ],
-        "items": [
-         "Rapier of Rapidity"
-        ]
-       },
-       "14": {
-        "spells": [
-         "Teacher's Knack"
-        ]
-       }
-      }
+      "xp": 7890859
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Quest completion (github.com/Jadiction/EQOA-Data, MIT). Crikston gives the final rewards himself (the guide: a letter for the Forkwatch trainer, who gives them; one step serves every class). The guide's choices: the first ability on each class's line and the first weapon that exists here (clerics the Benevolent Battlehammer: no Holy Forgehammer; wizards a Staff of Tears made like a staff of the level). The guide names no alchemist weapon."
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Quest completion (github.com/Jadiction/EQOA-Data, MIT). The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-1-good/L30-<class>)."
   },
   {
    "key": "30,40,49/group-1-good/L40-a",
@@ -3376,53 +3337,14 @@
       }
      ],
      "journal": "Bring the examiner lens to Crikston Gundlefop.",
-     "says": "With this I can see what they are planning. Your trainer will hear of you. Take this.",
+     "says": "With this I can see what they are planning. Your trainer in Forkwatch has your reward.",
      "rewards": {
-      "xp": 14919719,
-      "byclass": {
-       "2": {
-        "spells": [
-         "Hallowed Bastion"
-        ],
-        "items": [
-         "Hammer of Virtue"
-        ]
-       },
-       "9": {
-        "spells": [
-         "Flame Ward"
-        ],
-        "items": [
-         "Sacrosanct Warhammer"
-        ]
-       },
-       "13": {
-        "spells": [
-         "Freezing Clash"
-        ],
-        "items": [
-         "Wand of War"
-        ]
-       },
-       "5": {
-        "spells": [
-         "Power Jig"
-        ],
-        "items": [
-         "Strike of Harmony"
-        ]
-       },
-       "14": {
-        "spells": [
-         "Professor's Knack"
-        ]
-       }
-      }
+      "xp": 14919719
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40, Quest completion (github.com/Jadiction/EQOA-Data, MIT). Crikston gives the rewards (the guide: the class trainer in Forkwatch, after a minute). The choices: the first ability on the class's line and the first weapon that exists here (paladins the Hammer of Virtue, clerics the Sacrosanct Warhammer, wizards the Wand of War: their first choices are not in this database). No alchemist weapon is named."
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40, Quest completion (github.com/Jadiction/EQOA-Data, MIT). The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-1-good/L40-<class>)."
   },
   {
    "key": "30,40,49/group-1-good/L49-a",
@@ -3920,61 +3842,16 @@
       }
      ],
      "journal": "Bring the ice chunk to Crikston Gundlefop.",
-     "says": "It is over. Take your reward, and when you have grown to the height of your power, the Recruiter will have work for you.",
+     "says": "It is over. Take your reward, and when you have grown to the height of your power, the Recruiter will have work for you. Your trainer has your reward (bards: Kaldesh Illinor in the Freeport tavern).",
      "rewards": {
-      "xp": 45558313,
-      "byclass": {
-       "2": {
-        "spells": [
-         "Sacred Bastion"
-        ],
-        "items": [
-         "Virtus Ferrum"
-        ]
-       },
-       "9": {
-        "spells": [
-         "Ice Ward"
-        ],
-        "items": [
-         "Hammer of Absolution"
-        ]
-       },
-       "13": {
-        "spells": [
-         "Burning Clash"
-        ],
-        "items": [
-         "Pulsaric Rod"
-        ]
-       },
-       "5": {
-        "spells": [
-         "Power Grove"
-        ],
-        "items": [
-         "Ballad of Mithril"
-        ]
-       },
-       "14": {
-        "spells": [
-         "Dean's Knack"
-        ],
-        "items": [
-         "Metamorphic Robes"
-        ]
-       }
-      },
-      "items": [
-       "letter to the Klick`Anon Recruiter"
-      ]
+      "xp": 45558313
      }
     }
    ],
    "unresolved": [
     "Parathior (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky); the server's Parathior is made attackable by this set's seed. Crikston gives the final rewards; the guide's class NPC (bards Kaldesh Illinor in the Freeport tavern) and the approval visits to the givers of the level 20, 30 and 40 quests are not in. Epic weapons are epics_49.json's: the first that exists here (paladins Virtus Ferrum, no Judgement; clerics a Hammer of Absolution made like a hammer of the level)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky); the server's Parathior is made attackable by this set's seed. The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-1-good/L49-<class>)."
   },
   {
    "key": "30,40,49/group-2-good/L30-a",
@@ -4321,48 +4198,14 @@
      "kind": "talk",
      "target": "Dixxon Tristar",
      "journal": "Return to Dixxon Tristar in Castle Lightwolf.",
-     "says": "The jewels are home. Your guildmaster sends this, and so do I.",
+     "says": "The jewels are home. Your guildmaster sends this, and so do I. Your guildmaster in the west wing has your reward.",
      "rewards": {
-      "xp": 7890859,
-      "byclass": {
-       "12": {
-        "spells": [
-         "Expansive Mind"
-        ],
-        "items": [
-         "Lycaon Beheader"
-        ]
-       },
-       "6": {
-        "spells": [
-         "Evasion"
-        ],
-        "items": [
-         "Black Tainted Knife"
-        ]
-       },
-       "8": {
-        "spells": [
-         "Sickening Wind"
-        ],
-        "items": [
-         "Skin Turned Kris"
-        ]
-       },
-       "0": {
-        "spells": [
-         "Roar"
-        ],
-        "items": [
-         "Lycaon Slasher"
-        ]
-       }
-      }
+      "xp": 7890859
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Lockbox and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Dixxon gives the final rewards (the guide: the class guildmaster in the castle's west wing, which one step cannot be for every class). The choices: the first ability on each class's line (EQOA-Data's spell lists; the shaman's Sickening Wind, the next of the level 20 Decaying Wind) and the first weapon, made here like a weapon of the kind and level where this database lacks it (all but the warrior's Lycaon Slasher)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Lockbox and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-2-good/L30-<class>)."
   },
   {
    "key": "30,40,49/group-2-good/L40-a",
@@ -4620,50 +4463,16 @@
       }
      ],
      "journal": "Bring the lockbox to Dixxon Tristar.",
-     "says": "The lockbox, and Sools alive. Take your reward.",
+     "says": "The lockbox, and Sools alive. Take your reward. Speak with me again for your reward.",
      "rewards": {
-      "xp": 14919719,
-      "byclass": {
-       "12": {
-        "spells": [
-         "Limitless Mind"
-        ],
-        "items": [
-         "Hammer of Lightwolf"
-        ]
-       },
-       "6": {
-        "spells": [
-         "Evade"
-        ],
-        "items": [
-         "Eagle Eye Sept"
-        ]
-       },
-       "8": {
-        "spells": [
-         "Wilting Wind"
-        ],
-        "items": [
-         "Daywalkers' Demise"
-        ]
-       },
-       "0": {
-        "spells": [
-         "Howl"
-        ],
-        "items": [
-         "Blood Drainer"
-        ]
-       }
-      }
+      "xp": 14919719
      }
     }
    ],
    "unresolved": [
     "Huntress Lilly"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 40, Deputy Sools and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Deputy Sools is at the mansion at every hour (the guide's comes only at night, about :15 to :45). The choices: the first ability on the class's line and the first weapon, made like one of the kind and level where this database lacks it (the warrior's second, the Blood Drainer, is here: given instead of Daywalkers' Revenge)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 40, Deputy Sools and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Deputy Sools is at the mansion at every hour (the guide's comes only at night, about :15 to :45). The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-2-good/L40-<class>)."
   },
   {
    "key": "30,40,49/group-2-good/L49-a",
@@ -5198,46 +5007,9 @@
       }
      ],
      "journal": "Bring the ice chunk to Lord Tearis Thex.",
-     "says": "It is over. Take your reward, and when you have grown to the height of your power, the Recruiter will have work for you.",
+     "says": "It is over. Take your reward, and when you have grown to the height of your power, the Recruiter will have work for you. Your guildmaster in Castle Lightwolf has your reward.",
      "rewards": {
-      "xp": 45558313,
-      "byclass": {
-       "12": {
-        "spells": [
-         "Boundless Mind"
-        ],
-        "items": [
-         "Mithril Eagle Rod"
-        ]
-       },
-       "6": {
-        "spells": [
-         "Elude"
-        ],
-        "items": [
-         "Heartsbane"
-        ]
-       },
-       "8": {
-        "spells": [
-         "Withering Wind"
-        ],
-        "items": [
-         "Cudgel of the Spirit Guide"
-        ]
-       },
-       "0": {
-        "spells": [
-         "Battlecry"
-        ],
-        "items": [
-         "Steelwind"
-        ]
-       }
-      },
-      "items": [
-       "letter to the Klick`Anon Recruiter"
-      ]
+      "xp": 45558313
      }
     }
    ],
@@ -5246,7 +5018,7 @@
     "Lord Tearis Thex",
     "Parathior (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky); the server's Parathior is made attackable by this set's seed. Lord Tearis Thex gives the final rewards; the guide's class approval tasks are not in. The four orbs are this group's first and second seals (the guide lists them before the third). Epic weapons are epics_49.json's first that exists here."
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky); the server's Parathior is made attackable by this set's seed. The four orbs are this group's first and second seals (the guide lists them before the third). The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-2-good/L49-<class>)."
   },
   {
    "key": "30,40,49/group-3-good/L30-a",
@@ -5626,50 +5398,16 @@
      "kind": "talk",
      "target": "Daresh",
      "journal": "Return to Daresh in Murnf.",
-     "says": "The boy is free, and Bardif never knew who asked. Take what you have earned.",
+     "says": "The boy is free, and Bardif never knew who asked. Take what you have earned. Speak with me again for your reward.",
      "rewards": {
-      "xp": 7890859,
-      "byclass": {
-       "7": {
-        "spells": [
-         "Emberspark"
-        ],
-        "items": [
-         "Mishtur's Book"
-        ]
-       },
-       "10": {
-        "spells": [
-         "Burning Mark"
-        ],
-        "items": [
-         "Staff of Dooog"
-        ]
-       },
-       "4": {
-        "spells": [
-         "Adamant Stance"
-        ],
-        "items": [
-         "Swiftclaw"
-        ]
-       },
-       "1": {
-        "spells": [
-         "Raven Eye"
-        ],
-        "items": [
-         "Springwind"
-        ]
-       }
-      }
+      "xp": 7890859
      }
     }
    ],
    "unresolved": [
     "Daresh"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Free Tarlin and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The choices: the ability on the class's line (the druid's fire line, as its level 40 choice; the magician's mark line, as the evil magicians' level 20) and the first weapon (magicians the second, the Staff of Dooog, which this database has; druids and rangers made like one of the kind and level)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Free Tarlin and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-3-good/L30-<class>)."
   },
   {
    "key": "30,40,49/group-3-good/L40-a",
@@ -6062,43 +5800,9 @@
      "kind": "talk",
      "target": "Daresh",
      "journal": "Return to Daresh in Murnf.",
-     "says": "You lived. Tarlin will not forget it, and nor will we. Take what you have earned.",
+     "says": "You lived. Tarlin will not forget it, and nor will we. Take what you have earned. Speak with me again for your reward.",
      "rewards": {
-      "xp": 14919719,
-      "byclass": {
-       "7": {
-        "spells": [
-         "Inflame"
-        ],
-        "items": [
-         "Inlaid Unicorn Horn"
-        ]
-       },
-       "10": {
-        "spells": [
-         "Earthen Mark"
-        ],
-        "items": [
-         "Icecrystal Totem"
-        ]
-       },
-       "4": {
-        "spells": [
-         "Iron Stance"
-        ],
-        "items": [
-         "Pinewood Tonfa"
-        ]
-       },
-       "1": {
-        "spells": [
-         "Hawk Eye"
-        ],
-        "items": [
-         "Jadesteel Katana"
-        ]
-       }
-      }
+      "xp": 14919719
      }
     }
    ],
@@ -6106,7 +5810,7 @@
     "Daresh",
     "Daresh"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Tarlin's Guards and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The three thugs are copies of Tarlin's guards brought to the player for the step (the guide's spawn under the tower; \"kill or die\" there: here they are to be killed). The choices: the first ability and weapon (made like one of the kind and level where this database lacks it; the monk's Pinewood Tonfa is here)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Tarlin's Guards and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The three thugs are copies of Tarlin's guards brought to the player for the step (the guide's spawn under the tower; \"kill or die\" there: here they are to be killed). The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-3-good/L40-<class>)."
   },
   {
    "key": "30,40,49/group-3-good/L49-a",
@@ -6521,17 +6225,17 @@
       }
      ],
      "journal": "Bring the three phylacteries to Archmagus Terathin.",
-     "says": "All three. Choose your weapon from the jeweled chest; then speak to me, and I will call him."
+     "says": "All three. Look into the jeweled chest; then speak to me, and I will call him."
     },
     {
      "kind": "talk",
      "target": "Jeweled Chest",
-     "journal": "Open the jeweled chest beside Archmagus Terathin and choose your weapon.",
+     "journal": "Look into the jeweled chest beside Archmagus Terathin.",
      "events": [
       {
        "on": "done",
        "do": "popup",
-       "text": "You choose your weapon from the jeweled chest. It will be yours when your path is done. The choice is final."
+       "text": "The jeweled chest holds the weapons of your path. You will choose one when your path is done."
       }
      ]
     },
@@ -6564,46 +6268,9 @@
       }
      ],
      "journal": "Bring the bone of Chardith to Daresh.",
-     "says": "Chardith is gone, and your path is yours. Take what you have earned. When you have grown to the height of your power, the Recruiter will have work for you.",
+     "says": "Chardith is gone, and your path is yours. Take what you have earned. When you have grown to the height of your power, the Recruiter will have work for you. Speak with me again for your reward.",
      "rewards": {
-      "xp": 45558313,
-      "byclass": {
-       "7": {
-        "spells": [
-         "Emblaze"
-        ],
-        "items": [
-         "Triad Scimitar"
-        ]
-       },
-       "10": {
-        "spells": [
-         "Elemental Mark"
-        ],
-        "items": [
-         "Crystalmana Crosier"
-        ]
-       },
-       "4": {
-        "spells": [
-         "Diamond Stance"
-        ],
-        "items": [
-         "Ascendant staff"
-        ]
-       },
-       "1": {
-        "spells": [
-         "Falcon Eye"
-        ],
-        "items": [
-         "Pure Emerald Longsword"
-        ]
-       }
-      },
-      "items": [
-       "letter to the Klick`Anon Recruiter"
-      ]
+      "xp": 45558313
      }
     }
    ],
@@ -6611,7 +6278,7 @@
     "Daresh",
     "Daresh"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, To Summon Chardith and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Lord Chardith and the three magi stand in the basement always (the guide's Chardith is called after a sacrifice; Terathin speaks only every fifteen minutes). The jeweled chest's choice is the class's first weapon, given at the end. Daresh gives the final rewards; the guide's class NPC and approval notes are not in. Epic weapons are the guide's first (druids' and rangers' made like one of the kind and level)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, To Summon Chardith and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Lord Chardith and the three magi stand in the basement always (the guide's Chardith is called after a sacrifice; Terathin speaks only every fifteen minutes). The weapon the jeweled chest shows is chosen at the end, with the ability. The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-3-good/L49-<class>)."
   },
   {
    "key": "30,40,49/group-4-evil/L30-davek",
@@ -6932,35 +6599,9 @@
       }
      ],
      "journal": "Bring the Tome of Dimensional Gates to Belran Nightrift in Dark Solace.",
-     "says": "The tome, in time for the season. You have earned your place on the path.",
+     "says": "The tome, in time for the season. You have earned your place on the path. Speak with me again for your reward.",
      "rewards": {
-      "xp": 7890859,
-      "byclass": {
-       "9": {
-        "spells": [
-         "Poison Ward"
-        ],
-        "items": [
-         "Dark Priest Warhammer"
-        ]
-       },
-       "12": {
-        "spells": [
-         "Expansive Mind"
-        ],
-        "items": [
-         "Deceptive Staff"
-        ]
-       },
-       "6": {
-        "spells": [
-         "Evasion"
-        ],
-        "items": [
-         "Steelthorn"
-        ]
-       }
-      }
+      "xp": 7890859
      }
     }
    ],
@@ -6968,7 +6609,7 @@
     "Compelled Shade",
     "Belran Nightrift"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Quest completion (github.com/Jadiction/EQOA-Data, MIT). The compelled shade is a copy brought to the player for the step. The choices: the first; the cleric's Elemental Guard is no cleric spell here, so the ward of the level on the cleric's line (Poison Ward, after the level 20's Disease Ward); weapons made like one of the kind and level."
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Quest completion (github.com/Jadiction/EQOA-Data, MIT). The compelled shade is a copy brought to the player for the step. The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-4-evil/L30-<class>)."
   },
   {
    "key": "30,40,49/group-4-evil/L40-a",
@@ -7306,35 +6947,9 @@
      "kind": "talk",
      "target": "Belran Nightrift",
      "journal": "Speak with Belran Nightrift.",
-     "says": "Four tests, four golems. Take what you have earned.",
+     "says": "Four tests, four golems. Take what you have earned. Speak with me again for your reward.",
      "rewards": {
-      "xp": 14919719,
-      "byclass": {
-       "9": {
-        "spells": [
-         "Flame Ward"
-        ],
-        "items": [
-         "Night Priest Warhammer"
-        ]
-       },
-       "12": {
-        "spells": [
-         "Limitless Mind"
-        ],
-        "items": [
-         "Enthralling Branch"
-        ]
-       },
-       "6": {
-        "spells": [
-         "Evade"
-        ],
-        "items": [
-         "Twisted Dagger"
-        ]
-       }
-      }
+      "xp": 14919719
      }
     }
    ],
@@ -7343,7 +6958,7 @@
     "Thalnix D`Rinas",
     "Belran Nightrift"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, Quest completion (github.com/Jadiction/EQOA-Data, MIT). The golems stand by their tests always. The choices: the first (the cleric's Elemental Barrier as the ward of the level, Flame Ward; weapons made like one of the kind and level)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, Quest completion (github.com/Jadiction/EQOA-Data, MIT). The golems stand by their tests always. The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-4-evil/L40-<class>)."
   },
   {
    "key": "30,40,49/group-4-evil/L49-a",
@@ -7770,17 +7385,17 @@
       }
      ],
      "journal": "Bring the three phylacteries to Archmagus Terathin.",
-     "says": "All three. Choose your weapon from the jeweled chest; then speak to me, and I will call him."
+     "says": "All three. Look into the jeweled chest; then speak to me, and I will call him."
     },
     {
      "kind": "talk",
      "target": "Jeweled Chest",
-     "journal": "Open the jeweled chest beside Archmagus Terathin and choose your weapon.",
+     "journal": "Look into the jeweled chest beside Archmagus Terathin.",
      "events": [
       {
        "on": "done",
        "do": "popup",
-       "text": "You choose your weapon from the jeweled chest. It will be yours when your path is done. The choice is final."
+       "text": "The jeweled chest holds the weapons of your path. You will choose one when your path is done."
       }
      ]
     },
@@ -7813,43 +7428,14 @@
       }
      ],
      "journal": "Bring the bone of Chardith to Gribble Greencog.",
-     "says": "Chardith is gone, and your path is yours. Take what you have earned. When you have grown to the height of your power, the Recruiter will have work for you.",
+     "says": "Chardith is gone, and your path is yours. Take what you have earned. When you have grown to the height of your power, the Recruiter will have work for you. Speak with me again for your reward.",
      "rewards": {
-      "xp": 45558313,
-      "byclass": {
-       "9": {
-        "spells": [
-         "Ice Ward"
-        ],
-        "items": [
-         "Hammer of Absolution"
-        ]
-       },
-       "12": {
-        "spells": [
-         "Boundless Mind"
-        ],
-        "items": [
-         "Mithril Eagle Rod"
-        ]
-       },
-       "6": {
-        "spells": [
-         "Elude"
-        ],
-        "items": [
-         "Heartsbane"
-        ]
-       }
-      },
-      "items": [
-       "letter to the Freeport Recruiter"
-      ]
+      "xp": 45558313
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, To Summon Chardith and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Lord Chardith and the three magi stand in the basement always (the guide's Chardith is called after a sacrifice; Terathin speaks only every fifteen minutes). The jeweled chest's choice is the class's first weapon, given at the end. Gribble gives the final rewards; the guide's class NPC and the approval notes from the level 20, 30 and 40 quests are not in. Epic weapons: the first that exists here (enchanters the Mithril Eagle Rod, rogues one Heartsbane: the guide's are pairs)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, To Summon Chardith and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Lord Chardith and the three magi stand in the basement always (the guide's Chardith is called after a sacrifice; Terathin speaks only every fifteen minutes). The weapon the jeweled chest shows is chosen at the end, with the ability. The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-4-evil/L49-<class>)."
   },
   {
    "key": "30,40,49/group-5-evil/L30-a",
@@ -8134,36 +7720,14 @@
       }
      ],
      "journal": "Show the Thulian circlet, the wraps of Bertoxxulous and the Hatesplint jerkin to Director Holman.",
-     "says": "All three. Keep them; you have earned them, and this besides. Your path is yours.",
+     "says": "All three. Keep them; you have earned them, and this besides. Your path is yours. Honan, Horga, G'Nera or Nime has your reward, as your calling is.",
      "rewards": {
-      "xp": 7890859,
-      "byclass": {
-       "0": {
-        "spells": [
-         "Roar"
-        ]
-       },
-       "8": {
-        "spells": [
-         "Sickening Wind"
-        ]
-       },
-       "13": {
-        "spells": [
-         "Static Clash"
-        ]
-       },
-       "14": {
-        "spells": [
-         "Teacher's Knack"
-        ]
-       }
-      }
+      "xp": 7890859
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Quest completion (github.com/Jadiction/EQOA-Data, MIT). Holman gives the path reward (the guide: Warlord Honan for warriors, Mystic Horga for shamans, Sorceress G'Nera for wizards, Sorceress Nime for alchemists). The abilities are the first on each class's line (the warrior's Roar after Bellow, the shaman's Sickening Wind after Decaying Wind, the wizard's Static Clash after Blazing Clash, the alchemist's Teacher's Knack after Student's Knack). The player keeps the three items."
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Quest completion (github.com/Jadiction/EQOA-Data, MIT). The player keeps the three items. The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-5-evil/L30-<class>)."
   },
   {
    "key": "30,40,49/group-5-evil/L40-a",
@@ -8439,47 +8003,16 @@
       }
      ],
      "journal": "Bring Oakhollow's heart and the empty bottle to Zentar Reese.",
-     "says": "I will break the heart upon the altar myself, and keep what held my son. Take what you have earned.",
+     "says": "I will break the heart upon the altar myself, and keep what held my son. Take what you have earned. Speak with me again for your reward.",
      "rewards": {
-      "xp": 14919719,
-      "byclass": {
-       "14": {
-        "spells": [
-         "Professor's Knack"
-        ]
-       },
-       "8": {
-        "spells": [
-         "Wilting Wind"
-        ],
-        "items": [
-         "Darkflame Spear"
-        ]
-       },
-       "0": {
-        "spells": [
-         "Howl"
-        ],
-        "items": [
-         "Calamitous Falchion"
-        ]
-       },
-       "13": {
-        "spells": [
-         "Freezing Clash"
-        ],
-        "items": [
-         "Blightbringer's Staff"
-        ]
-       }
-      }
+      "xp": 14919719
      }
     }
    ],
    "unresolved": [
     "Forces of Nature"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 40, Zentar's Plan and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The tree and the altar are places to reach (EQOA-Data's map points); the golden fruit is the tree's popup, and Zentar breaks the heart (the guide: the player, at the altar). Oakhollow stands by the altar always. The choices: the first (the shaman's second, Wilting Wind and the Darkflame Spear, as its line: the first, Spirit Focus, is no spell here; missing weapons made like one of the kind and level)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 40, Zentar's Plan and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The tree and the altar are places to reach (EQOA-Data's map points); the golden fruit is the tree's popup, and Zentar breaks the heart (the guide: the player, at the altar). Oakhollow stands by the altar always. The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-5-evil/L40-<class>)."
   },
   {
    "key": "30,40,49/group-5-evil/L49-a",
@@ -8871,53 +8404,16 @@
       }
      ],
      "journal": "Bring the ice chunk to Zentar Reese.",
-     "says": "It is over. Take your reward, and when you have grown to the height of your power, the Recruiter will have work for you.",
+     "says": "It is over. Take your reward, and when you have grown to the height of your power, the Recruiter will have work for you. Your reward waits with Honan, Elder Gabgug, Brindy Roro or G'Nera, as your calling is.",
      "rewards": {
-      "xp": 45558313,
-      "byclass": {
-       "14": {
-        "spells": [
-         "Dean's Knack"
-        ],
-        "items": [
-         "Metamorphic Robes"
-        ]
-       },
-       "8": {
-        "spells": [
-         "Withering Wind"
-        ],
-        "items": [
-         "Cudgel of the Spirit Guide"
-        ]
-       },
-       "0": {
-        "spells": [
-         "Battlecry"
-        ],
-        "items": [
-         "Steelwind"
-        ]
-       },
-       "13": {
-        "spells": [
-         "Burning Clash"
-        ],
-        "items": [
-         "Pulsaric Rod"
-        ]
-       }
-      },
-      "items": [
-       "letter to the Freeport Recruiter"
-      ]
+      "xp": 45558313
      }
     }
    ],
    "unresolved": [
     "Parathior (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky); the server's Parathior is made attackable by this set's seed. Zentar gives the final rewards; the guide's class NPCs (warriors the four warlords in Anu Village, shamans Elder Gabgug in Guardian Forest, alchemists Brindy Roro in Highpass) and their approval visits are not in. Oransan holds the first two seals already (the guide); Zentar's star and gear go to Oransan's ritual with the two the player took. Epic weapons: epics_49.json's first."
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky); the server's Parathior is made attackable by this set's seed. Oransan holds the first two seals already (the guide); Zentar's star and gear go to Oransan's ritual with the two the player took. The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-5-evil/L49-<class>)."
   },
   {
    "key": "30,40,49/group-6-evil/L30-a",
@@ -9201,40 +8697,14 @@
       }
      ],
      "journal": "Bring Gut Ripper's collar to Count Luvincius.",
-     "says": "Chik'Nar will understand that. Take what you have earned.",
+     "says": "Chik'Nar will understand that. Take what you have earned. Speak with me again for your reward.",
      "rewards": {
-      "xp": 7890859,
-      "byclass": {
-       "10": {
-        "spells": [
-         "Burning Mark"
-        ],
-        "items": [
-         "Wolfbane Staff"
-        ]
-       },
-       "11": {
-        "spells": [
-         "Blood Squall"
-        ],
-        "items": [
-         "Sickle of the Wolf"
-        ]
-       },
-       "3": {
-        "spells": [
-         "Bloodraven"
-        ],
-        "items": [
-         "Claymore of the Shadow Wolf"
-        ]
-       }
-      }
+      "xp": 7890859
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Gutripper and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The guide names only weapons; the ability is EQOA-Data's level 30 quest spell on the class's line. Weapons: the first that exists here (necromancers the Sickle of the Wolf), the magician's Wolfbane Staff made like a staff of the level."
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Gutripper and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-6-evil/L30-<class>)."
   },
   {
    "key": "30,40,49/group-6-evil/L40-a",
@@ -9539,31 +9009,14 @@
       }
      ],
      "journal": "Bring Chareek's head to Count Luvincius.",
-     "says": "The frogloks will remember this. Take what you have earned.",
+     "says": "The frogloks will remember this. Take what you have earned. Speak with me again for your reward.",
      "rewards": {
-      "xp": 14919719,
-      "byclass": {
-       "10": {
-        "spells": [
-         "Earthen Mark"
-        ]
-       },
-       "11": {
-        "spells": [
-         "Blood Storm"
-        ]
-       },
-       "3": {
-        "spells": [
-         "Bloodleech"
-        ]
-       }
-      }
+      "xp": 14919719
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 40, Froglok Tactician and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Chareek can be fought from the first (the guide's is unattackable until spoken to); the guide's hide is not asked. The choices: the ability on the class's line (magicians the second, Earthen Mark, the mark line; necromancers' and shadowknights' first); the guide names no weapons."
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 40, Froglok Tactician and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Chareek can be fought from the first (the guide's is unattackable until spoken to); the guide's hide is not asked. The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-6-evil/L40-<class>)."
   },
   {
    "key": "30,40,49/group-6-evil/L49-a",
@@ -9976,17 +9429,17 @@
       }
      ],
      "journal": "Bring the three phylacteries to Archmagus Terathin.",
-     "says": "All three. Choose your weapon from the jeweled chest; then speak to me, and I will call him."
+     "says": "All three. Look into the jeweled chest; then speak to me, and I will call him."
     },
     {
      "kind": "talk",
      "target": "Jeweled Chest",
-     "journal": "Open the jeweled chest beside Archmagus Terathin and choose your weapon.",
+     "journal": "Look into the jeweled chest beside Archmagus Terathin.",
      "events": [
       {
        "on": "done",
        "do": "popup",
-       "text": "You choose your weapon from the jeweled chest. It will be yours when your path is done. The choice is final."
+       "text": "The jeweled chest holds the weapons of your path. You will choose one when your path is done."
       }
      ]
     },
@@ -10019,43 +9472,5237 @@
       }
      ],
      "journal": "Bring the bone of Chardith to Count Luvincius.",
-     "says": "Chardith is gone, and your path is yours. Take what you have earned. When you have grown to the height of your power, the Recruiter will have work for you.",
+     "says": "Chardith is gone, and your path is yours. Take what you have earned. When you have grown to the height of your power, the Recruiter will have work for you. Speak with me again for your reward.",
      "rewards": {
-      "xp": 45558313,
-      "byclass": {
-       "10": {
+      "xp": 45558313
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 49, To Summon Chardith and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Lord Chardith and the three magi stand in the basement always (the guide's Chardith is called after a sacrifice; Terathin speaks only every fifteen minutes). The weapon the jeweled chest shows is chosen at the end, with the ability. The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-6-evil/L49-<class>)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-paladin",
+   "name": "The Paladin's Reward, Level 30",
+   "giver": "Sir Arik Lightfire",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sir Arik Lightfire",
+     "journal": "Choose your level 30 path reward from Sir Arik Lightfire.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Gleaming Bastion and the Sword of Purity",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Gleaming Bastion"
+        ],
+        "items": [
+         "Sword of Purity"
+        ]
+       }
+      },
+      {
+       "answer": "Gleaming Bastion and the Hammer of Humility",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Gleaming Bastion"
+        ],
+        "items": [
+         "Hammer of Humility"
+        ]
+       }
+      },
+      {
+       "answer": "Secure and the Sword of Purity",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Secure"
+        ],
+        "items": [
+         "Sword of Purity"
+        ]
+       }
+      },
+      {
+       "answer": "Secure and the Hammer of Humility",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Secure"
+        ],
+        "items": [
+         "Hammer of Humility"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The paladin's choice of the level's reward, from Sir Arik Lightfire once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-bard",
+   "name": "The Bard's Reward, Level 30",
+   "giver": "Thumgrim Stoutshield",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Thumgrim Stoutshield",
+     "journal": "Choose your level 30 path reward from Thumgrim Stoutshield.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Power Twist and the Rapier of Rapidity",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Twist"
+        ],
+        "items": [
+         "Rapier of Rapidity"
+        ]
+       }
+      },
+      {
+       "answer": "Power Twist and the Shimmering Saber",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Twist"
+        ],
+        "items": [
+         "Shimmering Saber"
+        ]
+       }
+      },
+      {
+       "answer": "Flowing Combat and the Rapier of Rapidity",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Flowing Combat"
+        ],
+        "items": [
+         "Rapier of Rapidity"
+        ]
+       }
+      },
+      {
+       "answer": "Flowing Combat and the Shimmering Saber",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Flowing Combat"
+        ],
+        "items": [
+         "Shimmering Saber"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Thumgrim Stoutshield",
+    "Thumgrim Stoutshield"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The bard's choice of the level's reward, from Thumgrim Stoutshield once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-cleric",
+   "name": "The Cleric's Reward, Level 30",
+   "giver": "Elowyn Dawnspring",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elowyn Dawnspring",
+     "journal": "Choose your level 30 path reward from Elowyn Dawnspring.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Poison Ward and the Holy Forgehammer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Poison Ward"
+        ],
+        "items": [
+         "Holy Forgehammer"
+        ]
+       }
+      },
+      {
+       "answer": "Poison Ward and the Benevolent Battlehammer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Poison Ward"
+        ],
+        "items": [
+         "Benevolent Battlehammer"
+        ]
+       }
+      },
+      {
+       "answer": "Bind Wounds and the Holy Forgehammer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Bind Wounds"
+        ],
+        "items": [
+         "Holy Forgehammer"
+        ]
+       }
+      },
+      {
+       "answer": "Bind Wounds and the Benevolent Battlehammer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Bind Wounds"
+        ],
+        "items": [
+         "Benevolent Battlehammer"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The cleric's choice of the level's reward, from Elowyn Dawnspring once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-wizard",
+   "name": "The Wizard's Reward, Level 30",
+   "giver": "Erilous Skypyre",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Choose your level 30 path reward from Erilous Skypyre.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Static Clash and the Staff of Tears",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Static Clash"
+        ],
+        "items": [
+         "Staff of Tears"
+        ]
+       }
+      },
+      {
+       "answer": "Static Clash and the Rod of Power",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Static Clash"
+        ],
+        "items": [
+         "Rod of Power"
+        ]
+       }
+      },
+      {
+       "answer": "Mental Surge and the Staff of Tears",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Mental Surge"
+        ],
+        "items": [
+         "Staff of Tears"
+        ]
+       }
+      },
+      {
+       "answer": "Mental Surge and the Rod of Power",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Mental Surge"
+        ],
+        "items": [
+         "Rod of Power"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The wizard's choice of the level's reward, from Erilous Skypyre once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-alchemist",
+   "name": "The Alchemist's Reward, Level 30",
+   "giver": "Erilous Skypyre",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Choose your level 30 path reward from Erilous Skypyre.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Teacher's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Teacher's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Moradhim Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Moradhim Cocktail"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The alchemist's choice of the level's reward, from Erilous Skypyre once the level's path quest is done: the guide names no weapon; the abilities are EQOA-Data's level 30 quest spells. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L40-paladin",
+   "name": "The Paladin's Reward, Level 40",
+   "giver": "Sir Arik Lightfire",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sir Arik Lightfire",
+     "journal": "Choose your level 40 path reward from Sir Arik Lightfire.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Hallowed Bastion and the Blade of the Righteous",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Hallowed Bastion"
+        ],
+        "items": [
+         "Blade of the Righteous"
+        ]
+       }
+      },
+      {
+       "answer": "Hallowed Bastion and the Hammer of Virtue",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Hallowed Bastion"
+        ],
+        "items": [
+         "Hammer of Virtue"
+        ]
+       }
+      },
+      {
+       "answer": "Bolster and the Blade of the Righteous",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Bolster"
+        ],
+        "items": [
+         "Blade of the Righteous"
+        ]
+       }
+      },
+      {
+       "answer": "Bolster and the Hammer of Virtue",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Bolster"
+        ],
+        "items": [
+         "Hammer of Virtue"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The paladin's choice of the level's reward, from Sir Arik Lightfire once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 40 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L40-bard",
+   "name": "The Bard's Reward, Level 40",
+   "giver": "Thumgrim Stoutshield",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Thumgrim Stoutshield",
+     "journal": "Choose your level 40 path reward from Thumgrim Stoutshield.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Power Jig and the Strike of Harmony",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Jig"
+        ],
+        "items": [
+         "Strike of Harmony"
+        ]
+       }
+      },
+      {
+       "answer": "Power Jig and the Slash of Resonance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Jig"
+        ],
+        "items": [
+         "Slash of Resonance"
+        ]
+       }
+      },
+      {
+       "answer": "Fluid Combat and the Strike of Harmony",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Fluid Combat"
+        ],
+        "items": [
+         "Strike of Harmony"
+        ]
+       }
+      },
+      {
+       "answer": "Fluid Combat and the Slash of Resonance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Fluid Combat"
+        ],
+        "items": [
+         "Slash of Resonance"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Thumgrim Stoutshield",
+    "Thumgrim Stoutshield"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The bard's choice of the level's reward, from Thumgrim Stoutshield once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 40 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L40-cleric",
+   "name": "The Cleric's Reward, Level 40",
+   "giver": "Elowyn Dawnspring",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elowyn Dawnspring",
+     "journal": "Choose your level 40 path reward from Elowyn Dawnspring.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Flame Ward and the Hallowed Morningstar",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Flame Ward"
+        ],
+        "items": [
+         "Hallowed Morningstar"
+        ]
+       }
+      },
+      {
+       "answer": "Flame Ward and the Sacrosanct Warhammer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Flame Ward"
+        ],
+        "items": [
+         "Sacrosanct Warhammer"
+        ]
+       }
+      },
+      {
+       "answer": "Quick Stitching and the Hallowed Morningstar",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Quick Stitching"
+        ],
+        "items": [
+         "Hallowed Morningstar"
+        ]
+       }
+      },
+      {
+       "answer": "Quick Stitching and the Sacrosanct Warhammer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Quick Stitching"
+        ],
+        "items": [
+         "Sacrosanct Warhammer"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The cleric's choice of the level's reward, from Elowyn Dawnspring once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 40 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L40-wizard",
+   "name": "The Wizard's Reward, Level 40",
+   "giver": "Erilous Skypyre",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Choose your level 40 path reward from Erilous Skypyre.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Freezing Clash and the War Wizard's Staff",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Freezing Clash"
+        ],
+        "items": [
+         "War Wizard's Staff"
+        ]
+       }
+      },
+      {
+       "answer": "Freezing Clash and the Wand of War",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Freezing Clash"
+        ],
+        "items": [
+         "Wand of War"
+        ]
+       }
+      },
+      {
+       "answer": "Mental Boost and the War Wizard's Staff",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Mental Boost"
+        ],
+        "items": [
+         "War Wizard's Staff"
+        ]
+       }
+      },
+      {
+       "answer": "Mental Boost and the Wand of War",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Mental Boost"
+        ],
+        "items": [
+         "Wand of War"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The wizard's choice of the level's reward, from Erilous Skypyre once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 40 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L40-alchemist",
+   "name": "The Alchemist's Reward, Level 40",
+   "giver": "Erilous Skypyre",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Choose your level 40 path reward from Erilous Skypyre.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Professor's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Professor's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Neriak Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Neriak Cocktail"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The alchemist's choice of the level's reward, from Erilous Skypyre once the level's path quest is done: the guide names no weapon; the abilities are EQOA-Data's level 40 quest spells. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L49-paladin",
+   "name": "The Paladin's Reward, Level 49",
+   "giver": "Sir Arik Lightfire",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sir Arik Lightfire",
+     "journal": "Choose your level 49 path ability from Sir Arik Lightfire.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Sacred Bastion",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Sacred Bastion"
+        ]
+       }
+      },
+      {
+       "answer": "Reinforce",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Reinforce"
+        ]
+       }
+      },
+      {
+       "answer": "Blessed Bastion",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Blessed Bastion"
+        ]
+       }
+      },
+      {
+       "answer": "Bulwark",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Bulwark"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Sir Arik Lightfire",
+     "journal": "Choose your level 49 weapon from Sir Arik Lightfire.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Judgement",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Judgement"
+        ]
+       }
+      },
+      {
+       "answer": "The Virtus Ferrum",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Virtus Ferrum"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The paladin's choice of the level's reward, from Sir Arik Lightfire once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L49-bard",
+   "name": "The Bard's Reward, Level 49",
+   "giver": "Kaldesh Illinor",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Kaldesh Illinor",
+     "journal": "Choose your level 49 path ability from Kaldesh Illinor.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Power Grove",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Grove"
+        ]
+       }
+      },
+      {
+       "answer": "Decisive Combat",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Decisive Combat"
+        ]
+       }
+      },
+      {
+       "answer": "Power Vibe",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Vibe"
+        ]
+       }
+      },
+      {
+       "answer": "Elegant Combat",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Elegant Combat"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Kaldesh Illinor",
+     "journal": "Choose your level 49 weapon from Kaldesh Illinor.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Ballad of Mithril",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Ballad of Mithril"
+        ]
+       }
+      },
+      {
+       "answer": "The Selo's Jeweled Rapier",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Selo's Jeweled Rapier"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The bard's choice of the level's reward, from Kaldesh Illinor once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L49-cleric",
+   "name": "The Cleric's Reward, Level 49",
+   "giver": "Elowyn Dawnspring",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elowyn Dawnspring",
+     "journal": "Choose your level 49 path reward from Elowyn Dawnspring.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Hammer of Absolution",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Hammer of Absolution"
+        ]
+       }
+      },
+      {
+       "answer": "The Mace of Repentence",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Mace of Repentence"
+        ]
+       }
+      }
+     ],
+     "rewards": {
+      "spells": [
+       "First Aid"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The cleric's choice of the level's reward, from Elowyn Dawnspring once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L49-wizard",
+   "name": "The Wizard's Reward, Level 49",
+   "giver": "Erilous Skypyre",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Choose your level 49 path ability from Erilous Skypyre.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Burning Clash",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Burning Clash"
+        ]
+       }
+      },
+      {
+       "answer": "Heightened Mind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Heightened Mind"
+        ]
+       }
+      },
+      {
+       "answer": "Shocking Clash",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Shocking Clash"
+        ]
+       }
+      },
+      {
+       "answer": "Towering Mind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Towering Mind"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Choose your level 49 weapon from Erilous Skypyre.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Pulsaric Rod",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Pulsaric Rod"
+        ]
+       }
+      },
+      {
+       "answer": "The Staff of Nebula",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Staff of Nebula"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The wizard's choice of the level's reward, from Erilous Skypyre once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L49-alchemist",
+   "name": "The Alchemist's Reward, Level 49",
+   "giver": "Erilous Skypyre",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Choose your level 49 path ability from Erilous Skypyre.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Dean's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Dean's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Freeport Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Freeport Cocktail"
+        ]
+       }
+      },
+      {
+       "answer": "Inventor's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Inventor's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Qeynos Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Qeynos Cocktail"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Choose your level 49 weapon from Erilous Skypyre.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Metamorphic Robes",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Metamorphic Robes"
+        ]
+       }
+      },
+      {
+       "answer": "The Odan's Bonded Gloves",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Odan's Bonded Gloves"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The alchemist's choice of the level's reward, from Erilous Skypyre once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-warrior",
+   "name": "The Warrior's Reward, Level 30",
+   "giver": "Hilarn Strongfist",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Hilarn Strongfist",
+     "journal": "Choose your level 30 path reward from Hilarn Strongfist.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Roar and the Lycaon Slasher",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Roar"
+        ],
+        "items": [
+         "Lycaon Slasher"
+        ]
+       }
+      },
+      {
+       "answer": "Roar and the Spirit Dancer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Roar"
+        ],
+        "items": [
+         "Spirit Dancer"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Strength and the Lycaon Slasher",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Pillar of Strength"
+        ],
+        "items": [
+         "Lycaon Slasher"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Strength and the Spirit Dancer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Pillar of Strength"
+        ],
+        "items": [
+         "Spirit Dancer"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Hilarn Strongfist",
+    "Hilarn Strongfist"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The warrior's choice of the level's reward, from Hilarn Strongfist once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-rogue",
+   "name": "The Rogue's Reward, Level 30",
+   "giver": "Tralum Lelam",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Tralum Lelam",
+     "journal": "Choose your level 30 path reward from Tralum Lelam.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Evasion and the Black Tainted Knife",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Evasion"
+        ],
+        "items": [
+         "Black Tainted Knife"
+        ]
+       }
+      },
+      {
+       "answer": "Evasion and the Wolf Fang Knife",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Evasion"
+        ],
+        "items": [
+         "Wolf Fang Knife"
+        ]
+       }
+      },
+      {
+       "answer": "Lesser Wound and the Black Tainted Knife",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Lesser Wound"
+        ],
+        "items": [
+         "Black Tainted Knife"
+        ]
+       }
+      },
+      {
+       "answer": "Lesser Wound and the Wolf Fang Knife",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Lesser Wound"
+        ],
+        "items": [
+         "Wolf Fang Knife"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Tralum Lelam",
+    "Tralum Lelam"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The rogue's choice of the level's reward, from Tralum Lelam once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-shaman",
+   "name": "The Shaman's Reward, Level 30",
+   "giver": "Sean Warlot",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sean Warlot",
+     "journal": "Choose your level 30 path reward from Sean Warlot.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Sickening Wind and the Skin Turned Kris",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Sickening Wind"
+        ],
+        "items": [
+         "Skin Turned Kris"
+        ]
+       }
+      },
+      {
+       "answer": "Sickening Wind and the Rabid Berserker",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Sickening Wind"
+        ],
+        "items": [
+         "Rabid Berserker"
+        ]
+       }
+      },
+      {
+       "answer": "Spiritual Guard and the Skin Turned Kris",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Spiritual Guard"
+        ],
+        "items": [
+         "Skin Turned Kris"
+        ]
+       }
+      },
+      {
+       "answer": "Spiritual Guard and the Rabid Berserker",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Spiritual Guard"
+        ],
+        "items": [
+         "Rabid Berserker"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Sean Warlot",
+    "Sean Warlot"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The shaman's choice of the level's reward, from Sean Warlot once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-enchanter",
+   "name": "The Enchanter's Reward, Level 30",
+   "giver": "Trillon Zeber",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Trillon Zeber",
+     "journal": "Choose your level 30 path reward from Trillon Zeber.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Expansive Mind and the Lycaon Beheader",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Expansive Mind"
+        ],
+        "items": [
+         "Lycaon Beheader"
+        ]
+       }
+      },
+      {
+       "answer": "Expansive Mind and the Tainted Black Wand",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Expansive Mind"
+        ],
+        "items": [
+         "Tainted Black Wand"
+        ]
+       }
+      },
+      {
+       "answer": "Power Jet and the Lycaon Beheader",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Jet"
+        ],
+        "items": [
+         "Lycaon Beheader"
+        ]
+       }
+      },
+      {
+       "answer": "Power Jet and the Tainted Black Wand",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Jet"
+        ],
+        "items": [
+         "Tainted Black Wand"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Trillon Zeber",
+    "Trillon Zeber"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Trillon Zeber once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L40-warrior",
+   "name": "The Warrior's Reward, Level 40",
+   "giver": "Dixxon Tristar",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Choose your level 40 path reward from Dixxon Tristar.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Howl and the Daywalkers' Revenge",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Howl"
+        ],
+        "items": [
+         "Daywalkers' Revenge"
+        ]
+       }
+      },
+      {
+       "answer": "Howl and the Blood Drainer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Howl"
+        ],
+        "items": [
+         "Blood Drainer"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Force and the Daywalkers' Revenge",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Pillar of Force"
+        ],
+        "items": [
+         "Daywalkers' Revenge"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Force and the Blood Drainer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Pillar of Force"
+        ],
+        "items": [
+         "Blood Drainer"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The warrior's choice of the level's reward, from Dixxon Tristar once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 40 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L40-rogue",
+   "name": "The Rogue's Reward, Level 40",
+   "giver": "Dixxon Tristar",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Choose your level 40 path reward from Dixxon Tristar.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Evade and the Eagle Eye Sept",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Evade"
+        ],
+        "items": [
+         "Eagle Eye Sept"
+        ]
+       }
+      },
+      {
+       "answer": "Evade and the Saber of Canis",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Evade"
+        ],
+        "items": [
+         "Saber of Canis"
+        ]
+       }
+      },
+      {
+       "answer": "Wound and the Eagle Eye Sept",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Wound"
+        ],
+        "items": [
+         "Eagle Eye Sept"
+        ]
+       }
+      },
+      {
+       "answer": "Wound and the Saber of Canis",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Wound"
+        ],
+        "items": [
+         "Saber of Canis"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The rogue's choice of the level's reward, from Dixxon Tristar once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 40 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L40-shaman",
+   "name": "The Shaman's Reward, Level 40",
+   "giver": "Dixxon Tristar",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Choose your level 40 path reward from Dixxon Tristar.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Wilting Wind and the Daywalkers' Demise",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Wilting Wind"
+        ],
+        "items": [
+         "Daywalkers' Demise"
+        ]
+       }
+      },
+      {
+       "answer": "Wilting Wind and the Spear of Darkness",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Wilting Wind"
+        ],
+        "items": [
+         "Spear of Darkness"
+        ]
+       }
+      },
+      {
+       "answer": "Spiritual Hunter and the Daywalkers' Demise",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Spiritual Hunter"
+        ],
+        "items": [
+         "Daywalkers' Demise"
+        ]
+       }
+      },
+      {
+       "answer": "Spiritual Hunter and the Spear of Darkness",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Spiritual Hunter"
+        ],
+        "items": [
+         "Spear of Darkness"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The shaman's choice of the level's reward, from Dixxon Tristar once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 40 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L40-enchanter",
+   "name": "The Enchanter's Reward, Level 40",
+   "giver": "Dixxon Tristar",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Choose your level 40 path reward from Dixxon Tristar.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Limitless Mind and the Hammer of Lightwolf",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Limitless Mind"
+        ],
+        "items": [
+         "Hammer of Lightwolf"
+        ]
+       }
+      },
+      {
+       "answer": "Limitless Mind and the Wand of Mystery",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Limitless Mind"
+        ],
+        "items": [
+         "Wand of Mystery"
+        ]
+       }
+      },
+      {
+       "answer": "Power Surge and the Hammer of Lightwolf",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Surge"
+        ],
+        "items": [
+         "Hammer of Lightwolf"
+        ]
+       }
+      },
+      {
+       "answer": "Power Surge and the Wand of Mystery",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Surge"
+        ],
+        "items": [
+         "Wand of Mystery"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Dixxon Tristar once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 40 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L49-warrior",
+   "name": "The Warrior's Reward, Level 49",
+   "giver": "Hilarn Strongfist",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Hilarn Strongfist",
+     "journal": "Choose your level 49 path ability from Hilarn Strongfist.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Battlecry",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Battlecry"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Heroics",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Pillar of Heroics"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Deeds",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Pillar of Deeds"
+        ]
+       }
+      },
+      {
+       "answer": "Warcry",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Warcry"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Hilarn Strongfist",
+     "journal": "Choose your level 49 weapon from Hilarn Strongfist.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Steelwind",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Steelwind"
+        ]
+       }
+      },
+      {
+       "answer": "The Foereaver",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Foereaver"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Hilarn Strongfist",
+    "Hilarn Strongfist",
+    "Hilarn Strongfist"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The warrior's choice of the level's reward, from Hilarn Strongfist once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L49-rogue",
+   "name": "The Rogue's Reward, Level 49",
+   "giver": "Tralum Lelam",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Tralum Lelam",
+     "journal": "Choose your level 49 path ability from Tralum Lelam.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Elude",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Elude"
+        ]
+       }
+      },
+      {
+       "answer": "Grievous Wound",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Grievous Wound"
+        ]
+       }
+      },
+      {
+       "answer": "Escape",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Escape"
+        ]
+       }
+      },
+      {
+       "answer": "Mortal Wound",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Mortal Wound"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Tralum Lelam",
+     "journal": "Choose your level 49 weapon from Tralum Lelam.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Heartsbane",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Heartsbane"
+        ]
+       }
+      },
+      {
+       "answer": "The Blacktongue",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Blacktongue"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Tralum Lelam",
+    "Tralum Lelam",
+    "Tralum Lelam"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The rogue's choice of the level's reward, from Tralum Lelam once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L49-shaman",
+   "name": "The Shaman's Reward, Level 49",
+   "giver": "Sean Warlot",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sean Warlot",
+     "journal": "Choose your level 49 path reward from Sean Warlot.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Withering Wind and the Cudgel of the Spirit Guide",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Withering Wind"
+        ],
+        "items": [
+         "Cudgel of the Spirit Guide"
+        ]
+       }
+      },
+      {
+       "answer": "Withering Wind and the Spear of Fate",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Withering Wind"
+        ],
+        "items": [
+         "Spear of Fate"
+        ]
+       }
+      },
+      {
+       "answer": "Spiritual Warrior and the Cudgel of the Spirit Guide",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Spiritual Warrior"
+        ],
+        "items": [
+         "Cudgel of the Spirit Guide"
+        ]
+       }
+      },
+      {
+       "answer": "Spiritual Warrior and the Spear of Fate",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Spiritual Warrior"
+        ],
+        "items": [
+         "Spear of Fate"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Sean Warlot",
+    "Sean Warlot"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The shaman's choice of the level's reward, from Sean Warlot once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L49-enchanter",
+   "name": "The Enchanter's Reward, Level 49",
+   "giver": "Trillon Zeber",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Trillon Zeber",
+     "journal": "Choose your level 49 path reward from Trillon Zeber.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Boundless Mind and the Mithril Eagle Rod",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Boundless Mind"
+        ],
+        "items": [
+         "Mithril Eagle Rod"
+        ]
+       }
+      },
+      {
+       "answer": "Boundless Mind and the Glory of Elddar",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Boundless Mind"
+        ],
+        "items": [
+         "Glory of Elddar"
+        ]
+       }
+      },
+      {
+       "answer": "Infinite Mind and the Mithril Eagle Rod",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Infinite Mind"
+        ],
+        "items": [
+         "Mithril Eagle Rod"
+        ]
+       }
+      },
+      {
+       "answer": "Infinite Mind and the Glory of Elddar",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Infinite Mind"
+        ],
+        "items": [
+         "Glory of Elddar"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Trillon Zeber",
+    "Trillon Zeber"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Trillon Zeber once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-ranger",
+   "name": "The Ranger's Reward, Level 30",
+   "giver": "Daresh",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 30 path reward from Daresh.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Raven Eye and the Springwind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Raven Eye"
+        ],
+        "items": [
+         "Springwind"
+        ]
+       }
+      },
+      {
+       "answer": "Raven Eye and the Sapoak Club",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Raven Eye"
+        ],
+        "items": [
+         "Sapoak Club"
+        ]
+       }
+      },
+      {
+       "answer": "Windblade and the Springwind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Windblade"
+        ],
+        "items": [
+         "Springwind"
+        ]
+       }
+      },
+      {
+       "answer": "Windblade and the Sapoak Club",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Windblade"
+        ],
+        "items": [
+         "Sapoak Club"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The ranger's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-monk",
+   "name": "The Monk's Reward, Level 30",
+   "giver": "Daresh",
+   "classes": [
+    4
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 30 path reward from Daresh.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Adamant Stance and the Swiftclaw",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Adamant Stance"
+        ],
+        "items": [
+         "Swiftclaw"
+        ]
+       }
+      },
+      {
+       "answer": "Adamant Stance and the Resounding Staff",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Adamant Stance"
+        ],
+        "items": [
+         "Resounding Staff"
+        ]
+       }
+      },
+      {
+       "answer": "Deft Strike and the Swiftclaw",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Deft Strike"
+        ],
+        "items": [
+         "Swiftclaw"
+        ]
+       }
+      },
+      {
+       "answer": "Deft Strike and the Resounding Staff",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Deft Strike"
+        ],
+        "items": [
+         "Resounding Staff"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The monk's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-druid",
+   "name": "The Druid's Reward, Level 30",
+   "giver": "Daresh",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 30 path reward from Daresh.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Emberspark and the Mishtur's Book",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Emberspark"
+        ],
+        "items": [
+         "Mishtur's Book"
+        ]
+       }
+      },
+      {
+       "answer": "Emberspark and the Stormchaser",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Emberspark"
+        ],
+        "items": [
+         "Stormchaser"
+        ]
+       }
+      },
+      {
+       "answer": "Crawling Health and the Mishtur's Book",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Crawling Health"
+        ],
+        "items": [
+         "Mishtur's Book"
+        ]
+       }
+      },
+      {
+       "answer": "Crawling Health and the Stormchaser",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Crawling Health"
+        ],
+        "items": [
+         "Stormchaser"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The druid's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-magician",
+   "name": "The Magician's Reward, Level 30",
+   "giver": "Daresh",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 30 path reward from Daresh.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Burning Mark and the Sifarus Wand",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Burning Mark"
+        ],
+        "items": [
+         "Sifarus Wand"
+        ]
+       }
+      },
+      {
+       "answer": "Burning Mark and the Staff of Dooog",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Burning Mark"
+        ],
+        "items": [
+         "Staff of Dooog"
+        ]
+       }
+      },
+      {
+       "answer": "Ice Shard and the Sifarus Wand",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Ice Shard"
+        ],
+        "items": [
+         "Sifarus Wand"
+        ]
+       }
+      },
+      {
+       "answer": "Ice Shard and the Staff of Dooog",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Ice Shard"
+        ],
+        "items": [
+         "Staff of Dooog"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The magician's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L40-ranger",
+   "name": "The Ranger's Reward, Level 40",
+   "giver": "Daresh",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 40 path reward from Daresh.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Hawk Eye and the Jadesteel Katana",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Hawk Eye"
+        ],
+        "items": [
+         "Jadesteel Katana"
+        ]
+       }
+      },
+      {
+       "answer": "Shockblade and the Mithril Kama",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Shockblade"
+        ],
+        "items": [
+         "Mithril Kama"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The ranger's choice of the level's reward, from Daresh once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L40-monk",
+   "name": "The Monk's Reward, Level 40",
+   "giver": "Daresh",
+   "classes": [
+    4
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 40 path reward from Daresh.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Iron Stance and the Pinewood Tonfa",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Iron Stance"
+        ],
+        "items": [
+         "Pinewood Tonfa"
+        ]
+       }
+      },
+      {
+       "answer": "Balanced Strike and the Silver-Studded Staff",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Balanced Strike"
+        ],
+        "items": [
+         "Silver-Studded Staff"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The monk's choice of the level's reward, from Daresh once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L40-druid",
+   "name": "The Druid's Reward, Level 40",
+   "giver": "Daresh",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 40 path reward from Daresh.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Inflame and the Inlaid Unicorn Horn",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Inflame"
+        ],
+        "items": [
+         "Inlaid Unicorn Horn"
+        ]
+       }
+      },
+      {
+       "answer": "Verdant Health and the Silver-Banded Club",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Verdant Health"
+        ],
+        "items": [
+         "Silver-Banded Club"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The druid's choice of the level's reward, from Daresh once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L40-magician",
+   "name": "The Magician's Reward, Level 40",
+   "giver": "Daresh",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 40 path reward from Daresh.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Earthen Mark and the Icecrystal Totem",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Earthen Mark"
+        ],
+        "items": [
+         "Icecrystal Totem"
+        ]
+       }
+      },
+      {
+       "answer": "Fiery Pebble and the Crystallized Tome",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Fiery Pebble"
+        ],
+        "items": [
+         "Crystallized Tome"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The magician's choice of the level's reward, from Daresh once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L49-ranger",
+   "name": "The Ranger's Reward, Level 49",
+   "giver": "Daresh",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 49 path ability from Daresh.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Falcon Eye",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Falcon Eye"
+        ]
+       }
+      },
+      {
+       "answer": "Stormblade",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Stormblade"
+        ]
+       }
+      },
+      {
+       "answer": "Eagle Eye",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Eagle Eye"
+        ]
+       }
+      },
+      {
+       "answer": "Natureblade",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Natureblade"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 49 weapon from Daresh.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Pure Emerald Longsword",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Pure Emerald Longsword"
+        ]
+       }
+      },
+      {
+       "answer": "The Scimitar of Fury",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Scimitar of Fury"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The ranger's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L49-monk",
+   "name": "The Monk's Reward, Level 49",
+   "giver": "Daresh",
+   "classes": [
+    4
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 49 path ability from Daresh.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Diamond Stance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Diamond Stance"
+        ]
+       }
+      },
+      {
+       "answer": "Masterful Strike",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Masterful Strike"
+        ]
+       }
+      },
+      {
+       "answer": "Steel Stance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Steel Stance"
+        ]
+       }
+      },
+      {
+       "answer": "Facile Strike",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Facile Strike"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 49 weapon from Daresh.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Ascendant staff",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Ascendant staff"
+        ]
+       }
+      },
+      {
+       "answer": "The Sunsilver Blade",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Sunsilver Blade"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The monk's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L49-druid",
+   "name": "The Druid's Reward, Level 49",
+   "giver": "Daresh",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 49 path ability from Daresh.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Emblaze",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Emblaze"
+        ]
+       }
+      },
+      {
+       "answer": "Blooming Health",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Blooming Health"
+        ]
+       }
+      },
+      {
+       "answer": "Calefaction",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Calefaction"
+        ]
+       }
+      },
+      {
+       "answer": "Flowering Health",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Flowering Health"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 49 weapon from Daresh.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Oak Staff of Eilerawdl",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Oak Staff of Eilerawdl"
+        ]
+       }
+      },
+      {
+       "answer": "The Triad Scimitar",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Triad Scimitar"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The druid's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L49-magician",
+   "name": "The Magician's Reward, Level 49",
+   "giver": "Daresh",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Choose your level 49 path reward from Daresh.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Elemental Mark and the Crystalmana Crosier",
+       "says": "Then it is yours.",
+       "rewards": {
         "spells": [
          "Elemental Mark"
         ],
         "items": [
          "Crystalmana Crosier"
         ]
-       },
-       "11": {
+       }
+      },
+      {
+       "answer": "Elemental Mark and the Rod of Elemental Union",
+       "says": "Then it is yours.",
+       "rewards": {
         "spells": [
-         "Blood Tempest"
+         "Elemental Mark"
         ],
         "items": [
-         "Rod of Consuming Hatred"
-        ]
-       },
-       "3": {
-        "spells": [
-         "Bloodghoul"
-        ],
-        "items": [
-         "Beheader of Isthiak"
+         "Rod of Elemental Union"
         ]
        }
       },
-      "items": [
-       "letter to the Freeport Recruiter"
+      {
+       "answer": "Frost Orb and the Crystalmana Crosier",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Frost Orb"
+        ],
+        "items": [
+         "Crystalmana Crosier"
+        ]
+       }
+      },
+      {
+       "answer": "Frost Orb and the Rod of Elemental Union",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Frost Orb"
+        ],
+        "items": [
+         "Rod of Elemental Union"
+        ]
+       }
+      },
+      {
+       "answer": "Incinerating Aura and the Crystalmana Crosier",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Incinerating Aura"
+        ],
+        "items": [
+         "Crystalmana Crosier"
+        ]
+       }
+      },
+      {
+       "answer": "Incinerating Aura and the Rod of Elemental Union",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Incinerating Aura"
+        ],
+        "items": [
+         "Rod of Elemental Union"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The magician's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30-rogue",
+   "name": "The Rogue's Reward, Level 30",
+   "giver": "Belran Nightrift",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Choose your level 30 path reward from Belran Nightrift.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Evasion and the Steelthorn",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Evasion"
+        ],
+        "items": [
+         "Steelthorn"
+        ]
+       }
+      },
+      {
+       "answer": "Lesser Wound and the Ironspike",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Lesser Wound"
+        ],
+        "items": [
+         "Ironspike"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift",
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The rogue's choice of the level's reward, from Belran Nightrift once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30-cleric",
+   "name": "The Cleric's Reward, Level 30",
+   "giver": "Belran Nightrift",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Choose your level 30 path reward from Belran Nightrift.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Poison Ward and the Dark Priest Warhammer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Poison Ward"
+        ],
+        "items": [
+         "Dark Priest Warhammer"
+        ]
+       }
+      },
+      {
+       "answer": "Bind Wounds and the Dark Priest Hammer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Bind Wounds"
+        ],
+        "items": [
+         "Dark Priest Hammer"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift",
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The cleric's choice of the level's reward, from Belran Nightrift once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30-enchanter",
+   "name": "The Enchanter's Reward, Level 30",
+   "giver": "Belran Nightrift",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Choose your level 30 path reward from Belran Nightrift.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Expansive Mind and the Deceptive Staff",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Expansive Mind"
+        ],
+        "items": [
+         "Deceptive Staff"
+        ]
+       }
+      },
+      {
+       "answer": "Power Jet and the Tainted Crystal Staff",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Jet"
+        ],
+        "items": [
+         "Tainted Crystal Staff"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift",
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Belran Nightrift once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L40-rogue",
+   "name": "The Rogue's Reward, Level 40",
+   "giver": "Belran Nightrift",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Choose your level 40 path reward from Belran Nightrift.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Evade and the Twisted Dagger",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Evade"
+        ],
+        "items": [
+         "Twisted Dagger"
+        ]
+       }
+      },
+      {
+       "answer": "Wound and the Steelsliver",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Wound"
+        ],
+        "items": [
+         "Steelsliver"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift",
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The rogue's choice of the level's reward, from Belran Nightrift once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L40-cleric",
+   "name": "The Cleric's Reward, Level 40",
+   "giver": "Belran Nightrift",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Choose your level 40 path reward from Belran Nightrift.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Flame Ward and the Night Priest Warhammer",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Flame Ward"
+        ],
+        "items": [
+         "Night Priest Warhammer"
+        ]
+       }
+      },
+      {
+       "answer": "Quick Stitching and the Cursed Morning Star",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Quick Stitching"
+        ],
+        "items": [
+         "Cursed Morning Star"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift",
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The cleric's choice of the level's reward, from Belran Nightrift once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L40-enchanter",
+   "name": "The Enchanter's Reward, Level 40",
+   "giver": "Belran Nightrift",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Choose your level 40 path reward from Belran Nightrift.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Limitless Mind and the Enthralling Branch",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Limitless Mind"
+        ],
+        "items": [
+         "Enthralling Branch"
+        ]
+       }
+      },
+      {
+       "answer": "Power Surge and the Dark Visage Rattle",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Surge"
+        ],
+        "items": [
+         "Dark Visage Rattle"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift",
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Belran Nightrift once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L49-rogue",
+   "name": "The Rogue's Reward, Level 49",
+   "giver": "Gribble Greencog",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Gribble Greencog",
+     "journal": "Choose your level 49 path ability from Gribble Greencog.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Elude",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Elude"
+        ]
+       }
+      },
+      {
+       "answer": "Grievous Wound",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Grievous Wound"
+        ]
+       }
+      },
+      {
+       "answer": "Escape",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Escape"
+        ]
+       }
+      },
+      {
+       "answer": "Mortal Wound",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Mortal Wound"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Gribble Greencog",
+     "journal": "Choose your level 49 weapon from Gribble Greencog.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Blacktongue",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Blacktongue"
+        ]
+       }
+      },
+      {
+       "answer": "The Heartsbane",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Heartsbane"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The rogue's choice of the level's reward, from Gribble Greencog once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L49-cleric",
+   "name": "The Cleric's Reward, Level 49",
+   "giver": "Gribble Greencog",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Gribble Greencog",
+     "journal": "Choose your level 49 path reward from Gribble Greencog.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Hammer of Absolution",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Hammer of Absolution"
+        ]
+       }
+      },
+      {
+       "answer": "The Mace of Repentence",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Mace of Repentence"
+        ]
+       }
+      }
+     ],
+     "rewards": {
+      "spells": [
+       "First Aid"
       ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 49, To Summon Chardith and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Lord Chardith and the three magi stand in the basement always (the guide's Chardith is called after a sacrifice; Terathin speaks only every fifteen minutes). The jeweled chest's choice is the class's first weapon, given at the end. The Count gives the final rewards; the guide's class NPCs (necromancers on the bottom floor of his tower, shadowknights at the top of a tower in Zentar's Keep) and the approval notes are not in. Epic weapons are the guide's first."
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The cleric's choice of the level's reward, from Gribble Greencog once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L49-enchanter",
+   "name": "The Enchanter's Reward, Level 49",
+   "giver": "Gribble Greencog",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Gribble Greencog",
+     "journal": "Choose your level 49 path reward from Gribble Greencog.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Boundless Mind and the Glory of Elddar",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Boundless Mind"
+        ],
+        "items": [
+         "Glory of Elddar"
+        ]
+       }
+      },
+      {
+       "answer": "Boundless Mind and the Mithril Eagle Rod",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Boundless Mind"
+        ],
+        "items": [
+         "Mithril Eagle Rod"
+        ]
+       }
+      },
+      {
+       "answer": "Infinite Mind and the Glory of Elddar",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Infinite Mind"
+        ],
+        "items": [
+         "Glory of Elddar"
+        ]
+       }
+      },
+      {
+       "answer": "Infinite Mind and the Mithril Eagle Rod",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Infinite Mind"
+        ],
+        "items": [
+         "Mithril Eagle Rod"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Gribble Greencog once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-warrior",
+   "name": "The Warrior's Reward, Level 30",
+   "giver": "Warlord Honan",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Warlord Honan",
+     "journal": "Choose your level 30 path reward from Warlord Honan.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Roar",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Roar"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Strength",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Pillar of Strength"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The warrior's choice of the level's reward, from Warlord Honan once the level's path quest is done: the guide names no weapon; the abilities are EQOA-Data's level 30 quest spells. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-shaman",
+   "name": "The Shaman's Reward, Level 30",
+   "giver": "Mystic Horga",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Mystic Horga",
+     "journal": "Choose your level 30 path reward from Mystic Horga.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Sickening Wind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Sickening Wind"
+        ]
+       }
+      },
+      {
+       "answer": "Spiritual Guard",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Spiritual Guard"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The shaman's choice of the level's reward, from Mystic Horga once the level's path quest is done: the guide names no weapon; the abilities are EQOA-Data's level 30 quest spells. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-wizard",
+   "name": "The Wizard's Reward, Level 30",
+   "giver": "Sorceress G'Nera",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sorceress G'Nera",
+     "journal": "Choose your level 30 path reward from Sorceress G'Nera.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Static Clash",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Static Clash"
+        ]
+       }
+      },
+      {
+       "answer": "Mental Surge",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Mental Surge"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The wizard's choice of the level's reward, from Sorceress G'Nera once the level's path quest is done: the guide names no weapon; the abilities are EQOA-Data's level 30 quest spells. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-alchemist",
+   "name": "The Alchemist's Reward, Level 30",
+   "giver": "Sorceress Nime",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sorceress Nime",
+     "journal": "Choose your level 30 path reward from Sorceress Nime.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Teacher's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Teacher's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Moradhim Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Moradhim Cocktail"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The alchemist's choice of the level's reward, from Sorceress Nime once the level's path quest is done: the guide names no weapon; the abilities are EQOA-Data's level 30 quest spells. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L40-warrior",
+   "name": "The Warrior's Reward, Level 40",
+   "giver": "Zentar Reese",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Zentar Reese",
+     "journal": "Choose your level 40 path reward from Zentar Reese.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Howl and the Calamitous Falchion",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Howl"
+        ],
+        "items": [
+         "Calamitous Falchion"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Force and the Calamitous Poleaxe",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Pillar of Force"
+        ],
+        "items": [
+         "Calamitous Poleaxe"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The warrior's choice of the level's reward, from Zentar Reese once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L40-shaman",
+   "name": "The Shaman's Reward, Level 40",
+   "giver": "Zentar Reese",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Zentar Reese",
+     "journal": "Choose your level 40 path reward from Zentar Reese.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Spiritual Hunter and the Darkflame Club",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Spiritual Hunter"
+        ],
+        "items": [
+         "Darkflame Club"
+        ]
+       }
+      },
+      {
+       "answer": "Wilting Wind and the Darkflame Spear",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Wilting Wind"
+        ],
+        "items": [
+         "Darkflame Spear"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The shaman's choice of the level's reward, from Zentar Reese once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L40-wizard",
+   "name": "The Wizard's Reward, Level 40",
+   "giver": "Zentar Reese",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Zentar Reese",
+     "journal": "Choose your level 40 path reward from Zentar Reese.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Freezing Clash and the Blightbringer's Staff",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Freezing Clash"
+        ],
+        "items": [
+         "Blightbringer's Staff"
+        ]
+       }
+      },
+      {
+       "answer": "Mental Boost and the Blightbringer's Wand",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Mental Boost"
+        ],
+        "items": [
+         "Blightbringer's Wand"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The wizard's choice of the level's reward, from Zentar Reese once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L40-alchemist",
+   "name": "The Alchemist's Reward, Level 40",
+   "giver": "Zentar Reese",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Zentar Reese",
+     "journal": "Choose your level 40 path reward from Zentar Reese.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Professor's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Professor's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Neriak Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Neriak Cocktail"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The alchemist's choice of the level's reward, from Zentar Reese once the level's path quest is done: the guide names abilities only. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L49-warrior",
+   "name": "The Warrior's Reward, Level 49",
+   "giver": "Warlord Honan",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Warlord Honan",
+     "journal": "Choose your level 49 path ability from Warlord Honan.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Battlecry",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Battlecry"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Heroics",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Pillar of Heroics"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Deeds",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Pillar of Deeds"
+        ]
+       }
+      },
+      {
+       "answer": "Warcry",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Warcry"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Warlord Honan",
+     "journal": "Choose your level 49 weapon from Warlord Honan.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Steelwind",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Steelwind"
+        ]
+       }
+      },
+      {
+       "answer": "The Foereaver",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Foereaver"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The warrior's choice of the level's reward, from Warlord Honan once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L49-shaman",
+   "name": "The Shaman's Reward, Level 49",
+   "giver": "Elder Gabgug",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elder Gabgug",
+     "journal": "Choose your level 49 path reward from Elder Gabgug.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Withering Wind and the Cudgel of the Spirit Guide",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Withering Wind"
+        ],
+        "items": [
+         "Cudgel of the Spirit Guide"
+        ]
+       }
+      },
+      {
+       "answer": "Withering Wind and the Spear of Fate",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Withering Wind"
+        ],
+        "items": [
+         "Spear of Fate"
+        ]
+       }
+      },
+      {
+       "answer": "Spiritual Warrior and the Cudgel of the Spirit Guide",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Spiritual Warrior"
+        ],
+        "items": [
+         "Cudgel of the Spirit Guide"
+        ]
+       }
+      },
+      {
+       "answer": "Spiritual Warrior and the Spear of Fate",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Spiritual Warrior"
+        ],
+        "items": [
+         "Spear of Fate"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Elder Gabgug",
+    "Elder Gabgug"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The shaman's choice of the level's reward, from Elder Gabgug once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L49-wizard",
+   "name": "The Wizard's Reward, Level 49",
+   "giver": "Sorceress G'Nera",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sorceress G'Nera",
+     "journal": "Choose your level 49 path ability from Sorceress G'Nera.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Burning Clash",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Burning Clash"
+        ]
+       }
+      },
+      {
+       "answer": "Heightened Mind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Heightened Mind"
+        ]
+       }
+      },
+      {
+       "answer": "Shocking Clash",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Shocking Clash"
+        ]
+       }
+      },
+      {
+       "answer": "Towering Mind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Towering Mind"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Sorceress G'Nera",
+     "journal": "Choose your level 49 weapon from Sorceress G'Nera.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Pulsaric Rod",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Pulsaric Rod"
+        ]
+       }
+      },
+      {
+       "answer": "The Staff of Nebula",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Staff of Nebula"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The wizard's choice of the level's reward, from Sorceress G'Nera once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L49-alchemist",
+   "name": "The Alchemist's Reward, Level 49",
+   "giver": "Brindy Roro",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brindy Roro",
+     "journal": "Choose your level 49 path ability from Brindy Roro.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Dean's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Dean's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Freeport Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Freeport Cocktail"
+        ]
+       }
+      },
+      {
+       "answer": "Inventor's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Inventor's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Qeynos Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Qeynos Cocktail"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Brindy Roro",
+     "journal": "Choose your level 49 weapon from Brindy Roro.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Metamorphic Robes",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Metamorphic Robes"
+        ]
+       }
+      },
+      {
+       "answer": "The Odan's Bonded Gloves",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Odan's Bonded Gloves"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The alchemist's choice of the level's reward, from Brindy Roro once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-shadowknight",
+   "name": "The Shadowknight's Reward, Level 30",
+   "giver": "Count Luvincius",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Choose your level 30 path reward from Count Luvincius.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Bloodraven and the Claymore of the Shadow Wolf",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Bloodraven"
+        ],
+        "items": [
+         "Claymore of the Shadow Wolf"
+        ]
+       }
+      },
+      {
+       "answer": "Bloodraven and the Partisan of Wolf Slaying",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Bloodraven"
+        ],
+        "items": [
+         "Partisan of Wolf Slaying"
+        ]
+       }
+      },
+      {
+       "answer": "Umbral Tower and the Claymore of the Shadow Wolf",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Umbral Tower"
+        ],
+        "items": [
+         "Claymore of the Shadow Wolf"
+        ]
+       }
+      },
+      {
+       "answer": "Umbral Tower and the Partisan of Wolf Slaying",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Umbral Tower"
+        ],
+        "items": [
+         "Partisan of Wolf Slaying"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The shadowknight's choice of the level's reward, from Count Luvincius once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-magician",
+   "name": "The Magician's Reward, Level 30",
+   "giver": "Count Luvincius",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Choose your level 30 path reward from Count Luvincius.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Burning Mark and the Wolfbane Staff",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Burning Mark"
+        ],
+        "items": [
+         "Wolfbane Staff"
+        ]
+       }
+      },
+      {
+       "answer": "Burning Mark and the Wolf Bone Totem",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Burning Mark"
+        ],
+        "items": [
+         "Wolf Bone Totem"
+        ]
+       }
+      },
+      {
+       "answer": "Ice Shard and the Wolfbane Staff",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Ice Shard"
+        ],
+        "items": [
+         "Wolfbane Staff"
+        ]
+       }
+      },
+      {
+       "answer": "Ice Shard and the Wolf Bone Totem",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Ice Shard"
+        ],
+        "items": [
+         "Wolf Bone Totem"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The magician's choice of the level's reward, from Count Luvincius once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-necromancer",
+   "name": "The Necromancer's Reward, Level 30",
+   "giver": "Count Luvincius",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L30"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Choose your level 30 path reward from Count Luvincius.",
+     "says": "You have earned your path's reward. Choose it well.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Blood Squall and the Bone Totem of the Wolf",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Blood Squall"
+        ],
+        "items": [
+         "Bone Totem of the Wolf"
+        ]
+       }
+      },
+      {
+       "answer": "Blood Squall and the Sickle of the Wolf",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Blood Squall"
+        ],
+        "items": [
+         "Sickle of the Wolf"
+        ]
+       }
+      },
+      {
+       "answer": "Power Squall and the Bone Totem of the Wolf",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Squall"
+        ],
+        "items": [
+         "Bone Totem of the Wolf"
+        ]
+       }
+      },
+      {
+       "answer": "Power Squall and the Sickle of the Wolf",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Squall"
+        ],
+        "items": [
+         "Sickle of the Wolf"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The necromancer's choice of the level's reward, from Count Luvincius once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L40-shadowknight",
+   "name": "The Shadowknight's Reward, Level 40",
+   "giver": "Count Luvincius",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Choose your level 40 path reward from Count Luvincius.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Bloodleech",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Bloodleech"
+        ]
+       }
+      },
+      {
+       "answer": "Grim Tower",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Grim Tower"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The shadowknight's choice of the level's reward, from Count Luvincius once the level's path quest is done: the guide names abilities only. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L40-magician",
+   "name": "The Magician's Reward, Level 40",
+   "giver": "Count Luvincius",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Choose your level 40 path reward from Count Luvincius.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Fiery Pebble",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Fiery Pebble"
+        ]
+       }
+      },
+      {
+       "answer": "Earthen Mark",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Earthen Mark"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The magician's choice of the level's reward, from Count Luvincius once the level's path quest is done: the guide names abilities only. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L40-necromancer",
+   "name": "The Necromancer's Reward, Level 40",
+   "giver": "Count Luvincius",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L40"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Choose your level 40 path reward from Count Luvincius.",
+     "says": "Your path grows. Choose what you will carry from here.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Blood Storm",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Blood Storm"
+        ]
+       }
+      },
+      {
+       "answer": "Power Storm",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Storm"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The necromancer's choice of the level's reward, from Count Luvincius once the level's path quest is done: the guide names abilities only. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L49-shadowknight",
+   "name": "The Shadowknight's Reward, Level 49",
+   "giver": "Count Luvincius",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Choose your level 49 path ability from Count Luvincius.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Bloodghoul",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Bloodghoul"
+        ]
+       }
+      },
+      {
+       "answer": "Cursed Tower",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Cursed Tower"
+        ]
+       }
+      },
+      {
+       "answer": "Bloodwraith",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Bloodwraith"
+        ]
+       }
+      },
+      {
+       "answer": "Doom Tower",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Doom Tower"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Choose your level 49 weapon from Count Luvincius.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Beheader of Isthiak",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Beheader of Isthiak"
+        ]
+       }
+      },
+      {
+       "answer": "The Downfall",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Downfall"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The shadowknight's choice of the level's reward, from Count Luvincius once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L49-magician",
+   "name": "The Magician's Reward, Level 49",
+   "giver": "Count Luvincius",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Choose your level 49 path reward from Count Luvincius.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Elemental Mark and the Crystalmana Crosier",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Elemental Mark"
+        ],
+        "items": [
+         "Crystalmana Crosier"
+        ]
+       }
+      },
+      {
+       "answer": "Elemental Mark and the Rod of Elemental Union",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Elemental Mark"
+        ],
+        "items": [
+         "Rod of Elemental Union"
+        ]
+       }
+      },
+      {
+       "answer": "Frost Orb and the Crystalmana Crosier",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Frost Orb"
+        ],
+        "items": [
+         "Crystalmana Crosier"
+        ]
+       }
+      },
+      {
+       "answer": "Frost Orb and the Rod of Elemental Union",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Frost Orb"
+        ],
+        "items": [
+         "Rod of Elemental Union"
+        ]
+       }
+      },
+      {
+       "answer": "Incinerating Aura and the Crystalmana Crosier",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Incinerating Aura"
+        ],
+        "items": [
+         "Crystalmana Crosier"
+        ]
+       }
+      },
+      {
+       "answer": "Incinerating Aura and the Rod of Elemental Union",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Incinerating Aura"
+        ],
+        "items": [
+         "Rod of Elemental Union"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The magician's choice of the level's reward, from Count Luvincius once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L49-necromancer",
+   "name": "The Necromancer's Reward, Level 49",
+   "giver": "Count Luvincius",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L49"
+   ],
+   "offer": "Your word came before you, %p. Your reward is yours to choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Choose your level 49 path ability from Count Luvincius.",
+     "says": "Your path is walked to its end. Choose your ability and your epic weapon.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Blood Tempest",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Blood Tempest"
+        ]
+       }
+      },
+      {
+       "answer": "Power Tempest",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Tempest"
+        ]
+       }
+      },
+      {
+       "answer": "Blood Vortex",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Blood Vortex"
+        ]
+       }
+      },
+      {
+       "answer": "Power Vortex",
+       "says": "Then it is yours.",
+       "rewards": {
+        "spells": [
+         "Power Vortex"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Choose your level 49 weapon from Count Luvincius.",
+     "says": "And your weapon?",
+     "choose": "Which weapon do you take?",
+     "choices": [
+      {
+       "answer": "The Rod of Consuming Hatred",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Rod of Consuming Hatred"
+        ]
+       }
+      },
+      {
+       "answer": "The Sickle of Avhi Escron",
+       "says": "It is yours.",
+       "rewards": {
+        "items": [
+         "Sickle of Avhi Escron"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The necromancer's choice of the level's reward, from Count Luvincius once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
   }
  ],
  "items": [
@@ -10196,12 +14843,6 @@
    "description": "A chunk of Parathior's ice.",
    "notrade": true,
    "like": "ice glyph"
-  },
-  {
-   "name": "letter to the Klick`Anon Recruiter",
-   "description": "Word that the bearer has finished the path of the forty-ninth season.",
-   "notrade": true,
-   "like": "Sealed Letter"
   },
   {
    "name": "Staff of Tears",
@@ -10654,12 +15295,6 @@
    "like": "dull orb"
   },
   {
-   "name": "letter to the Freeport Recruiter",
-   "description": "Word that the bearer has finished the path of the forty-ninth season.",
-   "notrade": true,
-   "like": "Sealed Letter"
-  },
-  {
    "name": "Dark Priest Warhammer",
    "description": "A cleric's warhammer, the reward of the level 30 path.",
    "notrade": true,
@@ -10928,6 +15563,264 @@
    "description": "A magician's staff, the reward of the level 30 path.",
    "notrade": true,
    "like": "Staff of Dooog"
+  },
+  {
+   "name": "Shimmering Saber",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Rapier of Rapidity"
+  },
+  {
+   "name": "Holy Forgehammer",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Benevolent Battlehammer"
+  },
+  {
+   "name": "Rod of Power",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Quarterstaff of Understanding"
+  },
+  {
+   "name": "Blade of the Righteous",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Hammer of Virtue"
+  },
+  {
+   "name": "Slash of Resonance",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Strike of Harmony"
+  },
+  {
+   "name": "Hallowed Morningstar",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Sacrosanct Warhammer"
+  },
+  {
+   "name": "War Wizard's Staff",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Wand of War"
+  },
+  {
+   "name": "Judgement",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Virtus Ferrum"
+  },
+  {
+   "name": "Mace of Repentence",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Hammer of Spite"
+  },
+  {
+   "name": "Staff of Nebula",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Pulsaric Rod"
+  },
+  {
+   "name": "Odan's Bonded Gloves",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Metamorphic Robes"
+  },
+  {
+   "name": "Wolf Fang Knife",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Urchin Spine Dagger"
+  },
+  {
+   "name": "Rabid Berserker",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Bonesmith's Hammer"
+  },
+  {
+   "name": "Tainted Black Wand",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Hallowedmire Relic"
+  },
+  {
+   "name": "Daywalkers' Revenge",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Blood Drainer"
+  },
+  {
+   "name": "Saber of Canis",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Torkark's Edge"
+  },
+  {
+   "name": "Spear of Darkness",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "forest crook"
+  },
+  {
+   "name": "Wand of Mystery",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Rod of Equilibrium"
+  },
+  {
+   "name": "Blacktongue",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Heartsbane"
+  },
+  {
+   "name": "Spear of Fate",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Cudgel of the Spirit Guide"
+  },
+  {
+   "name": "Glory of Elddar",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Mithril Eagle Rod"
+  },
+  {
+   "name": "Sapoak Club",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Snakewood Bow"
+  },
+  {
+   "name": "Resounding Staff",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Swiftclaw"
+  },
+  {
+   "name": "Stormchaser",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Spiritclaw Totem"
+  },
+  {
+   "name": "Sifarus Wand",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Staff of Dooog"
+  },
+  {
+   "name": "Mithril Kama",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Dueling Sabre"
+  },
+  {
+   "name": "Silver-Studded Staff",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Pinewood Tonfa"
+  },
+  {
+   "name": "Silver-Banded Club",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Tome of Turning"
+  },
+  {
+   "name": "Crystallized Tome",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Greetaa"
+  },
+  {
+   "name": "Scimitar of Fury",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Sword of Lords"
+  },
+  {
+   "name": "Sunsilver Blade",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Ascendant staff"
+  },
+  {
+   "name": "Oak Staff of Eilerawdl",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Bloodfyre Morning Star"
+  },
+  {
+   "name": "Rod of Elemental Union",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Crystalmana Crosier"
+  },
+  {
+   "name": "Ironspike",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Urchin Spine Dagger"
+  },
+  {
+   "name": "Tainted Crystal Staff",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Hallowedmire Relic"
+  },
+  {
+   "name": "Steelsliver",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Jagged Rust Dagger"
+  },
+  {
+   "name": "Cursed Morning Star",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Sacrosanct Warhammer"
+  },
+  {
+   "name": "Dark Visage Rattle",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Rod of Equilibrium"
+  },
+  {
+   "name": "Darkflame Club",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "forest crook"
+  },
+  {
+   "name": "Blightbringer's Wand",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Rod of Equilibrium"
+  },
+  {
+   "name": "Partisan of Wolf Slaying",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Claymore of the Shadow Wolf"
+  },
+  {
+   "name": "Wolf Bone Totem",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Staff of Dooog"
+  },
+  {
+   "name": "Bone Totem of the Wolf",
+   "description": "A reward of the path quests.",
+   "notrade": true,
+   "like": "Sickle of the Wolf"
   }
  ]
 }

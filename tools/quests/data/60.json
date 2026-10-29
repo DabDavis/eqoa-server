@@ -5213,7 +5213,7 @@
      "journal": "Open the waterlogged chest at one of the siren camps with the key.",
      "rewards": {
       "items": [
-       "engraved ring"
+       "engraved siren ring"
       ]
      }
     },
@@ -5235,7 +5235,7 @@
      "target": "Animator Jen`Tylis",
      "items": [
       {
-       "item": "engraved ring",
+       "item": "engraved siren ring",
        "count": 1
       }
      ],
@@ -6323,6 +6323,2811 @@
     "ghost of Synder"
    ],
    "notes": "From EQOA-Data Quests/60/evil-healer.json, Episode 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's waves and its letter from the ghost are kill steps and the ghost's words. Epidolous is the server's Ediopolus."
+  },
+  {
+   "key": "60/good-tank/reward-warrior",
+   "name": "The Warrior's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-tank/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Jakai's Rallying Cry",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Jakai's Rallying Cry"
+        ]
+       }
+      },
+      {
+       "answer": "Jakai's Invigorating Bellow",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Jakai's Invigorating Bellow"
+        ]
+       }
+      },
+      {
+       "answer": "Ozmo's Maternal Asperation",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ozmo's Maternal Asperation"
+        ]
+       }
+      },
+      {
+       "answer": "Ozmo's Unrelenting Ridicule",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ozmo's Unrelenting Ridicule"
+        ]
+       }
+      },
+      {
+       "answer": "Warcry",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Warcry"
+        ]
+       }
+      },
+      {
+       "answer": "Punt",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Punt"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Scintillating Chestplate",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Scintillating Chestplate"
+        ]
+       }
+      },
+      {
+       "answer": "The Chestplate of the Icy Whirlwind",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Chestplate of the Icy Whirlwind"
+        ]
+       }
+      },
+      {
+       "answer": "The Chestguard of Dynamism",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Chestguard of Dynamism"
+        ]
+       }
+      },
+      {
+       "answer": "The Miraculous Chestguard",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Miraculous Chestguard"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-tank.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The warrior's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/good-tank/reward-paladin",
+   "name": "The Paladin's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-tank/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Talimus's Diamond Barrier",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Talimus's Diamond Barrier"
+        ]
+       }
+      },
+      {
+       "answer": "Talimus's Adamantine Barrier",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Talimus's Adamantine Barrier"
+        ]
+       }
+      },
+      {
+       "answer": "Ozmo's Infuriating Jeer",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ozmo's Infuriating Jeer"
+        ]
+       }
+      },
+      {
+       "answer": "Ozmo's Careful Teasing",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ozmo's Careful Teasing"
+        ]
+       }
+      },
+      {
+       "answer": "Blessed Bastion",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Blessed Bastion"
+        ]
+       }
+      },
+      {
+       "answer": "Celestial Light",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Celestial Light"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. This is yours.",
+     "rewards": {
+      "items": [
+       "Sword of Virtue"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-tank.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The paladin's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/good-melee/reward-bard",
+   "name": "The Bard's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-melee/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Celedonicus' Inspiring Performance",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Celedonicus' Inspiring Performance"
+        ]
+       }
+      },
+      {
+       "answer": "Celedonicus' Grand Finale",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Celedonicus' Grand Finale"
+        ]
+       }
+      },
+      {
+       "answer": "Staccato Flurry",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Staccato Flurry"
+        ]
+       }
+      },
+      {
+       "answer": "Pulsing Flurry",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Pulsing Flurry"
+        ]
+       }
+      },
+      {
+       "answer": "Power Groove",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Power Groove"
+        ]
+       }
+      },
+      {
+       "answer": "Pandemonium",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Pandemonium"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Blade of Lyrical Refrain",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Blade of Lyrical Refrain"
+        ]
+       }
+      },
+      {
+       "answer": "The Blade of Lyrical Harmony",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Blade of Lyrical Harmony"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-melee.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The bard's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/good-melee/reward-rogue",
+   "name": "The Rogue's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-melee/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Sothimus Critical wounding",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Sothimus Critical wounding"
+        ]
+       }
+      },
+      {
+       "answer": "Sothimus Artiteral Targetting",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Sothimus Artiteral Targetting"
+        ]
+       }
+      },
+      {
+       "answer": "Rashiroz's Perfect Evasion",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Rashiroz's Perfect Evasion"
+        ]
+       }
+      },
+      {
+       "answer": "Rashiroz's Persistent Vanishing",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Rashiroz's Persistent Vanishing"
+        ]
+       }
+      },
+      {
+       "answer": "Mortal Wound",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Mortal Wound"
+        ]
+       }
+      },
+      {
+       "answer": "Strategic Blow",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Strategic Blow"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. This is yours.",
+     "rewards": {
+      "items": [
+       "Tunic of Fierce Flames"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-melee.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The rogue's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/good-melee/reward-ranger",
+   "name": "The Ranger's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-melee/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Graal's Venomus Strike",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Graal's Venomus Strike"
+        ]
+       }
+      },
+      {
+       "answer": "Graal's Final Strike",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Graal's Final Strike"
+        ]
+       }
+      },
+      {
+       "answer": "Gelledyn's Perfect Vision",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Gelledyn's Perfect Vision"
+        ]
+       }
+      },
+      {
+       "answer": "Gelledyn's Feral Imitation",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Gelledyn's Feral Imitation"
+        ]
+       }
+      },
+      {
+       "answer": "Natureblade",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Natureblade"
+        ]
+       }
+      },
+      {
+       "answer": "Glimmering blades",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Glimmering blades"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Axe of Nature's Innocence",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Axe of Nature's Innocence"
+        ]
+       }
+      },
+      {
+       "answer": "The Axe of Nature's Purity",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Axe of Nature's Purity"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-melee.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The ranger's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/good-melee/reward-monk",
+   "name": "The Monk's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    4
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-melee/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Penetrating Blow",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Penetrating Blow"
+        ]
+       }
+      },
+      {
+       "answer": "Staggering Shot",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Staggering Shot"
+        ]
+       }
+      },
+      {
+       "answer": "Melinis' Tranquil Stance",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Melinis' Tranquil Stance"
+        ]
+       }
+      },
+      {
+       "answer": "Melinus' Harmonius Thoughts",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Melinus' Harmonius Thoughts"
+        ]
+       }
+      },
+      {
+       "answer": "Strike of the Serpent",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Strike of the Serpent"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Claws of Insurrection",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Claws of Insurrection"
+        ]
+       }
+      },
+      {
+       "answer": "The Claws of Mayhem",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Claws of Mayhem"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-melee.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The monk's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/good-caster/reward-wizard",
+   "name": "The Wizard's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-caster/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Aktrana's Tower of Will",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Aktrana's Tower of Will"
+        ]
+       }
+      },
+      {
+       "answer": "Aktrana's Cerebral Fortress",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Aktrana's Cerebral Fortress"
+        ]
+       }
+      },
+      {
+       "answer": "Vylinnuza's Tidal Destruction",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Vylinnuza's Tidal Destruction"
+        ]
+       }
+      },
+      {
+       "answer": "Vylinnuza's Merciless Undertow",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Vylinnuza's Merciless Undertow"
+        ]
+       }
+      },
+      {
+       "answer": "Towering Mind",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Towering Mind"
+        ]
+       }
+      },
+      {
+       "answer": "Manaburn",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Manaburn"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Staff of the Enlightened",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Staff of the Enlightened"
+        ]
+       }
+      },
+      {
+       "answer": "The Focus of Mystifying Power",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Focus of Mystifying Power"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Diamond Dust",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Diamond Dust"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Gravity",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Gravity"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Astral Projection",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Astral Projection"
+        ]
+       }
+      },
+      {
+       "answer": "The Robe of Intense Heat",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Robe of Intense Heat"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-caster.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The wizard's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/good-caster/reward-alchemist",
+   "name": "The Alchemist's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-caster/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Severupidus' Cocktail of Torment",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Severupidus' Cocktail of Torment"
+        ]
+       }
+      },
+      {
+       "answer": "Severupidus' Cocktail of Death",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Severupidus' Cocktail of Death"
+        ]
+       }
+      },
+      {
+       "answer": "Visage",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Visage"
+        ]
+       }
+      },
+      {
+       "answer": "Freeport Cocktail",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Freeport Cocktail"
+        ]
+       }
+      },
+      {
+       "answer": "Freezing Mixture",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Freezing Mixture"
+        ]
+       }
+      },
+      {
+       "answer": "Refreshing Concoction",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Refreshing Concoction"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Spectral shroud",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Spectral shroud"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Magnetism",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Magnetism"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Combustion",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Combustion"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Icy Depths",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Icy Depths"
+        ]
+       }
+      },
+      {
+       "answer": "The Robe of Electric Currents",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Robe of Electric Currents"
+        ]
+       }
+      },
+      {
+       "answer": "The Robe of the Chilling Winds",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Robe of the Chilling Winds"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-caster.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The alchemist's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/good-caster/reward-enchanter",
+   "name": "The Enchanter's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-caster/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Ahrianna's Generous Gift",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ahrianna's Generous Gift"
+        ]
+       }
+      },
+      {
+       "answer": "Ahrianna's Blessed Boon",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ahrianna's Blessed Boon"
+        ]
+       }
+      },
+      {
+       "answer": "Jen`Tylis' Overarching Greed",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Jen`Tylis' Overarching Greed"
+        ]
+       }
+      },
+      {
+       "answer": "Jen`Tylis' Lust for Power",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Jen`Tylis' Lust for Power"
+        ]
+       }
+      },
+      {
+       "answer": "Power Flux",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Power Flux"
+        ]
+       }
+      },
+      {
+       "answer": "Eldritch Rune",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Eldritch Rune"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Shroud of Bewitchment",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Bewitchment"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Ignited Energy",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Ignited Energy"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Bitter Winds",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Bitter Winds"
+        ]
+       }
+      },
+      {
+       "answer": "The Robe of Tumultous Storms",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Robe of Tumultous Storms"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-caster.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The enchanter's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/good-caster/reward-magician",
+   "name": "The Magician's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-caster/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Magi`Kot's Good Breeding",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Magi`Kot's Good Breeding"
+        ]
+       }
+      },
+      {
+       "answer": "Magi`Kot's Sacrificial Breeding",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Magi`Kot's Sacrificial Breeding"
+        ]
+       }
+      },
+      {
+       "answer": "Teledic's Chilling Breath",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Teledic's Chilling Breath"
+        ]
+       }
+      },
+      {
+       "answer": "Fine Red Wine",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Fine Red Wine"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Elite Staff of the Summoner",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Elite Staff of the Summoner"
+        ]
+       }
+      },
+      {
+       "answer": "The Focus of the Creator",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Focus of the Creator"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Warmth",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Warmth"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Prestidigitation",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Prestidigitation"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Frostweave",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Frostweave"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Voltage",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Voltage"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-caster.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The magician's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/good-healer/reward-cleric",
+   "name": "The Cleric's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-healer/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Ruddish's Unassailable Faith",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ruddish's Unassailable Faith"
+        ]
+       }
+      },
+      {
+       "answer": "Ruddish's Inspiring Piety",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ruddish's Inspiring Piety"
+        ]
+       }
+      },
+      {
+       "answer": "Mega's Mighty Carapace",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Mega's Mighty Carapace"
+        ]
+       }
+      },
+      {
+       "answer": "Mega's Clutch Ward",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Mega's Clutch Ward"
+        ]
+       }
+      },
+      {
+       "answer": "Ward of Blessings",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ward of Blessings"
+        ]
+       }
+      },
+      {
+       "answer": "Abolish Death",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Abolish Death"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Staff of Divinity",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Staff of Divinity"
+        ]
+       }
+      },
+      {
+       "answer": "The Hammer of Ethereal Conquest",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Hammer of Ethereal Conquest"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-healer.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The cleric's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/good-healer/reward-shaman",
+   "name": "The Shaman's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-healer/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Yalgima's Fearsome Companion",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Yalgima's Fearsome Companion"
+        ]
+       }
+      },
+      {
+       "answer": "Yalgima's Menacing Defender",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Yalgima's Menacing Defender"
+        ]
+       }
+      },
+      {
+       "answer": "Debilitating Hex",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Debilitating Hex"
+        ]
+       }
+      },
+      {
+       "answer": "Sinister Cantrip",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Sinister Cantrip"
+        ]
+       }
+      },
+      {
+       "answer": "Atrophic Wind",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Atrophic Wind"
+        ]
+       }
+      },
+      {
+       "answer": "Ethereal Healing",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ethereal Healing"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Staff of Spiritual Energies",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Staff of Spiritual Energies"
+        ]
+       }
+      },
+      {
+       "answer": "The Hammer of Mystical Enlightenment",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Hammer of Mystical Enlightenment"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-healer.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The shaman's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/good-healer/reward-druid",
+   "name": "The Druid's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/good-healer/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Mai'adra's Steadfast Assistance",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Mai'adra's Steadfast Assistance"
+        ]
+       }
+      },
+      {
+       "answer": "Mai`adra's Unrelenting Hope",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Mai`adra's Unrelenting Hope"
+        ]
+       }
+      },
+      {
+       "answer": "Synder's Burning Hatred",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Synder's Burning Hatred"
+        ]
+       }
+      },
+      {
+       "answer": "Synder's Malevolent Mindset",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Synder's Malevolent Mindset"
+        ]
+       }
+      },
+      {
+       "answer": "Flowering Health",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Flowering Health"
+        ]
+       }
+      },
+      {
+       "answer": "Shield of 1000 Needles",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Shield of 1000 Needles"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Staff of Nature's Blessing",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Staff of Nature's Blessing"
+        ]
+       }
+      },
+      {
+       "answer": "The Bedlam",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Bedlam"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/good-healer.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The druid's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/evil-tank/reward-warrior",
+   "name": "The Warrior's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/evil-tank/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Jakai's Rallying Cry",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Jakai's Rallying Cry"
+        ]
+       }
+      },
+      {
+       "answer": "Jakai's Invigorating Bellow",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Jakai's Invigorating Bellow"
+        ]
+       }
+      },
+      {
+       "answer": "Ozmo's Maternal Asperation",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ozmo's Maternal Asperation"
+        ]
+       }
+      },
+      {
+       "answer": "Ozmo's Unrelenting Ridicule",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ozmo's Unrelenting Ridicule"
+        ]
+       }
+      },
+      {
+       "answer": "Warcry",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Warcry"
+        ]
+       }
+      },
+      {
+       "answer": "Punt",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Punt"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Scintillating Chestplate",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Scintillating Chestplate"
+        ]
+       }
+      },
+      {
+       "answer": "The Chestplate of the Icy Whirlwind",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Chestplate of the Icy Whirlwind"
+        ]
+       }
+      },
+      {
+       "answer": "The Chestguard of Dynamism",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Chestguard of Dynamism"
+        ]
+       }
+      },
+      {
+       "answer": "The Miraculous Chestguard",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Miraculous Chestguard"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/evil-tank.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The warrior's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/evil-tank/reward-shadowknight",
+   "name": "The Shadowknight's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/evil-tank/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Quil'Eyne's Unspeakable Hunger",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Quil'Eyne's Unspeakable Hunger"
+        ]
+       }
+      },
+      {
+       "answer": "Quil'Eyne's Cruel Embrace",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Quil'Eyne's Cruel Embrace"
+        ]
+       }
+      },
+      {
+       "answer": "Ozmo's Echoing Mockery",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ozmo's Echoing Mockery"
+        ]
+       }
+      },
+      {
+       "answer": "Goading Ridicule",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Goading Ridicule"
+        ]
+       }
+      },
+      {
+       "answer": "Doomed Tower",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Doomed Tower"
+        ]
+       }
+      },
+      {
+       "answer": "Infernal Bond",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Infernal Bond"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
+     "says": "Ediopolus sent word. This is yours.",
+     "rewards": {
+      "items": [
+       "Sword of the Contender"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/evil-tank.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The shadowknight's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/evil-melee/reward-rogue",
+   "name": "The Rogue's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/evil-melee/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Sothimus Critical wounding",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Sothimus Critical wounding"
+        ]
+       }
+      },
+      {
+       "answer": "Sothimus Artiteral Targetting",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Sothimus Artiteral Targetting"
+        ]
+       }
+      },
+      {
+       "answer": "Rashiroz's Perfect Evasion",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Rashiroz's Perfect Evasion"
+        ]
+       }
+      },
+      {
+       "answer": "Rashiroz's Persistent Vanishing",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Rashiroz's Persistent Vanishing"
+        ]
+       }
+      },
+      {
+       "answer": "Mortal Wound",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Mortal Wound"
+        ]
+       }
+      },
+      {
+       "answer": "Strategic Blow",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Strategic Blow"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
+     "says": "Ediopolus sent word. This is yours.",
+     "rewards": {
+      "items": [
+       "Tunic of Fierce Flames"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/evil-melee.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The rogue's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/evil-caster/reward-magician",
+   "name": "The Magician's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/evil-caster/ep3-3"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Magi`Kot's Good Breeding",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Magi`Kot's Good Breeding"
+        ]
+       }
+      },
+      {
+       "answer": "Magi`Kot's Sacrificial Breeding",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Magi`Kot's Sacrificial Breeding"
+        ]
+       }
+      },
+      {
+       "answer": "Teledic's Chilling Breath",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Teledic's Chilling Breath"
+        ]
+       }
+      },
+      {
+       "answer": "Fine Red Wine",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Fine Red Wine"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Elite Staff of the Summoner",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Elite Staff of the Summoner"
+        ]
+       }
+      },
+      {
+       "answer": "The Focus of the Creator",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Focus of the Creator"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Warmth",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Warmth"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Prestidigitation",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Prestidigitation"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Frostweave",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Frostweave"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Voltage",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Voltage"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/evil-caster.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The magician's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/evil-caster/reward-necromancer",
+   "name": "The Necromancer's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/evil-caster/ep3-3"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Calidux's Equitable Division",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Calidux's Equitable Division"
+        ]
+       }
+      },
+      {
+       "answer": "Calidux's Insatiable Appetite",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Calidux's Insatiable Appetite"
+        ]
+       }
+      },
+      {
+       "answer": "Boldunder's Mountain Roots",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Boldunder's Mountain Roots"
+        ]
+       }
+      },
+      {
+       "answer": "Boldunder's Personal Mine",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Boldunder's Personal Mine"
+        ]
+       }
+      },
+      {
+       "answer": "Blood Vortex",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Blood Vortex"
+        ]
+       }
+      },
+      {
+       "answer": "Agonize Death",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Agonize Death"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Shroud of Trickery",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Trickery"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Radioactivity",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Radioactivity"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Crystals",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Crystals"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of the Blaze",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of the Blaze"
+        ]
+       }
+      },
+      {
+       "answer": "The Robe of Runic Warding",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Robe of Runic Warding"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/evil-caster.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The necromancer's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/evil-caster/reward-wizard",
+   "name": "The Wizard's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/evil-caster/ep3-3"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Aktrana's Tower of Will",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Aktrana's Tower of Will"
+        ]
+       }
+      },
+      {
+       "answer": "Aktrana's Cerebral Fortress",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Aktrana's Cerebral Fortress"
+        ]
+       }
+      },
+      {
+       "answer": "Vylinnuza's Tidal Destruction",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Vylinnuza's Tidal Destruction"
+        ]
+       }
+      },
+      {
+       "answer": "Vylinnuza's Merciless Undertow",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Vylinnuza's Merciless Undertow"
+        ]
+       }
+      },
+      {
+       "answer": "Towering Mind",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Towering Mind"
+        ]
+       }
+      },
+      {
+       "answer": "Manaburn",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Manaburn"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Staff of the Enlightened",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Staff of the Enlightened"
+        ]
+       }
+      },
+      {
+       "answer": "The Focus of Mystifying Power",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Focus of Mystifying Power"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Diamond Dust",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Diamond Dust"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Gravity",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Gravity"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Astral Projection",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Astral Projection"
+        ]
+       }
+      },
+      {
+       "answer": "The Robe of Intense Heat",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Robe of Intense Heat"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/evil-caster.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The wizard's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/evil-caster/reward-alchemist",
+   "name": "The Alchemist's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/evil-caster/ep3-3"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Severupidus' Cocktail of Torment",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Severupidus' Cocktail of Torment"
+        ]
+       }
+      },
+      {
+       "answer": "Severupidus' Cocktail of Death",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Severupidus' Cocktail of Death"
+        ]
+       }
+      },
+      {
+       "answer": "Visage",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Visage"
+        ]
+       }
+      },
+      {
+       "answer": "Freeport Cocktail",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Freeport Cocktail"
+        ]
+       }
+      },
+      {
+       "answer": "Freezing Mixture",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Freezing Mixture"
+        ]
+       }
+      },
+      {
+       "answer": "Refreshing Concoction",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Refreshing Concoction"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Spectral shroud",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Spectral shroud"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Magnetism",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Magnetism"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Combustion",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Combustion"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Icy Depths",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Icy Depths"
+        ]
+       }
+      },
+      {
+       "answer": "The Robe of Electric Currents",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Robe of Electric Currents"
+        ]
+       }
+      },
+      {
+       "answer": "The Robe of the Chilling Winds",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Robe of the Chilling Winds"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/evil-caster.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The alchemist's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/evil-caster/reward-enchanter",
+   "name": "The Enchanter's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/evil-caster/ep3-3"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Ahrianna's Generous Gift",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ahrianna's Generous Gift"
+        ]
+       }
+      },
+      {
+       "answer": "Ahrianna's Blessed Boon",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ahrianna's Blessed Boon"
+        ]
+       }
+      },
+      {
+       "answer": "Jen`Tylis' Overarching Greed",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Jen`Tylis' Overarching Greed"
+        ]
+       }
+      },
+      {
+       "answer": "Jen`Tylis' Lust for Power",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Jen`Tylis' Lust for Power"
+        ]
+       }
+      },
+      {
+       "answer": "Power Flux",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Power Flux"
+        ]
+       }
+      },
+      {
+       "answer": "Eldritch Rune",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Eldritch Rune"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Shroud of Bewitchment",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Bewitchment"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Ignited Energy",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Ignited Energy"
+        ]
+       }
+      },
+      {
+       "answer": "The Shroud of Bitter Winds",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Shroud of Bitter Winds"
+        ]
+       }
+      },
+      {
+       "answer": "The Robe of Tumultous Storms",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Robe of Tumultous Storms"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/evil-caster.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The enchanter's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/evil-healer/reward-cleric",
+   "name": "The Cleric's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/evil-healer/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Ruddish's Unassailable Faith",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ruddish's Unassailable Faith"
+        ]
+       }
+      },
+      {
+       "answer": "Ruddish's Inspiring Piety",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ruddish's Inspiring Piety"
+        ]
+       }
+      },
+      {
+       "answer": "Mega's Mighty Carapace",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Mega's Mighty Carapace"
+        ]
+       }
+      },
+      {
+       "answer": "Mega's Clutch Ward",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Mega's Clutch Ward"
+        ]
+       }
+      },
+      {
+       "answer": "Ward of Blessings",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ward of Blessings"
+        ]
+       }
+      },
+      {
+       "answer": "Abolish Death",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Abolish Death"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Staff of Divinity",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Staff of Divinity"
+        ]
+       }
+      },
+      {
+       "answer": "The Hammer of Ethereal Conquest",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Hammer of Ethereal Conquest"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/evil-healer.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The cleric's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
+  },
+  {
+   "key": "60/evil-healer/reward-shaman",
+   "name": "The Shaman's Epic Reward",
+   "giver": "Ediopolus",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "60/evil-healer/ep3-2"
+   ],
+   "offer": "You have come far, %p. Sit by the water, and choose.",
+   "accept": "",
+   "decline": "",
+   "declined": "",
+   "started": "",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ediopolus",
+     "journal": "Speak with Ediopolus by the lake outside the Shon-To Monastery, east of Moradhim.",
+     "says": "Your epic is done. Of old I would have taken back your masteries and training first; choose now the ability your path has earned.",
+     "choose": "Which ability do you take?",
+     "choices": [
+      {
+       "answer": "Yalgima's Fearsome Companion",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Yalgima's Fearsome Companion"
+        ]
+       }
+      },
+      {
+       "answer": "Yalgima's Menacing Defender",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Yalgima's Menacing Defender"
+        ]
+       }
+      },
+      {
+       "answer": "Debilitating Hex",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Debilitating Hex"
+        ]
+       }
+      },
+      {
+       "answer": "Sinister Cantrip",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Sinister Cantrip"
+        ]
+       }
+      },
+      {
+       "answer": "Atrophic Wind",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Atrophic Wind"
+        ]
+       }
+      },
+      {
+       "answer": "Ethereal Healing",
+       "says": "It is yours. Now go to the Assistant Recruiter: your weapon waits.",
+       "rewards": {
+        "spells": [
+         "Ethereal Healing"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Recruiter",
+     "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
+     "says": "Ediopolus sent word. Choose.",
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "The Staff of Spiritual Energies",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Staff of Spiritual Energies"
+        ]
+       }
+      },
+      {
+       "answer": "The Hammer of Mystical Enlightenment",
+       "says": "Wear it well.",
+       "rewards": {
+        "items": [
+         "Hammer of Mystical Enlightenment"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/60/evil-healer.json, Episode 3, the end (github.com/Jadiction/EQOA-Data, MIT). The shaman's reward once its episode 3 is done: Ediopolus (the guides' Epidolous, Epidopolous, Eripolus...) by the Shon-To lake offers epics_60.json's path abilities and third spell (its placeholder names left out); his reset of masteries and training points is not in. The item is the guide's \"Prodiga (or similar), right next to the recruiter\": the Assistant Recruiter (of Klick'Anon or Freeport, either), with epics_60.json's items this database has (or two of its names made like a level 60 item of the class)."
   }
  ],
  "items": [
@@ -6469,12 +9274,6 @@
    "description": "The soul of An Ancient Corpse.",
    "notrade": true,
    "like": "dull orb"
-  },
-  {
-   "name": "Calidux's journal",
-   "description": "Alizander's journal, carried by Calidux.",
-   "notrade": true,
-   "like": "Dark Journal"
   },
   {
    "name": "toxic siren gland",
@@ -6681,7 +9480,7 @@
    "like": "damaged robe"
   },
   {
-   "name": "engraved ring",
+   "name": "engraved siren ring",
    "description": "An engraved ring from a siren's chest.",
    "notrade": true,
    "like": "Gaudy Ring"
@@ -6727,6 +9526,54 @@
    "description": "Tilvyis's breastplate, finished: 420 armor, the guide says.",
    "notrade": true,
    "like": "Chestplate of the Transgressor"
+  },
+  {
+   "name": "Staff of Divinity",
+   "description": "An epic reward of the level 60 quests.",
+   "notrade": true,
+   "like": "Staff of the Jade Forest"
+  },
+  {
+   "name": "Hammer of Ethereal Conquest",
+   "description": "An epic reward of the level 60 quests.",
+   "notrade": true,
+   "like": "hammer of the paragon"
+  },
+  {
+   "name": "Staff of Nature's Blessing",
+   "description": "An epic reward of the level 60 quests.",
+   "notrade": true,
+   "like": "Staff of the Jade Forest"
+  },
+  {
+   "name": "Bedlam",
+   "description": "An epic reward of the level 60 quests.",
+   "notrade": true,
+   "like": "hammer of the paragon"
+  },
+  {
+   "name": "Claws of Insurrection",
+   "description": "An epic reward of the level 60 quests.",
+   "notrade": true,
+   "like": "claws of noroxus"
+  },
+  {
+   "name": "Claws of Mayhem",
+   "description": "An epic reward of the level 60 quests.",
+   "notrade": true,
+   "like": "claws of noroxus"
+  },
+  {
+   "name": "Staff of Spiritual Energies",
+   "description": "An epic reward of the level 60 quests.",
+   "notrade": true,
+   "like": "Staff of the Jade Forest"
+  },
+  {
+   "name": "Hammer of Mystical Enlightenment",
+   "description": "An epic reward of the level 60 quests.",
+   "notrade": true,
+   "like": "hammer of the paragon"
   }
  ]
 }

@@ -58,9 +58,10 @@ func (w *World) StatsReport(sess *session.Session, objectID uint32, now time.Tim
 // playerStatsLocked is a player's lines. Must be called with the lock held.
 func (w *World) playerStatsLocked(p *Player, now time.Time) []string {
 	a := archetypeOf(p.Class)
-	out := []string{fmt.Sprintf("%s: level %d %s %s (defends as a %s), HP %d/%d, power %d/%d",
+	_, size := p.Body() // what every client is sent (racesize.go, an illusion's)
+	out := []string{fmt.Sprintf("%s: level %d %s %s (defends as a %s), HP %d/%d, power %d/%d, size %.2f",
 		p.Name, p.Level, nameIn(raceNames, p.Race), nameIn(classNames, p.Class), archNames[a],
-		p.HP, p.MaxHPNow(), p.Power, p.MaxPowerNow())}
+		p.HP, p.MaxHPNow(), p.Power, p.MaxPowerNow(), size)}
 
 	c := &p.CMEffects
 	hp := p.maxHPFor(p.StatNow(StatSta))

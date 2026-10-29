@@ -1,0 +1,597 @@
+{
+  "doc": "What a town's people and the guards of Norrath say when talked to and nothing else answers (go-eqoa-server internal/entity/dialog.go, table npcdialog). Ours, written for this server in EQOA's own voice: the cities' lore as Project Return Home's pages tell it (claude-notes/eqoa-lore.md), the dangers near them as the XP camps' notes have them (handlers/camps.go). Each block's lines are said by the speakers its fields select, an absent field any: town (as its faction names it), role (guard, trader, priest, scholar, worker, noble, citizen), name, mood ('' neutral to warm; neutral, friendly, warm, wary, hostile), race (the listener's: 0 human, 1 elf, 2 dark elf, 3 gnome, 4 dwarf, 5 troll, 6 barbarian, 7 halfling, 8 erudite, 9 ogre, 10 froglok), weight. In a line %p is the listener's name, %r its race, %c its class, %t the town, %n the speaker. tools/seed_town_dialog.py writes them.",
+  "blocks": [
+    {"role": "guard", "say": [
+      "Keep your weapon sheathed within the walls, %r.",
+      "Stay out of trouble and we will get along fine.",
+      "Move along. Nothing to see here.",
+      "The roads grow more dangerous every season. Travel in company if you can.",
+      "If you see anything suspicious, find a guard. Better yet, find me.",
+      "Another quiet watch. I would almost welcome a raid, just for the change.",
+      "My feet ache and my watch is only half done. What do you need?",
+      "Hail, %c. Keep the peace, and the peace will keep you.",
+      "I have stood this post through rain, snow and worse. You get used to it. Mostly.",
+      "Report any trouble to the watch, citizen.",
+      "Eyes open, blade ready. That is the whole of a guard's life.",
+      "We had a pickpocket through here yesterday. Keep a hand on your purse.",
+      "If you are looking for the tavern, follow the noise.",
+      "Do not mind the armor. It is mostly for show. Mostly.",
+      "I was an adventurer once, like you. Then I took an arrow and a steady wage.",
+      "Your papers? Never mind. You look honest enough. Do not prove me wrong.",
+      "The night watch is the worst. Every shadow looks like an orc.",
+      "Whatever you are planning, %r, plan it somewhere else."
+    ]},
+    {"role": "guard", "mood": "friendly", "say": [
+      "Good to see a capable %c about. The patrols could use more like you.",
+      "You have done this place some good, %p. Word gets around.",
+      "If you ever tire of the road, the captain is always looking for good swords.",
+      "Safe travels, %p. Come back in one piece."
+    ]},
+    {"role": "guard", "mood": "warm", "say": [
+      "Well met, %p! Any friend of this town is a friend of mine.",
+      "Should you need a blade beside you, you need only ask.",
+      "The captain speaks well of you, %p. That does not happen often.",
+      "Rest easy here, %p. No one will trouble you while I stand watch."
+    ]},
+    {"role": "guard", "mood": "wary", "say": [
+      "I have my eye on you, %r.",
+      "Do not make me regret letting you pass.",
+      "One wrong step and you will spend the night in a cell.",
+      "Keep your hands where I can see them.",
+      "Your kind tends to bring trouble. Prove me wrong.",
+      "I know your face. Keep it out of trouble."
+    ]},
+    {"role": "guard", "mood": "hostile", "say": [
+      "You have a nerve, showing your face here.",
+      "Leave. Now. Before I forget my orders.",
+      "Another word and you will taste steel.",
+      "You are not welcome here. You never will be.",
+      "Turn around, %r, while you still have legs to do it with."
+    ]},
+
+    {"role": "citizen", "say": [
+      "Lovely weather, is it not? Well, lovely for here, anyway.",
+      "Mind the mud. It has been a wet season.",
+      "Have you come far? You have the look of someone long on the road.",
+      "My cousin went off adventuring once. We still have not heard from him.",
+      "If you are looking for work, the merchants always need strong backs. Or so they tell me.",
+      "Do not mind me, I am waiting on a friend. He is late. He is always late.",
+      "Strange folk passing through lately. Present company excepted, of course.",
+      "Ah, another adventurer. Try not to break anything.",
+      "You look hungry. Everyone looks hungry these days.",
+      "I heard a song about a %c once. It did not end well for the %c.",
+      "My mother always said never trust anyone with more weapons than fingers.",
+      "Is it true what they say about the lands beyond the mountains? Never mind, do not tell me.",
+      "I have lived here all my life and I still get lost in the market.",
+      "If you see a grey cat about, she is mine. She answers to nothing.",
+      "The prices at the market have gone up again. Robbery, I call it.",
+      "Some days I think about taking up a sword myself. Then I remember how heavy they are.",
+      "Hello, %p. Yes, I know your name. Everyone talks.",
+      "Have you eaten? There is a cook down the way who makes a stew worth the trip."
+    ]},
+    {"role": "citizen", "mood": "friendly", "say": [
+      "Oh, it is you! The one everyone has been talking about.",
+      "Thank you for all you have done for us, %p.",
+      "If you are passing the bakery, tell them I sent you. They will know what it means.",
+      "You are always welcome here, %p."
+    ]},
+    {"role": "citizen", "mood": "warm", "say": [
+      "%p! Come by for supper sometime. The whole family would love to meet you.",
+      "If you ever need a bed for the night, my door is open to you.",
+      "My children play at being %p the %c. You have quite the following.",
+      "The gods smile on us whenever you pass through, %p."
+    ]},
+    {"role": "citizen", "mood": "wary", "say": [
+      "I... I do not want any trouble.",
+      "Please, just leave me be.",
+      "The guards are close by, you know.",
+      "I have nothing worth taking. Truly.",
+      "Keep walking, %r."
+    ]},
+    {"role": "citizen", "mood": "hostile", "say": [
+      "Get away from me!",
+      "Guards! Guards!",
+      "I will not speak to the likes of you.",
+      "Murderer. Everyone knows what you have done."
+    ]},
+
+    {"role": "trader", "say": [
+      "Business is slow. Come back when my next shipment arrives.",
+      "Everything is for sale, friend. Just not today.",
+      "The road taxes are robbing me blind.",
+      "I deal in fair prices and fairer smiles.",
+      "A caravan was due a week ago. If you see it on the road, tell them to hurry.",
+      "You have the look of someone with coin to spend. Pity I have nothing to sell you.",
+      "Buy low, sell high. That is the whole secret, and I give it to you for free."
+    ]},
+    {"role": "trader", "mood": "warm", "say": [
+      "For you, %p, I would almost give a discount. Almost.",
+      "My best customer! Well, my most interesting one."
+    ]},
+    {"role": "trader", "mood": "wary", "say": [
+      "I keep my coin locked up tight, so do not get any ideas.",
+      "We are closed. Especially to you."
+    ]},
+
+    {"role": "priest", "say": [
+      "May the gods watch over you on your travels.",
+      "Have you made your offering today?",
+      "Faith is a shield no blade can pierce.",
+      "The Healers of Springview labor day and night against the plague. Pray for them.",
+      "Even the darkest night ends with dawn.",
+      "The dead rise where the plague has passed. A grim time to be a %c.",
+      "Prayer costs nothing, %r. You might try it.",
+      "The gods hear everything. Do be mindful of what you say."
+    ]},
+    {"role": "priest", "mood": "warm", "say": [
+      "Bless you, %p. Your deeds have not gone unseen.",
+      "You carry the light with you, %p. Do not let it go out."
+    ]},
+
+    {"role": "scholar", "say": [
+      "Knowledge is the truest treasure, though it buys fewer drinks.",
+      "Did you know Rosethorn Spire is older than the elves who studied it? Fascinating.",
+      "I have read every book in this town twice. I am starting on the third time.",
+      "The Tomb of the Crown holds secrets no scholar has yet uncovered.",
+      "Takish'Hiz was the jewel of the elven kingdom before the sands and the Teir'Dal took it.",
+      "Do you know what lies beneath the mana sea? Neither do I. That is the joy of it.",
+      "History is only gossip that has had time to age.",
+      "If you find any old books on your travels, I pay well. Well, I pay."
+    ]},
+
+    {"role": "worker", "say": [
+      "Hard work keeps a body honest.",
+      "Cannot stop to chat. There is work to be done.",
+      "My back has been aching since spring.",
+      "The pay is poor, but the work is steady.",
+      "Up before the sun and to bed after it. That is the life.",
+      "You there, %c. Know anything about mending a cart wheel? No? Never mind.",
+      "If the weather holds, we will finish before the season turns."
+    ]},
+
+    {"role": "noble", "say": [
+      "I trust you have business here.",
+      "Mind your manners in the presence of your betters.",
+      "The council meets again tomorrow. Such tedium.",
+      "Coin, connections and a good name. The only three things worth having.",
+      "Do not stand so close, %r. The smell of the road is quite strong.",
+      "My family has served this town for generations. And it has served us well in return."
+    ]},
+    {"role": "noble", "mood": "warm", "say": [
+      "Ah, %p. A pleasure, truly. You must dine with us one evening."
+    ]},
+
+    {"say": [
+      "Have you heard of the plague? They say even the Healers of Springview cannot find a cure.",
+      "Sailors speak of an isle beyond the fog where Cazic-Thule's nightmares walk.",
+      "They say a wolf walks on two legs in the Unkempt Forest. I do not go there.",
+      "The Sun Manes hunt any were-beast that sets foot on the Plains of Karana.",
+      "Mind your purse. They say the Topi di Ombra have ears in every tavern in Tunaria.",
+      "A traveler told me the dead have been rising from their graves where the plague passed.",
+      "The gods walk among us, some say. I say the gods have better things to do."
+    ]},
+
+    {"town": "Freeport", "say": [
+      "Freeport never sleeps. Neither do its pickpockets, so mind your purse.",
+      "Gold changes hands faster in Freeport than anywhere in Tunaria.",
+      "Everything has a price in Freeport. Everything.",
+      "The Deathfist orcs grow bolder every season. Some say they will march on the city one day.",
+      "If you head out into the Commonlands, keep watch for Deathfist raiders.",
+      "Ships come in from every port on the sea. Smell that? That is money.",
+      "Do not trust anyone who offers you a bargain down by the harbor.",
+      "There are ruins out past the city, Al Farak they call it. Plenty go looking for treasure. Fewer come back.",
+      "In Freeport an honest merchant is one who stays bought.",
+      "The Militia keeps the peace. The question is, whose peace?"
+    ]},
+    {"town": "Freeport", "role": "guard", "say": [
+      "The Militia keeps order in Freeport. Our order.",
+      "Keep your blade sheathed, %r. The Militia does not take kindly to brawlers.",
+      "A few coins could make a lot of trouble disappear. Not that I would know anything about that.",
+      "Report to the Militia if you see Deathfist scouts near the gates.",
+      "The Deathfist Citadel lies out in the Commonlands. The Militia could use more swords out there.",
+      "Freeport stands because the Militia stands. Remember that."
+    ]},
+    {"town": "Freeport", "role": "citizen", "say": [
+      "My husband works the docks. He comes home smelling of fish and gold.",
+      "Watch the beggars by the gate. Half of them are spies, and the other half are worse.",
+      "I came to Freeport to make my fortune. Still waiting on it.",
+      "If you want to know anything in this city, ask the dockhands. They hear everything."
+    ]},
+    {"town": "Freeport", "mood": "warm", "say": [
+      "The Militia is grateful for what you have done, %p. Quietly, of course.",
+      "You have friends in Freeport now, %p. That is worth more than gold. Almost."
+    ]},
+    {"town": "Freeport", "race": 2, "say": [
+      "A Teir'Dal in Freeport. Business is business, I suppose."
+    ]},
+
+    {"town": "Qeynos", "say": [
+      "Long live King Antonius Bayle!",
+      "The harvest looks good this year, thank the gods.",
+      "The gnolls of Blackburrow have been at the farms again.",
+      "Qeynos is a city of honest folk. Mostly.",
+      "They say the King walks the streets some days, plain as you or me.",
+      "Under Antonius Bayle, Qeynos will prosper. I truly believe that.",
+      "The rangers of Surefall Glade keep watch over the northern woods. We sleep the easier for it.",
+      "Fresh bread, clean water and a just king. What more could a body ask?"
+    ]},
+    {"town": "Qeynos", "role": "guard", "say": [
+      "The Qeynos Guard stands ready. Blackburrow's gnolls will not catch us sleeping.",
+      "By order of King Antonius Bayle, keep the peace within these walls.",
+      "Patrols to the north report gnolls moving near Blackburrow. Watch yourself out there.",
+      "We guard Qeynos for the King and for every farmer in her fields."
+    ]},
+    {"town": "Qeynos", "role": "citizen", "say": [
+      "My father farmed these fields, and his father before him.",
+      "Have you tried the fish from the bay? Best in Tunaria, whatever Freeport says.",
+      "Qeynos has its troubles, but at least they are honest troubles."
+    ]},
+    {"town": "Qeynos", "mood": "hostile", "say": [
+      "By the King's law, you are not welcome in Qeynos.",
+      "Qeynos remembers what you have done."
+    ]},
+    {"town": "Qeynos", "race": 2, "say": [
+      "A dark elf in Qeynos? Keep to the main streets, and keep moving."
+    ]},
+
+    {"town": "Highpass", "say": [
+      "Highpass was carved from the Serpent's Spine itself. Sturdy as the mountain.",
+      "Every caravan between east and west passes through Highpass. Every one.",
+      "The wind up here could freeze the beard off a dwarf.",
+      "Bandits haunt the slopes of Mount Hatespike. The Bloodfoots, they call themselves. Travel in company.",
+      "Mind the drop. The pass is narrower than it looks.",
+      "A good innkeeper in Highpass is worth his weight in gold. A bad one is worth his weight in snow."
+    ]},
+    {"town": "Highpass", "role": "guard", "say": [
+      "The Highpass Guard holds this pass, as we always have.",
+      "Caravans pay the toll. Travelers pay respect.",
+      "Nothing crosses the Serpent's Spine without the Guard knowing of it."
+    ]},
+
+    {"town": "Halas", "say": [
+      "Welcome to Halas, %r! Leave your troubles at the door and your thirst at the bar.",
+      "A Northman's worth is measured by the strength of his arm and the depth of his mug.",
+      "The Hatebone orcs prowl the outskirts again. Let them come, I say!",
+      "The frost giants grow bold. One day we will march into their halls and settle it for good.",
+      "Cold? This is a warm day, friend!",
+      "My clan has held these mountains for twenty generations.",
+      "Mammoth stew tonight in the hall. There is always room for one more.",
+      "Eating, drinking and battle. A Northman needs nothing else. Well, maybe a warm fur.",
+      "We were nomads once. Now we have walls, and someone always complains about the walls."
+    ]},
+    {"town": "Halas", "role": "guard", "say": [
+      "No orc has set foot in Halas while I stand watch, and none will.",
+      "Ye will find no softer bed than the snow if ye cause trouble here.",
+      "The Hatebone caves are not far. Take a few orc ears for the chieftain, if ye have the stomach."
+    ]},
+    {"town": "Halas", "mood": "warm", "say": [
+      "Ye are a true friend of the Northmen, %p! Sit, drink!",
+      "Your name is sung in the hall now, %p. Badly, but loudly."
+    ]},
+    {"town": "Halas", "race": 3, "say": [
+      "You are a wee thing to be up in the snows. Do not let the wolves mistake you for supper."
+    ]},
+    {"town": "Halas", "race": 7, "say": [
+      "A halfling, this far north? Here, have my spare furs before you freeze solid."
+    ]},
+    {"town": "Halas", "race": 8, "say": [
+      "An Erudite in Halas? Ha! Mind the cold does not freeze that big brain of yours."
+    ]},
+    {"town": "Halas", "race": 1, "say": [
+      "Pointed ears and all! Welcome, elf. Try the ale. It will put hair on your chest."
+    ]},
+
+    {"town": "Neriak", "say": [
+      "Innoruuk's shadow falls on all who enter Neriak.",
+      "Trust is a weakness, %r. Remember that and you may live long here.",
+      "Every smile in Neriak hides a blade.",
+      "The treasures of Takish'Hiz flow into the city. Let the elves weep.",
+      "The Houses play their games, and the rest of us try not to become the pieces.",
+      "I will help you now, so that I may use you later. Is that not how friendship works?",
+      "Hatred is a fire, %r. In Neriak we keep it burning.",
+      "Walk softly in the lower city. The ghouls are not particular about what they eat."
+    ]},
+    {"town": "Neriak", "role": "guard", "say": [
+      "State your business, and be quick about it.",
+      "The Houses rule Neriak. Remember whose guards you pass.",
+      "One false move and you will be feeding the ghouls."
+    ]},
+    {"town": "Neriak", "role": "priest", "say": [
+      "Hate is strength. Innoruuk teaches us so.",
+      "Pray to the Prince of Hate, and he may notice you. Pray that he does not."
+    ]},
+    {"town": "Neriak", "role": "noble", "say": [
+      "House business is no concern of yours.",
+      "Mind your tongue in the presence of a noble House, %r."
+    ]},
+    {"town": "Neriak", "mood": "warm", "say": [
+      "The Houses have taken notice of you, %p. That is rarely good news. Today it is."
+    ]},
+    {"town": "Neriak", "race": 1, "say": [
+      "An elf, here? How delightfully foolish of you."
+    ]},
+    {"town": "Neriak", "race": 7, "say": [
+      "Lost, little one? The lower city has its uses for your kind."
+    ]},
+    {"town": "Neriak", "race": 3, "say": [
+      "A gnome. Do try not to explode anything in our city."
+    ]},
+
+    {"town": "Fayspires", "say": [
+      "Tunare's grace upon you, traveler.",
+      "We built Fayspires from the ashes of Takish'Hiz. We will not lose another home.",
+      "The College of High Magic welcomes those with the gift.",
+      "Some nights I still dream of the forests of Elddar, before the sands took them.",
+      "The Teir'Dal defile our ancestors' tombs. One day there will be a reckoning.",
+      "The spires catch the first light of morning. You should see it, once.",
+      "Our war with the Teir'Dal is older than your grandfather's grandfather, %r."
+    ]},
+    {"town": "Fayspires", "role": "guard", "say": [
+      "Fayspires stands. It will not fall as Takish'Hiz fell.",
+      "Keep to the paths, traveler. The wards here do not know you yet."
+    ]},
+    {"town": "Fayspires", "race": 2, "say": [
+      "A Teir'Dal walks among us. Watch your purse, and your back."
+    ]},
+
+    {"town": "Tethelin", "say": [
+      "Mind your footing on the walkways. It is a long way down.",
+      "The trees of Tethelin are older than any kingdom of men.",
+      "Tunare's song is in every leaf and branch here.",
+      "The forest provides, if you know how to ask.",
+      "We do not cut the living wood. We ask it to grow where we need it.",
+      "Listen. The wind in the high branches tells you when rain is coming."
+    ]},
+    {"town": "Tethelin", "role": "guard", "say": [
+      "No enemy has ever climbed these trees uninvited.",
+      "Our archers see you long before you see them, %r."
+    ]},
+    {"town": "Tethelin", "race": 9, "say": [
+      "Please, do mind the walkways. They were not built for one so... substantial."
+    ]},
+
+    {"town": "Highbourne", "say": [
+      "Any obstacle can be overcome with intelligence and wisdom. Brute force is for barbarians.",
+      "Do try to keep up, %r.",
+      "The libraries of Highbourne hold more knowledge than all of Tunaria together.",
+      "Harpies infest Erud's Crossing again. Dreadful creatures, and so very loud.",
+      "We left the mainland for good reason. It is all so dreadfully unrefined.",
+      "One does not simply visit Highbourne. One ascends to it.",
+      "Mind the moots near the Crossing. Fire-spitting little horrors."
+    ]},
+    {"town": "Highbourne", "role": "scholar", "say": [
+      "I am composing a treatise on the nature of the weave. Only four thousand pages to go.",
+      "Ignorance is the only true poverty, %r."
+    ]},
+    {"town": "Highbourne", "role": "guard", "say": [
+      "Highbourne's walls are guarded by more than steel, %r. Remember that."
+    ]},
+    {"town": "Highbourne", "race": 6, "say": [
+      "Please do not touch anything. Some of these books are older than your entire people."
+    ]},
+    {"town": "Highbourne", "race": 5, "say": [
+      "A troll, in Highbourne. Someone fetch a scribe; this must be recorded."
+    ]},
+    {"town": "Highbourne", "race": 9, "say": [
+      "Can you read? No, no, do not answer. I would rather not know."
+    ]},
+
+    {"town": "Klick`Anon", "say": [
+      "Mind the gears. They bite!",
+      "We do not have failures in Klick'Anon. Only temporary setbacks.",
+      "That explosion? Oh, do not worry. That happens every afternoon.",
+      "If it is not broken, you have not added enough gears yet.",
+      "The Coldpaw gnolls to the west keep stealing our spare cogs. What would a gnoll want with a cog?",
+      "I lost a finger to a steam valve last week. Grew a whole new appreciation for safety goggles.",
+      "Building contraptions ranks right up there with saving the world, you know.",
+      "We built Klick'Anon right in the middle of the elves' war. Bit of an oversight, that.",
+      "Have you seen a small clockwork rabbit? About this big? Answers to Sprocket?"
+    ]},
+    {"town": "Klick`Anon", "role": "guard", "say": [
+      "The Watch keeps Klick'Anon safe. And occasionally fireproof.",
+      "Please do not feed the clockworks.",
+      "Halt! Oh, sorry. Thought you were a gnoll. Carry on."
+    ]},
+    {"town": "Klick`Anon", "race": 9, "say": [
+      "Oh my, you are big. Careful, that gear is load-bearing!"
+    ]},
+
+    {"town": "Moradhim", "say": [
+      "Brell's stone holds us safe, and Brell's ale keeps us cheerful.",
+      "A good axe, a strong ale and a deep mine. What more could a dwarf want?",
+      "King Stormhammer sent us out to find riches. We found them, and we are keeping them.",
+      "Mind the goblins in the deep tunnels. Sneaky little blighters.",
+      "Being short is no hardship. It is just as satisfying to break a kneecap as a nose!",
+      "The elves can keep their war. We have ore to dig.",
+      "Never trust a dwarf without a beard, or a beer."
+    ]},
+    {"town": "Moradhim", "role": "worker", "say": [
+      "There is a vein of mithril down there somewhere. I can smell it.",
+      "Pick, shovel, ale. Pick, shovel, ale. That is the rhythm of Moradhim."
+    ]},
+    {"town": "Moradhim", "role": "guard", "say": [
+      "Watch your step, %r. The mine carts stop for nobody.",
+      "No goblin gets past me. Not with my axe in hand."
+    ]},
+    {"town": "Moradhim", "race": 1, "say": [
+      "An elf in the mines? Mind your head on the beams, tall one."
+    ]},
+
+    {"town": "Gerntar", "say": [
+      "The Gerntar mines run deep. Deeper than you would care to go.",
+      "Stone, sweat and ale. That is Gerntar.",
+      "Strike the rock where it rings hollow. That is where the treasure hides."
+    ]},
+
+    {"town": "Rivervale", "say": [
+      "Welcome to Rivervale! Wipe your feet, please.",
+      "If you smell pie, it is not for you. Probably.",
+      "The goblins of the Misty Thicket have been at the gardens again!",
+      "My aunt is visiting for the season. Again. Please, take her adventuring with you.",
+      "There is nothing in Tunaria a good pot roast cannot make better.",
+      "Mind your manners and you will find no friendlier folk in all the land.",
+      "Ooh, are those adventuring boots? It must be ever so exciting out there.",
+      "Second breakfast is the most important meal of the day. After the others.",
+      "Scarecrows in the far fields have been walking about at night. I am not making that up!"
+    ]},
+    {"town": "Rivervale", "role": "guard", "say": [
+      "Rivervale is defended by the bravest halflings you will ever meet. Do not let the size fool you.",
+      "We guard the Thicket and the Vale, and anyone who threatens either gets a sling stone between the eyes."
+    ]},
+    {"town": "Rivervale", "race": 9, "say": [
+      "My! You are very large. Please do not step on the garden."
+    ]},
+    {"town": "Rivervale", "race": 5, "say": [
+      "Please do not eat the chickens. Or the children. Or me."
+    ]},
+
+    {"town": "Bobble-by-Water", "say": [
+      "Mind the crocodiles at the water's edge. They are not as sleepy as they look.",
+      "The Cracktooth orcs camp just over the hill. We keep our pies well hidden.",
+      "Bobble-by-Water: the finest fishing and the finest gossip in the land.",
+      "If the orcs come, we hide in the reeds. Works every time. Well, most times."
+    ]},
+
+    {"town": "Grobb", "say": [
+      "You smell like food. Good food.",
+      "Frogloks take Guk. Grobb take it back. Soon.",
+      "Ykesha dead. Grobb strong now. Strongest.",
+      "Me hungry. Always hungry.",
+      "Swamp good. Swamp home. You go swamp, you get eaten.",
+      "Elf taste better than gnome. Gnome too crunchy.",
+      "Why you talk to me? Me busy. Busy eating."
+    ]},
+    {"town": "Grobb", "role": "guard", "say": [
+      "No trouble in Grobb, or me smash.",
+      "You go where me say. Me guard.",
+      "Frogloks come, me squash frogloks. You frogloks? No? Good."
+    ]},
+    {"town": "Grobb", "race": 1, "say": [
+      "Mmm. Elf. You stay for dinner? You BE dinner."
+    ]},
+    {"town": "Grobb", "race": 10, "say": [
+      "Froglok! In Grobb! Somebody get the big pot!"
+    ]},
+
+    {"town": "Honjour", "say": [
+      "Honjour troll place. You walk soft.",
+      "Big water near. Fish good. You no take fish.",
+      "Me know you. Me not like you. Me not hate you. Yet."
+    ]},
+
+    {"town": "Oggok", "say": [
+      "Me no like you. Me no not like you. You go.",
+      "Rallos Zek make ogre for war. Ogre good at war.",
+      "Ogre strong. Ogre smash. Ogre think later. Maybe.",
+      "You small. Why you small?",
+      "Big rock. Me like big rock.",
+      "Oggok best city. Biggest walls. Biggest ogres."
+    ]},
+    {"town": "Oggok", "role": "guard", "say": [
+      "Oggok basher smash bad thing. You bad thing?",
+      "No smash in Oggok. Only basher smash.",
+      "Me guard. You walk. Me watch."
+    ]},
+
+    {"town": "Kerplunk Outpost", "say": [
+      "Kerplunk Outpost. Ogre watch. Ogre smash what come.",
+      "Outpost cold. Outpost boring. Want smash something.",
+      "You bring food? No? Then why you here?"
+    ]},
+
+    {"town": "Surefall Glade", "say": [
+      "The forest has eyes, and most of them belong to us.",
+      "Tread lightly. The glade remembers every footstep.",
+      "Slesher gnolls have been seen near the glade. Keep your bow strung.",
+      "Karana's winds smell of rain. A good season ahead.",
+      "Take only what the forest offers, and it will offer you plenty."
+    ]},
+    {"town": "Surefall Glade", "role": "guard", "say": [
+      "The rangers of Surefall watch these woods. Nothing passes unseen.",
+      "Gnolls to the south, bears to the north. And you, here in the middle."
+    ]},
+
+    {"town": "Castle Lightwolf", "say": [
+      "The moon is full tonight. You had best be indoors when it rises.",
+      "Castle Lightwolf keeps its own counsel. We answer to no king.",
+      "Some here carry the curse of the wolf. Most of us carry it well.",
+      "Strangers who ask too many questions sometimes leave with fewer limbs. Ask carefully.",
+      "Listen. Do you hear the howling? No? Then you are not listening hard enough."
+    ]},
+
+    {"town": "Zentar's Keep", "say": [
+      "The hexbones haunt the slopes below the keep. Not a place to wander at night.",
+      "Snow griffons nest above us. Beautiful creatures, until they are hungry.",
+      "Zentar's Keep has stood against worse than the cold.",
+      "Keep a fire burning and a blade close. That is the law of the keep."
+    ]},
+
+    {"town": "Hazinak", "say": [
+      "Ships come and go from Hazinak, and so do the secrets they carry.",
+      "The sea breeze is the only honest thing in this port.",
+      "Mind the docks at night. Things wash up that should not.",
+      "Every sailor in Hazinak has a story. Most of them are even true."
+    ]},
+
+    {"town": "Oasis", "say": [
+      "Water is life in the desert. Never forget it.",
+      "The sands swallowed the forests of Elddar once. They will swallow you just as easily.",
+      "The Nasehir roam the northern sands. They do not take kindly to strangers.",
+      "The dead walk in Northern Ro. Clerics make good coin out there.",
+      "Rest a while in the shade. The desert will still be there tomorrow."
+    ]},
+
+    {"town": "Muniels Tea Garden", "say": [
+      "Welcome to Muniel's Tea Garden. The tea is excellent, and the company better.",
+      "Gharials lurk in the waters south of here. Keep your toes out of the surf.",
+      "Sit, rest a while. The road will still be there after a cup of tea.",
+      "Try the mint. Muniel grows it himself, or so he swears."
+    ]},
+
+    {"town": "Forkwatch", "say": [
+      "Travelers from every road pass through Forkwatch. Most of them keep walking.",
+      "Three roads, one town, and trouble on all of them.",
+      "Forkwatch is small, but it sees everything that passes."
+    ]},
+
+    {"town": "Wyndhaven", "say": [
+      "Wyndhaven is a quiet place. We would like to keep it that way.",
+      "The wind never stops here. That is how the place got its name, I would wager.",
+      "Hold onto your hat, %r. The wind takes what it likes."
+    ]},
+
+    {"town": "Murnf", "say": [
+      "Murnf is not much, but it is ours.",
+      "Not many visitors this far out. What brings you to Murnf?",
+      "We do not get news here until it is old news everywhere else."
+    ]},
+
+    {"town": "Blackwater", "say": [
+      "The waters of Blackwater are dark, and so are its secrets.",
+      "The fishermen here do not talk about what they pull up some nights.",
+      "Keep to the lanterns after dark. Everyone does."
+    ]},
+
+    {"town": "Darvar Manor", "say": [
+      "The Darvar family does not receive visitors without an appointment.",
+      "The manor is old. The servants say it is older than it looks.",
+      "Wipe your boots. The master is very particular about the floors."
+    ]},
+
+    {"town": "Dark Solace", "say": [
+      "Dark Solace welcomes those the cities cast out.",
+      "Ask no questions here and you will be told no lies.",
+      "Everyone in Dark Solace is running from something. What are you running from, %r?"
+    ]},
+
+    {"town": "Fort Seriak", "say": [
+      "Fort Seriak answers to Neriak. Remember that.",
+      "The garrison here has seen more battle than most of the army.",
+      "Our walls are thick and our patience is thin."
+    ]},
+
+    {"town": "Graumord", "say": [
+      "You should not have come to this isle, %r. Few who do ever leave."
+    ]}
+  ]
+}

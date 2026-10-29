@@ -77,6 +77,11 @@ type savedMods struct {
 	// a ward and what it has taken (ward.go); a row kept before reads as
 	// none
 	Ward *Ward `json:",omitempty"`
+	// its spell's level, kind of harm and whether no cure takes it off
+	// (cure.go); a row kept before reads as level 0, no kind, curable
+	Level    int      `json:",omitempty"`
+	Afflicts CureKind `json:",omitempty"`
+	NoCure   bool     `json:",omitempty"`
 }
 
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
@@ -92,7 +97,7 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 		}
 		sm := savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, ProcScale: e.ProcScale, ProcScalePct: e.ProcScalePct,
 			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Appearance: e.Appearance, Ticks: e.Ticks, Shield: e.Shield, Line: e.Line, Rank: e.Rank,
-			Ward: e.Ward}
+			Ward: e.Ward, Level: e.Level, Afflicts: e.Afflicts, NoCure: e.NoCure}
 		if e.PowerCapped {
 			top := e.PowerCap
 			sm.PowerCap = &top
@@ -145,6 +150,7 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			ae.Shield = sm.Shield
 			ae.Line, ae.Rank = sm.Line, sm.Rank
 			ae.Ward = sm.Ward
+			ae.Level, ae.Afflicts, ae.NoCure = sm.Level, sm.Afflicts, sm.NoCure
 			if sm.PowerCap != nil {
 				ae.PowerCap, ae.PowerCapped = *sm.PowerCap, true
 			}

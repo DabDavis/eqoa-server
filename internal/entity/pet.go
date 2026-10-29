@@ -997,12 +997,14 @@ func (w *World) retargetLocked(npc *NPC) {
 // pet does not use yet).
 func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *session.Session, pet *NPC, now time.Time) {
 	for _, e := range cs.spell.Def.Effects {
-		if e.Kind != EffectHP {
-			continue
-		}
-		if n := spellAmount(e, caster); n > 0 && pet.HP < pet.MaxHP {
-			pet.HP = min(pet.HP+n, pet.MaxHP)
-			w.tellAmountLocked(caster, casterSess, pet.ServerID, n)
+		switch e.Kind {
+		case EffectHP:
+			if n := spellAmount(e, caster); n > 0 && pet.HP < pet.MaxHP {
+				pet.HP = min(pet.HP+n, pet.MaxHP)
+				w.tellAmountLocked(caster, casterSess, pet.ServerID, n)
+			}
+		case EffectCure:
+			w.curePetLocked(pet, cureOf(e, cs.spell.Level), cs.spell.Name) // cure.go
 		}
 	}
 	if ae := lasting(cs, caster, now); ae != nil {

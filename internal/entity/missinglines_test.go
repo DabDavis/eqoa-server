@@ -127,6 +127,23 @@ func effectWords(e SpellEffect) string {
 		s = amount("defproc")
 	case EffectResurrect:
 		s = amount("rez")
+	case EffectMark:
+		s = amount("mark")
+	case EffectMarkHeal:
+		s = amount("markheal")
+	case EffectCure:
+		s = "cure"
+		for _, k := range []struct {
+			bit  CureKind
+			word string
+		}{{CurePoison, " poison"}, {CureDisease, " disease"}, {CureAny, " any"}} {
+			if e.Cure&k.bit != 0 {
+				s += k.word
+			}
+		}
+		if e.Amount > 0 {
+			s += fmt.Sprintf(" x%d", e.Amount)
+		}
 	default:
 		s = fmt.Sprintf("kind %d", e.Kind)
 	}

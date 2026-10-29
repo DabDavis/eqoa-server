@@ -290,6 +290,11 @@ type ActiveEffect struct {
 	// Mark is a curse on a creature that answers the players' and pets' hits
 	// on it (mark.go), nil for none
 	Mark *Mark
+	// Level is its spell's level, Afflicts its kind of harm and NoCure that
+	// no cure takes it off: what a cure looks at (cure.go)
+	Level    int
+	Afflicts CureKind
+	NoCure   bool
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -932,7 +937,8 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		return nil
 	}
 	ae := &ActiveEffect{SpellID: cs.spell.SpellID, Name: cs.spell.Name, Icon: cs.spell.Icon, Caster: caster.ServerID,
-		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks, Appearance: d.Appearance}
+		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks, Appearance: d.Appearance,
+		Level: cs.spell.Level, Afflicts: d.Afflicts, NoCure: d.NoCure}
 	any := false
 	for _, e := range d.Effects {
 		switch e.Kind {
@@ -1038,6 +1044,8 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			}
 		case EffectIllusion:
 			illusion = true
+		case EffectCure:
+			w.curePlayerLocked(t, cureOf(e, cs.spell.Level), cs.spell.Name) // cure.go
 		}
 	}
 	if ae := lasting(cs, caster, now); ae != nil && w.lineTakesLocked(caster, casterSess, t, &cs.spell, ae) && // buffline.go

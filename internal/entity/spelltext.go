@@ -63,6 +63,7 @@ const (
 	EffectWard                          // a creature's melee hit on the bearer cut by Amount%, or to 1 when ToOne, Cap in all (ward.go)
 	EffectMark                          // on a creature: each player's or pet's hit on it does Amount to AmountMax more, 0 its default (mark.go)
 	EffectMarkHeal                      // on a creature: each player's or pet's hit on it heals the attacker Amount to AmountMax (mark.go)
+	EffectCure                          // takes Amount harmful effects of the Cure kind off the bearer, 0 by its level (cure.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -129,6 +130,9 @@ type SpellEffect struct {
 	// ToOne: a ward that makes each hit it cuts do 1 ("Reduce Damage Taken
 	// to 1"), its Cap the most it takes off in all (ward.go)
 	ToOne bool
+	// Cure is what a cure takes off: poison, disease, both, or CureAny
+	// (cure.go)
+	Cure CureKind
 }
 
 // SpellDef is a spell's line, read: whom it lands on, what it does, how
@@ -177,6 +181,11 @@ type SpellDef struct {
 	// x2": the vampires' abilities, vampire.go); "" for none.
 	Reagent      string
 	ReagentCount int
+	// Afflicts is what kind of harm the spell does, poison or disease or
+	// both, by its name's and line's words, and NoCure that its line says no
+	// cure takes it off ("cannot be cured"): what a cure looks at (cure.go).
+	Afflicts CureKind
+	NoCure   bool
 }
 
 // Charms reports whether the spell makes its target the caster's pet.
@@ -318,11 +327,12 @@ func ParseSpellNamed(name, line, desc string) SpellDef {
 	}
 	d := ParseSpell(line, desc)
 	d.readIllusion(name, desc)
-	d.readAppearance(desc)    // illusion.go
-	d.readUndead(name, desc)  // undead.go
-	d.readEnchanterProc(name) // enchanter.go
-	d.healWithMaxHP(name)     // spellnotes.go
-	d.readShield(name, desc)  // dshield.go
+	d.readAppearance(desc)       // illusion.go
+	d.readUndead(name, desc)     // undead.go
+	d.readEnchanterProc(name)    // enchanter.go
+	d.healWithMaxHP(name)        // spellnotes.go
+	d.readShield(name, desc)     // dshield.go
+	d.readAffliction(name, line) // cure.go
 	return d
 }
 
@@ -577,6 +587,14 @@ func (d *SpellDef) parsePart(part, verb string) string {
 	}
 	if e, ok := markPart(part); ok { // mark.go
 		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if e, ok := curePart(part); ok { // cure.go
+		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if reNoCure.MatchString(part) { // cure.go: a debuff no cure takes off
+		d.NoCure = true
 		return verb
 	}
 	if n, ok := powerCapPart(part); ok { // powercap.go

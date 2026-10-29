@@ -187,12 +187,7 @@ func (w *World) petWardLocked(pet, npc *NPC, n int, now time.Time) int {
 	if spent {
 		ae.Ward = nil
 		if ae.idle() {
-			for i, e := range pet.Effects {
-				if e == ae {
-					pet.Effects = append(pet.Effects[:i], pet.Effects[i+1:]...)
-					break
-				}
-			}
+			dropNPCEffect(pet, ae) // cure.go
 		}
 		log.Printf("Ward: the pet %q's %q is spent", pet.Name, ae.Name)
 	}

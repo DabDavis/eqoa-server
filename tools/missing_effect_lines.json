@@ -2330,15 +2330,11 @@
     "ticks": 0,
     "pet": "",
     "effects": [
-     "hptick +250"
+     "hptick +250",
+     "cure any"
     ]
    },
-   "unread": [
-    {
-     "part": "dispel effect",
-     "why": "the server takes no effect off its bearer by a spell"
-    }
-   ],
+   "unread": [],
    "hold": "an effect, not a spell cast: its page has no cast time and no power, as Tribal Healing's (what Tribal Ward fires), and as a class spell the line would be a castable self heal at its record's cost"
   },
   {
@@ -2445,7 +2441,7 @@
    "unread": [
     {
      "part": "dispel effect tribal ward",
-     "why": "the server takes no effect off its bearer by a spell"
+     "why": "the cure and Tribal Ward in one clause, which the reader takes for neither (\"Dispel Effect, Tribal Ward\" reads the cure: entity/cure.go)"
     }
    ],
    "hold": "what Tribal Ward fires when its bearer is hit (Tribal Ward's page, eqoaspell=4037: \"Add Defensive Proc: Tribal Healing\"), not a spell cast: its page has no cast time and no power, and as a class spell the line would be a castable self heal at its record's cost"

@@ -114,8 +114,10 @@ func TestParseSpellText(t *testing.T) {
 		// a charm makes its target a pet (charm.go), cast at an enemy
 		{"Target, Charm, 2min", SpellDef{Target: TargetSingle, Duration: 2 * time.Minute, Harmful: true, Effects: []SpellEffect{
 			{Kind: EffectCharm}}}},
+		// a cure (cure.go), its count by its level
+		{"Target, Removes Minor Poison", SpellDef{Target: TargetSingle, Effects: []SpellEffect{{Kind: EffectCure, Cure: CurePoison}}}},
 		// what is not acted on is kept for the log and makes nothing
-		{"Target, Removes Minor Poison", SpellDef{Target: TargetSingle, Unread: []string{"removes minor poison"}}},
+		{"Target, Feign Death", SpellDef{Target: TargetSingle, Unread: []string{"feign death"}}},
 		{"", SpellDef{}},
 	}
 	for _, c := range cases {

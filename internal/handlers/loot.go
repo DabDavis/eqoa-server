@@ -99,13 +99,16 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 		if err != nil {
 			log.Printf("Loot: %q (npc %d): %v", npc.Name, npc.NPCID, err)
 		}
-		// and what its loot tables roll at this death (loottables, npcloot)
-		if rolls, err := h.inv.NPCLootRolls(npc.Name, npc.Level); err != nil {
-			log.Printf("Loot: %q's loot tables: %v", npc.Name, err)
-		} else if len(rolls) > 0 {
-			got := rollLoot(rolls, h.lootIntn)
-			items = append(items, got...)
-			log.Printf("Loot: %q (level %d) rolled %d of its tables' items", npc.Name, npc.Level, len(got))
+		// and what its loot tables roll at this death (loottables, npcloot),
+		// then the tables every creature's corpse rolls (npcloot's "*")
+		for _, name := range lootNames(npc) {
+			if rolls, err := h.inv.NPCLootRolls(name, npc.Level); err != nil {
+				log.Printf("Loot: %q's loot tables (%q): %v", npc.Name, name, err)
+			} else if len(rolls) > 0 {
+				got := rollLoot(rolls, h.lootIntn)
+				items = append(items, got...)
+				log.Printf("Loot: %q (level %d) rolled %d of %q's tables' items", npc.Name, npc.Level, len(got), name)
+			}
 		}
 		for i := range items {
 			items[i] = catalogRecord(items[i])
@@ -120,6 +123,21 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 	SendLoot(sess, view)
 	log.Printf("Loot: %s opened %q: %d items", sessName(h, sess), npc.Name, len(view))
 	return true
+}
+
+// lootEveryCreature is the npcloot name whose tables every creature's corpse
+// rolls, after its own: the modifier drops of the tradeskills (content in
+// data: a GM's or a tool's rows), and anything else a GM gives every kill.
+const lootEveryCreature = "*"
+
+// lootNames is the npcloot names a corpse rolls the tables of, in order: its
+// own, then every creature's, which a pet's, a charmed creature's (whose
+// corpse is no one's: OpenCorpse) and a training dummy's do not roll.
+func lootNames(npc *entity.NPC) []string {
+	if npc.Owner != 0 || npc.Charm != nil || npc.Dummy != entity.NotDummy {
+		return []string{npc.Name}
+	}
+	return []string{npc.Name, lootEveryCreature}
 }
 
 // rollLoot is what a creature's loot tables give its corpse at a death: each

@@ -577,7 +577,7 @@ type AuctionBidRequest struct {
 	Amount int
 	Qty    int
 	Now    time.Time
-	// LiveForm: the bidder's client prices by the item (handlers' 0x7E0A).
+	// LiveForm: the bidder's client prices by the item (handlers' 0x7E0B).
 	// A stack a disc client put up whole is shown to it at each item's share
 	// of the prices, and it bids for the whole stack: Amount x Qty.
 	LiveForm bool

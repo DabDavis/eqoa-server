@@ -587,6 +587,48 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm, or seed for tools/seed_npc_social.py's rows (its --undo deletes those)"},
 		},
 	},
+	"balancelevel": {
+		Label: "Balance by level", Group: "World", Title: "level", Sort: "level",
+		Help: "The game's balance by an NPC's level (entity/balance.go): hp_pct its hit points, a percent of the " +
+			"server's 60 a level; damage_pct its melee hits (Sandstorm's roll on the player's AC, AGI and archetype, " +
+			"then this); pet_hp_pct and pet_damage_pct a summoned pet's of that level (its hit points at its summoning, " +
+			"and every point of damage it deals: hits, taunts, taps, procs). A level between two rows takes the straight " +
+			"line between them, one below the first or past the last the end row's; no rows, 100 everywhere (the " +
+			"formulas alone). A charmed creature keeps its own (an NPC's) hit points and damage. Training dummies are " +
+			"never touched. Rows of source seed are the tuning of 2026-10-29 (claude-notes/balance-20261029.md), held to " +
+			"its targets by the fight simulator: run cmd/balancesim on a copy of the database to see what a change does " +
+			"before it goes in (its -try-level flag tries rows without writing them).",
+		Live:   "At once: every NPC's hit points become its level's (each keeping its share of them); a summoned pet's at its next summoning.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"level":          {Label: "NPC level", Help: "1-100; the levels between two rows take the line between them"},
+			"hp_pct":         {Label: "Hit points %", Help: "of 60 a level: 100 is the formula's, 400 four times it"},
+			"damage_pct":     {Label: "Melee damage %", Help: "of each melee hit's roll (on a player or a pet)"},
+			"pet_hp_pct":     {Label: "Pet hit points %", Help: "a summoned pet of this level's, of 60 a level"},
+			"pet_damage_pct": {Label: "Pet damage %", Help: "all a summoned pet of this level deals"},
+			"note":           {Label: "Note"},
+			"source":         {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
+		},
+	},
+	"balancecon": {
+		Label: "Balance by con", Group: "World", Title: "diff", Sort: "diff",
+		Help: "The game's balance by the con, an NPC's level less its foe's (entity/balance.go; the target box's colours: " +
+			"1-2 yellow, 3 and more red, 0 white, below blue and green): damage_pct the NPC's melee hits on that foe, a " +
+			"player or a pet (by the pet's own level); taken_pct the damage that foe deals it (melee, spells and their " +
+			"ticks, procs, damage shields, a pet's hits), so a red NPC takes less from the one it cons red to. A diff " +
+			"between two rows takes the line between them, one past the ends the end row's; no rows, 100 everywhere. " +
+			"Rows of source seed are the tuning of 2026-10-29 (claude-notes/balance-20261029.md); cmd/balancesim's " +
+			"-try-con tries rows before they are written.",
+		Live:   "At once: the next hit of every fight uses it.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"diff":       {Label: "NPC level less its foe's", Help: "-20 to 20: 2 a yellow, 4 a red"},
+			"damage_pct": {Label: "Its melee damage %", Help: "of each of its hits on that foe"},
+			"taken_pct":  {Label: "Damage taken %", Help: "of what that foe deals it"},
+			"note":       {Label: "Note"},
+			"source":     {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
+		},
+	},
 	"npcmove": {
 		Label: "Creature movement", Group: "World", Title: "name", Sort: "name",
 		Help: "How the creatures of a name move, by NPC NAME as NPC classes key it (lower case, no trailing space or $; " +

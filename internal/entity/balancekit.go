@@ -3,6 +3,7 @@ package entity
 import (
 	"math"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/eqoa/server/internal/database"
@@ -108,7 +109,24 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 			offSlot = 20
 		}
 	}
-	useTwo := two != nil && (main == nil || (offSlot != 17 && two.WeaponDamage > main.WeaponDamage))
+	// a tank or a priest keeps its shield; anyone else takes the hands that
+	// deal more a second as GetSwing swings them (a rogue or a bard swings
+	// a two-hander once a round)
+	rate := func(it *database.ItemPatternRecord, worn [21]bool, two bool) float64 {
+		d := float64(it.WeaponDamage)
+		if two {
+			d *= offTwoHand
+		}
+		kind := GetSwing(class, level, worn)
+		return d * float64(len(swingHits(kind))) / SwingDelay(kind).Seconds()
+	}
+	useTwo := two != nil && main == nil
+	if two != nil && main != nil && offSlot != 17 {
+		var w1, w2 [21]bool
+		w1[14], w1[offSlot] = true, off != nil
+		w2[16] = true
+		useTwo = rate(two, w2, true) > rate(main, w1, false)
+	}
 	switch {
 	case useTwo:
 		wear(two, 1)
@@ -173,16 +191,22 @@ func SimBookFromDB(db *database.SQLiteDB, class, level int, all bool) ([]CastSpe
 }
 
 // simPick is the item at the tier's place by score among those of the last
-// ten levels (all of them when none is), nil for none.
+// ten levels (all of them when none is), nil for none. An item of no level
+// (levelreq 0: a drop whose record lacks one, most of them a high level's)
+// and a GM's test item are no one's outfit.
 func simPick(items []database.ItemPatternRecord, level int, tier float64, score func(*database.ItemPatternRecord) int) *database.ItemPatternRecord {
-	var near []database.ItemPatternRecord
+	var near, all []database.ItemPatternRecord
 	for _, it := range items {
+		if it.LevelReq < 1 || strings.Contains(strings.ToLower(it.ItemName), "test") {
+			continue
+		}
+		all = append(all, it)
 		if it.LevelReq >= level-9 {
 			near = append(near, it)
 		}
 	}
 	if len(near) == 0 {
-		near = items
+		near = all
 	}
 	if len(near) == 0 {
 		return nil

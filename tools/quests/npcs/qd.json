@@ -1,0 +1,3272 @@
+{
+ "set": "qd",
+ "npcs": [
+  {
+   "name": "Old Man",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "on the right-hand hill of the gloomy valley in Bandit Hills (E), by the serpent cave",
+   "water": "land"
+  },
+  {
+   "name": "Malisarisent",
+   "role": "talker",
+   "body": [
+    "race",
+    "gnome",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "the little gnome woman on the valley's other hill, Bandit Hills (E)",
+   "water": "land"
+  },
+  {
+   "name": "Lairt'tsal",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "outside the serpent cave, Bandit Hills (E)",
+   "water": "land"
+  },
+  {
+   "name": "Goran's Beast",
+   "role": "foe",
+   "body": [
+    "kind",
+    "bear"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 3,
+   "note": "on the Old Man's hill, Bandit Hills (E); the trials spawn more (a bear's body: the guide gives none)",
+   "water": "land"
+  },
+  {
+   "name": "Goran's Pet",
+   "role": "foe",
+   "body": [
+    "kind",
+    "bear"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "down the right-hand fork inside the serpent cave",
+   "water": "land"
+  },
+  {
+   "name": "Wria Lightningfoot",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Wria Lightningfoot"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "by the southerly of the two big rocks on a tall hill, Hodstock and Temby (C)",
+   "water": "land"
+  },
+  {
+   "name": "Nadine",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Nadine"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "two hills west of the rocks past the bridge with two towers, Hodstock and Temby (SW)",
+   "water": "land"
+  },
+  {
+   "name": "Yvlir",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Yvlir"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "west of Nadine at the zone's western border (SW)",
+   "water": "land"
+  },
+  {
+   "name": "Jimique",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Jimique"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "along the coast just north of Temby (E)",
+   "water": "land"
+  },
+  {
+   "name": "Hogin",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Hogin"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "on the coast south of Temby, near the zone's south border (SE)",
+   "water": "land"
+  },
+  {
+   "name": "Sabbine",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Sabbine"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "the north border near the coast",
+   "water": "land"
+  },
+  {
+   "name": "Ibaggo",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Ibaggo"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "a little west of Sabbine at the northernmost border",
+   "water": "land"
+  },
+  {
+   "name": "Quidox",
+   "role": "talker",
+   "body": [
+    "race",
+    "gnome",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Quidox"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "up the river at the north border, west, near the water (NW)",
+   "water": "land"
+  },
+  {
+   "name": "Brugga",
+   "role": "talker",
+   "body": [
+    "race",
+    "dwarf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Brugga"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "by Wria's rock (the guide never needed her)",
+   "water": "land"
+  },
+  {
+   "name": "Medaesis",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Medaesis"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "outside Freeport's north gate to the west, west-north-west of Mardtirn Poisontongue, by a cactus",
+   "water": "land"
+  },
+  {
+   "name": "Reaver Gnoll",
+   "role": "talker",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Reaver Gnoll"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "among three orange tents north of the Strag's Rest tavern, along the mountain past the T stone (the map's point)",
+   "water": "land"
+  },
+  {
+   "name": "Reaver Gnoll",
+   "role": "talker",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    17003.0,
+    22158.0
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "Serpent Hills (N), the second trial's gnoll (the map's 'the gnoll')",
+   "water": "land"
+  },
+  {
+   "name": "Reaver Gnoll",
+   "role": "talker",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    15721.0,
+    25155.0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Fort Alliance (E), by a rock near the barracks by the Razgut camp (the map's 'Gnoll looking npc')",
+   "water": "land"
+  },
+  {
+   "name": "Reaver Gnoll",
+   "role": "talker",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    19084.0,
+    30499.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "Stone Watchers (C), next to a dam (the map's 'gnoll npc')",
+   "water": "land"
+  },
+  {
+   "name": "eno",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    15557.0,
+    17795.0
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "one of the gnolls the trial's gnoll calls (its round 1: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "owt",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    15569.0,
+    17795.0
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "one of the gnolls the trial's gnoll calls (its round 1: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "eerht",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    15581.0,
+    17795.0
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "one of the gnolls the trial's gnoll calls (its round 1: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "onu",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    16991.0,
+    22172.0
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "one of the gnolls the trial's gnoll calls (its round 2: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "sod",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    17003.0,
+    22172.0
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "one of the gnolls the trial's gnoll calls (its round 2: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "sert",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    17015.0,
+    22172.0
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "one of the gnolls the trial's gnoll calls (its round 2: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "tsrif",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    19072.0,
+    30513.0
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "one of the gnolls the trial's gnoll calls (its round 4: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "dnoces",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    19084.0,
+    30513.0
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "one of the gnolls the trial's gnoll calls (its round 4: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "driht",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    19059.0,
+    30528.0
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "one of the gnolls the trial's gnoll calls (its round 4: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "Reaver Leader",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    15569.0,
+    17800.0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the leader the first trial's gnolls bring (unnamed in the guide)",
+   "water": "land"
+  },
+  {
+   "name": "Reaver Leader",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    17003.0,
+    22177.0
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "the leader the second trial's gnolls bring (unnamed in the guide)",
+   "water": "land"
+  },
+  {
+   "name": "Gregor Pyrely",
+   "role": "foe",
+   "body": [
+    "race",
+    "erudite",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Gregor Pyrely"
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "Highbourne's dockside, following the ocean bank north to the first big tree outside town",
+   "water": "land"
+  },
+  {
+   "name": "Gnolan Boltratchet",
+   "role": "foe",
+   "body": [
+    "race",
+    "gnome",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Gnolan Boltratchet"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "Ant Colonies (S), at the east-south-east base of the black ant guard hill by a boulder",
+   "water": "land"
+  },
+  {
+   "name": "Nizen Flangletoggle",
+   "role": "foe",
+   "body": [
+    "race",
+    "gnome",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Nizen Flangletoggle"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "Neriak (C), north of the coach, on a small hill with a big rock and a mushroom near the firebat valley",
+   "water": "land"
+  },
+  {
+   "name": "Black Ant Guard",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ant"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 2,
+   "note": "the black ant guards round Gnolan Boltratchet's hill, Ant Colonies (S)",
+   "water": "land"
+  },
+  {
+   "name": "Esmirique",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Esmirique"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "Qeynos (SW), along the ocean south of town, two trees south of the poachers' camp",
+   "water": "land"
+  },
+  {
+   "name": "Zombie #22",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Zombie"
+   ],
+   "place": [
+    "poi",
+    "rathe",
+    "Zombie #22"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the Dead Hills, beside the Plane of Disease portal house, outside the fence opposite the necrologists",
+   "water": "land"
+  },
+  {
+   "name": "Inquiladius Expica",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "south and west of Druid's Watch, near the road",
+   "water": "land"
+  },
+  {
+   "name": "Farmer Moegar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "in Druid's Watch",
+   "water": "land"
+  },
+  {
+   "name": "Demetricus Olious",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Inquiladius Expica",
+    14,
+    0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "10-15 steps north of Inquiladius Expica (the map's Demetricus)",
+   "water": "land"
+  },
+  {
+   "name": "Grunnie",
+   "role": "talker",
+   "body": [
+    "race",
+    "dwarf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Grunnie"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Darvar Manor ('Feswes Nepus'), left from the coach by the fence",
+   "water": "land"
+  },
+  {
+   "name": "Cylen",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Cylen"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Blackwater ('Cmedixevis'), close to Corliss by the fence",
+   "water": "land"
+  },
+  {
+   "name": "Kibenza",
+   "role": "talker",
+   "body": [
+    "race",
+    "gnome",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    13546.0,
+    27510.0
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Gertar's Mines ('Hispves Nopit'), east of the coach by the merchants (the map's point, read as Tunaria: it lies in the sheet's Rathe inset)",
+   "water": "land"
+  },
+  {
+   "name": "Sawise",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Sawise"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Kara Village ('Lese Wommehi'), south of the west entrance by a tree",
+   "water": "land"
+  },
+  {
+   "name": "Sylanthia De'Crevast",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Sylanthia De'Crevast"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "North Kithicor (NE), on a hill just east of the wild griffawns",
+   "water": "land"
+  },
+  {
+   "name": "Yiggua",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Yiggua"
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "just off the path north of the little outpost outside Grobb",
+   "water": "land"
+  },
+  {
+   "name": "Shuglug",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Shuglug"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "east of Grobb, round the mountain on the beach",
+   "water": "land"
+  },
+  {
+   "name": "Farmer Rulug",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Farmer Rulug"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Kerplunk Outpost, north along the lake's coast",
+   "water": "land"
+  },
+  {
+   "name": "hearty boar",
+   "role": "foe",
+   "body": [
+    "kind",
+    "boar"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "hearty boars"
+   ],
+   "count": 3,
+   "level": 40,
+   "note": "the western Spider Mines, along the river west of Ruddish the Devout",
+   "water": "land"
+  },
+  {
+   "name": "Fripz",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Oggok Gate (S)",
+   "water": "land"
+  },
+  {
+   "name": "Frapz",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    13555.0,
+    28362.0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "Oggok Gate (NE), on a hillside among the ponds (the map's point, read as Tunaria: it lies in the sheet's Rathe inset)",
+   "water": "land"
+  },
+  {
+   "name": "Bookshelf",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Guild Board"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "in the casters' guild of Qeynos",
+   "water": "land"
+  },
+  {
+   "name": "Scholar Dafren",
+   "role": "talker",
+   "body": [
+    "race",
+    "erudite",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "the third floor of Highbourne's library",
+   "water": "land"
+  },
+  {
+   "name": "Tiny Spiderbot",
+   "role": "foe",
+   "body": [
+    "kind",
+    "clockwork"
+   ],
+   "place": [
+    "at",
+    0,
+    25300.0,
+    6650.0,
+    "low"
+   ],
+   "count": 5,
+   "level": 20,
+   "note": "randomly about the north-east of Rogue Clockworks (unconnable in the guide: caught, not fought)",
+   "water": "land"
+  },
+  {
+   "name": "Shiny Clockwork",
+   "role": "foe",
+   "body": [
+    "kind",
+    "clockwork"
+   ],
+   "place": [
+    "at",
+    0,
+    25250.0,
+    6300.0
+   ],
+   "count": 3,
+   "level": 48,
+   "note": "the hill with a huge signpost east of the north-east of Rogue Clockworks (the place is ours: the guide's 'a hill around the village')",
+   "water": "land"
+  },
+  {
+   "name": "Gust",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Whirlwind"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 3,
+   "note": "the ravine east of Wyndhaven's coach, with the enraged wolves (the Whirlwind's swirling look)",
+   "water": "land"
+  },
+  {
+   "name": "Vargilder Souralld",
+   "role": "talker",
+   "body": [
+    "race",
+    "barbarian",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "a small tent across the frozen lake, Anu Village (SW)",
+   "water": "land"
+  },
+  {
+   "name": "Warlord Treg",
+   "role": "foe",
+   "body": [
+    "kind",
+    "orc"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "on a big hill surrounded by Frosteyes west of Anu Village, Snowblind Plains (SE)",
+   "water": "land"
+  },
+  {
+   "name": "Orc Excavation Site",
+   "role": "talker",
+   "body": [
+    "npc",
+    "cursed grave"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "by Warlord Treg's hill",
+   "water": "land"
+  },
+  {
+   "name": "Prophet Olvadr Korskr",
+   "role": "foe",
+   "body": [
+    "npc",
+    "tenacious frost giant"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "at a dark tower west of Warlord Treg, Snowblind Plains (W)",
+   "water": "land"
+  },
+  {
+   "name": "Giant Excavation Site",
+   "role": "talker",
+   "body": [
+    "npc",
+    "cursed grave"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "by Prophet Olvadr Korskr's tower (the guide's Ice Giant Excavation Site)",
+   "water": "land"
+  },
+  {
+   "name": "Jebdo Stikala",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "at",
+    0,
+    17450.0,
+    25350.0
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "a ghost close to the river in Tak 'Xiv West (SE), following it west from Oasis (the place is ours)",
+   "water": "land"
+  },
+  {
+   "name": "Magluza",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    15450.0,
+    10670.0
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "on a small hill with a T stone in the swamp south of Baga Village (NE) (the place is ours)",
+   "water": "land"
+  },
+  {
+   "name": "Guard Zex",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Coachman D'Larik",
+    40,
+    0
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "the top of Fort Seriak's north-east guard tower (here by the coach)",
+   "water": "land"
+  },
+  {
+   "name": "Arctic Spiritcaller",
+   "role": "foe",
+   "body": [
+    "npc",
+    "tenacious frost giant"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "spawns in place of a tenacious frost giant at the ice giant camps, Snowblind Plains (S)",
+   "water": "land"
+  },
+  {
+   "name": "Kerran Escapee",
+   "role": "talker",
+   "body": [
+    "npc",
+    "kerran villager"
+   ],
+   "place": [
+    "at",
+    2,
+    7376.0,
+    9500.0
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Paineel (S), standing between a circle of trees, west of Naris (the place is ours, between Naris and Balidos as the sheet has them)",
+   "water": "land"
+  },
+  {
+   "name": "Arjinn Jais",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Arjinn Jais"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "Bandit Hills (NW), on top of a hill just west of the bandit camp by the lake where Cogwhisker is",
+   "water": "land"
+  },
+  {
+   "name": "Nolram Barro",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Nolram Barro"
+   ],
+   "count": 1,
+   "level": 46,
+   "note": "on a hill at the north-west corner outside Takish'Hiz (C), with Nayr Nonnahs and Rian Buesh",
+   "water": "land"
+  },
+  {
+   "name": "The Dead Acolyte",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "The Dead Acolyte"
+   ],
+   "count": 1,
+   "level": 48,
+   "note": "Takish'Hiz (SE), Lord Chardith's spawn point, behind the archmagus",
+   "water": "land"
+  },
+  {
+   "name": "Excavation Leader",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Excavation team",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the room with the kings in the Tomb of Kings, by the chest (with the excavation team)",
+   "water": "land"
+  },
+  {
+   "name": "Stranger",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Stranger"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "at the very top of the ramp into Neriak",
+   "water": "land"
+  },
+  {
+   "name": "Old Man",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    4720.0,
+    4419.0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Permafrost (NW), on the coast as far north as you can get, west of Castle Vox (the map's point)",
+   "water": "land"
+  },
+  {
+   "name": "Dercas Warden",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Dercas Warden"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Dinbak (S), by the chest that holds the second page's piece",
+   "water": "land"
+  },
+  {
+   "name": "The Dead Guardian",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "near",
+    "Kizdean Gix",
+    15,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "spawned by Kizdean Gix in Neriak (E)",
+   "water": "land"
+  },
+  {
+   "name": "Enraged Earth",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Earth Elemental"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Enraged Earth"
+   ],
+   "count": 2,
+   "level": 20,
+   "note": "on the side of a mountain in Highbourne (SE)",
+   "water": "land"
+  },
+  {
+   "name": "Shambling Earth",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Earth Elemental"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Shambling Earth"
+   ],
+   "count": 2,
+   "level": 20,
+   "note": "with the enraged earths (the guide's Stumbling Earth, the map's Shambling Earth)",
+   "water": "land"
+  },
+  {
+   "name": "Mountain Spirit",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Earth Elemental"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Mountain spirits"
+   ],
+   "count": 1,
+   "level": 22,
+   "note": "the giant earth spirits that come when the earths are killed",
+   "water": "land"
+  },
+  {
+   "name": "A sunbaked stone",
+   "role": "talker",
+   "body": [
+    "npc",
+    "cursed grave"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "A sunbaked stone"
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "Highbourne (E), just north of the mountain's base",
+   "water": "land"
+  },
+  {
+   "name": "Abyas",
+   "role": "foe",
+   "body": [
+    "kind",
+    "lion"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Abyas"
+   ],
+   "count": 1,
+   "level": 22,
+   "note": "the lion pride on a majestic rock over the plains, Highbourne (NW)",
+   "water": "land"
+  },
+  {
+   "name": "Pride Lioness",
+   "role": "foe",
+   "body": [
+    "kind",
+    "lion"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Pride lioness"
+   ],
+   "count": 3,
+   "level": 20,
+   "note": "Abyas's pride on the rock in Highbourne (NW)",
+   "water": "land"
+  },
+  {
+   "name": "Hermit Washburn",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Brokenskull Rock (SW), 'the Master of the Forge south of a sea that isn't on the skull's spine'",
+   "water": "land"
+  },
+  {
+   "name": "Urtica Dioica",
+   "role": "foe",
+   "body": [
+    "npc",
+    "centaur warder"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Urtica Dioica"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "a centaur with a mallet on a hill of small treants, Spirit Talker's Woods (C)",
+   "water": "land"
+  },
+  {
+   "name": "Magus Niska",
+   "role": "talker",
+   "body": [
+    "race",
+    "gnome",
+    0
+   ],
+   "place": [
+    "near",
+    "Prof. Dandersoft",
+    12,
+    0
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "the necromancers' guild in Klick'Anon",
+   "water": "land"
+  },
+  {
+   "name": "Unsettled Bones",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    0,
+    19061.0,
+    11217.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the graveyard by a windmill on the lake's south-west side, Rivervale (C) (white to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Unsettled Bones",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    0,
+    8763.0,
+    12632.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 57,
+   "note": "on a hill near the shooting range with a giant stone marker, Surefall Glade (red to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Unsettled Bones",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    0,
+    22734.0,
+    8394.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "in the blue mist of Collonridge Cemetery (E) (red to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Death's Head Beetle",
+   "role": "foe",
+   "body": [
+    "kind",
+    "insect"
+   ],
+   "place": [
+    "poi",
+    "rathe",
+    "Death's head beetles"
+   ],
+   "count": 4,
+   "level": 55,
+   "note": "Envar",
+   "water": "land"
+  },
+  {
+   "name": "Douglas Aren",
+   "role": "talker",
+   "body": [
+    "race",
+    "erudite",
+    0
+   ],
+   "place": [
+    "at",
+    2,
+    6344.0,
+    8885.0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Paineel, left of the entrance to the main house, under a tent with a chest before him (EQOA-Data's map point, by a fit of its Odus points)",
+   "water": "land"
+  },
+  {
+   "name": "Vhi'zan Kaah",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Vhi'zan Kaah"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Castle Felstar (W), summoned by Madrias Tam (red to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Minion of Vhi'zan",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "near",
+    "Vhi'zan Kaah",
+    15,
+    0
+   ],
+   "count": 2,
+   "level": 52,
+   "note": "Vhi'zan Kaah's minions (light blue to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Ghost of Madrias",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Ghost of Madrias"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Castle Felstar (W), where Vhi'zan Kaah falls",
+   "water": "land"
+  },
+  {
+   "name": "Grocer Fern",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Grocer Fern"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Forkwatch",
+   "water": "land"
+  },
+  {
+   "name": "Rian Johns",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Rian Johns"
+   ],
+   "count": 1,
+   "level": 48,
+   "note": "his secret hiding place: east along the river to the bridge, on its left side, in Desert Hate",
+   "water": "land"
+  },
+  {
+   "name": "Captain Longley",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Dockmaster Bibbin",
+    10,
+    2
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "near the end of a pier on the docks of the Stone of Morthalis (C)",
+   "water": "land"
+  },
+  {
+   "name": "Cedric",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    2,
+    11200.0,
+    10600.0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "on one of the isles of Cape Dreg (E) (the place is ours: Cape Dreg off EQOA-Data's sheet, by a fit of its Odus points)",
+   "water": "land"
+  },
+  {
+   "name": "rare giant skuttlespike",
+   "role": "foe",
+   "body": [
+    "kind",
+    "crab"
+   ],
+   "place": [
+    "at",
+    2,
+    10600.0,
+    10800.0
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "an island in Cape Dreg's western region (the place is ours)",
+   "water": "both"
+  },
+  {
+   "name": "Fugi Bactor",
+   "role": "talker",
+   "body": [
+    "npc",
+    "funagl devout"
+   ],
+   "place": [
+    "at",
+    1,
+    8810.0,
+    7900.0
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "west and slightly south of Oggok's south gate (the place is ours)",
+   "water": "land"
+  },
+  {
+   "name": "Largemouth Bottlefish",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Fat Piranha"
+   ],
+   "place": [
+    "at",
+    1,
+    9300.0,
+    8300.0
+   ],
+   "count": 3,
+   "level": 19,
+   "note": "south, round the bridge with the lizardmen (light blue at 20)",
+   "water": "water"
+  },
+  {
+   "name": "Waterboy",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "near",
+    "Lizardman Outcast",
+    40,
+    1
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "south-west among the lizardmen near the church (here by the abandoned tower)",
+   "water": "land"
+  },
+  {
+   "name": "Fungusman Slave",
+   "role": "talker",
+   "body": [
+    "npc",
+    "funagl devout"
+   ],
+   "place": [
+    "at",
+    1,
+    8281.0,
+    7776.0
+   ],
+   "count": 1,
+   "level": 25,
+   "note": "the cave with ghouls to the west, surrounded by red undead casters",
+   "water": "land"
+  },
+  {
+   "name": "Lothaxae",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Thenon the Wise",
+    25,
+    0
+   ],
+   "count": 1,
+   "level": 47,
+   "note": "the necromancer of the barrow cult, in the room past the moving statue at the bottom of the barrow",
+   "water": "land"
+  },
+  {
+   "name": "Cyrian Truearrow",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "near",
+    "Truearrow ranger",
+    20,
+    0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "the Tier'dal camp on a hill with a tower and three tents in Takish'Hiz, south-west of Oasis (he comes after the tents' mobs are farmed)",
+   "water": "land"
+  },
+  {
+   "name": "Gobzen",
+   "role": "foe",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "near",
+    "Coachman Norial",
+    60,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "a rival mercenary in a backroom in Honjour",
+   "water": "land"
+  },
+  {
+   "name": "Investigator Flint",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Investigator Flint"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the first guard tower on the road south from Highpass's coach exit, Trail's End",
+   "water": "land"
+  },
+  {
+   "name": "Ranger Mek",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Ranger Mek"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Mossmouth (SW), very close to the mountain range, out the north-east (Pickclaw) gate",
+   "water": "land"
+  },
+  {
+   "name": "Akista Sind",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Akista Sind"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Investigator Flint's true form, the illusionist (red to a 60, a mana sucker)",
+   "water": "land"
+  },
+  {
+   "name": "Servant",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Dawn Maiden",
+    10,
+    2
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the Dawn Maiden's servant, with a pet (the guide: she spawns it as she dies)",
+   "water": "land"
+  },
+  {
+   "name": "Historian Ilena",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Historian Ilena"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Muniel's Tea Garden, a minute south-west of the coach",
+   "water": "land"
+  },
+  {
+   "name": "Snowfist Totemcarrier",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "at",
+    0,
+    15277.0,
+    4942.0
+   ],
+   "count": 1,
+   "level": 16,
+   "note": "one of the first rooms of the blue-lit cave in Snowfist (C) (here at its mouth: no floor inside on this server)",
+   "water": "land"
+  },
+  {
+   "name": "Hatebone Totemcarrier",
+   "role": "foe",
+   "body": [
+    "kind",
+    "orc"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Hatebone Totemcarrier"
+   ],
+   "count": 1,
+   "level": 25,
+   "note": "the Hatebone caves, with the Hatebone Elder and prophets (on the ground above: no floor below on this server)",
+   "water": "land"
+  },
+  {
+   "name": "Gnoll Totemkeeper",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    12836.0,
+    12571.0
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "Blackburrow, a dead end by a little tent with a fire, with a gnoll reaver (here outside its entrance)",
+   "water": "land"
+  },
+  {
+   "name": "Spider Totemkeeper",
+   "role": "foe",
+   "body": [
+    "kind",
+    "spider"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Spider Totemkeeper",
+    "low"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "the Guk, the first right before the circle bridge, with the great heart spiders",
+   "water": "land"
+  },
+  {
+   "name": "Spider Poisonspinner",
+   "role": "foe",
+   "body": [
+    "kind",
+    "spider"
+   ],
+   "place": [
+    "near",
+    "Spider Totemkeeper",
+    8,
+    0
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "guards the spider totemkeeper",
+   "water": "land"
+  },
+  {
+   "name": "Ice Giant Tomekeeper",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Ice giant guard"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Ice Giant Tomekeeper"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "Vox's Castle in Permafrost",
+   "water": "land"
+  },
+  {
+   "name": "Guard Therean",
+   "role": "talker",
+   "body": [
+    "race",
+    "erudite",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Guard Therean"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Highbourne, near a banker",
+   "water": "land"
+  },
+  {
+   "name": "Etheneric Portal",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Shimmering Portal"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "portal"
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "the portal on Whale Hill, south of Wyndhaven",
+   "water": "land"
+  },
+  {
+   "name": "Dynmath the Tyrant",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "near",
+    "Etheneric Portal",
+    15,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "comes through the Etheneric Portal on Whale Hill with his undead minions",
+   "water": "land"
+  },
+  {
+   "name": "Magifent the Unliving",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Magifent's Mausoleum, Stone Watchers (W)",
+   "water": "land"
+  },
+  {
+   "name": "Emeraldine Drake",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "at",
+    0,
+    9000.0,
+    8800.0
+   ],
+   "count": 3,
+   "level": 44,
+   "note": "Salisearaneen (SW), east of the road between a hill and a campfire with centaurs, among the jade drakes",
+   "water": "land"
+  },
+  {
+   "name": "Sandstone Drake",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "at",
+    0,
+    17700.0,
+    26900.0
+   ],
+   "count": 3,
+   "level": 46,
+   "note": "Tak 'Xiz South (E), on the border with Takish'Hiz (W), among four rocks, with the torrid drakes",
+   "water": "land"
+  },
+  {
+   "name": "Keeper Amani",
+   "role": "talker",
+   "body": [
+    "race",
+    "erudite",
+    1
+   ],
+   "place": [
+    "at",
+    2,
+    8850.0,
+    4150.0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "roaming the north side of Arcadin's north wall (the place is ours, by a fit of EQOA-Data's Odus points)",
+   "water": "land"
+  },
+  {
+   "name": "Rubilent Drake",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "at",
+    3,
+    6200.0,
+    4600.0
+   ],
+   "count": 4,
+   "level": 50,
+   "note": "the path behind the goblin general's fort toward Solusek's entrance, Lavastorm (the place is ours)",
+   "water": "land"
+  },
+  {
+   "name": "Bloodstone Drake",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "near",
+    "Magifent the Unliving",
+    150,
+    0
+   ],
+   "count": 2,
+   "level": 55,
+   "note": "the swamp water a little north-east of Magifent's tomb",
+   "water": "land"
+  },
+  {
+   "name": "Bloodstone Drake Gem Keeper",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "near",
+    "Magifent the Unliving",
+    160,
+    0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "comes among the bloodstone drakes north-east of the tomb (red to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Undead Drake Lord",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "near",
+    "Magifent the Unliving",
+    120,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a little south or south-east of Magifent's tomb",
+   "water": "land"
+  },
+  {
+   "name": "Magifent",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Magifent the Unliving",
+    100,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the living Magifent, behind (west of) the tomb by a rock, with a ghoul",
+   "water": "land"
+  },
+  {
+   "name": "Prisoner",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Prisoner"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "by a notably large tree two or three paces off the road, just before the gates of Runnyeye (SW)",
+   "water": "land"
+  },
+  {
+   "name": "Goblin Prisoner",
+   "role": "talker",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "near",
+    "Prisoner",
+    4,
+    0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the prisoner, mutated into a goblin, by the tree near Runnyeye's gates",
+   "water": "land"
+  },
+  {
+   "name": "Lord Pickclaw",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Lord Pickclaw"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a dead end in a sunken canyon north-east of the tree, Runnyeye (N)",
+   "water": "land"
+  },
+  {
+   "name": "Julaech",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Mila's Reef (C), on the coast, in a tower (a seldom spawn)",
+   "water": "land"
+  },
+  {
+   "name": "Kratas",
+   "role": "foe",
+   "body": [
+    "npc",
+    "kraken"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "underwater by the whale bones near Old Man Antiok",
+   "water": "water"
+  },
+  {
+   "name": "Pomus Magemell",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Siliskor",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "comes with Siliskor in the Elephant Graveyard (FrontiersForge's name; the guide's Pomus Magewell)",
+   "water": "land"
+  },
+  {
+   "name": "Yulil Ashebrooke",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "the glowing rock pile directly north of the monk tower in the Eternal Desert (N) (a rare spawn)",
+   "water": "land"
+  },
+  {
+   "name": "Death Weaver",
+   "role": "foe",
+   "body": [
+    "kind",
+    "spider"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "the glowing rocks on a small dune just south of the river, Tak Xiv West (W)",
+   "water": "land"
+  },
+  {
+   "name": "Death Spitter",
+   "role": "foe",
+   "body": [
+    "kind",
+    "spider"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "a lone rock on a small hill south in the east of the next zone west",
+   "water": "land"
+  },
+  {
+   "name": "Terrorantula",
+   "role": "foe",
+   "body": [
+    "kind",
+    "spider"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "spawns on Yulil Ashebrooke's rock pile, with 7-8 poisonweavers",
+   "water": "land"
+  },
+  {
+   "name": "Poisonweaver",
+   "role": "foe",
+   "body": [
+    "kind",
+    "spider"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 2,
+   "note": "Terrorantula's brood (level 43)",
+   "water": "land"
+  },
+  {
+   "name": "Spirit of Tellainain",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "at",
+    1,
+    4900.0,
+    9400.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the island off the south-west corner of Envar (the place is ours)",
+   "water": "land"
+  },
+  {
+   "name": "Tal'thex Knight",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "near",
+    "Spirit of Tellainain",
+    30,
+    1
+   ],
+   "count": 2,
+   "level": 56,
+   "note": "the Tal'thex undead that rise on the island (dark blue to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Tal'thex Soldier",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "near",
+    "Spirit of Tellainain",
+    40,
+    1
+   ],
+   "count": 2,
+   "level": 55,
+   "note": "the Tal'thex undead that rise on the island",
+   "water": "land"
+  },
+  {
+   "name": "Tal'thex Sorcerer",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "near",
+    "Spirit of Tellainain",
+    50,
+    1
+   ],
+   "count": 2,
+   "level": 55,
+   "note": "the Tal'thex undead that rise on the island; killing them brings Lord Valkanith sooner",
+   "water": "land"
+  },
+  {
+   "name": "Lord Valkanith",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Lord Chardith"
+   ],
+   "place": [
+    "near",
+    "Spirit of Tellainain",
+    20,
+    1
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "comes at last on Envar's island (he looks like Lord Chardith)",
+   "water": "land"
+  },
+  {
+   "name": "Jaeger Mansion Statue",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Jaeger Statue"
+   ],
+   "place": [
+    "near",
+    "Jaeger Statue",
+    4,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the statue, turned hostile when the hourglass is set in it",
+   "water": "land"
+  },
+  {
+   "name": "Gil Swimmerbee",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "at",
+    2,
+    10409.0,
+    6691.0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "in a boat next to a dock, Vastly Deep (W) (by a fit of EQOA-Data's Odus points, on the shore)",
+   "water": "land"
+  },
+  {
+   "name": "Sly Ice Giant",
+   "role": "foe",
+   "body": [
+    "npc",
+    "tenacious frost giant"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "the valley between small hills north-west of Steely Stoutdale, over the dark patch of ice (Anu Village)",
+   "water": "land"
+  },
+  {
+   "name": "Ks'or",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    2,
+    10491.0,
+    7156.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "a merman among the mermaids in the underwater ruins at the bottom of Vastly Deep (here a human's body)",
+   "water": "water"
+  },
+  {
+   "name": "Creepyman",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Salisearaneen (W), south-west of 'The Golden Road' signpost",
+   "water": "land"
+  },
+  {
+   "name": "Baylor",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "freed when Creepyman dies, Salisearaneen (W)",
+   "water": "land"
+  },
+  {
+   "name": "Oppydna",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Salisearaneen (C), at the base of a hill near some trees",
+   "water": "land"
+  },
+  {
+   "name": "Leeanna",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "just north of Wyndhaven on the shore",
+   "water": "land"
+  },
+  {
+   "name": "High Druid Postmanjim",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "outside Qeynos's south wall near a tree",
+   "water": "land"
+  },
+  {
+   "name": "High Shaman Bradue",
+   "role": "talker",
+   "body": [
+    "race",
+    "barbarian",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "along the outside of Qeynos's west wall corner",
+   "water": "land"
+  },
+  {
+   "name": "High Sorcerer Coolade",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Kelinar, the south side near the tents",
+   "water": "land"
+  },
+  {
+   "name": "Sunshine Brightray",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "the southern part of Merry-by-Water (C)",
+   "water": "land"
+  },
+  {
+   "name": "Beam Brightray",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "with Sunshine Brightray in Merry-by-Water",
+   "water": "land"
+  },
+  {
+   "name": "Blacksmith Kadeshi",
+   "role": "talker",
+   "body": [
+    "race",
+    "dwarf",
+    0
+   ],
+   "place": [
+    "near",
+    "fire goblin blacksmith",
+    15,
+    3
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "held captive by the fire goblins near their fort, Lavastorm (NW)",
+   "water": "land"
+  },
+  {
+   "name": "Xalakharx",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    4415.0,
+    5210.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the first spectral rallosian cave, Geomancer's Pass (W)",
+   "water": "land"
+  },
+  {
+   "name": "Rainbow Magic Guardian",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "at",
+    1,
+    7188.0,
+    4686.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "the top of an island with necro birds in Lake Rathe (E) (a dragon)",
+   "water": "land"
+  },
+  {
+   "name": "Tree of Life",
+   "role": "talker",
+   "body": [
+    "npc",
+    "treant"
+   ],
+   "place": [
+    "at",
+    1,
+    7188.0,
+    4771.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "appears on the same island when the guardian dies",
+   "water": "land"
+  },
+  {
+   "name": "Armis",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    20937.0,
+    20722.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "Gaulin's abandoned camp on the canyon's left side, on the way to Skahyir, Box Canyon (C) (a caster with a fire pet)",
+   "water": "land"
+  },
+  {
+   "name": "Salin",
+   "role": "talker",
+   "body": [
+    "race",
+    "erudite",
+    0
+   ],
+   "place": [
+    "near",
+    "Researcher Davil",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the third floor of Highbourne's library",
+   "water": "land"
+  },
+  {
+   "name": "Assassin of Khal",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "near",
+    "Salin",
+    40,
+    0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "Khalimet's assassins who jump whoever carries the tome (yellow shadowknights)",
+   "water": "land"
+  },
+  {
+   "name": "Lord Farex",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    5500.0,
+    4700.0
+   ],
+   "count": 1,
+   "level": 59,
+   "note": "a harbinger of Khalimet: the unnamed portal in Permafrost (E) (with an efreet pet) (the place is ours, from the guide's zone)",
+   "water": "land"
+  },
+  {
+   "name": "Lord Wraymot",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    20600.0,
+    30600.0
+   ],
+   "count": 1,
+   "level": 59,
+   "note": "a harbinger of Khalimet: a small hill with a T stone and an unnamed portal, Broken Skull Rock (NW) (the place is ours, from the guide's zone)",
+   "water": "land"
+  },
+  {
+   "name": "Lord Tallivar",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    18999.0,
+    19400.0
+   ],
+   "count": 1,
+   "level": 59,
+   "note": "a harbinger of Khalimet: a hill near a large stone arch with an unnamed portal, Desert Hate (S) (the place is ours, from the guide's zone)",
+   "water": "land"
+  },
+  {
+   "name": "Lord Vengal",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    13300.0,
+    11377.0
+   ],
+   "count": 1,
+   "level": 59,
+   "note": "a harbinger of Khalimet: blue snow by an unnamed portal on Mount Hatespike's (C) border near (W) (the place is ours, from the guide's zone)",
+   "water": "land"
+  },
+  {
+   "name": "Khal Zealot",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    5026.0,
+    5150.0
+   ],
+   "count": 2,
+   "level": 58,
+   "note": "the six Khal conscript and garrison camps of Permafrost (S)",
+   "water": "land"
+  },
+  {
+   "name": "Khal Reaver",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Torgias Bullow",
+    30,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "jumps you outside Torgias Bullow's house in Murnf (red to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "The Keeper",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "at",
+    0,
+    24942.0,
+    25100.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a Jal'reth on an island south of the mage spell merchant, Elemental Towers (C) (white-faced, then red)",
+   "water": "land"
+  },
+  {
+   "name": "Weary Adventurer",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    23500.0,
+    19560.0
+   ],
+   "count": 3,
+   "level": 60,
+   "note": "by a little campfire in Muniel's Tea Garden (C) (white-faced, then attackable)",
+   "water": "land"
+  },
+  {
+   "name": "Gnadriin",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "near",
+    "Weary Adventurer",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "what the weary adventurers become as they die",
+   "water": "land"
+  },
+  {
+   "name": "Hogarth Bartholomew",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    15600.0,
+    9500.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "a hill south-east of Moradhim's coach, on the road to Baga",
+   "water": "land"
+  },
+  {
+   "name": "Galoosh",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "near",
+    "Yiggua",
+    30,
+    0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "wanders north of the little outpost outside Grobb",
+   "water": "land"
+  },
+  {
+   "name": "Tobral Arnez",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    25100.0,
+    9800.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Neriak (S), east of the ramp in the broken tower",
+   "water": "land"
+  },
+  {
+   "name": "Jon Watersmith",
+   "role": "talker",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "a small camp at the edge of the plains and mountains, Mossmouth (E)",
+   "water": "land"
+  },
+  {
+   "name": "Jingle",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    21118.0,
+    25100.0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "Oasis, twenty feet north of the coach by the banner (here at the zone's middle)",
+   "water": "land"
+  },
+  {
+   "name": "Arliss",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    8700.0,
+    8700.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a small camp left of the road running north from Murnf, Salisearaneen (W) ('west of Gramash Ruins')",
+   "water": "land"
+  },
+  {
+   "name": "Altar of Cazic Thule",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Golem Statue"
+   ],
+   "place": [
+    "at",
+    0,
+    14666.0,
+    30378.0
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "the altar in the centre room of Cazic Thule's main temple",
+   "water": "land"
+  },
+  {
+   "name": "Altar of the Spirit Guardian",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Golem Statue"
+   ],
+   "place": [
+    "at",
+    0,
+    14828.0,
+    30553.0
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "the altar beside the spirit guardian, in the inner pyramid",
+   "water": "land"
+  },
+  {
+   "name": "Circle of the Spider Queen",
+   "role": "talker",
+   "body": [
+    "npc",
+    "cursed grave"
+   ],
+   "place": [
+    "near",
+    "Spider Queen Aszec",
+    4,
+    0
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "the circular area at the centre of the drow spiders' main room, down the ramps of the Salt Mines",
+   "water": "land"
+  },
+  {
+   "name": "Frost Fairy",
+   "role": "talker",
+   "body": [
+    "kind",
+    "pixie"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "on the hills round Anu Village (by day, they say)",
+   "water": "land"
+  },
+  {
+   "name": "Captain Rebohl",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "near",
+    "traveling salesman",
+    40,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "along the long wall past the Traveling Salesman, Misty Thicket (E)",
+   "water": "land"
+  },
+  {
+   "name": "Businessman Lure",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    23700.0,
+    19700.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "Muniel's Tea Garden, by the ocean (jittery)",
+   "water": "land"
+  },
+  {
+   "name": "Headhunter Praar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    5397.0,
+    18914.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "wandering outside the front entrance of Qeynos Prison (C)",
+   "water": "land"
+  },
+  {
+   "name": "Rhizele",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    1
+   ],
+   "place": [
+    "near",
+    "Coachman D'Larik",
+    300,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "a spy along the coast south of Fort Seriak, by a tree near a red spire",
+   "water": "land"
+  },
+  {
+   "name": "Enchanter Nanyea",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    10609.0,
+    5100.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "on a ledge above a frozen lake, Frosteye Valley (S) (with a stone golem pet)",
+   "water": "land"
+  },
+  {
+   "name": "A Baby Dragon",
+   "role": "talker",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "near",
+    "Enchanter Nanyea",
+    8,
+    0
+   ],
+   "count": 1,
+   "level": 10,
+   "note": "comes as Enchanter Nanyea falls",
+   "water": "land"
+  },
+  {
+   "name": "Maryela Firetongue",
+   "role": "talker",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "at",
+    0,
+    21300.0,
+    28700.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "roams Ant Colonies (NE), the baby dragon's mother",
+   "water": "land"
+  }
+ ],
+ "attackable": [
+  "Nanie Gubbins",
+  "Necromancer Warpheus",
+  "Brunsgill",
+  "Aryee",
+  "Warlord Kraven",
+  "Apprentice Yavim",
+  "Radavex Planeswalker"
+ ]
+}

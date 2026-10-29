@@ -5,10 +5,15 @@ a square walked round twice is a loop of its four corners at its pace and
 pause; a pacer is two points back and forth; a walker seen for one leg goes
 back and forth over what was seen; a rat, a guard standing and the watcher
 are left out; an NPC with a GM's path is left; each route goes to the NPC of
-its name nearest it; --undo gives back npcpaths as it was. No game data.
+its name nearest it; --undo gives back npcpaths as it was. Read directly: a
+walk out of view is never bridged, a waypoint visited twice keeps its place
+in the order walked (Freeport's Rea Nekchev went through the houses when it
+did not), corners pause 0 and stops their own, and every leg lies on the walk.
+No game data.
 
     python3 tools/seed_npc_patrols_test.py
 """
+import importlib.util
 import json
 import math
 import os
@@ -20,6 +25,10 @@ import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOOL = os.path.join(HERE, "seed_npc_patrols.py")
+sys.path.insert(0, HERE)
+_spec = importlib.util.spec_from_file_location("seed_npc_patrols", TOOL)
+M = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(M)
 
 
 def walk(rows, sid, name, legs, t0=0, pace=4.0, pause=2.0):
@@ -39,6 +48,27 @@ def walk(rows, sid, name, legs, t0=0, pace=4.0, pause=2.0):
             t += 0.5
         sent = (bx, bz)
     rows.append({"t": int(t * 1000), "id": sid, "name": name, "x": sent[0], "y": 10, "z": sent[1], "v": [0, 0, 0]})
+    return t
+
+
+def walk_stops(rows, sid, name, stops, t0=0.0, pace=3.0):
+    """Rows of a walker through stops [(x, z, pause)...]: a stop of pause s
+    at each (0: a turn, no stop), then a leg at `pace` to the next, sampled
+    every 0.5 s, its place sent only at the stops and as it sets off."""
+    t = t0
+    for (ax, az, pause), (bx, bz, _) in zip(stops, stops[1:]):
+        for _ in range(int(pause / 0.5)):
+            rows.append({"t": int(t * 1000), "id": sid, "name": name, "x": ax, "y": 10, "z": az, "v": [0, 0, 0]})
+            t += 0.5
+        d = math.hypot(bx - ax, bz - az)
+        v = [pace * (bx - ax) / d, 0, pace * (bz - az) / d]
+        for _ in range(max(1, round(d / pace / 0.5))):
+            rows.append({"t": int(t * 1000), "id": sid, "name": name, "x": ax, "y": 10, "z": az, "v": v})
+            t += 0.5
+    x, z, pause = stops[-1]
+    for _ in range(max(1, int(pause / 0.5))):
+        rows.append({"t": int(t * 1000), "id": sid, "name": name, "x": x, "y": 10, "z": z, "v": [0, 0, 0]})
+        t += 0.5
     return t
 
 
@@ -69,9 +99,8 @@ class SeedNPCPatrols(unittest.TestCase):
         square = [(1000, 1000), (1040, 1000), (1040, 1040), (1000, 1040), (1000, 1000)]
         walk(rows, 11, "Guard Rounds", square + square[1:], pace=4.0, pause=2.0)
         walk(rows, 13, "Piker Pace", [(1100, 1000), (1112, 1000), (1100, 1000), (1112, 1000), (1100, 1000)], pace=3.12, pause=10.0)
-        # one leg at a patrol's pace, then out of view
-        rows += [{"t": 0, "id": 14, "name": "Walker Once", "x": 1200, "y": 10, "z": 1000, "v": [3, 0, 0]},
-                 {"t": 6600, "id": 14, "name": "Walker Once", "x": 1220, "y": 10, "z": 1000, "v": [3, 0, 0]}]
+        # one leg at a patrol's pace in view, then out of it
+        rows += [{"t": t, "id": 14, "name": "Walker Once", "x": 1200, "y": 10, "z": 1000, "v": [4, 0, 0]} for t in range(0, 5001, 500)]
         # a wanderer: Sandstorm's wander pace, legs that never come round
         walk(rows, 19, "Lost Wisp", [(1700, 1000), (1720, 1010), (1705, 1030), (1690, 1015), (1712, 990)], pace=4.95, pause=6.0)
         walk(rows, 15, "Guard Kept", [(1300, 1000), (1330, 1000), (1300, 1000)])
@@ -132,6 +161,59 @@ class SeedNPCPatrols(unittest.TestCase):
         c = sqlite3.connect(self.db)
         self.assertEqual(c.execute("SELECT count(*) FROM npcmove").fetchall(), [(0,)])
         c.close()
+
+
+class ReadingARoute(unittest.TestCase):
+    """route() itself, on walks in Sandstorm's shape."""
+
+    def test_a_walk_out_of_view_is_never_bridged(self):
+        rows = []
+        # paced up and down one street, then a minute out of view, then seen on another
+        t = walk(rows, 1, "W", [(0, 0), (60, 0), (0, 0), (60, 0)], pace=3.0, pause=1.0)
+        walk(rows, 1, "W", [(200, 100), (200, 140)], t0=t + 60, pace=3.0, pause=1.0)
+        r = M.route(sorted(rows, key=lambda q: q["t"]))
+        self.assertEqual((r.mode, r.full), ("pingpong", True))
+        self.assertEqual(sorted((p[0], p[2]) for p in r.points), [(0, 0), (60, 0)])
+        self.assertLessEqual(r.off, M.ON_WALK)
+        # out of view in the middle of a leg: the runs are read apart, and the
+        # longer is walked back and forth; never a leg across the silence
+        rows = []
+        walk_stops(rows, 2, "W", [(0, 0, 1), (40, 0, 0), (40, 40, 1)])
+        rows = [q for q in rows if not 10000 <= q["t"] < 20000]
+        r = M.route(rows)
+        self.assertFalse(r.full)
+        self.assertLessEqual(r.off, M.ON_WALK)
+        for a, b in zip(r.points, r.points[1:]):
+            self.assertTrue(a[2] == b[2] == 0 or a[0] == b[0], f"a leg from {a} to {b} was never walked")
+
+    def test_a_waypoint_visited_twice_keeps_its_order(self):
+        # Rea Nekchev's shape: up a street, along and back, down again, round the
+        # houses to the west and back to the start, then up and along again and
+        # lost from view on the way back (the old reader, seeing too little of the
+        # second round, dropped the waypoints she visits twice and walked from
+        # the east end straight west, through the houses)
+        rea = [(0, 0, 5), (0, 50, 0), (20, 50, 0), (1, 50, 6), (0.5, 1, 0.5), (-70, 10, 0), (-90, 38, 2), (-85, 5, 0),
+               (0, 0, 5), (0, 50, 0), (20, 50, 0), (10, 50, 0)]
+        rows = []
+        walk_stops(rows, 3, "Rea", rea, pace=3.12)
+        r = M.route(rows)
+        self.assertEqual((r.mode, r.full), ("loop", True))
+        self.assertEqual([(p[0], p[2]) for p in r.points], [(x, z) for x, z, _ in rea[:8]])
+        self.assertLessEqual(r.off, M.ON_WALK)
+        # a corner is walked through, a stop held as long as it was
+        self.assertEqual([p[3] for p in r.points], [5.0, 0.0, 0.0, 6.0, 0.5, 0.0, 2.0, 0.0])
+        self.assertEqual(r.pace, 3.12)
+
+    def test_a_pacer_seen_there_and_back_is_one_way(self):
+        rows = []
+        walk_stops(rows, 4, "P", [(0, 0, 3), (30, 0, 3), (0, 0, 3)])
+        r = M.route(rows)
+        self.assertEqual((r.mode, [(p[0], p[2]) for p in r.points]), ("pingpong", [(0, 0), (30, 0)]))
+
+    def test_a_leg_off_the_walk_is_measured(self):
+        walk_ = [[0, 0, 0], [50, 0, 0], [50, 0, 50]]
+        self.assertLess(M.off_walk([(0, 0, 0, 0), (50, 0, 0, 0), (50, 0, 50, 0)], "pingpong", walk_), 0.01)
+        self.assertGreater(M.off_walk([(0, 0, 0, 0), (50, 0, 50, 0)], "pingpong", walk_), 20)  # the diagonal: 25 at its middle
 
 
 class AddMissing(unittest.TestCase):

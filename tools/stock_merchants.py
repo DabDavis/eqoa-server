@@ -640,7 +640,8 @@ def plan(db, prh, measured, patterns):
     by_id = {n["id"]: n for n in npcs}
     catalogs = collections.defaultdict(list)
     for key, pid in db.execute("SELECT npcid, patternid FROM npcitem ORDER BY npcid, listnumber, itemid"):
-        catalogs[key].append(pid)
+        if pid in patterns:  # as GetNPCItems' join with itempattern reads them
+            catalogs[key].append(pid)
     merchants = [n for n in npcs if n["type"] & MERCHANT]
     empty = [n for n in merchants if not (n["npc_id"] and catalogs.get(n["npc_id"]))]
     region = region_levels(npcs, merchants)
@@ -766,10 +767,15 @@ def plan(db, prh, measured, patterns):
     # prices: every catalog item, theirs and ours, whose itemcost is 0
     rule = Rule(measured)
     p.rule = rule
-    wanted = {x for items in catalogs.values() for x in items} | {x for items, _ in p.stock.values() for x in items}
+    # (a merchant's: a creature's rows are its corpse's loot, and its value
+    # is what a merchant pays for it, left as it is)
+    wanted = {x for n in merchants if n["npc_id"] for x in catalogs.get(n["npc_id"], ())}
+    wanted |= {x for items, _ in p.stock.values() for x in items}
     p.odd = []
     for x in sorted(wanted):
-        pat = patterns[x]
+        pat = patterns.get(x)
+        if pat is None:
+            continue  # a row naming no pattern: GetNPCItems' join drops it too
         if pat["cost"] > 0:
             # kept, but named when it is far from what the rule would say
             if norm(pat["name"]) not in measured.by_name:

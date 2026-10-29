@@ -1286,6 +1286,1442 @@
     "scuzz toad"
    ],
    "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Spell Quest (github.com/Jadiction/EQOA-Data, MIT). Its note on Pluxklez: 251,000 experience and scuzz toad stew for four eyes (the guide's figures). The scuzz toads' spawn cycle from the jellies and piranhas is left out: they stand at the lake (tools/quests/npcs/qe.json); the stew takes the sondereel fish soup's effect, not the guide's 156 a tick; the drop chance is ours."
+  },
+  {
+   "key": "Portal/plane-of-sky/portal-1",
+   "name": "The Manticores' Riddles",
+   "giver": "Sektamoot",
+   "classes": [],
+   "races": [],
+   "minlevel": 53,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The way to the sky is guarded by riddles, little one: two of mine, and two each of my kin, Alexandraphex and Fentharos, on the hills nearby. Hear theirs, then answer mine.",
+   "accept": "I will answer your riddles.",
+   "decline": "Not now.",
+   "declined": "The sky can wait for the wise.",
+   "started": "Mine: a beast that was a man lies cold north of Anu's pond, serving masters not of the dead. Bring me the ice of the earth he holds.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Alexandraphex",
+     "journal": "Hear Alexandraphex's riddle on the hillside west of Sektamoot.",
+     "says": "Mine: something black lives under a blue horizon, a thorn sunk in its swollen flesh. Many arms have pulled at it in vain. Bring me the thorn."
+    },
+    {
+     "kind": "talk",
+     "target": "Fentharos",
+     "journal": "Hear Fentharos's riddle on the hillside east of Sektamoot.",
+     "says": "Mine: old armour round muscle and bone, a dragon with no wings, and a hunter's name in its belly. Bring me that name."
+    },
+    {
+     "kind": "loot",
+     "target": "Skaldi Runehoof",
+     "items": [
+      {
+       "item": "totem of the frozen north",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Skaldi Runehoof in the tomb by the pond north of Anu Village and take the totem of the frozen north."
+    },
+    {
+     "kind": "give",
+     "target": "Sektamoot",
+     "items": [
+      {
+       "item": "totem of the frozen north",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the totem of the frozen north to Sektamoot.",
+     "says": "The ice of the earth, from the hand of the dead. The first riddle is answered."
+    },
+    {
+     "kind": "loot",
+     "target": "Kratas",
+     "items": [
+      {
+       "item": "harpoon of Telinan",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Kratas, the beast of the deep sea south of Tunaria, and pull the harpoon of Telinan from his hide."
+    },
+    {
+     "kind": "give",
+     "target": "Alexandraphex",
+     "items": [
+      {
+       "item": "harpoon of Telinan",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the harpoon of Telinan to Alexandraphex.",
+     "says": "The thorn, free at last. You have answered me."
+    },
+    {
+     "kind": "loot",
+     "target": "Crocosaurus",
+     "items": [
+      {
+       "item": "ring of garthis",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Crocosaurus at the crocodile rocks on Lake Noregard's temple island and take the ring of Garthis."
+    },
+    {
+     "kind": "give",
+     "target": "Fentharos",
+     "items": [
+      {
+       "item": "ring of garthis",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ring of Garthis to Fentharos.",
+     "says": "Garthis, the hunter who fell to the beast. Return to Sektamoot: there is more."
+    }
+   ],
+   "unresolved": [
+    "Sektamoot",
+    "Alexandraphex",
+    "Fentharos",
+    "Kratas",
+    "Crocosaurus"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The first three riddles (the guide lets them be solved in any order; here Sektamoot's, Alexandraphex's, then Fentharos's). The riddles are ours, after the guide's. The three manticores stand on hillsides of the Sphinx Pyramid's NE ninth, ours (tools/quests/npcs/qe.json); Kratas and Crocosaurus are FrontiersForge's sightings, standing here (the Kratas quest that spawns him is Misc's). The harpoon is made from Lord Pickclaw's Scepter's look."
+  },
+  {
+   "key": "Portal/plane-of-sky/portal-2",
+   "name": "The Manticores' Tokens",
+   "giver": "Sektamoot",
+   "classes": [],
+   "races": [],
+   "minlevel": 53,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/portal-1"
+   ],
+   "offer": "Now my second: guarded by the brood of desert and wind, bedded in sand and gold, a fist of death carved in stone. My kin have their second riddles for you too. Bring all three, and a token each.",
+   "accept": "I will bring them.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go. And do not come back without all three.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Skahyir",
+     "items": [
+      {
+       "item": "crown of rargek",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Skahyir in the cave guarded by two inferno drakes in Box Canyons and take the crown of Rargek."
+    },
+    {
+     "kind": "give",
+     "target": "Sektamoot",
+     "items": [
+      {
+       "item": "crown of rargek",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the crown of Rargek to Sektamoot.",
+     "says": "The crown of the Deathfist king. Take my token.",
+     "rewards": {
+      "items": [
+       "manticore token"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Lady Vox",
+     "items": [
+      {
+       "item": "shawl of the winter queen",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Lady Vox atop her castle in Permafrost and take the shawl of the winter queen."
+    },
+    {
+     "kind": "give",
+     "target": "Alexandraphex",
+     "items": [
+      {
+       "item": "shawl of the winter queen",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the shawl of the winter queen to Alexandraphex.",
+     "says": "Spun by the blue-skinned cursed for their banished mistress. My token.",
+     "rewards": {
+      "items": [
+       "manticore token"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Siliskor",
+     "items": [
+      {
+       "item": "shield of king jorat",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Siliskor in the canyon pit with the tilted statue in the Elephant Graveyard and take the shield of King Jorat."
+    },
+    {
+     "kind": "give",
+     "target": "Fentharos",
+     "items": [
+      {
+       "item": "shield of king jorat",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the shield of King Jorat to Fentharos.",
+     "says": "A king's shield, praised among the sleeping ivory. My token.",
+     "rewards": {
+      "items": [
+       "manticore token"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Sektamoot",
+     "items": [
+      {
+       "item": "manticore token",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three manticore tokens to Sektamoot.",
+     "says": "Three tokens. Now find the way to the sky yourself: it waits atop the Endless Tower."
+    }
+   ],
+   "unresolved": [
+    "Sektamoot",
+    "Alexandraphex",
+    "Fentharos"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The last three riddles, each item for a token. Skahyir, Lady Vox and Siliskor stand always up here (the guide's days-long camps are not modelled); the riddles are ours, after the guide's."
+  },
+  {
+   "key": "Portal/plane-of-sky/portal-3",
+   "name": "The Endless Tower",
+   "giver": "Sektamoot",
+   "classes": [],
+   "races": [],
+   "minlevel": 53,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/portal-2"
+   ],
+   "unlocks": [
+    {
+     "npc": "Sky Portal",
+     "to": "the Plane of Sky"
+    }
+   ],
+   "offer": "The portal to the sky forms for the worthy at the top of the Endless Tower, where the monks live, in the Eternal Desert. Go up. Sarathet waits on the other side.",
+   "accept": "I will go up.",
+   "decline": "Not now.",
+   "declined": "The tower is patient.",
+   "started": "Go. Up, and through.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 21034.5,
+     "y": 277.6,
+     "z": 22955.0,
+     "radius": 10.0,
+     "journal": "Climb to the top of the Endless Tower in the Eternal Desert.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The wind at the top of the tower gathers into a shimmering ring. A portal forms before you."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Sky Portal",
+     "journal": "Step through the Sky Portal atop the Endless Tower.",
+     "says": "The sky opens around you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4834.8,
+       "y": 250.06,
+       "z": 5524.7
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Sartheret",
+     "journal": "Speak with Sarathet, the great manticore, on the Plane of Sky.",
+     "says": "So the manticores of the Rathe sent you. Keep this eye with you, and the tower's portal will always let you through.",
+     "rewards": {
+      "items": [
+       "Eye of the Sphynx"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Sektamoot"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The tower and Sarathet (the game's Sartheret); finishing it flags the player for the Sky Portal's trip to the Plane of Sky (unlocks). The guide's reward for a wizard or druid is a group portal spell to the Plane of Sky: no such spell is in spellpattern (nor a spellgates row), so every class gets the Eye of the Sphynx, the guide's reward for the others; its 'carried each time' is not checked. No experience, as the guide says."
+  },
+  {
+   "key": "Portal/plane-of-sky/rain-1",
+   "name": "The Key of Rain",
+   "giver": "Liztin Misseliania",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Rain is the gentlest of the chains, they say. A rain key is two thousand tunar. Take it to the essence of rain across the bridge, and see what waits beyond.",
+   "accept": "I will buy a key.",
+   "decline": "Not now.",
+   "declined": "The rain will keep.",
+   "started": "Across the bridge, then.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Liztin Misseliania",
+     "tunar": 2000,
+     "journal": "Buy a rain key from Liztin Misseliania for 2,000 tunar.",
+     "says": "One rain key. Mind the essence: it is fussy.",
+     "rewards": {
+      "items": [
+       "rain key"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "essence of rain",
+     "items": [
+      {
+       "item": "rain key",
+       "count": 1
+      }
+     ],
+     "journal": "Cross the bridge north-west and use the rain key on the essence of rain.",
+     "says": "The essence takes the key and the rain takes you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4228.2,
+       "y": 233.78,
+       "z": 5695.7
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Artiokanis",
+     "count": 1,
+     "journal": "Hunt the first isle of rain until you find Artiokanis, and kill him.",
+     "rewards": {
+      "factions": [
+       [
+        "Denizens of the Plane of Sky",
+        250
+       ]
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "essence of rain",
+     "journal": "Use the keys Artiokanis dropped on the isle's essence of rain.",
+     "says": "The essence carries you on.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4159.0,
+       "y": 180.06,
+       "z": 5143.0
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Rain Chain (github.com/Jadiction/EQOA-Data, MIT). Rain 1. Artiokanis's eight keys are the passage, here the essence's own teleport; the shards (for the Constructs, not in) are left out. The faction for Artiokanis is ours: Rain 2's Trixie needs -99 with the plane's people (the guide names no way to it), and the Denizens start at -349."
+  },
+  {
+   "key": "Portal/plane-of-sky/rain-2",
+   "name": "Sterie Glitterlight",
+   "giver": "Trixie Longwings",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/rain-1"
+   ],
+   "factions_required": [
+    [
+     "Denizens of the Plane of Sky",
+     -99
+    ]
+   ],
+   "offer": "Sterie Glitterlight is missing on the other side of the maze! Please find her. Keep right in the maze and it lets you out.",
+   "accept": "I will find her.",
+   "decline": "Not now.",
+   "declined": "Oh! Then who will?",
+   "started": "Right wall, remember!",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sterie Glitterlight",
+     "journal": "Go through the maze, keeping to the right wall, and find Sterie Glitterlight on the far side.",
+     "says": "You found me! Oh no, behind you..."
+    },
+    {
+     "kind": "kill",
+     "target": "Kaglanor",
+     "count": 1,
+     "journal": "Kill Kaglanor, the spirit by the maze's ruined wall."
+    },
+    {
+     "kind": "talk",
+     "target": "Trixie Longwings",
+     "journal": "Return through the maze, keeping to the left wall, to Trixie Longwings.",
+     "says": "Sterie is safe! Take this wand: it makes keys for the essence."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of rain",
+     "journal": "Use the wand's keys on the essence of rain.",
+     "says": "The essence opens.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4639.0,
+       "y": 118.62,
+       "z": 4675.0
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Rain Chain (github.com/Jadiction/EQOA-Data, MIT). Rain 2. The guide's -99 faction is taken to be the Denizens of the Plane of Sky's (factions_required). The wand that makes eight keys is the essence's teleport; the gargoyles of the maze are left to the player; Kaglanor stands where he spawns."
+  },
+  {
+   "key": "Portal/plane-of-sky/rain-3",
+   "name": "The Necrologist of Rain",
+   "giver": "Singe Burnfeathers",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/rain-2"
+   ],
+   "unlocks": [
+    {
+     "npc": "essence of rain",
+     "to": "Rain 1"
+    }
+   ],
+   "offer": "The qex in our trees carry wings I need. Bring me four. Then perhaps you will help me with something worse in the cave below.",
+   "accept": "I will bring the wings.",
+   "decline": "Not now.",
+   "declined": "The qex keep their wings.",
+   "started": "They roam the trees. They take a while to kill.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "forest qex",
+     "items": [
+      {
+       "item": "qex wing",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.25,
+     "journal": "Take four qex wings from the forest qex in the trees of the isle."
+    },
+    {
+     "kind": "give",
+     "target": "Singe Burnfeathers",
+     "items": [
+      {
+       "item": "qex wing",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four qex wings to Singe Burnfeathers in the lower hut.",
+     "says": "Good. Now the cave with the flesh maggots: something lives at its bottom. Go down."
+    },
+    {
+     "kind": "loot",
+     "target": "Ghizilanve",
+     "items": [
+      {
+       "item": "black gem of Narciliisisin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Go down the flesh maggots' cave to the great cavern, kill Ghizilanve and take her black gem."
+    },
+    {
+     "kind": "give",
+     "target": "Singe Burnfeathers",
+     "items": [
+      {
+       "item": "black gem of Narciliisisin",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the black gem to Singe Burnfeathers.",
+     "says": "Narciliisisin's gem! That necrologist must die. This wand makes keys for the essence."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of rain",
+     "journal": "Use the wand's keys on the essence of rain down the road from the village.",
+     "says": "The essence opens onto an isle of demions.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4210.0,
+       "y": 80.06,
+       "z": 4165.3
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 4,
+     "x": 4232.0,
+     "y": 86.0,
+     "z": 4215.0,
+     "radius": 25.0,
+     "journal": "Circle the isle of demions to the far side, by its portal, until the necrologist shows himself.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A cold laugh rises among the demions. The necrologist Narciliisisin steps out of the dark."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Necrologist",
+     "count": 1,
+     "journal": "Kill the necrologist Narciliisisin."
+    },
+    {
+     "kind": "kill",
+     "target": "Spirit of Narciliisisin",
+     "count": 1,
+     "journal": "Kill the Spirit of Narciliisisin."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of rain",
+     "journal": "Take the isle's essence of rain on to the last isle.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4537.0,
+       "y": 30.69,
+       "z": 4272.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Chimareon the Tyrant",
+     "count": 1,
+     "journal": "Kill Chimareon the Tyrant, far ahead of where you came in."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of rain",
+     "journal": "Take the essence of rain to the Isle of Wonder.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4990.1,
+       "y": 332.44,
+       "z": 4990.1
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Manifestation of Rain",
+     "journal": "Speak with the Manifestation of Rain on the Isle of Wonder.",
+     "says": "You have walked the whole chain of rain. Take my key: it brings you back any time."
+    }
+   ],
+   "unresolved": [
+    "Manifestation of Rain"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Rain Chain (github.com/Jadiction/EQOA-Data, MIT). Rain 3 to 5 and the Manifestation of Rain: finishing it flags the player for Rain 1 from the main island's essence of rain (unlocks: the guide's free key). Granavik the bugbeast and every shard (for the Constructs, not in) are left out; the necrologist's popup is a reach step by him; the wands' keys are the essences' teleports. The Manifestation of Rain is ours (tools/quests/npcs/qe.json). The guide gives no reward but the flag."
+  },
+  {
+   "key": "Portal/plane-of-sky/sun-1",
+   "name": "The Key of the Sun",
+   "giver": "Liztin Misseliania",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The sun chain is harder than the rain: the sycophants see through your tricks. A sun key is two thousand tunar. The essence of the sun stands by the Isle of Wonder's portal.",
+   "accept": "I will buy a key.",
+   "decline": "Not now.",
+   "declined": "The sun rises without you.",
+   "started": "Mind the fairies.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Liztin Misseliania",
+     "tunar": 2000,
+     "journal": "Buy a sun key from Liztin Misseliania for 2,000 tunar.",
+     "says": "One sun key. Good luck.",
+     "rewards": {
+      "items": [
+       "sun key"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "essence of sun",
+     "items": [
+      {
+       "item": "sun key",
+       "count": 1
+      }
+     ],
+     "journal": "Use the sun key on the essence of the sun, near the Isle of Wonder's portal.",
+     "says": "Light swallows you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5607.0,
+       "y": 235.06,
+       "z": 5360.3
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "brightstar princess",
+     "count": 1,
+     "journal": "Kill the brightstar fairies until the brightstar princess comes, and kill her."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of day",
+     "journal": "Use the princess's key on the isle's essence of day.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5400.3,
+       "y": 281.81,
+       "z": 4750.8
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Sun Chain (github.com/Jadiction/EQOA-Data, MIT). Sun 1. The guide's Essence of Day on the main island is the game's essence of sun; the princess stands always up here; her keys are the essence's teleport; the shards are left out."
+  },
+  {
+   "key": "Portal/plane-of-sky/sun-2",
+   "name": "Master Fiharaz's Door",
+   "giver": "Master Fiharaz",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/sun-1"
+   ],
+   "unlocks": [
+    {
+     "npc": "essence of sun",
+     "to": "Sun 1"
+    }
+   ],
+   "offer": "I can open the secret way for you, but first kill three of the imps outside my castle and bring me one of their talismans.",
+   "accept": "I will bring you a talisman.",
+   "decline": "Not now.",
+   "declined": "Then the door stays shut.",
+   "started": "Three imps, one talisman.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "imerzan sycophant",
+     "items": [
+      {
+       "item": "imerzan talisman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Kill three imerzan sycophants outside Master Fiharaz's castle and take a talisman."
+    },
+    {
+     "kind": "give",
+     "target": "Master Fiharaz",
+     "items": [
+      {
+       "item": "imerzan talisman",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the imerzan talisman to Master Fiharaz in his tower.",
+     "says": "Good. The ramp that goes nowhere across the courtyard: walk through it."
+    },
+    {
+     "kind": "kill",
+     "target": "Imerzan",
+     "count": 1,
+     "journal": "Go down through the ramps and bridges past the courtyard and kill Imerzan."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of day",
+     "journal": "Use Imerzan's key on the essence of day.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5479.3,
+       "y": 380.49,
+       "z": 4231.8
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "wailing wind",
+     "count": 1,
+     "journal": "Kill whispering and whistling winds until a wailing wind comes, and kill it."
+    },
+    {
+     "kind": "kill",
+     "target": "Torrential Wind",
+     "count": 1,
+     "journal": "Kill the Torrential Wind that follows."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of day",
+     "journal": "Use the wailing wind's key on the essence of day.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5073.3,
+       "y": 430.94,
+       "z": 4237.8
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "rancorous drake",
+     "count": 1,
+     "journal": "Kill the rapacious drakes until the rancorous drake comes, and kill it."
+    },
+    {
+     "kind": "kill",
+     "target": "Randarin the Relentless",
+     "count": 1,
+     "journal": "Kill Randarin the Relentless."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of day",
+     "journal": "Take the essence of day on the far side of the isle to the Isle of Wonder.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4990.1,
+       "y": 332.44,
+       "z": 4990.1
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Manifestation of Dreams",
+     "journal": "Speak with the Manifestation of Dreams on the Isle of Wonder.",
+     "says": "The chain of the sun is yours. Come back whenever you like."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Sun Chain (github.com/Jadiction/EQOA-Data, MIT). Sun 2 to 4 and the Manifestation of Dreams: finishing it flags the player for Sun 1 from the essence of sun (unlocks). The winds' and drakes' placeholder cycles are left out (each stands always up here); Randarin and the Torrential Wind are the guide's shard spawns, killed here for the chain; the keys are the essences' teleports. No reward but the flag."
+  },
+  {
+   "key": "Portal/plane-of-sky/night",
+   "name": "The Chain of Night",
+   "giver": "Liztin Misseliania",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "unlocks": [
+    {
+     "npc": "essence of night",
+     "to": "Night 1"
+    }
+   ],
+   "offer": "The night chain asks nothing of you first, only a key of the ancients: three thousand tunar. Its essence stands south of my hut.",
+   "accept": "I will buy a key.",
+   "decline": "Not now.",
+   "declined": "The night waits.",
+   "started": "South of my hut.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Liztin Misseliania",
+     "tunar": 3000,
+     "journal": "Buy a key of the ancients from Liztin Misseliania for 3,000 tunar.",
+     "says": "One key of the ancients. The night is long.",
+     "rewards": {
+      "items": [
+       "key of the ancients"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "essence of night",
+     "items": [
+      {
+       "item": "key of the ancients",
+       "count": 1
+      }
+     ],
+     "journal": "Use the key of the ancients on the essence of night south of Liztin's hut.",
+     "says": "Darkness folds round you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4161.0,
+       "y": 612.38,
+       "z": 6384.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Ancient Peasant",
+     "count": 4,
+     "journal": "Kill the four ancient peasants."
+    },
+    {
+     "kind": "kill",
+     "target": "Ancient Vassal",
+     "count": 3,
+     "journal": "Kill the three ancient vassals."
+    },
+    {
+     "kind": "kill",
+     "target": "Ancient Denizen",
+     "count": 3,
+     "journal": "Kill the three ancient denizens."
+    },
+    {
+     "kind": "kill",
+     "target": "Ancient Squire",
+     "count": 1,
+     "journal": "Kill the ancient squire by the exit portal."
+    },
+    {
+     "kind": "kill",
+     "target": "Ancient Jester",
+     "count": 1,
+     "journal": "Kill the ancient jester."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of night",
+     "journal": "Take the essence of night to the next isle.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4441.0,
+       "y": 448.75,
+       "z": 6417.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Iron Knight",
+     "count": 1,
+     "journal": "Get past the golems to the far end of the isle and kill the Iron Knight."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of night",
+     "journal": "Take the essence of night on.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4250.0,
+       "y": 668.88,
+       "z": 6786.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Arch Bishop Millian",
+     "count": 1,
+     "journal": "Save the maiden: kill Arch Bishop Millian in his tower."
+    },
+    {
+     "kind": "kill",
+     "target": "Arch Bishop Lancel",
+     "count": 1,
+     "journal": "Kill Arch Bishop Lancel before the dukes reach the maiden."
+    },
+    {
+     "kind": "talk",
+     "target": "Night Maiden",
+     "journal": "Speak with the Night Maiden at the top.",
+     "says": "You saved me. Go: the portal behind you is open.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4303.0,
+       "y": 353.12,
+       "z": 7754.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "dark baroness",
+     "count": 1,
+     "journal": "Kill the dark barons and essences along the edges until the dark baroness comes, and kill her."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of night",
+     "journal": "Cross the isle along the edges to its essence of night.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4419.3,
+       "y": 129.75,
+       "z": 7130.8
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "King Ruthra",
+     "count": 1,
+     "journal": "Climb into King Ruthra's pyramid past his squires, mages and bishops, and kill him."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of night",
+     "journal": "Take the essence of night on the temple's second floor to the Isle of Wonder.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4990.1,
+       "y": 332.44,
+       "z": 4990.1
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Mark of the Majestic",
+     "journal": "Speak with the Mark of the Majestic on the Isle of Wonder.",
+     "says": "The night is yours, and the snow is open to you. Come to me when you want its key."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Night Chain (github.com/Jadiction/EQOA-Data, MIT). Night 1 to 5 and the Mark of the Majestic: finishing it flags the player for Night 1 (unlocks) and opens the Snow chain (its quest requires this one). The Voice of the Ancients that calls the waves is left out (the ancients stand always up here); the maiden's popup and her dukes' race are cut to the two bishops the guide says to kill; the barons and essences before the baroness are the player's own; every shard is left out; the keys are the essences' teleports. No reward but the flag."
+  },
+  {
+   "key": "Portal/plane-of-sky/snow",
+   "name": "The Chain of Snow",
+   "giver": "Mark of the Majestic",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/night"
+   ],
+   "unlocks": [
+    {
+     "npc": "Mark of the Majestic",
+     "to": "Snow 1"
+    }
+   ],
+   "offer": "You have walked the night. Now the snow: I will open its first isle to you. Ryini waits there, lost and far from her town. Be ready before you speak to her.",
+   "accept": "Send me to Ryini.",
+   "decline": "Not now.",
+   "declined": "The snow keeps.",
+   "started": "Ryini waits. Do not speak to her until you are ready.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "icebound gargoyle",
+     "items": [
+      {
+       "item": "gargoyle eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Before you go down, take an eye from the icebound gargoyles of the first isle of snow."
+    },
+    {
+     "kind": "talk",
+     "target": "Ryini",
+     "journal": "Speak with Ryini where you came in, and keep her safe down the mountain corridor.",
+     "says": "You will take me home to Tamis? Keep the gargoyles off me."
+    },
+    {
+     "kind": "kill",
+     "target": "Wind Mephit",
+     "count": 1,
+     "journal": "Kill the wind mephit that comes at the stone bridge."
+    },
+    {
+     "kind": "talk",
+     "target": "Ryini",
+     "journal": "Follow Ryini down the corridor to the end of the road and speak with her.",
+     "says": "There is the village below. Tamis is in the igloos. Thank you!",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5564.1,
+       "y": 237.38,
+       "z": 6702.1
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Tamis",
+     "journal": "Speak with Tamis in the igloos of the village below.",
+     "says": "Ryini is home! Now kill the whirlwind that circles the village."
+    },
+    {
+     "kind": "kill",
+     "target": "Whirlwind",
+     "count": 1,
+     "journal": "Kill the Whirlwind on the outskirts of the igloo village."
+    },
+    {
+     "kind": "talk",
+     "target": "Guenzi",
+     "journal": "Speak with Guenzi in the igloos about a stew.",
+     "says": "A stew for the drake mother: an ape's heart, a drake's foot and a gargoyle eye."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of snow",
+     "journal": "Take the essence of snow to the next isle.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5900.8,
+       "y": 176.62,
+       "z": 7551.7
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "glacial behemoths",
+     "items": [
+      {
+       "item": "ape's heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Climb east away from the behemoths and hunt them for an ape's heart."
+    },
+    {
+     "kind": "kill",
+     "target": "Glacial Champion",
+     "count": 1,
+     "journal": "Kill the Glacial Champion far to the south to open the isle's portal."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of snow",
+     "journal": "Take the essence of snow to the last isle.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5519.8,
+       "y": 96.28,
+       "z": 7688.7
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "celestial drake",
+     "items": [
+      {
+       "item": "drake's foot",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Hunt the celestial drakes for a drake's foot."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of snow",
+     "journal": "Take the essence of snow back to the igloo village.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5564.1,
+       "y": 237.38,
+       "z": 6702.1
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Guenzi",
+     "items": [
+      {
+       "item": "ape's heart",
+       "count": 1
+      },
+      {
+       "item": "drake's foot",
+       "count": 1
+      },
+      {
+       "item": "gargoyle eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ape's heart, drake's foot and gargoyle eye to Guenzi.",
+     "says": "There. The stew. Carry it near where the drake mother sleeps.",
+     "rewards": {
+      "items": [
+       "Guenzi's stew"
+      ]
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5519.8,
+       "y": 96.28,
+       "z": 7688.7
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 4,
+     "x": 5509.0,
+     "y": 107.0,
+     "z": 7597.0,
+     "radius": 30.0,
+     "journal": "Walk slowly toward where Aeyinar rests, with the stew.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The smell of the stew carries across the snow. Aeyinar wakes, and she is enraged."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Enraged Aeyinar",
+     "count": 1,
+     "journal": "Kill Enraged Aeyinar."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of snow",
+     "journal": "Take the essence of the brood back to the Isle of Wonder.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4990.1,
+       "y": 332.44,
+       "z": 4990.1
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Mark of the Majestic",
+     "journal": "Speak with the Mark of the Majestic again.",
+     "says": "The snow is yours, and desolation is open to you. The Mark of Desolation will send you."
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "teleport",
+     "world": 4,
+     "x": 5670.8,
+     "y": 552.88,
+     "z": 6358.8
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Snow Chain (github.com/Jadiction/EQOA-Data, MIT). Isles 1 to 4 and Enraged Aeyinar: the Mark of the Majestic's snow key is the accept's teleport to Snow 1, and finishing it flags the player for Snow 1 from the Mark (unlocks) and opens the Desolation chain. Ryini's escort is talks either side of the wind mephit (she does not walk); the drop down the waterfall to the village and the guide's back-and-forth between isles are teleports; the herb is left out (the guide's stew without it); Enraged Aeyinar stands always up and her 15 minutes are not kept. The essences' names in the guide (Icicles, Snowfall, the Brood) are the game's essence of snow. No reward but the flag."
+  },
+  {
+   "key": "Portal/plane-of-sky/deso",
+   "name": "The Chain of Desolation",
+   "giver": "Mark of Desolation",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/snow"
+   ],
+   "offer": "Aeyinar has fallen to you. Desolation is the last chain, and the hardest: four isles, and the Quintessence of Veeshan at their end. I will send you to the first.",
+   "accept": "Send me.",
+   "decline": "Not now.",
+   "declined": "Desolation waits.",
+   "started": "Mind your resists. Lightning, then poison.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "erych patroller",
+     "count": 4,
+     "journal": "Farm the scouts and scavengers of each quarter of the isle and kill the erych patrollers."
+    },
+    {
+     "kind": "kill",
+     "target": "erych guardian",
+     "count": 5,
+     "journal": "Kill the five erych guardians that come in their place."
+    },
+    {
+     "kind": "kill",
+     "target": "Erych Arbiter",
+     "count": 1,
+     "journal": "Kill the Erych Arbiter in the druid ring."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of desolation",
+     "journal": "Take the portal at the north end of the isle.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5127.7,
+       "y": 615.75,
+       "z": 6625.2
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Aviak Elder",
+     "journal": "Speak with the Elder of the aviak village.",
+     "says": "Narcillian's soldiers come for us! Defend the village, stranger."
+    },
+    {
+     "kind": "kill",
+     "target": "scout of Narcillian",
+     "count": 4,
+     "journal": "Defend the village: kill Narcillian's scouts."
+    },
+    {
+     "kind": "kill",
+     "target": "warrior of Narcillian",
+     "count": 4,
+     "journal": "Defend the village: kill Narcillian's warriors."
+    },
+    {
+     "kind": "kill",
+     "target": "Warlord of Narcillian",
+     "count": 1,
+     "journal": "Kill the Warlord of Narcillian."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of desolation",
+     "journal": "Run for the orb on the portal pad, past the harpies.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5135.3,
+       "y": 712.63,
+       "z": 7169.8
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "dark harpy",
+     "count": 2,
+     "journal": "Kill the dark and light harpies of the isle."
+    },
+    {
+     "kind": "kill",
+     "target": "Elite Harpy Queen",
+     "count": 1,
+     "journal": "Kill the Harpy Queen when she comes down on you."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of desolation",
+     "journal": "Take the orb to the last isle of desolation.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4734.0,
+       "y": 881.88,
+       "z": 7668.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Quintessence of Veeshan",
+     "count": 1,
+     "journal": "Kill the Quintessence of Veeshan."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of desolation",
+     "journal": "Go through the astral portal on the mountain top.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4990.1,
+       "y": 332.44,
+       "z": 4990.1
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Mark of Desolation",
+     "journal": "Speak with the Mark of Desolation on the Isle of Wonder.",
+     "says": "You have walked the whole Plane of Sky. Few ever have."
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "teleport",
+     "world": 4,
+     "x": 4751.0,
+     "y": 568.0,
+     "z": 6399.0
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Desolation Chain (github.com/Jadiction/EQOA-Data, MIT). Desolation 1 to 4. The Mark sends the player at the accept (the guide's 'speak to an npc up there'); the patrollers (four on this server, five in the guide), guardians and Arbiter stand always up (the quarters' placeholders and her three deaths are not modelled); the village's six waves are the scouts and warriors this server has; the shards and the Constructs are left out. The guide gives no reward but the plane's completion."
   }
  ],
  "items": [
@@ -1431,6 +2867,84 @@
    "name": "scuzz toad stew",
    "description": "A stew of scuzz toad. It heals over time.",
    "notrade": false,
+   "like": "sondereel fish soup"
+  },
+  {
+   "name": "harpoon of Telinan",
+   "description": "The harpoon of Telinan, pulled from the hide of Kratas.",
+   "notrade": true,
+   "like": "Lord Pickclaw's Scepter"
+  },
+  {
+   "name": "manticore token",
+   "description": "A token of the manticores of the Sphinx Pyramid.",
+   "notrade": true,
+   "like": "10 point faction token"
+  },
+  {
+   "name": "Eye of the Sphynx",
+   "description": "A blue gem, the manticores' gift. Carried, it lets one through the portal atop the Endless Tower.",
+   "notrade": true,
+   "like": "Aquamarine"
+  },
+  {
+   "name": "rain key",
+   "description": "A key of rain, bought of Liztin Misseliania.",
+   "notrade": true,
+   "like": "Arcane Chest Key"
+  },
+  {
+   "name": "qex wing",
+   "description": "A wing from a forest qex.",
+   "notrade": true,
+   "like": "Fungus Cockroach Wing"
+  },
+  {
+   "name": "black gem of Narciliisisin",
+   "description": "A black gem taken from Ghizilanve, the mark of the necrologist Narciliisisin.",
+   "notrade": true,
+   "like": "gem of deception"
+  },
+  {
+   "name": "sun key",
+   "description": "A key of the sun, bought of Liztin Misseliania.",
+   "notrade": true,
+   "like": "Arcane Chest Key"
+  },
+  {
+   "name": "imerzan talisman",
+   "description": "A talisman carried by the imerzan sycophants.",
+   "notrade": true,
+   "like": "Scuffed spirit shard"
+  },
+  {
+   "name": "key of the ancients",
+   "description": "A key of the ancients, bought of Liztin Misseliania.",
+   "notrade": true,
+   "like": "Arcane Chest Key"
+  },
+  {
+   "name": "ape's heart",
+   "description": "The heart of a glacial behemoth.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "drake's foot",
+   "description": "The foot of a celestial drake.",
+   "notrade": true,
+   "like": "swollen brown bat feet"
+  },
+  {
+   "name": "gargoyle eye",
+   "description": "The eye of an icebound gargoyle.",
+   "notrade": true,
+   "like": "frost giant eye"
+  },
+  {
+   "name": "Guenzi's stew",
+   "description": "Guenzi's stew of ape's heart, drake's foot and gargoyle eye. Something on the fourth isle of snow will smell it.",
+   "notrade": true,
    "like": "sondereel fish soup"
   }
  ]

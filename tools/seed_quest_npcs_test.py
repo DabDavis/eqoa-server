@@ -328,6 +328,57 @@ class Sets(Fixture):
         sq.undo(db, "qa")
         self.assertEqual(_digest(db), before, "the old seed and the set out: as before both, the counter too")
 
+    def test_a_sets_peaceful_creatures_get_npcaggro_rows_undone_with_it(self):
+        db = self.connect()
+        db.execute(sq.NPCAGGRO_DDL)
+        db.execute("INSERT INTO npcaggro VALUES ('Mayor Beta', 1, 40, 'a GM said so', 'gm')")
+        db.execute("INSERT INTO npcaggro VALUES ('Mayor Gamma', 0, 0, 'already', 'seed')")
+        before = [tuple(r) for r in db.execute("SELECT * FROM npcaggro ORDER BY npc_name")]
+        p = sq.plan(db, self.ground, self.data, self.quests, specs=[], attackable=[],
+                    peaceful=["BROWN BEAR", "Mayor Beta", "Mayor Gamma", "Nobody"])
+        self.assertEqual([a["name"] for a in p["aggro"]], ["brown bear", "Mayor Beta"],
+                         "as npcs spells it; one peaceful already is left as it is")
+        self.assertIn(("Nobody", "no NPC of the name to make peaceful"), p["left"])
+        sq.apply(db, p, "qa")
+        rows = {r[0]: r for r in db.execute("SELECT * FROM npcaggro")}
+        self.assertEqual(rows["brown bear"][1:3], (0, 0.0))
+        self.assertEqual((rows["Mayor Beta"][1], rows["Mayor Beta"][4]), (0, "questnpcs:qa"))
+        self.assertEqual(sq.undo(db, "qa"), (0, []))
+        self.assertEqual([tuple(r) for r in db.execute("SELECT * FROM npcaggro ORDER BY npc_name")], before,
+                         "the new row gone, the GM's row as it was")
+        # a GM's change since is left at the undo, and said
+        sq.apply(db, p, "qa")
+        db.execute("UPDATE npcaggro SET aggressive = 1 WHERE npc_name = 'brown bear'")
+        n, kept = sq.undo(db, "qa")
+        self.assertEqual(kept, ["npcaggro 'brown bear'"])
+        self.assertEqual(db.execute("SELECT aggressive FROM npcaggro WHERE npc_name = 'brown bear'").fetchone()[0], 1)
+        self.assertFalse(sq.seeded(db))
+        _, errs = sq.load_sets([self.spec_file("qb", [], attackable=[]) ])
+        self.assertEqual(errs, [])
+        bad = os.path.join(self.dir, "bad.json")
+        with open(bad, "w") as f:
+            json.dump(dict(set="qc", npcs=[], peaceful="Mayor Beta"), f)
+        _, errs = sq.load_sets([bad])
+        self.assertTrue(any("peaceful is not a list of names" in e for e in errs), errs)
+
+    def test_a_later_guides_key_finds_its_map_points(self):
+        self.assertEqual(sq.guide_of("1-20/freeport/warrior/L3"), "1-20/freeport/warrior")
+        self.assertEqual(sq.guide_of("Portal/zaoran-plateau/portal"), "portal/zaoran-plateau")
+        self.assertEqual(sq.guide_of("30,40,49/group-4-evil/p1"), "30-40-49/group-4-evil", "the map's ids: lower case, hyphens")
+        with open(os.path.join(self.quests, "portal.json"), "w") as f:
+            json.dump(dict(city="portal", quests=[dict(key="Portal/test-isle/p1", giver="Isle Keeper", steps=[])]), f)
+        self.assertEqual(sq.guides_of(self.quests)[sq.key("Isle Keeper")], {"portal/test-isle"})
+        # two map points of the name: the one of the guide's quest is picked
+        with open(os.path.join(self.data, "Map", "zones.json")) as f:
+            zones = json.load(f)
+        zones["pois"] += [dict(name="Isle Keeper", x=5200, y=1600, questGuideIds=["misc/elsewhere"]),
+                          dict(name="Isle Keeper", x=4600, y=1100, questGuideIds=["portal/test-isle"])]
+        with open(os.path.join(self.data, "Map", "zones.json"), "w") as f:
+            json.dump(zones, f)
+        p = self.plan([sq.S("Isle Keeper", sq.TALKER, ("race", "human", sq.MALE), ("poi", "tunaria", "Isle Keeper"))])
+        r = p["rows"][0]["row"]
+        self.assertEqual((round(r["x_coord"]), round(r["z_coord"])), (10200, 4200), "2 x 4600 + 1000, 2 x 1100 + 2000")
+
     def run_cli(self, *args):
         import subprocess
         tool = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_quest_npcs.py")

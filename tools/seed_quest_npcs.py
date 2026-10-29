@@ -62,8 +62,13 @@ server to apply and start it after (it reads npcs at the start).
 
 Seed sets. SPECS below are the set "1-20" (the city guides'); every
 tools/quests/npcs/<set>.json is one more ({"set": "<set>", "npcs": [Spec,
-...], "attackable": [names]}: a Spec is S()'s arguments by name, its body
-and place as JSON lists, FORMAT.md), written for the later guides. Each set
+...], "attackable": [names], "peaceful": [names]}: a Spec is S()'s arguments
+by name, its body and place as JSON lists, FORMAT.md), written for the later
+guides. "attackable" are townsfolk a set's quests kill, their NPC bit
+cleared as ATTACKABLE's; "peaceful" are creatures the quests talk to that
+attack on sight, each given an npcaggro row (aggressive 0, source
+"questnpcs:<set>", entity/aggro.go's rule for the name; a row the name had is
+logged and put back at the undo, unless a GM changed it since). Each set
 is applied and taken back on its own (--apply --set X, --undo --set X), its
 rows, types and meta logged under its name (quest_npc_seed_*.seedset), so
 several are in at once; a set already in is refused, not planned again. A log
@@ -638,9 +643,9 @@ def guides_of(data_dir):
 
 # ---- the plan ---------------------------------------------------------------------
 
-def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None, attackable=None):
-    """The rows a set would write: specs and attackable are its (each not
-    given: the set 1-20's, SPECS and ATTACKABLE)."""
+def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None, attackable=None, peaceful=()):
+    """The rows a set would write: specs, attackable and peaceful are its
+    (specs and attackable not given: the set 1-20's, SPECS and ATTACKABLE)."""
     specs = SPECS if specs is None else specs
     attackable = ATTACKABLE if attackable is None else attackable
     cols, npcs, bodies, pc, ff = load(db)
@@ -862,8 +867,25 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None, att
         for n in by_name.get(fold(name), []):
             if n["type"] & 0x80:
                 types.append(dict(id=n["id"], name=n["name"], old=n["type"], new=n["type"] & ~0x80))
-    return dict(cols=cols, rows=rows, left=left, types=types, fit=(sheet.tunaria, sheet.fit_kept, sheet.fit_median),
-                misses=len(sheet.misses), oggok=sheet.oggok)
+    # the creatures to talk to that attack on sight: an npcaggro row each, the
+    # name as npcs (or this set) spells it
+    aggro = []
+    have = {}
+    if db.execute("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'npcaggro'").fetchone()[0]:
+        have = {fold(r[0]): r for r in db.execute("SELECT npc_name, aggressive, radius, note, source FROM npcaggro")}
+    for name in peaceful:
+        spelled = [n["name"] for n in by_name.get(fold(name), [])] + \
+            [r["name"] for r in rows if fold(r["name"]) == fold(name)]
+        if not spelled:
+            left.append((name, "no NPC of the name to make peaceful"))
+            continue
+        spelling = collections.Counter(spelled).most_common(1)[0][0]
+        old = have.get(fold(spelling))
+        if old is not None and old[1] == 0:
+            continue   # peaceful already (its rule left as it is)
+        aggro.append(dict(name=old[0] if old else spelling, old=list(old) if old else None))
+    return dict(cols=cols, rows=rows, left=left, types=types, aggro=aggro,
+                fit=(sheet.tunaria, sheet.fit_kept, sheet.fit_median), misses=len(sheet.misses), oggok=sheet.oggok)
 
 
 # ---- the sets: the built-in one and the spec files ---------------------------------
@@ -927,7 +949,7 @@ def load_sets(paths):
     """The sets: the built-in one ("1-20": SPECS, ATTACKABLE) and each spec
     file's ({set: dict(specs, attackable, file)} in that order), and what is
     wrong with the files."""
-    sets = {BUILTIN: dict(specs=SPECS, attackable=ATTACKABLE, file="(built in)")}
+    sets = {BUILTIN: dict(specs=SPECS, attackable=ATTACKABLE, peaceful=[], file="(built in)")}
     errs = []
     for path in paths:
         try:
@@ -950,11 +972,14 @@ def load_sets(paths):
             errs += es
             if sp:
                 specs.append(sp)
-        att = d.get("attackable") or []
-        if not isinstance(att, list) or not all(isinstance(a, str) and a.strip() for a in att):
-            errs.append(f"{path}: attackable is not a list of names")
-            att = []
-        sets[name] = dict(specs=specs, attackable=[a.strip() for a in att], file=path)
+        lists = {}
+        for field in ("attackable", "peaceful"):
+            v = d.get(field) or []
+            if not isinstance(v, list) or not all(isinstance(a, str) and a.strip() for a in v):
+                errs.append(f"{path}: {field} is not a list of names")
+                v = []
+            lists[field] = [a.strip() for a in v]
+        sets[name] = dict(specs=specs, attackable=lists["attackable"], peaceful=lists["peaceful"], file=path)
     return sets, errs
 
 
@@ -968,8 +993,19 @@ LOG_DDL = [
     f"source TEXT NOT NULL, template_row INTEGER, seedset TEXT NOT NULL DEFAULT '{BUILTIN}')",
     "CREATE TABLE IF NOT EXISTS quest_npc_seed_types (npc_row INTEGER PRIMARY KEY, old_type INTEGER NOT NULL, "
     f"new_type INTEGER NOT NULL, seedset TEXT NOT NULL DEFAULT '{BUILTIN}')",
+    # a set's npcaggro rows: the name's row before (a JSON list, NULL: none)
+    "CREATE TABLE IF NOT EXISTS quest_npc_seed_aggro (seedset TEXT NOT NULL, npc_name TEXT NOT NULL, old TEXT, "
+    "PRIMARY KEY (seedset, npc_name))",
 ]
-LOG_TABLES = ("quest_npc_seed_rows", "quest_npc_seed_types", "quest_npc_seed_meta")
+LOG_TABLES = ("quest_npc_seed_rows", "quest_npc_seed_types", "quest_npc_seed_aggro", "quest_npc_seed_meta")
+# the server's npcaggro (database/npcaggro.go), made when a database lacks it
+NPCAGGRO_DDL = ("CREATE TABLE IF NOT EXISTS npcaggro (npc_name TEXT PRIMARY KEY, aggressive INTEGER NOT NULL DEFAULT 1, "
+                "radius REAL NOT NULL DEFAULT 0, note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm')")
+
+
+def aggro_source(seedset):
+    """The source of a set's npcaggro rows."""
+    return f"questnpcs:{seedset}"
 
 
 def seeded(db):
@@ -1061,6 +1097,15 @@ def apply(db, p, seedset=BUILTIN):
             db.execute("UPDATE npcs SET npc_type = ? WHERE id = ?", (t["new"], t["id"]))
             db.execute("INSERT INTO quest_npc_seed_types (npc_row, old_type, new_type, seedset) VALUES (?, ?, ?, ?)",
                        (t["id"], t["old"], t["new"], seedset))
+        if p.get("aggro"):
+            db.execute(NPCAGGRO_DDL)
+        for a in p.get("aggro", []):
+            note = f"talked to by the quests (tools/seed_quest_npcs.py set {seedset})"
+            db.execute("INSERT INTO npcaggro (npc_name, aggressive, radius, note, source) VALUES (?, 0, 0, ?, ?) "
+                       "ON CONFLICT(npc_name) DO UPDATE SET aggressive = 0, radius = 0, note = excluded.note, source = excluded.source",
+                       (a["name"], note, aggro_source(seedset)))
+            db.execute("INSERT INTO quest_npc_seed_aggro (seedset, npc_name, old) VALUES (?, ?, ?)",
+                       (seedset, a["name"], None if a["old"] is None else json.dumps(a["old"])))
         db.executemany("INSERT INTO quest_npc_seed_meta (seedset, key, value) VALUES (?, ?, ?)",
                        [(seedset, k, v) for k, v in sorted(meta.items())])
         db.execute("COMMIT")
@@ -1089,6 +1134,19 @@ def undo(db, seedset=BUILTIN):
                 kept.append(rid)
                 continue
             db.execute("UPDATE npcs SET npc_type = ? WHERE id = ?", (old, rid))
+        for stmt in LOG_DDL:   # a set from before the aggro log has none
+            db.execute(stmt)
+        for name, old in db.execute("SELECT npc_name, old FROM quest_npc_seed_aggro WHERE seedset = ?", (seedset,)).fetchall():
+            cur = db.execute("SELECT aggressive, source FROM npcaggro WHERE npc_name = ?", (name,)).fetchone()
+            if cur is None or cur[0] != 0 or cur[1] != aggro_source(seedset):
+                kept.append(f"npcaggro {name!r}")
+                continue
+            if old is None:
+                db.execute("DELETE FROM npcaggro WHERE npc_name = ?", (name,))
+            else:
+                o = json.loads(old)
+                db.execute("UPDATE npcaggro SET aggressive = ?, radius = ?, note = ?, source = ? WHERE npc_name = ?",
+                           (o[1], o[2], o[3], o[4], name))
         before = meta.get("seq_before", "")
         top = db.execute("SELECT max(id) FROM npcs").fetchone()[0] or 0
         if before == "":
@@ -1144,6 +1202,8 @@ def report(p, verbose=False):
                 print(f"      also ({x['row']['x_coord']:.0f}, {x['row']['y_coord']:.1f}, {x['row']['z_coord']:.0f})")
     for t in p["types"]:
         print(f"  {t['name']!r} (row {t['id']}): npc_type {t['old']} -> {t['new']} (attackable)")
+    for a in p.get("aggro", []):
+        print(f"  {a['name']!r}: npcaggro aggressive 0 (peaceful){' (its rule now: ' + repr(a['old'][1:3]) + ')' if a['old'] else ''}")
     if p["left"]:
         print("left out:")
         for name, why in p["left"]:
@@ -1196,7 +1256,7 @@ def main():
             got, kept = undo(db, n)
             print(f"set {n}: deleted {got} seeded NPCs")
             for rid in kept:
-                print(f"  row {rid}'s npc_type was changed since: left as it is")
+                print(f"  {rid if isinstance(rid, str) else f'row {rid}'}: changed since, left as it is")
         print("restart the server")
         return
     if args.apply and not names:
@@ -1210,13 +1270,14 @@ def main():
             print(f"   in this database already ({sets_in(db)[n]} NPCs): --undo --set {n} to plan it again")
             continue
         p = plan(db, args.ground, args.data, args.quests, seed=args.seed,
-                 specs=sets[n]["specs"], attackable=sets[n]["attackable"])
+                 specs=sets[n]["specs"], attackable=sets[n]["attackable"], peaceful=sets[n]["peaceful"])
         report(p, args.verbose)
         if not args.apply:
-            print(f"{len(p['rows'])} spawns, {len(p['types'])} made attackable (report only: --apply --set {n} writes them)")
+            print(f"{len(p['rows'])} spawns, {len(p['types'])} made attackable, {len(p['aggro'])} made peaceful "
+                  f"(report only: --apply --set {n} writes them)")
             continue
         apply(db, p, n)
-        print(f"wrote {len(p['rows'])} spawns, made {len(p['types'])} attackable")
+        print(f"wrote {len(p['rows'])} spawns, made {len(p['types'])} attackable and {len(p['aggro'])} peaceful")
     if args.apply:
         print("restart the server to read them")
 

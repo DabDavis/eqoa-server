@@ -31,7 +31,7 @@ with what is missing in its notes, so only whole quests are offered to players.
 | `requires` | keys of the quests to have finished first: a class's chain, each section after the one before |
 | `factions_required` | optional: `[["<faction>", min], ["<faction>", min, max]]`, the standings it asks for (-2000 to 2000, `max` not below `min`), each faction as the `factions` table spells it. It is offered (and marked on a client's map) only while the player's standing with every one is at least `min` and, when given, at most `max`; once taken, its steps at its giver wait on them too (the giver says it will not deal with the player, a line of ours), while a step at another NPC, a kill, a loot or a reach goes on. A faction the database lacks makes the quest a draft |
 | `repeatable` | optional, `true`: it may be taken again once finished, and its rewards are given again |
-| `unlocks` | optional: `[{"npc": "<travel NPC as npcs spells it>", "to": "<the place>"}]`, the trips it opens: that waysender or portal (`internal/handlers/waysender.go`'s routes) offers its trip to `to` only to a player who has finished this quest, or another that unlocks the same trip, while one of them is in the game (a draft's bars no one). `to` is matched to a route's label by case, a leading "the" and its letters and digits ("the grobb" is Grobb, "Klick'Anon" is not "Klik'Anon"); one naming no route yet is said by the importer and the checker and written all the same, to open the trip once the route is wired |
+| `unlocks` | optional: `[{"npc": "<travel NPC as npcs spells it>", "to": "<the place>"}]`, the trips it opens: that waysender or portal (`internal/handlers/waysender.go`'s routes) offers its trip to `to` only to a player who has finished this quest, or another that unlocks the same trip, while one of them is in the game (a draft's bars no one; a trip only a quest opens, `QuestOnly` in `waysender.go` as the Portal guides' are, is offered to no one else even then, and a player who finished one of its quests keeps it). `to` is matched to a route's label by case, a leading "the" and its letters and digits ("the grobb" is Grobb, "Klick'Anon" is not "Klik'Anon"); one naming no route yet is said by the importer and the checker and written all the same, to open the trip once the route is wired |
 | `offer` | the giver's words offering it (the question box's paragraph), in the giver's voice, from the guide's facts |
 | `accept`, `decline` | the two answers; `declined` the giver's reply to a refusal; `started` its words once taken |
 | `steps` | Step, in order |
@@ -114,9 +114,15 @@ for `tools/seed_quest_npcs.py` to place (beside its built-in set `1-20`, the cit
 {
   "set": "qa",
   "npcs": [ Spec, ... ],
-  "attackable": [ "<an npcs name whose NPC bit a quest's kill clears>", ... ]
+  "attackable": [ "<an npcs name whose NPC bit a quest's kill clears>", ... ],
+  "peaceful": [ "<an npcs name the quests talk to that attacks on sight>", ... ]
 }
 ```
+
+`attackable` names townsfolk a set's quests kill: their NPC bit (0x80) is cleared. `peaceful` names
+creatures a set's quests talk to that attack on sight (a creature's body): each gets an `npcaggro` row
+(aggressive 0, source `questnpcs:<set>`), the row the name had kept in the set's log and put back at
+its undo (unless a GM changed it since); a name with a peaceful row already is left as it is.
 
 | field | what |
 |-------|------|

@@ -434,7 +434,7 @@ const (
 	// look answers 1 to have it and 0 to go back. A PS2 ignores the offer and
 	// is sent the disc's look, as is every client of a server that never
 	// offers it (Sandstorm).
-	OpcodeLiveLook GameOpcode = 0x7E0A
+	OpcodeLiveLook GameOpcode = 0x7E0C
 
 	// OpcodeLiveLookInForce is the server's answer to OpcodeLiveLook, a u32:
 	// the look every character list from here on is in (1 the live game's,
@@ -442,7 +442,7 @@ const (
 	// are reliable, and come after it). A client still choosing a character
 	// is then sent its list again in that look. The entity channels say
 	// theirs by their length (162 the disc's, 201 the live game's).
-	OpcodeLiveLookInForce GameOpcode = 0x7E0B
+	OpcodeLiveLookInForce GameOpcode = 0x7E0D
 
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length

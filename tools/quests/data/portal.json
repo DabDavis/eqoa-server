@@ -2722,6 +2722,336 @@
    ],
    "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Desolation Chain (github.com/Jadiction/EQOA-Data, MIT). Desolation 1 to 4. The Mark sends the player at the accept (the guide's 'speak to an npc up there'); the patrollers (four on this server, five in the guide), guardians and Arbiter stand always up (the quarters' placeholders and her three deaths are not modelled); the village's six waves are the scouts and warriors this server has; the shards and the Constructs are left out. The guide gives no reward but the plane's completion."
+  },
+  {
+   "key": "Portal/isle-of-dread/portal",
+   "name": "The Medallion of the Faceless",
+   "giver": "Norach",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "unlocks": [
+    {
+     "npc": "Norach",
+     "to": "the Isle of Dread"
+    }
+   ],
+   "offer": "The Isle of Dread is the Faceless One's. I take there only those who carry his medallion, and for ten thousand tunar every time. Kill a dreadnaught and bring me its medallion.",
+   "accept": "I will bring the medallion.",
+   "decline": "Not now.",
+   "declined": "Then stay where it is safe.",
+   "started": "Hide from its breath behind the rocks, and strike between.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "dreadnaught",
+     "items": [
+      {
+       "item": "Medallion of the Faceless",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a dreadnaught south-east of Anu Village in Permafrost and take the Medallion of the Faceless."
+    },
+    {
+     "kind": "give",
+     "target": "Norach",
+     "items": [
+      {
+       "item": "Medallion of the Faceless",
+       "count": 1
+      }
+     ],
+     "tunar": 10000,
+     "journal": "Bring the Medallion of the Faceless and 10,000 tunar to Norach, on the islet in the lake south of Cazic Thule's temple.",
+     "says": "The Faceless knows you now. For ten thousand tunar I take you to his isle, every time.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 24500.0,
+       "y": 54.1,
+       "z": 3330.0
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/isle-of-dread.json, ## Isle of Dread (IoD) Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Finishing it flags the player for Norach's trip to the Isle of Dread (unlocks: the route should take the guide's 10,000 tunar each time); the first trip is the hand-in's own (a teleport to Graumord, the isle's town, ours)."
+  },
+  {
+   "key": "Portal/isle-of-dread/standing",
+   "name": "Cleansing the Isle",
+   "giver": "Graumord citizen",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "We of Graumord trust no one who has not bled for us. Cazic's creatures crawl over the pit east of town: kill them, and come back. Do it often enough and we will speak of more.",
+   "accept": "I will cleanse the pit.",
+   "decline": "Not now.",
+   "declined": "Then you are no friend of ours.",
+   "started": "Mind the breath stealers.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "dread rot",
+     "count": 5,
+     "journal": "Kill five dread rots in the pit east of Graumord."
+    },
+    {
+     "kind": "kill",
+     "target": "wicker man",
+     "count": 5,
+     "journal": "Kill five wicker men in the pit east of Graumord."
+    },
+    {
+     "kind": "talk",
+     "target": "Graumord citizen",
+     "journal": "Return to a Graumord citizen.",
+     "says": "That will thin them. Graumord remembers.",
+     "rewards": {
+      "factions": [
+       [
+        "Citizens of Graumord",
+        40
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/isle-of-dread.json, ## QUEST: Beginning (github.com/Jadiction/EQOA-Data, MIT). Ours: the guide raises the citizens' standing by 'killing all mobs but sacrifice and citizen of graumord on the isle', and this server has no faction hits for the isle's creatures, so this repeatable stands in for them (+40 a time from the -150 start; four times makes it positive). Drop it if faction hits for the isle are seeded."
+  },
+  {
+   "key": "Portal/isle-of-dread/trials-1",
+   "name": "The Faceless Generals",
+   "giver": "Graumord citizen",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/isle-of-dread/portal"
+   ],
+   "factions_required": [
+    [
+     "Citizens of Graumord",
+     1
+    ]
+   ],
+   "offer": "At last, someone who has stood against Cazic's treachery. Will you fight on and free the souls he has imprisoned? Kill his three faceless generals at the citadel and bring me their essences.",
+   "accept": "I will continue the fight.",
+   "decline": "Not now.",
+   "declined": "Then Cazic keeps them.",
+   "started": "The generals keep to the top of the tower. Lure them down.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Dread",
+     "items": [
+      {
+       "item": "Dread's essence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Dread, a faceless general, high in the citadel's tower, and take his essence."
+    },
+    {
+     "kind": "loot",
+     "target": "Fright",
+     "items": [
+      {
+       "item": "Fright's essence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Fright in the citadel's tower and take his essence."
+    },
+    {
+     "kind": "loot",
+     "target": "Terror",
+     "items": [
+      {
+       "item": "Terror's essence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Terror in the citadel's tower and take his essence."
+    },
+    {
+     "kind": "give",
+     "target": "Graumord citizen",
+     "items": [
+      {
+       "item": "Dread's essence",
+       "count": 1
+      },
+      {
+       "item": "Fright's essence",
+       "count": 1
+      },
+      {
+       "item": "Terror's essence",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the three essences to the Graumord citizen in the inn.",
+     "says": "Their essences, made into Cazic's own scent. Never part with it: the Estate's door will know you by it, and its guardian will come for you.",
+     "rewards": {
+      "items": [
+       "Cazic's Scent"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "The Guardian",
+     "items": [
+      {
+       "item": "The Guardian's heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Carry Cazic's Scent to the front door of Cazic Thule's Estate, kill The Guardian and take its heart."
+    },
+    {
+     "kind": "talk",
+     "target": "Kithgrin",
+     "journal": "Go downstairs in Cazic Thule's Estate and speak with Kithgrin.",
+     "says": "You come with the Guardian's heart. Then the trials may begin."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/isle-of-dread.json, ## QUEST: Beginning (github.com/Jadiction/EQOA-Data, MIT). The giver is the inn's unattackable citizen of the guide; this server's twenty Graumord citizens are one name. A positive standing with the Citizens of Graumord (factions_required), as the guide says; the kill group's loot of the heart is the questor's own."
+  },
+  {
+   "key": "Portal/isle-of-dread/trials-2",
+   "name": "The Trials of Cazic Thule",
+   "giver": "Kithgrin",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/isle-of-dread/trials-1"
+   ],
+   "offer": "Three trials stand between you and the Faceless: endurance, celerity and contention. The first: go down the long hallway alone, and survive what comes for you.",
+   "accept": "I am ready.",
+   "decline": "Not now.",
+   "declined": "Fear has already won, then.",
+   "started": "Alone, mind. The others wait upstairs.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 25709.0,
+     "y": 37.0,
+     "z": 3207.0,
+     "radius": 12.0,
+     "journal": "Go down the long hallway alone.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The air thickens. Thoughtbleeders swarm out of the walls around you."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "thoughtbleeder",
+     "count": 6,
+     "journal": "Survive the trial of endurance: kill the six thoughtbleeders."
+    },
+    {
+     "kind": "talk",
+     "target": "Kithgrin",
+     "journal": "Return to Kithgrin for the trial of celerity.",
+     "says": "The trial of celerity: in the catacombs, Qual'Tin waits. Let your friends strike first."
+    },
+    {
+     "kind": "kill",
+     "target": "Qual'Tin",
+     "count": 1,
+     "journal": "Go into the catacombs, to the room with the pool, and kill Qual'Tin."
+    },
+    {
+     "kind": "talk",
+     "target": "Kithgrin",
+     "journal": "Return to Kithgrin for the trial of contention.",
+     "says": "The last trial: face the contempt in your own head. Defeat the Watchman, and find his flaw."
+    },
+    {
+     "kind": "kill",
+     "target": "The Watchmen",
+     "count": 1,
+     "journal": "Kill the Watchman as he walks the halls."
+    },
+    {
+     "kind": "loot",
+     "target": "enraged phantasm",
+     "items": [
+      {
+       "item": "phantasm's gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Go into the main chamber with the great lava pool and take a gem from the enraged phantasms."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 25450.5,
+     "y": 17.9,
+     "z": 3087.0,
+     "radius": 12.0,
+     "journal": "Carry the gem into the Statue of CazicThule's room.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You set the phantasm's gem into the statue. Its stone face cracks, and CazicThule wakes."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "CazicThule",
+     "count": 1,
+     "journal": "Kill CazicThule, the god of fear."
+    },
+    {
+     "kind": "talk",
+     "target": "Kithgrin",
+     "journal": "Return to Kithgrin.",
+     "says": "You have passed every trial and faced the Faceless. Take this talisman; come to me when it runs low.",
+     "rewards": {
+      "items": [
+       "Kithgrin's talisman"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/isle-of-dread.json, ## Trial One: Trial of Endurance (github.com/Jadiction/EQOA-Data, MIT). and the guide's Trial Two, Trial Three, Statue and God of Fear sections. The thirty minutes of thoughtbleeders are their six kills; the Trial of Celerity's trigger and its red named spawns are left out (Qual'Tin stands always up); the guide's Watchman is the game's The Watchmen; the enraged phantasms stand always up and the statue's popup is a reach step; CazicThule stands always up. The guide's reward, a self port of 500 charges to the isle, is Kithgrin's talisman here: no item teleports on this server, so it is a keepsake (see the report)."
   }
  ],
  "items": [
@@ -2946,6 +3276,48 @@
    "description": "Guenzi's stew of ape's heart, drake's foot and gargoyle eye. Something on the fourth isle of snow will smell it.",
    "notrade": true,
    "like": "sondereel fish soup"
+  },
+  {
+   "name": "Medallion of the Faceless",
+   "description": "A medallion of Cazic Thule, taken from a dreadnaught. Norach asks it of those he takes to the Isle of Dread.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "Dread's essence",
+   "description": "The essence of Dread, a faceless general.",
+   "notrade": true,
+   "like": "Essence of a Marauding Soul"
+  },
+  {
+   "name": "Fright's essence",
+   "description": "The essence of Fright, a faceless general.",
+   "notrade": true,
+   "like": "Essence of a Marauding Soul"
+  },
+  {
+   "name": "Terror's essence",
+   "description": "The essence of Terror, a faceless general.",
+   "notrade": true,
+   "like": "Essence of a Marauding Soul"
+  },
+  {
+   "name": "The Guardian's heart",
+   "description": "The heart of the guardian of Cazic Thule's Estate.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "phantasm's gem",
+   "description": "A gem from an enraged phantasm. The Statue of CazicThule has a place for it.",
+   "notrade": true,
+   "like": "gem of fury"
+  },
+  {
+   "name": "Kithgrin's talisman",
+   "description": "Kithgrin's talisman of the Isle of Dread, for those who passed the trials of Cazic Thule.",
+   "notrade": true,
+   "like": "geode talisman"
   }
  ]
 }

@@ -10,9 +10,17 @@ characters, an answer 63, a journal line 127), and, with --db, every name the
 way the game matches one (case and surrounding spaces aside): givers and step
 targets in npcs, step and reward items in itempattern or the file's `items`,
 reward spells in spellpattern, a kill or loot target that can be attacked
-(not npc_type 0x80). A quest's `unresolved` must list exactly the names that
-do not resolve ("<name> (attackable)" for a target no one can attack). It
-prints a summary per file and exits 1 on any error.
+(not npc_type 0x80), the factions a quest asks a standing with or moves in
+factions. A quest's `unresolved` must list exactly the names that do not
+resolve ("<name> (attackable)" for a target no one can attack). It prints a
+summary per file and exits 1 on any error.
+
+The later guides' fields are checked too: factions_required ([faction, min]
+or [faction, min, max], -2000..2000), repeatable, unlocks ({"npc", "to"}: a
+trip of internal/handlers/waysender.go's routes, a warning when it names none
+yet or, with --db, an NPC no row has: an unlock is not a name the quest needs
+to be played), a step's rewards.byclass (class ids 0-14, their items and
+spells checked as the step's own).
 """
 import argparse
 import collections
@@ -22,11 +30,16 @@ import os
 import sqlite3
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import routes as travel  # noqa: E402
+
 KINDS = {'talk', 'show', 'give', 'kill', 'loot', 'reach'}
 EVENT_ON = {'accept', 'finish', 'start', 'done'}
 EVENT_DO = {'popup', 'say', 'give', 'spawn', 'visual', 'teleport'}
 BOX, ANSWER, LINE = 218, 63, 127
 TEXT = ('offer', 'accept', 'decline', 'declined', 'started')
+FACTION_MIN, FACTION_MAX = -2000, 2000   # entity/faction.go
+MAX_CLASS = 14
 
 
 def fold(s):
@@ -41,6 +54,10 @@ class Names:
             self.npc[fold(name)].append(t or 0)
         self.item = {fold(n) for (n,) in db.execute('SELECT itemname FROM itempattern')}
         self.spell = {fold(n) for (n,) in db.execute('SELECT spellname FROM spellpattern')}
+        # the server's own table (none: the factions are not checked)
+        self.faction = None
+        if db.execute("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'factions'").fetchone()[0]:
+            self.faction = {fold(n) for (n,) in db.execute('SELECT name FROM factions')}
         db.close()
 
     def attackable(self, name):
@@ -48,8 +65,9 @@ class Names:
 
 
 class Check:
-    def __init__(self, names):
+    def __init__(self, names, routes=None):
         self.names = names
+        self.routes = routes   # waysender.go's (npc, to); None: the unlocks' routes not checked
         self.errors = []
         self.warnings = []
         self.misses = {}   # quest key -> what of it does not resolve (with --db), as `unresolved` must list it
@@ -106,9 +124,33 @@ class Check:
         for f in ('key', 'name', 'giver'):
             if not isinstance(q.get(f), str) or not q[f].strip():
                 self.err(where, f'{f} missing')
-        for f in ('classes', 'races', 'requires', 'steps', 'unresolved'):
+        if isinstance(q.get('key'), str) and any(ch.isspace() for ch in q['key']):
+            self.err(where, 'the key has a space in it (the server reads a key off the quest\'s source up to a space)')
+        for f in ('classes', 'races', 'requires', 'steps', 'unresolved', 'factions_required', 'unlocks'):
             if not isinstance(q.get(f, []), list):
                 self.err(where, f'{f} is not a list')
+        if not isinstance(q.get('repeatable', False), bool):
+            self.err(where, f"repeatable {q.get('repeatable')!r} is not true or false")
+        factions = []
+        for fr in q.get('factions_required', []) if isinstance(q.get('factions_required', []), list) else []:
+            ok = isinstance(fr, list) and len(fr) in (2, 3) and isinstance(fr[0], str) and fr[0].strip() and \
+                all(isinstance(v, int) and not isinstance(v, bool) and FACTION_MIN <= v <= FACTION_MAX for v in fr[1:])
+            if not ok or (len(fr) == 3 and fr[2] < fr[1]):
+                self.err(where, f'factions_required {fr!r} is not [faction, min] or [faction, min, max] '
+                                f'({FACTION_MIN}..{FACTION_MAX}, min not above max)')
+            else:
+                factions.append(fr[0])
+        for u in q.get('unlocks', []) if isinstance(q.get('unlocks', []), list) else []:
+            if not isinstance(u, dict) or not isinstance(u.get('npc'), str) or not u['npc'].strip() \
+                    or not isinstance(u.get('to'), str) or not u['to'].strip():
+                self.err(where, f'unlock {u!r} is not {{"npc", "to"}}')
+                continue
+            if self.names and fold(u['npc']) not in self.names.npc:
+                self.warn(where, f"it unlocks {u['npc']!r}'s trip to {u['to']!r}, and no NPC is named {u['npc']!r}")
+            if self.routes is not None and travel.route_of(u['npc'], u['to'], self.routes) is None:
+                theirs = [r[1] for r in self.routes if travel.npc_key(r[0]) == travel.npc_key(u['npc'])]
+                self.warn(where, f"it unlocks {u['npc']!r}'s trip to {u['to']!r}, which is no route of waysender.go yet"
+                                 + (f" (its routes: {', '.join(theirs)})" if theirs else ' (it has no routes)'))
         for c in q.get('classes', []):
             if not isinstance(c, int) or not 0 <= c <= 14:
                 self.err(where, f'class {c!r}')
@@ -188,6 +230,30 @@ class Check:
                     for fct in rw.get('factions', []):
                         if not (isinstance(fct, list) and len(fct) == 2 and isinstance(fct[0], str) and isinstance(fct[1], int)):
                             self.err(sw, f'faction {fct!r}')
+                        else:
+                            factions.append(fct[0])
+                    bc = rw.get('byclass', {})
+                    if not isinstance(bc, dict):
+                        self.err(sw, 'rewards.byclass is not an object of class ids')
+                        bc = {}
+                    for ck, cr in bc.items():
+                        cw = f'{sw} rewards for class {ck}'
+                        if not (isinstance(ck, str) and ck.strip().isdigit() and 0 <= int(ck) <= MAX_CLASS):
+                            self.err(cw, f'{ck!r} is no class id (0 Warrior ... {MAX_CLASS} Alchemist)')
+                        if not isinstance(cr, dict):
+                            self.err(cw, 'not an object')
+                            continue
+                        for f in ('xp', 'tunar'):
+                            if not isinstance(cr.get(f, 0), int) or cr.get(f, 0) < 0:
+                                self.err(cw, f'{f} {cr.get(f)!r}')
+                        for f in ('items', 'spells'):
+                            if not isinstance(cr.get(f, []), list) or not all(isinstance(v, str) and v.strip() for v in cr.get(f, [])):
+                                self.err(cw, f'{f} is not a list of names')
+                        unknown = set(cr) - {'items', 'spells', 'xp', 'tunar'}
+                        if unknown:
+                            self.err(cw, f'gives {sorted(unknown)} (items, spells, xp and tunar are read)')
+                        items += [i for i in cr.get('items', []) if isinstance(i, str)]
+                        spells += [s for s in cr.get('spells', []) if isinstance(s, str)]
             for ev in st.get('events', []):
                 self.event(sw, ev, {'start', 'done'}, npcs, items)
         for ev in q.get('events', []):
@@ -205,6 +271,8 @@ class Check:
             for n in spells:
                 if fold(n) not in self.names.spell:
                     missing.append(n)
+            if self.names.faction is not None:
+                missing += [n for n in factions if fold(n) not in self.names.faction]
             missing += [f'{n} (attackable)' for n in unattackable]
             self.misses[key] = missing
             want = {fold(m) for m in missing}
@@ -256,7 +324,9 @@ def main():
     if not files:
         print('no quest files')
         return 1
-    ck = Check(Names(a.db) if a.db else None)
+    ck = Check(Names(a.db) if a.db else None, travel.travel_routes())
+    if ck.routes is None:
+        print(f'warning: no routes read from {travel.WAYSENDER}: the unlocks\' routes are not checked')
     all_keys, docs = {}, []
     for f in files:
         got = ck.file(f, all_keys)

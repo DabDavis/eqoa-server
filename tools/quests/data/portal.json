@@ -3052,6 +3052,549 @@
    ],
    "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/isle-of-dread.json, ## Trial One: Trial of Endurance (github.com/Jadiction/EQOA-Data, MIT). and the guide's Trial Two, Trial Three, Statue and God of Fear sections. The thirty minutes of thoughtbleeders are their six kills; the Trial of Celerity's trigger and its red named spawns are left out (Qual'Tin stands always up); the guide's Watchman is the game's The Watchmen; the enraged phantasms stand always up and the statue's popup is a reach step; CazicThule stands always up. The guide's reward, a self port of 500 charges to the isle, is Kithgrin's talisman here: no item teleports on this server, so it is a keepsake (see the report)."
+  },
+  {
+   "key": "Portal/zaoran-plateau/tranquility",
+   "name": "The Agent of Tranquility",
+   "giver": "Agent of Tranquility",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Breathe. Let your fears, your sadness and your anger go. Good. Now carry that calm to others: Bobble-by-Water and Merry-by-Water quarrel. Begin with Kayle in Bobble-by-Water.",
+   "accept": "I have no more fears, sadness or anger.",
+   "decline": "I still carry them.",
+   "declined": "Then sit, and begin again when you are ready.",
+   "started": "Go gently.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Kayle",
+     "journal": "Speak with Kayle in Bobble-by-Water, across the river from the coachman by the south wall.",
+     "says": "Talk with Merry-by-Water? No one even gets inside their walls."
+    },
+    {
+     "kind": "talk",
+     "target": "Hayle",
+     "journal": "Speak with Hayle on the west side of Merry-by-Water, by the wall.",
+     "says": "Meet Kayle? In Rivervale, perhaps... if she agrees first."
+    },
+    {
+     "kind": "talk",
+     "target": "Kayle",
+     "journal": "Return to Kayle in Bobble-by-Water and convince her to meet Hayle in Rivervale.",
+     "says": "Rivervale, then. Fine. For the towns' sake."
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of Tranquility",
+     "journal": "Return to the Agent of Tranquility at Shon-To Monastery.",
+     "says": "You brought calm where there was none. Take this stone, and the rune of my task.",
+     "rewards": {
+      "items": [
+       "Stone of Enlightened Physique",
+       "Agent of Tranquility's rune"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Tranquility. The meditation is the offer's answer (the guide: say no to more fears). Both of the guide's Kayles are one name on this server (the Agent of Spite's stands under the tarp; this quest's is specced by the south wall), so either does a Kayle step. The stone is the guide's, and the rune (the guide's for a level 60, so the quest is level 60)."
+  },
+  {
+   "key": "Portal/zaoran-plateau/spite",
+   "name": "The Agent of Spite",
+   "giver": "Agent of Spite",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Kayle won the pie contest, and she is telling Bobloe how under the tarp by the river. Listen in, and come tell me something surprising.",
+   "accept": "I will listen.",
+   "decline": "Not now.",
+   "declined": "Your loss.",
+   "started": "Under the tarp, by the river.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 24366.0,
+     "y": 54.0,
+     "z": 11711.0,
+     "radius": 15.0,
+     "journal": "Listen in on Kayle's talk with Bobloe under the tarp north of the Agent of Spite.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "...and nobody noticed the berries were Hayle's, picked off her own vines! Kayle laughs. Bobloe does not."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of Spite",
+     "journal": "Report what you heard to the Agent of Spite.",
+     "says": "Hayle's berries! Go and tell Hayle in Merry-by-Water. Slowly. Let it simmer."
+    },
+    {
+     "kind": "talk",
+     "target": "Hayle",
+     "journal": "Tell Hayle on the west side of Merry-by-Water what you overheard, and stir it.",
+     "says": "My berries? My prize? Oh, Kayle will hear from me."
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of Spite",
+     "journal": "Return to the Agent of Spite in Bobble-by-Water.",
+     "says": "Delicious. Take this stone, and the rune of my task.",
+     "rewards": {
+      "items": [
+       "Spitestone",
+       "Agent of Spite's rune"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Spite. The overheard talk's words are ours (the guide gives none); the stone and the rune are the guide's."
+  },
+  {
+   "key": "Portal/zaoran-plateau/honor",
+   "name": "The Agent of Honor",
+   "giver": "Agent of Honor",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Marr's war needs blades. The Scribe of Marr, beside me, will tell you of three of the enemy's that must fall. Afterwards, come back to me.",
+   "accept": "I will hear the Scribe.",
+   "decline": "Not now.",
+   "declined": "Honor waits for the willing.",
+   "started": "The Scribe first.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Scribe of Marr",
+     "journal": "Speak with the Scribe of Marr by the lone tower south of Halas's tunnel.",
+     "says": "Three targets: the orcs outside Freeport, the sand giant siegemaster of Hazinak, and Runnyeye's superior head jailor. Bring their sword, rune and key."
+    },
+    {
+     "kind": "loot",
+     "target": "Orc Sapper",
+     "items": [
+      {
+       "item": "Sticky Finger Sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Kill the orc sappers, siegemasters and commanders along the road out of Freeport's north gate for the Sticky Finger Sword."
+    },
+    {
+     "kind": "loot",
+     "target": "sand giant siegemaster",
+     "items": [
+      {
+       "item": "Rallosian rune",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the sand giant siegemaster in Hazinak, away from the portal, and take his Rallosian rune."
+    },
+    {
+     "kind": "loot",
+     "target": "Superior Head Jailor",
+     "items": [
+      {
+       "item": "titanium key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Superior Head Jailor in Runnyeye and take his titanium key."
+    },
+    {
+     "kind": "give",
+     "target": "Scribe of Marr",
+     "items": [
+      {
+       "item": "Sticky Finger Sword",
+       "count": 1
+      },
+      {
+       "item": "Rallosian rune",
+       "count": 1
+      },
+      {
+       "item": "titanium key",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the sword, the rune and the key to the Scribe of Marr.",
+     "says": "All three. Marr thanks you. Now the Agent has a task of his own.",
+     "rewards": {
+      "xp": 4500000,
+      "tunar": 40000
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of Honor",
+     "journal": "Speak with the Agent of Honor again.",
+     "says": "One more: Lord Pickclaw's scepter. Yalie Keylotta in Highpass knows the way to him."
+    },
+    {
+     "kind": "loot",
+     "target": "Lord Pickclaw",
+     "items": [
+      {
+       "item": "Lord Pickclaw's Scepter",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Lord Pickclaw in Highpass Hold and take his scepter."
+    },
+    {
+     "kind": "give",
+     "target": "Agent of Honor",
+     "items": [
+      {
+       "item": "Lord Pickclaw's Scepter",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Lord Pickclaw's Scepter to the Agent of Honor.",
+     "says": "The pickclaws are leaderless. Take the rune of my task.",
+     "rewards": {
+      "items": [
+       "Agent of Honor's rune"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Orc Sapper",
+    "sand giant siegemaster",
+    "Superior Head Jailor",
+    "Lord Pickclaw"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Honor. The 40,000 tunar and 4.5 million experience are the guide's; the orc camp is one spec, Orc Sapper (the guide's sappers, siegemasters and commanders), the siegemaster, the jailor (the guide's superior jailors' cycle left out) and Lord Pickclaw are specs (Yalie Keylotta's own quest to him is Misc's). The Agent of Honor's rune has no itempattern row: made like the others."
+  },
+  {
+   "key": "Portal/zaoran-plateau/war",
+   "name": "The Agent of War",
+   "giver": "Agent of War",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "You want the plateau? Then show me you can fight. Coach Rubgar runs the trial: three sets, each worse than the last. Speak to him when you are ready.",
+   "accept": "I am ready to fight.",
+   "decline": "Not now.",
+   "declined": "Then you are not ready for the plateau.",
+   "started": "Coach Rubgar is by the shore.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Coach Rubgar",
+     "journal": "Speak with Coach Rubgar when you are ready for the first set.",
+     "says": "First set: one brawler. Go!"
+    },
+    {
+     "kind": "kill",
+     "target": "Rallosian Brawler",
+     "count": 1,
+     "journal": "Kill the Rallosian brawler.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Brawler",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Coach Rubgar",
+     "journal": "Speak with Coach Rubgar for the second set.",
+     "says": "Second set: a brawler and his cleric. Kill the cleric first!"
+    },
+    {
+     "kind": "kill",
+     "target": "Rallosian Cleric",
+     "count": 1,
+     "journal": "Kill the Rallosian cleric before he heals the brawler.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Cleric",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Brawler",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Coach Rubgar",
+     "journal": "Speak with Coach Rubgar for the last set.",
+     "says": "Last set: four conjurers and their pets. Ignore the pets."
+    },
+    {
+     "kind": "kill",
+     "target": "Rallosian Conjurer",
+     "count": 4,
+     "journal": "Kill the four Rallosian conjurers.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Conjurer",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Conjurer",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Conjurer",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Conjurer",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Coach Rubgar",
+     "journal": "Speak with Coach Rubgar.",
+     "says": "Not bad. Here, a little coin and a gem. See the Agent.",
+     "rewards": {
+      "tunar": 500,
+      "items": [
+       "Gem of Battle"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of War",
+     "journal": "Speak with the Agent of War again for your rune.",
+     "says": "You fought well. The rune of my task.",
+     "rewards": {
+      "items": [
+       "Agent of War's rune"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Agent of War",
+    "Coach Rubgar",
+    "Rallosian Brawler",
+    "Rallosian Cleric",
+    "Rallosian Conjurer"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of War. The guide ports the player to Lake Rathe E and then into a bubble; here Coach Rubgar stands by the agents (the map's point) and each set is spawned hostile beside the player; the set's names are ours (the guide's brawler, cleric and casters), and the second set's brawler leaves when its cleric falls. The guide's 'minor tunar' is 500 here (ours); the Gem of Battle has no itempattern row: made like the Spitestone, the same 30% stone."
+  },
+  {
+   "key": "Portal/zaoran-plateau/growth",
+   "name": "The Agent of Growth",
+   "giver": "Agent of Growth",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The Rallosian portal on this hill is sick, and I mean to heal it. My gnomish intern has the theory. Talk to him first, then come back to me.",
+   "accept": "I will speak to him.",
+   "decline": "Not now.",
+   "declined": "Then the portal stays sick.",
+   "started": "He is just there.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Gnomish Intern",
+     "journal": "Speak with the Agent of Growth's gnomish intern.",
+     "says": "The portal feeds on growth, see? Living things. The Agent knows the rest."
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of Growth",
+     "journal": "Return to the Agent of Growth.",
+     "says": "Good. My assistant will tell you what to gather."
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant of Growth",
+     "journal": "Speak with the Agent of Growth's assistant.",
+     "says": "Three of the same thing. At your level: bitter roots, from the orcs outside Freeport."
+    },
+    {
+     "kind": "give",
+     "target": "Assistant of Growth",
+     "items": [
+      {
+       "item": "bitter roots",
+       "count": 3
+      }
+     ],
+     "journal": "Bring three bitter roots to the Agent of Growth's assistant.",
+     "says": "This will do. Use the device on the portal.",
+     "rewards": {
+      "items": [
+       "Rallosian healing device"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Rallosian Portal",
+     "items": [
+      {
+       "item": "Rallosian healing device",
+       "count": 1
+      }
+     ],
+     "journal": "Use the Rallosian healing device on the Rallosian portal.",
+     "says": "The device hums, and the portal's light steadies.",
+     "rewards": {
+      "items": [
+       "empty Rallosian healing device"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Assistant of Growth",
+     "items": [
+      {
+       "item": "empty Rallosian healing device",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the empty device to the Agent of Growth's assistant.",
+     "says": "It worked! Here is your reward.",
+     "rewards": {
+      "xp": 500000,
+      "tunar": 1500
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of Growth",
+     "journal": "Speak with the Agent of Growth for your rune.",
+     "says": "The portal grows strong again. The rune of my task.",
+     "rewards": {
+      "items": [
+       "Agent of Growth's rune"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Agent of Growth",
+    "Gnomish Intern",
+    "Assistant of Growth",
+    "Rallosian Portal"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Growth. The level 60 list's bitter roots (the game's name; the guide's golden iron ore and pickclaw orbs are left out); the 500,000 experience and 1,500 tunar are the guide's; the intern, the assistant and the portal are specs on the map's points, their names ours (the guide's 'her gnomish intern', 'her Assistant', 'the portal')."
+  },
+  {
+   "key": "Portal/zaoran-plateau/portal",
+   "name": "The Way to Zaoran Plateau",
+   "giver": "portal guardian",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/zaoran-plateau/tranquility",
+    "Portal/zaoran-plateau/spite",
+    "Portal/zaoran-plateau/honor",
+    "Portal/zaoran-plateau/war",
+    "Portal/zaoran-plateau/growth"
+   ],
+   "unlocks": [
+    {
+     "npc": "portal guardian",
+     "to": "Zaoran Plateau"
+    }
+   ],
+   "offer": "The plateau lets in only those the five agents trust. Show me their five runes, and pay a single tunar each time you pass.",
+   "accept": "Here are the runes.",
+   "decline": "Not now.",
+   "declined": "Come back with the runes.",
+   "started": "Five runes.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "portal guardian",
+     "items": [
+      {
+       "item": "Agent of Tranquility's rune",
+       "count": 1
+      },
+      {
+       "item": "Agent of Spite's rune",
+       "count": 1
+      },
+      {
+       "item": "Agent of Honor's rune",
+       "count": 1
+      },
+      {
+       "item": "Agent of War's rune",
+       "count": 1
+      },
+      {
+       "item": "Agent of Growth's rune",
+       "count": 1
+      }
+     ],
+     "journal": "Show the five agents' runes to the portal guardian on Lake Rathe.",
+     "says": "Five runes. Pass, then. Remember the tunar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 4901.8,
+       "y": 147.6,
+       "z": 7051.8
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "portal guardian"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). The portal guardian: finishing it flags the player for his trip to Zaoran Plateau (unlocks; the route should take the guide's 1 tunar each time); the first trip is the hand-in's own, to the Secrets world's zone 5 by its port-in marker (ZP1). The runes are kept, as the guide's 'speak again with the Agent to get your rune' implies; the guide's old notes on picking a side are left out."
   }
  ],
  "items": [
@@ -3318,6 +3861,48 @@
    "description": "Kithgrin's talisman of the Isle of Dread, for those who passed the trials of Cazic Thule.",
    "notrade": true,
    "like": "geode talisman"
+  },
+  {
+   "name": "Agent of Honor's rune",
+   "description": "This rune shows you've completed the Agent of Honor's task.",
+   "notrade": true,
+   "like": "Agent of Tranquility's rune"
+  },
+  {
+   "name": "Gem of Battle",
+   "description": "This stone allows you to harness the fury of battle, allowing you to gain a bit more experience than normal.",
+   "notrade": true,
+   "like": "Spitestone"
+  },
+  {
+   "name": "Sticky Finger Sword",
+   "description": "A sword the orcs outside Freeport carry.",
+   "notrade": true,
+   "like": "Lord Pickclaw's Scepter"
+  },
+  {
+   "name": "Rallosian rune",
+   "description": "A rune carried by the sand giant siegemaster of Hazinak.",
+   "notrade": true,
+   "like": "gnoll runes"
+  },
+  {
+   "name": "titanium key",
+   "description": "A titanium key from the Superior Head Jailor of Runnyeye.",
+   "notrade": true,
+   "like": "Prison Key"
+  },
+  {
+   "name": "Rallosian healing device",
+   "description": "A device that can heal the Rallosian portal on Lake Rathe's island.",
+   "notrade": true,
+   "like": "phosphoric globe"
+  },
+  {
+   "name": "empty Rallosian healing device",
+   "description": "A Rallosian healing device, spent on the portal.",
+   "notrade": true,
+   "like": "phosphoric globe"
   }
  ]
 }

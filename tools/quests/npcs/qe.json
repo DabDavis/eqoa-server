@@ -565,6 +565,280 @@
    "level": 60,
    "note": "the Isle of Wonder, with the other marks and manifestations",
    "water": "land"
+  },
+  {
+   "name": "Kayle",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Kayle"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Kayle (Traquility)"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Bobble-by-Water (SW), across the river from the coachman by the south wall: the Agent of Tranquility's Kayle (the game's Kayle stands under the tarp, the Agent of Spite's)",
+   "water": "land"
+  },
+  {
+   "name": "Orc Sapper",
+   "role": "foe",
+   "body": [
+    "kind",
+    "orc"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Orc Sapper"
+   ],
+   "count": 3,
+   "level": 48,
+   "note": "the orc camp along the road out of Freeport's north gate, by the blacksmith",
+   "water": "land"
+  },
+  {
+   "name": "sand giant siegemaster",
+   "role": "foe",
+   "body": [
+    "npc",
+    "sand giant"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "sand giant siegemaster"
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "Hazinak, near the portal",
+   "water": "land"
+  },
+  {
+   "name": "Superior Head Jailor",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Bloodfoot jailor"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Superior Head Jailor"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "Runnyeye, with the superior pickclaw guards",
+   "water": "land"
+  },
+  {
+   "name": "Lord Pickclaw",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Adept Pickclaw Elder"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Lord Pickclaw"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Highpass Hold, the pickclaws' lord (Yalie Keylotta's quest, Misc/lord-pickclaw)",
+   "water": "land"
+  },
+  {
+   "name": "Agent of War",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    7440.0,
+    4760.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Lake Rathe (C), on the island with the good water cave, the second heading north-west (the hill at (7460, 4780), the map's points lie in the water east of it)",
+   "water": "land"
+  },
+  {
+   "name": "Agent of Growth",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    1,
+    7470.0,
+    4790.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Lake Rathe (C), on top of the same hill as the Agent of War, beside the ZP portal",
+   "water": "land"
+  },
+  {
+   "name": "Coach Rubgar",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    7420.0,
+    4800.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Lake Rathe, by the agents (the guide's trial ground)",
+   "water": "land"
+  },
+  {
+   "name": "Gnomish Intern",
+   "role": "talker",
+   "body": [
+    "race",
+    "gnome",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    7400.0,
+    4780.0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "Lake Rathe, the Agent of Growth's gnomish intern (the guide names him not)",
+   "water": "land"
+  },
+  {
+   "name": "Assistant of Growth",
+   "role": "talker",
+   "body": [
+    "race",
+    "gnome",
+    1
+   ],
+   "place": [
+    "at",
+    1,
+    7440.0,
+    4820.0
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "Lake Rathe, the Agent of Growth's assistant (the guide names her not)",
+   "water": "land"
+  },
+  {
+   "name": "Rallosian Portal",
+   "role": "talker",
+   "body": [
+    "npc",
+    "dark portal"
+   ],
+   "place": [
+    "at",
+    1,
+    7490.0,
+    4770.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Lake Rathe's island: the Rallosian portal the Agent of Growth's device heals",
+   "water": "land"
+  },
+  {
+   "name": "portal guardian",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    7500.0,
+    4800.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Lake Rathe (C): he sends those with the five runes through to Zaoran Plateau for 1 tunar",
+   "water": "land"
+  },
+  {
+   "name": "Rallosian Brawler",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "near",
+    "Coach Rubgar",
+    12,
+    1
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "Coach Rubgar's first and second trial sets (spawned hostile by the quest; the guide names them not)",
+   "water": "land"
+  },
+  {
+   "name": "Rallosian Cleric",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "near",
+    "Coach Rubgar",
+    14,
+    1
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "Coach Rubgar's second trial set",
+   "water": "land"
+  },
+  {
+   "name": "Rallosian Conjurer",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "near",
+    "Coach Rubgar",
+    16,
+    1
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "Coach Rubgar's third trial set, four casters",
+   "water": "land"
   }
  ]
 }

@@ -1218,7 +1218,7 @@ func (q *QuestEngine) rewardLocked(sess *session.Session, p *entity.Player, rw d
 	var lines []string
 	if rw.Tunar > 0 && q.inv != nil {
 		p.Tunar += rw.Tunar
-		if err := q.inv.SetTunar(p.CharServerID, p.Tunar, p.BankTunar); err != nil {
+		if err := q.inv.SetPurse(p.CharServerID, p.Tunar); err != nil {
 			log.Printf("Quests: %s's tunar: %v", p.Name, err)
 		}
 		queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(p.Tunar))
@@ -1360,7 +1360,7 @@ func (q *QuestEngine) takeLocked(sess *session.Session, p *entity.Player, st *da
 	}
 	if st.Tunar > 0 {
 		p.Tunar -= st.Tunar
-		if err := q.inv.SetTunar(p.CharServerID, p.Tunar, p.BankTunar); err != nil {
+		if err := q.inv.SetPurse(p.CharServerID, p.Tunar); err != nil {
 			log.Printf("Quests: %s's tunar: %v", p.Name, err)
 		}
 		if sess != nil {

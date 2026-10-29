@@ -251,7 +251,12 @@ func (h *SupportHandler) handleRequest(sess *session.Session, msg *protocol.Mess
 		return nil
 	}
 	if h.store == nil {
-		csReply(sess, sub, csFailed, nil)
+		var fill func(w *buffer.Writer)
+		if sub == 4 { // RecvDelete reads the id before it looks at the status
+			id, _ := r.Read7BitEncodedInt64()
+			fill = func(w *buffer.Writer) { w.Write7BitEncodedInt64(id) }
+		}
+		csReply(sess, sub, csFailed, fill)
 		return nil
 	}
 	now := time.Now()

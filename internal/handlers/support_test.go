@@ -278,3 +278,21 @@ func TestPetitionShownByItsEnd(t *testing.T) {
 		t.Fatalf("long: %d units, %q...%q", n, got[:50], got[len(got)-10:])
 	}
 }
+
+// With no petitions table every request fails (5), sub-op 4's answer
+// carrying the id CLIENT's RecvDelete reads before it looks at the status;
+// the lists are still answered.
+func TestSupportWithNoTable(t *testing.T) {
+	c := newChatWorld(t)
+	h := NewSupportHandler(c.gw, nil)
+	as, _ := c.join(1, "Ann", 100, 100, 0)
+	if got := csSend(t, h, as, 4, csID(1001)); len(got) != 1 || !bytes.Equal(got[0], []byte{4, csFailed, 0xD2, 0x0F}) {
+		t.Errorf("delete: % X", got)
+	}
+	if got := csSend(t, h, as, 2, nil); len(got) != 1 || !bytes.Equal(got[0], []byte{2, csFailed}) {
+		t.Errorf("inbox: % X", got)
+	}
+	if got := csSend(t, h, as, 6, nil); len(got) != 1 || got[0][1] != csOK {
+		t.Errorf("lists: % X", got)
+	}
+}

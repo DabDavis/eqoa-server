@@ -36,7 +36,7 @@ const (
 	FormNone  FormKind = iota
 	FormSelf           // "Illusion: X", "X Form": the caster, whatever is targeted
 	FormGroup          // "Glamour: X": the caster or a member of its group
-	FormEnd            // "Remove Illusion", "True Form": the caster's own body back
+	FormEnd            // "Remove Illusion", "True Form", "Revert Lich": the caster's own look back
 )
 
 // illusionDuration is how long an illusion lasts when its line gives no
@@ -71,7 +71,9 @@ func (d *SpellDef) readIllusion(name, desc string) {
 		d.Form, d.FormKind = strings.TrimSpace(strings.TrimPrefix(n, "illusion:")), FormSelf
 	case strings.HasPrefix(n, "glamour:"):
 		d.Form, d.FormKind = strings.TrimSpace(strings.TrimPrefix(n, "glamour:")), FormGroup
-	case n == "remove illusion" || n == "true form":
+	case n == "remove illusion" || n == "true form" || n == "revert lich":
+		// Revert Lich is the necromancer's own way out of Lich ("Self, Removes
+		// Lich form"): no necromancer has Remove Illusion
 		d.FormKind = FormEnd
 	case strings.HasSuffix(n, " form") && !strings.Contains(ds, "without changing") &&
 		(strings.Contains(ds, "assume the form") || strings.Contains(ds, "illusion")):

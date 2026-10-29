@@ -273,7 +273,16 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 	if pe.Cures > 0 {
 		w.curePlayerLocked(p, pe.Cures)
 	}
-	cs := &castState{spell: spell, caster: p.ServerID, targets: []EntityID{p.ServerID}}
+	// the health is paid above, refused where it would kill: the landing
+	// (a self line's price, cast.go) takes it no second time
+	drunk := spell
+	drunk.Def.Effects = nil
+	for _, e := range spell.Def.Effects {
+		if e.Kind != EffectHP || e.Amount >= 0 {
+			drunk.Def.Effects = append(drunk.Def.Effects, e)
+		}
+	}
+	cs := &castState{spell: drunk, caster: p.ServerID, targets: []EntityID{p.ServerID}}
 	w.landOnPlayerLocked(cs, p, sess, p, now)
 	log.Printf("Potion: %s drinks %q (%d health)", p.Name, pe.ItemName, cost)
 	if gate {

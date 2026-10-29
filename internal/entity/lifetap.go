@@ -261,6 +261,31 @@ func (w *World) payPriceLocked(cs *castState, caster *Player, sess *session.Sess
 	}
 }
 
+// selfCostLocked takes a self line's own price of n hit points off its
+// caster, in full: Cannibalize's, the ranger's blades', the monk's strikes',
+// the alchemist's infusions' "Decrease Hitpoints by N" at the landing, and
+// Lich's or Cursed Flesh's "Decrease HP per tic by N" each tick (tickEffectLocked).
+// Until the test lanes' report of 2026-10-29 these were dropped; the user's
+// ruling: "You could definitely kill yourself with lich form, pacts and so
+// on. That was a drawback people had to actively manage with remove
+// illusion." The figure on the bearer, a line saying it when say, and a
+// death when nothing is left, which it reports. A pact's price (a clause "to
+// Self") is payPriceLocked's, resisted as before.
+func (w *World) selfCostLocked(name string, p *Player, sess *session.Session, n int, say bool, now time.Time) bool {
+	log.Printf("Cast: %q costs %s %d hit points (HP %d)", name, p.Name, n, p.HP)
+	if say && sess != nil {
+		w.sendChatToSession(sess, fmt.Sprintf("%s costs you %d hit points.", name, n))
+	}
+	p.HP = max(p.HP-n, 0)
+	p.StatsDirty = true
+	w.tellAmountLocked(p, sess, p.ServerID, -n)
+	if p.HP > 0 {
+		return false
+	}
+	w.playerDiedLocked(sess, p, now)
+	return true
+}
+
 // casterShareLocked puts a cast's stat changes on its caster for the line's
 // duration: an effect of the spell's name (its id negated, so it is not the
 // one the spell leaves on a target, oneself included). A share landed this

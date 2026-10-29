@@ -989,15 +989,25 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 	// a spell that raises the maximum heals after the raise (spellnotes.go),
 	// or a target at full health would get none of it
 	raises := cs.spell.Def.RaisesMaxHP()
+	// a self line's lost hit points are its caster's price, paid in full
+	// (lifetap.go selfCostLocked): a price that kills lands nothing more
+	ownLine := cs.spell.Def.Target == TargetSelf && t == caster
 	var heals []int
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:
-			if raises {
-				heals = append(heals, spellAmount(e, caster))
+			n := spellAmount(e, caster)
+			if n < 0 && ownLine {
+				if w.selfCostLocked(cs.spell.Name, caster, casterSess, -n, true, now) {
+					return
+				}
 				continue
 			}
-			w.healLocked(caster, casterSess, t, spellAmount(e, caster))
+			if raises {
+				heals = append(heals, n)
+				continue
+			}
+			w.healLocked(caster, casterSess, t, n)
 		case EffectPower:
 			if n := spellAmount(e, caster); n > 0 {
 				t.Power = min(t.Power+n, t.MaxPowerNow())
@@ -1139,6 +1149,14 @@ func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 			caster = t
 		}
 		w.healLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), t, ae.HPTick)
+	}
+	// the bearer's own line losing hit points each tick (Lich, Cursed Flesh):
+	// its price, until it wears off, its bearer dies or a Remove Illusion,
+	// True Form or Revert Lich ends the form (illusion.go)
+	if ae.HPTick < 0 && ae.Caster == t.ServerID && !t.IsDead() {
+		if w.selfCostLocked(ae.Name, t, w.findSessionByEntityIDLocked(t.ServerID), -ae.HPTick, false, now) {
+			return
+		}
 	}
 	if ae.PowerTick > 0 && t.Power < t.MaxPowerNow() {
 		t.Power = min(t.Power+ae.PowerTick, t.MaxPowerNow())

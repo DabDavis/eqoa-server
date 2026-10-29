@@ -32,10 +32,11 @@ changes with no stop).
   by 2 s or more.
 
 **A wanderer is no patrol.** Sandstorm's creatures that roam (Highbourne's
-Lost Souls) walk at its wander's pace, 4.93-4.98 (4.42 over slopes; roam.go's
-5 is it), in
-legs that never come round, with rests of seconds between; a patrol walks
-slower (3.02-3.12, Halas' guards 3.94) or comes round. A walker at
+Lost Souls, Moradhim's Frosteye goblins and quarry workers) walk at its
+wander's pace, 4.87-4.98 (roam.go's 5 is it), in legs that never come round,
+with rests of 3 to 30 seconds between; a patrol walks slower (2.62-3.12, Halas'
+guards 3.94, Oggok's ogre bouncers and impalers 4.32-4.43) and stops 0.5 or 3
+seconds at its points, now and then 30. A walker at
 WANDER_PACE never seen to repeat is a wanderer: its name gets an npcmove row
 (roam 1: it wanders, as roam.go wanders wildlife; radius the farthest it was
 seen from the middle of its walk, 15 to 75), never a path, and no NPC is
@@ -93,7 +94,7 @@ TURN = math.radians(15)
 MATCH = 150.0         # a route to an NPC of its name whose spawn is this near it
 OWN_PAUSE = 2.0       # a point's own pause when its stops differ by this
 PLAYER_IDS = 100_000_000  # an id this or more is a player's, never an NPC's
-WANDER_PACE = (4.3, 5.4)  # Sandstorm's wander (4.93-4.98 measured, 4.42 over slopes; roam.go's 5); patrols 3.02-3.94
+WANDER_PACE = (4.8, 5.2)  # Sandstorm's wander (4.87-4.98 measured; roam.go's 5); patrols 2.62-3.94, an ogre's 4.32-4.43
 WANDER_RADIUS = (15.0, 75.0)
 MOVE_LOG = """CREATE TABLE npcmove_seed (
     name   TEXT PRIMARY KEY,   -- npcmove.name written

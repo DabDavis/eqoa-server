@@ -401,6 +401,158 @@
    "level": 65,
    "note": "in Fayspires (Group 2, level 49)",
    "water": "land"
+  },
+  {
+   "name": "Daresh",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "upstairs in the building west of the Murnf coach (Group 3)",
+   "water": "land"
+  },
+  {
+   "name": "Mergmar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "Bardif's butler in Qeynos (Group 3)",
+   "water": "land"
+  },
+  {
+   "name": "Bardif",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "his house in Qeynos, second floor (Group 3, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Ziliq",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 29,
+   "note": "his temple in the side of the Green Rift (Group 3, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Assassin",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    4445,
+    17317
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the assassin in Bardif's house in Qeynos (Group 3, level 40; EQOA-Data's map point)",
+   "water": "land"
+  },
+  {
+   "name": "Tarlin's Agent",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Tarlin's bandit"
+   ],
+   "place": [
+    "at",
+    0,
+    21108,
+    19009
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "one of Tarlin's three messengers, by Deathfist Citadel (Group 3, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Tarlin's Agent",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Tarlin's bandit"
+   ],
+   "place": [
+    "at",
+    0,
+    22924,
+    24048
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "one of Tarlin's three messengers, in the north-east of the Great Waste (Group 3, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Tarlin's Agent",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Tarlin's bandit"
+   ],
+   "place": [
+    "at",
+    0,
+    19179,
+    17080
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "one of Tarlin's three messengers, in the Blacktongue village of Ferran's Hope (Group 3, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Daglader",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 43,
+   "note": "in the Tomb of Kings (Group 3, level 40)",
+   "water": "land"
   }
  ]
 }

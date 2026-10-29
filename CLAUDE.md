@@ -716,8 +716,8 @@ the disc's look carries** (`TintRGBA`; a player's armour tint is 0, white, and b
 writes as the player's sex, is the robe's tint: a woman's robe is Tints[1], dark grey, on a PS2 and in either
 look; Sandstorm sends the robe's own tint there) and every held item white: undyed, a character draws exactly
 as before. Offered after a session's first character list (so a PS2's list keeps its sequence number):
-**0x7E0A** (`OpcodeLiveLook`, a u32 1); a client that reads it answers 1 (0 to go back) and is told what is
-in force by **0x7E0B** (`OpcodeLiveLookInForce`, a u32) before anything in it, then, while still choosing,
+**0x7E0C** (`OpcodeLiveLook`, a u32 1); a client that reads it answers 1 (0 to go back) and is told what is
+in force by **0x7E0D** (`OpcodeLiveLookInForce`, a u32) before anything in it, then, while still choosing,
 sent its list again in it; the flag is the session's (`Session.LiveLook`, kept through the promotion). The
 entity channels follow it per viewer (`ForViewer`, at the end of `serializeEntityForChannel` and for the
 player's own channel; `SetEntityState` puts a value at its own length, so a channel changes size with the

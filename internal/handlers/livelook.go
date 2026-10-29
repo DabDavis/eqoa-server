@@ -16,9 +16,9 @@ import (
 // colour per armour slot, held item and the robe, for a client that reads
 // them (eqoa-rust-client-vanilla); every other client is sent the disc's.
 //
-// After a session's first character list the server offers it (0x7E0A, a
+// After a session's first character list the server offers it (0x7E0C, a
 // u32 1). A client that reads the live look answers 1 (0 to go back); the
-// server says what is in force (0x7E0B, a u32) and, while the client is
+// server says what is in force (0x7E0D, a u32) and, while the client is
 // still choosing a character, sends its list again in that look. A PS2
 // ignores the offer (CLIENT's dispatcher has no default case), and a server
 // that never offers it (Sandstorm) is never asked. The offer goes after the

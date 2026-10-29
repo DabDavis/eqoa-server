@@ -436,7 +436,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Duels (duel.go): the live window's 0x1501 and its offer's answer, and
 	// their wagers held in duel_stakes (stakes a stopped server held go back)
 	NewDuelHandler(gameWorld).RegisterHandlers(r)
-	// The live game's look (0x7E0A; livelook.go): the answer to its offer,
+	// The live game's look (0x7E0C; livelook.go): the answer to its offer,
 	// and #dye's table (dye.go)
 	NewLiveLookHandler(charHandler).RegisterHandlers(r)
 	if charStore != nil && charStore.DB() != nil {

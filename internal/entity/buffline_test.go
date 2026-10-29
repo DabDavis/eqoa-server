@@ -19,8 +19,8 @@ var (
 	callToCombat = buffOf(671, 24, 2, "Call to Combat", "Group, Increase AGI/STA by 25, Increase MaxHP by 160 ; Increase 5% based on WIS, 2min")
 	ironSkin     = buffOf(1539, 25, 0, "Iron Skin", "Self, Increase AC by 102, 10min")
 	ironWill     = buffOf(683, 20, 2, "Iron Will", "Group, Increase AC by 100, 60sec")
-	recklessF    = buffOf(1536, 23, 0, "Reckless Force", "Self, Decrease AGI by 10, Increase STR by 40, 30sec")
-	furiousD     = buffOf(1521, 7, 0, "Furious Defense", "Self, Decrease STR by 5, Increase AGI by 20, 30sec")
+	recklessF    = buffOf(1536, 23, 0, "Reckless Force", "Self, Decrease AGI by 10, Increase STR by 40, 30min")
+	furiousD     = buffOf(1521, 7, 0, "Furious Defense", "Self, Decrease STR by 5, Increase AGI by 20, 30min")
 )
 
 // castOn casts sp at the caster itself and lands it.
@@ -69,20 +69,21 @@ func TestOnlyTheBestOfABuffLineCounts(t *testing.T) {
 }
 
 // The control: what is not one line stacks as before. Another stat (AC
-// beside the call's), the same stat to other bearers (a self AC line and a
-// group one), the same two stats moved the other way (Reckless Force's +STR
-// -AGI and Furious Defense's +AGI -STR), and an effect kept from before the
-// rule (no line: a relog of 2026-10-29's) all stay on.
+// beside the call's), the same two stats moved the other way (Reckless
+// Force's +STR -AGI and Furious Defense's +AGI -STR), and an effect kept from
+// before the rule (no line: a relog of 2026-10-29's) all stay on; a self and
+// a group form of one stat are one line (Iron Skin over Iron Will), as a
+// player's and a pet's are not.
 func TestOtherBuffLinesStillStack(t *testing.T) {
 	c := newCaster(t)
 	kept := &ActiveEffect{SpellID: 100184, Name: "Call to Action", Until: c.at(time.Hour), Mods: StatMods{MaxHP: 30}}
 	c.p.Effects = []*ActiveEffect{kept}
-	for i, sp := range []CastSpell{callToArms, ironSkin, ironWill, recklessF, furiousD} {
+	for i, sp := range []CastSpell{callToArms, ironSkin, recklessF, furiousD} {
 		c.castOn(t, sp, time.Duration(i)*10*time.Second)
 	}
 	got := c.effectNames()
-	if len(got) != 6 {
-		t.Fatalf("effects %v: want all six on", got)
+	if len(got) != 5 {
+		t.Fatalf("effects %v: want all five on", got)
 	}
 	if red := redLines(c.sess); len(red) != 0 {
 		t.Errorf("told %q", red)
@@ -92,8 +93,20 @@ func TestOtherBuffLinesStillStack(t *testing.T) {
 			t.Errorf("%s has no line", sp.Name)
 		}
 	}
-	if BuffLine(&ironSkin) == BuffLine(&ironWill) || BuffLine(&recklessF) == BuffLine(&furiousD) {
-		t.Errorf("lines: %q %q %q %q", BuffLine(&ironSkin), BuffLine(&ironWill), BuffLine(&recklessF), BuffLine(&furiousD))
+	if BuffLine(&recklessF) == BuffLine(&furiousD) {
+		t.Errorf("lines: %q %q", BuffLine(&recklessF), BuffLine(&furiousD))
+	}
+	if BuffLine(&ironSkin) != BuffLine(&ironWill) {
+		t.Errorf("a self and a group AC buff are two lines: %q %q", BuffLine(&ironSkin), BuffLine(&ironWill))
+	}
+	c.castOn(t, ironWill, 50*time.Second) // a lower rank (20) than Iron Skin (25)
+	if got := c.effectNames(); len(got) != 5 {
+		t.Errorf("Iron Will over Iron Skin took: %v", got)
+	}
+	petBuff := ironWill
+	petBuff.Scope = 3
+	if BuffLine(&petBuff) == BuffLine(&ironWill) {
+		t.Errorf("a pet's buff is a player's line: %q", BuffLine(&petBuff))
 	}
 	if BuffLine(&callToArms) != BuffLine(&callToAction) || BuffLine(&callToArms) != BuffLine(&callToCombat) {
 		t.Errorf("the calls are not one line: %q %q %q", BuffLine(&callToAction), BuffLine(&callToArms), BuffLine(&callToCombat))

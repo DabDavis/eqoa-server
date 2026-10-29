@@ -23,10 +23,14 @@ import (
 // A spell's line (BuffLine) is what it does to its bearer while it lasts and
 // to whom it is cast: the kind of each lasting effect, a stat's with the stat
 // and which way it moves it (Reckless Force's +STR -AGI is not Furious
-// Defense's +AGI -STR), and the ability's scope (self, target, group, pet):
-// the ranks of a line are the same spell made stronger, and two lines that
-// change the same stats the same way to the same bearers are one line. Its
-// rank is the spell's level. A beneficial spell landing on a player:
+// Defense's +AGI -STR), and whether a player or a pet bears it (scope 3),
+// as the balance's simulator grouped them (balancesim.go): the ranks of a
+// line are the same spell made stronger, and a spell's single, self and
+// group forms one line (Courage and Group Courage, the warrior's Iron Skin
+// and Iron Will). With every scope a line of its own, a cleric or shaman of
+// 45-60 wore both forms and won a red three up every time with 70% of its
+// hit points left (claude-notes/balance-20261029.md). Its rank is the
+// spell's level. A beneficial spell landing on a player:
 //
 //   - with an effect of its line of a higher rank on, does not take: the
 //     caster is told in red (a spent cast, as the clarity line's weaker one,
@@ -83,7 +87,11 @@ func BuffLine(s *CastSpell) string {
 		return ""
 	}
 	sort.Strings(keys)
-	return fmt.Sprintf("%s %s", scopeNames[min(max(s.Scope, 0), len(scopeNames)-1)], strings.Join(keys, " "))
+	bearer := "player"
+	if s.Scope == 3 {
+		bearer = "pet"
+	}
+	return bearer + " " + strings.Join(keys, " ")
 }
 
 // statLineNames are the stats as a line names them, by Stat.
@@ -92,10 +100,6 @@ var statLineNames = []string{"none", "STR", "STA", "AGI", "DEX", "WIS", "INT", "
 
 var buffKindNames = map[EffectKind]string{EffectShield: "shield", EffectDefProc: "defproc", EffectProc: "proc",
 	EffectSpeed: "speed", EffectInvis: "invis", EffectPowerCap: "powercap"}
-
-// scopeNames are the ability scopes as CLIENT words them (VITargetWord); a
-// scope past them is read as the last.
-var scopeNames = []string{"self", "target", "group", "pet", "corpse", "other"}
 
 const (
 	lineStrongerSelf = "You already have %s, which is stronger."

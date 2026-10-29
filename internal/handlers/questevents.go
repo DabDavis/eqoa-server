@@ -27,7 +27,10 @@ import (
 //   - give: items into the inventory, as a reward's.
 //   - spawn: a copy of an NPC a few steps in front of the player for the step
 //     (World.SpawnForQuest), hostile or not; it goes when the step is done, the
-//     quest given up or reset, the player away, or after questSpawnLife.
+//     quest given up or reset, the player away, or after questSpawnLife. A
+//     spawn on a step's done is the NEXT step's (moradhim's rogue L10: each
+//     mine disabled sends a goblin at the player, to be fought on the way to
+//     the next): it goes when that step is done, or with the quest.
 //   - visual: a spell visual (a SPELLFX.CSF DictID) played from the player on
 //     itself, as a cast's 0x00B1 begins one for everyone who sees it.
 //   - teleport: the player warped as a travel NPC warps it (a world its
@@ -56,17 +59,19 @@ type questSpawn struct {
 
 // questEventsLocked does a quest's own events of one time.
 func (q *QuestEngine) questEventsLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, on string) {
-	q.runEventsLocked(sess, p, c, qu, 0, database.EventsOn(qu.Events, on))
+	q.runEventsLocked(sess, p, c, qu, 0, 0, database.EventsOn(qu.Events, on))
 }
 
-// stepEventsLocked does a step's events of one time.
-func (q *QuestEngine) stepEventsLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, st *database.QuestStep, on string) {
-	q.runEventsLocked(sess, p, c, qu, st.Step, database.EventsOn(st.Events, on))
+// stepEventsLocked does a step's events of one time, a spawn among them
+// spawnStep's (the step it lives for).
+func (q *QuestEngine) stepEventsLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, st *database.QuestStep, on string, spawnStep int) {
+	q.runEventsLocked(sess, p, c, qu, st.Step, spawnStep, database.EventsOn(st.Events, on))
 }
 
 // runEventsLocked does events in order for the quest (step its step, 0 the
-// quest's own). Nothing is done for a character not in the world.
-func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, step int, evs []database.QuestEvent) {
+// quest's own; a spawn is spawnStep's). Nothing is done for a character not in
+// the world.
+func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, step, spawnStep int, evs []database.QuestEvent) {
 	if sess == nil || p == nil || len(evs) == 0 {
 		return
 	}
@@ -79,7 +84,7 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 		case database.EventGive:
 			q.tellLocked(c, sess, "", q.giveItemsLocked(sess, p, database.ParseItemCounts(e.Items))...)
 		case database.EventSpawn:
-			q.spawnLocked(p, c, qu, step, e)
+			q.spawnLocked(p, c, qu, spawnStep, e)
 		case database.EventVisual:
 			fx, ok := database.ParseVisualID(e.FX)
 			if !ok || q.gw == nil {
@@ -226,7 +231,7 @@ func (q *QuestEngine) teleportLocked(sess *session.Session, p *entity.Player, qu
 
 // stepStartedLocked is a step become the step to do: its start events.
 func (q *QuestEngine) stepStartedLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep) {
-	q.stepEventsLocked(sess, p, c, qu, st, database.EventStart)
+	q.stepEventsLocked(sess, p, c, qu, st, database.EventStart, st.Step)
 }
 
 // lootKillLocked is a kill on a loot step: its item dropped for the player

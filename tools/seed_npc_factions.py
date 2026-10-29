@@ -54,7 +54,9 @@ Rows, each said by town:
 - the NPCs quests talk to that no town takes in, by name and world (NAMED):
   the Plane of Sky's quest NPCs and essences to Denizens of the Plane of Sky,
   Graumord's citizens to Citizens of Graumord, the Fire Giant Magus to Lord
-  Nagafen (never on sight, still attackable); Kithgrin left (UNPLACED).
+  Nagafen (never on sight, still attackable); Kithgrin left (UNPLACED); and
+  single spawns by place (PLACED): the raven and scorchflies in the mouth of
+  Neriak's tunnel to its coach, of the city.
 
 A name's row is for every NPC of the name (world -1) when all its spawns are
 the one town's and of the one faction; else for those of the town, as a place
@@ -149,6 +151,15 @@ NAMED = [
     # the way to Nagafen's lair (EQOA-Data's Lord Nagafen Portal Quest): never
     # on sight, still attackable; Fire Giants' -1000 would set him on everyone
     ("Solusek's Eye", 3, "Lord Nagafen", ["fire giant magus"]),
+]
+# single spawns by their place (world, x, z, radius), the name's others left
+# as they are: the way out of Neriak to its coach passes a raven and
+# scorchflies on one spot in the tunnel's mouth (rows 2981 and 3106, at
+# (24999, -7, 8997), 75 from anyone and below the forest their namesakes fly
+# in, the newbie quests' ravens), which set on every new dark elf on its way
+# (2026-10-29): of the city, so its people pass (ours)
+PLACED = [
+    ("Neriak's tunnel mouth", 0, 24999.0, 8997.0, 5.0, "Citizens of Neriak", ["bloodfeather raven", "scorchflies"]),
 ]
 # and those left, said: no faction their place names
 UNPLACED = {"kithgrin": "the Cazic Thule temple's trial giver, among its trial creatures: its place names no faction "
@@ -521,6 +532,19 @@ def plan(db, eqoa_data, link=60, reach=400, near=40, hull_r=150, height=30, crea
                 continue
             rows = [r for r in rows if r[0] != k]
             rows.append((k, w, 0.0, 0.0, 0.0, f, place, ms))
+    for place, w, x, z, r, f, keys in PLACED:
+        for k in keys:
+            ms = [n for n in spawns.get(k, []) if n["world"] == w and math.hypot(n["x"] - x, n["z"] - z) <= r]
+            if f not in known:
+                left["placed, but no such faction"].append(f"{k} ({f})")
+                continue
+            if not ms:
+                left["placed, but not in the database"].append(f"{k} (world {w} at {x:.0f}, {z:.0f})")
+                continue
+            if k in gm:
+                left["a GM's npcfaction row"].append(k)
+                continue
+            rows.append((k, w, x, z, r, f, place, ms))
     for k, why in UNPLACED.items():
         if spawns.get(k):
             left["left to a GM"].append(f"{k}: {why}")
@@ -688,6 +712,9 @@ def report(p, starts, quiet):
         print(f"  named (quests talk to them): {len(named)} names, {sum(len(r[7]) for r in named)} NPCs")
         for k, w, x, z, r, f, t, ms in sorted(named, key=lambda r: (r[6], r[0])):
             print(f"      {k!r:34} {f} (world {w}, {len(ms)}: {t})")
+    placed = [r for r in rows if r[6] in {p for p, *_ in PLACED}]
+    for k, w, x, z, r, f, t, ms in sorted(placed, key=lambda r: (r[6], r[0])):
+        print(f"  placed: {k!r} {f} (world {w}, {len(ms)} spawned within {r:g} of ({x:g}, {z:g}): {t})")
     other = [r for r in rows if r[6].startswith("(")]
     if other:
         print(f"  --creature-factions: {len(other)} names of a kind's own faction")

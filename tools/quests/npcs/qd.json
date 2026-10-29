@@ -2177,6 +2177,107 @@
    "level": 60,
    "note": "the living Magifent, behind (west of) the tomb by a rock, with a ghoul",
    "water": "land"
+  },
+  {
+   "name": "Prisoner",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Prisoner"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "by a notably large tree two or three paces off the road, just before the gates of Runnyeye (SW)",
+   "water": "land"
+  },
+  {
+   "name": "Goblin Prisoner",
+   "role": "talker",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "near",
+    "Prisoner",
+    4,
+    0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the prisoner, mutated into a goblin, by the tree near Runnyeye's gates",
+   "water": "land"
+  },
+  {
+   "name": "Lord Pickclaw",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Lord Pickclaw"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a dead end in a sunken canyon north-east of the tree, Runnyeye (N)",
+   "water": "land"
+  },
+  {
+   "name": "Julaech",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Mila's Reef (C), on the coast, in a tower (a seldom spawn)",
+   "water": "land"
+  },
+  {
+   "name": "Kratas",
+   "role": "foe",
+   "body": [
+    "npc",
+    "kraken"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "underwater by the whale bones near Old Man Antiok",
+   "water": "water"
+  },
+  {
+   "name": "Pomus Magemell",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Siliskor",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "comes with Siliskor in the Elephant Graveyard (FrontiersForge's name; the guide's Pomus Magewell)",
+   "water": "land"
   }
  ]
 }

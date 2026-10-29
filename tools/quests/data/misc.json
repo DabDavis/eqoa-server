@@ -6805,7 +6805,7 @@
    "minlevel": 50,
    "maxlevel": 60,
    "requires": [],
-   "offer": "I was a black necromancer, and I am the slave of a drake lord who would overthrow Norrath. His minions carry gems of protection. Five wards will break them. Keeper Sari, at the Black Swan Inn in Darvar Manor, makes the first.",
+   "offer": "I was a black necromancer; now I am slave to a drake lord who would overthrow Norrath. His minions carry gems of protection, which five wards will break. Keeper Sari, at Darvar Manor's Black Swan Inn, makes the first.",
    "accept": "I will help you.",
    "decline": "Not now.",
    "declined": "Then I stay his slave.",
@@ -7368,6 +7368,463 @@
     "Magifent"
    ],
    "notes": "From EQOA-Data Quests/Misc/undead-drake-lord.json, # Undead Drake Lord Quest, steps 6-7 and the reward (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is a ring of your choice made in Klick'Anon (a guard tower east of the coach) from a gem the living Magifent drops and a no-trade ring: the engine has no choice, so the power ring (the guide's Blue, the server's mystical ward of power) goes to casters, healers and alchemists and the resistance ring (Green, mystical ward of resistance) to tanks and melees, from Magifent himself. Not on this server: the Crimson and Gold rings. The drake lord's Drakescale armor is loot. The bloodstone drakes that keep coming for an hour are two and one."
+  },
+  {
+   "key": "Misc/lord-pickclaw/p1",
+   "name": "Lord Pickclaw",
+   "giver": "Yalie Keylotta",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The Pickclaws hold prisoners in Runnyeye. Bring me one of their shoddy keys first: the raiding goblins and the goblin camps along the road from this gate carry them.",
+   "accept": "I will get a key.",
+   "decline": "Not now.",
+   "declined": "Then the prisoners wait.",
+   "started": "The goblins along the road.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Pickclaw Warrior",
+     "journal": "Take a shoddy key from the Pickclaw goblins along the road from Highpass's north entrance.",
+     "items": [
+      {
+       "item": "shoddy pickclaw key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Yalie Keylotta",
+     "journal": "Bring the shoddy key to Yalie Keylotta outside Highpass's north entrance.",
+     "items": [
+      {
+       "item": "shoddy pickclaw key",
+       "count": 1
+      }
+     ],
+     "says": "Now find what it opens. North of Highpass, round the mountains west, follow the road to Runnyeye. By a large tree near the gates, wait."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 16480,
+     "y": 69,
+     "z": 12541,
+     "radius": 25,
+     "journal": "Wait by the large tree off the road just before Runnyeye's gates (SW).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A ragged prisoner stumbles out from behind the tree."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Prisoner",
+     "journal": "Speak with the prisoner by the tree.",
+     "says": "Free? You have a key? Wait... something is wrong with me... ARGH!"
+    },
+    {
+     "kind": "talk",
+     "target": "Goblin Prisoner",
+     "journal": "Speak with the goblin prisoner the prisoner became.",
+     "says": "Hee! Fooled you. Lord Pickclaw wants to meet you, up the sunken canyon north-east."
+    },
+    {
+     "kind": "talk",
+     "target": "Lord Pickclaw",
+     "journal": "Find Lord Pickclaw at the dead end of the sunken canyon north-east of the tree, Runnyeye (N).",
+     "says": "End me? Then come, little one!",
+     "answer": "I am here to end you."
+    },
+    {
+     "kind": "loot",
+     "target": "Lord Pickclaw",
+     "journal": "Kill Lord Pickclaw and take his scepter.",
+     "items": [
+      {
+       "item": "Lord Pickclaw's Scepter",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Yalie Keylotta",
+     "journal": "Bring Lord Pickclaw's scepter to Yalie Keylotta.",
+     "items": [
+      {
+       "item": "Lord Pickclaw's Scepter",
+       "count": 1
+      }
+     ],
+     "says": "His scepter! The prisoners are safe for now. Choose your reward.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "pickclaw guard's sash"
+        ]
+       },
+       "2": {
+        "items": [
+         "pickclaw guard's sash"
+        ]
+       },
+       "3": {
+        "items": [
+         "pickclaw guard's sash"
+        ]
+       },
+       "1": {
+        "items": [
+         "Pickclaw Brawler's Sash"
+        ]
+       },
+       "4": {
+        "items": [
+         "Pickclaw Brawler's Sash"
+        ]
+       },
+       "5": {
+        "items": [
+         "Pickclaw Brawler's Sash"
+        ]
+       },
+       "6": {
+        "items": [
+         "Pickclaw Brawler's Sash"
+        ]
+       },
+       "10": {
+        "items": [
+         "pickclaw arcanist's sash"
+        ]
+       },
+       "11": {
+        "items": [
+         "pickclaw arcanist's sash"
+        ]
+       },
+       "12": {
+        "items": [
+         "pickclaw arcanist's sash"
+        ]
+       },
+       "13": {
+        "items": [
+         "pickclaw arcanist's sash"
+        ]
+       },
+       "14": {
+        "items": [
+         "pickclaw arcanist's sash"
+        ]
+       },
+       "7": {
+        "items": [
+         "Pickclaw Visionsary's Headband"
+        ]
+       },
+       "8": {
+        "items": [
+         "Pickclaw Visionsary's Headband"
+        ]
+       },
+       "9": {
+        "items": [
+         "Pickclaw Visionsary's Headband"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Goblin Prisoner",
+    "Lord Pickclaw"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/lord-pickclaw.json, # Lord Pickclaw Quest (github.com/Jadiction/EQOA-Data, MIT). The prisoner's popup is on a 24-hour timer in the guide: a reach step here. Lord Pickclaw, unattackable until talked to in the guide, stands attackable here. The guide's reward is a choice of a head or a waist item for your archetype: the waist one (the guide's pick) for tanks (pickclaw guard's sash), melees (Pickclaw Brawler's Sash) and casters and alchemists (pickclaw arcanist's sash); healers get the Pickclaw Visionsary's Headband (no healers' sash on this server). The pet and illusion rewards are not on this server."
+  },
+  {
+   "key": "Misc/kratas/p1",
+   "name": "Kratas",
+   "giver": "Julaech",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A sea monster, Kratas, ate my crew. I want revenge, but first he must be lured out. Bring me silk from an ebony recluse in the hills near Kelinar, an ambroise fruit from a calescent ant, and a longfellow bream.",
+   "accept": "I will gather the bait.",
+   "decline": "Not now.",
+   "declined": "Then my crew stays unavenged.",
+   "started": "The recluse is near Kelinar.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Ebony Recluse",
+     "journal": "Take silk from the ebony recluse in the hills near Kelinar.",
+     "items": [
+      {
+       "item": "Ebony Recluse Silk",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "calescent ant",
+     "journal": "Take an ambroise fruit from a calescent ant in Box Canyon.",
+     "items": [
+      {
+       "item": "Ambroise Fruit",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Julaech",
+     "journal": "Fish a longfellow bream from an ocean watering hole, and bring it all to Julaech.",
+     "items": [
+      {
+       "item": "Ebony Recluse Silk",
+       "count": 1
+      },
+      {
+       "item": "Ambroise Fruit",
+       "count": 1
+      },
+      {
+       "item": "Longfellow bream",
+       "count": 1
+      }
+     ],
+     "says": "Strange bait, but he loves it. Here, all bundled. Wander near the whale bones by Old Man Antiok, under the water.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Kratas Lure",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 13476,
+     "y": 34,
+     "z": 31456,
+     "radius": 40,
+     "journal": "Swim to the whale bones under the water near Old Man Antiok.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Something huge stirs among the bones. Kratas!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Kratas",
+     "journal": "Kill Kratas.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Kratas",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Julaech",
+     "journal": "Return to Julaech in Mila's Reef.",
+     "says": "My crew is avenged. Thank you."
+    }
+   ],
+   "unresolved": [
+    "Julaech",
+    "Kratas"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/kratas.json, # Kratas Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's quest ends at the whale bones: the talk back to Julaech is ours. Kratas's drops (the Harpoon of Telinan for the Plane of Sky, shimmering seaweed, his tentacle) are loot, not a quest reward; he stands among the bones too (FrontiersForge saw him there). The bream is fished (the server's fishing has it)."
+  },
+  {
+   "key": "Misc/siliskor/p1",
+   "name": "Siliskor",
+   "giver": "Zaryn Boome",
+   "classes": [],
+   "races": [],
+   "minlevel": 45,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Corliss Magemell, by the river at the far end of Blackwater, went looking for the dragon worshippers. He is not the same since. Go to him.",
+   "accept": "I will go to him.",
+   "decline": "Not now.",
+   "declined": "Then Corliss is on his own.",
+   "started": "The far end of Blackwater.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Corliss Magemell",
+     "journal": "Find Corliss Magemell by the river at the far end of Blackwater.",
+     "says": "The dragon worshippers' cave, south-west past the troll camp in the swamps. Find out what they worship."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14406,
+     "y": 17,
+     "z": 23544,
+     "radius": 50,
+     "journal": "Go into the Dragon Cultists' cave, down the second ramp to the dragon altar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "At the dragon altar a voice fills your head. You are being watched."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14334,
+     "y": 23,
+     "z": 23585,
+     "radius": 50,
+     "journal": "Rush out of the cave by its main entrance.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Outside, a great dragon eyes you from afar, then vanishes."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Cursed Corliss Magemell",
+     "journal": "Return to Corliss Magemell in Blackwater.",
+     "says": "Siliskor has cursed me! In the cave, a Mirrored Soul holds the Scepter of Reflection. Bring it."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14406,
+     "y": 17,
+     "z": 23544,
+     "radius": 50,
+     "journal": "Go back to the Dragon Cultists' cave."
+    },
+    {
+     "kind": "loot",
+     "target": "Mirrored Soul",
+     "journal": "Kill the Mirrored Soul and take the Scepter of Reflection.",
+     "items": [
+      {
+       "item": "Scepter of Reflection",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Mirrored Soul",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Cursed Corliss Magemell",
+     "journal": "Bring the scepter to Corliss Magemell.",
+     "items": [
+      {
+       "item": "Scepter of Reflection",
+       "count": 1
+      }
+     ],
+     "says": "The curse lifts! Siliskor waits in the Elephant Graveyard, by the crooked elephant statue. Gather your guild."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14549,
+     "y": 15,
+     "z": 26778,
+     "radius": 40,
+     "journal": "Approach the crooked elephant statue in the west of the Elephant Graveyard.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The ground shakes. Siliskor rises, with Pomus Magemell and two dragon worshippers!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Siliskor",
+     "journal": "Kill Siliskor.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Pomus Magemell",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Dragon Worshipper",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Dragon Worshipper",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Cursed Corliss Magemell",
+     "journal": "Tell Corliss Magemell Siliskor is dead.",
+     "says": "Then I am truly free. Thank you."
+    }
+   ],
+   "unresolved": [
+    "Pomus Magemell"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/siliskor.json, # Siliskor Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's trigger system (one questor at a time, the flag lost on a crash) is left out. Siliskor stands by the elephant statue (the server's attackable Siliskor) and his followers spawn with the popup. His drop, the Shield of King Jorat for the Plane of Sky, is loot, not a quest reward; the closing talk is ours."
   }
  ],
  "items": [
@@ -8132,6 +8589,24 @@
    "description": "The five wards made one, against the Undead Drake Lord.",
    "notrade": true,
    "like": "death madam's stone"
+  },
+  {
+   "name": "Ebony Recluse Silk",
+   "description": "Silk from an ebony recluse, for a lure.",
+   "notrade": true,
+   "like": "Fine Silk String"
+  },
+  {
+   "name": "Kratas Lure",
+   "description": "Julaech's lure for the sea monster Kratas.",
+   "notrade": true,
+   "like": "Bag of Gems"
+  },
+  {
+   "name": "Scepter of Reflection",
+   "description": "The scepter the Mirrored Soul held, which can lift Siliskor's curse.",
+   "notrade": true,
+   "like": "Ancient Scroll"
   }
  ]
 }

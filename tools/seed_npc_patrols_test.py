@@ -103,8 +103,11 @@ class SeedNPCPatrols(unittest.TestCase):
         square = [(1000, 1000), (1040, 1000), (1040, 1040), (1000, 1040), (1000, 1000)]
         walk(rows, 11, "Guard Rounds", square + square[1:], pace=4.0, pause=2.0)
         walk(rows, 13, "Piker Pace", [(1100, 1000), (1112, 1000), (1100, 1000), (1112, 1000), (1100, 1000)], pace=3.12, pause=10.0)
-        # one leg at a patrol's pace in view, then out of it
-        rows += [{"t": t, "id": 14, "name": "Walker Once", "x": 1200, "y": 10, "z": 1000, "v": [4, 0, 0]} for t in range(0, 5001, 500)]
+        # one leg at a patrol's pace in view, then out of it (its place sent again every 10 s)
+        rows += [{"t": t, "id": 14, "name": "Walker Once", "x": 1200 + 40 * (t // 10000), "y": 10, "z": 1000, "v": [4, 0, 0]}
+                 for t in range(0, 20001, 500)]
+        # seen walking a few steps only: too little to tell a route by
+        rows += [{"t": t, "id": 20, "name": "Walker Brief", "x": 1250, "y": 10, "z": 1100, "v": [4, 0, 0]} for t in range(0, 5001, 500)]
         # a wanderer: Sandstorm's wander pace, legs that never come round
         walk(rows, 19, "Lost Wisp", [(1700, 1000), (1720, 1010), (1705, 1030), (1690, 1015), (1712, 990)], pace=4.95, pause=6.0)
         walk(rows, 15, "Guard Kept", [(1300, 1000), (1330, 1000), (1300, 1000)])
@@ -142,6 +145,7 @@ class SeedNPCPatrols(unittest.TestCase):
         out = self.run_tool().stdout
         self.assertIn("3 patrols (0 NPCs to make), 1 names to wander", out)
         self.assertIn("left: Guard Kept (a GM gave it a path)", out)
+        self.assertIn("left: Walker Brief (seen walking 20 only, too little to tell its route", out)
         self.run_tool("--apply")
         p = self.paths()
         world, mode, pause, speed, pts = p[1]
@@ -151,7 +155,7 @@ class SeedNPCPatrols(unittest.TestCase):
         self.assertEqual((mode, speed, pause), ("pingpong", "3.12", 10.0))
         self.assertEqual(sorted((q["x"], q["z"]) for q in json.loads(pts)), [(1100, 1000), (1112, 1000)])
         mode, pts = p[4][1], p[4][4]
-        self.assertEqual((mode, [(q["x"], q["z"]) for q in json.loads(pts)]), ("pingpong", [(1200, 1000), (1220, 1000)]))
+        self.assertEqual((mode, [(q["x"], q["z"]) for q in json.loads(pts)]), ("pingpong", [(1200, 1000), (1280, 1000)]))
         self.assertEqual(p[5], before[5])          # the GM's
         self.assertNotIn(2, p)                       # the far namesake
         self.assertNotIn(6, p)                       # the rat
@@ -217,6 +221,10 @@ class ReadingARoute(unittest.TestCase):
     def test_a_velocity_held_with_no_new_place_stands(self):
         # sent once, moving north, and never again in three minutes in view
         rows = [{"t": t, "id": 5, "name": "S", "x": 100, "y": 10, "z": 100, "v": [0, 0, 4.76]} for t in range(0, 189001, 500)]
+        self.assertIsNone(M.route(rows))
+        # and the same in three short sights, each too short to tell alone
+        rows = [{"t": t, "id": 5, "name": "S", "x": 100, "y": 10, "z": 100, "v": [0, 0, 4.76]}
+                for a, b in ((0, 12000), (271000, 308000), (436000, 449000)) for t in range(a, b + 1, 500)]
         self.assertIsNone(M.route(rows))
         # a long leg sent again every 10 s walks
         rows = [{"t": t, "id": 6, "name": "L", "x": 100, "y": 10, "z": 100 + 3 * (t // 10000) * 10, "v": [0, 0, 3]}

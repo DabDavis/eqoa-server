@@ -51,6 +51,14 @@ func NewBalance(levels []database.BalanceLevel, cons []database.BalanceCon) *Bal
 	return b
 }
 
+// Rows is the balance's rows, by level and by diff (none for a nil balance).
+func (b *Balance) Rows() ([]database.BalanceLevel, []database.BalanceCon) {
+	if b == nil {
+		return nil, nil
+	}
+	return append([]database.BalanceLevel(nil), b.levels...), append([]database.BalanceCon(nil), b.cons...)
+}
+
 // SeedBalance is the seed rows' balance (database.BalanceSeedLevels and
 // BalanceSeedCons): what a database made today starts with.
 func SeedBalance() *Balance {

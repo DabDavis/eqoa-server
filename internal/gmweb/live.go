@@ -49,6 +49,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveCraftSkills(before, after) // live_craft.go
 	case "npcmove":
 		return s.liveMove()
+	case "balancelevel", "balancecon":
+		return s.liveBalance() // live_balance.go
 	case "spellgates":
 		return s.liveSpellGates() // live_gates.go
 	case "gmtriggers":

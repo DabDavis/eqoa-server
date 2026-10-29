@@ -93,3 +93,27 @@ func TestRealBalanceOneFight(t *testing.T) {
 	r := SimulateFight(pl, SimNPC{Level: foe}, nil, 1, 10*time.Minute)
 	t.Logf("%+v", r)
 }
+
+// TestRealBalanceGearCurve prints the kits' gear by level (EQOA_SIM_GEAR=1):
+// the synthetic outfits of balancesim_test.go are read off it.
+func TestRealBalanceGearCurve(t *testing.T) {
+	if os.Getenv("EQOA_SIM_GEAR") == "" {
+		t.Skip("EQOA_SIM_GEAR=1")
+	}
+	db := simRealDB(t)
+	for _, class := range []int{0, 6, 9, 13} {
+		for level := 1; level <= 60; level += 1 {
+			if level%5 != 0 && level != 1 {
+				continue
+			}
+			pl, err := SimKitFromDB(db, class, 0, level, 0.5)
+			if err != nil {
+				t.Fatal(err)
+			}
+			g := pl.Gear
+			t.Logf("class %2d L%2d DMG %3d 2H %v AC %4d STR %3d STA %3d AGI %3d DEX %3d WIS %3d INT %3d HP %3d POW %3d HoT %v PoT %v worn %v type %d",
+				class, level, g.WeaponDamage, g.WeaponTwoHanded, g.AC, g.Str, g.Sta, g.Agi, g.Dex, g.Wis, g.Int, g.MaxHP, g.MaxPower, g.HoTItems, g.PoTItems,
+				[]bool{pl.Worn[14], pl.Worn[15], pl.Worn[16], pl.Worn[17], pl.Worn[20]}, pl.AttackType)
+		}
+	}
+}

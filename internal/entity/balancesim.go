@@ -631,3 +631,64 @@ func (f *simFight) healAt() float64 {
 	}
 	return 0.5
 }
+
+// SimCell is the fights of one kit against NPCs Diff levels above it.
+type SimCell struct {
+	Class, Level, Diff int
+	Pet                bool
+	Fights, Won, Died  int
+	// HPLeft is the mean share of hit points left in the fights won, Secs
+	// the mean length of those fights
+	HPLeft, Secs float64
+	PetDied      int
+}
+
+// WinShare is the share of the fights won.
+func (c SimCell) WinShare() float64 {
+	if c.Fights == 0 {
+		return 0
+	}
+	return float64(c.Won) / float64(c.Fights)
+}
+
+// SimCellOf fights the kit against an NPC of its level plus diff, fights
+// times, the seeds counting up from seed.
+func SimCellOf(pl SimPlayer, foe SimNPC, diff int, b *Balance, fights int, seed int64, limit time.Duration) SimCell {
+	c := SimCell{Class: pl.Class, Level: pl.Level, Diff: diff, Pet: pl.Play.Pet, Fights: fights}
+	foe.Level = max(pl.Level+diff, 1)
+	for i := range fights {
+		r := SimulateFight(pl, foe, b, seed+int64(i), limit)
+		if r.Won {
+			c.Won++
+			c.HPLeft += r.HPShare()
+			c.Secs += r.Time.Seconds()
+		}
+		if r.Died {
+			c.Died++
+		}
+		if r.PetDied {
+			c.PetDied++
+		}
+	}
+	if c.Won > 0 {
+		c.HPLeft /= float64(c.Won)
+		c.Secs /= float64(c.Won)
+	}
+	return c
+}
+
+// ArchetypeName is a class's archetype as the defence and offence tables
+// have it: tank, melee, priest or caster.
+func ArchetypeName(class int) string {
+	return [...]string{archTank: "tank", archMelee: "melee", archPriest: "priest", archCaster: "caster"}[archetypeOf(class)]
+}
+
+// SimHasPet is whether the kit's book has a summoning.
+func SimHasPet(pl SimPlayer) bool {
+	for i := range pl.Spells {
+		if simRole(&pl.Spells[i]) == roleSummon {
+			return true
+		}
+	}
+	return false
+}

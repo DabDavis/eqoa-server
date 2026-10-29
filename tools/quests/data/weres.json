@@ -1,0 +1,5495 @@
+{
+ "city": "weres",
+ "quests": [
+  {
+   "key": "Weres/wolfwere/L40-tank",
+   "name": "Duskrender's Trial",
+   "giver": "Edward Duskrender",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/wolfwere/p3"
+   ],
+   "offer": "A wolf of forty seasons has earned a gift. First, prove it: Martin Flicker, a caster, haunts Mayfly Glade by the river. Kill him, then hear what Dawn Raylight and John Dewey have to say.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Martin Flicker",
+     "count": 1,
+     "journal": "Defeat Martin Flicker by the fallen log near the river in Mayfly Glade (E)."
+    },
+    {
+     "kind": "talk",
+     "target": "Dawn Raylight",
+     "journal": "Speak with Dawn Raylight in Mariel Village.",
+     "says": "Edward sent you? Then go on to John Dewey in Misty Thicket; he will know the rest."
+    },
+    {
+     "kind": "talk",
+     "target": "John Dewey",
+     "journal": "Speak with John Dewey in Misty Thicket (NE).",
+     "says": "Jasmine, the bear in Surefall Glade, has grown too bold. Edward wants her dead."
+    },
+    {
+     "kind": "kill",
+     "target": "Jasmine",
+     "count": 1,
+     "journal": "Defeat Jasmine, the bear in the trees at the north-east end of the lake in Surefall Glade."
+    },
+    {
+     "kind": "talk",
+     "target": "Edward Duskrender",
+     "journal": "Return to Edward Duskrender in the druid village of Unkempt North.",
+     "says": "Well hunted. Take this, and use it well.",
+     "rewards": {
+      "spells": [
+       "Growl of Battle"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Martin Flicker",
+    "Jasmine"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Ranger, Bard and Rogue). Martin Flicker and Jasmine are the seeded rows' levels, not triggered by the player."
+  },
+  {
+   "key": "Weres/wolfwere/L40-melee",
+   "name": "Duskrender's Trial",
+   "giver": "Edward Duskrender",
+   "classes": [
+    1,
+    4,
+    5,
+    6
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/wolfwere/p3"
+   ],
+   "offer": "A wolf of forty seasons has earned a gift. First, prove it: Martin Flicker, a caster, haunts Mayfly Glade by the river. Kill him, then hear what Dawn Raylight and John Dewey have to say.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Martin Flicker",
+     "count": 1,
+     "journal": "Defeat Martin Flicker by the fallen log near the river in Mayfly Glade (E)."
+    },
+    {
+     "kind": "talk",
+     "target": "Dawn Raylight",
+     "journal": "Speak with Dawn Raylight in Mariel Village.",
+     "says": "Edward sent you? Then go on to John Dewey in Misty Thicket; he will know the rest."
+    },
+    {
+     "kind": "talk",
+     "target": "John Dewey",
+     "journal": "Speak with John Dewey in Misty Thicket (NE).",
+     "says": "Jasmine, the bear in Surefall Glade, has grown too bold. Edward wants her dead."
+    },
+    {
+     "kind": "kill",
+     "target": "Jasmine",
+     "count": 1,
+     "journal": "Defeat Jasmine, the bear in the trees at the north-east end of the lake in Surefall Glade."
+    },
+    {
+     "kind": "talk",
+     "target": "Edward Duskrender",
+     "journal": "Return to Edward Duskrender in the druid village of Unkempt North.",
+     "says": "Well hunted. Take this, and use it well.",
+     "rewards": {
+      "spells": [
+       "Rage of Drinal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Martin Flicker",
+    "Jasmine",
+    "Rage of Drinal"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Ranger, Bard and Rogue). Martin Flicker and Jasmine are the seeded rows' levels, not triggered by the player."
+  },
+  {
+   "key": "Weres/wolfwere/L40-caster",
+   "name": "Duskrender's Trial",
+   "giver": "Edward Duskrender",
+   "classes": [
+    10,
+    12,
+    11,
+    13,
+    14
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/wolfwere/p3"
+   ],
+   "offer": "A wolf of forty seasons has earned a gift. First, prove it: Martin Flicker, a caster, haunts Mayfly Glade by the river. Kill him, then hear what Dawn Raylight and John Dewey have to say.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Martin Flicker",
+     "count": 1,
+     "journal": "Defeat Martin Flicker by the fallen log near the river in Mayfly Glade (E)."
+    },
+    {
+     "kind": "talk",
+     "target": "Dawn Raylight",
+     "journal": "Speak with Dawn Raylight in Mariel Village.",
+     "says": "Edward sent you? Then go on to John Dewey in Misty Thicket; he will know the rest."
+    },
+    {
+     "kind": "talk",
+     "target": "John Dewey",
+     "journal": "Speak with John Dewey in Misty Thicket (NE).",
+     "says": "Jasmine, the bear in Surefall Glade, has grown too bold. Edward wants her dead."
+    },
+    {
+     "kind": "kill",
+     "target": "Jasmine",
+     "count": 1,
+     "journal": "Defeat Jasmine, the bear in the trees at the north-east end of the lake in Surefall Glade."
+    },
+    {
+     "kind": "talk",
+     "target": "Edward Duskrender",
+     "journal": "Return to Edward Duskrender in the druid village of Unkempt North.",
+     "says": "Well hunted. Take this, and use it well.",
+     "rewards": {
+      "spells": [
+       "Howl of Terror"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Martin Flicker",
+    "Jasmine",
+    "Howl of Terror"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Ranger, Bard and Rogue). Martin Flicker and Jasmine are the seeded rows' levels, not triggered by the player."
+  },
+  {
+   "key": "Weres/wolfwere/L40-healer",
+   "name": "Duskrender's Trial",
+   "giver": "Edward Duskrender",
+   "classes": [
+    8,
+    7,
+    9
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/wolfwere/p3"
+   ],
+   "offer": "A wolf of forty seasons has earned a gift. First, prove it: Martin Flicker, a caster, haunts Mayfly Glade by the river. Kill him, then hear what Dawn Raylight and John Dewey have to say.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Martin Flicker",
+     "count": 1,
+     "journal": "Defeat Martin Flicker by the fallen log near the river in Mayfly Glade (E)."
+    },
+    {
+     "kind": "talk",
+     "target": "Dawn Raylight",
+     "journal": "Speak with Dawn Raylight in Mariel Village.",
+     "says": "Edward sent you? Then go on to John Dewey in Misty Thicket; he will know the rest."
+    },
+    {
+     "kind": "talk",
+     "target": "John Dewey",
+     "journal": "Speak with John Dewey in Misty Thicket (NE).",
+     "says": "Jasmine, the bear in Surefall Glade, has grown too bold. Edward wants her dead."
+    },
+    {
+     "kind": "kill",
+     "target": "Jasmine",
+     "count": 1,
+     "journal": "Defeat Jasmine, the bear in the trees at the north-east end of the lake in Surefall Glade."
+    },
+    {
+     "kind": "talk",
+     "target": "Edward Duskrender",
+     "journal": "Return to Edward Duskrender in the druid village of Unkempt North.",
+     "says": "Well hunted. Take this, and use it well.",
+     "rewards": {
+      "spells": [
+       "Howl of Doom"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Martin Flicker",
+    "Jasmine",
+    "Howl of Doom"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Ranger, Bard and Rogue). Martin Flicker and Jasmine are the seeded rows' levels, not triggered by the player."
+  },
+  {
+   "key": "Weres/wolfwere/p3",
+   "name": "The Hunt",
+   "giver": "Levandius",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/wolfwere/p2"
+   ],
+   "factions_required": [
+    [
+     "Night Reapers",
+     1000
+    ],
+    [
+     "Werehunters of Tunaria",
+     -500,
+     499
+    ]
+   ],
+   "offer": "I must speak with you. The fever is in you; I can smell it. Before it takes you, face Zaren. West of the castle, past the inn, a tower stands by the road; he waits beyond it. Or take my antidote and stay as you are.",
+   "accept": "I will face Zaren.",
+   "decline": "Give me the antidote.",
+   "declined": "Then the fever passes, and you with it. Come back if you change your mind.",
+   "started": "Zaren will not wait for you to be ready.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Zaren",
+     "count": 1,
+     "journal": "Defeat Zaren, beyond the tower by the road west of Castle Lightwolf, past the inn."
+    },
+    {
+     "kind": "talk",
+     "target": "Levandius",
+     "journal": "Return to Levandius in the druid village of Unkempt North.",
+     "says": "Zaren is dead and the fever has run its course. You are one of us now, wolf.",
+     "rewards": {
+      "spells": [
+       "Werewolf Form"
+      ],
+      "factions": [
+       [
+        "Night Reapers",
+        100
+       ],
+       [
+        "Werehunters of Tunaria",
+        -1000
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, The Hunt (github.com/Jadiction/EQOA-Data, MIT). Zaren is the server's row (level 44), not the player's level; the guide's Zaran. The antidote is the decline (it changes nothing). The faction with Werehunters of Tunaria (-1000) is ours: it keeps a lycan from the werehunters' brand, a second infection and the vampires' blood, as the guides say; a branded werehunter (+1000) is offered no infection."
+  },
+  {
+   "key": "Weres/wolfwere/p1",
+   "name": "Fryda's Kin",
+   "giver": "Fryda Lightwolf",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Brother Norton keeps watch on the road south of this castle, just past the inn, and no word has come from him in days. Find him for me. Go armed: the road is not what it was.",
+   "accept": "I will find Brother Norton.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brother Norton",
+     "journal": "Find Brother Norton on the road south of Castle Lightwolf, just past the inn.",
+     "says": "Fryda sent you? Then they followed you here. Behind you!"
+    },
+    {
+     "kind": "kill",
+     "target": "wolfwere",
+     "count": 3,
+     "journal": "Fight off the three wolfweres that set upon you at Brother Norton's.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "wolfwere",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "wolfwere",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "wolfwere",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Fryda Lightwolf",
+     "journal": "Tell Fryda Lightwolf in Castle Lightwolf what waited at Brother Norton's.",
+     "says": "Wolfweres, on our own road. John Lightwolf hunts the ice plains south of Halas. Find him before they do."
+    },
+    {
+     "kind": "talk",
+     "target": "John Lightwolf",
+     "journal": "Find John Lightwolf at the foot of a small hill in the ice plains south of Halas.",
+     "says": "Fryda's runner? They have my scent as well. Here they come!"
+    },
+    {
+     "kind": "kill",
+     "target": "wolfwere",
+     "count": 3,
+     "journal": "Fight off the three wolfweres that set upon you at John Lightwolf's.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "wolfwere",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "wolfwere",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "wolfwere",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Fryda Lightwolf",
+     "journal": "Return to Fryda Lightwolf in Castle Lightwolf.",
+     "says": "So the curse spreads. Levandius, in the druid village of Unkempt North, knows the wolf's blood better than anyone. Go to him."
+    }
+   ],
+   "unresolved": [
+    "John Lightwolf"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, the first two parts (github.com/Jadiction/EQOA-Data, MIT). The three each part sets on the player are wolfweres of their own level (38 to 40), not the player's: bring friends. The guide names no reward for these parts."
+  },
+  {
+   "key": "Weres/wolfwere/p2",
+   "name": "Wolfwere Tails",
+   "giver": "Levandius",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/wolfwere/p1"
+   ],
+   "factions_required": [
+    [
+     "Night Reapers",
+     0
+    ],
+    [
+     "Werehunters of Tunaria",
+     -2000,
+     499
+    ]
+   ],
+   "repeatable": true,
+   "offer": "The wolfweres of these woods carry the curse in their blood. Bring me four of their tails and the Night Reapers will count you a friend. Hunt the ones that are a match for you.",
+   "accept": "I will bring the tails.",
+   "decline": "Not now.",
+   "declined": "Then hunt elsewhere. The tails will keep.",
+   "started": "Hunt the ones that are a match for you.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "wolfwere",
+     "items": [
+      {
+       "item": "wolfwere tail",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Take four wolfwere tails from the wolfweres of Unkempt North and the Unkempt Glade."
+    },
+    {
+     "kind": "give",
+     "target": "Levandius",
+     "items": [
+      {
+       "item": "wolfwere tail",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four wolfwere tails to Levandius.",
+     "says": "Four tails. The Night Reapers will remember the hunter who brought them.",
+     "notyet": "Four tails, no fewer.",
+     "rewards": {
+      "factions": [
+       [
+        "Night Reapers",
+        250
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, the tail quest (github.com/Jadiction/EQOA-Data, MIT). The live game's infection was a chance on killing a were that conned yellow; here it is the society's standing alone: the tail quest repeats, each four tails +250 with Night Reapers (ours), and the urgent word comes at 1000."
+  },
+  {
+   "key": "Weres/bearwere/L40-tank",
+   "name": "The Bear's Gift",
+   "giver": "Dorandas",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/bearwere/p3"
+   ],
+   "offer": "A bear of forty seasons can learn more. A golden gnoll, a caster and a healer, keeps south-east of the undead house at Crethley Manor. Kill it, then go to Kierra in Mariel Village.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Golden Gnoll",
+     "count": 1,
+     "journal": "Defeat the Golden Gnoll south-east of the undead house at Crethley Manor."
+    },
+    {
+     "kind": "talk",
+     "target": "Kierra",
+     "journal": "Find Kierra, the faerie at the foot of a tree ramp in Mariel Village.",
+     "says": "Dorandas still sends his cubs to me? Then go: a green racer snake suns itself on a hill east of the druids' lake in the Unkempt Glade."
+    },
+    {
+     "kind": "kill",
+     "target": "Green Racer Snake",
+     "count": 1,
+     "journal": "Defeat the Green Racer Snake on the hill east of the druids' lake in the Unkempt Glade."
+    },
+    {
+     "kind": "talk",
+     "target": "Briggs",
+     "journal": "Find Briggs in the Salt Mines (C), between the Siloth dock camp and the cave entrance.",
+     "says": "Kierra's word is good enough for me. Go back to Dorandas; you have earned it."
+    },
+    {
+     "kind": "talk",
+     "target": "Dorandas",
+     "journal": "Return to Dorandas in the druid village of Unkempt North.",
+     "says": "You have earned the bear's gift.",
+     "rewards": {
+      "spells": [
+       "Growl of Battle"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Golden Gnoll",
+    "Green Racer Snake",
+    "Briggs"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/bearwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"your class-specific NPC\" in Unkempt North (S), unnamed: Dorandas, the line's NPC there, gives it, one quest an archetype with its spell. The return is to him, not the Unkempt Glade."
+  },
+  {
+   "key": "Weres/bearwere/L40-melee",
+   "name": "The Bear's Gift",
+   "giver": "Dorandas",
+   "classes": [
+    1,
+    4,
+    5,
+    6
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/bearwere/p3"
+   ],
+   "offer": "A bear of forty seasons can learn more. A golden gnoll, a caster and a healer, keeps south-east of the undead house at Crethley Manor. Kill it, then go to Kierra in Mariel Village.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Golden Gnoll",
+     "count": 1,
+     "journal": "Defeat the Golden Gnoll south-east of the undead house at Crethley Manor."
+    },
+    {
+     "kind": "talk",
+     "target": "Kierra",
+     "journal": "Find Kierra, the faerie at the foot of a tree ramp in Mariel Village.",
+     "says": "Dorandas still sends his cubs to me? Then go: a green racer snake suns itself on a hill east of the druids' lake in the Unkempt Glade."
+    },
+    {
+     "kind": "kill",
+     "target": "Green Racer Snake",
+     "count": 1,
+     "journal": "Defeat the Green Racer Snake on the hill east of the druids' lake in the Unkempt Glade."
+    },
+    {
+     "kind": "talk",
+     "target": "Briggs",
+     "journal": "Find Briggs in the Salt Mines (C), between the Siloth dock camp and the cave entrance.",
+     "says": "Kierra's word is good enough for me. Go back to Dorandas; you have earned it."
+    },
+    {
+     "kind": "talk",
+     "target": "Dorandas",
+     "journal": "Return to Dorandas in the druid village of Unkempt North.",
+     "says": "You have earned the bear's gift.",
+     "rewards": {
+      "spells": [
+       "Cave Bear Strength"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Golden Gnoll",
+    "Green Racer Snake",
+    "Briggs",
+    "Cave Bear Strength"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/bearwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"your class-specific NPC\" in Unkempt North (S), unnamed: Dorandas, the line's NPC there, gives it, one quest an archetype with its spell. The return is to him, not the Unkempt Glade."
+  },
+  {
+   "key": "Weres/bearwere/L40-caster",
+   "name": "The Bear's Gift",
+   "giver": "Dorandas",
+   "classes": [
+    10,
+    12,
+    11,
+    13,
+    14
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/bearwere/p3"
+   ],
+   "offer": "A bear of forty seasons can learn more. A golden gnoll, a caster and a healer, keeps south-east of the undead house at Crethley Manor. Kill it, then go to Kierra in Mariel Village.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Golden Gnoll",
+     "count": 1,
+     "journal": "Defeat the Golden Gnoll south-east of the undead house at Crethley Manor."
+    },
+    {
+     "kind": "talk",
+     "target": "Kierra",
+     "journal": "Find Kierra, the faerie at the foot of a tree ramp in Mariel Village.",
+     "says": "Dorandas still sends his cubs to me? Then go: a green racer snake suns itself on a hill east of the druids' lake in the Unkempt Glade."
+    },
+    {
+     "kind": "kill",
+     "target": "Green Racer Snake",
+     "count": 1,
+     "journal": "Defeat the Green Racer Snake on the hill east of the druids' lake in the Unkempt Glade."
+    },
+    {
+     "kind": "talk",
+     "target": "Briggs",
+     "journal": "Find Briggs in the Salt Mines (C), between the Siloth dock camp and the cave entrance.",
+     "says": "Kierra's word is good enough for me. Go back to Dorandas; you have earned it."
+    },
+    {
+     "kind": "talk",
+     "target": "Dorandas",
+     "journal": "Return to Dorandas in the druid village of Unkempt North.",
+     "says": "You have earned the bear's gift.",
+     "rewards": {
+      "spells": [
+       "Summon Blessed Fish"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Golden Gnoll",
+    "Green Racer Snake",
+    "Briggs",
+    "Summon Blessed Fish"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/bearwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"your class-specific NPC\" in Unkempt North (S), unnamed: Dorandas, the line's NPC there, gives it, one quest an archetype with its spell. The return is to him, not the Unkempt Glade."
+  },
+  {
+   "key": "Weres/bearwere/L40-healer",
+   "name": "The Bear's Gift",
+   "giver": "Dorandas",
+   "classes": [
+    8,
+    7,
+    9
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/bearwere/p3"
+   ],
+   "offer": "A bear of forty seasons can learn more. A golden gnoll, a caster and a healer, keeps south-east of the undead house at Crethley Manor. Kill it, then go to Kierra in Mariel Village.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Golden Gnoll",
+     "count": 1,
+     "journal": "Defeat the Golden Gnoll south-east of the undead house at Crethley Manor."
+    },
+    {
+     "kind": "talk",
+     "target": "Kierra",
+     "journal": "Find Kierra, the faerie at the foot of a tree ramp in Mariel Village.",
+     "says": "Dorandas still sends his cubs to me? Then go: a green racer snake suns itself on a hill east of the druids' lake in the Unkempt Glade."
+    },
+    {
+     "kind": "kill",
+     "target": "Green Racer Snake",
+     "count": 1,
+     "journal": "Defeat the Green Racer Snake on the hill east of the druids' lake in the Unkempt Glade."
+    },
+    {
+     "kind": "talk",
+     "target": "Briggs",
+     "journal": "Find Briggs in the Salt Mines (C), between the Siloth dock camp and the cave entrance.",
+     "says": "Kierra's word is good enough for me. Go back to Dorandas; you have earned it."
+    },
+    {
+     "kind": "talk",
+     "target": "Dorandas",
+     "journal": "Return to Dorandas in the druid village of Unkempt North.",
+     "says": "You have earned the bear's gift.",
+     "rewards": {
+      "spells": [
+       "Bear Nobility"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Golden Gnoll",
+    "Green Racer Snake",
+    "Briggs",
+    "Bear Nobility"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/bearwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"your class-specific NPC\" in Unkempt North (S), unnamed: Dorandas, the line's NPC there, gives it, one quest an archetype with its spell. The return is to him, not the Unkempt Glade."
+  },
+  {
+   "key": "Weres/bearwere/p3",
+   "name": "Mirin",
+   "giver": "Dorandas",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/bearwere/p2"
+   ],
+   "factions_required": [
+    [
+     "Wards of Dawn",
+     1000
+    ],
+    [
+     "Werehunters of Tunaria",
+     -500,
+     499
+    ]
+   ],
+   "offer": "Listen to me, and quickly. The bear is in your blood now. Mirin, a caster, hunts east of the bandit village in south-western Unkempt North. Kill him and the change is yours. Or drink my antidote and forget all this.",
+   "accept": "I will face Mirin.",
+   "decline": "Give me the antidote.",
+   "declined": "Then the sickness passes. Come back if you change your mind.",
+   "started": "Mirin has a pet. Bring friends.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Mirin",
+     "count": 1,
+     "journal": "Defeat Mirin, just east of the bandit village in Unkempt North (SW)."
+    },
+    {
+     "kind": "talk",
+     "target": "Dorandas",
+     "journal": "Return to Dorandas in the druid village of Unkempt North.",
+     "says": "Mirin is gone, and the bear is yours. Welcome to the Wards of the Dawn.",
+     "rewards": {
+      "spells": [
+       "Bearwere"
+      ],
+      "factions": [
+       [
+        "Wards of Dawn",
+        100
+       ],
+       [
+        "Werehunters of Tunaria",
+        -1000
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Mirin",
+    "Bearwere"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/bearwere.json, the infection (github.com/Jadiction/EQOA-Data, MIT). The form's spell is named as the guide's table names it (Bearwere): this server has no bear form yet, so the quest stays a draft until it does. Mirin is the seeded row's level. The antidote is the decline. The faction with Werehunters of Tunaria (-1000) is ours (see the wolfwere's)."
+  },
+  {
+   "key": "Weres/bearwere/p1",
+   "name": "Paws in the Snow",
+   "giver": "Kiev Bearclaw",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Something prowls the woods north-east of Castle Lightwolf, toward the goblins. Walk there and let it find you. If you live, come back and tell me what it was.",
+   "accept": "I will go.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 9470,
+     "y": 204.6,
+     "z": 6266,
+     "radius": 100,
+     "journal": "Roam the woods north-east of Castle Lightwolf, toward the goblins.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A growl rolls out of the trees, and then another. Two bears are coming for you!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Barbiedolls Paw",
+     "count": 1,
+     "journal": "Defeat Barbiedolls Paw.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Barbiedolls Paw",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Flurry",
+     "count": 1,
+     "journal": "Defeat Flurry.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Flurry",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Kiev Bearclaw",
+     "journal": "Return to Kiev Bearclaw by the well in the village south of Castle Lightwolf.",
+     "says": "Barbiedolls Paw and Flurry. They were testing you. They gather north of Anu Village too, on the blue hill with stones on top, before the observatory."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 8880,
+     "y": 57.0,
+     "z": 4850,
+     "radius": 100,
+     "journal": "Search the glowing blue hill with stones on top, before the observatory north of Anu Village.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The stones on the hill glow blue. Out of the cold come the same two bears!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Barbiedolls Paw",
+     "count": 1,
+     "journal": "Defeat Barbiedolls Paw again.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Barbiedolls Paw",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Flurry",
+     "count": 1,
+     "journal": "Defeat Flurry again.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Flurry",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Kiev Bearclaw",
+     "journal": "Return to Kiev Bearclaw.",
+     "says": "Twice now. You have their respect, and that means something. Dorandas, in the druid village of Unkempt North, will tell you what."
+    }
+   ],
+   "unresolved": [
+    "Barbiedolls Paw",
+    "Flurry"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/bearwere.json, the first two parts (github.com/Jadiction/EQOA-Data, MIT). The pop-ups' 30-minute timer is left out; the two bears come one after the other, at their seeded level (35 and 34) rather than the player's. The guide names no reward for these parts."
+  },
+  {
+   "key": "Weres/bearwere/p2",
+   "name": "Bearwere Tails",
+   "giver": "Dorandas",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/bearwere/p1"
+   ],
+   "factions_required": [
+    [
+     "Wards of Dawn",
+     0
+    ],
+    [
+     "Werehunters of Tunaria",
+     -2000,
+     499
+    ]
+   ],
+   "repeatable": true,
+   "offer": "The bearweres carry a sickness that is also a gift. Bring me four of their tails and the Wards of the Dawn will count you a friend. Hunt the ones that are a match for you.",
+   "accept": "I will bring the tails.",
+   "decline": "Not now.",
+   "declined": "Then hunt elsewhere. The tails will keep.",
+   "started": "Hunt the ones that are a match for you.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "bearwere",
+     "items": [
+      {
+       "item": "bearwere tail",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Take four bearwere tails from the bearweres of the Unkempt woods and the North Wilderlands."
+    },
+    {
+     "kind": "give",
+     "target": "Dorandas",
+     "items": [
+      {
+       "item": "bearwere tail",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four bearwere tails to Dorandas.",
+     "says": "Four tails. The Wards of the Dawn will hear of it.",
+     "notyet": "Four tails, no fewer.",
+     "rewards": {
+      "factions": [
+       [
+        "Wards of Dawn",
+        250
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/bearwere.json, the tail quest (github.com/Jadiction/EQOA-Data, MIT). The live game's infection was a chance on killing a were that conned yellow; here it is the society's standing alone: the tail quest repeats, each four tails +250 with Wards of Dawn (ours), and the urgent word comes at 1000."
+  },
+  {
+   "key": "Weres/ratwere/L40-tank",
+   "name": "The Swarm's Errands",
+   "giver": "Shady Swashbuckler",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/ratwere/p3"
+   ],
+   "offer": "A rat of forty seasons gets the swarm's errands. Start with Nunnie, by the big cyclops house east of the main gate at Urglunt's Wall. She looks angry; she will not bite.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Nunnie",
+     "journal": "Speak with Nunnie by the large cyclops house east of the main gate at Urglunt's Wall.",
+     "says": "Red in the face, am I? I do not bite. Tell the Swashbuckler I am still here."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "Good. Now Trick Trune, by the beach in the north-west of Broken Skull Rock."
+    },
+    {
+     "kind": "talk",
+     "target": "Trick Trune",
+     "journal": "Speak with Trick Trune by the beach at Broken Skull Rock (NW).",
+     "says": "The Swashbuckler's rat? Fine. Tell him the Tae Ew are moving."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "The Tae Ew, then. A trader of theirs roams Cazic Thule's north-west, and a hoarder sits on a misty hill in Tak'Xiz South. Both of them."
+    },
+    {
+     "kind": "kill",
+     "target": "Tae Ew Trader",
+     "count": 1,
+     "journal": "Defeat the Tae Ew Trader roaming north-western Cazic Thule."
+    },
+    {
+     "kind": "kill",
+     "target": "Tae Ew Hoarder",
+     "count": 1,
+     "journal": "Defeat the Tae Ew Hoarder on the small hill in green mist across the river in Tak'Xiz South."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "The swarm thanks you. Take what you have earned.",
+     "rewards": {
+      "spells": [
+       "Defense of the Swarm"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Trick Trune",
+    "Tae Ew Hoarder"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/ratwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"the appropriate class NPC in Temby\", unnamed: the Shady Swashbuckler gives it, one quest an archetype with its spell (monks with the melee: the guide's list names Rogue, Bard and Ranger). The Tae Ew are the server's rows, fought where they stand rather than triggered."
+  },
+  {
+   "key": "Weres/ratwere/L40-melee",
+   "name": "The Swarm's Errands",
+   "giver": "Shady Swashbuckler",
+   "classes": [
+    1,
+    4,
+    5,
+    6
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/ratwere/p3"
+   ],
+   "offer": "A rat of forty seasons gets the swarm's errands. Start with Nunnie, by the big cyclops house east of the main gate at Urglunt's Wall. She looks angry; she will not bite.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Nunnie",
+     "journal": "Speak with Nunnie by the large cyclops house east of the main gate at Urglunt's Wall.",
+     "says": "Red in the face, am I? I do not bite. Tell the Swashbuckler I am still here."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "Good. Now Trick Trune, by the beach in the north-west of Broken Skull Rock."
+    },
+    {
+     "kind": "talk",
+     "target": "Trick Trune",
+     "journal": "Speak with Trick Trune by the beach at Broken Skull Rock (NW).",
+     "says": "The Swashbuckler's rat? Fine. Tell him the Tae Ew are moving."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "The Tae Ew, then. A trader of theirs roams Cazic Thule's north-west, and a hoarder sits on a misty hill in Tak'Xiz South. Both of them."
+    },
+    {
+     "kind": "kill",
+     "target": "Tae Ew Trader",
+     "count": 1,
+     "journal": "Defeat the Tae Ew Trader roaming north-western Cazic Thule."
+    },
+    {
+     "kind": "kill",
+     "target": "Tae Ew Hoarder",
+     "count": 1,
+     "journal": "Defeat the Tae Ew Hoarder on the small hill in green mist across the river in Tak'Xiz South."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "The swarm thanks you. Take what you have earned.",
+     "rewards": {
+      "spells": [
+       "Distracting Squeeks"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Trick Trune",
+    "Tae Ew Hoarder"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/ratwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"the appropriate class NPC in Temby\", unnamed: the Shady Swashbuckler gives it, one quest an archetype with its spell (monks with the melee: the guide's list names Rogue, Bard and Ranger). The Tae Ew are the server's rows, fought where they stand rather than triggered."
+  },
+  {
+   "key": "Weres/ratwere/L40-caster",
+   "name": "The Swarm's Errands",
+   "giver": "Shady Swashbuckler",
+   "classes": [
+    10,
+    12,
+    11,
+    13,
+    14
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/ratwere/p3"
+   ],
+   "offer": "A rat of forty seasons gets the swarm's errands. Start with Nunnie, by the big cyclops house east of the main gate at Urglunt's Wall. She looks angry; she will not bite.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Nunnie",
+     "journal": "Speak with Nunnie by the large cyclops house east of the main gate at Urglunt's Wall.",
+     "says": "Red in the face, am I? I do not bite. Tell the Swashbuckler I am still here."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "Good. Now Trick Trune, by the beach in the north-west of Broken Skull Rock."
+    },
+    {
+     "kind": "talk",
+     "target": "Trick Trune",
+     "journal": "Speak with Trick Trune by the beach at Broken Skull Rock (NW).",
+     "says": "The Swashbuckler's rat? Fine. Tell him the Tae Ew are moving."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "The Tae Ew, then. A trader of theirs roams Cazic Thule's north-west, and a hoarder sits on a misty hill in Tak'Xiz South. Both of them."
+    },
+    {
+     "kind": "kill",
+     "target": "Tae Ew Trader",
+     "count": 1,
+     "journal": "Defeat the Tae Ew Trader roaming north-western Cazic Thule."
+    },
+    {
+     "kind": "kill",
+     "target": "Tae Ew Hoarder",
+     "count": 1,
+     "journal": "Defeat the Tae Ew Hoarder on the small hill in green mist across the river in Tak'Xiz South."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "The swarm thanks you. Take what you have earned.",
+     "rewards": {
+      "spells": [
+       "Swarm Mentality"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Trick Trune",
+    "Tae Ew Hoarder",
+    "Swarm Mentality"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/ratwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"the appropriate class NPC in Temby\", unnamed: the Shady Swashbuckler gives it, one quest an archetype with its spell (monks with the melee: the guide's list names Rogue, Bard and Ranger). The Tae Ew are the server's rows, fought where they stand rather than triggered."
+  },
+  {
+   "key": "Weres/ratwere/L40-healer",
+   "name": "The Swarm's Errands",
+   "giver": "Shady Swashbuckler",
+   "classes": [
+    8,
+    7,
+    9
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/ratwere/p3"
+   ],
+   "offer": "A rat of forty seasons gets the swarm's errands. Start with Nunnie, by the big cyclops house east of the main gate at Urglunt's Wall. She looks angry; she will not bite.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Nunnie",
+     "journal": "Speak with Nunnie by the large cyclops house east of the main gate at Urglunt's Wall.",
+     "says": "Red in the face, am I? I do not bite. Tell the Swashbuckler I am still here."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "Good. Now Trick Trune, by the beach in the north-west of Broken Skull Rock."
+    },
+    {
+     "kind": "talk",
+     "target": "Trick Trune",
+     "journal": "Speak with Trick Trune by the beach at Broken Skull Rock (NW).",
+     "says": "The Swashbuckler's rat? Fine. Tell him the Tae Ew are moving."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "The Tae Ew, then. A trader of theirs roams Cazic Thule's north-west, and a hoarder sits on a misty hill in Tak'Xiz South. Both of them."
+    },
+    {
+     "kind": "kill",
+     "target": "Tae Ew Trader",
+     "count": 1,
+     "journal": "Defeat the Tae Ew Trader roaming north-western Cazic Thule."
+    },
+    {
+     "kind": "kill",
+     "target": "Tae Ew Hoarder",
+     "count": 1,
+     "journal": "Defeat the Tae Ew Hoarder on the small hill in green mist across the river in Tak'Xiz South."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "The swarm thanks you. Take what you have earned.",
+     "rewards": {
+      "spells": [
+       "Cunning Subterfuge"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Trick Trune",
+    "Tae Ew Hoarder",
+    "Cunning Subterfuge"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/ratwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"the appropriate class NPC in Temby\", unnamed: the Shady Swashbuckler gives it, one quest an archetype with its spell (monks with the melee: the guide's list names Rogue, Bard and Ranger). The Tae Ew are the server's rows, fought where they stand rather than triggered."
+  },
+  {
+   "key": "Weres/ratwere/p3",
+   "name": "Trissen",
+   "giver": "Yindrius",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/ratwere/p2"
+   ],
+   "factions_required": [
+    [
+     "Topi Di Ombra",
+     1000
+    ],
+    [
+     "Werehunters of Tunaria",
+     -500,
+     499
+    ]
+   ],
+   "offer": "I must speak with you, urgently. The swarm is in your blood. Trissen, who betrayed us, hides in Bobble-by-Water. Kill him and the change is yours. Or take my antidote and walk away.",
+   "accept": "I will kill Trissen.",
+   "decline": "Give me the antidote.",
+   "declined": "Then the fever leaves you. Come back if you change your mind.",
+   "started": "Trissen is no easy kill. Bring friends.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Trissen",
+     "count": 1,
+     "journal": "Defeat Trissen in Bobble-by-Water."
+    },
+    {
+     "kind": "talk",
+     "target": "Yindrius",
+     "journal": "Return to Yindrius in Freeport.",
+     "says": "Trissen is dead, and you are one of the swarm. Welcome.",
+     "rewards": {
+      "spells": [
+       "Ratwere"
+      ],
+      "factions": [
+       [
+        "Topi Di Ombra",
+        100
+       ],
+       [
+        "Werehunters of Tunaria",
+        -1000
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/ratwere.json, the infection (github.com/Jadiction/EQOA-Data, MIT). Trissen is the server's row (level 30), not red to the player. The antidote is the decline. The faction with Werehunters of Tunaria (-1000) is ours (see the wolfwere's)."
+  },
+  {
+   "key": "Weres/ratwere/p1",
+   "name": "Debts and Favors",
+   "giver": "Shady Swashbuckler",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "I owe a friend in Highpass Hold, a trafficker who keeps out of sight in the castle. Take him this purse. Do it right and there is more work, the kind that pays in more than coin.",
+   "accept": "I will take it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "shady trafficker",
+     "items": [
+      {
+       "item": "swashbuckler's coin purse",
+       "count": 1
+      }
+     ],
+     "journal": "Take the Swashbuckler's coin purse to the shady trafficker in Highpass castle.",
+     "says": "From the Swashbuckler? Good. Tell him we are square.",
+     "notyet": "Where is the purse?"
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby's fishing village.",
+     "says": "Square, is it? Then go to Rathei Slaerin in Freeport, in the building west of the spiritmaster Keika."
+    },
+    {
+     "kind": "talk",
+     "target": "Rathei Slaerin",
+     "journal": "Speak with Rathei Slaerin in Freeport, in the building west of Spiritmaster Keika.",
+     "says": "The Swashbuckler vouches for you. Yindrius will want to see you: east past the city wall, then north to the entrance, along the south side of the building."
+    },
+    {
+     "kind": "talk",
+     "target": "Yindrius",
+     "journal": "Speak with Yindrius along the south side of the building past Freeport's east wall.",
+     "says": "So you are the one. Go back to the Swashbuckler; he has more for you."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "Rolby Rumblebelly in Muniel's Tea Garden has news for us. Hear it."
+    },
+    {
+     "kind": "talk",
+     "target": "Rolby Rumblebelly",
+     "journal": "Speak with Rolby Rumblebelly in Muniel's Tea Garden.",
+     "says": "Tell the Swashbuckler that Cogwhisker is back, at the bandit camp by the lake in northern Bandit Hills."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "Cogwhisker owes the Topi. Go east from Darvar Manor into Bandit Hills and settle it."
+    },
+    {
+     "kind": "kill",
+     "target": "Cogwhisker",
+     "count": 1,
+     "journal": "Settle Cogwhisker's debt at the bandit camp by the lake in northern Bandit Hills."
+    },
+    {
+     "kind": "talk",
+     "target": "Shady Swashbuckler",
+     "journal": "Return to the Shady Swashbuckler in Temby.",
+     "says": "Cogwhisker, settled. You will do. Yindrius in Freeport has work for you now."
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "swashbuckler's coin purse",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/ratwere.json, the first parts (github.com/Jadiction/EQOA-Data, MIT). The ambush at Highpass (two guards and another, the dealer to keep alive) is left out: the trafficker takes the purse. Cogwhisker is fought (the guide lets him be paid off instead; the engine has one path), at the server's level for him. The guide names no reward for these parts."
+  },
+  {
+   "key": "Weres/ratwere/p2",
+   "name": "Ratwere Tails",
+   "giver": "Yindrius",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/ratwere/p1"
+   ],
+   "factions_required": [
+    [
+     "Topi Di Ombra",
+     0
+    ],
+    [
+     "Werehunters of Tunaria",
+     -2000,
+     499
+    ]
+   ],
+   "repeatable": true,
+   "offer": "The wererats carry the plague of the swarm. Bring me four of their tails and the Topi di Ombra will count you a friend. Ferran's Hope crawls with them; hunt the ones that are a match for you.",
+   "accept": "I will bring the tails.",
+   "decline": "Not now.",
+   "declined": "Then hunt elsewhere. The tails will keep.",
+   "started": "Hunt the ones that are a match for you.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "wererat",
+     "items": [
+      {
+       "item": "ratwere tail",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Take four ratwere tails from the wererats of Ferran's Hope."
+    },
+    {
+     "kind": "give",
+     "target": "Yindrius",
+     "items": [
+      {
+       "item": "ratwere tail",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four ratwere tails to Yindrius.",
+     "says": "Four tails. The Topi di Ombra will know your name.",
+     "notyet": "Four tails, no fewer.",
+     "rewards": {
+      "factions": [
+       [
+        "Topi Di Ombra",
+        250
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/ratwere.json, the tail quest (github.com/Jadiction/EQOA-Data, MIT). The live game's infection was a chance on killing a were that conned yellow; here it is the society's standing alone: the tail quest repeats, each four tails +250 with Topi Di Ombra (ours), and the urgent word comes at 1000. The guide's ratwere is the game's wererat."
+  },
+  {
+   "key": "Weres/lionwere/L40-tank",
+   "name": "Katerina's Tasks",
+   "giver": "Katerina Suncharmer",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/lionwere/p3"
+   ],
+   "offer": "A lion of forty seasons has more to learn. North of the Oasis, by the first flag on the left, a small valley hides an undead slave. Destroy it and come back to me.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Undead Slave",
+     "count": 1,
+     "journal": "Defeat the Undead Slave down the small valley by the first flag on the left north of the Oasis."
+    },
+    {
+     "kind": "talk",
+     "target": "Katerina Suncharmer",
+     "journal": "Return to Katerina Suncharmer in Sondereel Village.",
+     "says": "Good. Now Trizzia Newmane, in the courtyard of Fort Alliance (SE), keeps the Collar of Power. Ask her for it in my name."
+    },
+    {
+     "kind": "talk",
+     "target": "Trizzia Newmane",
+     "journal": "Ask Trizzia Newmane in the south-eastern courtyard of Fort Alliance for the Collar of Power.",
+     "choose": "What do you want of me?",
+     "choices": [
+      {
+       "answer": "I want your gold.",
+       "says": "Then you will want a long time. Go away.",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Collar of Power.",
+       "says": "Katerina's name opens my hand. Here."
+      },
+      {
+       "answer": "Nothing. I was only passing.",
+       "says": "Then keep passing.",
+       "stay": true
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Collar of Power",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Katerina Suncharmer",
+     "items": [
+      {
+       "item": "Collar of Power",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Collar of Power to Katerina Suncharmer.",
+     "says": "The collar. Now Branty, by the south entrance of Merry-by-Water, across from the spiritmaster, holds the Claw of the Ancients."
+    },
+    {
+     "kind": "talk",
+     "target": "Branty",
+     "journal": "Ask Branty, by the south entrance of Merry-by-Water, for the Claw of the Ancients.",
+     "choose": "Well? Speak up.",
+     "choices": [
+      {
+       "answer": "Give me that claw or else.",
+       "says": "Or else what? Be off with you.",
+       "stay": true
+      },
+      {
+       "answer": "Nothing, thank you.",
+       "says": "Then why are you bothering me?",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Claw of the Ancients.",
+       "says": "For Katerina? Take it, and be off."
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Claw of the Ancients",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Katerina Suncharmer",
+     "items": [
+      {
+       "item": "Claw of the Ancients",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Claw of the Ancients to Katerina Suncharmer.",
+     "says": "The claw too. Last, Zipnick: behind Zentar's Keep, near the fisherman, in a stone circle with mist."
+    },
+    {
+     "kind": "kill",
+     "target": "Zipnick",
+     "count": 1,
+     "journal": "Defeat Zipnick in the misty stone circle behind Zentar's Keep, near the fisherman."
+    },
+    {
+     "kind": "talk",
+     "target": "Katerina Suncharmer",
+     "journal": "Return to Katerina Suncharmer in Sondereel Village.",
+     "says": "The pride is proud of you. Take this.",
+     "rewards": {
+      "spells": [
+       "Growl of Battle"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Undead Slave",
+    "Branty",
+    "Zipnick"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is a choice, its words ours (the guide gives none): a wrong one changes nothing. Undead Slave and Zipnick are the seeded rows' levels."
+  },
+  {
+   "key": "Weres/lionwere/L40-melee",
+   "name": "Katerina's Tasks",
+   "giver": "Katerina Suncharmer",
+   "classes": [
+    1,
+    4,
+    5,
+    6
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/lionwere/p3"
+   ],
+   "offer": "A lion of forty seasons has more to learn. North of the Oasis, by the first flag on the left, a small valley hides an undead slave. Destroy it and come back to me.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Undead Slave",
+     "count": 1,
+     "journal": "Defeat the Undead Slave down the small valley by the first flag on the left north of the Oasis."
+    },
+    {
+     "kind": "talk",
+     "target": "Katerina Suncharmer",
+     "journal": "Return to Katerina Suncharmer in Sondereel Village.",
+     "says": "Good. Now Trizzia Newmane, in the courtyard of Fort Alliance (SE), keeps the Collar of Power. Ask her for it in my name."
+    },
+    {
+     "kind": "talk",
+     "target": "Trizzia Newmane",
+     "journal": "Ask Trizzia Newmane in the south-eastern courtyard of Fort Alliance for the Collar of Power.",
+     "choose": "What do you want of me?",
+     "choices": [
+      {
+       "answer": "I want your gold.",
+       "says": "Then you will want a long time. Go away.",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Collar of Power.",
+       "says": "Katerina's name opens my hand. Here."
+      },
+      {
+       "answer": "Nothing. I was only passing.",
+       "says": "Then keep passing.",
+       "stay": true
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Collar of Power",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Katerina Suncharmer",
+     "items": [
+      {
+       "item": "Collar of Power",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Collar of Power to Katerina Suncharmer.",
+     "says": "The collar. Now Branty, by the south entrance of Merry-by-Water, across from the spiritmaster, holds the Claw of the Ancients."
+    },
+    {
+     "kind": "talk",
+     "target": "Branty",
+     "journal": "Ask Branty, by the south entrance of Merry-by-Water, for the Claw of the Ancients.",
+     "choose": "Well? Speak up.",
+     "choices": [
+      {
+       "answer": "Give me that claw or else.",
+       "says": "Or else what? Be off with you.",
+       "stay": true
+      },
+      {
+       "answer": "Nothing, thank you.",
+       "says": "Then why are you bothering me?",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Claw of the Ancients.",
+       "says": "For Katerina? Take it, and be off."
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Claw of the Ancients",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Katerina Suncharmer",
+     "items": [
+      {
+       "item": "Claw of the Ancients",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Claw of the Ancients to Katerina Suncharmer.",
+     "says": "The claw too. Last, Zipnick: behind Zentar's Keep, near the fisherman, in a stone circle with mist."
+    },
+    {
+     "kind": "kill",
+     "target": "Zipnick",
+     "count": 1,
+     "journal": "Defeat Zipnick in the misty stone circle behind Zentar's Keep, near the fisherman."
+    },
+    {
+     "kind": "talk",
+     "target": "Katerina Suncharmer",
+     "journal": "Return to Katerina Suncharmer in Sondereel Village.",
+     "says": "The pride is proud of you. Take this.",
+     "rewards": {
+      "spells": [
+       "Agility of Kehrahn"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Undead Slave",
+    "Branty",
+    "Zipnick",
+    "Agility of Kehrahn"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is a choice, its words ours (the guide gives none): a wrong one changes nothing. Undead Slave and Zipnick are the seeded rows' levels."
+  },
+  {
+   "key": "Weres/lionwere/L40-caster",
+   "name": "Katerina's Tasks",
+   "giver": "Katerina Suncharmer",
+   "classes": [
+    10,
+    12,
+    11,
+    13,
+    14
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/lionwere/p3"
+   ],
+   "offer": "A lion of forty seasons has more to learn. North of the Oasis, by the first flag on the left, a small valley hides an undead slave. Destroy it and come back to me.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Undead Slave",
+     "count": 1,
+     "journal": "Defeat the Undead Slave down the small valley by the first flag on the left north of the Oasis."
+    },
+    {
+     "kind": "talk",
+     "target": "Katerina Suncharmer",
+     "journal": "Return to Katerina Suncharmer in Sondereel Village.",
+     "says": "Good. Now Trizzia Newmane, in the courtyard of Fort Alliance (SE), keeps the Collar of Power. Ask her for it in my name."
+    },
+    {
+     "kind": "talk",
+     "target": "Trizzia Newmane",
+     "journal": "Ask Trizzia Newmane in the south-eastern courtyard of Fort Alliance for the Collar of Power.",
+     "choose": "What do you want of me?",
+     "choices": [
+      {
+       "answer": "I want your gold.",
+       "says": "Then you will want a long time. Go away.",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Collar of Power.",
+       "says": "Katerina's name opens my hand. Here."
+      },
+      {
+       "answer": "Nothing. I was only passing.",
+       "says": "Then keep passing.",
+       "stay": true
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Collar of Power",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Katerina Suncharmer",
+     "items": [
+      {
+       "item": "Collar of Power",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Collar of Power to Katerina Suncharmer.",
+     "says": "The collar. Now Branty, by the south entrance of Merry-by-Water, across from the spiritmaster, holds the Claw of the Ancients."
+    },
+    {
+     "kind": "talk",
+     "target": "Branty",
+     "journal": "Ask Branty, by the south entrance of Merry-by-Water, for the Claw of the Ancients.",
+     "choose": "Well? Speak up.",
+     "choices": [
+      {
+       "answer": "Give me that claw or else.",
+       "says": "Or else what? Be off with you.",
+       "stay": true
+      },
+      {
+       "answer": "Nothing, thank you.",
+       "says": "Then why are you bothering me?",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Claw of the Ancients.",
+       "says": "For Katerina? Take it, and be off."
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Claw of the Ancients",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Katerina Suncharmer",
+     "items": [
+      {
+       "item": "Claw of the Ancients",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Claw of the Ancients to Katerina Suncharmer.",
+     "says": "The claw too. Last, Zipnick: behind Zentar's Keep, near the fisherman, in a stone circle with mist."
+    },
+    {
+     "kind": "kill",
+     "target": "Zipnick",
+     "count": 1,
+     "journal": "Defeat Zipnick in the misty stone circle behind Zentar's Keep, near the fisherman."
+    },
+    {
+     "kind": "talk",
+     "target": "Katerina Suncharmer",
+     "journal": "Return to Katerina Suncharmer in Sondereel Village.",
+     "says": "The pride is proud of you. Take this.",
+     "rewards": {
+      "spells": [
+       "Accelerated Foliage"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Undead Slave",
+    "Branty",
+    "Zipnick",
+    "Accelerated Foliage"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is a choice, its words ours (the guide gives none): a wrong one changes nothing. Undead Slave and Zipnick are the seeded rows' levels."
+  },
+  {
+   "key": "Weres/lionwere/L40-healer",
+   "name": "Katerina's Tasks",
+   "giver": "Katerina Suncharmer",
+   "classes": [
+    8,
+    7,
+    9
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/lionwere/p3"
+   ],
+   "offer": "A lion of forty seasons has more to learn. North of the Oasis, by the first flag on the left, a small valley hides an undead slave. Destroy it and come back to me.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Undead Slave",
+     "count": 1,
+     "journal": "Defeat the Undead Slave down the small valley by the first flag on the left north of the Oasis."
+    },
+    {
+     "kind": "talk",
+     "target": "Katerina Suncharmer",
+     "journal": "Return to Katerina Suncharmer in Sondereel Village.",
+     "says": "Good. Now Trizzia Newmane, in the courtyard of Fort Alliance (SE), keeps the Collar of Power. Ask her for it in my name."
+    },
+    {
+     "kind": "talk",
+     "target": "Trizzia Newmane",
+     "journal": "Ask Trizzia Newmane in the south-eastern courtyard of Fort Alliance for the Collar of Power.",
+     "choose": "What do you want of me?",
+     "choices": [
+      {
+       "answer": "I want your gold.",
+       "says": "Then you will want a long time. Go away.",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Collar of Power.",
+       "says": "Katerina's name opens my hand. Here."
+      },
+      {
+       "answer": "Nothing. I was only passing.",
+       "says": "Then keep passing.",
+       "stay": true
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Collar of Power",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Katerina Suncharmer",
+     "items": [
+      {
+       "item": "Collar of Power",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Collar of Power to Katerina Suncharmer.",
+     "says": "The collar. Now Branty, by the south entrance of Merry-by-Water, across from the spiritmaster, holds the Claw of the Ancients."
+    },
+    {
+     "kind": "talk",
+     "target": "Branty",
+     "journal": "Ask Branty, by the south entrance of Merry-by-Water, for the Claw of the Ancients.",
+     "choose": "Well? Speak up.",
+     "choices": [
+      {
+       "answer": "Give me that claw or else.",
+       "says": "Or else what? Be off with you.",
+       "stay": true
+      },
+      {
+       "answer": "Nothing, thank you.",
+       "says": "Then why are you bothering me?",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Claw of the Ancients.",
+       "says": "For Katerina? Take it, and be off."
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Claw of the Ancients",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Katerina Suncharmer",
+     "items": [
+      {
+       "item": "Claw of the Ancients",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Claw of the Ancients to Katerina Suncharmer.",
+     "says": "The claw too. Last, Zipnick: behind Zentar's Keep, near the fisherman, in a stone circle with mist."
+    },
+    {
+     "kind": "kill",
+     "target": "Zipnick",
+     "count": 1,
+     "journal": "Defeat Zipnick in the misty stone circle behind Zentar's Keep, near the fisherman."
+    },
+    {
+     "kind": "talk",
+     "target": "Katerina Suncharmer",
+     "journal": "Return to Katerina Suncharmer in Sondereel Village.",
+     "says": "The pride is proud of you. Take this.",
+     "rewards": {
+      "spells": [
+       "Lion's Nobility"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Undead Slave",
+    "Branty",
+    "Zipnick",
+    "Lion's Nobility"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is a choice, its words ours (the guide gives none): a wrong one changes nothing. Undead Slave and Zipnick are the seeded rows' levels."
+  },
+  {
+   "key": "Weres/lionwere/p3",
+   "name": "Jensen",
+   "giver": "Corindas",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/lionwere/p2"
+   ],
+   "factions_required": [
+    [
+     "Sunmanes",
+     1000
+    ],
+    [
+     "Werehunters of Tunaria",
+     -500,
+     499
+    ]
+   ],
+   "offer": "Hear me, it is urgent. The lion stirs in your blood. Jensen waits in Dark Solace, at the South Crossroads. Kill him and the change is yours. Or drink my antidote and live as you were.",
+   "accept": "I will kill Jensen.",
+   "decline": "Give me the antidote.",
+   "declined": "Then the fever leaves you. Come back if you change your mind.",
+   "started": "Jensen roams. Bring friends.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Jensen",
+     "count": 1,
+     "journal": "Defeat Jensen in Dark Solace, at the South Crossroads."
+    },
+    {
+     "kind": "talk",
+     "target": "Corindas",
+     "journal": "Return to Corindas in Sondereel Village.",
+     "says": "Jensen is dead and the lion is yours. Welcome, Sunmane.",
+     "rewards": {
+      "spells": [
+       "Lionwere"
+      ],
+      "factions": [
+       [
+        "Sunmanes",
+        100
+       ],
+       [
+        "Werehunters of Tunaria",
+        -1000
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Jensen"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/lionwere.json, the infection (github.com/Jadiction/EQOA-Data, MIT). Jensen is the seeded row's level, not triggered. The antidote is the decline. The faction with Werehunters of Tunaria (-1000) is ours (see the wolfwere's)."
+  },
+  {
+   "key": "Weres/lionwere/p1",
+   "name": "Lionell Redrick",
+   "giver": "Burgomaster Delvin",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Lionell Redrick is trapped in the Salt Mines to the west, in the first room off the spiral stair. Bring him out alive. The Siloths will not let him go quietly.",
+   "accept": "I will bring him out.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Lionell Redrick",
+     "journal": "Find Lionell Redrick in the first room off the spiral stair in the Salt Mines (W).",
+     "says": "You came for me? Then we go now. They will be waiting for us."
+    },
+    {
+     "kind": "kill",
+     "target": "Siloth knight",
+     "count": 3,
+     "journal": "Fight off the Siloths that ambush you and Lionell Redrick.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Siloth knight",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Siloth knight",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Siloth knight",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Siloth knight",
+     "count": 3,
+     "journal": "Fight off the second ambush on the way out of the mine.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Siloth knight",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Siloth knight",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Siloth knight",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Burgomaster Delvin",
+     "journal": "Return to Burgomaster Delvin in Sondereel Village.",
+     "says": "Lionell is home, and Sondereel owes you. One thing more: Herman Forrestor, in a tent outside Kelinar, has been hunting our kind."
+    },
+    {
+     "kind": "talk",
+     "target": "Herman Forrestor",
+     "journal": "Find Herman Forrestor in his small tent outside Kelinar (SW).",
+     "says": "Sondereel sent you? Hunters, to me!"
+    },
+    {
+     "kind": "kill",
+     "target": "Werehunter",
+     "count": 3,
+     "journal": "Defeat the three hunters at Herman Forrestor's tent."
+    },
+    {
+     "kind": "kill",
+     "target": "Herman Forrestor",
+     "count": 1,
+     "journal": "Defeat Herman Forrestor."
+    },
+    {
+     "kind": "talk",
+     "target": "Burgomaster Delvin",
+     "journal": "Return to Burgomaster Delvin in Sondereel Village.",
+     "says": "Herman will hunt no one now. Corindas, here by the river, has work for one like you."
+    }
+   ],
+   "unresolved": [
+    "Lionell Redrick"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/lionwere.json, the first two parts (github.com/Jadiction/EQOA-Data, MIT). The escort is left out: the two ambushes (three Siloth knights each, the guide's one necromancer and two melee) come where the player stands after speaking with Lionell, and the walk to the tree is skipped. Herman's hunters are the three Werehunters at his tent. The guide names no reward for these parts."
+  },
+  {
+   "key": "Weres/lionwere/p2",
+   "name": "Lionwere Tails",
+   "giver": "Corindas",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/lionwere/p1"
+   ],
+   "factions_required": [
+    [
+     "Sunmanes",
+     0
+    ],
+    [
+     "Werehunters of Tunaria",
+     -2000,
+     499
+    ]
+   ],
+   "repeatable": true,
+   "offer": "The lionweres carry the Sunmanes' gift in their blood. Bring me four of their tails and the Sunmanes will count you a friend. Hunt the ones that are a match for you.",
+   "accept": "I will bring the tails.",
+   "decline": "Not now.",
+   "declined": "Then hunt elsewhere. The tails will keep.",
+   "started": "Hunt the ones that are a match for you.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "lionwere",
+     "items": [
+      {
+       "item": "lionwere tail",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Take four lionwere tails from the lionweres of Fort Alliance and Centaur Valley."
+    },
+    {
+     "kind": "give",
+     "target": "Corindas",
+     "items": [
+      {
+       "item": "lionwere tail",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four lionwere tails to Corindas.",
+     "says": "Four tails. The Sunmanes will hear your name.",
+     "notyet": "Four tails, no fewer.",
+     "rewards": {
+      "factions": [
+       [
+        "Sunmanes",
+        250
+       ],
+       [
+        "Villagers of Sonderal",
+        50
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/lionwere.json, the tail quest (github.com/Jadiction/EQOA-Data, MIT). The live game's infection was a chance on killing a were that conned yellow; here it is the society's standing alone: the tail quest repeats, each four tails +250 with Sunmanes (ours), and the urgent word comes at 1000. The guide asks 150 with the Villagers of Sonderal to log it and 1000 with the Sunmanes to finish; the standings start at 1 here and nothing else raises them, so the tails raise both."
+  },
+  {
+   "key": "Weres/gatorwere/L40-tank",
+   "name": "The Swamp's Gift",
+   "giver": "The Bone Crusher",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/gatorwere/p3"
+   ],
+   "offer": "A gator of forty seasons can learn more. Two enemies of the swamp: Gypsy Treheart in the southern Burial Mounds, and Nullo in the north of Sycamore Joy's Rest. Kill them both.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Gypsy Treheart",
+     "count": 1,
+     "journal": "Defeat Gypsy Treheart in the Burial Mounds (S)."
+    },
+    {
+     "kind": "kill",
+     "target": "Nullo",
+     "count": 1,
+     "journal": "Defeat Nullo at Sycamore Joy's Rest (N)."
+    },
+    {
+     "kind": "talk",
+     "target": "The Bone Crusher",
+     "journal": "Return to The Bone Crusher in Dinbak (SE).",
+     "says": "Both of them. The swamp gives you this.",
+     "rewards": {
+      "spells": [
+       "Growl of Battle"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "The Bone Crusher",
+    "Gypsy Treheart",
+    "Nullo"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/gatorwere.json, Level 40 Spell Quest Notes (github.com/Jadiction/EQOA-Data, MIT). The guide's three class NPCs (on Crocosaurus's island, at Fort Alliance (SE), in Taksehir city) are unnamed and left out: The Bone Crusher gives it, one quest an archetype with its spell, and the two kills are its steps. Gypsy Treheart and Nullo are the seeded rows' levels, not triggered."
+  },
+  {
+   "key": "Weres/gatorwere/L40-melee",
+   "name": "The Swamp's Gift",
+   "giver": "The Bone Crusher",
+   "classes": [
+    1,
+    4,
+    5,
+    6
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/gatorwere/p3"
+   ],
+   "offer": "A gator of forty seasons can learn more. Two enemies of the swamp: Gypsy Treheart in the southern Burial Mounds, and Nullo in the north of Sycamore Joy's Rest. Kill them both.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Gypsy Treheart",
+     "count": 1,
+     "journal": "Defeat Gypsy Treheart in the Burial Mounds (S)."
+    },
+    {
+     "kind": "kill",
+     "target": "Nullo",
+     "count": 1,
+     "journal": "Defeat Nullo at Sycamore Joy's Rest (N)."
+    },
+    {
+     "kind": "talk",
+     "target": "The Bone Crusher",
+     "journal": "Return to The Bone Crusher in Dinbak (SE).",
+     "says": "Both of them. The swamp gives you this.",
+     "rewards": {
+      "spells": [
+       "Reptillian Frenzy"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "The Bone Crusher",
+    "Gypsy Treheart",
+    "Nullo",
+    "Reptillian Frenzy"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/gatorwere.json, Level 40 Spell Quest Notes (github.com/Jadiction/EQOA-Data, MIT). The guide's three class NPCs (on Crocosaurus's island, at Fort Alliance (SE), in Taksehir city) are unnamed and left out: The Bone Crusher gives it, one quest an archetype with its spell, and the two kills are its steps. Gypsy Treheart and Nullo are the seeded rows' levels, not triggered."
+  },
+  {
+   "key": "Weres/gatorwere/L40-caster",
+   "name": "The Swamp's Gift",
+   "giver": "The Bone Crusher",
+   "classes": [
+    10,
+    12,
+    11,
+    13,
+    14
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/gatorwere/p3"
+   ],
+   "offer": "A gator of forty seasons can learn more. Two enemies of the swamp: Gypsy Treheart in the southern Burial Mounds, and Nullo in the north of Sycamore Joy's Rest. Kill them both.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Gypsy Treheart",
+     "count": 1,
+     "journal": "Defeat Gypsy Treheart in the Burial Mounds (S)."
+    },
+    {
+     "kind": "kill",
+     "target": "Nullo",
+     "count": 1,
+     "journal": "Defeat Nullo at Sycamore Joy's Rest (N)."
+    },
+    {
+     "kind": "talk",
+     "target": "The Bone Crusher",
+     "journal": "Return to The Bone Crusher in Dinbak (SE).",
+     "says": "Both of them. The swamp gives you this.",
+     "rewards": {
+      "spells": [
+       "Swamp Vines"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "The Bone Crusher",
+    "Gypsy Treheart",
+    "Nullo",
+    "Swamp Vines"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/gatorwere.json, Level 40 Spell Quest Notes (github.com/Jadiction/EQOA-Data, MIT). The guide's three class NPCs (on Crocosaurus's island, at Fort Alliance (SE), in Taksehir city) are unnamed and left out: The Bone Crusher gives it, one quest an archetype with its spell, and the two kills are its steps. Gypsy Treheart and Nullo are the seeded rows' levels, not triggered."
+  },
+  {
+   "key": "Weres/gatorwere/L40-healer",
+   "name": "The Swamp's Gift",
+   "giver": "The Bone Crusher",
+   "classes": [
+    8,
+    7,
+    9
+   ],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/gatorwere/p3"
+   ],
+   "offer": "A gator of forty seasons can learn more. Two enemies of the swamp: Gypsy Treheart in the southern Burial Mounds, and Nullo in the north of Sycamore Joy's Rest. Kill them both.",
+   "accept": "Tell me what to do.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Go carefully.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Gypsy Treheart",
+     "count": 1,
+     "journal": "Defeat Gypsy Treheart in the Burial Mounds (S)."
+    },
+    {
+     "kind": "kill",
+     "target": "Nullo",
+     "count": 1,
+     "journal": "Defeat Nullo at Sycamore Joy's Rest (N)."
+    },
+    {
+     "kind": "talk",
+     "target": "The Bone Crusher",
+     "journal": "Return to The Bone Crusher in Dinbak (SE).",
+     "says": "Both of them. The swamp gives you this.",
+     "rewards": {
+      "spells": [
+       "Reptilian Gaze"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "The Bone Crusher",
+    "Gypsy Treheart",
+    "Nullo",
+    "Reptilian Gaze"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/gatorwere.json, Level 40 Spell Quest Notes (github.com/Jadiction/EQOA-Data, MIT). The guide's three class NPCs (on Crocosaurus's island, at Fort Alliance (SE), in Taksehir city) are unnamed and left out: The Bone Crusher gives it, one quest an archetype with its spell, and the two kills are its steps. Gypsy Treheart and Nullo are the seeded rows' levels, not triggered."
+  },
+  {
+   "key": "Weres/gatorwere/p3",
+   "name": "Julian",
+   "giver": "The Bone Crusher",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/gatorwere/p2"
+   ],
+   "factions_required": [
+    [
+     "The Bone Crusher",
+     1000
+    ],
+    [
+     "Werehunters of Tunaria",
+     -500,
+     499
+    ]
+   ],
+   "offer": "Listen. The swamp is in your blood now. Julian waits on a raised mound in glowing mist, in north-western Dinbak. Kill him and the change is yours. Or take the antidote and go home.",
+   "accept": "I will kill Julian.",
+   "decline": "Give me the antidote.",
+   "declined": "Then the fever leaves you. Come back if you change your mind.",
+   "started": "Julian is strong. Bring friends.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Julian",
+     "count": 1,
+     "journal": "Defeat Julian on the raised mound in glowing mist in Dinbak (NW)."
+    },
+    {
+     "kind": "talk",
+     "target": "The Bone Crusher",
+     "journal": "Return to The Bone Crusher in Dinbak (SE).",
+     "says": "Julian is dead. The swamp is yours now.",
+     "rewards": {
+      "spells": [
+       "Gatorwere"
+      ],
+      "factions": [
+       [
+        "The Bone Crusher",
+        100
+       ],
+       [
+        "Werehunters of Tunaria",
+        -1000
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "The Bone Crusher",
+    "Julian",
+    "Gatorwere"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/gatorwere.json, the infection (github.com/Jadiction/EQOA-Data, MIT). The form's spell is named as the guide's table names it (Gatorwere): this server has no gator form yet, so the quest stays a draft until it does. Julian is the seeded row's level. The antidote is the decline. The faction with Werehunters of Tunaria (-1000) is ours (see the wolfwere's)."
+  },
+  {
+   "key": "Weres/gatorwere/p1",
+   "name": "Liz's Father",
+   "giver": "Liz Boglurker",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "My father went west into Widow's Peak and never came home. The Yaroslavs camp in three tents in the east of it. Ask them what they know. Please.",
+   "accept": "I will ask them.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ivander Yaroslav",
+     "journal": "Ask Ivander Yaroslav at the three tents in Widow's Peak (E) about Liz's father.",
+     "says": "An old man from Blackwater? Never saw him. Ask the others if you like."
+    },
+    {
+     "kind": "talk",
+     "target": "Isabella Yaroslav",
+     "journal": "Ask Isabella Yaroslav at the tents.",
+     "says": "We keep to ourselves. Go away."
+    },
+    {
+     "kind": "talk",
+     "target": "Dimitri Yaroslav",
+     "journal": "Ask Dimitri Yaroslav at the tents.",
+     "says": "Nobody came this way. Nobody."
+    },
+    {
+     "kind": "talk",
+     "target": "Liz Boglurker",
+     "journal": "Return to Liz Boglurker in Blackwater.",
+     "says": "They are lying, I know it. Go back and make them tell the truth."
+    },
+    {
+     "kind": "talk",
+     "target": "Ivander Yaroslav",
+     "journal": "Go back to the Yaroslavs' tents in Widow's Peak.",
+     "says": "You should have let it lie. Now you will join him!"
+    },
+    {
+     "kind": "kill",
+     "target": "Ivander Yaroslav",
+     "count": 1,
+     "journal": "Defeat Ivander Yaroslav at the tents."
+    },
+    {
+     "kind": "kill",
+     "target": "Isabella Yaroslav",
+     "count": 1,
+     "journal": "Defeat Isabella Yaroslav at the tents."
+    },
+    {
+     "kind": "kill",
+     "target": "Dimitri Yaroslav",
+     "count": 1,
+     "journal": "Defeat Dimitri Yaroslav at the tents."
+    },
+    {
+     "kind": "talk",
+     "target": "Liz Boglurker",
+     "journal": "Return to Liz Boglurker in Blackwater.",
+     "says": "Then he is dead. Yolanda Ribisi at the Oasis knows the swamp's curse. Ask her what they did to him."
+    },
+    {
+     "kind": "talk",
+     "target": "Yolanda Ribisi",
+     "journal": "Speak with Yolanda Ribisi at the Oasis.",
+     "says": "The Yaroslavs feed the swamp's gatorweres. Your friend's father went to them. Tell her, gently."
+    },
+    {
+     "kind": "talk",
+     "target": "Liz Boglurker",
+     "journal": "Return to Liz Boglurker in Blackwater.",
+     "says": "Gatorweres. The Bone Crusher, in south-eastern Dinbak, knows them. Go to him."
+    },
+    {
+     "kind": "talk",
+     "target": "The Bone Crusher",
+     "journal": "Find The Bone Crusher in Dinbak (SE).",
+     "says": "The old man? Unga and Daraznak Vekiz took him. Two small tents north of the troll crusaders in Hazinak's north-west. Go."
+    },
+    {
+     "kind": "talk",
+     "target": "Unga",
+     "journal": "Find Unga and Daraznak Vekiz at two small tents north of the troll crusaders' camp in Hazinak (NW).",
+     "says": "Asking about the old man? You will meet him soon!"
+    },
+    {
+     "kind": "kill",
+     "target": "Unga",
+     "count": 1,
+     "journal": "Defeat Unga at the tents."
+    },
+    {
+     "kind": "kill",
+     "target": "Daraznak Vekiz",
+     "count": 1,
+     "journal": "Defeat Daraznak Vekiz at the tents."
+    },
+    {
+     "kind": "talk",
+     "target": "Yolanda Ribisi",
+     "journal": "Tell Yolanda Ribisi at the Oasis what you have done.",
+     "says": "It is done, then. The Bone Crusher will want to hear it."
+    },
+    {
+     "kind": "talk",
+     "target": "The Bone Crusher",
+     "journal": "Return to The Bone Crusher in Dinbak.",
+     "says": "Unga and Daraznak, gone. Now you hunt for me."
+    }
+   ],
+   "unresolved": [
+    "Ivander Yaroslav",
+    "Isabella Yaroslav",
+    "Dimitri Yaroslav",
+    "The Bone Crusher",
+    "Unga",
+    "Daraznak Vekiz"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/gatorwere.json, the first parts (github.com/Jadiction/EQOA-Data, MIT). The Yaroslavs, Unga and Daraznak \"reappear as KoS\": here they are fought where they stand, at the seeded rows' levels (28 to 32), after the talk. The guide names no reward for these parts."
+  },
+  {
+   "key": "Weres/gatorwere/p2",
+   "name": "Gatorwere Tails",
+   "giver": "The Bone Crusher",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/gatorwere/p1"
+   ],
+   "factions_required": [
+    [
+     "The Bone Crusher",
+     0
+    ],
+    [
+     "Werehunters of Tunaria",
+     -2000,
+     499
+    ]
+   ],
+   "repeatable": true,
+   "offer": "The gatorweres carry the swamp in their blood. Bring me four of their tails and I will count you a friend. Hunt the ones that are a match for you, in Dinbak.",
+   "accept": "I will bring the tails.",
+   "decline": "Not now.",
+   "declined": "Then hunt elsewhere. The tails will keep.",
+   "started": "Hunt the ones that are a match for you.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "gatorwere",
+     "items": [
+      {
+       "item": "gatorwere tail",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Take four gatorwere tails from the gatorweres round Dinbak."
+    },
+    {
+     "kind": "give",
+     "target": "The Bone Crusher",
+     "items": [
+      {
+       "item": "gatorwere tail",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four gatorwere tails to The Bone Crusher.",
+     "says": "Four tails. Good. The swamp remembers.",
+     "notyet": "Four tails, no fewer.",
+     "rewards": {
+      "factions": [
+       [
+        "The Bone Crusher",
+        250
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "The Bone Crusher",
+    "gatorwere"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/gatorwere.json, the tail quest (github.com/Jadiction/EQOA-Data, MIT). The live game's infection was a chance on killing a were that conned yellow; here it is the society's standing alone: the tail quest repeats, each four tails +250 with The Bone Crusher (ours), and the urgent word comes at 1000. The guide names no faction for the gatorweres' 1000; The Bone Crusher's own is used. The server has no gatorwere: a few are seeded in Dinbak."
+  },
+  {
+   "key": "Weres/werehunter/trials-caster",
+   "name": "The WereHunter Trials",
+   "giver": "Delegate Tenrathe",
+   "classes": [
+    10,
+    12,
+    11,
+    13,
+    14
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/tchekof"
+   ],
+   "offer": "The trials will test your sight, your memory and your nose. Have your were-hunter's ring with you. Nivaan D'Tarin waits on a floating raft in Bogman Village (NE).",
+   "accept": "I am ready.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Delegate Tenrathe",
+     "items": [
+      {
+       "item": "Arcane WH Band",
+       "count": 1
+      }
+     ],
+     "journal": "Show Delegate Tenrathe your were-hunter's ring.",
+     "says": "Good. Go to Nivaan D'Tarin, on the raft in Bogman Village (NE)."
+    },
+    {
+     "kind": "talk",
+     "target": "Nivaan D'Tarin",
+     "journal": "Find Nivaan D'Tarin on a floating raft in Bogman Village (NE).",
+     "says": "Remember this: \"But the warm air carries itself into the night.\" Now go to Trainer Iruko.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 11000.0,
+       "y": 66.5,
+       "z": 12250.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Speak with Trainer Iruko in Wymondham (N).",
+     "says": "The trial of sight and memory. Hold this totem, and tell me what Nivaan told you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Concentration Totem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Tell Trainer Iruko what Nivaan D'Tarin told you.",
+     "choose": "What did Nivaan D'Tarin tell you to remember?",
+     "choices": [
+      {
+       "answer": "The cold wind carries itself into the day.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "But the warm air carries itself into the night.",
+       "says": "Correct. Your memory serves. Irlynn Poe, under the bridge near the Darvar Manor coach, is next."
+      },
+      {
+       "answer": "The night carries the warm air away.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "I do not remember.",
+       "says": "Then go back to Nivaan and listen.",
+       "stay": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Irlynn Poe",
+     "items": [
+      {
+       "item": "Arcane WH Band",
+       "count": 1
+      }
+     ],
+     "journal": "Bring your Arcane WH Band to Irlynn Poe, under the bridge east of the river near the Darvar Manor coach.",
+     "says": "Your band, made radiant. Now Master Landaar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Radiant Arcane Band",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Master Landaar",
+     "journal": "Find Master Landaar on a hill with a T-stone in the Cyclops Fortress (C).",
+     "says": "The trial of scent. A captured were-beast has been let loose. Follow its trail; do not run straight at it."
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6910.0,
+     "y": 0,
+     "z": 3000.0,
+     "radius": 45,
+     "journal": "Follow the scent west of Master Landaar, to the north side of the second rock.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The scent is strong here. It goes south-south-west."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6870.0,
+     "y": 0,
+     "z": 3090.0,
+     "radius": 45,
+     "journal": "Follow the scent south-south-west, to the middle of three trees.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Fur on the bark. It turned east-south-east."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6970.0,
+     "y": 0,
+     "z": 3130.0,
+     "radius": 45,
+     "journal": "Follow the scent east-south-east, to a big rock by the northernmost cyclops tent.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Tracks, fresh. North now, back to the hill."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Vicious Wolfwere",
+     "count": 1,
+     "journal": "Follow the scent north to the crest of the hill by Master Landaar, and defeat the vicious were-beast."
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Urtoe",
+     "journal": "Speak with Assistant Urtoe near the kill.",
+     "says": "You have passed the second trial. Welcome to the WereHunter Council. Delegate Rhinni, in the Oasis, will see you."
+    },
+    {
+     "kind": "talk",
+     "target": "Delegate Rhinni",
+     "journal": "Return to Delegate Rhinni in the Oasis.",
+     "says": "A member of the Council. Take what the Council gives its own.",
+     "rewards": {
+      "items": [
+       "Luminous Arcane Band"
+      ],
+      "spells": [
+       "Shards of the Hunter"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Nivaan D'Tarin",
+    "Trainer Iruko",
+    "Irlynn Poe",
+    "Master Landaar",
+    "Vicious Wolfwere",
+    "Assistant Urtoe",
+    "Shards of the Hunter"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part III - The Trials (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its ability (and the casters' Luminous Arcane Band, a copy of an existing ring). The ten- and fifteen-minute clocks and the quiz on the three were-beasts' places are left out (the memory test is Nivaan's line, Iruko's choice; a wrong answer only asks again, where the guide's cost 75 faction with the WereHunters of Tunaria); the scent's four pop-ups are reach steps round Master Landaar (their places ours), the were-beast a wolfwere for every player. The non-casters' ring upgrades are not named in the guide and are left out. This server has none of the four abilities yet, so these stay drafts."
+  },
+  {
+   "key": "Weres/werehunter/trials-tank",
+   "name": "The WereHunter Trials",
+   "giver": "Delegate Tenrathe",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/tchekof"
+   ],
+   "offer": "The trials will test your sight, your memory and your nose. Have your were-hunter's ring with you. Nivaan D'Tarin waits on a floating raft in Bogman Village (NE).",
+   "accept": "I am ready.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Delegate Tenrathe",
+     "items": [
+      {
+       "item": "Gypsy Were-Hunter Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Show Delegate Tenrathe your were-hunter's ring.",
+     "says": "Good. Go to Nivaan D'Tarin, on the raft in Bogman Village (NE)."
+    },
+    {
+     "kind": "talk",
+     "target": "Nivaan D'Tarin",
+     "journal": "Find Nivaan D'Tarin on a floating raft in Bogman Village (NE).",
+     "says": "Remember this: \"But the warm air carries itself into the night.\" Now go to Trainer Iruko.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 11000.0,
+       "y": 66.5,
+       "z": 12250.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Speak with Trainer Iruko in Wymondham (N).",
+     "says": "The trial of sight and memory. Hold this totem, and tell me what Nivaan told you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Concentration Totem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Tell Trainer Iruko what Nivaan D'Tarin told you.",
+     "choose": "What did Nivaan D'Tarin tell you to remember?",
+     "choices": [
+      {
+       "answer": "The cold wind carries itself into the day.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "But the warm air carries itself into the night.",
+       "says": "Correct. Your memory serves. Irlynn Poe, under the bridge near the Darvar Manor coach, is next."
+      },
+      {
+       "answer": "The night carries the warm air away.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "I do not remember.",
+       "says": "Then go back to Nivaan and listen.",
+       "stay": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Irlynn Poe",
+     "journal": "Find Irlynn Poe under the bridge east of the river near the Darvar Manor coach.",
+     "says": "Iruko's student? Go on, then: Master Landaar waits on a hill with a T-stone in the Cyclops Fortress (C)."
+    },
+    {
+     "kind": "talk",
+     "target": "Master Landaar",
+     "journal": "Find Master Landaar on a hill with a T-stone in the Cyclops Fortress (C).",
+     "says": "The trial of scent. A captured were-beast has been let loose. Follow its trail; do not run straight at it."
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6910.0,
+     "y": 0,
+     "z": 3000.0,
+     "radius": 45,
+     "journal": "Follow the scent west of Master Landaar, to the north side of the second rock.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The scent is strong here. It goes south-south-west."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6870.0,
+     "y": 0,
+     "z": 3090.0,
+     "radius": 45,
+     "journal": "Follow the scent south-south-west, to the middle of three trees.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Fur on the bark. It turned east-south-east."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6970.0,
+     "y": 0,
+     "z": 3130.0,
+     "radius": 45,
+     "journal": "Follow the scent east-south-east, to a big rock by the northernmost cyclops tent.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Tracks, fresh. North now, back to the hill."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Vicious Wolfwere",
+     "count": 1,
+     "journal": "Follow the scent north to the crest of the hill by Master Landaar, and defeat the vicious were-beast."
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Urtoe",
+     "journal": "Speak with Assistant Urtoe near the kill.",
+     "says": "You have passed the second trial. Welcome to the WereHunter Council. Delegate Rhinni, in the Oasis, will see you."
+    },
+    {
+     "kind": "talk",
+     "target": "Delegate Rhinni",
+     "journal": "Return to Delegate Rhinni in the Oasis.",
+     "says": "A member of the Council. Take what the Council gives its own.",
+     "rewards": {
+      "spells": [
+       "Hunters Scorn"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Nivaan D'Tarin",
+    "Trainer Iruko",
+    "Irlynn Poe",
+    "Master Landaar",
+    "Vicious Wolfwere",
+    "Assistant Urtoe",
+    "Hunters Scorn"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part III - The Trials (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its ability (and the casters' Luminous Arcane Band, a copy of an existing ring). The ten- and fifteen-minute clocks and the quiz on the three were-beasts' places are left out (the memory test is Nivaan's line, Iruko's choice; a wrong answer only asks again, where the guide's cost 75 faction with the WereHunters of Tunaria); the scent's four pop-ups are reach steps round Master Landaar (their places ours), the were-beast a wolfwere for every player. The non-casters' ring upgrades are not named in the guide and are left out. This server has none of the four abilities yet, so these stay drafts."
+  },
+  {
+   "key": "Weres/werehunter/trials-melee",
+   "name": "The WereHunter Trials",
+   "giver": "Delegate Tenrathe",
+   "classes": [
+    1,
+    4,
+    5,
+    6
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/tchekof"
+   ],
+   "offer": "The trials will test your sight, your memory and your nose. Have your were-hunter's ring with you. Nivaan D'Tarin waits on a floating raft in Bogman Village (NE).",
+   "accept": "I am ready.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Delegate Tenrathe",
+     "items": [
+      {
+       "item": "Gypsy Were-Hunter Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Show Delegate Tenrathe your were-hunter's ring.",
+     "says": "Good. Go to Nivaan D'Tarin, on the raft in Bogman Village (NE)."
+    },
+    {
+     "kind": "talk",
+     "target": "Nivaan D'Tarin",
+     "journal": "Find Nivaan D'Tarin on a floating raft in Bogman Village (NE).",
+     "says": "Remember this: \"But the warm air carries itself into the night.\" Now go to Trainer Iruko.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 11000.0,
+       "y": 66.5,
+       "z": 12250.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Speak with Trainer Iruko in Wymondham (N).",
+     "says": "The trial of sight and memory. Hold this totem, and tell me what Nivaan told you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Concentration Totem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Tell Trainer Iruko what Nivaan D'Tarin told you.",
+     "choose": "What did Nivaan D'Tarin tell you to remember?",
+     "choices": [
+      {
+       "answer": "The cold wind carries itself into the day.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "But the warm air carries itself into the night.",
+       "says": "Correct. Your memory serves. Irlynn Poe, under the bridge near the Darvar Manor coach, is next."
+      },
+      {
+       "answer": "The night carries the warm air away.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "I do not remember.",
+       "says": "Then go back to Nivaan and listen.",
+       "stay": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Irlynn Poe",
+     "journal": "Find Irlynn Poe under the bridge east of the river near the Darvar Manor coach.",
+     "says": "Iruko's student? Go on, then: Master Landaar waits on a hill with a T-stone in the Cyclops Fortress (C)."
+    },
+    {
+     "kind": "talk",
+     "target": "Master Landaar",
+     "journal": "Find Master Landaar on a hill with a T-stone in the Cyclops Fortress (C).",
+     "says": "The trial of scent. A captured were-beast has been let loose. Follow its trail; do not run straight at it."
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6910.0,
+     "y": 0,
+     "z": 3000.0,
+     "radius": 45,
+     "journal": "Follow the scent west of Master Landaar, to the north side of the second rock.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The scent is strong here. It goes south-south-west."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6870.0,
+     "y": 0,
+     "z": 3090.0,
+     "radius": 45,
+     "journal": "Follow the scent south-south-west, to the middle of three trees.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Fur on the bark. It turned east-south-east."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6970.0,
+     "y": 0,
+     "z": 3130.0,
+     "radius": 45,
+     "journal": "Follow the scent east-south-east, to a big rock by the northernmost cyclops tent.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Tracks, fresh. North now, back to the hill."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Vicious Wolfwere",
+     "count": 1,
+     "journal": "Follow the scent north to the crest of the hill by Master Landaar, and defeat the vicious were-beast."
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Urtoe",
+     "journal": "Speak with Assistant Urtoe near the kill.",
+     "says": "You have passed the second trial. Welcome to the WereHunter Council. Delegate Rhinni, in the Oasis, will see you."
+    },
+    {
+     "kind": "talk",
+     "target": "Delegate Rhinni",
+     "journal": "Return to Delegate Rhinni in the Oasis.",
+     "says": "A member of the Council. Take what the Council gives its own.",
+     "rewards": {
+      "spells": [
+       "Precious Strike"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Nivaan D'Tarin",
+    "Trainer Iruko",
+    "Irlynn Poe",
+    "Master Landaar",
+    "Vicious Wolfwere",
+    "Assistant Urtoe",
+    "Precious Strike"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part III - The Trials (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its ability (and the casters' Luminous Arcane Band, a copy of an existing ring). The ten- and fifteen-minute clocks and the quiz on the three were-beasts' places are left out (the memory test is Nivaan's line, Iruko's choice; a wrong answer only asks again, where the guide's cost 75 faction with the WereHunters of Tunaria); the scent's four pop-ups are reach steps round Master Landaar (their places ours), the were-beast a wolfwere for every player. The non-casters' ring upgrades are not named in the guide and are left out. This server has none of the four abilities yet, so these stay drafts."
+  },
+  {
+   "key": "Weres/werehunter/trials-healer",
+   "name": "The WereHunter Trials",
+   "giver": "Delegate Tenrathe",
+   "classes": [
+    8,
+    7,
+    9
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/tchekof"
+   ],
+   "offer": "The trials will test your sight, your memory and your nose. Have your were-hunter's ring with you. Nivaan D'Tarin waits on a floating raft in Bogman Village (NE).",
+   "accept": "I am ready.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Delegate Tenrathe",
+     "items": [
+      {
+       "item": "Gypsy Were-Hunter Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Show Delegate Tenrathe your were-hunter's ring.",
+     "says": "Good. Go to Nivaan D'Tarin, on the raft in Bogman Village (NE)."
+    },
+    {
+     "kind": "talk",
+     "target": "Nivaan D'Tarin",
+     "journal": "Find Nivaan D'Tarin on a floating raft in Bogman Village (NE).",
+     "says": "Remember this: \"But the warm air carries itself into the night.\" Now go to Trainer Iruko.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 11000.0,
+       "y": 66.5,
+       "z": 12250.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Speak with Trainer Iruko in Wymondham (N).",
+     "says": "The trial of sight and memory. Hold this totem, and tell me what Nivaan told you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Concentration Totem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Tell Trainer Iruko what Nivaan D'Tarin told you.",
+     "choose": "What did Nivaan D'Tarin tell you to remember?",
+     "choices": [
+      {
+       "answer": "The cold wind carries itself into the day.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "But the warm air carries itself into the night.",
+       "says": "Correct. Your memory serves. Irlynn Poe, under the bridge near the Darvar Manor coach, is next."
+      },
+      {
+       "answer": "The night carries the warm air away.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "I do not remember.",
+       "says": "Then go back to Nivaan and listen.",
+       "stay": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Irlynn Poe",
+     "journal": "Find Irlynn Poe under the bridge east of the river near the Darvar Manor coach.",
+     "says": "Iruko's student? Go on, then: Master Landaar waits on a hill with a T-stone in the Cyclops Fortress (C)."
+    },
+    {
+     "kind": "talk",
+     "target": "Master Landaar",
+     "journal": "Find Master Landaar on a hill with a T-stone in the Cyclops Fortress (C).",
+     "says": "The trial of scent. A captured were-beast has been let loose. Follow its trail; do not run straight at it."
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6910.0,
+     "y": 0,
+     "z": 3000.0,
+     "radius": 45,
+     "journal": "Follow the scent west of Master Landaar, to the north side of the second rock.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The scent is strong here. It goes south-south-west."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6870.0,
+     "y": 0,
+     "z": 3090.0,
+     "radius": 45,
+     "journal": "Follow the scent south-south-west, to the middle of three trees.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Fur on the bark. It turned east-south-east."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6970.0,
+     "y": 0,
+     "z": 3130.0,
+     "radius": 45,
+     "journal": "Follow the scent east-south-east, to a big rock by the northernmost cyclops tent.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Tracks, fresh. North now, back to the hill."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Vicious Wolfwere",
+     "count": 1,
+     "journal": "Follow the scent north to the crest of the hill by Master Landaar, and defeat the vicious were-beast."
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Urtoe",
+     "journal": "Speak with Assistant Urtoe near the kill.",
+     "says": "You have passed the second trial. Welcome to the WereHunter Council. Delegate Rhinni, in the Oasis, will see you."
+    },
+    {
+     "kind": "talk",
+     "target": "Delegate Rhinni",
+     "journal": "Return to Delegate Rhinni in the Oasis.",
+     "says": "A member of the Council. Take what the Council gives its own.",
+     "rewards": {
+      "spells": [
+       "Combat Healing"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Nivaan D'Tarin",
+    "Trainer Iruko",
+    "Irlynn Poe",
+    "Master Landaar",
+    "Vicious Wolfwere",
+    "Assistant Urtoe",
+    "Combat Healing"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part III - The Trials (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its ability (and the casters' Luminous Arcane Band, a copy of an existing ring). The ten- and fifteen-minute clocks and the quiz on the three were-beasts' places are left out (the memory test is Nivaan's line, Iruko's choice; a wrong answer only asks again, where the guide's cost 75 faction with the WereHunters of Tunaria); the scent's four pop-ups are reach steps round Master Landaar (their places ours), the were-beast a wolfwere for every player. The non-casters' ring upgrades are not named in the guide and are left out. This server has none of the four abilities yet, so these stay drafts."
+  },
+  {
+   "key": "Weres/werehunter/tchekof",
+   "name": "Elder Tchekof",
+   "giver": "Elder Tchekof",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/trials-ring"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     2000
+    ]
+   ],
+   "offer": "The lycans' leaders must answer for what they have spread. Before you face them, wear their own shape: Dram Corma can find you a wererat disguise. Bring it and one tail of each were.",
+   "accept": "I will hunt them.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dram Corma",
+     "journal": "Ask Dram Corma, beside Djivan in the Oasis, for a wererat disguise.",
+     "says": "A disguise? Yrin Croto, in Deathfist Horde (E), makes them."
+    },
+    {
+     "kind": "talk",
+     "target": "Yrin Croto",
+     "journal": "Find Yrin Croto in Deathfist Horde (E).",
+     "says": "A wererat's hide, for Elder Tchekof. Wear it well.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "wererat disguise",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "wolfwere",
+     "items": [
+      {
+       "item": "wolfwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one wolfwere tail from a wolfwere."
+    },
+    {
+     "kind": "loot",
+     "target": "bearwere",
+     "items": [
+      {
+       "item": "bearwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one bearwere tail from a bearwere."
+    },
+    {
+     "kind": "loot",
+     "target": "wererat",
+     "items": [
+      {
+       "item": "ratwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one ratwere tail from a wererat."
+    },
+    {
+     "kind": "loot",
+     "target": "lionwere",
+     "items": [
+      {
+       "item": "lionwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one lionwere tail from a lionwere."
+    },
+    {
+     "kind": "loot",
+     "target": "gatorwere",
+     "items": [
+      {
+       "item": "gatorwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one gatorwere tail from a gatorwere."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Tchekof",
+     "items": [
+      {
+       "item": "wererat disguise",
+       "count": 1
+      },
+      {
+       "item": "wolfwere tail",
+       "count": 1
+      },
+      {
+       "item": "bearwere tail",
+       "count": 1
+      },
+      {
+       "item": "ratwere tail",
+       "count": 1
+      },
+      {
+       "item": "lionwere tail",
+       "count": 1
+      },
+      {
+       "item": "gatorwere tail",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the wererat disguise and one tail of each were to Elder Tchekof, north-west of the Oasis coach.",
+     "says": "Good. Now this one, the weregator's. Their leaders: The Bone Crusher, Yindrius, Corindas, Dorandas, Levandius. Bring me proof of each.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "weregator disguise",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "The Bone Crusher",
+     "items": [
+      {
+       "item": "Bone Crusher's tooth",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat The Bone Crusher in Dinbak (SE) and take his tooth."
+    },
+    {
+     "kind": "loot",
+     "target": "Yindrius",
+     "items": [
+      {
+       "item": "Yindrius's fur",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat Yindrius in Freeport and take his fur."
+    },
+    {
+     "kind": "loot",
+     "target": "Corindas",
+     "items": [
+      {
+       "item": "Corindas's claw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat Corindas in Sondereel Village and take his claw."
+    },
+    {
+     "kind": "loot",
+     "target": "Dorandas",
+     "items": [
+      {
+       "item": "Dorandas's tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat Dorandas in the druid village of Unkempt North and take his tail."
+    },
+    {
+     "kind": "loot",
+     "target": "Levandius",
+     "items": [
+      {
+       "item": "Levandius's eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat Levandius, past his guardians, and take his eye."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Tchekof",
+     "items": [
+      {
+       "item": "Bone Crusher's tooth",
+       "count": 1
+      },
+      {
+       "item": "Yindrius's fur",
+       "count": 1
+      },
+      {
+       "item": "Corindas's claw",
+       "count": 1
+      },
+      {
+       "item": "Dorandas's tail",
+       "count": 1
+      },
+      {
+       "item": "Levandius's eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the five proofs to Elder Tchekof.",
+     "says": "It is done. Delegate Tenrathe, by the fence near the river, will open the trials to you."
+    }
+   ],
+   "unresolved": [
+    "Yrin Croto",
+    "gatorwere",
+    "The Bone Crusher",
+    "Yindrius (attackable)",
+    "Corindas (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, Elder Tchekof (github.com/Jadiction/EQOA-Data, MIT). Dram Corma's repeatable side quest (Polinee Hirbo's four platinum sprockets, 2 million experience) is left out: only the disguise is fetched. Yindrius and Corindas stand as townsfolk and are made attackable by the seed (npcs/qc.json); Levandius's five guardians are left out. The guide names no reward but the masteries it opens."
+  },
+  {
+   "key": "Weres/werehunter/trials-p1",
+   "name": "Hinder Lord Phinnius",
+   "giver": "Assistant Jhevin",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/brand"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     1851
+    ]
+   ],
+   "offer": "Lord Phinnius has hired more Siloths to watch his slaves in the salt mines. Djivan measures your devotion by how much you hinder them. Show me that it is great, and I will give you his token.",
+   "accept": "My devotion is great.",
+   "decline": "Not yet.",
+   "declined": "Then go back to the salt mines.",
+   "started": "Then take this, and go to Djivan.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Assistant Jhevin",
+     "journal": "Take the accomplishment token from Assistant Jhevin, beside Djivan in the Oasis.",
+     "says": "You have hindered them well. Here: show Djivan this token.",
+     "rewards": {
+      "items": [
+       "accomplishment token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part I - Siloths (github.com/Jadiction/EQOA-Data, MIT). The guide's +1851 with the Gypsies of Tunaria is the Siloth bounty's (Hinder the Siloths, offered below 1851); a rude answer's faction loss is left out."
+  },
+  {
+   "key": "Weres/werehunter/ability-tank",
+   "name": "Mistmoore",
+   "giver": "Djivan Mertshak",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 46,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/brand"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     500
+    ]
+   ],
+   "offer": "Mayong Mistmoore, the vampire, wants the Siloths for his own. Enrique Revnold, by the crossroads at Forkwatch, knows a song that wakes him. Go to him.",
+   "accept": "I will go to Enrique.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Enrique Revnold",
+     "journal": "Speak with Enrique Revnold by the crossroads at Forkwatch.",
+     "says": "My ancestor Vedel wrote a song to rouse Mistmoore. I will give you his tome, for a Writ of the Wild from the Unkempt druids."
+    },
+    {
+     "kind": "loot",
+     "target": "unkempt druid",
+     "items": [
+      {
+       "item": "Writ of the Wild",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Take a Writ of the Wild from the druids and rangers of the Unkempt village, where Levandius is."
+    },
+    {
+     "kind": "give",
+     "target": "Enrique Revnold",
+     "items": [
+      {
+       "item": "Writ of the Wild",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Writ of the Wild to Enrique Revnold at Forkwatch.",
+     "says": "The songs are yours. Vedel became the Maestro of Rancor: only an instrument a vampire made can call him. Look in the vampire's lair under the salt mine.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "tome of Vedel's songs",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14481,
+     "y": -60.0,
+     "z": 18966,
+     "radius": 25,
+     "journal": "Find the organ in the second room on the right past the spider-marked room, deep in the Salt Mines (SW).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You play Vedel's song on the organ. The Maestro of Rancor rises on the carpet!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Maestro of Rancor",
+     "items": [
+      {
+       "item": "song page",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat the Maestro of Rancor and take his song page."
+    },
+    {
+     "kind": "kill",
+     "target": "Mayong Mistmoore",
+     "count": 1,
+     "journal": "Find Mayong Mistmoore's stone coffin in the cavern below the brick hall, and destroy him."
+    },
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Return to Djivan Mertshak in the Oasis.",
+     "says": "Mistmoore is destroyed. Take this, a hero's blessing.",
+     "rewards": {
+      "xp": 1400000,
+      "items": [
+       "Talisman of Valentina"
+      ],
+      "spells": [
+       "Blessing of Valentina"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, Were-Hunter Ability Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its blessing and talisman. The Maestro and Mistmoore are the server's rows, where they stand (Mistmoore a rare spawn in the live game); the song page is taken but not asked for."
+  },
+  {
+   "key": "Weres/werehunter/ability-melee",
+   "name": "Mistmoore",
+   "giver": "Djivan Mertshak",
+   "classes": [
+    1,
+    4,
+    5,
+    6
+   ],
+   "races": [],
+   "minlevel": 46,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/brand"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     500
+    ]
+   ],
+   "offer": "Mayong Mistmoore, the vampire, wants the Siloths for his own. Enrique Revnold, by the crossroads at Forkwatch, knows a song that wakes him. Go to him.",
+   "accept": "I will go to Enrique.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Enrique Revnold",
+     "journal": "Speak with Enrique Revnold by the crossroads at Forkwatch.",
+     "says": "My ancestor Vedel wrote a song to rouse Mistmoore. I will give you his tome, for a Writ of the Wild from the Unkempt druids."
+    },
+    {
+     "kind": "loot",
+     "target": "unkempt druid",
+     "items": [
+      {
+       "item": "Writ of the Wild",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Take a Writ of the Wild from the druids and rangers of the Unkempt village, where Levandius is."
+    },
+    {
+     "kind": "give",
+     "target": "Enrique Revnold",
+     "items": [
+      {
+       "item": "Writ of the Wild",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Writ of the Wild to Enrique Revnold at Forkwatch.",
+     "says": "The songs are yours. Vedel became the Maestro of Rancor: only an instrument a vampire made can call him. Look in the vampire's lair under the salt mine.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "tome of Vedel's songs",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14481,
+     "y": -60.0,
+     "z": 18966,
+     "radius": 25,
+     "journal": "Find the organ in the second room on the right past the spider-marked room, deep in the Salt Mines (SW).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You play Vedel's song on the organ. The Maestro of Rancor rises on the carpet!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Maestro of Rancor",
+     "items": [
+      {
+       "item": "song page",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat the Maestro of Rancor and take his song page."
+    },
+    {
+     "kind": "kill",
+     "target": "Mayong Mistmoore",
+     "count": 1,
+     "journal": "Find Mayong Mistmoore's stone coffin in the cavern below the brick hall, and destroy him."
+    },
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Return to Djivan Mertshak in the Oasis.",
+     "says": "Mistmoore is destroyed. Take this, a hero's blessing.",
+     "rewards": {
+      "xp": 1400000,
+      "items": [
+       "talisman of Troka"
+      ],
+      "spells": [
+       "Troka's Blessing"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Troka's Blessing"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, Were-Hunter Ability Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its blessing and talisman. The Maestro and Mistmoore are the server's rows, where they stand (Mistmoore a rare spawn in the live game); the song page is taken but not asked for."
+  },
+  {
+   "key": "Weres/werehunter/ability-caster",
+   "name": "Mistmoore",
+   "giver": "Djivan Mertshak",
+   "classes": [
+    10,
+    12,
+    11,
+    13,
+    14
+   ],
+   "races": [],
+   "minlevel": 46,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/brand"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     500
+    ]
+   ],
+   "offer": "Mayong Mistmoore, the vampire, wants the Siloths for his own. Enrique Revnold, by the crossroads at Forkwatch, knows a song that wakes him. Go to him.",
+   "accept": "I will go to Enrique.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Enrique Revnold",
+     "journal": "Speak with Enrique Revnold by the crossroads at Forkwatch.",
+     "says": "My ancestor Vedel wrote a song to rouse Mistmoore. I will give you his tome, for a Writ of the Wild from the Unkempt druids."
+    },
+    {
+     "kind": "loot",
+     "target": "unkempt druid",
+     "items": [
+      {
+       "item": "Writ of the Wild",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Take a Writ of the Wild from the druids and rangers of the Unkempt village, where Levandius is."
+    },
+    {
+     "kind": "give",
+     "target": "Enrique Revnold",
+     "items": [
+      {
+       "item": "Writ of the Wild",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Writ of the Wild to Enrique Revnold at Forkwatch.",
+     "says": "The songs are yours. Vedel became the Maestro of Rancor: only an instrument a vampire made can call him. Look in the vampire's lair under the salt mine.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "tome of Vedel's songs",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14481,
+     "y": -60.0,
+     "z": 18966,
+     "radius": 25,
+     "journal": "Find the organ in the second room on the right past the spider-marked room, deep in the Salt Mines (SW).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You play Vedel's song on the organ. The Maestro of Rancor rises on the carpet!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Maestro of Rancor",
+     "items": [
+      {
+       "item": "song page",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat the Maestro of Rancor and take his song page."
+    },
+    {
+     "kind": "kill",
+     "target": "Mayong Mistmoore",
+     "count": 1,
+     "journal": "Find Mayong Mistmoore's stone coffin in the cavern below the brick hall, and destroy him."
+    },
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Return to Djivan Mertshak in the Oasis.",
+     "says": "Mistmoore is destroyed. Take this, a hero's blessing.",
+     "rewards": {
+      "xp": 1400000,
+      "items": [
+       "tailsman of Yazmina"
+      ],
+      "spells": [
+       "Blessing of Yazmina"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Blessing of Yazmina"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, Were-Hunter Ability Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its blessing and talisman. The Maestro and Mistmoore are the server's rows, where they stand (Mistmoore a rare spawn in the live game); the song page is taken but not asked for."
+  },
+  {
+   "key": "Weres/werehunter/ability-healer",
+   "name": "Mistmoore",
+   "giver": "Djivan Mertshak",
+   "classes": [
+    8,
+    7,
+    9
+   ],
+   "races": [],
+   "minlevel": 46,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/brand"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     500
+    ]
+   ],
+   "offer": "Mayong Mistmoore, the vampire, wants the Siloths for his own. Enrique Revnold, by the crossroads at Forkwatch, knows a song that wakes him. Go to him.",
+   "accept": "I will go to Enrique.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Enrique Revnold",
+     "journal": "Speak with Enrique Revnold by the crossroads at Forkwatch.",
+     "says": "My ancestor Vedel wrote a song to rouse Mistmoore. I will give you his tome, for a Writ of the Wild from the Unkempt druids."
+    },
+    {
+     "kind": "loot",
+     "target": "unkempt druid",
+     "items": [
+      {
+       "item": "Writ of the Wild",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Take a Writ of the Wild from the druids and rangers of the Unkempt village, where Levandius is."
+    },
+    {
+     "kind": "give",
+     "target": "Enrique Revnold",
+     "items": [
+      {
+       "item": "Writ of the Wild",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Writ of the Wild to Enrique Revnold at Forkwatch.",
+     "says": "The songs are yours. Vedel became the Maestro of Rancor: only an instrument a vampire made can call him. Look in the vampire's lair under the salt mine.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "tome of Vedel's songs",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14481,
+     "y": -60.0,
+     "z": 18966,
+     "radius": 25,
+     "journal": "Find the organ in the second room on the right past the spider-marked room, deep in the Salt Mines (SW).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You play Vedel's song on the organ. The Maestro of Rancor rises on the carpet!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Maestro of Rancor",
+     "items": [
+      {
+       "item": "song page",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat the Maestro of Rancor and take his song page."
+    },
+    {
+     "kind": "kill",
+     "target": "Mayong Mistmoore",
+     "count": 1,
+     "journal": "Find Mayong Mistmoore's stone coffin in the cavern below the brick hall, and destroy him."
+    },
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Return to Djivan Mertshak in the Oasis.",
+     "says": "Mistmoore is destroyed. Take this, a hero's blessing.",
+     "rewards": {
+      "xp": 1400000,
+      "items": [
+       "Talisman of Luludja"
+      ],
+      "spells": [
+       "Blessing of Luludja"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Blessing of Luludja"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, Were-Hunter Ability Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its blessing and talisman. The Maestro and Mistmoore are the server's rows, where they stand (Mistmoore a rare spawn in the live game); the song page is taken but not asked for."
+  },
+  {
+   "key": "Weres/werehunter/p2",
+   "name": "The Siloth Shipment",
+   "giver": "Djivan Mertshak",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/brand"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     500
+    ]
+   ],
+   "offer": "A shipment comes to the Siloth docks, south of the cave by the river. Take what the smugglers carry: a folded parchment, and their coin purse. Then see what their chest holds.",
+   "accept": "I will intercept it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "blackscourge smuggler",
+     "items": [
+      {
+       "item": "folded parchment",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take a folded parchment from the blackscourge smugglers on the Siloth docks, south of the cave by the river."
+    },
+    {
+     "kind": "loot",
+     "target": "Siloth knight",
+     "items": [
+      {
+       "item": "siloth coin purse",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Take a Siloth coin purse from the Siloth knights about the docks."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14829,
+     "y": 54.2,
+     "z": 19473,
+     "radius": 25,
+     "journal": "Open the magically locked chest the smugglers stood by, with the parchment's words.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You speak the parchment's words and the chest's lock gives. Inside: orders for the shipment's coin, and the name of the one it pays: a vampire."
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Djivan Mertshak",
+     "items": [
+      {
+       "item": "siloth coin purse",
+       "count": 1
+      }
+     ],
+     "journal": "Show Djivan Mertshak in the Oasis the coin purse.",
+     "says": "A vampire's coin. Take the purse to Marona Jofranka in Freeport."
+    },
+    {
+     "kind": "talk",
+     "target": "Marona Jofranka",
+     "journal": "Bring the coin purse to Marona Jofranka in Freeport.",
+     "says": "Necrologist Quenka, by the books in Klick'Anon's necromancers' guild, can read what is bound in it."
+    },
+    {
+     "kind": "give",
+     "target": "Necrologist Quenka",
+     "items": [
+      {
+       "item": "siloth coin purse",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the coin purse to Necrologist Quenka in Klick'Anon's necromancers' guild.",
+     "says": "There is a spirit bound in this coin. Listen to it.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A spirit rises from the coins. \"Tserrina,\" it whispers. \"The vampire on the hill north-west of the salt mine. She bought us all.\" Then it is gone."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Return to Djivan Mertshak in the Oasis.",
+     "says": "Tserrina. Her castle stands on a hill north-west of the salt mine; her coffin is on the third floor. End her."
+    },
+    {
+     "kind": "kill",
+     "target": "Vampire Tserrina",
+     "count": 1,
+     "journal": "Defeat Tserrina on the third floor of the castle on the hill north-west of the salt mine."
+    },
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Return to Djivan Mertshak in the Oasis.",
+     "says": "Tserrina is gone. The gypsies are in your debt.",
+     "rewards": {
+      "xp": 8300000,
+      "byclass": {
+       "7": {
+        "items": [
+         "Charm of Gemile"
+        ]
+       },
+       "8": {
+        "items": [
+         "Charm of Gemile"
+        ]
+       },
+       "9": {
+        "items": [
+         "Charm of Gemile"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Necrologist Quenka",
+    "Vampire Tserrina"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, PART 2 (github.com/Jadiction/EQOA-Data, MIT). The spirit's words are a pop-up; the coffin's incantation is left out (Tserrina stands up). The guide gives only the healers' charm (\"rewards will vary by class\"): the other classes get the experience alone."
+  },
+  {
+   "key": "Weres/werehunter/trials-ring",
+   "name": "The Were-Hunter's Ring",
+   "giver": "Djivan Mertshak",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/trials-set"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     2000
+    ]
+   ],
+   "offer": "Your standing with the gypsies is all it can be. Take the were-hunter's ring, and keep it: the trials will ask you to show it.",
+   "accept": "I will keep it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Take the were-hunter's ring from Djivan Mertshak.",
+     "says": "Wear it with pride.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "1": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "2": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "3": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "4": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "5": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "6": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "7": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "8": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "9": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "10": {
+        "items": [
+         "Arcane WH Band"
+        ]
+       },
+       "11": {
+        "items": [
+         "Arcane WH Band"
+        ]
+       },
+       "12": {
+        "items": [
+         "Arcane WH Band"
+        ]
+       },
+       "13": {
+        "items": [
+         "Arcane WH Band"
+        ]
+       },
+       "14": {
+        "items": [
+         "Arcane WH Band"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part II's reward (github.com/Jadiction/EQOA-Data, MIT). The guide names the melee's Gypsy Were-Hunter Ring and, in Part III, the casters' Arcane WH Band: the casters get the band, everyone else the ring. Both are copies of existing rings (their stats, not the guide's)."
+  },
+  {
+   "key": "Weres/werehunter/trials-insignia",
+   "name": "A Token of Dedication",
+   "giver": "Djivan Mertshak",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/trials-p1"
+   ],
+   "offer": "Jhevin tells me you have proved your devotion. Show me his token, and take this insignia for your dedication. Then the hunt for the beasts' parts begins.",
+   "accept": "Here is the token.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Djivan Mertshak",
+     "items": [
+      {
+       "item": "accomplishment token",
+       "count": 1
+      }
+     ],
+     "journal": "Show Djivan Mertshak the accomplishment token.",
+     "says": "Well done, you proved your devotion. Wear this insignia.",
+     "rewards": {
+      "items": [
+       "Gypsy Honor Insignia"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part II - Hunt + Gather (github.com/Jadiction/EQOA-Data, MIT). The insignia is a copy of an existing necklace (its stats, not the guide's +25 STR/DEX)."
+  },
+  {
+   "key": "Weres/werehunter/brand",
+   "name": "The Werehunter's Brand",
+   "giver": "Djivan Mertshak",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/p1"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     500
+    ],
+    [
+     "Werehunters of Tunaria",
+     -500
+    ]
+   ],
+   "offer": "You have fought them and lived, and the gypsies trust you. Will you join the Were-Hunters? I will brand you with silver. No lycan's bite will ever take you after that.",
+   "accept": "Yes. Brand me.",
+   "decline": "Not yet.",
+   "declined": "The brand will wait for you.",
+   "started": "Hold still.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Take the Were-Hunters' brand from Djivan Mertshak in the Oasis.",
+     "says": "It is done. Wear this ring, and keep it: one day you will be asked to show it.",
+     "rewards": {
+      "items": [
+       "Gypsy Honor Ring"
+      ],
+      "factions": [
+       [
+        "Werehunters of Tunaria",
+        1000
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, PART 1's end (github.com/Jadiction/EQOA-Data, MIT). The brand is +1000 with Werehunters of Tunaria (ours): the were infections and the vampires' blood are offered only below 500, and a lycan (-1000) is not offered the brand. The ring is a copy of an iron ring (the guide's L30 STR 15 INT 15 is not this server's item)."
+  },
+  {
+   "key": "Weres/werehunter/p1",
+   "name": "Silver and Fur",
+   "giver": "Djivan Mertshak",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "factions_required": [
+    [
+     "Werehunters of Tunaria",
+     -500
+    ]
+   ],
+   "offer": "Lycanthropes walk among the farmers of Hodstock. Take this silver needle: one prick shows them for what they are. A man with a pet rat keeps to a farming village in the north-west. Start there.",
+   "accept": "I will find him.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Slick Stevenson",
+     "items": [
+      {
+       "item": "silver needle",
+       "count": 1
+      }
+     ],
+     "journal": "Prick the man with the pet rat in the farming village of Hodstock (NW) with the silver needle.",
+     "says": "Ow! What was... no. NO!",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Slick Stevenson and his rat Bucktooth twist and swell into lycanthropes!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Slick Stevenson",
+     "count": 1,
+     "journal": "Defeat Slick Stevenson, the lycanthrope."
+    },
+    {
+     "kind": "kill",
+     "target": "Bucktooth",
+     "count": 1,
+     "journal": "Defeat Bucktooth, Slick's rat, the lycanthrope."
+    },
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Return to Djivan Mertshak in the Oasis.",
+     "says": "So it is true. There is another: Lynda Elmquist, in a small building at Jethro's Pike, in the south of Jethro's Cast."
+    },
+    {
+     "kind": "talk",
+     "target": "Lynda Elmquist",
+     "journal": "Find Lynda Elmquist in a small building at Jethro's Pike, in the south of Jethro's Cast.",
+     "says": "You smell of silver. Then you die!"
+    },
+    {
+     "kind": "kill",
+     "target": "Lynda Elmquist",
+     "count": 1,
+     "journal": "Defeat Lynda Elmquist, the lycanthrope."
+    },
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Return to Djivan Mertshak in the Oasis.",
+     "says": "Two of them. Marona Jofranka in Freeport, north of the coach by the dueling arena, hears more than I do."
+    },
+    {
+     "kind": "talk",
+     "target": "Marona Jofranka",
+     "journal": "Speak with Marona Jofranka north of the coach in Freeport, by the dueling arena.",
+     "says": "Djivan's hunter. Dravin Slaerin, in the merchant house east of here, has something for you."
+    },
+    {
+     "kind": "talk",
+     "target": "Dravin Slaerin",
+     "journal": "Speak with Dravin Slaerin in the merchant house east of Marona Jofranka.",
+     "says": "Take this pouch to Necrologist Ipstock, by the river in Hazinak. Watch his face when he opens it.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Dravin's pouch",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Necrologist Ipstock",
+     "items": [
+      {
+       "item": "Dravin's pouch",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Dravin's pouch to Necrologist Ipstock by the river in Hazinak.",
+     "says": "Silver? You fool. You have killed yourself!"
+    },
+    {
+     "kind": "kill",
+     "target": "Necrologist Ipstock",
+     "count": 1,
+     "journal": "Defeat Necrologist Ipstock, the lycanthrope, and his swarming minion."
+    },
+    {
+     "kind": "talk",
+     "target": "Dravin Slaerin",
+     "journal": "Return to Dravin Slaerin in Freeport.",
+     "says": "Ipstock too. Marona must hear this."
+    },
+    {
+     "kind": "talk",
+     "target": "Marona Jofranka",
+     "journal": "Return to Marona Jofranka in Freeport.",
+     "says": "A vampire is gathering undead beasts, for what I dare not guess. Go back to the Oasis and warn Djivan."
+    },
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Warn Djivan Mertshak in the Oasis.",
+     "says": "A vampire behind it all. You have done the gypsies a great service.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "silver needle",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Necrologist Ipstock",
+    "Bucktooth (attackable)",
+    "Lynda Elmquist (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, PART 1 (github.com/Jadiction/EQOA-Data, MIT). Slick Stevenson and Bucktooth are the server's rows (level 63, the guide's Slick Svenson); Bucktooth and Lynda Elmquist stand as townsfolk and are made attackable by the seed (npcs/qc.json) and are fought where they stand. Ipstock's swarming minion and the guide's NTL drops are left out. A lycan (-1000 with Werehunters of Tunaria, ours) is not offered it."
+  },
+  {
+   "key": "Weres/werehunter/trials-set",
+   "name": "A Set of Tails",
+   "giver": "Djivan Mertshak",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/trials-insignia"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     1851,
+     1999
+    ]
+   ],
+   "repeatable": true,
+   "offer": "Bring me a set: one tail each from a wolfwere, a bearwere, a wererat, a lionwere and a gatorwere. The gypsies will know you for it.",
+   "accept": "I will bring a set.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "wolfwere",
+     "items": [
+      {
+       "item": "wolfwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one wolfwere tail from a wolfwere."
+    },
+    {
+     "kind": "loot",
+     "target": "bearwere",
+     "items": [
+      {
+       "item": "bearwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one bearwere tail from a bearwere."
+    },
+    {
+     "kind": "loot",
+     "target": "wererat",
+     "items": [
+      {
+       "item": "ratwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one ratwere tail from a wererat."
+    },
+    {
+     "kind": "loot",
+     "target": "lionwere",
+     "items": [
+      {
+       "item": "lionwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one lionwere tail from a lionwere."
+    },
+    {
+     "kind": "loot",
+     "target": "gatorwere",
+     "items": [
+      {
+       "item": "gatorwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one gatorwere tail from a gatorwere."
+    },
+    {
+     "kind": "give",
+     "target": "Djivan Mertshak",
+     "items": [
+      {
+       "item": "wolfwere tail",
+       "count": 1
+      },
+      {
+       "item": "bearwere tail",
+       "count": 1
+      },
+      {
+       "item": "ratwere tail",
+       "count": 1
+      },
+      {
+       "item": "lionwere tail",
+       "count": 1
+      },
+      {
+       "item": "gatorwere tail",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the set of five tails to Djivan Mertshak in the Oasis.",
+     "says": "A full set. The gypsies thank you.",
+     "notyet": "One of each, all five.",
+     "rewards": {
+      "factions": [
+       [
+        "Gypsies of Tunaria",
+        50
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "gatorwere"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part II - Hunt + Gather (github.com/Jadiction/EQOA-Data, MIT). One kind of set (tails); the guide's stacks and its sets of hides, meats, claws and teeth are left out, and +50 a set is ours (the guide: \"very slowly\"). Repeatable from 1851 to 2000."
+  },
+  {
+   "key": "Weres/werehunter/hinder",
+   "name": "Hinder the Siloths",
+   "giver": "Djivan Mertshak",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/p1"
+   ],
+   "repeatable": true,
+   "offer": "Lord Phinnius keeps the Siloths as his slaves' wardens in the salt mines. Hinder them in any way you can. Ten of their knights, and the Gypsies of Tunaria will know your devotion.",
+   "accept": "I will hinder them.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "The deeper you go, the more it counts.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Siloth knight",
+     "count": 10,
+     "journal": "Defeat ten Siloth knights in the Salt Mines."
+    },
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Return to Djivan Mertshak in the Oasis.",
+     "says": "Well done. The gypsies will remember it.",
+     "rewards": {
+      "factions": [
+       [
+        "Gypsies of Tunaria",
+        75
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the Gypsies of Tunaria notes (and Quest Part I's words) (github.com/Jadiction/EQOA-Data, MIT). The guide gets the faction by killing Siloths (+1 near the top to +10 at the bottom of the mines); this server has no faction hits for them, so a repeatable task gives it, +75 for ten knights (ours). Offered below 1851; the trials' sets take the standing on to 2000.",
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     -2000,
+     1850
+    ]
+   ]
+  },
+  {
+   "key": "Weres/vampire/p1",
+   "name": "Razeal Has Won",
+   "giver": "Greddy Oldman",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "factions_required": [
+    [
+     "Werehunters of Tunaria",
+     -500,
+     499
+    ]
+   ],
+   "offer": "Razeal has won. His filthy creatures are loose in Tunaria, bats that never stay in one place, and they carry a blood that changes you. Hunt them if you dare. Then let Grindal, at the inn, look at you.",
+   "accept": "I will hunt them.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Desmodus Bat",
+     "count": 5,
+     "journal": "Hunt desmodus bats, wherever their camps have sprung up across Tunaria."
+    },
+    {
+     "kind": "talk",
+     "target": "Grindal",
+     "journal": "Have Grindal look you over, in the inn on the left from Freeport's coach.",
+     "says": "Ah. The bats' gift is in your blood. You belong with us now. Come.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 4310.0,
+       "y": 254.5,
+       "z": 6125.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Hinder",
+     "journal": "Speak with Hinder in the Sanctuary.",
+     "says": "You have been blessed, child. Feed, and keep your stores of blood full: everything we do costs blood.",
+     "rewards": {
+      "spells": [
+       "Feed",
+       "Sanctuary"
+      ],
+      "factions": [
+       [
+        "Werehunters of Tunaria",
+        -1000
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Hinder",
+    "Feed",
+    "Sanctuary"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/vampire.json, 1-3 (Logging the Quest, Infection, Level 30) (github.com/Jadiction/EQOA-Data, MIT). The bats' chance of infection is five kills here. Grindal's port to the Sanctuary is a teleport to the Secrets world (Sandstorm's vampires' Sanctuary is in its Zaoran Plateau; claude-notes/sanctuary-memcard-patch-20261025.md), on the open ground north of the building there. This server has no vampire ability yet (Feed, Sanctuary and the rest), so the vampire quests stay drafts until it does; the units of blood, the daylight DoT and the coffin ports are not modelled. Greddy refuses a lycan or a werehunter (Werehunters of Tunaria -1000 or +1000, ours), as the guide does; Dr. Killian's cure is left out."
+  },
+  {
+   "key": "Weres/vampire/L40",
+   "name": "Creed's Lessons",
+   "giver": "Creed",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/vampire/p1"
+   ],
+   "offer": "Forty seasons of the night. I can teach you to take blood in a blow, and to show what you truly are. Ask, and it is yours.",
+   "accept": "Teach me.",
+   "decline": "Not yet.",
+   "declined": "The night is long. Come back.",
+   "started": "Listen well.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Creed",
+     "journal": "Learn from Creed in the Sanctuary.",
+     "says": "Strike, and drink as you strike. And when you wish, wear your true face.",
+     "rewards": {
+      "spells": [
+       "Vampiric Strike",
+       "Vampire Form"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Creed",
+    "Vampiric Strike",
+    "Vampire Form"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/vampire.json, 4. Level 40 (github.com/Jadiction/EQOA-Data, MIT). This server has no vampire ability yet (Vampiric Strike, Vampire Form), so it stays a draft until it does."
+  },
+  {
+   "key": "Weres/vampire/L50",
+   "name": "Weaver's Lessons",
+   "giver": "Weaver",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/vampire/L40"
+   ],
+   "offer": "Fifty seasons, and you still walk like the living. Let me show you the bat's shape, and the vitality the blood gives.",
+   "accept": "Teach me.",
+   "decline": "Not yet.",
+   "declined": "The night is long. Come back.",
+   "started": "Listen well.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Weaver",
+     "journal": "Learn from Weaver in the Sanctuary.",
+     "says": "Become the bat when you must strike, and call on the blood when you must endure.",
+     "rewards": {
+      "spells": [
+       "Bat Form",
+       "Vitality"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Weaver",
+    "Bat Form",
+    "Vitality"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/vampire.json, 5. Level 50 (github.com/Jadiction/EQOA-Data, MIT). This server has no vampire ability yet (Bat Form, Vitality), so it stays a draft until it does."
+  },
+  {
+   "key": "Weres/vampire/L60",
+   "name": "Simmons's Lessons",
+   "giver": "Simmons",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/vampire/L50"
+   ],
+   "offer": "Sixty seasons. You are ready for the last of it: the frenzy, the mist and the gaze.",
+   "accept": "Teach me.",
+   "decline": "Not yet.",
+   "declined": "The night is long. Come back.",
+   "started": "Listen well.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Simmons",
+     "journal": "Learn from Simmons in the Sanctuary.",
+     "says": "Frenzy, mist and the gaze that turns eyes away. You are a master of the night. Twelve relics lie hidden in three sets of four; the scholar who read of them vanished.",
+     "rewards": {
+      "spells": [
+       "Frenzy",
+       "Mist Form",
+       "Vampiric Gaze"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Simmons",
+    "Frenzy",
+    "Mist Form",
+    "Vampiric Gaze"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/vampire.json, 6. Level 60 (github.com/Jadiction/EQOA-Data, MIT). This server has no vampire ability yet (Frenzy, Mist Form, Vampiric Gaze), so it stays a draft until it does."
+  }
+ ],
+ "items": [
+  {
+   "name": "wolfwere tail",
+   "description": "A coarse grey tail cut from a wolfwere.",
+   "notrade": true,
+   "like": "Lion Tail"
+  },
+  {
+   "name": "bearwere tail",
+   "description": "A stubby brown tail cut from a bearwere.",
+   "notrade": true,
+   "like": "Lion Tail"
+  },
+  {
+   "name": "ratwere tail",
+   "description": "A long, naked tail cut from a wererat.",
+   "notrade": true,
+   "like": "Lion Tail"
+  },
+  {
+   "name": "lionwere tail",
+   "description": "A tufted tawny tail cut from a lionwere.",
+   "notrade": true,
+   "like": "Lion Tail"
+  },
+  {
+   "name": "gatorwere tail",
+   "description": "A scaled, heavy tail cut from a gatorwere.",
+   "notrade": true,
+   "like": "Lion Tail"
+  },
+  {
+   "name": "swashbuckler's coin purse",
+   "description": "A heavy purse of coin the Shady Swashbuckler owes.",
+   "notrade": true,
+   "like": "bag of coins"
+  },
+  {
+   "name": "Collar of Power",
+   "description": "A heavy collar of braided gold, given by Trizzia Newmane.",
+   "notrade": true,
+   "like": "silk cord"
+  },
+  {
+   "name": "Claw of the Ancients",
+   "description": "An old lion's claw, yellowed and sharp.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "silver needle",
+   "description": "A long needle of pure silver. A prick shows a lycanthrope for what it is.",
+   "notrade": true,
+   "like": "silk cord"
+  },
+  {
+   "name": "Dravin's pouch",
+   "description": "A small pouch, heavy with something that clinks like silver.",
+   "notrade": true,
+   "like": "bag of coins"
+  },
+  {
+   "name": "Gypsy Honor Ring",
+   "description": "A plain ring of the gypsies, given to a sworn were-hunter.",
+   "notrade": true,
+   "like": "iron ring"
+  },
+  {
+   "name": "folded parchment",
+   "description": "A folded parchment with a few words of a charm on it.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "siloth coin purse",
+   "description": "A purse of the Siloths' coin, taken from their shipment.",
+   "notrade": true,
+   "like": "bag of coins"
+  },
+  {
+   "name": "Writ of the Wild",
+   "description": "A writ of the Unkempt druids.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "tome of Vedel's songs",
+   "description": "The songs of the bard Vedel Revnold.",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "song page",
+   "description": "A page of a song that rouses the dead.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Charm of Gemile",
+   "description": "A gypsy charm of healing.",
+   "notrade": true,
+   "like": "Tunarian Pendant"
+  },
+  {
+   "name": "Talisman of Valentina",
+   "description": "A gypsy heroine's talisman.",
+   "notrade": true,
+   "like": "talisman of Troka"
+  },
+  {
+   "name": "Talisman of Luludja",
+   "description": "A gypsy heroine's talisman.",
+   "notrade": true,
+   "like": "talisman of Troka"
+  },
+  {
+   "name": "accomplishment token",
+   "description": "A token of the gypsies: proof of devotion against the Siloths.",
+   "notrade": true,
+   "like": "token of marr"
+  },
+  {
+   "name": "Gypsy Honor Insignia",
+   "description": "An insignia of the gypsies, a token of dedication.",
+   "notrade": true,
+   "like": "Hapless Necklace"
+  },
+  {
+   "name": "Gypsy Were-Hunter Ring",
+   "description": "A ring of the gypsies' were-hunters.",
+   "notrade": true,
+   "like": "lucky dice"
+  },
+  {
+   "name": "Arcane WH Band",
+   "description": "A band of the gypsies' arcane were-hunters.",
+   "notrade": true,
+   "like": "Severed Finger Ring"
+  },
+  {
+   "name": "Radiant Arcane Band",
+   "description": "An arcane were-hunter's band, made radiant by Irlynn Poe.",
+   "notrade": true,
+   "like": "eroding ring"
+  },
+  {
+   "name": "Luminous Arcane Band",
+   "description": "An arcane were-hunter's band, luminous: a trial's reward.",
+   "notrade": true,
+   "like": "tainted ring"
+  },
+  {
+   "name": "wererat disguise",
+   "description": "A wererat's hide, worn as a disguise.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "weregator disguise",
+   "description": "A weregator's hide, worn as a disguise.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "Concentration Totem",
+   "description": "A totem that steadies the mind. Trainer Iruko's.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Bone Crusher's tooth",
+   "description": "A tooth of The Bone Crusher.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Yindrius's fur",
+   "description": "A tuft of Yindrius's fur.",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "Corindas's claw",
+   "description": "A claw of Corindas.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Dorandas's tail",
+   "description": "The tail of Dorandas.",
+   "notrade": true,
+   "like": "Lion Tail"
+  },
+  {
+   "name": "Levandius's eye",
+   "description": "An eye of Levandius.",
+   "notrade": true,
+   "like": "raven eye"
+  }
+ ]
+}

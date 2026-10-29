@@ -154,3 +154,41 @@ func TestRewardsByClass(t *testing.T) {
 		t.Errorf("empty: %v %v", m, err)
 	}
 }
+
+// A step's choice reads as written: its question and options, an option's
+// rewards in the step's own forms, one that stays; past six options and an
+// answerless one are left out and named, as is a choice on a step done
+// nowhere near an NPC.
+func TestStepChoices(t *testing.T) {
+	c, err := ParseStepChoices(`{"ask": " Which? ", "options": [{"answer": "Blade", "says": "Yours.", "items": "5*2", "spells": "7", "xp": 9},
+		{"answer": "No", "stay": true}, {"answer": ""}]}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := StepChoices{Ask: "Which?", Options: []StepOption{
+		{Answer: "Blade", Says: "Yours.", Reward: ClassReward{XP: 9, Items: []ItemCount{{5, 2}}, Spells: []int{7}}},
+		{Answer: "No", Stay: true, Reward: ClassReward{Items: nil, Spells: nil}}}}
+	if !reflect.DeepEqual(c, want) {
+		t.Errorf("read %+v\nwant %+v", c, want)
+	}
+	seven := `{"options": [` + strings.Repeat(`{"answer": "a"}, `, 6) + `{"answer": "b"}]}`
+	if c, _ := ParseStepChoices(seven); len(c.Options) != MaxStepOptions {
+		t.Errorf("%d options kept of seven", len(c.Options))
+	}
+	ps := strings.Join(ChoiceProblems(`{"options": [{"answer": "", "items": "a sword"}, {"answer": "`+strings.Repeat("x", 64)+`", "xp": -1}]}`, StepKill), "\n")
+	for _, want := range []string{"a kill step asks no choice", "option 1 has no answer", `items "a sword"`,
+		"option 2's answer is longer than 63", "option 2: experience and tunar"} {
+		if !strings.Contains(ps, want) {
+			t.Errorf("problems lack %q:\n%s", want, ps)
+		}
+	}
+	if ps := ChoiceProblems(seven, StepTalk); len(ps) != 1 || !strings.Contains(ps[0], "7 options") {
+		t.Errorf("seven options: %q", ps)
+	}
+	if ps := ChoiceProblems(`{"options": [{"answer": "Gold"}]}`, StepGive); len(ps) != 0 {
+		t.Errorf("the control has problems: %q", ps)
+	}
+	if ps := ChoiceProblems(`[]`, StepTalk); len(ps) != 1 {
+		t.Errorf("a list is no choice: %q", ps)
+	}
+}

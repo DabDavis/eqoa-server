@@ -282,7 +282,7 @@ func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern, n
 			}
 			continue
 		}
-		q.completeStepLocked(sess, p, c, qu, cq, st, nil)
+		q.completeStepLocked(sess, p, c, qu, cq, st, nil, nil)
 	}
 }
 
@@ -320,7 +320,7 @@ func (q *QuestEngine) AtWindow(sess *session.Session, p *entity.Player, npc *ent
 			continue
 		}
 		c.box = nil
-		q.atNPCLocked(sess, p, c, qu, cq, st, false)
+		q.atNPCLocked(sess, p, c, qu, cq, st, false, -1)
 		log.Printf("Quests: %s's window answered for %q step %d", npc.Name, qu.Name, st.Step)
 		return true
 	}

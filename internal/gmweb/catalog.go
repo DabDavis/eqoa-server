@@ -1014,6 +1014,7 @@ var catalog = map[string]tableNote{
 			"spells":      {Label: "Reward: spells", Help: "spell ids, comma separated"},
 			"events":      {Label: "Events", Format: "multiline", Help: "a JSON list: on start or done, do popup, say, give, spawn, visual or teleport (the Quests page edits them)"},
 			"byclass":     {Label: "Reward: by class", Format: "multiline", Help: `a JSON object by class id, each {"xp", "tunar", "items": "patternid*count, ...", "spells": "spell ids"}, given besides the above to a player of that class`},
+			"choices":     {Label: "Choice", Format: "multiline", Help: `talk/show/give: {"ask", "options": [{"answer", "says", "stay", "xp", "tunar", "items", "spells"}]}, asked when the step is done; the pick's rewards given besides the step's, one with stay does not do it`},
 		},
 	},
 	"npc_models_observed": {Label: "Observed NPC models", Group: "Imports", Write: writeAdmin,

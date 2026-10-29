@@ -194,6 +194,20 @@ class LaterFields(unittest.TestCase):
         self.assertNotIn("'the grobb', which is no route", warned, "the control: the grobb is Grobb")
         self.assertEqual(q["source"], "EQOA-Data Misc/testmoor-writ/p1 (tools/import_quests.py)", "the new category's key")
 
+    def test_a_choice_resolves_as_a_steps_rewards(self):
+        iq.write(self.db, iq.plan(self.db, self.files, routes=ROUTES))
+        q, (st,) = self.quest("60/testmoor-epic/p1")
+        self.assertEqual(q["enabled"], 1)
+        self.assertEqual(json.loads(st["choices"]), {"ask": "Which will you take?", "options": [
+            {"answer": "The spear.", "items": "2"}, {"answer": "The swipe.", "xp": 5, "spells": "2"},
+            {"answer": "Neither.", "says": "Then think on it.", "stay": True}]}, "the warrior's Swipe, the spear by its id")
+        # an option's missing item makes a draft, as a step's reward does
+        files = json.loads(json.dumps(self.files))
+        files[1][1]["quests"][2]["steps"][0]["choices"][0]["rewards"]["items"] = ["Golden Spear"]
+        p = iq.plan(self.db, files, routes=ROUTES)
+        epic = [x for x in p["quests"] if x["key"] == "60/testmoor-epic/p1"][0]
+        self.assertIn("item 'Golden Spear' (step 1 option 1)", epic["why"])
+
     def test_a_faction_this_database_lacks_makes_a_draft(self):
         iq.write(self.db, iq.plan(self.db, self.files, routes=ROUTES))
         q, _ = self.quest("Misc/testmoor-writ/p2")
@@ -211,7 +225,7 @@ class LaterFields(unittest.TestCase):
         once = state(self.db)
         trips = self.db.execute("SELECT * FROM questunlocks ORDER BY dest").fetchall()
         written, kept, _ = iq.write(self.db, iq.plan(self.db, self.files, routes=ROUTES))
-        self.assertEqual((written, kept), (5, []))
+        self.assertEqual((written, kept), (6, []))
         self.assertEqual((state(self.db), self.db.execute("SELECT * FROM questunlocks ORDER BY dest").fetchall()), (once, trips))
         # a GM's unlock row on an imported quest is a GM's change: left as it is
         qid = self.quest("Misc/testmoor-writ/p1")[0]["questid"]

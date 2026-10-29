@@ -234,3 +234,42 @@ func TestTheLaterGuidesCities(t *testing.T) {
 		}
 	}
 }
+
+// A step's choice saved through the panel: its problems named (an option's
+// item and spell that do not exist, an option without an answer, a choice on
+// a kill step), and the list's status counts them; the control, a good choice,
+// has none.
+func TestAStepsChoiceIsChecked(t *testing.T) {
+	f := newFixture(t)
+	f.questEngine()
+	c := f.browser()
+	c.login("gm")
+	code, out := c.op("quest_save", map[string]any{
+		"quest": map[string]any{"name": "Epic", "enabled": 0, "giver": "Guard Dahvel"},
+		"steps": []map[string]any{
+			{"kind": "talk", "target": "Guard Dahvel", "journal": "Choose.",
+				"choices": `{"ask": "Which?", "options": [{"answer": "The sword.", "items": "10"}, {"answer": "The book.", "spells": "100"}]}`},
+			{"kind": "talk", "target": "Guard Dahvel", "journal": "Again.",
+				"choices": `{"options": [{"answer": "Gold.", "items": "999"}, {"answer": "Glory.", "spells": "777"}, {"says": "?"}]}`},
+			{"kind": "kill", "target": "a decaying skeleton", "count": 1, "journal": "Kill.", "choices": `{"options": [{"answer": "Yes."}]}`},
+		},
+	})
+	if code != 200 {
+		t.Fatalf("quest_save: %d %v", code, out)
+	}
+	ps := problemsOf(out)
+	for _, want := range []string{"step 2's option 1 gives item 999, which does not exist", "step 2's option 2 gives spell 777, which does not exist",
+		"step 2: option 3 has no answer", "step 3: a kill step asks no choice"} {
+		if !strings.Contains(ps, want) {
+			t.Errorf("problems lack %q:\n%s", want, ps)
+		}
+	}
+	if strings.Contains(ps, "step 1") {
+		t.Errorf("the control, step 1's good choice, has a problem:\n%s", ps)
+	}
+	id, _ := asFloat(out["quest"].(map[string]any)["questid"])
+	code, out = c.op("quest_get", map[string]any{"quest": id})
+	if code != 200 || out["status"] != questDraft || !strings.Contains(fmt.Sprint(out["why"]), "no item 999 (step 2's option 1)") {
+		t.Errorf("its status %v, why %v", out["status"], out["why"])
+	}
+}

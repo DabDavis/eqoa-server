@@ -24,7 +24,9 @@ by name: one this database lacks makes it a draft), repeatable and unlocks (a
 travel NPC's trip, its NPC by name and its place matched to a route of
 internal/handlers/waysender.go: one naming no route is said, and written all
 the same, to open the trip once the route is there), a step's rewards by
-class (byclass: items, the class's own spells, experience and tunar).
+class (byclass: items, the class's own spells, experience and tunar), a
+talk, show or give step's choice (choices, its question choose: each
+option's answer, words, rewards, and whether it stays).
 
 Quests are kept by their key: their ids are logged in quest_import_quests
 (from 100001, past every quest there is), so a run again rewrites what an
@@ -84,7 +86,8 @@ CREATE TABLE IF NOT EXISTS queststeps (
 	waiting TEXT NOT NULL DEFAULT '', notyet TEXT NOT NULL DEFAULT '', reminder TEXT NOT NULL DEFAULT '',
 	xp INTEGER NOT NULL DEFAULT 0, rewardtunar INTEGER NOT NULL DEFAULT 0, rewarditems TEXT NOT NULL DEFAULT '',
 	factions TEXT NOT NULL DEFAULT '', spells TEXT NOT NULL DEFAULT '', chance REAL NOT NULL DEFAULT 0,
-	events TEXT NOT NULL DEFAULT '', byclass TEXT NOT NULL DEFAULT '', PRIMARY KEY (questid, step));
+	events TEXT NOT NULL DEFAULT '', byclass TEXT NOT NULL DEFAULT '', choices TEXT NOT NULL DEFAULT '',
+	PRIMARY KEY (questid, step));
 CREATE TABLE IF NOT EXISTS questunlocks (
 	questid INTEGER NOT NULL, npc TEXT NOT NULL, dest TEXT NOT NULL, PRIMARY KEY (questid, npc, dest));
 CREATE TABLE IF NOT EXISTS charquests (
@@ -95,7 +98,8 @@ CREATE TABLE IF NOT EXISTS charquests (
 ADDED_COLUMNS = [("quests", "declined", "TEXT NOT NULL DEFAULT ''"), ("queststeps", "notyet", "TEXT NOT NULL DEFAULT ''"),
                  ("queststeps", "reminder", "TEXT NOT NULL DEFAULT ''"), ("quests", "events", "TEXT NOT NULL DEFAULT ''"),
                  ("queststeps", "events", "TEXT NOT NULL DEFAULT ''"), ("queststeps", "chance", "REAL NOT NULL DEFAULT 0"),
-                 ("quests", "factionreq", "TEXT NOT NULL DEFAULT ''"), ("queststeps", "byclass", "TEXT NOT NULL DEFAULT ''")]
+                 ("quests", "factionreq", "TEXT NOT NULL DEFAULT ''"), ("queststeps", "byclass", "TEXT NOT NULL DEFAULT ''"),
+                 ("queststeps", "choices", "TEXT NOT NULL DEFAULT ''")]
 
 LOG_DDL = [
     "CREATE TABLE IF NOT EXISTS quest_import_quests (key TEXT PRIMARY KEY, questid INTEGER NOT NULL, file TEXT NOT NULL, "
@@ -108,11 +112,11 @@ QUEST_COLS = ["questid", "name", "enabled", "giver", "minlevel", "maxlevel", "cl
               "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq"]
 STEP_COLS = ["questid", "step", "kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
              "journal", "answer", "says", "waiting", "notyet", "reminder", "xp", "rewardtunar", "rewarditems", "factions",
-             "spells", "chance", "events", "byclass"]
+             "spells", "chance", "events", "byclass", "choices"]
 # the columns added after imports had logged their digests: a quest that
 # leaves them empty digests as it did before them (digest), so a run again
 # still knows an earlier import's quest as its own
-LATER_COLS = {"factionreq", "byclass"}
+LATER_COLS = {"factionreq", "byclass", "choices"}
 FACTION_MIN, FACTION_MAX = -2000, 2000   # entity/faction.go's FactionMin, FactionMax
 
 
@@ -441,6 +445,31 @@ def plan(db, files, routes=False):
                             ent["spells"].append(sid)
                     byclass[cid] = ent
                 row["byclass"] = byclass
+                # a choice asked when the step is done at its NPC: each option's rewards resolved as the step's are
+                opts = []
+                for k, o in enumerate(st.get("choices") or [], 1):
+                    if not isinstance(o, dict) or not str(o.get("answer") or "").strip():
+                        miss.append(f"{where} option {k} (no answer)")
+                        continue
+                    orw = o.get("rewards") or {}
+                    ent = dict(answer=str(o["answer"]).strip(), says=o.get("says") or "", stay=bool(o.get("stay")),
+                               xp=int(orw.get("xp") or 0), tunar=int(orw.get("tunar") or 0), items=[], spells=[])
+                    for nm, n in item_list(orw.get("items")):
+                        r = item_ref(nm)
+                        if r is None:
+                            miss.append(f"item {nm!r} ({where} option {k})")
+                        else:
+                            ent["items"].append((r, n))
+                    for nm in orw.get("spells") or []:
+                        sid = names.spell(nm, classes)
+                        if sid is None:
+                            miss.append(f"spell {nm!r} ({where} option {k})")
+                        else:
+                            ent["spells"].append(sid)
+                    opts.append(ent)
+                if opts and kind not in NPC_KINDS:
+                    miss.append(f"{where}: a {kind} step asks no choice (talk, show and give steps do)")
+                row["choices"] = dict(ask=st.get("choose") or "", options=opts) if opts else None
                 row["events"] = events(st.get("events"), STEP_WHENS, where)
                 if len(row["journal"]) > JOURNAL_CHARS:
                     warnings.append(f"{key} {where}: the journal line is {len(row['journal'])} characters (the client shows {JOURNAL_CHARS})")
@@ -527,6 +556,31 @@ def digest(db, qid):
         if trips:
             h.update(repr(("unlocks", trips)).encode())
     return h.hexdigest()
+
+
+def step_choices(ch, pid):
+    """A step's choice as the choices column keeps it (database.
+    ParseStepChoices's form), "" for none."""
+    if not ch:
+        return ""
+    opts = []
+    for o in ch["options"]:
+        ent = dict(answer=o["answer"])
+        if o["says"]:
+            ent["says"] = o["says"]
+        if o["stay"]:
+            ent["stay"] = True
+        if o["xp"]:
+            ent["xp"] = o["xp"]
+        if o["tunar"]:
+            ent["tunar"] = o["tunar"]
+        if o["items"]:
+            ent["items"] = counts((pid(r), n) for r, n in o["items"])
+        if o["spells"]:
+            ent["spells"] = ", ".join(map(str, o["spells"]))
+        opts.append(ent)
+    out = dict(ask=ch["ask"], options=opts) if ch["ask"] else dict(options=opts)
+    return json.dumps(out, separators=(",", ":"))
 
 
 def class_rewards(byclass, pid):
@@ -630,7 +684,7 @@ def write(db, p):
             for st in x["steps"]:
                 row = dict(st, questid=qid, items=counts((pid(r), n) for r, n in st["items"]),
                            rewarditems=counts((pid(r), n) for r, n in st["rewarditems"]), events=fix_events(st["events"]),
-                           byclass=class_rewards(st["byclass"], pid))
+                           byclass=class_rewards(st["byclass"], pid), choices=step_choices(st["choices"], pid))
                 db.execute(f"INSERT INTO queststeps ({', '.join(STEP_COLS)}) VALUES ({', '.join('?' * len(STEP_COLS))})",
                            [row[c] for c in STEP_COLS])
             db.executemany("INSERT OR IGNORE INTO questunlocks (questid, npc, dest) VALUES (?, ?, ?)",

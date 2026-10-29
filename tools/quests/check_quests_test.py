@@ -85,6 +85,27 @@ class Later(unittest.TestCase):
         q["unresolved"] = ["Moor Hermits", "Bog Folk", "Gold Spear", "Smite"]
         self.assertEqual(self.check(q).errors, [], "the control: listed, no error")
 
+    def test_a_choice_is_checked(self):
+        q = copy.deepcopy(GOOD)
+        q["steps"][0]["choices"] = [{"answer": "The spear.", "rewards": {"items": ["Old Spear"]}},
+                                    {"answer": "The swipe.", "says": "Yours.", "rewards": {"spells": ["Swipe"], "xp": 5}},
+                                    {"answer": "No.", "stay": True}]
+        q["steps"][0]["choose"] = "Which?"
+        ck = self.check(q)
+        self.assertEqual((ck.errors, ck.misses[q["key"]]), ([], []), "the control")
+        q["steps"][0]["choices"][0]["rewards"]["items"] = ["Gold Spear"]
+        q["steps"][0]["choices"].append({"answer": "x" * 64, "level": 3, "rewards": {"items": "Old Spear"}})
+        q["steps"][0]["choices"].append({"says": "nothing to answer"})
+        ck = self.check(q)
+        errs = "\n".join(ck.errors)
+        for want in ("option 4: the answer is longer than 63", "has ['level']", "option 5: no answer", "'gold spear' does not resolve"):
+            self.assertIn(want, errs)
+        q["steps"][0]["kind"], q["steps"][0]["count"] = "kill", 1
+        q["steps"][0]["choices"] = [{"answer": "a"}] * 7
+        errs = "\n".join(self.check(q).errors)
+        self.assertIn("a kill step asks no choice", errs)
+        self.assertIn("7 choices: the client shows 6", errs)
+
     def test_an_unlock_to_no_route_or_no_npc_is_a_warning(self):
         q = copy.deepcopy(GOOD)
         q["unlocks"] = [{"npc": "Waysender Ti`Thox", "to": "Testmoor Isle"}, {"npc": "Ferryman Olaf", "to": "the Isle"}]

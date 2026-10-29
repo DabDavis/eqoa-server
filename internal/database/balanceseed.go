@@ -60,12 +60,24 @@ var (
 		{Class: 9, MeleeTakenPct: 100}, {Class: 10, MeleeTakenPct: 100}, {Class: 11, MeleeTakenPct: 100},
 		{Class: 12, MeleeTakenPct: 100}, {Class: 13, MeleeTakenPct: 100}, {Class: 14, MeleeTakenPct: 100},
 	}
+	// BalanceSeedCons' root columns (root.go): a root's resist at its landing
+	// and its break at each hit, by the con on its caster. With none (the
+	// game before them) a rooting caster of 45-60 (druid, wizard, alchemist,
+	// ranger, in the simulator's root-and-nuke play) won nearly every fight
+	// to five up, most with all its hit points. The simulator over 40 fights
+	// a cell, from the design's 0/5 even ... 65/30 five up: these win an even
+	// fight 98-100% of the time, one up 84-100%, two up 49-99% (the wizard's
+	// the least, the ranger's the most: its AC and Balance by class's share
+	// make a break cheap), three up 12-61%, five up 0-1%. Gentler at one and
+	// two up than the design (5% and 15% resisted, not 10% and 20%: the
+	// wizard won two up 42% of the time), harder at three to five (a break
+	// of 25-35%, not 20-30%).
 	BalanceSeedCons = []BalanceCon{
-		{Diff: 0, DamagePct: 100, TakenPct: 100, Note: "even, and every blue and green below it"},
-		{Diff: 1, DamagePct: 112, TakenPct: 91},
-		{Diff: 2, DamagePct: 125, TakenPct: 83},
-		{Diff: 3, DamagePct: 135, TakenPct: 79},
-		{Diff: 4, DamagePct: 142, TakenPct: 76},
-		{Diff: 5, DamagePct: 150, TakenPct: 72, Note: "and every red above it"},
+		{Diff: 0, DamagePct: 100, TakenPct: 100, RootResistPct: 0, RootBreakPct: 5, Note: "even, and every blue and green below it"},
+		{Diff: 1, DamagePct: 112, TakenPct: 91, RootResistPct: 5, RootBreakPct: 10},
+		{Diff: 2, DamagePct: 125, TakenPct: 83, RootResistPct: 15, RootBreakPct: 15},
+		{Diff: 3, DamagePct: 135, TakenPct: 79, RootResistPct: 35, RootBreakPct: 25},
+		{Diff: 4, DamagePct: 142, TakenPct: 76, RootResistPct: 50, RootBreakPct: 30},
+		{Diff: 5, DamagePct: 150, TakenPct: 72, RootResistPct: 65, RootBreakPct: 35, Note: "and every red above it"},
 	}
 )

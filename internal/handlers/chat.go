@@ -180,6 +180,15 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /lfg (or #lfg) on|off: the live group search's registration (lfg.go),
+	// everyone's. The live client sends 0x0801 for its own /lfg; vanilla
+	// forwards the line; a PS2 keeps an unknown /command to itself, so its
+	// player types "#lfg on", which goes out as chat
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/lfg") || strings.EqualFold(word, "#lfg") {
+		lfgCommand(h.gameWorld, sess, strings.ToLower(word), rest)
+		return nil
+	}
+
 	// GM commands start with #
 	if strings.HasPrefix(message, "#") {
 		h.handleGMCommand(sess, player, message)
@@ -340,9 +349,10 @@ func (h *ChatHandler) shout(sess *session.Session, player *entity.Player, messag
 
 // groupChat is mode 2: 0x069E (the dispatcher [A]: a u32 CLIENT does not use,
 // a wide line in (.5, .5, 1)) with the C# reference's "Name tells the group:"
-// to every member, the sender included. Not in a group: word 629.
+// to every member, the sender included, but a member who chose Hide Chat on
+// the Group menu (lfg.go). Not in a group: word 629.
 func (h *ChatHandler) groupChat(sess *session.Session, player *entity.Player, message string) {
-	members := h.gameWorld.GroupMembers(player)
+	members := h.gameWorld.GroupChatHearers(player)
 	if len(members) == 0 {
 		SendErrorMessage(sess, "You are not in a group.")
 		return

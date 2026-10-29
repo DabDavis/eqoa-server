@@ -57,6 +57,11 @@ again after any GM panel edit of Faction starts or Factions.
 
     tools/seed_faction_starts.py --db eqoa.db --measured starts.tsv
         [--apply | --undo] [--keep-defaults] [--partial] [--no-backup] [--quiet]
+        [--gates tools/quests/data/*.json]
+
+--gates says which of the quests' faction gates (factions_required) every
+measured combo already meets from its start, and which none does: the gates
+were written against the old one-gnome standings.
 """
 import argparse
 import collections
@@ -331,6 +336,57 @@ def plan(db, measured, keep_defaults=False):
                 absent=sorted(f for f in defaults if f not in measured))
 
 
+def gates(paths, measured):
+    """The quests' factions_required (tools/quests/data/*.json: [faction, min]
+    or [faction, min, max]) against the measured starts: those every measured
+    combo meets from its start, those none does, those some do (with how
+    many), those of a faction not measured. Each (file, key, name, faction,
+    min, max, lowest, highest)."""
+    every, none, some, unmeasured = [], [], [], []
+    for path in paths:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        for q in data.get("quests", []):
+            for req in q.get("factions_required") or []:
+                faction, lo = req[0], req[1]
+                hi = req[2] if len(req) > 2 else None
+                vals = measured.get(faction)
+                row = (os.path.basename(path), q.get("key"), q.get("name"), faction, lo, hi)
+                if not vals:
+                    unmeasured.append(row + (None, None))
+                    continue
+                met = [lo <= v and (hi is None or v <= hi) for v in vals.values()]
+                row += (min(vals.values()), max(vals.values()))
+                if all(met):
+                    every.append(row)
+                elif not any(met):
+                    none.append(row)
+                else:
+                    some.append(row + (sum(met), len(met)))
+    return every, none, some, unmeasured
+
+
+def print_gates(every, none, some, unmeasured):
+    def line(r):
+        f, key, name, faction, lo, hi, a, b = r[:8]
+        want = f">= {lo}" if hi is None else f"{lo}..{hi}"
+        got = "" if a is None else f", starts {a}" + ("" if a == b else f"..{b}")
+        return f"    {key} ({name!r}, {f}): {faction} {want}{got}"
+    print(f"{len(every)} quests' faction gates every measured combo meets from its start:")
+    for r in every:
+        print(line(r))
+    print(f"{len(none)} no measured combo meets from its start (a way to earn the standing is wanted):")
+    for r in none:
+        print(line(r))
+    print(f"{len(some)} some measured combos meet from their start:")
+    for r in some:
+        print(line(r) + f": {r[8]} of {r[9]}")
+    if unmeasured:
+        print(f"{len(unmeasured)} of a faction the measurement does not hold:")
+        for r in unmeasured:
+            print(line(r))
+
+
 def backup(db, path):
     when = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     out = f"{path}.bak-{when}-pre-factionstart"
@@ -471,6 +527,8 @@ def main(argv=None):
                     help="--apply with a defaultcharacter combo unmeasured (a race not all measured gets a row a combo)")
     ap.add_argument("--no-backup", action="store_true", help="write without a copy first")
     ap.add_argument("--quiet", action="store_true", help="the counts, not every row")
+    ap.add_argument("--gates", nargs="*", default=[], metavar="QUESTS.json",
+                    help="the quests' files (tools/quests/data/*.json): the faction gates the starts already meet")
     a = ap.parse_args(argv)
     db = sqlite3.connect(a.db, isolation_level=None)
     try:
@@ -506,6 +564,8 @@ def run(ap, a, db):
         print(f"{len(items)} {what}: " + "; ".join(items[:12]) + (" ..." if len(items) > 12 else ""))
     p = plan(db, measured, a.keep_defaults)
     report(p, a.quiet)
+    if a.gates:
+        print_gates(*gates(a.gates, measured))
     if not a.apply:
         print("(report only: --apply writes them)")
         return 0

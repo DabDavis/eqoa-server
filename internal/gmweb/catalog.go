@@ -487,14 +487,16 @@ var catalog = map[string]tableNote{
 		Label: "Faction hits", Group: "World", Title: "npc_name", Sort: "npc_name",
 		Help: "What killing an NPC does to its killer's standings: each row adds delta to the standing with one faction " +
 			"for a kill of any NPC of that NAME (a #spawn copy too). The killer alone, as the kill's XP. Town rows " +
-			"(source town-seed) are tools/seed_faction_hits.py's guesses, not measured: no capture holds a faction hit.",
+			"(source town-seed) are tools/seed_faction_hits.py's guesses, not measured: no capture holds a faction hit; " +
+			"quest-seed rows are tools/seed_quest_hits.py's, the kills EQOA-Data's guides say earn a quest's faction gate " +
+			"(+5 a kill, ours).",
 		Live:   "At once: the next kill of that NPC uses it.",
 		Search: []string{"npc_name", "faction", "source"},
 		Cols: map[string]colNote{
 			"npc_name": {Label: "NPC name", Help: "as in NPCs, exactly (a trailing space included)"},
 			"faction":  {Label: "Faction", Ref: "factions"},
 			"delta":    {Label: "Change", Help: "added to the killer's standing; below 0 lowers it"},
-			"source":   {Label: "Source", Help: "gm, or town-seed for the seeding tool's rows (its --undo deletes those)"},
+			"source":   {Label: "Source", Help: "gm; town-seed (tools/seed_faction_hits.py) or quest-seed (tools/seed_quest_hits.py), each tool's --undo deletes its own"},
 		},
 	},
 	"npcaggro": {

@@ -227,6 +227,25 @@ class SeedFactionStartsTest(unittest.TestCase):
         db.execute("DELETE FROM charfactions")
         self.assertEqual(dump(db), before)
 
+    def test_the_gates(self):
+        quests = os.path.join(self.dir, "q.json")
+        with open(quests, "w", encoding="utf-8") as f:
+            f.write("""{"quests": [
+                {"key": "a", "name": "Met", "factions_required": [["Wolves", -500]]},
+                {"key": "b", "name": "Never", "factions_required": [["Citizens of Beta", 2000]]},
+                {"key": "c", "name": "The west's", "factions_required": [["Citizens of Beta", 400, 1000]]},
+                {"key": "d", "name": "Unmeasured", "factions_required": [["Old Order", 1]]},
+                {"key": "e", "name": "No gate"}]}""")
+        measured, _ = sfs.read_measured(self.tsv, set(FACTIONS))
+        every, none, some, unmeasured = sfs.gates([quests], measured)
+        self.assertEqual([r[1] for r in every], ["a"])
+        self.assertEqual([r[1] for r in none], ["b"])
+        self.assertEqual([(r[1], r[8], r[9]) for r in some], [("c", 3, 10)])  # the west's three
+        self.assertEqual([r[1] for r in unmeasured], ["d"])
+        code, out = self.run_tool("--measured", self.tsv, "--quiet", "--gates", quests)
+        self.assertEqual(code, 0)
+        self.assertIn("1 quests' faction gates every measured combo meets", out)
+
     def test_the_table_is_the_servers(self):
         here = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(here, "..", "internal", "database", "factions.go"), encoding="utf-8") as f:

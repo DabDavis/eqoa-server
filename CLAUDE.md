@@ -812,7 +812,9 @@ Two things follow from the protocol that are easy to get wrong:
   (`TradeHandler.heldLocked`): the dropped client's accept would have moved the live character's
   tunar and items behind its new client's back. The log line is `SelectedChar: '<name>' ... TAKEN
   OVER by <addr> as it stands: <hp>, <power>, <place>; <effects with time left>, <lockouts>, <NPCs
-  fighting it>, <group>, <pet>; from <n> sessions (<n> told)`.
+  fighting it>, <group>, <pet>; from <n> sessions (<n> told)`. With `auth.one_login` on (the
+  default; off on eqoaclassic) the Station login still refuses the account while the dropped session
+  counts as live (`LiveWithin`), so there the wait is the login's, by that rule's design.
 - **A password is 31 characters at most** (`auth.MaxPasswordLen`): STATION sends it in a 32-byte
   field ending in a NUL (the TCP login's DES block, the UDP token, CreateAccount, ChangePassword),
   so the account page and the GM panel refuse a longer one, and the `station.pak` served lets a

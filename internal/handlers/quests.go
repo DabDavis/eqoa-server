@@ -1108,10 +1108,16 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 		}
 		q.gw.ApplyFactionHits(sess, p, hits)
 	}
-	// the events (questevents.go): the step's on its doing, its spawns gone,
-	// then the quest's on its finish or the next step's on its start
-	q.stepEventsLocked(sess, p, c, qu, st, database.EventDone)
+	// the events (questevents.go): the step's spawns gone, then its own on its
+	// doing (a spawn among them the next step's, to live until that one is
+	// done: moradhim's rogue L10 mine goblins), then the quest's on its finish
+	// or the next step's on its start
 	q.clearSpawnsLocked(c.serverID, qu.ID, st.Step)
+	spawnStep := st.Step
+	if next != nil {
+		spawnStep = next.Step
+	}
+	q.stepEventsLocked(sess, p, c, qu, st, database.EventDone, spawnStep)
 	if next == nil {
 		q.questEventsLocked(sess, p, c, qu, database.EventFinish)
 		q.clearSpawnsLocked(c.serverID, qu.ID, 0)

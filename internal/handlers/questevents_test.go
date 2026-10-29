@@ -344,3 +344,50 @@ func TestAMerchantOffersItsQuestAtItsWindow(t *testing.T) {
 	}
 	f.want(open(), shop) // offered once this session: the shop now
 }
+
+// A spawn on a step's done is the next step's, as moradhim's rogue L10 has
+// it: each mine disabled (a reach step) sends a goblin at the player, to be
+// fought on the way to the next mine. It lives through the next step and goes
+// when that one is done (the next mine's goblin taking its place), and every
+// one goes with the quest finished. Until this, the done step's spawns were
+// cleared in the same call and the goblin never stood.
+func TestASpawnOnADoneIsTheNextSteps(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.HP, f.tw.p.MaxHP = 100, 100
+	f.tw.add(5, &entity.NPC{ServerID: 707, Name: "Freezeblood brawler", MaxHP: 100, SpawnX: 26000, SpawnY: 54.1, SpawnZ: 15000})
+	mine := `[{"on":"done","do":"popup","text":"A goblin comes at you!"},{"on":"done","do":"spawn","npc":"Freezeblood brawler","hostile":true}]`
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (85, 'The Goblin Mines', 1, 'Malsis')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, world, x, z, radius, journal, events) VALUES
+		(85, 1, 'reach', 0, 25403, 15725, 12, 'Disable the first mine.', ?),
+		(85, 2, 'reach', 0, 25453, 15725, 12, 'Disable the second mine.', ?)`, mine, mine)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (85, 3, 'talk', 'Malsis', 'Return to Malsis.')`)
+	f.qe.Reload()
+	malsis := f.tw.add(1, &entity.NPC{ServerID: 701, Name: "Malsis", SpawnX: 25455, SpawnY: 54.1, SpawnZ: 15726})
+	copies := func() []entity.EntityID {
+		var out []entity.EntityID
+		for id, n := range f.tw.w.NPCs {
+			if n.QuestSpawn {
+				out = append(out, id)
+			}
+		}
+		return out
+	}
+	if _, err := f.qe.SetCharacterQuest(f.sid, 85, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.qe.checkReach() // standing at the first mine
+	first := copies()
+	if s, _ := f.progress(85); s != 2 || len(first) != 1 {
+		t.Fatalf("the first mine done: step %d, %d goblins; want step 2 and one goblin standing", s, len(first))
+	}
+	f.tw.p.X = 25453
+	f.qe.checkReach()
+	second := copies()
+	if s, _ := f.progress(85); s != 3 || len(second) != 1 || second[0] == first[0] {
+		t.Fatalf("the second mine done: step %d, goblins %v (first %v); want step 3 and the second goblin alone", s, second, first)
+	}
+	f.tw.talk(malsis)
+	if s, d := f.progress(85); s != 0 || d != 1 || len(copies()) != 0 {
+		t.Errorf("finished: step %d done %d, %d goblins left", s, d, len(copies()))
+	}
+}

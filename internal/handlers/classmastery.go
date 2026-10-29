@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -430,6 +432,12 @@ func cmPoints(m entity.Mastery) []byte {
 // have gained a new ability.", as a scribed scroll's), those it holds already
 // or whose spell was not found left.
 func (h *ClassMasteryHandler) giveAbilities(sess *session.Session, p *entity.Player, abilities []entity.CMAbility) {
+	h.giveAbilitiesTo(sess, p.CharServerID, p.Name, abilities)
+}
+
+// giveAbilitiesTo is giveAbilities for a character by its serverid, told to
+// its client when sess is not nil (else kept for its next login).
+func (h *ClassMasteryHandler) giveAbilitiesTo(sess *session.Session, serverID uint32, name string, abilities []entity.CMAbility) {
 	if h.book == nil {
 		return
 	}
@@ -437,7 +445,7 @@ func (h *ClassMasteryHandler) giveAbilities(sess *session.Session, p *entity.Pla
 		if a.SpellID <= 0 {
 			continue
 		}
-		book, err := h.book.GetCharacterSpells(p.CharServerID)
+		book, err := h.book.GetCharacterSpells(serverID)
 		if err != nil {
 			return
 		}
@@ -452,14 +460,19 @@ func (h *ClassMasteryHandler) giveAbilities(sess *session.Session, p *entity.Pla
 			continue
 		}
 		if nextDisplayIndex(book) >= 252 { // the book's display indices end at 252
-			SendErrorMessage(sess, fmt.Sprintf("Your spell book is full: %s was not added.", a.Name))
+			if sess != nil {
+				SendErrorMessage(sess, fmt.Sprintf("Your spell book is full: %s was not added.", a.Name))
+			}
 			return
 		}
-		if err := h.book.AddSpell(p.CharServerID, a.SpellID, nextDisplayIndex(book)); err != nil {
-			log.Printf("ClassMastery: %s's %s not added: %v", p.Name, a.Name, err)
+		if err := h.book.AddSpell(serverID, a.SpellID, nextDisplayIndex(book)); err != nil {
+			log.Printf("ClassMastery: %s's %s not added: %v", name, a.Name, err)
 			continue
 		}
-		if book, err = h.book.GetCharacterSpells(p.CharServerID); err == nil {
+		if sess == nil {
+			continue
+		}
+		if book, err = h.book.GetCharacterSpells(serverID); err == nil {
 			for i := range book {
 				if book[i].Pattern.SpellID == a.SpellID {
 					SendAbilityAdd(sess, 0, true, &book[i])
@@ -470,26 +483,51 @@ func (h *ClassMasteryHandler) giveAbilities(sess *session.Session, p *entity.Pla
 	}
 }
 
-// takeAbilities takes a mastery's replaced abilities out of the book; the
-// client shows them gone at the next login (no message takes one out live).
+// takeAbilities takes a mastery's replaced abilities out of the book (takeAbilitiesFrom).
 func (h *ClassMasteryHandler) takeAbilities(sess *session.Session, p *entity.Player, abilities []entity.CMAbility) {
+	h.takeAbilitiesFrom(sess, p.CharServerID, abilities)
+}
+
+// takeAbilitiesFrom takes abilities out of a character's book, and when sess
+// is not nil out of its client's at once (0x00B8 by the display index the
+// book gave it); one the book holds at an index of 252 or more (no index of
+// its own) the client shows gone at the next login, as it says.
+func (h *ClassMasteryHandler) takeAbilitiesFrom(sess *session.Session, serverID uint32, abilities []entity.CMAbility) []string {
 	if h.store == nil {
-		return
+		return nil
 	}
-	var gone []string
+	index := map[int]int{} // spell -> display index, the book's before the change
+	if h.book != nil {
+		if book, err := h.book.GetCharacterSpells(serverID); err == nil {
+			for _, e := range book {
+				index[e.Pattern.SpellID] = e.AddedOrder
+			}
+		}
+	}
+	var gone, later []string
 	for _, a := range abilities {
 		if a.SpellID <= 0 {
 			continue
 		}
-		if ok, err := h.store.RemoveSpellFromBook(p.CharServerID, a.SpellID); err != nil {
-			log.Printf("ClassMastery: %s's %s not taken out: %v", p.Name, a.Name, err)
-		} else if ok {
-			gone = append(gone, a.Name)
+		ok, err := h.store.RemoveSpellFromBook(serverID, a.SpellID)
+		if err != nil {
+			log.Printf("ClassMastery: character %d's %s not taken out: %v", serverID, a.Name, err)
+			continue
+		}
+		if !ok {
+			continue
+		}
+		gone = append(gone, a.Name)
+		if i, known := index[a.SpellID]; sess != nil && known && i < 252 {
+			SendAbilityRemove(sess, i)
+		} else {
+			later = append(later, a.Name)
 		}
 	}
-	if len(gone) > 0 {
-		SendColoredChat(sess, strings.Join(gone, ", ")+" will be gone from your book at your next login.", 255, 255, 0)
+	if sess != nil && len(later) > 0 {
+		SendColoredChat(sess, strings.Join(later, ", ")+" will be gone from your book at your next login.", 255, 255, 0)
 	}
+	return gone
 }
 
 // setShare keeps the player's share of experience going to mastery points
@@ -537,29 +575,45 @@ func (h *ClassMasteryHandler) GMLines(sess *session.Session, objectID uint32) []
 	return append(lines, h.gameWorld.CMSummary())
 }
 
+// MasteryResetText is what a character whose masteries were reset is told:
+// SOE's live CLIENT's word 1885, which no code of that client shows (its
+// server sent it as a line).
+const MasteryResetText = "Your Mastery points have been reset"
+
 // GMReset is #cmreset: every mastery of the player the GM targets (else the
-// GM's own) taken away and what they cost given back, the abilities they
-// added taken out and those they replaced given back, kept, and told to its
-// client (Recv06 a rank, then the points). What is said to the GM.
+// GM's own) taken away and what they cost given back (ResetOnline). What is
+// said to the GM.
 func (h *ClassMasteryHandler) GMReset(sess *session.Session, objectID uint32) string {
 	if h.gameWorld == nil {
 		return "#cmreset: no world"
 	}
-	who := h.gameWorld.CMSubject(sess, objectID)
+	return h.ResetOnline(h.gameWorld.CMSubject(sess, objectID))
+}
+
+// ResetOnline takes every mastery of the player of session who away and gives
+// back what they cost, takes out the abilities they added and gives back
+// those they replaced, keeps it, and tells its client as the disc's reads a
+// removal: Recv06 a rank (0x1402 sub-op 6, the stats the masteries left), then
+// the points (sub-op 3: CLIENT tells of the points come back), and the line
+// MasteryResetText. What is said to the GM.
+func (h *ClassMasteryHandler) ResetOnline(who *session.Session) string {
+	if h.gameWorld == nil {
+		return "Mastery reset: no world"
+	}
 	p := h.gameWorld.SessionPlayer(who)
 	if p == nil {
-		return "#cmreset: not in the world"
+		return "Mastery reset: not in the world"
 	}
 	res := h.gameWorld.ResetCMs(who)
 	if res.Refusal != "" {
-		return "#cmreset: " + res.Refusal
+		return "Mastery reset: " + res.Refusal
 	}
 	if len(res.Removed) == 0 {
 		return fmt.Sprintf("%s has no masteries: %s", p.Name, entity.MasteryLine(res.Mastery))
 	}
 	if h.store != nil {
 		if err := h.store.RemoveCMs(p.CharServerID, res.Removed, MasteryRow(res.Mastery)); err != nil {
-			log.Printf("GM: #cmreset of '%s' not kept: %v", p.Name, err)
+			log.Printf("GM: the mastery reset of '%s' not kept: %v", p.Name, err)
 			return fmt.Sprintf("%s's masteries were reset but not kept: %v", p.Name, err)
 		}
 	}
@@ -578,9 +632,134 @@ func (h *ClassMasteryHandler) GMReset(sess *session.Session, objectID uint32) st
 		}))
 	}
 	queueReliable(who, protocol.OpcodeClassMasteryServer, cmPoints(res.Mastery))
-	if who != sess {
-		SendColoredChat(who, fmt.Sprintf("A GM has reset your masteries: %d mastery points back.", res.Paid), 255, 255, 0)
-	}
+	SendColoredChat(who, MasteryResetText, 255, 255, 0)
 	log.Printf("GM: masteries of '%s' reset, %d ranks, %d points back (%s)", p.Name, len(res.Removed), res.Paid, entity.MasteryLine(res.Mastery))
 	return fmt.Sprintf("%s: %d masteries taken away, %d points back: %s", p.Name, len(res.Removed), res.Paid, entity.MasteryLine(res.Mastery))
+}
+
+// cmLoader reads a character's mastery points and ranks off its rows
+// (database.SQLiteCharacterStore): a reset of a character out of the world.
+type cmLoader interface {
+	LoadMastery(serverID uint32) (database.MasteryRow, error)
+	LoadOwnedCMs(serverID uint32) ([]database.OwnedCM, error)
+}
+
+// ResetOffline is ResetOnline for a character out of the world, on its rows
+// alone: its ranks (charcms) gone, what they cost back in charmastery, the
+// abilities they added out of its book and those they replaced back, all of
+// it there at its next login. What is said to the GM.
+func (h *ClassMasteryHandler) ResetOffline(serverID uint32, name string) string {
+	l, ok := h.store.(cmLoader)
+	if h.store == nil || !ok {
+		return "Mastery reset: this server keeps no masteries"
+	}
+	m, err := l.LoadMastery(serverID)
+	if err != nil {
+		return fmt.Sprintf("Mastery reset of %s: %v", name, err)
+	}
+	owned, err := l.LoadOwnedCMs(serverID)
+	if err != nil {
+		return fmt.Sprintf("Mastery reset of %s: %v", name, err)
+	}
+	if len(owned) == 0 {
+		return fmt.Sprintf("%s has no masteries: %s", name, entity.MasteryLine(PlayerMastery(m)))
+	}
+	var ids []int
+	back := 0
+	for _, o := range owned {
+		ids = append(ids, o.ID)
+		back += o.Cost
+	}
+	m.Points += back
+	m.Spent = max(0, m.Spent-back)
+	if err := h.store.RemoveCMs(serverID, ids, m); err != nil {
+		log.Printf("GM: the mastery reset of '%s' (offline) not kept: %v", name, err)
+		return fmt.Sprintf("%s's masteries not reset: %v", name, err)
+	}
+	if h.gameWorld != nil {
+		for _, id := range ids {
+			if r := h.gameWorld.CMRankByID(id); r != nil {
+				gives, takes := r.BookChange()
+				h.takeAbilitiesFrom(nil, serverID, gives)
+				h.giveAbilitiesTo(nil, serverID, name, takes)
+			}
+		}
+	}
+	log.Printf("GM: masteries of '%s' (offline) reset, %d ranks, %d points back (%s)", name, len(ids), back, entity.MasteryLine(PlayerMastery(m)))
+	return fmt.Sprintf("%s (not in the world: at the next login): %d masteries taken away, %d points back: %s",
+		name, len(ids), back, entity.MasteryLine(PlayerMastery(m)))
+}
+
+// RemoveAbility takes the ability text names (its spell id, or its name: one
+// the book holds of that name, else the only one whose name begins so) out of
+// a character's book, and out of its client's at once when sess is not nil.
+// What is said to the GM, and whether it was taken.
+func (h *ClassMasteryHandler) RemoveAbility(sess *session.Session, serverID uint32, name, text string) (string, bool) {
+	if h.book == nil || h.store == nil {
+		return "Remove ability: this server keeps no spell books", false
+	}
+	book, err := h.book.GetCharacterSpells(serverID)
+	if err != nil {
+		return fmt.Sprintf("Remove ability: %s's book: %v", name, err), false
+	}
+	e, why := findAbility(book, text)
+	if e == nil {
+		return fmt.Sprintf("%s: %s", name, why), false
+	}
+	spell := e.Pattern.SpellName
+	if spell == "" {
+		spell = fmt.Sprintf("spell %d", e.Pattern.SpellID)
+	}
+	gone := h.takeAbilitiesFrom(sess, serverID, []entity.CMAbility{{Name: spell, SpellID: e.Pattern.SpellID}})
+	if len(gone) == 0 {
+		return fmt.Sprintf("%s's %s was not taken out", name, spell), false
+	}
+	log.Printf("GM: %s (%d) taken out of %s's book", spell, e.Pattern.SpellID, name)
+	if sess == nil {
+		return fmt.Sprintf("%s (%d) taken out of %s's book (not in the world: gone at the next login)", spell, e.Pattern.SpellID, name), true
+	}
+	return fmt.Sprintf("%s (%d) taken out of %s's book", spell, e.Pattern.SpellID, name), true
+}
+
+// findAbility is the book's entry text names: its spell id, its name (any
+// case), else the only entry whose name begins with it; nil and why when none
+// or several are.
+func findAbility(book []database.CharSpellEntry, text string) (*database.CharSpellEntry, string) {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return nil, "no ability named"
+	}
+	if id, err := strconv.Atoi(text); err == nil {
+		for i := range book {
+			if book[i].Pattern.SpellID == id {
+				return &book[i], ""
+			}
+		}
+	}
+	for i := range book {
+		if strings.EqualFold(book[i].Pattern.SpellName, text) {
+			return &book[i], ""
+		}
+	}
+	var begins []int
+	for i := range book {
+		if strings.HasPrefix(strings.ToLower(book[i].Pattern.SpellName), strings.ToLower(text)) {
+			begins = append(begins, i)
+		}
+	}
+	switch len(begins) {
+	case 1:
+		return &book[begins[0]], ""
+	case 0:
+		return nil, fmt.Sprintf("no ability %q in the book", text)
+	}
+	var names []string
+	for _, i := range begins {
+		names = append(names, book[i].Pattern.SpellName)
+	}
+	sort.Strings(names)
+	if len(names) > 8 {
+		names = append(names[:8], "...")
+	}
+	return nil, fmt.Sprintf("%q is several abilities: %s", text, strings.Join(names, ", "))
 }

@@ -503,6 +503,26 @@ func main() {
 	udpListener := udp.NewListener(cfg, sessionMgr, udpHandlers, gameWorld)
 	udpListener.SetCharStore(charStore)
 
+	// The restart the GM panel's restart_server and a GM's #servdown (the live
+	// client's /servdown, handlers/gmresets.go) run: everyone told and saved as
+	// at a shutdown (the restart notice, then 0x07C0: without it each game sat
+	// in a world that no longer answered until its own timeout), then this
+	// process becomes the binary on disk again (a new build, if one was copied
+	// in): every socket closes on exec and the new image opens them.
+	restart := func() error {
+		noticeRestart(cfg.World, sessionMgr)
+		udpListener.NoticeShutdown()
+		udpListener.SaveAll()
+		exe, err := os.Executable()
+		if err != nil {
+			return err
+		}
+		exe = strings.TrimSuffix(exe, " (deleted)")
+		log.Printf("Restarting %s", exe)
+		return syscall.Exec(exe, os.Args, os.Environ())
+	}
+	handlers.SetServerDown(restart, cfg.GM.AdminLevel)
+
 	// The GM panel (internal/gmweb): a web page for GMs and the same tools
 	// for an AI agent (MCP, OpenAPI), off unless gm.port is set. It edits the
 	// database and the running world, so it is handed both, and the hooks
@@ -519,24 +539,7 @@ func main() {
 			SetAutoRegister: authHandler.SetAllowAutoRegister,
 			AutoRegister:    authHandler.AllowAutoRegister,
 			Limiter:         loginLimiter,
-			Restart: func() error {
-				// Everyone told and saved as at a shutdown (the restart notice,
-				// then 0x07C0: without it each game sat in a world that no
-				// longer answered until its own timeout), then this process
-				// becomes the binary on disk again (a new build, if one was
-				// copied in): every socket closes on exec and the new image
-				// opens them.
-				noticeRestart(cfg.World, sessionMgr)
-				udpListener.NoticeShutdown()
-				udpListener.SaveAll()
-				exe, err := os.Executable()
-				if err != nil {
-					return err
-				}
-				exe = strings.TrimSuffix(exe, " (deleted)")
-				log.Printf("GM panel: restarting %s", exe)
-				return syscall.Exec(exe, os.Args, os.Environ())
-			},
+			Restart:         restart,
 		})
 		if err != nil {
 			log.Fatalf("GM panel: %v", err)

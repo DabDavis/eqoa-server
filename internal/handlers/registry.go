@@ -205,6 +205,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	chatHandler.SetStores(progress, purse)
 	if charStore != nil {
 		chatHandler.SetMasteryStore(charStore)
+		// the live client's resets and #banktunar (gmresets.go)
+		chatHandler.SetResetStore(charStore)
 	}
 	chatHandler.SetTemplate(charHandler.ApplyTemplate)
 	// #fx and #spellfx: the spells and their visuals (spellfx.go)

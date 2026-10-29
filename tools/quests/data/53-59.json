@@ -1013,7 +1013,7 @@
     "Sand Wasp",
     "swampfire cobra"
    ],
-   "notes": "From EQOA-Data Quests/53-59/53.json, Quest 3: Lavastorm 53 (github.com/Jadiction/EQOA-Data, MIT). The guide's Minastickie and Professer Cyrk are the game's Minastikie and Professor Ceryk; the merchant by Hagley's well is Merchant Dwindel (the map puts both there). The long spawns and placeholders are left out (the named ones stand). The magmanite bracelet and belt are copies of existing items (their stats, not the guide's)."
+   "notes": "From EQOA-Data Quests/53-59/53.json, Quest 3: Lavastorm 53 (github.com/Jadiction/EQOA-Data, MIT). The guide's Minastickie and Professer Cyrk are the game's Minastikie and Professor Ceryk; the merchant by Hagley's well is Merchant Dwindel (the map puts both there). The long spawns and placeholders are left out (the named ones stand). The magmanite bracelet and belt are copies of existing items (their stats, not the guide's). Lavastorm (Minastikie's) is reached by Waysender Brindel's trip, which this server gives from level 55 (waysender.go), so the quest starts at 55 in practice."
   },
   {
    "key": "53-59/55/p1",
@@ -2467,7 +2467,7 @@
     "Starn the Aimless",
     "Magnar the Skald (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/53-59/57.json, Quest 1: 57 Arios the Battered (github.com/Jadiction/EQOA-Data, MIT). Shrixiv the questioner (seeded in South Toxxulia) and the Shrixiv fought in the kappa fortress (the server's) share a name, as in the guide. The insignia drops off Envar's seeded Accursed Zombies (the guide: any of the complex's creatures). Magnar the Skald carries a blacksmith's NPC flags here (npc_type 136), so he cannot be attacked until his row is made attackable. The casters' War torn gloves are a copy of an existing pair (their stats, not the guide's)."
+   "notes": "From EQOA-Data Quests/53-59/57.json, Quest 1: 57 Arios the Battered (github.com/Jadiction/EQOA-Data, MIT). Shrixiv the questioner (seeded in South Toxxulia) and the Shrixiv fought in the kappa fortress (the server's) share a name, as in the guide. The insignia drops off Envar's seeded Accursed Zombies (the guide: any of the complex's creatures). Magnar the Skald carries a blacksmith's NPC flags here (npc_type 136): the seed makes him attackable (npcs/qc.json). The casters' War torn gloves are a copy of an existing pair (their stats, not the guide's)."
   },
   {
    "key": "53-59/57/p2",
@@ -3335,7 +3335,7 @@
     "Primal Eel",
     "Enraged Lady Vox"
    ],
-   "notes": "From EQOA-Data Quests/53-59/57.json, Quest 3: Lavastorm 57 (github.com/Jadiction/EQOA-Data, MIT). The goblin troopers, the rain chain's Dark Ritualists and the eight at the Green Rift are pop-ups (no time limit); Broga, Siliskor and Lady Vox come for the player (copies of the server's; the guide's Pimal Eel is the game's Primal Eel, Chimeron the game's Chimareon). The guide lists the clerics for both the gauntlets and the bracelet: they get the gauntlets. No alchemist's reward is named. The astral bracelet of wisdom is a copy of an existing bracelet (its stats, not the guide's)."
+   "notes": "From EQOA-Data Quests/53-59/57.json, Quest 3: Lavastorm 57 (github.com/Jadiction/EQOA-Data, MIT). The goblin troopers, the rain chain's Dark Ritualists and the eight at the Green Rift are pop-ups (no time limit); Broga, Siliskor and Lady Vox come for the player (copies of the server's; the guide's Pimal Eel is the game's Primal Eel, Chimeron the game's Chimareon). The guide lists the clerics for both the gauntlets and the bracelet: they get the gauntlets. No alchemist's reward is named. The astral bracelet of wisdom is a copy of an existing bracelet (its stats, not the guide's). The Plane of Sky and its rain isles are reached by their own portal quests' trips (the Sky Portal and the essences, waysender.go), which this quest does not open."
   },
   {
    "key": "53-59/59/p1",
@@ -3383,8 +3383,21 @@
      "kind": "talk",
      "target": "Anvil of Sarek",
      "journal": "Approach the Anvil of Sarek in Geomancer's Pass (N), slowly, and answer it.",
-     "says": "WHO DARES? Go, little thing, while you can.",
-     "answer": "I come for Sarek.\nI am only passing."
+     "choose": "WHO DARES APPROACH THE ANVIL OF SAREK?",
+     "choices": [
+      {
+       "answer": "I come for Sarek.",
+       "says": "THEN COME, AND DIE BENEATH HIS STONE. Go, little thing, while you can."
+      },
+      {
+       "answer": "Arios the Battered sends me.",
+       "says": "ARIOS. HE STILL CRAWLS? Go back to him, little thing."
+      },
+      {
+       "answer": "I am only passing.",
+       "says": "THEN PASS, AND DO NOT RETURN."
+      }
+     ]
     },
     {
      "kind": "talk",
@@ -3767,7 +3780,7 @@
     "Arcanablade Zerin",
     "Rallosian Arbiter"
    ],
-   "notes": "From EQOA-Data Quests/53-59/59.json, Quest 1: 59 Arios the Battered (github.com/Jadiction/EQOA-Data, MIT). The Anvil's debuffs by the 55's weapons are left out (it is simply fought). The geode talisman's port is a teleport for the quester alone; the Arbiter's secret place is ours, on the Zaoran Plateau (the Secrets world), where the attackable Arios waits. The Zaoran Brotherhood's faction (+1000, +1000, -1000, -10) is left out: this server has no such faction. The kejekans' and kerrans' pages drop off one kind each (a warrior, a soldier), the guide's \"random drop\". The War Torn Robe is a copy of an existing tunic (its stats, not the guide's)."
+   "notes": "From EQOA-Data Quests/53-59/59.json, Quest 1: 59 Arios the Battered (github.com/Jadiction/EQOA-Data, MIT). The Anvil's pop-up is a choice (any answer does, as the guide's \"pick one of the options\"); its debuffs by the 55's weapons are left out (it is simply fought). The geode talisman's port is a teleport for the quester alone; the Arbiter's secret place is ours, on the Zaoran Plateau (the Secrets world), where the attackable Arios waits. The Zaoran Brotherhood's faction (+1000, +1000, -1000, -10) is left out: this server has no such faction. The kejekans' and kerrans' pages drop off one kind each (a warrior, a soldier), the guide's \"random drop\". The War Torn Robe is a copy of an existing tunic (its stats, not the guide's)."
   },
   {
    "key": "53-59/59/p2",
@@ -4581,7 +4594,7 @@
     "Madam Watrya",
     "Island Madman"
    ],
-   "notes": "From EQOA-Data Quests/53-59/59.json, Quest 3: Lavastorm 59 (github.com/Jadiction/EQOA-Data, MIT). The professor's enforcer comes for the player when the quest is taken; the madman and Rag-Adah stand (the guide's quest spawns them); the guide's Rag'Adah is the game's Rag-Adah. The harbinger's gloves are a copy of an existing pair (their stats, not the guide's)."
+   "notes": "From EQOA-Data Quests/53-59/59.json, Quest 3: Lavastorm 59 (github.com/Jadiction/EQOA-Data, MIT). The professor's enforcer comes for the player when the quest is taken; the madman and Rag-Adah stand (the guide's quest spawns them); the guide's Rag'Adah is the game's Rag-Adah. The harbinger's gloves are a copy of an existing pair (their stats, not the guide's). The Plane of Sky and its sun and rain isles are reached by their own portal quests' trips (waysender.go), which this quest does not open."
   }
  ],
  "items": [

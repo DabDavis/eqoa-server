@@ -32,7 +32,9 @@ changes with no stop).
   by 2 s or more.
 
 Who is left out: an animal by its name (seed_npc_move.py's wildlife_word, the
-server's own list), and the watcher itself. Wildlife wanders here by
+server's own list), the watcher itself, and every player: an id of
+PLAYER_IDS or more (the channels give players and NPCs one kind; Sandstorm's
+players' ids are in the hundreds of millions, its NPCs' under 25 million). Wildlife wanders here by
 roam.go, not by a path.
 
 Each route goes to this database's NPC of the same name (any case, no "$")
@@ -80,6 +82,7 @@ MOVING = 0.3          # a speed above this is a leg
 TURN = math.radians(15)
 MATCH = 150.0         # a route to an NPC of its name whose spawn is this near it
 OWN_PAUSE = 2.0       # a point's own pause when its stops differ by this
+PLAYER_IDS = 100_000_000  # an id this or more is a player's, never an NPC's
 LOG_SCHEMA = """CREATE TABLE npcpaths_seed (
     npcid  INTEGER PRIMARY KEY,
     before TEXT,             -- the npcpaths row before, JSON, or NULL for none
@@ -285,7 +288,7 @@ def plan(db, files, add=False):
     for path in files:
         by, watcher, world, who = read_track(path)
         for sid, (name, samples) in sorted(by.items()):
-            if watcher and key(name) == key(watcher):
+            if sid >= PLAYER_IDS or (watcher and key(name) == key(watcher)):
                 continue
             if wildlife_word(name):
                 continue

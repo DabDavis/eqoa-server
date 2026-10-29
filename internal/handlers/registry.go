@@ -383,6 +383,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 
 	// Register group handlers (the group is the World's: entity/group.go)
 	NewGroupHandler(gameWorld).RegisterHandlers(r)
+	// The live client's group search and the Group menu's Show/Hide Chat
+	// (0x0801, the disc's 0x0B01; lfg.go, entity/lfg.go)
+	NewLFGHandler(gameWorld).RegisterHandlers(r)
 
 	// Register the buddy and ignore lists (entity/social.go)
 	NewSocialHandler(gameWorld).RegisterHandlers(r)

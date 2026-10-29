@@ -35,9 +35,10 @@ func (r NewCharacterRules) startLevel() int {
 
 // CreateNew creates a character as a new one starts, whichever way it was
 // made (the game's 0x002B or the account page): at the rules' level, whatever
-// the record says, in its home city (startPlace), bound there, and with its
-// class's first abilities, or all its class's spells when the rules say so.
-// It returns how many spells it was given.
+// the record says, in its home city (startPlace), bound there, carrying its
+// race and class's starting items (startitems.go: Sandstorm's starting weapon
+// and rations), and with its class's first abilities, or all its class's
+// spells when the rules say so. It returns how many spells it was given.
 func (s *SQLiteCharacterStore) CreateNew(c *CharacterRecord) (int, error) {
 	rules := s.NewCharacterRules()
 	c.Level = rules.startLevel()
@@ -55,6 +56,9 @@ func (s *SQLiteCharacterStore) CreateNew(c *CharacterRecord) (int, error) {
 			Facing: c.Facing, Spiritmaster: city}); err != nil {
 			return 0, fmt.Errorf("character %q made, its bind point not: %w", c.CharName, err)
 		}
+	}
+	if _, err := s.giveStartItems(c); err != nil {
+		return 0, fmt.Errorf("character %q made, its starting items not: %w", c.CharName, err)
 	}
 	var n int
 	var err error

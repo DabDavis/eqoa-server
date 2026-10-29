@@ -89,3 +89,36 @@ func TestBalanceRootColumnsAddedToAnOlderTable(t *testing.T) {
 		t.Errorf("after the open: %+v", rows)
 	}
 }
+
+// A seed value revised since a table was made: the seed rows still at the
+// old value take the new one, a row a GM changed (or wrote) keeps its own.
+func TestBalanceSeedRevisionsReachAnOlderTable(t *testing.T) {
+	path := t.TempDir() + "/old.db"
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := raw.Exec(`CREATE TABLE balancelevel (level INTEGER PRIMARY KEY, hp_pct REAL NOT NULL DEFAULT 100,
+		damage_pct REAL NOT NULL DEFAULT 100, con_pct REAL NOT NULL DEFAULT 100, pet_hp_pct REAL NOT NULL DEFAULT 100,
+		pet_damage_pct REAL NOT NULL DEFAULT 100, note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm');
+		INSERT INTO balancelevel (level, pet_hp_pct, source) VALUES (50, 510, 'seed'), (60, 777, 'seed'), (45, 410, 'gm');`); err != nil {
+		t.Fatal(err)
+	}
+	raw.Close()
+	db, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	rows, err := db.BalanceLevels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[int]float64{}
+	for _, r := range rows {
+		got[r.Level] = r.PetHPPct
+	}
+	if got[50] != 357 || got[60] != 777 || got[45] != 410 {
+		t.Errorf("pet_hp_pct after the open: %v (want 50's seed revised to 357, a GM's 777 and a gm row's 410 left)", got)
+	}
+}

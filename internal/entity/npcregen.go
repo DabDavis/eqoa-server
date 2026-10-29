@@ -29,7 +29,9 @@ import (
 // (regen.go): a 50 of its maximum hit points (power), at least 1 (petRegen);
 // its power is 28 a level (CalculateMaxPower with no stats: the pet has
 // none), given at its summoning or charming (petPowerLocked). No pet spends
-// power yet (the necromancer pet's tap is on its own clock, pettap.go). And
+// power yet (the necromancer pet's tap is on its own clock, pettap.go); its
+// seed hit points from level 15 are seven tenths of the first tuning's so the
+// pet classes win by the con as before (database/balanceseed.go). And
 // the seed rows make a creature out of a fight heal 5% a tick, a third of
 // jib's 15 (claude-notes/balance-20261029.md: a creature left empty is whole
 // in about 2 min 10 s, not 50 s).

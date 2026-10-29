@@ -236,6 +236,12 @@ def norm(name):
     return n[:-1].rstrip() if n.endswith("$") else n
 
 
+def loose(name):
+    """A name compared a second time: norm()'s, its apostrophes dropped
+    (Sandstorm's "Dark One's Bracers" is Return Home's "Dark Ones Bracers")."""
+    return norm(name).replace("'", "")
+
+
 def words(name):
     return re.findall(r"[a-z']+", (name or "").lower())
 
@@ -318,6 +324,7 @@ class Measured:
         self.opened = {}           # (world, norm name) -> wares Sandstorm sells there (count)
         self.merchants = []        # the harvests' merchants: name, world, pos, wares, when
         self.sold = set()          # norm names of what Sandstorm's merchants sell
+        self.by_loose = None       # loose name -> value, made when first asked
 
     def add(self, item, source):
         n = norm(item["name"])
@@ -417,6 +424,12 @@ class Measured:
         n = norm(p["name"])
         if n in self.by_name:
             return self.by_name[n], "measured"
+        if self.by_loose is None:
+            self.by_loose = {}
+            for k, v in self.by_name.items():
+                self.by_loose.setdefault(k.replace("'", ""), v)
+        if loose(p["name"]) in self.by_loose:
+            return self.by_loose[loose(p["name"])], "measured"
         h = self.by_id.get(p["id"])
         if h is not None and h["slot"] == p["slot"] and h["level"] == p["level"]:
             return int(h["cost"]), f"measured by id ({h['name']})"
@@ -707,7 +720,7 @@ def ware_pattern(w, patterns, by_name):
     p = patterns.get(w["id"])
     if p is not None and norm(p["name"]) == n:
         return p["id"], "id"
-    cands = by_name.get(n)
+    cands = by_name.get(n) or by_name.get(("loose", loose(w["name"])))
     if cands:
         same = [c for c in cands if c["slot"] == w["slot"] and c["level"] == w["level"]]
         return min(same or cands, key=lambda c: c["id"])["id"], "name"
@@ -807,6 +820,7 @@ def plan(db, prh, measured, patterns):
     by_name = collections.defaultdict(list)
     for pat in patterns.values():
         by_name[norm(pat["name"])].append(pat)
+        by_name[("loose", loose(pat["name"]))].append(pat)
     harvested, p.misses = harvest_on_npcs(npcs, measured)
     for n in empty:
         h = harvested.get(n["id"])

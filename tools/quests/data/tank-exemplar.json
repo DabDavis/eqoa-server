@@ -1,0 +1,967 @@
+{
+ "city": "tank-exemplar",
+ "quests": [
+  {
+   "key": "TankExemplar/warrior/main",
+   "name": "The Warrior Exemplar",
+   "giver": "Priest of Rallos Zek",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Rallos Zek wants warriors who do not break. Ragh Skulcrak, south at Oggok Gate, by Ozmo da Basher but nearer the gate, will test you first. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go. Rallos Zek is watching.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Ragh Skulcrak",
+     "journal": "Find Ragh Skulcrak at Oggok Gate, by Ozmo da Basher, nearer the gate.",
+     "says": "Bandits camp along the mountain north of the gate. Kill their thugs and bring me six of their blades."
+    },
+    {
+     "kind": "loot",
+     "target": "Bandit Thug",
+     "items": [
+      {
+       "item": "Bandit Blade",
+       "count": 6
+      }
+     ],
+     "count": 6,
+     "chance": 0.5,
+     "journal": "Kill bandit thugs along the mountain north of Oggok Gate for six bandit blades."
+    },
+    {
+     "kind": "give",
+     "target": "Ragh Skulcrak",
+     "items": [
+      {
+       "item": "Bandit Blade",
+       "count": 6
+      }
+     ],
+     "journal": "Bring six bandit blades to Ragh Skulcrak.",
+     "says": "Good. Tell the priest you are not soft."
+    },
+    {
+     "kind": "talk",
+     "target": "Priest of Rallos Zek",
+     "journal": "Return to the Priest of Rallos Zek.",
+     "says": "Now Dhia Shieldstone, in the fort on the mountain above Diren's Hold. She will show you what a warrior must endure."
+    },
+    {
+     "kind": "talk",
+     "target": "Dhia Shieldstone",
+     "journal": "Find Dhia Shieldstone in the fort on the mountain above Diren's Hold.",
+     "says": "A fell beast hunts a canyon of Mount Hatespike, south-east of the Frozen Souls, where it turns south. Stand against it."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14050,
+     "y": 54,
+     "z": 11050,
+     "radius": 20,
+     "journal": "Follow the canyon south-east of the Frozen Souls in Mount Hatespike to where it turns south.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Something huge drops from the canyon wall: the Fell Beast!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Fell Beast",
+     "count": 1,
+     "journal": "Stand against the Fell Beast in the canyon."
+    },
+    {
+     "kind": "talk",
+     "target": "Dhia Shieldstone",
+     "journal": "Return to Dhia Shieldstone.",
+     "says": "You held. Go back to the priest."
+    },
+    {
+     "kind": "talk",
+     "target": "Priest of Rallos Zek",
+     "journal": "Return to the Priest of Rallos Zek.",
+     "says": "Now choose. Learn to hurt your enemy: feed Ragh's fire. Or learn to turn quickness to wisdom: fill Dhia's chest.",
+     "rewards": {
+      "xp": 10500000
+     }
+    }
+   ],
+   "unresolved": [
+    "Priest of Rallos Zek",
+    "Ragh Skulcrak",
+    "Bandit Thug",
+    "Fell Beast"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/warrior.json, steps 1 to 5 (github.com/Jadiction/EQOA-Data, MIT). The guide's Dhia Stoneshield is the game's Dhia Shieldstone. The Fell Beast, which the guide has tanked for ten minutes and never killed, is killed here (no step can wait out a fight), standing at the canyon's turn (the guide's triggered spawn). The Priest of Rallos Zek, the bandit thugs, the Fell Beast and the Frozen Souls are placed by the guide's words (none is seen anywhere): the priest north of the Oggok Gate ogres FrontiersForge saw, read as Oggok's north gate. The experience is ours (the shadowknight's 10.5 million). The guide's choice is two quests here, each gated on its faction; both may be taken (the server cannot take a spell back)."
+  },
+  {
+   "key": "TankExemplar/warrior/firepit",
+   "name": "Ragh's Firepit",
+   "giver": "Ragh Skulcrak",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "TankExemplar/warrior/main"
+   ],
+   "repeatable": true,
+   "offer": "Feed the fire. Every blade of the bandit thugs thrown in pleases Rallos Zek. Bring me ten.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Bandit Thug",
+     "items": [
+      {
+       "item": "Bandit Blade",
+       "count": 10
+      }
+     ],
+     "count": 10,
+     "chance": 0.5,
+     "journal": "Kill bandit thugs north of Oggok Gate for ten bandit blades."
+    },
+    {
+     "kind": "give",
+     "target": "Ragh Skulcrak",
+     "items": [
+      {
+       "item": "Bandit Blade",
+       "count": 10
+      }
+     ],
+     "journal": "Throw ten bandit blades into Ragh's firepit.",
+     "says": "Hear them hiss. Rallos Zek is pleased.",
+     "rewards": {
+      "factions": [
+       [
+        "Soldiers of Rallos Zek",
+        100
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Ragh Skulcrak",
+    "Bandit Thug"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/warrior.json, Dropkick (Offensive Path) (github.com/Jadiction/EQOA-Data, MIT). The guide's faction is earned ten a piece (fifty for the rarer kind) toward 2,000, so a turn-in here is ten pieces for +100, repeatable; the drops are ours. The firepit is Ragh himself. The faction is ours: the guide does not name it, and Rallos Zek's soldiers are its nearest."
+  },
+  {
+   "key": "TankExemplar/warrior/firepit-charm",
+   "name": "Ragh's Firepit: a Charm",
+   "giver": "Ragh Skulcrak",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "TankExemplar/warrior/main"
+   ],
+   "repeatable": true,
+   "offer": "A bandit charm burns hotter than any blade. Bring me one.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Bandit Thug",
+     "items": [
+      {
+       "item": "Bandit Charm",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.1,
+     "journal": "Kill bandit thugs north of Oggok Gate until one drops a bandit charm."
+    },
+    {
+     "kind": "give",
+     "target": "Ragh Skulcrak",
+     "items": [
+      {
+       "item": "Bandit Charm",
+       "count": 1
+      }
+     ],
+     "journal": "Throw the bandit charm into Ragh's firepit.",
+     "says": "That one roared. Rallos Zek is very pleased.",
+     "rewards": {
+      "factions": [
+       [
+        "Soldiers of Rallos Zek",
+        50
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Ragh Skulcrak",
+    "Bandit Thug"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/warrior.json, Dropkick (Offensive Path) (github.com/Jadiction/EQOA-Data, MIT). A charm is worth five blades (the guide's 50 against 10). Its drop chance is ours."
+  },
+  {
+   "key": "TankExemplar/warrior/dropkick",
+   "name": "Dropkick",
+   "giver": "Priest of Rallos Zek",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "TankExemplar/warrior/main"
+   ],
+   "factions_required": [
+    [
+     "Soldiers of Rallos Zek",
+     2000
+    ]
+   ],
+   "offer": "Ragh's fire roars with your offerings. Ask, and I will teach you to hurt your enemy.",
+   "accept": "Teach me to hurt my enemy.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Priest of Rallos Zek",
+     "journal": "Ask the Priest of Rallos Zek for your offensive reward.",
+     "says": "Then learn this, and let your enemy fall.",
+     "rewards": {
+      "spells": [
+       "Dropkick"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Priest of Rallos Zek"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/warrior.json, Dropkick (Offensive Path) and Rewards (github.com/Jadiction/EQOA-Data, MIT). Offered at 2,000 standing with the Soldiers of Rallos Zek (the guide's 2,000 faction, raised at Ragh's firepit). The guide's ability opens for a class mastery point; here the spell is given."
+  },
+  {
+   "key": "TankExemplar/warrior/chest",
+   "name": "Dhia's Blessed Chest",
+   "giver": "Dhia Shieldstone",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "TankExemplar/warrior/main"
+   ],
+   "repeatable": true,
+   "offer": "The Frozen Souls of Mount Hatespike carry shards of what they were. Bring me ten for my blessed chest.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Frozen Soul",
+     "items": [
+      {
+       "item": "Soul Shard",
+       "count": 10
+      }
+     ],
+     "count": 10,
+     "chance": 0.5,
+     "journal": "Kill Frozen Souls in the north of Mount Hatespike for ten soul shards."
+    },
+    {
+     "kind": "give",
+     "target": "Dhia Shieldstone",
+     "items": [
+      {
+       "item": "Soul Shard",
+       "count": 10
+      }
+     ],
+     "journal": "Place ten soul shards in Dhia's blessed chest.",
+     "says": "Rest, poor souls. You have done well.",
+     "rewards": {
+      "factions": [
+       [
+        "Guards of Diren Hold",
+        100
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Frozen Soul"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/warrior.json, Serenity (Defensive Path) (github.com/Jadiction/EQOA-Data, MIT). The guide's faction is earned ten a piece (fifty for the rarer kind) toward 2,000, so a turn-in here is ten pieces for +100, repeatable; the drops are ours. The chest is Dhia herself. The faction is ours: the guide does not name it, and the guards of Diren Hold are Dhia's."
+  },
+  {
+   "key": "TankExemplar/warrior/serenity",
+   "name": "Serenity",
+   "giver": "Priest of Rallos Zek",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "TankExemplar/warrior/main"
+   ],
+   "factions_required": [
+    [
+     "Guards of Diren Hold",
+     2000
+    ]
+   ],
+   "offer": "Dhia's chest is full of your work. Ask, and I will teach you to turn quickness into wisdom.",
+   "accept": "Teach me serenity.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Priest of Rallos Zek",
+     "journal": "Ask the Priest of Rallos Zek for your defensive reward.",
+     "says": "Then learn this, and be still.",
+     "rewards": {
+      "spells": [
+       "Serenity"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Priest of Rallos Zek",
+    "Serenity"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/warrior.json, Serenity (Defensive Path) and Rewards (github.com/Jadiction/EQOA-Data, MIT). Offered at 2,000 standing with the Guards of Diren Hold (Dhia's chest). The guide's Serenity (+65 WIS for ten minutes, opened for a class mastery point) is no spell here yet, so this quest is a draft until it is."
+  },
+  {
+   "key": "TankExemplar/paladin/main",
+   "name": "The Paladin Exemplar",
+   "giver": "Priest of Marr",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Marr asks two things of an exemplar: justice and mercy. Exemplar Zarakiel, inside the fort on the river at Diren's Hold, will show you justice first. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go with Marr.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Zarakiel",
+     "journal": "Find Exemplar Zarakiel by the tower in the fort at Diren's Hold.",
+     "says": "Six bandits hide in a valley of Bandit Hills, one hill over from the Old Man and Goran's beasts, south of the Old Man, round two rocks. Bring them justice, and their sashes to me."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 15400,
+     "y": 100,
+     "z": 15375,
+     "radius": 25,
+     "journal": "Find the two rocks in the valley south of the Old Man in Bandit Hills.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Bandits rise from behind the two rocks, three and then three more!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Unjust Bandit",
+     "items": [
+      {
+       "item": "Bandit Sash",
+       "count": 6
+      }
+     ],
+     "count": 6,
+     "chance": 1.0,
+     "journal": "Bring justice to the six bandits round the two rocks, and take their sashes."
+    },
+    {
+     "kind": "give",
+     "target": "Zarakiel",
+     "items": [
+      {
+       "item": "Bandit Sash",
+       "count": 6
+      }
+     ],
+     "journal": "Bring the six bandit sashes to Exemplar Zarakiel.",
+     "says": "Justice is done. Return to the priest."
+    },
+    {
+     "kind": "talk",
+     "target": "Priest of Marr",
+     "journal": "Return to the Priest of Marr in Qeynos.",
+     "says": "Now mercy. Exemplar Alesthenies, a minute north-west of Melton by the new Qeynos prison, needs a protector."
+    },
+    {
+     "kind": "talk",
+     "target": "Exemplar Alesthenies",
+     "journal": "Find Exemplar Alesthenies north-west of Melton, by the new Qeynos prison.",
+     "says": "Travellers from Mariel Village wait at a rock in the north of Wyndhaven, under the mountain. Answer truly about the flowers that bloom, and see them safe to the coach. Zealots will come."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 4700,
+     "y": 60,
+     "z": 12800,
+     "radius": 30,
+     "journal": "Find the travellers at the rock in the north of Wyndhaven, under the mountain.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The travellers ask which flowers bloom in Mariel in spring. You answer, and they gather their things and follow you toward the coach."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Zealot",
+     "items": [
+      {
+       "item": "Zealot's Sash",
+       "count": 6
+      }
+     ],
+     "count": 6,
+     "chance": 1.0,
+     "journal": "Kill the zealots that ambush the travellers on the way down to the Wyndhaven coach, and take their sashes."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 4711,
+     "y": 59,
+     "z": 13202,
+     "radius": 15,
+     "journal": "See the travellers to the Wyndhaven coach.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The travellers reach the coach safe. Their leader takes your hand: Mariel will not forget you."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Exemplar Alesthenies",
+     "journal": "Return to Exemplar Alesthenies.",
+     "says": "That is mercy. Go back to the priest."
+    },
+    {
+     "kind": "talk",
+     "target": "Priest of Marr",
+     "journal": "Return to the Priest of Marr.",
+     "says": "Justice and mercy, both. When you know which you will follow, come and tell me.",
+     "rewards": {
+      "xp": 10500000
+     }
+    }
+   ],
+   "unresolved": [
+    "Priest of Marr",
+    "Unjust Bandit",
+    "Exemplar Alesthenies",
+    "Zealot"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/paladin.json, Bandit Justice, Escort Mission (github.com/Jadiction/EQOA-Data, MIT). The guide's Exemplar Zarakiel is the server's Zarakiel. The escort is simplified: the travellers do not walk (the server cannot move them); finding them, the zealots and reaching the coach are steps, and dying does not restart it. The flower question is a popup with no wrong answer. The Priest of Marr, Exemplar Alesthenies, the six bandits (named ours: the guide names them not) and the zealots are placed by the guide's words (none is seen anywhere). The experience is the guide's 10.5 million without luck. The Justice path's reward (the guide's one-mastery-point upgrade of the four heals) has no name and no spell here, so that path is not written."
+  },
+  {
+   "key": "TankExemplar/paladin/mercy",
+   "name": "The Mercy of Marr",
+   "giver": "Priest of Marr",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "TankExemplar/paladin/main"
+   ],
+   "offer": "You would walk the path of mercy? Priestess Agilyna, on the small hill in the middle of Mu Lin's Reach, north-west of the lost souls' camp, will hear you. Go to her.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Priestess Agilyna",
+     "journal": "Find Priestess Agilyna on the small hill in the middle of Mu Lin's Reach.",
+     "says": "Mercy is a heavier shield than any you carry. Go back to the priest; he knows what you have earned."
+    },
+    {
+     "kind": "talk",
+     "target": "Priest of Marr",
+     "journal": "Return to the Priest of Marr.",
+     "says": "Then take Alesthenies' mercy with you.",
+     "rewards": {
+      "spells": [
+       "Alesthenies' Mercy"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Priest of Marr",
+    "Priestess Agilyna",
+    "Alesthenies' Mercy"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/paladin.json, Final Choice and Mercy Path (github.com/Jadiction/EQOA-Data, MIT). The guide's Roygar of Marr's Fist, who first sends you, is not in (the priest sends you). Priestess Agilyna is placed by the guide's words. The guide's Alesthenies' Mercy (an armour buff of 300 to 1,000, opened for a class mastery point) is no spell here yet, so this quest is a draft until it is."
+  },
+  {
+   "key": "TankExemplar/shadowknight/main",
+   "name": "The Shadowknight Exemplar",
+   "giver": "Priest of Bertoxxulous",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Bertoxxulous wants a disciple who spreads his rot. Urglauh the Foul, in the tunnel under the guard tower in the north of Trail's End, will take you. Tell him you were sent.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, and rot what you touch.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Urglauh the Foul",
+     "journal": "Find Urglauh the Foul in the tunnel under the guard tower in the north of Trail's End.",
+     "says": "A disciple? Prove it. Corrupt the villagers round Sunnyvale and bring me five soul energies.",
+     "answer": "I was sent to be your disciple.\nI am lost."
+    },
+    {
+     "kind": "loot",
+     "target": "Villager",
+     "items": [
+      {
+       "item": "Soul Energy",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 0.3,
+     "journal": "Kill the villagers roaming outside Sunnyvale until five soul energies are yours."
+    },
+    {
+     "kind": "give",
+     "target": "Urglauh the Foul",
+     "items": [
+      {
+       "item": "Soul Energy",
+       "count": 5
+      }
+     ],
+     "journal": "Bring five soul energies to Urglauh the Foul.",
+     "says": "Good. Go back to the priest."
+    },
+    {
+     "kind": "talk",
+     "target": "Priest of Bertoxxulous",
+     "journal": "Return to the Priest of Bertoxxulous.",
+     "says": "Now Miasma Malignus, in her tent in the west of the Green Rift. She will teach you to turn the faithful."
+    },
+    {
+     "kind": "talk",
+     "target": "Miasma Malignus",
+     "journal": "Find Miasma Malignus in her tent in the west of the Green Rift.",
+     "says": "The pilgrims of the Green Rift camp on the edge of the valley with the lake. Turn them from their god. Bring me five walking sticks, freely given."
+    },
+    {
+     "kind": "talk",
+     "target": "Pilgrim Disciple",
+     "journal": "Find the pilgrim disciples at their camp on the edge of the valley in the south of the Green Rift, and turn them.",
+     "says": "Abandoned... yes. Take my stick. I will not need it now.",
+     "answer": "Your god has abandoned you.\nGive me your stick, or else.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Pilgrim's Walking Stick",
+         "count": 2
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Pilgrim Apostle",
+     "journal": "Find the pilgrim apostles at the other camp on the valley's edge, and turn them.",
+     "says": "It is true. He never answered. Take them.",
+     "answer": "Your god hears none of your prayers.\nYour god is a fool.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Pilgrim's Walking Stick",
+         "count": 3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Miasma Malignus",
+     "items": [
+      {
+       "item": "Pilgrim's Walking Stick",
+       "count": 5
+      }
+     ],
+     "journal": "Bring five walking sticks to Miasma Malignus.",
+     "says": "The faithful falter. Return to the priest."
+    },
+    {
+     "kind": "talk",
+     "target": "Priest of Bertoxxulous",
+     "journal": "Return to the Priest of Bertoxxulous.",
+     "says": "Now choose. Drink your enemy's power: go to Miasma. Or rend all about you: go to Urglauh.",
+     "rewards": {
+      "xp": 10500000
+     }
+    }
+   ],
+   "unresolved": [
+    "Urglauh the Foul",
+    "Miasma Malignus",
+    "Pilgrim Disciple",
+    "Pilgrim Apostle"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/shadowknight.json, steps 1 to 5 (github.com/Jadiction/EQOA-Data, MIT). The corrupted souls a villager's death calls up, and talking to them, are not in: the soul energy drops off the villagers. Each camp's pilgrims give their sticks at the right answer (the first; the second changes nothing) and do not turn on you; the -2,000 with the Enraged of Karana that Miasma gives is not in (no such faction here). Urglauh, Miasma, the pilgrims and Sunnyvale's level 57 villagers are placed by the guide's words (none is seen anywhere; Urglauh at EQOA-Data's map point). The experience is the guide's 10.5 million. The guide's choice is two quests here, each gated on its faction."
+  },
+  {
+   "key": "TankExemplar/shadowknight/sorrow",
+   "name": "The Blasphemous Box",
+   "giver": "Miasma Malignus",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "TankExemplar/shadowknight/main"
+   ],
+   "repeatable": true,
+   "offer": "Defile the graves of the pure in Collingridge Cemetery, by the river east of the Elder's Tomb. The mourners that come weep crystal. Bring me ten for my box.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Mourner",
+     "items": [
+      {
+       "item": "Crystallized Sorrow",
+       "count": 10
+      }
+     ],
+     "count": 10,
+     "chance": 0.5,
+     "journal": "Kill mourners at the graves in the north of Collingridge Cemetery for ten crystallized sorrows."
+    },
+    {
+     "kind": "give",
+     "target": "Blasphemous Box",
+     "items": [
+      {
+       "item": "Crystallized Sorrow",
+       "count": 10
+      }
+     ],
+     "journal": "Give ten crystallized sorrows to the Blasphemous Box beside Miasma Malignus.",
+     "rewards": {
+      "factions": [
+       [
+        "Disciples of Plague",
+        100
+       ]
+      ]
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The box drinks the sorrow. Somewhere, Bertoxxulous smiles."
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Miasma Malignus",
+    "Mourner",
+    "Blasphemous Box"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/shadowknight.json, Soultap Path (github.com/Jadiction/EQOA-Data, MIT). The guide's faction is earned ten a piece (fifty for the rarer kind) toward 2,000, so a turn-in here is ten pieces for +100, repeatable; the drops are ours. The mourners stand at the graves (the guide's headstones call them up). The faction is ours: the guide's Profane of Bertoxxulous is no faction here, so the Disciples of Plague stand for it."
+  },
+  {
+   "key": "TankExemplar/shadowknight/soultap",
+   "name": "Soultap",
+   "giver": "Priest of Bertoxxulous",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "TankExemplar/shadowknight/main"
+   ],
+   "factions_required": [
+    [
+     "Disciples of Plague",
+     2000
+    ]
+   ],
+   "offer": "Miasma's box is full of your sorrow. Speak with her, then come to me, and I will teach you to drink your enemy's power.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Miasma Malignus",
+     "journal": "Speak with Miasma Malignus.",
+     "says": "You have done enough. The priest is waiting."
+    },
+    {
+     "kind": "talk",
+     "target": "Priest of Bertoxxulous",
+     "journal": "Return to the Priest of Bertoxxulous.",
+     "says": "Drink, then.",
+     "rewards": {
+      "spells": [
+       "Soultap"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Miasma Malignus",
+    "Soultap"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/shadowknight.json, Soultap Path and Rewards (github.com/Jadiction/EQOA-Data, MIT). Offered at 2,000 standing with the Disciples of Plague (the box). The guide's Soultap (restores about 8,000 power, fifteen minutes' recast, opened for a class mastery point) is no spell here yet, so this quest is a draft until it is."
+  },
+  {
+   "key": "TankExemplar/shadowknight/souls",
+   "name": "Screaming Souls",
+   "giver": "Urglauh the Foul",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "TankExemplar/shadowknight/main"
+   ],
+   "repeatable": true,
+   "offer": "Healers and paladins of Rodcet Nife camp by a fire north of Sunnyvale, at the foot of the mountain. Their souls scream. Bring me ten for my zombie.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Paladin of Rodcet Nife",
+     "items": [
+      {
+       "item": "Screaming Soul",
+       "count": 10
+      }
+     ],
+     "count": 10,
+     "chance": 0.5,
+     "journal": "Kill the paladins of Rodcet Nife at the campfire north of Sunnyvale for ten screaming souls."
+    },
+    {
+     "kind": "give",
+     "target": "Urglauh the Foul",
+     "items": [
+      {
+       "item": "Screaming Soul",
+       "count": 10
+      }
+     ],
+     "journal": "Feed ten screaming souls to Urglauh the Foul's zombie.",
+     "says": "Hear it chew. Bertoxxulous is pleased.",
+     "rewards": {
+      "factions": [
+       [
+        "Minions of Bertoxxulous",
+        100
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Urglauh the Foul",
+    "Paladin of Rodcet Nife"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/shadowknight.json, AoE Strike Path (github.com/Jadiction/EQOA-Data, MIT). The guide's faction is earned ten a piece (fifty for the rarer kind) toward 2,000, so a turn-in here is ten pieces for +100, repeatable; the drops are ours. The zombie is Urglauh himself; only the paladins of the camp are in (the guide's healers too would be a second quest). The faction is ours: the guide's Corrupted of Bertoxxulous is no faction here, so the Minions of Bertoxxulous stand for it."
+  },
+  {
+   "key": "TankExemplar/shadowknight/soulcleave",
+   "name": "Soul Cleave",
+   "giver": "Priest of Bertoxxulous",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "TankExemplar/shadowknight/main"
+   ],
+   "factions_required": [
+    [
+     "Minions of Bertoxxulous",
+     2000
+    ]
+   ],
+   "offer": "Urglauh's zombie is fat on your work. Demand your reward, and I will teach you to rend all about you.",
+   "accept": "I demand my reward.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Priest of Bertoxxulous",
+     "journal": "Demand your reward of the Priest of Bertoxxulous.",
+     "says": "Rend, then.",
+     "rewards": {
+      "spells": [
+       "Soul Cleave"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Soul Cleave"
+   ],
+   "notes": "From EQOA-Data Quests/TankExemplar/shadowknight.json, AoE Strike Path and Rewards (github.com/Jadiction/EQOA-Data, MIT). Offered at 2,000 standing with the Minions of Bertoxxulous (the zombie). The guide's Soul Cleave (the strike line made area strikes, opened for a class mastery point) is no spell here yet, so this quest is a draft until it is."
+  }
+ ],
+ "items": [
+  {
+   "name": "Bandit Blade",
+   "description": "A blade carried by a bandit thug north of Oggok Gate.",
+   "notrade": true,
+   "like": "rusted blade"
+  },
+  {
+   "name": "Bandit Charm",
+   "description": "A charm some bandit thugs carry; Rallos Zek prizes it.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Soul Shard",
+   "description": "A shard of a frozen soul of Mount Hatespike.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Bandit Sash",
+   "description": "A sash of one of the six bandits of the valley in Bandit Hills.",
+   "notrade": true,
+   "like": "Red Slashers Scarf"
+  },
+  {
+   "name": "Zealot's Sash",
+   "description": "A sash of a zealot who ambushed the travellers to Wyndhaven.",
+   "notrade": true,
+   "like": "Red Slashers Scarf"
+  },
+  {
+   "name": "Soul Energy",
+   "description": "The energy of a soul turned in Sunnyvale.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Pilgrim's Walking Stick",
+   "description": "A pilgrim's walking stick, freely given.",
+   "notrade": true,
+   "like": "wooden shaft"
+  },
+  {
+   "name": "Crystallized Sorrow",
+   "description": "Sorrow, crystallized, from a mourner at the graves of Collingridge.",
+   "notrade": true,
+   "like": "sparkling green gem"
+  },
+  {
+   "name": "Screaming Soul",
+   "description": "A skull that screams, from a paladin of Rodcet Nife.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  }
+ ]
+}

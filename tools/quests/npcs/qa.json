@@ -900,6 +900,340 @@
    "level": null,
    "note": "Runnyeye",
    "water": "land"
+  },
+  {
+   "name": "Priest of Rallos Zek",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    12790.0,
+    29380.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "outside the north gate of Oggok (read as north of the Oggok Gate ogres FrontiersForge saw)",
+   "water": "land"
+  },
+  {
+   "name": "Ragh Skulcrak",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Oggok Gate (S), by Ozmo da Basher, nearer the gate",
+   "water": "land"
+  },
+  {
+   "name": "Bandit Thug",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    12790.0,
+    28950.0
+   ],
+   "count": 6,
+   "level": 56,
+   "note": "along the mountain north of Oggok Gate (FrontiersForge's only Bandit Thug is a level 10 far west)",
+   "water": "land"
+  },
+  {
+   "name": "Fell Beast",
+   "role": "foe",
+   "body": [
+    "kind",
+    "bear"
+   ],
+   "place": [
+    "at",
+    0,
+    14050.0,
+    11050.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the canyon south-east of the Frozen Souls in Mount Hatespike (N), where it turns south",
+   "water": "land"
+  },
+  {
+   "name": "Frozen Soul",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "at",
+    0,
+    13950.0,
+    10850.0
+   ],
+   "count": 4,
+   "level": 57,
+   "note": "Mount Hatespike (N)",
+   "water": "land"
+  },
+  {
+   "name": "Priest of Marr",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "disciple of Marr",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the paladins' building in Qeynos, by the disciples of Marr",
+   "water": "land"
+  },
+  {
+   "name": "Unjust Bandit",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    15400.0,
+    15375.0
+   ],
+   "count": 6,
+   "level": 58,
+   "note": "round two rocks in the valley one hill over from the Old Man and Goran's beasts, south of the Old Man (Bandit Hills W); the guide names them not",
+   "water": "land"
+  },
+  {
+   "name": "Exemplar Alesthenies",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    6400.0,
+    19070.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a minute north-west of Melton, by the new Qeynos prison",
+   "water": "land"
+  },
+  {
+   "name": "Zealot",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    4700.0,
+    12980.0
+   ],
+   "count": 6,
+   "level": 57,
+   "note": "the way down from the rock in the north of Wyndhaven to its coach",
+   "water": "land"
+  },
+  {
+   "name": "Priestess Agilyna",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    22870.0,
+    12790.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the small hill in the middle of Mu Lin's Reach, north-west of the lost souls' camp",
+   "water": "land"
+  },
+  {
+   "name": "Urglauh the Foul",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Urglauh the Foul"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the tunnel under the guard tower in the north of Trail's End",
+   "water": "land"
+  },
+  {
+   "name": "Villager",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Villager",
+    70,
+    0
+   ],
+   "count": 4,
+   "level": 57,
+   "note": "roaming outside Sunnyvale (the guide's con light blue to a 60; the server's one Villager there is level 20)",
+   "water": "land"
+  },
+  {
+   "name": "Miasma Malignus",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    22650.0,
+    10760.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "her tent in the west of the Green Rift",
+   "water": "land"
+  },
+  {
+   "name": "Blasphemous Box",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Chest"
+   ],
+   "place": [
+    "near",
+    "Miasma Malignus",
+    5,
+    0
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "beside Miasma Malignus (a chest)",
+   "water": "land"
+  },
+  {
+   "name": "Pilgrim Disciple",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    22900.0,
+    11400.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "a camp on the edge of the valley with the lake in the south of the Green Rift",
+   "water": "land"
+  },
+  {
+   "name": "Pilgrim Apostle",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    22780.0,
+    11500.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the other camp on the edge of the valley",
+   "water": "land"
+  },
+  {
+   "name": "Mourner",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "at",
+    0,
+    22900.0,
+    8450.0
+   ],
+   "count": 4,
+   "level": 57,
+   "note": "the graves by the river east of the Elder's Tomb, Collingridge Cemetery (N)",
+   "water": "land"
+  },
+  {
+   "name": "Paladin of Rodcet Nife",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    12500.0,
+    15300.0
+   ],
+   "count": 4,
+   "level": 58,
+   "note": "the campfire north of Sunnyvale, at the foot of the mountain",
+   "water": "land"
   }
  ]
 }

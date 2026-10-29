@@ -232,6 +232,74 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/fayspire/wizard/L20, so a wizard of Fayspires is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
   },
   {
+   "key": "30,40,49/group-5-evil/L30-freeport-warrior",
+   "name": "Director Holman's Errands",
+   "giver": "Captain Norgam",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/freeport/warrior/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Zentar's Keep: Director Holman, at the foot of the tall statue by the coach, needs three things found.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Director Holman",
+     "journal": "Find Director Holman at the foot of the tall statue by the coach in Zentar's Keep.",
+     "says": "A Thulian circlet, the wraps of Bertoxxulous and a Hatesplint tunic. Mystic Horga, Warlord Honan and Sorceress G'Nera know where. Carry my writ.",
+     "rewards": {
+      "items": [
+       "Holman's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/warrior/L20, so a warrior of Freeport is sent on. Holman's writ opens Group 5's path quests (each of the three asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-freeport-alchemist",
+   "name": "Director Holman's Errands",
+   "giver": "Dilina McNerian",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/freeport/alchemist/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Zentar's Keep: Director Holman, at the foot of the tall statue by the coach, needs three things found.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Director Holman",
+     "journal": "Find Director Holman at the foot of the tall statue by the coach in Zentar's Keep.",
+     "says": "A Thulian circlet, the wraps of Bertoxxulous and a Hatesplint tunic. Mystic Horga, Warlord Honan and Sorceress G'Nera know where. Carry my writ.",
+     "rewards": {
+      "items": [
+       "Holman's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/alchemist/L20, so a alchemist of Freeport is sent on. Holman's writ opens Group 5's path quests (each of the three asks to see it)."
+  },
+  {
    "key": "30,40,49/group-1-good/L30-freeport-bard",
    "name": "A New Trainer in Forkwatch",
    "giver": "Solenia Freyar",
@@ -380,6 +448,108 @@
     "Belran Nightrift"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/enchanter/L20, so a enchanter of Freeport is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-freeport-wizard",
+   "name": "Director Holman's Errands",
+   "giver": "Sivrendesh",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/freeport/wizard/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Zentar's Keep: Director Holman, at the foot of the tall statue by the coach, needs three things found.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Director Holman",
+     "journal": "Find Director Holman at the foot of the tall statue by the coach in Zentar's Keep.",
+     "says": "A Thulian circlet, the wraps of Bertoxxulous and a Hatesplint tunic. Mystic Horga, Warlord Honan and Sorceress G'Nera know where. Carry my writ.",
+     "rewards": {
+      "items": [
+       "Holman's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/wizard/L20, so a wizard of Freeport is sent on. Holman's writ opens Group 5's path quests (each of the three asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-grobb-shaman",
+   "name": "Director Holman's Errands",
+   "giver": "Hierophant Koligo",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shaman/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Zentar's Keep: Director Holman, at the foot of the tall statue by the coach, needs three things found.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Director Holman",
+     "journal": "Find Director Holman at the foot of the tall statue by the coach in Zentar's Keep.",
+     "says": "A Thulian circlet, the wraps of Bertoxxulous and a Hatesplint tunic. Mystic Horga, Warlord Honan and Sorceress G'Nera know where. Carry my writ.",
+     "rewards": {
+      "items": [
+       "Holman's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/grobb/shaman/L20, so a shaman of Grobb is sent on. Holman's writ opens Group 5's path quests (each of the three asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-grobb-warrior",
+   "name": "Director Holman's Errands",
+   "giver": "Warlord Jurglash",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/warrior/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Zentar's Keep: Director Holman, at the foot of the tall statue by the coach, needs three things found.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Director Holman",
+     "journal": "Find Director Holman at the foot of the tall statue by the coach in Zentar's Keep.",
+     "says": "A Thulian circlet, the wraps of Bertoxxulous and a Hatesplint tunic. Mystic Horga, Warlord Honan and Sorceress G'Nera know where. Carry my writ.",
+     "rewards": {
+      "items": [
+       "Holman's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/grobb/warrior/L20, so a warrior of Grobb is sent on. Holman's writ opens Group 5's path quests (each of the three asks to see it)."
   },
   {
    "key": "30,40,49/group-2-good/L30-halas-warrior",
@@ -1122,6 +1292,40 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/moradhim/warrior/L20, so a warrior of Moradhim is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
   },
   {
+   "key": "30,40,49/group-5-evil/L30-neriak-nektulos-alchemist",
+   "name": "Director Holman's Errands",
+   "giver": "Master Torlin",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/neriak-nektulos/alchemist/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Zentar's Keep: Director Holman, at the foot of the tall statue by the coach, needs three things found.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Director Holman",
+     "journal": "Find Director Holman at the foot of the tall statue by the coach in Zentar's Keep.",
+     "says": "A Thulian circlet, the wraps of Bertoxxulous and a Hatesplint tunic. Mystic Horga, Warlord Honan and Sorceress G'Nera know where. Carry my writ.",
+     "rewards": {
+      "items": [
+       "Holman's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/alchemist/L20, so a alchemist of Neriak is sent on. Holman's writ opens Group 5's path quests (each of the three asks to see it)."
+  },
+  {
    "key": "30,40,49/group-4-evil/L30-neriak-nektulos-cleric",
    "name": "The Ritual Season",
    "giver": "Theologist S`Tai",
@@ -1228,6 +1432,142 @@
     "Belran Nightrift"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/rogue/L20, so a rogue of Neriak is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-neriak-nektulos-warrior",
+   "name": "Director Holman's Errands",
+   "giver": "Scornblade D`Eleth",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/neriak-nektulos/warrior/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Zentar's Keep: Director Holman, at the foot of the tall statue by the coach, needs three things found.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Director Holman",
+     "journal": "Find Director Holman at the foot of the tall statue by the coach in Zentar's Keep.",
+     "says": "A Thulian circlet, the wraps of Bertoxxulous and a Hatesplint tunic. Mystic Horga, Warlord Honan and Sorceress G'Nera know where. Carry my writ.",
+     "rewards": {
+      "items": [
+       "Holman's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/warrior/L20, so a warrior of Neriak is sent on. Holman's writ opens Group 5's path quests (each of the three asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-neriak-nektulos-wizard",
+   "name": "Director Holman's Errands",
+   "giver": "Sorceress X`Lottl",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/neriak-nektulos/wizard/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Zentar's Keep: Director Holman, at the foot of the tall statue by the coach, needs three things found.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Director Holman",
+     "journal": "Find Director Holman at the foot of the tall statue by the coach in Zentar's Keep.",
+     "says": "A Thulian circlet, the wraps of Bertoxxulous and a Hatesplint tunic. Mystic Horga, Warlord Honan and Sorceress G'Nera know where. Carry my writ.",
+     "rewards": {
+      "items": [
+       "Holman's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/wizard/L20, so a wizard of Neriak is sent on. Holman's writ opens Group 5's path quests (each of the three asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-oggok-shaman",
+   "name": "Director Holman's Errands",
+   "giver": "Grede",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shaman/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Zentar's Keep: Director Holman, at the foot of the tall statue by the coach, needs three things found.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Director Holman",
+     "journal": "Find Director Holman at the foot of the tall statue by the coach in Zentar's Keep.",
+     "says": "A Thulian circlet, the wraps of Bertoxxulous and a Hatesplint tunic. Mystic Horga, Warlord Honan and Sorceress G'Nera know where. Carry my writ.",
+     "rewards": {
+      "items": [
+       "Holman's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/oggok/shaman/L20, so a shaman of Oggok is sent on. Holman's writ opens Group 5's path quests (each of the three asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-oggok-warrior",
+   "name": "Director Holman's Errands",
+   "giver": "Warlord Brogar",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/warrior/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Zentar's Keep: Director Holman, at the foot of the tall statue by the coach, needs three things found.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Director Holman",
+     "journal": "Find Director Holman at the foot of the tall statue by the coach in Zentar's Keep.",
+     "says": "A Thulian circlet, the wraps of Bertoxxulous and a Hatesplint tunic. Mystic Horga, Warlord Honan and Sorceress G'Nera know where. Carry my writ.",
+     "rewards": {
+      "items": [
+       "Holman's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/oggok/warrior/L20, so a warrior of Oggok is sent on. Holman's writ opens Group 5's path quests (each of the three asks to see it)."
   },
   {
    "key": "30,40,49/group-2-good/L30-qeynos-warrior",
@@ -7102,6 +7442,1074 @@
    ],
    "unresolved": [],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, To Summon Chardith and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Lord Chardith and the three magi stand in the basement always (the guide's Chardith is called after a sacrifice; Terathin speaks only every fifteen minutes). The jeweled chest's choice is the class's first weapon, given at the end. Gribble gives the final rewards; the guide's class NPC and the approval notes from the level 20, 30 and 40 quests are not in. Epic weapons: the first that exists here (enchanters the Mithril Eagle Rod, rogues one Heartsbane: the guide's are pairs)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-a",
+   "name": "The Thulian Circlet",
+   "giver": "Mystic Horga",
+   "classes": [
+    0,
+    8,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    2,
+    5,
+    9
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The circlet? The gnome merchant Twindle Fizzmop in Freeport has it, and he admits it. He will sell, for a price. Show him Holman's writ.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Twindle Fizzmop",
+     "items": [
+      {
+       "item": "Holman's writ",
+       "count": 1
+      }
+     ],
+     "journal": "Show Holman's writ to Twindle Fizzmop behind the blacksmith in Freeport.",
+     "says": "The circlet is yours for 1,600 tunar and a sacred monarch, from Mayfly Glade west of Forkwatch.",
+     "notyet": "Who are you buying for? I sell to people with names."
+    },
+    {
+     "kind": "loot",
+     "target": "sacred monarch",
+     "items": [
+      {
+       "item": "sacred monarch wing",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill a sacred monarch in the lit glade of Mayfly Glade, west of Forkwatch. They swarm."
+    },
+    {
+     "kind": "give",
+     "target": "Twindle Fizzmop",
+     "items": [
+      {
+       "item": "sacred monarch wing",
+       "count": 1
+      }
+     ],
+     "tunar": 1600,
+     "journal": "Bring the sacred monarch wing and 1,600 tunar to Twindle Fizzmop.",
+     "says": "A deal is a deal. The Thulian circlet.",
+     "rewards": {
+      "xp": 350000,
+      "items": [
+       "Thulian Circlet"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Thulian Circlet (github.com/Jadiction/EQOA-Data, MIT). The guide's \"Scared Monarch\" is a sacred monarch (EQOA-Data's map and its level 30 side quests): their wing is ours."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-b",
+   "name": "The Wraps of Bertoxxulous",
+   "giver": "Warlord Honan",
+   "classes": [
+    0,
+    8,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    2,
+    5,
+    9
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The wraps? Slavemaster Hern has them, in the castle on the hill in the west of the Salt Mines. He is short of hands. Show him Holman's writ, if he will talk to you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Slavemaster Hern",
+     "items": [
+      {
+       "item": "Holman's writ",
+       "count": 1
+      }
+     ],
+     "journal": "Show Holman's writ to Slavemaster Hern, by the north wall of the castle in the west of the Salt Mines.",
+     "says": "Holman wants my wraps? Then I want three bar patrons. Lora Greyson, at the inn north of the Qeynos coach, drinks there every night. Bring her, three times.",
+     "notyet": "I do not talk to strangers in my mines."
+    },
+    {
+     "kind": "loot",
+     "target": "Lora Greyson",
+     "items": [
+      {
+       "item": "bar patron",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 1.0,
+     "journal": "Kill Lora Greyson at the inn north of the Qeynos coach three times for three bar patrons."
+    },
+    {
+     "kind": "give",
+     "target": "Slavemaster Hern",
+     "items": [
+      {
+       "item": "bar patron",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three bar patrons to Slavemaster Hern.",
+     "says": "Three more hands. The wraps of Bertoxxulous are yours.",
+     "rewards": {
+      "xp": 350000,
+      "items": [
+       "Wraps of Bertoxxulous"
+      ],
+      "factions": [
+       [
+        "Citizens of Caer Sloth",
+        50
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Slavemaster Hern",
+    "Lora Greyson",
+    "Slavemaster Hern"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Wraps of Bertoxxulous (github.com/Jadiction/EQOA-Data, MIT). Slavemaster Hern is FrontiersForge's spelling of the guide's Slave Master Hern. The guide's Hern will not speak below -99 with Caer Sloth; here every character starts at -500 with it and nothing raises it (no Darkwood goblin gives it), so no standing is asked."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30-c",
+   "name": "The Hatesplint Tunic",
+   "giver": "Sorceress G'Nera",
+   "classes": [
+    0,
+    8,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    2,
+    5,
+    9
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The tunic? J'Lisa U'Dedne in Fort Seriak, west of the coach, wants a gem back from the halfling Quicktoe. Show her Holman's writ.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "J'Lisa U`Dedne",
+     "items": [
+      {
+       "item": "Holman's writ",
+       "count": 1
+      }
+     ],
+     "journal": "Show Holman's writ to J'Lisa U'Dedne, west of the Fort Seriak coach.",
+     "says": "Quicktoe stole our gem. He hides at the bottom of a pit in Runnyeye Citadel: go through the gate, left, left, and jump all the way down at the first bridge.",
+     "notyet": "House U'Dedne speaks to those it knows."
+    },
+    {
+     "kind": "loot",
+     "target": "Quicktoe",
+     "items": [
+      {
+       "item": "U'Dedne gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.75,
+     "journal": "Jump down the pit in Runnyeye Citadel, take the right ramp up to the west tunnel, and kill Quicktoe for the gem."
+    },
+    {
+     "kind": "give",
+     "target": "J'Lisa U`Dedne",
+     "items": [
+      {
+       "item": "U'Dedne gem",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the U'Dedne gem to J'Lisa U'Dedne.",
+     "says": "House U'Dedne thanks you. Wear this.",
+     "rewards": {
+      "xp": 350000,
+      "items": [
+       "Hatesplint Jerkin"
+      ],
+      "factions": [
+       [
+        "House U`Dedne",
+        50
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Hatesplint Tunic (github.com/Jadiction/EQOA-Data, MIT). The guide's clue NPC Sorceress D'Nedra is the keep's Sorceress G'Nera (third floor, west of the coach). Quicktoe sometimes lacks the gem, the guide says (a chance of 0.75 here). The tunic is the server's Hatesplint Jerkin, as the guide's reward line names it."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L30",
+   "name": "Three Things for Holman",
+   "giver": "Director Holman",
+   "classes": [
+    0,
+    8,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    2,
+    5,
+    9
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L30-a",
+    "30,40,49/group-5-evil/L30-b",
+    "30,40,49/group-5-evil/L30-c"
+   ],
+   "offer": "You have the circlet, the wraps and the tunic? Show them to me.",
+   "accept": "Here they are.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Director Holman",
+     "items": [
+      {
+       "item": "Thulian Circlet",
+       "count": 1
+      },
+      {
+       "item": "Wraps of Bertoxxulous",
+       "count": 1
+      },
+      {
+       "item": "Hatesplint Jerkin",
+       "count": 1
+      }
+     ],
+     "journal": "Show the Thulian circlet, the wraps of Bertoxxulous and the Hatesplint jerkin to Director Holman.",
+     "says": "All three. Keep them; you have earned them, and this besides. Your path is yours.",
+     "rewards": {
+      "xp": 7890859,
+      "byclass": {
+       "0": {
+        "spells": [
+         "Roar"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Sickening Wind"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Static Clash"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Teacher's Knack"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Quest completion (github.com/Jadiction/EQOA-Data, MIT). Holman gives the path reward (the guide: Warlord Honan for warriors, Mystic Horga for shamans, Sorceress G'Nera for wizards, Sorceress Nime for alchemists). The abilities are the first on each class's line (the warrior's Roar after Bellow, the shaman's Sickening Wind after Decaying Wind, the wizard's Static Clash after Blazing Clash, the alchemist's Teacher's Knack after Student's Knack). The player keeps the three items."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L40-a",
+   "name": "The Blood of His Line",
+   "giver": "Zentar Reese",
+   "classes": [
+    0,
+    8,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    2,
+    5,
+    9
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L30"
+   ],
+   "offer": "I saw the Unkempt Wood twisted and ruined, and it needs the blood of my line. My son Carrick lives among the elves of Mariel Village. Bring me his body.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Do not let him run.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Carrick Reese",
+     "items": [
+      {
+       "item": "Carrick's body",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Carrick Reese in the trees of Mariel Village, quickly: he flees when hurt."
+    },
+    {
+     "kind": "give",
+     "target": "Mystic Horga",
+     "items": [
+      {
+       "item": "Carrick's body",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Carrick's body to Mystic Horga, on the keep's lower floor.",
+     "says": "I have drained the blood. But your Carrick was no evil man: it must be corrupted. Take it to Hierophant Koligo in Grobb.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "bottle of Carrick's blood",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 40, Carrick Reese & His Blood (github.com/Jadiction/EQOA-Data, MIT). Carrick casts Spirit of the Wolf and flees at low health, the guide says."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L40-b",
+   "name": "Corrupting the Blood",
+   "giver": "Mystic Horga",
+   "classes": [
+    0,
+    8,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    2,
+    5,
+    9
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L40-a"
+   ],
+   "offer": "Hierophant Koligo in Grobb can corrupt the blood: from the river, right, under the tree twice, and right through the tree before the bank. He will want things.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Hierophant Koligo",
+     "journal": "Find Hierophant Koligo in Grobb, through the tree just before the bank.",
+     "says": "The Sceptre of Tal'Thaz, from Twindle Fizzmop in Freeport, and the Bonecaster's Censer, deep in Guk."
+    },
+    {
+     "kind": "give",
+     "target": "Twindle Fizzmop",
+     "items": [],
+     "tunar": 3000,
+     "journal": "Buy the Sceptre of Tal'Thaz from Twindle Fizzmop: 3,000 tunar, the dear one; the cheap one is false.",
+     "says": "The real one. A pleasure.",
+     "rewards": {
+      "items": [
+       "Sceptre of Tal'Thaz"
+      ]
+     }
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 24787,
+     "y": 59,
+     "z": 29114,
+     "radius": 40,
+     "journal": "Take the left paths off Guk's circle room to the dead-end room of bonecasters and heart spiders, and take the censer.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "On a ledge among the bonecasters' things you find a censer, and take it."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bonecaster's Censer",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Hierophant Koligo",
+     "items": [
+      {
+       "item": "bottle of Carrick's blood",
+       "count": 1
+      },
+      {
+       "item": "Sceptre of Tal'Thaz",
+       "count": 1
+      },
+      {
+       "item": "Bonecaster's Censer",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the blood, the sceptre and the censer to Hierophant Koligo.",
+     "says": "It is done: the blood is black. Zentar will know what to do with it.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "bottle of corrupted blood",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Zentar Reese",
+     "journal": "Return to Zentar Reese at the top of the keep.",
+     "says": "Corrupted. Now we defile Nature's Altar."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 40, Koligo, the Sceptre and the Censer (github.com/Jadiction/EQOA-Data, MIT). The censer's room is a place to reach (EQOA-Data's map point, over Guk: a reach step does not ask how deep); the guide's popup asks the player to take it."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L40",
+   "name": "Nature's Altar",
+   "giver": "Zentar Reese",
+   "classes": [
+    0,
+    8,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    2,
+    5,
+    9
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L40-b"
+   ],
+   "offer": "Kill the Forces of Nature at Twisted Tower for the essences of sun, soil and rain; trade them to the tree on the island in Unkempt Glade; then pour the blood on Nature's Altar.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Forces of Nature",
+     "count": 3,
+     "journal": "Kill the Forces of Nature at Twisted Tower for the essences of sun, soil and rain."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 6870,
+     "y": 52,
+     "z": 8899,
+     "radius": 25,
+     "journal": "Find the tree on the lake island over the north-west hill from the druid camp in Unkempt Glade.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The tree drinks the three essences, and a golden fruit falls into your hand."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 7285,
+     "y": 81,
+     "z": 7552,
+     "radius": 20,
+     "journal": "Go to Nature's Altar, the circle of standing stones on the hill east of the road, and pour the blood.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You pour Carrick's black blood on the altar. The ground heaves, and Oakhollow rises!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Oakhollow",
+     "items": [
+      {
+       "item": "heart of Oakhollow",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Oakhollow and take its heart."
+    },
+    {
+     "kind": "give",
+     "target": "Zentar Reese",
+     "items": [
+      {
+       "item": "heart of Oakhollow",
+       "count": 1
+      },
+      {
+       "item": "bottle of corrupted blood",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Oakhollow's heart and the empty bottle to Zentar Reese.",
+     "says": "I will break the heart upon the altar myself, and keep what held my son. Take what you have earned.",
+     "rewards": {
+      "xp": 14919719,
+      "byclass": {
+       "14": {
+        "spells": [
+         "Professor's Knack"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Wilting Wind"
+        ],
+        "items": [
+         "Darkflame Spear"
+        ]
+       },
+       "0": {
+        "spells": [
+         "Howl"
+        ],
+        "items": [
+         "Calamitous Falchion"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Freezing Clash"
+        ],
+        "items": [
+         "Blightbringer's Staff"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Forces of Nature"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 40, Zentar's Plan and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The tree and the altar are places to reach (EQOA-Data's map points); the golden fruit is the tree's popup, and Zentar breaks the heart (the guide: the player, at the altar). Oakhollow stands by the altar always. The choices: the first (the shaman's second, Wilting Wind and the Darkflame Spear, as its line: the first, Spirit Focus, is no spell here; missing weapons made like one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L49-a",
+   "name": "The Star of Salisearaneen",
+   "giver": "Zentar Reese",
+   "classes": [
+    0,
+    8,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    2,
+    5,
+    9
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L40"
+   ],
+   "offer": "I dream of a great ice creature, and of the Star of Salisearaneen. Faeries guard it at a druidic stone between two hills in the north of Salisearaneen. Bring it to me. Keep everything.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 9028,
+     "y": 102,
+     "z": 8301,
+     "radius": 25,
+     "journal": "Go to the druidic stone in the faerie village between two hills in the north of Salisearaneen.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The faeries rise from the grass to defend the stone. Their protector comes behind them."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "faerie protector",
+     "items": [
+      {
+       "item": "Faerie Crystal",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Faerie Protector and take his crystal."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 9028,
+     "y": 102,
+     "z": 8301,
+     "radius": 25,
+     "journal": "Place the faerie crystal on the druidic stone.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You set the crystal on the stone. It opens, and you take the Star of Salisearaneen."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Star of Salisearaneen",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Zentar Reese",
+     "items": [
+      {
+       "item": "Star of Salisearaneen",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Star of Salisearaneen to Zentar Reese.",
+     "says": "The Star. Now Twindle Fizzmop has a gear I need, the Gear of Hazoran."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, Faerie Protector (github.com/Jadiction/EQOA-Data, MIT). The stone is a place to reach (EQOA-Data's map point); the waves of faeries are the guide's, not here: the protector stands by the stone."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L49-b",
+   "name": "The Gear of Hazoran",
+   "giver": "Zentar Reese",
+   "classes": [
+    0,
+    8,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    2,
+    5,
+    9
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L49-a"
+   ],
+   "offer": "Twindle Fizzmop, by the blacksmith in Freeport, has the Gear of Hazoran. He will ask 8,000; haggle him to 5,000.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Twindle Fizzmop",
+     "items": [],
+     "tunar": 5000,
+     "journal": "Buy the Gear of Hazoran from Twindle Fizzmop by the Freeport blacksmith: 5,000 tunar, haggled.",
+     "says": "Five thousand. You drive a hard bargain.",
+     "rewards": {
+      "items": [
+       "Gear of Hazoran"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Zentar Reese",
+     "items": [
+      {
+       "item": "Gear of Hazoran",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Gear of Hazoran to Zentar Reese.",
+     "says": "Oransan has gathered the first two seals. You must take the other two."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, Gear of Hazoran (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L49-c",
+   "name": "The Third Seal",
+   "giver": "Zentar Reese",
+   "classes": [
+    0,
+    8,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    2,
+    5,
+    9
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L49-b"
+   ],
+   "offer": "The third seal is Frostcleaver, in Permafrost. Kill Frostborn III where he roams by Vox's castle, drive his sword into the ice throne, and take the blade from Frostborn II.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Mind the Voxite wizards: they see the invisible.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Frostborn III",
+     "items": [
+      {
+       "item": "Frostborn's sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Frostborn III in the halls of Permafrost and take his sword."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 4861,
+     "y": 0,
+     "z": 4429,
+     "radius": 30,
+     "journal": "Drive Frostborn's sword into the ice throne in the throne room.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You drive the sword into the ice throne. The ice cracks, and Frostborn II comes to claim his kingdom."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Frostborn II",
+     "items": [
+      {
+       "item": "Frost Cleaver",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Frostborn II and take Frostcleaver."
+    },
+    {
+     "kind": "talk",
+     "target": "Zentar Reese",
+     "journal": "Tell Zentar Reese you hold the third seal.",
+     "says": "Three of four."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, The Third Seal (github.com/Jadiction/EQOA-Data, MIT). Frostborn II stands in the throne room always (the guide's rises when the sword is driven in); the throne is a place to reach, beside him."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L49-d",
+   "name": "The Fourth Seal",
+   "giver": "Zentar Reese",
+   "classes": [
+    0,
+    8,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    2,
+    5,
+    9
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L49-b"
+   ],
+   "offer": "The fourth seal is the Unnamed Crown. In the Unnamed King's castle in Anu Village, kill Tolo Grimsteel and Ganron Lorebane for their gems, then call up the king himself.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tolo Grimsteel",
+     "items": [
+      {
+       "item": "Tolo's gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Tolo Grimsteel in the Unnamed King's castle in Anu Village and take his gem."
+    },
+    {
+     "kind": "loot",
+     "target": "Ganron Lorebane",
+     "items": [
+      {
+       "item": "Ganron's gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Ganron Lorebane and take his gem."
+    },
+    {
+     "kind": "loot",
+     "target": "The Unnamed King",
+     "items": [
+      {
+       "item": "Crown of the Unnamed",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Call up the Unnamed King at the column, kill him and take his crown."
+    },
+    {
+     "kind": "talk",
+     "target": "Zentar Reese",
+     "journal": "Tell Zentar Reese you hold all four seals.",
+     "says": "Four of four. Now Oransan."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, The Fourth Seal (github.com/Jadiction/EQOA-Data, MIT). The Unnamed King stands in his castle always (the guide's is called up at a column with both gems). His crown is the database's Crown of the Unnamed."
+  },
+  {
+   "key": "30,40,49/group-5-evil/L49",
+   "name": "Parathior",
+   "giver": "Zentar Reese",
+   "classes": [
+    0,
+    8,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    2,
+    5,
+    9
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-5-evil/L49-c",
+    "30,40,49/group-5-evil/L49-d"
+   ],
+   "offer": "Take all four seals to Oransan at the broken tower in the north Snowblind Plains, west of the bear cave. He will call Parathior down. Bring me what is left of it.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and save everything.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Oransan",
+     "items": [
+      {
+       "item": "Frost Cleaver",
+       "count": 1
+      },
+      {
+       "item": "Crown of the Unnamed",
+       "count": 1
+      },
+      {
+       "item": "Star of Salisearaneen",
+       "count": 1
+      },
+      {
+       "item": "Gear of Hazoran",
+       "count": 1
+      }
+     ],
+     "journal": "Show the four seals to Oransan at the broken tower in the north Snowblind Plains.",
+     "says": "All four. Speak with Orinas while I begin; then the ice will fall from the sky."
+    },
+    {
+     "kind": "talk",
+     "target": "Orinas",
+     "journal": "Speak with Orinas, the bear, beside Oransan.",
+     "says": "When it is done, the weapon you have earned will be yours. Now, look up!"
+    },
+    {
+     "kind": "loot",
+     "target": "Parathior",
+     "items": [
+      {
+       "item": "Ice Chunk",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Parathior and take a chunk of its ice."
+    },
+    {
+     "kind": "give",
+     "target": "Zentar Reese",
+     "items": [
+      {
+       "item": "Ice Chunk",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ice chunk to Zentar Reese.",
+     "says": "It is over. Take your reward, and when you have grown to the height of your power, the Recruiter will have work for you.",
+     "rewards": {
+      "xp": 45558313,
+      "byclass": {
+       "14": {
+        "spells": [
+         "Dean's Knack"
+        ],
+        "items": [
+         "Metamorphic Robes"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Withering Wind"
+        ],
+        "items": [
+         "Cudgel of the Spirit Guide"
+        ]
+       },
+       "0": {
+        "spells": [
+         "Battlecry"
+        ],
+        "items": [
+         "Steelwind"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Burning Clash"
+        ],
+        "items": [
+         "Pulsaric Rod"
+        ]
+       }
+      },
+      "items": [
+       "letter to the Freeport Recruiter"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Parathior (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky). Zentar gives the final rewards; the guide's class NPCs (warriors the four warlords in Anu Village, shamans Elder Gabgug in Guardian Forest, alchemists Brindy Roro in Highpass) and their approval visits are not in. Oransan holds the first two seals already (the guide); Zentar's star and gear go to Oransan's ritual with the two the player took. Epic weapons: epics_49.json's first."
   }
  ],
  "items": [
@@ -7740,6 +9148,90 @@
    "description": "A rogue's dagger, the reward of the level 40 path.",
    "notrade": true,
    "like": "Jagged Rust Dagger"
+  },
+  {
+   "name": "Holman's writ",
+   "description": "Director Holman of Zentar's Keep vouches for the bearer.",
+   "notrade": true,
+   "like": "Lanlin's Note"
+  },
+  {
+   "name": "sacred monarch wing",
+   "description": "A sacred monarch's wing, for Twindle Fizzmop.",
+   "notrade": true,
+   "like": "damaged bug wings"
+  },
+  {
+   "name": "bar patron",
+   "description": "A bar patron, bound for the salt mines.",
+   "notrade": true,
+   "like": "Shackles"
+  },
+  {
+   "name": "U'Dedne gem",
+   "description": "The gem of House U'Dedne Quicktoe stole.",
+   "notrade": true,
+   "like": "gem of fury"
+  },
+  {
+   "name": "Carrick's body",
+   "description": "The body of Carrick Reese, Zentar's son.",
+   "notrade": true,
+   "like": "Shambling Bones"
+  },
+  {
+   "name": "bottle of Carrick's blood",
+   "description": "The blood of Zentar's line, drained by Mystic Horga.",
+   "notrade": true,
+   "like": "blood sack"
+  },
+  {
+   "name": "bottle of corrupted blood",
+   "description": "Carrick Reese's blood, made black by Hierophant Koligo.",
+   "notrade": true,
+   "like": "blood sack"
+  },
+  {
+   "name": "Bonecaster's Censer",
+   "description": "A censer from the bonecasters' room deep in Guk.",
+   "notrade": true,
+   "like": "Clay Mixing Vial"
+  },
+  {
+   "name": "heart of Oakhollow",
+   "description": "Oakhollow's heart, taken at Nature's Altar.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "Star of Salisearaneen",
+   "description": "The star of Salisearaneen, from the faeries' druidic stone.",
+   "notrade": true,
+   "like": "moonstone"
+  },
+  {
+   "name": "Faerie Crystal",
+   "description": "The Faerie Protector's crystal.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Gear of Hazoran",
+   "description": "A gear Twindle Fizzmop sold for too much.",
+   "notrade": true,
+   "like": "Power Core"
+  },
+  {
+   "name": "Darkflame Spear",
+   "description": "A shaman's spear, the reward of the level 40 path.",
+   "notrade": true,
+   "like": "forest crook"
+  },
+  {
+   "name": "Blightbringer's Staff",
+   "description": "A wizard's staff, the reward of the level 40 path.",
+   "notrade": true,
+   "like": "Rod of Equilibrium"
   }
  ]
 }

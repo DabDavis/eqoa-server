@@ -782,6 +782,55 @@
    "level": 51,
    "note": "the avatar the Calling brings, by Gribble Greencog in Dark Solace (Group 4, level 49)",
    "water": "land"
+  },
+  {
+   "name": "Slavemaster Hern",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "by the north wall of the castle on the hill in the west of the Salt Mines (Group 5, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Lora Greyson",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 29,
+   "note": "drinks at the inn north of the Qeynos coach (Group 5, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Forces of Nature",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Air Elemental"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Forces of Nature (40)"
+   ],
+   "count": 3,
+   "level": 42,
+   "note": "sun, soil and rain at Twisted Tower (Group 5, level 40)",
+   "water": "land"
   }
  ]
 }

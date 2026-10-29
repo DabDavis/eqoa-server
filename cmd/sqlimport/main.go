@@ -29,7 +29,7 @@ func main() {
 	}
 
 	// Open SQLite database
-	db, err := sql.Open("sqlite", *dbFile+"?_journal_mode=WAL&_busy_timeout=5000")
+	db, err := sql.Open("sqlite", *dbFile+"?_pragma=busy_timeout(5000)") // modernc's spelling (internal/database)
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
 	}

@@ -404,6 +404,11 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		log.Printf("InteractItem: serverID=%d key=%d %q: %v", serverID, key, plan.name, err)
 		return nil
 	}
+	if plan.equip {
+		if _, row, err := invItemByKey(items, sessionInvList(sess), key); err == nil && !mayWear(sess, player, &row.Pattern) {
+			return nil
+		}
+	}
 
 	if !h.applyPlan(sess, serverID, plan, "InteractItem") {
 		return nil
@@ -423,6 +428,39 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		fishSayGood(sess, fishHowTo)
 	}
 	return nil
+}
+
+// cannotWear is why the player may not put the item on, "" when it may:
+// CLIENT's CanUse (0x00BCA8F0: the class mask, then the race mask, then the
+// level), in the lines Sandstorm refuses an item with (scribe.go). CLIENT
+// marks such an item in the item menu (CanUseListItem) but sends the request
+// all the same, so the refusal is the server's; until 2026-10-29 it put on
+// anything (the user: "though the bracers are level 42 my level 2 sk can
+// equip them"). A class or race mask of 0 is not checked (ours): 2,189 of
+// this server's wearable items, nearly all the old dump's, carry no class
+// mask, which CLIENT would read as no class.
+func cannotWear(player *entity.Player, p *database.ItemPatternRecord) string {
+	switch {
+	case p.ClassUse != 0 && p.ClassUse&(1<<uint(player.Class)) == 0:
+		return scribeWrongClass
+	case p.RaceUse != 0 && raceUseForWire(p.RaceUse)&(1<<uint(player.Race)) == 0:
+		return scribeWrongRace
+	case player.Level < p.LevelReq:
+		return scribeTooLow
+	}
+	return ""
+}
+
+// mayWear is cannotWear's refusal said in Sandstorm's red, and whether the
+// item may go on.
+func mayWear(sess *session.Session, player *entity.Player, p *database.ItemPatternRecord) bool {
+	why := cannotWear(player, p)
+	if why == "" {
+		return true
+	}
+	log.Printf("Equip: %s (level %d), %q (level %d): %s", player.Name, player.Level, p.ItemName, p.LevelReq, why)
+	SendColoredChat(sess, why, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])
+	return false
 }
 
 // applyPlan writes a plan's equip slots and tells the client: UnequipItem for

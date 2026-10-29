@@ -357,6 +357,11 @@ func (h *EquipHandler) equipInto(sess *session.Session, serverID uint32, items [
 		log.Printf("UseWeaponSet: serverID=%d %q is not in the client's list", serverID, e.Pattern.ItemName)
 		return false
 	}
+	if e.EquipLoc != slot && h.playerOf != nil {
+		if p := h.playerOf(sess); p != nil && !mayWear(sess, p, &e.Pattern) {
+			return false
+		}
+	}
 	return h.applyPlan(sess, serverID, planEquipInto(inventoryRows(items), idx, e, slot), "UseWeaponSet")
 }
 

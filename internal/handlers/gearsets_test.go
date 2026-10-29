@@ -38,7 +38,7 @@ func newGearFixture(t *testing.T) *gearFixture {
 		t.Fatal(err)
 	}
 	f.sid = rec.ServerID
-	f.player = &entity.Player{ServerID: 1002, CharServerID: f.sid, Name: "Gear"}
+	f.player = &entity.Player{ServerID: 1002, CharServerID: f.sid, Name: "Gear", Level: 20}
 	f.sess = testSession()
 	ch := &CharacterHandler{inventoryStore: f.inv}
 	f.h = NewEquipHandler(nil, f.inv, nil, ch)
@@ -400,5 +400,52 @@ func TestInteractionOneIsTheQuickSlotsUse(t *testing.T) {
 	}
 	if out := interact(1); len(out) != 1 || !bytes.Equal(out[0], []byte{0x3F, 0x00, 0, 14}) {
 		t.Fatalf("interaction 1: %x, want the equip", out)
+	}
+}
+
+// An item is put on only by a player CLIENT's CanUse lets wear it (the class
+// mask, the race mask, the level), refused in Sandstorm's red lines (the
+// user, 2026-10-29: a level 2 shadow knight wore level 42 bracers): a level 2
+// shadow knight is refused a level 42 bracer, an item another class's mask
+// names and one another race's does; the control: a level 1 one of its own
+// goes on, and a mask of 0 (2,189 of the live server's items) is not checked.
+func TestAnItemIsWornOnlyByWhoMayWearIt(t *testing.T) {
+	f := newGearFixture(t)
+	f.player.Class, f.player.Race, f.player.Level = 3, 2, 2 // a dark elf shadow knight
+	mk := func(name string, lvl, classes, races int) {
+		id := f.pattern(name, 7, 0, 0)
+		if _, err := f.db.Exec(`UPDATE itempattern SET levelreq = ?, classuse = ?, raceuse = ? WHERE patternid = ?`,
+			lvl, classes, races, id); err != nil {
+			t.Fatal(err)
+		}
+		f.own(id, -1)
+	}
+	mk("Bracers of Forty Two", 42, 527, 1023) // 0: too high
+	mk("Paladin's Bracers", 1, 1<<2, 1023)    // 1: another class
+	mk("Elven Bracers", 1, 1<<3, 1<<1)        // 2: its class, another race
+	mk("Bone Bracers", 1, 1<<3, 1<<2)         // 3: its own, level 1
+	mk("Bracers of No Mask", 1, 0, 0)         // 4: no masks: not checked
+	f.loadList()
+	equip := func(key uint32) [][]byte {
+		return f.send(protocol.OpcodeInteractItem, func(w *buffer.Writer) {
+			w.WriteUint32(key)
+			w.WriteUint32(0xFFFFFFFF)
+			w.WriteByte(0)
+		})
+	}
+	for key, want := range map[uint32]string{0: scribeTooLow, 1: scribeWrongClass, 2: scribeWrongRace} {
+		out := equip(key)
+		if len(out) != 1 || !bytes.Contains(out[0], utf16le(want)) {
+			t.Errorf("item %d: %x, want %q", key, out, want)
+		}
+	}
+	if w := f.worn(); len(w) != 0 {
+		t.Fatalf("refused items were put on: %v", w)
+	}
+	if out := equip(3); len(out) != 1 || out[0][0] != 0x3F {
+		t.Errorf("its own level 1 bracers: %x, want the equip", out)
+	}
+	if out := equip(4); len(out) == 0 || out[len(out)-1][0] != 0x3F {
+		t.Errorf("bracers with no masks: %x, want the equip", out)
 	}
 }

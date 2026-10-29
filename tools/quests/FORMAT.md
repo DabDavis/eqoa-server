@@ -54,6 +54,8 @@ with what is missing in its notes, so only whole quests are offered to players.
 | `answer` | optional: the player's answer that does a talk, show or give step (its first line; more lines are answers that change nothing); none: done on talking |
 | `rewards` | `{"xp": n, "tunar": n, "items": [names], "spells": [names], "factions": [["<faction>", n], ...], "byclass": {...}}` given when the step is done; the guide's figures (usually on the last step) |
 | `rewards.byclass` | optional: `{"<class id 0-14>": {"items": [names], "spells": [names], "xp": n, "tunar": n}}`, the guide's "Rewards by Class": given besides the step's own to a player of that class, each spell that class's own (the `classspells` row of the name), and named in that class's marks on the map |
+| `choices` | optional, a talk, show or give step's: `[{"answer": "<the player's answer, 63 characters>", "says": "<the NPC's words when it is picked>", "stay": true, "rewards": {"items": [names], "spells": [names], "xp": n, "tunar": n}}]`, at most six (a guide's "choose your epic weapon"). Asked when the step is done at its NPC (after its `answer`, when it has one); the picked option's words are said and its rewards given besides the step's own (its spells the quest's class's own), the marks naming them "a choice of A or B"; an option with `stay` does not do the step (a wrong answer: its words said, the player may talk again) |
+| `choose` | optional: the choice's question (none: "Which do you choose?", ours) |
 | `events` | Event, on this step (`start`, `done`) |
 
 ## Item
@@ -82,7 +84,8 @@ is a change). A quest is a draft when a name it uses (an NPC, a creature, an ite
 a class's reward) is not in the database, when its own `unresolved` lists anything, or when a quest it
 requires is missing or a draft. Its `factions_required` go in `quests.factionreq`
 (`Faction:min` or `Faction:min..max`), a step's `byclass` in `queststeps.byclass` (a JSON object by
-class id, items and spells as ids), its `unlocks` in table `questunlocks` (`--routes` names the
+class id, items and spells as ids), a step's `choices` in `queststeps.choices` (`{"ask", "options"}`,
+items and spells as ids), its `unlocks` in table `questunlocks` (`--routes` names the
 `waysender.go` they are matched to; this tree's by default). `--undo` takes the trips too. Stop the
 server to apply, start it after.
 

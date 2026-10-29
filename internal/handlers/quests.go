@@ -83,6 +83,8 @@ const (
 	questNotYet   = "Come back when you have what I asked for."
 	questAskOffer = "Will you help?"
 	questAskStep  = "Yes?"
+	// a step's choice asked with no question of its own (ours)
+	questAskChoice = "Which do you choose?"
 )
 
 // questEngine is the running engine, for the GM panel and the MemoryDump.
@@ -195,10 +197,11 @@ type questBox struct {
 
 // questChoice is one answer of a quest dialog.
 type questChoice struct {
-	kind  int
-	quest int
-	step  int
-	label string
+	kind   int
+	quest  int
+	step   int
+	option int // a step's choice: the option picked
+	label  string
 }
 
 const (
@@ -207,6 +210,7 @@ const (
 	choiceStep
 	choiceNotYet  // a show or give step's answer while its items lack: the reminder
 	choiceNothing // a dead end (Sandstorm's "Farewell")
+	choicePick    // an option of a step's choice (database.StepChoices)
 )
 
 // NewQuestEngine reads the quests out of db. Start sets it running.
@@ -531,7 +535,7 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 			}
 			continue
 		}
-		q.atNPCLocked(sess, p, c, qu, cq, st, false)
+		q.atNPCLocked(sess, p, c, qu, cq, st, false, -1)
 		return true
 	}
 	if wontDeal != "" {
@@ -770,8 +774,11 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 }
 
 // atNPCLocked is a talk, show or give step's NPC talked to (answered: its
-// answer picked). Show and give wait for what is to be held; give takes it.
-func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, answered bool) {
+// answer picked; pick: the option of its choice picked, -1 none). Show and
+// give wait for what is to be held; give takes it. A step with a choice asks
+// it last, and is done with the option's rewards besides its own (an option
+// that stays does not do it).
+func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, answered bool, pick int) {
 	// the standing may have moved since the question was asked
 	if line := giverWontDeal(q.lookAt(sess), qu, st); line != "" {
 		q.tellLocked(c, sess, "", line)
@@ -783,7 +790,7 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 			// Sandstorm's Norgam asks his question with only the not-yet
 			// answer while the belts lack; the completing one comes once
 			// they are held
-			if notyet := sayLines(st.NotYet); len(notyet) > 0 && !answered {
+			if notyet := sayLines(st.NotYet); len(notyet) > 0 && !answered && pick < 0 {
 				var choices []questChoice
 				for _, l := range notyet {
 					choices = append(choices, questChoice{kind: choiceNotYet, quest: qu.ID, step: st.Step, label: l})
@@ -797,13 +804,36 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 	}
 	// the answer's first line does the step; any more are dead ends
 	// (Sandstorm's Zole: "Commander Nothard sent me", "Farewell")
-	if answers := sayLines(st.Answer); len(answers) > 0 && !answered {
+	answers := sayLines(st.Answer)
+	if len(answers) > 0 && !answered && pick < 0 {
 		choices := []questChoice{{kind: choiceStep, quest: qu.ID, step: st.Step, label: answers[0]}}
 		for _, l := range answers[1:] {
 			choices = append(choices, questChoice{kind: choiceNothing, label: l})
 		}
 		q.askLocked(sess, c, st.Target, st.Waiting, questAskStep, choices)
 		return
+	}
+	var opt *database.StepOption
+	if opts := st.Choices.Options; len(opts) > 0 {
+		if pick < 0 || pick >= len(opts) {
+			// the words before it unless an answer's question said them
+			words := orText(st.Choices.Ask, questAskChoice)
+			if len(answers) == 0 && strings.TrimSpace(st.Waiting) != "" {
+				words = st.Waiting + "\n" + words
+			}
+			choices := make([]questChoice, len(opts))
+			for i, o := range opts {
+				choices[i] = questChoice{kind: choicePick, quest: qu.ID, step: st.Step, option: i, label: o.Answer}
+			}
+			q.askLocked(sess, c, st.Target, words, questAskChoice, choices)
+			return
+		}
+		opt = &opts[pick]
+		if opt.Stay {
+			q.tellLocked(c, sess, st.Target, sayLines(opt.Says)...)
+			log.Printf("Quests: %s picked %q at %q step %d: the step stays", p.Name, opt.Answer, qu.Name, st.Step)
+			return
+		}
 	}
 	var given []string
 	if st.Kind == database.StepGive {
@@ -813,7 +843,13 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 			return
 		}
 	}
-	q.completeStepLocked(sess, p, c, qu, cq, st, given)
+	var extra *database.ClassReward
+	if opt != nil {
+		q.tellLocked(c, sess, st.Target, sayLines(opt.Says)...)
+		extra = &opt.Reward
+		log.Printf("Quests: %s picked %q at %q step %d", p.Name, opt.Answer, qu.Name, st.Step)
+	}
+	q.completeStepLocked(sess, p, c, qu, cq, st, given, extra)
 }
 
 // Answer is HandleDialogueOption's first question: an answer to a quest's box.
@@ -866,13 +902,17 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 		if st := qu.Step(ch.step); st != nil {
 			q.tellLocked(c, sess, st.Target, sayLines(orText(st.Reminder, questNotYet))...)
 		}
-	case choiceStep:
+	case choiceStep, choicePick:
 		cq := c.quests[qu.ID]
 		st := qu.Step(ch.step)
 		if cq == nil || cq.Step != ch.step || st == nil {
 			return true
 		}
-		q.atNPCLocked(sess, p, c, qu, cq, st, true)
+		pick := -1
+		if ch.kind == choicePick {
+			pick = ch.option
+		}
+		q.atNPCLocked(sess, p, c, qu, cq, st, true, pick)
 	}
 	return true
 }
@@ -959,7 +999,7 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 				}
 				continue
 			}
-			q.completeStepLocked(kp.Session, p, c, qu, cq, st, nil)
+			q.completeStepLocked(kp.Session, p, c, qu, cq, st, nil, nil)
 		}
 	}
 }
@@ -995,7 +1035,7 @@ func (q *QuestEngine) checkReach() {
 				r = 15
 			}
 			if dx, dz := x-st.X, z-st.Z; dx*dx+dz*dz <= r*r {
-				q.completeStepLocked(sess, p, c, qu, cq, st, nil)
+				q.completeStepLocked(sess, p, c, qu, cq, st, nil, nil)
 			}
 		}
 	}
@@ -1005,8 +1045,9 @@ func (q *QuestEngine) checkReach() {
 // quest, recorded): the NPC's words, the journal's line taken (and the next
 // step's added), "You have finished a quest!" after the last step, a line for
 // what was handed in and each item given, then the experience and the
-// faction lines.
-func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, given []string) {
+// faction lines. extra is the rewards of the option the player picked (nil
+// none), given besides the step's.
+func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, given []string, extra *database.ClassReward) {
 	idx := c.index(qu.ID)
 	next := qu.Next(st.Step)
 	speaker := ""
@@ -1046,6 +1087,9 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 	var rw database.ClassReward
 	if p != nil {
 		rw = st.RewardFor(p.Class)
+	}
+	if extra != nil {
+		rw = rw.Plus(*extra)
 	}
 	lines = append(lines, q.rewardLocked(sess, p, rw)...)
 	q.tellLocked(c, sess, "", lines...)

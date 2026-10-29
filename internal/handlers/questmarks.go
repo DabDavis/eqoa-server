@@ -441,6 +441,20 @@ func (q *QuestEngine) questTexts(all []*database.Quest) (map[int]*questText, map
 			t.offer = line
 		}
 		// the rewards of every step for a class (-1: none, the steps' own)
+		// one choice's option's rewards in a few words ("Ash Staff, 50 XP")
+		optionOf := func(rw database.ClassReward) string {
+			got := items(rw.Items)
+			for _, id := range rw.Spells {
+				got = append(got, spellOf(id))
+			}
+			if rw.XP > 0 {
+				got = append(got, fmt.Sprintf("%d XP", rw.XP))
+			}
+			if rw.Tunar > 0 {
+				got = append(got, fmt.Sprintf("%d tunar", rw.Tunar))
+			}
+			return strings.Join(got, ", ")
+		}
 		rewardsOf := func(class int) string {
 			xp, tunar := 0, 0
 			var got []string
@@ -451,6 +465,16 @@ func (q *QuestEngine) questTexts(all []*database.Quest) (map[int]*questText, map
 				got = append(got, items(rw.Items)...)
 				for _, id := range rw.Spells {
 					got = append(got, spellOf(id))
+				}
+				// a step's choice: one of its options' rewards
+				var picks []string
+				for _, o := range qu.Steps[i].Choices.Options {
+					if w := optionOf(o.Reward); w != "" && !o.Stay {
+						picks = append(picks, w)
+					}
+				}
+				if len(picks) > 0 {
+					got = append(got, "a choice of "+strings.Join(picks, " or "))
 				}
 			}
 			var reward []string

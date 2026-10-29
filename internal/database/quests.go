@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS queststeps (
 	chance      REAL NOT NULL DEFAULT 0,
 	events      TEXT NOT NULL DEFAULT '',
 	byclass     TEXT NOT NULL DEFAULT '',
+	choices     TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (questid, step)
 );
 CREATE TABLE IF NOT EXISTS questunlocks (
@@ -113,6 +114,7 @@ func (db *SQLiteDB) initQuests() error {
 		{"quests", "events", `TEXT NOT NULL DEFAULT ''`}, {"queststeps", "events", `TEXT NOT NULL DEFAULT ''`},
 		{"queststeps", "chance", `REAL NOT NULL DEFAULT 0`},
 		{"quests", "factionreq", `TEXT NOT NULL DEFAULT ''`}, {"queststeps", "byclass", `TEXT NOT NULL DEFAULT ''`},
+		{"queststeps", "choices", `TEXT NOT NULL DEFAULT ''`},
 	} {
 		has, err := hasColumn(db.DB, c.table, c.col)
 		if err != nil {
@@ -482,6 +484,112 @@ type QuestStep struct {
 	// ByClass is what a player of a class (its id) is given besides those
 	// (the byclass column; the guides' "Rewards by Class").
 	ByClass map[int]ClassReward
+	// Choices is the pick a talk, show or give step asks for when it is done
+	// (the choices column; a guide's "choose your epic weapon").
+	Choices StepChoices
+}
+
+// StepChoices is a step's question and the options the player picks among
+// when the step is done at its NPC: an option's rewards are given besides
+// the step's own, and an option that stays does not do the step.
+type StepChoices struct {
+	Ask     string
+	Options []StepOption
+}
+
+// StepOption is one answer of a step's choice.
+type StepOption struct {
+	Answer string // the player's answer (63 characters show)
+	Says   string // the NPC's words when it is picked, a line a box
+	Stay   bool   // picked, the step is not done (a wrong answer: talk again)
+	Reward ClassReward
+}
+
+// MaxStepOptions is how many answers a choice has room for (CLIENT's
+// Msg0034 shows six).
+const MaxStepOptions = 6
+
+// stepChoicesJSON is StepChoices as the choices column keeps it, an
+// option's items and spells written as the step's own columns have them.
+type stepChoicesJSON struct {
+	Ask     string `json:"ask,omitempty"`
+	Options []struct {
+		Answer string `json:"answer"`
+		Says   string `json:"says,omitempty"`
+		Stay   bool   `json:"stay,omitempty"`
+		XP     int    `json:"xp,omitempty"`
+		Tunar  int    `json:"tunar,omitempty"`
+		Items  string `json:"items,omitempty"`
+		Spells string `json:"spells,omitempty"`
+	} `json:"options"`
+}
+
+// ParseStepChoices reads a choices column: {"ask": "<the question>",
+// "options": [{"answer", "says", "stay", "xp", "tunar", "items":
+// "patternid*count, ...", "spells": "id, ..."}]} ("" none). Options past
+// MaxStepOptions and without an answer are left out (ChoiceProblems names
+// them).
+func ParseStepChoices(s string) (StepChoices, error) {
+	if strings.TrimSpace(s) == "" {
+		return StepChoices{}, nil
+	}
+	var raw stepChoicesJSON
+	if err := json.Unmarshal([]byte(s), &raw); err != nil {
+		return StepChoices{}, err
+	}
+	out := StepChoices{Ask: strings.TrimSpace(raw.Ask)}
+	for _, o := range raw.Options {
+		if strings.TrimSpace(o.Answer) == "" || len(out.Options) == MaxStepOptions {
+			continue
+		}
+		out.Options = append(out.Options, StepOption{Answer: strings.TrimSpace(o.Answer), Says: o.Says, Stay: o.Stay,
+			Reward: ClassReward{XP: o.XP, Tunar: o.Tunar, Items: ParseItemCounts(o.Items), Spells: ParseIntList(o.Spells)}})
+	}
+	return out, nil
+}
+
+// ChoiceProblems is what is wrong with a choices column on a step of a kind:
+// unreadable JSON, a choice on a step not done at an NPC, no options or more
+// than CLIENT shows, an answer missing or longer than 63 characters, items
+// or spells not written as the step's own are, negative experience or tunar.
+// It checks nothing in the database.
+func ChoiceProblems(s, kind string) []string {
+	if strings.TrimSpace(s) == "" {
+		return nil
+	}
+	var raw stepChoicesJSON
+	if err := json.Unmarshal([]byte(s), &raw); err != nil {
+		return []string{`its choice is not {"ask", "options": [{"answer", "says", "stay", "xp", "tunar", "items", "spells"}]}: ` + err.Error()}
+	}
+	var out []string
+	if !AtNPC(kind) {
+		out = append(out, fmt.Sprintf("a %s step asks no choice (talk, show and give steps do, at their NPC)", kind))
+	}
+	switch {
+	case len(raw.Options) == 0:
+		out = append(out, "its choice has no options")
+	case len(raw.Options) > MaxStepOptions:
+		out = append(out, fmt.Sprintf("its choice has %d options: the client shows %d", len(raw.Options), MaxStepOptions))
+	}
+	for i, o := range raw.Options {
+		where := fmt.Sprintf("option %d", i+1)
+		switch n := len([]rune(strings.TrimSpace(o.Answer))); {
+		case n == 0:
+			out = append(out, where+" has no answer")
+		case n > 63:
+			out = append(out, where+"'s answer is longer than 63 characters: the client cuts it")
+		}
+		if o.XP < 0 || o.Tunar < 0 {
+			out = append(out, where+": experience and tunar are not below 0")
+		}
+		if len(nonEmptyParts(o.Items)) != len(ParseItemCounts(o.Items)) {
+			out = append(out, fmt.Sprintf("%s: items %q are not patternid*count, comma separated", where, o.Items))
+		}
+		if len(nonEmptyParts(o.Spells)) != len(ParseIntList(o.Spells)) {
+			out = append(out, fmt.Sprintf("%s: spells %q are not spell ids, comma separated", where, o.Spells))
+		}
+	}
+	return out
 }
 
 // RewardFor is the step's rewards for a player of a class: its own and then
@@ -489,14 +597,18 @@ type QuestStep struct {
 func (s *QuestStep) RewardFor(class int) ClassReward {
 	out := ClassReward{XP: s.XP, Tunar: s.RewardTunar,
 		Items: append([]ItemCount(nil), s.RewardItems...), Spells: append([]int(nil), s.Spells...)}
-	cr, ok := s.ByClass[class]
-	if !ok {
-		return out
+	if cr, ok := s.ByClass[class]; ok {
+		out = out.Plus(cr)
 	}
-	out.XP += cr.XP
-	out.Tunar += cr.Tunar
-	out.Items = append(out.Items, cr.Items...)
-	for _, sp := range cr.Spells {
+	return out
+}
+
+// Plus is r and o together: experience and tunar added, o's items after r's,
+// each spell once.
+func (r ClassReward) Plus(o ClassReward) ClassReward {
+	out := ClassReward{XP: r.XP + o.XP, Tunar: r.Tunar + o.Tunar,
+		Items: append(append([]ItemCount(nil), r.Items...), o.Items...), Spells: append([]int(nil), r.Spells...)}
+	for _, sp := range o.Spells {
 		seen := false
 		for _, have := range out.Spells {
 			seen = seen || have == sp
@@ -792,18 +904,18 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		return nil, err
 	}
 	srs, err := s.db.Query(`SELECT questid, step, kind, target, npcid, items, tunar, count, world, x, y, z, radius,
-		journal, answer, says, waiting, notyet, reminder, xp, rewardtunar, rewarditems, factions, spells, chance, events, byclass
-		FROM queststeps ORDER BY questid, step`)
+		journal, answer, says, waiting, notyet, reminder, xp, rewardtunar, rewarditems, factions, spells, chance, events, byclass,
+		choices FROM queststeps ORDER BY questid, step`)
 	if err != nil {
 		return nil, err
 	}
 	for srs.Next() {
 		var st QuestStep
-		var items, rewardItems, factions, spells, events, byClass string
+		var items, rewardItems, factions, spells, events, byClass, choices string
 		if err := srs.Scan(&st.Quest, &st.Step, &st.Kind, &st.Target, &st.NPCID, &items, &st.Tunar, &st.Count, &st.World,
 			&st.X, &st.Y, &st.Z, &st.Radius, &st.Journal, &st.Answer, &st.Says, &st.Waiting, &st.NotYet, &st.Reminder,
 			&st.XP, &st.RewardTunar,
-			&rewardItems, &factions, &spells, &st.Chance, &events, &byClass); err != nil {
+			&rewardItems, &factions, &spells, &st.Chance, &events, &byClass, &choices); err != nil {
 			srs.Close()
 			return nil, err
 		}
@@ -815,6 +927,11 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		}
 		if st.ByClass, err = ParseClassRewards(byClass); err != nil {
 			log.Printf("Quests: quest %d step %d's rewards by class are not read: %v", st.Quest, st.Step, err)
+		}
+		if st.Choices, err = ParseStepChoices(choices); err != nil {
+			log.Printf("Quests: quest %d step %d's choice is not read: %v", st.Quest, st.Step, err)
+		} else if len(st.Choices.Options) > 0 && !AtNPC(st.Kind) {
+			log.Printf("Quests: quest %d step %d is a %s step: its choice is never asked", st.Quest, st.Step, st.Kind)
 		}
 		if i, ok := byID[st.Quest]; ok {
 			out[i].Steps = append(out[i].Steps, st)

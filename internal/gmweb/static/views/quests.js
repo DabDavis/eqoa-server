@@ -422,6 +422,55 @@ function classRewards(obj, key) {
   return box;
 }
 
+// choiceEditor edits obj[key], a talk, show or give step's choice
+// (database.StepChoices: {ask, options: [{answer, says, stay, xp, tunar,
+// items, spells}]}): its question and a row an option. Text that is not such
+// a choice is shown as it is, to be mended by hand.
+function choiceEditor(obj, key) {
+  const box = h('div', { class: 'stack' });
+  let ch;
+  try {
+    ch = obj[key] ? JSON.parse(obj[key]) : { options: [] };
+    if (!ch || typeof ch !== 'object' || !Array.isArray(ch.options || [])) throw new Error('no options list');
+    ch.options = ch.options || [];
+  } catch (e) {
+    mount(box, h('p', { class: 'err small' }, 'This choice is not {ask, options} (' + e.message + '): mend it here.'), area(obj, key, 3));
+    return box;
+  }
+  const keep = () => {
+    const opts = ch.options.map((o) => {
+      const v = { answer: String(o.answer || '').trim() };
+      if (String(o.says || '').trim()) v.says = o.says;
+      if (o.stay) v.stay = true;
+      if (Number(o.xp)) v.xp = Number(o.xp);
+      if (Number(o.tunar)) v.tunar = Number(o.tunar);
+      if (String(o.items || '').trim()) v.items = String(o.items).trim();
+      if (String(o.spells || '').trim()) v.spells = String(o.spells).trim();
+      return v;
+    });
+    obj[key] = opts.length ? JSON.stringify(String(ch.ask || '').trim() ? { ask: ch.ask.trim(), options: opts } : { options: opts }) : '';
+  };
+  box.addEventListener('input', keep);
+  box.addEventListener('change', keep);
+  const row = (o, i) => {
+    const stay = h('input', { type: 'checkbox', checked: !!o.stay });
+    stay.addEventListener('change', () => { o.stay = stay.checked; keep(); });
+    return h('div', { class: 'fields' }, field(`Answer ${i + 1}`, counted(o, 'answer', 63), null, true),
+      field('NPC says when picked', area(o, 'says', 2), 'a line a box', true),
+      field('', h('label', { class: 'check' }, stay, 'Stays: the step is not done (a wrong answer)')),
+      field('Experience', num(o, 'xp', { min: 0 })), field('Tunar', num(o, 'tunar', { min: 0 })),
+      field('Items', itemsInput(o, 'items'), null, true), field('Spells taught', spellsInput(o, 'spells'), null, true),
+      field('', button('Remove', { icon: 'trash', onclick: () => { ch.options.splice(i, 1); keep(); draw(); } })));
+  };
+  const ask = text(ch, 'ask', { placeholder: 'Which do you choose?' });
+  const draw = () => mount(box, ch.options.length ? field('The question', ask, 'asked when the step is done', true) : null,
+    ...ch.options.map(row),
+    ch.options.length ? null : h('p', { class: 'muted small' }, 'None: the step is done when talked to.'),
+    ch.options.length < 6 ? button('Add an option', { icon: 'plus', onclick: () => { ch.options.push({ answer: '' }); keep(); draw(); } }) : null);
+  draw();
+  return box;
+}
+
 // routeKey is a place as an unlock's is matched to a route's label
 // (handlers/questtrips.go): case, a leading "the" and all but letters and
 // digits aside.
@@ -449,6 +498,7 @@ function unlocksEditor(list, routes) {
     const npc = npcInput(u, 'npc', 'the travel NPC');
     npc.addEventListener('input', refresh);
     dest.addEventListener('input', refresh);
+    dest.addEventListener('focus', refresh); // after a pick, which sets the NPC without an input event
     refresh();
     return h('div', { class: 'fields' }, field('Travel NPC', npc, 'a waysender or a portal', true),
       field('Trip to', h('div', { class: 'stack' }, dest, dl, note), null, true),
@@ -552,7 +602,7 @@ async function editor(box, id) {
     button('Add a step', { icon: 'plus', onclick: () => {
       steps.push({ kind: 'talk', target: q.giver || '', npcid: 0, items: '', tunar: 0, count: 1, world: 0, x: 0, y: 0, z: 0, radius: 15,
         journal: '', answer: '', says: '', waiting: '', notyet: '', reminder: '', xp: 0, rewardtunar: 0, rewarditems: '', factions: '', spells: '',
-        chance: 0, events: '', byclass: '' });
+        chance: 0, events: '', byclass: '', choices: '' });
       drawSteps();
     } }));
 
@@ -607,6 +657,7 @@ async function editor(box, id) {
       field('Reward: faction changes', text(s, 'factions', { placeholder: 'Faction Name:+10, ...' }), null, true),
       field('Reward: spells taught', spellsInput(s, 'spells'), null, true),
       field('Rewards by class', classRewards(s, 'byclass'), 'besides those above, for a player of that class', true),
+      AT_NPC.has(s.kind) ? field('A choice', choiceEditor(s, 'choices'), "asked when it is done: the pick's rewards besides those above", true) : null,
       field('Events', eventsEditor(s, 'events', STEP_WHENS, worlds), 'run in order after the step\'s own words', true));
     const move = (d) => { const j = i + d; if (j < 0 || j >= steps.length) return; [steps[i], steps[j]] = [steps[j], steps[i]]; drawSteps(); };
     return card(`Step ${i + 1} · ${KINDS[s.kind] || s.kind}`, h('div', { class: 'fields' }, ...fields),

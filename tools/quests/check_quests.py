@@ -20,7 +20,9 @@ or [faction, min, max], -2000..2000), repeatable, unlocks ({"npc", "to"}: a
 trip of internal/handlers/waysender.go's routes, a warning when it names none
 yet or, with --db, an NPC no row has: an unlock is not a name the quest needs
 to be played), a step's rewards.byclass (class ids 0-14, their items and
-spells checked as the step's own).
+spells checked as the step's own), a talk, show or give step's choices (at
+most six options, each an answer of 63 characters at most; their items and
+spells checked) and its choose (the question).
 """
 import argparse
 import collections
@@ -254,6 +256,44 @@ class Check:
                             self.err(cw, f'gives {sorted(unknown)} (items, spells, xp and tunar are read)')
                         items += [i for i in cr.get('items', []) if isinstance(i, str)]
                         spells += [s for s in cr.get('spells', []) if isinstance(s, str)]
+            ch = st.get('choices', [])
+            if not isinstance(ch, list):
+                self.err(sw, 'choices is not a list')
+                ch = []
+            if ch and kind not in ('talk', 'show', 'give'):
+                self.err(sw, f'a {kind} step asks no choice (talk, show and give steps do)')
+            if len(ch) > 6:
+                self.err(sw, f'{len(ch)} choices: the client shows 6')
+            if not isinstance(st.get('choose', ''), str):
+                self.err(sw, 'choose is not text')
+            elif len((st.get('choose') or '').strip()) > 127:
+                self.warn(sw, 'choose is longer than a question (127)')
+            for k, o in enumerate(ch, 1):
+                ow = f'{sw} option {k}'
+                if not isinstance(o, dict):
+                    self.err(ow, 'not an object')
+                    continue
+                if not isinstance(o.get('answer'), str) or not o['answer'].strip():
+                    self.err(ow, 'no answer')
+                elif len(o['answer'].strip()) > ANSWER:
+                    self.err(ow, f'the answer is longer than {ANSWER} characters')
+                if not isinstance(o.get('says', ''), str) or not isinstance(o.get('stay', False), bool):
+                    self.err(ow, 'says is not text or stay not true or false')
+                unknown = set(o) - {'answer', 'says', 'stay', 'rewards'}
+                if unknown:
+                    self.err(ow, f'has {sorted(unknown)} (answer, says, stay and rewards are read)')
+                orw = o.get('rewards', {})
+                if not isinstance(orw, dict) or set(orw) - {'items', 'spells', 'xp', 'tunar'}:
+                    self.err(ow, 'rewards is not {items, spells, xp, tunar}')
+                    continue
+                for f in ('xp', 'tunar'):
+                    if not isinstance(orw.get(f, 0), int) or orw.get(f, 0) < 0:
+                        self.err(ow, f'{f} {orw.get(f)!r}')
+                for f in ('items', 'spells'):
+                    if not isinstance(orw.get(f, []), list) or not all(isinstance(v, str) and v.strip() for v in orw.get(f, [])):
+                        self.err(ow, f'{f} is not a list of names')
+                items += [i for i in orw.get('items', []) if isinstance(i, str)]
+                spells += [x for x in orw.get('spells', []) if isinstance(x, str)]
             for ev in st.get('events', []):
                 self.event(sw, ev, {'start', 'done'}, npcs, items)
         for ev in q.get('events', []):

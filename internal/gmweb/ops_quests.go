@@ -24,7 +24,7 @@ var questCols = []string{"name", "enabled", "giver", "minlevel", "maxlevel", "cl
 // stepCols are a step row's columns the editor sends.
 var stepCols = []string{"kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
 	"journal", "answer", "says", "waiting", "notyet", "reminder", "xp", "rewardtunar", "rewarditems", "factions", "spells",
-	"chance", "events", "byclass"}
+	"chance", "events", "byclass", "choices"}
 
 // questUnlock is one trip a quest unlocks as the editor sends it (a
 // questunlocks row: handlers/questtrips.go).
@@ -90,6 +90,10 @@ func (s *Server) registerQuestOps() {
 		"events":      str("what happens when it becomes the step to do (on start) and when it is done (on done): " + eventsHelp),
 		"byclass": str(`rewards for a player of one class besides the above: a JSON object by class id (0 Warrior ... 14 ` +
 			`Alchemist), each {"xp", "tunar", "items": "patternid*count, ...", "spells": "spell ids, comma separated"}; empty: none`),
+		"choices": str(`talk/show/give: a pick asked when the step is done at its NPC (a guide's "choose your epic weapon"): ` +
+			`{"ask": "the question", "options": [{"answer", "says", "stay", "xp", "tunar", "items": "patternid*count, ...", ` +
+			`"spells": "spell ids"}]}, at most six options; the picked one's rewards are given besides the step's own, and one ` +
+			`with stay does not do the step (a wrong answer: its words said, the player may talk again); empty: none`),
 	})
 	unlockSchema := obj(map[string]any{
 		"npc":  str("the travel NPC (a waysender, a portal), by its name as the game shows it"),
@@ -625,6 +629,21 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any, unlocks
 			}
 		}
 		s.classRewardProblems(text(st, "byclass"), where, add)
+		for _, p := range database.ChoiceProblems(text(st, "choices"), kind) {
+			add("%s: %s", where, p)
+		}
+		if ch, err := database.ParseStepChoices(text(st, "choices")); err == nil {
+			for k, o := range ch.Options {
+				s.itemProblems(o.Reward.Items, fmt.Sprintf("%s's option %d gives", where, k+1), add)
+				for _, sp := range o.Reward.Spells {
+					var n int
+					s.d.DB.QueryRow(`SELECT COUNT(*) FROM spellpattern WHERE spellid = ?`, sp).Scan(&n)
+					if n == 0 {
+						add("%s's option %d gives spell %d, which does not exist", where, k+1, sp)
+					}
+				}
+			}
+		}
 	}
 	return out
 }

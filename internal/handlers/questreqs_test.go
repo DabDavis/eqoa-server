@@ -311,3 +311,78 @@ func dialogueBoxes(s *session.Session) []string {
 	}
 	return out
 }
+
+// A step's choice (the guides' "choose your epic weapon"): done at its NPC,
+// the step asks its question with an answer an option; an option that stays
+// says its words and does nothing (talked to again, it asks again); a picked
+// one says its words, gives its rewards besides the step's own and does the
+// step, the other options' rewards not given. The marks name the choice. A
+// step with an answer of its own asks that first.
+func TestAStepsChoiceGivesThePickedOption(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.HP = 100
+	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 10010`)
+	blade, staff := f.pattern("Ash Blade", 1), f.pattern("Ash Staff", 1)
+	orinas := f.tw.add(1, &entity.NPC{ServerID: 741, Name: "Orinas", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, offer) VALUES (90, 'The Epic', 1, 'Orinas', 'Your weapon awaits.')`)
+	f.exec(fmt.Sprintf(`INSERT INTO queststeps (questid, step, kind, target, journal, xp, choices) VALUES (90, 1, 'talk', 'Orinas',
+		'Choose your weapon.', 100, '{"ask": "Which weapon?", "options": [{"answer": "The blade.", "says": "It is yours.", "items": "%d"},
+		{"answer": "The staff.", "items": "%d", "xp": 10}, {"answer": "Neither.", "says": "Then think on it.", "stay": true}]}')`, blade, staff))
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	f.qe.SetMarkers(f.tw.s, f.tw.p, true)
+	marks, _ := sentMarks(t, f.tw.s)
+	f.qe.SetMarkers(f.tw.s, f.tw.p, false)
+	if len(marks) != 1 || marks[0].quests[0].detail != "100 XP, a choice of Ash Blade or Ash Staff, 10 XP" {
+		t.Fatalf("the marks: %+v", marks)
+	}
+
+	f.tw.talk(orinas) // the offer, taken at once
+	f.msgs()
+	f.tw.talk(orinas)
+	m := f.msgs()
+	if len(m) != 1 || !strings.HasSuffix(m[0], ":Which weapon?|The blade.|The staff.|Neither.") {
+		t.Fatalf("the choice: %q", m)
+	}
+	f.tw.pick(boxID(m), 2)
+	if m := f.msgs(); len(m) != 1 || m[0] != "box:Orinas: Then think on it." {
+		t.Fatalf("an option that stays: %q", m)
+	}
+	if s, _ := f.progress(90); s != 1 {
+		t.Fatalf("an option that stays did the step (step %d)", s)
+	}
+	f.tw.talk(orinas)
+	f.tw.pick(boxID(f.msgs()), 1)
+	m = f.msgs()
+	f.want(m, "box:You have received Ash Staff.", "box:"+questFinished, "chat:You receive 110 XP.")
+	f.not(m, "box:You have received Ash Blade.")
+	if f.held(staff) != 1 || f.held(blade) != 0 {
+		t.Errorf("held: staff %d blade %d, want 1 0", f.held(staff), f.held(blade))
+	}
+
+	// an answer of the step's own first, then the choice
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (91, 'Again', 1, 'Nobody Here')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal, answer, waiting, choices) VALUES (91, 1, 'talk', 'Orinas',
+		'x', 'I am ready.', 'You return.', '{"options": [{"answer": "Gold."}, {"answer": "Glory."}]}')`)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.qe.SetCharacterQuest(f.sid, 91, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	f.tw.talk(orinas)
+	m = f.msgs()
+	if len(m) != 1 || !strings.HasSuffix(m[0], ":You return.|I am ready.") {
+		t.Fatalf("the step's own answer first: %q", m)
+	}
+	f.tw.pick(boxID(m), 0)
+	m = f.msgs()
+	if len(m) != 1 || !strings.HasSuffix(m[0], ":"+questAskChoice+"|Gold.|Glory.") {
+		t.Fatalf("then the choice, with ours for its question: %q", m)
+	}
+	f.tw.pick(boxID(m), 0)
+	f.want(f.msgs(), "box:"+questFinished)
+}

@@ -25,7 +25,8 @@ import (
 // reason is still in the game, the reason a warning (it cannot be finished).
 // The later guides' fields count as their names do: a faction a standing is
 // asked with, a class's reward items and spells, a rewards-by-class column
-// that cannot be read (a class id there is not), a trip it unlocks that no
+// that cannot be read (a class id there is not), a choice's options' items
+// and spells and a choice that cannot be asked, a trip it unlocks that no
 // route is or whose NPC is not here.
 
 // Quest statuses.
@@ -392,6 +393,23 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 		// the rewards by class: readable, real classes, items and spells here
 		for _, p := range database.ClassRewardProblems(text(st, "byclass")) {
 			r.why("step %d's %s", n, p)
+		}
+		for _, p := range database.ChoiceProblems(text(st, "choices"), kind) {
+			r.why("step %d: %s", n, p)
+		}
+		if ch, err := database.ParseStepChoices(text(st, "choices")); err == nil {
+			for k, o := range ch.Options {
+				for _, it := range o.Reward.Items {
+					if !names.items[int64(it.PatternID)] {
+						r.lack("item", fmt.Sprint(it.PatternID), "no item %d (step %d's option %d)", it.PatternID, n, k+1)
+					}
+				}
+				for _, sp := range o.Reward.Spells {
+					if !names.spells[int64(sp)] {
+						r.lack("spell", fmt.Sprint(sp), "no spell %d (step %d's option %d)", sp, n, k+1)
+					}
+				}
+			}
 		}
 		if byClass, err := database.ParseClassRewards(text(st, "byclass")); err == nil {
 			for _, class := range sortedKeys(byClass) {

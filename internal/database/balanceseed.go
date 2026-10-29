@@ -26,20 +26,28 @@ package database
 // bards within a few points of hit points left, a monk 3-10 fewer at 45-60,
 // a rogue's even fight at 60 13 fewer), and 3 s cost a rogue of 60 its even
 // fights' safety (96% won with 24% left).
+//
+// A creature's heal out of a fight (regen_pct): 5% of its hit points a tick
+// from its third tick (the user: "Mobs regen slower"; jib's was 15%), so one
+// left empty is whole in about 2 min 10 s, one left at half in 1 min 12 s:
+// longer than an even fight (about 40 s) and a red's (70-90 s), so a fight
+// broken off and taken up again inside that time is not lost, and still
+// shorter than a player's rest (2-3% a tick: 3-5 minutes from empty), so
+// no player out-rests a creature to wear it down over pulls.
 var (
 	BalanceSeedLevels = []BalanceLevel{
-		{Level: 1, HPPct: 300, DamagePct: 250, ConPct: 0, PetHPPct: 300, PetDamagePct: 250, ArtCooldownMS: 1500},
-		{Level: 5, HPPct: 215, DamagePct: 265, ConPct: 0, PetHPPct: 215, PetDamagePct: 265, ArtCooldownMS: 1500},
-		{Level: 8, HPPct: 225, DamagePct: 260, ConPct: 0, PetHPPct: 225, PetDamagePct: 260, ArtCooldownMS: 1500},
-		{Level: 10, HPPct: 220, DamagePct: 225, ConPct: 25, PetHPPct: 220, PetDamagePct: 225, ArtCooldownMS: 1500},
-		{Level: 15, HPPct: 230, DamagePct: 255, ConPct: 70, PetHPPct: 230, PetDamagePct: 280, ArtCooldownMS: 1500},
-		{Level: 18, HPPct: 230, DamagePct: 250, ConPct: 100, PetHPPct: 230, PetDamagePct: 300, ArtCooldownMS: 1500},
-		{Level: 25, HPPct: 250, DamagePct: 220, ConPct: 100, PetHPPct: 250, PetDamagePct: 285, ArtCooldownMS: 1500},
-		{Level: 30, HPPct: 300, DamagePct: 200, ConPct: 100, PetHPPct: 300, PetDamagePct: 300, ArtCooldownMS: 1500},
-		{Level: 35, HPPct: 300, DamagePct: 195, ConPct: 100, PetHPPct: 300, PetDamagePct: 340, ArtCooldownMS: 1500},
-		{Level: 45, HPPct: 330, DamagePct: 190, ConPct: 100, PetHPPct: 410, PetDamagePct: 430, ArtCooldownMS: 1500},
-		{Level: 50, HPPct: 340, DamagePct: 190, ConPct: 100, PetHPPct: 510, PetDamagePct: 475, ArtCooldownMS: 1500},
-		{Level: 60, HPPct: 400, DamagePct: 160, ConPct: 100, PetHPPct: 800, PetDamagePct: 560, ArtCooldownMS: 1500},
+		{Level: 1, HPPct: 300, DamagePct: 250, ConPct: 0, PetHPPct: 300, PetDamagePct: 250, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 5, HPPct: 215, DamagePct: 265, ConPct: 0, PetHPPct: 215, PetDamagePct: 265, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 8, HPPct: 225, DamagePct: 260, ConPct: 0, PetHPPct: 225, PetDamagePct: 260, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 10, HPPct: 220, DamagePct: 225, ConPct: 25, PetHPPct: 220, PetDamagePct: 225, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 15, HPPct: 230, DamagePct: 255, ConPct: 70, PetHPPct: 230, PetDamagePct: 280, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 18, HPPct: 230, DamagePct: 250, ConPct: 100, PetHPPct: 230, PetDamagePct: 300, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 25, HPPct: 250, DamagePct: 220, ConPct: 100, PetHPPct: 250, PetDamagePct: 285, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 30, HPPct: 300, DamagePct: 200, ConPct: 100, PetHPPct: 300, PetDamagePct: 300, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 35, HPPct: 300, DamagePct: 195, ConPct: 100, PetHPPct: 300, PetDamagePct: 340, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 45, HPPct: 330, DamagePct: 190, ConPct: 100, PetHPPct: 410, PetDamagePct: 430, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 50, HPPct: 340, DamagePct: 190, ConPct: 100, PetHPPct: 510, PetDamagePct: 475, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 60, HPPct: 400, DamagePct: 160, ConPct: 100, PetHPPct: 800, PetDamagePct: 560, ArtCooldownMS: 1500, RegenPct: 5},
 	}
 	// BalanceSeedClasses: every class's row, 100 but the ranger's, the
 	// bard's and the rogue's. With a melee class's 16 hit points a level and

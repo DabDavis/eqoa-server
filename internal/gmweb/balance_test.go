@@ -121,3 +121,18 @@ func TestBalanceRootChanceBounds(t *testing.T) {
 		t.Errorf("40/30 was refused: %d %v", code, out)
 	}
 }
+
+// A creature's heal out of a fight is a percent of 0-100.
+func TestBalanceRegenBounds(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	if code, out := c.op("update_row", map[string]any{"table": "balancelevel", "key": map[string]any{"level": 30},
+		"values": map[string]any{"regen_pct": 150}}); code == 200 {
+		t.Errorf("a regen of 150%% was taken: %v", out)
+	}
+	if code, out := c.op("update_row", map[string]any{"table": "balancelevel", "key": map[string]any{"level": 30},
+		"values": map[string]any{"regen_pct": 8}}); code != 200 {
+		t.Errorf("a regen of 8%% was refused: %d %v", code, out)
+	}
+}

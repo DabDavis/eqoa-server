@@ -21,9 +21,10 @@ import (
 // A player of a class, level and kit meets an NPC made as the server makes
 // one (NPCFromRecord: its hit points, class and swing), and the fight runs
 // tick by tick through aiSystem, attackSystem, petSystem, castSystem,
-// effectSystem and regenSystem: the rounds (rounds.go), Sandstorm's rolls
-// (offence.go, defence.go), the spells as their lines read (cast.go), the
-// pets (pet.go), the regeneration (regen.go) and the balance's scaling,
+// effectSystem, regenSystem and npcRegenSystem: the rounds (rounds.go),
+// Sandstorm's rolls (offence.go, defence.go), the spells as their lines
+// read (cast.go), the pets (pet.go), the regeneration (regen.go,
+// npcregen.go) and the balance's scaling,
 // with the dice seeded. What is the simulator's own is only the player's
 // hands (simPlay): the attack button held, which spell it casts and when.
 //
@@ -239,6 +240,7 @@ func (f *simFight) tick() {
 	w.castSystem(f.now)
 	w.effectSystem(f.now)
 	w.regenSystem(f.now)
+	w.npcRegenSystem(f.now) // pets', and a creature's out of its fight (npcregen.go)
 	w.mu.Unlock()
 	f.sess.Queue().GetPending() // what was sent: no one reads it
 }
@@ -308,6 +310,66 @@ func (f *simFight) run(limit time.Duration) SimResult {
 	if pet != nil {
 		r.HadPet, r.PetDied, r.PetHP, r.PetMaxHP, r.PetLevel = true, pet.Dead || pet.HP <= 0, pet.HP, pet.MaxHP, pet.Level
 	}
+	return r
+}
+
+// SimReset is a fight broken off (SimulateReset): the NPC's and the
+// player's shares of their hit points then, how long the NPC took to be
+// whole again (0: never in the time given), and the player's share then.
+type SimReset struct {
+	Ended                bool // the fight ended (a death) before the break
+	NPCShare, HPShare    float64
+	Whole                time.Duration
+	HPShareWhenNPCWhole  float64
+	PowerShareWhenWhole  float64
+	PowerShareAtTheBreak float64
+}
+
+// SimulateReset fights as SimulateFight for after, then the player runs
+// out of the NPC's reach for good (past npcGiveUp: it gives up, goes home
+// and heals out of its fight, npcregen.go) and rests; it reports how long
+// the NPC took to be whole again, at most limit.
+func SimulateReset(pl SimPlayer, foe SimNPC, b *Balance, seed int64, after, limit time.Duration) SimReset {
+	simMu.Lock()
+	defer simMu.Unlock()
+	rng := rand.New(rand.NewSource(seed))
+	restore := simDice(rng)
+	defer restore()
+	out := log.Writer()
+	log.SetOutput(io.Discard)
+	defer log.SetOutput(out)
+
+	f := newSimFight(pl, foe, b)
+	f.run(after)
+	w, p, npc := f.w, f.p, f.npc
+	w.mu.Lock()
+	r := SimReset{Ended: npc.Dead || p.IsDead(), NPCShare: float64(npc.HP) / float64(max(npc.MaxHP, 1)),
+		HPShare: float64(p.HP) / float64(max(p.MaxHPNow(), 1)), PowerShareAtTheBreak: float64(p.Power) / float64(max(p.MaxPowerNow(), 1))}
+	if r.Ended {
+		w.mu.Unlock()
+		return r
+	}
+	p.disengage()
+	p.AutoAttack = false
+	ox, oz := p.X, p.Z
+	p.X += 2 * npcGiveUp
+	w.SpatialIndex.Update(p.ServerID, ox, oz, p.X, p.Z)
+	w.mu.Unlock()
+	start := f.now
+	for f.now.Sub(start) < limit {
+		f.tick()
+		w.mu.RLock()
+		whole := npc.HP >= npc.MaxHP
+		w.mu.RUnlock()
+		if whole {
+			r.Whole = f.now.Sub(start)
+			break
+		}
+	}
+	w.mu.RLock()
+	r.HPShareWhenNPCWhole = float64(p.HP) / float64(max(p.MaxHPNow(), 1))
+	r.PowerShareWhenWhole = float64(p.Power) / float64(max(p.MaxPowerNow(), 1))
+	w.mu.RUnlock()
 	return r
 }
 

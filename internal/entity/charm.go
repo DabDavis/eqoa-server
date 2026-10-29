@@ -187,6 +187,7 @@ func (w *World) charmLocked(caster *Player, sess *session.Session, npc *NPC, spe
 	npc.Charm = hold
 	npc.Owner = caster.ServerID
 	npc.NPCType = charmNPCType
+	petPowerLocked(npc) // a pet's power, as a summoned one's (npcregen.go)
 	npc.Threats, npc.CurrentEnemy = nil, 0
 	npc.endRound()
 	npc.RoundTarget = 0
@@ -263,5 +264,6 @@ func (w *World) unCharmLocked(npc *NPC) uint8 {
 	npc.NPCType = h.npcType
 	npc.Faction = h.faction
 	npc.Charm = nil
+	npc.Power, npc.MaxPower = 0, 0 // a creature again: no power (npcregen.go)
 	return h.world
 }

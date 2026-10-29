@@ -598,7 +598,8 @@ var catalog = map[string]tableNote{
 			"and every point of damage it deals: hits, taunts, taps, procs). A level between two rows takes the straight " +
 			"line between them, one below the first or past the last the end row's; no rows, 100 everywhere (the " +
 			"formulas alone). art_cooldown_ms is the one column by a PLAYER's level: the combat arts' global cooldown " +
-			"(an art sent within it is not answered, as a cast sent during another). " +
+			"(an art sent within it is not answered, as a cast sent during another). regen_pct is a creature's heal out of " +
+			"a fight, every 6 s from its third tick (a pet heals as a player does, whatever this says). " +
 			"A charmed creature keeps its own (an NPC's) hit points and damage. Training dummies are " +
 			"never touched. Rows of source seed are the tuning of 2026-10-29 (claude-notes/balance-20261029.md), held to " +
 			"its targets by the fight simulator: run cmd/balancesim on a copy of the database to see what a change does " +
@@ -614,6 +615,8 @@ var catalog = map[string]tableNote{
 			"pet_damage_pct": {Label: "Pet damage %", Help: "all a summoned pet of this level deals"},
 			"art_cooldown_ms": {Label: "Arts' cooldown ms", Help: "by a PLAYER's level: after a combat art (no cast time, " +
 				"cast at a creature) starts, how long before another may; 0 none"},
+			"regen_pct": {Label: "Regen % a tick", Help: "0-100: what a creature of this level heals each 6 s out of a fight, " +
+				"from its third tick, of its most hit points (15 with no rows)"},
 			"note":   {Label: "Note"},
 			"source": {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},

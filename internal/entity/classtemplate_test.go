@@ -550,14 +550,14 @@ func TestCopiesAndPetsOfATemplatedCreature(t *testing.T) {
 	r := newTemplateRig(t)
 	r.assign("gnoll necro", "necromancer")
 	necro := r.npc("Gnoll Necro")
-	necro.tfight.on, necro.tfight.busy = true, r.at(time.Hour)
+	necro.fight().on, necro.fight().busy = true, r.at(time.Hour)
 	id, _, ok := r.w.SpawnNPCCopy("Gnoll Necro", 600, 10, 600, 0, 0)
 	if !ok {
 		t.Fatal("no copy")
 	}
 	c := r.w.NPCs[id]
-	if c.TemplateName() != "necromancer" || c.MaxHP != necro.MaxHP || c.tfight.on {
-		t.Errorf("the copy: %q, %d HP, fight on %v", c.TemplateName(), c.MaxHP, c.tfight.on)
+	if c.TemplateName() != "necromancer" || c.MaxHP != necro.MaxHP || c.tfight != nil {
+		t.Errorf("the copy: %q, %d HP, its fight %+v", c.TemplateName(), c.MaxHP, c.tfight)
 	}
 	owner := &Player{ServerID: 1500, Name: "Owner", World: 0}
 	pet := newPet(necro, 4000, owner, "Summon Gnoll", 20)

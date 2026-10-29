@@ -128,10 +128,11 @@ type templateBase struct {
 	class, maxHP int
 }
 
-// templateFight is a templated NPC's fight by its template: when each of its
-// abilities next comes, its cast's time (no melee, no other cast until then),
-// the chained ability owed after it (its index + 1; 0 none), and the round
-// its special was rolled for and when it lands.
+// templateFight is a templated NPC's fight by its template: whether its
+// clocks are set, when each of its abilities next comes, its cast's time (no
+// melee, no other cast until then), the chained ability owed after it (its
+// index + 1; 0 none), and the round its special was rolled for and when it
+// lands.
 type templateFight struct {
 	on      bool
 	next    [database.MaxTemplateAbilities]time.Time
@@ -141,11 +142,19 @@ type templateFight struct {
 	special time.Time
 }
 
+// fight is the NPC's fight by its template, begun if it had none.
+func (n *NPC) fight() *templateFight {
+	if n.tfight == nil {
+		n.tfight = &templateFight{}
+	}
+	return n.tfight
+}
+
 // endTemplateFight forgets the NPC's fight by its template: the next one
 // starts its clocks again.
 func (n *NPC) endTemplateFight() {
-	if n.tfight.on {
-		n.tfight = templateFight{}
+	if n.tfight != nil {
+		n.tfight = nil
 	}
 }
 
@@ -482,7 +491,7 @@ func (w *World) templateTurnLocked(npc *NPC, target EntityID, now time.Time) boo
 	if t == nil || len(t.abilities) == 0 {
 		return false
 	}
-	f := &npc.tfight
+	f := npc.fight()
 	if !f.on {
 		f.on = true
 		for i := range t.abilities {
@@ -556,9 +565,10 @@ func (w *World) templateCastLocked(npc *NPC, i int, target EntityID, now time.Ti
 		}
 	}
 	w.npcCasts = append(w.npcCasts, c)
-	npc.tfight.busy = now.Add(spell.CastTime + castBusy)
+	f := npc.fight()
+	f.busy = now.Add(spell.CastTime + castBusy)
 	if j := i + 1; j < len(t.abilities) && t.abilities[j].Chain {
-		npc.tfight.chain = j + 1
+		f.chain = j + 1
 	}
 	w.broadcastNPCSwingLocked(npc, c.target, uint32(spell.CastTime/time.Millisecond), spell.visual(), c.others...)
 	log.Printf("Template: %s (%s, level %d) begins %q (spell %d) on %s: %v cast, %d%% of its figures, %d others",
@@ -782,14 +792,15 @@ func (w *World) tellNPCHealLocked(sess *session.Session, npc *NPC, n int) {
 
 // templateSpecialLocked is a templated NPC's special in its fight with target
 // (after its round's hits): rolled once a round, landing templateSpecialAfter
-// past the round's last hit. Must be called with the lock held.
+// past the round's last hit; one its NPC was too busy or too far to land in
+// time (casting, closing in) is lost with its round. Must be called with the
+// lock held.
 func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) {
 	t := npc.tmpl
 	if t == nil || t.SpecialChance <= 0 || t.SpecialDamage <= 0 || npc.RoundStart.IsZero() {
 		return
 	}
-	f := &npc.tfight
-	f.on = true
+	f := npc.fight()
 	if !npc.RoundStart.Equal(f.round) {
 		f.round, f.special = npc.RoundStart, time.Time{}
 		if templateIntn(100) < t.SpecialChance {
@@ -800,7 +811,11 @@ func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) 
 	if f.special.IsZero() || now.Before(f.special) {
 		return
 	}
+	late := now.Sub(f.special)
 	f.special = time.Time{}
+	if late > templateSpecialAfter {
+		return // its round went by out of reach or casting: the kick with it
+	}
 	damage := max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1)
 	fx := t.SpecialFX
 	if fx == 0 {

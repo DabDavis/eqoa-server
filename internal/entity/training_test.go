@@ -5,6 +5,7 @@ import (
 	"net"
 	"testing"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -123,5 +124,30 @@ func TestALevelGainedGivesItsTrainingPoints(t *testing.T) {
 	w.awardXP(s, p, 10)
 	if _, ok := told(); ok || p.UnusedTP != 8 {
 		t.Error("the control: no level, no training points")
+	}
+}
+
+// A training reset of a player in the world takes the points off its base
+// stats and adds them to its unspent ones, the total never below them; a
+// base the tp columns would take below its race's and class's (a hand's edit
+// of the columns) stops there, as its next login would make it. The control:
+// a character not in the world is not found.
+func TestTakeBackTraining(t *testing.T) {
+	w := NewWorld()
+	p := w.CreatePlayer(nil, &database.CharacterRecord{ServerID: 9, CharName: "Tess", Race: 3, TClass: 13, Level: 30,
+		TPStrength: 4, TPWisdom: 6, UnusedTP: 2, TotalTP: 12})
+	bs := LookupBaseStats(3, 13)
+	if p.BaseStr != bs.Str+4 || p.BaseWis != bs.Wis+6 {
+		t.Fatalf("the login's base: STR %d WIS %d", p.BaseStr, p.BaseWis)
+	}
+	before, after, total, ok := w.TakeBackTraining(9, [7]int{4, 0, 0, 0, 9, 0, 0})
+	if !ok || before != 2 || after != 15 || total != 15 {
+		t.Fatalf("unspent %d -> %d of %d, %v", before, after, total, ok)
+	}
+	if p.BaseStr != bs.Str || p.BaseWis != bs.Wis || p.UnusedTP != 15 || !p.StatsDirty {
+		t.Errorf("after: STR %d (want %d), WIS %d (want %d), unspent %d", p.BaseStr, bs.Str, p.BaseWis, bs.Wis, p.UnusedTP)
+	}
+	if _, _, _, ok := w.TakeBackTraining(10, [7]int{1}); ok {
+		t.Error("the control: character 10 is in no world")
 	}
 }

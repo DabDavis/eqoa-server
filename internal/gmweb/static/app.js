@@ -15,6 +15,7 @@ const NAV = [
   ['Players', [
     ['accounts', 'Accounts', 'user'],
     ['characters', 'Characters', 'users'],
+    ['petitions', 'Petitions', 'send'],
   ]],
   ['World', [
     ['npcs', 'NPCs', 'skull'],
@@ -51,6 +52,7 @@ const VIEWS = {
   map: () => import('./views/map.js'),
   accounts: () => import('./views/accounts.js'),
   characters: () => import('./views/characters.js'),
+  petitions: () => import('./views/petitions.js'),
   npcs: () => import('./views/npcs.js'),
   merchants: () => import('./views/merchants.js'),
   triggers: () => import('./views/triggers.js'),

@@ -900,9 +900,10 @@ type WorkChange struct {
 }
 
 // WorkHistory is the changes to one row of the board (table workboard or
-// workboard_overview), oldest first, the last limit of them.
+// workboard_overview), or of a petition (petitions.go), oldest first, the
+// last limit of them.
 func (db *SQLiteDB) WorkHistory(table string, id int64, limit int) ([]WorkChange, error) {
-	if table != "workboard" && table != "workboard_overview" {
+	if table != "workboard" && table != "workboard_overview" && table != "petitions" {
 		return nil, fmt.Errorf("%s is not the work board's", table)
 	}
 	if limit <= 0 {

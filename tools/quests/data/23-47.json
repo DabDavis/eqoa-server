@@ -446,33 +446,33 @@
      "target": "Nascien Vladya",
      "tunar": 790,
      "journal": "Find Nascien Vladya at the Smiling Serpent bar in Freeport; he wants 790 tunar.",
-     "says": "Razuam Marus, in Wyndhaven: upstairs at the inn by the coach. Kill him and take his signet to Dristan.",
+     "says": "Razuan Marus, in Wyndhaven: upstairs at the inn by the coach. Kill him and take his signet to Dristan.",
      "notyet": "Seven hundred and ninety tunar. Then I talk."
     },
     {
      "kind": "loot",
-     "target": "Razuam Marus",
+     "target": "Razuan Marus",
      "items": [
       {
-       "item": "Razuam's Signet",
+       "item": "Razuan's Signet",
        "count": 1
       }
      ],
      "count": 1,
      "chance": 1.0,
-     "journal": "Kill Razuam Marus upstairs at the inn in Wyndhaven and take his signet."
+     "journal": "Kill Razuan Marus upstairs at the inn in Wyndhaven and take his signet."
     },
     {
      "kind": "give",
      "target": "Dristan Blane",
      "items": [
       {
-       "item": "Razuam's Signet",
+       "item": "Razuan's Signet",
        "count": 1
       }
      ],
-     "journal": "Bring the signet of Razuam Marus to Dristan Blane.",
-     "says": "Razuam will trouble no one again. Temby will remember this.",
+     "journal": "Bring the signet of Razuan Marus to Dristan Blane.",
+     "says": "Razuan will trouble no one again. Temby will remember this.",
      "rewards": {
       "xp": 1500000,
       "factions": [
@@ -562,15 +562,13 @@
      }
     }
    ],
-   "unresolved": [
-    "Razuam Marus"
-   ],
-   "notes": "From EQOA-Data Quests/23-47/25.json, Temby Quest (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The signet is ours (the guide names no item). The experience and the faction are ours: the guide gives XP, an ability and faction, no figures; the faction is Temby's smugglers'. The guide's note that low standing with Temby is raised by killing Nasehir is not a gate here (it gives no standing). The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/23-47/25.json, Temby Quest (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The guide's Razuam Marus is the server's Razuan Marus. The signet is ours (the guide names no item). The experience and the faction are ours: the guide gives XP, an ability and faction, no figures; the faction is Temby's smugglers'. The guide's note that low standing with Temby is raised by killing Nasehir is not a gate here (it gives no standing). The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
   },
   {
    "key": "23-47/25/blackswan",
    "name": "The Ancient Stone Golem",
-   "giver": "Apprentice Buerma",
+   "giver": "Apprentice Buema",
    "classes": [],
    "races": [],
    "minlevel": 25,
@@ -597,14 +595,14 @@
     },
     {
      "kind": "give",
-     "target": "Apprentice Buerma",
+     "target": "Apprentice Buema",
      "items": [
       {
        "item": "Ancient Golem Stone",
        "count": 1
       }
      ],
-     "journal": "Bring the ancient golem stone to Apprentice Buerma in Darvar Manor.",
+     "journal": "Bring the ancient golem stone to Apprentice Buema in Darvar Manor.",
      "says": "Good, good. Now Ling, nearby, wants paying for her part. See her."
     },
     {
@@ -612,12 +610,12 @@
      "target": "Ling",
      "tunar": 1200,
      "journal": "Pay Ling, near the blacksmith by the inn, 1,200 tunar.",
-     "says": "That settles it. Tell Buerma."
+     "says": "That settles it. Tell Buema."
     },
     {
      "kind": "talk",
-     "target": "Apprentice Buerma",
-     "journal": "Return to Apprentice Buerma.",
+     "target": "Apprentice Buema",
+     "journal": "Return to Apprentice Buema.",
      "says": "My master will be pleased. Here, for your trouble.",
      "rewards": {
       "xp": 750000
@@ -625,10 +623,9 @@
     }
    ],
    "unresolved": [
-    "Apprentice Buerma",
     "Ancient Stone Golem"
    ],
-   "notes": "From EQOA-Data Quests/23-47/25.json, Black Swan Inn Side Quest (github.com/Jadiction/EQOA-Data, MIT). The stone is ours (the guide names no item), and Ling's fee the guide's uncertain 1,200. The reward is ours: the guide only says Buerma rewards you. The guide's note that Buerma must be friendly (raised by killing gnolls in Blackburrow, Jethro's Cast or the bandits of Bandit Hills) gives no standing, so it is not a gate here."
+   "notes": "From EQOA-Data Quests/23-47/25.json, Black Swan Inn Side Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Apprentice Buerma is the server's Apprentice Buema. The stone is ours (the guide names no item), and Ling's fee the guide's uncertain 1,200. The reward is ours: the guide only says Buerma rewards you. The guide's note that the apprentice must be friendly (raised by killing gnolls in Blackburrow, Jethro's Cast or the bandits of Bandit Hills) gives no standing, so it is not a gate here."
   },
   {
    "key": "23-47/25/wyndhaven",
@@ -1623,7 +1620,7 @@
   {
    "key": "23-47/33/bastable",
    "name": "The Eye of the Wyrm",
-   "giver": "Connor Dunn",
+   "giver": "Conner Dunn",
    "classes": [],
    "races": [],
    "minlevel": 33,
@@ -1656,14 +1653,14 @@
     },
     {
      "kind": "show",
-     "target": "Connor Dunn",
+     "target": "Conner Dunn",
      "items": [
       {
        "item": "Half of a Map",
        "count": 1
       }
      ],
-     "journal": "Show the half of a map to Connor Dunn in Bastable.",
+     "journal": "Show the half of a map to Conner Dunn in Bastable.",
      "says": "Father Manstein in southern Blakedown can read the other half. Take it to him."
     },
     {
@@ -1745,31 +1742,30 @@
     },
     {
      "kind": "give",
-     "target": "Connor Dunn",
+     "target": "Conner Dunn",
      "items": [
       {
        "item": "Eye of the Wyrm",
        "count": 1
       }
      ],
-     "journal": "Bring the Eye of the Wyrm to Connor Dunn.",
+     "journal": "Bring the Eye of the Wyrm to Conner Dunn.",
      "says": "The Eye! Open the chest beside me: what is in it is yours."
     },
     {
      "kind": "talk",
      "target": "Ornate Chest",
-     "journal": "Open the chest beside Connor Dunn.",
+     "journal": "Open the chest beside Conner Dunn.",
      "rewards": {
       "xp": 1300000
      }
     }
    ],
    "unresolved": [
-    "Connor Dunn",
     "Father Manstein",
     "Lorx Wyrm"
    ],
-   "notes": "From EQOA-Data Quests/23-47/33.json, Quest 2: Bastable Village Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Father Manstien is the game's Father Manstein, its Emberfly the golden emberfly, the chest beside Connor the Ornate Chest. The Key of Three is the three things placed in the fountain (no item of its own), and Lorx stands in the tomb here (the guide's popup spawn). The guide's three tasks for Manstein name two; both are in. Items but the guide's blood and spark are ours; the reward is ours (the guide only says the chest holds it)."
+   "notes": "From EQOA-Data Quests/23-47/33.json, Quest 2: Bastable Village Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Connor Dunn is the server's Conner Dunn, its Father Manstien the game's Father Manstein, its Emberfly the golden emberfly, the chest beside Conner the Ornate Chest. The Key of Three is the three things placed in the fountain (no item of its own), and Lorx stands in the tomb here (the guide's popup spawn). The guide's three tasks for Manstein name two; both are in. Items but the guide's blood and spark are ours; the reward is ours (the guide only says the chest holds it)."
   },
   {
    "key": "23-47/33/blakedown",
@@ -2682,13 +2678,13 @@
       }
      ],
      "journal": "Bring Model LXI's gear to Rin Tintoggle in Highpass.",
-     "says": "As I feared. Now I need a battery: Merchant Samwe in Klick`Anon sells them."
+     "says": "As I feared. Now I need a battery: Merchant Swame in Klick`Anon sells them."
     },
     {
      "kind": "give",
-     "target": "Merchant Samwe",
+     "target": "Merchant Swame",
      "tunar": 2325,
-     "journal": "Buy a battery from Merchant Samwe in Klick`Anon (2,325 tunar).",
+     "journal": "Buy a battery from Merchant Swame in Klick`Anon (2,325 tunar).",
      "says": "One battery, charged.",
      "events": [
       {
@@ -2771,10 +2767,9 @@
    ],
    "unresolved": [
     "Model LXI",
-    "Merchant Samwe",
     "Model LXIX"
    ],
-   "notes": "From EQOA-Data Quests/23-47/35.json, Quest 6: Rin Tintoggle Quest (github.com/Jadiction/EQOA-Data, MIT). The blue-pawed gnoll is the server's (its popup spawn standing). The items are ours, but the guide's black box; the reward is ours (the guide only says Rin rewards you)."
+   "notes": "From EQOA-Data Quests/23-47/35.json, Quest 6: Rin Tintoggle Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Merchant Samwe is the server's Merchant Swame. The blue-pawed gnoll is the server's (its popup spawn standing). The items are ours, but the guide's black box; the reward is ours (the guide only says Rin rewards you)."
   },
   {
    "key": "23-47/37/mingyrind",
@@ -3100,7 +3095,7 @@
     },
     {
      "kind": "loot",
-     "target": "Blacktongue Orc Ravager",
+     "target": "Blacktongue orc",
      "items": [
       {
        "item": "Ravager's Lantern",
@@ -3108,8 +3103,8 @@
       }
      ],
      "count": 1,
-     "chance": 1.0,
-     "journal": "Kill the Blacktongue orc ravager in Ferran's Hope for his lantern."
+     "chance": 0.25,
+     "journal": "Kill the Blacktongue orc ravager among the Blacktongue orcs of Ferran's Hope for his lantern."
     },
     {
      "kind": "give",
@@ -3153,10 +3148,9 @@
    ],
    "unresolved": [
     "Gykard",
-    "Blacktongue Orc Ravager",
     "Servant De'Varik"
    ],
-   "notes": "From EQOA-Data Quests/23-47/37.json, Quest 2: Rigo Dartar Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Rigo Dartar and Elmo Haggar are the game's Rigo Darter and Elmo Hagger; Luvincius' servant is the Servant De'Varik FrontiersForge saw behind the tower. The items are ours; the reward is ours (the guide only says Rigo rewards you)."
+   "notes": "From EQOA-Data Quests/23-47/37.json, Quest 2: Rigo Dartar Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Rigo Dartar and Elmo Haggar are the game's Rigo Darter and Elmo Hagger; Luvincius' servant is the Servant De'Varik FrontiersForge saw behind the tower. The Blacktongue ravager is among the server's Blacktongue orcs, where FrontiersForge saw it, so any of them may drop the lantern (our chance). The items are ours; the reward is ours (the guide only says Rigo rewards you)."
   },
   {
    "key": "23-47/37/svenle",
@@ -4934,8 +4928,8 @@
    "like": "ice goblin skull"
   },
   {
-   "name": "Razuam's Signet",
-   "description": "The signet ring of Razuam Marus.",
+   "name": "Razuan's Signet",
+   "description": "The signet ring of Razuan Marus.",
    "notrade": true,
    "like": "iron ring"
   },
@@ -5199,7 +5193,7 @@
   },
   {
    "name": "Clockwork Battery",
-   "description": "A battery bought from Merchant Samwe in Klick`Anon.",
+   "description": "A battery bought from Merchant Swame in Klick`Anon.",
    "notrade": true,
    "like": "Drained Clockwork Battery"
   },

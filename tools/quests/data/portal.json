@@ -288,7 +288,18 @@
      "kind": "talk",
      "target": "Portal of the Last House",
      "journal": "Go up the ramp and along the halls to the Last House's portal and pass through.",
-     "says": "The portal opens onto the Plane of Disease.",
+     "choose": "The portal swirls before you, sick and green. Pass through it?",
+     "choices": [
+      {
+       "answer": "Pass through the portal.",
+       "says": "The portal opens onto the Plane of Disease."
+      },
+      {
+       "answer": "Not yet.",
+       "says": "The portal swirls on, and waits.",
+       "stay": true
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -1296,23 +1307,80 @@
    "minlevel": 53,
    "maxlevel": 60,
    "requires": [],
-   "offer": "The way to the sky is guarded by riddles, little one: two of mine, and two each of my kin, Alexandraphex and Fentharos, on the hills nearby. Hear theirs, then answer mine.",
+   "offer": "The way to the sky is guarded by riddles, little one: two of mine, and two each of my kin, Alexandraphex and Fentharos, on the hills nearby. Answer mine first.",
    "accept": "I will answer your riddles.",
    "decline": "Not now.",
    "declined": "The sky can wait for the wise.",
-   "started": "Mine: a beast that was a man lies cold north of Anu's pond, serving masters not of the dead. Bring me the ice of the earth he holds.",
+   "started": "Speak to me again, and hear my riddle.",
    "steps": [
     {
      "kind": "talk",
+     "target": "Sektamoot",
+     "journal": "Answer Sektamoot's first riddle.",
+     "waiting": "Once a man, once a beast, once half of each, now cold and dead; he serves masters who are not the dead, and holds the ice of the earth.",
+     "choose": "Who is he?",
+     "choices": [
+      {
+       "answer": "Lady Vox, in her castle of ice.",
+       "says": "She is cold, but she was never a man. No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "An ice giant of Permafrost.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "Skaldi Runehoof, in the tomb north of Anu's pond.",
+       "says": "Yes. Bring me the ice of the earth he holds. Then hear my kin."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
      "target": "Alexandraphex",
-     "journal": "Hear Alexandraphex's riddle on the hillside west of Sektamoot.",
-     "says": "Mine: something black lives under a blue horizon, a thorn sunk in its swollen flesh. Many arms have pulled at it in vain. Bring me the thorn."
+     "journal": "Answer Alexandraphex's riddle on the hillside west of Sektamoot.",
+     "waiting": "Wrapped in inky black under a deep blue horizon, a thorn is sunk deep in swollen flesh. Many arms have strained at it, and none has pulled it free.",
+     "choose": "What is the thorn, and whose flesh?",
+     "choices": [
+      {
+       "answer": "The harpoon of Telinan, in the hide of Kratas.",
+       "says": "Yes. Bring me the thorn."
+      },
+      {
+       "answer": "A spear in the side of a sea serpent.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "A stinger in the Queen of the wasps.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      }
+     ]
     },
     {
      "kind": "talk",
      "target": "Fentharos",
-     "journal": "Hear Fentharos's riddle on the hillside east of Sektamoot.",
-     "says": "Mine: old armour round muscle and bone, a dragon with no wings, and a hunter's name in its belly. Bring me that name."
+     "journal": "Answer Fentharos's riddle on the hillside east of Sektamoot.",
+     "waiting": "Old armour round muscle and bone, a dragon with no wings, and in its belly the name of a hunter.",
+     "choose": "Whose name, in what belly?",
+     "choices": [
+      {
+       "answer": "Rargek, in the belly of Skahyir.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "Telinan, in the belly of Kratas.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "Garthis the hunter, in the belly of Crocosaurus.",
+       "says": "Yes. Bring me that name."
+      }
+     ]
     },
     {
      "kind": "loot",
@@ -1397,7 +1465,7 @@
     "Kratas",
     "Crocosaurus"
    ],
-   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The first three riddles (the guide lets them be solved in any order; here Sektamoot's, Alexandraphex's, then Fentharos's). The riddles are ours, after the guide's. The three manticores stand on hillsides of the Sphinx Pyramid's NE ninth, ours (tools/quests/npcs/qe.json); Kratas and Crocosaurus are FrontiersForge's sightings, standing here (the Kratas quest that spawns him is Misc's). The harpoon is made from Lord Pickclaw's Scepter's look."
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The first three riddles (the guide lets them be solved in any order; here Sektamoot's, Alexandraphex's, then Fentharos's). Each manticore asks its riddle as a choice (a wrong answer may be tried again), then wants the guide's item; the riddles' words and the wrong answers are ours, after the guide's. The three manticores stand on hillsides of the Sphinx Pyramid's NE ninth, ours (tools/quests/npcs/qe.json); Kratas and Crocosaurus are FrontiersForge's sightings, standing here (the Kratas quest that spawns him is Misc's). The harpoon is made from Lord Pickclaw's Scepter's look."
   },
   {
    "key": "Portal/plane-of-sky/portal-2",
@@ -1410,12 +1478,35 @@
    "requires": [
     "Portal/plane-of-sky/portal-1"
    ],
-   "offer": "Now my second: guarded by the brood of desert and wind, bedded in sand and gold, a fist of death carved in stone. My kin have their second riddles for you too. Bring all three, and a token each.",
-   "accept": "I will bring them.",
+   "offer": "Three riddles are answered, three remain: one more of mine, one more each of my kin. Answer each, bring what it names, and take a token for it. Speak to me again for mine.",
+   "accept": "I will answer them.",
    "decline": "Not now.",
    "declined": "Come back when you are ready.",
-   "started": "Go. And do not come back without all three.",
+   "started": "Speak to me again, and hear my second riddle.",
    "steps": [
+    {
+     "kind": "talk",
+     "target": "Sektamoot",
+     "journal": "Answer Sektamoot's second riddle.",
+     "waiting": "Guarded by the brood of the desert and the wind, bedded in sand and gold, the fist of death carved in stone.",
+     "choose": "What is it, and where?",
+     "choices": [
+      {
+       "answer": "The crown of Rargek, in Skahyir's cave in Box Canyons.",
+       "says": "Yes. The Deathfist king's crown. Bring it."
+      },
+      {
+       "answer": "A sand giant's gold, in the Eternal Desert.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "The banner of the Deathfist Citadel.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      }
+     ]
+    },
     {
      "kind": "loot",
      "target": "Skahyir",
@@ -1447,6 +1538,29 @@
      }
     },
     {
+     "kind": "talk",
+     "target": "Alexandraphex",
+     "journal": "Answer Alexandraphex's second riddle.",
+     "waiting": "Flowing on the breath of the winter storms, a web spun by the blue-skinned cursed: a gift to warm the cold heart of their banished mistress.",
+     "choose": "What is the gift?",
+     "choices": [
+      {
+       "answer": "The web of the ice spider queen.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "A frost giant's cloak.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "The shawl of the winter queen, Lady Vox.",
+       "says": "Yes. Bring it to me."
+      }
+     ]
+    },
+    {
      "kind": "loot",
      "target": "Lady Vox",
      "items": [
@@ -1475,6 +1589,29 @@
        "manticore token"
       ]
      }
+    },
+    {
+     "kind": "talk",
+     "target": "Fentharos",
+     "journal": "Answer Fentharos's second riddle.",
+     "waiting": "Praised as a god among sleeping ivory, a coin fit for giants guards a king, buried under taloned feet.",
+     "choose": "What is the coin, and whose feet?",
+     "choices": [
+      {
+       "answer": "A mammoth's tusk, under a griffon's.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "A gold coin of the Sea of Lions.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "King Jorat's shield, under Siliskor's feet.",
+       "says": "Yes. Bring it to me."
+      }
+     ]
     },
     {
      "kind": "loot",
@@ -1524,7 +1661,7 @@
     "Alexandraphex",
     "Fentharos"
    ],
-   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The last three riddles, each item for a token. Skahyir, Lady Vox and Siliskor stand always up here (the guide's days-long camps are not modelled); the riddles are ours, after the guide's."
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The last three riddles, each asked as a choice and then its item for a token. Skahyir, Lady Vox and Siliskor stand always up here (the guide's days-long camps are not modelled); the riddles' words and the wrong answers are ours, after the guide's."
   },
   {
    "key": "Portal/plane-of-sky/portal-3",
@@ -1635,7 +1772,18 @@
       }
      ],
      "journal": "Cross the bridge north-west and use the rain key on the essence of rain.",
-     "says": "The essence takes the key and the rain takes you.",
+     "choose": "The essence holds a hole the shape of a key. Place your key in it?",
+     "choices": [
+      {
+       "answer": "Place the key in the hole.",
+       "says": "The key turns, and the light takes you."
+      },
+      {
+       "answer": "Step back from the light.",
+       "says": "The essence dims and waits.",
+       "stay": true
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -1944,7 +2092,18 @@
       }
      ],
      "journal": "Use the sun key on the essence of the sun, near the Isle of Wonder's portal.",
-     "says": "Light swallows you.",
+     "choose": "The essence holds a hole the shape of a key. Place your key in it?",
+     "choices": [
+      {
+       "answer": "Place the key in the hole.",
+       "says": "The key turns, and the light takes you."
+      },
+      {
+       "answer": "Step back from the light.",
+       "says": "The essence dims and waits.",
+       "stay": true
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -2157,7 +2316,18 @@
       }
      ],
      "journal": "Use the key of the ancients on the essence of night south of Liztin's hut.",
-     "says": "Darkness folds round you.",
+     "choose": "The essence holds a hole the shape of a key. Place your key in it?",
+     "choices": [
+      {
+       "answer": "Place the key in the hole.",
+       "says": "The key turns, and the light takes you."
+      },
+      {
+       "answer": "Step back from the light.",
+       "says": "The essence dims and waits.",
+       "stay": true
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -3062,12 +3232,40 @@
    "minlevel": 60,
    "maxlevel": 60,
    "requires": [],
-   "offer": "Breathe. Let your fears, your sadness and your anger go. Good. Now carry that calm to others: Bobble-by-Water and Merry-by-Water quarrel. Begin with Kayle in Bobble-by-Water.",
-   "accept": "I have no more fears, sadness or anger.",
-   "decline": "I still carry them.",
-   "declined": "Then sit, and begin again when you are ready.",
-   "started": "Go gently.",
+   "offer": "Sit with me, and breathe. Let your fears go, and your sadness, and your anger. When there is nothing left, I will send your calm where it is needed.",
+   "accept": "I will meditate.",
+   "decline": "Not now.",
+   "declined": "Then come back when you can sit still.",
+   "started": "Speak to me again, and we begin.",
    "steps": [
+    {
+     "kind": "talk",
+     "target": "Agent of Tranquility",
+     "journal": "Meditate with the Agent of Tranquility at Shon-To Monastery.",
+     "waiting": "Breathe in. Breathe out.",
+     "choose": "Have you any fear, sadness or anger left?",
+     "choices": [
+      {
+       "answer": "Some fear, still.",
+       "says": "Then we begin again. Breathe.",
+       "stay": true
+      },
+      {
+       "answer": "A little sadness.",
+       "says": "Then we begin again. Breathe.",
+       "stay": true
+      },
+      {
+       "answer": "Anger, yes.",
+       "says": "Then we begin again. Breathe.",
+       "stay": true
+      },
+      {
+       "answer": "None. I have let them all go.",
+       "says": "Good. Then carry that calm to Bobble-by-Water and Merry-by-Water, who quarrel. Begin with Kayle in Bobble-by-Water."
+      }
+     ]
+    },
     {
      "kind": "talk",
      "target": "Kayle",
@@ -3100,7 +3298,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Tranquility. The meditation is the offer's answer (the guide: say no to more fears). Both of the guide's Kayles are one name on this server (the Agent of Spite's stands under the tarp; this quest's is specced by the south wall), so either does a Kayle step. The stone is the guide's, and the rune (the guide's for a level 60, so the quest is level 60)."
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Tranquility. The meditation is a choice (the guide: say no when asked if you have more fears, sadness or anger, or begin again). Both of the guide's Kayles are one name on this server (the Agent of Spite's stands under the tarp; this quest's is specced by the south wall), so either does a Kayle step. The stone is the guide's, and the rune (the guide's for a level 60, so the quest is level 60)."
   },
   {
    "key": "Portal/zaoran-plateau/spite",
@@ -3143,7 +3341,24 @@
      "kind": "talk",
      "target": "Hayle",
      "journal": "Tell Hayle on the west side of Merry-by-Water what you overheard, and stir it.",
-     "says": "My berries? My prize? Oh, Kayle will hear from me."
+     "waiting": "Yes? What do you want?",
+     "choose": "What do you tell her?",
+     "choices": [
+      {
+       "answer": "Nothing. It was only a pie.",
+       "says": "Then why are you wasting my time?",
+       "stay": true
+      },
+      {
+       "answer": "Kayle won the pie contest with berries off your own vines.",
+       "says": "My berries? My prize? Oh, Kayle will hear from me."
+      },
+      {
+       "answer": "You and Kayle should make peace.",
+       "says": "Peace? With Kayle? Go away.",
+       "stay": true
+      }
+     ]
     },
     {
      "kind": "talk",
@@ -3159,7 +3374,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Spite. The overheard talk's words are ours (the guide gives none); the stone and the rune are the guide's."
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Spite. The overheard talk's words are ours (the guide gives none); stirring Hayle is a choice (the guide's 'go slowly through the conversation'); the stone and the rune are the guide's."
   },
   {
    "key": "Portal/zaoran-plateau/honor",
@@ -4678,8 +4893,20 @@
        "count": 1
       }
      ],
-     "journal": "Give Tallon's Key to the portal by the Zek camp: you are the last through.",
-     "says": "The portal flares, takes the key, and closes behind you.",
+     "journal": "Give Tallon's Key to the portal by the Zek camp, last of your party.",
+     "waiting": "The energy of the portal is waning. Use it quickly.",
+     "choose": "Are you the last?",
+     "choices": [
+      {
+       "answer": "Yes, I am the last.",
+       "says": "The portal flares, takes the key, and closes behind you."
+      },
+      {
+       "answer": "No, there are more that need to use it.",
+       "says": "The portal holds open a little longer. Come back when you are the last.",
+       "stay": true
+      }
+     ],
      "rewards": {
       "items": [
        "Tallon's Bent Key"
@@ -4732,7 +4959,7 @@
     "Zek Sentry",
     "Tallon Zek"
    ],
-   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Tallon Zek (github.com/Jadiction/EQOA-Data, MIT). A way onto the plateau without its flag (the guide's own words). The troops' spawn cycle is four kills before the sergeant; the portal's 'Yes, I am the last' is its give; the guide's Tallon Rages, golems, assassins and archers are left out; Tallon's five-minute despawn is not kept. The Zek camp, its portal, the sentry and Tallon are specs (the camp's spot and the fortress's halls, read off the ground, are ours). The guide gives no reward but the fight."
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Tallon Zek (github.com/Jadiction/EQOA-Data, MIT). A way onto the plateau without its flag (the guide's own words). The troops' spawn cycle is four kills before the sergeant; the portal's question is the guide's ('Yes, I am the last' passes and closes it); the guide's Tallon Rages, golems, assassins and archers are left out; Tallon's five-minute despawn is not kept. The Zek camp, its portal, the sentry and Tallon are specs (the camp's spot and the fortress's halls, read off the ground, are ours). The guide gives no reward but the fight."
   },
   {
    "key": "Portal/zaoran-plateau/vallon",

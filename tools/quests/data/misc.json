@@ -3812,6 +3812,771 @@
    ],
    "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/the-temple-of-light.json, # The Temple of Light Quest, steps 12-13 (github.com/Jadiction/EQOA-Data, MIT). The guide's port to Freeport's docks is a teleport by Setham's dock. The quest is not repeatable (the guide)."
+  },
+  {
+   "key": "Misc/highbourne-for-the-ring/p1",
+   "name": "The Ring of Madrias: Earth and Stone",
+   "giver": "Madrias Tam",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "I am making something for you, a ring that grows with you. It needs things only you can gather. First, two ores: the earth spirits on the mountain in Highbourne (SE) carry them. Kill the earths until the spirits come.",
+   "accept": "I will gather them.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "The mountain is to the south-east.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Enraged Earth",
+     "journal": "Kill enraged and shambling earths on the mountain in Highbourne (SE) until the spirits come.",
+     "count": 2
+    },
+    {
+     "kind": "loot",
+     "target": "Mountain Spirit",
+     "journal": "Kill the mountain spirits for two ores.",
+     "items": [
+      {
+       "item": "Earthen Ore",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Mountain Spirit",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Madrias Tam",
+     "journal": "Bring the two ores to Madrias Tam on Highbourne's docks.",
+     "items": [
+      {
+       "item": "Earthen Ore",
+       "count": 2
+      }
+     ],
+     "says": "Good. Now a gem. Talk to the sunbaked stone in Highbourne (E), north of the mountain's base."
+    },
+    {
+     "kind": "talk",
+     "target": "A sunbaked stone",
+     "journal": "Talk to the sunbaked stone in Highbourne (E), just north of the mountain's base.",
+     "says": "The stone stirs, and bugs pour out of the cracks!"
+    },
+    {
+     "kind": "loot",
+     "target": "Elusive Stone Ant",
+     "journal": "Kill the bugs from the stone for an uncut gem.",
+     "items": [
+      {
+       "item": "Uncut Gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Elusive Stone Ant",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Elusive Stone Ant",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Gem Polisher",
+     "journal": "Take the uncut gem to the gem polisher on Highbourne's docks.",
+     "items": [
+      {
+       "item": "Uncut Gem",
+       "count": 1
+      }
+     ],
+     "says": "To polish this I need the dust of the lost souls in the necromancers' guild."
+    },
+    {
+     "kind": "loot",
+     "target": "Lost Soul",
+     "journal": "Take soul dust from the lost souls in Highbourne's necromancers' guild.",
+     "items": [
+      {
+       "item": "Soul Dust",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Gem Polisher",
+     "journal": "Bring the soul dust to the gem polisher.",
+     "items": [
+      {
+       "item": "Soul Dust",
+       "count": 1
+      }
+     ],
+     "says": "There. Polished.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Polished Gem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Madrias Tam",
+     "journal": "Bring the polished gem to Madrias Tam.",
+     "items": [
+      {
+       "item": "Polished Gem",
+       "count": 1
+      }
+     ],
+     "says": "Beautiful. Last, three bloods of the lion pride on the majestic rock in Highbourne (NW)."
+    },
+    {
+     "kind": "loot",
+     "target": "Pride Lioness",
+     "journal": "Take three lion's bloods from Abyas's pride on the rock in Highbourne (NW).",
+     "items": [
+      {
+       "item": "Lion's Blood",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Madrias Tam",
+     "journal": "Bring the three lion's bloods to Madrias Tam.",
+     "items": [
+      {
+       "item": "Lion's Blood",
+       "count": 3
+      }
+     ],
+     "says": "Your first ring. It will grow with you, if you keep helping me."
+    }
+   ],
+   "unresolved": [
+    "Enraged Earth",
+    "Mountain Spirit",
+    "Mountain Spirit",
+    "A sunbaked stone",
+    "Pride Lioness"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 20 ring (github.com/Jadiction/EQOA-Data, MIT). The guide's reward for this ring is a spell that summons a no-rent ring for your archetype, and 'a little xp' with no figure: no such spell is on this server and the experience is not given, so this part gives nothing but the next. The guide does not name what the polisher wants or the bugs: the lost souls' dust (the guide's undead in the necromancers' guild) and the elusive stone ants by the stone are ours. Abyas, who also drops blood, stands with the pride."
+  },
+  {
+   "key": "Misc/highbourne-for-the-ring/p2",
+   "name": "The Ring of Madrias: The Master of the Forge",
+   "giver": "Madrias Tam",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/highbourne-for-the-ring/p1"
+   ],
+   "offer": "Your ring must be forged anew. Seek the Master of the Forge, south of a sea that isn't on the skull's spine. Do what he asks.",
+   "accept": "I will find him.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "South of a sea that isn't on the skull's spine.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Hermit Washburn",
+     "journal": "Find the Master of the Forge: Hermit Washburn in Brokenskull Rock (SW).",
+     "says": "Madrias's ring? Take my pickaxe. Dig in the cemetery of the Burial Mounds (S) for three ores.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Washburn's Pickaxe",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 18972,
+     "y": 42,
+     "z": 29411,
+     "radius": 40,
+     "journal": "Dig at the graves in the cemetery of the Burial Mounds (S) for three ores.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Graves give up their ore to the pickaxe: three ores."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Grave Ore",
+         "count": 3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Hermit Washburn",
+     "journal": "Bring the three ores to Hermit Washburn.",
+     "items": [
+      {
+       "item": "Grave Ore",
+       "count": 3
+      }
+     ],
+     "says": "Good ore. Now I need a mallet: Urtica Dioica, a centaur on a hill of treants in Spirit Talker's Woods (C), carries an old one."
+    },
+    {
+     "kind": "loot",
+     "target": "Urtica Dioica",
+     "journal": "Take the archaic mallet from Urtica Dioica in Spirit Talker's Woods (C).",
+     "items": [
+      {
+       "item": "Archaic Mallet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Hermit Washburn",
+     "journal": "Bring the archaic mallet to Hermit Washburn.",
+     "items": [
+      {
+       "item": "Archaic Mallet",
+       "count": 1
+      }
+     ],
+     "says": "Now it is forged. Take it back to Madrias."
+    },
+    {
+     "kind": "talk",
+     "target": "Madrias Tam",
+     "journal": "Return to Madrias Tam on Highbourne's docks.",
+     "says": "Forged anew. Your second ring."
+    }
+   ],
+   "unresolved": [
+    "Hermit Washburn",
+    "Hermit Washburn",
+    "Urtica Dioica",
+    "Hermit Washburn"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 30 ring (github.com/Jadiction/EQOA-Data, MIT). The guide's reward for this ring is a spell that summons a no-rent ring for your archetype, and 'a little xp' with no figure: no such spell is on this server and the experience is not given, so this part gives nothing but the next. The guide's '?' at the graves (talked to until three ores come) is one reach step with a popup."
+  },
+  {
+   "key": "Misc/highbourne-for-the-ring/p3",
+   "name": "The Ring of Madrias: Magus Niska's Books",
+   "giver": "Madrias Tam",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/highbourne-for-the-ring/p2"
+   ],
+   "offer": "Magus Niska, in the necromancers' guild in Klick'Anon, has lost four books of lore, one from each of the humans, the gnomes, the Erudites and the Teir'dal. Help him, and your ring grows.",
+   "accept": "I will help him.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Klick'Anon, the necromancers' guild.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Magus Niska",
+     "journal": "Find Magus Niska in the necromancers' guild in Klick'Anon.",
+     "says": "My books! Znib's Journal, the Compendium of Energy, the Magi Libellus and Harlog's Formulea. Search the bookcases of Freeport, Highbourne, Klick'Anon and Neriak."
+    },
+    {
+     "kind": "talk",
+     "target": "A dusty tome",
+     "journal": "Search the bookcase in Freeport's casters' guild.",
+     "says": "Among the dusty tomes: the Compendium of Energy.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Compendium of Energy",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 4501,
+     "y": 49,
+     "z": 21552,
+     "radius": 25,
+     "journal": "Search the bookcases of Highbourne's library.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "On a library shelf you find the Magi Libellus."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Magi Libellus",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 23800,
+     "y": 33,
+     "z": 6120,
+     "radius": 40,
+     "journal": "Search the bookcases of Klick'Anon's guilds.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Behind other books: Znib's Journal."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Znib's Journal",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 25300,
+     "y": 7,
+     "z": 8610,
+     "radius": 40,
+     "journal": "Search the bookcases of Neriak's clerics' guild.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "In a Teir'dal bookcase: Harlog's Formulea."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Harlog's Formulea",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Magus Niska",
+     "journal": "Bring the four books to Magus Niska in Klick'Anon.",
+     "items": [
+      {
+       "item": "Compendium of Energy",
+       "count": 1
+      },
+      {
+       "item": "Magi Libellus",
+       "count": 1
+      },
+      {
+       "item": "Znib's Journal",
+       "count": 1
+      },
+      {
+       "item": "Harlog's Formulea",
+       "count": 1
+      }
+     ],
+     "says": "All four! Tell Madrias he has my thanks."
+    },
+    {
+     "kind": "talk",
+     "target": "Madrias Tam",
+     "journal": "Return to Madrias Tam on Highbourne's docks.",
+     "says": "Niska is grateful. Your third ring."
+    }
+   ],
+   "unresolved": [
+    "Magus Niska",
+    "Magus Niska"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 40 ring (github.com/Jadiction/EQOA-Data, MIT). The guide's reward for this ring is a spell that summons a no-rent ring for your archetype, and 'a little xp' with no figure: no such spell is on this server and the experience is not given, so this part gives nothing but the next. The guide's bookcases (Freeport, Darvar Manor, Highbourne, Neriak, Qeynos, Klick'Anon) are four here, one a race; which book is in which town is ours. Freeport's is the dusty tome in its casters' guild."
+  },
+  {
+   "key": "Misc/highbourne-for-the-ring/p4",
+   "name": "The Ring of Madrias: The Great Three",
+   "giver": "Madrias Tam",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/highbourne-for-the-ring/p3"
+   ],
+   "offer": "Three restless dead, the Great Three, must be laid down. Shepherd Brook, by the ramp up into Moradhim, knows where they lie. Bring their soul shards.",
+   "accept": "I will lay them to rest.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Shepherd Brook is by Moradhim's ramp.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Shepherd Brook",
+     "journal": "Find Shepherd Brook by the ramp up into Moradhim.",
+     "says": "The first lies in the graveyard by the windmill on the lake's south-west side in Rivervale. Call it out and bring me its shard."
+    },
+    {
+     "kind": "loot",
+     "target": "Unsettled Bones",
+     "journal": "Destroy the unsettled bones in Rivervale's graveyard by the windmill.",
+     "items": [
+      {
+       "item": "Soul Shard of Mataias",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Shepherd Brook",
+     "journal": "Bring the soul shard of Mataias to Shepherd Brook.",
+     "items": [
+      {
+       "item": "Soul Shard of Mataias",
+       "count": 1
+      }
+     ],
+     "says": "The second rests on a hill near the shooting range in Surefall Glade, by a giant stone marker."
+    },
+    {
+     "kind": "loot",
+     "target": "Unsettled Bones",
+     "journal": "Destroy the unsettled bones on the hill near Surefall Glade's shooting range.",
+     "items": [
+      {
+       "item": "Soul Shard of Sarilasra",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Shepherd Brook",
+     "journal": "Bring the soul shard of Sarilasra to Shepherd Brook.",
+     "items": [
+      {
+       "item": "Soul Shard of Sarilasra",
+       "count": 1
+      }
+     ],
+     "says": "The last of the Great Three is in the northern cemetery: Collonridge (E), in the blue mist."
+    },
+    {
+     "kind": "loot",
+     "target": "Unsettled Bones",
+     "journal": "Destroy the unsettled bones in the blue mist of Collonridge Cemetery (E).",
+     "items": [
+      {
+       "item": "Soul Shard of Val'Anath",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Shepherd Brook",
+     "journal": "Bring the soul shard of Val'Anath to Shepherd Brook.",
+     "items": [
+      {
+       "item": "Soul Shard of Val'Anath",
+       "count": 1
+      }
+     ],
+     "says": "All three at rest. Go back to Madrias."
+    },
+    {
+     "kind": "talk",
+     "target": "Madrias Tam",
+     "journal": "Return to Madrias Tam on Highbourne's docks.",
+     "says": "The Great Three are at peace. Your fourth ring."
+    }
+   ],
+   "unresolved": [
+    "Unsettled Bones",
+    "Unsettled Bones",
+    "Unsettled Bones"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 50 ring (github.com/Jadiction/EQOA-Data, MIT). The guide's reward for this ring is a spell that summons a no-rent ring for your archetype, and 'a little xp' with no figure: no such spell is on this server and the experience is not given, so this part gives nothing but the next. The three unsettled bones share a name: each shard drops off any of them while its step is the one to do (the engine matches a target by name)."
+  },
+  {
+   "key": "Misc/highbourne-for-the-ring/p5",
+   "name": "The Ring of Madrias: The Dark Lord",
+   "giver": "Madrias Tam",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/highbourne-for-the-ring/p4"
+   ],
+   "offer": "One last ring. Seven things: three sulfursits from near Laknar, three necrotic remains from the death's head beetles of Envar, and the Bone of the Dark Lord, which Douglas Aren in Paineel will sell you. Then we end it.",
+   "accept": "Let us end it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Laknar, Envar and Paineel.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 3,
+     "x": 4830,
+     "y": -60,
+     "z": 4910,
+     "radius": 40,
+     "journal": "Gather three sulfursits near Laknar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Near Laknar you prise three lumps of sulfursit from the rock."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Sulfursit",
+         "count": 3
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Death's Head Beetle",
+     "journal": "Take three necrotic remains from the death's head beetles of Envar.",
+     "items": [
+      {
+       "item": "Necrotic Remains",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Douglas Aren",
+     "journal": "Talk Douglas Aren in Paineel out of the Bone of the Dark Lord, for 30,000 tunar.",
+     "tunar": 30000,
+     "says": "Sold, then. The bone is in the box on my table: take it.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bone of the Dark Lord",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Madrias Tam",
+     "journal": "Bring the three sulfursits, three necrotic remains and the bone to Madrias Tam.",
+     "items": [
+      {
+       "item": "Sulfursit",
+       "count": 3
+      },
+      {
+       "item": "Necrotic Remains",
+       "count": 3
+      },
+      {
+       "item": "Bone of the Dark Lord",
+       "count": 1
+      }
+     ],
+     "says": "Everything. Meet me in Castle Felstar (W). The Dark Lord I have spoken of all along waits there."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 21749,
+     "y": 56,
+     "z": 8597,
+     "radius": 30,
+     "journal": "Meet Madrias Tam in Castle Felstar (W).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Madrias raises the bone and calls out. Vhi'zan Kaah, the Dark Lord, answers!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Vhi'zan Kaah",
+     "journal": "Kill Vhi'zan Kaah and take his essence.",
+     "items": [
+      {
+       "item": "Vhi'zan's Essence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Vhi'zan Kaah",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Minion of Vhi'zan",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Minion of Vhi'zan",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Ghost of Madrias",
+     "journal": "Speak with the Ghost of Madrias in Castle Felstar.",
+     "items": [
+      {
+       "item": "Vhi'zan's Essence",
+       "count": 1
+      }
+     ],
+     "says": "It is over. I can rest now. Take your last ring, and remember me.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "The Stoneheart"
+        ]
+       },
+       "2": {
+        "items": [
+         "The Stoneheart"
+        ]
+       },
+       "3": {
+        "items": [
+         "The Stoneheart"
+        ]
+       }
+      }
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "The Storyteller",
+     "journal": "Tell The Storyteller in Baga Village (NE), by the well, the whole tale.",
+     "says": "Five rings and a Dark Lord! The finest tale I have heard.",
+     "rewards": {
+      "factions": [
+       [
+        "The Storyteller",
+        240
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Death's Head Beetle",
+    "Douglas Aren",
+    "Vhi'zan Kaah",
+    "Vhi'zan Kaah",
+    "Minion of Vhi'zan",
+    "Minion of Vhi'zan",
+    "Ghost of Madrias"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 60 ring (github.com/Jadiction/EQOA-Data, MIT). The tanks' ring, The Stoneheart, is given to warriors, paladins and shadowknights. Not on this server, left out of the rewards: The Nexus (casters), The Soulstone (healers) and The Wildheart (melees); the guide's 'little xp' has no figure. The whole quest's 240 Storyteller faction is given at its end. Laknar's '?' that gives the sulfursits is a reach step with a popup. Douglas Aren's questions (trick him into selling) are a payment here; he stands by Paineel's banker (the guide's tent by the main house). Madrias's summoning in Castle Felstar is a reach step; Vhi'zan Kaah comes with two of his five minions."
   }
  ],
  "items": [
@@ -4132,6 +4897,120 @@
    "description": "A piece of the Dercas Emot, found in Dinbak.",
    "notrade": true,
    "like": "Karak's Research, Page 1"
+  },
+  {
+   "name": "Earthen Ore",
+   "description": "An ore from the heart of a mountain spirit.",
+   "notrade": true,
+   "like": "Moradhim Ore"
+  },
+  {
+   "name": "Uncut Gem",
+   "description": "A rough gem from the bugs round the sunbaked stone.",
+   "notrade": true,
+   "like": "Dilana's Gem"
+  },
+  {
+   "name": "Soul Dust",
+   "description": "Dust of the lost souls in Highbourne's necromancers' guild.",
+   "notrade": true,
+   "like": "Elusive Stone Ant Poison"
+  },
+  {
+   "name": "Polished Gem",
+   "description": "A gem polished on Highbourne's docks.",
+   "notrade": true,
+   "like": "Final Thought Gem"
+  },
+  {
+   "name": "Lion's Blood",
+   "description": "Blood of the lion pride of Highbourne (NW).",
+   "notrade": true,
+   "like": "blood sack"
+  },
+  {
+   "name": "Washburn's Pickaxe",
+   "description": "Hermit Washburn's pickaxe.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Grave Ore",
+   "description": "An ore dug out of the Burial Mounds.",
+   "notrade": true,
+   "like": "Starfire Ore"
+  },
+  {
+   "name": "Archaic Mallet",
+   "description": "The mallet of the centaur Urtica Dioica.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Compendium of Energy",
+   "description": "A book of the humans, from a Freeport bookcase.",
+   "notrade": true,
+   "like": "Book of the Stars"
+  },
+  {
+   "name": "Magi Libellus",
+   "description": "A book of the Erudites, from Highbourne's library.",
+   "notrade": true,
+   "like": "Book of Solutions"
+  },
+  {
+   "name": "Znib's Journal",
+   "description": "A gnome's journal, from a Klick'Anon bookcase.",
+   "notrade": true,
+   "like": "Dark Journal"
+  },
+  {
+   "name": "Harlog's Formulea",
+   "description": "A book of the Teir'dal, from a Neriak bookcase.",
+   "notrade": true,
+   "like": "Syndia's Book of Disease"
+  },
+  {
+   "name": "Soul Shard of Mataias",
+   "description": "A soul shard of Mataias, one of the Great Three.",
+   "notrade": true,
+   "like": "Final Thought Gem"
+  },
+  {
+   "name": "Soul Shard of Sarilasra",
+   "description": "A soul shard of Sarilasra, one of the Great Three.",
+   "notrade": true,
+   "like": "Final Thought Gem"
+  },
+  {
+   "name": "Soul Shard of Val'Anath",
+   "description": "A soul shard of Val'Anath, the last of the Great Three.",
+   "notrade": true,
+   "like": "Final Thought Gem"
+  },
+  {
+   "name": "Sulfursit",
+   "description": "A lump of sulfursit from near Laknar.",
+   "notrade": true,
+   "like": "block of rathestone"
+  },
+  {
+   "name": "Necrotic Remains",
+   "description": "The necrotic remains of a death's head beetle.",
+   "notrade": true,
+   "like": "Elusive Stone Ant Poison"
+  },
+  {
+   "name": "Bone of the Dark Lord",
+   "description": "A bone said to be the Dark Lord's, from Douglas Aren's box.",
+   "notrade": true,
+   "like": "Skull of Vitsh"
+  },
+  {
+   "name": "Vhi'zan's Essence",
+   "description": "The essence of Vhi'zan Kaah, the Dark Lord.",
+   "notrade": true,
+   "like": "gem of fury"
   }
  ]
 }

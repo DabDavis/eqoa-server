@@ -337,6 +337,9 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	pet.endRound()
 	pet.RoundTarget = 0
 	pet.stopMoving()
+	// a pet fights by no class template (classtemplate.go), its body's
+	// creature's or not
+	pet.tmpl, pet.tbase, pet.tfight = nil, templateBase{}, templateFight{}
 	return &pet
 }
 
@@ -842,7 +845,7 @@ func petMeleeHit(pet, t *NPC, intn func(int) int) int {
 	r := creatureRoll(pet.Level)
 	top := int(math.Round(r.Top - targetDefence(t)))
 	hit := top - r.Width + intn(r.Width+1)
-	return max(hit, r.Floor, 1)
+	return t.meleeTaken(max(hit, r.Floor, 1)) // as the target's class template takes it (classtemplate.go)
 }
 
 // npcHitOnPet is a creature's hit on a pet: its roll on a tank of the pet's
@@ -878,6 +881,17 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 		npc.endRound()
 		npc.RoundTarget = pet.ServerID
 	}
+	if npc.tmpl != nil && w.templateTurnLocked(npc, pet.ServerID, now) {
+		npc.loseDueHits(now) // casting at the pet: no swing meanwhile (classtemplate.go)
+		return
+	}
+	if npc.tmpl != nil {
+		defer func() {
+			if !pet.Dead && !npc.Dead && npc.CurrentEnemy == pet.ServerID {
+				w.templateSpecialLocked(npc, pet.ServerID, now) // its kick
+			}
+		}()
+	}
 	length, delay, fx, hits := npcRound(npc)
 	if npc.RoundStart.IsZero() || !now.Before(npc.RoundStart.Add(length)) {
 		next := npc.RoundStart.Add(length)
@@ -889,7 +903,7 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 	}
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++
-		n := npcHitOnPet(npc, pet, rand.Intn)
+		n := npc.meleeOut(npcHitOnPet(npc, pet, rand.Intn)) // as its class template makes it
 		pet.HP = max(pet.HP-n, 0)
 		pet.LastCombatTime = now
 		log.Printf("Pet: %s hit the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, n, pet.HP, pet.MaxHP)

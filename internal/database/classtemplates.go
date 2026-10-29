@@ -106,6 +106,9 @@ type TemplateAbility struct {
 	// MaxRecast leaves out the spells whose own recast is longer, in
 	// seconds (0: any): a wizard's 180 s novas.
 	MaxRecast float64 `json:"max_recast,omitempty"`
+	// MaxCast leaves out the spells whose own cast time is longer, in
+	// seconds (0: any): the wizard's Phoenix Glory, 15 s.
+	MaxCast float64 `json:"max_cast,omitempty"`
 	// Below is a heal's: cast when the NPC's hit points are below this
 	// percent of its maximum (0: 50).
 	Below int `json:"below,omitempty"`
@@ -217,7 +220,7 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			return fmt.Errorf("ability %d: kind %q: one of %s", n, a.Kind, strings.Join(AbilityKinds, ", "))
 		case a.Chain && i == 0:
 			return fmt.Errorf("ability 1 chains, and nothing is before it")
-		case !finite(a.Every) || !finite(a.First) || !finite(a.MaxRecast):
+		case !finite(a.Every) || !finite(a.First) || !finite(a.MaxRecast) || !finite(a.MaxCast):
 			return fmt.Errorf("ability %d: a number that is not one", n)
 		case !a.Chain && (a.Every < 2 || a.Every > 3600):
 			return fmt.Errorf("ability %d: every %.1f: 2 to 3600 seconds from one cast's start to the next (or chain)", n, a.Every)
@@ -229,6 +232,8 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 			return fmt.Errorf("ability %d: damage_pct %d: 0 (100) to 1000 percent", n, a.DamagePct)
 		case a.MaxRecast < 0 || a.MaxRecast > 86400:
 			return fmt.Errorf("ability %d: max_recast %.1f: 0 (any) to 86400 seconds", n, a.MaxRecast)
+		case a.MaxCast < 0 || a.MaxCast > 60:
+			return fmt.Errorf("ability %d: max_cast %.1f: 0 (any) to 60 seconds", n, a.MaxCast)
 		case a.Below < 0 || a.Below > 100:
 			return fmt.Errorf("ability %d: below %d: 0 (50) to 100 percent", n, a.Below)
 		case a.From < 0 || a.From > 100:
@@ -292,11 +297,11 @@ var SeedClassTemplates = []ClassTemplate{
 			"(Sandstorm's creature special: a level 34 crab's 251, in about one round of five)"},
 	{Name: "wizard", Class: 13, HPPct: 85, TakenPct: 100, MeleePct: 100,
 		Abilities: []TemplateAbility{
-			{Kind: AbilityAoE, Every: 15, First: 2, MaxRecast: 10, DamagePct: 35},
-			{Kind: AbilityNuke, Chain: true, MaxRecast: 10, DamagePct: 35},
+			{Kind: AbilityAoE, Every: 15, First: 2, MaxRecast: 10, MaxCast: 5, DamagePct: 35},
+			{Kind: AbilityNuke, Chain: true, MaxRecast: 10, MaxCast: 5, DamagePct: 35},
 		},
 		Note: "jib's wizard: chain-casts two wizard spells of its level, an area one and then one of a single target, every " +
-			"15 s; the 180 s novas left out (max_recast 10), the figures 35% of a player's (ours)"},
+			"15 s; the 180 s novas and Phoenix Glory's 15 s cast left out (max_recast 10, max_cast 5), the figures 35% of a player's (ours)"},
 	{Name: "necromancer", Class: 11, HPPct: 90, TakenPct: 100, MeleePct: 100,
 		Abilities: []TemplateAbility{{Kind: AbilityLifetap, Every: 5, First: 1, DamagePct: 50}},
 		Note:      "jib's necromancer: a necromancer life tap of its level every 5 s, healing it for what it takes; the figure half a player's (ours)"},

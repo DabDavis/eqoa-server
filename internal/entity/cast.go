@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
 )
@@ -113,6 +114,36 @@ type CastSpell struct {
 	Def          SpellDef
 	FX           uint32    // 0x00B1's visual; 0 for the stand-in of its kind
 	Area         SpellArea // what it lands on beside its target (area.go)
+	// resist is the resist that cuts a templated NPC's spell's hit on a
+	// player, by its element (classtemplate.go); a player's spell has none
+	resist Stat
+}
+
+// SpellOf is an ability record as the World casts it: handlers' castSpell
+// for a player's book (displayIndex its place there), a templated NPC's
+// (classtemplate.go) with none. The record gives cast time and recast in
+// seconds (Sandstorm's: Minor Healing's 2 and 1 are a 3300 ms lockout), the
+// front icon the effects channel shows, the range as writeAbilityRecord
+// sends it; its line is read with its name, which says what an illusion is
+// (illusion.go) and gives a line where the database has none, and its area
+// as the line reads (area.go: a spellarea row goes over it, With).
+func SpellOf(sp *database.SpellPatternRecord, displayIndex int, line string, fx uint32) CastSpell {
+	def := ParseSpellNamed(sp.SpellName, line, sp.SpellDesc)
+	return CastSpell{
+		SpellID:      sp.SpellID,
+		DisplayIndex: displayIndex,
+		Level:        sp.AbilityLvl,
+		Scope:        sp.Scope,
+		Name:         sp.SpellName,
+		Icon:         uint32(sp.Icon),
+		CastTime:     time.Duration(sp.CastTime) * time.Second,
+		Recast:       time.Duration(sp.Recast) * time.Second,
+		PowerCost:    sp.Power,
+		Range:        math.Float32frombits(sp.RangeBits()),
+		Def:          def,
+		FX:           fx,
+		Area:         ReadSpellArea(sp.SpellName, line, def),
+	}
 }
 
 // visual is the spell's 0x00B1 visual.
@@ -752,10 +783,7 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 // spellAmount is one effect's amount from this caster: a roll in its range,
 // plus its percent of the caster's stat, signed as the effect is.
 func spellAmount(e SpellEffect, caster *Player) int {
-	n := e.Amount
-	if e.AmountMax > e.Amount {
-		n += rand.Intn(e.AmountMax - e.Amount + 1)
-	}
+	n := rollAmount(e)
 	if e.Scale != StatNone && e.ScalePct != 0 {
 		bonus := caster.StatNow(e.Scale) * e.ScalePct / 100
 		if n < 0 {
@@ -765,6 +793,16 @@ func spellAmount(e SpellEffect, caster *Player) int {
 		}
 	}
 	return capAmount(n, e.Cap)
+}
+
+// rollAmount is one effect's figure before any caster's stat: a roll in its
+// range, signed as the effect is.
+func rollAmount(e SpellEffect) int {
+	n := e.Amount
+	if e.AmountMax > e.Amount {
+		n += rand.Intn(e.AmountMax - e.Amount + 1)
+	}
+	return n
 }
 
 // capAmount is n held to cap either way (an effect's "max N"); cap 0 holds

@@ -2691,43 +2691,19 @@
      "kind": "kill",
      "target": "Ivander Yaroslav",
      "count": 1,
-     "journal": "Defeat Ivander Yaroslav.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Ivander Yaroslav",
-       "hostile": true
-      }
-     ]
+     "journal": "Defeat Ivander Yaroslav at the tents."
     },
     {
      "kind": "kill",
      "target": "Isabella Yaroslav",
      "count": 1,
-     "journal": "Defeat Isabella Yaroslav.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Isabella Yaroslav",
-       "hostile": true
-      }
-     ]
+     "journal": "Defeat Isabella Yaroslav at the tents."
     },
     {
      "kind": "kill",
      "target": "Dimitri Yaroslav",
      "count": 1,
-     "journal": "Defeat Dimitri Yaroslav.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Dimitri Yaroslav",
-       "hostile": true
-      }
-     ]
+     "journal": "Defeat Dimitri Yaroslav at the tents."
     },
     {
      "kind": "talk",
@@ -2763,29 +2739,13 @@
      "kind": "kill",
      "target": "Unga",
      "count": 1,
-     "journal": "Defeat Unga.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Unga",
-       "hostile": true
-      }
-     ]
+     "journal": "Defeat Unga at the tents."
     },
     {
      "kind": "kill",
      "target": "Daraznak Vekiz",
      "count": 1,
-     "journal": "Defeat Daraznak Vekiz.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Daraznak Vekiz",
-       "hostile": true
-      }
-     ]
+     "journal": "Defeat Daraznak Vekiz at the tents."
     },
     {
      "kind": "talk",
@@ -2808,7 +2768,7 @@
     "Unga",
     "Daraznak Vekiz"
    ],
-   "notes": "From EQOA-Data Quests/Weres/gatorwere.json, the first parts (github.com/Jadiction/EQOA-Data, MIT). The Yaroslavs, Unga and Daraznak \"reappear as KoS\": a copy of each comes for the player in turn, one after another, at the seeded rows' levels (28 to 32). The guide names no reward for these parts."
+   "notes": "From EQOA-Data Quests/Weres/gatorwere.json, the first parts (github.com/Jadiction/EQOA-Data, MIT). The Yaroslavs, Unga and Daraznak \"reappear as KoS\": here they are fought where they stand, at the seeded rows' levels (28 to 32), after the talk. The guide names no reward for these parts."
   },
   {
    "key": "Weres/gatorwere/p2",
@@ -3058,15 +3018,7 @@
      "kind": "kill",
      "target": "Vicious Wolfwere",
      "count": 1,
-     "journal": "Follow the scent north to the crest of the hill, and defeat the vicious were-beast.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Vicious Wolfwere",
-       "hostile": true
-      }
-     ]
+     "journal": "Follow the scent north to the crest of the hill by Master Landaar, and defeat the vicious were-beast."
     },
     {
      "kind": "talk",
@@ -3258,15 +3210,7 @@
      "kind": "kill",
      "target": "Vicious Wolfwere",
      "count": 1,
-     "journal": "Follow the scent north to the crest of the hill, and defeat the vicious were-beast.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Vicious Wolfwere",
-       "hostile": true
-      }
-     ]
+     "journal": "Follow the scent north to the crest of the hill by Master Landaar, and defeat the vicious were-beast."
     },
     {
      "kind": "talk",
@@ -3456,15 +3400,7 @@
      "kind": "kill",
      "target": "Vicious Wolfwere",
      "count": 1,
-     "journal": "Follow the scent north to the crest of the hill, and defeat the vicious were-beast.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Vicious Wolfwere",
-       "hostile": true
-      }
-     ]
+     "journal": "Follow the scent north to the crest of the hill by Master Landaar, and defeat the vicious were-beast."
     },
     {
      "kind": "talk",
@@ -3653,15 +3589,7 @@
      "kind": "kill",
      "target": "Vicious Wolfwere",
      "count": 1,
-     "journal": "Follow the scent north to the crest of the hill, and defeat the vicious were-beast.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Vicious Wolfwere",
-       "hostile": true
-      }
-     ]
+     "journal": "Follow the scent north to the crest of the hill by Master Landaar, and defeat the vicious were-beast."
     },
     {
      "kind": "talk",
@@ -4907,15 +4835,7 @@
      "kind": "kill",
      "target": "Lynda Elmquist",
      "count": 1,
-     "journal": "Defeat Lynda Elmquist, the lycanthrope.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Lynda Elmquist",
-       "hostile": true
-      }
-     ]
+     "journal": "Defeat Lynda Elmquist, the lycanthrope."
     },
     {
      "kind": "talk",
@@ -5004,7 +4924,7 @@
     "Bucktooth (attackable)",
     "Lynda Elmquist (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/Weres/werehunter.json, PART 1 (github.com/Jadiction/EQOA-Data, MIT). Slick Stevenson and Bucktooth are the server's rows (level 63, the guide's Slick Svenson); Bucktooth and Lynda Elmquist stand as townsfolk and are made attackable by the seed (npcs/qc.json), Lynda's lycanthrope a copy of her that comes for the player. Ipstock's swarming minion and the guide's NTL drops are left out. A lycan (-1000 with Werehunters of Tunaria, ours) is not offered it."
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, PART 1 (github.com/Jadiction/EQOA-Data, MIT). Slick Stevenson and Bucktooth are the server's rows (level 63, the guide's Slick Svenson); Bucktooth and Lynda Elmquist stand as townsfolk and are made attackable by the seed (npcs/qc.json) and are fought where they stand. Ipstock's swarming minion and the guide's NTL drops are left out. A lycan (-1000 with Werehunters of Tunaria, ours) is not offered it."
   },
   {
    "key": "Weres/werehunter/trials-set",

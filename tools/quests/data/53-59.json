@@ -58,15 +58,7 @@
      "kind": "kill",
      "target": "Ancient Spirit",
      "count": 1,
-     "journal": "Defeat the Ancient Spirit in the Ghastly Kin's tomb.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Ancient Spirit",
-       "hostile": true
-      }
-     ]
+     "journal": "Defeat the Ancient Spirit in the Ghastly Kin's tomb."
     },
     {
      "kind": "reach",
@@ -290,15 +282,9 @@
        "on": "start",
        "do": "teleport",
        "world": 1,
-       "x": 5275,
+       "x": 5271,
        "y": 159.5,
-       "z": 9265
-      },
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Jal Raeth Chancellor",
-       "hostile": true
+       "z": 9269
       }
      ]
     },
@@ -1713,15 +1699,7 @@
      ],
      "count": 1,
      "chance": 1.0,
-     "journal": "Defeat the Dark Ritualist scout that cons yellow and take its orders.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Dark Ritualist Scout",
-       "hostile": true
-      }
-     ]
+     "journal": "Defeat the Dark Ritualist scout that cons yellow and take its orders."
     },
     {
      "kind": "give",
@@ -1774,15 +1752,7 @@
      ],
      "count": 1,
      "chance": 1.0,
-     "journal": "Defeat the Fire Goblin General and take his plans.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Fire Goblin General",
-       "hostile": true
-      }
-     ]
+     "journal": "Defeat the Fire Goblin General and take his plans."
     },
     {
      "kind": "give",
@@ -2088,7 +2058,7 @@
     "Paradise Basilisk",
     "Abrosian Snapper"
    ],
-   "notes": "From EQOA-Data Quests/53-59/55.json, Quest 3: Lavastorm 55 (github.com/Jadiction/EQOA-Data, MIT). Quintashi's teleporting question is left out: the ambush is at the lair. The Fire Goblin General and the Dark Ritualist scout come for the player. The four finds are the guide's places on CLIENT's zone grid. The guide names no alchemist's reward: an alchemist gets the experience alone."
+   "notes": "From EQOA-Data Quests/53-59/55.json, Quest 3: Lavastorm 55 (github.com/Jadiction/EQOA-Data, MIT). Quintashi's teleporting question is left out: the ambush is at the lair. The Fire Goblin General and the Dark Ritualist scout stand where they are seeded (the guide's pop-ups spawn them). The four finds are the guide's places on CLIENT's zone grid. The guide names no alchemist's reward: an alchemist gets the experience alone."
   },
   {
    "key": "53-59/57/p1",
@@ -3035,15 +3005,7 @@
      ],
      "count": 1,
      "chance": 1.0,
-     "journal": "Set the primal stew down in Permafrost, then defeat the enraged Lady Vox.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Enraged Lady Vox",
-       "hostile": true
-      }
-     ]
+     "journal": "Set the primal stew down in Permafrost, then defeat the enraged Lady Vox."
     },
     {
      "kind": "talk",
@@ -3108,26 +3070,16 @@
      ]
     },
     {
-     "kind": "reach",
-     "world": 0,
-     "x": 13000.0,
-     "y": 0.0,
-     "z": 30333.3,
-     "radius": 300,
+     "kind": "talk",
+     "target": "Professor Ceryk",
      "journal": "Take the scepter's pieces to Professor Ceryk in Mila's Reef.",
-     "events": [
-      {
-       "on": "done",
-       "do": "popup",
-       "text": "The professor is not here. A note lies where he stood. Something has happened: go to Minastikie."
-      }
-     ]
+     "says": "Not here! They are watching me, the Dark Ritualists. Keep the pieces and go to Minastikie. I must hide."
     },
     {
      "kind": "talk",
      "target": "Minastikie",
      "journal": "Speak with Minastikie in Lavastorm Mountains.",
-     "says": "The Dark Ritualists have taken the professor! They want the scepter. Take their ransom note to Exploring Aid Mixxa.",
+     "says": "The professor never came! The Dark Ritualists have taken him, and want the scepter for him. Take their ransom note to Exploring Aid Mixxa.",
      "events": [
       {
        "on": "done",
@@ -3335,7 +3287,7 @@
     "Primal Eel",
     "Enraged Lady Vox"
    ],
-   "notes": "From EQOA-Data Quests/53-59/57.json, Quest 3: Lavastorm 57 (github.com/Jadiction/EQOA-Data, MIT). The goblin troopers, the rain chain's Dark Ritualists and the eight at the Green Rift are pop-ups (no time limit); Broga, Siliskor and Lady Vox come for the player (copies of the server's; the guide's Pimal Eel is the game's Primal Eel, Chimeron the game's Chimareon). The guide lists the clerics for both the gauntlets and the bracelet: they get the gauntlets. No alchemist's reward is named. The astral bracelet of wisdom is a copy of an existing bracelet (its stats, not the guide's). The Plane of Sky and its rain isles are reached by their own portal quests' trips (the Sky Portal and the essences, waysender.go), which this quest does not open."
+   "notes": "From EQOA-Data Quests/53-59/57.json, Quest 3: Lavastorm 57 (github.com/Jadiction/EQOA-Data, MIT). The goblin troopers, the rain chain's Dark Ritualists and the eight at the Green Rift are pop-ups (no time limit); Broga and Siliskor come for the player (copies of the server's), Lady Vox stands where she is seeded; the professor cannot despawn (he is this quest's giver), so he sends the player away before he is taken (the guide's Pimal Eel is the game's Primal Eel, Chimeron the game's Chimareon). The guide lists the clerics for both the gauntlets and the bracelet: they get the gauntlets. No alchemist's reward is named. The astral bracelet of wisdom is a copy of an existing bracelet (its stats, not the guide's). The Plane of Sky and its rain isles are reached by their own portal quests' trips (the Sky Portal and the essences, waysender.go), which this quest does not open."
   },
   {
    "key": "53-59/59/p1",
@@ -3671,15 +3623,7 @@
      "kind": "kill",
      "target": "Arios the Battered",
      "count": 1,
-     "journal": "Defeat Arios the Battered before the Rallosian Arbiter.",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Arios the Battered",
-       "hostile": true
-      }
-     ]
+     "journal": "Defeat Arios the Battered before the Rallosian Arbiter."
     },
     {
      "kind": "talk",
@@ -3780,7 +3724,7 @@
     "Arcanablade Zerin",
     "Rallosian Arbiter"
    ],
-   "notes": "From EQOA-Data Quests/53-59/59.json, Quest 1: 59 Arios the Battered (github.com/Jadiction/EQOA-Data, MIT). The Anvil's pop-up is a choice (any answer does, as the guide's \"pick one of the options\"); its debuffs by the 55's weapons are left out (it is simply fought). The geode talisman's port is a teleport for the quester alone; the Arbiter's secret place is ours, on the Zaoran Plateau (the Secrets world), where the attackable Arios waits. The Zaoran Brotherhood's faction (+1000, +1000, -1000, -10) is left out: this server has no such faction. The kejekans' and kerrans' pages drop off one kind each (a warrior, a soldier), the guide's \"random drop\". The War Torn Robe is a copy of an existing tunic (its stats, not the guide's)."
+   "notes": "From EQOA-Data Quests/53-59/59.json, Quest 1: 59 Arios the Battered (github.com/Jadiction/EQOA-Data, MIT). The Anvil's pop-up is a choice (any answer does, as the guide's \"pick one of the options\"); its debuffs by the 55's weapons are left out (it is simply fought). The geode talisman's port is a teleport for the quester alone; the Arbiter's secret place is ours, on the Zaoran Plateau (the Secrets world), where the attackable Arios stands (the guide's Arbiter summons him). The Zaoran Brotherhood's faction (+1000, +1000, -1000, -10) is left out: this server has no such faction. The kejekans' and kerrans' pages drop off one kind each (a warrior, a soldier), the guide's \"random drop\". The War Torn Robe is a copy of an existing tunic (its stats, not the guide's)."
   },
   {
    "key": "53-59/59/p2",
@@ -3828,15 +3772,7 @@
      "kind": "kill",
      "target": "Altar Guardian",
      "count": 1,
-     "journal": "Defeat the altar guardian on the bridge to Saftemoot's isle in Erud's Crossing (C).",
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Altar Guardian",
-       "hostile": true
-      }
-     ]
+     "journal": "Defeat the altar guardian on the bridge to Saftemoot's isle in Erud's Crossing (C)."
     },
     {
      "kind": "reach",
@@ -4211,7 +4147,7 @@
     "Monarch of Stone",
     "Monarch of Flame"
    ],
-   "notes": "From EQOA-Data Quests/53-59/59.json, Quest 2: 59 Kerra Isle (github.com/Jadiction/EQOA-Data, MIT). The historian is Arcadin's (Historian Neilok in Stone of Morthalis, the other path, is left out); the altar guardian comes for the player and the collar's destruction is a pop-up (the collar stays). The guide's Glox is the game's Glox Kognik, its indigo artifact smuggler the game's artifact smuggler. The Boots of the Kedge are a copy of an existing pair (their stats, not the guide's)."
+   "notes": "From EQOA-Data Quests/53-59/59.json, Quest 2: 59 Kerra Isle (github.com/Jadiction/EQOA-Data, MIT). The historian is Arcadin's (Historian Neilok in Stone of Morthalis, the other path, is left out); the altar guardian stands at its bridge and the collar's destruction is a pop-up (the collar stays). The guide's Glox is the game's Glox Kognik, its indigo artifact smuggler the game's artifact smuggler. The Boots of the Kedge are a copy of an existing pair (their stats, not the guide's)."
   },
   {
    "key": "53-59/59/p3",

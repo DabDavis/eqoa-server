@@ -553,6 +553,235 @@
    "level": 43,
    "note": "in the Tomb of Kings (Group 3, level 40)",
    "water": "land"
+  },
+  {
+   "name": "Belran Nightrift",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "in Dark Solace (Group 4)",
+   "water": "land"
+  },
+  {
+   "name": "Holciel Rowen'Dal",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Holciel Rowen'Dal (30)"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "in Freeport (Group 4, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Tariel Windstream",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 33,
+   "note": "a ghost in the Lesser Halls of the Tomb of Kings (Group 4, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Compelled Shade",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Eljin Rindain's shade, upstairs in the Rusted Lantern Inn in Freeport (Group 4, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Thalnix D`Rinas",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "opposite Belran Nightrift in Dark Solace (Group 4, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Orish Thulon",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the east of Deathfist Forge (Group 4, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Golem of Fear",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "near",
+    "Orish Thulon",
+    20,
+    0
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "by Orish Thulon in Deathfist Forge (Group 4, level 40; ours: the guide's \"the golem\")",
+   "water": "land"
+  },
+  {
+   "name": "Watcher Mironar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the green-glowing hill of stone pillars in the south-east of the Stone Watchers (Group 4, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Golem of Station",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "near",
+    "Watcher Mironar",
+    20,
+    0
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "by Watcher Mironar in the Stone Watchers (Group 4, level 40; ours)",
+   "water": "land"
+  },
+  {
+   "name": "Drelk Trunkfist",
+   "role": "foe",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 41,
+   "note": "a half-shell in the south-east of the Great Waste (Group 4, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Golem of Strength",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Golem [of Strength] (40)"
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "by Drelk Trunkfist's half-shell in the Great Waste (Group 4, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Golem of Greed",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Golem of Greed (40)"
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "by the invisible wall of Dark Solace (Group 4, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Collin Ilbeth",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 51,
+   "note": "near the bottom of the Salt Mines of Caer Sloth (Group 4, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Avatar of Lord Chardith",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Lord Chardith"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 51,
+   "note": "the avatar the Calling brings, by Gribble Greencog in Dark Solace (Group 4, level 49)",
+   "water": "land"
   }
  ]
 }

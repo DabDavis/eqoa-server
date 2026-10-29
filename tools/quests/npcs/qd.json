@@ -1253,6 +1253,301 @@
    "level": 55,
    "note": "spawned by Kizdean Gix in Neriak (E)",
    "water": "land"
+  },
+  {
+   "name": "Enraged Earth",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Earth Elemental"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Enraged Earth"
+   ],
+   "count": 2,
+   "level": 20,
+   "note": "on the side of a mountain in Highbourne (SE)",
+   "water": "land"
+  },
+  {
+   "name": "Shambling Earth",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Earth Elemental"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Shambling Earth"
+   ],
+   "count": 2,
+   "level": 20,
+   "note": "with the enraged earths (the guide's Stumbling Earth, the map's Shambling Earth)",
+   "water": "land"
+  },
+  {
+   "name": "Mountain Spirit",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Earth Elemental"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Mountain spirits"
+   ],
+   "count": 1,
+   "level": 22,
+   "note": "the giant earth spirits that come when the earths are killed",
+   "water": "land"
+  },
+  {
+   "name": "A sunbaked stone",
+   "role": "talker",
+   "body": [
+    "npc",
+    "cursed grave"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "A sunbaked stone"
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "Highbourne (E), just north of the mountain's base",
+   "water": "land"
+  },
+  {
+   "name": "Abyas",
+   "role": "foe",
+   "body": [
+    "kind",
+    "lion"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Abyas"
+   ],
+   "count": 1,
+   "level": 22,
+   "note": "the lion pride on a majestic rock over the plains, Highbourne (NW)",
+   "water": "land"
+  },
+  {
+   "name": "Pride Lioness",
+   "role": "foe",
+   "body": [
+    "kind",
+    "lion"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Pride lioness"
+   ],
+   "count": 3,
+   "level": 20,
+   "note": "Abyas's pride on the rock in Highbourne (NW)",
+   "water": "land"
+  },
+  {
+   "name": "Hermit Washburn",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Brokenskull Rock (SW), 'the Master of the Forge south of a sea that isn't on the skull's spine'",
+   "water": "land"
+  },
+  {
+   "name": "Urtica Dioica",
+   "role": "foe",
+   "body": [
+    "npc",
+    "centaur warder"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Urtica Dioica"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "a centaur with a mallet on a hill of small treants, Spirit Talker's Woods (C)",
+   "water": "land"
+  },
+  {
+   "name": "Magus Niska",
+   "role": "talker",
+   "body": [
+    "race",
+    "gnome",
+    0
+   ],
+   "place": [
+    "near",
+    "Prof. Dandersoft",
+    12,
+    0
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "the necromancers' guild in Klick'Anon",
+   "water": "land"
+  },
+  {
+   "name": "Unsettled Bones",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    0,
+    19061.0,
+    11217.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the graveyard by a windmill on the lake's south-west side, Rivervale (C) (white to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Unsettled Bones",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    0,
+    8763.0,
+    12632.0
+   ],
+   "count": 1,
+   "level": 57,
+   "note": "on a hill near the shooting range with a giant stone marker, Surefall Glade (red to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Unsettled Bones",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    0,
+    22734.0,
+    8394.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "in the blue mist of Collonridge Cemetery (E) (red to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Death's Head Beetle",
+   "role": "foe",
+   "body": [
+    "kind",
+    "insect"
+   ],
+   "place": [
+    "poi",
+    "rathe",
+    "Death's head beetles"
+   ],
+   "count": 4,
+   "level": 55,
+   "note": "Envar",
+   "water": "land"
+  },
+  {
+   "name": "Douglas Aren",
+   "role": "talker",
+   "body": [
+    "race",
+    "erudite",
+    0
+   ],
+   "place": [
+    "near",
+    "Banker Narishay",
+    40,
+    2
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Paineel, left of the entrance to the main house, under a tent with a chest before him (here by the banker)",
+   "water": "land"
+  },
+  {
+   "name": "Vhi'zan Kaah",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Vhi'zan Kaah"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Castle Felstar (W), summoned by Madrias Tam (red to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Minion of Vhi'zan",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "near",
+    "Vhi'zan Kaah",
+    15,
+    0
+   ],
+   "count": 2,
+   "level": 52,
+   "note": "Vhi'zan Kaah's minions (light blue to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Ghost of Madrias",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Ghost of Madrias"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Castle Felstar (W), where Vhi'zan Kaah falls",
+   "water": "land"
   }
  ]
 }

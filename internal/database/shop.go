@@ -22,22 +22,28 @@ const itemPatternColumns = `
 // remaincharge, equiploc, location, listnumber) and then itemPatternColumns.
 func scanItemRow(scan func(...any) error) (CharInventoryEntry, error) {
 	var e CharInventoryEntry
-	err := scan(
+	err := scan(append([]any{
 		&e.ItemID, &e.StackLeft, &e.RemainHP, &e.Charges, &e.EquipLoc, &e.Location, &e.ListNum,
-		&e.Pattern.PatternID, &e.Pattern.ItemCost, &e.Pattern.Unk1, &e.Pattern.ItemIcon,
-		&e.Pattern.Unk2, &e.Pattern.EquipSlot, &e.Pattern.Unk3,
-		&e.Pattern.Trade, &e.Pattern.Rent, &e.Pattern.Unk4,
-		&e.Pattern.AttackType, &e.Pattern.WeaponDamage, &e.Pattern.Unk5,
-		&e.Pattern.LevelReq, &e.Pattern.MaxStack, &e.Pattern.MaxHP, &e.Pattern.Duration,
-		&e.Pattern.ClassUse, &e.Pattern.RaceUse, &e.Pattern.ProcAnim,
-		&e.Pattern.Lore, &e.Pattern.Unk6, &e.Pattern.Craft,
-		&e.Pattern.ItemName, &e.Pattern.ItemDesc, &e.Pattern.Model, &e.Pattern.Color,
-		&e.Pattern.Str, &e.Pattern.Sta, &e.Pattern.Agi, &e.Pattern.Wis,
-		&e.Pattern.Dex, &e.Pattern.Cha, &e.Pattern.Intelligence,
-		&e.Pattern.HPMAX, &e.Pattern.POWMAX, &e.Pattern.PoT, &e.Pattern.HoT, &e.Pattern.AC,
-		&e.Pattern.PR, &e.Pattern.DR, &e.Pattern.FR, &e.Pattern.CR, &e.Pattern.LR, &e.Pattern.AR,
-	)
+	}, patternDest(&e.Pattern)...)...)
 	return e, err
+}
+
+// patternDest is where itemPatternColumns scan to, in their order.
+func patternDest(p *ItemPatternRecord) []any {
+	return []any{
+		&p.PatternID, &p.ItemCost, &p.Unk1, &p.ItemIcon,
+		&p.Unk2, &p.EquipSlot, &p.Unk3,
+		&p.Trade, &p.Rent, &p.Unk4,
+		&p.AttackType, &p.WeaponDamage, &p.Unk5,
+		&p.LevelReq, &p.MaxStack, &p.MaxHP, &p.Duration,
+		&p.ClassUse, &p.RaceUse, &p.ProcAnim,
+		&p.Lore, &p.Unk6, &p.Craft,
+		&p.ItemName, &p.ItemDesc, &p.Model, &p.Color,
+		&p.Str, &p.Sta, &p.Agi, &p.Wis,
+		&p.Dex, &p.Cha, &p.Intelligence,
+		&p.HPMAX, &p.POWMAX, &p.PoT, &p.HoT, &p.AC,
+		&p.PR, &p.DR, &p.FR, &p.CR, &p.LR, &p.AR,
+	}
 }
 
 // GetNPCItems returns an NPC's merchant catalog (npcitem joined with

@@ -3054,6 +3054,42 @@
    "level": 60,
    "note": "a small camp left of the road running north from Murnf, Salisearaneen (W) ('west of Gramash Ruins')",
    "water": "land"
+  },
+  {
+   "name": "Altar of Cazic Thule",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Golem Statue"
+   ],
+   "place": [
+    "at",
+    0,
+    14666.0,
+    30378.0
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "the altar in the centre room of Cazic Thule's main temple",
+   "water": "land"
+  },
+  {
+   "name": "Altar of the Spirit Guardian",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Golem Statue"
+   ],
+   "place": [
+    "at",
+    0,
+    14828.0,
+    30553.0
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "the altar beside the spirit guardian, in the inner pyramid",
+   "water": "land"
   }
  ]
 }

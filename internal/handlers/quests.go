@@ -242,13 +242,43 @@ func NewQuestEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manager
 }
 
 // Start hears the World's kills, looks at reach steps once a second, and makes
-// this the running engine.
+// this the running engine; the start log says what it read.
 func (q *QuestEngine) Start() {
 	if q.gw != nil {
 		q.gw.OnKill(q.heardKill)
 	}
 	go q.run()
 	questEngine.Store(q)
+	log.Print(q.Summary())
+}
+
+// Summary is the quests as read, in one line: how many, how many in the game,
+// and how many use the later guides' fields.
+func (q *QuestEngine) Summary() string {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	inGame, reqs, repeat, byClass, choices := 0, 0, 0, 0, 0
+	for _, qu := range q.cat.all {
+		if qu.Enabled {
+			inGame++
+		}
+		if len(qu.FactionReqs) > 0 {
+			reqs++
+		}
+		if qu.Repeatable {
+			repeat++
+		}
+		for _, st := range qu.Steps {
+			if len(st.ByClass) > 0 {
+				byClass++
+			}
+			if len(st.Choices.Options) > 0 {
+				choices++
+			}
+		}
+	}
+	return fmt.Sprintf("Quests: %d read, %d in the game; %d ask a standing, %d repeatable, %d trips unlocked (%d by quests in the game); "+
+		"%d steps reward by class, %d ask a choice", len(q.cat.all), inGame, reqs, repeat, len(q.cat.unlockers), len(q.cat.gates), byClass, choices)
 }
 
 // Stop ends the worker.

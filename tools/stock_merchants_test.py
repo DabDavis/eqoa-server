@@ -163,6 +163,8 @@ def build(dirname):
     db.execute("INSERT INTO gm_audit (tbl, rowkey, after) VALUES ('itempattern', ?, '{}')",
                (json.dumps({"patternid": w.p["GM Thing"]}),))
     loot = w.npc("cave beetle", 1060, 1100, flags=0)
+    db.execute("UPDATE npcs SET npc_id = id WHERE id = ?", (loot,))
+    w.stock(loot, "Beast Fang")                    # its corpse's loot here: no catalog, no price
     # Return Home's export: its rows 1 (ours: Smithy Able), 2 (imported:
     # Merchant Baker), 3 (ours: Tailor Kept, stocked here), 4 (a beetle's loot)
     for src, name, status, dst in ((1, "Smithy Able", "ours", rh_ours), (2, "Merchant Baker", "imported", rh_imp),
@@ -312,6 +314,7 @@ class StockMerchantsTest(unittest.TestCase):
         self.assertTrue(how["Old Name Axe"].startswith("measured by id"))
         self.assertEqual(price["leather strip"], 40)
         self.assertNotIn("Priced Thing", price)            # a price already
+        self.assertNotIn("Beast Fang", price)              # a creature's loot: not a merchant's
         self.assertNotIn("GM Thing", price)                # a GM's pattern
         self.assertIn(pats_id(pats, "GM Thing"), p.gm_priced)
         self.assertIn(pats_id(pats, "Handout Cap"), p.free)  # Sandstorm's 0

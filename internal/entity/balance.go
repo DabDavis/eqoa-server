@@ -19,7 +19,8 @@ import (
 //   - an NPC's hit points, by its level (applyBalanceLocked, at its spawn
 //     and whenever the table changes);
 //   - an NPC's melee hits, by its level and by its con on the one it hits
-//     (a player or a pet): npcHitLocked;
+//     (a player or a pet): npcHitLocked; on a player, then the share its
+//     class takes (balanceclass): npcHitPlayerLocked;
 //   - what a player or a pet does to an NPC (melee, spells and their ticks,
 //     procs, damage shields, a pet's hits, taunts and taps), by the NPC's
 //     con on the attacker: takenLocked;
@@ -46,10 +47,11 @@ var meleeIntn = rand.Intn
 // spellIntn is the dice of a spell's amount in its range (spellAmount).
 var spellIntn = rand.Intn
 
-// Balance is the two tables, read.
+// Balance is the tables, read.
 type Balance struct {
-	levels []database.BalanceLevel // by level
-	cons   []database.BalanceCon   // by diff
+	levels  []database.BalanceLevel // by level
+	cons    []database.BalanceCon   // by diff
+	classes map[int]database.BalanceClass
 }
 
 // NewBalance is a balance of these rows (any order); none changes nothing.
@@ -60,12 +62,49 @@ func NewBalance(levels []database.BalanceLevel, cons []database.BalanceCon) *Bal
 	return b
 }
 
+// WithClasses is the balance with these class rows (balanceclass) in place
+// of its own.
+func (b *Balance) WithClasses(rows []database.BalanceClass) *Balance {
+	ls, cs := b.Rows()
+	out := NewBalance(ls, cs)
+	out.classes = map[int]database.BalanceClass{}
+	for _, r := range rows {
+		out.classes[r.Class] = r
+	}
+	return out
+}
+
 // Rows is the balance's rows, by level and by diff (none for a nil balance).
 func (b *Balance) Rows() ([]database.BalanceLevel, []database.BalanceCon) {
 	if b == nil {
 		return nil, nil
 	}
 	return append([]database.BalanceLevel(nil), b.levels...), append([]database.BalanceCon(nil), b.cons...)
+}
+
+// ClassRows is the balance's class rows, by class.
+func (b *Balance) ClassRows() []database.BalanceClass {
+	if b == nil {
+		return nil
+	}
+	var out []database.BalanceClass
+	for _, r := range b.classes {
+		out = append(out, r)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Class < out[j].Class })
+	return out
+}
+
+// MeleeTakenPct is the share of an NPC's melee hit a player of the class
+// takes (balanceclass), 100 with no row.
+func (b *Balance) MeleeTakenPct(class int) float64 {
+	if b == nil {
+		return 100
+	}
+	if r, ok := b.classes[class]; ok {
+		return r.MeleeTakenPct
+	}
+	return 100
 }
 
 // curve is the line through points (x, y) at x: between two points the
@@ -108,14 +147,13 @@ func (b *Balance) WithLevelColumn(points [][2]float64, set func(*database.Balanc
 	for i := range ls {
 		set(&ls[i], curve(points, float64(ls[i].Level)))
 	}
-	out := NewBalance(ls, cs)
-	return out
+	return NewBalance(ls, cs).WithClasses(b.ClassRows())
 }
 
 // SeedBalance is the seed rows' balance (database.BalanceSeedLevels and
 // BalanceSeedCons): what a database made today starts with.
 func SeedBalance() *Balance {
-	return NewBalance(database.BalanceSeedLevels, database.BalanceSeedCons)
+	return NewBalance(database.BalanceSeedLevels, database.BalanceSeedCons).WithClasses(database.BalanceSeedClasses)
 }
 
 // between is the line through (x0, y0) and (x1, y1) at x.
@@ -222,8 +260,8 @@ func (w *World) SetBalance(b *Balance) {
 	}
 }
 
-// LoadBalance reads the two tables into the world (SetBalance): how many
-// rows each has.
+// LoadBalance reads the tables into the world (SetBalance): how many rows
+// the level and con tables have.
 func (w *World) LoadBalance(db *database.SQLiteDB) (levels, cons int, err error) {
 	ls, err := db.BalanceLevels()
 	if err != nil {
@@ -233,8 +271,12 @@ func (w *World) LoadBalance(db *database.SQLiteDB) (levels, cons int, err error)
 	if err != nil {
 		return 0, 0, err
 	}
-	w.SetBalance(NewBalance(ls, cs))
-	log.Printf("Balance: %d level rows, %d con rows", len(ls), len(cs))
+	cls, err := db.BalanceClasses()
+	if err != nil {
+		return 0, 0, err
+	}
+	w.SetBalance(NewBalance(ls, cs).WithClasses(cls))
+	log.Printf("Balance: %d level rows, %d con rows, %d class rows", len(ls), len(cs), len(cls))
 	return len(ls), len(cs), nil
 }
 
@@ -310,6 +352,16 @@ func (w *World) npcHitLocked(npc *NPC, foeLevel, n int) int {
 	}
 	b := w.balance
 	return pct(pct(n, b.Level(npc.Level).DamagePct), b.ConAt(npc.Level, npc.Level-foeLevel).DamagePct)
+}
+
+// npcHitPlayerLocked is an NPC's melee hit of n on a player: npcHitLocked's,
+// then the share the player's class takes (balanceclass).
+func (w *World) npcHitPlayerLocked(npc *NPC, p *Player, n int) int {
+	n = w.npcHitLocked(npc, p.Level, n)
+	if !balanced(npc) {
+		return n
+	}
+	return pct(n, w.balance.MeleeTakenPct(p.Class))
 }
 
 // takenLocked is n of damage on an NPC from an attacker of the level: times

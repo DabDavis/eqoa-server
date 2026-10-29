@@ -122,5 +122,79 @@ class SeedNPCPatrols(unittest.TestCase):
         self.assertEqual(self.paths(), before)
 
 
+class AddMissing(unittest.TestCase):
+    """--add: a walker of no NPC here is made one, its looks off its who line
+    and the rest off the NPC nearest its route, of the faction of the nearest
+    of its town's people; --undo takes the NPC, its faction row and its path
+    away."""
+
+    COLS = ("id INTEGER PRIMARY KEY, npc_name TEXT, zone INTEGER, x_coord REAL, y_coord REAL, z_coord REAL, facing REAL, "
+            "world INTEGER, hp INTEGER, hp_percent INTEGER, modelid INTEGER, size REAL, primary_weapon INTEGER, "
+            "secondary_weapon INTEGER, shield INTEGER, torso INTEGER, forearm INTEGER, gloves INTEGER, legs INTEGER, "
+            "feet INTEGER, head INTEGER, hair_color INTEGER, hair_length INTEGER, hair_style INTEGER, face INTEGER, "
+            "robe_style TEXT, race TEXT, npc_level INTEGER, npc_type INTEGER, npc_id INTEGER")
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        d = self.dir.name
+        self.db = os.path.join(d, "t.db")
+        db = sqlite3.connect(self.db)
+        db.execute(f"CREATE TABLE npcs ({self.COLS})")
+        db.execute("CREATE TABLE npcpaths (npcid INTEGER PRIMARY KEY, world INTEGER NOT NULL DEFAULT 0, mode TEXT NOT NULL DEFAULT 'loop', "
+                   "pause REAL NOT NULL DEFAULT 0, speed TEXT NOT NULL DEFAULT 'walk', points TEXT NOT NULL DEFAULT '[]')")
+        db.execute("CREATE TABLE npcfaction (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, world INTEGER DEFAULT -1, x REAL DEFAULT 0, "
+                   "z REAL DEFAULT 0, radius REAL DEFAULT 0, faction TEXT, note TEXT DEFAULT '', source TEXT DEFAULT 'gm')")
+        db.execute("INSERT INTO npcs VALUES (1, 'Guard Bank', 77, 1010, 10, 1000, 0, 0, 3000, 100, 555, 1, 0, 0, 0, "
+                   "1, 1, 1, 1, 1, 1, 0, 0, 0, 0, '255', '1', 40, 0, 0)")
+        db.execute("INSERT INTO npcs VALUES (2, 'Smith Far', 78, 5000, 10, 5000, 0, 0, 900, 100, 555, 1, 0, 0, 0, "
+                   "0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '255', '1', 65, 0, 0)")
+        db.execute("INSERT INTO npcfaction (name, faction) VALUES ('guard bank', 'Citizens of Testspire')")
+        db.commit()
+        db.close()
+        rows = [{"t": 0, "who": 21, "name": "Hunter Lyra", "kind": 2, "lvl": 65, "model": 3783858679, "model2": 0, "scale": 1.0,
+                 "race": 1, "class": 1, "npc_flags": 0, "items": [111, 0, 222], "items_over": [0, 0, 0], "item_types": [1, 0],
+                 "armor": [5, 5, 5, 5, 5, 5], "armor_tint": [3, 3, 3, 3, 3, 3], "hair": [2, 1, 3], "face": 4, "robe": 255, "robe_tint": 0}]
+        walk(rows, 21, "Hunter Lyra", [(1000, 1000), (1060, 1000), (1000, 1000), (1060, 1000), (1000, 1000)], pace=4.5, pause=3.0)
+        self.tracks = os.path.join(d, "tracks")
+        os.makedirs(self.tracks)
+        with open(os.path.join(self.tracks, "1-2-0.json.track.jsonl"), "w") as f:
+            for r in rows:
+                f.write(json.dumps(r) + "\n")
+
+    def tearDown(self):
+        self.dir.cleanup()
+
+    def tool(self, *args):
+        r = subprocess.run([sys.executable, "-E", "-s", TOOL, "--db", self.db, "--tracks", self.tracks, "--add", *args],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            raise AssertionError(r.stdout + r.stderr)
+        return r.stdout
+
+    def q(self, sql):
+        c = sqlite3.connect(self.db)
+        try:
+            return c.execute(sql).fetchall()
+        finally:
+            c.close()
+
+    def test_a_walker_of_no_npc_here_is_made_one(self):
+        self.assertIn("1 patrols (1 NPCs to make)", self.tool())
+        self.tool("--apply")
+        made = self.q("SELECT id, npc_name, zone, x_coord, z_coord, world, hp, modelid, primary_weapon, shield, torso, "
+                      "hair_color, hair_style, face, robe_style, race, npc_level, npc_type FROM npcs WHERE npc_name = 'Hunter Lyra'")
+        self.assertEqual(len(made), 1)
+        i, *rest = made[0]
+        # zone off the nearest NPC (Guard Bank's 77); hp the median of level 65 (Smith Far's 900); class 1 in the high byte
+        self.assertEqual(rest, ["Hunter Lyra", 77, 1000, 1000, 0, 900, 3783858679, 111, 222, 5, 2, 3, 4, "255", "1", 65, 1 << 8])
+        self.assertEqual(self.q(f"SELECT mode, speed FROM npcpaths WHERE npcid = {i}"), [("pingpong", "4.5")])
+        self.assertEqual(self.q("SELECT name, faction, source FROM npcfaction WHERE source = 'patrol-seed'"),
+                         [("hunter lyra", "Citizens of Testspire", "patrol-seed")])
+        self.tool("--undo")
+        self.assertEqual(self.q("SELECT count(*) FROM npcs WHERE npc_name = 'Hunter Lyra'"), [(0,)])
+        self.assertEqual(self.q("SELECT count(*) FROM npcpaths"), [(0,)])
+        self.assertEqual(self.q("SELECT count(*) FROM npcfaction WHERE source = 'patrol-seed'"), [(0,)])
+
+
 if __name__ == "__main__":
     unittest.main()

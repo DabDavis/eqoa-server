@@ -49,6 +49,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveCraftSkills(before, after) // live_craft.go
 	case "npcmove":
 		return s.liveMove()
+	case "classtemplates", "npctemplate":
+		return s.liveTemplates(t.Name, before, after) // live_templates.go
 	case "spellgates":
 		return s.liveSpellGates() // live_gates.go
 	case "gmtriggers":
@@ -64,7 +66,9 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 	case "spellpattern", "spelleffect", "classspells":
 		// the community spell page's list too (internal/spellfx)
 		database.InvalidateSpellFX()
-		return s.livePetTaps(t.Live)
+		return s.liveTemplateSpells(s.livePetTaps(t.Live))
+	case "spellarea":
+		return s.liveTemplateSpells(t.Live)
 	case "charquests":
 		return s.liveCharQuest(before, after)
 	case "mapmarks":
@@ -116,6 +120,23 @@ func (s *Server) livePetTaps(live string) string {
 		return live + " (the pets' life taps not read again: " + err.Error() + ")"
 	}
 	return live + " A necromancer's pet's life tap follows it at once."
+}
+
+// liveTemplateSpells reads the class templates again after a spell's row,
+// line, class or area changed: what their abilities cast follows it
+// (entity/classtemplate.go).
+func (s *Server) liveTemplateSpells(live string) string {
+	if s.d.World == nil || s.d.DB == nil {
+		return live
+	}
+	n, err := s.d.World.LoadClassTemplates(s.d.DB)
+	if err != nil {
+		return live + " (the class templates not read again: " + err.Error() + ")"
+	}
+	if n == 0 {
+		return live
+	}
+	return fmt.Sprintf("%s The %d NPCs of class templates cast by it at once.", live, n)
 }
 
 // liveAggro reads the creatures' aggro rules again (entity/aggro.go; the

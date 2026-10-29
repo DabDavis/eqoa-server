@@ -29,15 +29,17 @@ Rows, each said by town:
   faction, else to its Citizens), the NPC-bit ones too (their face; they
   attack no one); one whose name ends in a house's ("... Do`Vexis": House
   Do`Vexis; "Merchant House Nothard") or is a faction's ("Zentar Reese") to
-  that faction;
+  that faction; a word of a faction of no kind keeps no one from its town
+  ("Priest of Bertoxxulous" is Freeport's, whatever Sandstorm's Bertoxxulous);
 - the creatures among a town's people: a creature's body, no NPC bit,
   spawned within --near (40, the town's margin) in 3D of one of the town's
   people, or inside the hull of the town's people within --hull (150) of it
   and --height (30) of its height: Neriak's servants, zombies, animations
   and its ghoul servant 53 off between two of the city's chains. Wildlife
-  (wildlife.go's words, seed_npc_move.py's) only within --near AND inside
-  that hull: a city's cats and tavern rats, not the outskirts' snakes, nor
-  the forest's bats over Neriak's cavern (54 above it).
+  (wildlife.go's words, seed_npc_move.py's) only inside that hull: a city's
+  cats and tavern rats, the cave minnows of Neriak's lake (Sandstorm's let a
+  level-1 swimmer be), not the outskirts' snakes, nor the forest's bats over
+  Neriak's cavern (54 above it).
 - left out, said: players' pets and what a GM made peaceful (npcaggro rows
   aggressive 0), the dummies, prisoners, spies and slaves, objects (chests,
   announcements, signposts), and a creature or person whose name names a
@@ -355,6 +357,7 @@ def plan(db, eqoa_data, link=60, reach=400, near=40, hull_r=150, height=30, crea
     tfac = {t: town_factions(t, aka.get(t), factions) for t in town_world}
     town_keys = {v[2] for v in tfac.values() if v[2]}
     kinds = kind_factions(factions, town_keys)
+    kind_of = {f: kd for f, _, kd in kinds}
     house = houses(factions)
     by_key_faction = {fh.key(f): f for f in factions}
 
@@ -386,17 +389,17 @@ def plan(db, eqoa_data, link=60, reach=400, near=40, hull_r=150, height=30, crea
             last = n["name"].strip().split(" ")[-1] if n["name"].strip() else ""
             f = house.get(fh.key(last)) or by_key_faction.get(fh.key(n["name"]))
             if not f:
-                hits = own_kind(n["name"], kinds)
-                kindless = [h for h in hits if not next(kd for ff, _, kd in kinds if ff == h)]
-                if len(hits) == 1 and kindless:
-                    f = hits[0]  # "Lerda Stoneguard": The Stoneguard, a town's own family or order
-                elif hits:
-                    left["of a kind's own faction"].append(f"{n['name']} ({', '.join(hits[:2])})")
-                    if creature_factions and len(hits) == 1:
-                        kind_rows[(k, hits[0])].append(n)
+                # a person named for a kind's faction ("Bandit") is its kind's; one
+                # named for a faction of no kind stays its town's ("Priest of
+                # Bertoxxulous" is Freeport's: Sandstorm's Bertoxxulous starts every
+                # new character at -1000)
+                kinded = [h for h in own_kind(n["name"], kinds) if kind_of[h]]
+                if kinded:
+                    left["of a kind's own faction"].append(f"{n['name']} ({', '.join(kinded[:2])})")
+                    if creature_factions and len(kinded) == 1:
+                        kind_rows[(k, kinded[0])].append(n)
                     continue
-                else:
-                    f = guard if guard and soc.is_guard(n["name"]) else cit
+                f = guard if guard and soc.is_guard(n["name"]) else cit
             members[(k, f, t)].append(n)
             continue
         # a creature's body
@@ -418,7 +421,7 @@ def plan(db, eqoa_data, link=60, reach=400, near=40, hull_r=150, height=30, crea
                if tt == t and abs(m["y"] - n["y"]) <= height]
         among = inside(hull(pts), (n["x"], n["z"]))
         wild = bool(mv.wildlife_word(n["name"])) and not mv.is_undead(k, undead)
-        if not ((d <= near and among) if wild else (d <= near or among)):
+        if not (among if wild else (d <= near or among)):
             continue
         why = None
         if rules.get(n["name"]) == 0:

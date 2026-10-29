@@ -22,7 +22,9 @@ they are no one's start, and by default each faction's own standing is made
 the start most measured combos have (--keep-defaults leaves them, and the
 rows then say every difference from them). On top of that, the fewest rows:
 
-- a faction every combo starts with at one standing gets no row;
+- a faction every combo starts with at one standing gets no row (with
+  --keep-defaults, a row a race where the table's own standing differs; a
+  GM's own standing is left, said);
 - otherwise, for each race, the standing most of its combos start with is one
   row (class -1, humtype -1), unless it is the faction's own; for each human
   city whose start differs from its race's a row (humtype 1 or 2); and a row a
@@ -264,7 +266,7 @@ def plan(db, measured, keep_defaults=False):
     gm_keys = {(r[0], r[1], r[2], r[3]) for r in gm}
     edited = gm_edited_factions(db)
 
-    added, new_defaults, rows, shared, gm_defaults, kept_gm, overridden = {}, {}, [], [], [], [], []
+    added, new_defaults, rows, shared, gm_defaults, kept_gm, overridden, kept_table = {}, {}, [], [], [], [], [], []
     bases = {}
     for faction in sorted(measured):
         values = measured[faction]
@@ -284,9 +286,12 @@ def plan(db, measured, keep_defaults=False):
         distinct = set(values.values())
         if len(distinct) == 1:
             v = next(iter(distinct))
-            if v != base:
-                shared.append((faction, v, base))
-            continue
+            if v == base:
+                continue
+            if faction in edited:
+                shared.append((faction, v, base))  # a GM's own standing: left, said
+                continue
+            kept_table.append((faction, v, base))  # --keep-defaults: a row a race says it
         for race, cls, hum, v in compress(values, base):
             if (race, cls, hum, faction) in gm_keys:
                 kept_gm.append((race, cls, hum, faction, v))
@@ -312,7 +317,7 @@ def plan(db, measured, keep_defaults=False):
                 sys.exit(f"the compression is wrong: {combo_name(combo)} {faction} comes out at {got}, measured {v}")
     measured_combos = {c for vals in measured.values() for c in vals}
     return dict(added=added, new_defaults=new_defaults, rows=rows, shared=shared, gm_defaults=gm_defaults,
-                kept_gm=kept_gm, overridden=overridden, combos=combos,
+                kept_gm=kept_gm, overridden=overridden, combos=combos, kept_table=kept_table,
                 missing=[c for c in combos if c not in measured_combos],
                 unlisted=sorted(measured_combos - set(combos)),
                 absent=sorted(f for f in defaults if f not in measured))
@@ -416,9 +421,15 @@ def report(p, quiet):
         if not quiet:
             for f, (old, new) in sorted(p["new_defaults"].items()):
                 print(f"      {f!r}: {old} -> {new}")
+    if p["kept_table"]:
+        print(f"  {len(p['kept_table'])} factions every combo starts at one standing the factions table does not hold "
+              f"(--keep-defaults: a row a race):")
+        if not quiet:
+            for f, v, base in p["kept_table"]:
+                print(f"      {f!r}: measured {v}, the table {base}")
     if p["shared"]:
-        print(f"  {len(p['shared'])} factions every combo starts at one standing the factions table does not hold "
-              f"(kept; every character starts at the table's):")
+        print(f"  {len(p['shared'])} factions every combo starts at one standing a GM's own standing in the factions "
+              f"table does not hold (left; every character starts at the GM's):")
         for f, v, base in p["shared"]:
             print(f"      {f!r}: measured {v}, the table {base}")
     if p["gm_defaults"]:

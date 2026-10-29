@@ -660,6 +660,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureRaceSize(); err != nil { // racesize.go
 		return err
 	}
+	if err := db.ensureCharDyes(); err != nil { // chardyes.go
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil

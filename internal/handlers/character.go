@@ -623,6 +623,8 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	if player != nil && h.inventoryStore != nil {
 		h.applyEquipmentFromDB(player, record.ServerID, true)
 	}
+	// and its dyes, drawn by a client of the live game's look (livelook.go)
+	h.loadDyes(player, record.ServerID)
 
 	// NOT sent: WorldEntry (0x002E). Sandstorm never sends it — zero
 	// occurrences across all three PS2 captures. Its promoted session goes
@@ -1299,15 +1301,21 @@ func (h *CharacterHandler) SendCharacterSelectEQOA(sess *session.Session) {
 				items = nil
 			}
 		}
-		writer.WriteBytes(characterGear(items))
+		// the live game's record to a client of its look, with the dyes
+		// (livelook.go); the disc's 32 bytes to every other
+		writer.WriteBytes(h.listGear(sess, uint32(c.ServerID), characterGear(items)))
 	}
 
 	msg.SetSize(writer.Position())
 	sess.Queue().AddWithSequence(msg)
 
-	log.Printf("Sent character list (%d chars, %d bytes) to %s",
-		len(records), writer.Position(), sess.RemoteAddr())
+	log.Printf("Sent character list (%d chars, %d bytes%s) to %s",
+		len(records), writer.Position(), map[bool]string{true: ", the live look"}[sess.LiveLook()], sess.RemoteAddr())
 	log.Printf("CharacterList hex dump: %x", msg.Span()[:writer.Position()])
+
+	// The live look's offer, after the list, so a PS2's list keeps the
+	// sequence number it always had (livelook.go)
+	SendLiveLookOffer(sess)
 }
 
 // worldPaths maps a world index to the esfPath the client loads it from.
@@ -1977,10 +1985,11 @@ func (h *CharacterHandler) initPlayerStateChannel(sess *session.Session, player 
 	}
 
 	objectID := sess.PlayerObjectID()
-	stateData := entity.SerializePlayerUpdate(objectID, player)
+	// in the client's look: the disc's, or the live game's (livelook.go)
+	stateData := entity.ForViewer(sess, entity.SerializePlayerUpdate(objectID, player), &player.Dyes)
 
 	channel0.SetActive(true)
-	channel0.SetData(stateData)
+	entity.SetEntityState(channel0, stateData)
 
 	log.Printf("initPlayerStateChannel: set channel 0 (%d bytes) for '%s' objectID=%d",
 		len(stateData), player.Name, objectID)

@@ -444,7 +444,7 @@ func (w *World) pinPetChannelLocked(sess *session.Session, pet *NPC) uint32 {
 	vis.ChannelObjectID[slot] = id
 	if state := conn.GetServerObject(slot + 1); state != nil {
 		if data := w.serializeEntityForChannel(sess, pet.ServerID, id); data != nil {
-			state.SetData(data)
+			SetEntityState(state, data)
 		}
 	}
 	return id

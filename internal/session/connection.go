@@ -654,6 +654,13 @@ func (s *StateUpdateData) SetData(data []byte) {
 	}
 }
 
+// Len is the length of the channel's value.
+func (s *StateUpdateData) Len() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return len(s.data)
+}
+
 // SetSizedData sets the channel's value at data's own length, for the one
 // channel whose value is as long as what it holds: the active effects (0x43,
 // 4 + 132 bytes an effect). DRDP allows it: connection_append_state XORs a

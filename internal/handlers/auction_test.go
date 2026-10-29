@@ -1053,3 +1053,29 @@ func TestTunarSavesKeepAnAuctionPayment(t *testing.T) {
 		t.Errorf("SetTunar: %v, %d", err, f.dbBank(s))
 	}
 }
+
+// A session gone quiet (its client gone, the session not yet timed out) is
+// not told its lines: they wait for the next login, where they are told.
+func TestAuctionQuietSessionKeepsItsLines(t *testing.T) {
+	f := newHouseFixture(t, "Seller", "Bidder", "Rival")
+	s, a, b := f.chars["Seller"], f.chars["Bidder"], f.chars["Rival"]
+	f.give(s, f.sword, 1)
+	f.sell(s, 0, 100, 1000, 720)
+	f.bid(a, 1, 300)
+	f.drain(a)
+	old := auctionQuiet
+	auctionQuiet = 0 // every session is quiet
+	f.bid(b, 1, 400)
+	auctionQuiet = old
+	if ls := sentLines(f.drain(a)); len(ls) != 0 {
+		t.Errorf("a quiet session was told %q", ls)
+	}
+	if n, _ := f.db.AuctionNotices(a.sid); len(n) != 1 {
+		t.Fatalf("%d lines wait, want the outbid one", len(n))
+	}
+	// the next login hears it
+	f.house.playerEntered(a.sess, a.player)
+	if ls := sentLines(f.drain(a)); len(ls) != 1 || !strings.Contains(ls[0], "outbid") {
+		t.Errorf("at login %q", ls)
+	}
+}

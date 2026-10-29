@@ -82,6 +82,13 @@ const (
 	auctionSweepEvery = 5 * time.Second
 )
 
+// auctionQuiet is how long a session may go unheard and still be told its
+// lines: a client in the world sends its state many times a second, and a
+// session whose client is gone lingers until it times out (a minute and more
+// on the rig), where a line told is a line lost. A quiet one's lines wait for
+// its character's next login.
+var auctionQuiet = 15 * time.Second
+
 // auctionCyan is CLIENT's colour for the auction's lines (RecvResults'
 // AddText); a refusal is red (0x00CE), as the search window's own.
 var auctionCyan = [3]uint8{48, 245, 245}
@@ -731,9 +738,10 @@ func (a *AuctionHouse) fileLocked(sess *session.Session, d database.AuctionDeliv
 }
 
 // tellLocked says a character's waiting lines to its session in the world,
-// then forgets them; one not in the world yet hears them at its first 0x0014.
+// then forgets them; one not in the world yet hears them at its first 0x0014,
+// one gone quiet (auctionQuiet) at its next login's.
 func (a *AuctionHouse) tellLocked(sess *session.Session, serverID uint32) {
-	if sess == nil || !sess.CharacterInWorld() {
+	if sess == nil || !sess.CharacterInWorld() || time.Since(sess.LastActivity()) > auctionQuiet {
 		return
 	}
 	notes, err := a.db.AuctionNotices(serverID)

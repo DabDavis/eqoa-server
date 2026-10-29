@@ -3,6 +3,7 @@ package entity
 import (
 	"encoding/binary"
 	"math"
+	"strings"
 	"testing"
 	"time"
 
@@ -33,6 +34,13 @@ func TestAGnomePlayerIsATenthSmaller(t *testing.T) {
 	}
 	if w.RaceSize(3) != float32(0.9) || w.RaceSize(0) != 1 || w.RaceSize(10) != 1 {
 		t.Fatalf("race sizes: gnome %v, human %v, froglok %v", w.RaceSize(3), w.RaceSize(0), w.RaceSize(10))
+	}
+	// and #stats says so to a GM
+	w.mu.Lock()
+	lines := w.playerStatsLocked(gnome, time.Now())
+	w.mu.Unlock()
+	if len(lines) == 0 || !strings.HasSuffix(lines[0], ", size 0.90") {
+		t.Fatalf("#stats: %q", lines)
 	}
 
 	// a GM's change reaches the gnome where it stands, and only the gnome

@@ -386,3 +386,62 @@ func TestAStepsChoiceGivesThePickedOption(t *testing.T) {
 	f.tw.pick(boxID(m), 0)
 	f.want(f.msgs(), "box:"+questFinished)
 }
+
+// A trip only a quest opens (the Portal guides': Norach's Isle of Dread, for
+// 10,000 a trip): with no quest unlocking it, or only a draft, no one is
+// offered it and Norach says so; once a quest in the game unlocks it, he
+// names that quest; finished, it is offered with its fee and lands on its
+// place, not in front of an NPC. A player who finished the quest keeps the
+// trip once the quest is a draft again.
+func TestAQuestOnlyTripWaitsForItsQuest(t *testing.T) {
+	f := newQuestFixture(t)
+	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 10010`)
+	norach := f.tw.add(1, &entity.NPC{ServerID: 117982, Name: "Norach", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	f.tw.h.spend = func(_ *session.Session, p *entity.Player, n int) bool {
+		if n > p.Tunar {
+			return false
+		}
+		p.Tunar -= n
+		return true
+	}
+	boxes := func() []string {
+		f.tw.talk(norach)
+		return dialogueBoxes(f.tw.s)
+	}
+	if got := boxes(); !slices.Equal(got, []string{"You may not travel to the Isle of Dread yet."}) {
+		t.Fatalf("no quest unlocks it: %q", got)
+	}
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (95, 'The Medallion', 0, 'Nobody Here')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal) VALUES (95, 1, 'talk', 'Kellina', 'x')`)
+	f.exec(`INSERT INTO questunlocks VALUES (95, 'Norach', 'the Isle of Dread')`)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	if got := boxes(); !slices.Equal(got, []string{"You may not travel to the Isle of Dread yet."}) {
+		t.Fatalf("a draft unlocks it: %q", got)
+	}
+	f.exec(`UPDATE quests SET enabled = 1 WHERE questid = 95`)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	if got := boxes(); !slices.Equal(got, []string{"You may not travel to the Isle of Dread until you have finished The Medallion."}) {
+		t.Fatalf("a quest in the game unlocks it: %q", got)
+	}
+	if _, err := f.qe.SetCharacterQuest(f.sid, 95, QuestComplete, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.exec(`UPDATE quests SET enabled = 0 WHERE questid = 95`) // a draft again: the finisher keeps it
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	f.tw.p.Tunar = 12000
+	f.tw.talk(norach)
+	if got := optionBox(t, f.tw.s); !slices.Equal(got, []string{"Yes", "No"}) {
+		t.Fatalf("finished, Norach asked %q", got)
+	}
+	f.tw.pick(norach, 0)
+	x, z, world, moved := teleported(f.tw.s)
+	if !moved || world != 0 || x != 24500 || z != 3330 || f.tw.p.Tunar != 2000 {
+		t.Errorf("Yes: to (%.1f, %.1f) world %d (%v), tunar %d; want (24500, 3330) world 0 for 10000", x, z, world, moved, f.tw.p.Tunar)
+	}
+}

@@ -33,7 +33,7 @@ import (
 // the live game's rules exists: the base stats a requirement is checked
 // against (the trainer's base, before items and spells, plus the masteries'
 // own), and one Master Class at a time held by refusing a second until the
-// first is removed. A removal gives nothing back, as jib has the live game's
+// first is removed (the live client's word 1840, OneMasterClass). A removal gives nothing back, as jib has the live game's
 // (F3 20261026-043542: "permanent unless you delete them, which lowers your
 // total cm's as you do that have to be re-earned"): the rank's points are
 // gone, so under the 1500 the character may hold they are earned again (the
@@ -68,6 +68,13 @@ const (
 // CMCategoryMaster is the Master Class category, of which a character holds
 // one (CLIENT's word 1807: "You can possess only one "Master Class" at a time.").
 const CMCategoryMaster = 4
+
+// OneMasterClass is the refusal of a second Master Class: SOE's live CLIENT's
+// word 1840 (eqoa-live-1500), which that client says in red itself before it
+// sends a buy (VIWndClassMasteryInspect::OnKeyDown 0x01338708: any Master
+// Class skill owned); the disc's client only warns (word 1807 in the
+// purchase prompt) and sends it, so the server says it.
+const OneMasterClass = "You cannot possess more than one Master Class at a time."
 
 // cmStatSlots maps a stat name, as EQOA-Data's lists write them and
 // cmcatalog keeps them, to its slot.
@@ -435,6 +442,15 @@ func (w *World) cmBlockLocked(p *Player, r *CMRank, k CMKnows) string {
 	if _, ok := p.CMs[r.ID]; ok {
 		return "You already have that mastery."
 	}
+	if r.Category == CMCategoryMaster {
+		// before anything else it needs, as the live client checks it
+		// first: another Master Class held (its own abilities are its)
+		for id := range p.CMs {
+			if o := w.cms.byID[id]; o != nil && o.Category == CMCategoryMaster && o.Mastery != r.Mastery {
+				return OneMasterClass
+			}
+		}
+	}
 	if r.Parent != 0 {
 		if _, ok := p.CMs[r.Parent]; !ok {
 			name := "the rank before it"
@@ -474,13 +490,6 @@ func (w *World) cmBlockLocked(p *Player, r *CMRank, k CMKnows) string {
 	for _, a := range r.Requires {
 		if a.SpellID > 0 && !k.Book[a.SpellID] { // a name never found is not checked
 			return fmt.Sprintf("You must know %s to buy %s.", a.Name, r.Name)
-		}
-	}
-	if r.Category == CMCategoryMaster {
-		for id := range p.CMs {
-			if o := w.cms.byID[id]; o != nil && o.Category == CMCategoryMaster && o.Mastery != r.Mastery {
-				return fmt.Sprintf("You can possess only one Master Class at a time: remove %s first.", o.Mastery)
-			}
 		}
 	}
 	return ""

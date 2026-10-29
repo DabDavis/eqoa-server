@@ -9810,6 +9810,414 @@
     "Arliss"
    ],
    "notes": "From EQOA-Data Quests/Misc/harbingers-of-khalimet.json, # Harbingers of Khalimet, Part V (Gnadriin) (github.com/Jadiction/EQOA-Data, MIT). Part V follows Part IV in the guide; Part IV is not written, so it follows Part I here. Hogarth's augmentation (a gem set into a warlord's weapon for 10,000 tunar) is not something the engine does: the quest ends with him. Anibael's Gnadriin Blade, a drop the guide says is not needed, is left out. The weary adventurers' four (a dark elf, a dwarf, a barbarian and a human) are one spawned with a Gnadriin. The places are ours, from the guide's zones."
+  },
+  {
+   "key": "Misc/unkempt-war/p1",
+   "name": "Unkempt War",
+   "giver": "Elaryness",
+   "classes": [],
+   "races": [],
+   "minlevel": 45,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The Dawn and Moon tribes will make war on the defenders of these woods. Before I trust you with that, bring me four faerie dusts: any faerie carries it, the wood faeries most of all.",
+   "accept": "I will help defend the woods.",
+   "decline": "Not now.",
+   "declined": "Then the woods wait.",
+   "started": "Faerie dust first.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "wood faerie",
+     "journal": "Take four faerie dusts from the faeries of the Unkempt woods.",
+     "items": [
+      {
+       "item": "Faerie Dust",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.3
+    },
+    {
+     "kind": "give",
+     "target": "Elaryness",
+     "journal": "Bring the four faerie dusts to Elaryness in the tree-house village.",
+     "items": [
+      {
+       "item": "Faerie Dust",
+       "count": 4
+      }
+     ],
+     "says": "Now go to my father's grave: south out of the village, west at the fork, the island with the weeping willow."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 6850,
+     "y": 54,
+     "z": 7950,
+     "radius": 40,
+     "journal": "Find the Unkempt grave on the island with a weeping willow, Unkempt Glade (N/C).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You kneel at the grave. The willow's leaves stir though there is no wind."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Elaryness",
+     "journal": "Return to Elaryness.",
+     "says": "He rests. Now: Dresden Windstalker, on the flattened hill south-east of here. Gather your forces first."
+    },
+    {
+     "kind": "talk",
+     "target": "Dresden Windstalker",
+     "journal": "Speak with Dresden Windstalker on the flattened hill south-east of Elaryness, when your forces are in place.",
+     "says": "Then it begins. The tribes come!"
+    },
+    {
+     "kind": "kill",
+     "target": "Dawn tribesman",
+     "journal": "Hold the Dawn tribe's camps: kill their tribesmen.",
+     "count": 3
+    },
+    {
+     "kind": "kill",
+     "target": "Ward of Dawn Minor",
+     "journal": "Kill the Ward of Dawn Minor.",
+     "count": 1
+    },
+    {
+     "kind": "kill",
+     "target": "Ward of Dawn Major",
+     "journal": "Kill the Ward of Dawn Major.",
+     "count": 1
+    },
+    {
+     "kind": "kill",
+     "target": "Supreme Ward Boreg",
+     "journal": "Kill the Dawn tribe's leader, Supreme Ward Boreg.",
+     "count": 1
+    },
+    {
+     "kind": "kill",
+     "target": "Moon tribesman",
+     "journal": "Hold the Moon tribe's camps: kill their tribesmen.",
+     "count": 3
+    },
+    {
+     "kind": "kill",
+     "target": "Night Reaper Omega",
+     "journal": "Kill Night Reaper Omega.",
+     "count": 1
+    },
+    {
+     "kind": "kill",
+     "target": "Night Reaper Beta",
+     "journal": "Kill Night Reaper Beta.",
+     "count": 1
+    },
+    {
+     "kind": "kill",
+     "target": "Alpha Reaper Hanz",
+     "journal": "Kill the Moon tribe's leader, Alpha Reaper Hanz.",
+     "count": 1
+    },
+    {
+     "kind": "talk",
+     "target": "Dresden Windstalker",
+     "journal": "Return to Dresden Windstalker.",
+     "says": "The war is won! Go to Elaryness for your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Elaryness",
+     "journal": "Return to Elaryness.",
+     "says": "The woods are safe because of you."
+    }
+   ],
+   "factions_required": [
+    [
+     "Unkempt Defenders",
+     -350
+    ]
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/unkempt-war.json, # Unkempt War Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's faction rule is fuzzy (logged at -335, 'not 0 as others say', when Elaryness is white-faced): -350 with the Unkempt Defenders here. The war (four to six camps, an hour, the bosses by chance as the majors and betas die, a guild's worth of players, an area flag for all) is the tribes' named leaders in order here, standing where the server has them; there is no time limit. The grave's place is ours. Not on this server, left out of the rewards: the class weapons (Sash of Wild Elements, Star of Ehayae, Horn of Nellynussia, Iujien Bone Wand, Wyldwood Longbow, Saptapper, Rootpiercer, Lumbersbane, Fire of Ehayae). The bosses' drops are loot."
+  },
+  {
+   "key": "Misc/avatar-of-fear/p1",
+   "name": "Avatar of Fear",
+   "giver": "Altar of Cazic Thule",
+   "classes": [],
+   "races": [],
+   "minlevel": 45,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The altar is carved with a pyramid and a screaming face. A hollow at its heart is stained dark, as if something living was once laid there: an archon's heart, it seems.",
+   "accept": "Seek an archon's heart.",
+   "decline": "Leave the altar.",
+   "declined": "The face on the altar seems to laugh.",
+   "started": "The archons are in the tunneler's tunnel.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tae Ew Archon",
+     "journal": "Kill the Tae Ew archon in the tunnel where the Tae Ew tunneler spawns (back right, facing the altar).",
+     "items": [
+      {
+       "item": "Archon Heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Altar of Cazic Thule",
+     "journal": "Lay the archon heart in the altar of the centre room.",
+     "items": [
+      {
+       "item": "Archon Heart",
+       "count": 1
+      }
+     ],
+     "says": "The heart sinks into the stone, and a ruby talisman rises.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Rubi Talisman",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "High Priest Siblis",
+     "journal": "Kill High Priest Siblis, a level up, for a symbol of fear.",
+     "items": [
+      {
+       "item": "Symbol of Fear",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "High Priest Siblis",
+     "journal": "Kill High Priest Siblis again until he leaves his skull.",
+     "items": [
+      {
+       "item": "Skull of Siblis",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14615,
+     "y": 50,
+     "z": 30325,
+     "radius": 25,
+     "journal": "Step into the pool in the chamber of the Thulian maneaters.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You toss the Skull of Siblis into the pool. The water boils: the Hand of Thule!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Hand of Thule",
+     "journal": "Kill the Hand of Thule and take the top half of the tablet.",
+     "items": [
+      {
+       "item": "Top Half of the Tablet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Hand of Thule",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14615,
+     "y": 50,
+     "z": 30325,
+     "radius": 25,
+     "journal": "Step into the pool again with your symbol of fear.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You toss the symbol of fear into the pool, and a sapphire talisman floats up."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Sapphire Talisman",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14822,
+     "y": 57,
+     "z": 30521,
+     "radius": 40,
+     "journal": "Use the golem's portal (down the back left hall) to the next temple, and search the tunnel's dead end.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You search, and search again: at last, the bottom half of the tablet!"
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bottom Half of the Tablet",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Tae Ew chosen",
+     "journal": "Drop through the green water into the inner pyramid and kill a Tae Ew chosen for the emerald talisman.",
+     "items": [
+      {
+       "item": "Emerald Talisman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Tae Ew chosen",
+     "journal": "Keep killing the Tae Ew chosen until the Horn of Cazic drops.",
+     "items": [
+      {
+       "item": "Horn of Cazic",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25
+    },
+    {
+     "kind": "give",
+     "target": "Altar of the Spirit Guardian",
+     "journal": "Place the three talismans, the horn and the two halves on the altar beside the spirit guardian.",
+     "items": [
+      {
+       "item": "Rubi Talisman",
+       "count": 1
+      },
+      {
+       "item": "Sapphire Talisman",
+       "count": 1
+      },
+      {
+       "item": "Emerald Talisman",
+       "count": 1
+      },
+      {
+       "item": "Horn of Cazic",
+       "count": 1
+      },
+      {
+       "item": "Top Half of the Tablet",
+       "count": 1
+      },
+      {
+       "item": "Bottom Half of the Tablet",
+       "count": 1
+      }
+     ],
+     "says": "The tablet glows and fuses: the Tablet of Haz'Kar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Tablet of Haz'Kar",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Altar of the Spirit Guardian",
+     "journal": "Clear the room, buff up, and give the altar the Tablet of Haz'Kar.",
+     "items": [
+      {
+       "item": "Tablet of Haz'Kar",
+       "count": 1
+      }
+     ],
+     "says": "Across the room, the Avatar of Fear takes shape!"
+    },
+    {
+     "kind": "kill",
+     "target": "Avatar of Fear",
+     "journal": "Kill the Avatar of Fear.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Avatar of Fear",
+       "hostile": true
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Altar of Cazic Thule",
+    "Altar of the Spirit Guardian"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/avatar-of-fear.json, # Avatar of Fear (github.com/Jadiction/EQOA-Data, MIT). The guide has no quest NPC: the altar in the centre room gives it here (an object of ours, the map's 'altar in center room'), and the altar beside the spirit guardian is another. Each party member's own symbol and talisman, the transport orb and the golem's port are left out (the golem is a reach step at the next temple's dead end, where the search's spider is left out too). The guide names no reward."
   }
  ],
  "items": [
@@ -10868,6 +11276,72 @@
    "description": "The sword Arliss kept from Hogarth Bartholomew.",
    "notrade": true,
    "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Faerie Dust",
+   "description": "Dust from a faerie of the Unkempt woods.",
+   "notrade": true,
+   "like": "Elusive Stone Ant Poison"
+  },
+  {
+   "name": "Archon Heart",
+   "description": "The heart of a Tae Ew archon.",
+   "notrade": true,
+   "like": "blood sack"
+  },
+  {
+   "name": "Rubi Talisman",
+   "description": "The ruby talisman the altar gives for an archon's heart.",
+   "notrade": true,
+   "like": "gem of fury"
+  },
+  {
+   "name": "Symbol of Fear",
+   "description": "A symbol of fear, from High Priest Siblis.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "Skull of Siblis",
+   "description": "The skull of High Priest Siblis.",
+   "notrade": true,
+   "like": "Skull of Vitsh"
+  },
+  {
+   "name": "Top Half of the Tablet",
+   "description": "The top half of a tablet, from the Hand of Thule.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Sapphire Talisman",
+   "description": "A sapphire talisman from the pool, for a symbol of fear.",
+   "notrade": true,
+   "like": "gem of obfuscation"
+  },
+  {
+   "name": "Bottom Half of the Tablet",
+   "description": "The bottom half of the tablet, found at the tunnel's dead end.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Emerald Talisman",
+   "description": "An emerald talisman, from the Tae Ew chosen.",
+   "notrade": true,
+   "like": "gem of wit"
+  },
+  {
+   "name": "Horn of Cazic",
+   "description": "The Horn of Cazic, from the Tae Ew chosen.",
+   "notrade": true,
+   "like": "Oversized Claw"
+  },
+  {
+   "name": "Tablet of Haz'Kar",
+   "description": "The Tablet of Haz'Kar, made whole and glowing.",
+   "notrade": true,
+   "like": "Book of the Stars"
   }
  ]
 }

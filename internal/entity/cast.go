@@ -1054,7 +1054,9 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		case EffectHP:
 			if n := spellAmount(e, caster); n < 0 {
 				killed := w.spellHitLocked(caster, casterSess, npc, -n)
-				w.drainLocked(cs, caster, casterSess, e, -n, now) // a life tap's heal (lifetap.go)
+				// a life tap's heal (lifetap.go): what landed, after the
+				// con's cut (balance.go)
+				w.drainLocked(cs, caster, casterSess, e, w.takenLocked(npc, caster.Level, -n), now)
 				if killed {
 					return
 				}

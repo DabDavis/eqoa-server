@@ -274,6 +274,114 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/bard/L20, so a bard of Freeport is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
   },
   {
+   "key": "30,40,49/group-4-evil/L30-freeport-cleric",
+   "name": "The Ritual Season",
+   "giver": "Sister Falhelm",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/freeport/cleric/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Dark Solace: Belran Nightrift there needs a tome found before the ritual season.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Find Belran Nightrift in Dark Solace.",
+     "says": "The ritual season is near, and the tome we need is lost. Carry my writ, so those who know me will know you.",
+     "rewards": {
+      "items": [
+       "Belran's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/cleric/L20, so a cleric of Freeport is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30-freeport-rogue",
+   "name": "The Ritual Season",
+   "giver": "Athera",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/freeport/rogue/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Dark Solace: Belran Nightrift there needs a tome found before the ritual season.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Find Belran Nightrift in Dark Solace.",
+     "says": "The ritual season is near, and the tome we need is lost. Carry my writ, so those who know me will know you.",
+     "rewards": {
+      "items": [
+       "Belran's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/rogue/L20, so a rogue of Freeport is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30-freeport-enchanter",
+   "name": "The Ritual Season",
+   "giver": "Azlynn",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/freeport/enchanter/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Dark Solace: Belran Nightrift there needs a tome found before the ritual season.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Find Belran Nightrift in Dark Solace.",
+     "says": "The ritual season is near, and the tome we need is lost. Carry my writ, so those who know me will know you.",
+     "rewards": {
+      "items": [
+       "Belran's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/enchanter/L20, so a enchanter of Freeport is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
+  },
+  {
    "key": "30,40,49/group-2-good/L30-halas-warrior",
    "name": "The Lightwolf Jewels",
    "giver": "Marik McPherson",
@@ -756,6 +864,42 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/klick-anon/magician/L20, so a magician of Klick'Anon is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
   },
   {
+   "key": "30,40,49/group-4-evil/L30-klick-anon-rogue",
+   "name": "The Ritual Season",
+   "giver": "Mistress Briva",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/klick-anon/rogue/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Dark Solace: Belran Nightrift there needs a tome found before the ritual season.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Find Belran Nightrift in Dark Solace.",
+     "says": "The ritual season is near, and the tome we need is lost. Carry my writ, so those who know me will know you.",
+     "rewards": {
+      "items": [
+       "Belran's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/klick-anon/rogue/L20, so a rogue of Klick'Anon is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
+  },
+  {
    "key": "30,40,49/group-2-good/L30-klick-anon-warrior",
    "name": "The Lightwolf Jewels",
    "giver": "Captain Buntattle",
@@ -976,6 +1120,114 @@
    ],
    "unresolved": [],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/moradhim/warrior/L20, so a warrior of Moradhim is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30-neriak-nektulos-cleric",
+   "name": "The Ritual Season",
+   "giver": "Theologist S`Tai",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/neriak-nektulos/cleric/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Dark Solace: Belran Nightrift there needs a tome found before the ritual season.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Find Belran Nightrift in Dark Solace.",
+     "says": "The ritual season is near, and the tome we need is lost. Carry my writ, so those who know me will know you.",
+     "rewards": {
+      "items": [
+       "Belran's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/cleric/L20, so a cleric of Neriak is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30-neriak-nektulos-enchanter",
+   "name": "The Ritual Season",
+   "giver": "Dominary K`Jartan",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/neriak-nektulos/enchanter/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Dark Solace: Belran Nightrift there needs a tome found before the ritual season.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Find Belran Nightrift in Dark Solace.",
+     "says": "The ritual season is near, and the tome we need is lost. Carry my writ, so those who know me will know you.",
+     "rewards": {
+      "items": [
+       "Belran's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/enchanter/L20, so a enchanter of Neriak is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30-neriak-nektulos-rogue",
+   "name": "The Ritual Season",
+   "giver": "Necorik the Ghost",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/neriak-nektulos/rogue/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Dark Solace: Belran Nightrift there needs a tome found before the ritual season.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Find Belran Nightrift in Dark Solace.",
+     "says": "The ritual season is near, and the tome we need is lost. Carry my writ, so those who know me will know you.",
+     "rewards": {
+      "items": [
+       "Belran's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/rogue/L20, so a rogue of Neriak is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
   },
   {
    "key": "30,40,49/group-2-good/L30-qeynos-warrior",
@@ -5612,6 +5864,1244 @@
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, To Summon Chardith and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Lord Chardith and the three magi stand in the basement always (the guide's Chardith is called after a sacrifice; Terathin speaks only every fifteen minutes). The jeweled chest's choice is the class's first weapon, given at the end. Daresh gives the final rewards; the guide's class NPC and approval notes are not in. Epic weapons are the guide's first (druids' and rangers' made like one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30-davek",
+   "name": "Davek Malall's Word",
+   "giver": "Davek Malall",
+   "classes": [
+    6,
+    9
+   ],
+   "races": [
+    0
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "factions_required": [
+    [
+     "Citizens of Dark Solace",
+     -2000,
+     -1
+    ]
+   ],
+   "repeatable": true,
+   "offer": "Dark Solace will not let you through its wall? I have friends there. Say the word, and they will think better of you.",
+   "accept": "Speak for me.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "It is done. They will let you pass.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 25483,
+     "y": 63,
+     "z": 15647,
+     "radius": 15,
+     "journal": "Let Davek Malall speak for you to Dark Solace.",
+     "rewards": {
+      "factions": [
+       [
+        "Citizens of Dark Solace",
+        1000
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Final NOTE (Eastern Human Cleric/Rogue) (github.com/Jadiction/EQOA-Data, MIT). Offered while the player's standing with Dark Solace is below 0 (the guide's \"low faction\": ours), and again whenever it falls there; Belran Nightrift deals only at 0 or better."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30-a",
+   "name": "The Bloody Letter",
+   "giver": "Belran Nightrift",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "factions_required": [
+    [
+     "Citizens of Dark Solace",
+     0
+    ]
+   ],
+   "offer": "Jolin Tofeph, at the top of the tower by the coachman in Muniel's Tea Garden, knows where our tome went. Kill him and read what he carries.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Jolin Tofeph",
+     "items": [
+      {
+       "item": "Bloody Letter",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Jolin Tofeph at the top of the tower by the coachman in Muniel's Tea Garden and take his letter."
+    },
+    {
+     "kind": "show",
+     "target": "Nalzik P`Thek",
+     "items": [
+      {
+       "item": "Bloody Letter",
+       "count": 1
+      },
+      {
+       "item": "Belran's writ",
+       "count": 1
+      }
+     ],
+     "journal": "Show the bloody letter and Belran's writ to Nalzik P'Thek, second floor of the guild building by Freeport's dockmaster.",
+     "says": "Yes, I had the tome, and sold it. The buyer's name costs a favor: Holciel Rowen'Dal wants the Windstream Cutlass out of the Lesser Halls.",
+     "notyet": "Belran's friends I know. You I do not."
+    }
+   ],
+   "unresolved": [
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30 (github.com/Jadiction/EQOA-Data, MIT). Offered only at a standing of 0 or better with Dark Solace (the guide's eastern humans with low faction cannot pass its wall: Davek Malall's word mends it)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30-b",
+   "name": "The Windstream Cutlass",
+   "giver": "Nalzik P`Thek",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L30-a"
+   ],
+   "offer": "Holciel Rowen'Dal, here in Freeport, wants the Windstream Cutlass from the Lesser Halls of the Tomb of Kings. Get it for him through me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Holciel Rowen'Dal",
+     "journal": "Speak with Holciel Rowen'Dal in Freeport.",
+     "says": "Tariel Windstream's ghost guards the cutlass in the Tomb of Kings, a long run west. Keep to the left side of the tomb: the right is death."
+    },
+    {
+     "kind": "loot",
+     "target": "Tariel Windstream",
+     "items": [
+      {
+       "item": "Windstream Cutlass",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Tariel Windstream's ghost in the Lesser Halls of the Tomb of Kings and take the Windstream Cutlass."
+    },
+    {
+     "kind": "give",
+     "target": "Nalzik P`Thek",
+     "items": [
+      {
+       "item": "Windstream Cutlass",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Windstream Cutlass to Nalzik P'Thek.",
+     "says": "A favor is a favor. Falder Malinar bought the tome. He lodges upstairs in the Shining Serpent Inn."
+    }
+   ],
+   "unresolved": [
+    "Holciel Rowen'Dal",
+    "Tariel Windstream"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, The Windstream Cutlass (github.com/Jadiction/EQOA-Data, MIT). Tariel casts spells; pick up a tea set from Niktuu on the way, for the level 33 quests, the guide says."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30-c",
+   "name": "The Ransom",
+   "giver": "Nalzik P`Thek",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L30-b"
+   ],
+   "offer": "Falder Malinar, upstairs in the Shining Serpent Inn, the bards' guild, has the tome. Take it from him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Falder Malinar",
+     "items": [
+      {
+       "item": "Ransom Note",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Falder Malinar upstairs in the Shining Serpent Inn and search him."
+    },
+    {
+     "kind": "give",
+     "target": "Grimefod Philch",
+     "items": [
+      {
+       "item": "Ransom Note",
+       "count": 1
+      }
+     ],
+     "tunar": 1600,
+     "journal": "Take the ransom note and 1,600 tunar to Grimefod Philch by the large rock at the well near the Freeport coach.",
+     "says": "That's the money. And now, the rest of you!"
+    },
+    {
+     "kind": "loot",
+     "target": "Grimefod Philch",
+     "items": [
+      {
+       "item": "Antiquated Ring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Grimefod Philch and take his ring."
+    },
+    {
+     "kind": "give",
+     "target": "Nalzik P`Thek",
+     "items": [
+      {
+       "item": "Antiquated Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the antiquated ring to Nalzik P'Thek.",
+     "says": "The Ring of Infinite Uselessness! It was Eljin Rindain's. He lodges upstairs in the Rusted Lantern Inn, by the coach."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, The Ransom (github.com/Jadiction/EQOA-Data, MIT). Falder had already lost the tome: his ransom note is what he carries."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L30",
+   "name": "The Tome of Dimensional Gates",
+   "giver": "Nalzik P`Thek",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L30-c"
+   ],
+   "offer": "Eljin Rindain, upstairs in the Rusted Lantern Inn by the coach, owned that ring, and has your tome. Be ready: he is no common thief.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Eljin Rindain",
+     "journal": "Find Eljin Rindain upstairs in the Rusted Lantern Inn by the Freeport coach.",
+     "says": "You want my tome? Come, shade! Take this one!"
+    },
+    {
+     "kind": "loot",
+     "target": "Eljin Rindain",
+     "items": [
+      {
+       "item": "Tome of Dimensional Gates",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Eljin Rindain and his compelled shade and take the Tome of Dimensional Gates.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Compelled Shade",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Belran Nightrift",
+     "items": [
+      {
+       "item": "Tome of Dimensional Gates",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Tome of Dimensional Gates to Belran Nightrift in Dark Solace.",
+     "says": "The tome, in time for the season. You have earned your place on the path.",
+     "rewards": {
+      "xp": 7890859,
+      "byclass": {
+       "9": {
+        "spells": [
+         "Poison Ward"
+        ],
+        "items": [
+         "Dark Priest Warhammer"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Expansive Mind"
+        ],
+        "items": [
+         "Deceptive Staff"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Evasion"
+        ],
+        "items": [
+         "Steelthorn"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Compelled Shade",
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Quest completion (github.com/Jadiction/EQOA-Data, MIT). The compelled shade is a copy brought to the player for the step. The choices: the first; the cleric's Elemental Guard is no cleric spell here, so the ward of the level on the cleric's line (Poison Ward, after the level 20's Disease Ward); weapons made like one of the kind and level."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L40-a",
+   "name": "The Test of Fear",
+   "giver": "Thalnix D`Rinas",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L30"
+   ],
+   "offer": "The Great Crystal was broken into four shards, and four golems keep them. Pass the four tests. Orish Thulon in Deathfist Forge sets the Test of Fear.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Orish Thulon",
+     "journal": "Find Orish Thulon in the east of Deathfist Forge.",
+     "says": "The Test of Fear: kill a Deathfist fire weaver by the trader in the middle of Deathfist Citadel, and bring me its medicine bag."
+    },
+    {
+     "kind": "loot",
+     "target": "Deathfist Fire Weaver",
+     "items": [
+      {
+       "item": "Medicine Bag",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a Deathfist fire weaver by the trader in the middle of Deathfist Citadel for its medicine bag."
+    },
+    {
+     "kind": "give",
+     "target": "Orish Thulon",
+     "items": [
+      {
+       "item": "Medicine Bag",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the medicine bag to Orish Thulon.",
+     "says": "You do not fear. Then face the golem."
+    },
+    {
+     "kind": "loot",
+     "target": "Golem of Fear",
+     "items": [
+      {
+       "item": "Crystalline Shard of Fear",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Golem of Fear by Orish Thulon and take its shard."
+    }
+   ],
+   "unresolved": [
+    "Thalnix D`Rinas",
+    "Orish Thulon",
+    "Orish Thulon",
+    "Golem of Fear"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, Golem of Fear (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L40-b",
+   "name": "The Test of Station",
+   "giver": "Thalnix D`Rinas",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L30"
+   ],
+   "offer": "Watcher Mironar, on the green-glowing hill in the Stone Watchers, sets the Test of Station.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Watcher Mironar",
+     "journal": "Find Watcher Mironar on the green-glowing hill of stone pillars in the south-east of the Stone Watchers.",
+     "says": "Three large ant carapaces, from the black ants of the colonies to the south."
+    },
+    {
+     "kind": "loot",
+     "target": "black ant carpenter",
+     "items": [
+      {
+       "item": "large ant carapace",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Kill black ants in the ant colonies south of the Stone Watchers for three large carapaces."
+    },
+    {
+     "kind": "give",
+     "target": "Watcher Mironar",
+     "items": [
+      {
+       "item": "large ant carapace",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three carapaces to Watcher Mironar.",
+     "says": "Now the golem wakes."
+    },
+    {
+     "kind": "loot",
+     "target": "Golem of Station",
+     "items": [
+      {
+       "item": "Crystalline Shard of Station",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the awakened Golem of Station and take its shard."
+    }
+   ],
+   "unresolved": [
+    "Thalnix D`Rinas",
+    "Watcher Mironar",
+    "Watcher Mironar",
+    "Golem of Station"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, Golem of Station (github.com/Jadiction/EQOA-Data, MIT). Any black ant carpenter drops the carapaces (the guide: guards and carpenters)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L40-c",
+   "name": "The Test of Strength",
+   "giver": "Thalnix D`Rinas",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L30"
+   ],
+   "offer": "Drelk Trunkfist, in a half-shell in the south-east of the Great Waste, is the Test of Strength.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Drelk Trunkfist",
+     "items": [
+      {
+       "item": "Drelk's sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Drelk Trunkfist in his half-shell in the south-east of the Great Waste and take his sword."
+    },
+    {
+     "kind": "give",
+     "target": "Golem of Strength",
+     "items": [
+      {
+       "item": "Drelk's sword",
+       "count": 1
+      }
+     ],
+     "journal": "Give Drelk's sword to the Golem of Strength."
+    },
+    {
+     "kind": "loot",
+     "target": "Golem of Strength",
+     "items": [
+      {
+       "item": "Crystalline Shard of Strength",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Golem of Strength and take its shard."
+    }
+   ],
+   "unresolved": [
+    "Thalnix D`Rinas",
+    "Drelk Trunkfist",
+    "Golem of Strength",
+    "Golem of Strength"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, Golem of Strength (github.com/Jadiction/EQOA-Data, MIT). The guide calls this shard the Shard of Greed, as the fourth's: named here for its golem."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L40-d",
+   "name": "The Test of Greed",
+   "giver": "Thalnix D`Rinas",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L30"
+   ],
+   "offer": "Windle Gearprofit, by the invisible wall here, sets the Test of Greed. It is the easiest.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Windle Geraprofit",
+     "items": [],
+     "tunar": 2500,
+     "journal": "Pay Windle Gearprofit, near the invisible wall of Dark Solace, 2,500 tunar.",
+     "says": "A pleasure. The golem is yours to fight."
+    },
+    {
+     "kind": "loot",
+     "target": "Golem of Greed",
+     "items": [
+      {
+       "item": "Crystalline Shard of Greed",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Golem of Greed and take its shard."
+    }
+   ],
+   "unresolved": [
+    "Thalnix D`Rinas",
+    "Golem of Greed"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, Golem of Greed (github.com/Jadiction/EQOA-Data, MIT). Windle is the server's Windle Geraprofit (FrontiersForge's Gearprofit)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L40",
+   "name": "The Great Crystal",
+   "giver": "Thalnix D`Rinas",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L40-a",
+    "30,40,49/group-4-evil/L40-b",
+    "30,40,49/group-4-evil/L40-c",
+    "30,40,49/group-4-evil/L40-d"
+   ],
+   "offer": "You have the four shards? Bring them to me.",
+   "accept": "Here they are.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Thalnix D`Rinas",
+     "items": [
+      {
+       "item": "Crystalline Shard of Fear",
+       "count": 1
+      },
+      {
+       "item": "Crystalline Shard of Station",
+       "count": 1
+      },
+      {
+       "item": "Crystalline Shard of Strength",
+       "count": 1
+      },
+      {
+       "item": "Crystalline Shard of Greed",
+       "count": 1
+      }
+     ],
+     "journal": "Give the four crystalline shards to Thalnix D'Rinas.",
+     "says": "The Great Crystal will be whole. Go to Belran: he knows what you are owed."
+    },
+    {
+     "kind": "talk",
+     "target": "Belran Nightrift",
+     "journal": "Speak with Belran Nightrift.",
+     "says": "Four tests, four golems. Take what you have earned.",
+     "rewards": {
+      "xp": 14919719,
+      "byclass": {
+       "9": {
+        "spells": [
+         "Flame Ward"
+        ],
+        "items": [
+         "Night Priest Warhammer"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Limitless Mind"
+        ],
+        "items": [
+         "Enthralling Branch"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Evade"
+        ],
+        "items": [
+         "Twisted Dagger"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Thalnix D`Rinas",
+    "Thalnix D`Rinas",
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, Quest completion (github.com/Jadiction/EQOA-Data, MIT). The golems stand by their tests always. The choices: the first (the cleric's Elemental Barrier as the ward of the level, Flame Ward; weapons made like one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L49-a",
+   "name": "The Kelinar Tomes",
+   "giver": "Gribble Greencog",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L40"
+   ],
+   "offer": "The Calling needs four ciphers, made from two translations of the Tomes of Sun, Moon and Stars. Four casters keep the watchtowers of Kelinar, north of Gunter's Mine: take their tomes. Keep everything.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Faelial Elminiea",
+     "items": [
+      {
+       "item": "Old Common Sun Tome",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Faelial Elminiea in the south watchtower of Kelinar, second floor, for her tome."
+    },
+    {
+     "kind": "loot",
+     "target": "Lomal Hindel",
+     "items": [
+      {
+       "item": "Ancient Elven Sun Tome",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Lomal Hindel in the south-east watchtower, second floor, for his tome."
+    },
+    {
+     "kind": "loot",
+     "target": "Llinior Orinial",
+     "items": [
+      {
+       "item": "Old Common Star Tome",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Llinior Orinial in the middle watchtower, second floor, for his tome."
+    },
+    {
+     "kind": "loot",
+     "target": "Kalen Falder",
+     "items": [
+      {
+       "item": "Ancient Elven Star Tome",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Kalen Falder in the watchtower further east, second floor, for his tome."
+    },
+    {
+     "kind": "show",
+     "target": "Gribble Greencog",
+     "items": [
+      {
+       "item": "Old Common Sun Tome",
+       "count": 1
+      },
+      {
+       "item": "Ancient Elven Sun Tome",
+       "count": 1
+      },
+      {
+       "item": "Old Common Star Tome",
+       "count": 1
+      },
+      {
+       "item": "Ancient Elven Star Tome",
+       "count": 1
+      }
+     ],
+     "journal": "Show the four Kelinar tomes to Gribble Greencog.",
+     "says": "Sun and Stars, both tongues. Now the Moon."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, Tome 1: Kelinar (github.com/Jadiction/EQOA-Data, MIT). The guide does not say which tome each caster keeps; the sun and star tomes in two tongues are ours."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L49-b",
+   "name": "The Moon Tomes",
+   "giver": "Gribble Greencog",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L49-a"
+   ],
+   "offer": "The Moon tomes are in the Salt Mines of Caer Sloth, east of Forkwatch. Collin Ilbeth has one, near the bottom before the spiders; the Body Snatcher, deeper, the other.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Collin Ilbeth",
+     "items": [
+      {
+       "item": "Old Common Moon Tome",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Collin Ilbeth near the bottom of the Salt Mines, before the spider area, for the Old Common Moon Tome."
+    },
+    {
+     "kind": "loot",
+     "target": "Drachnid Body Snatcher",
+     "items": [
+      {
+       "item": "Ancient Elven Moon Tome",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Past the gorgers, take the fourth door right of the round room and kill the Body Snatcher for the Ancient Elven Moon Tome."
+    },
+    {
+     "kind": "show",
+     "target": "Gribble Greencog",
+     "items": [
+      {
+       "item": "Old Common Moon Tome",
+       "count": 1
+      },
+      {
+       "item": "Ancient Elven Moon Tome",
+       "count": 1
+      }
+     ],
+     "journal": "Show the two Moon tomes to Gribble Greencog.",
+     "says": "All six. Feldink Shortquill, in the keep of Highpass, can make the ciphers. He will want 3,300 tunar."
+    }
+   ],
+   "unresolved": [
+    "Collin Ilbeth"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, Tomes 2 and 3: Salt Mines (github.com/Jadiction/EQOA-Data, MIT). The Body Snatcher is the server's Drachnid Body Snatcher."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L49-c",
+   "name": "The Four Ciphers",
+   "giver": "Gribble Greencog",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L49-b"
+   ],
+   "offer": "Take the six tomes and 3,300 tunar to Feldink Shortquill in the keep of Highpass. He will make the four ciphers.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Feldink Shortquill",
+     "items": [
+      {
+       "item": "Old Common Sun Tome",
+       "count": 1
+      },
+      {
+       "item": "Ancient Elven Sun Tome",
+       "count": 1
+      },
+      {
+       "item": "Old Common Star Tome",
+       "count": 1
+      },
+      {
+       "item": "Ancient Elven Star Tome",
+       "count": 1
+      },
+      {
+       "item": "Old Common Moon Tome",
+       "count": 1
+      },
+      {
+       "item": "Ancient Elven Moon Tome",
+       "count": 1
+      }
+     ],
+     "tunar": 3300,
+     "journal": "Take the six tomes and 3,300 tunar to Feldink Shortquill in the keep of Highpass.",
+     "says": "Two tongues, three tomes... There. Four ciphers for the Calling.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "cipher of the Calling",
+         "count": 4
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Gribble Greencog",
+     "items": [
+      {
+       "item": "cipher of the Calling",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four ciphers to Gribble Greencog.",
+     "says": "Then we begin the Calling. Stand where the Invisible Man stands, and do not run."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, Ciphers (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L49-d",
+   "name": "The Calling",
+   "giver": "Gribble Greencog",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L49-c"
+   ],
+   "offer": "I begin the Calling. Stand where the Invisible Man stands, here in Dark Solace, and the Avatar of Lord Chardith will come. Kill it, and bring Belran what is left.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 12684,
+     "y": 84,
+     "z": 21187,
+     "radius": 20,
+     "journal": "Stand at the Invisible Man's place in Dark Solace.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The ciphers burn in Gribble's hands. Something vast takes shape before you: the Avatar of Lord Chardith!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Avatar of Lord Chardith",
+     "items": [
+      {
+       "item": "Ethereal Matter",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Avatar of Lord Chardith and take what is left of it."
+    },
+    {
+     "kind": "show",
+     "target": "Belran Nightrift",
+     "items": [
+      {
+       "item": "Ethereal Matter",
+       "count": 1
+      }
+     ],
+     "journal": "Show the ethereal matter to Belran Nightrift.",
+     "says": "Only an avatar. The lord himself must be called, and Archmagus Terathin in Takish Hiz can call him."
+    }
+   ],
+   "unresolved": [
+    "Avatar of Lord Chardith",
+    "Belran Nightrift"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, The Calling (github.com/Jadiction/EQOA-Data, MIT). The Invisible Man's place is EQOA-Data's map point for the avatar; the avatar stands by Gribble, where FrontiersForge saw it come."
+  },
+  {
+   "key": "30,40,49/group-4-evil/L49",
+   "name": "To Summon Chardith",
+   "giver": "Gribble Greencog",
+   "classes": [
+    6,
+    9,
+    12
+   ],
+   "races": [
+    0,
+    2,
+    3
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-4-evil/L49-d"
+   ],
+   "offer": "Belran says Archmagus Terathin, in the basement of the building with the blue lightning bolt sign in south-west Takish Hiz, can call Lord Chardith. Help him; bring me a bone.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Kill the magi only after you have spoken to Terathin.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Archmagus Terathin",
+     "journal": "Find Archmagus Terathin in the basement of the building with the blue lightning bolt sign in south-west Takish Hiz.",
+     "says": "You would help me destroy the Magi? Kill the Magus of the Sun, the Magus of the Stars and the Magus of the Moon, and bring me their phylacteries. Only after we have spoken."
+    },
+    {
+     "kind": "loot",
+     "target": "Magus of the Sun",
+     "items": [
+      {
+       "item": "Sun Phylactery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Fight through the sun knights and kill the Magus of the Sun for his phylactery."
+    },
+    {
+     "kind": "loot",
+     "target": "Magus of the Stars",
+     "items": [
+      {
+       "item": "Star Phylactery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Fight through the star wisps and kill the Magus of the Stars for his phylactery."
+    },
+    {
+     "kind": "loot",
+     "target": "Magus of the Moon",
+     "items": [
+      {
+       "item": "Moon Phylactery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Clear the moon wraiths and kill the Magus of the Moon for his phylactery."
+    },
+    {
+     "kind": "give",
+     "target": "Archmagus Terathin",
+     "items": [
+      {
+       "item": "Sun Phylactery",
+       "count": 1
+      },
+      {
+       "item": "Star Phylactery",
+       "count": 1
+      },
+      {
+       "item": "Moon Phylactery",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the three phylacteries to Archmagus Terathin.",
+     "says": "All three. Choose your weapon from the jeweled chest; then speak to me, and I will call him."
+    },
+    {
+     "kind": "talk",
+     "target": "Jeweled Chest",
+     "journal": "Open the jeweled chest beside Archmagus Terathin and choose your weapon.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You choose your weapon from the jeweled chest. It will be yours when your path is done. The choice is final."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Archmagus Terathin",
+     "journal": "Speak to Archmagus Terathin again to call Lord Chardith.",
+     "says": "Then it begins. Lord Chardith! Your servant calls you!"
+    },
+    {
+     "kind": "loot",
+     "target": "Lord Chardith",
+     "items": [
+      {
+       "item": "Bone of Chardith",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Lord Chardith and take a bone of Chardith."
+    },
+    {
+     "kind": "give",
+     "target": "Gribble Greencog",
+     "items": [
+      {
+       "item": "Bone of Chardith",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bone of Chardith to Gribble Greencog.",
+     "says": "Chardith is gone, and your path is yours. Take what you have earned. When you have grown to the height of your power, the Recruiter will have work for you.",
+     "rewards": {
+      "xp": 45558313,
+      "byclass": {
+       "9": {
+        "spells": [
+         "Ice Ward"
+        ],
+        "items": [
+         "Hammer of Absolution"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Boundless Mind"
+        ],
+        "items": [
+         "Mithril Eagle Rod"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Elude"
+        ],
+        "items": [
+         "Heartsbane"
+        ]
+       }
+      },
+      "items": [
+       "letter to the Freeport Recruiter"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 49, To Summon Chardith and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Lord Chardith and the three magi stand in the basement always (the guide's Chardith is called after a sacrifice; Terathin speaks only every fifteen minutes). The jeweled chest's choice is the class's first weapon, given at the end. Gribble gives the final rewards; the guide's class NPC and the approval notes from the level 20, 30 and 40 quests are not in. Epic weapons: the first that exists here (enchanters the Mithril Eagle Rod, rogues one Heartsbane: the guide's are pairs)."
   }
  ],
  "items": [
@@ -6088,6 +7578,168 @@
    "description": "A ranger's epic longsword, the reward of the level 49 path.",
    "notrade": true,
    "like": "Sword of Lords"
+  },
+  {
+   "name": "Belran's writ",
+   "description": "Belran Nightrift of Dark Solace vouches for the bearer.",
+   "notrade": true,
+   "like": "Lanlin's Note"
+  },
+  {
+   "name": "Bloody Letter",
+   "description": "A letter Jolin Tofeph carried, stained with his blood.",
+   "notrade": true,
+   "like": "Love Letter"
+  },
+  {
+   "name": "Ransom Note",
+   "description": "\"Falder, we have your tome. Meet us at the well near the docks. Bring 1,600 tunar.\"",
+   "notrade": true,
+   "like": "Thug's Letter"
+  },
+  {
+   "name": "Antiquated Ring",
+   "description": "The Ring of Infinite Uselessness, once Eljin Rindain's.",
+   "notrade": true,
+   "like": "Gaudy Ring"
+  },
+  {
+   "name": "Tome of Dimensional Gates",
+   "description": "The tome Belran Nightrift needs for the ritual season.",
+   "notrade": true,
+   "like": "Elddar Tome"
+  },
+  {
+   "name": "Medicine Bag",
+   "description": "A Deathfist fire weaver's medicine bag.",
+   "notrade": true,
+   "like": "Bag of Gems"
+  },
+  {
+   "name": "large ant carapace",
+   "description": "A black ant's large carapace.",
+   "notrade": true,
+   "like": "beetle carapace fragment"
+  },
+  {
+   "name": "Drelk's sword",
+   "description": "Drelk Trunkfist's sword.",
+   "notrade": true,
+   "like": "froglok sword"
+  },
+  {
+   "name": "Crystalline Shard of Fear",
+   "description": "A shard of the Great Crystal.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Crystalline Shard of Station",
+   "description": "A shard of the Great Crystal.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Crystalline Shard of Strength",
+   "description": "A shard of the Great Crystal.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Crystalline Shard of Greed",
+   "description": "A shard of the Great Crystal.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Old Common Sun Tome",
+   "description": "The Tome of the Sun, in Old Common.",
+   "notrade": true,
+   "like": "Elddar Tome"
+  },
+  {
+   "name": "Ancient Elven Sun Tome",
+   "description": "The Tome of the Sun, in Ancient Elven.",
+   "notrade": true,
+   "like": "Elddar Tome"
+  },
+  {
+   "name": "Old Common Star Tome",
+   "description": "The Tome of the Stars, in Old Common.",
+   "notrade": true,
+   "like": "Elddar Tome"
+  },
+  {
+   "name": "Ancient Elven Star Tome",
+   "description": "The Tome of the Stars, in Ancient Elven.",
+   "notrade": true,
+   "like": "Elddar Tome"
+  },
+  {
+   "name": "Old Common Moon Tome",
+   "description": "The Tome of the Moon, in Old Common.",
+   "notrade": true,
+   "like": "Elddar Tome"
+  },
+  {
+   "name": "Ancient Elven Moon Tome",
+   "description": "The Tome of the Moon, in Ancient Elven.",
+   "notrade": true,
+   "like": "Elddar Tome"
+  },
+  {
+   "name": "cipher of the Calling",
+   "description": "One of Feldink Shortquill's ciphers for the Calling.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Ethereal Matter",
+   "description": "What is left of the Avatar of Lord Chardith.",
+   "notrade": true,
+   "like": "dull orb"
+  },
+  {
+   "name": "letter to the Freeport Recruiter",
+   "description": "Word that the bearer has finished the path of the forty-ninth season.",
+   "notrade": true,
+   "like": "Sealed Letter"
+  },
+  {
+   "name": "Dark Priest Warhammer",
+   "description": "A cleric's warhammer, the reward of the level 30 path.",
+   "notrade": true,
+   "like": "Dark Priest Hammer"
+  },
+  {
+   "name": "Deceptive Staff",
+   "description": "An enchanter's staff, the reward of the level 30 path.",
+   "notrade": true,
+   "like": "Hallowedmire Relic"
+  },
+  {
+   "name": "Steelthorn",
+   "description": "A rogue's blade, the reward of the level 30 path.",
+   "notrade": true,
+   "like": "Urchin Spine Dagger"
+  },
+  {
+   "name": "Night Priest Warhammer",
+   "description": "A cleric's warhammer, the reward of the level 40 path.",
+   "notrade": true,
+   "like": "Sacrosanct Warhammer"
+  },
+  {
+   "name": "Enthralling Branch",
+   "description": "An enchanter's branch, the reward of the level 40 path.",
+   "notrade": true,
+   "like": "Rod of Equilibrium"
+  },
+  {
+   "name": "Twisted Dagger",
+   "description": "A rogue's dagger, the reward of the level 40 path.",
+   "notrade": true,
+   "like": "Jagged Rust Dagger"
   }
  ]
 }

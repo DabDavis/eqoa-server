@@ -143,6 +143,14 @@ def build(dirname):
         w.stock(i, *lists)
         chem_src.append(i)
     chems = [w.npc(f"Chemist New{n}", 1000 + n, 1050) for n in range(3)]
+    # tailors: three tiers sold elsewhere; three new tailors in the low town
+    for n, (lvl, ac) in enumerate(((5, 2), (15, 6), (30, 12), (55, 20))):
+        w.item(f"Tier{n} Cap", slot=1, level=lvl, ac=ac)
+        w.item(f"Tier{n} Vest", slot=5, level=lvl, ac=ac * 3)
+        i = w.npc(f"Tailor Src{n}", 9200 + n, 9000)
+        db.execute("UPDATE npcs SET npc_id = id WHERE id = ?", (i,))
+        w.stock(i, f"Tier{n} Cap", f"Tier{n} Vest")
+    tailors = [w.npc(f"Tailor New{n}", 1000 + n, 1150) for n in range(4)]
     general = w.npc("Merchant Plain", 1000, 1100)
     jeweler = w.npc("Jeweler Gem", 1010, 1100)
     keeper = w.npc("Keeper Lore", 1020, 1100)
@@ -197,7 +205,7 @@ def build(dirname):
     with open(os.path.join(dirname, "harvest.json"), "w") as f:
         json.dump(harvest, f)
     w.ids = dict(rh_ours=rh_ours, rh_imp=rh_imp, stocked=stocked, low1=low1, low2=low2, high=high, far=far,
-                 chems=chems, chem_src=chem_src, general=general, jeweler=jeweler, keeper=keeper, beast=beast,
+                 chems=chems, chem_src=chem_src, tailors=tailors, general=general, jeweler=jeweler, keeper=keeper, beast=beast,
                  unflagged=unflagged, gmed=gmed, loot=loot, gold=gold, reed=reed)
     db.close()
     w.prh.close()
@@ -257,6 +265,14 @@ class StockMerchantsTest(unittest.TestCase):
         self.assertEqual(self.names(pats, p.stock[self.ids["high"]][0]), ["Gem Sword", "Gem Axe"])
         self.assertEqual(self.names(pats, p.stock[self.ids["far"]][0]), ["Gem Sword", "Gem Axe"])
         self.assertIn("world 0", p.stock[self.ids["far"]][1])
+
+    def test_a_towns_tailors_sell_its_tiers(self):
+        p, pats, _ = self.plan()
+        got = [self.names(pats, p.stock[i][0])[0] for i in self.ids["tailors"]]
+        # the low town (5): the three tiers within reach it lacks, the
+        # nearest the level first; then one it has (its own Tailor Kept's,
+        # the nearest holder), before the far one (55)
+        self.assertEqual(got, ["Tier0 Cap", "Tier1 Cap", "Tier2 Cap", "Hide Cap"])
 
     def test_a_towns_chemists_sell_the_three_lists(self):
         p, pats, _ = self.plan()

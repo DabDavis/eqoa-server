@@ -19,13 +19,17 @@ Who sells what, the first that gives one:
    Seamster: cloth and leather; Bowyer, Bowsmith; Shieldsmith; Grocer, Chef:
    food and drink; Barkeep, Bartender, Innkeeper: drink; Chemist, Alchemist:
    the alchemist's scrolls; Fisherman: what the pole merchants and
-   tacklemasters sell). The catalog is one that a merchant of the trade sells
-   here (after 1.), chosen by, in turn: its items' level nearest the region's
-   (the median level of the creatures round the merchant), one the merchant's
-   town (merchants within TOWN_LINK of each other) does not sell yet, a holder
-   in the same world, the nearest holder. For spell, food and fishing trades
-   the town's variety comes before the level: a town's three chemists sell
-   the alchemist's three lists, as Sandstorm's Freeport chemists do.
+   tacklemasters sell). The catalog is one a merchant of the trade sells here
+   (after 1.; a catalog that is not the trade's goods, TRADE_KINDS, is none),
+   chosen as a town's (merchants within TOWN_LINK of each other) merchants of
+   a trade sell its tiers between them: Sandstorm's Freeport tailors sell
+   cloth, rawhide, wool, studded and gossamer. So: of the catalogs within
+   TIER_REACH levels of the region's (the median level of the creatures round
+   the merchant), one the town sells the fewest of, then the nearest the
+   region's level, then one held in the same world, then the nearest holder's;
+   past them the rest by the same. A spell vendor's, a grocer's and a
+   fisherman's take the one the town lacks whatever its level: a town's three
+   chemists sell the alchemist's three lists, as Sandstorm's do.
 3. A jeweler (no merchant anywhere sells jewelry): jewelry out of itempattern
    (ear, neck, wrist, finger, waist; tradeable, not lore, a metal's or a gem's
    name), the region's level and below, a few of each kind.
@@ -56,11 +60,12 @@ changed: Sandstorm's, a GM's, or another tool's):
   error (leave-one-out over the measured items):
     - a weapon without stats: a x its damage (Sandstorm's vendor weapons are
       1.83 x damage within a tunar or two);
-    - anything else: the median of the K nearest measured items of its kind
-      (weapon, armor and shield, jewelry, ammunition, scroll, meal, drink,
-      tool, other), nearness being the level difference over 3 plus the
+    - anything else: the median of the KNN nearest measured items of its
+      kind (weapon, armor and shield, jewelry, ammunition, scroll, meal,
+      drink, tool, other), nearness being the level difference over 3, plus
+      1 less the share of the names' words they have in common, plus the
       difference of log(1 + AC), log(1 + damage) and log(1 + stat points)
-      over 0.35 each (and 0.5 for another wear slot).
+      over 0.35 each, plus 0.5 for another wear slot.
   A new harvest refits it: --prices with the harvest's files, after --undo.
 
 Every change is logged in merchant_stock (what it was and what it became) and
@@ -102,6 +107,7 @@ REGION_K = 25            # the creatures whose median level is the region's
 REGION_RADIUS = 3000.0
 REGION_DEFAULT = 20      # a merchant with no creature within the radius
 LEVEL_STEP = 5           # levels this close fit alike
+TIER_REACH = 25          # a catalog this near the region's level is one of the town's tiers
 KNN = 3
 STOPWORDS = {"of", "the", "and"}
 JEWELS_PER_SLOT = 3
@@ -133,9 +139,9 @@ TRADE_KINDS = {
     "shields": {"armor"}, "grocer": {"meal", "drink"}, "drink": {"meal", "drink"},
     "alchemist": {"scroll"}, "fishing": {"tool"}, "jeweler": {"jewelry"},
 }
-# trades whose town's variety matters more than the region's level: a town's
-# spell vendors sell a class's whole list between them, its grocers food and
-# drink
+# trades whose town's variety matters more than the region's level, however
+# far: a town's spell vendors sell a class's whole list between them, its
+# grocers food and drink
 VARIETY_FIRST = {"alchemist", "grocer", "drink", "fishing"}
 # the trades whose own sellers are the fishing tool's
 FISHING_SELLERS = re.compile(r"(?i)^(pole merchant|tacklemaster) ")
@@ -704,11 +710,16 @@ def plan(db, prh, measured, patterns):
     def choose(n, t):
         best = None
         for idx, (items, holders) in enumerate(sets.get(t, [])):
-            fit = int(abs(catalog_level(items, patterns) - region[n["id"]]) // LEVEL_STEP)
+            off = abs(catalog_level(items, patterns) - region[n["id"]])
+            fit = int(off // LEVEL_STEP)
             same = [h for h in holders if h["world"] == n["world"]]
             dist = min((math.hypot(h["x"] - n["x"], h["z"] - n["z"]) for h in same), default=math.inf)
             has = town_has[(town[n["id"]], t)][items]
-            key = (has, fit) if t in VARIETY_FIRST else (fit, has)
+            # a town's merchants of a trade sell its tiers between them (Sandstorm's
+            # Freeport tailors: cloth, rawhide, wool, studded, gossamer): one the
+            # town lacks first, of those within TIER_REACH of the region's level;
+            # a spell vendor's or a grocer's whatever the level
+            key = (has, fit) if t in VARIETY_FIRST else (off > TIER_REACH, has, fit)
             key += (not same, dist, idx)
             if best is None or key < best[0]:
                 best = (key, items, holders, same, dist)

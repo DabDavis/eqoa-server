@@ -23,7 +23,8 @@ func TestMemoryDumpTailMatchesClientReadSequence(t *testing.T) {
 	player := &entity.Player{Speed: 8.8333, Level: 60, Mastery: entity.Mastery{Points: 12, Spent: 765, Percent: 100}}
 	// the masteries it bought give STR +1 and its cap +15 (Brawn 1's)
 	player.CMEffects[0], player.CMEffects[7] = 1, 15
-	writeMemoryDumpTail(w, player, nil)
+	// a character with no tradeskill rows (craft.go)
+	writeMemoryDumpTail(w, player, nil, craftSlotsDefault())
 
 	written := w.Position()
 	r := buffer.NewReader(buf[:written])
@@ -79,13 +80,19 @@ func TestMemoryDumpTailMatchesClientReadSequence(t *testing.T) {
 	if speed != player.Speed {
 		t.Errorf("run speed = %v, want %v", speed, player.Speed)
 	}
-	raw32("unknown after speed")
+	if tok := raw32("the tradeskill token"); tok != 0 {
+		t.Errorf("tradeskill token = %d, want Sandstorm's 0", tok)
+	}
 
-	// func_00BFD178 weapon hotbar: 6 rows of 4 raw uint32.
-	for i, want := range weaponHotbarRows {
+	// ReadSlots (0x00BFD178): the six tradeskill slots, 4 raw uint32 each,
+	// for a character with no rows exactly what every capture carries
+	// (Sandstorm's, sent to everyone until 2026-10-29 as a "weapon hotbar")
+	sandstorm := [6][4]uint32{{99, 1, 0, 98}, {99, 1, 0, 98}, {99, 1, 0, 98}, {99, 1, 0, 98},
+		{99, 99, 99, 98}, {99, 99, 99, 98}}
+	for i, want := range sandstorm {
 		for j, wantVal := range want {
-			if got := raw32("weapon hotbar"); got != wantVal {
-				t.Errorf("hotbar[%d][%d] = %d, want %d", i, j, got, wantVal)
+			if got := raw32("tradeskill slot"); got != wantVal {
+				t.Errorf("slot[%d][%d] = %d, want %d", i, j, got, wantVal)
 			}
 		}
 	}

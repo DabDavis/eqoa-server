@@ -463,6 +463,13 @@ func TestCharactersOfHigherAccountsAreGuarded(t *testing.T) {
 		"edit an admin's character's item": func() (int, map[string]any) {
 			return gm.op("update_row", map[string]any{"table": "charinventory", "key": map[string]any{"itemid": 900}, "values": map[string]any{"stackleft": 5}})
 		},
+		"set an admin's character's tradeskill": func() (int, map[string]any) {
+			return gm.op("insert_row", map[string]any{"table": "charcraftskills", "values": map[string]any{"charid": 8, "skill": 1,
+				"level": 10, "rank": 9, "xp": 0}})
+		},
+		"put a recipe in an admin's character's book": func() (int, map[string]any) {
+			return gm.op("insert_row", map[string]any{"table": "charrecipes", "values": map[string]any{"charid": 8, "recipe": 1, "ord": 0}})
+		},
 		"move an item to an admin's character": func() (int, map[string]any) {
 			mustExec(t, f.db, `INSERT OR IGNORE INTO charinventory (itemid, serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
 				VALUES (901, 7, 1, 100, 0, 10, -1, 0, 1)`)
@@ -477,6 +484,9 @@ func TestCharactersOfHigherAccountsAreGuarded(t *testing.T) {
 	// a player's character is a GM's to change
 	if code, out := gm.op("set_character", map[string]any{"character": "Hero", "level": 12}); code != 200 {
 		t.Fatalf("a player's character: %d %v", code, out)
+	}
+	if code, out := gm.op("insert_row", map[string]any{"table": "charrecipes", "values": map[string]any{"charid": 7, "recipe": 1, "ord": 0}}); code != 200 {
+		t.Fatalf("a player's character's book: %d %v", code, out)
 	}
 }
 

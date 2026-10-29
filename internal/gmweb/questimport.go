@@ -280,7 +280,28 @@ func (s *Server) resolveDraft(d *eqoaDraft) {
 		s.d.DB.QueryRow(`SELECT COUNT(*) FROM quests WHERE source LIKE ? OR source LIKE ?`,
 			"EQOA-Data "+key+" (%", "EQOA-Data "+key+"_ (%").Scan(&n)
 	}
+	// a later guide (17, 23-47, Misc ...) it makes in parts, keyed
+	// "<folder>/<guide>/<part>": a guide any part of which it made is not
+	// made again
+	if prefix := laterGuideKey(d.Source); n == 0 && prefix != "" {
+		s.d.DB.QueryRow(`SELECT COUNT(*) FROM quests WHERE source LIKE ? ESCAPE '\'`, "EQOA-Data "+likeEscape(prefix)+"%").Scan(&n)
+	}
 	d.Exists = n > 0
+}
+
+// reLaterSource is a later guide's draft source: "EQOA-Data Misc/kratas.json",
+// a section's with " level N" after it.
+var reLaterSource = regexp.MustCompile(`^EQOA-Data (?:Quests/)?([^/]+)/([^/.]+)\.json(?: level \d+)?$`)
+
+// laterGuideKey is the start the content import's keys of a later guide have
+// ("Misc/kratas/" for "EQOA-Data Misc/kratas.json"), or "" for a source that is
+// no later guide's (a city guide is three folders deep: contentKey's).
+func laterGuideKey(source string) string {
+	m := reLaterSource.FindStringSubmatch(source)
+	if m == nil || m[1] == "1-20" {
+		return ""
+	}
+	return m[1] + "/" + m[2] + "/"
 }
 
 // contentKey is the content import's key for a draft's source ("EQOA-Data

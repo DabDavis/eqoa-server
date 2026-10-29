@@ -1,0 +1,522 @@
+{
+  "city": "tradeskills",
+  "quests": [
+    {
+      "key": "tradeskills/armor/freeport",
+      "name": "Armorcrafting",
+      "giver": "Smithy Vargis",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "accept": "I will learn the forge.",
+      "decline": "Not now.",
+      "declined": "The forge will be here when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Armor and make the bracers from the crude iron, the mold and my emblem. Show them to me when they are done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Smithy Vargis",
+          "items": [
+            {
+              "item": "blacksmith's bracers",
+              "count": 1
+            }
+          ],
+          "journal": "Make a pair of blacksmith's bracers and show them to Smithy Vargis.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            "Novice Armorsmith Hammer",
+            "Blacksmith's Bracers Recipe",
+            "Blacksmith's Emblem",
+            "Chain Bracers Mold",
+            "Crude Iron Ore"
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    },
+    {
+      "key": "tradeskills/armor/rivervale",
+      "name": "Armorcrafting",
+      "giver": "Smithy Laryn",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "accept": "I will learn the forge.",
+      "decline": "Not now.",
+      "declined": "The forge will be here when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Armor and make the bracers from the crude iron, the mold and my emblem. Show them to me when they are done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Smithy Laryn",
+          "items": [
+            {
+              "item": "blacksmith's bracers",
+              "count": 1
+            }
+          ],
+          "journal": "Make a pair of blacksmith's bracers and show them to Smithy Laryn.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            "Novice Armorsmith Hammer",
+            "Blacksmith's Bracers Recipe",
+            "Blacksmith's Emblem",
+            "Chain Bracers Mold",
+            "Crude Iron Ore"
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    },
+    {
+      "key": "tradeskills/armor/fayspires",
+      "name": "Armorcrafting",
+      "giver": "Smithy Belyss",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "accept": "I will learn the forge.",
+      "decline": "Not now.",
+      "declined": "The forge will be here when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Armor and make the bracers from the crude iron, the mold and my emblem. Show them to me when they are done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Smithy Belyss",
+          "items": [
+            {
+              "item": "blacksmith's bracers",
+              "count": 1
+            }
+          ],
+          "journal": "Make a pair of blacksmith's bracers and show them to Smithy Belyss.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            "Novice Armorsmith Hammer",
+            "Blacksmith's Bracers Recipe",
+            "Blacksmith's Emblem",
+            "Chain Bracers Mold",
+            "Crude Iron Ore"
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    },
+    {
+      "key": "tradeskills/armor/tethelin",
+      "name": "Armorcrafting",
+      "giver": "Smithy Jeilin",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "accept": "I will learn the forge.",
+      "decline": "Not now.",
+      "declined": "The forge will be here when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Armor and make the bracers from the crude iron, the mold and my emblem. Show them to me when they are done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Smithy Jeilin",
+          "items": [
+            {
+              "item": "blacksmith's bracers",
+              "count": 1
+            }
+          ],
+          "journal": "Make a pair of blacksmith's bracers and show them to Smithy Jeilin.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            "Novice Armorsmith Hammer",
+            "Blacksmith's Bracers Recipe",
+            "Blacksmith's Emblem",
+            "Chain Bracers Mold",
+            "Crude Iron Ore"
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    },
+    {
+      "key": "tradeskills/armor/qeynos",
+      "name": "Armorcrafting",
+      "giver": "Smithy Jekul",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "accept": "I will learn the forge.",
+      "decline": "Not now.",
+      "declined": "The forge will be here when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Armor and make the bracers from the crude iron, the mold and my emblem. Show them to me when they are done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Smithy Jekul",
+          "items": [
+            {
+              "item": "blacksmith's bracers",
+              "count": 1
+            }
+          ],
+          "journal": "Make a pair of blacksmith's bracers and show them to Smithy Jekul.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            "Novice Armorsmith Hammer",
+            "Blacksmith's Bracers Recipe",
+            "Blacksmith's Emblem",
+            "Chain Bracers Mold",
+            "Crude Iron Ore"
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    },
+    {
+      "key": "tradeskills/armor/highbourne",
+      "name": "Armorcrafting",
+      "giver": "Smithy Argillina",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "accept": "I will learn the forge.",
+      "decline": "Not now.",
+      "declined": "The forge will be here when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Armor and make the bracers from the crude iron, the mold and my emblem. Show them to me when they are done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Smithy Argillina",
+          "items": [
+            {
+              "item": "blacksmith's bracers",
+              "count": 1
+            }
+          ],
+          "journal": "Make a pair of blacksmith's bracers and show them to Smithy Argillina.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            "Novice Armorsmith Hammer",
+            "Blacksmith's Bracers Recipe",
+            "Blacksmith's Emblem",
+            "Chain Bracers Mold",
+            "Crude Iron Ore"
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    },
+    {
+      "key": "tradeskills/armor/klickanon",
+      "name": "Armorcrafting",
+      "giver": "Smithy Figglenam",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "accept": "I will learn the forge.",
+      "decline": "Not now.",
+      "declined": "The forge will be here when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Armor and make the bracers from the crude iron, the mold and my emblem. Show them to me when they are done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Smithy Figglenam",
+          "items": [
+            {
+              "item": "blacksmith's bracers",
+              "count": 1
+            }
+          ],
+          "journal": "Make a pair of blacksmith's bracers and show them to Smithy Figglenam.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            "Novice Armorsmith Hammer",
+            "Blacksmith's Bracers Recipe",
+            "Blacksmith's Emblem",
+            "Chain Bracers Mold",
+            "Crude Iron Ore"
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    },
+    {
+      "key": "tradeskills/armor/halas",
+      "name": "Armorcrafting",
+      "giver": "Smithy Bargis",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "accept": "I will learn the forge.",
+      "decline": "Not now.",
+      "declined": "The forge will be here when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Armor and make the bracers from the crude iron, the mold and my emblem. Show them to me when they are done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Smithy Bargis",
+          "items": [
+            {
+              "item": "blacksmith's bracers",
+              "count": 1
+            }
+          ],
+          "journal": "Make a pair of blacksmith's bracers and show them to Smithy Bargis.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            "Novice Armorsmith Hammer",
+            "Blacksmith's Bracers Recipe",
+            "Blacksmith's Emblem",
+            "Chain Bracers Mold",
+            "Crude Iron Ore"
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    },
+    {
+      "key": "tradeskills/armor/moradhim",
+      "name": "Armorcrafting",
+      "giver": "Smithy Melliom",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "accept": "I will learn the forge.",
+      "decline": "Not now.",
+      "declined": "The forge will be here when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Armor and make the bracers from the crude iron, the mold and my emblem. Show them to me when they are done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Smithy Melliom",
+          "items": [
+            {
+              "item": "blacksmith's bracers",
+              "count": 1
+            }
+          ],
+          "journal": "Make a pair of blacksmith's bracers and show them to Smithy Melliom.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            "Novice Armorsmith Hammer",
+            "Blacksmith's Bracers Recipe",
+            "Blacksmith's Emblem",
+            "Chain Bracers Mold",
+            "Crude Iron Ore"
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    },
+    {
+      "key": "tradeskills/armor/surefall",
+      "name": "Armorcrafting",
+      "giver": "Smithy Tailwen",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "accept": "I will learn the forge.",
+      "decline": "Not now.",
+      "declined": "The forge will be here when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Armor and make the bracers from the crude iron, the mold and my emblem. Show them to me when they are done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Smithy Tailwen",
+          "items": [
+            {
+              "item": "blacksmith's bracers",
+              "count": 1
+            }
+          ],
+          "journal": "Make a pair of blacksmith's bracers and show them to Smithy Tailwen.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            "Novice Armorsmith Hammer",
+            "Blacksmith's Bracers Recipe",
+            "Blacksmith's Emblem",
+            "Chain Bracers Mold",
+            "Crude Iron Ore"
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    },
+    {
+      "key": "tradeskills/armor/neriak",
+      "name": "Armorcrafting",
+      "giver": "Smithy N`Darg",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "accept": "I will learn the forge.",
+      "decline": "Not now.",
+      "declined": "The forge will be here when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Armor and make the bracers from the crude iron, the mold and my emblem. Show them to me when they are done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Smithy N`Darg",
+          "items": [
+            {
+              "item": "blacksmith's bracers",
+              "count": 1
+            }
+          ],
+          "journal": "Make a pair of blacksmith's bracers and show them to Smithy N`Darg.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            "Novice Armorsmith Hammer",
+            "Blacksmith's Bracers Recipe",
+            "Blacksmith's Emblem",
+            "Chain Bracers Mold",
+            "Crude Iron Ore"
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    },
+    {
+      "key": "tradeskills/armor/grobb",
+      "name": "Armorcrafting",
+      "giver": "Smithy Orgam",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "accept": "I will learn the forge.",
+      "decline": "Not now.",
+      "declined": "The forge will be here when you are ready.",
+      "started": "Hold the hammer, read the recipe, then open your recipe book under Armor and make the bracers from the crude iron, the mold and my emblem. Show them to me when they are done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Smithy Orgam",
+          "items": [
+            {
+              "item": "blacksmith's bracers",
+              "count": 1
+            }
+          ],
+          "journal": "Make a pair of blacksmith's bracers and show them to Smithy Orgam.",
+          "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            "Novice Armorsmith Hammer",
+            "Blacksmith's Bracers Recipe",
+            "Blacksmith's Emblem",
+            "Chain Bracers Mold",
+            "Crude Iron Ore"
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    }
+  ],
+  "items": []
+}

@@ -84,6 +84,7 @@ type World struct {
 	townFolk     int
 	ground       Ground // where creatures stand (groundnpc.go); nil: their own heights
 	playerModels map[uint32]bool
+	modelSex     map[uint32]int // a players' race body's sex (charactermodel): 0 male, 1 female
 	roamRnd      *rand.Rand
 
 	// The paths GMs gave creatures, and those walking back from one (path.go)

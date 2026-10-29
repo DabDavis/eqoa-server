@@ -129,6 +129,28 @@ var townNames = map[string]string{
 	"Muniels Tea Garden": "Muniel's Tea Garden",
 }
 
+// SetModelSexes names the players' race bodies' sexes (charactermodel: 0
+// male, 1 female), the speaker's sex a line of town dialog may ask for.
+func (w *World) SetModelSexes(sexes map[uint32]int) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.modelSex = sexes
+}
+
+// dialogSexLocked is npc's sex as a line names it, "male" or "female" by its
+// body, "" when no players' race body is it. Must be called with the World's
+// lock held.
+func (w *World) dialogSexLocked(npc *NPC) string {
+	switch sex, ok := w.modelSex[uint32(npc.ModelID)]; {
+	case !ok:
+		return ""
+	case sex == 1:
+		return "female"
+	default:
+		return "male"
+	}
+}
+
 // dialogSpeakerLocked reports whether npc says town dialog, and its town (""
 // none: a guard on a road) and role. Must be called with the World's lock
 // held.
@@ -215,7 +237,7 @@ type DialogPick struct {
 // DialogCandidates are the lines that fit a speaker of the town, role and
 // name speaking in the mood to a listener of the race, each with its weight
 // (the file's comment).
-func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood string, race int) []DialogPick {
+func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood, sex string, race int) []DialogPick {
 	key := database.NPCClassKey(name)
 	var out []DialogPick
 	for _, l := range lines {
@@ -234,6 +256,9 @@ func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood str
 		if l.Race >= 0 && l.Race != race {
 			continue
 		}
+		if l.Sex != "" && !strings.EqualFold(l.Sex, sex) {
+			continue // a line of a husband or a wife, said by the one it fits (a speaker of no known sex says none)
+		}
 		if !DialogMoodFits(l.Mood, mood) {
 			continue
 		}
@@ -248,6 +273,9 @@ func DialogCandidates(lines []database.NPCDialogLine, town, role, name, mood str
 			wt *= 6
 		}
 		if l.Race >= 0 {
+			wt *= 2
+		}
+		if l.Sex != "" {
 			wt *= 2
 		}
 		if strings.TrimSpace(l.Mood) != "" {
@@ -270,7 +298,7 @@ func (w *World) TownLine(p *Player, npc *NPC, lines []database.NPCDialogLine, la
 		return "", "", 0, false
 	}
 	mood := w.dialogMoodLocked(p, npc)
-	picks := DialogCandidates(lines, town, role, npc.Name, mood, p.Race)
+	picks := DialogCandidates(lines, town, role, npc.Name, mood, w.dialogSexLocked(npc), p.Race)
 	if len(picks) > 1 && last != 0 {
 		kept := picks[:0:0]
 		for _, c := range picks {

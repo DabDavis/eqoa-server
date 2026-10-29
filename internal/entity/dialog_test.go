@@ -64,7 +64,7 @@ func TestDialogCandidates(t *testing.T) {
 		{ID: 9, Line: "Never.", Race: -1, Weight: 0},
 	}
 	got := map[int]int{}
-	for _, c := range DialogCandidates(lines, "Freeport", RoleGuard, "Guard Dahvel", MoodNeutral, 0) {
+	for _, c := range DialogCandidates(lines, "Freeport", RoleGuard, "Guard Dahvel", MoodNeutral, "male", 0) {
 		got[c.Line.ID] = c.Weight
 	}
 	want := map[int]int{1: 1, 2: 3, 3: 6, 4: 6}
@@ -76,9 +76,55 @@ func TestDialogCandidates(t *testing.T) {
 			t.Errorf("line %d: weight %d, want %d", id, got[id], w)
 		}
 	}
-	hostile := DialogCandidates(lines, "Freeport", RoleGuard, "Guard Dahvel", MoodHostile, 2)
+	hostile := DialogCandidates(lines, "Freeport", RoleGuard, "Guard Dahvel", MoodHostile, "male", 2)
 	if len(hostile) != 1 || hostile[0].Line.ID != 7 {
 		t.Errorf("hostile to a dark elf: %+v, want only line 7 (the race's line is not hostile)", hostile)
+	}
+}
+
+// A line of a husband or a wife is said by the speaker it fits, twice as often
+// as one for anyone; a speaker of no known sex says neither (the user,
+// 2026-10-29: "My husband works the docks" was said by men too). The control:
+// the line for anyone is said by all three.
+func TestDialogBySex(t *testing.T) {
+	lines := []database.NPCDialogLine{
+		{ID: 1, Line: "Fine day.", Race: -1, Weight: 1},
+		{ID: 2, Sex: "female", Line: "My husband works the docks.", Race: -1, Weight: 1},
+		{ID: 3, Sex: "male", Line: "My wife works the docks.", Race: -1, Weight: 1},
+	}
+	for _, c := range []struct {
+		sex  string
+		want map[int]int
+	}{
+		{"female", map[int]int{1: 1, 2: 2}},
+		{"male", map[int]int{1: 1, 3: 2}},
+		{"", map[int]int{1: 1}},
+	} {
+		got := map[int]int{}
+		for _, p := range DialogCandidates(lines, "", RoleCitizen, "Sabeth", MoodNeutral, c.sex, 0) {
+			got[p.Line.ID] = p.Weight
+		}
+		if len(got) != len(c.want) {
+			t.Errorf("%q: lines %v, want %v", c.sex, got, c.want)
+			continue
+		}
+		for id, w := range c.want {
+			if got[id] != w {
+				t.Errorf("%q: line %d weight %d, want %d", c.sex, id, got[id], w)
+			}
+		}
+	}
+}
+
+// The speaker's sex is its body's (charactermodel): a woman's, a man's, and
+// none for a body no players' race has.
+func TestDialogSexOfABody(t *testing.T) {
+	w := NewWorld()
+	w.SetModelSexes(map[uint32]int{100: 0, 101: 1})
+	for model, want := range map[int64]string{100: "male", 101: "female", 555: ""} {
+		if got := w.dialogSexLocked(&NPC{ModelID: model}); got != want {
+			t.Errorf("model %d: %q, want %q", model, got, want)
+		}
 	}
 }
 

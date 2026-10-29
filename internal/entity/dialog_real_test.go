@@ -65,7 +65,7 @@ func TestRealTownDialog(t *testing.T) {
 			t.Errorf("%s speaks: wildlife or undead", npc.Name)
 		}
 		for race := 0; race <= 10; race++ {
-			if len(DialogCandidates(lines, town, role, npc.Name, MoodNeutral, race)) == 0 {
+			if len(DialogCandidates(lines, town, role, npc.Name, MoodNeutral, w.dialogSexLocked(npc), race)) == 0 {
 				t.Errorf("%s (%s, %s) has nothing to say to race %d", npc.Name, town, role, race)
 				break
 			}

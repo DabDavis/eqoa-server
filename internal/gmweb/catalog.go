@@ -543,17 +543,19 @@ var catalog = map[string]tableNote{
 			"anyone: town (as its faction names it: Freeport, Klick`Anon), role (by the speaker's name: guard, trader, " +
 			"priest, scholar, worker, noble, citizen), name (one NPC), mood (empty: neutral, friendly or warm; else a comma " +
 			"list of neutral, friendly, warm, wary, hostile: the listener's standing with the speaker's faction, as the " +
-			"target box's face shows it), race (the listener's), weight. A line of its town counts three times, of its role " +
-			"twice, of its name six times. In a line %p is the listener's name, %r its race, %c its class, %t the town, %n " +
+			"target box's face shows it), race (the listener's), sex (the speaker's by its body: male or female, empty any; " +
+			"a line of a husband or a wife), weight. A line of its town counts three times, of its role twice, of its " +
+			"name six times, of its race or sex twice. In a line %p is the listener's name, %r its race, %c its class, %t the town, %n " +
 			"the speaker. tools/seed_town_dialog.py's rows are source ours (its --undo deletes those no GM changed).",
 		Live:   "At once: the next talk.",
-		Search: []string{"line", "town", "role", "name", "mood", "source"},
+		Search: []string{"line", "town", "role", "name", "mood", "sex", "source"},
 		Cols: map[string]colNote{
 			"town":   {Label: "Town", Help: "the speaker's town, as its faction names it; empty any"},
 			"role":   {Label: "Role", Help: "guard, trader, priest, scholar, worker, noble or citizen; empty any"},
 			"name":   {Label: "NPC", Help: "one NPC's name; empty any"},
 			"mood":   {Label: "Mood", Help: "empty: neutral, friendly or warm; else e.g. wary or hostile,friendly"},
 			"race":   {Label: "Listener's race", Enum: "race", Help: "-1 any"},
+			"sex":    {Label: "Speaker's sex", Help: "male or female, the speaker's by its body; empty any"},
 			"line":   {Label: "Line", Help: "%p name, %r race, %c class, %t town, %n speaker"},
 			"weight": {Label: "Weight", Help: "how often against the others that fit"},
 			"source": {Label: "Source", Help: "gm, or ours for tools/seed_town_dialog.py's rows"},

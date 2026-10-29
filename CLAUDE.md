@@ -54,7 +54,10 @@ empty". An urgent fix (a crash, the game unplayable) still restarts at once.
 ### The work board: read it before working on eqoaclassic
 
 jib (GM `jibrish`) and his AI agents work on the live server through the GM panel while our sessions work
-on its code and data by ssh, and once both changed the same tables during a deploy. The **work board** is
+on its code and data by ssh, and once both changed the same tables during a deploy. His agents work on code in
+their own clone of this repository, with a sanitised copy of the database for the real-data tests
+(`download_snapshot`, the GM panel section), and send pull requests linked on their board entries; what they
+need of our sessions is an entry titled "For dab's sessions: ...". The **work board** is
 where each side says what it is changing: the panel's Work board page, `work_board` / `post_work` /
 `update_work_overview` over MCP and OpenAPI, tables `workboard` and `workboard_overview` (the GM panel
 section below). **Before changing anything on eqoaclassic (staging a binary, a data tool's `--apply`, a row
@@ -408,6 +411,39 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   panel's own address; `cmd/workboard` is the board on the box (above). `count_rows` and `quest_try` left
   the core list to keep it at 30. The page renders markdown as elements only (a browser test when one is
   installed).
+- **Sanitised snapshot** (`database/snapshot.go`, `snapshot_names.go`, `ops_snapshot.go`; the user, 2026-10-29:
+  "Snapshot tool, no ssh"): `download_snapshot` (an admin's; Settings, beside the backups) hands a GM's agent a
+  copy of the database for the real-data tests (`EQOA_REAL_DB`) on its own machine. `WriteSnapshot` copies the
+  database (VACUUM INTO: the game waits about a second, as for a backup), changes the copy on a connection of its
+  own (secure_delete on, the triggers dropped and put back), writes the result with a second VACUUM INTO, and reads
+  that file again: cleared tables empty, blanked columns blank, and every value taken out of a scanned column
+  searched for in every cell of every table (found anywhere: refused, naming where). **Fail closed**: a table the
+  rules (`snapshotRules`) do not know, or a column they do not cover, named like a secret (`SecretLikeName`:
+  password, token, secret, hash, salt, key, mail, addr, login, ip...) refuses every snapshot, naming each, until
+  it has a rule (clear, blank, pseudonym, or allow with the reason it holds none): **a new table with such a name
+  needs one** (a tool's `key`/`rowkey` log column included); raise `SnapshotVersion` with any rule change. The
+  link (`api/snapshot/<ticket>/<file>`, 256 random bits kept as a hash) works ONCE (HEAD leaves it), for ten
+  minutes, while its admin still is one with an authenticator and the token or session that asked still works;
+  6 an hour each, one made at a time; the gzipped file waits 0600 in `<backup_dir>/snapshots` and goes when the
+  link is used, expires, is replaced or refused, or the server stops. Audited as `snapshot` (made with the
+  sizes, sha256 and sanitiser's version; fetched from where; replaced; expired; refused).
+  `TestRealSnapshotOfAServer` checks a real database's snapshot byte for byte (`EQOA_REAL_DB`).
+
+  | Table | In a snapshot | Why |
+  |---|---|---|
+  | `accountinfo` | only the game's columns kept (`accountid`, `username`, `acctstatus`, `acctlevel`, `acctcreation`, `result`, `subtime`, `partime`, `subfeatures`, `gamefeatures`); every other blanked, one added later too: `pwhash`, `email`, `ipaddress`, `lastlogin`, `firstname`, `midinitial`, `lastname`, `unknown1`, `unknown2`, `countryAB`, `zip`, `birthday`, `birthyear`, `birthmon`, `sex` | the password's bcrypt hash; the address and e-mail, the Station account's personal fields, when a person last played. A server on the copy adopts the first password given (`auth.allow_auto_register`), or seed one (`auth.accounts`) |
+  | `accountinfo.username` | a player's (acctlevel 0) becomes `account-<id>`; a GM's is kept | a login name is often a person's e-mail or name, and half a credential; the board and the panel name GMs |
+  | `gm_tokens`, `gm_totp`, `gm_oauth_clients` | every row deleted | API/OAuth/refresh token hashes and the address each was last used from; authenticator secrets; the OAuth clients and where they return to |
+  | `gm_audit` | every row deleted | sign-ins with their addresses, tokens made, admin SQL (anything, a password hash included), accounts' rows before and after |
+  | `spellfx_meta`, `mapmark_meta` | every row deleted | the salts the community senders' addresses are hashed with (with one an IPv4 hash walks back); a server makes new ones |
+  | `spellfx_suggestions.addr_hash`, `mapmark_suggestions.sender_hash` | each value replaced by an HMAC under a key thrown away | one sender's rows still group; nothing links them to the live hashes |
+  | `workboard`, `workboard_overview` | every row deleted | what people and agents wrote each other (a note can hold a password or a token); the default overview is seeded again on open |
+  | `sqlite_stat3`, `sqlite_stat4` | every row deleted | samples of the indexes' keys |
+  | `snapshot_info` (added) | the sanitiser's version, when, by whom, what it took out | so a copy says what it is |
+  | every other table | whole | the game: characters, items, NPCs, quests, spells, balance, templates, the tools' logs (their `key`/`rowkey` columns allowed by name) |
+
+  Never in the database, so never in a snapshot: the panel's sessions, OAuth codes, Station login tickets (all in
+  memory), `config.yaml` (`auth.accounts`' passwords), reportd's and the relay's addresses.
 - **Live** (`live.go`, `entity/gmlive.go`, `handlers/gmops.go`): an `npcs` row inserted, edited
   or deleted is applied to the World at once (the NPC is hidden from every view for
   `NPCRefreshHold` so each client re-creates it); `npcclass` re-classes NPCs by name;

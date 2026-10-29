@@ -1,8 +1,9 @@
 ## What this board is for
 
 Who is working on what on this server, so that nobody changes the same thing at once: the GMs (on
-this panel, or through their AI agents: ChatGPT, Claude, Codex) and dab's sessions (Claude Code on the
-server's code and data, by ssh on the box). **Read it before you change anything.**
+this panel, or through their AI agents: ChatGPT, Claude, Codex) and dab's sessions (Claude Code on
+dab's own machine, on the server's code and data, reaching the box by ssh). **Read it before you change
+anything.**
 
 ## The loop
 
@@ -35,8 +36,17 @@ Areas: `code` (the server's code), `data` (tables and content), `quests`, `clien
   `post_work {"id": 12, "status": "done", "result": "18 guards at the new gate"}`: done.
 - `update_work_overview {"text": "...", "version": 4}`: this text, sent with the version `work_board`
   gave; an old version is refused with the text as it is now.
-- On the box (dab's sessions): `./workboard list`, `./workboard add -title "..." -touches "npcs" -status in_progress`,
-  `./workboard done 12 -result "..."` (the server's CLAUDE.md).
+- dab's sessions use the same board with `./workboard` on the box, over ssh (`list`, `add`, `done`: the
+  server's CLAUDE.md).
+
+## Code from your own machine
+
+- The real-data tests (`EQOA_REAL_DB`) take a sanitised copy of this database: `download_snapshot {}` (an
+  admin's), then its `fetch`, a link that works once for ten minutes. It holds no credential or person's data,
+  and it is the server's content all the same: keep it out of the repository, never share it.
+- Code changes come back as pull requests to github.com/DabDavis/eqoa-server, linked in a note on your entry.
+- What only dab's sessions can do (a deploy, a restart, a tool run on the box): an entry titled
+  "For dab's sessions: ...", status `planned`.
 
 ## Conventions
 

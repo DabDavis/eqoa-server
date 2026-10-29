@@ -487,18 +487,22 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	}
 
 	// One window a character: an account may have several in the game, each
-	// on its own character, and a character already in the game in another
-	// window stays there. This one is told as CLIENT tells a character it
-	// cannot enter (CharSelectMsg, word 676 "That character is in an area of
-	// the world that is currently unavailable.  Please try again later.") and
-	// stays at character select to choose another. A closed or crashed window
-	// holds its character until the in-game timeout.
-	if h.sessionManager != nil && h.sessionManager.LiveCharacter(uint32(record.ServerID), sess) {
-		log.Printf("SelectedChar: REFUSED '%s' (serverID=%d) from %s: already in the game in another window; told so (0x%04X)",
-			record.CharName, charID, sess.RemoteAddr(), uint16(protocol.OpcodeCharSelectAreaUnavailable))
-		SendCharSelectNotice(sess, protocol.OpcodeCharSelectAreaUnavailable)
-		sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
-		return nil
+	// on its own character. A character still in the world in another
+	// session of this account (its client dropped, or another window has it)
+	// is taken over below, as it stands. One a live session of ANOTHER
+	// account holds (a character moved between accounts while it played) is
+	// refused as CLIENT tells a character it cannot enter (CharSelectMsg, word
+	// 676 "That character is in an area of the world that is currently
+	// unavailable.  Please try again later."), and this window stays at
+	// character select to choose another.
+	if h.sessionManager != nil {
+		if other := h.sessionManager.LiveHolder(uint32(record.ServerID), sess); other != nil && other.AccountID() != sess.AccountID() {
+			log.Printf("SelectedChar: REFUSED '%s' (serverID=%d) from %s: in the game in account %d's session; told so (0x%04X)",
+				record.CharName, charID, sess.RemoteAddr(), other.AccountID(), uint16(protocol.OpcodeCharSelectAreaUnavailable))
+			SendCharSelectNotice(sess, protocol.OpcodeCharSelectAreaUnavailable)
+			sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
+			return nil
+		}
 	}
 
 	log.Printf("SelectedChar: selected '%s' (level %d race=%d class=%d)", record.CharName, record.Level, record.Race, record.TClass)
@@ -525,64 +529,30 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// Note: CharacterInWorld is set later in HandleCharacterInWorld after client confirms
 	sess.Queue().SetBodyFlags(protocol.BodyFlagGuaranteedAck)
 
-	// A login that replaces a session still in the world (a closed tab, a
-	// reconnect, the other window logged out) takes that session's place: it
-	// is newer than the row, and the old session's cleanup will not save it
-	// (savePlayerPosition skips a player that is no longer live). Saved now,
-	// so the row is right even if this session never saves.
+	// The character still in the world (its client dropped and it lingers,
+	// or another window of the account plays it): this login TAKES IT OVER
+	// as it stands, the live Player handed to this session with its hit
+	// points, power, effects and their times, lockouts, fights, group and
+	// pet, nothing saved or read back (entity/takeover.go; jib's F3
+	// 20261029-212855). The session that had it is told it logged in
+	// elsewhere (0x07A4); the account's other windows play on.
 	if h.gameWorld != nil {
-		// its level and experience too, dead or alive (savePlayerPosition)
-		level, xp, debt, live := h.gameWorld.LiveProgress(entity.EntityID(record.ServerID))
-		if live {
-			record.Level, record.TotalXP, record.Debt = level, xp, debt
-		}
-		// and its training points (entity/training.go)
-		if unused, total, ok := h.gameWorld.LiveTrainingPoints(entity.EntityID(record.ServerID)); ok {
-			record.UnusedTP, record.TotalTP = unused, total
-			if err := h.store.SetTrainingPoints(record.ServerID, unused, total); err != nil {
-				log.Printf("SelectedChar: could not save '%s' replaced session's training points: %v", record.CharName, err)
+		if player, took := h.gameWorld.TakeOverPlayer(sess, uint32(record.ServerID)); player != nil {
+			h.placeTakenOver(player, record)
+			log.Printf("SelectedChar: '%s' (serverID=%d) TAKEN OVER by %s as it stands: %s",
+				record.CharName, charID, sess.RemoteAddr(), took)
+			h.saveTakenOver(player, record)
+			h.SendMemoryDump(sess)
+			if n := h.gameWorld.SendTakenOver(sess, time.Now()); n > 0 {
+				log.Printf("SelectedChar: '%s' told its %d lockouts", record.CharName, n)
 			}
-		}
-		if x, y, z, facing, world, ok := h.gameWorld.LivePosition(entity.EntityID(record.ServerID), record.Y); ok {
-			record.X, record.Y, record.Z, record.Facing, record.World = x, y, z, facing, int(world)
-			if err := h.store.Update(record); err != nil {
-				log.Printf("SelectedChar: could not save '%s' replaced session's position: %v", record.CharName, err)
-			} else {
-				log.Printf("SelectedChar: '%s' replaces a session in the world; its position (%.1f, %.1f, %.1f) world=%d, level %d saved",
-					record.CharName, x, y, z, world, record.Level)
-			}
-		} else if live {
-			if err := h.store.SetProgress(record.ServerID, record.Level, record.TotalXP); err != nil {
-				log.Printf("SelectedChar: could not save '%s' replaced session's level: %v", record.CharName, err)
-			}
+			return nil
 		}
 	}
 
-	// So are its spell effects and its standings: the old session's cleanup
-	// will not save them either (entity/buffsave.go, entity/faction.go).
-	if h.gameWorld != nil && h.store != nil {
-		if rows, ok := h.gameWorld.SavedEffects(entity.EntityID(record.ServerID), time.Now()); ok {
-			if err := h.store.SaveBuffs(record.ServerID, rows); err != nil {
-				log.Printf("SelectedChar: could not keep '%s' replaced session's %d effects: %v", record.CharName, len(rows), err)
-			}
-		}
-		if m, ok := h.gameWorld.SavedFactions(entity.EntityID(record.ServerID)); ok {
-			if err := h.store.SaveFactions(record.ServerID, m); err != nil {
-				log.Printf("SelectedChar: could not keep '%s' replaced session's standings: %v", record.CharName, err)
-			}
-		}
-		if m, ok := h.gameWorld.MasteryOf(entity.EntityID(record.ServerID)); ok {
-			if err := h.store.SaveMastery(record.ServerID, MasteryRow(m)); err != nil {
-				log.Printf("SelectedChar: could not keep '%s' replaced session's mastery points: %v", record.CharName, err)
-			}
-		}
-		// and its chance of a rez, beside the debt (entity/resurrect.go)
-		if row, ok := h.gameWorld.SavedRez(entity.EntityID(record.ServerID), time.Now()); ok {
-			if err := h.store.SaveRez(record.ServerID, row); err != nil {
-				log.Printf("SelectedChar: could not keep '%s' replaced session's chance of a rez: %v", record.CharName, err)
-			}
-		}
-	}
+	// Here the character has no Player in the world (one that has is taken
+	// over above): it is built from its row, which its last session's end, or
+	// the takeover that last had it (saveTakenOver), saved.
 
 	// Where the session starts (loginSpawn): where the character logged out,
 	// or beside Archivist Vaal. Decided here, before CreatePlayer reads it.
@@ -838,6 +808,93 @@ func loginSpawn(gw *entity.World, record *database.CharacterRecord) {
 
 	record.X, record.Y, record.Z = x, y, z
 	record.World = int(world)
+}
+
+// saveTakenOver writes the row of a character just taken over from the live
+// player (its place, level and experience, training points, effects,
+// standings, mastery points, chance of a rez), as the old session's end will
+// not (its player is this session's now) and this session may never reach
+// the world to save it at its own end: the row is right whatever becomes of
+// the new client. Nothing is read back; the player plays on as it stands.
+func (h *CharacterHandler) saveTakenOver(p *entity.Player, record *database.CharacterRecord) {
+	gw, id := h.gameWorld, p.ServerID
+	if h.store == nil {
+		return
+	}
+	// its level and experience, dead or alive (savePlayerPosition)
+	level, xp, debt, live := gw.LiveProgress(id)
+	if live {
+		record.Level, record.TotalXP, record.Debt = level, xp, debt
+	}
+	// and its training points (entity/training.go)
+	if unused, total, ok := gw.LiveTrainingPoints(id); ok {
+		record.UnusedTP, record.TotalTP = unused, total
+		if err := h.store.SetTrainingPoints(record.ServerID, unused, total); err != nil {
+			log.Printf("SelectedChar: could not save '%s' taken over's training points: %v", record.CharName, err)
+		}
+	}
+	// its place, alive (a death's is not where a login starts)
+	if x, y, z, facing, world, ok := gw.LivePosition(id, record.Y); ok {
+		record.X, record.Y, record.Z, record.Facing, record.World = x, y, z, facing, int(world)
+		if err := h.store.Update(record); err != nil {
+			log.Printf("SelectedChar: could not save '%s' taken over's place: %v", record.CharName, err)
+		}
+	} else if live {
+		if err := h.store.SetProgress(record.ServerID, record.Level, record.TotalXP); err != nil {
+			log.Printf("SelectedChar: could not save '%s' taken over's level: %v", record.CharName, err)
+		}
+	}
+	// its spell effects, standings, mastery points and chance of a rez
+	// (entity/buffsave.go, faction.go, mastery.go, resurrect.go)
+	now := time.Now()
+	if rows, ok := gw.SavedEffects(id, now); ok {
+		if err := h.store.SaveBuffs(record.ServerID, rows); err != nil {
+			log.Printf("SelectedChar: could not keep '%s' taken over's %d effects: %v", record.CharName, len(rows), err)
+		}
+	}
+	if m, ok := gw.SavedFactions(id); ok {
+		if err := h.store.SaveFactions(record.ServerID, m); err != nil {
+			log.Printf("SelectedChar: could not keep '%s' taken over's standings: %v", record.CharName, err)
+		}
+	}
+	if m, ok := gw.MasteryOf(id); ok {
+		if err := h.store.SaveMastery(record.ServerID, MasteryRow(m)); err != nil {
+			log.Printf("SelectedChar: could not keep '%s' taken over's mastery points: %v", record.CharName, err)
+		}
+	}
+	if row, ok := gw.SavedRez(id, now); ok {
+		if err := h.store.SaveRez(record.ServerID, row); err != nil {
+			log.Printf("SelectedChar: could not keep '%s' taken over's chance of a rez: %v", record.CharName, err)
+		}
+	}
+}
+
+// placeTakenOver keeps a character taken over where it stands when a login
+// could start there (resumable: a world on every disc, above the floor,
+// inside its world), else moves it where a login would start (loginSpawn):
+// the window taking it over may lack the world the old one was in (a PS2's
+// S2 or hard-disk world, a page), and a client told to load a world it does
+// not have stays where it was.
+func (h *CharacterHandler) placeTakenOver(p *entity.Player, record *database.CharacterRecord) {
+	gw := h.gameWorld
+	snap, ok := gw.PlayerSnapshot(p.ServerID)
+	if !ok {
+		return
+	}
+	at := *record
+	at.X, at.Y, at.Z, at.Facing, at.World = snap.X, snap.Y, snap.Z, snap.Facing, int(snap.World)
+	why, resume := resumable(&at)
+	if resume {
+		return
+	}
+	loginSpawn(gw, &at)
+	if at.X == snap.X && at.Y == snap.Y && at.Z == snap.Z && at.World == int(snap.World) {
+		return
+	}
+	log.Printf("placeTakenOver: '%s' cannot stay at (%.1f, %.1f, %.1f) world=%d (%s): moved to (%.1f, %.1f, %.1f) world=%d",
+		snap.Name, snap.X, snap.Y, snap.Z, snap.World, why, at.X, at.Y, at.Z, at.World)
+	gw.UpdatePosition(p.ServerID, at.X, at.Y, at.Z, at.Facing)
+	gw.BeginWarp(p.ServerID, byte(at.World))
 }
 
 // discWorlds is how many worlds CLIENT's gWorldInfo names on the Frontiers

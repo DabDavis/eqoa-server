@@ -149,7 +149,7 @@ func (h *TradeHandler) HandleTradeRequest(sess *session.Session, msg *protocol.M
 		h.endLocked(old)
 	}
 	a := &tradeSide{sess: sess, player: me, asker: true}
-	if h.trades[theirSess] != nil {
+	if busy := h.trades[theirSess]; busy != nil && h.heldLocked(busy) {
 		// Trade20: busy
 		h.send(a, 20, h.seen(a, them), nil)
 		return nil
@@ -165,6 +165,31 @@ func (h *TradeHandler) HandleTradeRequest(sess *session.Session, msg *protocol.M
 	}))
 	log.Printf("Trade: %s asks %s", me.Name, them.Name)
 	return nil
+}
+
+// heldLocked reports whether each side's session still has the player it
+// traded as. A character taken over by another login of its account
+// (entity/takeover.go), or whose session ended, trades no more: its client is
+// gone, and an accept already given would move items and tunar on the live
+// character behind the new client's back. The trade is called off, the side
+// still there told as a cancel (1). Must be called with h.mu held.
+func (h *TradeHandler) heldLocked(t *trade) bool {
+	if h.gameWorld == nil {
+		return true
+	}
+	for _, s := range []*tradeSide{t.a, t.b} {
+		if h.gameWorld.SessionPlayer(s.sess) == s.player {
+			continue
+		}
+		you := t.other(s)
+		if h.gameWorld.SessionPlayer(you.sess) == you.player {
+			h.send(you, 1, h.seen(you, s.player), nil)
+		}
+		h.endLocked(t)
+		log.Printf("Trade: %s's session no longer has it: the trade with %s is off", s.player.Name, you.player.Name)
+		return false
+	}
+	return true
 }
 
 // endLocked forgets a trade.
@@ -188,7 +213,7 @@ func (h *TradeHandler) HandleTradeUI(sess *session.Session, msg *protocol.Messag
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	t := h.trades[sess]
-	if t == nil {
+	if t == nil || !h.heldLocked(t) {
 		return nil
 	}
 	me := t.a

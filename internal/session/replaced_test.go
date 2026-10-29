@@ -180,3 +180,45 @@ func TestEndAccount(t *testing.T) {
 		t.Error("the account still holds its login after it was logged out")
 	}
 }
+
+// LiveHolder names the session that has the character live (the one
+// LiveCharacter counts), so character select can tell the account's own
+// window, which it takes the character over from, from another account's,
+// which it refuses; ReplaceSession tells an in-game session once and keeps it
+// for the grace, drops a lobby one, as RemoveSessionForCharacter always did.
+func TestLiveHolderAndReplaceSession(t *testing.T) {
+	m := NewManager()
+	var told []*Session
+	m.SetOnReplaced(func(s *Session) { told = append(told, s) })
+	ip := net.IPv4(203, 0, 113, 7)
+	first := m.CreateSession(&net.UDPAddr{IP: ip, Port: 40001}, 0x1001, 1, 0x1111, 0xB991, true)
+	second := m.CreateSession(&net.UDPAddr{IP: ip, Port: 40002}, 0x1002, 2, 0x2222, 0xB991, true)
+	first.SetAccountID(8)
+	first.SetCharacterServerID(41)
+	first.SetInGame(true)
+	first.UpdateActivity()
+
+	if h := m.LiveHolder(41, second); h != first {
+		t.Fatalf("holder %p, want the first window %p", h, first)
+	}
+	if m.LiveHolder(41, first) != nil || m.LiveHolder(42, second) != nil || m.LiveHolder(0, second) != nil {
+		t.Fatal("a holder for itself, another character or serverID 0")
+	}
+	if !m.ReplaceSession(first) || len(told) != 1 || told[0] != first || first.PendingTermination() {
+		t.Fatalf("the in-game window: told %d, ending at once %v", len(told), first.PendingTermination())
+	}
+	if _, r := first.ReplacedFor(); !r {
+		t.Fatal("not marked replaced")
+	}
+	if m.ReplaceSession(first) || len(told) != 1 {
+		t.Fatal("told twice")
+	}
+	if m.LiveHolder(41, second) != nil {
+		t.Fatal("a replaced window still holds its character")
+	}
+	// the control: a session in the lobby is dropped, not told
+	lobby := m.CreateSession(&net.UDPAddr{IP: ip, Port: 40003}, 0x1003, 3, 0x3333, 0xFFFE, false)
+	if m.ReplaceSession(lobby) || len(told) != 1 || !lobby.PendingTermination() {
+		t.Fatal("a lobby session was told, or kept")
+	}
+}

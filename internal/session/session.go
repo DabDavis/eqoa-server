@@ -439,7 +439,7 @@ func (s *Session) SetPendingTermination(pending bool) {
 
 // MarkReplaced records that another session took this one's character. The
 // session is kept only long enough to deliver the disconnect it was sent; see
-// Manager.RemoveSessionForCharacter.
+// Manager.ReplaceSession.
 func (s *Session) MarkReplaced() {
 	s.mu.Lock()
 	defer s.mu.Unlock()

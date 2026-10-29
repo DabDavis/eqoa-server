@@ -281,8 +281,9 @@ type AuthConfig struct {
 	// is not exempt) the same address, already has a live session in the
 	// game: the first window keeps playing, and multiboxing is stopped. Off,
 	// an account and an address may play several windows; a character is in
-	// one window at a time either way (character select refuses it to a
-	// second, HandleSelectedChar).
+	// one window at a time either way (a second window of its account
+	// choosing it takes it over, entity/takeover.go; another account's is
+	// refused: HandleSelectedChar).
 	OneLogin bool `yaml:"one_login"`
 
 	// OneLoginExempt lists addresses (IPs or CIDR prefixes) the address rule

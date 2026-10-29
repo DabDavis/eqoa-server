@@ -2809,6 +2809,472 @@
     "Tiny Spiderbot (attackable)"
    ],
    "notes": "From EQOA-Data Quests/Misc/qeynosbook.json, # QeynosBook Quest (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the items \"Ultimate Windblade\" (WAR RAN PAL SK MNK BRD RGE DRD), \"Ultimate Windmace\" (and SHA CL) and \"Ultimate Rod\" (MAG WIZ NEC ALC ENC). The guide's purchase of a simple scimitar, rod or mace is a hand-over here: Smithy Grol gives a simple weapon at his window. The tiny spiderbots, caught by a popup and used for a regulator in the guide, are killed for one here. The guide's levels (20s and 30s spawn gusts on different sides of the ravine) are one place here. The giver is the bookshelf in Qeynos's casters' guild (FrontiersForge's Bookshelf); the guide says the quest is repeatable."
+  },
+  {
+   "key": "Misc/anu-village-pet/p1",
+   "name": "The Excavations of Snowblind",
+   "giver": "Ulfar Styrkarson",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The orcs and the ice giants dig at our borders, and the Anu do not forget a friend. First, walk to the south shore of the lake north of the village, where the Ice Tomb lies, and tell me what you see.",
+   "accept": "I will help the Anu.",
+   "decline": "Not now.",
+   "declined": "Then go. The Anu remember who helps them.",
+   "started": "Go to the lake.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 8943,
+     "y": 62,
+     "z": 4366,
+     "radius": 30,
+     "journal": "Go to the south edge of the lake by the Ice Tomb, north of Anu Village.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Across the frozen lake, by the Ice Tomb, you see fresh digging, and tracks that lead away west."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Ulfar Styrkarson",
+     "journal": "Tell Ulfar Styrkarson what you saw.",
+     "says": "Digging, by the tomb? Vargilder must hear of it."
+    },
+    {
+     "kind": "talk",
+     "target": "Vargilder Souralld",
+     "journal": "Find Vargilder Souralld in a small tent across the frozen lake, Anu Village (SW).",
+     "says": "Orcs and giants, digging for the old things. The Varchief must decide. Go to him."
+    },
+    {
+     "kind": "talk",
+     "target": "Varchief Steinoff",
+     "journal": "Find Varchief Steinoff in Anu Village (N), by the three houses in a row.",
+     "says": "We will blow their digs to pieces. Head Engineer Silos at the observatory knows who has the means."
+    },
+    {
+     "kind": "talk",
+     "target": "Head Engineer Silos",
+     "journal": "Find Head Engineer Silos at the observatory north-east of Anu Village.",
+     "says": "Dynamite! Demolitionist Osbit sells it, at Snafizer's House. Bring 10,000 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Demolitionist Osbit",
+     "journal": "Buy two sticks of dynamite from Demolitionist Osbit for 10,000 tunar.",
+     "tunar": 10000,
+     "says": "Two sticks. Do not drop them.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Stick of Dynamite",
+         "count": 2
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Varchief Steinoff",
+     "journal": "Return to Varchief Steinoff with the dynamite.",
+     "says": "Now kill Warlord Treg and Prophet Olvadr Korskr, and blow up the digs they guard."
+    },
+    {
+     "kind": "kill",
+     "target": "Warlord Treg",
+     "journal": "Kill Warlord Treg on the hill of Frosteyes west of Anu Village.",
+     "count": 1
+    },
+    {
+     "kind": "give",
+     "target": "Orc Excavation Site",
+     "journal": "Set a stick of dynamite at the Orc Excavation Site.",
+     "items": [
+      {
+       "item": "Stick of Dynamite",
+       "count": 1
+      }
+     ],
+     "says": "The dig goes up in a roar of snow and stone."
+    },
+    {
+     "kind": "kill",
+     "target": "Prophet Olvadr Korskr",
+     "journal": "Kill Prophet Olvadr Korskr at the dark tower in Snowblind Plains (W).",
+     "count": 1
+    },
+    {
+     "kind": "give",
+     "target": "Giant Excavation Site",
+     "journal": "Set the last stick at the ice giants' excavation site.",
+     "items": [
+      {
+       "item": "Stick of Dynamite",
+       "count": 1
+      }
+     ],
+     "says": "The giants' dig collapses on itself."
+    },
+    {
+     "kind": "talk",
+     "target": "Varchief Steinoff",
+     "journal": "Return to Varchief Steinoff in Anu Village.",
+     "says": "Both digs gone, both leaders dead. The Anu Village will remember. Take this, friend of the Anu.",
+     "rewards": {
+      "xp": 15000000
+     }
+    }
+   ],
+   "factions_required": [
+    [
+     "Barbarians of the Anu Tribe",
+     150
+    ]
+   ],
+   "unresolved": [
+    "Vargilder Souralld",
+    "Warlord Treg",
+    "Orc Excavation Site",
+    "Prophet Olvadr Korskr",
+    "Giant Excavation Site"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/anu-village-pet.json, # Anu Village Pet Quest (github.com/Jadiction/EQOA-Data, MIT). Needs 150 faction with Anu Village, which is the Barbarians of the Anu Tribe here. The excavation sites, talked to in the guide to blow them up, take a stick of dynamite here. Not on this server, left out of the rewards: the archetype items (casters' Ice Totem, melees' Frozen Throwing Knife, healers' Mammoth Guardian stone, tanks' level 50 spear with The Howler) and their recharge. The guide's raid (two to three groups) is the same two kills here."
+  },
+  {
+   "key": "Misc/zentars-keep-pet/p1",
+   "name": "The Legend of Altivo",
+   "giver": "Sundro Stikala",
+   "classes": [],
+   "races": [],
+   "minlevel": 41,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "You want power? My father Jebdo knows how to enchant a sword. Take this useless one and my note to him, in the desert they call Tak. Help Corison with his glyphs, and we will see.",
+   "accept": "I will find your father.",
+   "decline": "Not now.",
+   "declined": "Then stop wasting my time.",
+   "started": "Go, then. Tak is far.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Jebdo Stikala",
+     "journal": "Find Jebdo Stikala's ghost by the river in Tak 'Xiv West (SE), west of Oasis.",
+     "items": [
+      {
+       "item": "A Useless Sword",
+       "count": 1
+      },
+      {
+       "item": "Note from Sundro",
+       "count": 1
+      }
+     ],
+     "says": "My son, still greedy. Hear instead of my father Altivo, who slew the dragon Rataku with his last breath. Tell his legend to five, and have each sign that they will tell five more.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Legend of Altivo",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Guard Morgin",
+     "journal": "Guard Morgin, on Hazinak's bridge, is hungry: bring him a tunaria bass from the river.",
+     "items": [
+      {
+       "item": "tunaria bass",
+       "count": 1
+      }
+     ],
+     "says": "A bass! Now I can listen. There, I signed it.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Signed Promise",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Jol the Fat",
+     "journal": "Find Jol the Fat by the guard house beside Da Shoppe in Honjour.",
+     "says": "I am cold, not deaf. Fine, a legend. Signed.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Signed Promise",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 15350,
+     "y": 54,
+     "z": 10800,
+     "radius": 30,
+     "journal": "Find Magluza's shiny rock in the swamp water south-west of her hill, by Baga Village.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "At the edge of the second pool your fingers close on a shiny rock."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Magluza's Shiny Rock",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Magluza",
+     "journal": "Bring Magluza her shiny rock, on the hill with the T stone.",
+     "items": [
+      {
+       "item": "Magluza's Shiny Rock",
+       "count": 1
+      }
+     ],
+     "says": "My prudy rock! You tell your story, I sign.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Signed Promise",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Guard Zex",
+     "journal": "Pay Guard Zex at Fort Seriak 5000 tunar to hear the legend.",
+     "tunar": 5000,
+     "says": "Ha! I will tell it to the lads as a joke. Signed.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Signed Promise",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Gal`Saris knight",
+     "journal": "Give the Gal`Saris knight in the green tent by the cave in the Green Rift (W) an aurabound shield.",
+     "items": [
+      {
+       "item": "Aurabound Shield",
+       "count": 1
+      }
+     ],
+     "says": "A fine shield. Your story? Yes, yes. Signed.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Signed Promise",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Jebdo Stikala",
+     "journal": "Bring the five signed promises to Jebdo Stikala.",
+     "items": [
+      {
+       "item": "Signed Promise",
+       "count": 5
+      },
+      {
+       "item": "Legend of Altivo",
+       "count": 1
+      }
+     ],
+     "says": "The legend lives. You are the child I should have had. Take my son this note: it tells how to enchant the sword.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Jebdo's Note",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Sundro Stikala",
+     "journal": "Bring Jebdo's note to Sundro Stikala in Zentar's Keep.",
+     "items": [
+      {
+       "item": "Jebdo's Note",
+       "count": 1
+      }
+     ],
+     "says": "My father? He is dead, I sent you to be rid of you! Well. To finish, I need a frost from the arctic giants, and four frost giant staves."
+    }
+   ],
+   "factions_required": [
+    [
+     "Citizens of Zentar's Keep",
+     350
+    ]
+   ],
+   "unresolved": [
+    "Jebdo Stikala",
+    "Magluza",
+    "Guard Zex",
+    "Jebdo Stikala"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/zentars-keep-pet.json, # Zentar's Keep Pet Quest, steps 1-9 (github.com/Jadiction/EQOA-Data, MIT). Needs 350 faction with the Citizens of Zentar's Keep (the guide also wants Corison's ice glyph quest done 3-5 times first: left out). Each of the five gives a signed promise here (the guide's notes). Jol the Fat's fur trousers (a tailored level-3 pair) are left out: he signs on hearing the story. The swamp rock's popup is a reach step; its place, Jebdo's and Magluza's are ours from the guide's directions, and Guard Zex stands by Fort Seriak's coach (not atop the north-east tower)."
+  },
+  {
+   "key": "Misc/zentars-keep-pet/p2",
+   "name": "Sundro's Enchantment",
+   "giver": "Sundro Stikala",
+   "classes": [],
+   "races": [],
+   "minlevel": 41,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/zentars-keep-pet/p1"
+   ],
+   "offer": "To finish the enchantment I need a frost, the kind the arctic giants' casters carry, and four frost giant staves from the tenacious giants' camps. Bring them.",
+   "accept": "I will bring them.",
+   "decline": "Not yet.",
+   "declined": "Then do not come back empty-handed.",
+   "started": "The giants are in Snowblind Plains.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Arctic Spiritcaller",
+     "journal": "Kill tenacious frost giants until an Arctic Spiritcaller comes, and take its frost.",
+     "items": [
+      {
+       "item": "Arctic Frost",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "tenacious frost giant",
+     "journal": "Take four frost giant staves from the tenacious frost giant camps in Snowblind Plains (S).",
+     "items": [
+      {
+       "item": "frost giant staff",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Sundro Stikala",
+     "journal": "Bring the frost and the four staves to Sundro Stikala.",
+     "items": [
+      {
+       "item": "Arctic Frost",
+       "count": 1
+      },
+      {
+       "item": "frost giant staff",
+       "count": 4
+      }
+     ],
+     "says": "Ha! You fool, the sword was always mine. Still, you did it. Go up the ramp: Zentar Reese will see you.",
+     "rewards": {
+      "factions": [
+       [
+        "Citizens of Zentar's Keep",
+        1000
+       ],
+       [
+        "Zentar Reese",
+        1000
+       ]
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Zentar Reese",
+     "journal": "Go up the ramp to Zentar Reese.",
+     "says": "Sundro needed a lesson in humility, and you gave it. Take this for your devotion.",
+     "rewards": {
+      "xp": 15000000
+     }
+    }
+   ],
+   "factions_required": [
+    [
+     "Citizens of Zentar's Keep",
+     350
+    ]
+   ],
+   "unresolved": [
+    "Arctic Spiritcaller"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/zentars-keep-pet.json, # Zentar's Keep Pet Quest, steps 9-11 (github.com/Jadiction/EQOA-Data, MIT). The guide's frost item is an archetype's own (tanks' Frost Emblem, melees' Frost Talisman, casters' Frost Essence, healers' Frost Rune) with a stack that differs too: one frost and four frost giant staves (the melees') for every class here. The Arctic Spiritcaller stands at the camp (FrontiersForge saw one) instead of spawning in a giant's place; the Arctic Adept is left out. Not on this server, left out of the rewards: the archetype rewards (tanks' Snow Fighter, melees' Snow Gladiator, casters' snowman form) and their recharge."
   }
  ],
  "items": [
@@ -3045,6 +3511,54 @@
    "description": "A wind chime an air elemental prized.",
    "notrade": true,
    "like": "gem of wit"
+  },
+  {
+   "name": "Stick of Dynamite",
+   "description": "A stick of the demolitionist's dynamite. Handle with care.",
+   "notrade": true,
+   "like": "fire potion"
+  },
+  {
+   "name": "A Useless Sword",
+   "description": "Sundro Stikala's useless sword, waiting to be enchanted.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Note from Sundro",
+   "description": "Sundro Stikala's note to his father.",
+   "notrade": true,
+   "like": "Sealed Letter"
+  },
+  {
+   "name": "Legend of Altivo",
+   "description": "Jebdo Stikala's telling of how his father Altivo slew the dragon Rataku.",
+   "notrade": true,
+   "like": "Allister's Journal"
+  },
+  {
+   "name": "Signed Promise",
+   "description": "A promise, signed, to tell the legend of Altivo to five others.",
+   "notrade": true,
+   "like": "Love Letter"
+  },
+  {
+   "name": "Magluza's Shiny Rock",
+   "description": "The pretty shiny rock Magluza lost in the swamp.",
+   "notrade": true,
+   "like": "Kimpar's Lucky Stone"
+  },
+  {
+   "name": "Jebdo's Note",
+   "description": "How to enchant the sword, in Jebdo Stikala's hand.",
+   "notrade": true,
+   "like": "Sealed Letter"
+  },
+  {
+   "name": "Arctic Frost",
+   "description": "A frost item dropped by an arctic ice giant caster.",
+   "notrade": true,
+   "like": "Final Thought Gem"
   }
  ]
 }

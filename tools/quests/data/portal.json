@@ -1,0 +1,5555 @@
+{
+ "city": "portal",
+ "quests": [
+  {
+   "key": "Portal/plane-of-disease/flag-1",
+   "name": "The Death Knights' Hearts",
+   "giver": "Necrologist Zizclank",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The Plague Lord's realm opens to few. Bring me the hearts of three death knights who walk Tunaria: Endraval, Bileheart and Halik. And see my assistant Xeptip first: you will need a suit.",
+   "accept": "I will bring you their hearts.",
+   "decline": "Not now.",
+   "declined": "The dead are patient. I am not.",
+   "started": "Go. Xeptip waits beside me.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Necrologist Xeptip",
+     "journal": "Speak with Necrologist Xeptip, beside Zizclank in the Dead Hills.",
+     "says": "A suit of zombie flesh, sewn tight. Carry it whenever you go to the Plague Lord. The dead there do not question their own.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "zombie flesh suit",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Deathknight Endraval",
+     "items": [
+      {
+       "item": "Endraval's petrified heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Deathknight Endraval among the dead trees west of Takish'Hiz and take his heart."
+    },
+    {
+     "kind": "loot",
+     "target": "Deathknight Blieheart",
+     "items": [
+      {
+       "item": "corin's petrified heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Deathknight Bileheart in the rift of dead trees in Salisearaneen and take his heart."
+    },
+    {
+     "kind": "loot",
+     "target": "deathknight Halik",
+     "items": [
+      {
+       "item": "Halik's petrified heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Deathknight Halik at the ring of rune stones south of Blackwater and take his heart."
+    },
+    {
+     "kind": "give",
+     "target": "Necrologist Zizclank",
+     "items": [
+      {
+       "item": "Endraval's petrified heart",
+       "count": 1
+      },
+      {
+       "item": "corin's petrified heart",
+       "count": 1
+      },
+      {
+       "item": "Halik's petrified heart",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the three death knights' hearts to Necrologist Zizclank in the Dead Hills.",
+     "says": "Three hearts, cold as the grave. The mausoleum will open to you now."
+    }
+   ],
+   "unresolved": [
+    "Deathknight Endraval"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Its first half. The guide's zombie flesh suit is crafted or bought at auction in the live game; nothing sells one here, so Xeptip hands one over. The guide lets the hearts be taken before the quest is logged; here each drops on its step, in the guide's order (Endraval, Bileheart, Halik). Deathknight Endraval is FrontiersForge's sighting (tools/quests/npcs/qe.json); Bileheart is the game's Deathknight Blieheart, his heart Corin Bileheart's."
+  },
+  {
+   "key": "Portal/plane-of-disease/flag-2",
+   "name": "The Last House",
+   "giver": "Necrologist Zizclank",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-disease/flag-1"
+   ],
+   "unlocks": [
+    {
+     "npc": "Necrologist Zizclank",
+     "to": "the Plane of Disease"
+    }
+   ],
+   "offer": "Beyond the mausoleum's portal lies the Last House, where plague is tended like a garden. Find your way through it to its far portal, and the Plane of Disease will be open to you.",
+   "accept": "I will go through.",
+   "decline": "Not now.",
+   "declined": "Then keep the hearts' cold company.",
+   "started": "The mausoleum is in the middle of the tomb yard.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Mausoleum Portal",
+     "items": [
+      {
+       "item": "zombie flesh suit",
+       "count": 1
+      }
+     ],
+     "journal": "Show your zombie flesh suit to the portal in the mausoleum of the Dead Hills' tomb yard.",
+     "says": "The portal ripples, tastes the dead flesh, and pulls you through.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 4644.0,
+       "y": -12.3,
+       "z": 3814.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Fatima",
+     "journal": "Speak with Fatima in the Last House's entrance hall.",
+     "says": "A visitor? The orderlies do not like visitors. There, they have seen you."
+    },
+    {
+     "kind": "kill",
+     "target": "Last House Orderly",
+     "count": 2,
+     "journal": "Kill the Last House orderlies that turn on you.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Last House Orderly",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Last House Orderly",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 5,
+     "x": 4600.0,
+     "y": -12.4,
+     "z": 3784.0,
+     "radius": 12.0,
+     "journal": "Go to the end of the hall with the three bathtubs, as Fatima told you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The water in the three bathtubs is black and still. Someone is tending it, and does not want to be disturbed."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Last House Healer",
+     "count": 1,
+     "journal": "Kill the Last House healer at the bathtubs."
+    },
+    {
+     "kind": "talk",
+     "target": "Rebo",
+     "journal": "Go on past Fatima and find Rebo, along the east hall.",
+     "says": "You should not be here. Orderlies!"
+    },
+    {
+     "kind": "kill",
+     "target": "Last House Orderly",
+     "count": 2,
+     "journal": "Kill the orderlies Rebo called down on you.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Last House Orderly",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Last House Orderly",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Fatima",
+     "journal": "Return to Fatima.",
+     "says": "Rebo will not help you. The pharmacist keeps the wasp venom: bring it to me."
+    },
+    {
+     "kind": "loot",
+     "target": "Last House Pharmacist",
+     "items": [
+      {
+       "item": "wasp venom",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Last House pharmacist and take his wasp venom."
+    },
+    {
+     "kind": "give",
+     "target": "Fatima",
+     "items": [
+      {
+       "item": "wasp venom",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the wasp venom to Fatima.",
+     "says": "Good. Medelonia knows the way on. Go to her."
+    },
+    {
+     "kind": "talk",
+     "target": "Medelonia",
+     "journal": "Speak with Medelonia in the middle hall.",
+     "says": "The physician wears the only robe the orderlies obey. Take it from him."
+    },
+    {
+     "kind": "loot",
+     "target": "Last House Physician",
+     "items": [
+      {
+       "item": "last house physician robe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Last House physician and take his robe."
+    },
+    {
+     "kind": "talk",
+     "target": "Watchful Orderly",
+     "journal": "Wearing the robe, talk to the orderly at the end of the small hallway off the physician's room.",
+     "says": "Physician? Through the wall, then. Up the ramp and along the halls to the portal.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 4545.0,
+       "y": -1.3,
+       "z": 3676.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Portal of the Last House",
+     "journal": "Go up the ramp and along the halls to the Last House's portal and pass through.",
+     "choose": "The portal swirls before you, sick and green. Pass through it?",
+     "choices": [
+      {
+       "answer": "Pass through the portal.",
+       "says": "The portal opens onto the Plane of Disease."
+      },
+      {
+       "answer": "Not yet.",
+       "says": "The portal swirls on, and waits.",
+       "stay": true
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 5063.0,
+       "y": -25.3,
+       "z": 3866.0
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Mausoleum Portal",
+    "Fatima",
+    "Last House Orderly",
+    "Last House Healer",
+    "Rebo",
+    "Last House Pharmacist",
+    "Medelonia",
+    "Last House Physician",
+    "Watchful Orderly",
+    "Portal of the Last House"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Its second half; finishing it flags the player for Zizclank's trip to PoD (unlocks). The Last House is placed in PoD's small closed building in the south-west (no walk enters it): its halls at y -12, the far side of the wall the west wing at -1.3; every spot there is ours. The orderlies stand white-faced and turn hostile by spawn events (two each time, where the guide says two or three); the bathtub popup, the healer, the pharmacist and the physician stand in their rooms; the walk through the far side is cut to the portal by the landing. The guide's rule that the trip needs the flesh suit every time is not modelled (unlocks only). The guide names no reward but the flag."
+  },
+  {
+   "key": "Portal/plane-of-disease/queen-1",
+   "name": "The Whirling Portal",
+   "giver": "Witchdoctor Muglchlur",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "unlocks": [
+    {
+     "npc": "Whirling Portal",
+     "to": "the wasp hive"
+    }
+   ],
+   "offer": "The whirling portal in the lake goes to the Queen's hive, but it opens to no stranger. Clear the lake's shore and speak to it. Then see Bonefisher Chklurgl in his tent north of the lake.",
+   "accept": "I will speak to the portal.",
+   "decline": "Not now.",
+   "declined": "Then the lake keeps its secret.",
+   "started": "Mind the lake. Something lives in it.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Whirling Portal",
+     "journal": "Clear the creatures by the lake and speak to the whirling portal.",
+     "says": "A hum rises from the portal: the lake is sick, and something in it feeds on the puslings."
+    },
+    {
+     "kind": "talk",
+     "target": "Bonefisher Chklurgl",
+     "journal": "Speak with Bonefisher Chklurgl in his tent north of the lake.",
+     "says": "Something in lake eat puslings! You swim out over portal, look in mud. Kill what comes."
+    },
+    {
+     "kind": "reach",
+     "world": 5,
+     "x": 5060.0,
+     "y": -50.0,
+     "z": 3600.0,
+     "radius": 20.0,
+     "journal": "Swim out over the lake by the whirling portal and inspect the mud.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You stir the mud with your hand. It boils, and filth squids rise around you!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Filth Squid",
+     "count": 4,
+     "journal": "Kill the filth squids that rose from the mud.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Filth Squid",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Filth Squid",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Filth Squid",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Filth Squid",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Sthlumchoxius",
+     "count": 1,
+     "journal": "Kill Sthlumchoxius, the kraken that kills the puslings.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Sthlumchoxius",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Bonefisher Chklurgl",
+     "journal": "Return to Bonefisher Chklurgl.",
+     "says": "Lake quiet again! Take chitin from Queen's hive. Show to portal: it lets you through.",
+     "rewards": {
+      "xp": 500,
+      "items": [
+       "queen chitin"
+      ],
+      "factions": [
+       [
+        "The Pusling",
+        250
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Filth Squid",
+    "Sthlumchoxius"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Queen Qy'tha Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Steps 1-8; finishing it flags the player for the whirling portal's trip to the wasp hive (unlocks); the chitin is the guide's keepsake. The sacrifice swim (the popup's choice, deaths and rezzes), the ten minutes before Sthlumchoxius rises and the kill group's flag are simplified: the squids (four, the guide's) and Sthlumchoxius are spawned hostile beside the player at once. The 500 experience is the guide's; the faction with the puslings is ours (the guide's scepter needs a positive standing with them and names no other way to it)."
+  },
+  {
+   "key": "Portal/plane-of-disease/queen-2",
+   "name": "The Queen's Stinger",
+   "giver": "Witchdoctor Muglchlur",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-disease/queen-1"
+   ],
+   "offer": "The Bonefisher gave you the chitin. The whirling portal will take you to the wasp hive now. Kill Queen Qy'tha among her children and bring her stinger to me.",
+   "accept": "I will bring you her stinger.",
+   "decline": "Not now.",
+   "declined": "She waits.",
+   "started": "Mind her wasps. They will see you coming.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Queen Qy'tha",
+     "items": [
+      {
+       "item": "Queen Qy'tha's stinger",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the whirling portal to the wasp hive, kill Queen Qy'tha and take her stinger."
+    },
+    {
+     "kind": "show",
+     "target": "Witchdoctor Muglchlur",
+     "items": [
+      {
+       "item": "Queen Qy'tha's stinger",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Queen Qy'tha's stinger to Witchdoctor Muglchlur by the lake.",
+     "says": "The Queen's stinger! Keep it safe. The puslings will remember this.",
+     "rewards": {
+      "factions": [
+       [
+        "The Pusling",
+        200
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Queen Qy'tha Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Steps 9-10. The tormented caddis farmed until she spawns are left out: the Queen stands always up here. The guide's totem for the stinger needs a positive standing with the puslings (its Bertoxxulous section): that exchange is the next quest. The faction is ours, as the first part's."
+  },
+  {
+   "key": "Portal/plane-of-disease/bert",
+   "name": "Bertoxxulous and the Throne of Plague",
+   "giver": "Witchdoctor Muglchlur",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-disease/queen-2",
+    "Portal/plane-of-disease/noroxus-2"
+   ],
+   "factions_required": [
+    [
+     "The Pusling",
+     1
+    ]
+   ],
+   "offer": "You are a friend of the puslings now. Give me the Queen's stinger and I will make a scepter of it. Show the scepter to the Throne of Bertoxxulous, past the Bloody Portal, and he will come.",
+   "accept": "Make me the scepter.",
+   "decline": "Not now.",
+   "declined": "The throne can wait.",
+   "started": "Bring your strongest. He is one tough foe.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Witchdoctor Muglchlur",
+     "items": [
+      {
+       "item": "Queen Qy'tha's stinger",
+       "count": 1
+      }
+     ],
+     "journal": "Give Queen Qy'tha's stinger to Witchdoctor Muglchlur.",
+     "says": "There. The scepter of plague. The throne will answer it.",
+     "rewards": {
+      "items": [
+       "scepter of plague"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Throne of Bertoxxulous",
+     "items": [
+      {
+       "item": "scepter of plague",
+       "count": 1
+      }
+     ],
+     "journal": "Take the Bloody Portal to the Twins' valley and show the scepter of plague to the Throne of Bertoxxulous.",
+     "says": "The throne shudders, and the Plaguebringer turns to face you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Bertoxxulous the Plaguebringer rises from his throne. He has noticed you."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Bertoxxulous the Plaguebringer",
+     "count": 1,
+     "journal": "Kill Bertoxxulous the Plaguebringer."
+    }
+   ],
+   "unresolved": [
+    "Throne of Bertoxxulous"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Bertoxxulous the Plaguebringer (github.com/Jadiction/EQOA-Data, MIT). The scepter is the guide's, for the stinger, with a positive standing with the puslings (factions_required). Bertoxxulous stands always up here (the guide's every-three-days throne is not modelled), so the scepter only wakes him. The guide gives no quest reward: his loot is his."
+  },
+  {
+   "key": "Portal/plane-of-disease/noroxus-1",
+   "name": "The Fuming Portal",
+   "giver": "Honcho Ulgurglch",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "unlocks": [
+    {
+     "npc": "Fuming Portal",
+     "to": "Noroxus's lair"
+    }
+   ],
+   "offer": "Noroxus! Ulgurglch masters want him dead. Kill the toxic slimes in the three pools round the cauldron and bring three slime hearts. Take a viturille skin too: no skin, no going through.",
+   "accept": "I will bring the hearts.",
+   "decline": "Not now.",
+   "declined": "Noroxus waits. Ulgurglch waits.",
+   "started": "Three pools, three hearts. Go!",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "cillieane viturille",
+     "items": [
+      {
+       "item": "viturille skin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take a viturille skin from the cillieane viturilles by the nox pools."
+    },
+    {
+     "kind": "loot",
+     "target": "toxic pollutive slime",
+     "items": [
+      {
+       "item": "slime heart",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 1.0,
+     "journal": "Kill the toxic pollutive slime in each of the three nox pools round the cauldron and take its heart."
+    },
+    {
+     "kind": "give",
+     "target": "Honcho Ulgurglch",
+     "items": [
+      {
+       "item": "slime heart",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three slime hearts to Honcho Ulgurglch.",
+     "says": "Three hearts! Ulgurglch mix them... there. Take to big cauldron in middle of pools.",
+     "rewards": {
+      "items": [
+       "fused slime heart"
+      ]
+     }
+    },
+    {
+     "kind": "kill",
+     "target": "plague toxicologist",
+     "count": 3,
+     "journal": "Kill the plague toxicologists round the great cauldron among the three pools."
+    },
+    {
+     "kind": "give",
+     "target": "Fuming Portal",
+     "items": [
+      {
+       "item": "fused slime heart",
+       "count": 1
+      }
+     ],
+     "journal": "Give the fused slime heart to the fuming portal at the cauldron.",
+     "says": "The cauldron boils over, and the fuming portal opens.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Green smoke pours from the cauldron and the fuming portal flares open. Beyond it waits Noroxus."
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "cillieane viturille",
+    "toxic pollutive slime",
+    "plague toxicologist"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Noroxus Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Steps 1-5; finishing it flags the player for the fuming portal's trip to Noroxus (unlocks). The guide's giver line names Honcho Oogurlgze, its steps Honcho Ulgurglch, the game's name. The slimes stand in the pools (the guide's connable slime that spawns them is not modelled); the skin is the guide's pass, its portal check is the flag; the goo that debuffs Noroxus, the portal's 10-15 minutes and 'Noroxus must be up' are left out."
+  },
+  {
+   "key": "Portal/plane-of-disease/noroxus-2",
+   "name": "Blood of Noroxus",
+   "giver": "Honcho Ulgurglch",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-disease/noroxus-1"
+   ],
+   "unlocks": [
+    {
+     "npc": "Bloody Portal",
+     "to": "the Twins' valley"
+    }
+   ],
+   "offer": "The fuming portal is open to you. Go through and kill Noroxus. His blood opens the closed portal, the Bloody Portal, round the ring past Ulgurglch: the way to the twins.",
+   "accept": "I will bring his blood.",
+   "decline": "Not now.",
+   "declined": "He waits for you.",
+   "started": "Stand behind him. His breath goes only forward.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Noroxus",
+     "items": [
+      {
+       "item": "blood of Noroxus",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the fuming portal to Noroxus's lair, kill Noroxus and take his blood."
+    },
+    {
+     "kind": "show",
+     "target": "Bloody Portal",
+     "items": [
+      {
+       "item": "blood of Noroxus",
+       "count": 1
+      }
+     ],
+     "journal": "Show the blood of Noroxus to the Bloody Portal, round the ring past Honcho Ulgurglch.",
+     "says": "The closed portal drinks a drop of the blood and opens. Keep the rest: it opens every time."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Noroxus Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Step 7 and its reward: the blood of Noroxus opens the Bloody Portal to the twins (unlocks; the item is kept, as the guide's 'unlimited use')."
+  },
+  {
+   "key": "Portal/plane-of-disease/spell",
+   "name": "Yarfsnoogle's Anatomy",
+   "giver": "Yarfsnoogle",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-disease/noroxus-2",
+    "Portal/plane-of-disease/queen-1"
+   ],
+   "offer": "Yarfsnoogle studies the rot! Bring eight pieces: femur, organ, skin, tibia, skull, gland, eyeball and soul dust. The great ones of this plane each carry one.",
+   "accept": "I will bring them.",
+   "decline": "Not now.",
+   "declined": "Rot waits for no one. Yarfsnoogle waits.",
+   "started": "Eight pieces! Go, go.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Rallius Rattican",
+     "items": [
+      {
+       "item": "fetid rotting femur",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Rallius Rattican, the robed rat of the entrance valleys, and take a fetid rotting femur."
+    },
+    {
+     "kind": "loot",
+     "target": "Lich Overlord",
+     "items": [
+      {
+       "item": "fetid rotting organ",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Lich Overlord behind the tree by the banker in the first tunnel and take a fetid rotting organ."
+    },
+    {
+     "kind": "loot",
+     "target": "Fleshripper",
+     "items": [
+      {
+       "item": "fetid rotting skin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Fleshripper, the vulture of the second valley, and take a fetid rotting skin."
+    },
+    {
+     "kind": "loot",
+     "target": "Gluboxious the Fetid",
+     "items": [
+      {
+       "item": "fetid rotting tibia",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Gluboxious the Fetid in the lake past the second tunnel and take a fetid rotting tibia."
+    },
+    {
+     "kind": "loot",
+     "target": "Rawgl the Carnage Hound",
+     "items": [
+      {
+       "item": "fetid rotting skull",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Rawgl the Carnage Hound by the nox pools and take a fetid rotting skull."
+    },
+    {
+     "kind": "loot",
+     "target": "Noroxus",
+     "items": [
+      {
+       "item": "fetid rotting gland",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Noroxus in his lair and take a fetid rotting gland."
+    },
+    {
+     "kind": "loot",
+     "target": "Bertoxxulous the Plaguebringer",
+     "items": [
+      {
+       "item": "soul dust",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Bertoxxulous the Plaguebringer and take his soul dust."
+    },
+    {
+     "kind": "loot",
+     "target": "Queen Qy'tha",
+     "items": [
+      {
+       "item": "fetid rotting eyeball",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Queen Qy'tha in the wasp hive and take a fetid rotting eyeball."
+    },
+    {
+     "kind": "give",
+     "target": "Yarfsnoogle",
+     "items": [
+      {
+       "item": "fetid rotting femur",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting organ",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting skin",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting tibia",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting skull",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting gland",
+       "count": 1
+      },
+      {
+       "item": "soul dust",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting eyeball",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the eight pieces to Yarfsnoogle in the nox pools' camp.",
+     "says": "All eight! Yarfsnoogle teaches you. But Grum is not pleased...",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "spells": [
+         "Immortal Skin"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Lightning Arrow"
+        ]
+       },
+       "2": {
+        "spells": [
+         "Rodcet's Touch"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Hand of Bertoxxulous"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Mending of Nife"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Hymn of Nife"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Virulent Blade Assassin"
+        ]
+       },
+       "7": {
+        "spells": [
+         "Briarshield"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Barbiedolls of Karana",
+         "Acidic Storm"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Lightning Storm"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Largesse of Plague"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Stormlord's Touch"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Lightning Column"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Wonderous Vaccination"
+        ]
+       }
+      }
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Grum",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Grum",
+     "count": 1,
+     "journal": "Kill Grum, who attacks as Yarfsnoogle finishes.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Fetid Flesh Shield"
+        ]
+       },
+       "2": {
+        "items": [
+         "Fetid Flesh Shield"
+        ]
+       },
+       "3": {
+        "items": [
+         "Fetid Flesh Shield"
+        ]
+       },
+       "10": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "11": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "12": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "13": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "14": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "7": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "8": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "9": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "4": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Grum"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Spell Quest (github.com/Jadiction/EQOA-Data, MIT). Each piece is its giver's primary drop in the guide (Rotwood the Hollow's skull and the secondary drops aside), a sure drop on its step, in the guide's order but for the eyeball last; the rare spawns stand always up here. Each class's PoD ability is the spell the guide lists for it, as this server spells it (the rogue's 'Virulet Blade' is Virulent Blade Assassin, the same figures; the shaman's two spells both); the cleric's Purifying Winds of Nife has no spellpattern row, so a cleric gets Grum's robe alone. Grum's drop is the guide's item for the class as a reward on his kill: the shield (war, pal, sk) and the robe (casters, healers, monk); the helms, tunics and boots it lists for rangers, rogues and bards have no itempattern rows. Yarfsnoogle's pet's bag is left out."
+  },
+  {
+   "key": "Portal/plane-of-disease/weapon",
+   "name": "The Plague Weapons",
+   "giver": "Witchdoctor Yurplag",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The four great insects of this valley grow fat on plague. Bring me wax dust from the Moth Monarch, bile from the Locust Monarch, and the legs and mandibles of the two Matriarchs.",
+   "accept": "I will hunt them.",
+   "decline": "Not now.",
+   "declined": "The insects grow fatter.",
+   "started": "Larvae first, then the great ones.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Moth Monarch",
+     "items": [
+      {
+       "item": "wax dust",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Moth Monarch in the pocket of seven pools and take its wax dust."
+    },
+    {
+     "kind": "loot",
+     "target": "Locust Monarch",
+     "items": [
+      {
+       "item": "acidic blood bile",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Locust Monarch and take its acidic blood bile."
+    },
+    {
+     "kind": "loot",
+     "target": "Mantis Matriarch",
+     "items": [
+      {
+       "item": "front legs of the Mantis Matriarch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Mantis Matriarch and take her front legs."
+    },
+    {
+     "kind": "loot",
+     "target": "Millipede Matriarch",
+     "items": [
+      {
+       "item": "mandibles of the Millipede Matriarch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Millipede Matriarch and take her mandibles."
+    },
+    {
+     "kind": "give",
+     "target": "Witchdoctor Yurplag",
+     "items": [
+      {
+       "item": "wax dust",
+       "count": 1
+      },
+      {
+       "item": "acidic blood bile",
+       "count": 1
+      },
+      {
+       "item": "front legs of the Mantis Matriarch",
+       "count": 1
+      },
+      {
+       "item": "mandibles of the Millipede Matriarch",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the four pieces to Witchdoctor Yurplag.",
+     "says": "All four! Yurplag makes you a weapon worthy of this plane.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "gory cleaver of Mavis"
+        ]
+       },
+       "2": {
+        "items": [
+         "gory cleaver of Mavis"
+        ]
+       },
+       "3": {
+        "items": [
+         "gory cleaver of Mavis"
+        ]
+       },
+       "10": {
+        "items": [
+         "Totem of Avhi"
+        ]
+       },
+       "11": {
+        "items": [
+         "Totem of Avhi"
+        ]
+       },
+       "12": {
+        "items": [
+         "Totem of Avhi"
+        ]
+       },
+       "13": {
+        "items": [
+         "Totem of Avhi"
+        ]
+       },
+       "14": {
+        "items": [
+         "Totem of Avhi"
+        ]
+       },
+       "7": {
+        "items": [
+         "Totem of Toluwon"
+        ]
+       },
+       "8": {
+        "items": [
+         "Totem of Toluwon"
+        ]
+       },
+       "9": {
+        "items": [
+         "Totem of Toluwon"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Weapon Quest (github.com/Jadiction/EQOA-Data, MIT). The larvae, mid-level spawns and despawning bosses of the guide's cycle are left out: the four bosses stand always up here, each a sure drop. The rewards are the guide's by archetype (Tank the Gory Cleaver of Mavis, Caster the Totem of Avhi, Healer the Totem of Tolawon, the game's Toluwon); The Bloodsabre (rangers, rogues, bards) and the Thorn of Deatharn (monks) have no itempattern rows, so those classes get nothing yet. The guide's 'some small xp' has no figure."
+  },
+  {
+   "key": "Portal/plane-of-disease/tusks",
+   "name": "Plagueswine Tusks",
+   "giver": "Tuskmaster Helgley",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The plague swine in these valleys grow fine tusks. Bring me four and I will pay you well, as often as you like.",
+   "accept": "I will bring tusks.",
+   "decline": "Not now.",
+   "declined": "The swine will wait.",
+   "started": "Four tusks, then.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "plague swine",
+     "items": [
+      {
+       "item": "plagueswine tusk",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Take four plagueswine tusks from the plague swine of the second valley."
+    },
+    {
+     "kind": "give",
+     "target": "Tuskmaster Helgley",
+     "items": [
+      {
+       "item": "plagueswine tusk",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four plagueswine tusks to Tuskmaster Helgley in the tents by the first pond.",
+     "says": "Fine tusks. Here is your pay. Bring more any time.",
+     "rewards": {
+      "xp": 250000,
+      "tunar": 956
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Spell Quest (github.com/Jadiction/EQOA-Data, MIT). Its note on Tuskmaster Helgley's hunt and gather: 250,000 experience (the guide's 'about 250k') and 956 tunar for four tusks, no faction with the puslings (the guide's own words). The drop chance is ours."
+  },
+  {
+   "key": "Portal/plane-of-disease/stew",
+   "name": "Scuzz Toad Eyes",
+   "giver": "Pluxklez",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Scuzz toads in the lakes past the second tunnel have good eyes for stew. Bring Pluxklez four, and Pluxklez gives stew. Again and again!",
+   "accept": "I will bring eyes.",
+   "decline": "Not now.",
+   "declined": "Pluxklez waits, hungry.",
+   "started": "Four eyes!",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "scuzz toad",
+     "items": [
+      {
+       "item": "scuzz toad eye",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Take four scuzz toad eyes from the scuzz toads in Gluboxious's lake."
+    },
+    {
+     "kind": "give",
+     "target": "Pluxklez",
+     "items": [
+      {
+       "item": "scuzz toad eye",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four scuzz toad eyes to Pluxklez, where the Lich Overlord spawns.",
+     "says": "Good eyes! Here, stew. Eat it, feel better.",
+     "rewards": {
+      "xp": 251000,
+      "items": [
+       "scuzz toad stew"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "scuzz toad"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Spell Quest (github.com/Jadiction/EQOA-Data, MIT). Its note on Pluxklez: 251,000 experience and scuzz toad stew for four eyes (the guide's figures). The scuzz toads' spawn cycle from the jellies and piranhas is left out: they stand at the lake (tools/quests/npcs/qe.json); the stew takes the sondereel fish soup's effect, not the guide's 156 a tick; the drop chance is ours."
+  },
+  {
+   "key": "Portal/plane-of-sky/portal-1",
+   "name": "The Manticores' Riddles",
+   "giver": "Sektamoot",
+   "classes": [],
+   "races": [],
+   "minlevel": 53,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The way to the sky is guarded by riddles, little one: two of mine, and two each of my kin, Alexandraphex and Fentharos, on the hills nearby. Answer mine first.",
+   "accept": "I will answer your riddles.",
+   "decline": "Not now.",
+   "declined": "The sky can wait for the wise.",
+   "started": "Speak to me again, and hear my riddle.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sektamoot",
+     "journal": "Answer Sektamoot's first riddle.",
+     "waiting": "Once a man, once a beast, once half of each, now cold and dead; he serves masters who are not the dead, and holds the ice of the earth.",
+     "choose": "Who is he?",
+     "choices": [
+      {
+       "answer": "Lady Vox, in her castle of ice.",
+       "says": "She is cold, but she was never a man. No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "An ice giant of Permafrost.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "Skaldi Runehoof, in the tomb north of Anu's pond.",
+       "says": "Yes. Bring me the ice of the earth he holds. Then hear my kin."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Alexandraphex",
+     "journal": "Answer Alexandraphex's riddle on the hillside west of Sektamoot.",
+     "waiting": "Wrapped in inky black under a deep blue horizon, a thorn is sunk deep in swollen flesh. Many arms have strained at it, and none has pulled it free.",
+     "choose": "What is the thorn, and whose flesh?",
+     "choices": [
+      {
+       "answer": "The harpoon of Telinan, in the hide of Kratas.",
+       "says": "Yes. Bring me the thorn."
+      },
+      {
+       "answer": "A spear in the side of a sea serpent.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "A stinger in the Queen of the wasps.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Fentharos",
+     "journal": "Answer Fentharos's riddle on the hillside east of Sektamoot.",
+     "waiting": "Old armour round muscle and bone, a dragon with no wings, and in its belly the name of a hunter.",
+     "choose": "Whose name, in what belly?",
+     "choices": [
+      {
+       "answer": "Rargek, in the belly of Skahyir.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "Telinan, in the belly of Kratas.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "Garthis the hunter, in the belly of Crocosaurus.",
+       "says": "Yes. Bring me that name."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Skaldi Runehoof",
+     "items": [
+      {
+       "item": "totem of the frozen north",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Skaldi Runehoof in the tomb by the pond north of Anu Village and take the totem of the frozen north."
+    },
+    {
+     "kind": "give",
+     "target": "Sektamoot",
+     "items": [
+      {
+       "item": "totem of the frozen north",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the totem of the frozen north to Sektamoot.",
+     "says": "The ice of the earth, from the hand of the dead. The first riddle is answered."
+    },
+    {
+     "kind": "loot",
+     "target": "Kratas",
+     "items": [
+      {
+       "item": "harpoon of Telinan",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Kratas, the beast of the deep sea south of Tunaria, and pull the harpoon of Telinan from his hide."
+    },
+    {
+     "kind": "give",
+     "target": "Alexandraphex",
+     "items": [
+      {
+       "item": "harpoon of Telinan",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the harpoon of Telinan to Alexandraphex.",
+     "says": "The thorn, free at last. You have answered me."
+    },
+    {
+     "kind": "loot",
+     "target": "Crocosaurus",
+     "items": [
+      {
+       "item": "ring of garthis",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Crocosaurus at the crocodile rocks on Lake Noregard's temple island and take the ring of Garthis."
+    },
+    {
+     "kind": "give",
+     "target": "Fentharos",
+     "items": [
+      {
+       "item": "ring of garthis",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ring of Garthis to Fentharos.",
+     "says": "Garthis, the hunter who fell to the beast. Return to Sektamoot: there is more."
+    }
+   ],
+   "unresolved": [
+    "Sektamoot",
+    "Alexandraphex",
+    "Fentharos",
+    "Kratas",
+    "Crocosaurus"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The first three riddles (the guide lets them be solved in any order; here Sektamoot's, Alexandraphex's, then Fentharos's). Each manticore asks its riddle as a choice (a wrong answer may be tried again), then wants the guide's item; the riddles' words and the wrong answers are ours, after the guide's. The three manticores stand on hillsides of the Sphinx Pyramid's NE ninth, ours (tools/quests/npcs/qe.json); Kratas and Crocosaurus are FrontiersForge's sightings, standing here (the Kratas quest that spawns him is Misc's). The harpoon is made from Lord Pickclaw's Scepter's look."
+  },
+  {
+   "key": "Portal/plane-of-sky/portal-2",
+   "name": "The Manticores' Tokens",
+   "giver": "Sektamoot",
+   "classes": [],
+   "races": [],
+   "minlevel": 53,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/portal-1"
+   ],
+   "offer": "Three riddles are answered, three remain: one more of mine, one more each of my kin. Answer each, bring what it names, and take a token for it. Speak to me again for mine.",
+   "accept": "I will answer them.",
+   "decline": "Not now.",
+   "declined": "Come back when you are ready.",
+   "started": "Speak to me again, and hear my second riddle.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sektamoot",
+     "journal": "Answer Sektamoot's second riddle.",
+     "waiting": "Guarded by the brood of the desert and the wind, bedded in sand and gold, the fist of death carved in stone.",
+     "choose": "What is it, and where?",
+     "choices": [
+      {
+       "answer": "The crown of Rargek, in Skahyir's cave in Box Canyons.",
+       "says": "Yes. The Deathfist king's crown. Bring it."
+      },
+      {
+       "answer": "A sand giant's gold, in the Eternal Desert.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "The banner of the Deathfist Citadel.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Skahyir",
+     "items": [
+      {
+       "item": "crown of rargek",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Skahyir in the cave guarded by two inferno drakes in Box Canyons and take the crown of Rargek."
+    },
+    {
+     "kind": "give",
+     "target": "Sektamoot",
+     "items": [
+      {
+       "item": "crown of rargek",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the crown of Rargek to Sektamoot.",
+     "says": "The crown of the Deathfist king. Take my token.",
+     "rewards": {
+      "items": [
+       "manticore token"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Alexandraphex",
+     "journal": "Answer Alexandraphex's second riddle.",
+     "waiting": "Flowing on the breath of the winter storms, a web spun by the blue-skinned cursed: a gift to warm the cold heart of their banished mistress.",
+     "choose": "What is the gift?",
+     "choices": [
+      {
+       "answer": "The web of the ice spider queen.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "A frost giant's cloak.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "The shawl of the winter queen, Lady Vox.",
+       "says": "Yes. Bring it to me."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Lady Vox",
+     "items": [
+      {
+       "item": "shawl of the winter queen",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Lady Vox atop her castle in Permafrost and take the shawl of the winter queen."
+    },
+    {
+     "kind": "give",
+     "target": "Alexandraphex",
+     "items": [
+      {
+       "item": "shawl of the winter queen",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the shawl of the winter queen to Alexandraphex.",
+     "says": "Spun by the blue-skinned cursed for their banished mistress. My token.",
+     "rewards": {
+      "items": [
+       "manticore token"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Fentharos",
+     "journal": "Answer Fentharos's second riddle.",
+     "waiting": "Praised as a god among sleeping ivory, a coin fit for giants guards a king, buried under taloned feet.",
+     "choose": "What is the coin, and whose feet?",
+     "choices": [
+      {
+       "answer": "A mammoth's tusk, under a griffon's.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "A gold coin of the Sea of Lions.",
+       "says": "No. Think on it, and answer again.",
+       "stay": true
+      },
+      {
+       "answer": "King Jorat's shield, under Siliskor's feet.",
+       "says": "Yes. Bring it to me."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Siliskor",
+     "items": [
+      {
+       "item": "shield of king jorat",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Siliskor in the canyon pit with the tilted statue in the Elephant Graveyard and take the shield of King Jorat."
+    },
+    {
+     "kind": "give",
+     "target": "Fentharos",
+     "items": [
+      {
+       "item": "shield of king jorat",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the shield of King Jorat to Fentharos.",
+     "says": "A king's shield, praised among the sleeping ivory. My token.",
+     "rewards": {
+      "items": [
+       "manticore token"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Sektamoot",
+     "items": [
+      {
+       "item": "manticore token",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three manticore tokens to Sektamoot.",
+     "says": "Three tokens. Now find the way to the sky yourself: it waits atop the Endless Tower."
+    }
+   ],
+   "unresolved": [
+    "Sektamoot",
+    "Alexandraphex",
+    "Fentharos"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The last three riddles, each asked as a choice and then its item for a token. Skahyir, Lady Vox and Siliskor stand always up here (the guide's days-long camps are not modelled); the riddles' words and the wrong answers are ours, after the guide's."
+  },
+  {
+   "key": "Portal/plane-of-sky/portal-3",
+   "name": "The Endless Tower",
+   "giver": "Sektamoot",
+   "classes": [],
+   "races": [],
+   "minlevel": 53,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/portal-2"
+   ],
+   "unlocks": [
+    {
+     "npc": "Sky Portal",
+     "to": "the Plane of Sky"
+    }
+   ],
+   "offer": "The portal to the sky forms for the worthy at the top of the Endless Tower, where the monks live, in the Eternal Desert. Go up. Sarathet waits on the other side.",
+   "accept": "I will go up.",
+   "decline": "Not now.",
+   "declined": "The tower is patient.",
+   "started": "Go. Up, and through.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 21034.5,
+     "y": 277.6,
+     "z": 22955.0,
+     "radius": 10.0,
+     "journal": "Climb to the top of the Endless Tower in the Eternal Desert.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The wind at the top of the tower gathers into a shimmering ring. A portal forms before you."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Sky Portal",
+     "journal": "Step through the Sky Portal atop the Endless Tower.",
+     "says": "The sky opens around you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4834.8,
+       "y": 250.06,
+       "z": 5524.7
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Sartheret",
+     "journal": "Speak with Sarathet, the great manticore, on the Plane of Sky.",
+     "says": "So the manticores of the Rathe sent you. Keep this eye with you, and the tower's portal will always let you through.",
+     "rewards": {
+      "items": [
+       "Eye of the Sphynx"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Sektamoot"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The tower and Sarathet (the game's Sartheret); finishing it flags the player for the Sky Portal's trip to the Plane of Sky (unlocks). The guide's reward for a wizard or druid is a group portal spell to the Plane of Sky: no such spell is in spellpattern (nor a spellgates row), so every class gets the Eye of the Sphynx, the guide's reward for the others; its 'carried each time' is not checked. No experience, as the guide says."
+  },
+  {
+   "key": "Portal/plane-of-sky/rain-1",
+   "name": "The Key of Rain",
+   "giver": "Liztin Misseliania",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Rain is the gentlest of the chains, they say. A rain key is two thousand tunar. Take it to the essence of rain across the bridge, and see what waits beyond.",
+   "accept": "I will buy a key.",
+   "decline": "Not now.",
+   "declined": "The rain will keep.",
+   "started": "Across the bridge, then.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Liztin Misseliania",
+     "tunar": 2000,
+     "journal": "Buy a rain key from Liztin Misseliania for 2,000 tunar.",
+     "says": "One rain key. Mind the essence: it is fussy.",
+     "rewards": {
+      "items": [
+       "rain key"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "essence of rain",
+     "items": [
+      {
+       "item": "rain key",
+       "count": 1
+      }
+     ],
+     "journal": "Cross the bridge north-west and use the rain key on the essence of rain.",
+     "choose": "The essence holds a hole the shape of a key. Place your key in it?",
+     "choices": [
+      {
+       "answer": "Place the key in the hole.",
+       "says": "The key turns, and the light takes you."
+      },
+      {
+       "answer": "Step back from the light.",
+       "says": "The essence dims and waits.",
+       "stay": true
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4228.2,
+       "y": 233.78,
+       "z": 5695.7
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Artiokanis",
+     "count": 1,
+     "journal": "Hunt the first isle of rain until you find Artiokanis, and kill him.",
+     "rewards": {
+      "factions": [
+       [
+        "Denizens of the Plane of Sky",
+        250
+       ]
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "essence of rain",
+     "journal": "Use the keys Artiokanis dropped on the isle's essence of rain.",
+     "says": "The essence carries you on.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4159.0,
+       "y": 180.06,
+       "z": 5143.0
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Rain Chain (github.com/Jadiction/EQOA-Data, MIT). Rain 1. Artiokanis's eight keys are the passage, here the essence's own teleport; the shards (for the Constructs, not in) are left out. The faction for Artiokanis is ours: Rain 2's Trixie needs -99 with the plane's people (the guide names no way to it), and the Denizens start at -349."
+  },
+  {
+   "key": "Portal/plane-of-sky/rain-2",
+   "name": "Sterie Glitterlight",
+   "giver": "Trixie Longwings",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/rain-1"
+   ],
+   "factions_required": [
+    [
+     "Denizens of the Plane of Sky",
+     -99
+    ]
+   ],
+   "offer": "Sterie Glitterlight is missing on the other side of the maze! Please find her. Keep right in the maze and it lets you out.",
+   "accept": "I will find her.",
+   "decline": "Not now.",
+   "declined": "Oh! Then who will?",
+   "started": "Right wall, remember!",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sterie Glitterlight",
+     "journal": "Go through the maze, keeping to the right wall, and find Sterie Glitterlight on the far side.",
+     "says": "You found me! Oh no, behind you..."
+    },
+    {
+     "kind": "kill",
+     "target": "Kaglanor",
+     "count": 1,
+     "journal": "Kill Kaglanor, the spirit by the maze's ruined wall."
+    },
+    {
+     "kind": "talk",
+     "target": "Trixie Longwings",
+     "journal": "Return through the maze, keeping to the left wall, to Trixie Longwings.",
+     "says": "Sterie is safe! Take this wand: it makes keys for the essence."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of rain",
+     "journal": "Use the wand's keys on the essence of rain.",
+     "says": "The essence opens.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4639.0,
+       "y": 118.62,
+       "z": 4675.0
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Rain Chain (github.com/Jadiction/EQOA-Data, MIT). Rain 2. The guide's -99 faction is taken to be the Denizens of the Plane of Sky's (factions_required). The wand that makes eight keys is the essence's teleport; the gargoyles of the maze are left to the player; Kaglanor stands where he spawns."
+  },
+  {
+   "key": "Portal/plane-of-sky/rain-3",
+   "name": "The Necrologist of Rain",
+   "giver": "Singe Burnfeathers",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/rain-2"
+   ],
+   "unlocks": [
+    {
+     "npc": "essence of rain",
+     "to": "Rain 1"
+    }
+   ],
+   "offer": "The qex in our trees carry wings I need. Bring me four. Then perhaps you will help me with something worse in the cave below.",
+   "accept": "I will bring the wings.",
+   "decline": "Not now.",
+   "declined": "The qex keep their wings.",
+   "started": "They roam the trees. They take a while to kill.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "forest qex",
+     "items": [
+      {
+       "item": "qex wing",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.25,
+     "journal": "Take four qex wings from the forest qex in the trees of the isle."
+    },
+    {
+     "kind": "give",
+     "target": "Singe Burnfeathers",
+     "items": [
+      {
+       "item": "qex wing",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four qex wings to Singe Burnfeathers in the lower hut.",
+     "says": "Good. Now the cave with the flesh maggots: something lives at its bottom. Go down."
+    },
+    {
+     "kind": "loot",
+     "target": "Ghizilanve",
+     "items": [
+      {
+       "item": "black gem of Narciliisisin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Go down the flesh maggots' cave to the great cavern, kill Ghizilanve and take her black gem."
+    },
+    {
+     "kind": "give",
+     "target": "Singe Burnfeathers",
+     "items": [
+      {
+       "item": "black gem of Narciliisisin",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the black gem to Singe Burnfeathers.",
+     "says": "Narciliisisin's gem! That necrologist must die. This wand makes keys for the essence."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of rain",
+     "journal": "Use the wand's keys on the essence of rain down the road from the village.",
+     "says": "The essence opens onto an isle of demions.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4210.0,
+       "y": 80.06,
+       "z": 4165.3
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 4,
+     "x": 4232.0,
+     "y": 86.0,
+     "z": 4215.0,
+     "radius": 25.0,
+     "journal": "Circle the isle of demions to the far side, by its portal, until the necrologist shows himself.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A cold laugh rises among the demions. The necrologist Narciliisisin steps out of the dark."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Necrologist",
+     "count": 1,
+     "journal": "Kill the necrologist Narciliisisin."
+    },
+    {
+     "kind": "kill",
+     "target": "Spirit of Narciliisisin",
+     "count": 1,
+     "journal": "Kill the Spirit of Narciliisisin."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of rain",
+     "journal": "Take the isle's essence of rain on to the last isle.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4537.0,
+       "y": 30.69,
+       "z": 4272.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Chimareon the Tyrant",
+     "count": 1,
+     "journal": "Kill Chimareon the Tyrant, far ahead of where you came in."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of rain",
+     "journal": "Take the essence of rain to the Isle of Wonder.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4990.1,
+       "y": 332.44,
+       "z": 4990.1
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Manifestation of Rain",
+     "journal": "Speak with the Manifestation of Rain on the Isle of Wonder.",
+     "says": "You have walked the whole chain of rain. Take my key: it brings you back any time."
+    }
+   ],
+   "unresolved": [
+    "Manifestation of Rain"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Rain Chain (github.com/Jadiction/EQOA-Data, MIT). Rain 3 to 5 and the Manifestation of Rain: finishing it flags the player for Rain 1 from the main island's essence of rain (unlocks: the guide's free key). Granavik the bugbeast and every shard (for the Constructs, not in) are left out; the necrologist's popup is a reach step by him; the wands' keys are the essences' teleports. The Manifestation of Rain is ours (tools/quests/npcs/qe.json). The guide gives no reward but the flag."
+  },
+  {
+   "key": "Portal/plane-of-sky/sun-1",
+   "name": "The Key of the Sun",
+   "giver": "Liztin Misseliania",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The sun chain is harder than the rain: the sycophants see through your tricks. A sun key is two thousand tunar. The essence of the sun stands by the Isle of Wonder's portal.",
+   "accept": "I will buy a key.",
+   "decline": "Not now.",
+   "declined": "The sun rises without you.",
+   "started": "Mind the fairies.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Liztin Misseliania",
+     "tunar": 2000,
+     "journal": "Buy a sun key from Liztin Misseliania for 2,000 tunar.",
+     "says": "One sun key. Good luck.",
+     "rewards": {
+      "items": [
+       "sun key"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "essence of sun",
+     "items": [
+      {
+       "item": "sun key",
+       "count": 1
+      }
+     ],
+     "journal": "Use the sun key on the essence of the sun, near the Isle of Wonder's portal.",
+     "choose": "The essence holds a hole the shape of a key. Place your key in it?",
+     "choices": [
+      {
+       "answer": "Place the key in the hole.",
+       "says": "The key turns, and the light takes you."
+      },
+      {
+       "answer": "Step back from the light.",
+       "says": "The essence dims and waits.",
+       "stay": true
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5607.0,
+       "y": 235.06,
+       "z": 5360.3
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "brightstar princess",
+     "count": 1,
+     "journal": "Kill the brightstar fairies until the brightstar princess comes, and kill her."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of day",
+     "journal": "Use the princess's key on the isle's essence of day.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5400.3,
+       "y": 281.81,
+       "z": 4750.8
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Sun Chain (github.com/Jadiction/EQOA-Data, MIT). Sun 1. The guide's Essence of Day on the main island is the game's essence of sun; the princess stands always up here; her keys are the essence's teleport; the shards are left out."
+  },
+  {
+   "key": "Portal/plane-of-sky/sun-2",
+   "name": "Master Fiharaz's Door",
+   "giver": "Master Fiharaz",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/sun-1"
+   ],
+   "unlocks": [
+    {
+     "npc": "essence of sun",
+     "to": "Sun 1"
+    }
+   ],
+   "offer": "I can open the secret way for you, but first kill three of the imps outside my castle and bring me one of their talismans.",
+   "accept": "I will bring you a talisman.",
+   "decline": "Not now.",
+   "declined": "Then the door stays shut.",
+   "started": "Three imps, one talisman.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "imerzan sycophant",
+     "items": [
+      {
+       "item": "imerzan talisman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Kill three imerzan sycophants outside Master Fiharaz's castle and take a talisman."
+    },
+    {
+     "kind": "give",
+     "target": "Master Fiharaz",
+     "items": [
+      {
+       "item": "imerzan talisman",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the imerzan talisman to Master Fiharaz in his tower.",
+     "says": "Good. The ramp that goes nowhere across the courtyard: walk through it."
+    },
+    {
+     "kind": "kill",
+     "target": "Imerzan",
+     "count": 1,
+     "journal": "Go down through the ramps and bridges past the courtyard and kill Imerzan."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of day",
+     "journal": "Use Imerzan's key on the essence of day.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5479.3,
+       "y": 380.49,
+       "z": 4231.8
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "wailing wind",
+     "count": 1,
+     "journal": "Kill whispering and whistling winds until a wailing wind comes, and kill it."
+    },
+    {
+     "kind": "kill",
+     "target": "Torrential Wind",
+     "count": 1,
+     "journal": "Kill the Torrential Wind that follows."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of day",
+     "journal": "Use the wailing wind's key on the essence of day.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5073.3,
+       "y": 430.94,
+       "z": 4237.8
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "rancorous drake",
+     "count": 1,
+     "journal": "Kill the rapacious drakes until the rancorous drake comes, and kill it."
+    },
+    {
+     "kind": "kill",
+     "target": "Randarin the Relentless",
+     "count": 1,
+     "journal": "Kill Randarin the Relentless."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of day",
+     "journal": "Take the essence of day on the far side of the isle to the Isle of Wonder.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4990.1,
+       "y": 332.44,
+       "z": 4990.1
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Manifestation of Dreams",
+     "journal": "Speak with the Manifestation of Dreams on the Isle of Wonder.",
+     "says": "The chain of the sun is yours. Come back whenever you like."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Sun Chain (github.com/Jadiction/EQOA-Data, MIT). Sun 2 to 4 and the Manifestation of Dreams: finishing it flags the player for Sun 1 from the essence of sun (unlocks). The winds' and drakes' placeholder cycles are left out (each stands always up here); Randarin and the Torrential Wind are the guide's shard spawns, killed here for the chain; the keys are the essences' teleports. No reward but the flag."
+  },
+  {
+   "key": "Portal/plane-of-sky/night",
+   "name": "The Chain of Night",
+   "giver": "Liztin Misseliania",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "unlocks": [
+    {
+     "npc": "essence of night",
+     "to": "Night 1"
+    }
+   ],
+   "offer": "The night chain asks nothing of you first, only a key of the ancients: three thousand tunar. Its essence stands south of my hut.",
+   "accept": "I will buy a key.",
+   "decline": "Not now.",
+   "declined": "The night waits.",
+   "started": "South of my hut.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Liztin Misseliania",
+     "tunar": 3000,
+     "journal": "Buy a key of the ancients from Liztin Misseliania for 3,000 tunar.",
+     "says": "One key of the ancients. The night is long.",
+     "rewards": {
+      "items": [
+       "key of the ancients"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "essence of night",
+     "items": [
+      {
+       "item": "key of the ancients",
+       "count": 1
+      }
+     ],
+     "journal": "Use the key of the ancients on the essence of night south of Liztin's hut.",
+     "choose": "The essence holds a hole the shape of a key. Place your key in it?",
+     "choices": [
+      {
+       "answer": "Place the key in the hole.",
+       "says": "The key turns, and the light takes you."
+      },
+      {
+       "answer": "Step back from the light.",
+       "says": "The essence dims and waits.",
+       "stay": true
+      }
+     ],
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4161.0,
+       "y": 612.38,
+       "z": 6384.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Ancient Peasant",
+     "count": 4,
+     "journal": "Kill the four ancient peasants."
+    },
+    {
+     "kind": "kill",
+     "target": "Ancient Vassal",
+     "count": 3,
+     "journal": "Kill the three ancient vassals."
+    },
+    {
+     "kind": "kill",
+     "target": "Ancient Denizen",
+     "count": 3,
+     "journal": "Kill the three ancient denizens."
+    },
+    {
+     "kind": "kill",
+     "target": "Ancient Squire",
+     "count": 1,
+     "journal": "Kill the ancient squire by the exit portal."
+    },
+    {
+     "kind": "kill",
+     "target": "Ancient Jester",
+     "count": 1,
+     "journal": "Kill the ancient jester."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of night",
+     "journal": "Take the essence of night to the next isle.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4441.0,
+       "y": 448.75,
+       "z": 6417.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Iron Knight",
+     "count": 1,
+     "journal": "Get past the golems to the far end of the isle and kill the Iron Knight."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of night",
+     "journal": "Take the essence of night on.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4250.0,
+       "y": 668.88,
+       "z": 6786.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Arch Bishop Millian",
+     "count": 1,
+     "journal": "Save the maiden: kill Arch Bishop Millian in his tower."
+    },
+    {
+     "kind": "kill",
+     "target": "Arch Bishop Lancel",
+     "count": 1,
+     "journal": "Kill Arch Bishop Lancel before the dukes reach the maiden."
+    },
+    {
+     "kind": "talk",
+     "target": "Night Maiden",
+     "journal": "Speak with the Night Maiden at the top.",
+     "says": "You saved me. Go: the portal behind you is open.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4303.0,
+       "y": 353.12,
+       "z": 7754.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "dark baroness",
+     "count": 1,
+     "journal": "Kill the dark barons and essences along the edges until the dark baroness comes, and kill her."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of night",
+     "journal": "Cross the isle along the edges to its essence of night.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4419.3,
+       "y": 129.75,
+       "z": 7130.8
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "King Ruthra",
+     "count": 1,
+     "journal": "Climb into King Ruthra's pyramid past his squires, mages and bishops, and kill him."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of night",
+     "journal": "Take the essence of night on the temple's second floor to the Isle of Wonder.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4990.1,
+       "y": 332.44,
+       "z": 4990.1
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Mark of the Majestic",
+     "journal": "Speak with the Mark of the Majestic on the Isle of Wonder.",
+     "says": "The night is yours, and the snow is open to you. Come to me when you want its key."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Night Chain (github.com/Jadiction/EQOA-Data, MIT). Night 1 to 5 and the Mark of the Majestic: finishing it flags the player for Night 1 (unlocks) and opens the Snow chain (its quest requires this one). The Voice of the Ancients that calls the waves is left out (the ancients stand always up here); the maiden's popup and her dukes' race are cut to the two bishops the guide says to kill; the barons and essences before the baroness are the player's own; every shard is left out; the keys are the essences' teleports. No reward but the flag."
+  },
+  {
+   "key": "Portal/plane-of-sky/snow",
+   "name": "The Chain of Snow",
+   "giver": "Mark of the Majestic",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/night"
+   ],
+   "unlocks": [
+    {
+     "npc": "Mark of the Majestic",
+     "to": "Snow 1"
+    }
+   ],
+   "offer": "You have walked the night. Now the snow: I will open its first isle to you. Ryini waits there, lost and far from her town. Be ready before you speak to her.",
+   "accept": "Send me to Ryini.",
+   "decline": "Not now.",
+   "declined": "The snow keeps.",
+   "started": "Ryini waits. Do not speak to her until you are ready.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "icebound gargoyle",
+     "items": [
+      {
+       "item": "gargoyle eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Before you go down, take an eye from the icebound gargoyles of the first isle of snow."
+    },
+    {
+     "kind": "talk",
+     "target": "Ryini",
+     "journal": "Speak with Ryini where you came in, and keep her safe down the mountain corridor.",
+     "says": "You will take me home to Tamis? Keep the gargoyles off me."
+    },
+    {
+     "kind": "kill",
+     "target": "Wind Mephit",
+     "count": 1,
+     "journal": "Kill the wind mephit that comes at the stone bridge."
+    },
+    {
+     "kind": "talk",
+     "target": "Ryini",
+     "journal": "Follow Ryini down the corridor to the end of the road and speak with her.",
+     "says": "There is the village below. Tamis is in the igloos. Thank you!",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5564.1,
+       "y": 237.38,
+       "z": 6702.1
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Tamis",
+     "journal": "Speak with Tamis in the igloos of the village below.",
+     "says": "Ryini is home! Now kill the whirlwind that circles the village."
+    },
+    {
+     "kind": "kill",
+     "target": "Whirlwind",
+     "count": 1,
+     "journal": "Kill the Whirlwind on the outskirts of the igloo village."
+    },
+    {
+     "kind": "talk",
+     "target": "Guenzi",
+     "journal": "Speak with Guenzi in the igloos about a stew.",
+     "says": "A stew for the drake mother: an ape's heart, a drake's foot and a gargoyle eye."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of snow",
+     "journal": "Take the essence of snow to the next isle.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5900.8,
+       "y": 176.62,
+       "z": 7551.7
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "glacial behemoths",
+     "items": [
+      {
+       "item": "ape's heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Climb east away from the behemoths and hunt them for an ape's heart."
+    },
+    {
+     "kind": "kill",
+     "target": "Glacial Champion",
+     "count": 1,
+     "journal": "Kill the Glacial Champion far to the south to open the isle's portal."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of snow",
+     "journal": "Take the essence of snow to the last isle.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5519.8,
+       "y": 96.28,
+       "z": 7688.7
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "celestial drake",
+     "items": [
+      {
+       "item": "drake's foot",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Hunt the celestial drakes for a drake's foot."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of snow",
+     "journal": "Take the essence of snow back to the igloo village.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5564.1,
+       "y": 237.38,
+       "z": 6702.1
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Guenzi",
+     "items": [
+      {
+       "item": "ape's heart",
+       "count": 1
+      },
+      {
+       "item": "drake's foot",
+       "count": 1
+      },
+      {
+       "item": "gargoyle eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ape's heart, drake's foot and gargoyle eye to Guenzi.",
+     "says": "There. The stew. Carry it near where the drake mother sleeps.",
+     "rewards": {
+      "items": [
+       "Guenzi's stew"
+      ]
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5519.8,
+       "y": 96.28,
+       "z": 7688.7
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 4,
+     "x": 5509.0,
+     "y": 107.0,
+     "z": 7597.0,
+     "radius": 30.0,
+     "journal": "Walk slowly toward where Aeyinar rests, with the stew.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The smell of the stew carries across the snow. Aeyinar wakes, and she is enraged."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Enraged Aeyinar",
+     "count": 1,
+     "journal": "Kill Enraged Aeyinar."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of snow",
+     "journal": "Take the essence of the brood back to the Isle of Wonder.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4990.1,
+       "y": 332.44,
+       "z": 4990.1
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Mark of the Majestic",
+     "journal": "Speak with the Mark of the Majestic again.",
+     "says": "The snow is yours, and desolation is open to you. The Mark of Desolation will send you."
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "teleport",
+     "world": 4,
+     "x": 5670.8,
+     "y": 552.88,
+     "z": 6358.8
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Snow Chain (github.com/Jadiction/EQOA-Data, MIT). Isles 1 to 4 and Enraged Aeyinar: the Mark of the Majestic's snow key is the accept's teleport to Snow 1, and finishing it flags the player for Snow 1 from the Mark (unlocks) and opens the Desolation chain. Ryini's escort is talks either side of the wind mephit (she does not walk); the drop down the waterfall to the village and the guide's back-and-forth between isles are teleports; the herb is left out (the guide's stew without it); Enraged Aeyinar stands always up and her 15 minutes are not kept. The essences' names in the guide (Icicles, Snowfall, the Brood) are the game's essence of snow. No reward but the flag."
+  },
+  {
+   "key": "Portal/plane-of-sky/deso",
+   "name": "The Chain of Desolation",
+   "giver": "Mark of Desolation",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-sky/snow"
+   ],
+   "offer": "Aeyinar has fallen to you. Desolation is the last chain, and the hardest: four isles, and the Quintessence of Veeshan at their end. I will send you to the first.",
+   "accept": "Send me.",
+   "decline": "Not now.",
+   "declined": "Desolation waits.",
+   "started": "Mind your resists. Lightning, then poison.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "erych patroller",
+     "count": 4,
+     "journal": "Farm the scouts and scavengers of each quarter of the isle and kill the erych patrollers."
+    },
+    {
+     "kind": "kill",
+     "target": "erych guardian",
+     "count": 5,
+     "journal": "Kill the five erych guardians that come in their place."
+    },
+    {
+     "kind": "kill",
+     "target": "Erych Arbiter",
+     "count": 1,
+     "journal": "Kill the Erych Arbiter in the druid ring."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of desolation",
+     "journal": "Take the portal at the north end of the isle.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5127.7,
+       "y": 615.75,
+       "z": 6625.2
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Aviak Elder",
+     "journal": "Speak with the Elder of the aviak village.",
+     "says": "Narcillian's soldiers come for us! Defend the village, stranger."
+    },
+    {
+     "kind": "kill",
+     "target": "scout of Narcillian",
+     "count": 4,
+     "journal": "Defend the village: kill Narcillian's scouts."
+    },
+    {
+     "kind": "kill",
+     "target": "warrior of Narcillian",
+     "count": 4,
+     "journal": "Defend the village: kill Narcillian's warriors."
+    },
+    {
+     "kind": "kill",
+     "target": "Warlord of Narcillian",
+     "count": 1,
+     "journal": "Kill the Warlord of Narcillian."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of desolation",
+     "journal": "Run for the orb on the portal pad, past the harpies.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 5135.3,
+       "y": 712.63,
+       "z": 7169.8
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "dark harpy",
+     "count": 2,
+     "journal": "Kill the dark and light harpies of the isle."
+    },
+    {
+     "kind": "kill",
+     "target": "Elite Harpy Queen",
+     "count": 1,
+     "journal": "Kill the Harpy Queen when she comes down on you."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of desolation",
+     "journal": "Take the orb to the last isle of desolation.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4734.0,
+       "y": 881.88,
+       "z": 7668.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Quintessence of Veeshan",
+     "count": 1,
+     "journal": "Kill the Quintessence of Veeshan."
+    },
+    {
+     "kind": "talk",
+     "target": "essence of desolation",
+     "journal": "Go through the astral portal on the mountain top.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 4,
+       "x": 4990.1,
+       "y": 332.44,
+       "z": 4990.1
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Mark of Desolation",
+     "journal": "Speak with the Mark of Desolation on the Isle of Wonder.",
+     "says": "You have walked the whole Plane of Sky. Few ever have."
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "teleport",
+     "world": 4,
+     "x": 4751.0,
+     "y": 568.0,
+     "z": 6399.0
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Desolation Chain (github.com/Jadiction/EQOA-Data, MIT). Desolation 1 to 4. The Mark sends the player at the accept (the guide's 'speak to an npc up there'); the patrollers (four on this server, five in the guide), guardians and Arbiter stand always up (the quarters' placeholders and her three deaths are not modelled); the village's six waves are the scouts and warriors this server has; the shards and the Constructs are left out. The guide gives no reward but the plane's completion."
+  },
+  {
+   "key": "Portal/isle-of-dread/portal",
+   "name": "The Medallion of the Faceless",
+   "giver": "Norach",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "unlocks": [
+    {
+     "npc": "Norach",
+     "to": "the Isle of Dread"
+    }
+   ],
+   "offer": "The Isle of Dread is the Faceless One's. I take there only those who carry his medallion, and for ten thousand tunar every time. Kill a dreadnaught and bring me its medallion.",
+   "accept": "I will bring the medallion.",
+   "decline": "Not now.",
+   "declined": "Then stay where it is safe.",
+   "started": "Hide from its breath behind the rocks, and strike between.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "dreadnaught",
+     "items": [
+      {
+       "item": "Medallion of the Faceless",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a dreadnaught south-east of Anu Village in Permafrost and take the Medallion of the Faceless."
+    },
+    {
+     "kind": "give",
+     "target": "Norach",
+     "items": [
+      {
+       "item": "Medallion of the Faceless",
+       "count": 1
+      }
+     ],
+     "tunar": 10000,
+     "journal": "Bring the Medallion of the Faceless and 10,000 tunar to Norach, on the islet in the lake south of Cazic Thule's temple.",
+     "says": "The Faceless knows you now. For ten thousand tunar I take you to his isle, every time.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 24500.0,
+       "y": 54.1,
+       "z": 3330.0
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/isle-of-dread.json, ## Isle of Dread (IoD) Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Finishing it flags the player for Norach's trip to the Isle of Dread (unlocks: the route should take the guide's 10,000 tunar each time); the first trip is the hand-in's own (a teleport to Graumord, the isle's town, ours)."
+  },
+  {
+   "key": "Portal/isle-of-dread/standing",
+   "name": "Cleansing the Isle",
+   "giver": "Graumord citizen",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "We of Graumord trust no one who has not bled for us. Cazic's creatures crawl over the pit east of town: kill them, and come back. Do it often enough and we will speak of more.",
+   "accept": "I will cleanse the pit.",
+   "decline": "Not now.",
+   "declined": "Then you are no friend of ours.",
+   "started": "Mind the breath stealers.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "dread rot",
+     "count": 5,
+     "journal": "Kill five dread rots in the pit east of Graumord."
+    },
+    {
+     "kind": "kill",
+     "target": "wicker man",
+     "count": 5,
+     "journal": "Kill five wicker men in the pit east of Graumord."
+    },
+    {
+     "kind": "talk",
+     "target": "Graumord citizen",
+     "journal": "Return to a Graumord citizen.",
+     "says": "That will thin them. Graumord remembers.",
+     "rewards": {
+      "factions": [
+       [
+        "Citizens of Graumord",
+        40
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/isle-of-dread.json, ## QUEST: Beginning (github.com/Jadiction/EQOA-Data, MIT). Ours: the guide raises the citizens' standing by 'killing all mobs but sacrifice and citizen of graumord on the isle', and this server has no faction hits for the isle's creatures, so this repeatable stands in for them (+40 a time from the -150 start; four times makes it positive). Drop it if faction hits for the isle are seeded."
+  },
+  {
+   "key": "Portal/isle-of-dread/trials-1",
+   "name": "The Faceless Generals",
+   "giver": "Graumord citizen",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/isle-of-dread/portal"
+   ],
+   "factions_required": [
+    [
+     "Citizens of Graumord",
+     1
+    ]
+   ],
+   "offer": "At last, someone who has stood against Cazic's treachery. Will you fight on and free the souls he has imprisoned? Kill his three faceless generals at the citadel and bring me their essences.",
+   "accept": "I will continue the fight.",
+   "decline": "Not now.",
+   "declined": "Then Cazic keeps them.",
+   "started": "The generals keep to the top of the tower. Lure them down.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Dread",
+     "items": [
+      {
+       "item": "Dread's essence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Dread, a faceless general, high in the citadel's tower, and take his essence."
+    },
+    {
+     "kind": "loot",
+     "target": "Fright",
+     "items": [
+      {
+       "item": "Fright's essence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Fright in the citadel's tower and take his essence."
+    },
+    {
+     "kind": "loot",
+     "target": "Terror",
+     "items": [
+      {
+       "item": "Terror's essence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Terror in the citadel's tower and take his essence."
+    },
+    {
+     "kind": "give",
+     "target": "Graumord citizen",
+     "items": [
+      {
+       "item": "Dread's essence",
+       "count": 1
+      },
+      {
+       "item": "Fright's essence",
+       "count": 1
+      },
+      {
+       "item": "Terror's essence",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the three essences to the Graumord citizen in the inn.",
+     "says": "Their essences, made into Cazic's own scent. Never part with it: the Estate's door will know you by it, and its guardian will come for you.",
+     "rewards": {
+      "items": [
+       "Cazic's Scent"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "The Guardian",
+     "items": [
+      {
+       "item": "The Guardian's heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Carry Cazic's Scent to the front door of Cazic Thule's Estate, kill The Guardian and take its heart."
+    },
+    {
+     "kind": "talk",
+     "target": "Kithgrin",
+     "journal": "Go downstairs in Cazic Thule's Estate and speak with Kithgrin.",
+     "says": "You come with the Guardian's heart. Then the trials may begin."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/isle-of-dread.json, ## QUEST: Beginning (github.com/Jadiction/EQOA-Data, MIT). The giver is the inn's unattackable citizen of the guide; this server's twenty Graumord citizens are one name. A positive standing with the Citizens of Graumord (factions_required), as the guide says; the kill group's loot of the heart is the questor's own."
+  },
+  {
+   "key": "Portal/isle-of-dread/trials-2",
+   "name": "The Trials of Cazic Thule",
+   "giver": "Kithgrin",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/isle-of-dread/trials-1"
+   ],
+   "offer": "Three trials stand between you and the Faceless: endurance, celerity and contention. The first: go down the long hallway alone, and survive what comes for you.",
+   "accept": "I am ready.",
+   "decline": "Not now.",
+   "declined": "Fear has already won, then.",
+   "started": "Alone, mind. The others wait upstairs.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 25709.0,
+     "y": 37.0,
+     "z": 3207.0,
+     "radius": 12.0,
+     "journal": "Go down the long hallway alone.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The air thickens. Thoughtbleeders swarm out of the walls around you."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "thoughtbleeder",
+     "count": 6,
+     "journal": "Survive the trial of endurance: kill the six thoughtbleeders."
+    },
+    {
+     "kind": "talk",
+     "target": "Kithgrin",
+     "journal": "Return to Kithgrin for the trial of celerity.",
+     "says": "The trial of celerity: in the catacombs, Qual'Tin waits. Let your friends strike first."
+    },
+    {
+     "kind": "kill",
+     "target": "Qual'Tin",
+     "count": 1,
+     "journal": "Go into the catacombs, to the room with the pool, and kill Qual'Tin."
+    },
+    {
+     "kind": "talk",
+     "target": "Kithgrin",
+     "journal": "Return to Kithgrin for the trial of contention.",
+     "says": "The last trial: face the contempt in your own head. Defeat the Watchman, and find his flaw."
+    },
+    {
+     "kind": "kill",
+     "target": "The Watchmen",
+     "count": 1,
+     "journal": "Kill the Watchman as he walks the halls."
+    },
+    {
+     "kind": "loot",
+     "target": "enraged phantasm",
+     "items": [
+      {
+       "item": "phantasm's gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Go into the main chamber with the great lava pool and take a gem from the enraged phantasms."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 25450.5,
+     "y": 17.9,
+     "z": 3087.0,
+     "radius": 12.0,
+     "journal": "Carry the gem into the Statue of CazicThule's room.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You set the phantasm's gem into the statue. Its stone face cracks, and CazicThule wakes."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "CazicThule",
+     "count": 1,
+     "journal": "Kill CazicThule, the god of fear."
+    },
+    {
+     "kind": "talk",
+     "target": "Kithgrin",
+     "journal": "Return to Kithgrin.",
+     "says": "You have passed every trial and faced the Faceless. Take this talisman; come to me when it runs low.",
+     "rewards": {
+      "items": [
+       "Kithgrin's talisman"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/isle-of-dread.json, ## Trial One: Trial of Endurance (github.com/Jadiction/EQOA-Data, MIT). and the guide's Trial Two, Trial Three, Statue and God of Fear sections. The thirty minutes of thoughtbleeders are their six kills; the Trial of Celerity's trigger and its red named spawns are left out (Qual'Tin stands always up); the guide's Watchman is the game's The Watchmen; the enraged phantasms stand always up and the statue's popup is a reach step; CazicThule stands always up. The guide's reward, a self port of 500 charges to the isle, is Kithgrin's talisman here: no item teleports on this server, so it is a keepsake (see the report)."
+  },
+  {
+   "key": "Portal/zaoran-plateau/tranquility",
+   "name": "The Agent of Tranquility",
+   "giver": "Agent of Tranquility",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Sit with me, and breathe. Let your fears go, and your sadness, and your anger. When there is nothing left, I will send your calm where it is needed.",
+   "accept": "I will meditate.",
+   "decline": "Not now.",
+   "declined": "Then come back when you can sit still.",
+   "started": "Speak to me again, and we begin.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Agent of Tranquility",
+     "journal": "Meditate with the Agent of Tranquility at Shon-To Monastery.",
+     "waiting": "Breathe in. Breathe out.",
+     "choose": "Have you any fear, sadness or anger left?",
+     "choices": [
+      {
+       "answer": "Some fear, still.",
+       "says": "Then we begin again. Breathe.",
+       "stay": true
+      },
+      {
+       "answer": "A little sadness.",
+       "says": "Then we begin again. Breathe.",
+       "stay": true
+      },
+      {
+       "answer": "Anger, yes.",
+       "says": "Then we begin again. Breathe.",
+       "stay": true
+      },
+      {
+       "answer": "None. I have let them all go.",
+       "says": "Good. Then carry that calm to Bobble-by-Water and Merry-by-Water, who quarrel. Begin with Kayle in Bobble-by-Water."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Kayle",
+     "journal": "Speak with Kayle in Bobble-by-Water, across the river from the coachman by the south wall.",
+     "says": "Talk with Merry-by-Water? No one even gets inside their walls."
+    },
+    {
+     "kind": "talk",
+     "target": "Hayle",
+     "journal": "Speak with Hayle on the west side of Merry-by-Water, by the wall.",
+     "says": "Meet Kayle? In Rivervale, perhaps... if she agrees first."
+    },
+    {
+     "kind": "talk",
+     "target": "Kayle",
+     "journal": "Return to Kayle in Bobble-by-Water and convince her to meet Hayle in Rivervale.",
+     "says": "Rivervale, then. Fine. For the towns' sake."
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of Tranquility",
+     "journal": "Return to the Agent of Tranquility at Shon-To Monastery.",
+     "says": "You brought calm where there was none. Take this stone, and the rune of my task.",
+     "rewards": {
+      "items": [
+       "Stone of Enlightened Physique",
+       "Agent of Tranquility's rune"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Tranquility. The meditation is a choice (the guide: say no when asked if you have more fears, sadness or anger, or begin again). Both of the guide's Kayles are one name on this server (the Agent of Spite's stands under the tarp; this quest's is specced by the south wall), so either does a Kayle step. The stone is the guide's, and the rune (the guide's for a level 60, so the quest is level 60)."
+  },
+  {
+   "key": "Portal/zaoran-plateau/spite",
+   "name": "The Agent of Spite",
+   "giver": "Agent of Spite",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Kayle won the pie contest, and she is telling Bobloe how under the tarp by the river. Listen in, and come tell me something surprising.",
+   "accept": "I will listen.",
+   "decline": "Not now.",
+   "declined": "Your loss.",
+   "started": "Under the tarp, by the river.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 24366.0,
+     "y": 54.0,
+     "z": 11711.0,
+     "radius": 15.0,
+     "journal": "Listen in on Kayle's talk with Bobloe under the tarp north of the Agent of Spite.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "...and nobody noticed the berries were Hayle's, picked off her own vines! Kayle laughs. Bobloe does not."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of Spite",
+     "journal": "Report what you heard to the Agent of Spite.",
+     "says": "Hayle's berries! Go and tell Hayle in Merry-by-Water. Slowly. Let it simmer."
+    },
+    {
+     "kind": "talk",
+     "target": "Hayle",
+     "journal": "Tell Hayle on the west side of Merry-by-Water what you overheard, and stir it.",
+     "waiting": "Yes? What do you want?",
+     "choose": "What do you tell her?",
+     "choices": [
+      {
+       "answer": "Nothing. It was only a pie.",
+       "says": "Then why are you wasting my time?",
+       "stay": true
+      },
+      {
+       "answer": "Kayle won the pie contest with berries off your own vines.",
+       "says": "My berries? My prize? Oh, Kayle will hear from me."
+      },
+      {
+       "answer": "You and Kayle should make peace.",
+       "says": "Peace? With Kayle? Go away.",
+       "stay": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of Spite",
+     "journal": "Return to the Agent of Spite in Bobble-by-Water.",
+     "says": "Delicious. Take this stone, and the rune of my task.",
+     "rewards": {
+      "items": [
+       "Spitestone",
+       "Agent of Spite's rune"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Spite. The overheard talk's words are ours (the guide gives none); stirring Hayle is a choice (the guide's 'go slowly through the conversation'); the stone and the rune are the guide's."
+  },
+  {
+   "key": "Portal/zaoran-plateau/honor",
+   "name": "The Agent of Honor",
+   "giver": "Agent of Honor",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Marr's war needs blades. The Scribe of Marr, beside me, will tell you of three of the enemy's that must fall. Afterwards, come back to me.",
+   "accept": "I will hear the Scribe.",
+   "decline": "Not now.",
+   "declined": "Honor waits for the willing.",
+   "started": "The Scribe first.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Scribe of Marr",
+     "journal": "Speak with the Scribe of Marr by the lone tower south of Halas's tunnel.",
+     "says": "Three targets: the orcs outside Freeport, the sand giant siegemaster of Hazinak, and Runnyeye's superior head jailor. Bring their sword, rune and key."
+    },
+    {
+     "kind": "loot",
+     "target": "Orc Sapper",
+     "items": [
+      {
+       "item": "Sticky Finger Sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Kill the orc sappers, siegemasters and commanders along the road out of Freeport's north gate for the Sticky Finger Sword."
+    },
+    {
+     "kind": "loot",
+     "target": "sand giant siegemaster",
+     "items": [
+      {
+       "item": "Rallosian rune",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the sand giant siegemaster in Hazinak, away from the portal, and take his Rallosian rune."
+    },
+    {
+     "kind": "loot",
+     "target": "Superior Head Jailor",
+     "items": [
+      {
+       "item": "titanium key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Superior Head Jailor in Runnyeye and take his titanium key."
+    },
+    {
+     "kind": "give",
+     "target": "Scribe of Marr",
+     "items": [
+      {
+       "item": "Sticky Finger Sword",
+       "count": 1
+      },
+      {
+       "item": "Rallosian rune",
+       "count": 1
+      },
+      {
+       "item": "titanium key",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the sword, the rune and the key to the Scribe of Marr.",
+     "says": "All three. Marr thanks you. Now the Agent has a task of his own.",
+     "rewards": {
+      "xp": 4500000,
+      "tunar": 40000
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of Honor",
+     "journal": "Speak with the Agent of Honor again.",
+     "says": "One more: Lord Pickclaw's scepter. Yalie Keylotta in Highpass knows the way to him."
+    },
+    {
+     "kind": "loot",
+     "target": "Lord Pickclaw",
+     "items": [
+      {
+       "item": "Lord Pickclaw's Scepter",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Lord Pickclaw in Highpass Hold and take his scepter."
+    },
+    {
+     "kind": "give",
+     "target": "Agent of Honor",
+     "items": [
+      {
+       "item": "Lord Pickclaw's Scepter",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Lord Pickclaw's Scepter to the Agent of Honor.",
+     "says": "The pickclaws are leaderless. Take the rune of my task.",
+     "rewards": {
+      "items": [
+       "Agent of Honor's rune"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Orc Sapper",
+    "sand giant siegemaster",
+    "Superior Head Jailor",
+    "Lord Pickclaw"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Honor. The 40,000 tunar and 4.5 million experience are the guide's; the orc camp is one spec, Orc Sapper (the guide's sappers, siegemasters and commanders), the siegemaster, the jailor (the guide's superior jailors' cycle left out) and Lord Pickclaw are specs (Yalie Keylotta's own quest to him is Misc's). The Agent of Honor's rune has no itempattern row: made like the others."
+  },
+  {
+   "key": "Portal/zaoran-plateau/war",
+   "name": "The Agent of War",
+   "giver": "Agent of War",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "You want the plateau? Then show me you can fight. Coach Rubgar runs the trial: three sets, each worse than the last. Speak to him when you are ready.",
+   "accept": "I am ready to fight.",
+   "decline": "Not now.",
+   "declined": "Then you are not ready for the plateau.",
+   "started": "Coach Rubgar is by the shore.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Coach Rubgar",
+     "journal": "Speak with Coach Rubgar when you are ready for the first set.",
+     "says": "First set: one brawler. Go!"
+    },
+    {
+     "kind": "kill",
+     "target": "Rallosian Brawler",
+     "count": 1,
+     "journal": "Kill the Rallosian brawler.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Brawler",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Coach Rubgar",
+     "journal": "Speak with Coach Rubgar for the second set.",
+     "says": "Second set: a brawler and his cleric. Kill the cleric first!"
+    },
+    {
+     "kind": "kill",
+     "target": "Rallosian Cleric",
+     "count": 1,
+     "journal": "Kill the Rallosian cleric before he heals the brawler.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Cleric",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Brawler",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Coach Rubgar",
+     "journal": "Speak with Coach Rubgar for the last set.",
+     "says": "Last set: four conjurers and their pets. Ignore the pets."
+    },
+    {
+     "kind": "kill",
+     "target": "Rallosian Conjurer",
+     "count": 4,
+     "journal": "Kill the four Rallosian conjurers.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Conjurer",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Conjurer",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Conjurer",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rallosian Conjurer",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Coach Rubgar",
+     "journal": "Speak with Coach Rubgar.",
+     "says": "Not bad. Here, a little coin and a gem. See the Agent.",
+     "rewards": {
+      "tunar": 500,
+      "items": [
+       "Gem of Battle"
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of War",
+     "journal": "Speak with the Agent of War again for your rune.",
+     "says": "You fought well. The rune of my task.",
+     "rewards": {
+      "items": [
+       "Agent of War's rune"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Agent of War",
+    "Coach Rubgar",
+    "Rallosian Brawler",
+    "Rallosian Cleric",
+    "Rallosian Conjurer"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of War. The guide ports the player to Lake Rathe E and then into a bubble; here Coach Rubgar stands by the agents (the map's point) and each set is spawned hostile beside the player; the set's names are ours (the guide's brawler, cleric and casters), and the second set's brawler leaves when its cleric falls. The guide's 'minor tunar' is 500 here (ours); the Gem of Battle has no itempattern row: made like the Spitestone, the same 30% stone."
+  },
+  {
+   "key": "Portal/zaoran-plateau/growth",
+   "name": "The Agent of Growth",
+   "giver": "Agent of Growth",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The Rallosian portal on this hill is sick, and I mean to heal it. My gnomish intern has the theory. Talk to him first, then come back to me.",
+   "accept": "I will speak to him.",
+   "decline": "Not now.",
+   "declined": "Then the portal stays sick.",
+   "started": "He is just there.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Gnomish Intern",
+     "journal": "Speak with the Agent of Growth's gnomish intern.",
+     "says": "The portal feeds on growth, see? Living things. The Agent knows the rest."
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of Growth",
+     "journal": "Return to the Agent of Growth.",
+     "says": "Good. My assistant will tell you what to gather."
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant of Growth",
+     "journal": "Speak with the Agent of Growth's assistant.",
+     "says": "Three of the same thing. At your level: bitter roots, from the orcs outside Freeport."
+    },
+    {
+     "kind": "give",
+     "target": "Assistant of Growth",
+     "items": [
+      {
+       "item": "bitter roots",
+       "count": 3
+      }
+     ],
+     "journal": "Bring three bitter roots to the Agent of Growth's assistant.",
+     "says": "This will do. Use the device on the portal.",
+     "rewards": {
+      "items": [
+       "Rallosian healing device"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Rallosian Portal",
+     "items": [
+      {
+       "item": "Rallosian healing device",
+       "count": 1
+      }
+     ],
+     "journal": "Use the Rallosian healing device on the Rallosian portal.",
+     "says": "The device hums, and the portal's light steadies.",
+     "rewards": {
+      "items": [
+       "empty Rallosian healing device"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Assistant of Growth",
+     "items": [
+      {
+       "item": "empty Rallosian healing device",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the empty device to the Agent of Growth's assistant.",
+     "says": "It worked! Here is your reward.",
+     "rewards": {
+      "xp": 500000,
+      "tunar": 1500
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Agent of Growth",
+     "journal": "Speak with the Agent of Growth for your rune.",
+     "says": "The portal grows strong again. The rune of my task.",
+     "rewards": {
+      "items": [
+       "Agent of Growth's rune"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Agent of Growth",
+    "Gnomish Intern",
+    "Assistant of Growth",
+    "Rallosian Portal"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Growth. The level 60 list's bitter roots (the game's name; the guide's golden iron ore and pickclaw orbs are left out); the 500,000 experience and 1,500 tunar are the guide's; the intern, the assistant and the portal are specs on the map's points, their names ours (the guide's 'her gnomish intern', 'her Assistant', 'the portal')."
+  },
+  {
+   "key": "Portal/zaoran-plateau/portal",
+   "name": "The Way to Zaoran Plateau",
+   "giver": "portal guardian",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/zaoran-plateau/tranquility",
+    "Portal/zaoran-plateau/spite",
+    "Portal/zaoran-plateau/honor",
+    "Portal/zaoran-plateau/war",
+    "Portal/zaoran-plateau/growth"
+   ],
+   "unlocks": [
+    {
+     "npc": "portal guardian",
+     "to": "Zaoran Plateau"
+    }
+   ],
+   "offer": "The plateau lets in only those the five agents trust. Show me their five runes, and pay a single tunar each time you pass.",
+   "accept": "Here are the runes.",
+   "decline": "Not now.",
+   "declined": "Come back with the runes.",
+   "started": "Five runes.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "portal guardian",
+     "items": [
+      {
+       "item": "Agent of Tranquility's rune",
+       "count": 1
+      },
+      {
+       "item": "Agent of Spite's rune",
+       "count": 1
+      },
+      {
+       "item": "Agent of Honor's rune",
+       "count": 1
+      },
+      {
+       "item": "Agent of War's rune",
+       "count": 1
+      },
+      {
+       "item": "Agent of Growth's rune",
+       "count": 1
+      }
+     ],
+     "journal": "Show the five agents' runes to the portal guardian on Lake Rathe.",
+     "says": "Five runes. Pass, then. Remember the tunar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 4901.8,
+       "y": 147.6,
+       "z": 7051.8
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "portal guardian"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). The portal guardian: finishing it flags the player for his trip to Zaoran Plateau (unlocks; the route should take the guide's 1 tunar each time); the first trip is the hand-in's own, to the Secrets world's zone 5 by its port-in marker (ZP1). The runes are kept, as the guide's 'speak again with the Agent to get your rune' implies; the guide's old notes on picking a side are left out."
+  },
+  {
+   "key": "Portal/soluseks-eye/nagafen-1",
+   "name": "The Fire Giant Magus",
+   "giver": "Fire Giant Magus",
+   "classes": [],
+   "races": [
+    5,
+    6,
+    9
+   ],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "unlocks": [
+    {
+     "npc": "Subdued Magus",
+     "to": "Lord Nagafen's lair"
+    }
+   ],
+   "offer": "So, a giant who is not a giant. Wear my guards' shroud and I will hear you. Bring me the three signets of this mountain's lords, goblin, giant and kobold, and I will show you the way to Nagafen.",
+   "accept": "I will bring the signets.",
+   "decline": "Not now.",
+   "declined": "Then begone, small thing.",
+   "started": "Goblin, giant, kobold. Their lords carry the signets.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Fire Giant Guard",
+     "items": [
+      {
+       "item": "Giant Guardian Shroud",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25,
+     "journal": "Kill the fire giant guards near the Fire Giant Magus until one drops a Giant Guardian Shroud."
+    },
+    {
+     "kind": "show",
+     "target": "Fire Giant Magus",
+     "items": [
+      {
+       "item": "Giant Guardian Shroud",
+       "count": 1
+      }
+     ],
+     "journal": "Wear the Giant Guardian Shroud and speak with the Fire Giant Magus by the north bridge.",
+     "says": "Now you look like one of us. Bring the signets."
+    },
+    {
+     "kind": "loot",
+     "target": "King Grog",
+     "items": [
+      {
+       "item": "Twisted Goblinkind Signet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a goblin lord of Solusek's Eye, King Grog, for the Twisted Goblinkind Signet."
+    },
+    {
+     "kind": "loot",
+     "target": "Reaver Thoran",
+     "items": [
+      {
+       "item": "Signet of Giantkind",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a giant lord, Reaver Thoran, for the Signet of Giantkind."
+    },
+    {
+     "kind": "loot",
+     "target": "Chief Growlnar",
+     "items": [
+      {
+       "item": "Kobold Blood Signet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a kobold lord, Chief Growlnar, for the Kobold Blood Signet."
+    },
+    {
+     "kind": "give",
+     "target": "Fire Giant Magus",
+     "items": [
+      {
+       "item": "Twisted Goblinkind Signet",
+       "count": 1
+      },
+      {
+       "item": "Signet of Giantkind",
+       "count": 1
+      },
+      {
+       "item": "Kobold Blood Signet",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the three signets to the Fire Giant Magus.",
+     "says": "All three. Now prove you are stronger than I.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The Fire Giant Magus roars and raises his hands. Fight him!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Fire Giant Magus",
+     "count": 1,
+     "journal": "Kill the Fire Giant Magus."
+    },
+    {
+     "kind": "talk",
+     "target": "Subdued Magus",
+     "journal": "Speak with the Subdued Magus.",
+     "says": "You beat me. Take my pouch of tokens and hand them out; each one sends a raider to Nagafen. You go last.",
+     "rewards": {
+      "items": [
+       "Nagafen port token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Subdued Magus"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/soluseks-eye.json, ## Lord Nagafen Portal Quest (github.com/Jadiction/EQOA-Data, MIT). A barbarian, an ogre or a troll alone (races), as the guide's shroud is theirs; finishing it flags the questor for the Subdued Magus's trip to Lord Nagafen (unlocks; land by Nagafen Teleport Arrive). One boss stands for each signet's list (King Grog, Reaver Thoran, Chief Growlnar), a sure drop; the shroud's chance is ours; the Magus respawning as Subdued is a Subdued Magus standing by him (tools/quests/npcs/qe.json). The guide's pouch of 50 charges is one port token here: its 49 more are not modelled (a stack would need a count the rewards do not take); the raid's tokens are the next quest's. Wearing the shroud is not checked."
+  },
+  {
+   "key": "Portal/soluseks-eye/nagafen-2",
+   "name": "Passage to Lord Nagafen",
+   "giver": "Subdued Magus",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "You carry one of my tokens? Give it to me and I will send you to Nagafen's island. Unequip your weapons first, or he will not wait for you to be ready.",
+   "accept": "Send me.",
+   "decline": "Not now.",
+   "declined": "Then keep your token.",
+   "started": "Hand it over.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Subdued Magus",
+     "items": [
+      {
+       "item": "Nagafen port token",
+       "count": 1
+      }
+     ],
+     "journal": "Give a Nagafen port token to the Subdued Magus.",
+     "says": "Go, then.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 3,
+       "x": 4870.8,
+       "y": -29.3,
+       "z": 4426.8
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Subdued Magus"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/soluseks-eye.json, ## Lord Nagafen Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The raid's passage: anyone with a port token (tradeable, the guide's handed-out gems) is sent to Lord Nagafen's island, by Nagafen Teleport Arrive."
+  },
+  {
+   "key": "Portal/sarek-the-betrayer-port/lotus",
+   "name": "The Black Lotus",
+   "giver": "Rudro Balenthorpe",
+   "classes": [],
+   "races": [],
+   "minlevel": 59,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "There is a way into Sarek's tower, they say, for one who knows the alteration of teleportation. I do not. Dalius of the mage guild might. Ask him.",
+   "accept": "I will ask Dalius.",
+   "decline": "Not now.",
+   "declined": "Then Sarek keeps his tower.",
+   "started": "The mage guild, by the guildmaster.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dalius Toziuf",
+     "journal": "Speak with Dalius in Qeynos, at the mage guild beside the guildmaster.",
+     "says": "Dryads, a geode talisman of forty carats, archons' hearts, a fortress in the Rathe Mountains... and a black lotus, which Merchant Gilgash sells. Bring them to me."
+    },
+    {
+     "kind": "loot",
+     "target": "Earthen Dryad",
+     "items": [
+      {
+       "item": "dryad heart",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill the earthen dryads of Geomancer's Citadel for two dryad hearts."
+    },
+    {
+     "kind": "loot",
+     "target": "Sarek's Keeper",
+     "items": [
+      {
+       "item": "geode talisman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Sarek's Keeper on the bridge at the constructs' gate in Geomancer's Citadel and take the geode talisman."
+    },
+    {
+     "kind": "loot",
+     "target": "Archon Vetash",
+     "items": [
+      {
+       "item": "fire archon heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Talk to an orb beside the bridge to reach the towers, kill Archon Vetash and take his fire archon heart."
+    },
+    {
+     "kind": "loot",
+     "target": "Archon Aereth",
+     "items": [
+      {
+       "item": "earth archon heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Archon Aereth in the other tower and take his earth archon heart."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Gilgash",
+     "tunar": 260000,
+     "journal": "Buy the elemental smelter (10,000) and the black lotus (250,000) of Merchant Gilgash in Freeport.",
+     "says": "A smelter and a lotus. Mind the lotus: it is worth more than you are.",
+     "rewards": {
+      "items": [
+       "elemental smelter",
+       "black lotus"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dalius Toziuf",
+     "items": [
+      {
+       "item": "dryad heart",
+       "count": 2
+      },
+      {
+       "item": "geode talisman",
+       "count": 1
+      },
+      {
+       "item": "fire archon heart",
+       "count": 1
+      },
+      {
+       "item": "earth archon heart",
+       "count": 1
+      },
+      {
+       "item": "elemental smelter",
+       "count": 1
+      },
+      {
+       "item": "black lotus",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the hearts, the geode talisman, the smelter and the black lotus to Dalius.",
+     "says": "Smelt the hearts, set them in the talisman, the lotus over all... There. It will carry you to Sarek. Take care: he may be home.",
+     "rewards": {
+      "items": [
+       "lotus talisman"
+      ]
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 1,
+       "x": 4310.0,
+       "y": 219.25,
+       "z": 2590.0
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Rudro Balenthorpe"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/sarek-the-betrayer-port.json, ## Sarek or Black Lotus Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's recipe is the player's own (use the smelter, the talisman, the lotus); here Dalius Toziuf (the game's Dalius) makes it, and the finished talisman's first use is the hand-in's teleport to Sarek the Betrayer's tower in the water. Its reuse is not modelled: no item teleports here, and no travel NPC goes to the tower (see the report). Rudro Balenthorpe is FrontiersForge's sighting by Qeynos's blacksmith (tools/quests/npcs/qe.json); Merchant Gilgash's two wares are a give of 260,000 tunar (the guide's prices) at his window."
+  },
+  {
+   "key": "Portal/fendren-the-forgotten/port",
+   "name": "The Dead Hills Port",
+   "giver": "Fendren the Forgotten",
+   "classes": [
+    13,
+    7
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Forgotten, they call me, and I would not be. Bring me four green soulstone gems from the Jal'Raeth of Envar, and I will teach you a way back to me, here in these hills.",
+   "accept": "I will bring the gems.",
+   "decline": "Not now.",
+   "declined": "Then forget me, as the others did.",
+   "started": "The basement of Envar. Mind the energy stones: they are no use any more.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Jal'Raeth Commoner",
+     "items": [
+      {
+       "item": "green soulstone gem",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.34,
+     "journal": "Kill the Jal'Raeth commoners in the basement of Envar for four green soulstone gems."
+    },
+    {
+     "kind": "give",
+     "target": "Fendren the Forgotten",
+     "items": [
+      {
+       "item": "green soulstone gem",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four green soulstone gems to Fendren the Forgotten in the Dead Hills.",
+     "says": "Four. The Dead Hills will open to you whenever you call.",
+     "rewards": {
+      "spells": [
+       "Dead Hills Port"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Fendren the Forgotten",
+    "Jal'Raeth Commoner",
+    "Dead Hills Port"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/fendren-the-forgotten.json, ## Dead Hills Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The reward is the guide's Dead Hills Port (a druid's and wizard's group port to Dead Hills SE): no spellpattern row has it, so the quest is a draft until the spell and its spellgates row are added. Fendren, his treants and the commoners are specs; the drop chance is ours."
+  },
+  {
+   "key": "Portal/envaric-ascension-quest/ascension",
+   "name": "Envaric Ascension",
+   "giver": "Northeast Altar of Envar",
+   "classes": [
+    7,
+    11,
+    13
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The altar's voice: four brooches from the Grave Ushers atop the four towers, laid here; then the essences and breaths of the basements' masters laid on the other altar. Only then will you ascend.",
+   "accept": "I will gather them.",
+   "decline": "Not now.",
+   "declined": "Then stay below.",
+   "started": "Four brooches, from the tops of the towers.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Grave Usher",
+     "items": [
+      {
+       "item": "iron brooch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a Grave Usher atop one of Envar's towers for the iron brooch."
+    },
+    {
+     "kind": "loot",
+     "target": "Grave Usher",
+     "items": [
+      {
+       "item": "copper brooch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a Grave Usher atop another tower for the copper brooch."
+    },
+    {
+     "kind": "loot",
+     "target": "Grave Usher",
+     "items": [
+      {
+       "item": "brass brooch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a Grave Usher atop another tower for the brass brooch."
+    },
+    {
+     "kind": "loot",
+     "target": "Grave Usher",
+     "items": [
+      {
+       "item": "bronze brooch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the last tower's Grave Usher for the bronze brooch."
+    },
+    {
+     "kind": "give",
+     "target": "Northeast Altar of Envar",
+     "items": [
+      {
+       "item": "iron brooch",
+       "count": 1
+      },
+      {
+       "item": "copper brooch",
+       "count": 1
+      },
+      {
+       "item": "brass brooch",
+       "count": 1
+      },
+      {
+       "item": "bronze brooch",
+       "count": 1
+      }
+     ],
+     "journal": "Lay the four brooches on the altar in the NE tower's basement library.",
+     "says": "The brooches melt together into a talisman with room for two diamonds.",
+     "rewards": {
+      "items": [
+       "Envaric talisman"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Tal'Thir",
+     "items": [
+      {
+       "item": "astral essence of Envar",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Tal'Thir in the NW tower's basement for the astral essence."
+    },
+    {
+     "kind": "loot",
+     "target": "Jal'Raeth Bishop",
+     "items": [
+      {
+       "item": "ethereal essence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Jal'Raeth Bishop in the NE tower's basement for the ethereal essence."
+    },
+    {
+     "kind": "loot",
+     "target": "High Priest Vorin",
+     "items": [
+      {
+       "item": "astral breath",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill High Priest Vorin in the SE tower's basement for the astral breath."
+    },
+    {
+     "kind": "loot",
+     "target": "Jal'Raeth Patriarch",
+     "items": [
+      {
+       "item": "ethereal breath",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Jal'Raeth Patriarch in the SW library for the ethereal breath."
+    },
+    {
+     "kind": "give",
+     "target": "Southwest Altar of Envar",
+     "items": [
+      {
+       "item": "astral essence of Envar",
+       "count": 1
+      },
+      {
+       "item": "ethereal essence",
+       "count": 1
+      },
+      {
+       "item": "astral breath",
+       "count": 1
+      },
+      {
+       "item": "ethereal breath",
+       "count": 1
+      },
+      {
+       "item": "Envaric talisman",
+       "count": 1
+      }
+     ],
+     "journal": "Lay the essences, the breaths and the talisman on the altar in the SW tower's basement.",
+     "says": "Two diamonds form in the talisman, and it becomes the Holy Symbol of Envar. Its price is your life; its gift, the ascension.",
+     "rewards": {
+      "items": [
+       "Holy Symbol of Envar"
+      ],
+      "spells": [
+       "Envaric Ascension"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Northeast Altar of Envar",
+    "Grave Usher",
+    "Tal'Thir",
+    "Jal'Raeth Bishop",
+    "High Priest Vorin",
+    "Jal'Raeth Patriarch",
+    "Southwest Altar of Envar",
+    "Envaric Ascension"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/envaric-ascension-quest.json, ## Envaric Ascension Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Part 1. The reward is the guide's Envaric Ascension (a druid's, necromancer's and wizard's group port to the first chamber of the Prophet's tower): no spellpattern row has it, so the quest is a draft until the spell and its spellgates row are added. Both altars, the Grave Ushers, Tal'Thir, Vorin, the Bishop and the Patriarch are specs in Envar's towers (the Rathe's cell south of the Dead Hills: four towers with basements at y 44-51), their guards left out; the two diamonds and the symbol's death are the altar's words. Part 2, the climb of the Prophet's tower with its gems, begins with the spell's port and is left out."
+  },
+  {
+   "key": "Portal/zaoran-plateau/garlic",
+   "name": "The Wailing Ghost",
+   "giver": "Wailing Ghost",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/zaoran-plateau/portal"
+   ],
+   "offer": "Something comes... I feel it in what is left of me. The Council of Watchmen in Dshinn's Redoubt must know. Find Lerod Damonus there, in the undead village by the river.",
+   "accept": "I will go to the Council.",
+   "decline": "Not now.",
+   "declined": "Then the dead keep wailing.",
+   "started": "Lerod Damonus. Go.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Lerod Damonus",
+     "journal": "Speak with Lerod Damonus of the Council of Watchmen, in the open-roofed tower in Dshinn's Redoubt.",
+     "says": "The ghost is right. Bolash daemons gather on a hill in Druid's Watch, south-east of Melton's pyramid. Bring me five of their skulls."
+    },
+    {
+     "kind": "loot",
+     "target": "Bolash Daemon",
+     "items": [
+      {
+       "item": "bolash daemon skull",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 0.5,
+     "journal": "Kill the bolash daemons on the hill south-east of Melton's pyramid for five skulls."
+    },
+    {
+     "kind": "give",
+     "target": "Lerod Damonus",
+     "items": [
+      {
+       "item": "bolash daemon skull",
+       "count": 5
+      }
+     ],
+     "journal": "Bring the five bolash daemon skulls to Lerod Damonus.",
+     "says": "Five. Grizwald in Merry-by-Water knows more. Go to him."
+    },
+    {
+     "kind": "talk",
+     "target": "Grizwald",
+     "journal": "Speak with Grizwald by a tree near Merry-by-Water's south tower.",
+     "says": "An unnamed champion has driven everyone off the plateau: the Akessans, Marr's own, even the Rallosians. Tell the Council."
+    },
+    {
+     "kind": "talk",
+     "target": "Osrad Martanius",
+     "journal": "Return to the Council and speak with Osrad Martanius.",
+     "says": "Then the bolash are in the Elephant Graveyard too, under the white arch. Bring eight hearts."
+    },
+    {
+     "kind": "loot",
+     "target": "Bolash Daemon",
+     "items": [
+      {
+       "item": "bolash daemon heart",
+       "count": 8
+      }
+     ],
+     "count": 8,
+     "chance": 0.5,
+     "journal": "Kill the bolash daemons under the white arch of the Elephant Graveyard for eight hearts."
+    },
+    {
+     "kind": "talk",
+     "target": "Osrad Martanius",
+     "journal": "Return to Osrad Martanius.",
+     "says": "Eight hearts. Nelytu of the aviaks will want them."
+    },
+    {
+     "kind": "give",
+     "target": "Nelytu",
+     "items": [
+      {
+       "item": "bolash daemon heart",
+       "count": 8
+      }
+     ],
+     "journal": "Bring the eight hearts to Nelytu, on the high peak north-east of Aviak Village.",
+     "says": "Bolash hearts. The sky is safer. Back to your Council."
+    },
+    {
+     "kind": "talk",
+     "target": "Ustelum Devoy",
+     "journal": "Speak with Ustelum Devoy of the Council.",
+     "says": "Take my seal to Lenwe Nenharma in Box Canyons. She may know what the bolash want.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Seal of the Watchman",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Lenwe Nenharma",
+     "items": [
+      {
+       "item": "Seal of the Watchman",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Seal of the Watchman to Lenwe Nenharma, in the cave at the end of Box Canyons' northern gully.",
+     "says": "The Council's champion and their bolash are no worry of mine. Go back to them."
+    },
+    {
+     "kind": "talk",
+     "target": "Ustelum Devoy",
+     "journal": "Return to Ustelum Devoy.",
+     "says": "Then it is the spirit in Crethley Manor. Slay the tormented eidolon."
+    },
+    {
+     "kind": "loot",
+     "target": "a Tormented Eidolon",
+     "items": [
+      {
+       "item": "garlic trinket plans",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the tormented eidolon on the hill south of Crethley Manor and take its garlic trinket plans."
+    },
+    {
+     "kind": "give",
+     "target": "Mecei Lostaud",
+     "items": [
+      {
+       "item": "garlic trinket plans",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the garlic trinket plans to Mecei Lostaud of the Council.",
+     "says": "All hail the hero! Wear this trinket, and never part with it.",
+     "rewards": {
+      "items": [
+       "Garlic Trinket"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Wailing Ghost",
+    "Bolash Daemon",
+    "Grizwald",
+    "Nelytu",
+    "Lenwe Nenharma"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## The Wailing Ghost Garlic Trinket Quest (github.com/Jadiction/EQOA-Data, MIT). The Wailing Ghost stands in Zaoran Plateau's cemetery north of the port-in (tools/quests/npcs/qe.json), so the quest follows the plateau's portal quest. The bolash daemons (both camps, one name), Grizwald, Nelytu and Lenwe are specs; the eidolon's kill group is the questor; the guide's 'some xp' has no figure. The Garlic Trinket (170 HP, 50 AC, 50 AR in the guide) has no itempattern row: it is made like the Etched Rubicite Necklace, whose figures it takes."
+  },
+  {
+   "key": "Portal/zaoran-plateau/broken-blade",
+   "name": "The Broken Blade",
+   "giver": "Wailing Ghost",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/zaoran-plateau/portal"
+   ],
+   "offer": "You hoped I had something for you? Perhaps. A blade lies broken in the fire below the world, its words unread. Find it, and take it to Grimm Brellhand in the Gramash Ruins.",
+   "accept": "I was hoping you had some information for me.",
+   "decline": "Not now.",
+   "declined": "Then wander, as I do.",
+   "started": "Grimm Brellhand. The Gramash Ruins.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Cave Hydra",
+     "items": [
+      {
+       "item": "broken blade",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Kill Graknar, the cave hydra of Solusek's Eye, until it gives up the broken blade."
+    },
+    {
+     "kind": "show",
+     "target": "Grimm Brellhand",
+     "items": [
+      {
+       "item": "broken blade",
+       "count": 1
+      }
+     ],
+     "journal": "Take the broken blade to Grimm Brellhand in the Gramash Ruins (S).",
+     "says": "That inscription... here, an etching of it. Do not lose it, ever. Go back to the ghost.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "etching of the inscription",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Wailing Ghost",
+     "journal": "Return to the Wailing Ghost on Zaoran Plateau.",
+     "says": "Yarn Blackport, the giant skeleton of the Council's round room, reads old tongues. Ask him."
+    },
+    {
+     "kind": "talk",
+     "target": "Yarn Blackport",
+     "journal": "Speak with Yarn Blackport in the Council of Watchmen's round room in Dshinn's Redoubt.",
+     "says": "There is no turning back once you choose... I cannot read it. Ask Grimm."
+    },
+    {
+     "kind": "talk",
+     "target": "Grimm Brellhand",
+     "journal": "Return to Grimm Brellhand in the Gramash Ruins.",
+     "says": "You still have the inscription? Then Teacher Heather Johns, in Dshinn's schoolhouse."
+    },
+    {
+     "kind": "talk",
+     "target": "Heather Johns",
+     "journal": "Speak with Teacher Heather Johns in the schoolhouse of Dshinn's Redoubt.",
+     "says": "Mistmoore, an invasion... Keneto Barillo in Murnf may know the symbols. The smaller inn."
+    },
+    {
+     "kind": "talk",
+     "target": "Keneto Barillo",
+     "journal": "Speak with Keneto Barillo in the smaller inn north of Murnf's coach.",
+     "says": "Not me. Torgias Bullow, here in Murnf."
+    },
+    {
+     "kind": "talk",
+     "target": "Torgias Bullow",
+     "journal": "Speak with Torgias Bullow in Murnf.",
+     "says": "I know these words. Tell Heather Johns: with the lava blade, oil from a bolash in the lava, I will appear."
+    },
+    {
+     "kind": "talk",
+     "target": "Heather Johns",
+     "journal": "Return to Heather Johns.",
+     "says": "With the lava blade. Oil from a bolash in the lava. I will embark... or appear. Take this, and keep it with the etching.",
+     "rewards": {
+      "xp": 25000,
+      "tunar": 25000,
+      "items": [
+       "Elem Kabar Resilan"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Wailing Ghost"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## The Wailing Ghost Broken Blade Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's answer is the accept. The broken blade is Graknar's drop in Solusek's Eye (the game's Cave Hydra; its chance ours), taken in the quest's first step where the guide has it already. The 25,000 experience and 25,000 tunar are the guide's; the resilan is made like Randerith's blood (the guide's vampire-blood vial)."
+  },
+  {
+   "key": "Portal/soluseks-eye/broken-blade",
+   "name": "The Broken Blade's Soul",
+   "giver": "Mecei Lostaud",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/zaoran-plateau/garlic",
+    "Portal/zaoran-plateau/broken-blade"
+   ],
+   "offer": "You carry the etching, the blade, and the trinket? Then the blade's soul can be made. Bring me Solusek's Eye and the twinkling amulet from the hydra that held the blade, with the blade and the etching.",
+   "accept": "I have them.",
+   "decline": "Not now.",
+   "declined": "Come back when you do.",
+   "started": "The hydra first.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Cave Hydra",
+     "items": [
+      {
+       "item": "Solusek's Eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Kill the cave hydra in Solusek's Eye again for Solusek's Eye."
+    },
+    {
+     "kind": "loot",
+     "target": "Cave Hydra",
+     "items": [
+      {
+       "item": "twinkling amulet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Kill the cave hydra again for the twinkling amulet."
+    },
+    {
+     "kind": "give",
+     "target": "Mecei Lostaud",
+     "items": [
+      {
+       "item": "broken blade",
+       "count": 1
+      },
+      {
+       "item": "Solusek's Eye",
+       "count": 1
+      },
+      {
+       "item": "twinkling amulet",
+       "count": 1
+      },
+      {
+       "item": "etching of the inscription",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the broken blade, Solusek's Eye, the twinkling amulet and the etching to Mecei Lostaud.",
+     "says": "The soul takes shape. One thing more: the blood of the infected wolverine, east of here."
+    },
+    {
+     "kind": "loot",
+     "target": "Infected Wolverine",
+     "items": [
+      {
+       "item": "infected wolverine blood",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the infected wolverine near the undead camp east of the Council and take its blood."
+    },
+    {
+     "kind": "give",
+     "target": "Mecei Lostaud",
+     "items": [
+      {
+       "item": "infected wolverine blood",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the infected wolverine's blood to Mecei Lostaud.",
+     "says": "It is done. Osrad Martanius has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Osrad Martanius",
+     "journal": "Speak with Osrad Martanius for your reward.",
+     "says": "The broken blade's mystery is laid to rest, and you are its hero. Wear this.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Ricasso Earring"
+        ]
+       },
+       "2": {
+        "items": [
+         "Ricasso Earring"
+        ]
+       },
+       "3": {
+        "items": [
+         "Ricasso Earring"
+        ]
+       },
+       "1": {
+        "items": [
+         "Annulet Earring"
+        ]
+       },
+       "4": {
+        "items": [
+         "Annulet Earring"
+        ]
+       },
+       "5": {
+        "items": [
+         "Annulet Earring"
+        ]
+       },
+       "6": {
+        "items": [
+         "Annulet Earring"
+        ]
+       },
+       "10": {
+        "items": [
+         "Ferrule Earring"
+        ]
+       },
+       "11": {
+        "items": [
+         "Ferrule Earring"
+        ]
+       },
+       "12": {
+        "items": [
+         "Ferrule Earring"
+        ]
+       },
+       "13": {
+        "items": [
+         "Ferrule Earring"
+        ]
+       },
+       "14": {
+        "items": [
+         "Ferrule Earring"
+        ]
+       },
+       "7": {
+        "items": [
+         "Pommel Earring"
+        ]
+       },
+       "8": {
+        "items": [
+         "Pommel Earring"
+        ]
+       },
+       "9": {
+        "items": [
+         "Pommel Earring"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Infected Wolverine"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/soluseks-eye.json, ## Solusek's Eye Broken Balde Quest (github.com/Jadiction/EQOA-Data, MIT). Its steps 2 and 6 (1, 3 and 4 are the two Wailing Ghost quests before it). The guide's archetypal soul, crafted by a weapons master from the blade, Solusek's Eye, the twinkling amulet and one of Graknar's four rings, is the hand-in of the blade, the eye and the amulet to Mecei (the ring that picks the soul's archetype is the class's earring here); the Unnamed Champion's part (step 5) is left out; the wolverines' spawn cycle is left out (the infected one stands). The earrings are the guide's by archetype (the alchemist a caster)."
+  },
+  {
+   "key": "Portal/zaoran-plateau/tallon",
+   "name": "Tallon Zek",
+   "giver": "Portal of Tallon",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The portal hums faintly: its energy is waning. A key from the Zek who camp here would wake it, and it leads to Tallon's fortress on Zaoran Plateau.",
+   "accept": "I will find the key.",
+   "decline": "Not now.",
+   "declined": "The portal fades a little more.",
+   "started": "The Zek camp, here.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Zek Troop",
+     "count": 4,
+     "journal": "Kill the Zek troops of the camp."
+    },
+    {
+     "kind": "loot",
+     "target": "Zek Sergeant",
+     "items": [
+      {
+       "item": "Tallon's Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Zek Sergeant and take Tallon's Key."
+    },
+    {
+     "kind": "give",
+     "target": "Portal of Tallon",
+     "items": [
+      {
+       "item": "Tallon's Key",
+       "count": 1
+      }
+     ],
+     "journal": "Give Tallon's Key to the portal by the Zek camp, last of your party.",
+     "waiting": "The energy of the portal is waning. Use it quickly.",
+     "choose": "Are you the last?",
+     "choices": [
+      {
+       "answer": "Yes, I am the last.",
+       "says": "The portal flares, takes the key, and closes behind you."
+      },
+      {
+       "answer": "No, there are more that need to use it.",
+       "says": "The portal holds open a little longer. Come back when you are the last.",
+       "stay": true
+      }
+     ],
+     "rewards": {
+      "items": [
+       "Tallon's Bent Key"
+      ]
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 4750.0,
+       "y": 148.0,
+       "z": 7380.0
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 5,
+     "x": 4750.0,
+     "y": 160.0,
+     "z": 7460.0,
+     "radius": 25.0,
+     "journal": "Run south up the mountain to the fortress's ramp.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The fortress senses Tallon's key on you, and wakes. Its guardian rears up at the foot of the ramp."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Zek Sentry",
+     "count": 1,
+     "journal": "Kill the Zek Sentry at the foot of the ramp."
+    },
+    {
+     "kind": "kill",
+     "target": "Tallon Zek",
+     "count": 1,
+     "journal": "Go down the fortress's ramps past the golems, take Hallway C, and kill Tallon Zek."
+    }
+   ],
+   "unresolved": [
+    "Portal of Tallon",
+    "Zek Troop",
+    "Zek Sergeant",
+    "Zek Sentry",
+    "Tallon Zek"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Tallon Zek (github.com/Jadiction/EQOA-Data, MIT). A way onto the plateau without its flag (the guide's own words). The troops' spawn cycle is four kills before the sergeant; the portal's question is the guide's ('Yes, I am the last' passes and closes it); the guide's Tallon Rages, golems, assassins and archers are left out; Tallon's five-minute despawn is not kept. The Zek camp, its portal, the sentry and Tallon are specs (the camp's spot and the fortress's halls, read off the ground, are ours). The guide gives no reward but the fight."
+  },
+  {
+   "key": "Portal/zaoran-plateau/vallon",
+   "name": "Vallon Zek",
+   "giver": "Portal of Zek",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Little goblins in Zek's colours keep this fire. One of them carries a portal rune; show it to me, and I open on Vallon Zek's training ground.",
+   "accept": "I will find the rune.",
+   "decline": "Not now.",
+   "declined": "Then leave our fire.",
+   "started": "The goblins, there.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Zek Scout",
+     "items": [
+      {
+       "item": "Portal Rune of Zek",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.2,
+     "journal": "Kill the Zek scouts round the campfire until one drops a Portal Rune of Zek."
+    },
+    {
+     "kind": "give",
+     "target": "Portal of Zek",
+     "items": [
+      {
+       "item": "Portal Rune of Zek",
+       "count": 1
+      }
+     ],
+     "journal": "Touch the portal by the campfire with the Portal Rune of Zek.",
+     "says": "The rune breaks into shards of light, and the portal opens.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 4377.8,
+       "y": 253.5,
+       "z": 7052.8
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Vallon Zek",
+     "journal": "Set up on the island, then speak with Vallon Zek at its far side.",
+     "says": "You have found my training grounds, and you are not welcome. Let me show you how Zek trains!"
+    },
+    {
+     "kind": "kill",
+     "target": "Vallon Zek",
+     "count": 1,
+     "journal": "Kill Vallon Zek.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Vallon Zek",
+       "hostile": true
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Portal of Zek",
+    "Zek Scout",
+    "Vallon Zek"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Vallon Zek (github.com/Jadiction/EQOA-Data, MIT). The scouts' rune (its chance ours: the guide's one in ten or so), the portal and its 20 shards are a give and a teleport (the shards for the raid are not modelled); Vallon is spoken to and spawned hostile, his friends and the Rages of Zek left out, his 90 minutes not kept. The camp, the portal and Vallon are specs. The guide gives no reward but the fight (Sapphyra's Sword is his loot)."
+  }
+ ],
+ "items": [
+  {
+   "name": "Endraval's petrified heart",
+   "description": "The petrified heart of the deathknight Endraval.",
+   "notrade": true,
+   "like": "Halik's petrified heart"
+  },
+  {
+   "name": "wasp venom",
+   "description": "Venom drawn from the plague wasps, kept by the Last House's pharmacist.",
+   "notrade": true,
+   "like": "poison vial"
+  },
+  {
+   "name": "queen chitin",
+   "description": "A piece of the Queen's hive. The whirling portal knows it.",
+   "notrade": true,
+   "like": "fine ice worm chitin"
+  },
+  {
+   "name": "Queen Qy'tha's stinger",
+   "description": "The stinger of Queen Qy'tha, still wet with venom.",
+   "notrade": true,
+   "like": "Zapper Stinger"
+  },
+  {
+   "name": "scepter of plague",
+   "description": "Made by Witchdoctor Muglchlur from the Queen's stinger. The Throne of Bertoxxulous answers it.",
+   "notrade": true,
+   "like": "Lord Pickclaw's Scepter"
+  },
+  {
+   "name": "viturille skin",
+   "description": "The skin of a cillieane viturille from the nox pools.",
+   "notrade": true,
+   "like": "tasty froglok skins"
+  },
+  {
+   "name": "slime heart",
+   "description": "The heart of a toxic pollutive slime.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "fused slime heart",
+   "description": "Three slime hearts fused by Honcho Ulgurglch. The cauldron by the nox pools wants it.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "blood of Noroxus",
+   "description": "The blood of Noroxus. The closed portal opens to it, as often as it is shown.",
+   "notrade": true,
+   "like": "Randerith's blood"
+  },
+  {
+   "name": "fetid rotting femur",
+   "description": "A rotting femur from the Plane of Disease.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "fetid rotting tibia",
+   "description": "A rotting tibia from the Plane of Disease.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "fetid rotting skull",
+   "description": "A rotting skull from the Plane of Disease.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "fetid rotting organ",
+   "description": "A rotting organ from the Plane of Disease.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "fetid rotting gland",
+   "description": "A rotting gland from the Plane of Disease.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "fetid rotting eyeball",
+   "description": "A rotting eyeball from the Plane of Disease.",
+   "notrade": true,
+   "like": "raven eye"
+  },
+  {
+   "name": "fetid rotting skin",
+   "description": "A strip of rotting skin from the Plane of Disease.",
+   "notrade": true,
+   "like": "tasty froglok skins"
+  },
+  {
+   "name": "soul dust",
+   "description": "The dust of souls the Plaguebringer has spent.",
+   "notrade": true,
+   "like": "Pixie Dust"
+  },
+  {
+   "name": "wax dust",
+   "description": "Wax dust from the wings of the Moth Monarch.",
+   "notrade": true,
+   "like": "Pixie Dust"
+  },
+  {
+   "name": "acidic blood bile",
+   "description": "Acidic blood bile from the Locust Monarch.",
+   "notrade": true,
+   "like": "poison vial"
+  },
+  {
+   "name": "front legs of the Mantis Matriarch",
+   "description": "The front legs of the Mantis Matriarch.",
+   "notrade": true,
+   "like": "cracked beetle mandible"
+  },
+  {
+   "name": "mandibles of the Millipede Matriarch",
+   "description": "The mandibles of the Millipede Matriarch.",
+   "notrade": true,
+   "like": "cracked beetle mandible"
+  },
+  {
+   "name": "plagueswine tusk",
+   "description": "A tusk from a plague swine.",
+   "notrade": false,
+   "like": "preserved mammoth tusk"
+  },
+  {
+   "name": "scuzz toad eye",
+   "description": "The eye of a scuzz toad.",
+   "notrade": false,
+   "like": "crusty goblin eye"
+  },
+  {
+   "name": "scuzz toad stew",
+   "description": "A stew of scuzz toad. It heals over time.",
+   "notrade": false,
+   "like": "sondereel fish soup"
+  },
+  {
+   "name": "harpoon of Telinan",
+   "description": "The harpoon of Telinan, pulled from the hide of Kratas.",
+   "notrade": true,
+   "like": "Lord Pickclaw's Scepter"
+  },
+  {
+   "name": "manticore token",
+   "description": "A token of the manticores of the Sphinx Pyramid.",
+   "notrade": true,
+   "like": "10 point faction token"
+  },
+  {
+   "name": "Eye of the Sphynx",
+   "description": "A blue gem, the manticores' gift. Carried, it lets one through the portal atop the Endless Tower.",
+   "notrade": true,
+   "like": "Aquamarine"
+  },
+  {
+   "name": "rain key",
+   "description": "A key of rain, bought of Liztin Misseliania.",
+   "notrade": true,
+   "like": "Arcane Chest Key"
+  },
+  {
+   "name": "qex wing",
+   "description": "A wing from a forest qex.",
+   "notrade": true,
+   "like": "Fungus Cockroach Wing"
+  },
+  {
+   "name": "black gem of Narciliisisin",
+   "description": "A black gem taken from Ghizilanve, the mark of the necrologist Narciliisisin.",
+   "notrade": true,
+   "like": "gem of deception"
+  },
+  {
+   "name": "sun key",
+   "description": "A key of the sun, bought of Liztin Misseliania.",
+   "notrade": true,
+   "like": "Arcane Chest Key"
+  },
+  {
+   "name": "imerzan talisman",
+   "description": "A talisman carried by the imerzan sycophants.",
+   "notrade": true,
+   "like": "Scuffed spirit shard"
+  },
+  {
+   "name": "key of the ancients",
+   "description": "A key of the ancients, bought of Liztin Misseliania.",
+   "notrade": true,
+   "like": "Arcane Chest Key"
+  },
+  {
+   "name": "ape's heart",
+   "description": "The heart of a glacial behemoth.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "drake's foot",
+   "description": "The foot of a celestial drake.",
+   "notrade": true,
+   "like": "swollen brown bat feet"
+  },
+  {
+   "name": "gargoyle eye",
+   "description": "The eye of an icebound gargoyle.",
+   "notrade": true,
+   "like": "frost giant eye"
+  },
+  {
+   "name": "Guenzi's stew",
+   "description": "Guenzi's stew of ape's heart, drake's foot and gargoyle eye. Something on the fourth isle of snow will smell it.",
+   "notrade": true,
+   "like": "sondereel fish soup"
+  },
+  {
+   "name": "Medallion of the Faceless",
+   "description": "A medallion of Cazic Thule, taken from a dreadnaught. Norach asks it of those he takes to the Isle of Dread.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "Dread's essence",
+   "description": "The essence of Dread, a faceless general.",
+   "notrade": true,
+   "like": "Essence of a Marauding Soul"
+  },
+  {
+   "name": "Fright's essence",
+   "description": "The essence of Fright, a faceless general.",
+   "notrade": true,
+   "like": "Essence of a Marauding Soul"
+  },
+  {
+   "name": "Terror's essence",
+   "description": "The essence of Terror, a faceless general.",
+   "notrade": true,
+   "like": "Essence of a Marauding Soul"
+  },
+  {
+   "name": "The Guardian's heart",
+   "description": "The heart of the guardian of Cazic Thule's Estate.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "phantasm's gem",
+   "description": "A gem from an enraged phantasm. The Statue of CazicThule has a place for it.",
+   "notrade": true,
+   "like": "gem of fury"
+  },
+  {
+   "name": "Kithgrin's talisman",
+   "description": "Kithgrin's talisman of the Isle of Dread, for those who passed the trials of Cazic Thule.",
+   "notrade": true,
+   "like": "geode talisman"
+  },
+  {
+   "name": "Agent of Honor's rune",
+   "description": "This rune shows you've completed the Agent of Honor's task.",
+   "notrade": true,
+   "like": "Agent of Tranquility's rune"
+  },
+  {
+   "name": "Gem of Battle",
+   "description": "This stone allows you to harness the fury of battle, allowing you to gain a bit more experience than normal.",
+   "notrade": true,
+   "like": "Spitestone"
+  },
+  {
+   "name": "Sticky Finger Sword",
+   "description": "A sword the orcs outside Freeport carry.",
+   "notrade": true,
+   "like": "Lord Pickclaw's Scepter"
+  },
+  {
+   "name": "Rallosian rune",
+   "description": "A rune carried by the sand giant siegemaster of Hazinak.",
+   "notrade": true,
+   "like": "gnoll runes"
+  },
+  {
+   "name": "titanium key",
+   "description": "A titanium key from the Superior Head Jailor of Runnyeye.",
+   "notrade": true,
+   "like": "Prison Key"
+  },
+  {
+   "name": "Rallosian healing device",
+   "description": "A device that can heal the Rallosian portal on Lake Rathe's island.",
+   "notrade": true,
+   "like": "phosphoric globe"
+  },
+  {
+   "name": "empty Rallosian healing device",
+   "description": "A Rallosian healing device, spent on the portal.",
+   "notrade": true,
+   "like": "phosphoric globe"
+  },
+  {
+   "name": "Giant Guardian Shroud",
+   "description": "The shroud of a fire giant guard. A barbarian, an ogre or a troll who wears it passes for a giant.",
+   "notrade": true,
+   "like": "Dwarven Burial Shroud"
+  },
+  {
+   "name": "Twisted Goblinkind Signet",
+   "description": "The signet of the goblin lords of Solusek's Eye.",
+   "notrade": true,
+   "like": "Froglok Signet Ring"
+  },
+  {
+   "name": "Signet of Giantkind",
+   "description": "This signet shows the bearer wields the authority of the ranking fire giants in Nagafen's domain.",
+   "notrade": true,
+   "like": "Froglok Signet Ring"
+  },
+  {
+   "name": "Kobold Blood Signet",
+   "description": "The signet of the kobold lords of Solusek's Eye.",
+   "notrade": true,
+   "like": "Froglok Signet Ring"
+  },
+  {
+   "name": "Nagafen port token",
+   "description": "A token from the Subdued Magus's pouch. The Subdued Magus sends its bearer to Lord Nagafen.",
+   "notrade": false,
+   "like": "portal rune"
+  },
+  {
+   "name": "dryad heart",
+   "description": "The heart of an earthen dryad of Geomancer's Citadel.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "fire archon heart",
+   "description": "The heart of Archon Vetash.",
+   "notrade": true,
+   "like": "archon's heart"
+  },
+  {
+   "name": "earth archon heart",
+   "description": "The heart of Archon Aereth.",
+   "notrade": true,
+   "like": "archon's heart"
+  },
+  {
+   "name": "elemental smelter",
+   "description": "A smelter that fuses elemental hearts.",
+   "notrade": true,
+   "like": "phosphoric globe"
+  },
+  {
+   "name": "black lotus",
+   "description": "A black lotus. Its petals bend the paths of teleportation.",
+   "notrade": true,
+   "like": "Ambroise Fruit"
+  },
+  {
+   "name": "lotus talisman",
+   "description": "A lotus talisman of fused hearts and a black lotus, made to carry its bearer to Sarek's tower in the water.",
+   "notrade": true,
+   "like": "geode talisman"
+  },
+  {
+   "name": "green soulstone gem",
+   "description": "A green soulstone gem, dropped by the Jal'Raeth of Envar.",
+   "notrade": true,
+   "like": "sparkling green gem"
+  },
+  {
+   "name": "iron brooch",
+   "description": "A iron brooch from a Grave Usher atop a tower of Envar.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "copper brooch",
+   "description": "A copper brooch from a Grave Usher atop a tower of Envar.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "brass brooch",
+   "description": "A brass brooch from a Grave Usher atop a tower of Envar.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "bronze brooch",
+   "description": "A bronze brooch from a Grave Usher atop a tower of Envar.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "Envaric talisman",
+   "description": "Four brooches fused at Envar's altar, with room for two diamonds.",
+   "notrade": true,
+   "like": "geode talisman"
+  },
+  {
+   "name": "astral essence of Envar",
+   "description": "The astral essence, from Tal'Thir.",
+   "notrade": true,
+   "like": "Essence of a Marauding Soul"
+  },
+  {
+   "name": "ethereal essence",
+   "description": "The ethereal essence, from the Jal'Raeth Bishop.",
+   "notrade": true,
+   "like": "Essence of a Marauding Soul"
+  },
+  {
+   "name": "astral breath",
+   "description": "The astral breath, from High Priest Vorin.",
+   "notrade": true,
+   "like": "Night Breath"
+  },
+  {
+   "name": "ethereal breath",
+   "description": "The ethereal breath, from the Jal'Raeth Patriarch.",
+   "notrade": true,
+   "like": "Night Breath"
+  },
+  {
+   "name": "Holy Symbol of Envar",
+   "description": "The Holy Symbol of Envar. Whoever uses it dies, and is given Envaric Ascension.",
+   "notrade": true,
+   "like": "Greetaa"
+  },
+  {
+   "name": "bolash daemon skull",
+   "description": "The skull of a bolash daemon.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "bolash daemon heart",
+   "description": "The heart of a bolash daemon.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "Seal of the Watchman",
+   "description": "A letter of the Council of Watchmen, sealed, for Lenwe Nenharma.",
+   "notrade": true,
+   "like": "Letter for Captain Rolley"
+  },
+  {
+   "name": "garlic trinket plans",
+   "description": "Plans for a garlic trinket, carried by a tormented eidolon.",
+   "notrade": true,
+   "like": "Letter for Captain Rolley"
+  },
+  {
+   "name": "Garlic Trinket",
+   "description": "A trinket of garlic, given by the Council of Watchmen to the hero who answered the bolash. Keep it: the broken blade's story needs it.",
+   "notrade": true,
+   "like": "Etched Rubicite Necklace"
+  },
+  {
+   "name": "broken blade",
+   "description": "An ancient language is inscribed upon the hilt: Ith na elem kabar. Resilan bolash ith na elem. Gra lisa embek.",
+   "notrade": true,
+   "like": "sword etched stone"
+  },
+  {
+   "name": "etching of the inscription",
+   "description": "An etching of the broken blade's inscription. Keep it close to you at all times.",
+   "notrade": true,
+   "like": "Altered Letter"
+  },
+  {
+   "name": "Elem Kabar Resilan",
+   "description": "A small red vial of resilan blood.",
+   "notrade": true,
+   "like": "Randerith's blood"
+  },
+  {
+   "name": "infected wolverine blood",
+   "description": "The blood of the infected wolverine.",
+   "notrade": true,
+   "like": "Randerith's blood"
+  },
+  {
+   "name": "Tallon's Key",
+   "description": "A key carried by a Zek sergeant. The portal by his camp opens to it.",
+   "notrade": true,
+   "like": "Arcane Chest Key"
+  },
+  {
+   "name": "Tallon's Bent Key",
+   "description": "Tallon's key, bent: the fortress has taken its due.",
+   "notrade": true,
+   "like": "Arcane Chest Key"
+  },
+  {
+   "name": "Portal Rune of Zek",
+   "description": "A rune the Zek scouts carry. Their portal knows it.",
+   "notrade": true,
+   "like": "portal rune"
+  }
+ ]
+}

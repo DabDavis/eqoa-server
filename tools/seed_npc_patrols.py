@@ -45,7 +45,10 @@ points, so a route joins only places the walker was seen walking between.
   corners), an end where it was lost from view the median. The path's pause is
   the median of the stops seen whole.
 - The same walker seen in two watches is read from its best sight: one that
-  came round first, then the longest walk.
+  came round first, then the longest walk. One never seen to come round and
+  seen walking less than MIN_WALK is left standing: Freeport's Shersam Cor,
+  seen walking 6 s once and standing ten minutes when followed, would pace a
+  street Sandstorm's never paces.
 
 **A wanderer is no patrol.** Sandstorm's creatures that roam (Highbourne's
 Lost Souls, Moradhim's Frosteye goblins and quarry workers) walk at its
@@ -96,6 +99,7 @@ one is connected).
     tools/seed_npc_patrols.py [--db eqoa.db] --tracks <dir or files> ... [--apply | --undo]
 """
 import argparse
+import bisect
 import collections
 import glob
 import json
@@ -118,6 +122,7 @@ TOL = 0.5             # a corner of a walk this far off the line between its nei
 CLOSE_TURN = math.radians(20)  # back at a waypoint and off within this of the leg it took there before: it came round
 ON_WALK = SAME_POINT + TOL     # every leg of a route lies this near the walk it was read from
 SAME_WALKER = 30.0    # two sights of one name in one world this near each other are one walker
+MIN_WALK = 60.0       # a route not seen to come round needs this much walk seen to be one
 MATCH = 150.0         # a route to an NPC of its name whose spawn is this near it
 PLAYER_IDS = 100_000_000  # an id this or more is a player's, never an NPC's
 RUN_PACE = 7.0           # a walker this fast runs: a chase or a pet after its owner, no route
@@ -179,16 +184,33 @@ def read_track(path):
     return by, watcher, world, who
 
 
+def state(r):
+    return (round(r["x"], 2), round(r["z"], 2), round(r["v"][0], 2), round(r["v"][2], 2))
+
+
 def updates(samples):
     """The samples where Sandstorm sent something new: the place or the
     velocity changed."""
     out, last = [], None
     for r in samples:
-        state = (round(r["x"], 2), round(r["z"], 2), round(r["v"][0], 2), round(r["v"][2], 2))
-        if state != last:
+        if state(r) != last:
             out.append(r)
-            last = state
+            last = state(r)
     return out
+
+
+def held(samples):
+    """[(t, seconds)]: each place and velocity Sandstorm sent, from the first
+    sample of it to the last, time out of view between counted when it was the
+    same on both sides (a walker sent once and seen again later the same)."""
+    out, last = [], None
+    for r in samples:
+        if state(r) != last:
+            out.append([r["t"], r["t"]])
+            last = state(r)
+        else:
+            out[-1][1] = r["t"]
+    return [(a, (b - a) / 1000) for a, b in out]
 
 
 def speed(r):
@@ -206,25 +228,25 @@ def runs(samples):
     return out
 
 
-def moving_in(run):
+def moving_in(run, hold):
     """A run's updates, each with whether it walked from there: a velocity
-    held past STALE s with no new place is stale, and it stood (Freeport's
-    Shersam Cor was sent once, moving north at 4.76, and stood 189 s)."""
-    ups = updates(run)
+    held past STALE s with no new place (`held`'s) is stale, and it stood
+    (Freeport's Shersam Cor was sent once, moving north at 4.76, and was the
+    same in three sights over ten minutes)."""
     out = []
-    for i, u in enumerate(ups):
-        nxt = ups[i + 1]["t"] if i + 1 < len(ups) else run[-1]["t"]
-        out.append((u, speed(u) > MOVING and (nxt - u["t"]) / 1000 <= STALE))
+    for u in updates(run):
+        since = bisect.bisect_right(hold, (u["t"], math.inf)) - 1
+        out.append((u, speed(u) > MOVING and hold[since][1] <= STALE))
     return out
 
 
-def walked(run):
+def walked(run, hold):
     """A run's walk as Sandstorm sent it: its places in order, each [x, y, z,
     stop, pause, whole] (a stop's pause the time until it walked off, None
     when it still stood at the run's end, whole when both ends of it were
     seen; a turn's 0), and where its last leg had taken it by the run's last
     sample when it still walked."""
-    ups = moving_in(run)
+    ups = moving_in(run, hold)
     pts = []
     for i, (u, walks) in enumerate(ups):
         stop = not walks
@@ -337,10 +359,11 @@ def route(samples):
     read from) and off (how far its legs go off that walk)), or None when it
     never walked."""
     ups = updates(samples)
-    legs = [u for r in runs(samples) for u, walks in moving_in(r) if walks]
+    hold = held(samples)
+    legs = [u for r in runs(samples) for u, walks in moving_in(r, hold) if walks]
     if not legs:
         return None
-    walks = [w for w in (walked(r) for r in runs(samples)) if len(w) >= 2]
+    walks = [w for w in (walked(r, hold) for r in runs(samples)) if len(w) >= 2]
     every = [p for wk in walks for p in wk]
     if not every or math.hypot(max(p[0] for p in every) - min(p[0] for p in every), max(p[2] for p in every) - min(p[2] for p in every)) < 4:
         return None
@@ -464,6 +487,9 @@ def plan(db, files, add=False):
                 continue
             if WANDER_PACE[0] <= r.pace <= WANDER_PACE[1]:
                 wanders.setdefault(key(name), (name, r.spread, f"{os.path.basename(path)} {sid}"))
+                continue
+            if not r.full and r.walked < MIN_WALK:
+                left.append((name, f"seen walking {r.walked:.0f} only, too little to tell its route ({os.path.basename(path)} {sid})"))
                 continue
             if r.off > ON_WALK:
                 left.append((name, f"a leg {r.off:.1f} off the walk it was read from ({os.path.basename(path)} {sid})"))

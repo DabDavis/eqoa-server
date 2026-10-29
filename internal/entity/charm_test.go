@@ -85,31 +85,101 @@ func TestTheCharmLinesAreRead(t *testing.T) {
 	}
 }
 
-// Refused at its start, nothing taken: with a pet already, a brief cast (the
-// fizzle) and "You already have a pet."; a creature above the charm's level,
+// Refused at its start, nothing taken: a creature above the charm's level,
 // "Your target is too high a level to charm." The control: the crab, level
 // 34, takes a charm of 39 and the cast begins.
-func TestACharmIsRefusedWithAPetOrTooHighALevel(t *testing.T) {
+func TestACharmIsRefusedTooHighALevel(t *testing.T) {
 	r, _, _ := charmRig(t)
 	if began, msgs := castCharm(t, r, entrancing("Entrancing Coercion", 29, "Target, Charm ; Increase 25% based on CHA"), crabID, 0); began ||
 		len(msgs) != 1 || !bytes.Contains(msgs[0], wide16("too high a level")) {
 		t.Errorf("a level 34 crab and a charm of 29: began %v, %x", began, msgs)
 	}
-	r.summon(t, fireElemental(), time.Minute)
-	power, lockouts := r.p.Power, len(r.p.Lockouts)
-	began, msgs := castCharm(t, r, captivation(), crabID, 2*time.Minute)
-	if began || len(msgs) != 2 || opOfMsg(msgs[0]) != protocol.OpcodeCastingCombat || !bytes.Contains(msgs[1], wide16(charmHavePet)) {
-		t.Fatalf("with a pet: began %v, %x", began, msgs)
-	}
-	if ms := binary.LittleEndian.Uint32(msgs[0][11:]); ms != uint32(charmFizzle/time.Millisecond) {
-		t.Errorf("the fizzle lasts %d ms", ms)
-	}
-	if r.p.Power != power || len(r.p.Lockouts) != lockouts {
-		t.Errorf("power %d (was %d), lockouts %v (were %d)", r.p.Power, power, r.p.Lockouts, lockouts)
-	}
 	r2, _, _ := charmRig(t)
 	if began, _ := castCharm(t, r2, captivation(), crabID, 0); !began {
 		t.Error("the control: the crab under a charm of 39 was refused")
+	}
+}
+
+// castsAt is whether msgs hold a cast's 0x00B1.
+func castsAt(msgs [][]byte) bool {
+	for _, m := range msgs {
+		if opOfMsg(m) == protocol.OpcodeCastingCombat {
+			return true
+		}
+	}
+	return false
+}
+
+// redLine is a cast's refusal as Sandstorm sends one: 0x0A7B, the words,
+// (255, 63, 63).
+func redLine(s string) []byte {
+	b := binary.LittleEndian.AppendUint16(nil, uint16(protocol.OpcodeColoredChat))
+	b = binary.LittleEndian.AppendUint32(b, uint32(len(s)))
+	return append(append(b, wide16(s)...), castRefusalRGB[:]...)
+}
+
+// F3 20261029-082049 (jib: "Charm line should not be castable while you
+// currently have a pet"): with a pet out, summoned or charmed, a charm is not
+// cast at all, whatever is targeted (a creature it could take, an undead, no
+// one): the one red line, as Sandstorm refuses a cast, and no 0x00B1 (the
+// 600 ms fizzle it showed, which looked cast), no lockout, no power, no hate.
+// The controls: with no pet the same charm is cast (its 0x00B1 goes out); with
+// the pet out a spell that is no charm is cast; the pet dismissed, the charm
+// is cast again.
+func TestACharmIsNotCastWithAPetOut(t *testing.T) {
+	defer func(f func(int) int) { charmIntn = f }(charmIntn)
+	charmIntn = dice(99)
+	refused := func(t *testing.T, r *petRig, spell CastSpell, target uint32, at time.Duration, what string) {
+		t.Helper()
+		power, lockouts := r.p.Power, len(r.p.Lockouts)
+		began, msgs := castCharm(t, r, spell, target, at)
+		if began || len(msgs) != 1 || !bytes.Equal(msgs[0], redLine(charmHavePet)) {
+			t.Errorf("%s: began %v, sent %x, want only %x", what, began, msgs, redLine(charmHavePet))
+		}
+		if r.p.Power != power || len(r.p.Lockouts) != lockouts || r.p.Casting != nil && r.p.Casting.spell.SpellID == spell.SpellID {
+			t.Errorf("%s: power %d (was %d), lockouts %d (were %d), casting %v", what, r.p.Power, power, len(r.p.Lockouts), lockouts, r.p.Casting != nil)
+		}
+	}
+
+	// the control: no pet, the charm is cast
+	r0, _, _ := charmRig(t)
+	if began, msgs := castCharm(t, r0, captivation(), crabID, 0); !began || !castsAt(msgs) {
+		t.Fatalf("the control, no pet: began %v, sent %x", began, msgs)
+	}
+
+	// a summoned pet
+	r, _, fleshID := charmRig(t)
+	pet, _ := r.summon(t, fireElemental(), time.Minute)
+	refused(t, r, captivation(), crabID, 2*time.Minute, "a summoned pet, at the crab")
+	refused(t, r, enticement(), fleshID, 3*time.Minute, "a summoned pet, at an undead")
+	refused(t, r, captivation(), 0xFFFFFFFF, 4*time.Minute, "a summoned pet, at no one")
+	if len(r.enemy.Threats) != 0 || r.enemy.Owner != 0 {
+		t.Errorf("the crab was touched: threats %v, owner %d", r.enemy.Threats, r.enemy.Owner)
+	}
+	// the control: the pet out, a spell that is no charm is cast
+	nuke := CastSpell{SpellID: 610, DisplayIndex: 9, Level: 20, Scope: 1, Name: "Fiery Burst", CastTime: 2 * time.Second,
+		Recast: time.Second, PowerCost: 10, Range: 30, Def: ParseSpellText("Target, Decrease Hitpoints by 26")}
+	if began, msgs := castCharm(t, r, nuke, crabID, 5*time.Minute); !began || !castsAt(msgs) {
+		t.Errorf("the control, a nuke with the pet out: began %v, sent %x", began, msgs)
+	}
+	// the control: the pet dismissed, the charm is cast
+	r.w.PetCommand(r.sess, petCmdDismiss, 0, r.at(6*time.Minute))
+	if r.w.petOfLocked(r.p) != nil {
+		t.Fatalf("the pet %q stayed", pet.Name)
+	}
+	r.enemy.Threats, r.enemy.CurrentEnemy = nil, 0
+	if began, msgs := castCharm(t, r, captivation(), crabID, 7*time.Minute); !began || !castsAt(msgs) {
+		t.Errorf("the control, the pet dismissed: began %v, sent %x", began, msgs)
+	}
+
+	// a charmed pet: the crab taken, a second charm at the Rotting Flesh
+	r2, flesh, fleshID2 := charmRig(t)
+	if began, _ := castCharm(t, r2, captivation(), crabID, 0); !began || r2.w.petOfLocked(r2.p) != r2.enemy {
+		t.Fatalf("the crab was not charmed: began %v", began)
+	}
+	refused(t, r2, enticement(), fleshID2, time.Minute, "a charmed pet, at an undead")
+	if flesh.Owner != 0 || len(flesh.Threats) != 0 {
+		t.Errorf("the Rotting Flesh was touched: owner %d, threats %v", flesh.Owner, flesh.Threats)
 	}
 }
 

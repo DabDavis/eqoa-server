@@ -88,3 +88,31 @@ func (w *World) LiveTrainingPoints(id EntityID) (unused, total int, ok bool) {
 	}
 	return p.UnusedTP, p.TotalTP, true
 }
+
+// TakeBackTraining undoes the training of an online character (a GM's
+// training reset, handlers/gmresets.go): each stat's base lowered by the
+// points it had taken (spent, STR..CHA, as the character's tp columns held
+// them: its base is its race's and class's plus those), the points added to
+// its unspent ones, the stats, maxima, hit points and power worked out again
+// and the stat channel sent again. It gives the unspent points before and
+// after and the total; false when the character is not in the world.
+func (w *World) TakeBackTraining(serverID uint32, spent [7]int) (before, after, total int, ok bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.playerByCharacterLocked(serverID)
+	if p == nil {
+		return 0, 0, 0, false
+	}
+	base := []*int{&p.BaseStr, &p.BaseSta, &p.BaseAgi, &p.BaseDex, &p.BaseWis, &p.BaseInt, &p.BaseCha}
+	refund := 0
+	for i, v := range spent {
+		*base[i] -= v
+		refund += v
+	}
+	before = p.UnusedTP
+	p.UnusedTP += refund
+	p.TotalTP = max(p.TotalTP, p.UnusedTP)
+	p.RecalcStats(false)
+	p.StatsDirty = true
+	return before, p.UnusedTP, p.TotalTP, true
+}

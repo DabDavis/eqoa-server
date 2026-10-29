@@ -150,6 +150,36 @@ func TestUseNotAMeal(t *testing.T) {
 	}
 }
 
+// A new character's rations (Sandstorm's records: CLIENT's usable type 2,
+// described as the food they are, no stat) are eaten as meals of their level;
+// one of type 0, which CLIENT files under Misc and offers no use of, is not
+// taken for one, nor is an item of type 2 that is no ration.
+func TestUseRationEatsOne(t *testing.T) {
+	f := newScribeFixture(t)
+	got := f.eats(nil)
+	f.own(f.ware("Field Rations", "Wrapped tight in cloth is the basic lunch of a farmer.", -1, 1, -1, -1), 20)
+	f.loadList()
+	f.use(0)
+	if len(*got) != 1 || (*got)[0].Drink || (*got)[0].Amount != 1 || (*got)[0].Icon != mealEffectIcon ||
+		(*got)[0].Name != "Field Rations" || f.stackOf("Field Rations") != 19 {
+		t.Fatalf("eaten %+v, %d left; want one meal of 1, 19 left", *got, f.stackOf("Field Rations"))
+	}
+	for _, r := range []database.ItemPatternRecord{
+		{EquipSlot: -1, ProcAnim: 0, ItemName: "field rations", ItemDesc: "Simple field rations."},
+		{EquipSlot: -1, ProcAnim: usableType, ItemName: "Grobb Teleportation Rune"},
+	} {
+		if c, ok := consumableOf(&r); ok {
+			t.Errorf("%q (type %d) taken for a meal: %+v", r.ItemName, r.ProcAnim, c)
+		}
+	}
+	for _, name := range []string{"travel cuisine", "toad snacks", "Gnomish Ration"} {
+		r := database.ItemPatternRecord{EquipSlot: -1, ProcAnim: usableType, ItemName: name, LevelReq: 1}
+		if c, ok := consumableOf(&r); !ok || c.Drink || c.Amount != 1 {
+			t.Errorf("%q: %+v %v, want a meal of 1", name, c, ok)
+		}
+	}
+}
+
 func utf16le(s string) []byte {
 	var b []byte
 	for _, r := range s {

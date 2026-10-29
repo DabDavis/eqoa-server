@@ -7,7 +7,7 @@ import (
 )
 
 // makeToken makes a token of a scope for the signed-in person.
-func (c *client) makeToken(name, scope string) string {
+func (c *client) workToken(name, scope string) string {
 	c.f.t.Helper()
 	code, out := c.do("POST", "/api/tokens", map[string]any{"action": "create", "name": name, "scope": scope, "days": 1})
 	if code != 200 {
@@ -16,13 +16,13 @@ func (c *client) makeToken(name, scope string) string {
 	return out["token"].(string)
 }
 
-func (c *client) rpc(method string, params any) map[string]any {
+func (c *client) workRPC(method string, params any) map[string]any {
 	c.f.t.Helper()
 	_, out := c.do("POST", "/mcp", map[string]any{"jsonrpc": "2.0", "id": 1, "method": method, "params": params})
 	return out
 }
 
-func entryOf(t *testing.T, out map[string]any) map[string]any {
+func workEntryOf(t *testing.T, out map[string]any) map[string]any {
 	t.Helper()
 	e, ok := out["entry"].(map[string]any)
 	if !ok {
@@ -52,7 +52,7 @@ func TestEveryGMReadsAndPostsTheWorkBoard(t *testing.T) {
 	if code != 200 || out["action"] != "posted" || out["audit"] == nil {
 		t.Fatalf("post: %d %v", code, out)
 	}
-	e := entryOf(t, out)
+	e := workEntryOf(t, out)
 	id := e["id"].(float64)
 	if e["owner"] != "gm" || e["status"] != "in_progress" || e["created_by"] != "gm" || fmt.Sprint(e["touches"]) != "[npcs npcpaths]" {
 		t.Fatalf("the new entry: %v", e)
@@ -61,19 +61,19 @@ func TestEveryGMReadsAndPostsTheWorkBoard(t *testing.T) {
 	// another GM's agent, through a token, adds a note: recorded under it
 	boss := f.browser()
 	boss.login("boss")
-	agent := f.bearer(boss.makeToken("codex", "write"))
+	agent := f.bearer(boss.workToken("codex", "write"))
 	code, out = agent.op("post_work", map[string]any{"id": id, "note": "half of them moved", "version": e["version"]})
 	if code != 200 || out["action"] != "changed" {
 		t.Fatalf("the agent's note: %d %v", code, out)
 	}
-	e2 := entryOf(t, out)
+	e2 := workEntryOf(t, out)
 	if e2["updated_by"] != "boss (token:codex)" || !strings.Contains(e2["notes"].(string), "boss (token:codex): half of them moved") ||
 		e2["owner"] != "gm" || e2["version"] != float64(2) {
 		t.Fatalf("after the note: %v", e2)
 	}
 
 	// a read-only credential reads it and changes nothing
-	reader := f.bearer(gm.makeToken("look", "read"))
+	reader := f.bearer(gm.workToken("look", "read"))
 	if code, out := reader.op("work_board", map[string]any{"touches": "npcs"}); code != 200 || out["matching"] != float64(1) {
 		t.Fatalf("read token, work_board: %d %v", code, out)
 	}
@@ -107,7 +107,7 @@ func TestEveryGMReadsAndPostsTheWorkBoard(t *testing.T) {
 	if code != 200 {
 		t.Fatalf("work_board by id: %d %v", code, one)
 	}
-	back := entryOf(t, one)
+	back := workEntryOf(t, one)
 	if back["notes"] != "" || back["version"] != float64(3) {
 		t.Fatalf("after the revert: %v", back)
 	}
@@ -141,8 +141,8 @@ func TestTheOverviewIsWrittenWithItsVersion(t *testing.T) {
 		t.Fatalf("the refusal: %v", out)
 	}
 	// the same over MCP: an error result carrying the current text
-	agent := f.bearer(gm.makeToken("claude", "write"))
-	res := agent.rpc("tools/call", map[string]any{"name": "update_work_overview",
+	agent := f.bearer(gm.workToken("claude", "write"))
+	res := agent.workRPC("tools/call", map[string]any{"name": "update_work_overview",
 		"arguments": map[string]any{"text": "mine", "version": 1}})["result"].(map[string]any)
 	if res["isError"] != true || !strings.Contains(fmt.Sprint(res["content"]), "Fridays") {
 		t.Fatalf("a stale edit over MCP: %v", res)
@@ -181,7 +181,7 @@ func TestAPostNamesTheOpenEntriesTouchingTheSameThings(t *testing.T) {
 	_, a := gm.op("post_work", map[string]any{"title": "Rework the panel's quests page", "area": "gm_tools",
 		"touches": "internal/gmweb, quests", "status": "in_progress", "owner": "dab's sessions"})
 	gm.op("post_work", map[string]any{"title": "Old work", "touches": "internal/gmweb", "status": "done", "result": "shipped"})
-	aid := entryOf(t, a)["id"]
+	aid := workEntryOf(t, a)["id"]
 	code, out := gm.op("post_work", map[string]any{"title": "Fix the trigger page", "touches": []string{"internal/gmweb/ops_triggers.go"},
 		"status": "planned"})
 	if code != 200 {
@@ -230,7 +230,7 @@ func TestTheTableEditorKeepsTheBoardsRules(t *testing.T) {
 	gm := f.browser()
 	gm.login("gm")
 	_, out := gm.op("post_work", map[string]any{"title": "Edit me"})
-	key := map[string]any{"id": entryOf(t, out)["id"]}
+	key := map[string]any{"id": workEntryOf(t, out)["id"]}
 	for _, vals := range []map[string]any{{"status": "someday"}, {"status": "done"}, {"area": "the moon"}, {"title": ""}} {
 		if code, out := gm.op("update_row", map[string]any{"table": "workboard", "key": key, "values": vals}); code == 200 {
 			t.Errorf("update %v was taken: %v", vals, out)

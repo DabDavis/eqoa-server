@@ -20,15 +20,15 @@ func newWorkDB(t *testing.T) *SQLiteDB {
 	return db
 }
 
-func strp(s string) *string { return &s }
+func workStr(s string) *string { return &s }
 
 var (
-	jib = GMEdit{AccountID: 2, Username: "jibrish", Via: "oauth:Claude", IP: "203.0.113.9"}
-	dab = GMEdit{Username: "dab's sessions", Via: "cli", IP: "local"}
+	workJib = GMEdit{AccountID: 2, Username: "jibrish", Via: "oauth:Claude", IP: "203.0.113.9"}
+	workDab = GMEdit{Username: "dab's sessions", Via: "cli", IP: "local"}
 )
 
-// auditLines is the gm_audit lines of one row of a table, oldest first.
-func auditLines(t *testing.T, db *SQLiteDB, table string, id int64) []map[string]any {
+// workAuditLines is the gm_audit lines of one row of a table, oldest first.
+func workAuditLines(t *testing.T, db *SQLiteDB, table string, id int64) []map[string]any {
 	t.Helper()
 	k, _ := json.Marshal(map[string]any{"id": id})
 	rows, err := db.Query(`SELECT action, username, via, COALESCE(before, ''), COALESCE(after, ''), detail FROM gm_audit
@@ -75,7 +75,7 @@ func TestANewBoardHasTheDefaultOverview(t *testing.T) {
 		}
 	}
 	// a second start keeps what the GMs wrote
-	if _, _, err := db.SetWorkOverview("ours", 1, jib); err != nil {
+	if _, _, err := db.SetWorkOverview("ours", 1, workJib); err != nil {
 		t.Fatal(err)
 	}
 	if err := db.ensureWorkBoard(); err != nil {
@@ -88,8 +88,8 @@ func TestANewBoardHasTheDefaultOverview(t *testing.T) {
 
 func TestAPostIsAuditedAsTheRowChange(t *testing.T) {
 	db := newWorkDB(t)
-	e, audit, err := db.PostWork(WorkPost{Title: strp("Move the Freeport gate guards"), Touches: strp("npcs,\n npcpaths, NPCS"),
-		Area: strp("Data/content")}, jib)
+	e, audit, err := db.PostWork(WorkPost{Title: workStr("Move the Freeport gate guards"), Touches: workStr("npcs,\n npcpaths, NPCS"),
+		Area: workStr("Data/content")}, workJib)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +97,7 @@ func TestAPostIsAuditedAsTheRowChange(t *testing.T) {
 		strings.Join(e.Touches, "|") != "npcs|npcpaths" || e.CreatedBy != "jibrish (oauth:Claude)" || e.Created == "" {
 		t.Fatalf("new entry: %+v (audit %d)", e, audit)
 	}
-	lines := auditLines(t, db, "workboard", e.ID)
+	lines := workAuditLines(t, db, "workboard", e.ID)
 	if len(lines) != 1 || lines[0]["action"] != "insert" || lines[0]["username"] != "jibrish" || lines[0]["via"] != "oauth:Claude" {
 		t.Fatalf("audit: %v", lines)
 	}
@@ -106,7 +106,7 @@ func TestAPostIsAuditedAsTheRowChange(t *testing.T) {
 	}
 
 	// a status and a note: the note appended with the time and who
-	e2, audit2, err := db.PostWork(WorkPost{ID: e.ID, Status: strp("In progress"), Note: "half moved\nthe rest later"}, dab)
+	e2, audit2, err := db.PostWork(WorkPost{ID: e.ID, Status: workStr("In progress"), Note: "half moved\nthe rest later"}, workDab)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +117,7 @@ func TestAPostIsAuditedAsTheRowChange(t *testing.T) {
 	if e2.Owner != "jibrish" || e2.CreatedBy != "jibrish (oauth:Claude)" {
 		t.Fatalf("a change by another took the entry: %+v", e2)
 	}
-	lines = auditLines(t, db, "workboard", e.ID)
+	lines = workAuditLines(t, db, "workboard", e.ID)
 	if len(lines) != 2 || lines[1]["action"] != "update" || lines[1]["username"] != "dab's sessions" {
 		t.Fatalf("audit: %v", lines)
 	}
@@ -130,7 +130,7 @@ func TestAPostIsAuditedAsTheRowChange(t *testing.T) {
 	}
 
 	// a second note goes below the first
-	e3, _, err := db.PostWork(WorkPost{ID: e.ID, Note: "all moved"}, jib)
+	e3, _, err := db.PostWork(WorkPost{ID: e.ID, Note: "all moved"}, workJib)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,46 +139,46 @@ func TestAPostIsAuditedAsTheRowChange(t *testing.T) {
 	}
 
 	// the same again changes nothing and logs nothing
-	same, audit4, err := db.PostWork(WorkPost{ID: e.ID, Status: strp("in_progress"), Title: strp(" Move the Freeport gate guards ")}, jib)
+	same, audit4, err := db.PostWork(WorkPost{ID: e.ID, Status: workStr("in_progress"), Title: workStr(" Move the Freeport gate guards ")}, workJib)
 	if err != nil || audit4 != 0 || same.Version != e3.Version {
 		t.Fatalf("unchanged post: %v, audit %d, version %d -> %d", err, audit4, e3.Version, same.Version)
 	}
-	if n := len(auditLines(t, db, "workboard", e.ID)); n != 3 {
+	if n := len(workAuditLines(t, db, "workboard", e.ID)); n != 3 {
 		t.Fatalf("%d audit lines, want 3", n)
 	}
 }
 
 func TestDoneNeedsAResultAndKeepsWhenItWasDone(t *testing.T) {
 	db := newWorkDB(t)
-	e, _, err := db.PostWork(WorkPost{Title: strp("Seed the coach routes"), Status: strp("doing")}, jib)
+	e, _, err := db.PostWork(WorkPost{Title: workStr("Seed the coach routes"), Status: workStr("doing")}, workJib)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, _, err := db.PostWork(WorkPost{ID: e.ID, Status: strp("done")}, jib); err == nil || !strings.Contains(err.Error(), "result") {
+	if _, _, err := db.PostWork(WorkPost{ID: e.ID, Status: workStr("done")}, workJib); err == nil || !strings.Contains(err.Error(), "result") {
 		t.Fatalf("done with no result: %v", err)
 	}
-	if _, _, err := db.PostWork(WorkPost{ID: e.ID, Status: strp("done"), Result: strp("one\ntwo")}, jib); err != nil {
+	if _, _, err := db.PostWork(WorkPost{ID: e.ID, Status: workStr("done"), Result: workStr("one\ntwo")}, workJib); err != nil {
 		t.Fatalf("a result's line break is a space: %v", err)
 	}
 	d, _, _ := db.WorkEntryByID(e.ID)
 	if d.Status != WorkDone || d.DoneAt == "" || d.Result != "one two" {
 		t.Fatalf("done: %+v", d)
 	}
-	back, _, err := db.PostWork(WorkPost{ID: e.ID, Status: strp("blocked"), Note: "the coach NPCs are missing"}, jib)
+	back, _, err := db.PostWork(WorkPost{ID: e.ID, Status: workStr("blocked"), Note: "the coach NPCs are missing"}, workJib)
 	if err != nil || back.DoneAt != "" || back.Status != WorkBlocked {
 		t.Fatalf("reopened: %v %+v", err, back)
 	}
 	for _, bad := range []WorkPost{
-		{Title: strp("")},
-		{Title: strp(strings.Repeat("x", WorkMaxTitle+1))},
-		{Title: strp("ok"), Status: strp("someday")},
-		{Title: strp("ok"), Area: strp("the moon")},
-		{Title: strp("ok"), Details: strp(strings.Repeat("x", WorkMaxDetails+1))},
-		{Title: strp("ok"), Note: strings.Repeat("x", WorkMaxNote+1)},
-		{Title: strp("ok"), Version: 3},
+		{Title: workStr("")},
+		{Title: workStr(strings.Repeat("x", WorkMaxTitle+1))},
+		{Title: workStr("ok"), Status: workStr("someday")},
+		{Title: workStr("ok"), Area: workStr("the moon")},
+		{Title: workStr("ok"), Details: workStr(strings.Repeat("x", WorkMaxDetails+1))},
+		{Title: workStr("ok"), Note: strings.Repeat("x", WorkMaxNote+1)},
+		{Title: workStr("ok"), Version: 3},
 		{ID: 999, Note: "nobody"},
 	} {
-		if _, _, err := db.PostWork(bad, jib); err == nil {
+		if _, _, err := db.PostWork(bad, workJib); err == nil {
 			t.Errorf("post %+v was taken", bad)
 		}
 	}
@@ -186,11 +186,11 @@ func TestDoneNeedsAResultAndKeepsWhenItWasDone(t *testing.T) {
 
 func TestAStaleVersionIsRefusedWithTheCurrentRow(t *testing.T) {
 	db := newWorkDB(t)
-	e, _, _ := db.PostWork(WorkPost{Title: strp("Rename the guards"), Details: strp("first")}, jib)
-	if _, _, err := db.PostWork(WorkPost{ID: e.ID, Details: strp("second"), Version: e.Version}, dab); err != nil {
+	e, _, _ := db.PostWork(WorkPost{Title: workStr("Rename the guards"), Details: workStr("first")}, workJib)
+	if _, _, err := db.PostWork(WorkPost{ID: e.ID, Details: workStr("second"), Version: e.Version}, workDab); err != nil {
 		t.Fatal(err)
 	}
-	_, _, err := db.PostWork(WorkPost{ID: e.ID, Details: strp("jib's, over dab's"), Version: e.Version}, jib)
+	_, _, err := db.PostWork(WorkPost{ID: e.ID, Details: workStr("jib's, over dab's"), Version: e.Version}, workJib)
 	var c *WorkConflict
 	if !errors.As(err, &c) || c.Version != 2 || c.Given != 1 || c.Current.(WorkEntry).Details != "second" {
 		t.Fatalf("stale entry write: %v", err)
@@ -201,10 +201,10 @@ func TestAStaleVersionIsRefusedWithTheCurrentRow(t *testing.T) {
 
 	// the overview the same way, and the text as it is now comes back
 	ov, _ := db.WorkBoardOverview()
-	if _, _, err := db.SetWorkOverview("dab's rules", ov.Version, dab); err != nil {
+	if _, _, err := db.SetWorkOverview("dab's rules", ov.Version, workDab); err != nil {
 		t.Fatal(err)
 	}
-	_, _, err = db.SetWorkOverview("jib's rules", ov.Version, jib)
+	_, _, err = db.SetWorkOverview("jib's rules", ov.Version, workJib)
 	if !errors.As(err, &c) || c.Current.(WorkOverview).Text != "dab's rules" || c.Version != ov.Version+1 {
 		t.Fatalf("stale overview write: %v", err)
 	}
@@ -213,10 +213,10 @@ func TestAStaleVersionIsRefusedWithTheCurrentRow(t *testing.T) {
 		t.Fatalf("the stale write landed: %+v", now)
 	}
 	// the same text again is no change
-	if same, audit, err := db.SetWorkOverview("dab's rules\n\n", now.Version, jib); err != nil || audit != 0 || same.Version != now.Version {
+	if same, audit, err := db.SetWorkOverview("dab's rules\n\n", now.Version, workJib); err != nil || audit != 0 || same.Version != now.Version {
 		t.Fatalf("unchanged overview: %v %d %+v", err, audit, same)
 	}
-	lines := auditLines(t, db, "workboard_overview", 1)
+	lines := workAuditLines(t, db, "workboard_overview", 1)
 	if len(lines) != 1 || lines[0]["action"] != "update" || lines[0]["after"].(map[string]any)["text"] != "dab's rules" {
 		t.Fatalf("overview audit: %v", lines)
 	}
@@ -226,7 +226,7 @@ func TestAWriteThatKeepsTheVersionStillRaisesIt(t *testing.T) {
 	// the panel's table editor and a revert write a row as it was, version and
 	// all: the trigger raises it, so a writer holding the old one is refused
 	db := newWorkDB(t)
-	e, _, _ := db.PostWork(WorkPost{Title: strp("Fix the bank")}, jib)
+	e, _, _ := db.PostWork(WorkPost{Title: workStr("Fix the bank")}, workJib)
 	if _, err := db.Exec(`UPDATE workboard SET details = 'by hand', version = 1 WHERE id = ?`, e.ID); err != nil {
 		t.Fatal(err)
 	}
@@ -234,7 +234,7 @@ func TestAWriteThatKeepsTheVersionStillRaisesIt(t *testing.T) {
 	if got.Version != 2 || got.Details != "by hand" {
 		t.Fatalf("after a write keeping the version: %+v", got)
 	}
-	if _, _, err := db.PostWork(WorkPost{ID: e.ID, Details: strp("mine"), Version: 1}, jib); err == nil {
+	if _, _, err := db.PostWork(WorkPost{ID: e.ID, Details: workStr("mine"), Version: 1}, workJib); err == nil {
 		t.Fatal("a writer holding version 1 overwrote the hand edit")
 	}
 	if _, err := db.Exec(`UPDATE workboard_overview SET text = 'by hand'`); err != nil {
@@ -251,11 +251,11 @@ func TestAWriteThatKeepsTheVersionStillRaisesIt(t *testing.T) {
 func TestTheBoardInOrderWithOldDoneFolded(t *testing.T) {
 	db := newWorkDB(t)
 	post := func(title, status, touches string) WorkEntry {
-		p := WorkPost{Title: strp(title), Status: strp(status), Touches: strp(touches)}
+		p := WorkPost{Title: workStr(title), Status: workStr(status), Touches: workStr(touches)}
 		if status == WorkDone {
-			p.Result = strp("did it")
+			p.Result = workStr("did it")
 		}
-		e, _, err := db.PostWork(p, jib)
+		e, _, err := db.PostWork(p, workJib)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -317,7 +317,7 @@ func TestTheBoardInOrderWithOldDoneFolded(t *testing.T) {
 	}
 
 	// its history, oldest first, with what each change changed
-	db.PostWork(WorkPost{ID: doing.ID, Status: strp("blocked"), Note: "waiting"}, dab)
+	db.PostWork(WorkPost{ID: doing.ID, Status: workStr("blocked"), Note: "waiting"}, workDab)
 	h, err := db.WorkHistory("workboard", doing.ID, 0)
 	if err != nil {
 		t.Fatal(err)
@@ -376,7 +376,7 @@ func TestOpenWorkBoardTouchesNothingElse(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	if _, _, err := db.PostWork(WorkPost{Title: strp("From the box")}, dab); err != nil {
+	if _, _, err := db.PostWork(WorkPost{Title: workStr("From the box")}, workDab); err != nil {
 		t.Fatal(err)
 	}
 	var names []string

@@ -298,8 +298,8 @@ func workBy(w GMEdit) string {
 	return name + " (" + w.Via + ")"
 }
 
-// oneLine is text as one line: line breaks and tabs as spaces, trimmed.
-func oneLine(s string) string {
+// workLine is text as one line: line breaks and tabs as spaces, trimmed.
+func workLine(s string) string {
 	return strings.TrimSpace(strings.NewReplacer("\r\n", " ", "\n", " ", "\r", " ", "\t", " ").Replace(s))
 }
 
@@ -329,7 +329,7 @@ func workNote(at time.Time, by, text string) string {
 	return b.String()
 }
 
-func runes(s string) int { return utf8.RuneCountInString(s) }
+func workRunes(s string) int { return utf8.RuneCountInString(s) }
 
 // WorkEntryProblem is what keeps an entry from being kept as it is: a title
 // missing or too long, a status or an area the board does not have, a done
@@ -338,27 +338,27 @@ func WorkEntryProblem(e WorkEntry) error {
 	switch {
 	case e.Title == "":
 		return errors.New("an entry needs a title (one line saying what is being done)")
-	case runes(e.Title) > WorkMaxTitle:
-		return fmt.Errorf("the title is %d characters: %d at most", runes(e.Title), WorkMaxTitle)
+	case workRunes(e.Title) > WorkMaxTitle:
+		return fmt.Errorf("the title is %d characters: %d at most", workRunes(e.Title), WorkMaxTitle)
 	case strings.ContainsAny(e.Title, "\r\n"):
 		return errors.New("the title is one line")
 	case !containsString(WorkStatuses, e.Status):
 		return fmt.Errorf("status %q is not one of %s", e.Status, strings.Join(WorkStatuses, ", "))
 	case !containsString(WorkAreas, e.Area):
 		return fmt.Errorf("area %q is not one of %s", e.Area, strings.Join(WorkAreas, ", "))
-	case runes(e.Owner) > WorkMaxOwner:
-		return fmt.Errorf("the owner is %d characters: %d at most", runes(e.Owner), WorkMaxOwner)
-	case runes(FormatWorkTouches(e.Touches)) > WorkMaxTouches:
+	case workRunes(e.Owner) > WorkMaxOwner:
+		return fmt.Errorf("the owner is %d characters: %d at most", workRunes(e.Owner), WorkMaxOwner)
+	case workRunes(FormatWorkTouches(e.Touches)) > WorkMaxTouches:
 		return fmt.Errorf("what it touches is %d characters: %d at most (name the tables and files, or their folder)",
-			runes(FormatWorkTouches(e.Touches)), WorkMaxTouches)
-	case runes(e.Details) > WorkMaxDetails:
-		return fmt.Errorf("the details are %d characters: %d at most", runes(e.Details), WorkMaxDetails)
-	case runes(e.Notes) > WorkMaxNotes:
+			workRunes(FormatWorkTouches(e.Touches)), WorkMaxTouches)
+	case workRunes(e.Details) > WorkMaxDetails:
+		return fmt.Errorf("the details are %d characters: %d at most", workRunes(e.Details), WorkMaxDetails)
+	case workRunes(e.Notes) > WorkMaxNotes:
 		return fmt.Errorf("the notes are %d characters: %d at most (close it with a result and post a new entry)",
-			runes(e.Notes), WorkMaxNotes)
-	case runes(e.Result) > WorkMaxResult:
+			workRunes(e.Notes), WorkMaxNotes)
+	case workRunes(e.Result) > WorkMaxResult:
 		return fmt.Errorf("the result is %d characters: %d at most, one line (the details and notes hold the rest)",
-			runes(e.Result), WorkMaxResult)
+			workRunes(e.Result), WorkMaxResult)
 	case strings.ContainsAny(e.Result, "\r\n"):
 		return errors.New("the result is one line")
 	case e.Status == WorkDone && strings.TrimSpace(e.Result) == "":
@@ -430,7 +430,7 @@ func (db *SQLiteDB) PostWork(p WorkPost, who GMEdit) (WorkEntry, int64, error) {
 		if p.Version != 0 {
 			return WorkEntry{}, 0, errors.New("a version goes with a change to an entry: give its id too")
 		}
-		cur = WorkEntry{Area: "other", Status: WorkPlanned, Owner: oneLine(who.Username), Touches: []string{}}
+		cur = WorkEntry{Area: "other", Status: WorkPlanned, Owner: workLine(who.Username), Touches: []string{}}
 	} else {
 		cur, err = scanWorkEntry(tx.QueryRow(`SELECT `+workCols+` FROM workboard WHERE id = ?`, p.ID))
 		if errors.Is(err, sql.ErrNoRows) {
@@ -447,7 +447,7 @@ func (db *SQLiteDB) PostWork(p WorkPost, who GMEdit) (WorkEntry, int64, error) {
 
 	next := cur
 	if p.Title != nil {
-		next.Title = oneLine(*p.Title)
+		next.Title = workLine(*p.Title)
 	}
 	if p.Area != nil {
 		a, ok := NormalizeWorkArea(*p.Area)
@@ -470,19 +470,19 @@ func (db *SQLiteDB) PostWork(p WorkPost, who GMEdit) (WorkEntry, int64, error) {
 		next.Status = st
 	}
 	if p.Owner != nil {
-		next.Owner = oneLine(*p.Owner)
+		next.Owner = workLine(*p.Owner)
 	}
 	if p.Details != nil {
 		next.Details = workText(*p.Details)
 	}
 	if p.Result != nil {
-		next.Result = oneLine(*p.Result)
+		next.Result = workLine(*p.Result)
 	}
 	note := workText(p.Note)
 	noted := note != ""
 	if noted {
-		if runes(note) > WorkMaxNote {
-			return WorkEntry{}, 0, fmt.Errorf("the note is %d characters: %d at most", runes(note), WorkMaxNote)
+		if workRunes(note) > WorkMaxNote {
+			return WorkEntry{}, 0, fmt.Errorf("the note is %d characters: %d at most", workRunes(note), WorkMaxNote)
 		}
 		line := workNote(now, by, note)
 		if next.Notes == "" {
@@ -613,9 +613,9 @@ func scanWorkOverview(r *sql.Row) (WorkOverview, error) {
 // returns the overview and the line's id (0 when the text was the same).
 func (db *SQLiteDB) SetWorkOverview(text string, version int64, who GMEdit) (WorkOverview, int64, error) {
 	text = workText(text)
-	if runes(text) > WorkMaxOverview {
+	if workRunes(text) > WorkMaxOverview {
 		return WorkOverview{}, 0, fmt.Errorf("the overview is %d characters: %d at most (the entries hold the work itself)",
-			runes(text), WorkMaxOverview)
+			workRunes(text), WorkMaxOverview)
 	}
 	by := workBy(who)
 	stamp := workStamp(time.Now())
@@ -662,7 +662,7 @@ func (db *SQLiteDB) SetWorkOverview(text string, version int64, who GMEdit) (Wor
 		return WorkOverview{}, 0, err
 	}
 	audit, err := auditRowChange(tx, who, action, "workboard_overview", map[string]any{"id": int64(1)}, before, after,
-		fmt.Sprintf("work board: the overview edited (%d characters)", runes(text)))
+		fmt.Sprintf("work board: the overview edited (%d characters)", workRunes(text)))
 	if err != nil {
 		return WorkOverview{}, 0, err
 	}

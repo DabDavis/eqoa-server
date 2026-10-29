@@ -17,15 +17,15 @@ func TestAgentsAreToldOfTheBoard(t *testing.T) {
 	f := newFixture(t)
 	gm := f.browser()
 	gm.login("gm")
-	agent := f.bearer(gm.makeToken("agent", "write"))
-	instr := agent.rpc("initialize", map[string]any{"protocolVersion": "2025-06-18"})["result"].(map[string]any)["instructions"].(string)
+	agent := f.bearer(gm.workToken("agent", "write"))
+	instr := agent.workRPC("initialize", map[string]any{"protocolVersion": "2025-06-18"})["result"].(map[string]any)["instructions"].(string)
 	for _, want := range []string{"work_board", "post_work", "without asking", "work board"} {
 		if !strings.Contains(instr, want) {
 			t.Errorf("the MCP instructions do not say %q: %s", want, instr)
 		}
 	}
 	names := map[string]bool{}
-	for _, tl := range agent.rpc("tools/list", nil)["result"].(map[string]any)["tools"].([]any) {
+	for _, tl := range agent.workRPC("tools/list", nil)["result"].(map[string]any)["tools"].([]any) {
 		names[tl.(map[string]any)["name"].(string)] = true
 	}
 	for _, n := range []string{"work_board", "post_work", "update_work_overview"} {

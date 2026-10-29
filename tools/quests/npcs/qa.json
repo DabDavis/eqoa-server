@@ -1,0 +1,1378 @@
+{
+ "set": "qa",
+ "npcs": [
+  {
+   "name": "Ice Statue",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Golem Statue"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "the frozen statue in Greyvax's cave, by the frosty chest (a statue's look)",
+   "water": "land"
+  },
+  {
+   "name": "Ancient Stone Golem",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "by the small bridge north of the river in Mayfly Glade",
+   "water": "land"
+  },
+  {
+   "name": "Enraged Wolf",
+   "role": "foe",
+   "body": [
+    "kind",
+    "dog"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "east of Wyndhaven",
+   "water": "land"
+  },
+  {
+   "name": "Danur Ironbrow",
+   "role": "talker",
+   "body": [
+    "race",
+    "dwarf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the farm by Bethany's, south of the Bear Caves",
+   "water": "land"
+  },
+  {
+   "name": "Goblin Fanatic",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "inside the walls of Saerk's Tower",
+   "water": "land"
+  },
+  {
+   "name": "Savage Bear",
+   "role": "foe",
+   "body": [
+    "npc",
+    "savage bear"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Savage Bear"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "NW of the Al'Karad Ruins north of Blakedown (the server's other savage bears are level 43, far north)",
+   "water": "land"
+  },
+  {
+   "name": "Father Manstein",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "southern Blakedown (the guide spells him Manstien)",
+   "water": "land"
+  },
+  {
+   "name": "Lorx Wyrm",
+   "role": "foe",
+   "body": [
+    "npc",
+    "wyrm"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the fountain in the main room of Melissa's Tomb",
+   "water": "land"
+  },
+  {
+   "name": "Johan Redsen",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Blakedown",
+   "water": "land"
+  },
+  {
+   "name": "Keller",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "roams Mayfly Glade",
+   "water": "land"
+  },
+  {
+   "name": "Tseralith",
+   "role": "foe",
+   "body": [
+    "npc",
+    "dread"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the tower of Noctix in Mu Lin's Reach, with the dreads",
+   "water": "land"
+  },
+  {
+   "name": "Zsetikaowa",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the Pool of Tears in Hazinak (the guide: a monster that rises at the idol)",
+   "water": "land"
+  },
+  {
+   "name": "Phoborium",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the hill west of the river by Bastable (the guide spells it Phorriun)",
+   "water": "land"
+  },
+  {
+   "name": "Caelduiel the Sacred",
+   "role": "foe",
+   "body": [
+    "npc",
+    "elven spirit"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the blue stones of the Al'Farek ruins, with the elven spirits",
+   "water": "land"
+  },
+  {
+   "name": "Deiphobus",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Priest of Plague"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the south crossroads of Dark Solace",
+   "water": "land"
+  },
+  {
+   "name": "Spectral Guardian",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "its hallway of the Tomb of Kings (the server has a level 44 one elsewhere)",
+   "water": "land"
+  },
+  {
+   "name": "Lich Maiden",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "by the spectral guardian's chest in the Tomb of Kings",
+   "water": "land"
+  },
+  {
+   "name": "Lord Voriander",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Highpass keep",
+   "water": "land"
+  },
+  {
+   "name": "Adept Pickclaw Warrior",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Pickclaw Warrior"
+   ],
+   "place": [
+    "near",
+    "Guard Matfin",
+    60,
+    0
+   ],
+   "count": 4,
+   "level": 39,
+   "note": "the goblins on Highpass's eastern road (FrontiersForge saw one, level 39)",
+   "water": "land"
+  },
+  {
+   "name": "Jann Olos",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Jann Olos"
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "near the inn at Bastable",
+   "water": "land"
+  },
+  {
+   "name": "Goblin Hijacker",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the Moss Mouth cave by the Bastable river",
+   "water": "land"
+  },
+  {
+   "name": "Dumak Olivarn",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Bastable",
+   "water": "land"
+  },
+  {
+   "name": "Model LXI",
+   "role": "foe",
+   "body": [
+    "kind",
+    "clockwork"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the hill with the marker stone near Moradhim",
+   "water": "land"
+  },
+  {
+   "name": "Model LXIX",
+   "role": "foe",
+   "body": [
+    "kind",
+    "clockwork"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "outside Trail's End, south of Highpass",
+   "water": "land"
+  },
+  {
+   "name": "Rivard Gyrind",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the Oasis's west wall",
+   "water": "land"
+  },
+  {
+   "name": "Slith Tar Reviver",
+   "role": "foe",
+   "body": [
+    "npc",
+    "slith tar guard"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the northern slith tar hives",
+   "water": "land"
+  },
+  {
+   "name": "Weary Treant",
+   "role": "foe",
+   "body": [
+    "npc",
+    "treant"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Sycamore Joy's Rest",
+   "water": "land"
+  },
+  {
+   "name": "High Guard Ianant",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ant"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the southern ant colonies",
+   "water": "land"
+  },
+  {
+   "name": "Gykard",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Taksehir citizen"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the tree outside the Taksehir stronghold",
+   "water": "land"
+  },
+  {
+   "name": "Servant De'Varik",
+   "role": "talker",
+   "body": [
+    "npc",
+    "undead servant"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Count Luvincius's servant, behind the tower in the Oasis",
+   "water": "land"
+  },
+  {
+   "name": "Chief Graymoon",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Chief Graymoon"
+   ],
+   "count": 1,
+   "level": 38,
+   "note": "the Burial Mounds: south of the Oasis to the river, west, left at the dam",
+   "water": "land"
+  },
+  {
+   "name": "Mayssa Deathkiss",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "by Magifent's Mausoleum in the Stone Watchers",
+   "water": "land"
+  },
+  {
+   "name": "Growthor",
+   "role": "foe",
+   "body": [
+    "npc",
+    "treant"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the dead forest SW of the Eternal Tower, Tak`Xiz South",
+   "water": "land"
+  },
+  {
+   "name": "Frost Fur",
+   "role": "foe",
+   "body": [
+    "kind",
+    "bear"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the cave of blue stones far north of the Snowblind Plains",
+   "water": "land"
+  },
+  {
+   "name": "Aggravated Spirit",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "by the ruins in Widow's Peak where Tobul roams",
+   "water": "land"
+  },
+  {
+   "name": "Old Man Antiok",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "on a rib of Mila's Reef",
+   "water": "land"
+  },
+  {
+   "name": "Marrow Maw",
+   "role": "foe",
+   "body": [
+    "npc",
+    "strangling squid"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the squid just below Old Man Antiok",
+   "water": "water"
+  },
+  {
+   "name": "Captain Soohn",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the pirate on the island north of Old Man Antiok",
+   "water": "land"
+  },
+  {
+   "name": "Siz Coalburner",
+   "role": "talker",
+   "body": [
+    "race",
+    "gnome",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the lighthouse north of Mila's Reef (sells nothing here: the coals are handed over)",
+   "water": "land"
+  },
+  {
+   "name": "Glacier",
+   "role": "foe",
+   "body": [
+    "kind",
+    "bear"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "NE of Zentar's Keep, Permafrost",
+   "water": "land"
+  },
+  {
+   "name": "Olivia Mcfadden",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the ice tomb at Anu Village",
+   "water": "land"
+  },
+  {
+   "name": "Quartermaster Malda",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Foreman Darkaxe"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Gerntar's Mine (sells nothing here: the pickaxe is handed over)",
+   "water": "land"
+  },
+  {
+   "name": "Khelmarak",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Rustel Minotaur"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the back of the second minotaur cave in Gerntar's Mine",
+   "water": "land"
+  },
+  {
+   "name": "Ice Goblin Melder",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Ice goblin shaman"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Lady Vox's castle in Permafrost",
+   "water": "land"
+  },
+  {
+   "name": "Margun Leafstrider",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "by the hollow tree north of Grimm Brellhand, Gramash Ruins",
+   "water": "land"
+  },
+  {
+   "name": "Tilmiraen",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the small bowl valley north of the first hill, Deathfist Forge",
+   "water": "land"
+  },
+  {
+   "name": "Twizzletwig",
+   "role": "foe",
+   "body": [
+    "kind",
+    "pixie"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the road south of the blue lake, Takish`Hiz",
+   "water": "land"
+  },
+  {
+   "name": "Golem Protector",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 3,
+   "level": null,
+   "note": "the hut on the walkway, Tak`Xiv",
+   "water": "land"
+  },
+  {
+   "name": "Thulite Golem",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "beside the golem protectors, Tak`Xiv",
+   "water": "land"
+  },
+  {
+   "name": "Talya Montar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the second floor of the Highpass keep, behind the stairs",
+   "water": "land"
+  },
+  {
+   "name": "Froglok Questor",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 3,
+   "level": null,
+   "note": "the marshes round the troll war camp north of Grobb (seen standing in the marsh)",
+   "water": "both"
+  },
+  {
+   "name": "Bloodmaw",
+   "role": "foe",
+   "body": [
+    "npc",
+    "werewolf"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the hills by the ramps north-west of Goldfeather Eyrie",
+   "water": "land"
+  },
+  {
+   "name": "Ulria Veshiue",
+   "role": "foe",
+   "body": [
+    "race",
+    "elf",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "upstairs in the building across the bridge south of Highbourne (the guide's Ulira Veshine)",
+   "water": "land"
+  },
+  {
+   "name": "Veldruin Foamstalker",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Highbourne",
+   "water": "land"
+  },
+  {
+   "name": "Courier Svex",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "his road north of Grobb",
+   "water": "land"
+  },
+  {
+   "name": "Wandering Priestess",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "roams Blakedown",
+   "water": "land"
+  },
+  {
+   "name": "Laressa Nevar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the paladins' guild in Qeynos",
+   "water": "land"
+  },
+  {
+   "name": "Tesht'uzu",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Runnyeye",
+   "water": "land"
+  },
+  {
+   "name": "Priest of Rallos Zek",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    12790.0,
+    29380.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "outside the north gate of Oggok (read as north of the Oggok Gate ogres FrontiersForge saw)",
+   "water": "land"
+  },
+  {
+   "name": "Ragh Skulcrak",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Oggok Gate (S), by Ozmo da Basher, nearer the gate",
+   "water": "land"
+  },
+  {
+   "name": "Bandit Thug",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    12790.0,
+    28950.0
+   ],
+   "count": 6,
+   "level": 56,
+   "note": "along the mountain north of Oggok Gate (FrontiersForge's only Bandit Thug is a level 10 far west)",
+   "water": "land"
+  },
+  {
+   "name": "Fell Beast",
+   "role": "foe",
+   "body": [
+    "kind",
+    "bear"
+   ],
+   "place": [
+    "at",
+    0,
+    14050.0,
+    11050.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the canyon south-east of the Frozen Souls in Mount Hatespike (N), where it turns south",
+   "water": "land"
+  },
+  {
+   "name": "Frozen Soul",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "at",
+    0,
+    13950.0,
+    10850.0
+   ],
+   "count": 4,
+   "level": 57,
+   "note": "Mount Hatespike (N)",
+   "water": "land"
+  },
+  {
+   "name": "Priest of Marr",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "disciple of Marr",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the paladins' building in Qeynos, by the disciples of Marr",
+   "water": "land"
+  },
+  {
+   "name": "Unjust Bandit",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    15400.0,
+    15375.0
+   ],
+   "count": 6,
+   "level": 58,
+   "note": "round two rocks in the valley one hill over from the Old Man and Goran's beasts, south of the Old Man (Bandit Hills W); the guide names them not",
+   "water": "land"
+  },
+  {
+   "name": "Exemplar Alesthenies",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    6400.0,
+    19070.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a minute north-west of Melton, by the new Qeynos prison",
+   "water": "land"
+  },
+  {
+   "name": "Zealot",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    4700.0,
+    12980.0
+   ],
+   "count": 6,
+   "level": 57,
+   "note": "the way down from the rock in the north of Wyndhaven to its coach",
+   "water": "land"
+  },
+  {
+   "name": "Priestess Agilyna",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    22870.0,
+    12790.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the small hill in the middle of Mu Lin's Reach, north-west of the lost souls' camp",
+   "water": "land"
+  },
+  {
+   "name": "Urglauh the Foul",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Urglauh the Foul"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the tunnel under the guard tower in the north of Trail's End",
+   "water": "land"
+  },
+  {
+   "name": "Villager",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Villager",
+    70,
+    0
+   ],
+   "count": 4,
+   "level": 57,
+   "note": "roaming outside Sunnyvale (the guide's con light blue to a 60; the server's one Villager there is level 20)",
+   "water": "land"
+  },
+  {
+   "name": "Miasma Malignus",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    22650.0,
+    10760.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "her tent in the west of the Green Rift",
+   "water": "land"
+  },
+  {
+   "name": "Blasphemous Box",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Chest"
+   ],
+   "place": [
+    "near",
+    "Miasma Malignus",
+    5,
+    0
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "beside Miasma Malignus (a chest)",
+   "water": "land"
+  },
+  {
+   "name": "Pilgrim Disciple",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    22900.0,
+    11400.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "a camp on the edge of the valley with the lake in the south of the Green Rift",
+   "water": "land"
+  },
+  {
+   "name": "Pilgrim Apostle",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    22780.0,
+    11500.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the other camp on the edge of the valley",
+   "water": "land"
+  },
+  {
+   "name": "Mourner",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "at",
+    0,
+    22900.0,
+    8450.0
+   ],
+   "count": 4,
+   "level": 57,
+   "note": "the graves by the river east of the Elder's Tomb, Collingridge Cemetery (N)",
+   "water": "land"
+  },
+  {
+   "name": "Paladin of Rodcet Nife",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    12500.0,
+    15300.0
+   ],
+   "count": 4,
+   "level": 58,
+   "note": "the campfire north of Sunnyvale, at the foot of the mountain",
+   "water": "land"
+  },
+  {
+   "name": "Crazy Larry",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "roaming the road north-east of Kelinar Village, Kelinar (S)",
+   "water": "land"
+  },
+  {
+   "name": "Archaeologist Duggan",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Archaeologist Duggan"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "among the spheres of annihilation (EQOA-Data's map point; the table spells him Acheologist)",
+   "water": "land"
+  },
+  {
+   "name": "Ingrid Adder",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "where FrontiersForge saw her",
+   "water": "land"
+  },
+  {
+   "name": "Bloodpaw",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 4,
+   "level": 26,
+   "note": "the Bloodpaw gnolls (the table's Gnoll Blood Paws), where FrontiersForge saw one",
+   "water": "land"
+  },
+  {
+   "name": "Frosteye Shaman",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Frosteye Shaman"
+   ],
+   "place": [
+    "near",
+    "Frosteye Miner",
+    40,
+    0
+   ],
+   "count": 3,
+   "level": 47,
+   "note": "by the Frosteye miner, with the high-level Frosteyes FrontiersForge saw (the server's one Frosteye Shaman is level 8)",
+   "water": "land"
+  },
+  {
+   "name": "Red Ant Worker",
+   "role": "foe",
+   "body": [
+    "npc",
+    "red ant scout"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Red Ant Worker"
+   ],
+   "count": 4,
+   "level": 30,
+   "note": "the ant colonies south of the Oasis (EQOA-Data's map points)",
+   "water": "land"
+  },
+  {
+   "name": "Sunbeetle",
+   "role": "foe",
+   "body": [
+    "kind",
+    "insect"
+   ],
+   "place": [
+    "at",
+    0,
+    4560.0,
+    17240.0
+   ],
+   "count": 4,
+   "level": 7,
+   "note": "the newbie yard just east of Qeynos, with its firebeetles (FrontiersForge's sighting is marked suspect)",
+   "water": "land"
+  },
+  {
+   "name": "Snow Crow",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Snow Crow"
+   ],
+   "place": [
+    "near",
+    "Snow Crow",
+    50,
+    0
+   ],
+   "count": 3,
+   "level": 9,
+   "note": "beside the server's one snow crow",
+   "water": "land"
+  }
+ ],
+ "attackable": [
+  "Ambassador Vu'Malik"
+ ]
+}

@@ -55,7 +55,8 @@ Rows, each said by town:
   the Plane of Sky's quest NPCs and essences to Denizens of the Plane of Sky,
   Graumord's citizens to Citizens of Graumord, the Fire Giant Magus to Lord
   Nagafen (never on sight, still attackable); Kithgrin left (UNPLACED); and
-  single spawns by place (PLACED): the raven and scorchflies in the mouth of
+  single spawns by place (PLACED): a city cat at the edge of Neriak, the
+  raven and scorchflies in the mouth of
   Neriak's tunnel to its coach, of the city.
 
 A name's row is for every NPC of the name (world -1) when all its spawns are
@@ -160,6 +161,11 @@ NAMED = [
 # (2026-10-29): of the city, so its people pass (ours)
 PLACED = [
     ("Neriak's tunnel mouth", 0, 24999.0, 8997.0, 5.0, "Citizens of Neriak", ["bloodfeather raven", "scorchflies"]),
+    # the seventh of Neriak's city cats spawns 393 from the middle of the six
+    # the town's row takes (360.9 round them): no faction, it attacked a level
+    # 2 dark elf on sight (the user, 2026-10-29: "City Cat is attacking me on
+    # my level 1 sk in neriak")
+    ("the edge of Neriak", 0, 25231.0, 9150.0, 5.0, "Citizens of Neriak", ["city cat"]),
 ]
 # and those left, said: no faction their place names
 UNPLACED = {"kithgrin": "the Cazic Thule temple's trial giver, among its trial creatures: its place names no faction "

@@ -16,7 +16,21 @@ import (
 //
 // What the player sees is what attacks: the target box's face (0x0010's
 // disposition, handlers/target.go) is TargetFace, and a creature attacks on
-// sight exactly the players it shows the red face to (threatensLocked).
+// sight exactly the players it shows the Aggressive face (0) to
+// (threatensLocked). For a creature of no faction that is the only red face
+// it shows; one of a faction shows the Dubious (1), red in CLIENT's art too
+// (VIWndGame::DrawTarget draws 0 and 1 alike), to a player whose standing is
+// just short of that (-700 to -350) and does not attack.
+//
+// An NPC of a faction (npcfaction, faction.go) attacks a player on sight when
+// the player's standing with it is Aggressive (below -700, FactionKOSBelow),
+// at any level (a city's guards defend it whatever comes: ours), and never on
+// sight otherwise, whatever its body: Neriak's ghoul servant, a creature's
+// body 52 from the nearest dark elf, killed a new dark elf by the coach
+// (2026-10-29) until it was of Citizens of Neriak. Its face is the standing's
+// disposition (StandingDisposition). The NPC bit still means it never
+// attacks, and a GM's npcaggro row for its name still decides as below;
+// world.faction_aggro false leaves factions out of both (the rules below).
 //
 // Measured on Sandstorm (faces off 0x0010's replies, levels off the entity
 // channels; claude-notes/aggro-20261025.md):
@@ -53,9 +67,11 @@ import (
 //     38.9 measured), a GM's per name;
 //   - no line of sight, and no social pull on sight: the NPCs of a creature's
 //     own come only when a player attacks it (socialaggro.go);
-//   - faction standings make nothing attack yet: every character's starting
-//     standings are one gnome's capture (Qeynos -2000, faction.go), so they
-//     would set Qeynos's guards on every player.
+//   - an NPC of no faction attacks by the rules above alone: until 2026-10-29
+//     every character started with one gnome's capture (Qeynos -2000,
+//     faction.go), so standings would have set Qeynos's guards on every
+//     player; they come into it now through npcfaction, with each race,
+//     class and city's own starts (factionstart).
 //
 // The fight it starts is a hit's (addThreatLocked), so the chase, the leash and
 // the way home are the fight's own (chase.go). A creature already fighting,
@@ -70,8 +86,9 @@ const DefaultAggroRadius float32 = 30
 // ticks (half a second at the world's 100 ms).
 const aggroScanTicks = 5
 
-// The target box's faces (0x0010's disposition; VIWndGame::DrawTarget draws
-// 0-1 the red face, 2-3 the white, 4-6 the blue).
+// The target box's faces for an NPC of no faction (0x0010's disposition, as
+// faction.go's DispAggressive..DispAllied; VIWndGame::DrawTarget draws 0-1
+// the red face, 2-3 the white, 4-6 the blue).
 const (
 	FaceHostile byte = 0 // red: it attacks you on sight, or fights you
 	FaceNeutral byte = 2 // white: indifferent
@@ -87,16 +104,18 @@ type AggroRule struct {
 	Radius     float32
 }
 
-// aggroState is the world's aggro: off (SetAggro), the GMs' rules by name,
-// their generation (a creature's kept nature is looked at again when it
-// changes), the farthest any creature looks, and the characters a GM's
-// #aggro off leaves alone (by character id, until #aggro on or a restart).
+// aggroState is the world's aggro: off (SetAggro), factions left out of it
+// (SetFactionAggro), the GMs' rules by name, their generation (a creature's
+// kept nature is looked at again when it changes), the farthest any creature
+// looks, and the characters a GM's #aggro off leaves alone (by character id,
+// until #aggro on or a restart).
 type aggroState struct {
-	off     bool
-	rules   map[string]AggroRule
-	gen     uint32
-	reach   float32
-	ignored map[uint32]bool
+	off        bool
+	factionOff bool
+	rules      map[string]AggroRule
+	gen        uint32
+	reach      float32
+	ignored    map[uint32]bool
 }
 
 // inAggroLevels reports a player within a creature's level range: below three
@@ -127,18 +146,50 @@ func (w *World) hostileNatureLocked(npc *NPC) bool {
 	return !w.inTownLocked(npc.World, npc.SpawnX, npc.SpawnZ)
 }
 
-// AggroSummary is a line for the server's start: the rule, its GM rules and
-// whether it can tell a townsperson from a creature.
+// AggroSummary is a line for the server's start: the rule, its GM rules,
+// whether it can tell a townsperson from a creature, and the factions' part.
 func (w *World) AggroSummary() string {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
+	var s string
 	switch {
 	case w.aggro.off:
 		return "none attacks a player on sight (world.aggro false)"
 	case len(w.playerModels) == 0:
-		return fmt.Sprintf("no race models (charactermodel is empty), so only the %d names of the GMs' rules (npcaggro) attack a player on sight", len(w.aggro.rules))
+		s = fmt.Sprintf("no race models (charactermodel is empty), so only the %d names of the GMs' rules (npcaggro) attack a player on sight", len(w.aggro.rules))
+	default:
+		s = fmt.Sprintf("a hostile one attacks a player below three times its level within %.0f (%d GM rules by name)", DefaultAggroRadius, len(w.aggro.rules))
 	}
-	return fmt.Sprintf("a hostile one attacks a player below three times its level within %.0f (%d GM rules by name)", DefaultAggroRadius, len(w.aggro.rules))
+	switch {
+	case w.aggro.factionOff:
+		s += "; factions count for nothing (world.faction_aggro false)"
+	case w.factions.nNPC > 0:
+		s += fmt.Sprintf("; an NPC of a faction (%d npcfaction rows) attacks only a player whose standing with it is below %d, at any level", w.factions.nNPC, FactionKOSBelow)
+	}
+	return s
+}
+
+// factionAggroLocked is the faction an NPC attacks for (the file's doc): its
+// npcfaction faction, when factions count, it has no NPC bit and no GM's
+// npcaggro row names it; false: the rules of no faction. Must be called with
+// the lock held.
+func (w *World) factionAggroLocked(npc *NPC) (string, bool) {
+	if w.aggro.factionOff || npc.NPCType&0x80 != 0 {
+		return "", false
+	}
+	if _, ok := w.aggro.rules[npc.Name]; ok {
+		return "", false
+	}
+	f := w.npcFactionLocked(npc)
+	return f, f != ""
+}
+
+// SetFactionAggro lets factions count in aggro and the target face, or leaves
+// them out (world.faction_aggro false: the rules of no faction for every NPC).
+func (w *World) SetFactionAggro(on bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.aggro.factionOff = !on
 }
 
 // hostileLocked is hostileNatureLocked, kept on the creature until the GMs'
@@ -154,7 +205,8 @@ func (w *World) hostileLocked(npc *NPC) bool {
 }
 
 // threatensLocked reports a creature that attacks p on sight: alive, its own
-// (no owner, not a dummy), hostile by nature and p within its level range;
+// (no owner, not a dummy), and either of a faction p's standing with is
+// Aggressive, or of none, hostile by nature and p within its level range;
 // a GM trigger's hostile spawn attacks every player (gmtriggers.go).
 // Whether it has noticed p is aggroSystem's. Must be called with the lock
 // held.
@@ -165,13 +217,18 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 	if npc.EventAggro {
 		return true
 	}
+	if f, ok := w.factionAggroLocked(npc); ok {
+		return w.standingLocked(p, f) < FactionKOSBelow
+	}
 	return inAggroLevels(npc.Level, p.Level) && w.hostileLocked(npc)
 }
 
 // TargetFace is the face p's target box shows for npc (0x0010's
-// disposition): red for a creature that attacks p on sight or fights it, the
-// players' for a pet, else by its kind: a merchant's blue, everyone else's
-// white. p nil: as no player in particular sees it.
+// disposition): the Aggressive red for a creature that attacks p on sight or
+// fights it, the players' for a pet, else for an NPC of a faction p's
+// standing's disposition (never Aggressive: it does not attack), else by its
+// kind: a merchant's blue, everyone else's white. p nil: as no player in
+// particular sees it.
 func (w *World) TargetFace(p *Player, npc *NPC) byte {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -186,6 +243,11 @@ func (w *World) targetFaceLocked(p *Player, npc *NPC) byte {
 		return FaceHostile
 	case p != nil && w.threatensLocked(npc, p):
 		return FaceHostile
+	}
+	if p != nil && !w.aggro.factionOff {
+		if f := w.npcFactionLocked(npc); f != "" {
+			return max(StandingDisposition(w.standingLocked(p, f)), DispDubious)
+		}
 	}
 	switch npc.Faction {
 	case FactionFriendly:
@@ -265,6 +327,14 @@ func (w *World) SetAggro(on bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.aggro.off = !on
+}
+
+// AggroOff reports the creatures' attacks on sight turned off (world.aggro
+// false).
+func (w *World) AggroOff() bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	return w.aggro.off
 }
 
 // SetAggroRules sets the GMs' rules by NPC name (table npcaggro): at the start

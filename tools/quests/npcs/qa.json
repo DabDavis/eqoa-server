@@ -1252,6 +1252,24 @@
    "water": "land"
   },
   {
+   "name": "Archaeologist Duggan",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Archaeologist Duggan"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "among the spheres of annihilation (EQOA-Data's map point; the table spells him Acheologist)",
+   "water": "land"
+  },
+  {
    "name": "Ingrid Adder",
    "role": "talker",
    "body": [

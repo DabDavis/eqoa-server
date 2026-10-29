@@ -288,6 +288,54 @@ func TestAuctionStackPartialFill(t *testing.T) {
 	r.audit()
 }
 
+// Bids that win units pushed out of every one by a higher bid for the whole
+// stack: each has its escrow back at once and a line saying so, and the price
+// is one over the higher of them.
+func TestAuctionStackPushedOut(t *testing.T) {
+	r := newAuctionRig(t)
+	lot, err := r.listPer(r.seller, r.item(r.seller, r.gem, 3, 1), 3, 10, 500)
+	if err != nil {
+		t.Fatal(err)
+	}
+	total := r.total()
+	if _, err := r.bidQ(r.a, "Bidder", lot.ID, 2, 20, r.t0); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.bidQ(r.b, "Rival", lot.ID, 1, 15, r.t0); err != nil {
+		t.Fatal(err)
+	}
+	res, err := r.bidQ(r.c, "Buyer", lot.ID, 3, 30, r.t0.Add(time.Minute))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Units != 3 || len(res.Refunds) != 2 || res.Lot.Price != 21 || res.Lot.High != r.c || res.Lot.Demand != 3 {
+		t.Fatalf("the higher bid: units %d, refunds %+v, price %d", res.Units, res.Refunds, res.Lot.Price)
+	}
+	for _, x := range []struct {
+		who  uint32
+		held int
+	}{{r.a, 40}, {r.b, 15}} {
+		if r.escrowOf(lot.ID, x.who) != 0 || r.bank(x.who) != 1000 {
+			t.Errorf("%d pushed out: escrow %d, bank %d", x.who, r.escrowOf(lot.ID, x.who), r.bank(x.who))
+		}
+		notes, _ := r.db.AuctionNotices(x.who)
+		if len(notes) != 1 || !strings.Contains(notes[0].Line, "outbid on Rough Gem") {
+			t.Errorf("%d's lines %+v", x.who, notes)
+		}
+	}
+	if r.total() != total {
+		t.Errorf("total %d, want %d", r.total(), total)
+	}
+	r.audit()
+	// one pushed out bids again, higher: it is back in, the other bidder
+	// left short
+	res, err = r.bidQ(r.a, "Bidder", lot.ID, 2, 40, r.t0.Add(2*time.Minute))
+	if err != nil || res.Units != 2 || len(res.Refunds) != 0 || res.Lot.Price != 30 {
+		t.Fatalf("back in: %+v %v", res, err)
+	}
+	r.audit()
+}
+
 // Buy all now: the whole stack at the buyout per item takes it at once, every
 // other bid's escrow back; the buyout for fewer than all is refused with the
 // live client's word 1858; over the buyout is the buyout.

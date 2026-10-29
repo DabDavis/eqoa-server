@@ -7825,6 +7825,709 @@
     "Pomus Magemell"
    ],
    "notes": "From EQOA-Data Quests/Misc/siliskor.json, # Siliskor Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's trigger system (one questor at a time, the flag lost on a crash) is left out. Siliskor stands by the elephant statue (the server's attackable Siliskor) and his followers spawn with the popup. His drop, the Shield of King Jorat for the Plane of Sky, is loot, not a quest reward; the closing talk is ours."
+  },
+  {
+   "key": "Misc/snowgrin/p1",
+   "name": "Snowgrin",
+   "giver": "Karis McDonogh",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Behind the tapestry in the throne room something big waits to be let out. Three keys open the way, carried by Relk Icemapper, General Frostbeard and Warlord Kraven. They spawn once a day or so. Bring me all three.",
+   "accept": "I will get the keys.",
+   "decline": "Not now.",
+   "declined": "Then he stays behind the tapestry.",
+   "started": "Three keys. Good hunting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Relk Icemapper",
+     "journal": "Take Relk Icemapper's key: right from this room, right at the hall, second right, down the stairs.",
+     "items": [
+      {
+       "item": "Relk's Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "General Frostbeard",
+     "journal": "Take General Frostbeard's key: left, straight down the long hall to the room split by a wall, by the bed.",
+     "items": [
+      {
+       "item": "Frostbeard's Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 4861,
+     "y": 81,
+     "z": 4605,
+     "radius": 30,
+     "journal": "Find Warlord Kraven by the big ramp, a level down past the two ice giants."
+    },
+    {
+     "kind": "loot",
+     "target": "Warlord Kraven",
+     "journal": "Take Warlord Kraven's key.",
+     "items": [
+      {
+       "item": "Kraven's Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Warlord Kraven",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Karis McDonogh",
+     "journal": "Bring the three keys to Karis McDonogh in the long hallway on the second level.",
+     "items": [
+      {
+       "item": "Relk's Key",
+       "count": 1
+      },
+      {
+       "item": "Frostbeard's Key",
+       "count": 1
+      },
+      {
+       "item": "Kraven's Key",
+       "count": 1
+      }
+     ],
+     "says": "All three! Go to the throne room, behind the tapestry. Mind his first breath: it is cold."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 4868,
+     "y": 91,
+     "z": 4470,
+     "radius": 25,
+     "journal": "Go behind the tapestry in the throne room of Vox's Castle.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Grilmesh Frostcackle cackles a rhyme, and the snow piles up into a twenty-foot snowman!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Snowgrin",
+     "journal": "Kill Snowgrin.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Grilmesh Frostcackle",
+       "hostile": true
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Warlord Kraven (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/snowgrin.json, # Snowgrin Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Karis McDonough and Grilmash Frostcackle are the game's Karis McDonogh and Grilmesh Frostcackle. Snowgrin's rares (Dragoneye, Crystalline Spear, Storm's Edge ...) are loot, not a quest reward; the quest gives none. Warlord Kraven stands as a townsperson in the database (npc_type 0x80): the step's start spawns a hostile copy, but check_quests.py wants an attackable row of the name, so it is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+  },
+  {
+   "key": "Misc/terrorantula/p1",
+   "name": "Terrorantula",
+   "giver": "Yulil Ashebrooke",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The Terrorantula has haunted these sands too long. Five parchments tell its history, scattered across Tak Xiv and Takish'Hiz. Bring me all five and I will learn how to rid Tunaria of it. Bind near Oasis.",
+   "accept": "I will find them.",
+   "decline": "Not now.",
+   "declined": "Then it haunts us still.",
+   "started": "Tak Xiv West first.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 18432,
+     "y": 95,
+     "z": 25158,
+     "radius": 30,
+     "journal": "Approach the glowing rocks on a small dune south of the river, Tak Xiv West (W).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A parchment flutters in the rocks, and a Death Weaver rises to guard it!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Death Weaver",
+     "journal": "Kill the Death Weaver for the first parchment.",
+     "items": [
+      {
+       "item": "Terrorantula Parchment 1",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Death Weaver",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 17847,
+     "y": 95,
+     "z": 25354,
+     "radius": 30,
+     "journal": "Find the lone rock on a small hill south in the east of the next zone west.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Another parchment, and a Death Spitter!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Death Spitter",
+     "journal": "Kill the Death Spitter for the second parchment.",
+     "items": [
+      {
+       "item": "Terrorantula Parchment 2",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Death Spitter",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 19400,
+     "y": 58,
+     "z": 27300,
+     "radius": 40,
+     "journal": "Search the sand by the tower of Truearrow scouts in Takish'Hiz (SE).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A parchment blows across the sand into your hand."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Terrorantula Parchment 3",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 17084,
+     "y": 54,
+     "z": 26990,
+     "radius": 40,
+     "journal": "Zig-zag through the joined columns south of the dam in Tak Xiz South (C).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Wedged between two columns: a parchment."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Terrorantula Parchment 4",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 17084,
+     "y": 54,
+     "z": 26800,
+     "radius": 40,
+     "journal": "Zig-zag through the columns north of the dam.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The last parchment, half buried in sand."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Terrorantula Parchment 5",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Yulil Ashebrooke",
+     "journal": "Bring the five parchments to Yulil Ashebrooke.",
+     "items": [
+      {
+       "item": "Terrorantula Parchment 1",
+       "count": 1
+      },
+      {
+       "item": "Terrorantula Parchment 2",
+       "count": 1
+      },
+      {
+       "item": "Terrorantula Parchment 3",
+       "count": 1
+      },
+      {
+       "item": "Terrorantula Parchment 4",
+       "count": 1
+      },
+      {
+       "item": "Terrorantula Parchment 5",
+       "count": 1
+      }
+     ],
+     "says": "All five! Now I understand... no! It comes! RUN!"
+    },
+    {
+     "kind": "kill",
+     "target": "Terrorantula",
+     "journal": "Kill the Terrorantula and its poisonweavers.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Terrorantula",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Poisonweaver",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Poisonweaver",
+       "hostile": true
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Yulil Ashebrooke",
+    "Death Weaver",
+    "Death Spitter",
+    "Terrorantula",
+    "Poisonweaver"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/terrorantula.json, # Terrorantula Quest (github.com/Jadiction/EQOA-Data, MIT). Yulil vanishing while one person holds the quest is left out. The parchments' popups are reach steps (the third, fourth and fifth give their parchment). The places are FrontiersForge's sightings and ours (Tak Xiz South's columns by the dam). There is no experience; the Terrorantula's drops (terrorbrood sandals, spider fur gloves, its hide, the dull rings, the staff and robe of the terrorbrood) are loot."
+  },
+  {
+   "key": "Misc/lord-valkanith/p1",
+   "name": "Envar Island: Lord Valkanith",
+   "giver": "Spirit of Tellainain",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Long ago the elven empire of the Tal'Thex fell, and its dead do not rest. Bring me its three gems, an emerald, a ruby and a diamond, and I will tell you how to end it. Be ready when you bring them.",
+   "accept": "I will bring them.",
+   "decline": "Not now.",
+   "declined": "Then the dead keep their vigil.",
+   "started": "Takish'Hiz, Geomancer's Citadel, Sycamore Joy's Rest.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "star knight",
+     "journal": "Take the Tal'Thex emerald from the creatures inside the city of Takish'Hiz.",
+     "items": [
+      {
+       "item": "Tal'Thex Emerald",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25
+    },
+    {
+     "kind": "loot",
+     "target": "spectral rallosian",
+     "journal": "Take the Tal'Thex ruby from the rallosian spectres of Geomancer's Citadel.",
+     "items": [
+      {
+       "item": "Tal'Thex Ruby",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25
+    },
+    {
+     "kind": "loot",
+     "target": "Teir'dal knight",
+     "journal": "Take the Tal'Thex diamond from the dark elves of Sycamore Joy's Rest, on the east coast.",
+     "items": [
+      {
+       "item": "Tal'Thex Diamond",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25
+    },
+    {
+     "kind": "give",
+     "target": "Spirit of Tellainain",
+     "journal": "Bring the three gems to the Spirit of Tellainain on Envar's island.",
+     "items": [
+      {
+       "item": "Tal'Thex Emerald",
+       "count": 1
+      },
+      {
+       "item": "Tal'Thex Ruby",
+       "count": 1
+      },
+      {
+       "item": "Tal'Thex Diamond",
+       "count": 1
+      }
+     ],
+     "says": "The gems! They wake! The Tal'thex come!"
+    },
+    {
+     "kind": "kill",
+     "target": "Tal'thex Sorcerer",
+     "journal": "Fight off the Tal'thex undead: kill their sorcerers.",
+     "count": 3,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Tal'thex Knight",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Tal'thex Soldier",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Tal'thex Sorcerer",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Lord Valkanith",
+     "journal": "Kill Lord Valkanith, who comes as the last sorcerer dies.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "say",
+       "npc": "Tal'thex Sorcerer",
+       "text": "Lord Valkanith... comes..."
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Lord Valkanith",
+       "hostile": true
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Spirit of Tellainain",
+    "Tal'thex Sorcerer",
+    "Tal'thex Knight",
+    "Tal'thex Soldier",
+    "Lord Valkanith"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/lord-valkanith.json, # Lord Valkanith Quest (github.com/Jadiction/EQOA-Data, MIT). The gems drop off the creatures the guide names: the city of Takish'Hiz's (its star knights here), Geomancer's Citadel's rallosian spectres and warlords (the spectral rallosians), Sycamore Joy's Rest's dark elves (its Teir'dal knights). The guide's half-hour of undead before Lord Valkanith is three sorcerers here. His 30-minute despawn and the advice to delete the quest before he dies are left out; his Bone Wing Sentinel rune is loot."
+  },
+  {
+   "key": "Misc/jaeger-mansion/p1",
+   "name": "Jaeger Mansion",
+   "giver": "Jaeger Statue",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The statue's stone eyes follow you. An hourglass-shaped hollow is cut into its base. Something that fits it would open the crypt below.",
+   "accept": "Search for the hourglass.",
+   "decline": "Leave the statue be.",
+   "declined": "The statue watches you go.",
+   "started": "The hollow waits for its hourglass.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Kaila Jaeger",
+     "journal": "Kill Kaila Jaeger by the lake east of the tower and take the ruby hourglass key.",
+     "items": [
+      {
+       "item": "Ruby Hourglass Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Sept Elder Sesh",
+     "journal": "Kill Sept Elder Sesh on the mansion's third floor (by Garou Red Claws's room) and take the ruby hourglass.",
+     "items": [
+      {
+       "item": "Ruby Hourglass",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Jaeger Statue",
+     "journal": "Set the ruby hourglass in the Jaeger Statue by the graveyard.",
+     "items": [
+      {
+       "item": "Ruby Hourglass Key",
+       "count": 1
+      },
+      {
+       "item": "Ruby Hourglass",
+       "count": 1
+      }
+     ],
+     "says": "The statue's eyes burn red. It moves!",
+     "answer": "Insert the ruby hourglass."
+    },
+    {
+     "kind": "kill",
+     "target": "Jaeger Mansion Statue",
+     "journal": "Destroy the Jaeger Mansion Statue.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Jaeger Mansion Statue",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Paladin Lord",
+     "journal": "Enter the crypt and, to the left, kill the Paladin Lord and his spectres.",
+     "count": 1
+    },
+    {
+     "kind": "loot",
+     "target": "Magnus Jaeger",
+     "journal": "Turn right in the crypt, follow the corridor to the coffin, and kill Magnus Jaeger, father of all vampires.",
+     "items": [
+      {
+       "item": "Sapphire Hourglass",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Jaeger Statue",
+     "journal": "Give the sapphire hourglass to the Jaeger Statue to leave the crypt.",
+     "items": [
+      {
+       "item": "Sapphire Hourglass",
+       "count": 1
+      }
+     ],
+     "says": "The crypt seals behind you."
+    }
+   ],
+   "unresolved": [
+    "Jaeger Mansion Statue"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/jaeger-mansion.json, # Jaeger Mansion Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is the statue itself. Its two passes through the crypt (a Paladin Lord or a named wizard the first time, the ruby hourglass then taken off Sept Elder Sesh's corpse left outside, then Magnus Jaeger) are one here: the hourglass key and the hourglass, then the hostile statue (a copy), the Paladin Lord and Magnus Jaeger, who stand in the crypt. The named wizard's path is left out. The crypt's drops (Halberd of Faith, Earring of Might, Scepter of Fury, Black Ruby Earring, Moonfang, Boots of Regalia) are loot."
+  },
+  {
+   "key": "Misc/radavex/p1",
+   "name": "Radavex's Teleportation Orb",
+   "giver": "Teleportation Orb",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The orb hums: find the ward stone of the sword and the ward stone of the stars and bring them back to the teleportation orb to activate Radavex's teleportation orb.",
+   "accept": "Seek the ward stones.",
+   "decline": "Leave the orb.",
+   "declined": "The orb dims.",
+   "started": "The orb hums, waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Captain Ealesha",
+     "journal": "Kill Captain Ealesha, who walks from the tent to the ramp outside the tower, for the ward stone of the sword.",
+     "items": [
+      {
+       "item": "Ward Stone of the Sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Apprentice Yavim",
+     "journal": "Kill Apprentice Yavim, behind the altar in the tower, for the ward stone of the stars.",
+     "items": [
+      {
+       "item": "Ward Stone of the Stars",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Apprentice Yavim",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Teleportation Orb",
+     "journal": "Bring both ward stones back to the teleportation orb.",
+     "items": [
+      {
+       "item": "Ward Stone of the Sword",
+       "count": 1
+      },
+      {
+       "item": "Ward Stone of the Stars",
+       "count": 1
+      }
+     ],
+     "says": "The orb flares. A crystal forms: Radavex's Orb.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Radavex's Orb",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Radavex Planeswalker",
+     "journal": "Use Radavex's Orb atop the tower and kill Radavex.",
+     "count": 1,
+     "rewards": {
+      "factions": [
+       [
+        "Radavex Planeswalker",
+        -10
+       ]
+      ]
+     },
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Radavex Planeswalker",
+       "hostile": true
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Apprentice Yavim (attackable)",
+    "Radavex Planeswalker (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/radavex.json, # Radavex Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's semi-rare spawns (the orb, Ealesha and Yavim) stand here. Radavex's orb (a two-second group port to the top of the tower) is a crystal the orb gives, and Radavex is spawned beside the player. His and his guards' Planeswalker faction (-10 a kill) is the kill's faction here (one -10 at the kill step). The reward is his loot (Radavex's bracers, the nullfield earring, the starbladed staff). Apprentice Yavim and Radavex Planeswalker stands as a townsperson in the database (npc_type 0x80): the step's start spawns a hostile copy, but check_quests.py wants an attackable row of the name, so it is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
   }
  ],
  "items": [
@@ -8607,6 +9310,108 @@
    "description": "The scepter the Mirrored Soul held, which can lift Siliskor's curse.",
    "notrade": true,
    "like": "Ancient Scroll"
+  },
+  {
+   "name": "Relk's Key",
+   "description": "A key carried by Relk Icemapper in Vox's Castle.",
+   "notrade": true,
+   "like": "Prison Key"
+  },
+  {
+   "name": "Frostbeard's Key",
+   "description": "A key carried by General Frostbeard in Vox's Castle.",
+   "notrade": true,
+   "like": "Prison Key"
+  },
+  {
+   "name": "Kraven's Key",
+   "description": "A key carried by Warlord Kraven in Vox's Castle.",
+   "notrade": true,
+   "like": "Prison Key"
+  },
+  {
+   "name": "Terrorantula Parchment 1",
+   "description": "Parchment 1 of 5 on the history of the Terrorantula.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Terrorantula Parchment 2",
+   "description": "Parchment 2 of 5 on the history of the Terrorantula.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Terrorantula Parchment 3",
+   "description": "Parchment 3 of 5 on the history of the Terrorantula.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Terrorantula Parchment 4",
+   "description": "Parchment 4 of 5 on the history of the Terrorantula.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Terrorantula Parchment 5",
+   "description": "Parchment 5 of 5 on the history of the Terrorantula.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Tal'Thex Emerald",
+   "description": "An emerald of the dead elven empire of the Tal'Thex, from Takish'Hiz.",
+   "notrade": true,
+   "like": "Dilana's Gem"
+  },
+  {
+   "name": "Tal'Thex Ruby",
+   "description": "A ruby of the Tal'Thex, from Geomancer's Citadel.",
+   "notrade": true,
+   "like": "Dilana's Gem"
+  },
+  {
+   "name": "Tal'Thex Diamond",
+   "description": "A diamond of the Tal'Thex, from Sycamore Joy's Rest.",
+   "notrade": true,
+   "like": "Dilana's Gem"
+  },
+  {
+   "name": "Ruby Hourglass Key",
+   "description": "A ruby hourglass key, from Kaila Jaeger.",
+   "notrade": true,
+   "like": "Orb of Parathior"
+  },
+  {
+   "name": "Ruby Hourglass",
+   "description": "A ruby hourglass, taken from the corpse of Sept Elder Sesh.",
+   "notrade": true,
+   "like": "Orb of Parathior"
+  },
+  {
+   "name": "Sapphire Hourglass",
+   "description": "A sapphire hourglass. With it the statue lets you out of the crypt.",
+   "notrade": true,
+   "like": "Orb of Parathior"
+  },
+  {
+   "name": "Ward Stone of the Sword",
+   "description": "A ward stone, carried by Captain Ealesha.",
+   "notrade": true,
+   "like": "Orb of Parathior"
+  },
+  {
+   "name": "Ward Stone of the Stars",
+   "description": "A ward stone, carried by Apprentice Yavim.",
+   "notrade": true,
+   "like": "Orb of Parathior"
+  },
+  {
+   "name": "Radavex's Orb",
+   "description": "A one-use crystal that takes you to the top of Radavex's tower.",
+   "notrade": true,
+   "like": "Orb of Parathior"
   }
  ]
 }

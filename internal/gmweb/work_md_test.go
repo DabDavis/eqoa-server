@@ -53,15 +53,25 @@ document.getElementById('out').dataset.done = String(!window.pwned);
 	defer cancel()
 	cmd := exec.CommandContext(ctx, browser, "--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check",
 		"--user-data-dir="+t.TempDir(), "--dump-dom", ts.URL+"/harness.html")
-	// with no session bus to wait on (it hangs looking for one)
-	cmd.Env = append(os.Environ(), "DBUS_SESSION_BUS_ADDRESS=disabled:")
+	// no session bus to look for, and its temporary files (it leaves some
+	// behind) in a directory of their own, with a short path: its socket's
+	// path must fit a unix socket's 108 bytes
+	tmp, err := os.MkdirTemp("", "wbmd")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.RemoveAll(tmp) })
+	cmd.Env = append(os.Environ(), "DBUS_SESSION_BUS_ADDRESS=disabled:", "TMPDIR="+tmp)
 	var stderr strings.Builder
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()
-	if err != nil || !strings.Contains(string(out), `data-done=`) {
-		t.Skipf("the browser did not render the harness (%v): %.300s %.600s", err, out, stderr.String())
-	}
 	dom := string(out)
+	if err != nil || !strings.Contains(dom, `id="out"`) {
+		t.Skipf("the browser did not load the page (%v): %.300s %.600s", err, out, stderr.String())
+	}
+	if !strings.Contains(dom, `data-done=`) {
+		t.Fatalf("the page loaded and md.js did not render:\n%s", dom)
+	}
 	for _, want := range []string{
 		`<h4>Conventions</h4>`,
 		`<span class="md-task done" aria-label="done">☑ </span>measure the gate`,

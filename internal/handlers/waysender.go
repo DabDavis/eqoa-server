@@ -16,7 +16,9 @@ import (
 // other town's waysender, else its coachman, else (Lavastorm) the outpost a
 // level-53 guide walks to. Fees are the guides' where they give one (Neriak to
 // Freeport and back 100 tunar, Neriak to Grobb 225), else none. A waysender
-// with no route here answers nothing, as any NPC with nothing to say.
+// with no route here answers nothing, as any NPC with nothing to say. A trip a
+// quest in the game unlocks (questtrips.go, table questunlocks) is offered only
+// to a player who has finished it.
 
 // wayRoute is one of a waysender's trips.
 type wayRoute struct {
@@ -154,10 +156,25 @@ func tooWeak(place string) string {
 	return fmt.Sprintf("You are too weak to travel to %s. Come back when you are stronger.", place)
 }
 
-// wayDests are the waysender's trips this session can take: each landing on
-// its NPC's spot, in a world the game loads; the ones its level allows, and
-// the first place a level kept it from (or "" if none did).
-func wayDests(gw *entity.World, sess *session.Session, waysender string, level int) (dests []entity.CoachDest, barred string) {
+// notUnlocked is a travel NPC's answer to a player its every other trip is
+// closed to and a quest keeps from this one (questtrips.go; no recording
+// has one: ours).
+func notUnlocked(place, quest string) string {
+	if quest == "" {
+		return fmt.Sprintf("You may not travel to %s yet.", place)
+	}
+	return fmt.Sprintf("You may not travel to %s until you have finished %s.", place, quest)
+}
+
+// lockedTrip is a trip a quest keeps the player from: the place and the
+// quest to finish.
+type lockedTrip struct{ place, quest string }
+
+// wayDests are the waysender's trips this session's player can take: each
+// landing on its NPC's spot, in a world the game loads; the ones its level
+// allows and no quest keeps it from (TripBarred); the first place a level
+// kept it from (or "" if none did) and the first a quest did.
+func wayDests(gw *entity.World, sess *session.Session, waysender string, player *entity.Player) (dests []entity.CoachDest, barred string, locked lockedTrip) {
 	for _, r := range wayRoutes[waysender] {
 		x, y, z, facing, world, ok := gw.SpawnOfNPC(r.Arrive)
 		if !ok {
@@ -167,9 +184,15 @@ func wayDests(gw *entity.World, sess *session.Session, waysender string, level i
 		if !CanLoadWorld(sess, world) {
 			continue
 		}
-		if r.MinLevel > 0 && level < r.MinLevel {
+		if r.MinLevel > 0 && player.Level < r.MinLevel {
 			if barred == "" {
 				barred = r.To
+			}
+			continue
+		}
+		if quest, no := Quests().TripBarred(player, waysender, r.To); no {
+			if locked.place == "" {
+				locked = lockedTrip{place: r.To, quest: quest}
 			}
 			continue
 		}
@@ -178,7 +201,7 @@ func wayDests(gw *entity.World, sess *session.Session, waysender string, level i
 		dests = append(dests, entity.CoachDest{Name: r.To, X: fx, Y: y, Z: fz, Facing: face,
 			World: world, Fee: r.Fee, MinLevel: r.MinLevel, Via: waysender})
 	}
-	return dests, barred
+	return dests, barred, locked
 }
 
 // destLabel is a trip as a menu of several lists it: the place, and its fee.
@@ -190,17 +213,25 @@ func destLabel(d entity.CoachDest) string {
 }
 
 // offerWay opens a waysender's trips, or says the player is too weak for
-// them; it reports whether the waysender had anything to say.
+// them or has a quest to finish first; it reports whether the waysender had
+// anything to say. A trip a quest keeps the player from is left off the list
+// of the others, as one its level does.
 func (h *InteractHandler) offerWay(sess *session.Session, player *entity.Player, npc *entity.NPC) bool {
-	dests, barred := wayDests(h.gameWorld, sess, npc.Name, player.Level)
-	switch {
-	case len(dests) == 0 && barred != "":
+	dests, barred, locked := wayDests(h.gameWorld, sess, npc.Name, player)
+	if len(dests) == 0 {
+		if barred == "" && locked.place == "" {
+			return false
+		}
 		forgetDialogs(player)
-		h.sendDialogueBox(sess, tooWeak(barred))
-		log.Printf("Waysender: %s is too weak (%d) for %s's trip to %s", player.Name, player.Level, npc.Name, barred)
+		if barred != "" {
+			h.sendDialogueBox(sess, tooWeak(barred))
+			log.Printf("Waysender: %s is too weak (%d) for %s's trip to %s", player.Name, player.Level, npc.Name, barred)
+		}
+		if locked.place != "" {
+			h.sendDialogueBox(sess, notUnlocked(locked.place, locked.quest))
+			log.Printf("Waysender: %s has not finished %q for %s's trip to %s", player.Name, locked.quest, npc.Name, locked.place)
+		}
 		return true
-	case len(dests) == 0:
-		return false
 	}
 	forgetDialogs(player)
 	player.PendingCoachDests = dests

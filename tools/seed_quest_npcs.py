@@ -14,7 +14,7 @@ What it decides, and from what (SPECS below, one entry a name):
 - Where, the first of these that has the name:
   1. FrontiersForge's sightings of it (npcs_ff_import, tools/import_ff_npcs.py:
      the live game's own positions, game coordinates; a sighting marked
-     pos_suspect is not used);
+     pos_suspect is not used, nor one at a spot SENTINEL_NAMES names share);
   2. EQOA-Data's map (Map/zones.json `pois`, the quest guides' points, tied
      to a guide by questGuideIds), laid over the game: Tunaria by a fit of
      the map's points to the NPCs of the same unique names (x = 2.13 mx -
@@ -140,7 +140,7 @@ def S(name, role, body, place, count=1, level=None, note="", water=LAND):
 
 
 # body: ("race", race, sex) | ("kind", KIND key) | ("npc", name: that row's body)
-# place: ("ff",) | ("poi", "tunaria" | "rathe", poi name) | ("near", npc, distance, world) |
+# place: ("ff",) | ("poi", "tunaria" | "rathe" | "odus", poi name) | ("near", npc, distance, world) |
 #        ("at", world, x, z) ; each may be followed by "low" (a lower floor) in the tuple's end
 # water: LAND (out of the water), WATER (a fish: in it) or BOTH (an alligator, a crab)
 SPECS = [
@@ -456,6 +456,28 @@ ATTACKABLE = ["Squire Janxt", "Gamor", "Furdle Nimdar"]
 # The Tunaria fit's own points are only those that match one NPC there; the
 # Rathe inset's anchor is the map's "Oggok" and Oggok's people.
 INSET = (4500.0, 8500.0, 9000.0, 12800.0)
+# The box holds south Tunaria too (Kelinar, Gerntar Mines, Oggok Gate, Mila's
+# Reef, Widow's Peak: the sheet draws the inset beside them, its easternmost
+# point x 7280 and theirs westernmost 7569), so a point in it is the Rathe's
+# only when the nearest place the sheet names (its zones and towns) is one of
+# the Rathe's (qa lane: Gerntar's Mine, Oggok Gate, Kelinar and the Mila's
+# Reef lighthouse were taken for the Rathe's). The fit still leaves the whole
+# box out, as the 1-20 seed (in on eqoaclassic) was planned: a fit with south
+# Tunaria's points in moves every map placement a little.
+RATHE_PLACES = {"Geomancer's Citadel", "Cyclops' Fortress", "Urgulnt's Gate", "Sphinx Pyramid", "Lake Rathe",
+                "Geomancer's Pass", "Dead Hills", "Ogre Ruins", "West Feerrott", "Moggok's Gate", "Envar", "Oggok"}
+# Odus (world 2), drawn on the same sheet south-west of Tunaria, has a fit of
+# its own (place ("poi", "odus", <point>)): on the sheet's points whose name,
+# case and a level in brackets aside, is exactly one NPC's of the server's and
+# that one in Odus. It is tools/gen_camp_teles.py's: 180 off on the 37 points
+# key() pairs (29 kept, 164 on those), where key()'s looser match let a
+# namesake in and its fit came out 190 off (the Misc lane's x = 2.3268 mx +
+# 4036.1, z = 2.2996 my - 16408.1). Lavastorm has none.
+ODUS = 2
+# A spot FrontiersForge saw this many names at is its placeholder, not a place
+# (the import flags most such sightings pos_suspect, not all: 71 of the 433 at
+# (3001, 18025) were not)
+SENTINEL_NAMES = 8
 SCALE = 2.13
 OGGOK_MAP = (6855.0, 10988.0)
 SPREAD = (25.0, 120.0)
@@ -517,11 +539,31 @@ def fit(points):
     return (a, b, c, d), len(cur), res[len(res) // 2]
 
 
+def sentinels(ff):
+    """The spots FrontiersForge's placeholders hold: (world, x, z) rounded,
+    where SENTINEL_NAMES names or more were seen."""
+    names = collections.defaultdict(set)
+    for s in ff:
+        names[(s["world"], round(s["x_coord"]), round(s["z_coord"]))].add(key(s["npc_name"]))
+    return {c for c, n in names.items() if len(n) >= SENTINEL_NAMES}
+
+
+def suspect_test(ff):
+    """Whether a sighting's place is not to be used: flagged pos_suspect, or
+    at a placeholder spot (sentinels)."""
+    bad = sentinels(ff)
+    return lambda s: bool(s["pos_suspect"]) or (s["world"], round(s["x_coord"]), round(s["z_coord"])) in bad
+
+
 class Map:
     """EQOA-Data's sheet over Tunaria (a fit) and the Rathe (Oggok-anchored)."""
 
-    def __init__(self, zones, npcs, ff):
+    def __init__(self, zones, npcs, ff, suspect=None):
+        suspect = suspect or suspect_test(ff)
         self.pois = zones["pois"] + zones["zones"] + zones["towns"]
+        # the places the sheet names in the inset's box, to tell the Rathe's
+        # points from south Tunaria's
+        self.places = [(q["name"], q["x"], q["y"]) for q in zones["zones"] + zones["towns"] if self.in_inset(q)]
         byname = collections.defaultdict(list)
         for n in npcs:
             byname[(n["world"], key(n["name"]))].append(n)
@@ -536,11 +578,11 @@ class Map:
         # the sheet's misses where FrontiersForge saw the same name once
         seen = collections.defaultdict(list)
         for s in ff:
-            if s["world"] == 0 and not s["pos_suspect"]:
+            if s["world"] == 0 and not suspect(s):
                 seen[key(s["npc_name"])].append(s)
         self.misses = []
         for p in zones["pois"]:
-            if self.in_inset(p):
+            if self.rathe(p):
                 continue
             s = seen.get(key(p["name"]))
             if s and len(s) == 1:
@@ -550,10 +592,28 @@ class Map:
                     self.misses.append((p["x"], p["y"], dx, dz))
         town = [n for n in npcs if n["world"] == 1 and re.match(r"(bouncer|merchant) ", n["name"].lower())]
         self.oggok = (sum(n["x"] for n in town) / len(town), sum(n["z"] for n in town) / len(town)) if town else None
+        # Odus: exact names (gen_camp_teles.py's), unique among every world's NPCs
+        exact = collections.defaultdict(list)
+        for n in npcs:
+            exact[n["name"].strip().lower()].append(n)
+        opairs = []
+        for p in zones["pois"] + zones["towns"]:
+            rs = exact.get(re.sub(r"\s*\([^)]*\)\s*", " ", p["name"]).strip().lower())
+            if rs and len(rs) == 1 and rs[0]["world"] == ODUS:
+                opairs.append((p["x"], p["y"], rs[0]["x"], rs[0]["z"]))
+        self.odus = fit(opairs) if len(opairs) >= 3 else None
 
     @staticmethod
     def in_inset(p):
         return INSET[0] <= p["x"] <= INSET[1] and INSET[2] <= p["y"] <= INSET[3]
+
+    def rathe(self, p):
+        """Whether a sheet point is the Rathe's: in the inset's box and nearest
+        a place of the Rathe's (south Tunaria's are in the box too)."""
+        if not self.in_inset(p) or not self.places:
+            return False
+        near = min(self.places, key=lambda q: (q[1] - p["x"]) ** 2 + (q[2] - p["y"]) ** 2)
+        return near[0] in RATHE_PLACES
 
     def tunaria_at(self, mx, my):
         a, b, c, d = self.tunaria
@@ -575,11 +635,19 @@ class Map:
         ox, oz = self.oggok
         return ox + SCALE * (mx - OGGOK_MAP[0]), oz + SCALE * (my - OGGOK_MAP[1])
 
-    def poi(self, name, guides):
-        """The map's point of that name (one of the quest's guides' first)."""
+    def odus_at(self, mx, my):
+        (a, b, c, d), _, _ = self.odus
+        return a * mx + b, c * my + d
+
+    def poi(self, name, guides, rathe=None):
+        """The map's point of that name: of those in the region asked (rathe
+        True, False; None either) when any is, one of the quest's guides'
+        first."""
         k = key(name)
         cands = [p for p in self.pois if key(p["name"]) == k]
-        mine = [p for p in cands if set(p.get("questGuideIds", [])) & guides]
+        if rathe is not None:
+            cands = [p for p in cands if self.rathe(p) == rathe] or cands
+        mine = [p for p in cands if {g.lower() for g in p.get("questGuideIds", [])} & guides]
         pick = mine or cands
         return pick[0] if pick else None
 
@@ -611,10 +679,10 @@ def guide_of(key):
     and of a later guide's "<folder>/<stem>/<part>" the folder in lower case,
     its commas hyphens ("30,40,49/group-4-evil/p1" is
     "30-40-49/group-4-evil")."""
-    parts = key.split("/")
+    parts = key.lower().split("/")
     if parts[0] == "1-20":
         return "/".join(parts[:3])
-    return "/".join([parts[0].lower().replace(",", "-")] + parts[1:2])
+    return "/".join([parts[0].replace(",", "-")] + parts[1:2])
 
 
 def guides_of(data_dir):
@@ -651,7 +719,8 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None, att
     cols, npcs, bodies, pc, ff = load(db)
     with open(os.path.join(data_dir, "Map", "zones.json")) as f:
         zones = json.load(f)
-    sheet = Map(zones, npcs, ff)
+    suspect = suspect_test(ff)
+    sheet = Map(zones, npcs, ff, suspect)
     guides = guides_of(quest_dir) if quest_dir and os.path.isdir(quest_dir) else {}
     rng = None   # each entry's own, below
     grounds, envs = {}, {}
@@ -660,7 +729,7 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None, att
         by_name[fold(n["name"])].append(n)
     seen = collections.defaultdict(list)
     for s in ff:
-        if not s["pos_suspect"]:
+        if not suspect(s):
             seen[key(s["npc_name"])].append(s)
     placed = []   # every new spawn: world, x, z (spacing)
     others = collections.defaultdict(list)   # the NPCs there are, by (world, 16-unit cell)
@@ -765,9 +834,19 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None, att
                 return None, "no FrontiersForge sighting"
             return [(s["world"], s["x_coord"], s["z_coord"], s["y_coord"], low, s["npc_level"], None) for s in ss], "ff"
         if pl[0] == "poi":
-            p = sheet.poi(pl[2], guides.get(key(spec["name"]), set()) | guides.get(key(pl[2]), set()))
+            if pl[1] == "odus":
+                p = sheet.poi(pl[2], guides.get(key(spec["name"]), set()) | guides.get(key(pl[2]), set()))
+                if p is None or sheet.odus is None:
+                    return None, f"no map point {pl[2]!r}" if p is None else "no Odus fit (too few of its points match)"
+                m = re.search(r"\((\d+)", p["name"])
+                x, z = sheet.odus_at(p["x"], p["y"])
+                return [(ODUS, x, z, around_y(ODUS, x, z), low, int(m.group(1)) if m else None, None)], "map (Odus)"
+            p = sheet.poi(pl[2], guides.get(key(spec["name"]), set()) | guides.get(key(pl[2]), set()), pl[1] == "rathe")
             if p is None:
                 return None, f"no map point {pl[2]!r}"
+            if sheet.rathe(p) != (pl[1] == "rathe"):
+                where = ("the Rathe's inset", "Tunaria") if pl[1] != "rathe" else ("Tunaria", "the Rathe")
+                return None, f"map point {pl[2]!r} is {where[0]}'s (asked: {where[1]}'s)"
             m = re.search(r"\((\d+)", p["name"])
             lv = int(m.group(1)) if m else None
             if pl[1] == "rathe":
@@ -885,7 +964,8 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None, att
             continue   # peaceful already (its rule left as it is)
         aggro.append(dict(name=old[0] if old else spelling, old=list(old) if old else None))
     return dict(cols=cols, rows=rows, left=left, types=types, aggro=aggro,
-                fit=(sheet.tunaria, sheet.fit_kept, sheet.fit_median), misses=len(sheet.misses), oggok=sheet.oggok)
+                fit=(sheet.tunaria, sheet.fit_kept, sheet.fit_median), misses=len(sheet.misses), oggok=sheet.oggok,
+                odus=sheet.odus)
 
 
 # ---- the sets: the built-in one and the spec files ---------------------------------
@@ -921,12 +1001,12 @@ def spec_of(d, where):
     num = (int, float)
     ok = bool(core) and core[0] in PLACES and (
         (core[0] == "ff" and len(core) == 1) or
-        (core[0] == "poi" and len(core) == 3 and core[1] in ("tunaria", "rathe") and isinstance(core[2], str)) or
+        (core[0] == "poi" and len(core) == 3 and core[1] in ("tunaria", "rathe", "odus") and isinstance(core[2], str)) or
         (core[0] == "near" and len(core) in (4, 5) and isinstance(core[1], str) and isinstance(core[2], num)
          and isinstance(core[3], int) and (len(core) == 4 or core[4] == "north")) or
         (core[0] == "at" and len(core) == 4 and isinstance(core[1], int) and isinstance(core[2], num) and isinstance(core[3], num)))
     if not ok:
-        errs.append(f"{where}: place {place!r} (['ff'], ['poi', 'tunaria'|'rathe', <point>], ['near', <npc>, <distance>, "
+        errs.append(f"{where}: place {place!r} (['ff'], ['poi', 'tunaria'|'rathe'|'odus', <point>], ['near', <npc>, <distance>, "
                     "<world>], ['at', <world>, <x>, <z>], each with a last 'low' or not)")
     count = d.get("count", 1)
     if not isinstance(count, int) or isinstance(count, bool) or count < 1:
@@ -1190,6 +1270,9 @@ def report(p, verbose=False):
           f"{p['misses']} points FrontiersForge also saw move what is near them")
     if p["oggok"]:
         print(f"the Rathe: anchored on Oggok's people at ({p['oggok'][0]:.0f}, {p['oggok'][1]:.0f}), {SCALE} a map unit")
+    if p.get("odus"):
+        (a, b, c, d), kept, med = p["odus"]
+        print(f"Odus: x = {a:.5f} mx {b:+.1f}, z = {c:.5f} my {d:+.1f} ({kept} points, a median {med:.1f} off)")
     by = collections.defaultdict(list)
     for r in p["rows"]:
         by[r["name"]].append(r)

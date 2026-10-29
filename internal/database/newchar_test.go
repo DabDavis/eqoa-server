@@ -274,3 +274,54 @@ func TestIsWereAbility(t *testing.T) {
 		}
 	}
 }
+
+// A new character carries its race and class's starting items (startitems:
+// Sandstorm's starting weapon and rations, by combo), none worn, each at its
+// record's full condition; a froglok an eastern human's; a combo with no rows
+// nothing; an item the database lacks is left out.
+func TestCreateNewCarriesTheStartingItems(t *testing.T) {
+	db, s := homeDB(t)
+	for _, q := range []string{
+		`INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype,
+			weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color)
+			VALUES (1297, 0, 0, 1, 0, 12, 0, 0, 1, 0, 1, 10, 0, 1, 1, 200, 100, 32767, 2047, 0, 0, 0, 0, 'Apprentice Sword', '', -751439115, 0),
+			       (8392, 0, 0, 2, 0, -1, 0, 0, 1, 0, 0, 0, 0, 1, 20, 0, 0, 32767, 2047, 0, 0, 0, 0, 'travel cuisine', '', 0, 0)`,
+		`INSERT INTO startitems (race, class, humtype, patternid, count) VALUES (2, 3, 0, 8392, 20), (2, 3, 0, 1297, 1),
+			(2, 3, 0, 99999, 1), (0, 0, 1, 1297, 1)`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	carried := func(id uint32) string {
+		rows, err := db.Query(`SELECT patternid, stackleft, remainHP, equiploc FROM charinventory WHERE serverid = ? ORDER BY listnumber`, id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer rows.Close()
+		var out []string
+		for rows.Next() {
+			var p, n, hp, e int
+			rows.Scan(&p, &n, &hp, &e)
+			out = append(out, fmt.Sprintf("%d x%d hp %d worn %v", p, n, hp, e >= 0))
+		}
+		return fmt.Sprint(out)
+	}
+	for _, c := range []struct {
+		name             string
+		race, class, hum int
+		want             string
+	}{
+		{"Darkone", 2, 3, 0, "[8392 x20 hp 0 worn false 1297 x1 hp 200 worn false]"},
+		{"Ribbit", raceFroglok, 0, 0, "[1297 x1 hp 200 worn false]"}, // an eastern human's
+		{"Bare", 9, 0, 0, "[]"},
+	} {
+		r := &CharacterRecord{CharName: c.name, AccountID: 1, Race: c.race, TClass: c.class, HumType: c.hum}
+		if _, err := s.CreateNew(r); err != nil {
+			t.Fatalf("%s: %v", c.name, err)
+		}
+		if got := carried(r.ServerID); got != c.want {
+			t.Errorf("%s carries %s, want %s", c.name, got, c.want)
+		}
+	}
+}

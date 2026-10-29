@@ -963,6 +963,22 @@ var catalog = map[string]tableNote{
 		Help: "Kept from the C# server's schema; this server does not read it.",
 		Cols: map[string]colNote{"patternid": {Label: "Item", Ref: "itempattern"}},
 	},
+	"startitems": {
+		Label: "Starting items", Group: "New characters", Title: "note", Sort: "race",
+		Help: "What a new character carries, by race, class and (a human's) city: Sandstorm's, a starting weapon " +
+			"(an Apprentice Sword, Club, Dagger or Staff) and twenty of the race's rations, none worn " +
+			"(tools/seed_start_items.py, from a new character of every combo on Sandstorm). A froglok carries an " +
+			"eastern human's. count is the stack.",
+		Live: "At once: every character made from now on.",
+		Cols: map[string]colNote{
+			"race":      {Label: "Race", Enum: "race"},
+			"class":     {Label: "Class", Enum: "class"},
+			"humtype":   {Label: "Human's city", Help: "1 the east (Freeport), 2 the west (Qeynos); 0 for every other race"},
+			"patternid": {Label: "Item", Ref: "itempattern"},
+			"count":     {Label: "How many"},
+			"source":    {Label: "Source", Help: "gm, or sandstorm for tools/seed_start_items.py's rows"},
+		},
+	},
 	"defaultspells": {
 		Label: "Starting spells (unused)", Group: "New characters",
 		Help: "Kept from the C# server's schema; this server does not read it (classspells is what it gives).",

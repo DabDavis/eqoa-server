@@ -28,6 +28,6 @@ func (h *ChatHandler) clearBuffsCommand(sess *session.Session) {
 		h.gmReply(sess, fmt.Sprintf("Buffs cleared (%d): %s", len(names), strings.Join(names, ", ")))
 	}
 	if slots > 0 {
-		h.gmReply(sess, fmt.Sprintf("Effect slots #effect put on cleared: %d", slots))
+		h.gmReply(sess, fmt.Sprintf("#effect's slots cleared: %d", slots))
 	}
 }

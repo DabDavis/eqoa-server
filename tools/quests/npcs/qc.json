@@ -533,6 +533,138 @@
    "water": "land"
   },
   {
+   "name": "Yrin Croto",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    19667.0,
+    21000.0
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "Deathfist Horde (E), who makes the wererat disguise",
+   "water": "land"
+  },
+  {
+   "name": "Nivaan D'Tarin",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    5667.0,
+    8333.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "a floating raft in the water of Bogman Village (NE)",
+   "water": "both"
+  },
+  {
+   "name": "Trainer Iruko",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    11000.0,
+    12250.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "Wymondham (N)",
+   "water": "land"
+  },
+  {
+   "name": "Irlynn Poe",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "near",
+    "Coachwoman Darva",
+    80,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "under the bridge on the east side of the river near the Darvar Manor coach",
+   "water": "land"
+  },
+  {
+   "name": "Master Landaar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    7000.0,
+    3000.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a hill with a T-stone in the Cyclops Fortress (C)",
+   "water": "land"
+  },
+  {
+   "name": "Vicious Wolfwere",
+   "role": "foe",
+   "body": [
+    "npc",
+    "werewolf"
+   ],
+   "place": [
+    "at",
+    1,
+    7020.0,
+    2970.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "the captured were-beast of the scent trial (the guide's \"A Vicious xxxWere\")",
+   "water": "land"
+  },
+  {
+   "name": "Assistant Urtoe",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    7030.0,
+    2980.0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "near the scent trial's kill",
+   "water": "land"
+  },
+  {
    "name": "Jal Raeth Chancellor",
    "role": "foe",
    "body": [
@@ -816,10 +948,10 @@
    "place": [
     "at",
     2,
-    11666.666666666666,
-    9000.0
+    11567.0,
+    9060.0
    ],
-   "count": 1,
+   "count": 2,
    "level": 53,
    "note": "South Barren Coast (C, E, NE)",
    "water": "land"
@@ -1165,10 +1297,10 @@
    "place": [
     "at",
     0,
-    25000.0,
-    25000.0
+    24900.0,
+    25020.0
    ],
-   "count": 1,
+   "count": 2,
    "level": 56,
    "note": "the desert of the Elemental Towers",
    "water": "land"
@@ -1860,5 +1992,12 @@
    "note": "a small isle south of the lighthouse in Northern Ro (C)",
    "water": "land"
   }
+ ],
+ "attackable": [
+  "Bucktooth",
+  "Lynda Elmquist",
+  "Yindrius",
+  "Corindas",
+  "Magnar the Skald"
  ]
 }

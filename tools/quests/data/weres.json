@@ -316,7 +316,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, The Hunt (github.com/Jadiction/EQOA-Data, MIT). Zaren is the server's row (level 44), not the player's level; the guide's Zaran. The antidote is the decline (it changes nothing). The faction with Werehunters of Tunaria (-1000) is ours: it keeps a lycan from the werehunters' brand and the vampires' blood, as the guides say."
+   "notes": "From EQOA-Data Quests/Weres/wolfwere.json, The Hunt (github.com/Jadiction/EQOA-Data, MIT). Zaren is the server's row (level 44), not the player's level; the guide's Zaran. The antidote is the decline (it changes nothing). The faction with Werehunters of Tunaria (-1000) is ours: it keeps a lycan from the werehunters' brand, a second infection and the vampires' blood, as the guides say; a branded werehunter (+1000) is offered no infection."
   },
   {
    "key": "Weres/wolfwere/p1",
@@ -1555,8 +1555,23 @@
      "kind": "talk",
      "target": "Trizzia Newmane",
      "journal": "Ask Trizzia Newmane in the south-eastern courtyard of Fort Alliance for the Collar of Power.",
-     "says": "Katerina's name opens my hand. Here.",
-     "answer": "Katerina Suncharmer sends me for the Collar of Power.\nI was only passing.",
+     "choose": "What do you want of me?",
+     "choices": [
+      {
+       "answer": "I want your gold.",
+       "says": "Then you will want a long time. Go away.",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Collar of Power.",
+       "says": "Katerina's name opens my hand. Here."
+      },
+      {
+       "answer": "Nothing. I was only passing.",
+       "says": "Then keep passing.",
+       "stay": true
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -1586,8 +1601,23 @@
      "kind": "talk",
      "target": "Branty",
      "journal": "Ask Branty, by the south entrance of Merry-by-Water, for the Claw of the Ancients.",
-     "says": "For Katerina? Take it, and be off.",
-     "answer": "Katerina Suncharmer sends me for the Claw of the Ancients.\nNothing, thank you.",
+     "choose": "Well? Speak up.",
+     "choices": [
+      {
+       "answer": "Give me that claw or else.",
+       "says": "Or else what? Be off with you.",
+       "stay": true
+      },
+      {
+       "answer": "Nothing, thank you.",
+       "says": "Then why are you bothering me?",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Claw of the Ancients.",
+       "says": "For Katerina? Take it, and be off."
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -1636,7 +1666,7 @@
     "Branty",
     "Zipnick"
    ],
-   "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is ours: the guide does not give it. Undead Slave and Zipnick are the seeded rows' levels."
+   "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is a choice, its words ours (the guide gives none): a wrong one changes nothing. Undead Slave and Zipnick are the seeded rows' levels."
   },
   {
    "key": "Weres/lionwere/L40-melee",
@@ -1676,8 +1706,23 @@
      "kind": "talk",
      "target": "Trizzia Newmane",
      "journal": "Ask Trizzia Newmane in the south-eastern courtyard of Fort Alliance for the Collar of Power.",
-     "says": "Katerina's name opens my hand. Here.",
-     "answer": "Katerina Suncharmer sends me for the Collar of Power.\nI was only passing.",
+     "choose": "What do you want of me?",
+     "choices": [
+      {
+       "answer": "I want your gold.",
+       "says": "Then you will want a long time. Go away.",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Collar of Power.",
+       "says": "Katerina's name opens my hand. Here."
+      },
+      {
+       "answer": "Nothing. I was only passing.",
+       "says": "Then keep passing.",
+       "stay": true
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -1707,8 +1752,23 @@
      "kind": "talk",
      "target": "Branty",
      "journal": "Ask Branty, by the south entrance of Merry-by-Water, for the Claw of the Ancients.",
-     "says": "For Katerina? Take it, and be off.",
-     "answer": "Katerina Suncharmer sends me for the Claw of the Ancients.\nNothing, thank you.",
+     "choose": "Well? Speak up.",
+     "choices": [
+      {
+       "answer": "Give me that claw or else.",
+       "says": "Or else what? Be off with you.",
+       "stay": true
+      },
+      {
+       "answer": "Nothing, thank you.",
+       "says": "Then why are you bothering me?",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Claw of the Ancients.",
+       "says": "For Katerina? Take it, and be off."
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -1758,7 +1818,7 @@
     "Zipnick",
     "Agility of Kehrahn"
    ],
-   "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is ours: the guide does not give it. Undead Slave and Zipnick are the seeded rows' levels."
+   "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is a choice, its words ours (the guide gives none): a wrong one changes nothing. Undead Slave and Zipnick are the seeded rows' levels."
   },
   {
    "key": "Weres/lionwere/L40-caster",
@@ -1799,8 +1859,23 @@
      "kind": "talk",
      "target": "Trizzia Newmane",
      "journal": "Ask Trizzia Newmane in the south-eastern courtyard of Fort Alliance for the Collar of Power.",
-     "says": "Katerina's name opens my hand. Here.",
-     "answer": "Katerina Suncharmer sends me for the Collar of Power.\nI was only passing.",
+     "choose": "What do you want of me?",
+     "choices": [
+      {
+       "answer": "I want your gold.",
+       "says": "Then you will want a long time. Go away.",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Collar of Power.",
+       "says": "Katerina's name opens my hand. Here."
+      },
+      {
+       "answer": "Nothing. I was only passing.",
+       "says": "Then keep passing.",
+       "stay": true
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -1830,8 +1905,23 @@
      "kind": "talk",
      "target": "Branty",
      "journal": "Ask Branty, by the south entrance of Merry-by-Water, for the Claw of the Ancients.",
-     "says": "For Katerina? Take it, and be off.",
-     "answer": "Katerina Suncharmer sends me for the Claw of the Ancients.\nNothing, thank you.",
+     "choose": "Well? Speak up.",
+     "choices": [
+      {
+       "answer": "Give me that claw or else.",
+       "says": "Or else what? Be off with you.",
+       "stay": true
+      },
+      {
+       "answer": "Nothing, thank you.",
+       "says": "Then why are you bothering me?",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Claw of the Ancients.",
+       "says": "For Katerina? Take it, and be off."
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -1881,7 +1971,7 @@
     "Zipnick",
     "Accelerated Foliage"
    ],
-   "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is ours: the guide does not give it. Undead Slave and Zipnick are the seeded rows' levels."
+   "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is a choice, its words ours (the guide gives none): a wrong one changes nothing. Undead Slave and Zipnick are the seeded rows' levels."
   },
   {
    "key": "Weres/lionwere/L40-healer",
@@ -1920,8 +2010,23 @@
      "kind": "talk",
      "target": "Trizzia Newmane",
      "journal": "Ask Trizzia Newmane in the south-eastern courtyard of Fort Alliance for the Collar of Power.",
-     "says": "Katerina's name opens my hand. Here.",
-     "answer": "Katerina Suncharmer sends me for the Collar of Power.\nI was only passing.",
+     "choose": "What do you want of me?",
+     "choices": [
+      {
+       "answer": "I want your gold.",
+       "says": "Then you will want a long time. Go away.",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Collar of Power.",
+       "says": "Katerina's name opens my hand. Here."
+      },
+      {
+       "answer": "Nothing. I was only passing.",
+       "says": "Then keep passing.",
+       "stay": true
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -1951,8 +2056,23 @@
      "kind": "talk",
      "target": "Branty",
      "journal": "Ask Branty, by the south entrance of Merry-by-Water, for the Claw of the Ancients.",
-     "says": "For Katerina? Take it, and be off.",
-     "answer": "Katerina Suncharmer sends me for the Claw of the Ancients.\nNothing, thank you.",
+     "choose": "Well? Speak up.",
+     "choices": [
+      {
+       "answer": "Give me that claw or else.",
+       "says": "Or else what? Be off with you.",
+       "stay": true
+      },
+      {
+       "answer": "Nothing, thank you.",
+       "says": "Then why are you bothering me?",
+       "stay": true
+      },
+      {
+       "answer": "Katerina Suncharmer sends me for the Claw of the Ancients.",
+       "says": "For Katerina? Take it, and be off."
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -2002,7 +2122,7 @@
     "Zipnick",
     "Lion's Nobility"
    ],
-   "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is ours: the guide does not give it. Undead Slave and Zipnick are the seeded rows' levels."
+   "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is a choice, its words ours (the guide gives none): a wrong one changes nothing. Undead Slave and Zipnick are the seeded rows' levels."
   },
   {
    "key": "Weres/lionwere/p3",
@@ -2761,6 +2881,1115 @@
    "notes": "From EQOA-Data Quests/Weres/gatorwere.json, the tail quest (github.com/Jadiction/EQOA-Data, MIT). The live game's infection was a chance on killing a were that conned yellow; here it is the society's standing alone: the tail quest repeats, each four tails +250 with The Bone Crusher (ours), and the urgent word comes at 1000. The guide names no faction for the gatorweres' 1000; The Bone Crusher's own is used. The server has no gatorwere: a few are seeded in Dinbak."
   },
   {
+   "key": "Weres/werehunter/trials-caster",
+   "name": "The WereHunter Trials",
+   "giver": "Delegate Tenrathe",
+   "classes": [
+    10,
+    12,
+    11,
+    13,
+    14
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/tchekof"
+   ],
+   "offer": "The trials will test your sight, your memory and your nose. Have your were-hunter's ring with you. Nivaan D'Tarin waits on a floating raft in Bogman Village (NE).",
+   "accept": "I am ready.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Delegate Tenrathe",
+     "items": [
+      {
+       "item": "Arcane WH Band",
+       "count": 1
+      }
+     ],
+     "journal": "Show Delegate Tenrathe your were-hunter's ring.",
+     "says": "Good. Go to Nivaan D'Tarin, on the raft in Bogman Village (NE)."
+    },
+    {
+     "kind": "talk",
+     "target": "Nivaan D'Tarin",
+     "journal": "Find Nivaan D'Tarin on a floating raft in Bogman Village (NE).",
+     "says": "Remember this: \"But the warm air carries itself into the night.\" Now go to Trainer Iruko.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 11000.0,
+       "y": 66.5,
+       "z": 12250.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Speak with Trainer Iruko in Wymondham (N).",
+     "says": "The trial of sight and memory. Hold this totem, and tell me what Nivaan told you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Concentration Totem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Tell Trainer Iruko what Nivaan D'Tarin told you.",
+     "choose": "What did Nivaan D'Tarin tell you to remember?",
+     "choices": [
+      {
+       "answer": "The cold wind carries itself into the day.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "But the warm air carries itself into the night.",
+       "says": "Correct. Your memory serves. Irlynn Poe, under the bridge near the Darvar Manor coach, is next."
+      },
+      {
+       "answer": "The night carries the warm air away.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "I do not remember.",
+       "says": "Then go back to Nivaan and listen.",
+       "stay": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Irlynn Poe",
+     "items": [
+      {
+       "item": "Arcane WH Band",
+       "count": 1
+      }
+     ],
+     "journal": "Bring your Arcane WH Band to Irlynn Poe, under the bridge east of the river near the Darvar Manor coach.",
+     "says": "Your band, made radiant. Now Master Landaar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Radiant Arcane Band",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Master Landaar",
+     "journal": "Find Master Landaar on a hill with a T-stone in the Cyclops Fortress (C).",
+     "says": "The trial of scent. A captured were-beast has been let loose. Follow its trail; do not run straight at it."
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6910.0,
+     "y": 0,
+     "z": 3000.0,
+     "radius": 45,
+     "journal": "Follow the scent west of Master Landaar, to the north side of the second rock.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The scent is strong here. It goes south-south-west."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6870.0,
+     "y": 0,
+     "z": 3090.0,
+     "radius": 45,
+     "journal": "Follow the scent south-south-west, to the middle of three trees.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Fur on the bark. It turned east-south-east."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6970.0,
+     "y": 0,
+     "z": 3130.0,
+     "radius": 45,
+     "journal": "Follow the scent east-south-east, to a big rock by the northernmost cyclops tent.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Tracks, fresh. North now, back to the hill."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Vicious Wolfwere",
+     "count": 1,
+     "journal": "Follow the scent north to the crest of the hill, and defeat the vicious were-beast.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Vicious Wolfwere",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Urtoe",
+     "journal": "Speak with Assistant Urtoe near the kill.",
+     "says": "You have passed the second trial. Welcome to the WereHunter Council. Delegate Rhinni, in the Oasis, will see you."
+    },
+    {
+     "kind": "talk",
+     "target": "Delegate Rhinni",
+     "journal": "Return to Delegate Rhinni in the Oasis.",
+     "says": "A member of the Council. Take what the Council gives its own.",
+     "rewards": {
+      "items": [
+       "Luminous Arcane Band"
+      ],
+      "spells": [
+       "Shards of the Hunter"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Nivaan D'Tarin",
+    "Trainer Iruko",
+    "Irlynn Poe",
+    "Master Landaar",
+    "Vicious Wolfwere",
+    "Assistant Urtoe",
+    "Shards of the Hunter"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part III - The Trials (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its ability (and the casters' Luminous Arcane Band, a copy of an existing ring). The ten- and fifteen-minute clocks and the quiz on the three were-beasts' places are left out (the memory test is Nivaan's line, Iruko's choice; a wrong answer only asks again, where the guide's cost 75 faction with the WereHunters of Tunaria); the scent's four pop-ups are reach steps round Master Landaar (their places ours), the were-beast a wolfwere for every player. The non-casters' ring upgrades are not named in the guide and are left out. This server has none of the four abilities yet, so these stay drafts."
+  },
+  {
+   "key": "Weres/werehunter/trials-tank",
+   "name": "The WereHunter Trials",
+   "giver": "Delegate Tenrathe",
+   "classes": [
+    0,
+    2,
+    3
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/tchekof"
+   ],
+   "offer": "The trials will test your sight, your memory and your nose. Have your were-hunter's ring with you. Nivaan D'Tarin waits on a floating raft in Bogman Village (NE).",
+   "accept": "I am ready.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Delegate Tenrathe",
+     "items": [
+      {
+       "item": "Gypsy Were-Hunter Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Show Delegate Tenrathe your were-hunter's ring.",
+     "says": "Good. Go to Nivaan D'Tarin, on the raft in Bogman Village (NE)."
+    },
+    {
+     "kind": "talk",
+     "target": "Nivaan D'Tarin",
+     "journal": "Find Nivaan D'Tarin on a floating raft in Bogman Village (NE).",
+     "says": "Remember this: \"But the warm air carries itself into the night.\" Now go to Trainer Iruko.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 11000.0,
+       "y": 66.5,
+       "z": 12250.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Speak with Trainer Iruko in Wymondham (N).",
+     "says": "The trial of sight and memory. Hold this totem, and tell me what Nivaan told you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Concentration Totem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Tell Trainer Iruko what Nivaan D'Tarin told you.",
+     "choose": "What did Nivaan D'Tarin tell you to remember?",
+     "choices": [
+      {
+       "answer": "The cold wind carries itself into the day.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "But the warm air carries itself into the night.",
+       "says": "Correct. Your memory serves. Irlynn Poe, under the bridge near the Darvar Manor coach, is next."
+      },
+      {
+       "answer": "The night carries the warm air away.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "I do not remember.",
+       "says": "Then go back to Nivaan and listen.",
+       "stay": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Irlynn Poe",
+     "journal": "Find Irlynn Poe under the bridge east of the river near the Darvar Manor coach.",
+     "says": "Iruko's student? Go on, then: Master Landaar waits on a hill with a T-stone in the Cyclops Fortress (C)."
+    },
+    {
+     "kind": "talk",
+     "target": "Master Landaar",
+     "journal": "Find Master Landaar on a hill with a T-stone in the Cyclops Fortress (C).",
+     "says": "The trial of scent. A captured were-beast has been let loose. Follow its trail; do not run straight at it."
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6910.0,
+     "y": 0,
+     "z": 3000.0,
+     "radius": 45,
+     "journal": "Follow the scent west of Master Landaar, to the north side of the second rock.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The scent is strong here. It goes south-south-west."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6870.0,
+     "y": 0,
+     "z": 3090.0,
+     "radius": 45,
+     "journal": "Follow the scent south-south-west, to the middle of three trees.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Fur on the bark. It turned east-south-east."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6970.0,
+     "y": 0,
+     "z": 3130.0,
+     "radius": 45,
+     "journal": "Follow the scent east-south-east, to a big rock by the northernmost cyclops tent.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Tracks, fresh. North now, back to the hill."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Vicious Wolfwere",
+     "count": 1,
+     "journal": "Follow the scent north to the crest of the hill, and defeat the vicious were-beast.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Vicious Wolfwere",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Urtoe",
+     "journal": "Speak with Assistant Urtoe near the kill.",
+     "says": "You have passed the second trial. Welcome to the WereHunter Council. Delegate Rhinni, in the Oasis, will see you."
+    },
+    {
+     "kind": "talk",
+     "target": "Delegate Rhinni",
+     "journal": "Return to Delegate Rhinni in the Oasis.",
+     "says": "A member of the Council. Take what the Council gives its own.",
+     "rewards": {
+      "spells": [
+       "Hunters Scorn"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Nivaan D'Tarin",
+    "Trainer Iruko",
+    "Irlynn Poe",
+    "Master Landaar",
+    "Vicious Wolfwere",
+    "Assistant Urtoe",
+    "Hunters Scorn"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part III - The Trials (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its ability (and the casters' Luminous Arcane Band, a copy of an existing ring). The ten- and fifteen-minute clocks and the quiz on the three were-beasts' places are left out (the memory test is Nivaan's line, Iruko's choice; a wrong answer only asks again, where the guide's cost 75 faction with the WereHunters of Tunaria); the scent's four pop-ups are reach steps round Master Landaar (their places ours), the were-beast a wolfwere for every player. The non-casters' ring upgrades are not named in the guide and are left out. This server has none of the four abilities yet, so these stay drafts."
+  },
+  {
+   "key": "Weres/werehunter/trials-melee",
+   "name": "The WereHunter Trials",
+   "giver": "Delegate Tenrathe",
+   "classes": [
+    1,
+    4,
+    5,
+    6
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/tchekof"
+   ],
+   "offer": "The trials will test your sight, your memory and your nose. Have your were-hunter's ring with you. Nivaan D'Tarin waits on a floating raft in Bogman Village (NE).",
+   "accept": "I am ready.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Delegate Tenrathe",
+     "items": [
+      {
+       "item": "Gypsy Were-Hunter Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Show Delegate Tenrathe your were-hunter's ring.",
+     "says": "Good. Go to Nivaan D'Tarin, on the raft in Bogman Village (NE)."
+    },
+    {
+     "kind": "talk",
+     "target": "Nivaan D'Tarin",
+     "journal": "Find Nivaan D'Tarin on a floating raft in Bogman Village (NE).",
+     "says": "Remember this: \"But the warm air carries itself into the night.\" Now go to Trainer Iruko.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 11000.0,
+       "y": 66.5,
+       "z": 12250.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Speak with Trainer Iruko in Wymondham (N).",
+     "says": "The trial of sight and memory. Hold this totem, and tell me what Nivaan told you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Concentration Totem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Tell Trainer Iruko what Nivaan D'Tarin told you.",
+     "choose": "What did Nivaan D'Tarin tell you to remember?",
+     "choices": [
+      {
+       "answer": "The cold wind carries itself into the day.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "But the warm air carries itself into the night.",
+       "says": "Correct. Your memory serves. Irlynn Poe, under the bridge near the Darvar Manor coach, is next."
+      },
+      {
+       "answer": "The night carries the warm air away.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "I do not remember.",
+       "says": "Then go back to Nivaan and listen.",
+       "stay": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Irlynn Poe",
+     "journal": "Find Irlynn Poe under the bridge east of the river near the Darvar Manor coach.",
+     "says": "Iruko's student? Go on, then: Master Landaar waits on a hill with a T-stone in the Cyclops Fortress (C)."
+    },
+    {
+     "kind": "talk",
+     "target": "Master Landaar",
+     "journal": "Find Master Landaar on a hill with a T-stone in the Cyclops Fortress (C).",
+     "says": "The trial of scent. A captured were-beast has been let loose. Follow its trail; do not run straight at it."
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6910.0,
+     "y": 0,
+     "z": 3000.0,
+     "radius": 45,
+     "journal": "Follow the scent west of Master Landaar, to the north side of the second rock.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The scent is strong here. It goes south-south-west."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6870.0,
+     "y": 0,
+     "z": 3090.0,
+     "radius": 45,
+     "journal": "Follow the scent south-south-west, to the middle of three trees.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Fur on the bark. It turned east-south-east."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6970.0,
+     "y": 0,
+     "z": 3130.0,
+     "radius": 45,
+     "journal": "Follow the scent east-south-east, to a big rock by the northernmost cyclops tent.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Tracks, fresh. North now, back to the hill."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Vicious Wolfwere",
+     "count": 1,
+     "journal": "Follow the scent north to the crest of the hill, and defeat the vicious were-beast.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Vicious Wolfwere",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Urtoe",
+     "journal": "Speak with Assistant Urtoe near the kill.",
+     "says": "You have passed the second trial. Welcome to the WereHunter Council. Delegate Rhinni, in the Oasis, will see you."
+    },
+    {
+     "kind": "talk",
+     "target": "Delegate Rhinni",
+     "journal": "Return to Delegate Rhinni in the Oasis.",
+     "says": "A member of the Council. Take what the Council gives its own.",
+     "rewards": {
+      "spells": [
+       "Precious Strike"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Nivaan D'Tarin",
+    "Trainer Iruko",
+    "Irlynn Poe",
+    "Master Landaar",
+    "Vicious Wolfwere",
+    "Assistant Urtoe",
+    "Precious Strike"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part III - The Trials (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its ability (and the casters' Luminous Arcane Band, a copy of an existing ring). The ten- and fifteen-minute clocks and the quiz on the three were-beasts' places are left out (the memory test is Nivaan's line, Iruko's choice; a wrong answer only asks again, where the guide's cost 75 faction with the WereHunters of Tunaria); the scent's four pop-ups are reach steps round Master Landaar (their places ours), the were-beast a wolfwere for every player. The non-casters' ring upgrades are not named in the guide and are left out. This server has none of the four abilities yet, so these stay drafts."
+  },
+  {
+   "key": "Weres/werehunter/trials-healer",
+   "name": "The WereHunter Trials",
+   "giver": "Delegate Tenrathe",
+   "classes": [
+    8,
+    7,
+    9
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/tchekof"
+   ],
+   "offer": "The trials will test your sight, your memory and your nose. Have your were-hunter's ring with you. Nivaan D'Tarin waits on a floating raft in Bogman Village (NE).",
+   "accept": "I am ready.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Delegate Tenrathe",
+     "items": [
+      {
+       "item": "Gypsy Were-Hunter Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Show Delegate Tenrathe your were-hunter's ring.",
+     "says": "Good. Go to Nivaan D'Tarin, on the raft in Bogman Village (NE)."
+    },
+    {
+     "kind": "talk",
+     "target": "Nivaan D'Tarin",
+     "journal": "Find Nivaan D'Tarin on a floating raft in Bogman Village (NE).",
+     "says": "Remember this: \"But the warm air carries itself into the night.\" Now go to Trainer Iruko.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 11000.0,
+       "y": 66.5,
+       "z": 12250.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Speak with Trainer Iruko in Wymondham (N).",
+     "says": "The trial of sight and memory. Hold this totem, and tell me what Nivaan told you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Concentration Totem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Trainer Iruko",
+     "journal": "Tell Trainer Iruko what Nivaan D'Tarin told you.",
+     "choose": "What did Nivaan D'Tarin tell you to remember?",
+     "choices": [
+      {
+       "answer": "The cold wind carries itself into the day.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "But the warm air carries itself into the night.",
+       "says": "Correct. Your memory serves. Irlynn Poe, under the bridge near the Darvar Manor coach, is next."
+      },
+      {
+       "answer": "The night carries the warm air away.",
+       "says": "No. Think, and try again.",
+       "stay": true
+      },
+      {
+       "answer": "I do not remember.",
+       "says": "Then go back to Nivaan and listen.",
+       "stay": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Irlynn Poe",
+     "journal": "Find Irlynn Poe under the bridge east of the river near the Darvar Manor coach.",
+     "says": "Iruko's student? Go on, then: Master Landaar waits on a hill with a T-stone in the Cyclops Fortress (C)."
+    },
+    {
+     "kind": "talk",
+     "target": "Master Landaar",
+     "journal": "Find Master Landaar on a hill with a T-stone in the Cyclops Fortress (C).",
+     "says": "The trial of scent. A captured were-beast has been let loose. Follow its trail; do not run straight at it."
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6910.0,
+     "y": 0,
+     "z": 3000.0,
+     "radius": 45,
+     "journal": "Follow the scent west of Master Landaar, to the north side of the second rock.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The scent is strong here. It goes south-south-west."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6870.0,
+     "y": 0,
+     "z": 3090.0,
+     "radius": 45,
+     "journal": "Follow the scent south-south-west, to the middle of three trees.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Fur on the bark. It turned east-south-east."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6970.0,
+     "y": 0,
+     "z": 3130.0,
+     "radius": 45,
+     "journal": "Follow the scent east-south-east, to a big rock by the northernmost cyclops tent.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Tracks, fresh. North now, back to the hill."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Vicious Wolfwere",
+     "count": 1,
+     "journal": "Follow the scent north to the crest of the hill, and defeat the vicious were-beast.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Vicious Wolfwere",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Assistant Urtoe",
+     "journal": "Speak with Assistant Urtoe near the kill.",
+     "says": "You have passed the second trial. Welcome to the WereHunter Council. Delegate Rhinni, in the Oasis, will see you."
+    },
+    {
+     "kind": "talk",
+     "target": "Delegate Rhinni",
+     "journal": "Return to Delegate Rhinni in the Oasis.",
+     "says": "A member of the Council. Take what the Council gives its own.",
+     "rewards": {
+      "spells": [
+       "Combat Healing"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Nivaan D'Tarin",
+    "Trainer Iruko",
+    "Irlynn Poe",
+    "Master Landaar",
+    "Vicious Wolfwere",
+    "Assistant Urtoe",
+    "Combat Healing"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part III - The Trials (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its ability (and the casters' Luminous Arcane Band, a copy of an existing ring). The ten- and fifteen-minute clocks and the quiz on the three were-beasts' places are left out (the memory test is Nivaan's line, Iruko's choice; a wrong answer only asks again, where the guide's cost 75 faction with the WereHunters of Tunaria); the scent's four pop-ups are reach steps round Master Landaar (their places ours), the were-beast a wolfwere for every player. The non-casters' ring upgrades are not named in the guide and are left out. This server has none of the four abilities yet, so these stay drafts."
+  },
+  {
+   "key": "Weres/werehunter/tchekof",
+   "name": "Elder Tchekof",
+   "giver": "Elder Tchekof",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/trials-ring"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     2000
+    ]
+   ],
+   "offer": "The lycans' leaders must answer for what they have spread. Before you face them, wear their own shape: Dram Corma can find you a wererat disguise. Bring it and one tail of each were.",
+   "accept": "I will hunt them.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dram Corma",
+     "journal": "Ask Dram Corma, beside Djivan in the Oasis, for a wererat disguise.",
+     "says": "A disguise? Yrin Croto, in Deathfist Horde (E), makes them."
+    },
+    {
+     "kind": "talk",
+     "target": "Yrin Croto",
+     "journal": "Find Yrin Croto in Deathfist Horde (E).",
+     "says": "A wererat's hide, for Elder Tchekof. Wear it well.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "wererat disguise",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "wolfwere",
+     "items": [
+      {
+       "item": "wolfwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one wolfwere tail from a wolfwere."
+    },
+    {
+     "kind": "loot",
+     "target": "bearwere",
+     "items": [
+      {
+       "item": "bearwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one bearwere tail from a bearwere."
+    },
+    {
+     "kind": "loot",
+     "target": "wererat",
+     "items": [
+      {
+       "item": "ratwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one ratwere tail from a wererat."
+    },
+    {
+     "kind": "loot",
+     "target": "lionwere",
+     "items": [
+      {
+       "item": "lionwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one lionwere tail from a lionwere."
+    },
+    {
+     "kind": "loot",
+     "target": "gatorwere",
+     "items": [
+      {
+       "item": "gatorwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one gatorwere tail from a gatorwere."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Tchekof",
+     "items": [
+      {
+       "item": "wererat disguise",
+       "count": 1
+      },
+      {
+       "item": "wolfwere tail",
+       "count": 1
+      },
+      {
+       "item": "bearwere tail",
+       "count": 1
+      },
+      {
+       "item": "ratwere tail",
+       "count": 1
+      },
+      {
+       "item": "lionwere tail",
+       "count": 1
+      },
+      {
+       "item": "gatorwere tail",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the wererat disguise and one tail of each were to Elder Tchekof, north-west of the Oasis coach.",
+     "says": "Good. Now this one, the weregator's. Their leaders: The Bone Crusher, Yindrius, Corindas, Dorandas, Levandius. Bring me proof of each.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "weregator disguise",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "The Bone Crusher",
+     "items": [
+      {
+       "item": "Bone Crusher's tooth",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat The Bone Crusher in Dinbak (SE) and take his tooth."
+    },
+    {
+     "kind": "loot",
+     "target": "Yindrius",
+     "items": [
+      {
+       "item": "Yindrius's fur",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat Yindrius in Freeport and take his fur."
+    },
+    {
+     "kind": "loot",
+     "target": "Corindas",
+     "items": [
+      {
+       "item": "Corindas's claw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat Corindas in Sondereel Village and take his claw."
+    },
+    {
+     "kind": "loot",
+     "target": "Dorandas",
+     "items": [
+      {
+       "item": "Dorandas's tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat Dorandas in the druid village of Unkempt North and take his tail."
+    },
+    {
+     "kind": "loot",
+     "target": "Levandius",
+     "items": [
+      {
+       "item": "Levandius's eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat Levandius, past his guardians, and take his eye."
+    },
+    {
+     "kind": "give",
+     "target": "Elder Tchekof",
+     "items": [
+      {
+       "item": "Bone Crusher's tooth",
+       "count": 1
+      },
+      {
+       "item": "Yindrius's fur",
+       "count": 1
+      },
+      {
+       "item": "Corindas's claw",
+       "count": 1
+      },
+      {
+       "item": "Dorandas's tail",
+       "count": 1
+      },
+      {
+       "item": "Levandius's eye",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the five proofs to Elder Tchekof.",
+     "says": "It is done. Delegate Tenrathe, by the fence near the river, will open the trials to you."
+    }
+   ],
+   "unresolved": [
+    "Yrin Croto",
+    "gatorwere",
+    "The Bone Crusher",
+    "Yindrius (attackable)",
+    "Corindas (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, Elder Tchekof (github.com/Jadiction/EQOA-Data, MIT). Dram Corma's repeatable side quest (Polinee Hirbo's four platinum sprockets, 2 million experience) is left out: only the disguise is fetched. Yindrius and Corindas stand as townsfolk and are made attackable by the seed (npcs/qc.json); Levandius's five guardians are left out. The guide names no reward but the masteries it opens."
+  },
+  {
+   "key": "Weres/werehunter/trials-p1",
+   "name": "Hinder Lord Phinnius",
+   "giver": "Assistant Jhevin",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/brand"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     1851
+    ]
+   ],
+   "offer": "Lord Phinnius has hired more Siloths to watch his slaves in the salt mines. Djivan measures your devotion by how much you hinder them. Show me that it is great, and I will give you his token.",
+   "accept": "My devotion is great.",
+   "decline": "Not yet.",
+   "declined": "Then go back to the salt mines.",
+   "started": "Then take this, and go to Djivan.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Assistant Jhevin",
+     "journal": "Take the accomplishment token from Assistant Jhevin, beside Djivan in the Oasis.",
+     "says": "You have hindered them well. Here: show Djivan this token.",
+     "rewards": {
+      "items": [
+       "accomplishment token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part I - Siloths (github.com/Jadiction/EQOA-Data, MIT). The guide's +1851 with the Gypsies of Tunaria is the Siloth bounty's (Hinder the Siloths, offered below 1851); a rude answer's faction loss is left out."
+  },
+  {
    "key": "Weres/werehunter/ability-tank",
    "name": "Mistmoore",
    "giver": "Djivan Mertshak",
@@ -3413,6 +4642,156 @@
    "notes": "From EQOA-Data Quests/Weres/werehunter.json, PART 2 (github.com/Jadiction/EQOA-Data, MIT). The spirit's words are a pop-up; the coffin's incantation is left out (Tserrina stands up). The guide gives only the healers' charm (\"rewards will vary by class\"): the other classes get the experience alone."
   },
   {
+   "key": "Weres/werehunter/trials-ring",
+   "name": "The Were-Hunter's Ring",
+   "giver": "Djivan Mertshak",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/trials-set"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     2000
+    ]
+   ],
+   "offer": "Your standing with the gypsies is all it can be. Take the were-hunter's ring, and keep it: the trials will ask you to show it.",
+   "accept": "I will keep it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Djivan Mertshak",
+     "journal": "Take the were-hunter's ring from Djivan Mertshak.",
+     "says": "Wear it with pride.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "1": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "2": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "3": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "4": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "5": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "6": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "7": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "8": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "9": {
+        "items": [
+         "Gypsy Were-Hunter Ring"
+        ]
+       },
+       "10": {
+        "items": [
+         "Arcane WH Band"
+        ]
+       },
+       "11": {
+        "items": [
+         "Arcane WH Band"
+        ]
+       },
+       "12": {
+        "items": [
+         "Arcane WH Band"
+        ]
+       },
+       "13": {
+        "items": [
+         "Arcane WH Band"
+        ]
+       },
+       "14": {
+        "items": [
+         "Arcane WH Band"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part II's reward (github.com/Jadiction/EQOA-Data, MIT). The guide names the melee's Gypsy Were-Hunter Ring and, in Part III, the casters' Arcane WH Band: the casters get the band, everyone else the ring. Both are copies of existing rings (their stats, not the guide's)."
+  },
+  {
+   "key": "Weres/werehunter/trials-insignia",
+   "name": "A Token of Dedication",
+   "giver": "Djivan Mertshak",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/trials-p1"
+   ],
+   "offer": "Jhevin tells me you have proved your devotion. Show me his token, and take this insignia for your dedication. Then the hunt for the beasts' parts begins.",
+   "accept": "Here is the token.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Djivan Mertshak",
+     "items": [
+      {
+       "item": "accomplishment token",
+       "count": 1
+      }
+     ],
+     "journal": "Show Djivan Mertshak the accomplishment token.",
+     "says": "Well done, you proved your devotion. Wear this insignia.",
+     "rewards": {
+      "items": [
+       "Gypsy Honor Insignia"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part II - Hunt + Gather (github.com/Jadiction/EQOA-Data, MIT). The insignia is a copy of an existing necklace (its stats, not the guide's +25 STR/DEX)."
+  },
+  {
    "key": "Weres/werehunter/brand",
    "name": "The Werehunter's Brand",
    "giver": "Djivan Mertshak",
@@ -3507,6 +4886,12 @@
      "journal": "Defeat Slick Stevenson, the lycanthrope."
     },
     {
+     "kind": "kill",
+     "target": "Bucktooth",
+     "count": 1,
+     "journal": "Defeat Bucktooth, Slick's rat, the lycanthrope."
+    },
+    {
      "kind": "talk",
      "target": "Djivan Mertshak",
      "journal": "Return to Djivan Mertshak in the Oasis.",
@@ -3520,14 +4905,14 @@
     },
     {
      "kind": "kill",
-     "target": "werewolf",
+     "target": "Lynda Elmquist",
      "count": 1,
-     "journal": "Defeat Lynda Elmquist in her wolf's shape.",
+     "journal": "Defeat Lynda Elmquist, the lycanthrope.",
      "events": [
       {
        "on": "start",
        "do": "spawn",
-       "npc": "werewolf",
+       "npc": "Lynda Elmquist",
        "hostile": true
       }
      ]
@@ -3615,9 +5000,144 @@
     }
    ],
    "unresolved": [
-    "Necrologist Ipstock"
+    "Necrologist Ipstock",
+    "Bucktooth (attackable)",
+    "Lynda Elmquist (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/Weres/werehunter.json, PART 1 (github.com/Jadiction/EQOA-Data, MIT). Slick Stevenson is the server's row (level 63, the guide's Slick Svenson; his rat Bucktooth cannot be attacked here). Lynda Elmquist, who cannot be attacked either, turns into a werewolf that comes for the player; Ipstock's swarming minion is left out. The guide's NTL drops are left out. A lycan (-1000 with Werehunters of Tunaria, ours) is not offered it."
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, PART 1 (github.com/Jadiction/EQOA-Data, MIT). Slick Stevenson and Bucktooth are the server's rows (level 63, the guide's Slick Svenson); Bucktooth and Lynda Elmquist stand as townsfolk and are made attackable by the seed (npcs/qc.json), Lynda's lycanthrope a copy of her that comes for the player. Ipstock's swarming minion and the guide's NTL drops are left out. A lycan (-1000 with Werehunters of Tunaria, ours) is not offered it."
+  },
+  {
+   "key": "Weres/werehunter/trials-set",
+   "name": "A Set of Tails",
+   "giver": "Djivan Mertshak",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Weres/werehunter/trials-insignia"
+   ],
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     1851,
+     1999
+    ]
+   ],
+   "repeatable": true,
+   "offer": "Bring me a set: one tail each from a wolfwere, a bearwere, a wererat, a lionwere and a gatorwere. The gypsies will know you for it.",
+   "accept": "I will bring a set.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "wolfwere",
+     "items": [
+      {
+       "item": "wolfwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one wolfwere tail from a wolfwere."
+    },
+    {
+     "kind": "loot",
+     "target": "bearwere",
+     "items": [
+      {
+       "item": "bearwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one bearwere tail from a bearwere."
+    },
+    {
+     "kind": "loot",
+     "target": "wererat",
+     "items": [
+      {
+       "item": "ratwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one ratwere tail from a wererat."
+    },
+    {
+     "kind": "loot",
+     "target": "lionwere",
+     "items": [
+      {
+       "item": "lionwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one lionwere tail from a lionwere."
+    },
+    {
+     "kind": "loot",
+     "target": "gatorwere",
+     "items": [
+      {
+       "item": "gatorwere tail",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take one gatorwere tail from a gatorwere."
+    },
+    {
+     "kind": "give",
+     "target": "Djivan Mertshak",
+     "items": [
+      {
+       "item": "wolfwere tail",
+       "count": 1
+      },
+      {
+       "item": "bearwere tail",
+       "count": 1
+      },
+      {
+       "item": "ratwere tail",
+       "count": 1
+      },
+      {
+       "item": "lionwere tail",
+       "count": 1
+      },
+      {
+       "item": "gatorwere tail",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the set of five tails to Djivan Mertshak in the Oasis.",
+     "says": "A full set. The gypsies thank you.",
+     "notyet": "One of each, all five.",
+     "rewards": {
+      "factions": [
+       [
+        "Gypsies of Tunaria",
+        50
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "gatorwere"
+   ],
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part II - Hunt + Gather (github.com/Jadiction/EQOA-Data, MIT). One kind of set (tails); the guide's stacks and its sets of hides, meats, claws and teeth are left out, and +50 a set is ours (the guide: \"very slowly\"). Repeatable from 1851 to 2000."
   },
   {
    "key": "Weres/werehunter/hinder",
@@ -3659,7 +5179,14 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the Gypsies of Tunaria notes (and Quest Part I's words) (github.com/Jadiction/EQOA-Data, MIT). The guide gets the faction by killing Siloths (+1 near the top to +10 at the bottom of the mines); this server has no faction hits for them, so a repeatable task gives it, +75 for ten knights (ours)."
+   "notes": "From EQOA-Data Quests/Weres/werehunter.json, the Gypsies of Tunaria notes (and Quest Part I's words) (github.com/Jadiction/EQOA-Data, MIT). The guide gets the faction by killing Siloths (+1 near the top to +10 at the bottom of the mines); this server has no faction hits for them, so a repeatable task gives it, +75 for ten knights (ours). Offered below 1851; the trials' sets take the standing on to 2000.",
+   "factions_required": [
+    [
+     "Gypsies of Tunaria",
+     -2000,
+     1850
+    ]
+   ]
   },
   {
    "key": "Weres/vampire/p1",
@@ -3959,6 +5486,90 @@
    "description": "A gypsy heroine's talisman.",
    "notrade": true,
    "like": "talisman of Troka"
+  },
+  {
+   "name": "accomplishment token",
+   "description": "A token of the gypsies: proof of devotion against the Siloths.",
+   "notrade": true,
+   "like": "token of marr"
+  },
+  {
+   "name": "Gypsy Honor Insignia",
+   "description": "An insignia of the gypsies, a token of dedication.",
+   "notrade": true,
+   "like": "Hapless Necklace"
+  },
+  {
+   "name": "Gypsy Were-Hunter Ring",
+   "description": "A ring of the gypsies' were-hunters.",
+   "notrade": true,
+   "like": "lucky dice"
+  },
+  {
+   "name": "Arcane WH Band",
+   "description": "A band of the gypsies' arcane were-hunters.",
+   "notrade": true,
+   "like": "Severed Finger Ring"
+  },
+  {
+   "name": "Radiant Arcane Band",
+   "description": "An arcane were-hunter's band, made radiant by Irlynn Poe.",
+   "notrade": true,
+   "like": "eroding ring"
+  },
+  {
+   "name": "Luminous Arcane Band",
+   "description": "An arcane were-hunter's band, luminous: a trial's reward.",
+   "notrade": true,
+   "like": "tainted ring"
+  },
+  {
+   "name": "wererat disguise",
+   "description": "A wererat's hide, worn as a disguise.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "weregator disguise",
+   "description": "A weregator's hide, worn as a disguise.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "Concentration Totem",
+   "description": "A totem that steadies the mind. Trainer Iruko's.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Bone Crusher's tooth",
+   "description": "A tooth of The Bone Crusher.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Yindrius's fur",
+   "description": "A tuft of Yindrius's fur.",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "Corindas's claw",
+   "description": "A claw of Corindas.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Dorandas's tail",
+   "description": "The tail of Dorandas.",
+   "notrade": true,
+   "like": "Lion Tail"
+  },
+  {
+   "name": "Levandius's eye",
+   "description": "An eye of Levandius.",
+   "notrade": true,
+   "like": "raven eye"
   }
  ]
 }

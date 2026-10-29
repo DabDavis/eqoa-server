@@ -6,7 +6,10 @@ archived it. Nothing of it is kept in this repository.
 For a craft:
 - its recipe grids: a page a piece (armor: six chain pieces, six plate pieces,
   three shields), each a table by trade level and modifier whose cells are the
-  product's AC and stats, or "N/C" (no combine);
+  product's AC and stats, or "N/C" (no combine); jewelry's are Prima's
+  Frontiers guide's gem tables instead (the gems changed in December 2003,
+  after eqoatrade's grid), so for it the guide's PDF from archive.org, made
+  into layout text with pdftotext (poppler-utils);
 - its vendors by city: the trainer, and who sells the tools, the molds and
   patterns, and the metal;
 - its tutorial: the trainer's starter kit.
@@ -44,7 +47,14 @@ PAGES = {
         "Vendors/Armor.htm",
         "Tutorials/Armor.htm",
     ],
+    "jewel": [
+        "Vendors/Jewelry.htm",
+        "Tutorials/Jewelry.htm",
+    ],
 }
+PRIMA_PDF = ("https://archive.org/download/EverQuest_Online_Adventures_Frontiers_Prima_Official_eGuide/"
+             "EverQuest_Online_Adventures_Frontiers_Prima_Official_eGuide.pdf")
+NEEDS_PRIMA = {"jewel"}
 
 
 def fetch(url, dest):
@@ -86,7 +96,24 @@ def main():
             failed += 1
             print(f"failed {rel}: {code}", file=sys.stderr)
         time.sleep(a.pause)
-    print(f"{got} fetched, {kept} kept, {failed} failed, in {os.path.join(a.out, 'eqoatrade')}")
+    if a.craft in NEEDS_PRIMA:
+        pdf = os.path.join(a.out, "prima", "prima-frontiers.pdf")
+        txt = os.path.join(a.out, "prima", "prima-frontiers-layout.txt")
+        os.makedirs(os.path.dirname(pdf), exist_ok=True)
+        if not os.path.exists(pdf):
+            code = fetch(PRIMA_PDF, pdf)
+            if code != "200":
+                failed += 1
+                print(f"failed Prima's guide: {code}", file=sys.stderr)
+            else:
+                got += 1
+                print("fetched Prima's guide")
+        if os.path.exists(pdf) and not os.path.exists(txt):
+            r = subprocess.run(["pdftotext", "-layout", pdf, txt], capture_output=True, text=True)
+            if r.returncode != 0:
+                failed += 1
+                print(f"pdftotext: {r.stderr.strip()}", file=sys.stderr)
+    print(f"{got} fetched, {kept} kept, {failed} failed, in {a.out}")
     if failed:
         sys.exit(1)
 

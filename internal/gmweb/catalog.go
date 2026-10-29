@@ -960,6 +960,21 @@ var catalog = map[string]tableNote{
 			"source":     {Label: "Source"},
 			"notes":      {Label: "Notes", Format: "multiline"},
 			"events":     {Label: "Events", Format: "multiline", Help: "a JSON list: on accept or finish, do popup, say, give, spawn, visual or teleport (the Quests page edits them)"},
+			"factionreq": {Label: "Standings asked", Help: "Faction Name:min or Faction Name:min..max, comma separated (the factions table's names): offered, and done at its giver, only while each is met; empty: none"},
+		},
+	},
+	"questunlocks": {
+		Label: "Quest unlocks", Group: "Guilds & quests", Sort: "questid",
+		Help: "The trips quests unlock: a travel NPC (npc, a waysender or a portal, by its name as the game shows it) " +
+			"offers its trip to dest (the route's label in the server's waysender.go) only to a player who has finished " +
+			"one of the quests in the game that unlock it. The Quests page edits a quest's with it.",
+		Live:   "At once: the next talk to that NPC uses it.",
+		Show:   []string{"questid", "npc", "dest"},
+		Search: []string{"npc", "dest"},
+		Cols: map[string]colNote{
+			"questid": {Label: "Quest", Ref: "quests"},
+			"npc":     {Label: "Travel NPC", Help: "its name as the game shows it"},
+			"dest":    {Label: "Trip to", Help: "the route's label: case and a leading \"the\" aside"},
 		},
 	},
 	"queststeps": {
@@ -998,6 +1013,7 @@ var catalog = map[string]tableNote{
 			"factions":    {Label: "Reward: factions", Help: "Faction:+10, comma separated"},
 			"spells":      {Label: "Reward: spells", Help: "spell ids, comma separated"},
 			"events":      {Label: "Events", Format: "multiline", Help: "a JSON list: on start or done, do popup, say, give, spawn, visual or teleport (the Quests page edits them)"},
+			"byclass":     {Label: "Reward: by class", Format: "multiline", Help: `a JSON object by class id, each {"xp", "tunar", "items": "patternid*count, ...", "spells": "spell ids"}, given besides the above to a player of that class`},
 		},
 	},
 	"npc_models_observed": {Label: "Observed NPC models", Group: "Imports", Write: writeAdmin,

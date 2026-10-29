@@ -304,6 +304,37 @@ func TestAuctionStackPushedOutOverTheWire(t *testing.T) {
 	}
 }
 
+// A bidder lowering its own bid on a stack (down to the least next bid, as
+// the live form lets it) has the difference back at once, and its client is
+// told its bank (0x1253) beside its record; a lowered bid still wins its units
+// while one is free.
+func TestAuctionStackLoweredBidReturnsEscrow(t *testing.T) {
+	f := newHouseFixture(t, "Seller", "Bidder")
+	s, a := f.chars["Seller"], f.chars["Bidder"]
+	f.liveForm(a, true)
+	f.give(s, f.gem, 5)
+	f.sellN(s, 0, 5, 10, 500, 720)
+	f.bidN(a, 1, 30, 2)
+	f.drain(a)
+	if f.dbBank(a) != 940 {
+		t.Fatalf("after 2 at 30: bank %d", f.dbBank(a))
+	}
+	f.bidN(a, 1, 20, 2)
+	msgs := f.drain(a)
+	if n, ok := bankTunarOf(t, msgs); !ok || n != 960 || a.player.BankTunar != 960 || f.dbBank(a) != 960 {
+		t.Errorf("the lowered bid's bank: sent %d (%v), game %d, kept %d; want 960", n, ok, a.player.BankTunar, f.dbBank(a))
+	}
+	if rb := bidRecord(t, msgs, 134); rb.max != 20 || rb.x0c != 2 || rb.escrow != 40 {
+		t.Errorf("the lowered record %+v", rb)
+	}
+	if !sentClears(msgs) {
+		t.Error("the lowered bid's replies leave the wait")
+	}
+	if problems, _ := f.db.AuctionAudit(); len(problems) != 0 {
+		t.Errorf("audit: %v", problems)
+	}
+}
+
 // A disc-form client on a stack: its "Acquire now" (the buyout for its one)
 // is refused with the live client's word 1858, its one below the buyout
 // takes a unit; buy all from the live form takes the stack and the one who

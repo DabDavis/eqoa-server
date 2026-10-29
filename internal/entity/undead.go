@@ -33,8 +33,9 @@ import (
 // ; Increase 25% based on CHA"), or a harmful spell whose name ends "Undead"
 // (Annihilate Undead). Cast at a creature that is not undead it is
 // refused at its start with castNotUndead in red (EverQuest's words: no
-// recording of the live game's refusal exists), a brief cast (the fizzle a
-// refused charm makes) and no power taken, no lockout. An undead-only charm
+// recording of the live game's refusal exists), a brief cast (charmFizzle:
+// jib's "fizzle, and not fire off") and no power taken, no lockout. A charm
+// cast with a pet out is refused before this (charm.go). An undead-only charm
 // takes undead with the charm's own roll (charm.go); every other charm still
 // fails on them ("Attempt resisted!", as Sandstorm's did on Rotting Flesh).
 

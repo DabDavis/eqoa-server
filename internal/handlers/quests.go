@@ -42,7 +42,7 @@ import (
 //   - A step done: the NPC's words, "You have finished a quest!" after the last
 //     step, a line for each thing handed in and each item given, then the
 //     rewards (experience as a kill's, tunar, items as a sale's 0x003B, faction
-//     standings in EverQuest's words, spells as a scribe's 0x00B3). Those lines
+//     standings in Sandstorm's chat lines, spells as a scribe's 0x00B3). Those lines
 //     are boxes after the NPC's, as Return Home's scripts wrote them.
 //
 // A quest that is not enabled is offered to no one; one a character has under
@@ -1218,7 +1218,7 @@ func (q *QuestEngine) rewardLocked(sess *session.Session, p *entity.Player, rw d
 	var lines []string
 	if rw.Tunar > 0 && q.inv != nil {
 		p.Tunar += rw.Tunar
-		if err := q.inv.SetTunar(p.CharServerID, p.Tunar, p.BankTunar); err != nil {
+		if err := q.inv.SetPurse(p.CharServerID, p.Tunar); err != nil {
 			log.Printf("Quests: %s's tunar: %v", p.Name, err)
 		}
 		queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(p.Tunar))
@@ -1360,7 +1360,7 @@ func (q *QuestEngine) takeLocked(sess *session.Session, p *entity.Player, st *da
 	}
 	if st.Tunar > 0 {
 		p.Tunar -= st.Tunar
-		if err := q.inv.SetTunar(p.CharServerID, p.Tunar, p.BankTunar); err != nil {
+		if err := q.inv.SetPurse(p.CharServerID, p.Tunar); err != nil {
 			log.Printf("Quests: %s's tunar: %v", p.Name, err)
 		}
 		if sess != nil {

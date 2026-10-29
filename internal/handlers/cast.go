@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"log"
-	"math"
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -66,23 +65,7 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 // what an illusion is (entity/illusion.go) and gives a line where the
 // database has none.
 func castSpell(e *database.CharSpellEntry, line string, fx uint32) entity.CastSpell {
-	sp := &e.Pattern
-	def := entity.ParseSpellNamed(sp.SpellName, line, sp.SpellDesc)
-	return entity.CastSpell{
-		SpellID:      sp.SpellID,
-		DisplayIndex: e.AddedOrder,
-		Level:        sp.AbilityLvl,
-		Scope:        sp.Scope,
-		Name:         sp.SpellName,
-		Icon:         uint32(sp.Icon),
-		CastTime:     time.Duration(sp.CastTime) * time.Second,
-		Recast:       time.Duration(sp.Recast) * time.Second,
-		PowerCost:    sp.Power,
-		Range:        math.Float32frombits(abilityRangeBits(sp)),
-		Def:          def,
-		FX:           fx,
-		Area:         entity.ReadSpellArea(sp.SpellName, line, def), // entity/area.go
-	}
+	return entity.SpellOf(&e.Pattern, e.AddedOrder, line, fx) // a templated NPC's spells are made so too
 }
 
 // gatePlayer is the World's gate hook (entity/cast.go): Return Home's

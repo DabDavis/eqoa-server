@@ -946,6 +946,11 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #effect [<icon> [name] | clear]
 		h.effectCommand(sess, parts[1:])
 
+	case "#clearbuffs", "#nukebuffs":
+		// #clearbuffs: every effect on the GM ended now, as its time running
+		// out ends it (clearbuffscmd.go; F3 20261029-011146)
+		h.clearBuffsCommand(sess)
+
 	case "#faction":
 		// #faction <faction> [standing]: your standing, or set it
 		h.factionCommand(sess, parts[1:])
@@ -1016,7 +1021,8 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #hp <cur> [max] - set HP")
 		h.gmReply(sess, "  #tunar <amt> - set gold")
 		h.gmReply(sess, "  #template - level 60, every spell of your class, 1,000,000 tunar, the best gear you may wear")
-		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear active effects")
+		h.gmReply(sess, "  #effect [<icon hex> [name] | clear] - list, add or clear the effects channel's slots (the spells behind them go on)")
+		h.gmReply(sess, "  #clearbuffs - every buff on you ended now, as its time running out ends it (#nukebuffs too)")
 		h.gmReply(sess, "  #faction <faction> [standing] - your standing with a faction, or set it")
 		h.gmReply(sess, "  #grantcm <amount> - mastery points, never past 1500 spent and unspent")
 		h.gmReply(sess, "  #debt [amount] - your experience debt, or set it (0 clears)")

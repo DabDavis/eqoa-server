@@ -187,6 +187,15 @@ func main() {
 		log.Printf("WARNING: %v; no pet taps", err)
 	}
 	log.Printf("Pets: %s", gameWorld.PetTapSummary())
+	// The NPCs' class templates and the names given them (entity/
+	// classtemplate.go, tables classtemplates and npctemplate): with none
+	// given, as the table is made, every NPC fights as before
+	if _, err := gameWorld.LoadClassTemplates(db); err != nil {
+		log.Printf("WARNING: %v; no NPC fights by a class template", err)
+	}
+	for _, l := range gameWorld.ClassTemplateSummary() {
+		log.Printf("Creatures: %s", l)
+	}
 	// The class masteries a character may buy (entity/cmbuy.go, table
 	// cmcatalog): with none, none is offered, and every stat cap is the
 	// level's

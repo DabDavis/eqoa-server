@@ -75,6 +75,7 @@ var gmCommands = map[string]bool{
 	"#grantcm": true, "#npcinfo": true, "#fx": true, "#spellfx": true,
 	"#aggro": true, "#stats": true, "#cm": true, "#cmreset": true, "#debt": true,
 	"#trigger": true, "#craftskill": true, "#craftlearn": true,
+	"#clearbuffs": true, "#nukebuffs": true,
 }
 
 // slashGM is the # spelling of a /command line that names a GM command
@@ -460,6 +461,9 @@ func (h *ChatHandler) setLevelFor(gm, sess *session.Session, player *entity.Play
 // and kept (every other change of the purse is: merchant.go's saveTunar).
 func (h *ChatHandler) setTunar(sess *session.Session, player *entity.Player, amount int) {
 	amount = max(0, amount)
+	// the bank's tunar is written only under bankMu (bank.go): as it is now
+	bankMu.Lock()
+	defer bankMu.Unlock()
 	h.gameWorld.SetPlayerTunar(player.CharServerID, amount, player.BankTunar)
 	SendPlayerTunar(sess, int64(amount))
 	if h.purse != nil {

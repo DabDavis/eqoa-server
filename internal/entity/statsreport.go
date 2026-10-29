@@ -162,6 +162,9 @@ func (w *World) npcStatsLocked(npc *NPC, viewer *Player, now time.Time) []string
 		out = append(out, fmt.Sprintf("On %s: %d-%d a hit (AC x %.4f off its top); %s's melee on it %d-%d, never under %d (its defence %.1f)",
 			viewer.Name, lo, hi, r.ACSlope, viewer.Name, max(low, floor), max(high, floor), floor, targetDefence(npc)))
 	}
+	if npc.tmpl != nil {
+		out = append(out, w.templateLineLocked(npc)) // classtemplate.go
+	}
 	extra := npcReachExtra(npc)
 	out = append(out, fmt.Sprintf("Reach %.1f%+.0f; attacks on sight: %s (within %.0f); leash %.0f, roams within %.0f",
 		meleeReach, extra, yesNo(w.hostileLocked(npc)), npc.AggroRadius, npc.LeashRadius, npc.RoamRadius))

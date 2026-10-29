@@ -102,3 +102,36 @@ func TestBalanceConPctScalesTheCon(t *testing.T) {
 		}
 	}
 }
+
+// A templated NPC (classtemplate.go) under the balance gets both: its
+// template's hit points on its level's balanced ones at its spawn and after
+// the balance changes, its template's melee and the balance's on each hit.
+func TestBalanceComposesWithClassTemplates(t *testing.T) {
+	w := NewWorld()
+	name := "a sim brute"
+	w.templates = classTemplates{
+		byName: map[string]*ClassTemplate{"brute": {ClassTemplate: database.ClassTemplate{Name: "brute", Class: -1, HPPct: 150, TakenPct: 80, MeleePct: 120}}},
+		use:    map[string]string{database.NPCClassKey(name): "brute"},
+	}
+	w.balance = testBalance()
+	npc := NPCFromRecord(&database.NPCRecord{ID: 9003, NPCName: name, NPCLevel: 20}, 0, nil)
+	w.applyNPCSettingsLocked(npc)
+	w.NPCs[npc.ServerID] = npc
+	if want := 1200 * 3 * 3 / 2; npc.MaxHP != want || npc.HP != want {
+		t.Errorf("at its spawn: %d/%d HP, want 300%% then 150%%: %d", npc.HP, npc.MaxHP, want)
+	}
+	w.SetBalance(nil)
+	if npc.MaxHP != 1800 || npc.tmpl == nil {
+		t.Errorf("the balance taken away: %d HP (template %v), want the template's 150%% of 1200", npc.MaxHP, npc.tmpl != nil)
+	}
+	w.SetBalance(testBalance())
+	if npc.MaxHP != 5400 {
+		t.Errorf("the balance back: %d HP, want 5400", npc.MaxHP)
+	}
+	if got := w.npcHitLocked(npc, 18, npc.meleeOut(100)); got != pct(pct(120, 125), 140) {
+		t.Errorf("its 100 on a level 18: %d, want the template's 120 then the balance's %d", got, pct(pct(120, 125), 140))
+	}
+	if got := w.takenLocked(npc, 15, npc.meleeTaken(100)); got != 40 {
+		t.Errorf("a level 15's 100 on it: %d, want the template's 80 then the con's half: 40", got)
+	}
+}

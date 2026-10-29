@@ -177,6 +177,14 @@ type NPC struct {
 	// GMHeld keeps it from coming back after its death: a GM's Kill
 	// Spawner (gmchannel.go), until Unkill Spawner or a restart.
 	GMHeld bool
+
+	// tmpl is the class template it fights by (classtemplate.go), nil for
+	// none; tbase what it was without one, kept while it has one; tfight its
+	// fight by it (its abilities' clocks, its cast's time, its special), nil
+	// out of one: tens of thousands of NPCs, a handful fighting by one.
+	tmpl   *ClassTemplate
+	tbase  templateBase
+	tfight *templateFight
 }
 
 // GetEntityID returns the NPC's entity ID.

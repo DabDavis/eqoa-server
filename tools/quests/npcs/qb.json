@@ -1392,10 +1392,10 @@
    "place": [
     "at",
     0,
-    15216,
-    27250
+    15153,
+    27194
    ],
-   "count": 3,
+   "count": 2,
    "level": 58,
    "note": "the eyes of the Elephant Graveyard (good melee, episode 2; the guide's \"Eyes in EG\")",
    "water": "land"
@@ -1425,9 +1425,10 @@
     0
    ],
    "place": [
-    "poi",
-    "tunaria",
-    "Sothimus the Brigand"
+    "near",
+    "Desert Marauder",
+    20,
+    0
    ],
    "count": 1,
    "level": 63,
@@ -1512,8 +1513,8 @@
    ],
    "place": [
     "near",
-    "froglok yun shaman",
-    40,
+    "froglok herbalist",
+    10,
     0
    ],
    "count": 1,
@@ -1687,14 +1688,13 @@
     "golem"
    ],
    "place": [
-    "at",
-    2,
-    10509,
-    5469
+    "poi",
+    "odus",
+    "Boldunder"
    ],
    "count": 1,
    "level": 65,
-   "note": "by the great depression in the middle of the North Barren Coast, Odus (episode 3; EQOA-Data's map point over Odus by a fit of ours)",
+   "note": "by the great depression in the middle of the North Barren Coast, Odus (episode 3)",
    "water": "land"
   },
   {
@@ -1759,14 +1759,13 @@
     "jade drake"
    ],
    "place": [
-    "at",
-    2,
-    7505,
-    6720
+    "poi",
+    "odus",
+    "Plagued Forest Drake"
    ],
    "count": 1,
    "level": 62,
-   "note": "south Toxxulia near Shrixiv, Odus (good healer, episode 2; a fit of ours over Odus)",
+   "note": "south Toxxulia near Shrixiv, Odus (good healer, episode 2)",
    "water": "land"
   },
   {
@@ -1777,14 +1776,13 @@
     "clan kolbok warrior"
    ],
    "place": [
-    "at",
-    2,
-    8087,
-    7574
+    "poi",
+    "odus",
+    "Plagued Kobold Hunter"
    ],
    "count": 1,
    "level": 62,
-   "note": "roams the Stonebrunt Mountains, Odus (good healer, episode 2; a fit of ours over Odus)",
+   "note": "roams the Stonebrunt Mountains, Odus (good healer, episode 2)",
    "water": "land"
   },
   {

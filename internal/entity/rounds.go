@@ -128,8 +128,9 @@ func (n *NPC) endRound() {
 }
 
 // broadcastNPCSwingLocked sends an NPC's swing (0x00B1) to everyone who
-// sees the NPC, each with the ids it knows the NPC and the target by.
-func (w *World) broadcastNPCSwingLocked(npc *NPC, target EntityID, ms, fx uint32) {
+// sees the NPC, each with the ids it knows the NPC and the target by, and a
+// templated NPC's area spell's others it sees (classtemplate.go, area.go).
+func (w *World) broadcastNPCSwingLocked(npc *NPC, target EntityID, ms, fx uint32, others ...EntityID) {
 	if w.SessionManager == nil {
 		return
 	}
@@ -145,7 +146,7 @@ func (w *World) broadcastNPCSwingLocked(npc *NPC, target EntityID, ms, fx uint32
 		if t == 0 {
 			t = c
 		}
-		w.sendCastingCombat(s, c, t, ms, fx)
+		w.sendCastingCombat(s, c, t, ms, fx, w.areaSeenLocked(s, others)...)
 		return true
 	})
 }

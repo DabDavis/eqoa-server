@@ -123,6 +123,8 @@ type NPCState struct {
 	RespawnSec float64  `json:"respawnSec"`
 	// Movement is whether it wanders round its spawn and why (movement.go)
 	Movement string `json:"movement"`
+	// Template is the class template it fights by (classtemplate.go)
+	Template string `json:"template,omitempty"`
 }
 
 func (w *World) npcStateLocked(npc *NPC) NPCState {
@@ -137,6 +139,7 @@ func (w *World) npcStateLocked(npc *NPC) NPCState {
 	}
 	_, why, word := w.movementLocked(npc)
 	s.Movement = MoveWhyText(why, word)
+	s.Template = npc.TemplateName()
 	if p, ok := w.Players[npc.CurrentEnemy]; ok && npc.CurrentEnemy != 0 {
 		s.Fighting = p.Name
 	} else if p, ok := w.Players[npc.DummyTarget]; ok && npc.DummyTarget != 0 {
@@ -189,13 +192,24 @@ func (w *World) TemporaryNPCs() []NPCState {
 
 // SetNPCClass gives every NPC whose npcclass key (database.NPCClassKey) is key
 // the class: an npcclass row written or deleted (class 0, a warrior's, for a
-// deleted one). It returns how many NPCs it changed.
+// deleted one). One whose class template names a class keeps that one, the
+// new class its own for when the template goes (classtemplate.go). It
+// returns how many NPCs it changed.
 func (w *World) SetNPCClass(key string, class int) int {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	n := 0
 	for _, npc := range w.NPCs {
-		if database.NPCClassKey(npc.Name) == key && npc.Class != class {
+		if database.NPCClassKey(npc.Name) != key {
+			continue
+		}
+		if npc.tmpl != nil {
+			npc.tbase.class = class
+			if npc.tmpl.Class >= 0 {
+				continue
+			}
+		}
+		if npc.Class != class {
 			npc.Class = class
 			npc.endRound()
 			n++
@@ -224,6 +238,7 @@ func (w *World) ReloadNPCs(store *database.NPCStore) (loaded, removed int, err e
 	keep := make(map[EntityID]bool, len(recs))
 	for _, rec := range recs {
 		fresh := NPCFromRecord(rec, classes[database.NPCClassKey(rec.NPCName)], w.rangedModels)
+		w.applyTemplateLocked(fresh) // its name's class template (classtemplate.go)
 		if _, taken := w.Players[fresh.ServerID]; taken {
 			continue
 		}

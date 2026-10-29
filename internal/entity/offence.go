@@ -100,5 +100,5 @@ func playerMeleeRoll(p *Player, npc *NPC) (floor, low, high int) {
 func playerMeleeHit(p *Player, npc *NPC, intn func(int) int) int {
 	floor, low, high := playerMeleeRoll(p, npc)
 	hit := low + intn(high-low+1)
-	return max(hit, floor)
+	return npc.meleeTaken(max(hit, floor)) // as its class template takes it (classtemplate.go)
 }

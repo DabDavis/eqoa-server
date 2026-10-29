@@ -175,11 +175,22 @@ var petBodyAliases = map[string]string{
 
 // petClassStandIn is the creature a class's pet is when nothing of its own
 // name is in the world: a necromancer's skeleton, a magician's elementaling,
-// an enchanter's animation.
+// an enchanter's animation, a wizard's familiar (Allakhazam's records of
+// every Familiar and Guardian: "Summon Pet", Self Only; the lines "Summon
+// Pet" and "Summons a pet" name no creature, so Minor and Arch Familiar and
+// Arch Guardian made nothing until then: the test lanes' report of
+// 2026-10-29), a shaman's spirit (the hundreds of NPC rows named for its
+// pet spells, Companion, Feral, Vigilant and Frenzied Spirit, wear the
+// wolves' bodies; its Spiritual Guard, Hunter, Slayer and Warrior and its
+// epic name none), a shadow knight's skeleton (ours, the necromancer's: no
+// record says what its Death Knight's Summon Servant was).
 var petClassStandIn = map[int]string{
+	3:  "skeleton",
+	8:  "companion spirit",
 	11: "skeleton",
 	10: "earth elementaling",
 	12: enchanterAnimation,
+	13: "familiar",
 }
 
 const (

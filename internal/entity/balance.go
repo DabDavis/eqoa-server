@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"sort"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 )
@@ -27,6 +28,10 @@ import (
 //     pets lag their owners by up to thirteen levels at 60 (a magician's
 //     last pet of its levels is Ghilan, 47), and a pet is its owner's
 //     weapon. A charmed creature is still a creature: its own level's.
+//   - the combat arts' global cooldown, by the player's level (ArtCooldown):
+//     an art (an ability with no cast time cast at a creature) started keeps
+//     every other art from starting for that long; one sent in it is not
+//     answered, as a cast sent while another is on (StartCast).
 //
 // The con is the NPC's level less its foe's (calcConColor's: 1-2 yellow, 3
 // and more red). Training dummies are left as measured. Why the seed rows
@@ -61,6 +66,50 @@ func (b *Balance) Rows() ([]database.BalanceLevel, []database.BalanceCon) {
 		return nil, nil
 	}
 	return append([]database.BalanceLevel(nil), b.levels...), append([]database.BalanceCon(nil), b.cons...)
+}
+
+// curve is the line through points (x, y) at x: between two points the
+// straight line, past the ends the end's (as the tables read).
+func curve(points [][2]float64, x float64) float64 {
+	if len(points) == 0 {
+		return 0
+	}
+	sort.Slice(points, func(i, j int) bool { return points[i][0] < points[j][0] })
+	if x <= points[0][0] {
+		return points[0][1]
+	}
+	for i := 1; i < len(points); i++ {
+		if a, c := points[i-1], points[i]; x <= c[0] {
+			if c[0] == a[0] {
+				return c[1]
+			}
+			return a[1] + (c[1]-a[1])*(x-a[0])/(c[0]-a[0])
+		}
+	}
+	return points[len(points)-1][1]
+}
+
+// WithLevelColumn is the balance with one column of its level table made the
+// line through points (level, value): rows are added at the points' levels
+// (their other columns the table's there), and every row's column is set
+// (cmd/balancesim's -try flags: rows tried before they are written).
+func (b *Balance) WithLevelColumn(points [][2]float64, set func(*database.BalanceLevel, float64)) *Balance {
+	ls, cs := b.Rows()
+	have := map[int]bool{}
+	for _, r := range ls {
+		have[r.Level] = true
+	}
+	for _, p := range points {
+		if l := int(p[0]); !have[l] {
+			have[l] = true
+			ls = append(ls, b.Level(l))
+		}
+	}
+	for i := range ls {
+		set(&ls[i], curve(points, float64(ls[i].Level)))
+	}
+	out := NewBalance(ls, cs)
+	return out
 }
 
 // SeedBalance is the seed rows' balance (database.BalanceSeedLevels and
@@ -99,9 +148,26 @@ func (b *Balance) Level(level int) database.BalanceLevel {
 		out.ConPct = between(level, a.Level, c.Level, a.ConPct, c.ConPct)
 		out.PetHPPct = between(level, a.Level, c.Level, a.PetHPPct, c.PetHPPct)
 		out.PetDamagePct = between(level, a.Level, c.Level, a.PetDamagePct, c.PetDamagePct)
+		out.ArtCooldownMS = between(level, a.Level, c.Level, a.ArtCooldownMS, c.ArtCooldownMS)
 	}
 	out.Level = level
 	return out
+}
+
+// ArtCooldown is the combat arts' global cooldown for a player of the level
+// (balancelevel's art_cooldown_ms, by the player's level): how long after
+// one art starts before another may (isArt). None with no rows.
+func (b *Balance) ArtCooldown(level int) time.Duration {
+	if b == nil || len(b.levels) == 0 {
+		return 0
+	}
+	return time.Duration(math.Round(b.Level(level).ArtCooldownMS)) * time.Millisecond
+}
+
+// isArt is whether a spell is a combat art for the global cooldown: an
+// ability with no cast time cast at a creature (a Kick, a Bash, a strike).
+func isArt(s *CastSpell) bool {
+	return s.CastTime <= 0 && s.Def.Harmful
 }
 
 // Con is the con table at a level difference (the NPC's less its foe's), as

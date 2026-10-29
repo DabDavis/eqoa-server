@@ -477,6 +477,10 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 			return false
 		}
 	}
+	if isArt(&spell) && now.Before(p.artReady) { // the arts' global cooldown (balance.go)
+		log.Printf("Cast: %s uses %q %v before the arts' cooldown ends: not answered", p.Name, spell.Name, p.artReady.Sub(now).Round(time.Millisecond))
+		return false
+	}
 	// a charm while a pet is out is refused before anything is looked at,
 	// whatever is targeted (charm.go)
 	refusal := w.charmPetRefusalLocked(p, &spell)
@@ -518,6 +522,9 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 
 	p.Power -= spell.PowerCost
 	p.StatsDirty = true
+	if isArt(&spell) {
+		p.artReady = now.Add(w.balance.ArtCooldown(p.Level))
+	}
 	w.breakInvisLocked(p, "a spell cast") // invis.go
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
 	p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})

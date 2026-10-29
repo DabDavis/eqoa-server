@@ -1082,9 +1082,869 @@
    "level": 50,
    "note": "a floating eye at the base of the pyramid in Cazic Thule (Group 6, level 49)",
    "water": "land"
+  },
+  {
+   "name": "Palidan Talimas",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Palidan Talimas"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Thedruk (NE), across the river from the Druk tunnel, at the foot of a hill by a tree (good tank)",
+   "water": "land"
+  },
+  {
+   "name": "Shinlos",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    24987,
+    15406
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "outside Freeport's north gate, along the wall to the west (good tank, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Crying Maiden",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    24966,
+    15284
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the first temptation by the two palm trees north-west of Shinlos (good tank, episode 3; ours by name)",
+   "water": "land"
+  },
+  {
+   "name": "Glittering Chest",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Treasure Chest"
+   ],
+   "place": [
+    "at",
+    0,
+    24974,
+    15292
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "the second temptation by the two palm trees (good tank, episode 3; ours by name)",
+   "water": "land"
+  },
+  {
+   "name": "Smiling Demon",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Ifrit"
+   ],
+   "place": [
+    "at",
+    0,
+    24958,
+    15276
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the third temptation by the two palm trees (good tank, episode 3; ours by name)",
+   "water": "land"
+  },
+  {
+   "name": "Bandit Brigand",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Bandit Brigand"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the bandits' leader outside Freeport's north gate, by the signpost (episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Bandit Henchman",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Bandit Brigand",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "one of the brigand's henchmen outside Freeport's north gate (evil melee, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "An Ancient Corpse",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    0,
+    22873,
+    30148
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "the undead menace in the north of Basher's Enclave (episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "ghost of Synder",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "near",
+    "Synder of the Indigo",
+    15,
+    2
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "in the cubby under the ramp of the hidden room at Cape Dreg (episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Sensei Melinus",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Sensei Melinus"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a large hill by a large rock, north-east of Qeynos Prison (good melee)",
+   "water": "land"
+  },
+  {
+   "name": "Jezia",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Jezia"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "south-west Qeynos, just outside the castle by a tree (good melee, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Jebodan",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Jebodan"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the manor house across from Mervol in Darvar Manor (good melee, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "evil eye",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Evil Eye Examiner"
+   ],
+   "place": [
+    "at",
+    0,
+    15216,
+    27250
+   ],
+   "count": 3,
+   "level": 58,
+   "note": "the eyes of the Elephant Graveyard (good melee, episode 2; the guide's \"Eyes in EG\")",
+   "water": "land"
+  },
+  {
+   "name": "Desert Marauder",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 4,
+   "level": 63,
+   "note": "the desert bandits in the middle of Tak'Xiv (episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Sothimus the Brigand",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Sothimus the Brigand"
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "the desert marauders' leader in the middle of Tak'Xiv (episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Froglok Channeler",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 3,
+   "level": 58,
+   "note": "Guk, the guide's Frogluk channelers (episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Elder Froglok Guk Mystic",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "near",
+    "froglok yun shaman",
+    25,
+    0
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "Guk, off the circle bridge (good melee and evil healer, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Elder Froglok Guk Diviner",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "near",
+    "froglok yun wizard",
+    25,
+    0
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "Guk (good melee and evil healer, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Elder Fungal Cavalier",
+   "role": "foe",
+   "body": [
+    "npc",
+    "fungal cavalier"
+   ],
+   "place": [
+    "near",
+    "fungal hunter",
+    25,
+    0
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "deep in Guk, among the fungal cavaliers and hunters (good melee and evil healer, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "High Shaman",
+   "role": "talker",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "near",
+    "froglok yun shaman",
+    40,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "inside Guk, with the prisoner he pardons (good melee and evil healer, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Froglok Bloodletter",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "near",
+    "froglok yun shaman",
+    60,
+    0
+   ],
+   "count": 2,
+   "level": 62,
+   "note": "come for the High Shaman's prisoner in Guk (good melee and evil healer, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Graal the Leviathan",
+   "role": "foe",
+   "body": [
+    "kind",
+    "snake"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Graal the Leviathan"
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "the coast north-west of Qeynos (good melee and evil tank, episode 2)",
+   "water": "both"
+  },
+  {
+   "name": "Randarith",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Randarith"
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "a vampire of the Greyvax Caves, north-west of Tethelin (episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Raldarith",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Raldarith"
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "a vampire of the Greyvax Caves (episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Quil'Eyne",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Quil'Eyne"
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "in the basement of the Greyvax Caves (episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "fire basilisk",
+   "role": "foe",
+   "body": [
+    "npc",
+    "basilisk"
+   ],
+   "place": [
+    "near",
+    "animated lava",
+    80,
+    3
+   ],
+   "count": 3,
+   "level": 62,
+   "note": "Lavastorm, by the lava where the land dips (good healer and evil tank, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Megametamilipizon",
+   "role": "foe",
+   "body": [
+    "kind",
+    "centipede"
+   ],
+   "place": [
+    "near",
+    "animated lava",
+    40,
+    3
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "climbs out of the lava in the middle of Lavastorm (good healer and evil tank, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Aktana the Flamekissed",
+   "role": "foe",
+   "body": [
+    "npc",
+    "gargoyle patroller"
+   ],
+   "place": [
+    "near",
+    "Fire Imp Protector",
+    30,
+    3
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "from the gargoyle statue in the east of Lavastorm (good caster and evil melee, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Vylinnuza of the Tide",
+   "role": "foe",
+   "body": [
+    "npc",
+    "enchanting siren"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "summoned by Magi'Kot in the west of the Elemental Towers (good caster and evil melee, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Boldunder",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "at",
+    2,
+    10509,
+    5469
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "by the great depression in the middle of the North Barren Coast, Odus (episode 3; EQOA-Data's map point over Odus by a fit of ours)",
+   "water": "land"
+  },
+  {
+   "name": "Ahriaana the Ultimate",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Ghilan"
+   ],
+   "place": [
+    "near",
+    "Trixie Longwings",
+    40,
+    4
+   ],
+   "count": 1,
+   "level": 66,
+   "note": "the Plane of Sky, where Magi'Kot's port lands (good caster and evil melee, episode 3; ours)",
+   "water": "land"
+  },
+  {
+   "name": "ghost of Magi'Kot",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Magi'Kot"
+   ],
+   "place": [
+    "near",
+    "Trixie Longwings",
+    25,
+    4
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "roams near the pagoda on the Plane of Sky (good caster, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Ruddish the Devout",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Ruddish the Devout"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the river bank on the south-west border of the Spider Mines (good healer)",
+   "water": "land"
+  },
+  {
+   "name": "Plagued Forest Drake",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "at",
+    2,
+    7505,
+    6720
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "south Toxxulia near Shrixiv, Odus (good healer, episode 2; a fit of ours over Odus)",
+   "water": "land"
+  },
+  {
+   "name": "Plagued Kobold Hunter",
+   "role": "foe",
+   "body": [
+    "npc",
+    "clan kolbok warrior"
+   ],
+   "place": [
+    "at",
+    2,
+    8087,
+    7574
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "roams the Stonebrunt Mountains, Odus (good healer, episode 2; a fit of ours over Odus)",
+   "water": "land"
+  },
+  {
+   "name": "Biddleby",
+   "role": "foe",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    19627,
+    10513
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "two hills north of the east gate of Rivervale (episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Avatar of Hate",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Avatar of Fear"
+   ],
+   "place": [
+    "at",
+    0,
+    9823,
+    19672
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "by the blessing rock across the river from Ruddish the Devout (good healer, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Avatar of Hate",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Avatar of Fear"
+   ],
+   "place": [
+    "at",
+    0,
+    22507,
+    10926
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "close to Animator Jen'Tylis in the Green Rift (evil caster, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Erollisi Marr",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    9840,
+    19640
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "by the blessing rock, after the Avatar of Hate (good healer, episode 3; the guide's Errolisi Marr)",
+   "water": "land"
+  },
+  {
+   "name": "Ozmo da Basher",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Oggok Gate (south), west of Kerplunk (evil tank; the guide's Ozma Da Basher)",
+   "water": "land"
+  },
+  {
+   "name": "Teledic",
+   "role": "foe",
+   "body": [
+    "race",
+    "erudite",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Teledic"
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "Vox Castle in Permafrost (evil caster, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Avatar of Love",
+   "role": "foe",
+   "body": [
+    "race",
+    "elf",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Avatar of Love"
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "west of Ruddish the Devout by the north river, Spider Mines (evil caster, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Wandering Spectre",
+   "role": "foe",
+   "body": [
+    "npc",
+    "spectre"
+   ],
+   "place": [
+    "at",
+    0,
+    15439,
+    20805
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "across the river in Centaur Valley, north of Blackwater (evil healer, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Red Derelict Mummy",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Tainted Mummy"
+   ],
+   "place": [
+    "near",
+    "Necrologist Zizclank",
+    120,
+    1
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the south tomb of the Dead Hills, where the Plane of Disease opens (evil healer, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "ancient soul",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    0,
+    22221,
+    30299
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "a skeletal giant on a hill by a swampy lake, north-west of Seer Yalgima (evil healer, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "first spirit",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "near",
+    "Kraznak",
+    12,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "comes to Kraznak from the south (evil healer, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "second spirit",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "near",
+    "Kraznak",
+    12,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "comes to Kraznak from the west (evil healer, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "third spirit",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "near",
+    "Kraznak",
+    12,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "comes to Kraznak from the south-east (evil healer, episode 3)",
+   "water": "land"
   }
  ],
  "attackable": [
-  "Parathior"
+  "Calidux",
+  "Parathior",
+  "Tilvyis S`Lynx"
  ]
 }

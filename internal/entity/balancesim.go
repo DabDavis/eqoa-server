@@ -74,6 +74,13 @@ type SimPlay struct {
 	// time spent casting nothing) and casts its spells from there, none of
 	// more than simRootLongCast
 	Root bool
+	// Charm: before the fight it charms a creature CharmDiff levels from its
+	// own with the best charm of its book that takes that level (a
+	// necromancer's undead charm a skeleton; a resisted one is let be and
+	// another tried), which then fights for it as a summoned pet does (Pet's
+	// play): the creature's own numbers, as charm.go keeps them
+	Charm     bool
+	CharmDiff int
 }
 
 // SimNPC is the NPC: a row as the server spawns it.
@@ -111,6 +118,7 @@ const (
 	simTick      = 100 * time.Millisecond
 	simMe        = 0x00AA0001 // the player's object id
 	simFoeID     = 0x00BB0001 // the NPC's on the player's channel 0
+	simCharmID   = 0x00CC0001 // a creature to charm, on the player's channel 1
 	simPlayer    = EntityID(1001)
 	simFoe       = EntityID(5001)
 	simApart     = 2.0  // how far apart a melee fight starts
@@ -254,7 +262,10 @@ func (f *simFight) run(limit time.Duration) SimResult {
 		f.castBuffs()
 	}
 	var pet *NPC
-	if f.pl.Play.Pet {
+	switch {
+	case f.pl.Play.Charm:
+		pet = f.charm()
+	case f.pl.Play.Pet:
 		pet = f.summon()
 	}
 	for f.now.Before(f.t0) {
@@ -390,7 +401,85 @@ func (f *simFight) prepTime() time.Duration {
 		}
 		d += pet
 	}
+	if f.pl.Play.Charm {
+		if s := f.charmSpell(); s != nil {
+			d += s.CastTime + castLand + castBusy + simTick
+		}
+	}
 	return d
+}
+
+// charmSpell is the book's best charm for a creature of CharmDiff levels from
+// the player: the highest whose cap takes it, nil for none.
+func (f *simFight) charmSpell() *CastSpell {
+	level := max(f.p.Level+f.pl.Play.CharmDiff, 1)
+	var best *CastSpell
+	for i := range f.pl.Spells {
+		s := &f.pl.Spells[i]
+		if s.Def.Charms() && s.Level <= f.p.Level && charmMaxLevel(s) >= level && (best == nil || s.Level > best.Level) {
+			best = s
+		}
+	}
+	return best
+}
+
+// SimCharmable is whether the kit's book has a charm that takes a creature
+// diff levels from its own.
+func SimCharmable(pl SimPlayer, diff int) bool {
+	f := &simFight{p: &Player{Level: pl.Level}, pl: pl}
+	f.pl.Play.CharmDiff = diff
+	return f.charmSpell() != nil
+}
+
+// charm charms a creature of CharmDiff levels from the player beside it
+// (SimPlay.Charm) and gives back the pet it makes: nil when no charm takes
+// it or eight in a row are resisted.
+func (f *simFight) charm() *NPC {
+	best := f.charmSpell()
+	if best == nil {
+		return nil
+	}
+	w, p := f.w, f.p
+	name := "a sim beast"
+	if best.Def.undeadOnly() {
+		name = "a sim skeleton" // undead by its name (undead.go)
+	}
+	level := max(p.Level+f.pl.Play.CharmDiff, 1)
+	vs := GetOrCreateVisibility(f.sess)
+	for try := range 8 {
+		id := EntityID(6001 + try)
+		rec := &database.NPCRecord{ID: int(id), NPCName: name, NPCLevel: level, NPCType: 0x0100,
+			XCoord: p.X - 3, YCoord: p.Y, ZCoord: p.Z, Size: 1}
+		w.mu.Lock()
+		c := NPCFromRecord(rec, 0, nil)
+		w.applyNPCSettingsLocked(c)
+		w.NPCs[c.ServerID] = c
+		w.SpatialIndex.Insert(c.ServerID, c.X, c.Z)
+		vs.ChannelEntity[1], vs.ChannelObjectID[1] = c.ServerID, simCharmID+uint32(try)
+		p.Power = p.MaxPowerNow()
+		w.mu.Unlock()
+		if !w.StartCast(f.sess, *best, simCharmID+uint32(try), f.now) {
+			return nil
+		}
+		for range int((best.CastTime + castLand + castBusy) / simTick) {
+			f.tick()
+		}
+		w.mu.Lock()
+		pet := w.petOfLocked(p)
+		if pet == nil {
+			// resisted: it comes at its caster; let it be (gone) and try
+			// another, the charm's lockout waited out (time not counted)
+			w.dropAggroLocked(c.ServerID)
+			w.removeNPCLocked(c)
+			p.HP = p.MaxHPNow()
+			p.Lockouts = nil
+		}
+		w.mu.Unlock()
+		if pet != nil {
+			return pet
+		}
+	}
+	return nil
 }
 
 // engage presses the attack button at the NPC, and holds it.

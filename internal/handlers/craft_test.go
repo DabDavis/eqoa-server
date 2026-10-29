@@ -347,6 +347,14 @@ func TestCraftCreateMakesTheProduct(t *testing.T) {
 	if qty, hp, key, p := netItemHead(t, got[4][2:]); qty != 1 || hp != 50 || key != 3 || p != int64(f.plate) {
 		t.Fatalf("0x003B: %d of item %d at %d, key %d; want 1 of %d at 50, key 3", qty, p, hp, key, f.plate)
 	}
+	// whole: one new plate at its full condition, not worn, on no quick
+	// slot, under key 3, the item record as the item store has it
+	plate, err := database.NewItemPatternStore(f.db).GetItemPattern(f.plate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	made := database.CharInventoryEntry{StackLeft: 1, RemainHP: 50, EquipLoc: -1, Location: -1, Pattern: *plate}
+	mustBytes(t, "0x003B", got[4], addInvItemPayload(&made, 3))
 	if f.stack(f.ore) != 0 || f.stack(f.gem) != 1 || f.stack(f.plate) != 1 {
 		t.Fatalf("kept: ore %d, gems %d, plates %d; want 0, 1, 1", f.stack(f.ore), f.stack(f.gem), f.stack(f.plate))
 	}

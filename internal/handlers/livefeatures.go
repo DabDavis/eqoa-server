@@ -55,8 +55,12 @@ func buildAuctionFormOffer() []byte {
 }
 
 // SendLiveFeatures tells a live client what this server has (0x07F5) and
-// offers the live auction forms (OpcodeAuctionForm), once the player is in
-// the world. A PS2 ignores both.
+// offers the live auction forms (OpcodeAuctionForm, 0x7E0B), once the player
+// is in the world. A PS2 ignores both. The word goes FIRST, and must: a
+// client answers the offer 1 when its sell form names a quantity, which it
+// does by the word's bit 0x08 (the stacks), so the offer read before the word
+// would be answered as the disc's form and a count of 1 would then put up a
+// whole stack.
 func SendLiveFeatures(sess *session.Session) {
 	queueReliable(sess, protocol.OpcodeLiveFeatures, buildLiveFeatures())
 	queueReliable(sess, protocol.OpcodeAuctionForm, buildAuctionFormOffer())

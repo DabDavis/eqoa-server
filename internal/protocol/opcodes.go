@@ -444,7 +444,7 @@ const (
 	// whole); 0 goes back. Without it a Sell of count 1 puts up the whole
 	// bank record, as the disc's form (whose count is the constant 1) means
 	// it; a count over 1 is a quantity from any client. A PS2 ignores it.
-	OpcodeAuctionForm GameOpcode = 0x7E0A
+	OpcodeAuctionForm GameOpcode = 0x7E0B
 
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length

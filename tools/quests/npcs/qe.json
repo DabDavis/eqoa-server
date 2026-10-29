@@ -1,0 +1,470 @@
+{
+ "set": "qe",
+ "npcs": [
+  {
+   "name": "Deathknight Endraval",
+   "role": "foe",
+   "body": [
+    "npc",
+    "deathknight Halik"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "among the dead trees west of Takish'Hiz, south-west of the Oasis coach (Takish'Hiz (W))",
+   "water": "land"
+  },
+  {
+   "name": "Mausoleum Portal",
+   "role": "talker",
+   "body": [
+    "npc",
+    "dark portal"
+   ],
+   "place": [
+    "at",
+    1,
+    4335.0,
+    6388.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the portal in the mausoleum of the Dead Hills' tomb yard (NW), by Necrologist Zizclank",
+   "water": "land"
+  },
+  {
+   "name": "Fatima",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    5,
+    4604.0,
+    3812.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the Last House (PoD's closed building in the south-west), its entrance hall, y -12",
+   "water": "land"
+  },
+  {
+   "name": "Last House Orderly",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    5,
+    4588.0,
+    3812.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "the Last House's entrance hall; white-faced until the quest makes them attack (spawned hostile)",
+   "water": "land"
+  },
+  {
+   "name": "Last House Orderly",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    5,
+    4620.0,
+    3812.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "the Last House's entrance hall, Fatima's other side",
+   "water": "land"
+  },
+  {
+   "name": "Last House Healer",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    5,
+    4600.0,
+    3784.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 54,
+   "note": "the Last House: the room at the end of the hall with the three bathtubs",
+   "water": "land"
+  },
+  {
+   "name": "Rebo",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    5,
+    4652.0,
+    3744.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the Last House, past Fatima along the east hall",
+   "water": "land"
+  },
+  {
+   "name": "Last House Pharmacist",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    5,
+    4620.0,
+    3730.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the Last House: a room off the middle hall",
+   "water": "land"
+  },
+  {
+   "name": "Medelonia",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    5,
+    4600.0,
+    3718.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the Last House's middle hall",
+   "water": "land"
+  },
+  {
+   "name": "Last House Physician",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    5,
+    4620.0,
+    3680.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 56,
+   "note": "the Last House: his room off the north hall",
+   "water": "land"
+  },
+  {
+   "name": "Watchful Orderly",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    5,
+    4566.0,
+    3704.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "the Last House: the end of the small hallway off the physician's room; he sends the questor through the wall",
+   "water": "land"
+  },
+  {
+   "name": "Portal of the Last House",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Portal to the Dead Hills"
+   ],
+   "place": [
+    "at",
+    5,
+    4540.0,
+    3612.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the Last House's west wing (y -1.3), up from where the Watchful Orderly sends one",
+   "water": "land"
+  },
+  {
+   "name": "Filth Squid",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Giant Moray Eel"
+   ],
+   "place": [
+    "at",
+    5,
+    5044.0,
+    3600.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "PoD's entrance pond, by the whirling portal; peaceful until the mud is inspected (the quest spawns hostile copies)",
+   "water": "water"
+  },
+  {
+   "name": "Filth Squid",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Giant Moray Eel"
+   ],
+   "place": [
+    "at",
+    5,
+    5020.0,
+    3610.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "PoD's entrance pond",
+   "water": "water"
+  },
+  {
+   "name": "Sthlumchoxius",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Giant Moray Eel"
+   ],
+   "place": [
+    "at",
+    5,
+    5076.0,
+    3590.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the named kraken of PoD's entrance pond; the quest spawns a hostile copy",
+   "water": "water"
+  },
+  {
+   "name": "Throne of Bertoxxulous",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Whirling Portal"
+   ],
+   "place": [
+    "at",
+    5,
+    4840.0,
+    2729.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Bertoxxulous's throne on the island in the middle valley (actor 15681FC3 at (4840, -23.5, 2729)), behind where he stands",
+   "water": "land"
+  },
+  {
+   "name": "toxic pollutive slime",
+   "role": "foe",
+   "body": [
+    "npc",
+    "plague jelly"
+   ],
+   "place": [
+    "at",
+    5,
+    5540.0,
+    3024.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "nox pool A of the three round the cauldron (5608, 3057)",
+   "water": "both"
+  },
+  {
+   "name": "cillieane viturille",
+   "role": "foe",
+   "body": [
+    "npc",
+    "viscera scavenger"
+   ],
+   "place": [
+    "at",
+    5,
+    5558.0,
+    3036.0
+   ],
+   "count": 2,
+   "level": 56,
+   "note": "by nox pool A",
+   "water": "both"
+  },
+  {
+   "name": "toxic pollutive slime",
+   "role": "foe",
+   "body": [
+    "npc",
+    "plague jelly"
+   ],
+   "place": [
+    "at",
+    5,
+    5700.0,
+    3020.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "nox pool B of the three round the cauldron (5608, 3057)",
+   "water": "both"
+  },
+  {
+   "name": "cillieane viturille",
+   "role": "foe",
+   "body": [
+    "npc",
+    "viscera scavenger"
+   ],
+   "place": [
+    "at",
+    5,
+    5718.0,
+    3032.0
+   ],
+   "count": 2,
+   "level": 56,
+   "note": "by nox pool B",
+   "water": "both"
+  },
+  {
+   "name": "toxic pollutive slime",
+   "role": "foe",
+   "body": [
+    "npc",
+    "plague jelly"
+   ],
+   "place": [
+    "at",
+    5,
+    5600.0,
+    3130.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "nox pool C of the three round the cauldron (5608, 3057)",
+   "water": "both"
+  },
+  {
+   "name": "cillieane viturille",
+   "role": "foe",
+   "body": [
+    "npc",
+    "viscera scavenger"
+   ],
+   "place": [
+    "at",
+    5,
+    5618.0,
+    3142.0
+   ],
+   "count": 2,
+   "level": 56,
+   "note": "by nox pool C",
+   "water": "both"
+  },
+  {
+   "name": "plague toxicologist",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Pluxklez"
+   ],
+   "place": [
+    "near",
+    "Fuming Portal",
+    18,
+    5
+   ],
+   "count": 3,
+   "level": 57,
+   "note": "round the great cauldron among the three nox pools ('toxicologists')",
+   "water": "land"
+  },
+  {
+   "name": "Grum",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Patron of Bertoxxulous"
+   ],
+   "place": [
+    "near",
+    "Yarfsnoogle",
+    12,
+    5
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "by Yarfsnoogle in the nox pools' camp; the spell quest spawns a hostile copy at its end",
+   "water": "land"
+  },
+  {
+   "name": "scuzz toad",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Toady Kolop"
+   ],
+   "place": [
+    "near",
+    "Gluboxious the Fetid",
+    40,
+    5
+   ],
+   "count": 4,
+   "level": 55,
+   "note": "the lake where Gluboxious the Fetid spawns, after the second tunnel",
+   "water": "both"
+  }
+ ]
+}

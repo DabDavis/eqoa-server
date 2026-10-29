@@ -4,8 +4,10 @@ folder of the operator's own, for tools/fix_weapon_types.py.
 
 Allakhazam's EQOA item database (eqoa.allakhazam.com, its players'
 submissions of 2003-2005), as the Wayback Machine archived it:
-- **The item lists by slot** (itemslot.html?slot=Primary, Secondary and
-  Held), each item's name and Allakhazam's own id.
+- **The item lists by slot** (itemslot.html?slot=Primary, Secondary, Held,
+  Arms, Chest, Ear, Feet, Finger, Hands, Head, Inventory, Legs, Neck, Robe,
+  Shoulder and Waist), each item's name, Allakhazam's own id and the list's
+  slot (tools/fix_wear_slots.py reads an item's slot off them).
 - **A page an item** (item.html?eqoaitem=<id>): its slot, weapon type ("One
   Hand Blunt", "Two Hand Piercing", ...), damage, level, classes, races,
   condition and stats.
@@ -33,7 +35,7 @@ again, so a run that stops is resumed by running it again.
 
 **Which pages:**
 - With --db, those the lists name of the database's weapons of no attack
-  type (a slot 12, 14, 15 or 16 item with damage and attack type 0; 13 is a shield's).
+  type (a slot 0, 12, 14, 15 or 16 item with damage and attack type 0; 13 is a shield's).
 - With --controls, also those of the melee and ranged weapons Sandstorm's
   records hold (eqoa harvest JSON). Sandstorm's types are the measure
   fix_weapon_types.py holds Allakhazam's to.
@@ -55,7 +57,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fetch_spell_pages import fetch, read_file  # noqa: E402
 
 SITE = "http://eqoa.allakhazam.com:80"
-SLOTS = ("Primary", "Secondary", "Held")
+SLOTS = ("Primary", "Secondary", "Held", "Arms", "Chest", "Ear", "Feet", "Finger", "Hands", "Head", "Inventory", "Legs",
+         "Neck", "Robe", "Shoulder", "Waist")
 # the fields a page names, as its text has them
 FIELDS = ["Slot", "Weapon Type", "DAMAGE", "Item Level", "Max Item HP", "Durability", "Classes", "Races",
           "Description"]
@@ -192,7 +195,7 @@ def wanted_names(db_path, controls):
         db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
         try:
             for (n,) in db.execute("SELECT itemname FROM itempattern WHERE weapondamage > 0 AND attacktype = 0 "
-                                   "AND equipslot IN (12, 14, 15, 16)"):
+                                   "AND equipslot IN (0, 12, 14, 15, 16)"):
                 names.add(key(n))
         finally:
             db.close()

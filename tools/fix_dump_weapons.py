@@ -37,12 +37,19 @@ does sell Sandstorm's records.
    (OURS), never the stand-in's.
 5. One-hand blunt (OURS), listed: nothing says what it is.
 
+**A weapon in wear slot 0** (284 on eqoaclassic: no slot, CLIENT's "empty";
+Sandstorm's records use none, and the server's wear table refuses it) goes
+to its hand slot by its attack type, Allakhazam's "Secondary" to 14; one of
+no attack type takes one first, as above. One named as armour (a shield,
+bracers, a ring) is left to tools/fix_wear_slots.py.
+
 **A weapon with the stand-in icon** (slot 12, 14, 15 or 16: 13 is a shield's; of any type) takes its own
 Sandstorm record's icon, else the commonest icon of its kind (the name's last
 word and attack type) among Sandstorm's weapons, then this server's, else
 the commonest of its attack type among Sandstorm's (OURS: a stand-in of its
-kind). The stand-in is the icon most weapons of no attack type carry when
-no Sandstorm record has it, or --placeholder's.
+kind). A stand-in is an icon on 20 weapons or more of three kinds or more that no
+Sandstorm item carries (eqoaclassic has two: 848266163, the dump's weapons',
+and -570739083, every slot 0 item's), or --placeholder's.
 
 A weapon with no model takes the model most of this server's weapons of its
 kind wear, else the commonest of its attack type (ours, as
@@ -59,7 +66,7 @@ it and drops the log. Report only by default. The server reads the record
 at each swing, so a weapon strikes at once; a client draws its model and
 icon and files its slot from the item records it gets at its login.
 
-    tools/fix_dump_weapons.py [--db eqoa.db] --pages <folder> --prices <harvests> ... [--placeholder ICON] [--apply | --undo]
+    tools/fix_dump_weapons.py [--db eqoa.db] --pages <folder> --prices <harvests> ... [--placeholder ICON ...] [--apply | --undo]
 """
 import argparse
 import collections
@@ -178,15 +185,16 @@ def sandstorm(paths):
     return {k: next(iter(v)) for k, v in seen.items() if len(v) == 1}, icons
 
 
-def placeholder_icon(db, ss_icons):
-    """The dump's stand-in icon: the one most weapons of no attack type carry,
-    when it is on more than half of them and on none of Sandstorm's items."""
-    rows = db.execute("SELECT itemicon, count(*) FROM itempattern WHERE weapondamage > 0 AND attacktype = 0 "
-                      "AND equipslot IN (12, 14, 15, 16) GROUP BY itemicon ORDER BY 2 DESC").fetchall()
-    total = sum(n for _, n in rows)
-    if rows and rows[0][1] * 2 > total and rows[0][0] not in ss_icons:
-        return rows[0][0]
-    return None
+def placeholder_icons(db, ss_icons):
+    """The dump's stand-in icons: each on 20 weapons or more, of three kinds or
+    more (a real icon draws one kind), that no Sandstorm item carries."""
+    kinds = collections.defaultdict(collections.Counter)
+    for icon, at, name in db.execute("SELECT itemicon, attacktype, itemname FROM itempattern WHERE "
+                                     "(weapondamage > 0 OR attacktype > 0) AND equipslot IN (0, 12, 14, 15, 16)"):
+        g = by_words(name)
+        kinds[icon][at or (g[0] if g else 0)] += 1
+    return {icon for icon, c in kinds.items()
+            if icon not in ss_icons and sum(c.values()) >= 20 and len([k for k in c if k]) >= 3}
 
 
 def allakhazam(folder):
@@ -243,7 +251,12 @@ def slot_for(at, slot, page_slot=""):
     return slot if slot in (12, 14) else 12
 
 
-def plan(db, ss, ak, stand_in):
+# what, in slot 0, is armour and no weapon (left to tools/fix_wear_slots.py)
+ARMOUR_WORDS = (r"\b(?:shields?|targes?|bucklers?|bracers?|vambraces?|bracelets?|braclets?|bangles?|armlets?|armwraps?|"
+                r"wraps|cuffs?|shackles?|chains|rings?|bands?|greaves|insignias?|charms?)\b")
+
+
+def plan(db, ss, ak, stand_ins):
     """[(patternid, name, before, after, source)] and what was left."""
     skip = set()
     if has_table(db, "itemeffect"):
@@ -263,7 +276,7 @@ def plan(db, ss, ak, stand_in):
     our_type_icon = collections.defaultdict(collections.Counter)
     for name, icon, model, at in typed:
         words = key(name).split()
-        if icon and icon != stand_in:
+        if icon and icon not in stand_ins:
             icons[icon][at] += 1
             if words:
                 our_kind_icon[(words[-1], at)][icon] += 1
@@ -275,7 +288,7 @@ def plan(db, ss, ak, stand_in):
     ss_kind_icon = collections.defaultdict(collections.Counter)
     ss_type_icon = collections.defaultdict(collections.Counter)
     for name, (at, _ws, icon) in ss.items():
-        if icon and icon != stand_in:
+        if icon and icon not in stand_ins:
             words = name.split()
             if words:
                 ss_kind_icon[(words[-1], at)][icon] += 1
@@ -301,7 +314,7 @@ def plan(db, ss, ak, stand_in):
 
     def icon_for(k, at):
         """(icon, why) of a weapon of the stand-in's."""
-        if k in ss and ss[k][2] and ss[k][2] != stand_in:
+        if k in ss and ss[k][2] and ss[k][2] not in stand_ins:
             return ss[k][2], "its Sandstorm icon"
         words = k.split()
         for table, why in ((ss_kind_icon, "Sandstorm's"), (our_kind_icon, "this server's")):
@@ -314,21 +327,26 @@ def plan(db, ss, ak, stand_in):
         return None, ""
 
     out, left = [], []
+    marks = ", ".join("?" * len(stand_ins)) or "NULL"
     rows = db.execute("SELECT patternid, itemname, itemdesc, itemicon, equipslot, model, unk5, attacktype, weapondamage, "
-                      "levelreq FROM itempattern WHERE equipslot IN (12, 14, 15, 16) AND "
-                      "(attacktype = 0 OR itemicon = ?) ORDER BY patternid",
-                      (stand_in if stand_in is not None else 0,)).fetchall()
+                      "levelreq FROM itempattern WHERE (equipslot IN (12, 14, 15, 16) AND "
+                      f"(attacktype = 0 OR itemicon IN ({marks}))) OR "
+                      "(equipslot = 0 AND (attacktype > 0 OR weapondamage > 0)) ORDER BY patternid",
+                      sorted(stand_ins)).fetchall()
     for pid, name, desc, icon, slot, model, rng, at0, dmg, level in rows:
         if pid in skip:
             left.append((name, "a potion's or a GM's"))
             continue
         k = key(name)
+        if slot == 0 and re.search(ARMOUR_WORDS, k):
+            left.append((name, "in slot 0 and named as armour: tools/fix_wear_slots.py's"))
+            continue
         before, after = {}, {}
         source = ""
         at = at0
         named = k in ss or k in ak or by_words(name) or by_words(desc or "")
         if at0 == 0 and dmg == 0 and not named:
-            if icon == stand_in:
+            if icon in stand_ins:
                 left.append((name, "no damage and nothing says it is a weapon"))
             continue
         if at0 == 0:
@@ -344,7 +362,7 @@ def plan(db, ss, ak, stand_in):
             elif by_words(desc or ""):
                 at, _ = by_words(desc)
                 new_slot, source = slot_for(at, slot), "description"
-            elif icon != stand_in and icon in icons:
+            elif icon not in stand_ins and icon in icons:
                 at = icons[icon].most_common(1)[0][0]
                 new_slot, source = slot_for(at, slot), "icon"
             else:
@@ -361,7 +379,12 @@ def plan(db, ss, ak, stand_in):
                     continue
                 before["weapondamage"], after["weapondamage"] = 0, new_dmg
                 source += "; " + why
-        if stand_in is not None and icon == stand_in and at:
+        elif slot == 0:
+            # typed, but in no slot: its hand slot by its type
+            page_slot = ak[k][1] if k in ak and ak[k][0] == at0 else ""
+            after["equipslot"], before["equipslot"] = slot_for(at0, 0, page_slot), 0
+            source = "its type's hand slot"
+        if icon in stand_ins and at:
             new_icon, why = icon_for(k, at)
             if new_icon:
                 before["itemicon"], after["itemicon"] = icon, new_icon
@@ -380,7 +403,7 @@ def plan(db, ss, ak, stand_in):
     return out, left
 
 
-def measure(db, ss, ak, stand_in):
+def measure(db, ss, ak, stand_ins):
     """How often each source agrees with Sandstorm's records where both have a
     weapon: [(source, agree, of)]."""
     icons = collections.defaultdict(collections.Counter)
@@ -388,7 +411,7 @@ def measure(db, ss, ak, stand_in):
     for name, icon, at in db.execute("SELECT itemname, itemicon, attacktype FROM itempattern "
                                      "WHERE weapondamage > 0 AND attacktype BETWEEN 1 AND 10"):
         names.setdefault(key(name), icon)
-        if icon and icon != stand_in:
+        if icon and icon not in stand_ins:
             icons[icon][at] += 1
     res = []
     both = [(k, ss[k][0], ak[k][0]) for k in ss if k in ak]
@@ -417,7 +440,7 @@ def main():
     ap.add_argument("--db", default=DEFAULT_DB)
     ap.add_argument("--pages", help="tools/fetch_item_pages.py's folder (Allakhazam's pages)")
     ap.add_argument("--prices", nargs="*", default=[], help="eqoa harvest JSON files or folders of them")
-    ap.add_argument("--placeholder", type=int, help="the dump's stand-in icon (default: found)")
+    ap.add_argument("--placeholder", type=int, action="append", help="a stand-in icon (default: found)")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true", help="write the weapons (logged)")
     g.add_argument("--undo", action="store_true", help="put back what --apply changed")
@@ -452,21 +475,23 @@ def main():
     if not ss:
         sys.exit("no Sandstorm weapon records: give --prices (eqoa harvest JSON)")
     ak, split = allakhazam(a.pages)
-    stand_in = a.placeholder if a.placeholder is not None else placeholder_icon(db, ss_icons)
-    print(f"the dump's stand-in icon: {stand_in}" if stand_in is not None else "no stand-in icon found")
-    changes, left = plan(db, ss, ak, stand_in)
+    stand_ins = set(a.placeholder) if a.placeholder else placeholder_icons(db, ss_icons)
+    print("the dump's stand-in icons: " + (", ".join(map(str, sorted(stand_ins))) if stand_ins else "none found"))
+    changes, left = plan(db, ss, ak, stand_ins)
     for pid, name, before, after, source in changes:
         print(f"{pid:7d} {name}: " + ", ".join(f"{c} {before[c]} -> {after[c]}" for c in after) + f" ({source})")
     for name, why in left:
         print(f"note: {name}: {why}")
-    for what, agree, of in measure(db, ss, ak, stand_in):
+    for what, agree, of in measure(db, ss, ak, stand_ins):
         print(f"measured: {what} agree with Sandstorm's records on {agree} of {of} weapons"
               + (f" ({100 * agree / of:.1f}%)" if of else "") if "other pages" not in what else
               f"measured: {what}: {agree} of {of}" + (f" ({100 * agree / of:.1f}%)" if of else ""))
     typed = collections.Counter(c[4].split(";")[0].split()[0] for c in changes if "attacktype" in c[3])
     iconed = sum(1 for c in changes if "itemicon" in c[3])
+    unslotted = sum(1 for c in changes if c[2].get("equipslot") == 0)
     print(f"{len(changes)} weapons to change: {sum(typed.values())} given a type ("
-          + ", ".join(f"{n} by {s_}" for s_, n in typed.most_common()) + f"), {iconed} a new icon; "
+          + ", ".join(f"{n} by {s_}" for s_, n in typed.most_common()) + f"), {iconed} a new icon, "
+          f"{unslotted} out of slot 0; "
           f"{len(ak)} of Allakhazam's weapon names read, {split} whose pages disagree")
     if not a.apply or not changes:
         if not a.apply:

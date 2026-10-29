@@ -9,6 +9,15 @@ stocked; a catalog already there (a GM's, Sandstorm's, another tool's) stays.
 
 Who sells what, the first that gives one:
 
+0. Sandstorm's own catalog: a merchant a --prices harvest opened (the 10-21
+   harvest's, a faction survey's: every `eqoa harvest` JSON with a merchants
+   list) is matched to the nearest NPC of ours of its name in its world within
+   MATCH_RADIUS (else one whose name is a letter off, as
+   import_sandstorm_harvest.py matches them), and its wares, in Sandstorm's
+   order, to our patterns: the ware's own id under its name, else its name,
+   else its id at its wear slot and level (a renamed item). A ware this
+   database lacks is listed, never made: the catalog is what is here of it.
+   One with none of its wares here goes on to the next tier.
 1. Return Home's catalog (--prh, jib's export): import_prh_content.py ran
    --no-catalogs, as no price was known; its own map of Return Home's rows to
    ours (prh_import_npcs) and of its patterns (prh_import_ids) gives each of
@@ -45,7 +54,8 @@ shop word: a flag on a beast is a mistake), and one that a --prices harvest
 shows on Sandstorm without the merchant flag.
 
 Prices, for every catalog item whose itemcost is 0 (a nonzero one is never
-changed: Sandstorm's, a GM's, or another tool's):
+changed, Sandstorm's, a GM's or another tool's, but for the exception
+below):
 
 - Measured: an item of the same name (case, a backtick and spacing aside)
   that Sandstorm prices: a --prices file (an `eqoa harvest` JSON: its
@@ -69,6 +79,11 @@ changed: Sandstorm's, a GM's, or another tool's):
   A new harvest refits it: --prices with the harvest's files, after --undo.
   The report also names the catalog items that keep a price of their own
   (not Sandstorm's) ODD times or more off the rule's, for a GM to look at.
+- The exception (the coordinator's, 2026-10-29), narrow and logged as any
+  price is (undone with the rest), never on a pattern a GM edited or one
+  import_sandstorm_harvest.py wrote: a grocer's price stock_grocers.py set
+  (grocer_stock: ours, 10 tunar a level) for an item Sandstorm's merchants
+  sell takes Sandstorm's value.
 
 Every change is logged in merchant_stock (what it was and what it became) and
 --undo puts it all back but a row changed since (a GM's edit: left alone and
@@ -78,12 +93,16 @@ take a copy of the database first (<db>.bak-<when>-pre-merchants). Report only
 by default. Restart the server after --apply or --undo: catalogs and prices
 are read as they are needed, but the NPCs' npc_id at its start.
 
-Run import_sandstorm_harvest.py --apply --add --all-merchants first when a
-harvest holds merchants' wares: Sandstorm's own catalogs (and the items in
-them) are better than any model here, and this tool stocks only who is left.
+Sandstorm's catalogs come from this tool, not import_sandstorm_harvest.py
+--all-merchants: that one makes the items a catalog lacks (and renumbers an
+id held by another name) and rewrites every price it meets with the
+harvest's, the grocers' too.
 
     tools/stock_merchants.py --prh prh-export.db [--db eqoa.db]
-        [--prices HARVEST.json|DIR|PRICES.tsv ...] [--apply | --undo]
+        [--prices HARVEST.json|HARVEST_DIR|PRICES.tsv ...] [--apply | --undo]
+
+A directory is read for its *.json (a survey's .tsv files are faction and
+stop lists, not prices); a .tsv or .csv named is a price list.
 """
 import argparse
 import collections
@@ -105,6 +124,8 @@ MERCHANT, NPC_BIT = 0x01, 0x80
 LIST_CAP = 40            # CLIENT's item list (handlers' invListCap)
 SCROLL_ICON = -607649328
 TOWN_LINK = 300.0        # merchants this near each other are one town
+MATCH_RADIUS = 30.0      # a harvested merchant and our nearest NPC of its name this close are one
+NEAR_RADIUS = 30.0       # ... and one whose name is a letter off, this close
 REGION_K = 25            # the creatures whose median level is the region's
 REGION_RADIUS = 3000.0
 REGION_DEFAULT = 20      # a merchant with no creature within the radius
@@ -289,6 +310,8 @@ class Measured:
         self.sources = collections.Counter()
         self.seen = {}             # (world, norm name) -> npc flags, as Sandstorm shows them
         self.opened = {}           # (world, norm name) -> wares Sandstorm sells there (count)
+        self.merchants = []        # the harvests' merchants: name, world, pos, wares, when
+        self.sold = set()          # norm names of what Sandstorm's merchants sell
 
     def add(self, item, source):
         n = norm(item["name"])
@@ -307,8 +330,7 @@ class Measured:
     def load(self, paths):
         files = []
         for p in paths:
-            files += sorted(glob.glob(os.path.join(p, "*.json")) + glob.glob(os.path.join(p, "*.tsv")) +
-                            glob.glob(os.path.join(p, "*.csv"))) if os.path.isdir(p) else [p]
+            files += sorted(glob.glob(os.path.join(p, "*.json"))) if os.path.isdir(p) else [p]
         if paths and not files:
             sys.exit(f"--prices: no files in {', '.join(paths)}")
         for f in files:
@@ -327,8 +349,11 @@ class Measured:
                 wares = m.get("wares")
                 if wares is not None:
                     self.opened[(world, norm(m["name"]))] = len(wares)
+                    self.merchants.append(dict(name=m["name"], world=world, pos=m.get("pos") or [0, 0, 0],
+                                               wares=[ware_item(w) for w in wares], when=d.get("when", 0)))
                 for w in wares or []:
                     self.add(ware_item(w), "harvest ware")
+                    self.sold.add(norm(w["name"]))
             for w in d.get("inventory") or []:
                 self.add(ware_item(w), "harvest inventory")
             for s in d.get("seen") or []:
@@ -510,9 +535,10 @@ class Grid:
 
 
 def load_npcs(db):
-    npcs = [dict(id=i, name=n or "", type=t or 0, npc_id=k or 0, world=w or 0, x=x or 0.0, z=z or 0.0, level=lv or 0)
-            for i, n, t, k, w, x, z, lv in db.execute(
-                "SELECT id, npc_name, npc_type, npc_id, world, x_coord, z_coord, npc_level FROM npcs ORDER BY id")]
+    npcs = [dict(id=i, name=n or "", type=t or 0, npc_id=k or 0, world=w or 0, x=x or 0.0, y=y or 0.0, z=z or 0.0,
+                 level=lv or 0)
+            for i, n, t, k, w, x, y, z, lv in db.execute(
+                "SELECT id, npc_name, npc_type, npc_id, world, x_coord, y_coord, z_coord, npc_level FROM npcs ORDER BY id")]
     for n in npcs:
         n["key"] = n["npc_id"] or n["id"]
     return npcs
@@ -581,6 +607,90 @@ def prh_catalogs(db, prh, patterns):
     return out, fate
 
 
+# ---- Sandstorm's own catalogs ----
+
+def one_letter_off(a, b):
+    """Whether two names differ by one letter added, dropped or changed
+    (import_sandstorm_harvest.py's: Return Home's "Merchant Liliac" is
+    Sandstorm's "Merchant Lilac")."""
+    if a == b or abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) > len(b):
+        a, b = b, a
+    i = 0
+    while i < len(a) and a[i] == b[i]:
+        i += 1
+    return a[i + (len(a) == len(b)):] == b[i + 1:]
+
+
+def harvest_on_npcs(npcs, measured):
+    """The harvests' merchants on our NPCs, as import_sandstorm_harvest.py
+    matches them: the same world, the same name within MATCH_RADIUS, else a
+    name a letter off within NEAR_RADIUS; of two harvests of one merchant the
+    latest; of two merchants on one NPC the nearer. npcs row -> (the
+    merchant, matched by a near name)."""
+    latest = {}
+    for m in sorted(measured.merchants, key=lambda m: m["when"]):
+        latest[(m["world"], norm(m["name"]), round(m["pos"][0]), round(m["pos"][2]))] = m
+    grid = Grid(NEAR_RADIUS)
+    for n in npcs:
+        grid.add(n)
+    out, misses = {}, []
+    for m in latest.values():
+        x, y, z = (list(m["pos"]) + [0, 0, 0])[:3]
+        best = near = None
+        for _, n in grid.near(m["world"], x, z, NEAR_RADIUS):
+            d = math.dist((x, y, z), (n["x"], n["y"], n["z"]))
+            if norm(n["name"]) == norm(m["name"]):
+                if d <= MATCH_RADIUS and (best is None or d < best[0]):
+                    best = (d, n)
+            elif one_letter_off(norm(n["name"]), norm(m["name"])) and d <= NEAR_RADIUS:
+                if near is None or d < near[0]:
+                    near = (d, n)
+        hit = best or near
+        if hit is None:
+            if m["wares"]:
+                misses.append(m)
+            continue
+        d, n = hit
+        if n["id"] not in out or d < out[n["id"]][0]:
+            out[n["id"]] = (d, m, best is None)
+    return {i: (m, by_near) for i, (_, m, by_near) in out.items()}, misses
+
+
+def ware_pattern(w, patterns, by_name):
+    """Our pattern of a Sandstorm ware, and how it was matched: its own id
+    under its name; else its name (the one at its wear slot and level first,
+    then the lowest id); else its id at its wear slot and level (a renamed
+    item, as prices are matched). None for an item this database lacks."""
+    n = norm(w["name"])
+    p = patterns.get(w["id"])
+    if p is not None and norm(p["name"]) == n:
+        return p["id"], "id"
+    cands = by_name.get(n)
+    if cands:
+        same = [c for c in cands if c["slot"] == w["slot"] and c["level"] == w["level"]]
+        return min(same or cands, key=lambda c: c["id"])["id"], "name"
+    if p is not None and p["slot"] == w["slot"] and p["level"] == w["level"]:
+        return p["id"], f"id ({p['name']})"
+    return None, None
+
+
+def sandstorm_catalog(m, patterns, by_name):
+    """A harvested merchant's wares as our patterns, in its order: the pattern
+    ids, the wares this database lacks, the ones matched by a renamed id."""
+    items, missing, renamed = [], [], []
+    for w in m["wares"]:
+        pid, how = ware_pattern(w, patterns, by_name)
+        if pid is None:
+            missing.append(w["name"])
+        elif pid not in items:
+            items.append(pid)
+            if how.startswith("id ("):
+                renamed.append(f"{w['name']} = our {patterns[pid]['name']}")
+    return items[:LIST_CAP], missing, renamed
+
+
 # ---- the plan ----
 
 class Plan:
@@ -592,6 +702,9 @@ class Plan:
         self.free = {}         # pattern -> how (Sandstorm sells it at 0)
         self.unpriced = []
         self.gm_priced = []    # patterns a GM edited: their 0 left alone
+        self.reprice = {}      # pattern -> (old, new, why): the exception to "never a nonzero price"
+        self.sandstorm = {}    # npcs row -> (items, missing, renamed, by a near name) of Sandstorm's own
+        self.misses = []       # harvested merchants with wares on no NPC here
         self.prh_report = {}
 
 
@@ -650,6 +763,25 @@ def plan(db, prh, measured, patterns):
     # 1. Return Home's catalogs
     rh, fate = prh_catalogs(db, prh, patterns)
     empty_ids = {n["id"] for n in empty}
+    gm_keys, gm_patterns = gm_edits(db)
+    by_name = collections.defaultdict(list)
+    for pat in patterns.values():
+        by_name[norm(pat["name"])].append(pat)
+    harvested, p.misses = harvest_on_npcs(npcs, measured)
+    for n in empty:
+        h = harvested.get(n["id"])
+        if h is not None and h[0]["wares"] and n["key"] not in gm_keys:
+            items, missing, renamed = sandstorm_catalog(h[0], patterns, by_name)
+            p.sandstorm[n["id"]] = (items, missing, renamed, h[1])
+    for n in empty:
+        ss = p.sandstorm.get(n["id"])
+        if n["key"] in gm_keys:
+            p.left_out[n["id"]] = "a GM edited its catalog in the panel (gm_audit): left as it is"
+        elif ss and ss[0]:
+            whole = "whole" if not ss[1] else f"{len(ss[0])} of {len(ss[0]) + len(ss[1])} wares here"
+            p.stock[n["id"]] = (ss[0], f"Sandstorm's catalog ({whole})")
+        elif n["id"] in rh:
+            p.stock[n["id"]] = (rh[n["id"]], "Return Home's catalog")
     tally = collections.Counter()
     for sid, (st, dst, n_src, n_ok) in fate.items():
         n = by_id.get(dst)
@@ -663,15 +795,12 @@ def plan(db, prh, measured, patterns):
             tally[(st, "none of its items here")] += 1
         elif rh.get(dst) is None:
             tally[(st, "a second copy of one NPC")] += 1
+        elif not p.stock.get(dst, ("", ""))[1].startswith("Return Home"):
+            tally[(st, "Sandstorm's own catalog instead")] += 1
         else:
             tally[(st, "stocked from it")] += 1
     p.prh_report = tally
-    gm_keys, gm_patterns = gm_edits(db)
-    for n in empty:
-        if n["key"] in gm_keys:
-            p.left_out[n["id"]] = "a GM edited its catalog in the panel (gm_audit): left as it is"
-        elif n["id"] in rh:
-            p.stock[n["id"]] = (rh[n["id"]], "Return Home's catalog")
+    p.harvested = harvested
 
     # who is left out, and each one's trade
     trade = {}
@@ -772,10 +901,15 @@ def plan(db, prh, measured, patterns):
     wanted = {x for n in merchants if n["npc_id"] for x in catalogs.get(n["npc_id"], ())}
     wanted |= {x for items, _ in p.stock.values() for x in items}
     p.odd = []
+    ours_set = set_by(db)
     for x in sorted(wanted):
         pat = patterns.get(x)
         if pat is None:
             continue  # a row naming no pattern: GetNPCItems' join drops it too
+        why = exception(x, pat, ours_set, gm_patterns, measured, rule)
+        if why:
+            p.reprice[x] = why
+            continue
         if pat["cost"] > 0:
             # kept, but named when it is far from what the rule would say
             if norm(pat["name"]) not in measured.by_name:
@@ -800,6 +934,37 @@ def plan(db, prh, measured, patterns):
             p.prices[x] = (v, "ours: " + how)
     p.by_id, p.region, p.town, p.empty = by_id, region, town, empty
     return p
+
+
+def set_by(db):
+    """Which tool set a pattern's price, of the one whose prices the
+    exception below may change, and of Sandstorm's import, whose never:
+    pattern -> 'grocers' | 'sandstorm' (the last wins)."""
+    out = {}
+    tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+    if "grocer_stock" in tables:
+        for (k,) in db.execute("SELECT DISTINCT key FROM grocer_stock WHERE what = 'itemcost'"):
+            out[k] = "grocers"
+    if "sandstorm_import_rows" in tables:
+        for (k,) in db.execute("SELECT DISTINCT key FROM sandstorm_import_rows WHERE tbl = 'itempattern'"):
+            out[k] = "sandstorm"
+    return out
+
+
+def exception(x, pat, ours_set, gm_patterns, measured, rule):
+    """The exception to "never a nonzero price", narrow and logged: a
+    grocer's price of stock_grocers.py's (ours: 10 tunar a level) for an item
+    Sandstorm's merchants sell takes Sandstorm's value: (old, new, why), or
+    None. Never one a GM edited, nor one Sandstorm's import wrote."""
+    if x in gm_patterns or pat["cost"] <= 0:
+        return None
+    src = ours_set.get(x)
+    if src == "grocers":
+        n = norm(pat["name"])
+        v = measured.by_name.get(n)
+        if n in measured.sold and v and v != pat["cost"]:
+            return (pat["cost"], v, f"stock_grocers.py's price (ours); Sandstorm sells it at {v}")
+    return None
 
 
 def general_goods(patterns, measured):
@@ -858,7 +1023,7 @@ def report(db, p, patterns, measured, files):
         r = per[t]
         r[0] += 1
         r[1] += len(items)
-        r[2] += [p.prices.get(x, (patterns[x]["cost"], ""))[0] for x in items]
+        r[2] += [p.reprice[x][1] if x in p.reprice else p.prices.get(x, (patterns[x]["cost"], ""))[0] for x in items]
         r[3] += s.startswith("Return Home")
     print("by trade: merchants, rows, of them Return Home's, prices (min / median / max):")
     for t, (n, rows, prices, rh) in sorted(per.items(), key=lambda kv: -kv[1][0]):
@@ -868,17 +1033,37 @@ def report(db, p, patterns, measured, files):
     for i, (items, s) in sorted(p.stock.items(), key=lambda kv: (by_id[kv[0]]["world"], by_id[kv[0]]["name"])):
         n = by_id[i]
         print(f"    {n['name']} (row {i}, world {n['world']}): {len(items)} items, {s}")
+    if measured.merchants:
+        ss = p.sandstorm
+        whole = sorted((i for i, v in ss.items() if v[0] and not v[1]), key=lambda i: by_id[i]["name"])
+        part = sorted((i for i, v in ss.items() if v[0] and v[1]), key=lambda i: by_id[i]["name"])
+        none = sorted((i for i, v in ss.items() if not v[0]), key=lambda i: by_id[i]["name"])
+        kept = sorted(by_id[i]["name"] for i, (m, _) in p.harvested.items()
+                      if i not in ss and m["wares"] and by_id[i]["type"] & MERCHANT)
+        print(f"Sandstorm's own catalogs (the --prices harvests' merchants on our NPCs): {len(ss)} of the empty "
+              f"merchants have one: {len(whole)} whole, {len(part)} partial, {len(none)} with none of their wares "
+              f"here (left to the next tier); {len(kept)} more are on merchants that sell something already (kept)")
+        if whole:
+            print(f"  whole: {', '.join(by_id[i]['name'] for i in whole)}")
+        for i in part + none:
+            items, missing, _, _ = ss[i]
+            print(f"  {by_id[i]['name']} (row {i}): {len(items)} of {len(items) + len(missing)} here; "
+                  f"this database lacks {', '.join(missing)}")
+        renamed = [r for v in ss.values() for r in v[2]]
+        if renamed:
+            print(f"  wares matched by a renamed id: {', '.join(sorted(set(renamed)))}")
+        near = [(by_id[i]["name"], p.harvested[i][0]["name"]) for i, (m, by_near) in p.harvested.items() if by_near]
+        if near:
+            print(f"  matched by a name a letter off: {', '.join(f'{theirs} is our {ours}' for ours, theirs in sorted(near))}")
+        if p.misses:
+            print(f"  {len(p.misses)} harvested merchants with wares are on no NPC here (the nearest of the name "
+                  f"within {MATCH_RADIUS:g}): {', '.join(sorted(m['name'] + ' at ' + str([round(v) for v in m['pos']]) + ' world ' + str(m['world']) for m in p.misses))}")
     print(f"left out: {len(p.left_out)}")
     why = collections.Counter(p.left_out.values())
     for w, c in why.most_common():
         names = sorted(by_id[i]["name"] for i, r in p.left_out.items() if r == w)
         print(f"  {c:4d}  {w}: {', '.join(names[:30])}{' ...' if len(names) > 30 else ''}")
     if measured.opened:
-        has = [i for i in p.stock if measured.opened.get((by_id[i]["world"], norm(by_id[i]["name"])), 0) > 0]
-        if has:
-            print(f"{len(has)} of them have Sandstorm's own catalog in the --prices harvest, not imported: "
-                  f"import_sandstorm_harvest.py --apply --add --all-merchants first gives them that: "
-                  f"{', '.join(sorted(by_id[i]['name'] for i in has)[:20])}{' ...' if len(has) > 20 else ''}")
         none = [i for i in p.stock if measured.opened.get((by_id[i]["world"], norm(by_id[i]["name"]))) == 0]
         if none:
             print(f"{len(none)} sell nothing on Sandstorm either (opened by a harvest): "
@@ -891,6 +1076,9 @@ def report(db, p, patterns, measured, files):
     if measured.conflicts:
         print(f"  {len(measured.conflicts)} names with two values (the first kept): "
               f"{', '.join(f'{n} {sorted(v)}' for n, v in sorted(measured.conflicts.items())[:10])}")
+    groc = sorted((x, a, b) for x, (a, b, w) in p.reprice.items() if w.startswith("stock_grocers"))
+    print(f"grocers' prices (stock_grocers.py's, ours) of items Sandstorm sells, set to Sandstorm's: {len(groc)}"
+          + (": " + ", ".join(f"{patterns[x]['name']} {a} -> {b}" for x, a, b in groc) if groc else ""))
     how = collections.Counter(h.split(" (")[0] for _, h in p.prices.values())
     print(f"prices to set: {len(p.prices)} {dict(how)}; Sandstorm's 0 kept: {len(p.free)}; "
           f"no price found: {len(p.unpriced)}")
@@ -920,10 +1108,11 @@ def report(db, p, patterns, measured, files):
     for pat in patterns.values():
         if pat["cost"] > 0:
             costs[norm(pat["name"])].add(pat["cost"])
+    repriced = {norm(patterns[x]["name"]) for x in p.reprice}
     differ = [(n, v, min(costs[n])) for n, v in measured.by_name.items()
-              if v and len(costs.get(n, ())) == 1 and v not in costs[n]]
+              if v and len(costs.get(n, ())) == 1 and v not in costs[n] and n not in repriced]
     if differ:
-        print(f"{len(differ)} items priced here (ours, kept) that Sandstorm prices otherwise: "
+        print(f"{len(differ)} items priced here (not Sandstorm's, kept) that Sandstorm prices otherwise: "
               f"{', '.join(f'{n} {c} (Sandstorm {v})' for n, v, c in sorted(differ)[:12])}"
               f"{' ...' if len(differ) > 12 else ''}")
 
@@ -976,6 +1165,12 @@ def apply(db, p):
                 continue  # priced since the plan: never a nonzero one
             db.execute("UPDATE itempattern SET itemcost = ? WHERE patternid = ?", (v, x))
             log.append(("itemcost", x, str(old), str(v), how))
+        for x, (was, v, why) in p.reprice.items():
+            old = db.execute("SELECT itemcost FROM itempattern WHERE patternid = ?", (x,)).fetchone()[0]
+            if old != was:
+                continue  # changed since the plan: left as it is
+            db.execute("UPDATE itempattern SET itemcost = ? WHERE patternid = ?", (v, x))
+            log.append(("itemcost", x, str(old), str(v), why))
         for x, how in p.free.items():
             log.append(("free", x, "0", "0", f"Sandstorm sells it at 0 ({how})"))
         for x in p.gm_priced:

@@ -365,6 +365,7 @@ class Sets(Fixture):
         self.assertEqual(sq.guide_of("1-20/freeport/warrior/L3"), "1-20/freeport/warrior")
         self.assertEqual(sq.guide_of("Portal/zaoran-plateau/portal"), "portal/zaoran-plateau")
         self.assertEqual(sq.guide_of("30,40,49/group-4-evil/p1"), "30-40-49/group-4-evil", "the map's ids: lower case, hyphens")
+        self.assertEqual(sq.guide_of("Misc/Fairy-In-A-Jug/p2"), "misc/fairy-in-a-jug", "case folded")
         with open(os.path.join(self.quests, "portal.json"), "w") as f:
             json.dump(dict(city="portal", quests=[dict(key="Portal/test-isle/p1", giver="Isle Keeper", steps=[])]), f)
         self.assertEqual(sq.guides_of(self.quests)[sq.key("Isle Keeper")], {"portal/test-isle"})
@@ -378,6 +379,56 @@ class Sets(Fixture):
         p = self.plan([sq.S("Isle Keeper", sq.TALKER, ("race", "human", sq.MALE), ("poi", "tunaria", "Isle Keeper"))])
         r = p["rows"][0]["row"]
         self.assertEqual((round(r["x_coord"]), round(r["z_coord"])), (10200, 4200), "2 x 4600 + 1000, 2 x 1100 + 2000")
+
+    def test_south_tunaria_in_the_rathes_box_and_placeholder_sightings(self):
+        # the sheet draws the Rathe's inset beside south Tunaria: a point in the
+        # box is the Rathe's only when nearest one of the Rathe's places
+        with open(os.path.join(self.data, "Map", "zones.json")) as f:
+            zones = json.load(f)
+        zones["zones"] += [dict(name="Lake Rathe", x=6000, y=9900), dict(name="Kelinar", x=7900, y=9800)]
+        zones["pois"] += [dict(name="Rathe Thing", x=6100, y=9950), dict(name="Tunaria Thing", x=7800, y=9850)]
+        with open(os.path.join(self.data, "Map", "zones.json"), "w") as f:
+            json.dump(zones, f)
+        db = self.connect()
+        cols, npcs, bodies, pc, ff = sq.load(db)
+        sheet = sq.Map(zones, npcs, ff)
+        rathe = {p["name"]: sheet.rathe(p) for p in zones["pois"] + zones["zones"]}
+        self.assertEqual((rathe["Rathe Thing"], rathe["Tunaria Thing"], rathe["Kelinar"], rathe["Map Thing (12)"]),
+                         (True, False, False, False))
+        p = self.plan([sq.S("Lost One", sq.TALKER, ("race", "human", sq.MALE), ("poi", "rathe", "Tunaria Thing")),
+                       sq.S("Lost Two", sq.TALKER, ("race", "human", sq.MALE), ("poi", "tunaria", "Rathe Thing"))])
+        self.assertIn(("Lost One", "map point 'Tunaria Thing' is Tunaria's (asked: the Rathe's)"), p["left"])
+        self.assertIn(("Lost Two", "map point 'Rathe Thing' is the Rathe's inset's (asked: Tunaria's)"), p["left"])
+        # a spot eight names were seen at is FrontiersForge's placeholder; seven a place
+        rows = [(f"Placeholder {i}", 9, 0, 3001.0, 25.0, 18025.0, 0) for i in range(8)] + \
+            [(f"Prisoner {i}", 9, 0, 11100.0, wt.height(11100, 4400), 4400.0, 0) for i in range(7)]
+        db.executemany("INSERT INTO npcs_ff_import (npc_name, npc_level, world, x_coord, y_coord, z_coord, pos_suspect) "
+                       "VALUES (?, ?, ?, ?, ?, ?, ?)", rows)
+        p = self.plan([sq.S("Placeholder 3", sq.FOE, ("kind", "bear"), ("ff",)),
+                       sq.S("Prisoner 3", sq.FOE, ("kind", "bear"), ("ff",))])
+        self.assertEqual([r["name"] for r in p["rows"]], ["Prisoner 3"])
+        self.assertIn(("Placeholder 3", "no FrontiersForge sighting"), p["left"])
+
+    def test_odus_has_its_own_fit(self):
+        db = self.connect()
+        # three Odus townsfolk (world 2) and their points: x = 3 mx - 2000, z = 3 my - 9000
+        for name, mx, my in (("Odus Alpha", 1000, 4000), ("Odus Beta", 1300, 4400), ("Odus Gamma", 1150, 4800)):
+            npc(db, name, 3 * mx - 2000, 3 * my - 9000, HUMAN_M, ntype=128, world=2)
+        with open(os.path.join(self.data, "Map", "zones.json")) as f:
+            zones = json.load(f)
+        zones["towns"] += [dict(name="Odus Alpha", x=1000, y=4000), dict(name="Odus Beta", x=1300, y=4400),
+                           dict(name="Odus Gamma", x=1150, y=4800)]
+        zones["pois"] += [dict(name="Odus Thing (21)", x=1200, y=4500)]
+        with open(os.path.join(self.data, "Map", "zones.json"), "w") as f:
+            json.dump(zones, f)
+        p = self.plan([sq.S("Odus Thing", sq.FOE, ("kind", "bear"), ("poi", "odus", "Odus Thing"))])
+        (a, b, c, d), kept, _ = p["odus"]
+        self.assertEqual((round(a, 3), round(b), round(c, 3), round(d), kept), (3.0, -2000, 3.0, -9000, 3))
+        self.assertEqual(p["left"], [("Odus Thing", "no floor round (1600, 4500) in world 2")],
+                         "placed by Odus's fit, in world 2 (no ground file for it here)")
+        _, errs = sq.load_sets([self.spec_file("qd", [dict(name="X", role="foe", body=["kind", "bear"],
+                                                          place=["poi", "odus", "Odus Thing"])])])
+        self.assertEqual(errs, [], "an odus place is a spec file's too")
 
     def run_cli(self, *args):
         import subprocess

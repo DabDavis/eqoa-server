@@ -1353,8 +1353,8 @@ def main(argv=None):
     if not a.no_backup:
         print("backup:", backup(db, a.db))
     rows = apply(db, p)
-    print(f"wrote {rows} catalog rows for {len(p.stock)} merchants, {len(p.prices)} prices "
-          f"and {len(p.keyed)} npc_id keys; restart the server")
+    print(f"wrote {rows} catalog rows for {len(p.stock)} merchants, {len(p.prices)} prices, "
+          f"{len(p.reprice)} prices of the two exceptions and {len(p.keyed)} npc_id keys; restart the server")
     return 0
 
 

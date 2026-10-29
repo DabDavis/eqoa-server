@@ -949,6 +949,147 @@
    "count": 3,
    "note": "the ravine east of Wyndhaven's coach, with the enraged wolves (the Whirlwind's swirling look)",
    "water": "land"
+  },
+  {
+   "name": "Vargilder Souralld",
+   "role": "talker",
+   "body": [
+    "race",
+    "barbarian",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "a small tent across the frozen lake, Anu Village (SW)",
+   "water": "land"
+  },
+  {
+   "name": "Warlord Treg",
+   "role": "foe",
+   "body": [
+    "kind",
+    "orc"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "on a big hill surrounded by Frosteyes west of Anu Village, Snowblind Plains (SE)",
+   "water": "land"
+  },
+  {
+   "name": "Orc Excavation Site",
+   "role": "talker",
+   "body": [
+    "npc",
+    "cursed grave"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "by Warlord Treg's hill",
+   "water": "land"
+  },
+  {
+   "name": "Prophet Olvadr Korskr",
+   "role": "foe",
+   "body": [
+    "npc",
+    "tenacious frost giant"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "at a dark tower west of Warlord Treg, Snowblind Plains (W)",
+   "water": "land"
+  },
+  {
+   "name": "Giant Excavation Site",
+   "role": "talker",
+   "body": [
+    "npc",
+    "cursed grave"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "by Prophet Olvadr Korskr's tower (the guide's Ice Giant Excavation Site)",
+   "water": "land"
+  },
+  {
+   "name": "Jebdo Stikala",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "at",
+    0,
+    17450.0,
+    25350.0
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "a ghost close to the river in Tak 'Xiv West (SE), following it west from Oasis (the place is ours)",
+   "water": "land"
+  },
+  {
+   "name": "Magluza",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    15450.0,
+    10670.0
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "on a small hill with a T stone in the swamp south of Baga Village (NE) (the place is ours)",
+   "water": "land"
+  },
+  {
+   "name": "Guard Zex",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Coachman D'Larik",
+    40,
+    0
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "the top of Fort Seriak's north-east guard tower (here by the coach)",
+   "water": "land"
+  },
+  {
+   "name": "Arctic Spiritcaller",
+   "role": "foe",
+   "body": [
+    "npc",
+    "tenacious frost giant"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "spawns in place of a tenacious frost giant at the ice giant camps, Snowblind Plains (S)",
+   "water": "land"
   }
  ]
 }

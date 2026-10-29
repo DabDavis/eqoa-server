@@ -33,11 +33,25 @@ import (
 // amount is the item's own HoT or PoT; an item that has none gives its level
 // (tools/stock_grocers.py writes that into itempattern, so a GM sees and can
 // change it). None of it is measured.
+//
+// A new character's rations are meals too (the user, 2026-10-29: "should be
+// magic slot as usable"): Sandstorm's (tools/fix_start_item_records.py) are
+// of CLIENT's usable type, 2 (the record's +0x4C: VIInfoText::IsUsable), and
+// described as the food they are ("A slice of toasted bread with mushroom
+// infused butter, ..."), with no stat and no words for what eating one does.
+// An item of type 2 named a ration, cuisine or snacks (the ten: field, trail,
+// mine, tundra, plains, jungle, thicket rations, Gnomish Ration, travel
+// cuisine, toad snacks) is eaten as a meal: OURS, its level's HoT (1).
 
 var (
-	mealDesc  = regexp.MustCompile(`(?i)\bmeal\b.*\bhealth regeneration\b`)
-	drinkDesc = regexp.MustCompile(`(?i)\bbeverage\b.*\bpower regeneration\b`)
+	mealDesc   = regexp.MustCompile(`(?i)\bmeal\b.*\bhealth regeneration\b`)
+	drinkDesc  = regexp.MustCompile(`(?i)\bbeverage\b.*\bpower regeneration\b`)
+	rationName = regexp.MustCompile(`(?i)\b(rations?|cuisine|snacks)\b`)
 )
+
+// usableType is CLIENT's item type of the things it offers to use and the
+// HUD's first two quick slots take: food, drink, potions (VIInfoText::IsUsable).
+const usableType = 2
 
 // The effects' icons, spellpattern.icon as it reaches the wire: a meal's is
 // Regenerative Aura's ("Increase HP per tic", the whole healing line's icon:
@@ -70,7 +84,7 @@ func consumableOf(p *database.ItemPatternRecord) (entity.Consumable, bool) {
 		return *v
 	}
 	switch {
-	case mealDesc.MatchString(p.ItemDesc):
+	case mealDesc.MatchString(p.ItemDesc), p.ProcAnim == usableType && rationName.MatchString(p.ItemName):
 		c.Icon, c.Amount = mealEffectIcon, own(p.HoT)
 	case drinkDesc.MatchString(p.ItemDesc):
 		c.Drink, c.Icon, c.Amount = true, drinkEffectIcon, own(p.PoT)

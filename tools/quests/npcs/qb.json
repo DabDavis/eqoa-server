@@ -1,0 +1,186 @@
+{
+ "set": "qb",
+ "npcs": [
+  {
+   "name": "Thumgrim Stoutshield",
+   "role": "talker",
+   "body": [
+    "race",
+    "dwarf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Thumgrim Stoutshield"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "a Forkwatch trainer, in the bar opposite the coach (Group 1, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "savage bear",
+   "role": "foe",
+   "body": [
+    "npc",
+    "savage bear"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Savage Bear"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "the savage bear that roams outside Al-Karad's Ruin (Group 1, level 30; the server's others are 8,500 off)",
+   "water": "land"
+  },
+  {
+   "name": "Silvermist Alpha",
+   "role": "foe",
+   "body": [
+    "kind",
+    "dog"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "in the cave off the long road north of Trail's End (Group 1, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Rauntet",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "in the undead valley of Al'Farak Ruins, west of the Nashier camp (Group 1, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Assassin",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 41,
+   "note": "the Night Callers' assassin who comes for Crikston Gundlefop in Highpass (Group 1, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Trapper McGee",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 41,
+   "note": "roams Surefall Glade, past and near the lake (Group 1, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Urisai",
+   "role": "talker",
+   "body": [
+    "kind",
+    "bear"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the great bear spirit at the druid ring in Surefall Glade (Group 1, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "The Caretaker",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "keeper of the Heyokah Burial Ground, east of Murnf (Group 1, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Eidolon of Malice",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Eidolon of Malice (49)"
+   ],
+   "count": 1,
+   "level": 46,
+   "note": "in the Heyokah Burial Ground by the Caretaker (Group 1, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Oransan",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Oransan"
+   ],
+   "place": [
+    "near",
+    "Crikston Gundlefop",
+    8,
+    0
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "Oransan in Highpass Hold (the guide: downstairs in the Highpass Inn; Groups 1 level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Parathior",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Parathior"
+   ],
+   "place": [
+    "near",
+    "Parathior",
+    35,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "Parathior to fight by Oransan's broken tower in the north Snowblind Plains (the server's own Parathior is not attackable; Groups 1, 2 and 5, level 49)",
+   "water": "land"
+  }
+ ]
+}

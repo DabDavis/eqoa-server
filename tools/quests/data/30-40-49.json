@@ -1,0 +1,2289 @@
+{
+ "city": "30-40-49",
+ "quests": [
+  {
+   "key": "30,40,49/group-1-good/L30-fayspire-alchemist",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Venathorn",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/alchemist/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Erilous Skypyre in the north-east corner of the second floor, by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Find Erilous Skypyre in Forkwatch, in the north-east corner of the second floor, by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/fayspire/alchemist/L20, so a alchemist of Fayspires is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-fayspire-cleric",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Tessarina Starshimmer",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/cleric/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Elowyn Dawnspring on the second floor of the big building by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elowyn Dawnspring",
+     "journal": "Find Elowyn Dawnspring in Forkwatch, on the second floor of the big building by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/fayspire/cleric/L20, so a cleric of Fayspires is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-fayspire-paladin",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Sir Lothwin Galiel",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/paladin/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Sir Arik Lightfire at the very top of the big building right of the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sir Arik Lightfire",
+     "journal": "Find Sir Arik Lightfire in Forkwatch, at the very top of the big building right of the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/fayspire/paladin/L20, so a paladin of Fayspires is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-fayspire-wizard",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Lyriam Kaelean",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/wizard/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Erilous Skypyre in the north-east corner of the second floor, by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Find Erilous Skypyre in Forkwatch, in the north-east corner of the second floor, by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/fayspire/wizard/L20, so a wizard of Fayspires is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-freeport-bard",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Solenia Freyar",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/freeport/bard/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Thumgrim Stoutshield in the bar across from the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Thumgrim Stoutshield",
+     "journal": "Find Thumgrim Stoutshield in Forkwatch, in the bar across from the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Thumgrim Stoutshield"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/bard/L20, so a bard of Freeport is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-highbourne-alchemist",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Truborne Jaegir",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/alchemist/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Erilous Skypyre in the north-east corner of the second floor, by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Find Erilous Skypyre in Forkwatch, in the north-east corner of the second floor, by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/highbourne/alchemist/L20, so a alchemist of Highbourne is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-highbourne-cleric",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Bishop Felkahn",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/cleric/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Elowyn Dawnspring on the second floor of the big building by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elowyn Dawnspring",
+     "journal": "Find Elowyn Dawnspring in Forkwatch, on the second floor of the big building by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/highbourne/cleric/L20, so a cleric of Highbourne is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-highbourne-paladin",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Ulana Stillmind",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/paladin/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Sir Arik Lightfire at the very top of the big building right of the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sir Arik Lightfire",
+     "journal": "Find Sir Arik Lightfire in Forkwatch, at the very top of the big building right of the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/highbourne/paladin/L20, so a paladin of Highbourne is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-highbourne-wizard",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Master Rayne",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/wizard/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Erilous Skypyre in the north-east corner of the second floor, by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Find Erilous Skypyre in Forkwatch, in the north-east corner of the second floor, by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/highbourne/wizard/L20, so a wizard of Highbourne is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-klick-anon-alchemist",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Lanlin Ogledmaggen",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/klick-anon/alchemist/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Erilous Skypyre in the north-east corner of the second floor, by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Find Erilous Skypyre in Forkwatch, in the north-east corner of the second floor, by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/klick-anon/alchemist/L20, so a alchemist of Klick'Anon is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-klick-anon-cleric",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Teka Harnswoof",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/klick-anon/cleric/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Elowyn Dawnspring on the second floor of the big building by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elowyn Dawnspring",
+     "journal": "Find Elowyn Dawnspring in Forkwatch, on the second floor of the big building by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/klick-anon/cleric/L20, so a cleric of Klick'Anon is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-klick-anon-wizard",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Prof. Pansoof",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/klick-anon/wizard/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Erilous Skypyre in the north-east corner of the second floor, by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Find Erilous Skypyre in Forkwatch, in the north-east corner of the second floor, by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/klick-anon/wizard/L20, so a wizard of Klick'Anon is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-moradhim-cleric",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Spellsmith Ulla",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/cleric/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Elowyn Dawnspring on the second floor of the big building by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elowyn Dawnspring",
+     "journal": "Find Elowyn Dawnspring in Forkwatch, on the second floor of the big building by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/moradhim/cleric/L20, so a cleric of Moradhim is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-moradhim-paladin",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Ungrist the Prophet",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/paladin/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Sir Arik Lightfire at the very top of the big building right of the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sir Arik Lightfire",
+     "journal": "Find Sir Arik Lightfire in Forkwatch, at the very top of the big building right of the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/moradhim/paladin/L20, so a paladin of Moradhim is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-qeynos-cleric",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Vedilion Brithstar",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/qeynos/cleric/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Elowyn Dawnspring on the second floor of the big building by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elowyn Dawnspring",
+     "journal": "Find Elowyn Dawnspring in Forkwatch, on the second floor of the big building by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/cleric/L20, so a cleric of Qeynos is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-qeynos-wizard",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Gadenon Flamefist",
+   "classes": [
+    13
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/qeynos/wizard/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Erilous Skypyre in the north-east corner of the second floor, by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Find Erilous Skypyre in Forkwatch, in the north-east corner of the second floor, by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/wizard/L20, so a wizard of Qeynos is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-qeynos-paladin",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Sir Hanst Breach",
+   "classes": [
+    2
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/qeynos/paladin/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Sir Arik Lightfire at the very top of the big building right of the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sir Arik Lightfire",
+     "journal": "Find Sir Arik Lightfire in Forkwatch, at the very top of the big building right of the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/paladin/L20, so a paladin of Qeynos is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-qeynos-bard",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Jenny Sweethy",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/qeynos/bard/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Thumgrim Stoutshield in the bar across from the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Thumgrim Stoutshield",
+     "journal": "Find Thumgrim Stoutshield in Forkwatch, in the bar across from the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Thumgrim Stoutshield"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/bard/L20, so a bard of Qeynos is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-qeynos-alchemist",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Jergish Anaebraum",
+   "classes": [
+    14
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/qeynos/alchemist/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Erilous Skypyre in the north-east corner of the second floor, by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Erilous Skypyre",
+     "journal": "Find Erilous Skypyre in Forkwatch, in the north-east corner of the second floor, by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/alchemist/L20, so a alchemist of Qeynos is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-rivervale-cleric",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Darm Leafsway",
+   "classes": [
+    9
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/cleric/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Elowyn Dawnspring on the second floor of the big building by the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elowyn Dawnspring",
+     "journal": "Find Elowyn Dawnspring in Forkwatch, on the second floor of the big building by the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/rivervale/cleric/L20, so a cleric of Rivervale is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-tethelin-bard",
+   "name": "A New Trainer in Forkwatch",
+   "giver": "Torenia Eaglesong",
+   "classes": [
+    5
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/bard/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Forkwatch: find Thumgrim Stoutshield in the bar across from the Forkwatch coach, and log your next trial there.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Thumgrim Stoutshield",
+     "journal": "Find Thumgrim Stoutshield in Forkwatch, in the bar across from the Forkwatch coach.",
+     "says": "So you have come to walk the path. Crikston Gundlefop in Highpass Hold needs runed tablets found. Go to him, across from the coachman, second floor."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Speak with Crikston Gundlefop in Highpass Hold, second floor across from the coachman.",
+     "says": "Three runed tablets: clay, stone and bronze. Argot Bittersteel in Blakedown, Two-Eyed Jack in Trail's End and Finnus Sodwin at the Black Swan Inn know where. Show them this note.",
+     "rewards": {
+      "items": [
+       "Crikston's note"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Thumgrim Stoutshield"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/tethelin/bard/L20, so a bard of Tethelin is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-a",
+   "name": "The Runed Clay Tablet",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Argot Bittersteel in Blakedown, west and south of the Dagnor's Cauldron coach, lost goods in Al-Karad's Ruin, and a savage bear there carries the clay tablet. Show him my note.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Argot Bittersteel",
+     "items": [
+      {
+       "item": "Crikston's note",
+       "count": 1
+      }
+     ],
+     "journal": "Show Crikston's note to Argot Bittersteel, first building on the right in Blakedown.",
+     "says": "Crikston's errand, then. My goods are in the back room of Al-Karad's Ruin, north of town. And a savage bear out there swallowed the tablet he wants.",
+     "notyet": "Crikston's business? Bring me his note and we will talk."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 10586,
+     "y": 58,
+     "z": 14938,
+     "radius": 25,
+     "journal": "Go down the ramp in Al-Karad's Ruin to the back room and find Argot's goods.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Among the rubble of the back room you find the goods Argot lost. The dead here do not rest: kill what comes at you."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Argot's lost goods",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "savage bear",
+     "items": [
+      {
+       "item": "Runed Clay Tablet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the savage bear that roams outside the ruins and take the runed clay tablet."
+    },
+    {
+     "kind": "give",
+     "target": "Argot Bittersteel",
+     "items": [
+      {
+       "item": "Argot's lost goods",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Argot Bittersteel his goods.",
+     "says": "My goods, and Crikston's tablet besides. Keep the tablet for him. Take this for your trouble.",
+     "rewards": {
+      "xp": 789086,
+      "items": [
+       "Medallion of Fortitude"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Expedition A (github.com/Jadiction/EQOA-Data, MIT). The guide's loot room asks every creature in it be killed; here the back room is a place to reach (EQOA-Data's map point), and its dead are the ruin's own. Any savage bear drops the tablet (the guide's is the one round the ruins)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-b",
+   "name": "The Runed Stone Tablet",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Two-Eyed Jack in Trail's End, down the long road south of Highpass, knows where the stone tablet went. Show him my note.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Two-Eyed Jack",
+     "items": [
+      {
+       "item": "Crikston's note",
+       "count": 1
+      }
+     ],
+     "journal": "Show Crikston's note to Two-Eyed Jack in Trail's End, south of Highpass.",
+     "says": "Crikston, eh? Then find out what happened to Maximillian Scriber. He took the long road north and never came back. Try the cave on the right side of the road.",
+     "notyet": "Who sent you? Bring me something from Crikston."
+    },
+    {
+     "kind": "loot",
+     "target": "Silvermist Alpha",
+     "items": [
+      {
+       "item": "Maximillian's journal",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Fight into the cave on the road north of Trail's End and kill the Silvermist Alpha for Maximillian's journal.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Runed Stone Tablet",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Two-Eyed Jack",
+     "items": [
+      {
+       "item": "Maximillian's journal",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Maximillian's journal to Two-Eyed Jack.",
+     "says": "So the wolves had him. The tablet is Crikston's; keep it for him. Wear this belt, I made it myself.",
+     "rewards": {
+      "xp": 394543,
+      "items": [
+       "Two-eyed Jack's Belt"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Silvermist Alpha"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Expedition B (github.com/Jadiction/EQOA-Data, MIT). The Silvermist Alpha is a triggered spawn in the guide; here she stands in the cave where FrontiersForge saw her. She drops the journal and the tablet together."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30-c",
+   "name": "The Runed Bronze Tablet",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Finnus Sodwin, second floor of the Black Swan Inn south of the Dagnor's Cauldron coach, knows who has the bronze tablet. Show him my note.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Finnus Sodwin",
+     "items": [
+      {
+       "item": "Crikston's note",
+       "count": 1
+      }
+     ],
+     "journal": "Show Crikston's note to Finnus Sodwin, second floor of the Black Swan Inn.",
+     "says": "The gnoll Skarr has it, deep in Blackburrow past the Gnoll Fort. Kill him and bring me his bronze headpiece.",
+     "notyet": "I talk to Crikston's people. Are you one?"
+    },
+    {
+     "kind": "loot",
+     "target": "Skarr",
+     "items": [
+      {
+       "item": "Bronze Headpiece",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Skarr at the back of the hidden cavern in Blackburrow.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Runed Bronze Tablet",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Finnus Sodwin",
+     "items": [
+      {
+       "item": "Bronze Headpiece",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Skarr's bronze headpiece to Finnus Sodwin.",
+     "says": "Skarr is dead. Keep the tablet for Crikston, and this purse for yourself.",
+     "rewards": {
+      "xp": 1084993,
+      "tunar": 3000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Expedition C (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L30",
+   "name": "Three Tablets for Crikston",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L30-a",
+    "30,40,49/group-1-good/L30-b",
+    "30,40,49/group-1-good/L30-c"
+   ],
+   "offer": "You have all three tablets? Then bring them to me, with my note.",
+   "accept": "Here they are.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Then let me see them.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Crikston Gundlefop",
+     "items": [
+      {
+       "item": "Runed Clay Tablet",
+       "count": 1
+      },
+      {
+       "item": "Runed Stone Tablet",
+       "count": 1
+      },
+      {
+       "item": "Runed Bronze Tablet",
+       "count": 1
+      },
+      {
+       "item": "Crikston's note",
+       "count": 1
+      }
+     ],
+     "journal": "Give the clay, stone and bronze tablets and Crikston's note to Crikston Gundlefop.",
+     "says": "Clay, stone and bronze! Your trainer in Forkwatch shall hear of this. Take what you have earned: your path is yours.",
+     "rewards": {
+      "xp": 7890859,
+      "byclass": {
+       "2": {
+        "spells": [
+         "Gleaming Bastion"
+        ],
+        "items": [
+         "Sword of Purity"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Poison Ward"
+        ],
+        "items": [
+         "Benevolent Battlehammer"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Static Clash"
+        ],
+        "items": [
+         "Staff of Tears"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Power Twist"
+        ],
+        "items": [
+         "Rapier of Rapidity"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Teacher's Knack"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Quest completion (github.com/Jadiction/EQOA-Data, MIT). Crikston gives the final rewards himself (the guide: a letter for the Forkwatch trainer, who gives them; one step serves every class). The guide's choices: the first ability on each class's line and the first weapon that exists here (clerics the Benevolent Battlehammer: no Holy Forgehammer; wizards a Staff of Tears made like a staff of the level). The guide names no alchemist weapon."
+  },
+  {
+   "key": "30,40,49/group-1-good/L40-a",
+   "name": "The Third Paraphet Rod",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L30"
+   ],
+   "offer": "I need three paraphet rods. Two are on their way; the third is with Twindle Fizzmop, behind the blacksmith in Freeport. Get it from him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and mind your purse with that gnome.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Twindle Fizzmop",
+     "journal": "Find Twindle Fizzmop behind the blacksmith in Freeport.",
+     "says": "The rod? Bring me the Sceptre of Tal'Thaz and 3,000 tunar. Rauntet has it, in the undead valley of Al'Farak Ruins west of the Nashier camp."
+    },
+    {
+     "kind": "loot",
+     "target": "Rauntet",
+     "items": [
+      {
+       "item": "Sceptre of Tal'Thaz",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Rauntet in the undead valley of Al'Farak Ruins and take the Sceptre of Tal'Thaz."
+    },
+    {
+     "kind": "give",
+     "target": "Twindle Fizzmop",
+     "items": [
+      {
+       "item": "Sceptre of Tal'Thaz",
+       "count": 1
+      }
+     ],
+     "tunar": 3000,
+     "journal": "Bring the sceptre and 3,000 tunar to Twindle Fizzmop.",
+     "says": "A pleasure. Here is your rod.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "paraphet rod",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Crikston Gundlefop",
+     "items": [
+      {
+       "item": "paraphet rod",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the paraphet rod to Crikston Gundlefop.",
+     "says": "The rod! Wait, who is that? An assassin! Kill him!"
+    },
+    {
+     "kind": "loot",
+     "target": "Assassin",
+     "items": [
+      {
+       "item": "Druidic Symbol",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the assassin who came for Crikston and search him."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Tell Crikston Gundlefop about the druidic symbol.",
+     "says": "A druid's symbol on an assassin? Shiol Anara in Surefall Glade will know it.",
+     "rewards": {
+      "xp": 1000000
+     }
+    }
+   ],
+   "unresolved": [
+    "Rauntet",
+    "Assassin"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40 (github.com/Jadiction/EQOA-Data, MIT). Rauntet stands where FrontiersForge saw him (the guide's is a triggered spawn). The 3,000 tunar is the haggled price (5,000 unhaggled). The assassin stands in Crikston's room, where FrontiersForge saw the one the guide has come when the rod is handed over. The 1,000,000 experience is ours: the guide gives the level's experience at the end."
+  },
+  {
+   "key": "30,40,49/group-1-good/L40-b",
+   "name": "The Great Bear Spirit",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L40-a"
+   ],
+   "offer": "Take the symbol to Shiol Anara in Surefall Glade. Whoever sent that assassin, she can find out.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Shiol Anara",
+     "items": [
+      {
+       "item": "Druidic Symbol",
+       "count": 1
+      }
+     ],
+     "journal": "Show the druidic symbol to Shiol Anara in Surefall Glade.",
+     "says": "Urisai, the great bear spirit, will know it. Bring him an offering: the bow of the poacher McGee, a jade drake's wing and a tainted wolf's hide."
+    },
+    {
+     "kind": "loot",
+     "target": "Trapper McGee",
+     "items": [
+      {
+       "item": "Bow of Poacher McGee",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Trapper McGee, who roams Surefall Glade past the lake, for his bow."
+    },
+    {
+     "kind": "loot",
+     "target": "jade drake",
+     "items": [
+      {
+       "item": "Wing of a Jade Drake",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill jade drakes in Salisearaneen until one gives up a wing."
+    },
+    {
+     "kind": "loot",
+     "target": "tainted wolf",
+     "items": [
+      {
+       "item": "Hide of a Tainted Wolf",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill tainted wolves in Mariel Village until you have a whole hide."
+    },
+    {
+     "kind": "give",
+     "target": "Urisai",
+     "items": [
+      {
+       "item": "Bow of Poacher McGee",
+       "count": 1
+      },
+      {
+       "item": "Wing of a Jade Drake",
+       "count": 1
+      },
+      {
+       "item": "Hide of a Tainted Wolf",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the offering to Urisai at the druid ring in Surefall Glade.",
+     "says": "The symbol is of the Night Callers, who hide in the Unkempt North. Tell your master."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Tell Crikston Gundlefop who sent the assassin.",
+     "says": "The Night Callers. Then they will try again.",
+     "rewards": {
+      "xp": 1000000
+     }
+    }
+   ],
+   "unresolved": [
+    "Trapper McGee",
+    "Urisai"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40 (github.com/Jadiction/EQOA-Data, MIT). The guide has Shiol send the player back with the three items and Urisai appear after half a minute at the druid ring; here Urisai stands at the ring (FrontiersForge's place) and takes the offering. The 1,000,000 experience is ours."
+  },
+  {
+   "key": "30,40,49/group-1-good/L40",
+   "name": "The Examiner's Lens",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L40-b"
+   ],
+   "offer": "One thing more: the lens of an Evil Eye Examiner. One lives in the right tunnel of Moss Mouth Cavern, with goblin guards.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Evil Eye Examiner",
+     "items": [
+      {
+       "item": "Examiner Lens",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Evil Eye Examiner in the right tunnel of Moss Mouth Cavern and take its lens."
+    },
+    {
+     "kind": "give",
+     "target": "Crikston Gundlefop",
+     "items": [
+      {
+       "item": "Examiner Lens",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the examiner lens to Crikston Gundlefop.",
+     "says": "With this I can see what they are planning. Your trainer will hear of you. Take this.",
+     "rewards": {
+      "xp": 14919719,
+      "byclass": {
+       "2": {
+        "spells": [
+         "Hallowed Bastion"
+        ],
+        "items": [
+         "Hammer of Virtue"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Flame Ward"
+        ],
+        "items": [
+         "Sacrosanct Warhammer"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Freezing Clash"
+        ],
+        "items": [
+         "Wand of War"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Power Jig"
+        ],
+        "items": [
+         "Strike of Harmony"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Professor's Knack"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40, Quest completion (github.com/Jadiction/EQOA-Data, MIT). Crikston gives the rewards (the guide: the class trainer in Forkwatch, after a minute). The choices: the first ability on the class's line and the first weapon that exists here (paladins the Hammer of Virtue, clerics the Sacrosanct Warhammer, wizards the Wand of War: their first choices are not in this database). No alchemist weapon is named."
+  },
+  {
+   "key": "30,40,49/group-1-good/L49-a",
+   "name": "The Amulet of Protection",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L40"
+   ],
+   "offer": "Four seals hold a great evil in the north. To reach the first you need protection: Anya Spiritdottir in Binshore, south of Wyndhaven on the coast, will tell you how. Keep all you are given.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and keep everything.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Anya Spiritdottir",
+     "journal": "Find Anya Spiritdottir in Binshore, on the coast south of Wyndhaven.",
+     "says": "Halsfur Whitepaw makes the amulet. He lives in the glowing blue bear cave in the Snowblind Plains, along a ledge on the right wall of the big room. Bring 5,000 tunar."
+    },
+    {
+     "kind": "talk",
+     "target": "Halsfur Whitepaw",
+     "journal": "Find Halsfur Whitepaw along the ledge in the bear cave of the Snowblind Plains.",
+     "says": "An amulet costs a scratched worm chitin and 5,000 tunar. The great worms of Permafrost have the chitin."
+    },
+    {
+     "kind": "loot",
+     "target": "great worm",
+     "items": [
+      {
+       "item": "Scratched Worm Chitin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25,
+     "journal": "Kill great worms in Permafrost until one has a scratched chitin."
+    },
+    {
+     "kind": "give",
+     "target": "Halsfur Whitepaw",
+     "items": [
+      {
+       "item": "Scratched Worm Chitin",
+       "count": 1
+      }
+     ],
+     "tunar": 5000,
+     "journal": "Bring the chitin and 5,000 tunar to Halsfur Whitepaw.",
+     "says": "Wear this in the burial ground and it will not kill you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Amulet of Protection",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Return to Crikston Gundlefop with the Amulet of Protection.",
+     "says": "Good. Now the seals.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49 (github.com/Jadiction/EQOA-Data, MIT). The 2,000,000 experience is ours (the guide gives the level's at the end)."
+  },
+  {
+   "key": "30,40,49/group-1-good/L49-b",
+   "name": "The First Seal",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L49-a"
+   ],
+   "offer": "The first seal is in the Heyokah Burial Ground, in the Spirit Talkers Woods: run east from Murnf to a lake. Wear the amulet, or the ground will kill you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "The Caretaker",
+     "items": [
+      {
+       "item": "Amulet of Protection",
+       "count": 1
+      }
+     ],
+     "journal": "Show the Amulet of Protection to the Caretaker of the Heyokah Burial Ground.",
+     "says": "You may walk here. Then face the Eidolon of Malice, and bring me its essence.",
+     "notyet": "Without protection the ground will eat you alive. Go."
+    },
+    {
+     "kind": "loot",
+     "target": "Eidolon of Malice",
+     "items": [
+      {
+       "item": "essence orb of malice",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Eidolon of Malice and take its essence orb."
+    },
+    {
+     "kind": "give",
+     "target": "The Caretaker",
+     "items": [
+      {
+       "item": "essence orb of malice",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the essence orb to the Caretaker.",
+     "says": "Malice is bound again. Take the Spiritwalker's Totem: it is the first seal.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Spiritwalker's Totem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Tell Crikston Gundlefop you hold the first seal.",
+     "says": "One of four.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [
+    "The Caretaker",
+    "Eidolon of Malice",
+    "The Caretaker"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The First Seal (github.com/Jadiction/EQOA-Data, MIT). The guide's black orb portal, its 650 damage a tick without the amulet and the timed trial are not in: the Caretaker asks to see the amulet. The Caretaker and the Eidolon stand where FrontiersForge and EQOA-Data's map put them. The experience is ours."
+  },
+  {
+   "key": "30,40,49/group-1-good/L49-c",
+   "name": "The Second Seal",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L49-a"
+   ],
+   "offer": "Oransan has come down to Highpass from the north; he stands by me, and knows where the second seal went.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Oransan",
+     "journal": "Speak with Oransan in Highpass Hold, by Crikston Gundlefop.",
+     "says": "The Slar keeps it, in the Den of the Grave Wolves in north-east Salisearaneen. Clear the wolves and take the Shield of Orthimius from him."
+    },
+    {
+     "kind": "loot",
+     "target": "The Slar",
+     "items": [
+      {
+       "item": "Shield of Orthimius",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill The Slar in the Den of the Grave Wolves and take the Shield of Orthimius."
+    },
+    {
+     "kind": "show",
+     "target": "Oransan",
+     "items": [
+      {
+       "item": "Shield of Orthimius",
+       "count": 1
+      }
+     ],
+     "journal": "Show the Shield of Orthimius to Oransan.",
+     "says": "The second seal. Keep it safe.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The Second Seal (github.com/Jadiction/EQOA-Data, MIT). The guide's Oransan is downstairs in the Highpass Inn; ours stands by Crikston (the Snowblind Plains' Oransan does too). The experience is ours."
+  },
+  {
+   "key": "30,40,49/group-1-good/L49-d",
+   "name": "The Third Seal",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L49-a"
+   ],
+   "offer": "The third seal is Frostcleaver, in Permafrost. Kill Frostborn III where he roams by Vox's castle, drive his sword into the ice throne, and take the blade from Frostborn II.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Mind the Voxite wizards: they see the invisible.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Frostborn III",
+     "items": [
+      {
+       "item": "Frostborn's sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Frostborn III in the halls of Permafrost and take his sword."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 4861,
+     "y": 0,
+     "z": 4429,
+     "radius": 30,
+     "journal": "Drive Frostborn's sword into the ice throne in the throne room.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You drive the sword into the ice throne. The ice cracks, and Frostborn II comes to claim his kingdom."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Frostborn II",
+     "items": [
+      {
+       "item": "Frost Cleaver",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Frostborn II and take Frostcleaver."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Tell Crikston Gundlefop you hold the third seal.",
+     "says": "Three of four.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The Third Seal (github.com/Jadiction/EQOA-Data, MIT). Frostborn II stands in the throne room always (the guide's rises when the sword is driven in); the throne is a place to reach, beside him. The experience is ours."
+  },
+  {
+   "key": "30,40,49/group-1-good/L49-e",
+   "name": "The Fourth Seal",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L49-a"
+   ],
+   "offer": "The fourth seal is the Unnamed Crown. In the Unnamed King's castle in Anu Village, kill Tolo Grimsteel and Ganron Lorebane for their gems, then call up the king himself.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tolo Grimsteel",
+     "items": [
+      {
+       "item": "Tolo's gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Tolo Grimsteel in the Unnamed King's castle in Anu Village and take his gem."
+    },
+    {
+     "kind": "loot",
+     "target": "Ganron Lorebane",
+     "items": [
+      {
+       "item": "Ganron's gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Ganron Lorebane and take his gem."
+    },
+    {
+     "kind": "loot",
+     "target": "The Unnamed King",
+     "items": [
+      {
+       "item": "Crown of the Unnamed",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Call up the Unnamed King at the column, kill him and take his crown."
+    },
+    {
+     "kind": "talk",
+     "target": "Crikston Gundlefop",
+     "journal": "Tell Crikston Gundlefop you hold all four seals.",
+     "says": "Four of four. Now Oransan.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The Fourth Seal (github.com/Jadiction/EQOA-Data, MIT). The Unnamed King stands in his castle always (the guide's is called up at a column with both gems). His crown is the database's Crown of the Unnamed. The experience is ours."
+  },
+  {
+   "key": "30,40,49/group-1-good/L49",
+   "name": "Parathior",
+   "giver": "Crikston Gundlefop",
+   "classes": [
+    2,
+    5,
+    9,
+    13,
+    14
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-1-good/L49-b",
+    "30,40,49/group-1-good/L49-c",
+    "30,40,49/group-1-good/L49-d",
+    "30,40,49/group-1-good/L49-e"
+   ],
+   "offer": "Take all four seals to Oransan at the broken tower in the north Snowblind Plains, west of the bear cave. He will call Parathior down. Bring me what is left of it.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and save everything.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Oransan",
+     "items": [
+      {
+       "item": "Spiritwalker's Totem",
+       "count": 1
+      },
+      {
+       "item": "Shield of Orthimius",
+       "count": 1
+      },
+      {
+       "item": "Frost Cleaver",
+       "count": 1
+      },
+      {
+       "item": "Crown of the Unnamed",
+       "count": 1
+      }
+     ],
+     "journal": "Show the four seals to Oransan at the broken tower in the north Snowblind Plains.",
+     "says": "All four. Speak with Orinas while I begin; then the ice will fall from the sky."
+    },
+    {
+     "kind": "talk",
+     "target": "Orinas",
+     "journal": "Speak with Orinas, the bear, beside Oransan.",
+     "says": "When it is done, the weapon you have earned will be yours. Now, look up!"
+    },
+    {
+     "kind": "loot",
+     "target": "Parathior",
+     "items": [
+      {
+       "item": "Ice Chunk",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Parathior and take a chunk of its ice."
+    },
+    {
+     "kind": "give",
+     "target": "Crikston Gundlefop",
+     "items": [
+      {
+       "item": "Ice Chunk",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ice chunk to Crikston Gundlefop.",
+     "says": "It is over. Take your reward, and when you have grown to the height of your power, the Recruiter will have work for you.",
+     "rewards": {
+      "xp": 45558313,
+      "byclass": {
+       "2": {
+        "spells": [
+         "Sacred Bastion"
+        ],
+        "items": [
+         "Virtus Ferrum"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Ice Ward"
+        ],
+        "items": [
+         "Hammer of Absolution"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Burning Clash"
+        ],
+        "items": [
+         "Pulsaric Rod"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Power Grove"
+        ],
+        "items": [
+         "Ballad of Mithril"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Dean's Knack"
+        ],
+        "items": [
+         "Metamorphic Robes"
+        ]
+       }
+      },
+      "items": [
+       "letter to the Klick`Anon Recruiter"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Parathior (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky). Crikston gives the final rewards; the guide's class NPC (bards Kaldesh Illinor in the Freeport tavern) and the approval visits to the givers of the level 20, 30 and 40 quests are not in. Epic weapons are epics_49.json's: the first that exists here (paladins Virtus Ferrum, no Judgement; clerics a Hammer of Absolution made like a hammer of the level)."
+  }
+ ],
+ "items": [
+  {
+   "name": "Crikston's note",
+   "description": "Crikston Gundlefop asks the bearer be helped to the runed tablets.",
+   "notrade": true,
+   "like": "Lanlin's Note"
+  },
+  {
+   "name": "Argot's lost goods",
+   "description": "A bundle Argot Bittersteel left in Al-Karad's Ruin.",
+   "notrade": true,
+   "like": "Bag of Gems"
+  },
+  {
+   "name": "Runed Clay Tablet",
+   "description": "A clay tablet cut with runes.",
+   "notrade": true,
+   "like": "Hatestone"
+  },
+  {
+   "name": "Runed Stone Tablet",
+   "description": "A stone tablet cut with runes.",
+   "notrade": true,
+   "like": "Spitestone"
+  },
+  {
+   "name": "Runed Bronze Tablet",
+   "description": "A bronze tablet cut with runes.",
+   "notrade": true,
+   "like": "Hatestone"
+  },
+  {
+   "name": "Maximillian's journal",
+   "description": "Maximillian Scriber's journal, torn by teeth.",
+   "notrade": true,
+   "like": "Dark Journal"
+  },
+  {
+   "name": "Bronze Headpiece",
+   "description": "Skarr's bronze headpiece.",
+   "notrade": true,
+   "like": "Bronze Circlet"
+  },
+  {
+   "name": "Sceptre of Tal'Thaz",
+   "description": "An ancient elven sceptre.",
+   "notrade": true,
+   "like": "Lord Pickclaw's Scepter"
+  },
+  {
+   "name": "paraphet rod",
+   "description": "The third of Crikston Gundlefop's paraphet rods.",
+   "notrade": true,
+   "like": "Small Metal Rod"
+  },
+  {
+   "name": "Druidic Symbol",
+   "description": "A druid's symbol, carried by the assassin.",
+   "notrade": true,
+   "like": "cracked symbol of Tunare"
+  },
+  {
+   "name": "Bow of Poacher McGee",
+   "description": "Trapper McGee's bow.",
+   "notrade": true,
+   "like": "cracked bow"
+  },
+  {
+   "name": "Wing of a Jade Drake",
+   "description": "A jade drake's wing.",
+   "notrade": true,
+   "like": "vampire bat wing"
+  },
+  {
+   "name": "Hide of a Tainted Wolf",
+   "description": "A tainted wolf's hide.",
+   "notrade": true,
+   "like": "Tanned Wolf Hide"
+  },
+  {
+   "name": "Examiner Lens",
+   "description": "The lens of an evil eye examiner.",
+   "notrade": true,
+   "like": "dull orb"
+  },
+  {
+   "name": "Scratched Worm Chitin",
+   "description": "A great worm's scratched chitin.",
+   "notrade": true,
+   "like": "beetle carapace fragment"
+  },
+  {
+   "name": "Amulet of Protection",
+   "description": "Halsfur Whitepaw's amulet: it shields the wearer in the burial ground.",
+   "notrade": true,
+   "like": "amulet of deception"
+  },
+  {
+   "name": "essence orb of malice",
+   "description": "The essence of the Eidolon of Malice.",
+   "notrade": true,
+   "like": "dull orb"
+  },
+  {
+   "name": "Spiritwalker's Totem",
+   "description": "The Caretaker's totem: the first seal.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Shield of Orthimius",
+   "description": "The second seal, taken from The Slar.",
+   "notrade": true,
+   "like": "ice giant shield"
+  },
+  {
+   "name": "Frostborn's sword",
+   "description": "Frostborn III's sword.",
+   "notrade": true,
+   "like": "froglok sword"
+  },
+  {
+   "name": "Tolo's gem",
+   "description": "Tolo Grimsteel's gem.",
+   "notrade": true,
+   "like": "gem of fury"
+  },
+  {
+   "name": "Ganron's gem",
+   "description": "Ganron Lorebane's gem.",
+   "notrade": true,
+   "like": "gem of wit"
+  },
+  {
+   "name": "Ice Chunk",
+   "description": "A chunk of Parathior's ice.",
+   "notrade": true,
+   "like": "ice glyph"
+  },
+  {
+   "name": "letter to the Klick`Anon Recruiter",
+   "description": "Word that the bearer has finished the path of the forty-ninth season.",
+   "notrade": true,
+   "like": "Sealed Letter"
+  },
+  {
+   "name": "Staff of Tears",
+   "description": "A wizard's staff, the reward of the level 30 path.",
+   "notrade": true,
+   "like": "Quarterstaff of Understanding"
+  },
+  {
+   "name": "Hammer of Absolution",
+   "description": "A cleric's epic hammer, the reward of the level 49 path.",
+   "notrade": true,
+   "like": "Hammer of Spite"
+  }
+ ]
+}

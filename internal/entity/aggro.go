@@ -151,6 +151,14 @@ func (a *aggroState) ruleFor(name string) (AggroRule, bool) {
 	return l.rule, l.ok
 }
 
+// NeutralWildlifeLevel is the highest level of wildlife (wildlife.go: an
+// animal by its name, not undead) that never attacks on sight: neutral, it
+// fights back and starts nothing, whatever its faction or body (the user,
+// 2026-10-29: "the wildlife level 5 and under should not be attacking, but
+// neutral"; a level 1 city cat at the edge of Neriak had set on a level 2
+// dark elf). A GM's npcaggro row for its name still decides first.
+const NeutralWildlifeLevel = 5
+
 // inAggroLevels reports a player within a creature's level range: below three
 // times its level (the file's doc: a level-51 player saw the red face on level
 // 18 and 19 creatures and the white on level 17).
@@ -191,7 +199,8 @@ func (w *World) AggroSummary() string {
 	case len(w.playerModels) == 0:
 		s = fmt.Sprintf("no race models (charactermodel is empty), so only the %d names of the GMs' rules (npcaggro) attack a player on sight", len(w.aggro.rules))
 	default:
-		s = fmt.Sprintf("a hostile one attacks a player below three times its level within %.0f (%d GM rules by name)", DefaultAggroRadius, len(w.aggro.rules))
+		s = fmt.Sprintf("a hostile one attacks a player below three times its level within %.0f (%d GM rules by name); "+
+			"wildlife of level %d and under never does", DefaultAggroRadius, len(w.aggro.rules), NeutralWildlifeLevel)
 	}
 	switch {
 	case w.aggro.factionOff:
@@ -249,6 +258,15 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 	}
 	if npc.EventAggro {
 		return true
+	}
+	if npc.Level <= NeutralWildlifeLevel {
+		if r, ruled := w.aggro.ruleFor(npc.Name); ruled {
+			if !r.Aggressive {
+				return false
+			}
+		} else if _, wild := w.wildlifeLocked(npc); wild {
+			return false
+		}
 	}
 	if f, ok := w.factionAggroLocked(npc); ok {
 		return w.standingLocked(p, f) < FactionKOSBelow

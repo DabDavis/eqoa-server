@@ -266,9 +266,10 @@ func TestAGMRuleNamesWhoAttacksAndFromHowFar(t *testing.T) {
 // Home's lake "cave minnow" peaceful too. Two spellings that disagree: the
 // peaceful one wins.
 func TestAGMRuleIsForEverySpellingOfItsName(t *testing.T) {
+	// level 8: above the wildlife that is neutral by its level (NeutralWildlifeLevel)
 	f := newAggroFix(t, 1)
-	lower := f.npc(2001, "cave minnow", 4, bearBody, 1010, 1000)
-	marked := f.npc(2002, "cave minnow$ ", 4, bearBody, 990, 1000)
+	lower := f.npc(2001, "cave minnow", 8, bearBody, 1010, 1000)
+	marked := f.npc(2002, "cave minnow$ ", 8, bearBody, 990, 1000)
 	f.look()
 	if !f.attacks(lower) {
 		t.Fatal("the control: the minnow with no rule did not attack")
@@ -408,5 +409,28 @@ func TestTheFaceAndTheAttackAgree(t *testing.T) {
 				delete(f.w.NPCs, n.ServerID)
 			}
 		}
+	}
+}
+
+// Wildlife of level 5 and under is neutral (the user, 2026-10-29): a level 5
+// rat 20 off a level 1 player leaves it alone and shows it no red face; the
+// controls: a level 6 rat and a level 5 orc pawn (no animal) attack it, and a
+// GM's rule for the rat's name sets even the level 5 one on it.
+func TestLowWildlifeIsNeutral(t *testing.T) {
+	f := newAggroFix(t, 1)
+	rat := f.npc(2001, "Giant Rat", NeutralWildlifeLevel, bearBody, 1020, 1000)
+	big := f.npc(2002, "Giant Rat", NeutralWildlifeLevel+1, bearBody, 1000, 1020)
+	orc := f.npc(2003, "Orc Pawn", NeutralWildlifeLevel, bearBody, 980, 1000)
+	f.look()
+	if f.attacks(rat) || f.face(rat) == FaceHostile {
+		t.Errorf("the level %d rat attacked (%v) or showed the red face (%d)", rat.Level, f.attacks(rat), f.face(rat))
+	}
+	if !f.attacks(big) || !f.attacks(orc) {
+		t.Errorf("the controls: the level %d rat attacked %v, the orc pawn %v", big.Level, f.attacks(big), f.attacks(orc))
+	}
+	f.w.SetAggroRules(map[string]AggroRule{"Giant Rat": {Aggressive: true}})
+	f.look()
+	if !f.attacks(rat) {
+		t.Error("a GM's rule for the rat did not set it on the player")
 	}
 }

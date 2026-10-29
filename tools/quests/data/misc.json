@@ -9255,6 +9255,561 @@
     "Tree of Life"
    ],
    "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Handle] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here. The class item is given where this server has the guide's: the magician's Slippers of the Trickster, the warrior's Boots of Mischief, the ranger's Mischievous Boots (a level 60 item here). Not on this server, left out: the other classes' (Mischievous Pants, Leggings of the Trickster, Pants of the Trickster, Leggings of Trickery, Gloves of Mischief, Trickster's Gloves, Boots of Trickery, Gloves of Trickery; the bard's, druid's, monk's and shaman's are unnamed)."
+  },
+  {
+   "key": "Misc/harbingers-of-khalimet/p1",
+   "name": "Harbingers of Khalimet",
+   "giver": "Anibael",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The demon general Khalimet is coming, and four harbingers go before him. One has been seen. Gaulin, on the docks of the pond in the hidden village through the tunnel at the Shon-To Monastery, knows more.",
+   "accept": "I will find Gaulin.",
+   "decline": "Not now.",
+   "declined": "Then Khalimet comes unannounced.",
+   "started": "Shon-To, east of Moradhim.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Gaulin",
+     "journal": "Find Gaulin on the pond's docks in the hidden village at the Shon-To Monastery.",
+     "says": "A demon attacked my camp in Box Canyon. Find my abandoned camp and see what it left."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 20937,
+     "y": 54,
+     "z": 20722,
+     "radius": 40,
+     "journal": "Approach Gaulin's abandoned camp on the left of the canyon in Box Canyon (C).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Ash and broken tents. Armis rises from the ruin, a fire pet at his side!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Armis",
+     "journal": "Kill Armis and take the Tome of Khalimet.",
+     "items": [
+      {
+       "item": "Tome of Khalimet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Armis",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Armis",
+     "journal": "Take the Wand of Shattered Souls from Armis.",
+     "items": [
+      {
+       "item": "Wand of Shattered Souls",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Anibael",
+     "journal": "Bring the wand to Anibael in Muniel's Tea Garden (SE).",
+     "items": [
+      {
+       "item": "Wand of Shattered Souls",
+       "count": 1
+      }
+     ],
+     "says": "Keep the tome. Salin, on the third floor of Highbourne's library, can read it."
+    },
+    {
+     "kind": "show",
+     "target": "Salin",
+     "journal": "Show the tome to Salin in Highbourne's library.",
+     "items": [
+      {
+       "item": "Tome of Khalimet",
+       "count": 1
+      }
+     ],
+     "says": "It is beyond me. Torgias Bullow, west on the road from Murnf's coach, may decipher it."
+    },
+    {
+     "kind": "kill",
+     "target": "Assassin of Khal",
+     "journal": "Fight off the Assassin of Khal who comes for the tome.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Assassin of Khal",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Torgias Bullow",
+     "journal": "Give the tome to Torgias Bullow in a little house west of Murnf's coach.",
+     "items": [
+      {
+       "item": "Tome of Khalimet",
+       "count": 1
+      }
+     ],
+     "says": "I will read it. But I am hungry: fruit from Farmer Phenray in Freeport's bazaar, if you would."
+    },
+    {
+     "kind": "give",
+     "target": "Farmer Phenray",
+     "journal": "Buy fruit from Farmer Phenray by Grocer Gloresa in Freeport's bazaar, 10,000 tunar.",
+     "tunar": 10000,
+     "says": "My best.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Basket of Fruit",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Torgias Bullow",
+     "journal": "Bring the fruit to Torgias Bullow.",
+     "items": [
+      {
+       "item": "Basket of Fruit",
+       "count": 1
+      }
+     ],
+     "says": "Four scrolls, one for each harbinger. Write each word backwards, and the vowels aeiou become eioua.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Khal Scroll",
+         "count": 4
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Lord Farex",
+     "journal": "'With the fiery of fire he comes, but in a land that is frosty': kill Lord Farex by the portal in Permafrost (E).",
+     "items": [
+      {
+       "item": "Khal Red Gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Lord Wraymot",
+     "journal": "'In a land of watery muck and skulls': kill Lord Wraymot at the portal in Broken Skull Rock (NW).",
+     "items": [
+      {
+       "item": "Khal Blue Gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Lord Tallivar",
+     "journal": "'Through an arid region he brings his hate': kill Lord Tallivar at the portal in Desert Hate (S).",
+     "items": [
+      {
+       "item": "Khal Green Gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Lord Vengal",
+     "journal": "'Born to a mountain of hate he comes': kill Lord Vengal at the portal on Mount Hatespike.",
+     "items": [
+      {
+       "item": "Khal Yellow Gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "show",
+     "target": "Anibael",
+     "journal": "Show the four Khal gems to Anibael in Muniel's Tea Garden.",
+     "items": [
+      {
+       "item": "Khal Red Gem",
+       "count": 1
+      },
+      {
+       "item": "Khal Blue Gem",
+       "count": 1
+      },
+      {
+       "item": "Khal Green Gem",
+       "count": 1
+      },
+      {
+       "item": "Khal Yellow Gem",
+       "count": 1
+      }
+     ],
+     "says": "All four harbingers dead! Keep the gems: when Khalimet comes, you will need them."
+    }
+   ],
+   "unresolved": [
+    "Armis",
+    "Salin",
+    "Assassin of Khal",
+    "Lord Farex",
+    "Lord Wraymot",
+    "Lord Tallivar",
+    "Lord Vengal"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/harbingers-of-khalimet.json, # Harbingers of Khalimet, Part I (github.com/Jadiction/EQOA-Data, MIT). The scrolls' riddles (written backwards, the vowels shifted) are in the journal lines, decoded. The Assassins of Khal, who may attack at any time, are one spawned at Salin's. The guide's gem bag from Salin and its luck-stone reward (a 5-charge 'lucky stone': not on this server) are left out; the gems are kept, as the guide says. The harbingers' places are ours, from the zones the guide names. Part II (Khalimet's portal, the hounds, the waves and the Khal Viceroy) and Part IV (the Warrior, the city portals, the Desmosdus breeders of ZP, the Chiktar King) are not written."
+  },
+  {
+   "key": "Misc/harbingers-of-khalimet/p3",
+   "name": "The Testament of Khal",
+   "giver": "Anibael",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/harbingers-of-khalimet/p1"
+   ],
+   "offer": "Khal's zealots in the camps of Permafrost (S) carry a testament of his. Bring me one: there may be something in it worth knowing.",
+   "accept": "Here it is.",
+   "decline": "Not now.",
+   "declined": "Then keep it.",
+   "started": "Salin first.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Khal Zealot",
+     "journal": "Take the Testament of Khal from a Khal zealot in the camps of Permafrost (S).",
+     "items": [
+      {
+       "item": "Testament of Khal",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "show",
+     "target": "Anibael",
+     "journal": "Show the testament to Anibael.",
+     "items": [
+      {
+       "item": "Testament of Khal",
+       "count": 1
+      }
+     ],
+     "says": "Chimaerian! Salin must see it.",
+     "answer": "Yes, I know that."
+    },
+    {
+     "kind": "show",
+     "target": "Salin",
+     "journal": "Show the testament to Salin in Highbourne's library.",
+     "items": [
+      {
+       "item": "Testament of Khal",
+       "count": 1
+      }
+     ],
+     "says": "The Tome of Khalimet: only his most ardent carry it. Seek one who lives north of the glades."
+    },
+    {
+     "kind": "give",
+     "target": "Torgias Bullow",
+     "journal": "Give the testament to Torgias Bullow, west of Murnf's coach.",
+     "items": [
+      {
+       "item": "Testament of Khal",
+       "count": 1
+      }
+     ],
+     "says": "Written in lycan. Khalimet began the lycan bloodline... the plane of war is about to spill into Tunaria."
+    },
+    {
+     "kind": "kill",
+     "target": "Khal Reaver",
+     "journal": "Fight off the Khal reavers waiting outside Torgias's house.",
+     "count": 2,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Khal Reaver",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Khal Reaver",
+       "hostile": true
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Khal Zealot",
+    "Salin",
+    "Khal Reaver"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/harbingers-of-khalimet.json, # Harbingers of Khalimet, Part III (github.com/Jadiction/EQOA-Data, MIT). The guide calls this part a lore tie-in: no reward. The Khal spies' notes and the warlords' drops (robes, class weapons) are loot."
+  },
+  {
+   "key": "Misc/harbingers-of-khalimet/p5",
+   "name": "Gnadriin",
+   "giver": "Anibael",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/harbingers-of-khalimet/p1"
+   ],
+   "offer": "Anibael, it's me. Khalimet needs one last thing for his foothold: a scroll, far east of Oasis. Its keeper is powerful, and Salin must not know. Bring me that scroll.",
+   "accept": "Anibael, it's me...",
+   "decline": "Not now.",
+   "declined": "Then go.",
+   "started": "Far east of Oasis.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "The Keeper",
+     "journal": "Find The Keeper on an island south of the mage spell merchant in Elemental Towers (C).",
+     "says": "You come for the scroll? Then take it from me!"
+    },
+    {
+     "kind": "loot",
+     "target": "The Keeper",
+     "journal": "Kill The Keeper and take the scroll.",
+     "items": [
+      {
+       "item": "Nea o'ir Shiidao'en",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "show",
+     "target": "Salin",
+     "journal": "Take the scroll to Salin, in the south wing of Highbourne's library.",
+     "items": [
+      {
+       "item": "Nea o'ir Shiidao'en",
+       "count": 1
+      }
+     ],
+     "says": "The bolash breed desmodus bats to spread their curse. Khalimet fights them, and Anibael is a Gnadriin!"
+    },
+    {
+     "kind": "talk",
+     "target": "Anibael",
+     "journal": "Confront Anibael with her betrayal.",
+     "says": "So Salin talks too much. Then die!"
+    },
+    {
+     "kind": "kill",
+     "target": "Anibael",
+     "journal": "Kill Anibael.",
+     "count": 1
+    },
+    {
+     "kind": "talk",
+     "target": "Salin",
+     "journal": "Tell Salin you killed Anibael.",
+     "says": "The Gnadriin take the shapes of those whose blood they drink. There are more: by a campfire in Muniel's Tea Garden. Kill them."
+    },
+    {
+     "kind": "talk",
+     "target": "Weary Adventurer",
+     "journal": "Speak to the weary adventurer by the campfire in Muniel's Tea Garden (C).",
+     "says": "Leave us be! ... Too late. You know."
+    },
+    {
+     "kind": "loot",
+     "target": "Gnadriin",
+     "journal": "Kill the weary adventurers and the Gnadriin they become, for a warsword.",
+     "items": [
+      {
+       "item": "Gnadriin Warsword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Weary Adventurer",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Gnadriin",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Salin",
+     "journal": "Show the warsword to Salin.",
+     "items": [
+      {
+       "item": "Gnadriin Warsword",
+       "count": 1
+      }
+     ],
+     "says": "Khalimet's gems can make weapons stronger. Hogarth Bartholomew, south-east of Moradhim, knows how."
+    },
+    {
+     "kind": "talk",
+     "target": "Hogarth Bartholomew",
+     "journal": "Find Hogarth Bartholomew on a hill south-east of Moradhim's coach.",
+     "says": "First, help me: Galoosh, Tobral Arnez and Jon Watersmith owe me. Recover my payments."
+    },
+    {
+     "kind": "talk",
+     "target": "Galoosh",
+     "journal": "Find Galoosh north of the little outpost outside Grobb.",
+     "says": "Here, here. Hogarth's payment.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Hogarth's Payment",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Tobral Arnez",
+     "journal": "Fight Tobral Arnez in the broken tower east of Neriak's ramp for Hogarth's staff.",
+     "items": [
+      {
+       "item": "Hogarth's Staff",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "talk",
+     "target": "Jon Watersmith",
+     "journal": "Find Jon Watersmith's camp at the edge of the plains and mountains, Mossmouth (E).",
+     "says": "I have nothing! Arliss has it. Ask Jingle in Oasis."
+    },
+    {
+     "kind": "talk",
+     "target": "Jingle",
+     "journal": "Find Jingle in Oasis, north of the coach by the banner.",
+     "says": "Arliss? West of Gramash Ruins, in a camp off the road north from Murnf."
+    },
+    {
+     "kind": "loot",
+     "target": "Arliss",
+     "journal": "Kill Arliss in the camp off the road north from Murnf and take Hogarth's sword.",
+     "items": [
+      {
+       "item": "Hogarth's Sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Hogarth Bartholomew",
+     "journal": "Bring the payment, the staff and the sword to Hogarth Bartholomew.",
+     "items": [
+      {
+       "item": "Hogarth's Payment",
+       "count": 1
+      },
+      {
+       "item": "Hogarth's Staff",
+       "count": 1
+      },
+      {
+       "item": "Hogarth's Sword",
+       "count": 1
+      }
+     ],
+     "says": "All three! Khalimet's gems fit the warlords' weapons. For 10,000 tunar I will set one, for 2000 take it out."
+    }
+   ],
+   "unresolved": [
+    "The Keeper",
+    "Salin",
+    "Weary Adventurer",
+    "Gnadriin",
+    "Hogarth Bartholomew",
+    "Galoosh",
+    "Tobral Arnez",
+    "Jon Watersmith",
+    "Jingle",
+    "Arliss"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/harbingers-of-khalimet.json, # Harbingers of Khalimet, Part V (Gnadriin) (github.com/Jadiction/EQOA-Data, MIT). Part V follows Part IV in the guide; Part IV is not written, so it follows Part I here. Hogarth's augmentation (a gem set into a warlord's weapon for 10,000 tunar) is not something the engine does: the quest ends with him. Anibael's Gnadriin Blade, a drop the guide says is not needed, is left out. The weary adventurers' four (a dark elf, a dwarf, a barbarian and a human) are one spawned with a Gnadriin. The places are ours, from the guide's zones."
   }
  ],
  "items": [
@@ -10229,6 +10784,90 @@
    "description": "The unraveled hand grip of the Staff of Rainbow Magic.",
    "notrade": true,
    "like": "Fine Silk String"
+  },
+  {
+   "name": "Wand of Shattered Souls",
+   "description": "A wand Armis carried. Anibael keeps it.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Tome of Khalimet",
+   "description": "A tome of the demon general Khalimet, in a hand no one here can read.",
+   "notrade": true,
+   "like": "Dark Journal"
+  },
+  {
+   "name": "Basket of Fruit",
+   "description": "Fruit from Farmer Phenray, for Torgias Bullow to eat while he reads.",
+   "notrade": true,
+   "like": "Potion Ingredients"
+  },
+  {
+   "name": "Khal Scroll",
+   "description": "An encrypted scroll: one of four, one for each harbinger.",
+   "notrade": true,
+   "like": "Ancient Scroll"
+  },
+  {
+   "name": "Khal Red Gem",
+   "description": "A red gem dropped by Lord Farex, a harbinger of Khalimet.",
+   "notrade": true,
+   "like": "gem of fury"
+  },
+  {
+   "name": "Khal Blue Gem",
+   "description": "A blue gem dropped by Lord Wraymot, a harbinger of Khalimet.",
+   "notrade": true,
+   "like": "gem of obfuscation"
+  },
+  {
+   "name": "Khal Yellow Gem",
+   "description": "A yellow gem dropped by Lord Vengal, a harbinger of Khalimet.",
+   "notrade": true,
+   "like": "gem of deception"
+  },
+  {
+   "name": "Testament of Khal",
+   "description": "The testament a Khal zealot carried, written in Chimaerian.",
+   "notrade": true,
+   "like": "Syndia's Book of Disease"
+  },
+  {
+   "name": "Nea o'ir Shiidao'en",
+   "description": "A scroll The Keeper guarded, which Khalimet needs.",
+   "notrade": true,
+   "like": "Ancient Scroll"
+  },
+  {
+   "name": "Gnadriin Blade",
+   "description": "The blade Anibael, a Gnadriin, carried.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Gnadriin Warsword",
+   "description": "A warsword of the Gnadriin among the weary adventurers.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Hogarth's Payment",
+   "description": "The payment Galoosh owed Hogarth Bartholomew.",
+   "notrade": true,
+   "like": "Bag of Gems"
+  },
+  {
+   "name": "Hogarth's Staff",
+   "description": "The staff Tobral Arnez kept from Hogarth Bartholomew.",
+   "notrade": true,
+   "like": "Ancient Scroll"
+  },
+  {
+   "name": "Hogarth's Sword",
+   "description": "The sword Arliss kept from Hogarth Bartholomew.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
   }
  ]
 }

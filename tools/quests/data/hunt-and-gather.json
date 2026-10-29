@@ -146,6 +146,56 @@
    "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 54-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Tenacious Ice Giants are the server's tenacious frost giants; its Ice Giant Glyphs the server's ice glyph."
   },
   {
+   "key": "HuntAndGather/duggan-cylinder-gaskets",
+   "name": "Wooden Cylinder Gaskets",
+   "giver": "Archaeologist Duggan",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The spheres of annihilation here are machines, and old ones. Their wooden cylinder gaskets tell me who built them. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Sphere of Annihilation",
+     "items": [
+      {
+       "item": "wooden cylinder gasket",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill spheres of annihilation round Archaeologist Duggan for four wooden cylinder gaskets."
+    },
+    {
+     "kind": "give",
+     "target": "Archaeologist Duggan",
+     "items": [
+      {
+       "item": "wooden cylinder gasket",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four wooden cylinder gaskets to Archaeologist Duggan.",
+     "says": "Older than I dared hope. Thank you.",
+     "rewards": {
+      "xp": 5000000
+     }
+    }
+   ],
+   "unresolved": [
+    "Archaeologist Duggan"
+   ],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 55-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The table's Acheologist Duggan is EQOA-Data's map's Archaeologist Duggan, seeded at its point, among the spheres. The gasket stacks to four, the count here."
+  },
+  {
    "key": "HuntAndGather/derkev-noserings",
    "name": "Cold Iron Noserings",
    "giver": "Giant Slayer Derkev",

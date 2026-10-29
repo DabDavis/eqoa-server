@@ -48,16 +48,25 @@ func TestFactionTablesAreLive(t *testing.T) {
 	if th := f.world.StartThreats([]database.StartSpot{spot}); len(th) != 1 || th[0].Faction != "Undead of Paineel" || th[0].Standing != -2000 {
 		t.Errorf("a new eastern human by the skeleton: %+v", th)
 	}
-	// a dark elf starts with the faction's own (-500 in the capture): left alone
+	// a dark elf starts with the faction's own (-500 in the capture): a red
+	// band, so attacked too, until its race starts at -200 (Cautious)
 	spot.Race, spot.HumType = 2, 0
+	if th := f.world.StartThreats([]database.StartSpot{spot}); len(th) != 1 || th[0].Standing != -500 {
+		t.Errorf("a new dark elf by the skeleton at the capture's -500: %+v", th)
+	}
+	code, out = c.op("insert_row", map[string]any{"table": "factionstart",
+		"values": map[string]any{"race": 2, "class": -1, "humtype": -1, "faction": "Undead of Paineel", "standing": -200}})
+	if code != 200 {
+		t.Fatalf("factionstart insert: %d %v", code, out)
+	}
 	if th := f.world.StartThreats([]database.StartSpot{spot}); len(th) != 0 {
-		t.Errorf("a new dark elf by the skeleton: %+v", th)
+		t.Errorf("a new dark elf by the skeleton at -200: %+v", th)
 	}
 
-	for _, tbl := range []string{"npcfaction", "factionstart"} {
+	for tbl, want := range map[string]int{"npcfaction": 1, "factionstart": 2} {
 		var audited int
-		if err := f.db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE tbl = ?`, tbl).Scan(&audited); err != nil || audited != 1 {
-			t.Errorf("%s audited %d times (%v)", tbl, audited, err)
+		if err := f.db.QueryRow(`SELECT COUNT(*) FROM gm_audit WHERE tbl = ?`, tbl).Scan(&audited); err != nil || audited != want {
+			t.Errorf("%s audited %d times, want %d (%v)", tbl, audited, want, err)
 		}
 	}
 	if n := catalog["factionstart"]; n.Label != "Faction starts" || n.Cols["race"].Enum != "raceany" ||

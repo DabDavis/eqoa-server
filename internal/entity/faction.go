@@ -68,8 +68,11 @@ const (
 )
 
 // FactionKOSBelow is the standing below which an NPC of a faction attacks a
-// player on sight: the Aggressive band's (StandingDisposition).
-const FactionKOSBelow = -700
+// player on sight: the red faces' bands, Aggressive and Dubious
+// (StandingDisposition), which VIWndGame::DrawTarget draws alike, so a
+// creature attacks on sight exactly the players it shows the red face to (the
+// user's "aggro from mobs that are red faced", 2026-10-25).
+const FactionKOSBelow = -350
 
 // StandingDisposition is the disposition a standing shows: CLIENT's own
 // edges, the faction window's colour bands (VIWndFaction::DrawStanding,
@@ -77,9 +80,9 @@ const FactionKOSBelow = -700
 // disposition is ours, the window's two nearest 0 being one Neutral.
 func StandingDisposition(v int) byte {
 	switch {
-	case v < FactionKOSBelow:
+	case v < -700:
 		return DispAggressive
-	case v < -350:
+	case v < FactionKOSBelow:
 		return DispDubious
 	case v < -150:
 		return DispCautious
@@ -92,6 +95,10 @@ func StandingDisposition(v int) byte {
 	}
 	return DispAllied
 }
+
+// DispositionWords are the target box's words for the dispositions, CLIENT's
+// own (WORDS.TXT lines 440-446), DispAggressive first.
+var DispositionWords = [...]string{"Aggressive", "Dubious", "Cautious", "Neutral", "Friendly", "Warm", "Allied"}
 
 // FactionStanding is a faction and a standing with it.
 type FactionStanding struct {

@@ -62,7 +62,7 @@ func TestTargetFaceFollowsTheStanding(t *testing.T) {
 	for _, c := range []struct {
 		standing int
 		want     byte
-	}{{-2000, entity.DispAggressive}, {-500, entity.DispDubious}, {-200, entity.DispCautious}, {0, entity.DispNeutral},
+	}{{-2000, entity.DispAggressive}, {-500, entity.DispAggressive}, {-350, entity.DispCautious}, {-200, entity.DispCautious}, {0, entity.DispNeutral},
 		{200, entity.DispFriendly}, {400, entity.DispWarm}} {
 		p.Factions = map[string]int{"Citizens of Neriak": c.standing}
 		if got := face(); got != c.want {

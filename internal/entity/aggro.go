@@ -16,14 +16,14 @@ import (
 //
 // What the player sees is what attacks: the target box's face (0x0010's
 // disposition, handlers/target.go) is TargetFace, and a creature attacks on
-// sight exactly the players it shows the Aggressive face (0) to
-// (threatensLocked). For a creature of no faction that is the only red face
-// it shows; one of a faction shows the Dubious (1), red in CLIENT's art too
-// (VIWndGame::DrawTarget draws 0 and 1 alike), to a player whose standing is
-// just short of that (-700 to -350) and does not attack.
+// sight exactly the players it shows the red face to (threatensLocked): the
+// Aggressive (0), which is also what a creature that attacks shows, whatever
+// its standing band (CLIENT's VIWndGame::DrawTarget draws the Dubious, 1,
+// alike, so no NPC shows it: a red face is one that attacks).
 //
 // An NPC of a faction (npcfaction, faction.go) attacks a player on sight when
-// the player's standing with it is Aggressive (below -700, FactionKOSBelow),
+// the player's standing with it is in a red band (below -350, FactionKOSBelow:
+// Aggressive below -700, Dubious from there),
 // at any level (a city's guards defend it whatever comes: ours), and never on
 // sight otherwise, whatever its body: Neriak's ghoul servant, a creature's
 // body 52 from the nearest dark elf, killed a new dark elf by the coach

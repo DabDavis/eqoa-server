@@ -45,6 +45,7 @@ type EquipHandler struct {
 	eat      func(*session.Session, entity.Consumable, time.Time) error
 
 	fishing *FishingHandler // a fishing pole used from the HUD (fishing.go)
+	craft   *CraftHandler   // a recipe scroll used (craft.go)
 }
 
 // NewEquipHandler creates the handler. spells may be nil: no scroll is then
@@ -381,9 +382,13 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		fishAfter = true
 	}
 
-	// A spell scroll is scribed, and a meal or a drink taken (consume.go),
-	// not worn.
+	// A recipe scroll (one some recipe's scroll names) puts its recipes in
+	// the book (craft.go), a spell scroll is scribed, and a meal or a drink
+	// taken (consume.go), not worn.
 	if idx, row, err := invItemByKey(items, sessionInvList(sess), key); err == nil {
+		if row.EquipLoc < 0 && h.craft.UseScroll(sess, serverID, idx, row) {
+			return nil
+		}
 		if isScroll(&row.Pattern) {
 			h.scribe(sess, player, idx, row)
 			return nil

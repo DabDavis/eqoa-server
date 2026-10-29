@@ -320,8 +320,19 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	}
 	tradeHandler.RegisterHandlers(r)
 
-	// Tradeskills (craft.go): 0x1101, a stand-in recipe book
-	NewCraftHandler().RegisterHandlers(r)
+	// Tradeskills (craft.go): 0x1101, the Recipe Book and the Experiment;
+	// the dump's six skill slots, a recipe scroll used, #craftskill and
+	// #craftlearn
+	var craftDB *database.SQLiteDB
+	if charStore != nil {
+		craftDB = charStore.DB()
+	}
+	craft := NewCraftHandler(craftDB, invStore)
+	craft.SetGameWorld(gameWorld)
+	craft.RegisterHandlers(r)
+	charHandler.craftSlots = craft.DumpSlots
+	equipHandler.craft = craft
+	chatHandler.craft = craft
 
 	// Fishing (fishing.go): 0x0F01, and the sessions a fishing pole used from
 	// the HUD, a gear set holding one and /fish start

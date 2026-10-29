@@ -3595,6 +3595,585 @@
     "portal guardian"
    ],
    "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). The portal guardian: finishing it flags the player for his trip to Zaoran Plateau (unlocks; the route should take the guide's 1 tunar each time); the first trip is the hand-in's own, to the Secrets world's zone 5 by its port-in marker (ZP1). The runes are kept, as the guide's 'speak again with the Agent to get your rune' implies; the guide's old notes on picking a side are left out."
+  },
+  {
+   "key": "Portal/soluseks-eye/nagafen-1",
+   "name": "The Fire Giant Magus",
+   "giver": "Fire Giant Magus",
+   "classes": [],
+   "races": [
+    5,
+    6,
+    9
+   ],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "unlocks": [
+    {
+     "npc": "Subdued Magus",
+     "to": "Lord Nagafen's lair"
+    }
+   ],
+   "offer": "So, a giant who is not a giant. Wear my guards' shroud and I will hear you. Bring me the three signets of this mountain's lords, goblin, giant and kobold, and I will show you the way to Nagafen.",
+   "accept": "I will bring the signets.",
+   "decline": "Not now.",
+   "declined": "Then begone, small thing.",
+   "started": "Goblin, giant, kobold. Their lords carry the signets.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Fire Giant Guard",
+     "items": [
+      {
+       "item": "Giant Guardian Shroud",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25,
+     "journal": "Kill the fire giant guards near the Fire Giant Magus until one drops a Giant Guardian Shroud."
+    },
+    {
+     "kind": "show",
+     "target": "Fire Giant Magus",
+     "items": [
+      {
+       "item": "Giant Guardian Shroud",
+       "count": 1
+      }
+     ],
+     "journal": "Wear the Giant Guardian Shroud and speak with the Fire Giant Magus by the north bridge.",
+     "says": "Now you look like one of us. Bring the signets."
+    },
+    {
+     "kind": "loot",
+     "target": "King Grog",
+     "items": [
+      {
+       "item": "Twisted Goblinkind Signet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a goblin lord of Solusek's Eye, King Grog, for the Twisted Goblinkind Signet."
+    },
+    {
+     "kind": "loot",
+     "target": "Reaver Thoran",
+     "items": [
+      {
+       "item": "Signet of Giantkind",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a giant lord, Reaver Thoran, for the Signet of Giantkind."
+    },
+    {
+     "kind": "loot",
+     "target": "Chief Growlnar",
+     "items": [
+      {
+       "item": "Kobold Blood Signet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a kobold lord, Chief Growlnar, for the Kobold Blood Signet."
+    },
+    {
+     "kind": "give",
+     "target": "Fire Giant Magus",
+     "items": [
+      {
+       "item": "Twisted Goblinkind Signet",
+       "count": 1
+      },
+      {
+       "item": "Signet of Giantkind",
+       "count": 1
+      },
+      {
+       "item": "Kobold Blood Signet",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the three signets to the Fire Giant Magus.",
+     "says": "All three. Now prove you are stronger than I.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The Fire Giant Magus roars and raises his hands. Fight him!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Fire Giant Magus",
+     "count": 1,
+     "journal": "Kill the Fire Giant Magus."
+    },
+    {
+     "kind": "talk",
+     "target": "Subdued Magus",
+     "journal": "Speak with the Subdued Magus.",
+     "says": "You beat me. Take my pouch of tokens and hand them out; each one sends a raider to Nagafen. You go last.",
+     "rewards": {
+      "items": [
+       "Nagafen port token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Subdued Magus"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/soluseks-eye.json, ## Lord Nagafen Portal Quest (github.com/Jadiction/EQOA-Data, MIT). A barbarian, an ogre or a troll alone (races), as the guide's shroud is theirs; finishing it flags the questor for the Subdued Magus's trip to Lord Nagafen (unlocks; land by Nagafen Teleport Arrive). One boss stands for each signet's list (King Grog, Reaver Thoran, Chief Growlnar), a sure drop; the shroud's chance is ours; the Magus respawning as Subdued is a Subdued Magus standing by him (tools/quests/npcs/qe.json). The guide's pouch of 50 charges is one port token here: its 49 more are not modelled (a stack would need a count the rewards do not take); the raid's tokens are the next quest's. Wearing the shroud is not checked."
+  },
+  {
+   "key": "Portal/soluseks-eye/nagafen-2",
+   "name": "Passage to Lord Nagafen",
+   "giver": "Subdued Magus",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "You carry one of my tokens? Give it to me and I will send you to Nagafen's island. Unequip your weapons first, or he will not wait for you to be ready.",
+   "accept": "Send me.",
+   "decline": "Not now.",
+   "declined": "Then keep your token.",
+   "started": "Hand it over.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Subdued Magus",
+     "items": [
+      {
+       "item": "Nagafen port token",
+       "count": 1
+      }
+     ],
+     "journal": "Give a Nagafen port token to the Subdued Magus.",
+     "says": "Go, then.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 3,
+       "x": 4870.8,
+       "y": -29.3,
+       "z": 4426.8
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Subdued Magus"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/soluseks-eye.json, ## Lord Nagafen Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The raid's passage: anyone with a port token (tradeable, the guide's handed-out gems) is sent to Lord Nagafen's island, by Nagafen Teleport Arrive."
+  },
+  {
+   "key": "Portal/sarek-the-betrayer-port/lotus",
+   "name": "The Black Lotus",
+   "giver": "Rudro Balenthorpe",
+   "classes": [],
+   "races": [],
+   "minlevel": 59,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "There is a way into Sarek's tower, they say, for one who knows the alteration of teleportation. I do not. Dalius of the mage guild might. Ask him.",
+   "accept": "I will ask Dalius.",
+   "decline": "Not now.",
+   "declined": "Then Sarek keeps his tower.",
+   "started": "The mage guild, by the guildmaster.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dalius Toziuf",
+     "journal": "Speak with Dalius in Qeynos, at the mage guild beside the guildmaster.",
+     "says": "Dryads, a geode talisman of forty carats, archons' hearts, a fortress in the Rathe Mountains... and a black lotus, which Merchant Gilgash sells. Bring them to me."
+    },
+    {
+     "kind": "loot",
+     "target": "Earthen Dryad",
+     "items": [
+      {
+       "item": "dryad heart",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Kill the earthen dryads of Geomancer's Citadel for two dryad hearts."
+    },
+    {
+     "kind": "loot",
+     "target": "Sarek's Keeper",
+     "items": [
+      {
+       "item": "geode talisman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Sarek's Keeper on the bridge at the constructs' gate in Geomancer's Citadel and take the geode talisman."
+    },
+    {
+     "kind": "loot",
+     "target": "Archon Vetash",
+     "items": [
+      {
+       "item": "fire archon heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Talk to an orb beside the bridge to reach the towers, kill Archon Vetash and take his fire archon heart."
+    },
+    {
+     "kind": "loot",
+     "target": "Archon Aereth",
+     "items": [
+      {
+       "item": "earth archon heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Archon Aereth in the other tower and take his earth archon heart."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Gilgash",
+     "tunar": 260000,
+     "journal": "Buy the elemental smelter (10,000) and the black lotus (250,000) of Merchant Gilgash in Freeport.",
+     "says": "A smelter and a lotus. Mind the lotus: it is worth more than you are.",
+     "rewards": {
+      "items": [
+       "elemental smelter",
+       "black lotus"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Dalius Toziuf",
+     "items": [
+      {
+       "item": "dryad heart",
+       "count": 2
+      },
+      {
+       "item": "geode talisman",
+       "count": 1
+      },
+      {
+       "item": "fire archon heart",
+       "count": 1
+      },
+      {
+       "item": "earth archon heart",
+       "count": 1
+      },
+      {
+       "item": "elemental smelter",
+       "count": 1
+      },
+      {
+       "item": "black lotus",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the hearts, the geode talisman, the smelter and the black lotus to Dalius.",
+     "says": "Smelt the hearts, set them in the talisman, the lotus over all... There. It will carry you to Sarek. Take care: he may be home.",
+     "rewards": {
+      "items": [
+       "lotus talisman"
+      ]
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 1,
+       "x": 4310.0,
+       "y": 219.25,
+       "z": 2590.0
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Rudro Balenthorpe"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/sarek-the-betrayer-port.json, ## Sarek or Black Lotus Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's recipe is the player's own (use the smelter, the talisman, the lotus); here Dalius Toziuf (the game's Dalius) makes it, and the finished talisman's first use is the hand-in's teleport to Sarek the Betrayer's tower in the water. Its reuse is not modelled: no item teleports here, and no travel NPC goes to the tower (see the report). Rudro Balenthorpe is FrontiersForge's sighting by Qeynos's blacksmith (tools/quests/npcs/qe.json); Merchant Gilgash's two wares are a give of 260,000 tunar (the guide's prices) at his window."
+  },
+  {
+   "key": "Portal/fendren-the-forgotten/port",
+   "name": "The Dead Hills Port",
+   "giver": "Fendren the Forgotten",
+   "classes": [
+    13,
+    7
+   ],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Forgotten, they call me, and I would not be. Bring me four green soulstone gems from the Jal'Raeth of Envar, and I will teach you a way back to me, here in these hills.",
+   "accept": "I will bring the gems.",
+   "decline": "Not now.",
+   "declined": "Then forget me, as the others did.",
+   "started": "The basement of Envar. Mind the energy stones: they are no use any more.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Jal'Raeth Commoner",
+     "items": [
+      {
+       "item": "green soulstone gem",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.34,
+     "journal": "Kill the Jal'Raeth commoners in the basement of Envar for four green soulstone gems."
+    },
+    {
+     "kind": "give",
+     "target": "Fendren the Forgotten",
+     "items": [
+      {
+       "item": "green soulstone gem",
+       "count": 4
+      }
+     ],
+     "journal": "Bring the four green soulstone gems to Fendren the Forgotten in the Dead Hills.",
+     "says": "Four. The Dead Hills will open to you whenever you call.",
+     "rewards": {
+      "spells": [
+       "Dead Hills Port"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Fendren the Forgotten",
+    "Jal'Raeth Commoner",
+    "Dead Hills Port"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/fendren-the-forgotten.json, ## Dead Hills Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The reward is the guide's Dead Hills Port (a druid's and wizard's group port to Dead Hills SE): no spellpattern row has it, so the quest is a draft until the spell and its spellgates row are added. Fendren, his treants and the commoners are specs; the drop chance is ours."
+  },
+  {
+   "key": "Portal/envaric-ascension-quest/ascension",
+   "name": "Envaric Ascension",
+   "giver": "Northeast Altar of Envar",
+   "classes": [
+    7,
+    11,
+    13
+   ],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The altar's voice: four brooches from the Grave Ushers atop the four towers, laid here; then the essences and breaths of the basements' masters laid on the other altar. Only then will you ascend.",
+   "accept": "I will gather them.",
+   "decline": "Not now.",
+   "declined": "Then stay below.",
+   "started": "Four brooches, from the tops of the towers.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Grave Usher",
+     "items": [
+      {
+       "item": "iron brooch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a Grave Usher atop one of Envar's towers for the iron brooch."
+    },
+    {
+     "kind": "loot",
+     "target": "Grave Usher",
+     "items": [
+      {
+       "item": "copper brooch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a Grave Usher atop another tower for the copper brooch."
+    },
+    {
+     "kind": "loot",
+     "target": "Grave Usher",
+     "items": [
+      {
+       "item": "brass brooch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill a Grave Usher atop another tower for the brass brooch."
+    },
+    {
+     "kind": "loot",
+     "target": "Grave Usher",
+     "items": [
+      {
+       "item": "bronze brooch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the last tower's Grave Usher for the bronze brooch."
+    },
+    {
+     "kind": "give",
+     "target": "Northeast Altar of Envar",
+     "items": [
+      {
+       "item": "iron brooch",
+       "count": 1
+      },
+      {
+       "item": "copper brooch",
+       "count": 1
+      },
+      {
+       "item": "brass brooch",
+       "count": 1
+      },
+      {
+       "item": "bronze brooch",
+       "count": 1
+      }
+     ],
+     "journal": "Lay the four brooches on the altar in the NE tower's basement library.",
+     "says": "The brooches melt together into a talisman with room for two diamonds.",
+     "rewards": {
+      "items": [
+       "Envaric talisman"
+      ]
+     }
+    },
+    {
+     "kind": "loot",
+     "target": "Tal'Thir",
+     "items": [
+      {
+       "item": "astral essence of Envar",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Tal'Thir in the NW tower's basement for the astral essence."
+    },
+    {
+     "kind": "loot",
+     "target": "Jal'Raeth Bishop",
+     "items": [
+      {
+       "item": "ethereal essence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Jal'Raeth Bishop in the NE tower's basement for the ethereal essence."
+    },
+    {
+     "kind": "loot",
+     "target": "High Priest Vorin",
+     "items": [
+      {
+       "item": "astral breath",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill High Priest Vorin in the SE tower's basement for the astral breath."
+    },
+    {
+     "kind": "loot",
+     "target": "Jal'Raeth Patriarch",
+     "items": [
+      {
+       "item": "ethereal breath",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Jal'Raeth Patriarch in the SW library for the ethereal breath."
+    },
+    {
+     "kind": "give",
+     "target": "Southwest Altar of Envar",
+     "items": [
+      {
+       "item": "astral essence of Envar",
+       "count": 1
+      },
+      {
+       "item": "ethereal essence",
+       "count": 1
+      },
+      {
+       "item": "astral breath",
+       "count": 1
+      },
+      {
+       "item": "ethereal breath",
+       "count": 1
+      },
+      {
+       "item": "Envaric talisman",
+       "count": 1
+      }
+     ],
+     "journal": "Lay the essences, the breaths and the talisman on the altar in the SW tower's basement.",
+     "says": "Two diamonds form in the talisman, and it becomes the Holy Symbol of Envar. Its price is your life; its gift, the ascension.",
+     "rewards": {
+      "items": [
+       "Holy Symbol of Envar"
+      ],
+      "spells": [
+       "Envaric Ascension"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Northeast Altar of Envar",
+    "Grave Usher",
+    "Tal'Thir",
+    "Jal'Raeth Bishop",
+    "High Priest Vorin",
+    "Jal'Raeth Patriarch",
+    "Southwest Altar of Envar",
+    "Envaric Ascension"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/envaric-ascension-quest.json, ## Envaric Ascension Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Part 1. The reward is the guide's Envaric Ascension (a druid's, necromancer's and wizard's group port to the first chamber of the Prophet's tower): no spellpattern row has it, so the quest is a draft until the spell and its spellgates row are added. Both altars, the Grave Ushers, Tal'Thir, Vorin, the Bishop and the Patriarch are specs in Envar's towers (the Rathe's cell south of the Dead Hills: four towers with basements at y 44-51), their guards left out; the two diamonds and the symbol's death are the altar's words. Part 2, the climb of the Prophet's tower with its gems, begins with the spell's port and is left out."
   }
  ],
  "items": [
@@ -3903,6 +4482,138 @@
    "description": "A Rallosian healing device, spent on the portal.",
    "notrade": true,
    "like": "phosphoric globe"
+  },
+  {
+   "name": "Giant Guardian Shroud",
+   "description": "The shroud of a fire giant guard. A barbarian, an ogre or a troll who wears it passes for a giant.",
+   "notrade": true,
+   "like": "Dwarven Burial Shroud"
+  },
+  {
+   "name": "Twisted Goblinkind Signet",
+   "description": "The signet of the goblin lords of Solusek's Eye.",
+   "notrade": true,
+   "like": "Froglok Signet Ring"
+  },
+  {
+   "name": "Signet of Giantkind",
+   "description": "This signet shows the bearer wields the authority of the ranking fire giants in Nagafen's domain.",
+   "notrade": true,
+   "like": "Froglok Signet Ring"
+  },
+  {
+   "name": "Kobold Blood Signet",
+   "description": "The signet of the kobold lords of Solusek's Eye.",
+   "notrade": true,
+   "like": "Froglok Signet Ring"
+  },
+  {
+   "name": "Nagafen port token",
+   "description": "A token from the Subdued Magus's pouch. The Subdued Magus sends its bearer to Lord Nagafen.",
+   "notrade": false,
+   "like": "portal rune"
+  },
+  {
+   "name": "dryad heart",
+   "description": "The heart of an earthen dryad of Geomancer's Citadel.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "fire archon heart",
+   "description": "The heart of Archon Vetash.",
+   "notrade": true,
+   "like": "archon's heart"
+  },
+  {
+   "name": "earth archon heart",
+   "description": "The heart of Archon Aereth.",
+   "notrade": true,
+   "like": "archon's heart"
+  },
+  {
+   "name": "elemental smelter",
+   "description": "A smelter that fuses elemental hearts.",
+   "notrade": true,
+   "like": "phosphoric globe"
+  },
+  {
+   "name": "black lotus",
+   "description": "A black lotus. Its petals bend the paths of teleportation.",
+   "notrade": true,
+   "like": "Ambroise Fruit"
+  },
+  {
+   "name": "lotus talisman",
+   "description": "A lotus talisman of fused hearts and a black lotus, made to carry its bearer to Sarek's tower in the water.",
+   "notrade": true,
+   "like": "geode talisman"
+  },
+  {
+   "name": "green soulstone gem",
+   "description": "A green soulstone gem, dropped by the Jal'Raeth of Envar.",
+   "notrade": true,
+   "like": "sparkling green gem"
+  },
+  {
+   "name": "iron brooch",
+   "description": "A iron brooch from a Grave Usher atop a tower of Envar.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "copper brooch",
+   "description": "A copper brooch from a Grave Usher atop a tower of Envar.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "brass brooch",
+   "description": "A brass brooch from a Grave Usher atop a tower of Envar.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "bronze brooch",
+   "description": "A bronze brooch from a Grave Usher atop a tower of Envar.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "Envaric talisman",
+   "description": "Four brooches fused at Envar's altar, with room for two diamonds.",
+   "notrade": true,
+   "like": "geode talisman"
+  },
+  {
+   "name": "astral essence of Envar",
+   "description": "The astral essence, from Tal'Thir.",
+   "notrade": true,
+   "like": "Essence of a Marauding Soul"
+  },
+  {
+   "name": "ethereal essence",
+   "description": "The ethereal essence, from the Jal'Raeth Bishop.",
+   "notrade": true,
+   "like": "Essence of a Marauding Soul"
+  },
+  {
+   "name": "astral breath",
+   "description": "The astral breath, from High Priest Vorin.",
+   "notrade": true,
+   "like": "Night Breath"
+  },
+  {
+   "name": "ethereal breath",
+   "description": "The ethereal breath, from the Jal'Raeth Patriarch.",
+   "notrade": true,
+   "like": "Night Breath"
+  },
+  {
+   "name": "Holy Symbol of Envar",
+   "description": "The Holy Symbol of Envar. Whoever uses it dies, and is given Envaric Ascension.",
+   "notrade": true,
+   "like": "Greetaa"
   }
  ]
 }

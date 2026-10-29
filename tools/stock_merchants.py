@@ -54,7 +54,7 @@ shop word: a flag on a beast is a mistake), and one that a --prices harvest
 shows on Sandstorm without the merchant flag.
 
 Prices, for every catalog item whose itemcost is 0 (a nonzero one is never
-changed, Sandstorm's, a GM's or another tool's, but for the exception
+changed, Sandstorm's, a GM's or another tool's, but for the two exceptions
 below):
 
 - Measured: an item of the same name (case, a backtick and spacing aside)
@@ -76,14 +76,20 @@ below):
       1 less the share of the names' words they have in common, plus the
       difference of log(1 + AC), log(1 + damage) and log(1 + stat points)
       over 0.35 each, plus 0.5 for another wear slot.
+    - a scroll: Sandstorm's scroll curve, the measured scrolls' price at its
+      level, the straight line between two levels measured, and above the
+      highest the square of the level (as import_eqoadata_spells.py scales
+      one; within a tunar of the curve's own quadratic).
   A new harvest refits it: --prices with the harvest's files, after --undo.
   The report also names the catalog items that keep a price of their own
   (not Sandstorm's) ODD times or more off the rule's, for a GM to look at.
-- The exception (the coordinator's, 2026-10-29), narrow and logged as any
-  price is (undone with the rest), never on a pattern a GM edited or one
-  import_sandstorm_harvest.py wrote: a grocer's price stock_grocers.py set
-  (grocer_stock: ours, 10 tunar a level) for an item Sandstorm's merchants
-  sell takes Sandstorm's value.
+- The two exceptions (the coordinator's, 2026-10-29), each narrow and logged
+  as any price is (undone with the rest), never on a pattern a GM edited or
+  one import_sandstorm_harvest.py wrote:
+    - a grocer's price stock_grocers.py set (grocer_stock: ours, 10 tunar a
+      level) for an item Sandstorm's merchants sell: Sandstorm's value;
+    - a scroll import_eqoadata_spells.py made (eqoadata_spell_import_rows)
+      at 1 tunar (it scaled a reference scroll's 0): the scroll curve's.
 
 Every change is logged in merchant_stock (what it was and what it became) and
 --undo puts it all back but a row changed since (a GM's edit: left alone and
@@ -434,6 +440,36 @@ class Rule:
         den = sum((it["dmg"] / it["cost"]) ** 2 for it in plain)
         self.a = num / den if den else 1.83
         self.plain = plain
+        self.curve = self.scroll_curve(self.pool["scroll"])
+
+    @staticmethod
+    def scroll_curve(scrolls, exclude=None):
+        """Sandstorm's scroll prices by level: the median of the measured
+        scrolls of each level (every one of a level costs the same but for a
+        stray), level by level."""
+        by_level = collections.defaultdict(list)
+        for it in scrolls:
+            if it is not exclude and it["level"] > 0:
+                by_level[it["level"]].append(it["cost"])
+        return sorted((lv, statistics.median(v)) for lv, v in by_level.items())
+
+    @staticmethod
+    def on_curve(curve, level):
+        """A scroll's price at a level: the curve's at a level measured, the
+        straight line between the two measured either side of it, the square
+        of the level above the highest (as import_eqoadata_spells.py scales a
+        scroll's price, and within a tunar of the curve's own quadratic) and
+        the lowest's below it."""
+        if not curve:
+            return None
+        if level <= curve[0][0]:
+            return curve[0][1]
+        if level >= curve[-1][0]:
+            return curve[-1][1] * (level / curve[-1][0]) ** 2
+        for (l0, v0), (l1, v1) in zip(curve, curve[1:]):
+            if l0 <= level <= l1:
+                return v0 + (v1 - v0) * (level - l0) / (l1 - l0)
+        return None
 
     @staticmethod
     def distance(x, p):
@@ -461,6 +497,8 @@ class Rule:
         """The rule's price and the part of it that gave it."""
         if kind(x) == "weapon" and x["dmg"] > 0 and stat_points(x) == 0:
             return max(1, round(self.a * x["dmg"])), "damage"
+        if kind(x) == "scroll" and self.curve:
+            return max(1, round(self.on_curve(self.curve, x["level"]))), "the scroll curve"
         v = self.nearest(x, exclude)
         if v is None:
             return None, None
@@ -477,6 +515,8 @@ class Rule:
                     num = sum(p["dmg"] / p["cost"] for p in others)
                     den = sum((p["dmg"] / p["cost"]) ** 2 for p in others)
                     v = (num / den if den else self.a) * it["dmg"]
+                elif k == "scroll" and it["level"] > 0:
+                    v = self.on_curve(self.scroll_curve(items, exclude=it), it["level"])
                 else:
                     v = self.nearest(it, exclude=it)
                 if v:
@@ -702,7 +742,7 @@ class Plan:
         self.free = {}         # pattern -> how (Sandstorm sells it at 0)
         self.unpriced = []
         self.gm_priced = []    # patterns a GM edited: their 0 left alone
-        self.reprice = {}      # pattern -> (old, new, why): the exception to "never a nonzero price"
+        self.reprice = {}      # pattern -> (old, new, why): the two exceptions to "never a nonzero price"
         self.sandstorm = {}    # npcs row -> (items, missing, renamed, by a near name) of Sandstorm's own
         self.misses = []       # harvested merchants with wares on no NPC here
         self.prh_report = {}
@@ -937,14 +977,17 @@ def plan(db, prh, measured, patterns):
 
 
 def set_by(db):
-    """Which tool set a pattern's price, of the one whose prices the
-    exception below may change, and of Sandstorm's import, whose never:
-    pattern -> 'grocers' | 'sandstorm' (the last wins)."""
+    """Which tool set a pattern's price, of the two whose prices the
+    exceptions below may change, and of Sandstorm's import, whose never:
+    pattern -> 'grocers' | 'eqoa-data' | 'sandstorm' (the last wins)."""
     out = {}
     tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
     if "grocer_stock" in tables:
         for (k,) in db.execute("SELECT DISTINCT key FROM grocer_stock WHERE what = 'itemcost'"):
             out[k] = "grocers"
+    if "eqoadata_spell_import_rows" in tables:
+        for (k,) in db.execute("SELECT DISTINCT key FROM eqoadata_spell_import_rows WHERE tbl = 'itempattern'"):
+            out[k] = "eqoa-data"
     if "sandstorm_import_rows" in tables:
         for (k,) in db.execute("SELECT DISTINCT key FROM sandstorm_import_rows WHERE tbl = 'itempattern'"):
             out[k] = "sandstorm"
@@ -952,10 +995,16 @@ def set_by(db):
 
 
 def exception(x, pat, ours_set, gm_patterns, measured, rule):
-    """The exception to "never a nonzero price", narrow and logged: a
-    grocer's price of stock_grocers.py's (ours: 10 tunar a level) for an item
-    Sandstorm's merchants sell takes Sandstorm's value: (old, new, why), or
-    None. Never one a GM edited, nor one Sandstorm's import wrote."""
+    """The two exceptions to "never a nonzero price", each narrow and logged:
+    (old, new, why), or None.
+
+    - A grocer's price of stock_grocers.py's (ours: 10 tunar a level) for an
+      item Sandstorm's merchants sell: Sandstorm's value.
+    - A scroll import_eqoadata_spells.py made at 1 tunar (its price is a
+      reference scroll's scaled by the square of the level, and its reference
+      had 0): Sandstorm's scroll price at its level (the scroll curve).
+
+    Never one a GM edited, nor one Sandstorm's import wrote."""
     if x in gm_patterns or pat["cost"] <= 0:
         return None
     src = ours_set.get(x)
@@ -964,6 +1013,11 @@ def exception(x, pat, ours_set, gm_patterns, measured, rule):
         v = measured.by_name.get(n)
         if n in measured.sold and v and v != pat["cost"]:
             return (pat["cost"], v, f"stock_grocers.py's price (ours); Sandstorm sells it at {v}")
+    if src == "eqoa-data" and pat["cost"] == 1 and pat["icon"] == SCROLL_ICON and pat["slot"] == -1 and rule.curve:
+        v = max(1, round(rule.on_curve(rule.curve, pat["level"])))
+        if v != 1:
+            return (1, v, f"import_eqoadata_spells.py made it at 1 (a 0 reference); Sandstorm's scroll "
+                          f"price at level {pat['level']}")
     return None
 
 
@@ -1077,8 +1131,11 @@ def report(db, p, patterns, measured, files):
         print(f"  {len(measured.conflicts)} names with two values (the first kept): "
               f"{', '.join(f'{n} {sorted(v)}' for n, v in sorted(measured.conflicts.items())[:10])}")
     groc = sorted((x, a, b) for x, (a, b, w) in p.reprice.items() if w.startswith("stock_grocers"))
+    scro = sorted((x, a, b) for x, (a, b, w) in p.reprice.items() if w.startswith("import_eqoadata"))
     print(f"grocers' prices (stock_grocers.py's, ours) of items Sandstorm sells, set to Sandstorm's: {len(groc)}"
           + (": " + ", ".join(f"{patterns[x]['name']} {a} -> {b}" for x, a, b in groc) if groc else ""))
+    print(f"scrolls import_eqoadata_spells.py left at 1, set on Sandstorm's scroll curve: {len(scro)}"
+          + (": " + ", ".join(f"{patterns[x]['name']} (L{patterns[x]['level']}) -> {b}" for x, a, b in scro) if scro else ""))
     how = collections.Counter(h.split(" (")[0] for _, h in p.prices.values())
     print(f"prices to set: {len(p.prices)} {dict(how)}; Sandstorm's 0 kept: {len(p.free)}; "
           f"no price found: {len(p.unpriced)}")

@@ -331,14 +331,25 @@ class StockMerchantsTest(unittest.TestCase):
         price = {pats[x]["name"]: v for x, (v, _) in p.prices.items()}
         self.assertEqual((price["Cotton Shirt"], price["Cotton Cap"], price["Old Pants"]), (19, 14, 15))
 
-    def test_the_grocers_exception(self):
+    def test_the_two_exceptions(self):
         p, pats, _ = self.plan()
         got = {pats[x]["name"]: (old, new) for x, (old, new, _) in p.reprice.items()}
-        # a grocer's price of ours that Sandstorm sells otherwise: Sandstorm's
-        self.assertEqual(got, {"Ale": (30, 25)})
-        # not: a grocer's item Sandstorm sells not (Stew) or a GM's (Wine)
-        for name in ("Stew", "Wine", "Made Scroll"):
+        # a grocer's price of ours that Sandstorm sells otherwise: Sandstorm's;
+        # a scroll the EQOA-Data import left at 1: the curve's (above the
+        # highest level measured, 10 at 160, by the square of the level)
+        self.assertEqual(got, {"Ale": (30, 25), "Made Scroll": (1, 640)})
+        # not: a grocer's item Sandstorm sells not (Stew) or a GM's (Wine); a
+        # made scroll at 2; one a GM edited; one at 1 the import did not make
+        for name in ("Stew", "Wine", "Made Two", "Made GM", "Other Scroll"):
             self.assertNotIn(name, got)
+
+    def test_the_scroll_curve(self):
+        curve = [(1, 11), (10, 160), (20, 369)]
+        self.assertEqual(sm.Rule.on_curve(curve, 10), 160)
+        self.assertEqual(sm.Rule.on_curve(curve, 15), 264.5)
+        self.assertEqual(sm.Rule.on_curve(curve, 30), 369 * 2.25)
+        self.assertEqual(sm.Rule.on_curve(curve, 0), 11)
+        self.assertIsNone(sm.Rule.on_curve([], 5))
 
     def test_a_trades_catalog_by_level_and_town(self):
         p, pats, _ = self.plan()
@@ -447,7 +458,7 @@ class StockMerchantsTest(unittest.TestCase):
         self.assertEqual(db.execute("SELECT itemcost FROM itempattern WHERE itemname = 'Priced Thing'").fetchone()[0], 77)
         cost = dict(db.execute("SELECT itemname, itemcost FROM itempattern WHERE itemname IN "
                                "('Ale', 'Stew', 'Wine', 'Made Scroll', 'Made Two', 'Made GM', 'Other Scroll')"))
-        self.assertEqual(cost, {"Ale": 25, "Stew": 40, "Wine": 50, "Made Scroll": 1, "Made Two": 2, "Made GM": 1,
+        self.assertEqual(cost, {"Ale": 25, "Stew": 40, "Wine": 50, "Made Scroll": 640, "Made Two": 2, "Made GM": 1,
                                 "Other Scroll": 1})
         # a second --apply is refused
         with self.assertRaises(SystemExit):

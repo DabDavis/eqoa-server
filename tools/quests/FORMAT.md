@@ -129,7 +129,7 @@ its undo (unless a GM changed it since); a name with a peaceful row already is l
 | `name` | as the quest files spell it |
 | `role` | `foe` (what a quest kills: npc_type 0) or `talker` (whom it talks to: 128) |
 | `body` | `["race", "<human, elf, darkelf, gnome, dwarf, troll, barbarian, halfling, erudite, ogre>", 0 male or 1 female]`, `["kind", "<a KIND key of the tool>"]` (bear, orc, spider ...) or `["npc", "<an npcs name whose body it copies>"]` |
-| `place` | `["ff"]` (where FrontiersForge saw it), `["poi", "tunaria" or "rathe", "<a point of EQOA-Data's map>"]`, `["near", "<npc>", distance, world]` or `["at", world, x, z]`; any of them with a last `"low"` for a lower floor |
+| `place` | `["ff"]` (where FrontiersForge saw it; not a spot its placeholders share), `["poi", "tunaria", "rathe" or "odus", "<a point of EQOA-Data's map>"]` (the Rathe's points are the sheet's inset, south Tunaria's beside it in the same box Tunaria's: a point of the other region is refused), `["near", "<npc>", distance, world]` or `["at", world, x, z]`; any of them with a last `"low"` for a lower floor |
 | `count` | how many spawns (1); `level` its level (none: the sighting's, the map's); `note` the guide's words for its place; `water` `land` (out of the water), `water` (a fish) or `both` |
 
 Each file is a set of its own: `--apply --set qa` writes it, `--undo --set qa` takes exactly its rows

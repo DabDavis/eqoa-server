@@ -1,0 +1,1588 @@
+{
+ "city": "17",
+ "quests": [
+  {
+   "key": "17/fayspire/main",
+   "name": "The Necromancer of Sslathis",
+   "giver": "Adrwyiel Niteshyre",
+   "classes": [],
+   "races": [],
+   "minlevel": 17,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Tesarin Moonstrider, a necromancer, works his craft atop a black pyramid in Sslathis, far down the coast south of Freeport, past Hazinak. Kill him and bring me his spellbook. Mind his pet.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tesarin Moonstrider",
+     "items": [
+      {
+       "item": "Tesarin's Spellbook",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Tesarin Moonstrider on top of the black pyramid in Sslathis."
+    },
+    {
+     "kind": "give",
+     "target": "Adrwyiel Niteshyre",
+     "items": [
+      {
+       "item": "Tesarin's Spellbook",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Tesarin's spellbook to Adrwyiel Niteshyre in the wizards' guild.",
+     "says": "Good riddance. Now Vaelian Wyndsorrow, in the enchanters' guild, the west building on the lake, wants paying. Go to him."
+    },
+    {
+     "kind": "give",
+     "target": "Vaelian Wyndsorrow",
+     "tunar": 600,
+     "journal": "Pay Vaelian Wyndsorrow in the enchanters' guild 600 tunar.",
+     "says": "Adrwyiel's debt is settled. Go back to her."
+    },
+    {
+     "kind": "talk",
+     "target": "Adrwyiel Niteshyre",
+     "journal": "Return to Adrwyiel Niteshyre.",
+     "says": "Lutherian, across the room, has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Lutherian Dawnsinger",
+     "journal": "See Lutherian Dawnsinger, across the room from Adrwyiel.",
+     "says": "Well done. Take this.",
+     "rewards": {
+      "xp": 263426,
+      "byclass": {
+       "1": {
+        "items": [
+         "Bracers of Nature's Ward"
+        ]
+       },
+       "2": {
+        "items": [
+         "Bracers of Virtue"
+        ]
+       },
+       "5": {
+        "items": [
+         "Bracer of Harmony"
+        ]
+       },
+       "6": {
+        "items": [
+         "Amulet of the Silent Strider"
+        ]
+       },
+       "7": {
+        "items": [
+         "Bracers of the Gladestrider"
+        ]
+       },
+       "9": {
+        "items": [
+         "Bracers of Radiance"
+        ]
+       },
+       "12": {
+        "items": [
+         "Bracers of Brilliance"
+        ]
+       },
+       "13": {
+        "items": [
+         "Robe of Insight"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/17/fayspire.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The spellbook is ours (the guide names no item); Tesarin's pet is not in. The guide's Vaelan Wyndsorrow and Lutherian Doomsinger are the game's Vaelian Wyndsorrow and Lutherian Dawnsinger; its bard's and paladin's and cleric's Bracers are their level 17 sets'. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the warrior, shadowknight, monk, shaman, magician, necromancer, alchemist, who get the experience alone. Bracers of Brilliance is made here (no item has the name), with the look and stats of Bracers of Radiance."
+  },
+  {
+   "key": "17/freeport/main",
+   "name": "The Scribe's Inks",
+   "giver": "Scribe Cathassa",
+   "classes": [],
+   "races": [],
+   "minlevel": 17,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "I need two things for my work: embalming fluid, from the ancient mummies in the desert south-west of the city, and cured drake's blood from Talya Montar in Highpass.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Ancient Mummy",
+     "items": [
+      {
+       "item": "Embalming Fluid",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.4,
+     "journal": "Kill ancient mummies in north-western Ro, in the hills north of the human camp, for embalming fluid."
+    },
+    {
+     "kind": "give",
+     "target": "Talya Montar",
+     "tunar": 600,
+     "journal": "Buy cured drake's blood from Talya Montar on the second floor of the Highpass keep (600 tunar).",
+     "says": "Drake's blood, well cured.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Cured Drake's Blood",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Scribe Cathassa",
+     "items": [
+      {
+       "item": "Embalming Fluid",
+       "count": 1
+      },
+      {
+       "item": "Cured Drake's Blood",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the embalming fluid and the cured drake's blood to Scribe Cathassa.",
+     "says": "Just what I needed. Draeg Kuthra has your reward: out my east door, south, and the first door east."
+    },
+    {
+     "kind": "talk",
+     "target": "Draeg Kuthra",
+     "journal": "See Draeg Kuthra, out the east door, south, and the first door east.",
+     "says": "Cathassa sent you? This is yours.",
+     "rewards": {
+      "xp": 263426,
+      "byclass": {
+       "0": {
+        "items": [
+         "Soldier's Gloves"
+        ]
+       },
+       "1": {
+        "items": [
+         "Gloves Of Nature's Ward"
+        ]
+       },
+       "2": {
+        "items": [
+         "Gloves of Virtue"
+        ]
+       },
+       "3": {
+        "items": [
+         "Bracers of Malice"
+        ]
+       },
+       "4": {
+        "items": [
+         "Gloves of the Disciple"
+        ]
+       },
+       "5": {
+        "items": [
+         "Gloves of Harmony"
+        ]
+       },
+       "6": {
+        "items": [
+         "Sash of the Silent Strider"
+        ]
+       },
+       "7": {
+        "items": [
+         "Gloves of the Gladestrider"
+        ]
+       },
+       "8": {
+        "items": [
+         "Spiritrune Gloves"
+        ]
+       },
+       "9": {
+        "items": [
+         "Gloves of Radiance"
+        ]
+       },
+       "11": {
+        "items": [
+         "Bracer of the Shadow"
+        ]
+       },
+       "12": {
+        "items": [
+         "Bracers of Brilliance"
+        ]
+       },
+       "13": {
+        "items": [
+         "Pendant of Insight"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Ancient Mummy",
+    "Talya Montar"
+   ],
+   "notes": "From EQOA-Data Quests/17/freeport.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's necromancers' Bracers of Shadow are their set's Bracer of the Shadow, its bards' Gloves the Gloves of Harmony; the mummies are seeded where FrontiersForge saw one. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the magician, alchemist, who get the experience alone. Bracers of Brilliance is made here (no item has the name), with the look and stats of Bracers of Radiance."
+  },
+  {
+   "key": "17/grobb/main",
+   "name": "Froglok Liver",
+   "giver": "Nungzsh",
+   "classes": [
+    3,
+    6,
+    8,
+    9,
+    11
+   ],
+   "races": [],
+   "minlevel": 17,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Nungzsh hungry. Want liver of froglok questor, from swamp round troll war camp north on road. And sauce from Thuldreksh. Bring both.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Froglok Questor",
+     "items": [
+      {
+       "item": "Froglok Questor Liver",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill froglok questors in the marshes round the troll war camp north of Grobb."
+    },
+    {
+     "kind": "give",
+     "target": "Thuldreksh",
+     "tunar": 600,
+     "journal": "Buy sauce from Thuldreksh in the shamans' guild, through the door in the great tree (600 tunar).",
+     "says": "Sauce. Good on everything.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Thuldreksh's Sauce",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Nungzsh",
+     "items": [
+      {
+       "item": "Froglok Questor Liver",
+       "count": 1
+      },
+      {
+       "item": "Thuldreksh's Sauce",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the froglok questor liver and the sauce to Nungzsh by the well.",
+     "says": "Mmm. Argash behind well have thing for you."
+    },
+    {
+     "kind": "talk",
+     "target": "Argash",
+     "journal": "See Argash, behind the well by Nungzsh.",
+     "says": "Nungzsh happy. You take.",
+     "rewards": {
+      "xp": 263426,
+      "byclass": {
+       "3": {
+        "items": [
+         "Gloves of Malice"
+        ]
+       },
+       "6": {
+        "items": [
+         "Boots of the Silent Strider"
+        ]
+       },
+       "8": {
+        "items": [
+         "Spiritrune Belt"
+        ]
+       },
+       "9": {
+        "items": [
+         "Helm of Radiance"
+        ]
+       },
+       "11": {
+        "items": [
+         "Gloves of the Shadow"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Froglok Questor"
+   ],
+   "notes": "From EQOA-Data Quests/17/grobb.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). Offered to the classes the guide gives a reward (cleric, necromancer, rogue, shadowknight, shaman); its evil-only note is not a gate here (the server sets no race's standing apart). The liver and sauce are the guide's, by these names ours. The experience is Highpass's 263,426, the one figure the level 17 guides give. Boots of the Silent Strider is made here (no item has the name), with the look and stats of Boots of Nature's Ward."
+  },
+  {
+   "key": "17/halas/main",
+   "name": "Bloodmaw",
+   "giver": "Olga McBryne",
+   "classes": [],
+   "races": [],
+   "minlevel": 17,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A werewolf called Bloodmaw prowls the hills by Goldfeather Eyrie, north of Moradhim. Kill it and bring me a fang. And take this letter to Nuvak McGregor at Diren's Hold.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Bloodmaw",
+     "items": [
+      {
+       "item": "Bloodmaw's Fang",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Bloodmaw in the hills by the ramps north-west of Goldfeather Eyrie."
+    },
+    {
+     "kind": "give",
+     "target": "Nuvak McGregor",
+     "items": [
+      {
+       "item": "Olga's Letter",
+       "count": 1
+      }
+     ],
+     "tunar": 600,
+     "journal": "Give Olga's letter to Nuvak McGregor at Diren's Hold, and buy his cleansing solution (600 tunar).",
+     "says": "Olga's hand, I would know it anywhere. Here is the solution.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Cleansing Solution",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Olga McBryne",
+     "items": [
+      {
+       "item": "Bloodmaw's Fang",
+       "count": 1
+      },
+      {
+       "item": "Cleansing Solution",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Bloodmaw's fang and the cleansing solution to Olga McBryne.",
+     "says": "Good. Udin Kalenn, along the row of buildings on the east side, has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Udin Kalenn",
+     "journal": "See Udin Kalenn along the row of buildings on the east side of Halas.",
+     "says": "Olga said you would come.",
+     "rewards": {
+      "xp": 263426,
+      "byclass": {
+       "0": {
+        "items": [
+         "Soldier's Greaves"
+        ]
+       },
+       "1": {
+        "items": [
+         "Helm of Nature's Ward"
+        ]
+       },
+       "2": {
+        "items": [
+         "Boots of Virtue"
+        ]
+       },
+       "5": {
+        "items": [
+         "Boots of Harmony"
+        ]
+       },
+       "6": {
+        "items": [
+         "Dagger of the Silent Strider"
+        ]
+       },
+       "7": {
+        "items": [
+         "Boots of the Gladestrider"
+        ]
+       },
+       "8": {
+        "items": [
+         "Spiritrune Boots"
+        ]
+       },
+       "9": {
+        "items": [
+         "Belt of Radiance"
+        ]
+       },
+       "12": {
+        "items": [
+         "Gloves of Brilliance"
+        ]
+       },
+       "13": {
+        "items": [
+         "Gloves of Insight"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "Olga's Letter",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Bloodmaw"
+   ],
+   "notes": "From EQOA-Data Quests/17/halas.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Novak Mcgregor and Undin Kalenn are the game's Nuvak McGregor and Udin Kalenn; it does not say to go back to Olga before Udin, but she sends you on. The fang and the letter are the guide's; the bards' Boots are the Boots of Harmony. The guide's good-only and dark elf notes are not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the shadowknight, monk, magician, necromancer, alchemist, who get the experience alone."
+  },
+  {
+   "key": "17/highbourne/main",
+   "name": "Ulria Veshiue",
+   "giver": "Indoran Veshiue",
+   "classes": [],
+   "races": [],
+   "minlevel": 17,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "My sister Ulria has turned to darkness. She hides south, through the south door, across the bridge, upstairs in the building there. End it, and bring me her locket.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Ulria Veshiue",
+     "items": [
+      {
+       "item": "Ulria's Locket",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Ulria Veshiue upstairs in the building across the bridge south of Highbourne."
+    },
+    {
+     "kind": "give",
+     "target": "Lwudras Belladuo",
+     "tunar": 600,
+     "journal": "Buy a cleansing solution from Lwudras Belladuo outside the church (600 tunar).",
+     "says": "A cleansing solution. Use it well.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Cleansing Solution",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Indoran Veshiue",
+     "items": [
+      {
+       "item": "Ulria's Locket",
+       "count": 1
+      },
+      {
+       "item": "Cleansing Solution",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Ulria's locket and the cleansing solution to Indoran Veshiue.",
+     "says": "It is over, then. Veldruin Foamstalker has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Veldruin Foamstalker",
+     "journal": "See Veldruin Foamstalker.",
+     "says": "Indoran asked me to give you this.",
+     "rewards": {
+      "xp": 263426,
+      "byclass": {
+       "0": {
+        "items": [
+         "Soldier's Tunic"
+        ]
+       },
+       "1": {
+        "items": [
+         "Boots of Nature's Ward"
+        ]
+       },
+       "2": {
+        "items": [
+         "Helm of Virtue"
+        ]
+       },
+       "6": {
+        "items": [
+         "Leggings of the Silent Strider"
+        ]
+       },
+       "7": {
+        "items": [
+         "Leggings of the Gladestrider"
+        ]
+       },
+       "8": {
+        "items": [
+         "Spiritrune Helm"
+        ]
+       },
+       "9": {
+        "items": [
+         "Boots of Radiance"
+        ]
+       },
+       "12": {
+        "items": [
+         "Pendant of Brilliance"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Ulria Veshiue",
+    "Veldruin Foamstalker"
+   ],
+   "notes": "From EQOA-Data Quests/17/highbourne.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Indoren Veshine, Ulira Veshine and Lwudras Belladuos are the game's Indoran Veshiue, Ulria Veshiue and Lwudras Belladuo. The locket is ours (the guide names no item). Its dark elf note is not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the shadowknight, monk, bard, magician, necromancer, wizard, alchemist, who get the experience alone."
+  },
+  {
+   "key": "17/highpass/p1",
+   "name": "Grave Silk",
+   "giver": "Holthis D'Worok",
+   "classes": [],
+   "races": [],
+   "minlevel": 17,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Bring me three grave silks from the grave spiders in the rat and spider tomb in Hagley, and 600 tunar for my trouble, and I will see you outfitted.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "grave spider",
+     "items": [
+      {
+       "item": "Grave Silk",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Kill grave spiders in the tomb in Hagley for three grave silks."
+    },
+    {
+     "kind": "give",
+     "target": "Holthis D'Worok",
+     "items": [
+      {
+       "item": "Grave Silk",
+       "count": 3
+      }
+     ],
+     "tunar": 600,
+     "journal": "Bring three grave silks and 600 tunar to Holthis D'Worok by the Highpass coach.",
+     "says": "Fine silk. This will fit you.",
+     "rewards": {
+      "xp": 263426,
+      "byclass": {
+       "0": {
+        "items": [
+         "Soldier's Greaves"
+        ]
+       },
+       "3": {
+        "items": [
+         "Legplates of Malice"
+        ]
+       },
+       "8": {
+        "items": [
+         "Spiritrune Spear"
+        ]
+       },
+       "9": {
+        "items": [
+         "Shield of Radiance"
+        ]
+       },
+       "11": {
+        "items": [
+         "Leggings of the Shadow",
+         "Robe of Shadow"
+        ]
+       },
+       "12": {
+        "items": [
+         "Robe of Brilliance"
+        ]
+       },
+       "13": {
+        "items": [
+         "Robe of Insight"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/17/highpass.json, step 1 and its Class Rewards (Part 1) (github.com/Jadiction/EQOA-Data, MIT). The necromancers' Leggings and Tunic of Shadow are their set's Leggings of the Shadow and Robe of Shadow, the wizards' Robe the Robe of Insight. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the ranger, paladin, monk, bard, rogue, druid, magician, alchemist, who get the experience alone."
+  },
+  {
+   "key": "17/highpass/p2",
+   "name": "Courier Svex",
+   "giver": "Holthis D'Worok",
+   "classes": [],
+   "races": [],
+   "minlevel": 17,
+   "maxlevel": 60,
+   "requires": [
+    "17/highpass/p1"
+   ],
+   "offer": "There is more. Informant Durin, north of the Grobb coach, sells what he knows. Pay him, and do what he tells you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Informant Durin",
+     "tunar": 500,
+     "journal": "Pay Informant Durin, north of the Grobb coach, 500 tunar.",
+     "says": "Courier Svex carries four scrolls along the road. Kill him and take them to Holthis."
+    },
+    {
+     "kind": "loot",
+     "target": "Courier Svex",
+     "items": [
+      {
+       "item": "Svex's Scrolls",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Courier Svex on his road and take his scrolls."
+    },
+    {
+     "kind": "give",
+     "target": "Holthis D'Worok",
+     "items": [
+      {
+       "item": "Svex's Scrolls",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Svex's scrolls to Holthis D'Worok.",
+     "says": "Exactly what I wanted. Juresi, beside me, has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Juresi D'Worok",
+     "journal": "See Juresi D'Worok, beside Holthis.",
+     "says": "My brother keeps his word. Here.",
+     "rewards": {
+      "xp": 263426
+     }
+    }
+   ],
+   "unresolved": [
+    "Courier Svex"
+   ],
+   "notes": "From EQOA-Data Quests/17/highpass.json, steps 2 to 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's Durin is Informant Durin, the NPC next to Holthis Juresi D'Worok; the four scrolls are one item. Its 263,426 experience is the guide's; the class-specific item is not named and is left out."
+  },
+  {
+   "key": "17/klick-anon/main",
+   "name": "Deidre IV",
+   "giver": "Ludvick Undogeem",
+   "classes": [],
+   "races": [],
+   "minlevel": 17,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Deidre IV has gone wild. Out the east gate, south-east over the mountain's shoulder, to the clockwork village. She roams the flats there. Bring me a cog of hers.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Deidre IV",
+     "items": [
+      {
+       "item": "Deidre IV's Cog",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Deidre IV near the clockwork village south-east of Klick`Anon."
+    },
+    {
+     "kind": "give",
+     "target": "Weedle Zinktink",
+     "tunar": 600,
+     "journal": "Buy intense grease from Weedle Zinktink at the inn (600 tunar).",
+     "says": "Intense grease. Very intense.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Intense Grease",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Ludvick Undogeem",
+     "items": [
+      {
+       "item": "Deidre IV's Cog",
+       "count": 1
+      },
+      {
+       "item": "Intense Grease",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Deidre IV's cog and the intense grease to Ludvick Undogeem.",
+     "says": "Now she can be mended. My brother Vuldrek, in the rogues' guild, has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Vuldrek Undogeem",
+     "journal": "See Vuldrek Undogeem in the rogues' guild.",
+     "says": "Ludvick said you would come.",
+     "rewards": {
+      "xp": 263426,
+      "byclass": {
+       "0": {
+        "items": [
+         "Soldier's Boots"
+        ]
+       },
+       "1": {
+        "items": [
+         "Greaves of Nature's Ward"
+        ]
+       },
+       "2": {
+        "items": [
+         "Greaves Of Virtue"
+        ]
+       },
+       "3": {
+        "items": [
+         "Helm of Malice"
+        ]
+       },
+       "5": {
+        "items": [
+         "Tunic of Harmony"
+        ]
+       },
+       "6": {
+        "items": [
+         "Tunic of the Silent Strider"
+        ]
+       },
+       "7": {
+        "items": [
+         "Tunic of the Gladestrider"
+        ]
+       },
+       "8": {
+        "items": [
+         "Spiritrune Greaves"
+        ]
+       },
+       "9": {
+        "items": [
+         "Greaves of Radiance"
+        ]
+       },
+       "11": {
+        "items": [
+         "robe of the shadow"
+        ]
+       },
+       "12": {
+        "items": [
+         "Ring of Brilliance"
+        ]
+       },
+       "13": {
+        "items": [
+         "Leggings of Insight"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Vuldrek Undogeem"
+   ],
+   "notes": "From EQOA-Data Quests/17/klick-anon.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Ludvick and Weedle Zintink are the game's Ludvick Undogeem and Weedle Zinktink; the bards' Breast Plate is the Tunic of Harmony, the paladins' Greaves the Greaves of Virtue. The cog is ours. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the monk, magician, alchemist, who get the experience alone. Ring of Brilliance is made here (no item has the name), with the look and stats of Ring of Shadow."
+  },
+  {
+   "key": "17/moradhim/main",
+   "name": "Murien's Brew",
+   "giver": "Murien Stonebeard",
+   "classes": [],
+   "races": [],
+   "minlevel": 17,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "I brew something special and I lack two things: nectar from Nadrin Stoneblood, down the ramps, and the poison sac of an erollisian viper from the Druk, south of the Fayspires.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "erollisian viper",
+     "items": [
+      {
+       "item": "Erollisian Viper Poison Sac",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the erollisian viper east of the river in the Druk, south of the Fayspires."
+    },
+    {
+     "kind": "give",
+     "target": "Nadrin Stoneblood",
+     "tunar": 600,
+     "journal": "Buy nectar from Nadrin Stoneblood, down the ramps (600 tunar).",
+     "says": "Sweetest nectar in the mountain.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Nadrin's Nectar",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Murien Stonebeard",
+     "items": [
+      {
+       "item": "Erollisian Viper Poison Sac",
+       "count": 1
+      },
+      {
+       "item": "Nadrin's Nectar",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the poison sac and the nectar to Murien Stonebeard on the tavern's second floor.",
+     "says": "Perfect. Mildred Blightforge has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Mildred Blightforge",
+     "journal": "See Mildred Blightforge.",
+     "says": "Murien's brew must be ready. This is for you.",
+     "rewards": {
+      "xp": 263426,
+      "byclass": {
+       "1": {
+        "items": [
+         "Tunic Of Nature's Ward"
+        ]
+       },
+       "2": {
+        "items": [
+         "Tunic Of Virtue"
+        ]
+       },
+       "3": {
+        "items": [
+         "Pendant of Malice"
+        ]
+       },
+       "4": {
+        "items": [
+         "Helm of the Disciple"
+        ]
+       },
+       "5": {
+        "items": [
+         "Amulet of Harmony"
+        ]
+       },
+       "6": {
+        "items": [
+         "Gloves of the Silent Strider"
+        ]
+       },
+       "7": {
+        "items": [
+         "Belt of the Gladestrider"
+        ]
+       },
+       "8": {
+        "items": [
+         "Spiritrune Tunic"
+        ]
+       },
+       "9": {
+        "items": [
+         "Tunic of Radiance"
+        ]
+       },
+       "11": {
+        "items": [
+         "Sash of the Shadow"
+        ]
+       },
+       "12": {
+        "items": [
+         "Robe of Brilliance"
+        ]
+       },
+       "13": {
+        "items": [
+         "Gloves of Insight"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/17/moradhim.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Murian is the game's Murien Stonebeard; the bards' Necklace is the Amulet of Harmony, the monks' Disciple's Helm the Helm of the Disciple, the necromancers' Sash of Shadows the Sash of the Shadow. The warriors' Soldier's Belt is left out: the only item of that name is a level 60 belt. Its dark elf note is not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the warrior, magician, alchemist, who get the experience alone. Pendant of Malice is made here (no item has the name), with the look and stats of Soldier's Pendant."
+  },
+  {
+   "key": "17/neriak-nektulos/main",
+   "name": "The Ceremony",
+   "giver": "Tanadril N`Thael",
+   "classes": [],
+   "races": [],
+   "minlevel": 17,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The ceremony wants a ceremonial dagger, from Adrassya in the basement of the Spurned Enclave, and a vial of blood from a wandering priestess in Blakedown. Bring both.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Adrassya V'Kar",
+     "tunar": 600,
+     "journal": "Buy a ceremonial dagger from Adrassya V'Kar in the Spurned Enclave's basement (600 tunar).",
+     "says": "Sharp, and blessed. Mind your fingers.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Ceremonial Dagger",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Wandering Priestess",
+     "items": [
+      {
+       "item": "Vial of Blood",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the wandering priestess who roams Blakedown for a vial of blood."
+    },
+    {
+     "kind": "give",
+     "target": "Tanadril N`Thael",
+     "items": [
+      {
+       "item": "Ceremonial Dagger",
+       "count": 1
+      },
+      {
+       "item": "Vial of Blood",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ceremonial dagger and the vial of blood to Tanadril N`Thael.",
+     "says": "Neriak thanks you. Denouncer G`Efia, at the base of the guild, has something for you.",
+     "rewards": {
+      "xp": 263426,
+      "factions": [
+       [
+        "Citizens of Neriak",
+        100
+       ],
+       [
+        "The Indigo Brotherhood",
+        10
+       ]
+      ]
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Denouncer G`Efia",
+     "journal": "See Denouncer G`Efia at the base of the clerics' guild.",
+     "says": "Tanadril spoke of you. Go well."
+    }
+   ],
+   "unresolved": [
+    "Wandering Priestess"
+   ],
+   "notes": "From EQOA-Data Quests/17/neriak-nektulos.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Adrassya N'Var is the game's Adrassya V'Kar. The faction is the guide's (+100 Citizens of Neriak, +10 Indigo Brotherhood). G`Efia's class-specific item is not named and is left out. The experience is Highpass's 263,426, the one figure the level 17 guides give."
+  },
+  {
+   "key": "17/qeynos/main",
+   "name": "The Shadowhand Receipt",
+   "giver": "Laressa Nevar",
+   "classes": [],
+   "races": [],
+   "minlevel": 17,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Captain Drailis in Forkwatch has been asking after the Shadowhand bandits. Go to him, and do what he asks.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Drailis",
+     "journal": "Find Captain Drailis in Forkwatch.",
+     "says": "The Shadowhand bandits in the Qeynos farmlands carry receipts for stolen goods. Bring one to Nanigar Volsweath in Wyndhaven."
+    },
+    {
+     "kind": "loot",
+     "target": "shadowhand bandit",
+     "items": [
+      {
+       "item": "Shadowhand Receipt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill Shadowhand bandits in the Qeynos farmlands for a receipt."
+    },
+    {
+     "kind": "give",
+     "target": "Nanigar Volsweath",
+     "items": [
+      {
+       "item": "Shadowhand Receipt",
+       "count": 1
+      }
+     ],
+     "tunar": 600,
+     "journal": "Take the receipt to Nanigar Volsweath in Wyndhaven, and buy his blade (600 tunar).",
+     "says": "So that is where it went. Take the blade to Laressa.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Volsweath's Blade",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Laressa Nevar",
+     "items": [
+      {
+       "item": "Volsweath's Blade",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the blade to Laressa Nevar in the paladins' guild.",
+     "says": "Justice done. Kaelron Uldaras has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Kaelron Uldaras",
+     "journal": "See Kaelron Uldaras.",
+     "says": "Laressa told me. Take this.",
+     "rewards": {
+      "xp": 263426,
+      "byclass": {
+       "0": {
+        "items": [
+         "Soldier's Insignia"
+        ]
+       },
+       "1": {
+        "items": [
+         "Belt of Nature's Ward"
+        ]
+       },
+       "2": {
+        "items": [
+         "Ring of Virtue"
+        ]
+       },
+       "4": {
+        "items": [
+         "Sash of the Disciple"
+        ]
+       },
+       "6": {
+        "items": [
+         "Ring of the Silent Strider"
+        ]
+       },
+       "7": {
+        "items": [
+         "Ring of the Gladestrider"
+        ]
+       },
+       "8": {
+        "items": [
+         "Spiritrune Ring"
+        ]
+       },
+       "9": {
+        "items": [
+         "Ring of Radiance"
+        ]
+       },
+       "10": {
+        "items": [
+         "Chromatic Tome"
+        ]
+       },
+       "11": {
+        "items": [
+         "Boots of Shadow"
+        ]
+       },
+       "12": {
+        "items": [
+         "Slippers of Brilliance"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Laressa Nevar",
+    "Nanigar Volsweath"
+   ],
+   "notes": "From EQOA-Data Quests/17/qeynos.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Drailis is Captain Drailis; the receipt and blade are ours by name. The monks' Disciple's Sash is the Sash of the Disciple, the warriors' Ring the Soldier's Insignia. Its dark elf note is not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the shadowknight, bard, wizard, alchemist, who get the experience alone. Ring of the Silent Strider is made here (no item has the name), with the look and stats of Ring of Guarding."
+  },
+  {
+   "key": "17/rivervale/main",
+   "name": "Tesht'uzu",
+   "giver": "Syrus Galestride",
+   "classes": [],
+   "races": [],
+   "minlevel": 17,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A goblin called Tesht'uzu wears an amulet that is not his, in Runnyeye. North out of Highpass, then the mountains west, then the road north. Kill him and bring it back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tesht'uzu",
+     "items": [
+      {
+       "item": "Tesht'uzu's Amulet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Tesht'uzu in Runnyeye and take the amulet."
+    },
+    {
+     "kind": "give",
+     "target": "Lyliann Brindlespur",
+     "tunar": 600,
+     "journal": "Buy a vial of Karana's tears from Lyliann Brindlespur in south-west Rivervale (600 tunar).",
+     "says": "Karana's tears. Keep them from the sun.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Karana's Tears",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Syrus Galestride",
+     "items": [
+      {
+       "item": "Tesht'uzu's Amulet",
+       "count": 1
+      },
+      {
+       "item": "Karana's Tears",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the amulet and Karana's tears to Syrus Galestride in the druids' guild.",
+     "says": "You did it. Ren Deeppockets has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Ren Deeppockets",
+     "journal": "See Ren Deeppockets.",
+     "says": "Syrus said you would come. Here.",
+     "rewards": {
+      "xp": 263426,
+      "byclass": {
+       "0": {
+        "items": [
+         "Soldier's Blade"
+        ]
+       },
+       "1": {
+        "items": [
+         "Blade of Nature's Ward"
+        ]
+       },
+       "2": {
+        "items": [
+         "Ahlspiess of Virtue"
+        ]
+       },
+       "5": {
+        "items": [
+         "Blade of Harmony"
+        ]
+       },
+       "6": {
+        "items": [
+         "Helm of the Silent Strider"
+        ]
+       },
+       "7": {
+        "items": [
+         "Crook of the Gladestrider"
+        ]
+       },
+       "9": {
+        "items": [
+         "Shield of Radiance"
+        ]
+       },
+       "12": {
+        "items": [
+         "Wand of Brilliance"
+        ]
+       },
+       "13": {
+        "items": [
+         "Wand of Insight"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Tesht'uzu"
+   ],
+   "notes": "From EQOA-Data Quests/17/rivervale.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Syrus Gilstride is the game's Syrus Galestride; the bards' Sword is the Blade of Harmony, the rangers' Sword of Nature's Ward the Blade of Nature's Ward. Its dark elf note is not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the shadowknight, monk, shaman, magician, necromancer, alchemist, who get the experience alone. Crook of the Gladestrider is made here (no item has the name), with the look and stats of Gloomtwig Cudgel."
+  }
+ ],
+ "items": [
+  {
+   "name": "Bracers of Brilliance",
+   "description": "Enchanter's bracers of the Brilliance set.",
+   "notrade": true,
+   "like": "Bracers of Radiance"
+  },
+  {
+   "name": "Ring of Brilliance",
+   "description": "Enchanter's ring of the Brilliance set.",
+   "notrade": true,
+   "like": "Ring of Shadow"
+  },
+  {
+   "name": "Boots of the Silent Strider",
+   "description": "Rogue's boots of the Silent Strider set.",
+   "notrade": true,
+   "like": "Boots of Nature's Ward"
+  },
+  {
+   "name": "Ring of the Silent Strider",
+   "description": "Rogue's ring of the Silent Strider set.",
+   "notrade": true,
+   "like": "Ring of Guarding"
+  },
+  {
+   "name": "Pendant of Malice",
+   "description": "Shadowknight's pendant of the Malice set.",
+   "notrade": true,
+   "like": "Soldier's Pendant"
+  },
+  {
+   "name": "Crook of the Gladestrider",
+   "description": "Druid's crook of the Gladestrider set.",
+   "notrade": true,
+   "like": "Gloomtwig Cudgel"
+  },
+  {
+   "name": "Tesarin's Spellbook",
+   "description": "The spellbook of Tesarin Moonstrider, the necromancer of the black pyramid.",
+   "notrade": true,
+   "like": "scroll of dark bindings"
+  },
+  {
+   "name": "Embalming Fluid",
+   "description": "Embalming fluid, taken from an ancient mummy.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "Cured Drake's Blood",
+   "description": "Cured drake's blood, bought from Talya Montar of Highpass.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "Froglok Questor Liver",
+   "description": "The liver of a froglok questor.",
+   "notrade": true,
+   "like": "bat meat"
+  },
+  {
+   "name": "Thuldreksh's Sauce",
+   "description": "A sauce from Thuldreksh of the shamans' guild.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "Olga's Letter",
+   "description": "A letter from Olga McBryne of Halas for Nuvak McGregor.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "Bloodmaw's Fang",
+   "description": "A fang of Bloodmaw, the werewolf of Goldfeather Eyrie.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Cleansing Solution",
+   "description": "A cleansing solution.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "Ulria's Locket",
+   "description": "A locket worn by Ulria Veshiue.",
+   "notrade": true,
+   "like": "bone earring"
+  },
+  {
+   "name": "Grave Silk",
+   "description": "Silk spun by a grave spider.",
+   "notrade": true,
+   "like": "bundle of pristine silk"
+  },
+  {
+   "name": "Svex's Scrolls",
+   "description": "Four scrolls the courier Svex carried.",
+   "notrade": true,
+   "like": "scroll of dark bindings"
+  },
+  {
+   "name": "Deidre IV's Cog",
+   "description": "A cog from the clockwork Deidre IV.",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Intense Grease",
+   "description": "Grease, from Weedle Zinktink at the inn.",
+   "notrade": true,
+   "like": "fish liver oil"
+  },
+  {
+   "name": "Erollisian Viper Poison Sac",
+   "description": "The poison sac of an erollisian viper.",
+   "notrade": true,
+   "like": "firespew gland"
+  },
+  {
+   "name": "Nadrin's Nectar",
+   "description": "Nectar from Nadrin Stoneblood.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "Ceremonial Dagger",
+   "description": "A ceremonial dagger, bought from Adrassya V'Kar.",
+   "notrade": true,
+   "like": "rusted blade"
+  },
+  {
+   "name": "Vial of Blood",
+   "description": "A vial of blood, taken from a wandering priestess.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "Shadowhand Receipt",
+   "description": "A receipt carried by a Shadowhand bandit.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "Volsweath's Blade",
+   "description": "A blade bought from Nanigar Volsweath of Wyndhaven.",
+   "notrade": true,
+   "like": "rusted blade"
+  },
+  {
+   "name": "Tesht'uzu's Amulet",
+   "description": "The amulet of Tesht'uzu of Runnyeye.",
+   "notrade": true,
+   "like": "Akuion's insignia"
+  },
+  {
+   "name": "Karana's Tears",
+   "description": "A vial of Karana's tears, from Lyliann Brindlespur.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  }
+ ]
+}

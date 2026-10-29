@@ -2017,6 +2017,166 @@
    "level": 60,
    "note": "comes through the Etheneric Portal on Whale Hill with his undead minions",
    "water": "land"
+  },
+  {
+   "name": "Magifent the Unliving",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Magifent's Mausoleum, Stone Watchers (W)",
+   "water": "land"
+  },
+  {
+   "name": "Emeraldine Drake",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "at",
+    0,
+    9000.0,
+    8800.0
+   ],
+   "count": 3,
+   "level": 44,
+   "note": "Salisearaneen (SW), east of the road between a hill and a campfire with centaurs, among the jade drakes",
+   "water": "land"
+  },
+  {
+   "name": "Sandstone Drake",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "at",
+    0,
+    17700.0,
+    26900.0
+   ],
+   "count": 3,
+   "level": 46,
+   "note": "Tak 'Xiz South (E), on the border with Takish'Hiz (W), among four rocks, with the torrid drakes",
+   "water": "land"
+  },
+  {
+   "name": "Keeper Amani",
+   "role": "talker",
+   "body": [
+    "race",
+    "erudite",
+    1
+   ],
+   "place": [
+    "at",
+    2,
+    8850.0,
+    4150.0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "roaming the north side of Arcadin's north wall (the place is ours, by a fit of EQOA-Data's Odus points)",
+   "water": "land"
+  },
+  {
+   "name": "Rubilent Drake",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "at",
+    3,
+    6200.0,
+    4600.0
+   ],
+   "count": 4,
+   "level": 50,
+   "note": "the path behind the goblin general's fort toward Solusek's entrance, Lavastorm (the place is ours)",
+   "water": "land"
+  },
+  {
+   "name": "Bloodstone Drake",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "near",
+    "Magifent the Unliving",
+    150,
+    0
+   ],
+   "count": 2,
+   "level": 55,
+   "note": "the swamp water a little north-east of Magifent's tomb",
+   "water": "land"
+  },
+  {
+   "name": "Bloodstone Drake Gem Keeper",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "near",
+    "Magifent the Unliving",
+    160,
+    0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "comes among the bloodstone drakes north-east of the tomb (red to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Undead Drake Lord",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "near",
+    "Magifent the Unliving",
+    120,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a little south or south-east of Magifent's tomb",
+   "water": "land"
+  },
+  {
+   "name": "Magifent",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Magifent the Unliving",
+    100,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the living Magifent, behind (west of) the tomb by a rock, with a ghoul",
+   "water": "land"
   }
  ]
 }

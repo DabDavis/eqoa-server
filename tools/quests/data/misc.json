@@ -6795,6 +6795,579 @@
     "Dynmath the Tyrant"
    ],
    "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Dynmath the Tyrant, another totem (github.com/Jadiction/EQOA-Data, MIT). The guide: after killing (or failing to kill) the Tyrant, the historian makes another totem for 1 million tunar."
+  },
+  {
+   "key": "Misc/undead-drake-lord/p1",
+   "name": "Wards of the Drake Lord: Nature",
+   "giver": "Magifent the Unliving",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "I was a black necromancer, and I am the slave of a drake lord who would overthrow Norrath. His minions carry gems of protection. Five wards will break them. Keeper Sari, at the Black Swan Inn in Darvar Manor, makes the first.",
+   "accept": "I will help you.",
+   "decline": "Not now.",
+   "declined": "Then I stay his slave.",
+   "started": "Keeper Sari, at Darvar Manor.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Keeper Sari",
+     "journal": "Find Keeper Sari in the Black Swan Inn at Darvar Manor.",
+     "says": "Five gems from the emeraldine drakes of Salisearaneen (SW), east of the road by the centaurs' fire. Kill the jade drakes there until they come."
+    },
+    {
+     "kind": "loot",
+     "target": "Emeraldine Drake",
+     "journal": "Take five gems from emeraldine drakes in Salisearaneen (SW).",
+     "items": [
+      {
+       "item": "Emeraldine Gem",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Keeper Sari",
+     "journal": "Bring the five emeraldine gems to Keeper Sari.",
+     "items": [
+      {
+       "item": "Emeraldine Gem",
+       "count": 5
+      }
+     ],
+     "says": "The Ward of Nature. Keeper Ikkl, by the blacksmith in Highpass, makes the next.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Ward of Nature",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Magifent the Unliving",
+    "Emeraldine Drake"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/undead-drake-lord.json, # Undead Drake Lord Quest, steps 1-2 (github.com/Jadiction/EQOA-Data, MIT). The quest's start is the popup at Magifent's Mausoleum in the guide: Magifent the Unliving gives it here."
+  },
+  {
+   "key": "Misc/undead-drake-lord/p2",
+   "name": "Wards of the Drake Lord: Desert",
+   "giver": "Keeper Ikkl",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/undead-drake-lord/p1"
+   ],
+   "offer": "Sari sent you? The sandstone drakes in Tak 'Xiz South, east, on the border with Takish'Hiz, carry the gems I need. The torrid drakes there are their kin: kill them until a sandstone comes. Four gems.",
+   "accept": "Four gems.",
+   "decline": "Not now.",
+   "declined": "Then the drake lord waits.",
+   "started": "Tak 'Xiz South.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Sandstone Drake",
+     "journal": "Take four gems from sandstone drakes in Tak 'Xiz South (E).",
+     "items": [
+      {
+       "item": "Sandstone Gem",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Keeper Ikkl",
+     "journal": "Bring the four sandstone gems to Keeper Ikkl in Highpass.",
+     "items": [
+      {
+       "item": "Sandstone Gem",
+       "count": 4
+      }
+     ],
+     "says": "The Ward of Desert. Keeper Rilzen, east of Wyndhaven's coachman, makes the next.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Ward of Desert",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Sandstone Drake"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/undead-drake-lord.json, # Undead Drake Lord Quest, step 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's torrid drakes are placeholders for the sandstone drakes: the sandstones stand there here."
+  },
+  {
+   "key": "Misc/undead-drake-lord/p3",
+   "name": "Wards of the Drake Lord: Frost",
+   "giver": "Keeper Rilzen",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/undead-drake-lord/p2"
+   ],
+   "offer": "For the Ward of Frost I need six gems from the pearlescent drakes. They come when the ice drakes round the tower on the hill over the ocean, in Permafrost (W), die.",
+   "accept": "Six gems.",
+   "decline": "Not now.",
+   "declined": "Then the drake lord waits.",
+   "started": "Permafrost's west tower.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 4440,
+     "y": 87,
+     "z": 4895,
+     "radius": 60,
+     "journal": "Go to the tower surrounded by ice drakes on a hill over the ocean, Permafrost (W)."
+    },
+    {
+     "kind": "loot",
+     "target": "pearlescent drake",
+     "journal": "Kill the ice drakes until the pearlescent drakes come, and take six gems.",
+     "items": [
+      {
+       "item": "Pearlescent Gem",
+       "count": 6
+      }
+     ],
+     "count": 6,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "pearlescent drake",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "pearlescent drake",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Keeper Rilzen",
+     "journal": "Bring the six pearlescent gems to Keeper Rilzen in Wyndhaven.",
+     "items": [
+      {
+       "item": "Pearlescent Gem",
+       "count": 6
+      }
+     ],
+     "says": "The Ward of Frost. Keeper Amani, on the north side of Arcadin's north wall, makes the next.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Ward of Frost",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/undead-drake-lord.json, # Undead Drake Lord Quest, step 4 (github.com/Jadiction/EQOA-Data, MIT). Two pearlescent drakes spawn at the tower (one also stands there): the guide's come as ice drakes die."
+  },
+  {
+   "key": "Misc/undead-drake-lord/p4",
+   "name": "Wards of the Drake Lord: Fire",
+   "giver": "Keeper Amani",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/undead-drake-lord/p3"
+   ],
+   "offer": "Fire is the hardest. The rubilent drakes of Lavastorm, on the long path behind the goblin general's fort, carry rubilent gems. Bring me four, I will make them one, and the well behind Blackwater will harden it.",
+   "accept": "Four gems.",
+   "decline": "Not now.",
+   "declined": "Then the drake lord waits.",
+   "started": "Lavastorm.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Rubilent Drake",
+     "journal": "Take four rubilent gems from the rubilent drakes behind the goblin fort in Lavastorm.",
+     "items": [
+      {
+       "item": "Rubilent Gem",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Keeper Amani",
+     "journal": "Bring the four rubilent gems to Keeper Amani by Arcadin's north wall.",
+     "items": [
+      {
+       "item": "Rubilent Gem",
+       "count": 4
+      }
+     ],
+     "says": "One pristine gem. Now harden it in the well behind Blackwater.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Pristine Rubilent Gem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 15200,
+     "y": 53,
+     "z": 22950,
+     "radius": 40,
+     "journal": "Harden the pristine rubilent gem in the well behind Blackwater.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The gem hisses in the well's water and hardens: the Ward of Fire."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Ward of Fire",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Keeper Amani",
+    "Rubilent Drake"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/undead-drake-lord.json, # Undead Drake Lord Quest, step 5 (github.com/Jadiction/EQOA-Data, MIT). The guide's 32 rubilent gems, jewelcrafted four by four into one pristine gem, are four gems Keeper Amani makes into one here. The well's popup is a reach step (its place, behind Blackwater, is ours); the pristine gem is kept."
+  },
+  {
+   "key": "Misc/undead-drake-lord/p5",
+   "name": "The Undead Drake Lord",
+   "giver": "Magifent the Unliving",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/undead-drake-lord/p4"
+   ],
+   "offer": "Four wards. The fifth is magic: the bloodstone drakes in the swamp north-east of my tomb guard it. Then I make the Ward of Elements, and you face the drake lord. Bring friends.",
+   "accept": "I will face him.",
+   "decline": "Not now.",
+   "declined": "Then I stay his slave.",
+   "started": "North-east of my tomb.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 18650,
+     "y": 82,
+     "z": 30960,
+     "radius": 60,
+     "journal": "Go down to the swamp water a little north-east of Magifent's tomb.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Bonewings! Bloodstone drakes rise from the swamp."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Bloodstone Drake",
+     "journal": "Kill the bloodstone drakes.",
+     "count": 2,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Bloodstone Drake",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Bloodstone Drake",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Bloodstone Drake Gem Keeper",
+     "journal": "Kill the bloodstone drake gem keeper and take the Ward of Magic.",
+     "items": [
+      {
+       "item": "Ward of Magic",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Bloodstone Drake Gem Keeper",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Magifent the Unliving",
+     "journal": "Bring the five wards to Magifent the Unliving.",
+     "items": [
+      {
+       "item": "Ward of Nature",
+       "count": 1
+      },
+      {
+       "item": "Ward of Desert",
+       "count": 1
+      },
+      {
+       "item": "Ward of Frost",
+       "count": 1
+      },
+      {
+       "item": "Ward of Fire",
+       "count": 1
+      },
+      {
+       "item": "Ward of Magic",
+       "count": 1
+      }
+     ],
+     "says": "The Ward of Elements. He waits a little south of my tomb. Go!",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Ward of Elements",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 18560,
+     "y": 82,
+     "z": 31180,
+     "radius": 60,
+     "journal": "Go a little south of Magifent's tomb, where the drake lord rises."
+    },
+    {
+     "kind": "kill",
+     "target": "Undead Drake Lord",
+     "journal": "Kill the Undead Drake Lord, and the bloodstones that come with him.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Undead Drake Lord",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Bloodstone Drake",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Magifent the Unliving",
+     "journal": "Return to Magifent the Unliving.",
+     "says": "He is gone! Meet me behind the tomb, to the west, by the rock."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 18440,
+     "y": 82,
+     "z": 31066,
+     "radius": 40,
+     "journal": "Go behind the tomb, to the west, to the rock.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A living Magifent steps out, a ghoul at his side. His true form, and none too friendly!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Magifent",
+     "journal": "Kill the living Magifent (and his ghoul).",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Magifent",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Ghoul",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Magifent the Unliving",
+     "journal": "Return to Magifent the Unliving in the tomb.",
+     "says": "Free of him, and of myself. Take a ring for it.",
+     "rewards": {
+      "byclass": {
+       "10": {
+        "items": [
+         "mystical ward of power"
+        ]
+       },
+       "11": {
+        "items": [
+         "mystical ward of power"
+        ]
+       },
+       "12": {
+        "items": [
+         "mystical ward of power"
+        ]
+       },
+       "13": {
+        "items": [
+         "mystical ward of power"
+        ]
+       },
+       "7": {
+        "items": [
+         "mystical ward of power"
+        ]
+       },
+       "8": {
+        "items": [
+         "mystical ward of power"
+        ]
+       },
+       "9": {
+        "items": [
+         "mystical ward of power"
+        ]
+       },
+       "14": {
+        "items": [
+         "mystical ward of power"
+        ]
+       },
+       "0": {
+        "items": [
+         "mystical ward of resistance"
+        ]
+       },
+       "2": {
+        "items": [
+         "mystical ward of resistance"
+        ]
+       },
+       "3": {
+        "items": [
+         "mystical ward of resistance"
+        ]
+       },
+       "1": {
+        "items": [
+         "mystical ward of resistance"
+        ]
+       },
+       "4": {
+        "items": [
+         "mystical ward of resistance"
+        ]
+       },
+       "5": {
+        "items": [
+         "mystical ward of resistance"
+        ]
+       },
+       "6": {
+        "items": [
+         "mystical ward of resistance"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Magifent the Unliving",
+    "Bloodstone Drake",
+    "Bloodstone Drake Gem Keeper",
+    "Undead Drake Lord",
+    "Magifent"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/undead-drake-lord.json, # Undead Drake Lord Quest, steps 6-7 and the reward (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is a ring of your choice made in Klick'Anon (a guard tower east of the coach) from a gem the living Magifent drops and a no-trade ring: the engine has no choice, so the power ring (the guide's Blue, the server's mystical ward of power) goes to casters, healers and alchemists and the resistance ring (Green, mystical ward of resistance) to tanks and melees, from Magifent himself. Not on this server: the Crimson and Gold rings. The drake lord's Drakescale armor is loot. The bloodstone drakes that keep coming for an hour are two and one."
   }
  ],
  "items": [
@@ -7493,6 +8066,72 @@
    "description": "A totem to call Dynmath the Tyrant at the portal on Whale Hill.",
    "notrade": false,
    "like": "totem of dreams"
+  },
+  {
+   "name": "Emeraldine Gem",
+   "description": "A gem of protection, from an emeraldine drake.",
+   "notrade": true,
+   "like": "gem of wit"
+  },
+  {
+   "name": "Sandstone Gem",
+   "description": "A gem of protection, from a sandstone drake.",
+   "notrade": true,
+   "like": "gem of deception"
+  },
+  {
+   "name": "Pearlescent Gem",
+   "description": "A gem of protection, from a pearlescent drake.",
+   "notrade": true,
+   "like": "gem of obfuscation"
+  },
+  {
+   "name": "Rubilent Gem",
+   "description": "A gem of protection, from a rubilent drake.",
+   "notrade": true,
+   "like": "gem of fury"
+  },
+  {
+   "name": "Pristine Rubilent Gem",
+   "description": "Rubilent gems made into one pristine gem.",
+   "notrade": true,
+   "like": "Final Thought Gem"
+  },
+  {
+   "name": "Ward of Nature",
+   "description": "A ward against the drake lord, made by Keeper Sari.",
+   "notrade": true,
+   "like": "Suspicious Looking Stone"
+  },
+  {
+   "name": "Ward of Desert",
+   "description": "A ward against the drake lord, made by Keeper Ikkl.",
+   "notrade": true,
+   "like": "Suspicious Looking Stone"
+  },
+  {
+   "name": "Ward of Frost",
+   "description": "A ward against the drake lord, made by Keeper Rilzen.",
+   "notrade": true,
+   "like": "Suspicious Looking Stone"
+  },
+  {
+   "name": "Ward of Fire",
+   "description": "A ward against the drake lord, hardened at Blackwater's well.",
+   "notrade": true,
+   "like": "Suspicious Looking Stone"
+  },
+  {
+   "name": "Ward of Magic",
+   "description": "A ward against the drake lord, from a bloodstone drake gem keeper.",
+   "notrade": true,
+   "like": "Suspicious Looking Stone"
+  },
+  {
+   "name": "Ward of Elements",
+   "description": "The five wards made one, against the Undead Drake Lord.",
+   "notrade": true,
+   "like": "death madam's stone"
   }
  ]
 }

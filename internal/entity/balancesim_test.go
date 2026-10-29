@@ -69,8 +69,14 @@ var simTargets = map[int]simTarget{
 }
 
 // simMisses is every cell of the archetypes' fights under b that misses its
-// target, as lines.
+// target, as lines. The stand-ins are the archetypes, not their classes:
+// Balance by class's share (a rogue's 65%) is left out, the level and con
+// tables alone held to the targets (the classes' rows are tuned on the real
+// kits, balancesim_real_test.go).
 func simMisses(b *Balance, fights int) []string {
+	if b != nil {
+		b = b.WithClasses(nil)
+	}
 	var miss []string
 	for _, class := range []int{classWarrior, 6} {
 		for _, level := range []int{10, 20, 30, 40, 50, 60} {

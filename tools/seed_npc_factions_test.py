@@ -115,7 +115,7 @@ class SeedNPCFactionsTest(unittest.TestCase):
             ("city cat", -1, "Citizens of Neriak"),
             ("undead servant", -1, "Citizens of Neriak"),
             ("guard tilman", -1, "The Qeynos Guard"),
-            ("lerda stoneguard", -1, "The Stoneguard"),
+            ("lerda stoneguard", -1, "Citizens of Qeynos"),  # named for a faction of no kind: the town's
             ("decaying zombie", 0, "Citizens of Qeynos"),    # a place: the wild's zombie is not the town's
         }
         for j in range(16):
@@ -141,7 +141,7 @@ class SeedNPCFactionsTest(unittest.TestCase):
         table, groups, unsafe = snf.impact(p, snf.Starts(db))
         # the factions' own: Qeynos -2000 sets its own people on a new western human at its start
         self.assertEqual(groups, ["Human west", "Dark Elf"])
-        self.assertEqual(table["Qeynos"]["Human west"], (12, 12))  # 10 citizens, the guard, the zombie: not Lerda (1)
+        self.assertEqual(table["Qeynos"]["Human west"], (13, 13))  # 10 citizens, Lerda, the guard, the zombie
         self.assertEqual([(c, t) for c, t, _ in unsafe], [((0, 0, 2), "Qeynos")])
         with self.assertRaises(SystemExit):
             with contextlib.redirect_stderr(io.StringIO()):
@@ -154,7 +154,7 @@ class SeedNPCFactionsTest(unittest.TestCase):
         table, groups, unsafe = snf.impact(p, snf.Starts(db))
         self.assertEqual(unsafe, [])
         self.assertEqual(table["Qeynos"]["Human west"], (0, 0))
-        self.assertEqual(table["Qeynos"]["Dark Elf"], (12, 12))  # the dark elf in Qeynos
+        self.assertEqual(table["Qeynos"]["Dark Elf"], (13, 13))  # the dark elf in Qeynos
         self.assertEqual(table["Neriak, Nektulos"]["Dark Elf"], (0, 0))
         # with a measurement the table is the measured combos' alone
         tsv = os.path.join(self.dir, "m.tsv")

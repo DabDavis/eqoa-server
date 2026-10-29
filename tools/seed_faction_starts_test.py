@@ -141,10 +141,13 @@ class SeedFactionStartsTest(unittest.TestCase):
             (2, 11, -1, "Guild of Gamma", 100), (3, 11, -1, "Guild of Gamma", 100),
             # the new order: the gnomes', at its commonest 0
             (3, -1, -1, NEW, 600),
+            # every combo shares Delta Watch's 50, the table 5: a row a race
+            (0, -1, -1, "Delta Watch ", 50), (2, -1, -1, "Delta Watch ", 50), (3, -1, -1, "Delta Watch ", 50),
         ]))
         self.assertEqual(p["added"], {NEW: 0})
-        # every combo shares Delta Watch's 50 and Edited's 70: no row, said
-        self.assertEqual(sorted(p["shared"]), [("Delta Watch ", 50, 5), ("Edited", 70, 7)])
+        self.assertEqual(p["kept_table"], [("Delta Watch ", 50, 5)])
+        # every combo shares Edited's 70, a GM's 7 in the table: no row, said
+        self.assertEqual(p["shared"], [("Edited", 70, 7)])
         self.assertEqual(p["absent"], ["Old Order"])
         self.assertEqual(p["missing"], [])
 

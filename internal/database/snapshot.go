@@ -42,7 +42,7 @@ import (
 // SnapshotVersion names the sanitiser's rules: the panel's audit line and the
 // snapshot's own snapshot_info table say which made a file. Raise it with
 // every change to what is taken out.
-const SnapshotVersion = 1
+const SnapshotVersion = 2
 
 // SnapshotInfoTable is the table a snapshot carries saying what it is: the
 // sanitiser's version, when it was made and by whom, and what was taken out.
@@ -117,6 +117,8 @@ var snapshotRules = map[string]snapshotRule{
 		why: "what people and agents wrote to each other: a note can hold a password, a token or an address"},
 	"workboard_overview": {clear: true,
 		why: "the same; a server seeds the default overview again when it opens the copy"},
+	"petitions": {clear: true,
+		why: "a player's own words to the staff and the staff's answers, with the account they came from"},
 	// SQLite's index statistics: stat4 keeps sample KEYS of the indexes, so
 	// a sample of an index on a column taken out above
 	"sqlite_stat4": {clear: true, why: "samples of the indexes' keys"},

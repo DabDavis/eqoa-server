@@ -509,6 +509,7 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   | `spellfx_meta`, `mapmark_meta` | every row deleted | the salts the community senders' addresses are hashed with (with one an IPv4 hash walks back); a server makes new ones |
   | `spellfx_suggestions.addr_hash`, `mapmark_suggestions.sender_hash` | each value replaced by an HMAC under a key thrown away | one sender's rows still group; nothing links them to the live hashes |
   | `workboard`, `workboard_overview` | every row deleted | what people and agents wrote each other (a note can hold a password or a token); the default overview is seeded again on open |
+  | `petitions` | every row deleted | a player's own words to the staff and the staff's answers, with the account they came from |
   | `sqlite_stat3`, `sqlite_stat4` | every row deleted | samples of the indexes' keys |
   | `snapshot_info` (added) | the sanitiser's version, when, by whom, what it took out | so a copy says what it is |
   | every other table | whole | the game: characters, items, NPCs, quests, spells, balance, templates, the tools' logs (their `key`/`rowkey` columns allowed by name) |

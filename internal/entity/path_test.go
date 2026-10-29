@@ -99,6 +99,48 @@ func TestALoopIsWalkedInOrderAtAWalkAndTheCreatureNeverWanders(t *testing.T) {
 	}
 }
 
+// A path of its own pace (npcpaths.speed a number, a patrol as Sandstorm's
+// walks it) is walked at it, with the walk's animation below 7 a second and
+// the run's from it; the control: walk is the walk's 5.
+func TestAPathsOwnPaceIsWalkedAtIt(t *testing.T) {
+	for _, c := range []struct {
+		speed string
+		pace  float32
+		loco  uint8
+	}{{"3.12", 3.12, LocoWalk}, {"8", 8, LocoRun}, {"walk", NPCWalkSpeed, LocoWalk}} {
+		rec := database.NPCPathRecord{Mode: "loop", Speed: c.speed, Points: []database.PathPoint{{X: 980, Z: 980}, {X: 1100, Z: 980}}}
+		p, err := PathFromRecord(rec)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := p.speed(); math.Abs(float64(got-c.pace)) > 1e-4 {
+			t.Errorf("%s: walked at %.2f, want %.2f", c.speed, got, c.pace)
+		}
+		w := roamWorld(t)
+		npc := addNPC(w, 100, "beetle", 980, 980, creatureModel, 0)
+		if err := w.SetNPCPath(100, p); err != nil {
+			t.Fatal(err)
+		}
+		fastest, loco := float32(0), uint8(255)
+		px, pz := npc.X, npc.Z
+		pathRun(w, time.Now(), 10*time.Second, func(time.Time) {
+			if d := distXZ(npc.X, npc.Z, px, pz); d > fastest {
+				fastest = d
+			}
+			if npc.moving() {
+				loco = npc.Loco
+			}
+			px, pz = npc.X, npc.Z
+		})
+		if math.Abs(float64(fastest-c.pace*0.1)) > 0.05 {
+			t.Errorf("%s: %.3f a tick, want %.3f", c.speed, fastest, c.pace*0.1)
+		}
+		if loco != c.loco {
+			t.Errorf("%s: animation %d, want %d", c.speed, loco, c.loco)
+		}
+	}
+}
+
 // The control for the test above: the same creature with no path wanders
 // off the square (were the path ignored, that test's on-path check fails).
 func TestWithoutAPathTheSameCreatureWandersOffIt(t *testing.T) {

@@ -57,12 +57,15 @@ type PathPoint struct {
 	Pause   time.Duration
 }
 
-// NPCPath is one creature's path.
+// NPCPath is one creature's path. Pace is its own speed in units a second
+// (npcpaths.speed a number: a patrol as Sandstorm's walks it), 0 the walk's
+// or, with Run, the run's.
 type NPCPath struct {
 	World  uint8
 	Mode   PathMode
 	Pause  time.Duration
 	Run    bool
+	Pace   float32
 	Points []PathPoint
 }
 
@@ -78,6 +81,10 @@ func PathFromRecord(rec database.NPCPathRecord) (*NPCPath, error) {
 		World: uint8(rec.World),
 		Pause: secondsDuration(rec.Pause),
 		Run:   speed == database.PathSpeedRun,
+	}
+	if v, ok := database.PathPace(speed); ok {
+		// a pace of its own: walked or run by how fast (pathRunFrom)
+		p.Pace, p.Run = float32(v), float32(v) >= pathRunFrom
 	}
 	switch mode {
 	case database.PathModePingPong:
@@ -107,13 +114,20 @@ func (p *NPCPath) pauseAt(i int) time.Duration {
 	return p.Pause
 }
 
-// speed is the pace it is walked at.
+// speed is the pace it is walked at: its own, else the walk's or the run's.
 func (p *NPCPath) speed() float32 {
+	if p.Pace > 0 {
+		return p.Pace
+	}
 	if p.Run {
 		return NPCRunSpeed
 	}
 	return NPCWalkSpeed
 }
+
+// pathRunFrom is the pace from which a path's own pace is run, not walked
+// (the run's animation): between the walk's 5 and a player's run, 8.83.
+const pathRunFrom float32 = 7
 
 // after is the point a creature walks to once it reached point i walking
 // dir (+1 on, -1 back), and whether it stands there for good instead (the

@@ -57,4 +57,15 @@ func TestPathModeAndSpeedNames(t *testing.T) {
 	if _, ok := PathSpeed("fly"); ok {
 		t.Error("fly is a speed")
 	}
+	// a pace of its own, units a second, within the limits
+	for in, want := range map[string]string{"3.12": "3.12", " 8 ": "8", "0.5": "0.5", "30": "30"} {
+		if got, ok := PathSpeed(in); !ok || got != want {
+			t.Errorf("PathSpeed(%q) = %q, %v; want %q", in, got, ok, want)
+		}
+	}
+	for _, in := range []string{"0.4", "31", "-2", "NaN", "3x"} {
+		if got, ok := PathSpeed(in); ok {
+			t.Errorf("PathSpeed(%q) = %q: not a pace", in, got)
+		}
+	}
 }

@@ -272,7 +272,10 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 	if npc, ok := targetEntity.(*entity.NPC); ok {
 		if text, ok := npcTextFor(npc.Name); ok {
 			forgetDialogs(player)
-			h.sendDialogueBox(sess, text)
+			// a box at most CLIENT shows, as a quest NPC's words (tellLocked)
+			for _, part := range splitSay(text, questBoxChars) {
+				h.sendDialogueBox(sess, part)
+			}
 			return nil
 		}
 	}

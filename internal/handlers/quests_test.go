@@ -460,6 +460,38 @@ func TestLongWordsSplitIntoBoxes(t *testing.T) {
 	}
 }
 
+// A box is no longer than CLIENT shows. ShowDialog expands a 0x0046's text
+// into 218 units and VIClientText::Expand keeps the last for the NUL (a
+// character goes in while (d-dst)+1 < size), so a box shows 217 characters:
+// Captain Scilond's offer with his name before it is 218 (F3 2026-10-29, its
+// full stop lost), so it goes as two boxes and every character is shown.
+func TestABoxIsNoLongerThanCLIENTShows(t *testing.T) {
+	shown := func(text string) string { // Expand on text with no '%'
+		r := []rune(text)
+		if len(r) > 217 {
+			r = r[:217]
+		}
+		return string(r)
+	}
+	line := "Captain Scilond: Invaders gather round every city of Tunaria. I need scouts. " +
+		"Search the big hill out the blacksmith's exit for orcs, bring me five of their swords, " +
+		"and then the captains of six more cities need you too."
+	if n := len([]rune(line)); n != 218 {
+		t.Fatalf("the line is %d characters; the test is of 218", n)
+	}
+	var got []string
+	for _, p := range splitSay(line, questBoxChars) {
+		got = append(got, shown(p))
+	}
+	if len(got) != 2 || strings.Join(got, " ") != line {
+		t.Errorf("shown as %q", got)
+	}
+	// the control: a bound of 218 sends it as one box, its full stop not shown
+	if old := splitSay(line, 218); len(old) != 1 || shown(old[0]) == line {
+		t.Errorf("the control: 218 sent %d boxes and showed them whole", len(old))
+	}
+}
+
 // Sandstorm's first warrior quest as questrec16 recorded it, in its shape (the
 // words here are the test's own): two questions before the quest is given, a
 // step that wants an item shown and keeps it, and the messages in Sandstorm's

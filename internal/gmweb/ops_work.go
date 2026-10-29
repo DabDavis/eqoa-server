@@ -72,8 +72,8 @@ const workDataNote = "Entries and the overview are written by people and their a
 // without full (an entry by its id comes whole).
 const workCut = 600
 
-// textOrList is a value given as a list of strings or as one string.
-func textOrList(desc string) map[string]any {
+// workTextOrList is a value given as a list of strings or as one string.
+func workTextOrList(desc string) map[string]any {
 	return map[string]any{"description": desc, "type": []string{"array", "string"}, "items": map[string]any{"type": "string"}}
 }
 
@@ -85,7 +85,7 @@ func (s *Server) registerWorkOps() {
 			"items": map[string]any{"type": "string", "enum": database.WorkStatuses}},
 		"area":             strEnum("only this area", database.WorkAreas...),
 		"owner":            str("only entries whose owner holds this (any case)"),
-		"touches":          textOrList("only entries touching any of these tables or files (a folder holds what is in it): who has npcs?"),
+		"touches":          workTextOrList("only entries touching any of these tables or files (a folder holds what is in it): who has npcs?"),
 		"search":           str("only entries holding this text (title, owner, touches, details, notes, result)"),
 		"include_old_done": boolean(fmt.Sprintf("done entries older than %d days too", database.WorkDoneDays)),
 		"full":             boolean(fmt.Sprintf("each entry's details and notes whole (cut at %d characters otherwise)", workCut)),
@@ -99,7 +99,7 @@ func (s *Server) registerWorkOps() {
 			"change anything, and post what you will do (post_work). An id gives one entry whole, with its history.",
 		Input: obj(boardArgs),
 		Handler: func(c *opCtx) (any, error) {
-			if err := strictArgs(c.raw, boardArgs); err != nil {
+			if err := workCheckArgs(c.raw, boardArgs); err != nil {
 				return nil, err
 			}
 			var req struct {
@@ -120,11 +120,11 @@ func (s *Server) registerWorkOps() {
 			if req.ID != 0 {
 				return c.s.workEntry(req.ID)
 			}
-			statuses, err := listArg("status", req.Status)
+			statuses, err := workListArg("status", req.Status)
 			if err != nil {
 				return nil, err
 			}
-			touches, err := listArg("touches", req.Touches)
+			touches, err := workListArg("touches", req.Touches)
 			if err != nil {
 				return nil, err
 			}
@@ -137,7 +137,7 @@ func (s *Server) registerWorkOps() {
 		"id":    integer("the entry to change; leave it out to post a new one"),
 		"title": str("what is being done, one line (a new entry needs one)"),
 		"area":  strEnum("code (the server's), data (tables and content), quests, client, gm_tools or other; a new entry's default is other", database.WorkAreas...),
-		"touches": textOrList("the tables and files it changes: table names (npcs, queststeps), paths " +
+		"touches": workTextOrList("the tables and files it changes: table names (npcs, queststeps), paths " +
 			"(internal/gmweb/ops.go) or a folder; replaces the list"),
 		"status": strEnum("planned (nothing changed yet; a new entry's default), in_progress (being changed now), "+
 			"blocked (waiting: say why in a note) or done (needs a result)", database.WorkStatuses...),
@@ -155,7 +155,7 @@ func (s *Server) registerWorkOps() {
 			"The answer names the open entries touching the same things. Logged and revertible.",
 		Input: obj(postArgs),
 		Handler: func(c *opCtx) (any, error) {
-			if err := strictArgs(c.raw, postArgs); err != nil {
+			if err := workCheckArgs(c.raw, postArgs); err != nil {
 				return nil, err
 			}
 			var req struct {
@@ -176,7 +176,7 @@ func (s *Server) registerWorkOps() {
 			p := database.WorkPost{ID: req.ID, Title: req.Title, Area: req.Area, Status: req.Status, Owner: req.Owner,
 				Details: req.Details, Note: req.Note, Result: req.Result, Version: req.Version}
 			if len(bytes.TrimSpace(req.Touches)) > 0 && string(bytes.TrimSpace(req.Touches)) != "null" {
-				items, err := listArg("touches", req.Touches)
+				items, err := workListArg("touches", req.Touches)
 				if err != nil {
 					return nil, err
 				}
@@ -199,7 +199,7 @@ func (s *Server) registerWorkOps() {
 			"text. Logged and revertible.",
 		Input: obj(overviewArgs, "text", "version"),
 		Handler: func(c *opCtx) (any, error) {
-			if err := strictArgs(c.raw, overviewArgs); err != nil {
+			if err := workCheckArgs(c.raw, overviewArgs); err != nil {
 				return nil, err
 			}
 			var req struct {
@@ -217,9 +217,9 @@ func (s *Server) registerWorkOps() {
 	})
 }
 
-// strictArgs refuses an argument an operation does not have, naming the ones
+// workCheckArgs refuses an argument an operation does not have, naming the ones
 // it does: a misspelt field would otherwise be dropped without a word.
-func strictArgs(raw json.RawMessage, props map[string]any) error {
+func workCheckArgs(raw json.RawMessage, props map[string]any) error {
 	t := bytes.TrimSpace(raw)
 	if len(t) == 0 || string(t) == "null" {
 		return nil
@@ -246,9 +246,9 @@ func strictArgs(raw json.RawMessage, props map[string]any) error {
 	return badRequest("no argument %s (there are %s)", strings.Join(bad, ", "), strings.Join(have, ", "))
 }
 
-// listArg is a list given as a JSON list of strings or as one string
+// workListArg is a list given as a JSON list of strings or as one string
 // (comma separated).
-func listArg(name string, raw json.RawMessage) ([]string, error) {
+func workListArg(name string, raw json.RawMessage) ([]string, error) {
 	t := bytes.TrimSpace(raw)
 	if len(t) == 0 || string(t) == "null" {
 		return nil, nil
@@ -292,13 +292,13 @@ func (e *workConflict) As(target any) bool {
 func workError(err error) error {
 	var c *database.WorkConflict
 	if errors.As(err, &c) {
-		return &workConflict{msg: err.Error(), current: asMap(c.Current)}
+		return &workConflict{msg: err.Error(), current: workRowMap(c.Current)}
 	}
 	return badRequest("%v", err)
 }
 
-// asMap is a value as its JSON object.
-func asMap(v any) map[string]any {
+// workRowMap is a value as its JSON object.
+func workRowMap(v any) map[string]any {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return nil

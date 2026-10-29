@@ -61,6 +61,8 @@ type World struct {
 	casts    []*castState
 	onGate   GateFunc
 	affected map[EntityID]*NPC // creatures with a spell's effect on them
+	// The game's balance (balance.go): nil, none
+	balance *Balance
 	// The spells that send players to a named place, table spellgates, and
 	// those on their way (gates.go)
 	gates gateState

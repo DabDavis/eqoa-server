@@ -721,6 +721,15 @@ Two things follow from the protocol that are easy to get wrong:
   CLIENT's character-select notice 0x07F0 (word 676, "That character is in an area of the world
   that is currently unavailable. Please try again later.": CLIENT has no word of its own for
   it) and may choose another; a closed or crashed window holds it until the in-game timeout.
+- **A password is 31 characters at most** (`auth.MaxPasswordLen`): STATION sends it in a 32-byte
+  field ending in a NUL (the TCP login's DES block, the UDP token, CreateAccount, ChangePassword),
+  so the account page and the GM panel refuse a longer one, and the `station.pak` served lets a
+  player type all 31: `repointStationPak` raises every password field of its `data/ui/` pages
+  (`raisePasswordFields`: login, IDCreate's two, PassChng's three), which said 16 as Sandstorm's
+  do, 15 characters (CLIENT's VIWndEdit counts the NUL), where the account page took longer ones
+  (the user, 2026-10-29: "the station login char limit is too short for longer passwords"). A
+  PS2's STATION holds the 31 on every path; vanilla's editor gives a password field 31 whatever
+  a server's page says.
 - Accounts with an empty `pwhash` predate password checking. The first login that
   supplies a password adopts it (when `auth.allow_auto_register` is on); after
   that the account is enforced normally.

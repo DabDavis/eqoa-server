@@ -447,7 +447,7 @@ func (s *Server) registerAccountOps() {
 			"which only an admin may, and never above their own level.",
 		Input: obj(map[string]any{
 			"username": str("3 to 16 letters, digits or _"),
-			"password": str("4 characters or more"),
+			"password": str("4 to 31 characters (the game's login carries no more)"),
 			"level":    integer("acctlevel: 0 a player (default), 1+ a GM"),
 		}, "username", "password"),
 		Handler: func(c *opCtx) (any, error) {
@@ -468,8 +468,8 @@ func (s *Server) registerAccountOps() {
 					return nil, badRequest("a name is letters, digits and _")
 				}
 			}
-			if len(req.Password) < 4 {
-				return nil, badRequest("a password is 4 characters or more")
+			if len(req.Password) < 4 || len(req.Password) > auth.MaxPasswordLen {
+				return nil, badRequest("a password is 4 to %d characters: the game's login carries no more", auth.MaxPasswordLen)
 			}
 			if req.Level != 0 {
 				if !c.a.may(scopeAdmin) {
@@ -525,7 +525,7 @@ func (s *Server) registerAccountOps() {
 			"itself or a higher one.",
 		Input: obj(map[string]any{
 			"account":  idOrName("the account, by name or accountid"),
-			"password": str("4 characters or more"),
+			"password": str("4 to 31 characters (the game's login carries no more)"),
 		}, "account", "password"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
@@ -542,8 +542,8 @@ func (s *Server) registerAccountOps() {
 			if acc.ID != c.a.AccountID && acc.Level >= c.a.Level {
 				return nil, forbidden("%s is at or above your level", acc.Username)
 			}
-			if len(req.Password) < 4 {
-				return nil, badRequest("a password is 4 characters or more")
+			if len(req.Password) < 4 || len(req.Password) > auth.MaxPasswordLen {
+				return nil, badRequest("a password is 4 to %d characters: the game's login carries no more", auth.MaxPasswordLen)
 			}
 			hash, err := auth.HashPassword(req.Password, c.s.d.Config.Auth.BCryptCost)
 			if err != nil {

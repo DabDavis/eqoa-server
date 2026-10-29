@@ -13,10 +13,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/config"
 )
 
@@ -1183,6 +1186,12 @@ func (s *PatchServer) repointStationPak(data []byte) []byte {
 			body = repl
 			changed = append(changed, name)
 		}
+		if strings.HasPrefix(name, "data/ui/") && strings.HasSuffix(strings.ToLower(name), ".xml") {
+			if raised, n := raisePasswordFields(body); n > 0 {
+				log.Printf("station.pak: %s: %d password field(s) take %d characters", name, n, auth.MaxPasswordLen)
+				body = raised
+			}
+		}
 
 		// Name field is copied verbatim, padding included.
 		var hdr [4]byte
@@ -1202,6 +1211,40 @@ func (s *PatchServer) repointStationPak(data []byte) []byte {
 	}
 	log.Printf("station.pak: repointed at %s (%d -> %d bytes)", ip, len(data), out.Len())
 	return out.Bytes()
+}
+
+// A STATION page's text field, its password switch and its limit (CLIENT's
+// VIWndEdit counts the NUL in it: MaxChars 16 takes 15 characters).
+var (
+	reStationText     = regexp.MustCompile(`(?s)<Text\b(?:[^>]*[^/>])?>.*?</Text>`)
+	reStationPassword = regexp.MustCompile(`(?i)<Password\s+mode\s*=\s*"true"\s*/>`)
+	reStationMaxChars = regexp.MustCompile(`<MaxChars\s+size\s*=\s*"(\d+)"\s*/>`)
+)
+
+// raisePasswordFields lets a page's password fields take auth.MaxPasswordLen
+// characters, all the login carries, where they take fewer, and says how
+// many it raised. The pak served is Sandstorm's, whose login, account and
+// password pages (login.xml, IDCreate.xml, PassChng.xml) say 16, 15
+// characters, where the account page takes longer passwords; a PS2's
+// STATION holds the 31 everywhere (char[64] and char[32] buffers, strncpy'd
+// to 32), as vanilla does. A field that is no password is left as it is.
+func raisePasswordFields(page []byte) ([]byte, int) {
+	want := auth.MaxPasswordLen + 1
+	n := 0
+	out := reStationText.ReplaceAllFunc(page, func(field []byte) []byte {
+		if !reStationPassword.Match(field) {
+			return field
+		}
+		return reStationMaxChars.ReplaceAllFunc(field, func(m []byte) []byte {
+			size, err := strconv.Atoi(string(reStationMaxChars.FindSubmatch(m)[1]))
+			if err != nil || size >= want {
+				return m
+			}
+			n++
+			return []byte(`<MaxChars size="` + strconv.Itoa(want) + `"/>`)
+		})
+	})
+	return out, n
 }
 
 // deleteOrNone names what a pass carries, for the log. The last pass of a

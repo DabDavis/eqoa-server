@@ -16,6 +16,16 @@ import (
 // DefaultBCryptCost is used when configuration does not set one.
 const DefaultBCryptCost = bcrypt.DefaultCost
 
+// MaxPasswordLen is the longest password the game's login carries: STATION
+// sends it in a 32-byte field ending in a NUL, DES-encrypted in the TCP
+// login (ValidateLogin's des_soe_encrypt(password, 32), CreateAccount,
+// ChangePassword) and zero-filled into the UDP token (udptoken.go), so a
+// longer one cannot be typed in or sent. The account page and the GM panel
+// refuse one past it, and the STATION pages served let a player type all of
+// it (tcp/patchserver.go's raisePasswordFields; the user, 2026-10-29: "the
+// station login char limit is too short for longer passwords").
+const MaxPasswordLen = UDPTokenSize - 1
+
 // HashPassword produces a bcrypt hash suitable for the accountinfo.pwhash
 // column. A cost outside bcrypt's supported range falls back to the default
 // rather than failing a registration.

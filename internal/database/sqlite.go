@@ -20,6 +20,10 @@ type SQLiteDB struct {
 	path string
 }
 
+// BusyTimeoutDSN is the query a database is opened with: how long a
+// statement waits for a lock another connection holds, in milliseconds.
+const BusyTimeoutDSN = "_pragma=busy_timeout(5000)"
+
 // NewSQLite creates or opens a SQLite database.
 func NewSQLite(dbPath string) (*SQLiteDB, error) {
 	// Create directory if it doesn't exist
@@ -30,8 +34,16 @@ func NewSQLite(dbPath string) (*SQLiteDB, error) {
 		}
 	}
 
-	// Open database with WAL mode for better concurrency
-	db, err := sql.Open("sqlite", dbPath+"?_journal_mode=WAL&_busy_timeout=5000")
+	// Open the database with a busy timeout: a statement that finds the
+	// database locked (a tool writing it beside the server, a backup) waits
+	// up to 5 s for the lock, where it failed at once with SQLITE_BUSY. The
+	// driver (modernc.org/sqlite) runs only `_pragma` parameters, on every
+	// connection it opens; until 2026-10-29 this asked for
+	// `_journal_mode=WAL&_busy_timeout=5000`, mattn's spelling, which it
+	// ignores, so there was no timeout, and the database has always kept its
+	// rollback journal (WAL was never on: a choice of its own, as a plain
+	// copy of the file would then miss what is in its -wal).
+	db, err := sql.Open("sqlite", dbPath+"?"+BusyTimeoutDSN)
 	if err != nil {
 		return nil, err
 	}

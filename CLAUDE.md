@@ -413,7 +413,7 @@ and on its own https host the session is a `__Host-` cookie no other host can se
   on the World map (community marks, suggested marks; `#/map/<world>/@x,z` opens centred on a place). nginx proxies
   `/eqoa/account/api/mapmarks` and `/eqoa/account/api/mapmarks/suggest` (exact locations).
 
-Traps: the database has ONE connection (`SetMaxOpenConns(1)`): never query while holding rows
+Traps: the database waits up to 5 s for another connection's lock (`database.BusyTimeoutDSN`; modernc.org/sqlite runs only `_pragma=` parameters, so the `_busy_timeout`/`_journal_mode` it was opened with until 2026-10-29 did nothing: no timeout, and it has never been WAL). The database has ONE connection (`SetMaxOpenConns(1)`): never query while holding rows
 or a `db.Conn`/transaction from the plain handle — it deadlocks the game (the SQL console once
 did, through its audit write). A view must not `import` `app.js` (the page loads it with
 `?v=<build>`, so another URL evaluates it twice): shared state is `lib/nav.js`. In a request

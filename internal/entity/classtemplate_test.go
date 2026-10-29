@@ -601,3 +601,26 @@ func TestTheKindsOfAbility(t *testing.T) {
 		}
 	}
 }
+
+// #stats on a templated creature says its template: its hit points against
+// its own, its kick, and what each ability casts at its level; the control,
+// a creature of no template, has no such line.
+func TestStatsSayATemplate(t *testing.T) {
+	r := newTemplateRig(t)
+	r.assign("gnoll mage", "wizard")
+	_, sess := r.player("GM", 1001.5, 100)
+	mage, pup := r.npc("Gnoll Mage"), r.npc("Gnoll Pup")
+	lines := strings.Join(r.w.StatsReport(sess, r.objectID(mage.ServerID), r.at(0)), "\n")
+	for _, want := range []string{
+		"Class template wizard: a Wizard, hit points 1020 (85% of its 1200)",
+		"aoe Fire Storm (level 16, 2s cast) every 15s at 35%",
+		"nuke Burning Gaze (level 16, 2s cast) chained at 35%",
+	} {
+		if !strings.Contains(lines, want) {
+			t.Errorf("#stats on the wizard lacks %q:\n%s", want, lines)
+		}
+	}
+	if lines := strings.Join(r.w.StatsReport(sess, r.objectID(pup.ServerID), r.at(0)), "\n"); strings.Contains(lines, "Class template") {
+		t.Errorf("the control has a template line:\n%s", lines)
+	}
+}

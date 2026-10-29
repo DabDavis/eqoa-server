@@ -5,6 +5,7 @@ import (
 	"log"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
@@ -399,6 +400,11 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// A GM trigger's popup (gmtriggers.go): its one answer changes nothing.
 	if IsTriggerBox(targetObjectID) {
+		return nil
+	}
+	// A duel's invitation or "Cancel duel?" (duel.go)
+	if entity.IsDuelBox(targetObjectID) {
+		h.gameWorld.DuelBoxAnswer(sess, targetObjectID, selectedOption, time.Now())
 		return nil
 	}
 

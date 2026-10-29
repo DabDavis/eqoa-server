@@ -273,6 +273,37 @@ func TestAuctionStackBoughtInPartsOverTheWire(t *testing.T) {
 	}
 }
 
+// A bid pushed out of every unit over the wire: its bidder in the world is
+// told at once, its bank (0x1253), its record holding nothing (134), the lot
+// (137) and a line.
+func TestAuctionStackPushedOutOverTheWire(t *testing.T) {
+	f := newHouseFixture(t, "Seller", "Bidder", "Buyer")
+	s, a, c := f.chars["Seller"], f.chars["Bidder"], f.chars["Buyer"]
+	f.liveForm(a, true)
+	f.liveForm(c, true)
+	f.give(s, f.gem, 3)
+	f.sellN(s, 0, 3, 10, 500, 720)
+	f.bidN(a, 1, 20, 2)
+	f.drain(a)
+	f.bidN(c, 1, 30, 3)
+	if _, cols := columns137(t, f.drain(c)); cols[0] != int64(c.sid) || cols[1] != 21 {
+		t.Errorf("the higher bid's columns %v", cols)
+	}
+	msgs := f.drain(a)
+	if n, ok := bankTunarOf(t, msgs); !ok || n != 1000 || a.player.BankTunar != 1000 {
+		t.Errorf("pushed out: bank %d (%v), game %d", n, ok, a.player.BankTunar)
+	}
+	if rb := bidRecord(t, msgs, 134); rb.escrow != 0 || rb.x0c != 2 {
+		t.Errorf("pushed out: record %+v", rb)
+	}
+	if _, cols := columns137(t, msgs); cols[1] != 21 {
+		t.Errorf("pushed out: columns %v", cols)
+	}
+	if ls := sentLines(msgs); len(ls) != 1 || !strings.Contains(ls[0], "outbid on Rough Gem; your 40 tunar") {
+		t.Errorf("pushed out: lines %q", ls)
+	}
+}
+
 // A disc-form client on a stack: its "Acquire now" (the buyout for its one)
 // is refused with the live client's word 1858, its one below the buyout
 // takes a unit; buy all from the live form takes the stack and the one who

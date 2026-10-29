@@ -1,0 +1,2028 @@
+{
+ "set": "qb",
+ "npcs": [
+  {
+   "name": "Thumgrim Stoutshield",
+   "role": "talker",
+   "body": [
+    "race",
+    "dwarf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Thumgrim Stoutshield"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "a Forkwatch trainer, in the bar opposite the coach (Group 1, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "savage bear",
+   "role": "foe",
+   "body": [
+    "npc",
+    "savage bear"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Savage Bear"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "the savage bear that roams outside Al-Karad's Ruin (Group 1, level 30; the server's others are 8,500 off)",
+   "water": "land"
+  },
+  {
+   "name": "Silvermist Alpha",
+   "role": "foe",
+   "body": [
+    "kind",
+    "dog"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "in the cave off the long road north of Trail's End (Group 1, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Rauntet",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "in the undead valley of Al'Farak Ruins, west of the Nashier camp (Group 1, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Assassin",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 41,
+   "note": "the Night Callers' assassin who comes for Crikston Gundlefop in Highpass (Group 1, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Trapper McGee",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 41,
+   "note": "roams Surefall Glade, past and near the lake (Group 1, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Urisai",
+   "role": "talker",
+   "body": [
+    "kind",
+    "bear"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the great bear spirit at the druid ring in Surefall Glade (Group 1, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "The Caretaker",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "keeper of the Heyokah Burial Ground, east of Murnf (Group 1, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Eidolon of Malice",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Eidolon of Malice (49)"
+   ],
+   "count": 1,
+   "level": 46,
+   "note": "in the Heyokah Burial Ground by the Caretaker (Group 1, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Oransan",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Oransan"
+   ],
+   "place": [
+    "near",
+    "Crikston Gundlefop",
+    8,
+    0
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "Oransan in Highpass Hold (the guide: downstairs in the Highpass Inn; Groups 1 level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Sissy Hasper",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Sissy Hasper (30)"
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "the southernmost house of the village in the south of North Wilderlands (Group 2, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Freezeblood Majestic",
+   "role": "foe",
+   "body": [
+    "kind",
+    "freezeblood"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 32,
+   "note": "west of Halas in the north of Guardian Forest (Group 2, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Ebony Wolf",
+   "role": "foe",
+   "body": [
+    "kind",
+    "dog"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 32,
+   "note": "the south of Guardian Forest (Group 2, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Juno Inhop",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the inn south-east of Castle Lightwolf (Group 2, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Frosteye Scarecrow",
+   "role": "foe",
+   "body": [
+    "kind",
+    "frosteye"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 32,
+   "note": "the valley between two mountains south-west of Diren Hold (Group 2, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Forest Night Wolf",
+   "role": "foe",
+   "body": [
+    "kind",
+    "dog"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 41,
+   "note": "by the Great Tree in the south of Murnf (Group 2, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "werewolf",
+   "role": "foe",
+   "body": [
+    "npc",
+    "werewolf"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Werewolf (40)"
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "the white-faced werewolf near the Great Tree in Murnf (Group 2, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Ghoul",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghoul"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 43,
+   "note": "north-west of the werewolves by the Great Tree in Murnf (Group 2, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Huntress Lilly",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "north of the Murnf coach; sells the vampire testing kit (Group 2, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Old Red",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Giant Moray Eel"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the giant eel off the coast of Zentar's Keep (Group 2, level 49)",
+   "water": "water"
+  },
+  {
+   "name": "Ives Radain",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "in Qeynos (Group 2, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Bribro Mino",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Rustel Minotaur Scout"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "among the minotaurs of Gunter's Mine (Group 2, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Zebel Earblower",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "in Rivervale (Group 2, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Lord Tearis Thex",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "in Fayspires (Group 2, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Daresh",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "upstairs in the building west of the Murnf coach (Group 3)",
+   "water": "land"
+  },
+  {
+   "name": "Mergmar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "Bardif's butler in Qeynos (Group 3)",
+   "water": "land"
+  },
+  {
+   "name": "Bardif",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "his house in Qeynos, second floor (Group 3, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Ziliq",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 29,
+   "note": "his temple in the side of the Green Rift (Group 3, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Assassin",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    4445,
+    17317
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the assassin in Bardif's house in Qeynos (Group 3, level 40; EQOA-Data's map point)",
+   "water": "land"
+  },
+  {
+   "name": "Tarlin's Agent",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Tarlin's bandit"
+   ],
+   "place": [
+    "at",
+    0,
+    21108,
+    19009
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "one of Tarlin's three messengers, by Deathfist Citadel (Group 3, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Tarlin's Agent",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Tarlin's bandit"
+   ],
+   "place": [
+    "at",
+    0,
+    22924,
+    24048
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "one of Tarlin's three messengers, in the north-east of the Great Waste (Group 3, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Tarlin's Agent",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Tarlin's bandit"
+   ],
+   "place": [
+    "at",
+    0,
+    19179,
+    17080
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "one of Tarlin's three messengers, in the Blacktongue village of Ferran's Hope (Group 3, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Daglader",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 43,
+   "note": "in the Tomb of Kings (Group 3, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Belran Nightrift",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "in Dark Solace (Group 4)",
+   "water": "land"
+  },
+  {
+   "name": "Holciel Rowen'Dal",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Holciel Rowen'Dal (30)"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "in Freeport (Group 4, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Tariel Windstream",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 33,
+   "note": "a ghost in the Lesser Halls of the Tomb of Kings (Group 4, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Compelled Shade",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Eljin Rindain's shade, upstairs in the Rusted Lantern Inn in Freeport (Group 4, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Thalnix D`Rinas",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "opposite Belran Nightrift in Dark Solace (Group 4, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Orish Thulon",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the east of Deathfist Forge (Group 4, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Golem of Fear",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "near",
+    "Orish Thulon",
+    20,
+    0
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "by Orish Thulon in Deathfist Forge (Group 4, level 40; ours: the guide's \"the golem\")",
+   "water": "land"
+  },
+  {
+   "name": "Watcher Mironar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the green-glowing hill of stone pillars in the south-east of the Stone Watchers (Group 4, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Golem of Station",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "near",
+    "Watcher Mironar",
+    20,
+    0
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "by Watcher Mironar in the Stone Watchers (Group 4, level 40; ours)",
+   "water": "land"
+  },
+  {
+   "name": "Drelk Trunkfist",
+   "role": "foe",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 41,
+   "note": "a half-shell in the south-east of the Great Waste (Group 4, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Golem of Strength",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Golem [of Strength] (40)"
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "by Drelk Trunkfist's half-shell in the Great Waste (Group 4, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Golem of Greed",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Golem of Greed (40)"
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "by the invisible wall of Dark Solace (Group 4, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Collin Ilbeth",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 51,
+   "note": "near the bottom of the Salt Mines of Caer Sloth (Group 4, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Avatar of Lord Chardith",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Lord Chardith"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 51,
+   "note": "the avatar the Calling brings, by Gribble Greencog in Dark Solace (Group 4, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Slavemaster Hern",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "by the north wall of the castle on the hill in the west of the Salt Mines (Group 5, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Lora Greyson",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 29,
+   "note": "drinks at the inn north of the Qeynos coach (Group 5, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Forces of Nature",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Air Elemental"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Forces of Nature (40)"
+   ],
+   "count": 3,
+   "level": 42,
+   "note": "sun, soil and rain at Twisted Tower (Group 5, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Quatzi",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "on the shore by the dark tower below Resenthorn Tower in Oasis (Group 6)",
+   "water": "land"
+  },
+  {
+   "name": "Talknar",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "by a rock outside the drow enclave of Dark Solace (Group 6, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Goblin Messenger",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "the crossroads north-east of Talknar, by the tree where the roads meet (Group 6, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Gungar Guglar",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 15,
+   "note": "the outpost west of the Grobb coach (Group 6, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Tracker Jugl",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "by a stump near Gungar Guglar, with his dog Bloodseeker (Group 6, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Ambassador Kreek",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "on top of the left wall outside Guk (Group 6, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Ambassador Luj'Nak",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "on top of the left wall outside Guk (Group 6, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Watcher Gabnu",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the top of the tower south of Honjour (Group 6, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Goblin Elite",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 2,
+   "level": 40,
+   "note": "the raiders that come at Watcher Gabnu's tower south of Honjour (Group 6, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Froglok Elite",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 2,
+   "level": 40,
+   "note": "the raiders that come at Watcher Gabnu's tower south of Honjour (Group 6, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "The Captain",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "near",
+    "Watcher Gabnu",
+    20,
+    0
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "who leads the raiders at Watcher Gabnu's tower (Group 6, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Da Snappa",
+   "role": "foe",
+   "body": [
+    "kind",
+    "alligator"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "in the lake by Kerplunk Outpost (Group 6, level 40)",
+   "water": "both"
+  },
+  {
+   "name": "Elimandared",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the hill of dim ruins in the west of the Ethernal Desert (Group 6, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Tubrenzalana",
+   "role": "foe",
+   "body": [
+    "race",
+    "elf",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "the caster Elimandared calls, by him (Group 6, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Aalean Mardum",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the second floor of the guild on the left in Fayspires (Group 6, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Vaeloficint",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the top of the west tower of Sarek's Tower (Group 6, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Inspector Xelebb",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Evil Eye Examiner"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Inspector Xelebb (49)"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "a floating eye at the base of the pyramid in Cazic Thule (Group 6, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Trillon Zeber",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the enchanters' guildmaster, west side of Castle Lightwolf, second floor (Group 2)",
+   "water": "land"
+  },
+  {
+   "name": "Tralum Lelam",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "the rogues' guildmaster, west side of Castle Lightwolf, second floor (Group 2)",
+   "water": "land"
+  },
+  {
+   "name": "Sean Warlot",
+   "role": "talker",
+   "body": [
+    "race",
+    "barbarian",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "the shamans' guildmaster, west side of Castle Lightwolf, second floor (Group 2)",
+   "water": "land"
+  },
+  {
+   "name": "Hilarn Strongfist",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "the warriors' guildmaster, west side of Castle Lightwolf, second floor (Group 2)",
+   "water": "land"
+  },
+  {
+   "name": "Elder Gabgug",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "the druid rock circle in the east of Guardian Forest: the shamans' level 49 reward (Group 5)",
+   "water": "land"
+  },
+  {
+   "name": "Palidan Talimas",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Palidan Talimas"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Thedruk (NE), across the river from the Druk tunnel, at the foot of a hill by a tree (good tank)",
+   "water": "land"
+  },
+  {
+   "name": "Shinlos",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    24987,
+    15406
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "outside Freeport's north gate, along the wall to the west (good tank, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Crying Maiden",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    24966,
+    15284
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the first temptation by the two palm trees north-west of Shinlos (good tank, episode 3; ours by name)",
+   "water": "land"
+  },
+  {
+   "name": "Glittering Chest",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Treasure Chest"
+   ],
+   "place": [
+    "at",
+    0,
+    24974,
+    15292
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "the second temptation by the two palm trees (good tank, episode 3; ours by name)",
+   "water": "land"
+  },
+  {
+   "name": "Smiling Demon",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Ifrit"
+   ],
+   "place": [
+    "at",
+    0,
+    24958,
+    15276
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the third temptation by the two palm trees (good tank, episode 3; ours by name)",
+   "water": "land"
+  },
+  {
+   "name": "Bandit Brigand",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Bandit Brigand"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the bandits' leader outside Freeport's north gate, by the signpost (episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Bandit Henchman",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Bandit Brigand",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "one of the brigand's henchmen outside Freeport's north gate (evil melee, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "An Ancient Corpse",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    0,
+    22873,
+    30148
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "the undead menace in the north of Basher's Enclave (episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "ghost of Synder",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "near",
+    "Synder of the Indigo",
+    15,
+    2
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "in the cubby under the ramp of the hidden room at Cape Dreg (episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Sensei Melinus",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Sensei Melinus"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a large hill by a large rock, north-east of Qeynos Prison (good melee)",
+   "water": "land"
+  },
+  {
+   "name": "Jezia",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Jezia"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "south-west Qeynos, just outside the castle by a tree (good melee, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Jebodan",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Jebodan"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the manor house across from Mervol in Darvar Manor (good melee, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "evil eye",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Evil Eye Examiner"
+   ],
+   "place": [
+    "at",
+    0,
+    15153,
+    27194
+   ],
+   "count": 2,
+   "level": 58,
+   "note": "the eyes of the Elephant Graveyard (good melee, episode 2; the guide's \"Eyes in EG\")",
+   "water": "land"
+  },
+  {
+   "name": "Desert Marauder",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 4,
+   "level": 63,
+   "note": "the desert bandits in the middle of Tak'Xiv (episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Sothimus the Brigand",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Desert Marauder",
+    20,
+    0
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "the desert marauders' leader in the middle of Tak'Xiv (episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Froglok Channeler",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 3,
+   "level": 58,
+   "note": "Guk, the guide's Frogluk channelers (episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Elder Froglok Guk Mystic",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "near",
+    "froglok yun shaman",
+    25,
+    0
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "Guk, off the circle bridge (good melee and evil healer, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Elder Froglok Guk Diviner",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "near",
+    "froglok yun wizard",
+    25,
+    0
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "Guk (good melee and evil healer, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Elder Fungal Cavalier",
+   "role": "foe",
+   "body": [
+    "npc",
+    "fungal cavalier"
+   ],
+   "place": [
+    "near",
+    "fungal hunter",
+    25,
+    0
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "deep in Guk, among the fungal cavaliers and hunters (good melee and evil healer, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "High Shaman",
+   "role": "talker",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "near",
+    "froglok herbalist",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "inside Guk, with the prisoner he pardons (good melee and evil healer, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Froglok Bloodletter",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "near",
+    "froglok yun shaman",
+    60,
+    0
+   ],
+   "count": 2,
+   "level": 62,
+   "note": "come for the High Shaman's prisoner in Guk (good melee and evil healer, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Graal the Leviathan",
+   "role": "foe",
+   "body": [
+    "kind",
+    "snake"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Graal the Leviathan"
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "the coast north-west of Qeynos (good melee and evil tank, episode 2)",
+   "water": "both"
+  },
+  {
+   "name": "Randarith",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Randarith"
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "a vampire of the Greyvax Caves, north-west of Tethelin (episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Raldarith",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Raldarith"
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "a vampire of the Greyvax Caves (episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Quil'Eyne",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Quil'Eyne"
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "in the basement of the Greyvax Caves (episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "fire basilisk",
+   "role": "foe",
+   "body": [
+    "npc",
+    "basilisk"
+   ],
+   "place": [
+    "near",
+    "animated lava",
+    80,
+    3
+   ],
+   "count": 3,
+   "level": 62,
+   "note": "Lavastorm, by the lava where the land dips (good healer and evil tank, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Megametamilipizon",
+   "role": "foe",
+   "body": [
+    "kind",
+    "centipede"
+   ],
+   "place": [
+    "near",
+    "animated lava",
+    40,
+    3
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "climbs out of the lava in the middle of Lavastorm (good healer and evil tank, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Aktana the Flamekissed",
+   "role": "foe",
+   "body": [
+    "npc",
+    "gargoyle patroller"
+   ],
+   "place": [
+    "near",
+    "Fire Imp Protector",
+    30,
+    3
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "from the gargoyle statue in the east of Lavastorm (good caster and evil melee, episode 1)",
+   "water": "land"
+  },
+  {
+   "name": "Vylinnuza of the Tide",
+   "role": "foe",
+   "body": [
+    "npc",
+    "enchanting siren"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "summoned by Magi'Kot in the west of the Elemental Towers (good caster and evil melee, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Boldunder",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "poi",
+    "odus",
+    "Boldunder"
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "by the great depression in the middle of the North Barren Coast, Odus (episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Ahriaana the Ultimate",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Ghilan"
+   ],
+   "place": [
+    "near",
+    "Trixie Longwings",
+    40,
+    4
+   ],
+   "count": 1,
+   "level": 66,
+   "note": "the Plane of Sky, where Magi'Kot's port lands (good caster and evil melee, episode 3; ours)",
+   "water": "land"
+  },
+  {
+   "name": "ghost of Magi'Kot",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Magi'Kot"
+   ],
+   "place": [
+    "near",
+    "Trixie Longwings",
+    25,
+    4
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "roams near the pagoda on the Plane of Sky (good caster, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Ruddish the Devout",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Ruddish the Devout"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the river bank on the south-west border of the Spider Mines (good healer)",
+   "water": "land"
+  },
+  {
+   "name": "Plagued Forest Drake",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "poi",
+    "odus",
+    "Plagued Forest Drake"
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "south Toxxulia near Shrixiv, Odus (good healer, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Plagued Kobold Hunter",
+   "role": "foe",
+   "body": [
+    "npc",
+    "clan kolbok warrior"
+   ],
+   "place": [
+    "poi",
+    "odus",
+    "Plagued Kobold Hunter"
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "roams the Stonebrunt Mountains, Odus (good healer, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Biddleby",
+   "role": "foe",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    19627,
+    10513
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "two hills north of the east gate of Rivervale (episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Avatar of Hate",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Avatar of Fear"
+   ],
+   "place": [
+    "at",
+    0,
+    9823,
+    19672
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "by the blessing rock across the river from Ruddish the Devout (good healer, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Avatar of Hate",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Avatar of Fear"
+   ],
+   "place": [
+    "at",
+    0,
+    22507,
+    10926
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "close to Animator Jen'Tylis in the Green Rift (evil caster, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Erollisi Marr",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    9840,
+    19640
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "by the blessing rock, after the Avatar of Hate (good healer, episode 3; the guide's Errolisi Marr)",
+   "water": "land"
+  },
+  {
+   "name": "Ozmo da Basher",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Oggok Gate (south), west of Kerplunk (evil tank; the guide's Ozma Da Basher)",
+   "water": "land"
+  },
+  {
+   "name": "Teledic",
+   "role": "foe",
+   "body": [
+    "race",
+    "erudite",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Teledic"
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "Vox Castle in Permafrost (evil caster, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Avatar of Love",
+   "role": "foe",
+   "body": [
+    "race",
+    "elf",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Avatar of Love"
+   ],
+   "count": 1,
+   "level": 63,
+   "note": "west of Ruddish the Devout by the north river, Spider Mines (evil caster, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "Wandering Spectre",
+   "role": "foe",
+   "body": [
+    "npc",
+    "spectre"
+   ],
+   "place": [
+    "at",
+    0,
+    15439,
+    20805
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "across the river in Centaur Valley, north of Blackwater (evil healer, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "Red Derelict Mummy",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Tainted Mummy"
+   ],
+   "place": [
+    "near",
+    "Necrologist Zizclank",
+    120,
+    1
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the south tomb of the Dead Hills, where the Plane of Disease opens (evil healer, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "ancient soul",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    0,
+    22221,
+    30299
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "a skeletal giant on a hill by a swampy lake, north-west of Seer Yalgima (evil healer, episode 2)",
+   "water": "land"
+  },
+  {
+   "name": "first spirit",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "near",
+    "Kraznak",
+    12,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "comes to Kraznak from the south (evil healer, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "second spirit",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "near",
+    "Kraznak",
+    12,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "comes to Kraznak from the west (evil healer, episode 3)",
+   "water": "land"
+  },
+  {
+   "name": "third spirit",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "near",
+    "Kraznak",
+    12,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "comes to Kraznak from the south-east (evil healer, episode 3)",
+   "water": "land"
+  }
+ ],
+ "attackable": [
+  "Calidux",
+  "Parathior",
+  "Tilvyis S`Lynx"
+ ]
+}

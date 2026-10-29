@@ -2,11 +2,13 @@
 """tools/seed_faction_starts.py against a made-up database and measurement:
 the compression (a start every combo shares is no row, a race's one row, a
 human city's and a class's where they differ), every measured combo coming
-out at its standing by the server's rule, a GM's row left and said, the
-names taken without their ends' spaces, --defaults, a dry run that writes
-nothing, a second --apply refused, --undo exact but for a row a GM changed
-since, and the table the same as the server's. No game data: the factions
-and standings are made up.
+out at its standing by the server's rule, each faction's own standing made
+its commonest start (but a GM's, and none with --keep-defaults), a faction
+Sandstorm lists added and its junk left out, a GM's row left and said, the
+names taken without their ends' spaces, a dry run that writes nothing, a
+second --apply and a partial measurement's refused, --undo exact but for a
+row a GM changed since, and the table the same as the server's. No game
+data: the factions and standings are made up.
 
     python3 tools/seed_faction_starts_test.py
 """
@@ -26,9 +28,12 @@ SCHEMA = """
 CREATE TABLE factions (name TEXT PRIMARY KEY, standing INTEGER NOT NULL);
 CREATE TABLE defaultcharacter (defaultCharacterID INTEGER PRIMARY KEY, tclass INTEGER, race INTEGER, humType INTEGER);
 CREATE TABLE gm_audit (id INTEGER PRIMARY KEY, tbl TEXT NOT NULL DEFAULT '', rowkey TEXT NOT NULL DEFAULT '');
+CREATE TABLE charfactions (serverid INTEGER, faction TEXT, standing INTEGER);
 """
 FACTIONS = {"Citizens of Alpha": 1, "Citizens of Beta": -2000, "Guild of Gamma": 0, "Delta Watch ": 5,
-            "Wolves": -500, "Edited": 7}
+            "Wolves": -500, "Edited": 7, "Old Order": 3}
+# measured but not in the table: added; junk: left out
+NEW, JUNK = "Order of Epsilon", "*Delete"
 # (race, class, humtype): two human cities, a dark elf's three classes, a gnome's two
 COMBOS = [(0, 0, 1), (0, 9, 1), (0, 0, 2), (0, 9, 2), (0, 1, 2), (2, 0, 0), (2, 3, 0), (2, 11, 0), (3, 13, 0), (3, 11, 0)]
 
@@ -49,7 +54,14 @@ def standing(race, cls, hum, faction):
         return -500
     if faction == "Edited":  # everyone the same, a GM's own standing in the table
         return 70
+    if faction == NEW:  # the gnomes' order
+        return 600 if race == 3 else 0
+    if faction == JUNK:
+        return 1
     raise KeyError(faction)
+
+
+MEASURED = [f for f in FACTIONS if f != "Old Order"] + [NEW, JUNK]  # Old Order is ours alone
 
 
 def dump(db):
@@ -71,13 +83,17 @@ class SeedFactionStartsTest(unittest.TestCase):
                        [(c, r, h) for r, c, h in COMBOS])
         db.execute("""INSERT INTO gm_audit (tbl, rowkey) VALUES ('factions', '{"name":"Edited"}')""")
         db.close()
-        self.tsv = os.path.join(self.dir, "m.tsv")
-        with open(self.tsv, "w", encoding="utf-8") as f:
+        self.tsv = self.write_tsv("m.tsv", COMBOS)
+
+    def write_tsv(self, name, combos):
+        path = os.path.join(self.dir, name)
+        with open(path, "w", encoding="utf-8") as f:
             f.write("race\tclass\thumtype\tfaction\tstanding\n")
-            for r, c, h in COMBOS:
-                for name in FACTIONS:
+            for r, c, h in combos:
+                for name in MEASURED:
                     written = "Delta Watch" if name == "Delta Watch " else name  # its ends' spaces lost
                     f.write(f"{r}\t{c}\t{h}\t{written}\t{standing(r, c, h, name)}\n")
+        return path
 
     def db(self):
         db = sqlite3.connect(self.path, isolation_level=None)
@@ -91,7 +107,7 @@ class SeedFactionStartsTest(unittest.TestCase):
         return code, out.getvalue()
 
     def test_the_server_rule(self):
-        # one faction's rows (entity/faction_test's TestStartStandingResolution's cases)
+        # one faction's rows (entity/factionstart_test's TestStartStandingResolution's cases)
         neriak = [(2, -1, -1, 500), (2, 3, -1, 800), (-1, 3, -1, -50)]
         for combo, want in [((2, 3, 0), 800), ((2, 0, 0), 500), ((0, 3, 1), -50), ((3, 13, 0), 1)]:
             self.assertEqual(sfs.resolve(neriak, 1, combo), want, combo)
@@ -106,13 +122,14 @@ class SeedFactionStartsTest(unittest.TestCase):
         tie = [(0, -1, 2, 10), (0, 9, -1, 20), (-1, 9, 2, 30)]
         self.assertEqual(sfs.resolve(tie, 0, (0, 9, 2)), 20)
 
-    def test_the_plan(self):
+    def test_the_plan_keeping_the_tables_standings(self):
         db = self.db()
         measured, said = sfs.read_measured(self.tsv, set(FACTIONS))
         self.assertEqual(said["taken without the spaces at its ends"], ["'Delta Watch' as 'Delta Watch '"])
-        p = sfs.plan(db, measured, use_defaults=False)
-        rows = sorted(p["rows"])
-        self.assertEqual(rows, sorted([
+        self.assertEqual(said["junk, left out"], ["'*Delete'"])
+        self.assertEqual(said["not in the factions table: added"], ["'Order of Epsilon'"])
+        p = sfs.plan(db, measured, keep_defaults=True)
+        self.assertEqual(sorted(p["rows"]), sorted([
             # Alpha: the dark elves' one row; the humans' commonest, the west's -1500 (three
             # combos of five), and the east's 1
             (2, -1, -1, "Citizens of Alpha", 1000), (0, -1, -1, "Citizens of Alpha", -1500),
@@ -122,16 +139,20 @@ class SeedFactionStartsTest(unittest.TestCase):
             (0, -1, 2, "Citizens of Beta", 500), (0, 9, 2, "Citizens of Beta", 900),
             # Gamma: each race's necromancers
             (2, 11, -1, "Guild of Gamma", 100), (3, 11, -1, "Guild of Gamma", 100),
+            # the new order: the gnomes', at its commonest 0
+            (3, -1, -1, NEW, 600),
         ]))
+        self.assertEqual(p["added"], {NEW: 0})
         # every combo shares Delta Watch's 50 and Edited's 70: no row, said
         self.assertEqual(sorted(p["shared"]), [("Delta Watch ", 50, 5), ("Edited", 70, 7)])
+        self.assertEqual(p["absent"], ["Old Order"])
         self.assertEqual(p["missing"], [])
 
-    def test_defaults(self):
+    def test_the_own_standings_made_the_commonest(self):
         db = self.db()
         measured, _ = sfs.read_measured(self.tsv, set(FACTIONS))
-        p = sfs.plan(db, measured, use_defaults=True)
-        # Delta Watch's own standing becomes everyone's 50; Beta's the commonest, -2000, kept; Edited a GM's
+        p = sfs.plan(db, measured)
+        # Delta Watch's own becomes everyone's 50; Beta's commonest is its own -2000; Edited is a GM's
         self.assertEqual(p["new_defaults"], {"Delta Watch ": (5, 50)})
         self.assertEqual(p["gm_defaults"], [("Edited", 70, 7)])
         self.assertEqual(p["shared"], [("Edited", 70, 7)])
@@ -140,11 +161,22 @@ class SeedFactionStartsTest(unittest.TestCase):
         db = self.db()
         db.execute("INSERT INTO factionstart (race, class, humtype, faction, standing) VALUES (2, -1, -1, 'Citizens of Alpha', 3)")
         measured, _ = sfs.read_measured(self.tsv, set(FACTIONS))
-        p = sfs.plan(db, measured, use_defaults=False)
+        p = sfs.plan(db, measured)
         self.assertNotIn((2, -1, -1, "Citizens of Alpha", 1000), p["rows"])
         self.assertEqual(p["kept_gm"], [(2, -1, -1, "Citizens of Alpha", 1000)])
         self.assertEqual(sorted(c for c, f, v, got in p["overridden"] if f == "Citizens of Alpha"),
                          [(2, 0, 0), (2, 3, 0), (2, 11, 0)])
+
+    def test_a_partial_measurement_is_refused(self):
+        partial = self.write_tsv("partial.tsv", COMBOS[:4])
+        with self.assertRaises(SystemExit):
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.run_tool("--measured", partial, "--apply", "--no-backup")
+        db = self.db()
+        self.assertEqual(db.execute("SELECT COUNT(*) FROM factionstart").fetchone(), (0,))
+        code, out = self.run_tool("--measured", partial, "--apply", "--partial", "--no-backup", "--quiet")
+        self.assertEqual(code, 0, out)
+        self.assertGreater(db.execute("SELECT COUNT(*) FROM factionstart").fetchone()[0], 0)
 
     def test_apply_then_undo(self):
         db = self.db()
@@ -153,35 +185,39 @@ class SeedFactionStartsTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("report only", out)
         self.assertEqual(dump(db), before)
-        code, out = self.run_tool("--measured", self.tsv, "--apply", "--defaults", "--no-backup")
+        code, out = self.run_tool("--measured", self.tsv, "--apply", "--no-backup")
         self.assertEqual(code, 0, out)
         written = db.execute("SELECT race, class, humtype, faction, standing, source FROM factionstart").fetchall()
-        self.assertEqual(len(written), 7)
+        self.assertEqual(len(written), 8)
         self.assertTrue(all(r[5] == "seed" for r in written))
-        self.assertEqual(db.execute("SELECT standing FROM factions WHERE name = 'Delta Watch '").fetchone(), (50,))
+        own = dict(db.execute("SELECT name, standing FROM factions"))
+        self.assertEqual((own["Delta Watch "], own[NEW], own["Edited"]), (50, 0, 7))
+        self.assertNotIn(JUNK, own)
         # every measured combo comes out at its measurement, as the server reads the table
         rows = {}
         for r in written:
             rows.setdefault(r[3], []).append((r[0], r[1], r[2], r[4]))
-        own = dict(db.execute("SELECT name, standing FROM factions"))
         for r, c, h in COMBOS:
-            for name in FACTIONS:
-                if name == "Edited":
-                    continue  # a GM's own standing, left
+            for name in MEASURED:
+                if name in ("Edited", JUNK):
+                    continue  # a GM's own standing, left; junk
                 self.assertEqual(sfs.resolve(rows.get(name, []), own[name], sfs.combo_of(r, c, h)), standing(r, c, h, name),
                                  (r, c, h, name))
         # a second --apply is refused
         with self.assertRaises(SystemExit):
             with contextlib.redirect_stderr(io.StringIO()):
                 self.run_tool("--measured", self.tsv, "--apply", "--no-backup")
-        # a GM changes one seeded row: --undo leaves it and says so
+        # a GM changes one seeded row, a character moves the new faction: --undo leaves the row and says both
         db.execute("UPDATE factionstart SET standing = 999 WHERE race = 2 AND class = 11")
+        db.execute("INSERT INTO charfactions VALUES (5, ?, 650)", (NEW,))
         code, out = self.run_tool("--undo", "--no-backup")
         self.assertEqual(code, 0)
-        self.assertIn("changed since", out)
+        self.assertIn("now, the seed wrote", out)
+        self.assertIn("characters' standings in 'Order of Epsilon'", out)
         left = db.execute("SELECT race, class, faction, standing FROM factionstart").fetchall()
         self.assertEqual(left, [(2, 11, "Guild of Gamma", 999)])
         db.execute("DELETE FROM factionstart")
+        db.execute("DELETE FROM charfactions")
         self.assertEqual(dump(db), before)
 
     def test_the_table_is_the_servers(self):

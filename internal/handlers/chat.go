@@ -172,6 +172,14 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /duel (duel.go): everyone's, from a client that forwards it (a PS2
+	// keeps an unknown /command to itself and challenges by "/tell <name>
+	// duel" instead, below)
+	if word, rest, _ := strings.Cut(message, " "); strings.EqualFold(word, "/duel") {
+		duelCommand(h.gameWorld, sess, rest, target)
+		return nil
+	}
+
 	// GM commands start with #
 	if strings.HasPrefix(message, "#") {
 		h.handleGMCommand(sess, player, message)
@@ -179,6 +187,12 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 	}
 
 	if name, body, isTell := parseTell(message); isTell {
+		if wager, ok := duelTell(body); ok {
+			// Sandstorm's challenge, "whisper "duel" to another player"
+			// (duel.go): the challenge, not a tell
+			h.gameWorld.DuelChallenge(sess, 0, name, wager, time.Now())
+			return nil
+		}
 		if h.gmChatGate(sess, player, "tell "+name, body) {
 			h.tell(sess, player, name, body)
 		}

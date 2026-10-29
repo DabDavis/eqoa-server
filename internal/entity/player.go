@@ -190,6 +190,11 @@ type Player struct {
 	powerBarsSent string
 	powerBarsDue  bool
 
+	// DuelWindow: the player's client has the live game's duel window and
+	// answered the duel offer (duel.go, opcode 0x7E09): its duels go by
+	// 0x1501/0x1502, not boxes, and its opponent stays a player to it
+	DuelWindow bool
+
 	// Voice: the player's client has voice chat on (voice.go, opcode
 	// 0x7E10); VoiceID is its voice id in the forwarding server while it is
 	// (never 0), the rest its voice's state

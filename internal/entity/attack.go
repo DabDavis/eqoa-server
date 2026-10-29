@@ -280,6 +280,9 @@ func (w *World) EngageAttack(sess *session.Session, objectID uint32, swing Swing
 	if !found {
 		return false
 	}
+	if w.duelEngageLocked(p, ent, objectID, swing, now) { // a duel's opponent or its pet (duel.go)
+		return true
+	}
 	npc, ok := ent.(*NPC)
 	if !ok || npc.Dead || npc.NPCType&0x80 != 0 || npc.Owner != 0 {
 		// CLIENT's ToggleAutoAttack refuses a not-attackable creature
@@ -361,6 +364,9 @@ const firstRound = 250 * time.Millisecond
 func (w *World) attackSystem(now time.Time) {
 	for _, p := range w.Players {
 		if p.AttackTarget == 0 {
+			continue
+		}
+		if w.duelRoundLocked(p, now) { // a duel's melee (duel.go)
 			continue
 		}
 		npc := w.NPCs[p.AttackTarget]

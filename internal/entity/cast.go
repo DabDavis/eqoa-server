@@ -233,6 +233,11 @@ type ActiveEffect struct {
 	// Power to 0")
 	PowerCap    int
 	PowerCapped bool
+	// duelFoe is the duel opponent that put a harmful effect on a player
+	// (duelfight.go), 0 for every other effect: it alone holds and slows a
+	// player (SpeedNow), comes off at the duel's end and is never kept over
+	// a logout (buffsave.go)
+	duelFoe EntityID
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -432,14 +437,25 @@ func (p *Player) SpeedNow() float32 {
 	if p.Frozen {
 		return 0 // a GM's freeze (gmchannel.go)
 	}
+	slow := float32(1)
+	for _, e := range p.Effects {
+		// a duel opponent's hold or slow (duelfight.go); no other harm lands
+		// on a player
+		if e.duelFoe != 0 && e.Root {
+			return 0
+		}
+		if e.duelFoe != 0 && e.Snare {
+			slow = duelSnare
+		}
+	}
 	switch r := p.MoveRate(); {
 	case r <= moveRateBase:
-		return p.Speed
+		return p.Speed * slow
 	case r >= moveRateMax:
-		return p.Speed * speedBuff
+		return p.Speed * speedBuff * slow
 	default:
 		f := 1 + (speedBuff-1)*float64(r-moveRateBase)/float64(moveRateMax-moveRateBase)
-		return p.Speed * float32(f)
+		return p.Speed * float32(f) * slow
 	}
 }
 
@@ -589,6 +605,9 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		ent = e
 	} else {
 		return nil, castNoTarget
+	}
+	if ids, why, ok := w.duelSpellTargetLocked(p, spell, ent); ok { // a duel's (duelfight.go)
+		return ids, why
 	}
 	switch t := ent.(type) {
 	case *Player:
@@ -764,6 +783,9 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 	}
 	for _, id := range cs.targets {
 		if t := w.Players[id]; t != nil {
+			if w.duelLandLocked(cs, caster, casterSess, t, now) { // harm on a player: a duel's (duelfight.go)
+				continue
+			}
 			w.rezLandLocked(cs, caster, casterSess, t, now) // resurrect.go: on the dead too
 			if !t.IsDead() {
 				w.landOnPlayerLocked(cs, caster, casterSess, t, now)
@@ -776,6 +798,9 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 				continue
 			}
 			if npc.Owner != 0 {
+				if w.duelLandPetLocked(cs, caster, npc, now) { // harm on a pet: a duel's (duelfight.go)
+					continue
+				}
 				w.landOnPetLocked(cs, caster, casterSess, npc, now)
 				continue
 			}
@@ -1029,6 +1054,9 @@ func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 		return
 	}
 	w.advanceTickLocked(ae, now) // hot.go
+	if ae.HPTick < 0 {
+		w.duelTickLocked(t, ae, now) // a duel's damage over time (duelfight.go)
+	}
 	if ae.HPTick > 0 {
 		// the caster may be gone (logged out, or the effect kept over a
 		// logout): the figure is then the target's own, as Sandstorm's first

@@ -112,6 +112,7 @@ DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqo
 SAME_POINT = 3.0      # a walk back this near a waypoint is at it again
 MOVING = 0.3          # a speed above this is a leg
 GAP = 1.6             # s: a walker in view is sampled twice a second; a longer silence is time out of view
+STALE = 15.0          # s: Sandstorm sends a walker's place again within 10.3 s (4,922 legs); a velocity held longer stands
 SAME_PLACE = 0.25     # two updates this near are one place (a stop and its walking off, a turn on the spot)
 TOL = 0.5             # a corner of a walk this far off the line between its neighbours is a waypoint
 CLOSE_TURN = math.radians(20)  # back at a waypoint and off within this of the leg it took there before: it came round
@@ -205,19 +206,31 @@ def runs(samples):
     return out
 
 
+def moving_in(run):
+    """A run's updates, each with whether it walked from there: a velocity
+    held past STALE s with no new place is stale, and it stood (Freeport's
+    Shersam Cor was sent once, moving north at 4.76, and stood 189 s)."""
+    ups = updates(run)
+    out = []
+    for i, u in enumerate(ups):
+        nxt = ups[i + 1]["t"] if i + 1 < len(ups) else run[-1]["t"]
+        out.append((u, speed(u) > MOVING and (nxt - u["t"]) / 1000 <= STALE))
+    return out
+
+
 def walked(run):
     """A run's walk as Sandstorm sent it: its places in order, each [x, y, z,
     stop, pause, whole] (a stop's pause the time until it walked off, None
     when it still stood at the run's end, whole when both ends of it were
     seen; a turn's 0), and where its last leg had taken it by the run's last
     sample when it still walked."""
-    ups = updates(run)
+    ups = moving_in(run)
     pts = []
-    for i, u in enumerate(ups):
-        stop = speed(u) <= MOVING
+    for i, (u, walks) in enumerate(ups):
+        stop = not walks
         pause, whole = 0.0, True
         if stop:
-            nxt = next((v for v in ups[i + 1:] if speed(v) > MOVING), None)
+            nxt = next((v for v, w in ups[i + 1:] if w), None)
             pause = (nxt["t"] - u["t"]) / 1000 if nxt else None
             whole = nxt is not None and i > 0
         if pts and math.hypot(pts[-1][0] - u["x"], pts[-1][2] - u["z"]) < (1.0 if stop and pts[-1][3] else SAME_PLACE):
@@ -225,8 +238,8 @@ def walked(run):
                 pts[-1] = [u["x"], u["y"], u["z"], True, pause, whole]  # it stopped where it was sent last
             continue  # the same place again: walking off from a stop, a turn on the spot, a stop sent again
         pts.append([u["x"], u["y"], u["z"], stop, pause, whole])
-    last = ups[-1]
-    if speed(last) > MOVING:
+    last, walks = ups[-1]
+    if walks:
         dt = (run[-1]["t"] - last["t"]) / 1000
         if dt > 0:
             pts.append([last["x"] + last["v"][0] * dt, last["y"], last["z"] + last["v"][2] * dt, False, 0.0, True])
@@ -324,7 +337,7 @@ def route(samples):
     read from) and off (how far its legs go off that walk)), or None when it
     never walked."""
     ups = updates(samples)
-    legs = [u for u in ups if speed(u) > MOVING]
+    legs = [u for r in runs(samples) for u, walks in moving_in(r) if walks]
     if not legs:
         return None
     walks = [w for w in (walked(r) for r in runs(samples)) if len(w) >= 2]

@@ -378,6 +378,40 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/cleric/L20, so a cleric of Freeport is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
   },
   {
+   "key": "30,40,49/group-6-evil/L30-freeport-magician",
+   "name": "Resenthorn Tower",
+   "giver": "Kellina",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/freeport/magician/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Oasis: Count Luvincius, at the top of Resenthorn Tower on the island in the river, will see you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Climb Resenthorn Tower, on the island in the river at Oasis, to Count Luvincius.",
+     "says": "Prove yourself. Quatzi, by the shore below my tower, sells what I need. Carry my seal, and he will know whom he serves.",
+     "rewards": {
+      "items": [
+       "the Count's seal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/magician/L20, so a magician of Freeport is sent on. The Count's seal opens Group 6's path quests (Quatzi asks to see it)."
+  },
+  {
    "key": "30,40,49/group-4-evil/L30-freeport-rogue",
    "name": "The Ritual Season",
    "giver": "Athera",
@@ -450,6 +484,74 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/enchanter/L20, so a enchanter of Freeport is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
   },
   {
+   "key": "30,40,49/group-6-evil/L30-freeport-necromancer",
+   "name": "Resenthorn Tower",
+   "giver": "Corious Slaerin",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/freeport/necromancer/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Oasis: Count Luvincius, at the top of Resenthorn Tower on the island in the river, will see you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Climb Resenthorn Tower, on the island in the river at Oasis, to Count Luvincius.",
+     "says": "Prove yourself. Quatzi, by the shore below my tower, sells what I need. Carry my seal, and he will know whom he serves.",
+     "rewards": {
+      "items": [
+       "the Count's seal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/necromancer/L20, so a necromancer of Freeport is sent on. The Count's seal opens Group 6's path quests (Quatzi asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-freeport-shadowknight",
+   "name": "Resenthorn Tower",
+   "giver": "Malethai Crimsonhand",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/freeport/shadowknight/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Oasis: Count Luvincius, at the top of Resenthorn Tower on the island in the river, will see you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Climb Resenthorn Tower, on the island in the river at Oasis, to Count Luvincius.",
+     "says": "Prove yourself. Quatzi, by the shore below my tower, sells what I need. Carry my seal, and he will know whom he serves.",
+     "rewards": {
+      "items": [
+       "the Count's seal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/shadowknight/L20, so a shadowknight of Freeport is sent on. The Count's seal opens Group 6's path quests (Quatzi asks to see it)."
+  },
+  {
    "key": "30,40,49/group-5-evil/L30-freeport-wizard",
    "name": "Director Holman's Errands",
    "giver": "Sivrendesh",
@@ -482,6 +584,40 @@
    ],
    "unresolved": [],
    "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/wizard/L20, so a wizard of Freeport is sent on. Holman's writ opens Group 5's path quests (each of the three asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-grobb-shadowknight",
+   "name": "Resenthorn Tower",
+   "giver": "Underlord Solthe",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/grobb/shadowknight/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Oasis: Count Luvincius, at the top of Resenthorn Tower on the island in the river, will see you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Climb Resenthorn Tower, on the island in the river at Oasis, to Count Luvincius.",
+     "says": "Prove yourself. Quatzi, by the shore below my tower, sells what I need. Carry my seal, and he will know whom he serves.",
+     "rewards": {
+      "items": [
+       "the Count's seal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/grobb/shadowknight/L20, so a shadowknight of Grobb is sent on. The Count's seal opens Group 6's path quests (Quatzi asks to see it)."
   },
   {
    "key": "30,40,49/group-5-evil/L30-grobb-shaman",
@@ -804,6 +940,40 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/highbourne/magician/L20, so a magician of Highbourne is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
   },
   {
+   "key": "30,40,49/group-6-evil/L30-highbourne-necromancer",
+   "name": "Resenthorn Tower",
+   "giver": "Retainer Alishal",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/necromancer/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Oasis: Count Luvincius, at the top of Resenthorn Tower on the island in the river, will see you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Climb Resenthorn Tower, on the island in the river at Oasis, to Count Luvincius.",
+     "says": "Prove yourself. Quatzi, by the shore below my tower, sells what I need. Carry my seal, and he will know whom he serves.",
+     "rewards": {
+      "items": [
+       "the Count's seal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/highbourne/necromancer/L20, so a necromancer of Highbourne is sent on. The Count's seal opens Group 6's path quests (Quatzi asks to see it)."
+  },
+  {
    "key": "30,40,49/group-1-good/L30-highbourne-paladin",
    "name": "A New Trainer in Forkwatch",
    "giver": "Ulana Stillmind",
@@ -842,6 +1012,40 @@
    ],
    "unresolved": [],
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/highbourne/paladin/L20, so a paladin of Highbourne is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-highbourne-shadowknight",
+   "name": "Resenthorn Tower",
+   "giver": "Desh the Harvester",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/shadowknight/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Oasis: Count Luvincius, at the top of Resenthorn Tower on the island in the river, will see you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Climb Resenthorn Tower, on the island in the river at Oasis, to Count Luvincius.",
+     "says": "Prove yourself. Quatzi, by the shore below my tower, sells what I need. Carry my seal, and he will know whom he serves.",
+     "rewards": {
+      "items": [
+       "the Count's seal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/highbourne/shadowknight/L20, so a shadowknight of Highbourne is sent on. The Count's seal opens Group 6's path quests (Quatzi asks to see it)."
   },
   {
    "key": "30,40,49/group-1-good/L30-highbourne-wizard",
@@ -1032,6 +1236,40 @@
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/klick-anon/magician/L20, so a magician of Klick'Anon is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-klick-anon-necromancer",
+   "name": "Resenthorn Tower",
+   "giver": "Grear Hosrottle",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/klick-anon/necromancer/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Oasis: Count Luvincius, at the top of Resenthorn Tower on the island in the river, will see you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Climb Resenthorn Tower, on the island in the river at Oasis, to Count Luvincius.",
+     "says": "Prove yourself. Quatzi, by the shore below my tower, sells what I need. Carry my seal, and he will know whom he serves.",
+     "rewards": {
+      "items": [
+       "the Count's seal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/klick-anon/necromancer/L20, so a necromancer of Klick'Anon is sent on. The Count's seal opens Group 6's path quests (Quatzi asks to see it)."
   },
   {
    "key": "30,40,49/group-4-evil/L30-klick-anon-rogue",
@@ -1398,6 +1636,74 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/enchanter/L20, so a enchanter of Neriak is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
   },
   {
+   "key": "30,40,49/group-6-evil/L30-neriak-nektulos-magician",
+   "name": "Resenthorn Tower",
+   "giver": "Elementalist R`Virr",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/neriak-nektulos/magician/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Oasis: Count Luvincius, at the top of Resenthorn Tower on the island in the river, will see you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Climb Resenthorn Tower, on the island in the river at Oasis, to Count Luvincius.",
+     "says": "Prove yourself. Quatzi, by the shore below my tower, sells what I need. Carry my seal, and he will know whom he serves.",
+     "rewards": {
+      "items": [
+       "the Count's seal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/magician/L20, so a magician of Neriak is sent on. The Count's seal opens Group 6's path quests (Quatzi asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-neriak-nektulos-necromancer",
+   "name": "Resenthorn Tower",
+   "giver": "Grand Defiler J`Narus",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/neriak-nektulos/necromancer/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Oasis: Count Luvincius, at the top of Resenthorn Tower on the island in the river, will see you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Climb Resenthorn Tower, on the island in the river at Oasis, to Count Luvincius.",
+     "says": "Prove yourself. Quatzi, by the shore below my tower, sells what I need. Carry my seal, and he will know whom he serves.",
+     "rewards": {
+      "items": [
+       "the Count's seal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/necromancer/L20, so a necromancer of Neriak is sent on. The Count's seal opens Group 6's path quests (Quatzi asks to see it)."
+  },
+  {
    "key": "30,40,49/group-4-evil/L30-neriak-nektulos-rogue",
    "name": "The Ritual Season",
    "giver": "Necorik the Ghost",
@@ -1432,6 +1738,40 @@
     "Belran Nightrift"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/rogue/L20, so a rogue of Neriak is sent on. Belran's writ opens Group 4's path quests (Nalzik P'Thek asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-neriak-nektulos-shadowknight",
+   "name": "Resenthorn Tower",
+   "giver": "Seloxia V`Thoth",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/neriak-nektulos/shadowknight/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Oasis: Count Luvincius, at the top of Resenthorn Tower on the island in the river, will see you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Climb Resenthorn Tower, on the island in the river at Oasis, to Count Luvincius.",
+     "says": "Prove yourself. Quatzi, by the shore below my tower, sells what I need. Carry my seal, and he will know whom he serves.",
+     "rewards": {
+      "items": [
+       "the Count's seal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/shadowknight/L20, so a shadowknight of Neriak is sent on. The Count's seal opens Group 6's path quests (Quatzi asks to see it)."
   },
   {
    "key": "30,40,49/group-5-evil/L30-neriak-nektulos-warrior",
@@ -1500,6 +1840,74 @@
    ],
    "unresolved": [],
    "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/neriak-nektulos/wizard/L20, so a wizard of Neriak is sent on. Holman's writ opens Group 5's path quests (each of the three asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-oggok-necromancer",
+   "name": "Resenthorn Tower",
+   "giver": "Asogwe Greth",
+   "classes": [
+    11
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/necromancer/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Oasis: Count Luvincius, at the top of Resenthorn Tower on the island in the river, will see you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Climb Resenthorn Tower, on the island in the river at Oasis, to Count Luvincius.",
+     "says": "Prove yourself. Quatzi, by the shore below my tower, sells what I need. Carry my seal, and he will know whom he serves.",
+     "rewards": {
+      "items": [
+       "the Count's seal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/oggok/necromancer/L20, so a necromancer of Oggok is sent on. The Count's seal opens Group 6's path quests (Quatzi asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-oggok-shadowknight",
+   "name": "Resenthorn Tower",
+   "giver": "Elder Thorg",
+   "classes": [
+    3
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/oggok/shadowknight/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Oasis: Count Luvincius, at the top of Resenthorn Tower on the island in the river, will see you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Count Luvincius",
+     "journal": "Climb Resenthorn Tower, on the island in the river at Oasis, to Count Luvincius.",
+     "says": "Prove yourself. Quatzi, by the shore below my tower, sells what I need. Carry my seal, and he will know whom he serves.",
+     "rewards": {
+      "items": [
+       "the Count's seal"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/oggok/shadowknight/L20, so a shadowknight of Oggok is sent on. The Count's seal opens Group 6's path quests (Quatzi asks to see it)."
   },
   {
    "key": "30,40,49/group-5-evil/L30-oggok-shaman",
@@ -3566,7 +3974,7 @@
    "unresolved": [
     "Parathior (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky). Crikston gives the final rewards; the guide's class NPC (bards Kaldesh Illinor in the Freeport tavern) and the approval visits to the givers of the level 20, 30 and 40 quests are not in. Epic weapons are epics_49.json's: the first that exists here (paladins Virtus Ferrum, no Judgement; clerics a Hammer of Absolution made like a hammer of the level)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky); the server's Parathior is made attackable by this set's seed. Crikston gives the final rewards; the guide's class NPC (bards Kaldesh Illinor in the Freeport tavern) and the approval visits to the givers of the level 20, 30 and 40 quests are not in. Epic weapons are epics_49.json's: the first that exists here (paladins Virtus Ferrum, no Judgement; clerics a Hammer of Absolution made like a hammer of the level)."
   },
   {
    "key": "30,40,49/group-2-good/L30-a",
@@ -4838,7 +5246,7 @@
     "Lord Tearis Thex",
     "Parathior (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky). Lord Tearis Thex gives the final rewards; the guide's class approval tasks are not in. The four orbs are this group's first and second seals (the guide lists them before the third). Epic weapons are epics_49.json's first that exists here."
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky); the server's Parathior is made attackable by this set's seed. Lord Tearis Thex gives the final rewards; the guide's class approval tasks are not in. The four orbs are this group's first and second seals (the guide lists them before the third). Epic weapons are epics_49.json's first that exists here."
   },
   {
    "key": "30,40,49/group-3-good/L30-a",
@@ -8509,7 +8917,1145 @@
    "unresolved": [
     "Parathior (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky). Zentar gives the final rewards; the guide's class NPCs (warriors the four warlords in Anu Village, shamans Elder Gabgug in Guardian Forest, alchemists Brindy Roro in Highpass) and their approval visits are not in. Oransan holds the first two seals already (the guide); Zentar's star and gear go to Oransan's ritual with the two the player took. Epic weapons: epics_49.json's first."
+   "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky); the server's Parathior is made attackable by this set's seed. Zentar gives the final rewards; the guide's class NPCs (warriors the four warlords in Anu Village, shamans Elder Gabgug in Guardian Forest, alchemists Brindy Roro in Highpass) and their approval visits are not in. Oransan holds the first two seals already (the guide); Zentar's star and gear go to Oransan's ritual with the two the player took. Epic weapons: epics_49.json's first."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-a",
+   "name": "Gypsy Blood",
+   "giver": "Count Luvincius",
+   "classes": [
+    3,
+    10,
+    11
+   ],
+   "races": [
+    0,
+    2,
+    3,
+    5,
+    8,
+    9
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Quatzi, on the shore by the dark tower below, sells blood. Buy three vials of gypsy blood from him, 1,584 tunar, and show him my seal.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Quatzi",
+     "items": [
+      {
+       "item": "the Count's seal",
+       "count": 1
+      }
+     ],
+     "journal": "Show the Count's seal to Quatzi on the shore by the dark tower in Oasis.",
+     "says": "The Count's errand. Three vials of gypsy blood: 1,584 tunar.",
+     "notyet": "I sell to the Count's people only."
+    },
+    {
+     "kind": "give",
+     "target": "Quatzi",
+     "items": [],
+     "tunar": 1584,
+     "journal": "Pay Quatzi 1,584 tunar for three vials of gypsy blood.",
+     "says": "Fresh. Mind you do not spill it.",
+     "rewards": {
+      "items": [
+       "vial of gypsy blood"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Count Luvincius",
+     "items": [
+      {
+       "item": "vial of gypsy blood",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the gypsy blood to Count Luvincius.",
+     "says": "You can be trusted with an errand. Now a harder one: Talknar, outside the drow enclave of Dark Solace."
+    }
+   ],
+   "unresolved": [
+    "Quatzi",
+    "Quatzi"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30 (github.com/Jadiction/EQOA-Data, MIT). The three vials are one item here."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-b",
+   "name": "The Broken Pact",
+   "giver": "Count Luvincius",
+   "classes": [
+    3,
+    10,
+    11
+   ],
+   "races": [
+    0,
+    2,
+    3,
+    5,
+    8,
+    9
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L30-a"
+   ],
+   "offer": "Talknar, by a rock outside the drow enclave of Dark Solace, says the goblins attack everyone despite the pact. Go and help him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Talknar",
+     "journal": "Find Talknar by a rock outside the drow enclave of Dark Solace.",
+     "says": "A goblin messenger comes to the crossroads north-east of here, over the hill, by the tree where all roads meet. Kill him and bring me his message."
+    },
+    {
+     "kind": "loot",
+     "target": "Goblin Messenger",
+     "items": [
+      {
+       "item": "goblin message",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the goblin messenger at the crossroads north-east of Talknar, by the tree where the roads meet."
+    },
+    {
+     "kind": "give",
+     "target": "Talknar",
+     "items": [
+      {
+       "item": "goblin message",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the goblin message to Talknar.",
+     "says": "So their ambassadors are making a new pact behind our backs. Gungar Guglar, at the outpost west of the Grobb coach, knows more."
+    }
+   ],
+   "unresolved": [
+    "Talknar",
+    "Goblin Messenger",
+    "Talknar"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Talknar (github.com/Jadiction/EQOA-Data, MIT). The messenger stands at the crossroads always (the guide's is a triggered spawn)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30-c",
+   "name": "The Ambassadors",
+   "giver": "Talknar",
+   "classes": [
+    3,
+    10,
+    11
+   ],
+   "races": [
+    0,
+    2,
+    3,
+    5,
+    8,
+    9
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L30-b"
+   ],
+   "offer": "Gungar Guglar, at the outpost just west of the Grobb coach, watches the ambassadors. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Gungar Guglar",
+     "journal": "Find Gungar Guglar at the outpost west of the Grobb coach.",
+     "says": "Tracker Jugl, by the stump with his dog Bloodseeker, has followed them."
+    },
+    {
+     "kind": "talk",
+     "target": "Tracker Jugl",
+     "journal": "Find Tracker Jugl by the stump near Gungar, with his dog Bloodseeker.",
+     "says": "Ambassador Kreek and Ambassador Luj'Nak meet on top of the left wall outside Guk, facing its stone entrance. Casters, both. Kill them and take the treaties."
+    },
+    {
+     "kind": "loot",
+     "target": "Ambassador Kreek",
+     "items": [
+      {
+       "item": "froglok treaty",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Climb the left wall outside Guk and kill Ambassador Kreek for the froglok treaty."
+    },
+    {
+     "kind": "loot",
+     "target": "Ambassador Luj'Nak",
+     "items": [
+      {
+       "item": "goblin treaty",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Ambassador Luj'Nak for the goblin treaty."
+    },
+    {
+     "kind": "give",
+     "target": "Gungar Guglar",
+     "items": [
+      {
+       "item": "froglok treaty",
+       "count": 1
+      },
+      {
+       "item": "goblin treaty",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the two treaties to Gungar Guglar.",
+     "says": "Proof. Take word to Count Luvincius."
+    }
+   ],
+   "unresolved": [
+    "Talknar",
+    "Gungar Guglar",
+    "Tracker Jugl",
+    "Ambassador Kreek",
+    "Ambassador Luj'Nak",
+    "Gungar Guglar"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, The Ambassadors (github.com/Jadiction/EQOA-Data, MIT). The ambassadors stand on the wall always (the guide's are triggered). The guide does not say whose treaty each carries: the froglok's Kreek's and the goblin's Luj'Nak's are ours."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L30",
+   "name": "Gut Ripper",
+   "giver": "Count Luvincius",
+   "classes": [
+    3,
+    10,
+    11
+   ],
+   "races": [
+    0,
+    2,
+    3,
+    5,
+    8,
+    9
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L30-c"
+   ],
+   "offer": "The goblins broke the pact. Kill Gut Ripper, the wolf of Chik'Nar the goblin king, in the Darkwood Lair of Alseop's Wall, as a warning.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "The guards con light blue; invisibility helps.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Gut Ripper",
+     "items": [
+      {
+       "item": "Gut Ripper's collar",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "In the Darkwood Lair keep right, take the second tunnel right to Cookie's room, go left and back, and kill Gut Ripper."
+    },
+    {
+     "kind": "give",
+     "target": "Count Luvincius",
+     "items": [
+      {
+       "item": "Gut Ripper's collar",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Gut Ripper's collar to Count Luvincius.",
+     "says": "Chik'Nar will understand that. Take what you have earned.",
+     "rewards": {
+      "xp": 7890859,
+      "byclass": {
+       "10": {
+        "spells": [
+         "Burning Mark"
+        ],
+        "items": [
+         "Wolfbane Staff"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Blood Squall"
+        ],
+        "items": [
+         "Sickle of the Wolf"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Bloodraven"
+        ],
+        "items": [
+         "Claymore of the Shadow Wolf"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Gutripper and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The guide names only weapons; the ability is EQOA-Data's level 30 quest spell on the class's line. Weapons: the first that exists here (necromancers the Sickle of the Wolf), the magician's Wolfbane Staff made like a staff of the level."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L40-a",
+   "name": "Elven Blood",
+   "giver": "Count Luvincius",
+   "classes": [
+    3,
+    10,
+    11
+   ],
+   "races": [
+    0,
+    2,
+    3,
+    5,
+    8,
+    9
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L30"
+   ],
+   "offer": "Quatzi has a vial of Elven blood for me: 2,766 tunar. Fetch it.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Quatzi",
+     "items": [],
+     "tunar": 2766,
+     "journal": "Pay Quatzi 2,766 tunar for a vial of Elven blood.",
+     "says": "The rarest I have.",
+     "rewards": {
+      "items": [
+       "vial of Elven blood"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Count Luvincius",
+     "items": [
+      {
+       "item": "vial of Elven blood",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Elven blood to Count Luvincius.",
+     "says": "Good. Now the goblins again: Captain Opak in Honjour has trouble with them."
+    }
+   ],
+   "unresolved": [
+    "Quatzi"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 40 (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L40-b",
+   "name": "Goblin Attackers: Honjour",
+   "giver": "Count Luvincius",
+   "classes": [
+    3,
+    10,
+    11
+   ],
+   "races": [
+    0,
+    2,
+    3,
+    5,
+    8,
+    9
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L40-a"
+   ],
+   "offer": "Watch Captain Opak, in the south-east of the fort at Honjour, has goblin attackers. Go and help him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Watch Captain Opak",
+     "journal": "Find Watch Captain Opak in the south-east of the fort at Honjour.",
+     "says": "Watcher Gabnu, at the top of the tower south of town, sees them come. Go up to him."
+    },
+    {
+     "kind": "talk",
+     "target": "Watcher Gabnu",
+     "journal": "Climb the tower south of Honjour to Watcher Gabnu.",
+     "says": "Here they come: goblin elites, froglok elites, and the captain who leads them!"
+    },
+    {
+     "kind": "loot",
+     "target": "The Captain",
+     "items": [
+      {
+       "item": "Glowing Silver Shard",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the goblin and froglok elites and their captain until you have a glowing silver shard."
+    },
+    {
+     "kind": "talk",
+     "target": "Watcher Gabnu",
+     "journal": "Speak with Watcher Gabnu again.",
+     "says": "They are beaten. Tell the captain."
+    },
+    {
+     "kind": "talk",
+     "target": "Watch Captain Opak",
+     "journal": "Return north to Watch Captain Opak.",
+     "says": "Take my note to the Count, with my thanks.",
+     "rewards": {
+      "items": [
+       "Captain Opak's note"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Count Luvincius",
+     "items": [
+      {
+       "item": "Captain Opak's note",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Captain Opak's note to Count Luvincius.",
+     "says": "Commended. Now Kerplunk Outpost has the same trouble: see Elder Pugnug."
+    }
+   ],
+   "unresolved": [
+    "Watcher Gabnu",
+    "The Captain",
+    "Watcher Gabnu"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 40, Goblin Attackers: Honjour (github.com/Jadiction/EQOA-Data, MIT). The guide's three waves are not in: the elites and their captain stand by the tower (FrontiersForge's places), and the captain drops the shard. Watch Captain Opak is the guide's Captain Opak."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L40-c",
+   "name": "Goblin Attackers: Kerplunk",
+   "giver": "Count Luvincius",
+   "classes": [
+    3,
+    10,
+    11
+   ],
+   "races": [
+    0,
+    2,
+    3,
+    5,
+    8,
+    9
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L40-b"
+   ],
+   "offer": "Elder Pugnug, in the middle of Kerplunk Outpost near the coach, wants revenge on Da Snappa. Help him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elder Pugnug",
+     "journal": "Find Elder Pugnug in the middle of Kerplunk Outpost, near the coach.",
+     "says": "Da Snappa, in the lake, ate Grub. Kill him and bring Grub back to me."
+    },
+    {
+     "kind": "loot",
+     "target": "Da Snappa",
+     "items": [
+      {
+       "item": "corpse of Grub",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Da Snappa in the lake by Kerplunk Outpost.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "half-eaten note",
+         "count": 1
+        },
+        {
+         "item": "chunk of mysterious ore",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Elder Pugnug",
+     "items": [
+      {
+       "item": "corpse of Grub",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the corpse of Grub to Elder Pugnug.",
+     "says": "Grub is not all dead! I can mend him. Take the rest to your Count."
+    },
+    {
+     "kind": "give",
+     "target": "Count Luvincius",
+     "items": [
+      {
+       "item": "half-eaten note",
+       "count": 1
+      },
+      {
+       "item": "chunk of mysterious ore",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the half-eaten note and the chunk of ore to Count Luvincius.",
+     "says": "The froglok tactician Chareek is behind it all. Kill him."
+    }
+   ],
+   "unresolved": [
+    "Da Snappa"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 40, Goblin Attackers: Kerplunk (github.com/Jadiction/EQOA-Data, MIT). Da Snappa is FrontiersForge's spelling of the guide's Da Snapper."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L40",
+   "name": "The Froglok Tactician",
+   "giver": "Count Luvincius",
+   "classes": [
+    3,
+    10,
+    11
+   ],
+   "races": [
+    0,
+    2,
+    3,
+    5,
+    8,
+    9
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L40-c"
+   ],
+   "offer": "Chareek the Tactician is in the living side of Guk, near the lower levels. Speak with him, then kill him, and bring me his head.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Invisibility is needed: brutes, knights and patrols guard him.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Chareek the Tactician",
+     "journal": "Clear the room and speak with Chareek the Tactician in the lower levels of Guk.",
+     "says": "You dare? Then fight me!"
+    },
+    {
+     "kind": "loot",
+     "target": "Chareek the Tactician",
+     "items": [
+      {
+       "item": "Chareek's head",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Chareek the Tactician and take his head."
+    },
+    {
+     "kind": "give",
+     "target": "Count Luvincius",
+     "items": [
+      {
+       "item": "Chareek's head",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Chareek's head to Count Luvincius.",
+     "says": "The frogloks will remember this. Take what you have earned.",
+     "rewards": {
+      "xp": 14919719,
+      "byclass": {
+       "10": {
+        "spells": [
+         "Earthen Mark"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Blood Storm"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Bloodleech"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 40, Froglok Tactician and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Chareek can be fought from the first (the guide's is unattackable until spoken to); the guide's hide is not asked. The choices: the ability on the class's line (magicians the second, Earthen Mark, the mark line; necromancers' and shadowknights' first); the guide names no weapons."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L49-a",
+   "name": "The Cipher of the Sun",
+   "giver": "Count Luvincius",
+   "classes": [
+    3,
+    10,
+    11
+   ],
+   "races": [
+    0,
+    2,
+    3,
+    5,
+    8,
+    9
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L40"
+   ],
+   "offer": "Lord Chardith must be called and destroyed. Take the Tome of Anikhius: three ciphers open it. Elimandared, on a hill of dim ruins in the west of the Ethernal Desert, has the first. Keep all.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Elimandared",
+     "journal": "Find Elimandared on the hill of dim ruins west of the level 43 quest tower, north of Oasis.",
+     "says": "Show me your worth. Tubrenzalana! Come!"
+    },
+    {
+     "kind": "loot",
+     "target": "Tubrenzalana",
+     "items": [
+      {
+       "item": "Tubrenzalana's staff",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Tubrenzalana, who casts again and again, and take her staff."
+    },
+    {
+     "kind": "give",
+     "target": "Elimandared",
+     "items": [
+      {
+       "item": "Tubrenzalana's staff",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Tubrenzalana's staff to Elimandared.",
+     "says": "Take this Stone of Elves: in Fayspires it will hide what you are. Buy a Rune of Water from Aalean Mardum, second floor of the guild on the left.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "small stone of elves",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Aalean Mardum",
+     "items": [],
+     "tunar": 3200,
+     "journal": "Buy a Rune of Water from Aalean Mardum in Fayspires: 3,200 tunar.",
+     "says": "A rune of water. Go gently.",
+     "rewards": {
+      "items": [
+       "Rune of Water"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Elimandared",
+     "items": [
+      {
+       "item": "Rune of Water",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Rune of Water to Elimandared.",
+     "says": "The Cipher of the Sun. Vaeloficint, in Sarek's Tower, has the next.",
+     "rewards": {
+      "items": [
+       "Cipher of the Sun"
+      ]
+     }
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "Tome of Anikhius",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Elimandared",
+    "Tubrenzalana",
+    "Elimandared",
+    "Aalean Mardum",
+    "Elimandared"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 49, Cipher of the Sun (github.com/Jadiction/EQOA-Data, MIT). Tubrenzalana stands by Elimandared (the guide's is summoned); the Stone of Elves is the database's small stone of elves."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L49-b",
+   "name": "The Cipher of the Moon",
+   "giver": "Count Luvincius",
+   "classes": [
+    3,
+    10,
+    11
+   ],
+   "races": [
+    0,
+    2,
+    3,
+    5,
+    8,
+    9
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L49-a"
+   ],
+   "offer": "Vaeloficint the Wise, at the top of the west tower of Sarek's Tower, has the second cipher.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Vaeloficint",
+     "journal": "Climb to the top of the west tower of Sarek's Tower to Vaeloficint the Wise.",
+     "says": "Take this Script of the Moon. Inspector Xelebb, a floating eye at the base of the pyramid in Cazic Thule, keeps a rubicitic charm. Speak to him, then kill him.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Script of the Moon",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Inspector Xelebb",
+     "journal": "Speak with Inspector Xelebb at the base of the pyramid in Cazic Thule.",
+     "says": "Who reads the moon's script? Die, then!"
+    },
+    {
+     "kind": "loot",
+     "target": "Inspector Xelebb",
+     "items": [
+      {
+       "item": "rubicitic charm",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Inspector Xelebb and take his rubicitic charm."
+    },
+    {
+     "kind": "give",
+     "target": "Vaeloficint",
+     "items": [
+      {
+       "item": "rubicitic charm",
+       "count": 1
+      },
+      {
+       "item": "Script of the Moon",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the charm and the script to Vaeloficint.",
+     "says": "The Cipher of the Moon. Historian Hesslen in Highpass Hold has the last.",
+     "rewards": {
+      "items": [
+       "Cipher of the Moon"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Vaeloficint",
+    "Inspector Xelebb",
+    "Inspector Xelebb",
+    "Vaeloficint"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 49, Cipher of the Moon (github.com/Jadiction/EQOA-Data, MIT). Vaeloficint is FrontiersForge's name for the guide's Vaeloficint the Wise."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L49-c",
+   "name": "The Cipher of the Star",
+   "giver": "Count Luvincius",
+   "classes": [
+    3,
+    10,
+    11
+   ],
+   "races": [
+    0,
+    2,
+    3,
+    5,
+    8,
+    9
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L49-b"
+   ],
+   "offer": "Historian Hesslen, under the ramp near the old bank of Highpass Hold, has the last cipher. He will want work done.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Historian Hesslen",
+     "journal": "Find Historian Hesslen under the ramp near the old bank of Highpass Hold.",
+     "says": "Three tasks: Overlord Frank's ring, from the Takish bandit camp in the south-east of the Box Canyons; the treant Xannasu's branch, in Sycamore Joy's Rest; Lantik's bracers."
+    },
+    {
+     "kind": "loot",
+     "target": "Overlord Frank",
+     "items": [
+      {
+       "item": "Overlord Frank's ring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Go right up to the Takish bandit camp in the south-east of the Box Canyons and kill Overlord Frank for his ring."
+    },
+    {
+     "kind": "loot",
+     "target": "Xannasu",
+     "items": [
+      {
+       "item": "Xannasu's branch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Pass the twin-pillar gate into Sycamore Joy's Rest and kill the treant Xannasu for a branch. Pull him outside the green bubble."
+    },
+    {
+     "kind": "loot",
+     "target": "Lantik",
+     "items": [
+      {
+       "item": "Lantik's bracers",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Lantik, by the northern entrance of the Box Canyons, for his bracers."
+    },
+    {
+     "kind": "give",
+     "target": "Historian Hesslen",
+     "items": [
+      {
+       "item": "Overlord Frank's ring",
+       "count": 1
+      },
+      {
+       "item": "Xannasu's branch",
+       "count": 1
+      },
+      {
+       "item": "Lantik's bracers",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ring, the branch and the bracers to Historian Hesslen.",
+     "says": "The Cipher of the Star. Now the Count.",
+     "rewards": {
+      "items": [
+       "Cipher of the Star"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 49, Cipher of the Star (github.com/Jadiction/EQOA-Data, MIT). The three stand at their places always (the guide's are triggered: Frank when the player comes close, Xannasu by passing the gate visible, Lantik from the north); the guide's turn-ins after each are one here."
+  },
+  {
+   "key": "30,40,49/group-6-evil/L49",
+   "name": "To Summon Chardith",
+   "giver": "Count Luvincius",
+   "classes": [
+    3,
+    10,
+    11
+   ],
+   "races": [
+    0,
+    2,
+    3,
+    5,
+    8,
+    9
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-6-evil/L49-c"
+   ],
+   "offer": "The three ciphers open the Tome of Anikhius: Archmagus Terathin, in the basement of the building with the blue lightning bolt sign in south-west Takish Hiz, can call Chardith.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Kill the magi only after you have spoken to Terathin.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Archmagus Terathin",
+     "journal": "Find Archmagus Terathin in the basement of the building with the blue lightning bolt sign in south-west Takish Hiz.",
+     "says": "You would help me destroy the Magi? Kill the Magus of the Sun, the Magus of the Stars and the Magus of the Moon, and bring me their phylacteries. Only after we have spoken."
+    },
+    {
+     "kind": "loot",
+     "target": "Magus of the Sun",
+     "items": [
+      {
+       "item": "Sun Phylactery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Fight through the sun knights and kill the Magus of the Sun for his phylactery."
+    },
+    {
+     "kind": "loot",
+     "target": "Magus of the Stars",
+     "items": [
+      {
+       "item": "Star Phylactery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Fight through the star wisps and kill the Magus of the Stars for his phylactery."
+    },
+    {
+     "kind": "loot",
+     "target": "Magus of the Moon",
+     "items": [
+      {
+       "item": "Moon Phylactery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Clear the moon wraiths and kill the Magus of the Moon for his phylactery."
+    },
+    {
+     "kind": "give",
+     "target": "Archmagus Terathin",
+     "items": [
+      {
+       "item": "Sun Phylactery",
+       "count": 1
+      },
+      {
+       "item": "Star Phylactery",
+       "count": 1
+      },
+      {
+       "item": "Moon Phylactery",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the three phylacteries to Archmagus Terathin.",
+     "says": "All three. Choose your weapon from the jeweled chest; then speak to me, and I will call him."
+    },
+    {
+     "kind": "talk",
+     "target": "Jeweled Chest",
+     "journal": "Open the jeweled chest beside Archmagus Terathin and choose your weapon.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You choose your weapon from the jeweled chest. It will be yours when your path is done. The choice is final."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Archmagus Terathin",
+     "journal": "Speak to Archmagus Terathin again to call Lord Chardith.",
+     "says": "Then it begins. Lord Chardith! Your servant calls you!"
+    },
+    {
+     "kind": "loot",
+     "target": "Lord Chardith",
+     "items": [
+      {
+       "item": "Bone of Chardith",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Lord Chardith and take a bone of Chardith."
+    },
+    {
+     "kind": "give",
+     "target": "Count Luvincius",
+     "items": [
+      {
+       "item": "Bone of Chardith",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bone of Chardith to Count Luvincius.",
+     "says": "Chardith is gone, and your path is yours. Take what you have earned. When you have grown to the height of your power, the Recruiter will have work for you.",
+     "rewards": {
+      "xp": 45558313,
+      "byclass": {
+       "10": {
+        "spells": [
+         "Elemental Mark"
+        ],
+        "items": [
+         "Crystalmana Crosier"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Blood Tempest"
+        ],
+        "items": [
+         "Rod of Consuming Hatred"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Bloodghoul"
+        ],
+        "items": [
+         "Beheader of Isthiak"
+        ]
+       }
+      },
+      "items": [
+       "letter to the Freeport Recruiter"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 49, To Summon Chardith and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Lord Chardith and the three magi stand in the basement always (the guide's Chardith is called after a sacrifice; Terathin speaks only every fifteen minutes). The jeweled chest's choice is the class's first weapon, given at the end. The Count gives the final rewards; the guide's class NPCs (necromancers on the bottom floor of his tower, shadowknights at the top of a tower in Zentar's Keep) and the approval notes are not in. Epic weapons are the guide's first."
   }
  ],
  "items": [
@@ -9232,6 +10778,156 @@
    "description": "A wizard's staff, the reward of the level 40 path.",
    "notrade": true,
    "like": "Rod of Equilibrium"
+  },
+  {
+   "name": "the Count's seal",
+   "description": "The seal of Count Luvincius of Resenthorn Tower.",
+   "notrade": true,
+   "like": "froglok totem"
+  },
+  {
+   "name": "vial of gypsy blood",
+   "description": "Gypsy blood, from Quatzi's stock.",
+   "notrade": true,
+   "like": "blood sack"
+  },
+  {
+   "name": "goblin message",
+   "description": "A goblin messenger's message.",
+   "notrade": true,
+   "like": "Thug's Letter"
+  },
+  {
+   "name": "goblin treaty",
+   "description": "The goblins' copy of the pact.",
+   "notrade": true,
+   "like": "Sealed Letter"
+  },
+  {
+   "name": "froglok treaty",
+   "description": "The frogloks' copy of the pact.",
+   "notrade": true,
+   "like": "Sealed Letter"
+  },
+  {
+   "name": "Gut Ripper's collar",
+   "description": "The collar of Gut Ripper, the goblin king's wolf.",
+   "notrade": true,
+   "like": "snake hide cord"
+  },
+  {
+   "name": "vial of Elven blood",
+   "description": "Elven blood, from Quatzi's stock.",
+   "notrade": true,
+   "like": "blood sack"
+  },
+  {
+   "name": "Glowing Silver Shard",
+   "description": "A shard the Honjour raiders carried.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Captain Opak's note",
+   "description": "Watch Captain Opak's word for Count Luvincius.",
+   "notrade": true,
+   "like": "Sealed Letter"
+  },
+  {
+   "name": "corpse of Grub",
+   "description": "What Da Snappa left of Grub.",
+   "notrade": true,
+   "like": "Shambling Bones"
+  },
+  {
+   "name": "half-eaten note",
+   "description": "A note, half eaten.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "chunk of mysterious ore",
+   "description": "A chunk of ore no one in Kerplunk can name.",
+   "notrade": true,
+   "like": "block of ore"
+  },
+  {
+   "name": "Chareek's head",
+   "description": "The head of Chareek the Tactician.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "Tome of Anikhius",
+   "description": "The tome Count Luvincius keeps of Lord Chardith.",
+   "notrade": true,
+   "like": "Elddar Tome"
+  },
+  {
+   "name": "Tubrenzalana's staff",
+   "description": "Tubrenzalana's staff.",
+   "notrade": true,
+   "like": "staff of learning"
+  },
+  {
+   "name": "Rune of Water",
+   "description": "A rune of water, from Aalean Mardum.",
+   "notrade": true,
+   "like": "rune of frost"
+  },
+  {
+   "name": "Cipher of the Sun",
+   "description": "The first of the three ciphers.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Script of the Moon",
+   "description": "Vaeloficint's script of the moon.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "rubicitic charm",
+   "description": "Inspector Xelebb's charm.",
+   "notrade": true,
+   "like": "Goblin Talisman"
+  },
+  {
+   "name": "Cipher of the Moon",
+   "description": "The second of the three ciphers.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Overlord Frank's ring",
+   "description": "Overlord Frank's ring.",
+   "notrade": true,
+   "like": "Gaudy Ring"
+  },
+  {
+   "name": "Xannasu's branch",
+   "description": "A branch of the treant Xannasu.",
+   "notrade": true,
+   "like": "branch"
+  },
+  {
+   "name": "Lantik's bracers",
+   "description": "Lantik's bracers.",
+   "notrade": true,
+   "like": "Carved Bracelet"
+  },
+  {
+   "name": "Cipher of the Star",
+   "description": "The third of the three ciphers.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Wolfbane Staff",
+   "description": "A magician's staff, the reward of the level 30 path.",
+   "notrade": true,
+   "like": "Staff of Dooog"
   }
  ]
 }

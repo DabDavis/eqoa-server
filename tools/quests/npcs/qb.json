@@ -165,24 +165,6 @@
    "water": "land"
   },
   {
-   "name": "Parathior",
-   "role": "foe",
-   "body": [
-    "npc",
-    "Parathior"
-   ],
-   "place": [
-    "near",
-    "Parathior",
-    35,
-    0
-   ],
-   "count": 1,
-   "level": 55,
-   "note": "Parathior to fight by Oransan's broken tower in the north Snowblind Plains (the server's own Parathior is not attackable; Groups 1, 2 and 5, level 49)",
-   "water": "land"
-  },
-  {
    "name": "Sissy Hasper",
    "role": "talker",
    "body": [
@@ -831,6 +813,278 @@
    "level": 42,
    "note": "sun, soil and rain at Twisted Tower (Group 5, level 40)",
    "water": "land"
+  },
+  {
+   "name": "Quatzi",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "on the shore by the dark tower below Resenthorn Tower in Oasis (Group 6)",
+   "water": "land"
+  },
+  {
+   "name": "Talknar",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "by a rock outside the drow enclave of Dark Solace (Group 6, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Goblin Messenger",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "the crossroads north-east of Talknar, by the tree where the roads meet (Group 6, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Gungar Guglar",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 15,
+   "note": "the outpost west of the Grobb coach (Group 6, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Tracker Jugl",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "by a stump near Gungar Guglar, with his dog Bloodseeker (Group 6, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Ambassador Kreek",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "on top of the left wall outside Guk (Group 6, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Ambassador Luj'Nak",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "on top of the left wall outside Guk (Group 6, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Watcher Gabnu",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the top of the tower south of Honjour (Group 6, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Goblin Elite",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 2,
+   "level": 40,
+   "note": "the raiders that come at Watcher Gabnu's tower south of Honjour (Group 6, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Froglok Elite",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 2,
+   "level": 40,
+   "note": "the raiders that come at Watcher Gabnu's tower south of Honjour (Group 6, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "The Captain",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "near",
+    "Watcher Gabnu",
+    20,
+    0
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "who leads the raiders at Watcher Gabnu's tower (Group 6, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Da Snappa",
+   "role": "foe",
+   "body": [
+    "kind",
+    "alligator"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "in the lake by Kerplunk Outpost (Group 6, level 40)",
+   "water": "both"
+  },
+  {
+   "name": "Elimandared",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the hill of dim ruins in the west of the Ethernal Desert (Group 6, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Tubrenzalana",
+   "role": "foe",
+   "body": [
+    "race",
+    "elf",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "the caster Elimandared calls, by him (Group 6, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Aalean Mardum",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the second floor of the guild on the left in Fayspires (Group 6, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Vaeloficint",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the top of the west tower of Sarek's Tower (Group 6, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Inspector Xelebb",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Evil Eye Examiner"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Inspector Xelebb (49)"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "a floating eye at the base of the pyramid in Cazic Thule (Group 6, level 49)",
+   "water": "land"
   }
+ ],
+ "attackable": [
+  "Parathior"
  ]
 }

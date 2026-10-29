@@ -108,6 +108,9 @@ type Server struct {
 	ops    map[string]*Op
 	opList []*Op
 
+	// snap is the sanitised snapshots waiting to be fetched (ops_snapshot.go)
+	snap *snapshotStore
+
 	// settingsMu orders the settings page's writes to config.yaml
 	settingsMu sync.Mutex
 
@@ -181,6 +184,8 @@ func New(d Deps) (*Server, error) {
 		return nil, err
 	}
 	s.tokens = newTokenCache(s)
+	s.snap = newSnapshotStore()
+	s.clearSnapshotDir() // a link dies with the server that made it: so does its file
 	s.registerOps()
 	return s, nil
 }
@@ -207,6 +212,10 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/api/ops", s.handleOpList)
 	mux.HandleFunc("/api/openapi.json", s.handleOpenAPI)
 	mux.HandleFunc("/api/guide", s.handleGuide)
+
+	// a sanitised snapshot's link, which is its own credential: once, for
+	// minutes, for the admin it was made for (ops_snapshot.go)
+	mux.HandleFunc("/api/snapshot/", s.handleSnapshotDownload)
 
 	// MCP, and the OAuth it signs in through
 	mux.HandleFunc("/mcp", s.handleMCP)
@@ -251,8 +260,9 @@ func (s *Server) Start() error {
 	return nil
 }
 
-// Stop closes the listener.
+// Stop closes the listener, and deletes the snapshots no one fetched.
 func (s *Server) Stop() {
+	s.dropSnapshots()
 	if s.srv != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()

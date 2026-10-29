@@ -185,6 +185,10 @@ func (f *houseFixture) request(c *houseChar, sub byte, fill func(w *buffer.Write
 	if !ok {
 		f.t.Fatal("0x1205 is not registered")
 	}
+	// a request arrives in a datagram, which the listener counts as the
+	// session's activity (udp/listener.go): without it a slow setup leaves
+	// the session quiet (auctionQuiet) and its lines untold
+	c.sess.UpdateActivity()
 	if err := h(c.sess, msg); err != nil {
 		f.t.Fatal(err)
 	}

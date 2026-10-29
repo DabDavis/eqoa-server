@@ -195,7 +195,7 @@ func TestCMWindowReadsAMasterClassesAbilities(t *testing.T) {
 	list = buy(list, 50)
 	want("Bulwark bought, the same window", list, []string{"Bulwark"}, []string{"Guard 75", "Toughness 75", "???", "???"})
 	want("opened again", c.list(), []string{"Bulwark"}, []string{"Guard 75", "Toughness 75", "???"})
-	if _, red := c.send(cmBuy, 60); len(red) != 1 || !strings.Contains(red[0], "only one Master Class") {
+	if _, red := c.send(cmBuy, 60); len(red) != 1 || red[0] != entity.OneMasterClass {
 		t.Errorf("a second master class: %v", red)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -65,7 +66,16 @@ func PathMode(s string) (string, bool) {
 	return "", false
 }
 
-// PathSpeed is a pace as stored, or false.
+// The pace a path may give in units a second, beside walk and run: a patrol
+// as Sandstorm's walks it (tools/seed_npc_patrols.py: its pikers pace at
+// 3.12, under the walk's 5).
+const (
+	MinPathPace = 0.5
+	MaxPathPace = 30
+)
+
+// PathSpeed is a pace as stored, or false: walk, run, or units a second
+// (MinPathPace..MaxPathPace) as their number.
 func PathSpeed(s string) (string, bool) {
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "", "walk":
@@ -73,7 +83,20 @@ func PathSpeed(s string) (string, bool) {
 	case "run":
 		return PathSpeedRun, true
 	}
+	if v, ok := PathPace(s); ok {
+		return strconv.FormatFloat(v, 'f', -1, 64), true
+	}
 	return "", false
+}
+
+// PathPace is a pace given in units a second, false for walk, run or
+// anything else.
+func PathPace(s string) (float64, bool) {
+	v, err := strconv.ParseFloat(strings.TrimSpace(s), 64)
+	if err != nil || math.IsNaN(v) || v < MinPathPace || v > MaxPathPace {
+		return 0, false
+	}
+	return v, true
 }
 
 // ParsePathPoints reads a points column.

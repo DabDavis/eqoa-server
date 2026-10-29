@@ -44,8 +44,9 @@ def page(title, rows):
 
 
 def ware(i, name, value, wear=-1, level=1, craft=1, stack=99):
+    # rent 1, as every one of Sandstorm's harvested records of these kinds is
     return {"id": i, "name": name, "value": value, "p08": 0, "icon": 555, "icon2": 0, "wear_slot": wear, "p18": 0, "no_trade": 0,
-            "rent": 0, "p24": 0, "attack_type": 0, "damage": 0, "range": 0, "level_req": level, "max_stack": stack, "max_hp": 0,
+            "rent": 1, "p24": 0, "attack_type": 0, "damage": 0, "range": 0, "level_req": level, "max_stack": stack, "max_hp": 0,
             "durability": 0, "class_mask": 0, "race_mask": 0, "p4c": 0, "lore": 0, "p58": 0, "p54": craft, "desc": "", "stats": []}
 
 
@@ -159,6 +160,11 @@ class SeedTradeskills(unittest.TestCase):
         ing = json.loads(self.q("SELECT ingredients FROM craftrecipes WHERE name = 'sinhalite brass breastplate'")[0][0])
         self.assertEqual(ing[-1], {"item": sinh, "count": 1, "keep": True})
         self.assertEqual(self.q("SELECT model FROM itempattern WHERE itemname = 'seralite scale coif'"), [(7,)])
+        # the seed's own items are ordinary (rent 1): a NO RENT gem or piece
+        # (rent 0) could not go in the bank (2026-10-29)
+        made = self.q("SELECT p.rent, count(*) FROM itempattern p JOIN tradeskill_seed s ON s.tbl = 'itempattern' "
+                      "AND s.action = 'inserted' AND CAST(s.key AS INTEGER) = p.patternid GROUP BY p.rent")
+        self.assertEqual([r for r, _ in made], [1], made)
         # the live record is the product
         self.assertEqual(self.q("SELECT product, rarity FROM craftrecipes WHERE name = 'heartsblood seralite breastplate'"), [(1042, 3)])
         # the targe and tear by Prima's AC rows; a tear has none below trade level 5

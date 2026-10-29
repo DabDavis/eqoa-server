@@ -517,7 +517,9 @@ def plan(db, folder, harvests):
 
 def base_item(name, icon, price, level, slot, maxstack, craft, classes=ANY_CLASS, desc="", model=0, color=0,
               maxhp=0, duration=50):
-    return {"itemcost": price, "unk1": 0, "itemicon": icon, "unk2": 0, "equipslot": slot, "unk3": 0, "trade": 0, "rent": 0,
+    # rent 1 is an ordinary item (CLIENT's m_rent: 0 is NO RENT, which the
+    # bank and the auction refuse), as every live record of these kinds is.
+    return {"itemcost": price, "unk1": 0, "itemicon": icon, "unk2": 0, "equipslot": slot, "unk3": 0, "trade": 0, "rent": 1,
             "unk4": 0, "attacktype": 0, "weapondamage": 0, "unk5": 0, "levelreq": level, "maxstack": maxstack,
             "maxhp": maxhp, "duration": duration, "classuse": classes, "raceuse": ANY_RACE, "procanim": 0, "lore": 0,
             "unk6": 0, "craft": craft, "itemname": name, "itemdesc": desc, "model": model, "color": color}

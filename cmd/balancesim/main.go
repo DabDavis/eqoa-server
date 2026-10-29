@@ -8,6 +8,10 @@
 //	    [-levels 1,10,20,30,40,50,60] [-diffs 0,1,2,3,4,5] [-fights 40]
 //	    [-tier 0.5] [-pets] [-limit 10m]
 //	    [-try-level 1:300:200:0,60:500:300:100] [-try-con 1:115:95,5:200:60]
+//	balancesim -db eqoa.db -lines [-classes ...]
+//
+// -lines prints each class's buff lines instead: the spells of one line, of
+// which only the best counts on a player (entity/buffline.go).
 //
 // -try-level and -try-con try rows before they are written: level:hp_pct:
 // damage_pct[:con_pct[:pet_hp_pct:pet_damage_pct]] and diff:damage_pct:
@@ -27,6 +31,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -65,6 +70,7 @@ func main() {
 	limit := flag.Duration("limit", 10*time.Minute, "longest fight")
 	tryLevel := flag.String("try-level", "", "level rows to try: level:hp:damage[:pethp:petdamage],...")
 	tryCon := flag.String("try-con", "", "con rows to try: diff:damage:taken,...")
+	lines := flag.Bool("lines", false, "print each class's buff lines (only the best of a line counts) and stop")
 	flag.Parse()
 	if *dbPath == "" {
 		flag.Usage()
@@ -72,6 +78,10 @@ func main() {
 	}
 	db, dir := openCopy(*dbPath)
 	defer os.RemoveAll(dir)
+	if *lines {
+		printLines(db, ints(*classes))
+		return
+	}
 	var b *entity.Balance
 	switch *which {
 	case "db":
@@ -144,6 +154,40 @@ func main() {
 				}
 				fmt.Println()
 			}
+		}
+	}
+}
+
+// printLines prints every buff line of each class's book (every spell of
+// the class, masteries' and epics' too) with more than one spell in it: the
+// spells only the best of counts on a player (entity/buffline.go).
+func printLines(db *database.SQLiteDB, classes []int) {
+	for _, class := range classes {
+		book, err := entity.SimBookFromDB(db, class, 100, true)
+		if err != nil {
+			log.Fatal(err)
+		}
+		byLine := entity.SimBuffLines(book)
+		var keys []string
+		single := 0
+		for k, ss := range byLine {
+			if ss[0].Def.Harmful && !strings.Contains(k, "@self") {
+				continue // a debuff on a creature: no player bears it
+			}
+			if len(ss) > 1 {
+				keys = append(keys, k)
+			} else {
+				single++
+			}
+		}
+		sort.Strings(keys)
+		fmt.Printf("== %s: %d lines of two or more spells, %d of one\n", classNames[class], len(keys), single)
+		for _, k := range keys {
+			var names []string
+			for _, s := range byLine[k] {
+				names = append(names, fmt.Sprintf("%s (%d)", s.Name, s.Level))
+			}
+			fmt.Printf("  %-40s %s\n", k, strings.Join(names, ", "))
 		}
 	}
 }

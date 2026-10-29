@@ -232,6 +232,10 @@ type ActiveEffect struct {
 	// Power to 0")
 	PowerCap    int
 	PowerCapped bool
+	// Line and Rank are a beneficial spell's line and its level on a player
+	// (buffline.go): only the best of a line counts; "" for none
+	Line string
+	Rank int
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -923,8 +927,10 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			illusion = true
 		}
 	}
-	if ae := lasting(cs, caster, now); ae != nil && (ae.HPTick <= 0 || w.placeHoTLocked(t, ae, now)) && // hot.go
+	if ae := lasting(cs, caster, now); ae != nil && w.lineTakesLocked(caster, casterSess, t, &cs.spell, ae) && // buffline.go
+		(ae.HPTick <= 0 || w.placeHoTLocked(t, ae, now)) && // hot.go
 		w.placeClarityLocked(caster, casterSess, t, ae, now) { // enchanter.go
+		w.dropLineLocked(t, ae) // its line's lower ranks off (buffline.go)
 		if illusion {
 			w.landIllusionLocked(cs, t, ae) // illusion.go
 		}

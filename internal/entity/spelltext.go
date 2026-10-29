@@ -391,9 +391,12 @@ func ParseSpellText(line string) SpellDef {
 	text = joinStatLists(text) // spellnotes.go
 	text = shieldWords(text)   // dshield.go
 	// The verb a clause without one goes on with ("Increase AC by 12,
-	// Maximum Power by 5"), and the effect a scale clause belongs to.
+	// Maximum Power by 5"), and the effects a scale clause belongs to: the
+	// last one, or every stat of the list it ends ("PR/DR by 15 ; Increase
+	// 15% based on WIS" scales both; until the test lanes' report of
+	// 2026-10-29 only DR was).
 	verb := ""
-	last := -1
+	first, last := -1, -1
 	for i, clause := range strings.Split(text, ",") {
 		for j, part := range strings.Split(clause, ";") {
 			part = strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(part), "."))
@@ -414,9 +417,10 @@ func ParseSpellText(line string) SpellDef {
 			}
 			if m := reScale.FindStringSubmatch(part); m != nil {
 				if st, ok := statWord(m[3]); ok && last >= 0 {
-					d.Effects[last].Scale = st
-					d.Effects[last].ScalePct, _ = strconv.Atoi(m[1])
-					d.Effects[last].ScaleBearer = m[2] != ""
+					pct, _ := strconv.Atoi(m[1])
+					for k := first; k <= last; k++ {
+						d.Effects[k].Scale, d.Effects[k].ScalePct, d.Effects[k].ScaleBearer = st, pct, m[2] != ""
+					}
 					continue
 				}
 			}
@@ -439,7 +443,7 @@ func ParseSpellText(line string) SpellDef {
 			n := len(d.Effects)
 			verb = d.parsePart(part, verb)
 			if len(d.Effects) > n {
-				last = len(d.Effects) - 1
+				first, last = statList(d.Effects, n), len(d.Effects)-1
 			}
 		}
 	}
@@ -471,6 +475,22 @@ func ParseSpellText(line string) SpellDef {
 	}
 	d.lineDefaults() // spellnotes.go: what a line leaves out
 	return d
+}
+
+// statList is where the effects one part added from n begin when they are a
+// list of stats by one number ("AGI/STA by 20", "STR & DEX by 9", "buff DR,
+// PR, FR, CR by 100"): n, so a scale after them is all of theirs. Anything
+// else is its last effect alone, as before.
+func statList(effects []SpellEffect, n int) int {
+	last := len(effects) - 1
+	for k := n; k < last; k++ {
+		e, l := effects[k], effects[last]
+		if e.Kind != EffectStat || l.Kind != EffectStat || e.Amount != l.Amount || e.AmountMax != l.AmountMax ||
+			e.Drain != l.Drain || e.Self != l.Self {
+			return last
+		}
+	}
+	return n
 }
 
 // spellTarget reads a line's first clause: the target word, and what

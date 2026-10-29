@@ -58,10 +58,12 @@ func TestSpellNotesAndDefaults(t *testing.T) {
 		{"Mega's Clutch Ward", "Level 60 Epic Ward path. Power cost: 500, Cast: 3, Recast: 4. 60 epic: 85+10%wis to all resists (target)",
 			SpellDef{Target: TargetSingle, Ignored: []string{"level 60 epic ward path. power cost: 500", "cast: 3",
 				"recast: 4. 60 epic: 85+10%wis to all resists (target)"}}},
-		// a debuff with no time is left as it is
+		// a debuff with no time is left as it is (its WIS share both stats':
+		// spelltext.go statList)
 		{"Weaken Death", "Target undead, Decrease STR/AGI by 27 ; Increase 15% based on WIS",
 			SpellDef{Target: TargetUndead, Harmful: true, UndeadOnly: true, Effects: []SpellEffect{
-				stat(StatStr, -27), {Kind: EffectStat, Stat: StatAgi, Amount: -27, AmountMax: -27, Scale: StatWis, ScalePct: 15}}}},
+				{Kind: EffectStat, Stat: StatStr, Amount: -27, AmountMax: -27, Scale: StatWis, ScalePct: 15},
+				{Kind: EffectStat, Stat: StatAgi, Amount: -27, AmountMax: -27, Scale: StatWis, ScalePct: 15}}}},
 	}
 	for _, c := range cases {
 		if got := ParseSpellNamed(c.name, c.line, ""); !reflect.DeepEqual(got, c.want) {

@@ -261,6 +261,32 @@ func TestAGMRuleNamesWhoAttacksAndFromHowFar(t *testing.T) {
 	}
 }
 
+// A GM's rule is for its name in any case, trimmed and without a trailing $
+// (as npcclass keys a name): Sandstorm's "Cave Minnow" row keeps Return
+// Home's lake "cave minnow" peaceful too. Two spellings that disagree: the
+// peaceful one wins.
+func TestAGMRuleIsForEverySpellingOfItsName(t *testing.T) {
+	f := newAggroFix(t, 1)
+	lower := f.npc(2001, "cave minnow", 4, bearBody, 1010, 1000)
+	marked := f.npc(2002, "cave minnow$ ", 4, bearBody, 990, 1000)
+	f.look()
+	if !f.attacks(lower) {
+		t.Fatal("the control: the minnow with no rule did not attack")
+	}
+	lower.Threats, lower.CurrentEnemy = nil, 0
+	marked.Threats, marked.CurrentEnemy = nil, 0
+	f.w.SetAggroRules(map[string]AggroRule{"Cave Minnow": {Aggressive: false}})
+	f.look()
+	if f.attacks(lower) || f.attacks(marked) {
+		t.Errorf("Cave Minnow's rule: the lake's spellings attacked (%v, %v)", f.attacks(lower), f.attacks(marked))
+	}
+	f.w.SetAggroRules(map[string]AggroRule{"Cave Minnow": {Aggressive: true}, "cave minnow": {Aggressive: false}})
+	f.look()
+	if f.attacks(lower) {
+		t.Error("two spellings that disagree: the aggressive one won")
+	}
+}
+
 // A GM's #aggro off: creatures leave the character alone until #aggro on.
 func TestAGMWhoTurnedAggroOffIsLeftAlone(t *testing.T) {
 	f := newAggroFix(t, 20)

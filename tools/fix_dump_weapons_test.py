@@ -34,6 +34,24 @@ class Words(unittest.TestCase):
             self.assertEqual(got[0] if got else None, want, name)
 
 
+class StandIns(unittest.TestCase):
+    """A stand-in is an icon on 20 weapons or more of three kinds or more that
+    no Sandstorm item carries; one kind's icon, or one Sandstorm carries, is not."""
+
+    def test_found(self):
+        db = sqlite3.connect(":memory:")
+        db.execute("CREATE TABLE itempattern (itemname TEXT, itemicon INTEGER, attacktype INTEGER, "
+                   "weapondamage INTEGER, equipslot INTEGER)")
+        rows = [(f"Blade {i}", 1, 1, 10, 12) for i in range(8)] + [(f"Mace {i}", 1, 3, 10, 12) for i in range(8)] \
+            + [(f"Dagger {i}", 1, 5, 10, 0) for i in range(8)]           # 24 of three kinds: a stand-in
+        rows += [(f"Sword {i}", 2, 1, 10, 12) for i in range(30)]          # one kind's icon
+        rows += [(f"Axe {i}", 3, 1, 10, 12) for i in range(10)] + [(f"Club {i}", 3, 3, 10, 12) for i in range(10)] \
+            + [(f"Spear {i}", 3, 5, 10, 12) for i in range(10)]          # three kinds, but Sandstorm carries it
+        db.executemany("INSERT INTO itempattern VALUES (?, ?, ?, ?, ?)", rows)
+        self.assertEqual(fwt.placeholder_icons(db, {3}), {1})
+        db.close()
+
+
 class FixWeaponTypes(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.TemporaryDirectory()
@@ -60,6 +78,8 @@ class FixWeaponTypes(unittest.TestCase):
             (17, "Crafted Shortbow", "", 99, 16, 7, 30, 0, 25),     # typed, the stand-in icon
             (18, "Runic Broadsword", "", 99, 12, 0, 0, 0, 0),       # no damage either: a sword by its name
             (19, "Ransacker's Thing", "", 99, 12, 0, 0, 0, 0),      # no damage, nothing says a weapon
+            (23, "Murky Saber", "", 98, 0, 1, 40, 0, 0),            # typed, in no slot, on slot 0's stand-in
+            (24, "Spiked Band", "", 98, 0, 0, 12, 0, 0),            # in slot 0 with damage, named as armour
         ])
         # three more swords near level 20, for the broadsword's damage
         db.executemany("INSERT INTO itempattern VALUES (?, ?, '', 71, 12, 1, ?, 500, 0, ?)",
@@ -85,7 +105,8 @@ class FixWeaponTypes(unittest.TestCase):
 
     def run_tool(self, *args, ok=True):
         r = subprocess.run([sys.executable, "-E", "-s", TOOL, "--db", self.db, "--pages", self.pages,
-                            "--prices", self.harvest, *args], capture_output=True, text=True)
+                            "--prices", self.harvest, "--placeholder", "99", "--placeholder", "98", *args],
+                           capture_output=True, text=True)
         if ok and r.returncode != 0:
             raise AssertionError(r.stdout + r.stderr)
         return r
@@ -100,8 +121,10 @@ class FixWeaponTypes(unittest.TestCase):
     def test_apply_and_undo(self):
         before = self.rows()
         out = self.run_tool().stdout
-        self.assertIn("the dump's stand-in icon: 99", out)
-        self.assertIn("8 weapons to change: 7 given a type", out)
+        self.assertIn("the dump's stand-in icons: 98, 99", out)
+        self.assertIn("9 weapons to change: 7 given a type", out)
+        self.assertIn("1 out of slot 0", out)
+        self.assertIn("Spiked Band: in slot 0 and named as armour", out)
         self.assertIn("Ransacker's Thing: no damage and nothing says it is a weapon", out)
         self.run_tool("--apply")
         got = {r[0]: (r[4], r[5], r[7], r[8], r[3]) for r in self.rows()}   # slot, type, model, range, icon
@@ -118,6 +141,8 @@ class FixWeaponTypes(unittest.TestCase):
         dmg = {r[0]: r[6] for r in self.rows()}
         self.assertEqual(dmg[18], 110)                   # the median of the swords within 2 levels
         self.assertEqual(got[19], (12, 0, 0, 0, 99))     # left
+        self.assertEqual(got[23], (12, 1, 500, 0, 71))   # its type's hand slot; the swords' model and icon
+        self.assertEqual(got[24], (0, 0, 0, 0, 98))      # fix_wear_slots.py's
         self.assertNotEqual(self.run_tool("--apply", ok=False).returncode, 0)
         self.run_tool("--undo")
         self.assertEqual(self.rows(), before)

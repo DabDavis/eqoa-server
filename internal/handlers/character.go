@@ -143,6 +143,9 @@ type CharacterHandler struct {
 	// gmChannel gives a GM's client the GM's channel at world entry
 	// (ChatHandler.SendGMChannel, gmchannel.go)
 	gmChannel func(*session.Session)
+	// craftSlots is a character's six tradeskill slots for the dump
+	// (CraftHandler.DumpSlots, craft.go); nil: Sandstorm's defaults
+	craftSlots func(charID uint32) [database.CraftSkills][4]uint32
 }
 
 // NewCharacterHandler creates a new character handler with SQLite persistence.
@@ -1534,7 +1537,11 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 			spells = nil
 		}
 	}
-	writeMemoryDumpTail(writer, player, spells)
+	craft := craftSlotsDefault()
+	if h.craftSlots != nil {
+		craft = h.craftSlots(player.CharServerID)
+	}
+	writeMemoryDumpTail(writer, player, spells, craft)
 	log.Printf("SendMemoryDump: wrote %d abilities", len(spells))
 
 	dumpData := dumpBuf[:writer.Position()]
@@ -1561,20 +1568,6 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 	}
 }
 
-// weaponHotbarRows is the fixed 6x4 weapon-hotbar block the client reads with
-// func_00BFD178. Every captured dump carries these exact values — identical
-// across two different retail characters in three captures (ps2_sandstorm,
-// ps2_main_capture, ps2_sandstorm_new_instance) — so they are markers for
-// "no weapon set assigned", not per-character data.
-var weaponHotbarRows = [6][4]uint32{
-	{99, 1, 0, 98},
-	{99, 1, 0, 98},
-	{99, 1, 0, 98},
-	{99, 1, 0, 98},
-	{99, 99, 99, 98},
-	{99, 99, 99, 98},
-}
-
 // memoryDumpTrailerLen is the run of zero bytes every captured dump ends with,
 // past the last field the client is known to read. Sending them costs nothing
 // and covers any trailing read this format description does not yet model —
@@ -1582,7 +1575,11 @@ var weaponHotbarRows = [6][4]uint32{
 const memoryDumpTrailerLen = 39
 
 // writeMemoryDumpTail writes everything the client reads after the bank/equipment
-// container, in the order func_00BD0630 reads it:
+// container, in the order func_00BD0630 reads it; craft is the character's
+// six tradeskill slots (craft.go: a character with no rows has Sandstorm's,
+// {99, 1, 0, 98} four times and {99, 99, 99, 98} twice, which every capture
+// carries and which were sent to everyone, misnamed a weapon hotbar, until
+// 2026-10-29):
 //
 //	zigzag  bank listing rows     func_00BBCD10
 //	zigzag  bank 32-byte rows     func_00BBD0A8
@@ -1590,8 +1587,8 @@ const memoryDumpTrailerLen = 39
 //	raw1    HaveCorpse            (set: the corpse's item list follows)
 //	zigzag  ability count + rows  func_00BDCDC0 (VIAbility records)
 //	raw4    run speed             (0x410D5555 = 8.833 in every capture)
-//	raw4    unknown               (0)
-//	6x4     raw4 weapon hotbar    func_00BFD178
+//	raw4    the tradeskill token  (VIClientPart3834C +0x78C0; Sandstorm's 0)
+//	6x4     raw4 tradeskill slots ReadSlots 0x00BFD178: {x00, level, rank, x0C}
 //	raw4 + 4x zigzag + raw4       func_00BF71A0 CM header
 //	29x zigzag, 7x zigzag         CM stat arrays
 //
@@ -1609,7 +1606,7 @@ const memoryDumpTrailerLen = 39
 // records). The ability list is where retail carries every song and spell
 // (Sandstorm's bard sends 42); the character's spellbook goes here, each row as
 // writeAbilityRecord (ps2opcodes.go) writes it.
-func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player, spells []database.CharSpellEntry) {
+func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player, spells []database.CharSpellEntry, craft [database.CraftSkills][4]uint32) {
 	w.Write7BitEncodedInt64(0) // the bank's listing rows
 	w.Write7BitEncodedInt64(0) // the bank's 32-byte rows
 	w.WriteByte(0x01)          // the bank's flag byte
@@ -1620,10 +1617,10 @@ func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player, spells []datab
 	}
 
 	w.WriteFloat32(player.Speed)
-	w.WriteUint32(0)
+	w.WriteUint32(craftToken)
 
-	for _, row := range weaponHotbarRows {
-		for _, v := range row {
+	for _, slot := range craft {
+		for _, v := range slot {
 			w.WriteUint32(v)
 		}
 	}

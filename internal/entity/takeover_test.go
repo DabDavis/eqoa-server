@@ -221,3 +221,31 @@ func TestSendTakenOverTellsTheLockouts(t *testing.T) {
 		t.Fatalf("the old session was told %d lockouts", n)
 	}
 }
+
+// A character that died and dropped is taken over dead: no new client may
+// skip the death (the old login built it anew from its row, alive and full).
+// Its respawn comes on the death's own time, to the session that has it now;
+// the old session gets none.
+func TestADeadCharacterIsTakenOverDead(t *testing.T) {
+	f := newTakeoverFixture(t)
+	died := f.now.Add(-PlayerRespawnDelay + 2*time.Second)
+	f.w.mu.Lock()
+	f.w.playerDiedLocked(nil, f.p, died)
+	f.w.mu.Unlock()
+	var to []*session.Session
+	f.w.OnPlayerRespawn(func(s *session.Session, p *Player) { to = append(to, s) })
+
+	got, took := f.w.TakeOverPlayer(f.new, 61)
+	if got != f.p || !took.Dead || got.HP != 0 || !got.DiedAt.Equal(died) {
+		t.Fatalf("taken over: dead %v, HP %d, died at %v (want %v)", took.Dead, got.HP, got.DiedAt, died)
+	}
+	f.new.SetCharacterInWorld(true) // its client in the world (0x0014)
+	f.w.Tick(f.now.Add(time.Second))
+	if len(to) != 0 || !f.p.respawnPending() {
+		t.Fatal("the respawn came before its time")
+	}
+	f.w.Tick(f.now.Add(3 * time.Second))
+	if len(to) != 1 || to[0] != f.new || f.p.HP != f.p.MaxHP {
+		t.Fatalf("the respawn went to %v (the new session %p), HP %d/%d", to, f.new, f.p.HP, f.p.MaxHP)
+	}
+}

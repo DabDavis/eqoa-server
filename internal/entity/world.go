@@ -334,6 +334,12 @@ func (w *World) RemovePlayerBySession(sess *session.Session) {
 		w.mu.Unlock()
 		return
 	}
+	// nor once another login took it over (takeover.go): the session let go
+	// of it, and its player is the new session's now
+	if w.sessionPlayerLocked(sess) != p {
+		w.mu.Unlock()
+		return
+	}
 	w.leaveGroupLocked(p)
 	w.SpatialIndex.Remove(p.ServerID, p.X, p.Z)
 	delete(w.Players, p.ServerID)

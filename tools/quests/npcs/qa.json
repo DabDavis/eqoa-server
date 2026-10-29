@@ -839,6 +839,193 @@
    "level": null,
    "note": "beside the golem protectors, Tak`Xiv",
    "water": "land"
+  },
+  {
+   "name": "Ancient Mummy",
+   "role": "foe",
+   "body": [
+    "npc",
+    "mummy"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 3,
+   "level": 18,
+   "note": "the hills north of the Freeport human camp in north-western Ro",
+   "water": "land"
+  },
+  {
+   "name": "Talya Montar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the second floor of the Highpass keep, behind the stairs",
+   "water": "land"
+  },
+  {
+   "name": "Froglok Questor",
+   "role": "foe",
+   "body": [
+    "kind",
+    "froglok"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 3,
+   "level": null,
+   "note": "the marshes round the troll war camp north of Grobb (seen standing in the marsh)",
+   "water": "both"
+  },
+  {
+   "name": "Bloodmaw",
+   "role": "foe",
+   "body": [
+    "npc",
+    "werewolf"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the hills by the ramps north-west of Goldfeather Eyrie",
+   "water": "land"
+  },
+  {
+   "name": "Ulria Veshiue",
+   "role": "foe",
+   "body": [
+    "race",
+    "elf",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "upstairs in the building across the bridge south of Highbourne (the guide's Ulira Veshine)",
+   "water": "land"
+  },
+  {
+   "name": "Veldruin Foamstalker",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Highbourne",
+   "water": "land"
+  },
+  {
+   "name": "Courier Svex",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "his road north of Grobb",
+   "water": "land"
+  },
+  {
+   "name": "Vuldrek Undogeem",
+   "role": "talker",
+   "body": [
+    "race",
+    "gnome",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the rogues' guild of Klick`Anon",
+   "water": "land"
+  },
+  {
+   "name": "Wandering Priestess",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "roams Blakedown",
+   "water": "land"
+  },
+  {
+   "name": "Laressa Nevar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "the paladins' guild in Qeynos",
+   "water": "land"
+  },
+  {
+   "name": "Nanigar Volsweath",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Wyndhaven",
+   "water": "land"
+  },
+  {
+   "name": "Tesht'uzu",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "Runnyeye",
+   "water": "land"
   }
  ]
 }

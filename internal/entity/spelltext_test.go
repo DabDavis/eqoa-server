@@ -34,10 +34,31 @@ func TestParseSpellText(t *testing.T) {
 			SpellDef{Target: TargetGroup, Duration: 330 * time.Second, Effects: []SpellEffect{
 				{Kind: EffectStat, Stat: StatStr, Amount: 9, AmountMax: 9},
 				{Kind: EffectStat, Stat: StatDex, Amount: 9, AmountMax: 9}}}},
+		// a scale after a list of stats by one number is every one's (the test
+		// lanes' report of 2026-10-29: the WIS share reached the last alone)
 		{"Target, Increase FR & CR by 20 ; Increase 15% based on WIS, 30min",
 			SpellDef{Target: TargetSingle, Duration: 30 * time.Minute, Effects: []SpellEffect{
-				{Kind: EffectStat, Stat: StatFR, Amount: 20, AmountMax: 20},
+				{Kind: EffectStat, Stat: StatFR, Amount: 20, AmountMax: 20, Scale: StatWis, ScalePct: 15},
 				{Kind: EffectStat, Stat: StatCR, Amount: 20, AmountMax: 20, Scale: StatWis, ScalePct: 15}}}},
+		{"Group, Increase PR/DR by 12 ; Increase 10% based on WIS, 30min",
+			SpellDef{Target: TargetGroup, Duration: 30 * time.Minute, Effects: []SpellEffect{
+				{Kind: EffectStat, Stat: StatPR, Amount: 12, AmountMax: 12, Scale: StatWis, ScalePct: 10},
+				{Kind: EffectStat, Stat: StatDR, Amount: 12, AmountMax: 12, Scale: StatWis, ScalePct: 10}}}},
+		{"Target, buff DR, PR by 10 ; Increase 5% based on CHA, 30min",
+			SpellDef{Target: TargetSingle, Duration: 30 * time.Minute, Effects: []SpellEffect{
+				{Kind: EffectStat, Stat: StatDR, Amount: 10, AmountMax: 10, Scale: StatCha, ScalePct: 5},
+				{Kind: EffectStat, Stat: StatPR, Amount: 10, AmountMax: 10, Scale: StatCha, ScalePct: 5}}}},
+		// ...but a scale after one stat is that stat's, the list before it
+		// left alone, and two clauses of their own numbers are no list
+		{"Group, Increase AGI/STA by 7, Increase MaxHP by 30 ; Increase 4% based on WIS, 2min",
+			SpellDef{Target: TargetGroup, Duration: 2 * time.Minute, Effects: []SpellEffect{
+				{Kind: EffectStat, Stat: StatAgi, Amount: 7, AmountMax: 7},
+				{Kind: EffectStat, Stat: StatSta, Amount: 7, AmountMax: 7},
+				{Kind: EffectStat, Stat: StatMaxHP, Amount: 30, AmountMax: 30, Scale: StatWis, ScalePct: 4}}}},
+		{"Self, Decrease STR by 3, Increase AGI by 11 ; Increase 4% based on WIS, 30sec",
+			SpellDef{Target: TargetSelf, Duration: 30 * time.Second, Harmful: true, Effects: []SpellEffect{
+				{Kind: EffectStat, Stat: StatStr, Amount: -3, AmountMax: -3},
+				{Kind: EffectStat, Stat: StatAgi, Amount: 11, AmountMax: 11, Scale: StatWis, ScalePct: 4}}}},
 		// "Resist Ice" is cold resist, named once or for a list (the wizard's
 		// Element Guard; jib's review, F3 pass 19): without it both were unread
 		{"Self, Increase Resist Ice by 30, 10min",

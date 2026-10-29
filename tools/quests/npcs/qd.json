@@ -2718,6 +2718,342 @@
    "level": 60,
    "note": "appears on the same island when the guardian dies",
    "water": "land"
+  },
+  {
+   "name": "Armis",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    20937.0,
+    20722.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "Gaulin's abandoned camp on the canyon's left side, on the way to Skahyir, Box Canyon (C) (a caster with a fire pet)",
+   "water": "land"
+  },
+  {
+   "name": "Salin",
+   "role": "talker",
+   "body": [
+    "race",
+    "erudite",
+    0
+   ],
+   "place": [
+    "near",
+    "Researcher Davil",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the third floor of Highbourne's library",
+   "water": "land"
+  },
+  {
+   "name": "Assassin of Khal",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "near",
+    "Salin",
+    40,
+    0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "Khalimet's assassins who jump whoever carries the tome (yellow shadowknights)",
+   "water": "land"
+  },
+  {
+   "name": "Lord Farex",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    5500.0,
+    4700.0
+   ],
+   "count": 1,
+   "level": 59,
+   "note": "a harbinger of Khalimet: the unnamed portal in Permafrost (E) (with an efreet pet) (the place is ours, from the guide's zone)",
+   "water": "land"
+  },
+  {
+   "name": "Lord Wraymot",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    20600.0,
+    30600.0
+   ],
+   "count": 1,
+   "level": 59,
+   "note": "a harbinger of Khalimet: a small hill with a T stone and an unnamed portal, Broken Skull Rock (NW) (the place is ours, from the guide's zone)",
+   "water": "land"
+  },
+  {
+   "name": "Lord Tallivar",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    18999.0,
+    19400.0
+   ],
+   "count": 1,
+   "level": 59,
+   "note": "a harbinger of Khalimet: a hill near a large stone arch with an unnamed portal, Desert Hate (S) (the place is ours, from the guide's zone)",
+   "water": "land"
+  },
+  {
+   "name": "Lord Vengal",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    13300.0,
+    11377.0
+   ],
+   "count": 1,
+   "level": 59,
+   "note": "a harbinger of Khalimet: blue snow by an unnamed portal on Mount Hatespike's (C) border near (W) (the place is ours, from the guide's zone)",
+   "water": "land"
+  },
+  {
+   "name": "Khal Zealot",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    5026.0,
+    5150.0
+   ],
+   "count": 2,
+   "level": 58,
+   "note": "the six Khal conscript and garrison camps of Permafrost (S)",
+   "water": "land"
+  },
+  {
+   "name": "Khal Reaver",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Torgias Bullow",
+    30,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "jumps you outside Torgias Bullow's house in Murnf (red to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "The Keeper",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "at",
+    0,
+    24942.0,
+    25100.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a Jal'reth on an island south of the mage spell merchant, Elemental Towers (C) (white-faced, then red)",
+   "water": "land"
+  },
+  {
+   "name": "Weary Adventurer",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    23500.0,
+    19500.0
+   ],
+   "count": 3,
+   "level": 60,
+   "note": "by a little campfire in Muniel's Tea Garden (C) (white-faced, then attackable)",
+   "water": "land"
+  },
+  {
+   "name": "Gnadriin",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "near",
+    "Weary Adventurer",
+    10,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "what the weary adventurers become as they die",
+   "water": "land"
+  },
+  {
+   "name": "Hogarth Bartholomew",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    15600.0,
+    9500.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "a hill south-east of Moradhim's coach, on the road to Baga",
+   "water": "land"
+  },
+  {
+   "name": "Galoosh",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "near",
+    "Yiggua",
+    30,
+    0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "wanders north of the little outpost outside Grobb",
+   "water": "land"
+  },
+  {
+   "name": "Tobral Arnez",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    25100.0,
+    9800.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Neriak (S), east of the ramp in the broken tower",
+   "water": "land"
+  },
+  {
+   "name": "Jon Watersmith",
+   "role": "talker",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "a small camp at the edge of the plains and mountains, Mossmouth (E)",
+   "water": "land"
+  },
+  {
+   "name": "Jingle",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    21118.0,
+    25100.0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "Oasis, twenty feet north of the coach by the banner (here at the zone's middle)",
+   "water": "land"
+  },
+  {
+   "name": "Arliss",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    8700.0,
+    8700.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "a small camp left of the road running north from Murnf, Salisearaneen (W) ('west of Gramash Ruins')",
+   "water": "land"
   }
  ]
 }

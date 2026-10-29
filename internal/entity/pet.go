@@ -339,7 +339,7 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	pet.stopMoving()
 	// a pet fights by no class template (classtemplate.go), its body's
 	// creature's or not
-	pet.tmpl, pet.tbase, pet.tfight = nil, templateBase{}, templateFight{}
+	pet.tmpl, pet.tbase, pet.tfight = nil, templateBase{}, nil
 	return &pet
 }
 

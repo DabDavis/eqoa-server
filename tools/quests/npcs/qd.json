@@ -2457,6 +2457,267 @@
    "level": 50,
    "note": "the statue, turned hostile when the hourglass is set in it",
    "water": "land"
+  },
+  {
+   "name": "Gil Swimmerbee",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "at",
+    2,
+    10409.0,
+    6691.0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "in a boat next to a dock, Vastly Deep (W) (by a fit of EQOA-Data's Odus points, on the shore)",
+   "water": "land"
+  },
+  {
+   "name": "Sly Ice Giant",
+   "role": "foe",
+   "body": [
+    "npc",
+    "tenacious frost giant"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "the valley between small hills north-west of Steely Stoutdale, over the dark patch of ice (Anu Village)",
+   "water": "land"
+  },
+  {
+   "name": "Ks'or",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    2,
+    10491.0,
+    7156.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "a merman among the mermaids in the underwater ruins at the bottom of Vastly Deep (here a human's body)",
+   "water": "water"
+  },
+  {
+   "name": "Creepyman",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Salisearaneen (W), south-west of 'The Golden Road' signpost",
+   "water": "land"
+  },
+  {
+   "name": "Baylor",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "freed when Creepyman dies, Salisearaneen (W)",
+   "water": "land"
+  },
+  {
+   "name": "Oppydna",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Salisearaneen (C), at the base of a hill near some trees",
+   "water": "land"
+  },
+  {
+   "name": "Leeanna",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "just north of Wyndhaven on the shore",
+   "water": "land"
+  },
+  {
+   "name": "High Druid Postmanjim",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "outside Qeynos's south wall near a tree",
+   "water": "land"
+  },
+  {
+   "name": "High Shaman Bradue",
+   "role": "talker",
+   "body": [
+    "race",
+    "barbarian",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "along the outside of Qeynos's west wall corner",
+   "water": "land"
+  },
+  {
+   "name": "High Sorcerer Coolade",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Kelinar, the south side near the tents",
+   "water": "land"
+  },
+  {
+   "name": "Sunshine Brightray",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "the southern part of Merry-by-Water (C)",
+   "water": "land"
+  },
+  {
+   "name": "Beam Brightray",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "with Sunshine Brightray in Merry-by-Water",
+   "water": "land"
+  },
+  {
+   "name": "Blacksmith Kadeshi",
+   "role": "talker",
+   "body": [
+    "race",
+    "dwarf",
+    0
+   ],
+   "place": [
+    "near",
+    "fire goblin blacksmith",
+    15,
+    3
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "held captive by the fire goblins near their fort, Lavastorm (NW)",
+   "water": "land"
+  },
+  {
+   "name": "Xalakharx",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    4415.0,
+    5210.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the first spectral rallosian cave, Geomancer's Pass (W)",
+   "water": "land"
+  },
+  {
+   "name": "Rainbow Magic Guardian",
+   "role": "foe",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "at",
+    1,
+    7188.0,
+    4686.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "the top of an island with necro birds in Lake Rathe (E) (a dragon)",
+   "water": "land"
+  },
+  {
+   "name": "Tree of Life",
+   "role": "talker",
+   "body": [
+    "npc",
+    "treant"
+   ],
+   "place": [
+    "at",
+    1,
+    7188.0,
+    4771.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "appears on the same island when the guardian dies",
+   "water": "land"
   }
  ]
 }

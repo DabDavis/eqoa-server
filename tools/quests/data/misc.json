@@ -10255,6 +10255,823 @@
     "Altar of the Spirit Guardian"
    ],
    "notes": "From EQOA-Data Quests/Misc/avatar-of-fear.json, # Avatar of Fear (github.com/Jadiction/EQOA-Data, MIT). The guide has no quest NPC: the altar in the centre room gives it here (an object of ours, the map's 'altar in center room'), and the altar beside the spirit guardian is another. Each party member's own symbol and talisman, the transport orb and the golem's port are left out (the golem is a reach step at the next temple's dead end, where the search's spider is left out too). The guide names no reward."
+  },
+  {
+   "key": "Misc/spider-queen-aszec/p1",
+   "name": "Spider Queen Aszec",
+   "giver": "Circle of the Spider Queen",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Webs crust the circle at the room's heart, and something vast stirs beneath. Seven crystal shards, carried by the seven named spiders of these halls, would wake it.",
+   "accept": "Seek the seven shards.",
+   "decline": "Leave the circle.",
+   "declined": "The webs stir, and settle.",
+   "started": "The seven spiders are in the halls off this room.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Grosp",
+     "journal": "Kill Grosp, on a pillow-nest off the central room, for a crystal spider shard.",
+     "items": [
+      {
+       "item": "Crystal Spider Shard",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Thelanzelan",
+     "journal": "Kill Thelanzelan, on a pillow-nest off the central room, for a crystal spider shard.",
+     "items": [
+      {
+       "item": "Crystal Spider Shard",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Fengzel",
+     "journal": "Kill Fengzel, before an altar in a dead end off the central room, for a crystal spider shard.",
+     "items": [
+      {
+       "item": "Crystal Spider Shard",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Faz",
+     "journal": "Kill Faz, on a pillow-nest off the central room, for a crystal spider shard.",
+     "items": [
+      {
+       "item": "Crystal Spider Shard",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Kezmire",
+     "journal": "Kill Kezmire, on a pillow-nest off the central room, for a crystal spider shard.",
+     "items": [
+      {
+       "item": "Crystal Spider Shard",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Melanzalan",
+     "journal": "Kill Melanzalan, on a pillow-nest off the central room, for a crystal spider shard.",
+     "items": [
+      {
+       "item": "Crystal Spider Shard",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Hezphire",
+     "journal": "Kill Hezphire, on a pillow-nest off the central room, for a crystal spider shard.",
+     "items": [
+      {
+       "item": "Crystal Spider Shard",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Circle of the Spider Queen",
+     "journal": "Return to the circle at the centre of the main room with the seven shards.",
+     "items": [
+      {
+       "item": "Crystal Spider Shard",
+       "count": 7
+      }
+     ],
+     "says": "The shards sink into the webs. The Spider Queen Aszec rises!"
+    },
+    {
+     "kind": "kill",
+     "target": "Spider Queen Aszec",
+     "journal": "Kill the Spider Queen Aszec.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Spider Queen Aszec",
+       "hostile": true
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Circle of the Spider Queen"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/spider-queen-aszec.json, # Spider Queen Aszec Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's start is a popup at the room's centre: a circle there gives it here (an object of ours). Each loot step is one spider's shard, in the guide's order. The queen's drops (the Bleeding Harpoon of Aszec, Queen Aszec's robe) are loot; the quest itself gives none."
+  },
+  {
+   "key": "Misc/fairy-in-a-jug/p1",
+   "name": "Fairy in a Jug",
+   "giver": "Potter Torug",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A jug for catching fairies? Five hundred tunar. They fly by day: frost fairies on the hills round Anu Village. Walk close, and when it asks, keep it.",
+   "accept": "I will take a jug.",
+   "decline": "Not now.",
+   "declined": "Suit yourself.",
+   "started": "Five hundred tunar, then.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Potter Torug",
+     "journal": "Buy a clay jug from Potter Torug, at the bottom of Neriak's ramp by the water, for 500 tunar.",
+     "tunar": 500,
+     "says": "One jug. Mind your pack has room for it.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Clay Jug",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Frost Fairy",
+     "journal": "Catch a frost fairy in the jug, on the hills round Anu Village.",
+     "items": [
+      {
+       "item": "Clay Jug",
+       "count": 1
+      }
+     ],
+     "says": "The fairy darts into the jug.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Fairy-Filled Jug",
+         "count": 1
+        }
+       ]
+      }
+     ],
+     "answer": "Keep it."
+    }
+   ],
+   "repeatable": true,
+   "unresolved": [
+    "Frost Fairy"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/fairy-in-a-jug.json, # Fairy in a Jug Quest (github.com/Jadiction/EQOA-Data, MIT). The guide has no quest giver (the quest begins by buying the jug from Potter Nylai, Torug or Giles): Potter Torug gives it here. Its fairies (a plain fairy in Blakedown, ember fairies in the Great Waste, frost fairies by Anu Village and Fayspires Gate, an ice fairy by the gnome observatory) are the frost fairy here, which FrontiersForge saw by Anu Village; unconnable in the guide, it is talked to here (a popup's keep-or-free is its answer). Not on this server: the pristine fairy-filled jug's five charges (a fairy familiar's 1200 heal and a resist buff): the jug here is a keepsake."
+  },
+  {
+   "key": "Misc/captain-scilond-anniversary/p1",
+   "name": "Captain Scilond's Scouts",
+   "giver": "Captain Scilond",
+   "classes": [],
+   "races": [],
+   "minlevel": 51,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Invaders gather round every city of Tunaria. I need scouts. Search the big hill out the blacksmith's exit for orcs, bring me five of their swords, and then the captains of six more cities need you too.",
+   "accept": "I will scout for you.",
+   "decline": "Not now.",
+   "declined": "Then the invaders gather unwatched.",
+   "started": "The big hill out the blacksmith's exit.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 25050,
+     "y": 54,
+     "z": 14800,
+     "radius": 90,
+     "journal": "Scout the big hill out the blacksmith's exit of Freeport, where Shinlos walks.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Invaders! The orcs are gathering here."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Orc Ransacker",
+     "journal": "Kill the orcs and take five swords.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Orc Ransacker",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Orc Ransacker",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Captain Scilond",
+     "journal": "Bring the five swords to Captain Scilond in Freeport.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "says": "Good work. Captain Rebohl in Misty Thicket needs a scout too."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Rebohl",
+     "journal": "Report to Captain Rebohl in Misty Thicket.",
+     "says": "Scilond's scout? Search the three pickclaw camps of Misty Thicket for me."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 17240,
+     "y": 54,
+     "z": 11023,
+     "radius": 90,
+     "journal": "Scout the three pickclaw camps of Misty Thicket.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Invaders! The pickclaw goblins are gathering here."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Pickclaw Warrior",
+     "journal": "Kill the pickclaw goblins and take five swords.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Pickclaw Warrior",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Pickclaw Warrior",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Captain Rebohl",
+     "journal": "Bring the five swords to Captain Rebohl in Misty Thicket.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "says": "Good work. Captain Volgo in Halas needs a scout too."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Volgo",
+     "journal": "Report to Captain Volgo in Halas.",
+     "says": "Scilond's scout? Search the broken rock formation south of Halas's tunnel for me."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 13060,
+     "y": 79,
+     "z": 5350,
+     "radius": 90,
+     "journal": "Scout the broken rock formation south of Halas's tunnel, past Captain Betna.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Invaders! The giant invaders are gathering here."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "ice giant",
+     "journal": "Kill the giant invaders and take five swords.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "ice giant",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "ice giant",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Captain Volgo",
+     "journal": "Bring the five swords to Captain Volgo in Halas.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "says": "Good work. Captain Aermane in Forkwatch needs a scout too."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Aermane",
+     "journal": "Report to Captain Aermane in Forkwatch.",
+     "says": "Scilond's scout? Search between the Sundreel village and the cultist dungeon for me."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 12400,
+     "y": 54,
+     "z": 18900,
+     "radius": 90,
+     "journal": "Scout between the Sundreel village and the cultist dungeon, inland.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Invaders! The giants are gathering here."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "hill giant",
+     "journal": "Kill the giants and take five swords.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "hill giant",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "hill giant",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Captain Aermane",
+     "journal": "Bring the five swords to Captain Aermane in Forkwatch.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "says": "Good work. Captain Balynashinask in Hazinak needs a scout too."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Balynashinask",
+     "journal": "Report to Captain Balynashinask in Hazinak.",
+     "says": "Scilond's scout? Search the glowing pile of ribs on the left of the road north out of Hazinak for me."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 25000,
+     "y": 54,
+     "z": 26600,
+     "radius": 90,
+     "journal": "Scout the glowing pile of ribs on the left of the road north out of Hazinak.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Invaders! The sand giants are gathering here."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "sand giant",
+     "journal": "Kill the sand giants and take five swords.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "sand giant",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "sand giant",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Captain Balynashinask",
+     "journal": "Bring the five swords to Captain Balynashinask in Hazinak.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "says": "Good work. Captain Xarta in Klick'Anon needs a scout too."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Xarta",
+     "journal": "Report to Captain Xarta in Klick'Anon.",
+     "says": "Scilond's scout? Search the big hill toward the Lavastorm waysender for me."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 24250,
+     "y": 54,
+     "z": 6560,
+     "radius": 90,
+     "journal": "Scout the big hill toward the Lavastorm waysender, outside Klick'Anon.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Invaders! The deadly corrosions are gathering here."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "deadly corrosion",
+     "journal": "Kill the deadly corrosions and take five swords.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Captain Xarta",
+     "journal": "Bring the five swords to Captain Xarta in Klick'Anon.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "says": "Good work. Captain Maehler in Highpass needs a scout too."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Maehler",
+     "journal": "Report to Captain Maehler in Highpass.",
+     "says": "Scilond's scout? Search the pickclaw camp on the hill to the left for me."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 17150,
+     "y": 196,
+     "z": 15100,
+     "radius": 90,
+     "journal": "Scout the pickclaw camp on the hill to the left, outside Highpass's gate.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Invaders! The pickclaws are gathering here."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Pickclaw Warrior",
+     "journal": "Kill the pickclaws and take five swords.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Pickclaw Warrior",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Pickclaw Warrior",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Captain Maehler",
+     "journal": "Bring the five swords to Captain Maehler in Highpass.",
+     "items": [
+      {
+       "item": "Invader's Sword",
+       "count": 5
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Scilond",
+     "journal": "Report back to Captain Scilond in Freeport, by the coach and the well.",
+     "says": "Seven cities scouted. Take this token to the monk Rianba Oschba: he roams our cities.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Token of Superior Benediction",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Rianba Oschba",
+     "journal": "Give the token to Rianba Oschba, who roams Freeport's main tunnel.",
+     "items": [
+      {
+       "item": "Token of Superior Benediction",
+       "count": 1
+      }
+     ],
+     "says": "Wear it in good health.",
+     "waiting": "A token of superior benediction! Choose your reward.",
+     "choose": "Which will you have?",
+     "choices": [
+      {
+       "answer": "The Superior Orcblood Band.",
+       "rewards": {
+        "items": [
+         "Superior Orcblood Band"
+        ]
+       }
+      },
+      {
+       "answer": "The Superior Corrosive Stick.",
+       "rewards": {
+        "items": [
+         "Superior Corrosive Stick"
+        ]
+       }
+      },
+      {
+       "answer": "The Superior Tainted Circlet.",
+       "rewards": {
+        "items": [
+         "Superior Tainted Circlet"
+        ]
+       }
+      },
+      {
+       "answer": "The Superior Goblinate.",
+       "rewards": {
+        "items": [
+         "Superior Goblinate"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "repeatable": true,
+   "unresolved": [
+    "Captain Rebohl"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/captain-scilond-anniversary.json, # Captain Scilond, Anniversary Quest (github.com/Jadiction/EQOA-Data, MIT). An anniversary event in the live game that plays as an ordinary quest: written as one. The guide's five levels of the quest (improved ... superior, rewards at 1, 16, 31, 41, 51) are the superior one here, level 51. The invaders' kinds are the server's nearest (Freeport's orc ransackers, the Highpass pickclaw warriors for Misty Thicket and Highpass, ice giants, hill giants, sand giants, deadly corrosions); two spawn at each popup (the corrosions stand in Rogue Clockworks). The popups' places are ours, from the guide's words. Rianba Oschba's four rewards a city are the four this server has, in any city (the Superior Orcblood Band is the guide's unnamed Freeport ring: 30 Dex, 125 HPMax). The guide's Niafi, who swaps old tokens, is left out."
+  },
+  {
+   "key": "Misc/fan-fair-2006/p1",
+   "name": "The Dragon Egg",
+   "giver": "Businessman Lure",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Psst. A dragon egg, my partners and I had it, and they scammed me. Revenge! First, Headhunter Praar, south of Qeynos at the prison's front. Bring me his head. And take 998 tunar: you may need it.",
+   "accept": "Revenge, then.",
+   "decline": "Not now.",
+   "declined": "Then my partners win.",
+   "started": "Praar first. Bring tunar.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Headhunter Praar",
+     "journal": "Find Headhunter Praar outside Qeynos Prison's front entrance, and pay him 998 tunar.",
+     "tunar": 998,
+     "says": "You came to kill me? For 998 I will send you to an associate instead: Rhizele, south of Fort Seriak."
+    },
+    {
+     "kind": "talk",
+     "target": "Rhizele",
+     "journal": "Find Rhizele on the coast south of Fort Seriak, by a tree near a red spire.",
+     "says": "Lure sent you? Bring me Lure's head instead, and we both profit."
+    },
+    {
+     "kind": "talk",
+     "target": "Businessman Lure",
+     "journal": "Return to Businessman Lure in Muniel's Tea Garden.",
+     "says": "Back so soon? You know... no! Guards!"
+    },
+    {
+     "kind": "loot",
+     "target": "Businessman Lure",
+     "journal": "Kill Businessman Lure on the coast south of Muniel's Tea Garden and take his head.",
+     "items": [
+      {
+       "item": "Lure's Head",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Businessman Lure",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Rhizele",
+     "journal": "Show Lure's head to Rhizele.",
+     "items": [
+      {
+       "item": "Lure's Head",
+       "count": 1
+      }
+     ],
+     "says": "Lovely. Take it to Praar: he will want proof."
+    },
+    {
+     "kind": "give",
+     "target": "Headhunter Praar",
+     "journal": "Bring the head back to Headhunter Praar outside Qeynos Prison.",
+     "items": [
+      {
+       "item": "Lure's Head",
+       "count": 1
+      }
+     ],
+     "says": "Amazing. The egg went north with Enchanter Nanyea, on a ledge above a frozen lake in Frosteye Valley."
+    },
+    {
+     "kind": "kill",
+     "target": "Enchanter Nanyea",
+     "journal": "Kill Enchanter Nanyea on her ledge above the frozen lake in Frosteye Valley (S).",
+     "count": 1
+    },
+    {
+     "kind": "talk",
+     "target": "A Baby Dragon",
+     "journal": "Speak with the baby dragon that comes as Nanyea falls.",
+     "says": "Thank you! Hold on!",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 21300.0,
+       "y": 54.0,
+       "z": 28700.0
+      }
+     ],
+     "answer": "Yes, let us find your mommy."
+    },
+    {
+     "kind": "talk",
+     "target": "Maryela Firetongue",
+     "journal": "Find Maryela Firetongue, roaming nearby in Ant Colonies (NE).",
+     "says": "My baby! You brought him home. Thank you."
+    }
+   ],
+   "unresolved": [
+    "Businessman Lure",
+    "Headhunter Praar",
+    "Rhizele",
+    "Enchanter Nanyea",
+    "A Baby Dragon",
+    "Maryela Firetongue"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/fan-fair-2006.json, # Fan Fair 2006 (github.com/Jadiction/EQOA-Data, MIT). A Fan Faire 2006 quest that plays as an ordinary one: written as one. Praar's 998 tunar is a payment; the head Rhizele wants is shown her and carried on to Praar. The baby dragon's offer to meet his mother is a teleport to Ant Colonies (NE). The guide's two endings (Maryela attackable, or to be talked to) are the friendly one here. Not on this server, left out of the rewards: her two pairs of level 34 plate boots (HP or POW) and the shiny stones. The places are ours, from the guide's words."
   }
  ],
  "items": [
@@ -11379,6 +12196,42 @@
    "description": "The Tablet of Haz'Kar, made whole and glowing.",
    "notrade": true,
    "like": "Book of the Stars"
+  },
+  {
+   "name": "Crystal Spider Shard",
+   "description": "A crystal spider shard, from one of the seven named spiders of the Salt Mines.",
+   "notrade": true,
+   "like": "Final Thought Gem"
+  },
+  {
+   "name": "Clay Jug",
+   "description": "A clay jug from a potter, to keep a fairy in.",
+   "notrade": true,
+   "like": "Clay Mixing Vial"
+  },
+  {
+   "name": "Fairy-Filled Jug",
+   "description": "A clay jug with a frost fairy inside.",
+   "notrade": true,
+   "like": "Clay Mixing Vial"
+  },
+  {
+   "name": "Invader's Sword",
+   "description": "A sword dropped by the invaders the captains sent you after.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Token of Superior Benediction",
+   "description": "Captain Scilond's token, for Rianba Oschba to reward.",
+   "notrade": true,
+   "like": "token of marr"
+  },
+  {
+   "name": "Lure's Head",
+   "description": "The head of Businessman Lure, who sold out his partners.",
+   "notrade": true,
+   "like": "Krazul's head"
   }
  ]
 }

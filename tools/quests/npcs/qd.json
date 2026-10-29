@@ -3090,6 +3090,169 @@
    "level": 1,
    "note": "the altar beside the spirit guardian, in the inner pyramid",
    "water": "land"
+  },
+  {
+   "name": "Circle of the Spider Queen",
+   "role": "talker",
+   "body": [
+    "npc",
+    "cursed grave"
+   ],
+   "place": [
+    "near",
+    "Spider Queen Aszec",
+    4,
+    0
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "the circular area at the centre of the drow spiders' main room, down the ramps of the Salt Mines",
+   "water": "land"
+  },
+  {
+   "name": "Frost Fairy",
+   "role": "talker",
+   "body": [
+    "kind",
+    "pixie"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "on the hills round Anu Village (by day, they say)",
+   "water": "land"
+  },
+  {
+   "name": "Captain Rebohl",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "near",
+    "traveling salesman",
+    40,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "along the long wall past the Traveling Salesman, Misty Thicket (E)",
+   "water": "land"
+  },
+  {
+   "name": "Businessman Lure",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    23700.0,
+    19700.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "Muniel's Tea Garden, by the ocean (jittery)",
+   "water": "land"
+  },
+  {
+   "name": "Headhunter Praar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    5397.0,
+    18914.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "wandering outside the front entrance of Qeynos Prison (C)",
+   "water": "land"
+  },
+  {
+   "name": "Rhizele",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    1
+   ],
+   "place": [
+    "near",
+    "Coachman D'Larik",
+    300,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "a spy along the coast south of Fort Seriak, by a tree near a red spire",
+   "water": "land"
+  },
+  {
+   "name": "Enchanter Nanyea",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    10609.0,
+    5100.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "on a ledge above a frozen lake, Frosteye Valley (S) (with a stone golem pet)",
+   "water": "land"
+  },
+  {
+   "name": "A Baby Dragon",
+   "role": "talker",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "near",
+    "Enchanter Nanyea",
+    8,
+    0
+   ],
+   "count": 1,
+   "level": 10,
+   "note": "comes as Enchanter Nanyea falls",
+   "water": "land"
+  },
+  {
+   "name": "Maryela Firetongue",
+   "role": "talker",
+   "body": [
+    "npc",
+    "jade drake"
+   ],
+   "place": [
+    "at",
+    0,
+    21300.0,
+    28700.0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "roams Ant Colonies (NE), the baby dragon's mother",
+   "water": "land"
   }
  ],
  "attackable": [

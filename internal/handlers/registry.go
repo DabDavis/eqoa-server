@@ -304,6 +304,19 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		npcWindowHandler.SetGameWorld(gameWorld)
 	}
 	npcWindowHandler.RegisterHandlers(r)
+	// The auction house (auction.go, database/auction.go): 0x1205 on its
+	// tables, the sweep that closes lots at their time (at once at a start:
+	// what ended while the server was down), and a player's bank made right
+	// as it logs in
+	if charStore != nil {
+		house := NewAuctionHouse(charStore.DB(), npcWindowHandler)
+		house.isGM = chatHandler.isGM
+		charHandler.auction = house
+		if gameWorld != nil {
+			house.SetGameWorld(gameWorld)
+			house.Start()
+		}
+	}
 	interactHandler.corpse = npcWindowHandler.OpenCorpse
 	// a waysender's fee, and the bind points spiritmasters give
 	interactHandler.spend = npcWindowHandler.spendTunar

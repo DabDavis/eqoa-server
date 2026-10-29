@@ -155,6 +155,23 @@ func TestTheOverviewIsWrittenWithItsVersion(t *testing.T) {
 	if ov := board["overview"].(map[string]any); ov["version"] != float64(2) || ov["updated_by"] != "gm" {
 		t.Fatalf("the overview after the refusals: %v", ov)
 	}
+	// and the edit is reverted like a row change: the text as it was, the
+	// version still going up, so a writer holding version 2 is refused
+	_, log := gm.op("audit_log", map[string]any{"table": "workboard_overview"})
+	entries := log["entries"].([]any)
+	if len(entries) != 1 {
+		t.Fatalf("overview audit lines: %v", entries)
+	}
+	if code, out := gm.op("revert_change", map[string]any{"id": entries[0].(map[string]any)["id"]}); code != 200 {
+		t.Fatalf("revert: %d %v", code, out)
+	}
+	_, board = gm.op("work_board", nil)
+	if ov := board["overview"].(map[string]any); ov["version"] != float64(3) || !strings.Contains(ov["text"].(string), "## The loop") {
+		t.Fatalf("the overview after the revert: version %v", ov["version"])
+	}
+	if code, _ := gm.op("update_work_overview", map[string]any{"text": "mine", "version": 2}); code != 409 {
+		t.Fatalf("a write against the reverted version: %d", code)
+	}
 }
 
 func TestAPostNamesTheOpenEntriesTouchingTheSameThings(t *testing.T) {

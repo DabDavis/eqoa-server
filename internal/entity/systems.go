@@ -3,7 +3,6 @@ package entity
 import (
 	"log"
 	"math"
-	"math/rand"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -188,7 +187,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	}
 
 	// Sandstorm's roll on the player's AC, AGI and archetype (defence.go)
-	damage := npcMeleeRoll(npc).hitOn(player, rand.Intn)
+	damage := w.npcHitLocked(npc, player.Level, npcMeleeRoll(npc).hitOn(player, meleeIntn)) // balance.go
 	player.HP -= damage
 	if player.HP < 0 {
 		player.HP = 0

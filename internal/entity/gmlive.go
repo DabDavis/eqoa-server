@@ -224,6 +224,7 @@ func (w *World) ReloadNPCs(store *database.NPCStore) (loaded, removed int, err e
 	keep := make(map[EntityID]bool, len(recs))
 	for _, rec := range recs {
 		fresh := NPCFromRecord(rec, classes[database.NPCClassKey(rec.NPCName)], w.rangedModels)
+		w.applyNPCSettingsLocked(fresh) // as LoadNPCs makes it (its balanced hit points)
 		if _, taken := w.Players[fresh.ServerID]; taken {
 			continue
 		}

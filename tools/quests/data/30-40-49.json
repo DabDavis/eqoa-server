@@ -3525,8 +3525,7 @@
    ],
    "unresolved": [
     "The Caretaker",
-    "Eidolon of Malice",
-    "The Caretaker"
+    "Eidolon of Malice"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The First Seal (github.com/Jadiction/EQOA-Data, MIT). The guide's black orb portal, its 650 damage a tick without the amulet and the timed trial are not in: the Caretaker asks to see the amulet. The Caretaker and the Eidolon stand where FrontiersForge and EQOA-Data's map put them."
   },
@@ -4615,8 +4614,7 @@
    ],
    "unresolved": [
     "Ives Radain",
-    "Bribro Mino",
-    "Ives Radain"
+    "Bribro Mino"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Orb and Seal Chain (github.com/Jadiction/EQOA-Data, MIT). The guide says Ives sends the player to Bribro Mino; Bribro stands among the minotaurs and is killed for the orb."
   },
@@ -4677,7 +4675,6 @@
     }
    ],
    "unresolved": [
-    "Zebel Earblower",
     "Zebel Earblower"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Orb and Seal Chain (github.com/Jadiction/EQOA-Data, MIT). The guide says Zebel sends the player to Commander Romar; Romar commands the Razgut there and is killed for the orb."
@@ -4739,7 +4736,6 @@
     }
    ],
    "unresolved": [
-    "Lord Tearis Thex",
     "Lord Tearis Thex"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Orb and Seal Chain (github.com/Jadiction/EQOA-Data, MIT)."
@@ -4826,7 +4822,6 @@
     }
    ],
    "unresolved": [
-    "Lord Tearis Thex",
     "Lord Tearis Thex"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, The Third Seal (github.com/Jadiction/EQOA-Data, MIT). Frostborn II stands in the throne room always (the guide's rises when the sword is driven in); the throne is a place to reach, beside him."
@@ -4910,7 +4905,6 @@
     }
    ],
    "unresolved": [
-    "Lord Tearis Thex",
     "Lord Tearis Thex"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, The Fourth Seal (github.com/Jadiction/EQOA-Data, MIT). The Unnamed King stands in his castle always (the guide's is called up at a column with both gems). His crown is the database's Crown of the Unnamed."
@@ -5015,7 +5009,6 @@
    ],
    "unresolved": [
     "Lord Tearis Thex",
-    "Lord Tearis Thex",
     "Parathior (attackable)"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky); the server's Parathior is made attackable by this set's seed. The four orbs are this group's first and second seals (the guide lists them before the third). The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-2-good/L49-<class>)."
@@ -5074,8 +5067,7 @@
    ],
    "unresolved": [
     "Daresh",
-    "Mergmar",
-    "Daresh"
+    "Mergmar"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30 (github.com/Jadiction/EQOA-Data, MIT). Pwin is spelt as the server has him (a trailing space aside)."
   },
@@ -5134,7 +5126,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, The Jailor (github.com/Jadiction/EQOA-Data, MIT). The Bloodfoot bandits see the invisible."
@@ -5183,7 +5174,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Ricser (github.com/Jadiction/EQOA-Data, MIT)."
@@ -5461,8 +5451,7 @@
    "unresolved": [
     "Daresh",
     "Bardif",
-    "Mergmar",
-    "Daresh"
+    "Mergmar"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Bardif and Mergmar (github.com/Jadiction/EQOA-Data, MIT). The guide warns were-forms of Julie Tanner, the werehunter in Bardif's house."
   },
@@ -5521,7 +5510,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Bandits (github.com/Jadiction/EQOA-Data, MIT)."
@@ -5582,8 +5570,7 @@
    ],
    "unresolved": [
     "Daresh",
-    "Assassin",
-    "Daresh"
+    "Assassin"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Assassin (github.com/Jadiction/EQOA-Data, MIT). The assassin stands in Bardif's house (EQOA-Data's map point; the guide's attacks as the player comes in)."
   },
@@ -5643,8 +5630,7 @@
    ],
    "unresolved": [
     "Daresh",
-    "Tarlin's Agent",
-    "Daresh"
+    "Tarlin's Agent"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Three Messengers (github.com/Jadiction/EQOA-Data, MIT). The agents stand at their three places always (the guide's are triggered)."
   },
@@ -5721,8 +5707,7 @@
    ],
    "unresolved": [
     "Daresh",
-    "Daglader",
-    "Daresh"
+    "Daglader"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Necromantic Gems (github.com/Jadiction/EQOA-Data, MIT)."
   },
@@ -5807,7 +5792,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Tarlin's Guards and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The three thugs are copies of Tarlin's guards brought to the player for the step (the guide's spawn under the tower; \"kill or die\" there: here they are to be killed). The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-3-good/L40-<class>)."
@@ -5901,7 +5885,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, Three Robes (github.com/Jadiction/EQOA-Data, MIT)."
@@ -6034,7 +6017,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, Three Ciphers (github.com/Jadiction/EQOA-Data, MIT). The ciphers are places to reach (EQOA-Data's map points; the guide's pit guardian is not fought). The antlion cave's and the drakes' creatures see the invisible."
@@ -6129,7 +6111,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, Tarlin's Floating Tower (github.com/Jadiction/EQOA-Data, MIT). Tarlin, his guard and his pet stand at the tower always; the gem's lift is a popup at the tower's foot, not a teleport (the tower's top is not known here)."
@@ -6275,7 +6256,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, To Summon Chardith and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Lord Chardith and the three magi stand in the basement always (the guide's Chardith is called after a sacrifice; Terathin speaks only every fifteen minutes). The weapon the jeweled chest shows is chosen at the end, with the ability. The level's experience comes here; each class's ability and weapon are a choice of its own quest after it, at its NPC (30,40,49/group-3-good/L49-<class>)."
@@ -6684,7 +6664,6 @@
    "unresolved": [
     "Thalnix D`Rinas",
     "Orish Thulon",
-    "Orish Thulon",
     "Golem of Fear"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, Golem of Fear (github.com/Jadiction/EQOA-Data, MIT)."
@@ -6762,7 +6741,6 @@
    "unresolved": [
     "Thalnix D`Rinas",
     "Watcher Mironar",
-    "Watcher Mironar",
     "Golem of Station"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, Golem of Station (github.com/Jadiction/EQOA-Data, MIT). Any black ant carpenter drops the carapaces (the guide: guards and carpenters)."
@@ -6833,7 +6811,6 @@
    "unresolved": [
     "Thalnix D`Rinas",
     "Drelk Trunkfist",
-    "Golem of Strength",
     "Golem of Strength"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, Golem of Strength (github.com/Jadiction/EQOA-Data, MIT). The guide calls this shard the Shard of Greed, as the fourth's: named here for its golem."
@@ -6954,7 +6931,6 @@
     }
    ],
    "unresolved": [
-    "Thalnix D`Rinas",
     "Thalnix D`Rinas",
     "Belran Nightrift"
    ],
@@ -7589,8 +7565,7 @@
    ],
    "unresolved": [
     "Slavemaster Hern",
-    "Lora Greyson",
-    "Slavemaster Hern"
+    "Lora Greyson"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 30, Wraps of Bertoxxulous (github.com/Jadiction/EQOA-Data, MIT). Slavemaster Hern is FrontiersForge's spelling of the guide's Slave Master Hern. The guide's Hern will not speak below -99 with Caer Sloth; here every character starts at -500 with it and nothing raises it (no Darkwood goblin gives it), so no standing is asked."
   },
@@ -8481,7 +8456,6 @@
     }
    ],
    "unresolved": [
-    "Quatzi",
     "Quatzi"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30 (github.com/Jadiction/EQOA-Data, MIT). The three vials are one item here."
@@ -8548,8 +8522,7 @@
    ],
    "unresolved": [
     "Talknar",
-    "Goblin Messenger",
-    "Talknar"
+    "Goblin Messenger"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, Talknar (github.com/Jadiction/EQOA-Data, MIT). The messenger stands at the crossroads always (the guide's is a triggered spawn)."
   },
@@ -8641,8 +8614,7 @@
     "Gungar Guglar",
     "Tracker Jugl",
     "Ambassador Kreek",
-    "Ambassador Luj'Nak",
-    "Gungar Guglar"
+    "Ambassador Luj'Nak"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 30, The Ambassadors (github.com/Jadiction/EQOA-Data, MIT). The ambassadors stand on the wall always (the guide's are triggered). The guide does not say whose treaty each carries: the froglok's Kreek's and the goblin's Luj'Nak's are ours."
   },
@@ -8850,8 +8822,7 @@
    ],
    "unresolved": [
     "Watcher Gabnu",
-    "The Captain",
-    "Watcher Gabnu"
+    "The Captain"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 40, Goblin Attackers: Honjour (github.com/Jadiction/EQOA-Data, MIT). The guide's three waves are not in: the elites and their captain stand by the tower (FrontiersForge's places), and the captain drops the shard. Watch Captain Opak is the guide's Captain Opak."
   },
@@ -9135,9 +9106,7 @@
    "unresolved": [
     "Elimandared",
     "Tubrenzalana",
-    "Elimandared",
-    "Aalean Mardum",
-    "Elimandared"
+    "Aalean Mardum"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 49, Cipher of the Sun (github.com/Jadiction/EQOA-Data, MIT). Tubrenzalana stands by Elimandared (the guide's is summoned); the Stone of Elves is the database's small stone of elves."
   },
@@ -9230,9 +9199,7 @@
    ],
    "unresolved": [
     "Vaeloficint",
-    "Inspector Xelebb",
-    "Inspector Xelebb",
-    "Vaeloficint"
+    "Inspector Xelebb"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-6-evil.json, Group 6, Level 49, Cipher of the Moon (github.com/Jadiction/EQOA-Data, MIT). Vaeloficint is FrontiersForge's name for the guide's Vaeloficint the Wise."
   },
@@ -9639,7 +9606,6 @@
     }
    ],
    "unresolved": [
-    "Thumgrim Stoutshield",
     "Thumgrim Stoutshield"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The bard's choice of the level's reward, from Thumgrim Stoutshield once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -10012,7 +9978,6 @@
     }
    ],
    "unresolved": [
-    "Thumgrim Stoutshield",
     "Thumgrim Stoutshield"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The bard's choice of the level's reward, from Thumgrim Stoutshield once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 40 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -10740,7 +10705,6 @@
     }
    ],
    "unresolved": [
-    "Hilarn Strongfist",
     "Hilarn Strongfist"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The warrior's choice of the level's reward, from Hilarn Strongfist once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -10823,7 +10787,6 @@
     }
    ],
    "unresolved": [
-    "Tralum Lelam",
     "Tralum Lelam"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The rogue's choice of the level's reward, from Tralum Lelam once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -10906,7 +10869,6 @@
     }
    ],
    "unresolved": [
-    "Sean Warlot",
     "Sean Warlot"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The shaman's choice of the level's reward, from Sean Warlot once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -10989,7 +10951,6 @@
     }
    ],
    "unresolved": [
-    "Trillon Zeber",
     "Trillon Zeber"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Trillon Zeber once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -11407,8 +11368,6 @@
     }
    ],
    "unresolved": [
-    "Hilarn Strongfist",
-    "Hilarn Strongfist",
     "Hilarn Strongfist"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The warrior's choice of the level's reward, from Hilarn Strongfist once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -11506,8 +11465,6 @@
     }
    ],
    "unresolved": [
-    "Tralum Lelam",
-    "Tralum Lelam",
     "Tralum Lelam"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The rogue's choice of the level's reward, from Tralum Lelam once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -11590,7 +11547,6 @@
     }
    ],
    "unresolved": [
-    "Sean Warlot",
     "Sean Warlot"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The shaman's choice of the level's reward, from Sean Warlot once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -11673,7 +11629,6 @@
     }
    ],
    "unresolved": [
-    "Trillon Zeber",
     "Trillon Zeber"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Trillon Zeber once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -11756,7 +11711,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The ranger's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -11839,7 +11793,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The monk's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -11922,7 +11875,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The druid's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12005,7 +11957,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The magician's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 30 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12064,7 +12015,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The ranger's choice of the level's reward, from Daresh once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12123,7 +12073,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The monk's choice of the level's reward, from Daresh once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12182,7 +12131,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The druid's choice of the level's reward, from Daresh once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12241,7 +12189,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The magician's choice of the level's reward, from Daresh once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12339,8 +12286,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The ranger's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12438,8 +12383,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The monk's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12537,8 +12480,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The druid's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12645,7 +12586,6 @@
     }
    ],
    "unresolved": [
-    "Daresh",
     "Daresh"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The magician's choice of the level's reward, from Daresh once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12704,7 +12644,6 @@
     }
    ],
    "unresolved": [
-    "Belran Nightrift",
     "Belran Nightrift"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The rogue's choice of the level's reward, from Belran Nightrift once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12763,7 +12702,6 @@
     }
    ],
    "unresolved": [
-    "Belran Nightrift",
     "Belran Nightrift"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The cleric's choice of the level's reward, from Belran Nightrift once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12822,7 +12760,6 @@
     }
    ],
    "unresolved": [
-    "Belran Nightrift",
     "Belran Nightrift"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 30, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Belran Nightrift once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12881,7 +12818,6 @@
     }
    ],
    "unresolved": [
-    "Belran Nightrift",
     "Belran Nightrift"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The rogue's choice of the level's reward, from Belran Nightrift once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12940,7 +12876,6 @@
     }
    ],
    "unresolved": [
-    "Belran Nightrift",
     "Belran Nightrift"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The cleric's choice of the level's reward, from Belran Nightrift once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -12999,7 +12934,6 @@
     }
    ],
    "unresolved": [
-    "Belran Nightrift",
     "Belran Nightrift"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-4-evil.json, Group 4, Level 40, rewards (github.com/Jadiction/EQOA-Data, MIT). The enchanter's choice of the level's reward, from Belran Nightrift once the level's path quest is done: the guide pairs each ability with a weapon. A weapon this database lacks is made like its pair (or one of the kind and level)."
@@ -13825,7 +13759,6 @@
     }
    ],
    "unresolved": [
-    "Elder Gabgug",
     "Elder Gabgug"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-5-evil.json, Group 5, Level 49, rewards (github.com/Jadiction/EQOA-Data, MIT). The shaman's choice of the level's reward, from Elder Gabgug once the level's path quest is done: the guide names weapons only; the abilities are EQOA-Data's level 49 quest spells of the class. A weapon this database lacks is made like its pair (or one of the kind and level)."

@@ -159,7 +159,6 @@
     }
    ],
    "unresolved": [
-    "Palidan Talimas",
     "Palidan Talimas"
    ],
    "notes": "From EQOA-Data Quests/60/good-tank.json, Episode 1 (github.com/Jadiction/EQOA-Data, MIT). The Taksehir miners are level 60, the guide warns: hard to solo."
@@ -281,9 +280,7 @@
    ],
    "unresolved": [
     "Palidan Talimas",
-    "Froglok Channeler",
-    "Froglok Channeler",
-    "Palidan Talimas"
+    "Froglok Channeler"
    ],
    "notes": "From EQOA-Data Quests/60/good-tank.json, Episode 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's hour of waves round the herbalist (watchmen, guardsmen, a lookout and a scout, bouncers) and his port to a man in south Guk are not in: he brews the potion when given the ingredients. The 20,000,000 experience is the other episode ones' (this guide names none)."
   },
@@ -359,8 +356,7 @@
    ],
    "unresolved": [
     "Palidan Talimas",
-    "Bandit Brigand",
-    "Palidan Talimas"
+    "Bandit Brigand"
    ],
    "notes": "From EQOA-Data Quests/60/good-tank.json, Episode 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's two popups stealing 100 tunar each are one; no tunar is taken."
   },
@@ -747,8 +743,7 @@
     "Shinlos",
     "Crying Maiden",
     "Glittering Chest",
-    "Smiling Demon",
-    "Shinlos"
+    "Smiling Demon"
    ],
    "notes": "From EQOA-Data Quests/60/good-tank.json, Episode 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's fifteen-minute waits are not in; the three temptations are talk steps with choices (any answer but No is a wrong one, said and asked again). The maiden, the chest and the demon are ours by name (the guide names none)."
   },
@@ -845,8 +840,7 @@
    ],
    "unresolved": [
     "Shinlos",
-    "ghost of Synder",
-    "Shinlos"
+    "ghost of Synder"
    ],
    "notes": "From EQOA-Data Quests/60/good-tank.json, Episode 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's raid and its five waves are kill steps; Synder's ghost stands in the cubby always. The 100,000,000 experience is the evil guides' episode 3 figure (this guide names none)."
   },
@@ -1054,8 +1048,6 @@
     }
    ],
    "unresolved": [
-    "Sensei Melinus",
-    "Sensei Melinus",
     "Sensei Melinus"
    ],
    "notes": "From EQOA-Data Quests/60/good-melee.json, Episode 1 (github.com/Jadiction/EQOA-Data, MIT)."
@@ -1189,11 +1181,7 @@
     "Elder Froglok Guk Diviner",
     "Elder Fungal Cavalier",
     "High Shaman",
-    "Froglok Bloodletter",
-    "Froglok Bloodletter",
-    "Froglok Bloodletter",
-    "High Shaman",
-    "Sensei Melinus"
+    "Froglok Bloodletter"
    ],
    "notes": "From EQOA-Data Quests/60/good-melee.json, Episode 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's six waves of bloodletters over an hour are a kill step of six (copies brought for the step); the elder froglok mystic and diviner and the elder fungal stand in Guk always (the guide's come in place of the channelers and fungals killed)."
   },
@@ -1311,7 +1299,6 @@
     }
    ],
    "unresolved": [
-    "Jezia",
     "Jezia"
    ],
    "notes": "From EQOA-Data Quests/60/good-melee.json, Episode 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's note to deliver in Freeport is not in (the guide does not name for whom)."
@@ -2409,9 +2396,9 @@
     {
      "kind": "reach",
      "world": 2,
-     "x": 10509,
+     "x": 11158,
      "y": 0,
-     "z": 5469,
+     "z": 5423,
      "radius": 60,
      "journal": "Go to the hill by the great depression in the middle of the North Barren Coast.",
      "events": [
@@ -2451,7 +2438,7 @@
    "unresolved": [
     "Boldunder"
    ],
-   "notes": "From EQOA-Data Quests/60/good-caster.json, Episode 3 (github.com/Jadiction/EQOA-Data, MIT). Boldunder stands by the depression always (the guide's comes after three popups); his place is EQOA-Data's map point laid over Odus by a fit of ours."
+   "notes": "From EQOA-Data Quests/60/good-caster.json, Episode 3 (github.com/Jadiction/EQOA-Data, MIT). Boldunder stands by the depression always (the guide's comes after three popups), at EQOA-Data's map point laid over Odus (the seed's fit)."
   },
   {
    "key": "60/good-caster/ep3-2",
@@ -2728,7 +2715,6 @@
     }
    ],
    "unresolved": [
-    "Ruddish the Devout",
     "Ruddish the Devout"
    ],
    "notes": "From EQOA-Data Quests/60/good-healer.json, Episode 1 (github.com/Jadiction/EQOA-Data, MIT). The wands are the database's froglok summoner's wands."
@@ -2849,10 +2835,7 @@
    "unresolved": [
     "Ruddish the Devout",
     "fire basilisk",
-    "fire basilisk",
-    "fire basilisk",
-    "Megametamilipizon",
-    "Ruddish the Devout"
+    "Megametamilipizon"
    ],
    "notes": "From EQOA-Data Quests/60/good-healer.json, Episode 1 (github.com/Jadiction/EQOA-Data, MIT). The named millipedes before the Megametamilipizon are not in: it rises when the ores melt. The 20,000,000 experience is the other episode ones' (this guide names none)."
   },
@@ -2900,8 +2883,7 @@
    ],
    "unresolved": [
     "Ruddish the Devout",
-    "Sothimus the Brigand",
-    "Ruddish the Devout"
+    "Sothimus the Brigand"
    ],
    "notes": "From EQOA-Data Quests/60/good-healer.json, Episode 2 (github.com/Jadiction/EQOA-Data, MIT). Sothimus stands with his marauders always (the guide's comes after hours of farming them)."
   },
@@ -3002,8 +2984,7 @@
    "unresolved": [
     "Ruddish the Devout",
     "Plagued Forest Drake",
-    "Plagued Kobold Hunter",
-    "Ruddish the Devout"
+    "Plagued Kobold Hunter"
    ],
    "notes": "From EQOA-Data Quests/60/good-healer.json, Episode 2 (github.com/Jadiction/EQOA-Data, MIT)."
   },
@@ -3087,7 +3068,6 @@
     }
    ],
    "unresolved": [
-    "Ruddish the Devout",
     "Ruddish the Devout"
    ],
    "notes": "From EQOA-Data Quests/60/good-healer.json, Episode 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's four debuffing runes (Frost, Poison, Fire, Lightning) are not in: Cyrcalis is fought as he is. The lake's place is the server's Cyrcalis's."
@@ -3159,9 +3139,7 @@
    ],
    "unresolved": [
     "Ruddish the Devout",
-    "Biddleby",
-    "Biddleby",
-    "Ruddish the Devout"
+    "Biddleby"
    ],
    "notes": "From EQOA-Data Quests/60/good-healer.json, Episode 3 (github.com/Jadiction/EQOA-Data, MIT). Biddleby stands on the hill always (the guide's comes from instantly to two hours); the pie is Lilla's (the guide does not say whose)."
   },
@@ -3402,7 +3380,6 @@
     }
    ],
    "unresolved": [
-    "Ozmo da Basher",
     "Ozmo da Basher"
    ],
    "notes": "From EQOA-Data Quests/60/evil-tank.json, Episode 1 (github.com/Jadiction/EQOA-Data, MIT). Ozmo is FrontiersForge's Ozmo da basher (the guide's Ozma Da Basher). The treants' camp: let the treant prisoner reach the stones, the guide says."
@@ -3520,10 +3497,7 @@
    "unresolved": [
     "Ozmo da Basher",
     "fire basilisk",
-    "fire basilisk",
-    "fire basilisk",
-    "Megametamilipizon",
-    "Ozmo da Basher"
+    "Megametamilipizon"
    ],
    "notes": "From EQOA-Data Quests/60/evil-tank.json, Episode 1 (github.com/Jadiction/EQOA-Data, MIT). The named millipedes are not in: the Megametamilipizon rises when the ores melt."
   },
@@ -3581,8 +3555,7 @@
    ],
    "unresolved": [
     "Ozmo da Basher",
-    "Desert Marauder",
-    "Ozmo da Basher"
+    "Desert Marauder"
    ],
    "notes": "From EQOA-Data Quests/60/evil-tank.json, Episode 2 (github.com/Jadiction/EQOA-Data, MIT)."
   },
@@ -4666,9 +4639,9 @@
     {
      "kind": "reach",
      "world": 2,
-     "x": 10509,
+     "x": 11158,
      "y": 0,
-     "z": 5469,
+     "z": 5423,
      "radius": 60,
      "journal": "Go to the hill by the great depression in the middle of the North Barren Coast.",
      "events": [
@@ -4708,7 +4681,7 @@
    "unresolved": [
     "Boldunder"
    ],
-   "notes": "From EQOA-Data Quests/60/evil-melee.json, Episode 3 (github.com/Jadiction/EQOA-Data, MIT). Boldunder's place is EQOA-Data's map point laid over Odus by a fit of ours."
+   "notes": "From EQOA-Data Quests/60/evil-melee.json, Episode 3 (github.com/Jadiction/EQOA-Data, MIT). Boldunder's place is EQOA-Data's map point laid over Odus (the seed's fit)."
   },
   {
    "key": "60/evil-melee/ep3-2",
@@ -5094,7 +5067,6 @@
     }
    ],
    "unresolved": [
-    "Froglok Channeler",
     "Froglok Channeler"
    ],
    "notes": "From EQOA-Data Quests/60/evil-caster.json, Episode 1 (github.com/Jadiction/EQOA-Data, MIT). The herbalist's hour of waves and his port to Severupidus in south Guk are not in: he brews the potion when given the ingredients."
@@ -5631,7 +5603,6 @@
     }
    ],
    "unresolved": [
-    "Avatar of Love",
     "Avatar of Love"
    ],
    "notes": "From EQOA-Data Quests/60/evil-caster.json, Episode 3 (github.com/Jadiction/EQOA-Data, MIT)."
@@ -5909,10 +5880,7 @@
     "Elder Froglok Guk Diviner",
     "Elder Fungal Cavalier",
     "High Shaman",
-    "Froglok Bloodletter",
-    "Froglok Bloodletter",
-    "Froglok Bloodletter",
-    "High Shaman"
+    "Froglok Bloodletter"
    ],
    "notes": "From EQOA-Data Quests/60/evil-healer.json, Episode 1 (github.com/Jadiction/EQOA-Data, MIT). The guide says to go back to \"your Sensei\" (the good melees'): Yalgima here."
   },

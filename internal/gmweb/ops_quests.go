@@ -259,7 +259,7 @@ func (s *Server) registerQuestOps() {
 		},
 	})
 	s.addOp(&Op{
-		Name: "quest_try", Title: "Try a quest", Scope: scopeWrite, Core: true,
+		Name: "quest_try", Title: "Try a quest", Scope: scopeWrite,
 		Description: "Give a quest (a draft too) to your own character in the world, to play it through: talk to its " +
 			"first step's NPC. Logged and revertible.",
 		Input: obj(map[string]any{"quest": integer("the quest's id")}, "quest"),

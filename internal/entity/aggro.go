@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"sync"
 	"time"
 
 	"github.com/eqoa/server/internal/database"
@@ -109,13 +110,45 @@ type AggroRule struct {
 // kept nature is looked at again when it changes), the farthest any creature
 // looks, and the characters a GM's #aggro off leaves alone (by character id,
 // until #aggro on or a restart).
+//
+// A rule is for its name as npcclass keys one (database.NPCClassKey: any case,
+// trimmed, no trailing $), so one row covers every spelling the imports gave
+// a name ("Cave Minnow" Sandstorm's, the lake's "cave minnow" Return Home's);
+// byName keeps each spelling's lookup, made once (cacheMu: a lookup may come
+// under the World's read lock).
 type aggroState struct {
 	off        bool
 	factionOff bool
-	rules      map[string]AggroRule
+	rules      map[string]AggroRule // by NPCClassKey
 	gen        uint32
 	reach      float32
 	ignored    map[uint32]bool
+	cacheMu    sync.Mutex
+	byName     map[string]aggroLookup
+}
+
+// aggroLookup is a spelling's rule, or none.
+type aggroLookup struct {
+	rule AggroRule
+	ok   bool
+}
+
+// ruleFor is the GMs' rule for an NPC of this name, if any.
+func (a *aggroState) ruleFor(name string) (AggroRule, bool) {
+	if len(a.rules) == 0 {
+		return AggroRule{}, false
+	}
+	a.cacheMu.Lock()
+	defer a.cacheMu.Unlock()
+	l, seen := a.byName[name]
+	if !seen {
+		l.rule, l.ok = a.rules[database.NPCClassKey(name)]
+		if a.byName == nil {
+			a.byName = make(map[string]aggroLookup)
+		}
+		a.byName[name] = l
+	}
+	return l.rule, l.ok
 }
 
 // inAggroLevels reports a player within a creature's level range: below three
@@ -131,7 +164,7 @@ func (w *World) hostileNatureLocked(npc *NPC) bool {
 	if npc.NPCType&0x80 != 0 {
 		return false // the NPC bit: no one may attack it, so it attacks no one
 	}
-	if r, ok := w.aggro.rules[npc.Name]; ok {
+	if r, ok := w.aggro.ruleFor(npc.Name); ok {
 		return r.Aggressive
 	}
 	if len(w.playerModels) == 0 {
@@ -177,7 +210,7 @@ func (w *World) factionAggroLocked(npc *NPC) (string, bool) {
 	if w.aggro.factionOff || npc.NPCType&0x80 != 0 {
 		return "", false
 	}
-	if _, ok := w.aggro.rules[npc.Name]; ok {
+	if _, ok := w.aggro.ruleFor(npc.Name); ok {
 		return "", false
 	}
 	f := w.npcFactionLocked(npc)
@@ -262,7 +295,7 @@ func (w *World) targetFaceLocked(p *Player, npc *NPC) byte {
 // GM's radius for its name, else its own, else DefaultAggroRadius. Must be
 // called with the lock held.
 func (w *World) aggroRadiusLocked(npc *NPC) float32 {
-	if r, ok := w.aggro.rules[npc.Name]; ok && r.Radius > 0 {
+	if r, ok := w.aggro.ruleFor(npc.Name); ok && r.Radius > 0 {
 		return r.Radius
 	}
 	if npc.AggroRadius > 0 {
@@ -342,7 +375,20 @@ func (w *World) AggroOff() bool {
 func (w *World) SetAggroRules(rules map[string]AggroRule) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	w.aggro.rules = rules
+	// by NPCClassKey; two spellings of one name: the peaceful rule wins (the
+	// GMs' rows agree on eqoaclassic, every spelling pair of them)
+	keyed := make(map[string]AggroRule, len(rules))
+	for name, r := range rules {
+		k := database.NPCClassKey(name)
+		if o, dup := keyed[k]; dup && !o.Aggressive && r.Aggressive {
+			continue
+		}
+		keyed[k] = r
+	}
+	w.aggro.rules = keyed
+	w.aggro.cacheMu.Lock()
+	w.aggro.byName = nil
+	w.aggro.cacheMu.Unlock()
 	w.aggro.gen++
 	w.aggro.reach = DefaultAggroRadius
 	for _, r := range rules {

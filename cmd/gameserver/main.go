@@ -139,7 +139,19 @@ func main() {
 	} else if _, err := gameWorld.LoadAggroRules(db); err != nil {
 		log.Printf("WARNING: %v; creatures attack on sight by the rule alone", err)
 	}
+	if cfg.World.FactionAggro != nil && !*cfg.World.FactionAggro {
+		gameWorld.SetFactionAggro(false)
+	}
 	log.Printf("Creatures: %s", gameWorld.AggroSummary())
+	// Nothing may attack a new character on sight where it first stands
+	// (entity/faction.go: the dark elf the ghoul servant killed, 2026-10-29)
+	if spots, err := db.StartSpots(); err != nil {
+		log.Printf("WARNING: the start spots: %v", err)
+	} else if !gameWorld.AggroOff() {
+		for _, l := range gameWorld.StartThreatLines(spots) {
+			log.Printf("Factions: %s", l)
+		}
+	}
 	// Which creatures are undead, for the spells that take nothing else
 	// (entity/undead.go, table npcundead)
 	if _, _, err := gameWorld.LoadUndeadTags(db); err != nil {

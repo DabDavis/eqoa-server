@@ -7,12 +7,80 @@ import "fmt"
 //
 //   - factions (name, standing): the factions and the starting standing. It is
 //     filled from DefaultFactions when it is empty, so a GM's edit of it stays.
+//   - factionstart (race, class, humtype, faction, standing): the standing the
+//     characters of a race, class and home city start with where it is not the
+//     faction's own (factions); -1 is any. The most specific row a character
+//     matches is its start (entity/faction.go). tools/seed_faction_starts.py
+//     writes Sandstorm's measured starts (source "seed").
 //   - charfactions (serverid, faction, standing): a character's standing with a
 //     faction it has moved off the starting one, kept over a logout.
 //   - factionhits (npc_name, faction, delta, source): killing an NPC of that
 //     name adds delta to the killer's standing with that faction. The numbers
 //     are this server's, not measured: no capture of a faction hit exists.
 //     tools/seed_faction_hits.py writes the town rows (source "town-seed").
+//   - npcfaction (name, world, x, z, radius, faction): which faction an NPC is
+//     of, by its name as NPCClassKey keys it, anywhere (world -1), in one
+//     world (radius 0) or within radius of (x, z) in one world (by where it
+//     spawned): its target face and its aggro follow a player's standing with
+//     it (entity/aggro.go). tools/seed_npc_factions.py writes the towns' rows
+//     (source "seed").
+
+// factionStartSchema and npcFactionSchema are the two tables seedFactions
+// makes (initSchema calls it after the factions table is made).
+const factionStartSchema = `
+	CREATE TABLE IF NOT EXISTS factionstart (
+		id       INTEGER PRIMARY KEY AUTOINCREMENT,
+		race     INTEGER NOT NULL DEFAULT -1,
+		class    INTEGER NOT NULL DEFAULT -1,
+		humtype  INTEGER NOT NULL DEFAULT -1,
+		faction  TEXT NOT NULL,
+		standing INTEGER NOT NULL,
+		note     TEXT NOT NULL DEFAULT '',
+		source   TEXT NOT NULL DEFAULT 'gm',
+		UNIQUE (race, class, humtype, faction)
+	);
+	CREATE INDEX IF NOT EXISTS idx_factionstart_faction ON factionstart(faction);`
+
+const npcFactionSchema = `
+	CREATE TABLE IF NOT EXISTS npcfaction (
+		id      INTEGER PRIMARY KEY AUTOINCREMENT,
+		name    TEXT NOT NULL,
+		world   INTEGER NOT NULL DEFAULT -1,
+		x       REAL NOT NULL DEFAULT 0,
+		z       REAL NOT NULL DEFAULT 0,
+		radius  REAL NOT NULL DEFAULT 0,
+		faction TEXT NOT NULL,
+		note    TEXT NOT NULL DEFAULT '',
+		source  TEXT NOT NULL DEFAULT 'gm',
+		UNIQUE (name, world, x, z, radius)
+	);
+	CREATE INDEX IF NOT EXISTS idx_npcfaction_name ON npcfaction(name);`
+
+// FactionStartRow is one row of factionstart: the standing with Faction the
+// characters of Race, Class and HumType (each -1 for any) start with.
+type FactionStartRow struct {
+	Race, Class, HumType int
+	Faction              string
+	Standing             int
+}
+
+// NPCFactionRow is one row of npcfaction: the NPCs of Name (NPCClassKey) are
+// of Faction anywhere (World -1), anywhere in World (Radius 0), or where they
+// spawned within Radius of (X, Z) in World. An empty Faction is none.
+type NPCFactionRow struct {
+	Name         string
+	World        int
+	X, Z, Radius float64
+	Faction      string
+}
+
+// StartSpot is one defaultcharacter row's place: where a new character of a
+// race, class and home city stands at its first login.
+type StartSpot struct {
+	Race, Class, HumType int
+	World                int
+	X, Y, Z              float32
+}
 
 // FactionDefault is a faction and the standing a character starts with.
 type FactionDefault struct {
@@ -366,8 +434,14 @@ var DefaultFactions = []FactionDefault{
 	{"The Wolves of the North", -2000},
 }
 
-// seedFactions fills an empty factions table from DefaultFactions.
+// seedFactions makes factionstart and npcfaction and fills an empty factions
+// table from DefaultFactions.
 func (db *SQLiteDB) seedFactions() error {
+	for _, s := range []string{factionStartSchema, npcFactionSchema} {
+		if _, err := db.Exec(s); err != nil {
+			return fmt.Errorf("faction tables: %w", err)
+		}
+	}
 	var n int
 	if err := db.QueryRow(`SELECT COUNT(*) FROM factions`).Scan(&n); err != nil || n > 0 {
 		return err
@@ -418,6 +492,64 @@ func (db *SQLiteDB) FactionHits() ([]FactionHitRow, error) {
 			return nil, err
 		}
 		out = append(out, h)
+	}
+	return out, rows.Err()
+}
+
+// FactionStarts is the factionstart table.
+func (db *SQLiteDB) FactionStarts() ([]FactionStartRow, error) {
+	rows, err := db.Query(`SELECT race, class, humtype, faction, standing FROM factionstart ORDER BY id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []FactionStartRow
+	for rows.Next() {
+		var r FactionStartRow
+		if err := rows.Scan(&r.Race, &r.Class, &r.HumType, &r.Faction, &r.Standing); err != nil {
+			return nil, err
+		}
+		out = append(out, r)
+	}
+	return out, rows.Err()
+}
+
+// NPCFactions is the npcfaction table, its names as NPCClassKey keys them
+// (a GM may type one in any case).
+func (db *SQLiteDB) NPCFactions() ([]NPCFactionRow, error) {
+	rows, err := db.Query(`SELECT name, world, x, z, radius, faction FROM npcfaction ORDER BY id`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []NPCFactionRow
+	for rows.Next() {
+		var r NPCFactionRow
+		if err := rows.Scan(&r.Name, &r.World, &r.X, &r.Z, &r.Radius, &r.Faction); err != nil {
+			return nil, err
+		}
+		r.Name = NPCClassKey(r.Name)
+		out = append(out, r)
+	}
+	return out, rows.Err()
+}
+
+// StartSpots is every defaultcharacter row's place, for the start's check
+// that nothing attacks a new character where it stands (entity/faction.go).
+func (db *SQLiteDB) StartSpots() ([]StartSpot, error) {
+	rows, err := db.Query(`SELECT race, tclass, humType, COALESCE(world, 0), x, y, COALESCE(z, 0)
+		FROM defaultcharacter ORDER BY race, humType, tclass`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []StartSpot
+	for rows.Next() {
+		var s StartSpot
+		if err := rows.Scan(&s.Race, &s.Class, &s.HumType, &s.World, &s.X, &s.Y, &s.Z); err != nil {
+			return nil, err
+		}
+		out = append(out, s)
 	}
 	return out, rows.Err()
 }

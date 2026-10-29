@@ -850,7 +850,12 @@ func (s *SQLiteCharacterStore) NameExists(name string) (bool, error) {
 	return count > 0, err
 }
 
-// Update updates a character.
+// Update updates a character: everything of the row but its tunar. Every
+// caller reads the row, changes its place, level or training and writes it
+// back; the purse and the bank are kept as they move (InventoryStore.SetPurse
+// and SetTunar, the auction house's transactions), and writing them back from
+// a row read before an auction paid into the bank lost the payment (a
+// settlement between a logout's read and its write).
 func (s *SQLiteCharacterStore) Update(c *CharacterRecord) error {
 	_, err := s.db.Exec(`
 		UPDATE characters SET
@@ -858,7 +863,7 @@ func (s *SQLiteCharacterStore) Update(c *CharacterRecord) error {
 			currentHP = ?, currentPower = ?,
 			tpstrength = ?, tpstamina = ?, tpagility = ?, tpdexterity = ?,
 			tpwisdom = ?, tpintel = ?, tpcharisma = ?,
-			totalXP = ?, debt = ?, tunar = ?, bankTunar = ?, unusedTP = ?, totalTP = ?,
+			totalXP = ?, debt = ?, unusedTP = ?, totalTP = ?,
 			ac = ?, poisonr = ?, diseaser = ?, firer = ?, coldr = ?, lightningr = ?, arcaner = ?,
 			fishing = ?, player_flags = ?, completed_quests = ?, active_quests = ?
 		WHERE serverid = ?
@@ -867,7 +872,7 @@ func (s *SQLiteCharacterStore) Update(c *CharacterRecord) error {
 		c.CurrentHP, c.CurrentPower,
 		c.TPStrength, c.TPStamina, c.TPAgility, c.TPDexterity,
 		c.TPWisdom, c.TPIntel, c.TPCharisma,
-		c.TotalXP, c.Debt, c.Tunar, c.BankTunar, c.UnusedTP, c.TotalTP,
+		c.TotalXP, c.Debt, c.UnusedTP, c.TotalTP,
 		c.AC, c.PoisonR, c.DiseaseR, c.FireR, c.ColdR, c.LightningR, c.ArcaneR,
 		c.Fishing, c.PlayerFlags, c.CompletedQuests, c.ActiveQuests,
 		c.ServerID,

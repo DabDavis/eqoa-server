@@ -138,6 +138,11 @@ func (s *InventoryStore) MoveCharItem(serverID uint32, itemID, location int) err
 	return s.dropQuickSlot(serverID, itemID)
 }
 
+// SetPurse stores a character's purse alone (characters.tunar).
+func (s *InventoryStore) SetPurse(serverID uint32, tunar int) error {
+	return s.execOne(`UPDATE characters SET tunar = ? WHERE serverid = ?`, tunar, serverID)
+}
+
 // SetTunar stores a character's purse and bank tunar.
 func (s *InventoryStore) SetTunar(serverID uint32, tunar, bankTunar int) error {
 	return s.execOne(`UPDATE characters SET tunar = ?, bankTunar = ? WHERE serverid = ?`,

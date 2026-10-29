@@ -146,6 +146,10 @@ type CharacterHandler struct {
 	// craftSlots is a character's six tradeskill slots for the dump
 	// (CraftHandler.DumpSlots, craft.go); nil: Sandstorm's defaults
 	craftSlots func(charID uint32) [database.CraftSkills][4]uint32
+	// auction is the auction house (auction.go): a login's bank made right
+	// before its dump, and the dump's lots and bids; nil: none, two empty
+	// lists
+	auction *AuctionHouse
 }
 
 // NewCharacterHandler creates a new character handler with SQLite persistence.
@@ -1355,6 +1359,12 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 	// sequence number and shifts the MemoryDump fragments by one.
 	h.sendTimeOnly(sess)
 
+	// the bank's tunar as kept now and what the auction house holds for it
+	// filed (auction.go), so the dump carries both
+	if h.auction != nil {
+		h.auction.BeforeDump(sess, player)
+	}
+
 	h.queueMemoryDump(sess, player)
 
 	// Send ignore list and buddy list after memory dump (matches eqoa.live)
@@ -1391,9 +1401,25 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 	if h.gameWorld != nil {
 		defer h.gameWorld.PetDumped(sess)
 	}
+	// The bank as one piece (bank.go's bankMu): its tunar, its list and the
+	// auction's lots and bids read and the dump queued with nothing of the
+	// bank's moving between, so a payment or an item the auction house files
+	// is either in this dump or after it (0x1253, 0x1251), never lost behind
+	// it or in it twice. The bank's tunar is the live Player's: a respawn
+	// hands a copy, taken before the lock.
+	bankMu.Lock()
+	defer bankMu.Unlock()
+	bankTunar := player.BankTunar
+	if h.gameWorld != nil {
+		if live := h.gameWorld.SessionPlayer(sess); live != nil && live.CharServerID == player.CharServerID {
+			bankTunar = live.BankTunar
+		}
+	}
 	msg := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeMemoryDump)
-	// MemoryDump can be 30KB+ with items/spells/hotkeys; write to a large buffer then SetData
-	dumpBuf := make([]byte, 65536)
+	// MemoryDump can be 30KB+ with items/spells/hotkeys; write to a large
+	// buffer then SetData (the Writer drops what does not fit, silently: the
+	// auction's lists put up to ~5 KB more in it)
+	dumpBuf := make([]byte, 131072)
 	writer := buffer.NewWriter(dumpBuf)
 
 	// Write opcode in data
@@ -1423,7 +1449,7 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 	}
 
 	// Character data (zigzag encoded) — all from Player struct
-	writeDumpRecord(writer, player)
+	writeDumpRecordBank(writer, player, bankTunar)
 
 	// THE WORLD INDEX, and it must agree with the path string above.
 	//
@@ -1541,7 +1567,9 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 	if h.craftSlots != nil {
 		craft = h.craftSlots(player.CharServerID)
 	}
-	writeMemoryDumpTail(writer, player, spells, craft)
+	writeMemoryDumpTailWith(writer, player, spells, craft, func(w *buffer.Writer) {
+		h.auction.WriteDumpLists(w, player.CharServerID)
+	})
 	log.Printf("SendMemoryDump: wrote %d abilities", len(spells))
 
 	dumpData := dumpBuf[:writer.Position()]
@@ -1607,10 +1635,23 @@ const memoryDumpTrailerLen = 39
 // (Sandstorm's bard sends 42); the character's spellbook goes here, each row as
 // writeAbilityRecord (ps2opcodes.go) writes it.
 func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player, spells []database.CharSpellEntry, craft [database.CraftSkills][4]uint32) {
-	w.Write7BitEncodedInt64(0) // the bank's listing rows
-	w.Write7BitEncodedInt64(0) // the bank's 32-byte rows
-	w.WriteByte(0x01)          // the bank's flag byte
-	w.WriteByte(0x00)          // HaveCorpse: no corpse list follows
+	writeMemoryDumpTailWith(w, player, spells, craft, nil)
+}
+
+// writeMemoryDumpTailWith is writeMemoryDumpTail with the bank's two auction
+// lists written by lists (AuctionHouse.WriteDumpLists: VIBankControl::Read's
+// m_lots, the character's lots, and m_bids, its bids); nil writes both empty.
+// The flag after them is VIBankControl's m_p78CC, which offers the auction's
+// rows on the bank's menu and the start menu (VIWndBankMenu, OpenStartMenu).
+func writeMemoryDumpTailWith(w *buffer.Writer, player *entity.Player, spells []database.CharSpellEntry, craft [database.CraftSkills][4]uint32, lists func(*buffer.Writer)) {
+	if lists != nil {
+		lists(w)
+	} else {
+		w.Write7BitEncodedInt64(0) // the bank's lots (m_lots)
+		w.Write7BitEncodedInt64(0) // the bank's bids (m_bids)
+	}
+	w.WriteByte(0x01) // the bank's flag byte: the auction offered
+	w.WriteByte(0x00) // HaveCorpse: no corpse list follows
 	w.Write7BitEncodedInt64(int64(len(spells)))
 	for i := range spells {
 		writeAbilityRecord(w, &spells[i])
@@ -1638,6 +1679,11 @@ func writeMemoryDumpTail(w *buffer.Writer, player *entity.Player, spells []datab
 // the bank's tunar, the training points (m_p40) and m_p44, the stat cap
 // before masteries (entity/mastery.go; CLIENT's GetP44Total).
 func writeDumpRecord(writer *buffer.Writer, player *entity.Player) {
+	writeDumpRecordBank(writer, player, player.BankTunar)
+}
+
+// writeDumpRecordBank is writeDumpRecord with the bank's tunar given.
+func writeDumpRecordBank(writer *buffer.Writer, player *entity.Player, bankTunar int) {
 	writer.Write7BitEncodedInt64(int64(player.CharServerID))
 	writer.WriteInt32(int32(len(player.Name)))
 	writer.WriteStringUTF8Raw(player.Name)
@@ -1648,7 +1694,7 @@ func writeDumpRecord(writer *buffer.Writer, player *entity.Player) {
 	writer.Write7BitEncodedInt64(int64(player.Debt))
 	writer.WriteByte(byte(player.Breath)) // Breath (255 = full)
 	writer.Write7BitEncodedInt64(int64(player.Tunar))
-	writer.Write7BitEncodedInt64(int64(player.BankTunar))
+	writer.Write7BitEncodedInt64(int64(bankTunar))
 	writer.Write7BitEncodedInt64(int64(player.UnusedTP))
 	writer.Write7BitEncodedInt64(int64(entity.StatCapBase(player.Level)))
 }

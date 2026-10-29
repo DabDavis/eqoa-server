@@ -65,6 +65,10 @@ type NPCWindowHandler struct {
 	lootOnce sync.Once
 	coinRoll func(int) int
 	lootIntn func(int) int
+
+	// auction is the auction house (auction.go): 0x1205, and what it holds
+	// for a player filed as its bank opens
+	auction *AuctionHouse
 }
 
 // NewNPCWindowHandler creates the handler. inv may be nil (no database): the
@@ -448,7 +452,6 @@ func (h *NPCWindowHandler) takeItem(player *entity.Player, l *invList, i int, re
 	return nil
 }
 
-// saveTunar stores the purse and the bank's tunar.
 // spendTunar takes amount tunar from the player, kept and shown, when it has
 // that much (a waysender's fee: interact.go's travel).
 func (h *NPCWindowHandler) spendTunar(sess *session.Session, player *entity.Player, amount int) bool {
@@ -461,11 +464,15 @@ func (h *NPCWindowHandler) spendTunar(sess *session.Session, player *entity.Play
 	return true
 }
 
+// saveTunar stores the purse. It writes the purse alone: the bank's tunar
+// moves only under bankMu (the bank's own moves, the auction house), and a
+// purse's save from a copy of the Player read before an auction paid into the
+// bank wrote the bank back as it was (the payment lost).
 func (h *NPCWindowHandler) saveTunar(player *entity.Player) {
 	if h.inv == nil {
 		return
 	}
-	if err := h.inv.SetTunar(player.CharServerID, player.Tunar, player.BankTunar); err != nil {
-		log.Printf("tunar: saving %s's %d / %d: %v", player.Name, player.Tunar, player.BankTunar, err)
+	if err := h.inv.SetPurse(player.CharServerID, player.Tunar); err != nil {
+		log.Printf("tunar: saving %s's purse %d: %v", player.Name, player.Tunar, err)
 	}
 }

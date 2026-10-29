@@ -586,8 +586,8 @@ func (s *AccountServer) handleRegisterPage(w http.ResponseWriter, r *http.Reques
                 <input type="text" id="username" name="username" required minlength="3" maxlength="16" pattern="[a-zA-Z0-9_]+">
             </div>
             <div class="form-group">
-                <label for="password">Password (4+ characters)</label>
-                <input type="password" id="password" name="password" required minlength="4">
+                <label for="password">Password (4-31 characters)</label>
+                <input type="password" id="password" name="password" required minlength="4" maxlength="31">
             </div>
             <div class="form-group">
                 <label for="confirm">Confirm Password</label>
@@ -1293,6 +1293,9 @@ func (s *AccountServer) createAccount(clientIP, username, password string) error
 	}
 	if len(password) < 4 {
 		return fmt.Errorf("password must be at least 4 characters")
+	}
+	if len(password) > auth.MaxPasswordLen {
+		return fmt.Errorf("password must be at most %d characters, all the game's login can carry", auth.MaxPasswordLen)
 	}
 
 	s.createdIPsMu.RLock()

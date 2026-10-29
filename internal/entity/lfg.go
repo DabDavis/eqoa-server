@@ -7,8 +7,8 @@ import (
 )
 
 // The group search of SOE's live client (VIWndGroupSearch, Community > Group >
-// Search; handlers/lfg.go has the wire, ~/.cache/f3pass24/livediff/specs/
-// lfg.md the client): a character registers as looking (0x0801 sub 2, or
+// Search; handlers/lfg.go has the wire, the live-client research's
+// livediff/specs/lfg.md the client, outside this repository): a character registers as looking (0x0801 sub 2, or
 // /lfg on), and a search lists the registered characters a group could use or
 // the groups a character could join. The client keeps no registration state;
 // the flag is the Player's, so a logout ends it (the next login is a new

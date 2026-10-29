@@ -12,7 +12,8 @@ import (
 )
 
 // The group search of SOE's live client (VIWndGroupSearch, live CLIENT
-// 0x013623C8..; ~/.cache/f3pass24/livediff/specs/lfg.md) and the Group menu's
+// 0x013623C8..; the live-client research's livediff/specs/lfg.md, outside this
+// repository) and the Group menu's
 // Show/Hide Chat, which the disc already had. The registration and the search
 // are entity/lfg.go's.
 //

@@ -8,7 +8,8 @@ import (
 )
 
 // Stacks sold by the item: SOE's live client's auction (feature bit 0x08;
-// ~/.cache/f3pass24/livediff/specs/auction-stacks.md). A lot put up by the
+// the live-client research's livediff/specs/auction-stacks.md, outside this
+// repository). A lot put up by the
 // item with two or more (AuctionLot.Multi) sells in units: a bid is a proxy
 // for a quantity at a most per item, and the highest bids per item take units
 // down the ranking until the stack runs out. How SOE's server settled a stack

@@ -287,6 +287,9 @@ type ActiveEffect struct {
 	// Ward cuts the creatures' melee hits on its bearer (ward.go), nil for
 	// none
 	Ward *Ward
+	// Mark is a curse on a creature that answers the players' and pets' hits
+	// on it (mark.go), nil for none
+	Mark *Mark
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -974,6 +977,8 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			}
 		case EffectWard:
 			ae.Ward = ae.Ward.with(e) // ward.go
+		case EffectMark, EffectMarkHeal:
+			ae.Mark = ae.Mark.with(e, cs) // mark.go
 		default:
 			continue
 		}

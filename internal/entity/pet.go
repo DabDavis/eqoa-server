@@ -805,7 +805,8 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 
 // petTauntLocked is the pet's taunt: its target's hate for it put above
 // everyone else's, so it turns on the pet, and one more of the pet's hits
-// (Grand Animation's grandAnimationTaunt). It reports a kill.
+// (Grand Animation's grandAnimationTaunt), which the creature's mark answers
+// as any of its hits (mark.go). It reports a kill.
 func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 	pet := ps.npc
 	if t.Dummy == NotDummy {
@@ -829,11 +830,14 @@ func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 	}
 	log.Printf("Pet: %s's %q taunts %s (round %d)", ps.owner.Name, pet.Name, t.Name, ps.rounds)
 	pet.LastCombatTime = now
-	return w.petDamageLocked(ps, t, n, now)
+	if w.petDamageLocked(ps, t, n, now) {
+		return true
+	}
+	return w.petMarkLocked(ps, t, now) // the creature's mark (mark.go)
 }
 
 // petHitLocked is one of the pet's hits on its target, then its procs
-// (proc.go). It reports a kill.
+// (proc.go) and the creature's mark (mark.go). It reports a kill.
 func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	ps.npc.LastCombatTime = now
 	n := petMeleeHit(ps.npc, t, meleeIntn)
@@ -843,7 +847,10 @@ func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	if w.petDamageLocked(ps, t, n, now) {
 		return true
 	}
-	return w.petProcsLocked(ps, t, now)
+	if w.petProcsLocked(ps, t, now) {
+		return true
+	}
+	return w.petMarkLocked(ps, t, now)
 }
 
 // petDamageLocked is n of the pet's damage on its target, its owner's: the

@@ -154,7 +154,7 @@ func wardHit(effects []*ActiveEffect, n int, now time.Time) (taken int, ae *Acti
 func (ae *ActiveEffect) idle() bool {
 	return ae.Ward == nil && ae.HPTick == 0 && ae.PowerTick == 0 && ae.Mods == (StatMods{}) && !ae.Root && !ae.Snare &&
 		!ae.Speed && !ae.Invis && ae.Proc == 0 && ae.ProcMax == 0 && ae.Form == 0 && !ae.Appearance &&
-		ae.Shield == nil && !ae.PowerCapped
+		ae.Shield == nil && !ae.PowerCapped && ae.Mark == nil
 }
 
 // playerWardLocked is a creature's melee hit of n on a player after the

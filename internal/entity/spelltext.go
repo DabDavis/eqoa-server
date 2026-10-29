@@ -61,6 +61,8 @@ const (
 	EffectPowerCap                      // the bearer's maximum power at most Amount while it lasts; lasting no time, its power taken down to it (powercap.go)
 	EffectForget                        // the target forgets its hate for the caster (vampire.go: Vampiric Gaze)
 	EffectWard                          // a creature's melee hit on the bearer cut by Amount%, or to 1 when ToOne, Cap in all (ward.go)
+	EffectMark                          // on a creature: each player's or pet's hit on it does Amount to AmountMax more, 0 its default (mark.go)
+	EffectMarkHeal                      // on a creature: each player's or pet's hit on it heals the attacker Amount to AmountMax (mark.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -371,7 +373,7 @@ func (d SpellDef) asProc() SpellDef {
 		switch e.Kind {
 		case EffectHP, EffectHPTick, EffectStat:
 			d.Harmful = d.Harmful || (e.Amount < 0 && !e.Self)
-		case EffectRoot, EffectSnare, EffectHate:
+		case EffectRoot, EffectSnare, EffectHate, EffectMark, EffectMarkHeal:
 			d.Harmful = true
 		}
 	}
@@ -403,6 +405,7 @@ func ParseSpellText(line string) SpellDef {
 	}
 	text = joinStatLists(text) // spellnotes.go
 	text = shieldWords(text)   // dshield.go
+	text = markWords(text)     // mark.go
 	// The verb a clause without one goes on with ("Increase AC by 12,
 	// Maximum Power by 5"), and the effects a scale clause belongs to: the
 	// last one, or every stat of the list it ends ("PR/DR by 15 ; Increase
@@ -463,7 +466,8 @@ func ParseSpellText(line string) SpellDef {
 	// a resurrection's share of the latest death's debt (resurrect.go)
 	d.readResurrect()
 	// Cast at an enemy: what takes hit points or a stat, holds or slows,
-	// works on hate, or takes power (lifetap.go takesPower: a drain or
+	// works on hate, marks a creature (mark.go: the owner's ruling of
+	// 2026-10-29), or takes power (lifetap.go takesPower: a drain or
 	// decrease of the target's power, the owner's ruling of 2026-10-29; not
 	// Minor Healing's "Decrease Power by 1" beside its heal).
 	d.Harmful = d.takesPower()
@@ -473,7 +477,7 @@ func ParseSpellText(line string) SpellDef {
 			if e.Amount < 0 && !e.Self {
 				d.Harmful = true
 			}
-		case EffectRoot, EffectSnare, EffectHate, EffectCharm, EffectForget:
+		case EffectRoot, EffectSnare, EffectHate, EffectCharm, EffectForget, EffectMark, EffectMarkHeal:
 			d.Harmful = true
 		}
 	}
@@ -568,6 +572,10 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		return verb
 	}
 	if e, ok := wardPart(part); ok { // ward.go
+		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if e, ok := markPart(part); ok { // mark.go
 		d.Effects = append(d.Effects, e)
 		return verb
 	}

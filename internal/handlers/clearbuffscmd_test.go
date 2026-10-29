@@ -48,4 +48,13 @@ func TestClearBuffsIsAGMsOwn(t *testing.T) {
 	if got := texts(heard(t, gs)); len(got) != 1 || got[0] != "[GM] No buffs on you" {
 		t.Errorf("a second clear: %q", got)
 	}
+
+	// a slot #effect put on, with no effect behind it, goes too
+	gs.Queue().GetPending()
+	c.say(gs, "#effect 1DAEB5B6 a test slot")
+	gs.Queue().GetPending()
+	c.say(gs, "#clearbuffs")
+	if got := texts(heard(t, gs)); len(got) != 1 || got[0] != "[GM] #effect's slots cleared: 1" || len(gp.Buffs) != 0 {
+		t.Errorf("#effect's slot: %q, %d slots left", got, len(gp.Buffs))
+	}
 }

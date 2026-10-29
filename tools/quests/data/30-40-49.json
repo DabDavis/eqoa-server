@@ -116,6 +116,42 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/fayspire/enchanter/L20, so a enchanter of Fayspires is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
   },
   {
+   "key": "30,40,49/group-3-good/L30-fayspire-magician",
+   "name": "Daresh of Murnf",
+   "giver": "Fethinar Silspin",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/magician/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Murnf: Daresh, upstairs in the building west of the coach, needs someone who can ask questions quietly.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Find Daresh in Murnf, upstairs in the building west of the coach.",
+     "says": "An evil man named Bardif lost his son Tarlin to kidnappers. Learn what you can from Mergmar, his butler in Qeynos, without Bardif knowing. Show him my token.",
+     "rewards": {
+      "items": [
+       "Daresh's token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/fayspire/magician/L20, so a magician of Fayspires is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
+  },
+  {
    "key": "30,40,49/group-1-good/L30-fayspire-paladin",
    "name": "A New Trainer in Forkwatch",
    "giver": "Sir Lothwin Galiel",
@@ -454,6 +490,42 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/highbourne/enchanter/L20, so a enchanter of Highbourne is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
   },
   {
+   "key": "30,40,49/group-3-good/L30-highbourne-magician",
+   "name": "Daresh of Murnf",
+   "giver": "Caller Arkhad",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/magician/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Murnf: Daresh, upstairs in the building west of the coach, needs someone who can ask questions quietly.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Find Daresh in Murnf, upstairs in the building west of the coach.",
+     "says": "An evil man named Bardif lost his son Tarlin to kidnappers. Learn what you can from Mergmar, his butler in Qeynos, without Bardif knowing. Show him my token.",
+     "rewards": {
+      "items": [
+       "Daresh's token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/highbourne/magician/L20, so a magician of Highbourne is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
+  },
+  {
    "key": "30,40,49/group-1-good/L30-highbourne-paladin",
    "name": "A New Trainer in Forkwatch",
    "giver": "Ulana Stillmind",
@@ -646,6 +718,42 @@
    ],
    "unresolved": [],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/klick-anon/enchanter/L20, so a enchanter of Klick'Anon is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-klick-anon-magician",
+   "name": "Daresh of Murnf",
+   "giver": "Werlib Quack",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/klick-anon/magician/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Murnf: Daresh, upstairs in the building west of the coach, needs someone who can ask questions quietly.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Find Daresh in Murnf, upstairs in the building west of the coach.",
+     "says": "An evil man named Bardif lost his son Tarlin to kidnappers. Learn what you can from Mergmar, his butler in Qeynos, without Bardif knowing. Show him my token.",
+     "rewards": {
+      "items": [
+       "Daresh's token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/klick-anon/magician/L20, so a magician of Klick'Anon is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
   },
   {
    "key": "30,40,49/group-2-good/L30-klick-anon-warrior",
@@ -1024,6 +1132,42 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/paladin/L20, so a paladin of Qeynos is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
   },
   {
+   "key": "30,40,49/group-3-good/L30-qeynos-monk",
+   "name": "Daresh of Murnf",
+   "giver": "Mu Nan",
+   "classes": [
+    4
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/qeynos/monk/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Murnf: Daresh, upstairs in the building west of the coach, needs someone who can ask questions quietly.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Find Daresh in Murnf, upstairs in the building west of the coach.",
+     "says": "An evil man named Bardif lost his son Tarlin to kidnappers. Learn what you can from Mergmar, his butler in Qeynos, without Bardif knowing. Show him my token.",
+     "rewards": {
+      "items": [
+       "Daresh's token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/monk/L20, so a monk of Qeynos is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
+  },
+  {
    "key": "30,40,49/group-2-good/L30-qeynos-rogue",
    "name": "The Lightwolf Jewels",
    "giver": "Crow Darkstride",
@@ -1134,6 +1278,42 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/enchanter/L20, so a enchanter of Qeynos is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
   },
   {
+   "key": "30,40,49/group-3-good/L30-qeynos-magician",
+   "name": "Daresh of Murnf",
+   "giver": "Ammathor Lithkin",
+   "classes": [
+    10
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/qeynos/magician/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Murnf: Daresh, upstairs in the building west of the coach, needs someone who can ask questions quietly.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Find Daresh in Murnf, upstairs in the building west of the coach.",
+     "says": "An evil man named Bardif lost his son Tarlin to kidnappers. Learn what you can from Mergmar, his butler in Qeynos, without Bardif knowing. Show him my token.",
+     "rewards": {
+      "items": [
+       "Daresh's token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/magician/L20, so a magician of Qeynos is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
+  },
+  {
    "key": "30,40,49/group-1-good/L30-qeynos-alchemist",
    "name": "A New Trainer in Forkwatch",
    "giver": "Jergish Anaebraum",
@@ -1214,6 +1394,42 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/rivervale/cleric/L20, so a cleric of Rivervale is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
   },
   {
+   "key": "30,40,49/group-3-good/L30-rivervale-druid",
+   "name": "Daresh of Murnf",
+   "giver": "Ren Deeppockets",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/druid/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Murnf: Daresh, upstairs in the building west of the coach, needs someone who can ask questions quietly.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Find Daresh in Murnf, upstairs in the building west of the coach.",
+     "says": "An evil man named Bardif lost his son Tarlin to kidnappers. Learn what you can from Mergmar, his butler in Qeynos, without Bardif knowing. Show him my token.",
+     "rewards": {
+      "items": [
+       "Daresh's token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/rivervale/druid/L20, so a druid of Rivervale is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
+  },
+  {
    "key": "30,40,49/group-2-good/L30-rivervale-rogue",
    "name": "The Lightwolf Jewels",
    "giver": "Thom Gubbin",
@@ -1282,6 +1498,78 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/rivervale/warrior/L20, so a warrior of Rivervale is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
   },
   {
+   "key": "30,40,49/group-3-good/L30-surefall-glade-druid",
+   "name": "Daresh of Murnf",
+   "giver": "Shiol Anara",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/druid/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Murnf: Daresh, upstairs in the building west of the coach, needs someone who can ask questions quietly.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Find Daresh in Murnf, upstairs in the building west of the coach.",
+     "says": "An evil man named Bardif lost his son Tarlin to kidnappers. Learn what you can from Mergmar, his butler in Qeynos, without Bardif knowing. Show him my token.",
+     "rewards": {
+      "items": [
+       "Daresh's token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/surefall-glade/druid/L20, so a druid of Surefall Glade is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-surefall-glade-ranger",
+   "name": "Daresh of Murnf",
+   "giver": "Sigmor Fallbourne",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/surefall-glade/ranger/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Murnf: Daresh, upstairs in the building west of the coach, needs someone who can ask questions quietly.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Find Daresh in Murnf, upstairs in the building west of the coach.",
+     "says": "An evil man named Bardif lost his son Tarlin to kidnappers. Learn what you can from Mergmar, his butler in Qeynos, without Bardif knowing. Show him my token.",
+     "rewards": {
+      "items": [
+       "Daresh's token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/surefall-glade/ranger/L20, so a ranger of Surefall Glade is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
+  },
+  {
    "key": "30,40,49/group-1-good/L30-tethelin-bard",
    "name": "A New Trainer in Forkwatch",
    "giver": "Torenia Eaglesong",
@@ -1322,6 +1610,78 @@
     "Thumgrim Stoutshield"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/tethelin/bard/L20, so a bard of Tethelin is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-tethelin-druid",
+   "name": "Daresh of Murnf",
+   "giver": "Dawnseer Mistwelder",
+   "classes": [
+    7
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/druid/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Murnf: Daresh, upstairs in the building west of the coach, needs someone who can ask questions quietly.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Find Daresh in Murnf, upstairs in the building west of the coach.",
+     "says": "An evil man named Bardif lost his son Tarlin to kidnappers. Learn what you can from Mergmar, his butler in Qeynos, without Bardif knowing. Show him my token.",
+     "rewards": {
+      "items": [
+       "Daresh's token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/tethelin/druid/L20, so a druid of Tethelin is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-tethelin-ranger",
+   "name": "Daresh of Murnf",
+   "giver": "Lythen Trueshot",
+   "classes": [
+    1
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/ranger/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on in Murnf: Daresh, upstairs in the building west of the coach, needs someone who can ask questions quietly.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Find Daresh in Murnf, upstairs in the building west of the coach.",
+     "says": "An evil man named Bardif lost his son Tarlin to kidnappers. Learn what you can from Mergmar, his butler in Qeynos, without Bardif knowing. Show him my token.",
+     "rewards": {
+      "items": [
+       "Daresh's token"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/tethelin/ranger/L20, so a ranger of Tethelin is sent on. Daresh's token opens Group 3's path quests (Mergmar asks to see it)."
   },
   {
    "key": "30,40,49/group-2-good/L30-tethelin-rogue",
@@ -3887,6 +4247,1371 @@
     "Parathior (attackable)"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky). Lord Tearis Thex gives the final rewards; the guide's class approval tasks are not in. The four orbs are this group's first and second seals (the guide lists them before the third). Epic weapons are epics_49.json's first that exists here."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-a",
+   "name": "Bardif's Butler",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Find Bardif's butler, Mergmar, in Qeynos: from the main gate go west, west again, south through the long hall, then the first door east. Show him my token.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Mergmar",
+     "items": [
+      {
+       "item": "Daresh's token",
+       "count": 1
+      }
+     ],
+     "journal": "Show Daresh's token to Mergmar, Bardif's butler, in Qeynos.",
+     "says": "Daresh sent you? Then go to Pwin, a dark elf in the north of Highpass, in the corral by the gate that is not the coach's. He knows who took the boy.",
+     "notyet": "I have nothing to say to strangers about my master."
+    },
+    {
+     "kind": "talk",
+     "target": "Pwin",
+     "journal": "Find Pwin in the corral in the north of Highpass.",
+     "says": "I keep my ears open, that is all. The orcs of the Bloodfoot stronghold in Hate Spike held a boy one night."
+    },
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Report to Daresh in Murnf.",
+     "says": "The Bloodfoot orcs. Their jailor will know where the boy went."
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Mergmar",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30 (github.com/Jadiction/EQOA-Data, MIT). Pwin is spelt as the server has him (a trailing space aside)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-b",
+   "name": "The Jailor",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L30-a"
+   ],
+   "offer": "The Bloodfoot jailor in Mount Hate Spike held Tarlin a night. West up the first snowy valley is the stronghold; the jailor is down the ramp, at the end of the hall.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Mind the bandits: they see through invisibility.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Bloodfoot jailor",
+     "items": [
+      {
+       "item": "Unintelligible Note",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Bloodfoot jailor in the stronghold in Mount Hate Spike and take his note."
+    },
+    {
+     "kind": "give",
+     "target": "Daresh",
+     "items": [
+      {
+       "item": "Unintelligible Note",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the note to Daresh.",
+     "says": "Unreadable, to me. But Bardif's messenger Ricser waits at the Lost Watch Fort inn, north of Wyndhaven. He will read it, for a price."
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, The Jailor (github.com/Jadiction/EQOA-Data, MIT). The Bloodfoot bandits see the invisible."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-c",
+   "name": "Bardif's Messenger",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L30-b"
+   ],
+   "offer": "Ricser, Bardif's messenger, waits at the inn of Lost Watch Fort, north along the road from Wyndhaven. Pay him what he asks.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Ricser",
+     "items": [],
+     "tunar": 1600,
+     "journal": "Pay Ricser 1,600 tunar at the Lost Watch Fort inn, north of Wyndhaven.",
+     "says": "The note says the boy was taken to the Green Rift, to meet one Ziliq. You did not hear it from me."
+    },
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Tell Daresh what Ricser said.",
+     "says": "The Green Rift. Ziliq keeps a temple in the side of the rift, far west of Bobble-by-Water."
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Ricser (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-d",
+   "name": "The Ring of Gal'Saris",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L30-c"
+   ],
+   "offer": "Ziliq keeps a temple in the side of the Green Rift, a long run west of Bobble-by-Water. Take what he carries, then seek out Kipcah at Marr's Fist.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Bind in Murnf first: it is a long run.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Ziliq",
+     "items": [
+      {
+       "item": "Ring of Gal'Saris",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Ziliq in his temple in the Green Rift and take the Ring of Gal'Saris."
+    },
+    {
+     "kind": "show",
+     "target": "Kipcah",
+     "items": [
+      {
+       "item": "Ring of Gal'Saris",
+       "count": 1
+      }
+     ],
+     "journal": "Show the Ring of Gal'Saris to Kipcah at Marr's Fist, by the Temple of Light, west of Freeport's north gate.",
+     "says": "Gal'Saris! The boy passed this way, then. A Deathfist lookout stole my spyglass; with it I could tell you where they took him."
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Ziliq"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Ziliq and Kipcah (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30-e",
+   "name": "Kipcah's Spyglass",
+   "giver": "Kipcah",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L30-d"
+   ],
+   "offer": "A Deathfist lookout stole my spyglass: he is in a hut in the south-west of Deathfist Forge. Bring it back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Deathfist lookout",
+     "items": [
+      {
+       "item": "Kipcah's spyglass",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Deathfist lookout in his hut in Deathfist Forge and take the spyglass."
+    },
+    {
+     "kind": "show",
+     "target": "Kipcah",
+     "items": [
+      {
+       "item": "Kipcah's spyglass",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the spyglass to Kipcah.",
+     "says": "Broken! Gligbin, by the wagon just inside the white gate of Klick'Anon, can mend it."
+    },
+    {
+     "kind": "give",
+     "target": "Gligbin Gearcharmer",
+     "items": [
+      {
+       "item": "Kipcah's spyglass",
+       "count": 1
+      }
+     ],
+     "journal": "Take the spyglass to Gligbin, by the wagon just inside the white gate of Klick'Anon.",
+     "says": "A cracked lens, nothing more. There. No charge.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "mended spyglass",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Kipcah",
+     "items": [
+      {
+       "item": "mended spyglass",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the mended spyglass to Kipcah.",
+     "says": "I can see him: Tarlin is chained at the top of the ramp in the south of Deathfist Forge. Urtwar has the key."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Kipcah (github.com/Jadiction/EQOA-Data, MIT). Gligbin is the server's Gligbin Gearcharmer."
+  },
+  {
+   "key": "30,40,49/group-3-good/L30",
+   "name": "Free Tarlin",
+   "giver": "Kipcah",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L30-e"
+   ],
+   "offer": "Urtwar, at the top of the ramp in the south of Deathfist Forge, keeps the key to Tarlin's shackles. Kill him and set the boy free.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "A cleric partway up the ramp sees the invisible.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Urtwar",
+     "items": [
+      {
+       "item": "Orc Shackle Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Urtwar at the top of the ramp in the south of Deathfist Forge and take the shackle key."
+    },
+    {
+     "kind": "give",
+     "target": "Tarlin",
+     "items": [
+      {
+       "item": "Orc Shackle Key",
+       "count": 1
+      }
+     ],
+     "journal": "Unlock Tarlin with the orc shackle key.",
+     "says": "Free! Tell my father... no. Tell Daresh I am free."
+    },
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Return to Daresh in Murnf.",
+     "says": "The boy is free, and Bardif never knew who asked. Take what you have earned.",
+     "rewards": {
+      "xp": 7890859,
+      "byclass": {
+       "7": {
+        "spells": [
+         "Emberspark"
+        ],
+        "items": [
+         "Mishtur's Book"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Burning Mark"
+        ],
+        "items": [
+         "Staff of Dooog"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Adamant Stance"
+        ],
+        "items": [
+         "Swiftclaw"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Raven Eye"
+        ],
+        "items": [
+         "Springwind"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 30, Free Tarlin and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The choices: the ability on the class's line (the druid's fire line, as its level 40 choice; the magician's mark line, as the evil magicians' level 20) and the first weapon (magicians the second, the Staff of Dooog, which this database has; druids and rangers made like one of the kind and level)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L40-a",
+   "name": "Amends to Bardif",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L30"
+   ],
+   "offer": "Tarlin came home angry, and has taken up the necromancer's arts. Bardif blames the druids. Pay him 3,000 tunar in amends, at his house in Qeynos, and talk to Mergmar.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Mind Julie Tanner, if you wear a were's shape.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Bardif",
+     "items": [],
+     "tunar": 3000,
+     "journal": "Pay Bardif 3,000 tunar at his house in Qeynos, second floor.",
+     "says": "Amends. Hmph. It will not bring my son back as he was."
+    },
+    {
+     "kind": "talk",
+     "target": "Mergmar",
+     "journal": "Speak with Mergmar, downstairs from Bardif.",
+     "says": "The boy always loved the floating towers of the north."
+    },
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Report to Daresh in Murnf.",
+     "says": "Floating towers. Then he is gathering men. His bandits hold the two towers of the fort on the hill east of Wyndhaven, by the ravine."
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Bardif",
+    "Mergmar",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Bardif and Mergmar (github.com/Jadiction/EQOA-Data, MIT). The guide warns were-forms of Julie Tanner, the werehunter in Bardif's house."
+  },
+  {
+   "key": "30,40,49/group-3-good/L40-b",
+   "name": "Tarlin's Bandits",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L40-a"
+   ],
+   "offer": "Tarlin's bandits hold the two towers of the fort on the hill east of Wyndhaven, near the ravine. Bring me what they carry.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tarlin's bandit",
+     "items": [
+      {
+       "item": "bandit's note",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill Tarlin's bandits in the towers of the fort east of Wyndhaven until one carries a note."
+    },
+    {
+     "kind": "give",
+     "target": "Daresh",
+     "items": [
+      {
+       "item": "bandit's note",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bandit's note to Daresh.",
+     "says": "They mean to kill Bardif. An assassin is already in his house!"
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Bandits (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L40-c",
+   "name": "The Assassin in Bardif's House",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L40-b"
+   ],
+   "offer": "One of Tarlin's assassins is in Bardif's house in Qeynos. Go there, and kill him before he kills Bardif.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Assassin",
+     "items": [
+      {
+       "item": "assassin's dagger",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Go into Bardif's house in Qeynos and kill the assassin who waits there."
+    },
+    {
+     "kind": "give",
+     "target": "Daresh",
+     "items": [
+      {
+       "item": "assassin's dagger",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the assassin's dagger to Daresh.",
+     "says": "Tarlin sent three messengers out besides: to the Blacktongue orcs of Ferran's Hope, to Deathfist Citadel and to the Great Waste."
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Assassin",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Assassin (github.com/Jadiction/EQOA-Data, MIT). The assassin stands in Bardif's house (EQOA-Data's map point; the guide's attacks as the player comes in)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L40-d",
+   "name": "Tarlin's Agents",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L40-c"
+   ],
+   "offer": "Tarlin's agents carry his orders to the Blacktongue village in Ferran's Hope, to Deathfist Citadel, and to the main building in the north-east of the Great Waste. Stop all three.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tarlin's Agent",
+     "items": [
+      {
+       "item": "agent's note",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 1.0,
+     "journal": "Kill Tarlin's agents in Ferran's Hope, Deathfist Citadel and the Great Waste and take their three notes."
+    },
+    {
+     "kind": "give",
+     "target": "Daresh",
+     "items": [
+      {
+       "item": "agent's note",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three agents' notes to Daresh.",
+     "says": "He is making a necromancer's gems: the Gem of Night and the Rune of Corpses. Take them before he can."
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Tarlin's Agent",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Three Messengers (github.com/Jadiction/EQOA-Data, MIT). The agents stand at their three places always (the guide's are triggered)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L40-e",
+   "name": "Necromantic Gems",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L40-d"
+   ],
+   "offer": "Vahk'Kiv in the south of Guk keeps the Gem of Night; Daglader in the Tomb of Kings the Rune of Corpses. Take them both.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Vahk'Kiv",
+     "items": [
+      {
+       "item": "Gem of Night",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Vahk'Kiv in the south of Guk for the Gem of Night."
+    },
+    {
+     "kind": "loot",
+     "target": "Daglader",
+     "items": [
+      {
+       "item": "Rune of Corpses",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Daglader in the Tomb of Kings for the Rune of Corpses."
+    },
+    {
+     "kind": "give",
+     "target": "Daresh",
+     "items": [
+      {
+       "item": "Gem of Night",
+       "count": 1
+      },
+      {
+       "item": "Rune of Corpses",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the gem and the rune to Daresh.",
+     "says": "Without them he is weaker. Now go and face him: he waits beneath his floating tower in the south-east of Bogman Village."
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daglader",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Necromantic Gems (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L40",
+   "name": "Tarlin's Guards",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L40-e"
+   ],
+   "offer": "Tarlin waits beneath his floating tower in the south-east of Bogman Village, north of Wyndhaven. Go and face him. He will not come alone.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 5630,
+     "y": 94,
+     "z": 9453,
+     "radius": 40,
+     "journal": "Go to the foot of Tarlin's floating tower in the south-east of Bogman Village.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Tarlin stands beneath his tower. \"You! My father's dog!\" Three thugs step out of the shadows."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Tarlin's guard",
+     "count": 3,
+     "journal": "Kill Tarlin's three thugs.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Tarlin's guard",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Tarlin's guard",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Tarlin's guard",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Daresh",
+     "journal": "Return to Daresh in Murnf.",
+     "says": "You lived. Tarlin will not forget it, and nor will we. Take what you have earned.",
+     "rewards": {
+      "xp": 14919719,
+      "byclass": {
+       "7": {
+        "spells": [
+         "Inflame"
+        ],
+        "items": [
+         "Inlaid Unicorn Horn"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Earthen Mark"
+        ],
+        "items": [
+         "Icecrystal Totem"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Iron Stance"
+        ],
+        "items": [
+         "Pinewood Tonfa"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Hawk Eye"
+        ],
+        "items": [
+         "Jadesteel Katana"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 40, Tarlin's Guards and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The three thugs are copies of Tarlin's guards brought to the player for the step (the guide's spawn under the tower; \"kill or die\" there: here they are to be killed). The choices: the first ability and weapon (made like one of the kind and level where this database lacks it; the monk's Pinewood Tonfa is here)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L49-a",
+   "name": "Three Robes",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L40"
+   ],
+   "offer": "Three of Tarlin's teachers must die: Arifr Beguile in Gunter's Mines, Malitor Weatherskin in the Elemental Towers of Hazinak, Yaymz Searingtouch in Cazic Thule. Bring me their robes; keep all else.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Keep everything until the end.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Arifr Beguile",
+     "items": [
+      {
+       "item": "Arifr's robe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Arifr Beguile in Gunter's Mines for his robe."
+    },
+    {
+     "kind": "loot",
+     "target": "Malitor Weatherskin",
+     "items": [
+      {
+       "item": "Malitor's robe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Malitor Weatherskin in the Elemental Towers of Hazinak for his robe."
+    },
+    {
+     "kind": "loot",
+     "target": "Yaymz Searingtouch",
+     "items": [
+      {
+       "item": "Yaymz's robe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Yaymz Searingtouch in Cazic Thule for his robe. His guards can harm with a touch."
+    },
+    {
+     "kind": "give",
+     "target": "Daresh",
+     "items": [
+      {
+       "item": "Arifr's robe",
+       "count": 1
+      },
+      {
+       "item": "Malitor's robe",
+       "count": 1
+      },
+      {
+       "item": "Yaymz's robe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the three robes to Daresh.",
+     "says": "Now his tower's secrets: three ciphers. The centaurs of the Elephant Graveyard, the antlion larva cave in the Sea of Lions and the pit of the Box Canyons hide them."
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, Three Robes (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L49-b",
+   "name": "Three Ciphers",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L49-a"
+   ],
+   "offer": "Three ciphers unlock Tarlin's tower: in the centaur village of the Elephant Graveyard, the antlion larva cave of the Sea of Lions, and the pit in the south of the Box Canyons.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14493,
+     "y": 53,
+     "z": 27229,
+     "radius": 40,
+     "journal": "Search the centaur village in the west of the Elephant Graveyard for the first cipher.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Among the centaurs' things you find a cipher."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "cipher of the graveyard",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 21099,
+     "y": 36,
+     "z": 26875,
+     "radius": 40,
+     "journal": "Search the antlion larva cave in the Sea of Lions for the second cipher.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Deep in the larva cave you find a second cipher."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "cipher of the lions",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 21502,
+     "y": 50,
+     "z": 20928,
+     "radius": 40,
+     "journal": "Search the pit guardian's place in the south of the Box Canyons for the third cipher.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "In the pit, under the drakes' eyes, lies the third cipher."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "cipher of the pit",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Daresh",
+     "items": [
+      {
+       "item": "cipher of the graveyard",
+       "count": 1
+      },
+      {
+       "item": "cipher of the lions",
+       "count": 1
+      },
+      {
+       "item": "cipher of the pit",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the three ciphers to Daresh.",
+     "says": "Now buy a teleport gem from Sorroian, in the east of Bogman Village, and go up into his tower."
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, Three Ciphers (github.com/Jadiction/EQOA-Data, MIT). The ciphers are places to reach (EQOA-Data's map points; the guide's pit guardian is not fought). The antlion cave's and the drakes' creatures see the invisible."
+  },
+  {
+   "key": "30,40,49/group-3-good/L49-c",
+   "name": "Tarlin's Floating Tower",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L49-b"
+   ],
+   "offer": "Buy a teleport gem from Sorroian, in the east of Bogman Village, for 5,000 tunar. Use it at the floating tower, and end Tarlin. Bring me his robe.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Sorroian",
+     "items": [],
+     "tunar": 5000,
+     "journal": "Buy a teleport gem from Sorroian in the east of Bogman Village: 5,000 tunar.",
+     "says": "A gem to the tower. Do not lose it.",
+     "rewards": {
+      "items": [
+       "teleport gem"
+      ]
+     }
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 5630,
+     "y": 94,
+     "z": 9453,
+     "radius": 40,
+     "journal": "Use the teleport gem at the foot of Tarlin's floating tower in the south-east of Bogman Village.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The gem flares, and the tower takes you in. Tarlin's guard bars the way."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Tarlin's guard",
+     "count": 1,
+     "journal": "Kill Tarlin's guard."
+    },
+    {
+     "kind": "loot",
+     "target": "Tarlin",
+     "items": [
+      {
+       "item": "Tarlin's robe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Tarlin and his pet and take his robe."
+    },
+    {
+     "kind": "give",
+     "target": "Daresh",
+     "items": [
+      {
+       "item": "Tarlin's robe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Tarlin's robe to Daresh.",
+     "says": "It is done. One thing more: his master, Lord Chardith. Archmagus Terathin in Takish Hiz can call him."
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, Tarlin's Floating Tower (github.com/Jadiction/EQOA-Data, MIT). Tarlin, his guard and his pet stand at the tower always; the gem's lift is a popup at the tower's foot, not a teleport (the tower's top is not known here)."
+  },
+  {
+   "key": "30,40,49/group-3-good/L49",
+   "name": "To Summon Chardith",
+   "giver": "Daresh",
+   "classes": [
+    1,
+    4,
+    7,
+    10
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-3-good/L49-c"
+   ],
+   "offer": "Archmagus Terathin, in the basement of the building with the blue lightning bolt sign in south-west Takish Hiz, can call Lord Chardith. Help him, and bring me a bone of Chardith.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Kill the magi only after you have spoken to Terathin.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Archmagus Terathin",
+     "journal": "Find Archmagus Terathin in the basement of the building with the blue lightning bolt sign in south-west Takish Hiz.",
+     "says": "You would help me destroy the Magi? Kill the Magus of the Sun, the Magus of the Stars and the Magus of the Moon, and bring me their phylacteries. Only after we have spoken."
+    },
+    {
+     "kind": "loot",
+     "target": "Magus of the Sun",
+     "items": [
+      {
+       "item": "Sun Phylactery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Fight through the sun knights and kill the Magus of the Sun for his phylactery."
+    },
+    {
+     "kind": "loot",
+     "target": "Magus of the Stars",
+     "items": [
+      {
+       "item": "Star Phylactery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Fight through the star wisps and kill the Magus of the Stars for his phylactery."
+    },
+    {
+     "kind": "loot",
+     "target": "Magus of the Moon",
+     "items": [
+      {
+       "item": "Moon Phylactery",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Clear the moon wraiths and kill the Magus of the Moon for his phylactery."
+    },
+    {
+     "kind": "give",
+     "target": "Archmagus Terathin",
+     "items": [
+      {
+       "item": "Sun Phylactery",
+       "count": 1
+      },
+      {
+       "item": "Star Phylactery",
+       "count": 1
+      },
+      {
+       "item": "Moon Phylactery",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the three phylacteries to Archmagus Terathin.",
+     "says": "All three. Choose your weapon from the jeweled chest; then speak to me, and I will call him."
+    },
+    {
+     "kind": "talk",
+     "target": "Jeweled Chest",
+     "journal": "Open the jeweled chest beside Archmagus Terathin and choose your weapon.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You choose your weapon from the jeweled chest. It will be yours when your path is done. The choice is final."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Archmagus Terathin",
+     "journal": "Speak to Archmagus Terathin again to call Lord Chardith.",
+     "says": "Then it begins. Lord Chardith! Your servant calls you!"
+    },
+    {
+     "kind": "loot",
+     "target": "Lord Chardith",
+     "items": [
+      {
+       "item": "Bone of Chardith",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Lord Chardith and take a bone of Chardith."
+    },
+    {
+     "kind": "give",
+     "target": "Daresh",
+     "items": [
+      {
+       "item": "Bone of Chardith",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the bone of Chardith to Daresh.",
+     "says": "Chardith is gone, and your path is yours. Take what you have earned. When you have grown to the height of your power, the Recruiter will have work for you.",
+     "rewards": {
+      "xp": 45558313,
+      "byclass": {
+       "7": {
+        "spells": [
+         "Emblaze"
+        ],
+        "items": [
+         "Triad Scimitar"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Elemental Mark"
+        ],
+        "items": [
+         "Crystalmana Crosier"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Diamond Stance"
+        ],
+        "items": [
+         "Ascendant staff"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Falcon Eye"
+        ],
+        "items": [
+         "Pure Emerald Longsword"
+        ]
+       }
+      },
+      "items": [
+       "letter to the Klick`Anon Recruiter"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Daresh",
+    "Daresh"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-3-good.json, Group 3, Level 49, To Summon Chardith and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Lord Chardith and the three magi stand in the basement always (the guide's Chardith is called after a sacrifice; Terathin speaks only every fifteen minutes). The jeweled chest's choice is the class's first weapon, given at the end. Daresh gives the final rewards; the guide's class NPC and approval notes are not in. Epic weapons are the guide's first (druids' and rangers' made like one of the kind and level)."
   }
  ],
  "items": [
@@ -4183,6 +5908,186 @@
    "description": "A shaman's weapon, the reward of the level 40 path.",
    "notrade": true,
    "like": "forest crook"
+  },
+  {
+   "name": "Daresh's token",
+   "description": "A token of Daresh of Murnf.",
+   "notrade": true,
+   "like": "froglok totem"
+  },
+  {
+   "name": "Unintelligible Note",
+   "description": "A note the Bloodfoot jailor carried, in a hand no one can read.",
+   "notrade": true,
+   "like": "skeleton note"
+  },
+  {
+   "name": "Ring of Gal'Saris",
+   "description": "Ziliq's ring, of the house of Gal'Saris.",
+   "notrade": true,
+   "like": "Gaudy Ring"
+  },
+  {
+   "name": "Kipcah's spyglass",
+   "description": "Kipcah's spyglass, its lens cracked.",
+   "notrade": true,
+   "like": "Small Metal Rod"
+  },
+  {
+   "name": "mended spyglass",
+   "description": "Kipcah's spyglass, mended by Gligbin.",
+   "notrade": true,
+   "like": "Small Metal Rod"
+  },
+  {
+   "name": "Orc Shackle Key",
+   "description": "The key to Tarlin's shackles.",
+   "notrade": true,
+   "like": "Prison Key"
+  },
+  {
+   "name": "bandit's note",
+   "description": "A note carried by Tarlin's bandits.",
+   "notrade": true,
+   "like": "Thug's Letter"
+  },
+  {
+   "name": "assassin's dagger",
+   "description": "The dagger of the assassin in Bardif's house.",
+   "notrade": true,
+   "like": "froglok sword"
+  },
+  {
+   "name": "agent's note",
+   "description": "A note one of Tarlin's agents carried.",
+   "notrade": true,
+   "like": "Sealed Letter"
+  },
+  {
+   "name": "Gem of Night",
+   "description": "Vahk'Kiv's necromantic gem.",
+   "notrade": true,
+   "like": "gem of deception"
+  },
+  {
+   "name": "Rune of Corpses",
+   "description": "Daglader's necromantic rune.",
+   "notrade": true,
+   "like": "Hatestone"
+  },
+  {
+   "name": "Arifr's robe",
+   "description": "Arifr Beguile's robe.",
+   "notrade": true,
+   "like": "damaged robe"
+  },
+  {
+   "name": "Malitor's robe",
+   "description": "Malitor Weatherskin's robe.",
+   "notrade": true,
+   "like": "damaged robe"
+  },
+  {
+   "name": "Yaymz's robe",
+   "description": "Yaymz Searingtouch's robe.",
+   "notrade": true,
+   "like": "damaged robe"
+  },
+  {
+   "name": "Tarlin's robe",
+   "description": "Tarlin's own robe.",
+   "notrade": true,
+   "like": "damaged robe"
+  },
+  {
+   "name": "cipher of the graveyard",
+   "description": "A cipher from the centaurs of the Elephant Graveyard.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "cipher of the lions",
+   "description": "A cipher from the antlion larva cave in the Sea of Lions.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "cipher of the pit",
+   "description": "A cipher from the pit guardian's place in the Box Canyons.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "teleport gem",
+   "description": "Sorroian's gem: it carries its bearer up into Tarlin's floating tower.",
+   "notrade": true,
+   "like": "gem of wit"
+  },
+  {
+   "name": "Sun Phylactery",
+   "description": "The phylactery of the Magus of the Sun.",
+   "notrade": true,
+   "like": "dull orb"
+  },
+  {
+   "name": "Star Phylactery",
+   "description": "The phylactery of the Magus of the Stars.",
+   "notrade": true,
+   "like": "dull orb"
+  },
+  {
+   "name": "Moon Phylactery",
+   "description": "The phylactery of the Magus of the Moon.",
+   "notrade": true,
+   "like": "dull orb"
+  },
+  {
+   "name": "Bone of Chardith",
+   "description": "A bone of Lord Chardith.",
+   "notrade": true,
+   "like": "Moldy Bone"
+  },
+  {
+   "name": "Mishtur's Book",
+   "description": "A druid's book, the reward of the level 30 path.",
+   "notrade": true,
+   "like": "Spiritclaw Totem"
+  },
+  {
+   "name": "Springwind",
+   "description": "A ranger's bow, the reward of the level 30 path.",
+   "notrade": true,
+   "like": "Snakewood Bow"
+  },
+  {
+   "name": "Inlaid Unicorn Horn",
+   "description": "A druid's horn, the reward of the level 40 path.",
+   "notrade": true,
+   "like": "Tome of Turning"
+  },
+  {
+   "name": "Icecrystal Totem",
+   "description": "A magician's totem, the reward of the level 40 path.",
+   "notrade": true,
+   "like": "Greetaa"
+  },
+  {
+   "name": "Jadesteel Katana",
+   "description": "A ranger's katana, the reward of the level 40 path.",
+   "notrade": true,
+   "like": "Dueling Sabre"
+  },
+  {
+   "name": "Triad Scimitar",
+   "description": "A druid's epic scimitar, the reward of the level 49 path.",
+   "notrade": true,
+   "like": "Bloodfyre Morning Star"
+  },
+  {
+   "name": "Pure Emerald Longsword",
+   "description": "A ranger's epic longsword, the reward of the level 49 path.",
+   "notrade": true,
+   "like": "Sword of Lords"
   }
  ]
 }

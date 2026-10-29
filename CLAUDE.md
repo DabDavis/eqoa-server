@@ -767,11 +767,37 @@ Two things follow from the protocol that are easy to get wrong:
   an address with a game in it (`auth.one_login_exempt` aside), so no multiboxing. **Off on
   eqoaclassic since 2026-10-27** (the user: "lets remove mutlibox limit", "you can lift the one
   window per account also", "just not same char"): an account and an address may play several
-  windows. **A character is in one window at a time either way** (`HandleSelectedChar`,
-  `session.LiveCharacter`): the first keeps it, and a second window choosing it is told with
-  CLIENT's character-select notice 0x07F0 (word 676, "That character is in an area of the world
-  that is currently unavailable. Please try again later.": CLIENT has no word of its own for
-  it) and may choose another; a closed or crashed window holds it until the in-game timeout.
+  windows. **A character is in one window at a time either way, and the newest window of its
+  account takes it over** (below). Only a live window of ANOTHER account holding it (a character
+  moved between accounts as it played) refuses it, with CLIENT's character-select notice 0x07F0
+  (word 676, "That character is in an area of the world that is currently unavailable. Please try
+  again later.": CLIENT has no word of its own for it), and the window may choose another.
+- **A character still in the world is taken over by its own account** (`entity/takeover.go`,
+  `World.TakeOverPlayer`, from `HandleSelectedChar`; jib's F3 20261029-212855, the user's choice
+  of 2026-10-29). A dropped client leaves its character in the world (nothing reaches the server
+  through a page's relay; its session lives until 50 pings of `world.session_timeout_game` go
+  unanswered, 500 s on eqoaclassic's 10 s), and until then character select refused it to every
+  other window with 0x07F0 for `session.LiveWithin` (60 s) after the dropped client's last packet
+  (`session.LiveCharacter`), then replaced it with a Player built from the row (hit points and
+  power filled, lockouts, breath, a death and a GM's freeze gone, the pet left ownerless). Now a
+  window of the character's account that chooses it gets the LIVE Player, the same struct under
+  the same id: hit points, power, every effect with its own end and tick, lockouts (0x00CD re-sent
+  with what is left), a cast on its way, the NPCs' threat and fights with it (keyed by its id), its
+  group, its pet (whose owner is that Player), factions, masteries, a death and its respawn's time,
+  a GM's freeze. Nothing is read back; the row is written at once (`saveTakenOver`) in case the new
+  client never gets in. The session that had it lets go of it first, so its end saves and removes
+  nothing (`RemovePlayerBySession` re-checks that under the lock), and is told as a replaced login
+  is (0x07A4 "You have logged in from another location.", `Manager.ReplaceSession`, kept
+  `ReplacedGrace` to hear it). What the Player held of its old client goes (`handedOverLocked`: its
+  target, attack button, velocity, open menus, power bars, voice, the profanity filter off); its
+  guild, group roster and pet are told to the new client as at a login. In a world the new client
+  may lack (an S2's or the hard disk's) it is moved where a login starts (`placeTakenOver`). jib's
+  "logging out any other session on that account" is read as the session holding THAT character:
+  the account's other windows play on (multiboxing). A trade whose side was taken over is called off
+  (`TradeHandler.heldLocked`): the dropped client's accept would have moved the live character's
+  tunar and items behind its new client's back. The log line is `SelectedChar: '<name>' ... TAKEN
+  OVER by <addr> as it stands: <hp>, <power>, <place>; <effects with time left>, <lockouts>, <NPCs
+  fighting it>, <group>, <pet>; from <n> sessions (<n> told)`.
 - **A password is 31 characters at most** (`auth.MaxPasswordLen`): STATION sends it in a 32-byte
   field ending in a NUL (the TCP login's DES block, the UDP token, CreateAccount, ChangePassword),
   so the account page and the GM panel refuse a longer one, and the `station.pak` served lets a

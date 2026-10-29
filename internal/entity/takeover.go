@@ -48,7 +48,7 @@ type Takeover struct {
 	Effects   []string // each effect and what is left of it
 	Lockouts  int
 	Casting   bool
-	Fighting  int // NPCs with a threat on it
+	Fighting  int // NPCs fighting it: its threat, its enemy, its round's or a dummy's target
 	Group     uint32
 	Pet       string
 	Dead      bool
@@ -182,7 +182,8 @@ func (w *World) takeoverOfLocked(p *Player, now time.Time) Takeover {
 		}
 	}
 	for _, npc := range w.NPCs {
-		if _, ok := npc.Threats[p.ServerID]; ok || npc.CurrentEnemy == p.ServerID {
+		_, threat := npc.Threats[p.ServerID]
+		if threat || npc.CurrentEnemy == p.ServerID || npc.RoundTarget == p.ServerID || npc.DummyTarget == p.ServerID {
 			t.Fighting++
 		}
 	}

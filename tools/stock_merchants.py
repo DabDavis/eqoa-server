@@ -677,11 +677,12 @@ def one_letter_off(a, b):
 
 
 def harvest_on_npcs(npcs, measured):
-    """The harvests' merchants on our NPCs, as import_sandstorm_harvest.py
-    matches them: the same world, the same name within MATCH_RADIUS, else a
-    name a letter off within NEAR_RADIUS; of two harvests of one merchant the
-    latest; of two merchants on one NPC the nearer. npcs row -> (the
-    merchant, matched by a near name)."""
+    """The harvests' merchants on our NPCs: the nearest NPC of the merchant's
+    name in its world within MATCH_RADIUS, else the nearest whose name is a
+    letter off within NEAR_RADIUS (as import_sandstorm_harvest.py takes a near
+    name); of two harvests of one merchant the latest; of two merchants on one
+    NPC the nearer. npcs row -> (the merchant, matched by a near name), and
+    the merchants with wares on no NPC here."""
     latest = {}
     for m in sorted(measured.merchants, key=lambda m: m["when"]):
         latest[(m["world"], norm(m["name"]), round(m["pos"][0]), round(m["pos"][2]))] = m

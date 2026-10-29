@@ -48,10 +48,11 @@ Whom each sends: Allakhazam's April 2004 records (archived): every Gate and
 Commons Escape "Self Only" (Sandstorm's scrolls too, "Level 39 - Self
 Teleport to Nothern Ro"), every Portal "Group" within 15 (the 60-second
 ones) or 20 (Barren Coast, Rathe Mountains, Stonebrunt), every circle and
-evacuation "Group" within 20 (the server's default); the evacuations go to
-their caster's bind point (entity/gates.go's choice: their lines name
-Freeport, Melton and Highpass, kept as the rows' places for a GM who makes
-them group gates).
+evacuation "Group" within 20 (the server's default); the evacuations are
+group gates at the places their lines name, Freeport, Melton and Highpass
+(the test lanes' report of 2026-10-29: Melton's and Highpass's sent the
+group to the caster's bind, entity/gates.go's evacuation, which until then
+this seed made them; that kind stays for a GM's row).
 
 With the ground files (--ground worlds/ground: cmd/groundbake's) each
 place's height is the terrain's there (a pyramid's top as written) and the
@@ -171,11 +172,11 @@ GATES = [
      "Self, Teleports to Melton; Druid's Watch (s) is 's/e of the wiz port-melton'"),
     ("Melton Portal", GROUP, 15, "Melton", MELTON,
      "Self, Teleport to Melton (EQOA-Data); Allakhazam: Group, AE 15"),
-    ("Melton Evacuation", EVAC, 0, "Melton", MELTON,
+    ("Melton Evacuation", GROUP, 0, "Melton", MELTON,
      "Group, Set Maximum Power to 0 and Teleport to Melton; Allakhazam: Group, AE 20"),
-    ("Freeport Evacuation", EVAC, 0, "Freeport", beside("Coachman Ronks", 0, "Freeport, by its coachman: ours"),
+    ("Freeport Evacuation", GROUP, 0, "Freeport", beside("Coachman Ronks", 0, "Freeport, by its coachman: ours"),
      "Set Maximum Power to 0 Teleport group to FP; Allakhazam: Group, AE 20"),
-    ("Highpass Evacuation", EVAC, 0, "Highpass Hold", beside("Coachman Quicksteed", 0, "Highpass Hold, by its coachman: ours"),
+    ("Highpass Evacuation", GROUP, 0, "Highpass Hold", beside("Coachman Quicksteed", 0, "Highpass Hold, by its coachman: ours"),
      "Group, Set Maximum Power to 0 and teleport to HP; Allakhazam: Group, AE 20"),
     ("Commons Escape", SELF, 0, "the Commons", COMMONS,
      "Self, Teleports ?, Increase Maximum Power by 10 for 12 seconds; Allakhazam: Self Only"),

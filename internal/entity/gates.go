@@ -26,9 +26,11 @@ import (
 // archived, give the wizard's 60-second portals an AE radius of 15 and the
 // other group teleports 20, GateGroupRadius); an evacuation the same group,
 // to its caster's bind point, where Return Home takes the caster (ours: of
-// a safe spot in the caster's zone and its bind, the bind; the lines name
-// Freeport, Melton and Highpass, and a GM who wants a group landed there
-// makes the row a group gate). A line that says "Set Maximum Power to 0"
+// a safe spot in the caster's zone and its bind, the bind). The lines of the
+// wizard's three evacuations name Freeport, Melton and Highpass, and
+// tools/seed_spell_gates.py makes them group gates landing there (the test
+// lanes' report of 2026-10-29: as evacuations they sent the group to the
+// caster's bind); the kind stays for a GM's row. A line that says "Set Maximum Power to 0"
 // (Allakhazam: a 1 to 10 second effect of the fast group teleports) leaves
 // its caster no power when it lands: ours, the caster's alone (the records
 // do not say whose). What else the line says lands as any spell's (Commons

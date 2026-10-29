@@ -53,6 +53,10 @@ func newPetRig(t *testing.T) *petRig {
 	}
 	add(&NPC{ServerID: 3100, Name: "Earth Elementaling ", Level: 15, ModelID: 0x3787521F, Size: 1, X: 20000, Z: 20100})
 	add(&NPC{ServerID: 3101, Name: "Animation", Level: 24, ModelID: 0xDC3B344E, Size: 1, X: 20000, Z: 20200})
+	add(&NPC{ServerID: 3102, Name: "familiar", Level: 20, ModelID: 0x44DC9AF0, Size: 1, X: 20000, Z: 20300})
+	add(&NPC{ServerID: 3103, Name: "zombie", Level: 20, ModelID: 0x1BBB898C, Size: 1, X: 20000, Z: 20400})
+	add(&NPC{ServerID: 3104, Name: "skeleton", Level: 20, ModelID: 0x6AF98A81, Size: 1, X: 20000, Z: 20500})
+	add(&NPC{ServerID: 3105, Name: "Companion Spirit ", Level: 24, ModelID: 0x7E4AEA3E, Size: 1, X: 20000, Z: 20600})
 	crab := add(&NPC{ServerID: 3200, Name: "Desert Crab", Level: 34, HP: 2040, MaxHP: 2040, ModelID: 0x55432169, Size: 1,
 		NPCType: 0x0100, X: 8640, Y: 75, Z: 5421.5, World: 2})
 	vs := GetOrCreateVisibility(sess)
@@ -126,6 +130,12 @@ func TestASummoningLineMakesAPet(t *testing.T) {
 		"Summon Pet":                              "",
 		"Summons a Zombie pet":                    "zombie",
 		"Summons Pet":                             "",
+		// the test lanes' report of 2026-10-29: the wizard's and the
+		// necromancer's lines that made nothing
+		"Summons a familar creature":   "familiar",
+		"Summons a Familar to aid you": "familiar",
+		"Summon a familiar to aid you": "familiar",
+		"Summons a zombie to your aid": "zombie",
 	} {
 		d := ParseSpellText(line)
 		if !d.Summons() || d.Pet != want || d.Target != TargetSelf || d.Harmful {
@@ -194,6 +204,15 @@ func TestThePetsBodyIsTheServersOwn(t *testing.T) {
 		{"Pendril's Animation", "", 12, 0xDC3B344E},
 		{"Shalee's Animation", "", 12, 0xDC3B344E},
 		{"Water Elementalkin", "elementalkin", 10, 0x3787521F}, // nothing of either name: the class's stand-in
+		// the test lanes' report of 2026-10-29: the wizard's familiars and
+		// guardians, the necromancer's Wilting Flesh
+		{"Minor Familiar", ParseSpellText("Summon Pet").Pet, 13, 0x44DC9AF0},
+		{"Arch Guardian", ParseSpellText("Summons a pet").Pet, 13, 0x44DC9AF0},
+		{"Lesser Guardian", ParseSpellText("Summons a familar creature").Pet, 13, 0x44DC9AF0},
+		{"Wilting Flesh", ParseSpellText("Summons a zombie to your aid").Pet, 11, 0x1BBB898C},
+		{"Decaying Flesh", ParseSpellText("This spell summons pet").Pet, 11, 0x6AF98A81},
+		{"Spiritual Warrior", ParseSpellText("Summons a pet").Pet, 8, 0x7E4AEA3E},
+		{"Summon Servant", ParseSpellText("Summons Pet").Pet, 3, 0x6AF98A81},
 	} {
 		r.w.mu.Lock()
 		got := r.w.petTemplateLocked(c.spell, c.line, c.class)

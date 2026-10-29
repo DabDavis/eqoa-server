@@ -176,13 +176,18 @@ func (d *SpellDef) Summons() bool {
 }
 
 // A line that summons a pet: a summoning ("Summons", "Summon", the lists'
-// "Summuns") of a pet, or of a creature "to aid you" or "to your defense".
-// The alchemists' "SELF Summons Unstable Potion" and Phase Ring's "Summons
-// a ring to invis" make items, not pets, and say neither.
+// "Summuns") of a pet, of a creature "to aid you", "to your aid" or "to your
+// defense", or of a familiar (the wizard's: "Summons a familar creature",
+// the lists' spelling, read as "familiar"; the test lanes' report of
+// 2026-10-29: Lesser Familiar and Lesser Guardian made nothing, Wilting
+// Flesh's "to your aid" neither). The alchemists' "SELF Summons Unstable
+// Potion" and Phase Ring's "Summons a ring to invis" make items, not pets,
+// and say none of those.
 var (
 	reSummons  = regexp.MustCompile(`\bsumm[ou]ns?\b`)
 	rePetLevel = regexp.MustCompile(`\blevel\s+(\d+)\b`)
-	reSummonOf = regexp.MustCompile(`\bsumm[ou]ns?\s+(?:a\s+|an\s+|the\s+)?(.+?)\s+(?:to aid you|to your defense|pet)\b`)
+	reSummonOf = regexp.MustCompile(`\bsumm[ou]ns?\s+(?:a\s+|an\s+|the\s+)?(.+?)\s+(?:to aid you|to your aid|to your defense|pet|creature)\b`)
+	reFamiliar = regexp.MustCompile(`\bfamil(?:i)?ar\b`)
 )
 
 // summonLine reads a summoning line: whether it makes a pet, and the
@@ -191,7 +196,9 @@ func summonLine(text string) (bool, string) {
 	if !reSummons.MatchString(text) {
 		return false, ""
 	}
-	if !strings.Contains(text, "pet") && !strings.Contains(text, "to aid you") && !strings.Contains(text, "to your defense") {
+	text = reFamiliar.ReplaceAllString(text, "familiar")
+	if !strings.Contains(text, "pet") && !strings.Contains(text, "to aid you") && !strings.Contains(text, "to your aid") &&
+		!strings.Contains(text, "to your defense") && !strings.Contains(text, "familiar") {
 		return false, ""
 	}
 	if m := reSummonOf.FindStringSubmatch(text); m != nil {

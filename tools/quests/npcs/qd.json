@@ -1770,6 +1770,79 @@
    "level": 55,
    "note": "a rival mercenary in a backroom in Honjour",
    "water": "land"
+  },
+  {
+   "name": "Investigator Flint",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Investigator Flint"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the first guard tower on the road south from Highpass's coach exit, Trail's End",
+   "water": "land"
+  },
+  {
+   "name": "Ranger Mek",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Ranger Mek"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Mossmouth (SW), very close to the mountain range, out the north-east (Pickclaw) gate",
+   "water": "land"
+  },
+  {
+   "name": "Akista Sind",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Akista Sind"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Investigator Flint's true form, the illusionist (red to a 60, a mana sucker)",
+   "water": "land"
+  },
+  {
+   "name": "Servant",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Dawn Maiden",
+    10,
+    2
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the Dawn Maiden's servant, with a pet (the guide: she spawns it as she dies)",
+   "water": "land"
   }
  ]
 }

@@ -1177,6 +1177,169 @@
    "level": 59,
    "note": "the SW tower's library",
    "water": "land"
+  },
+  {
+   "name": "Wailing Ghost",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "at",
+    5,
+    5000.0,
+    6800.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "Zaoran Plateau: the little cemetery straight north of where one ports in (ZP1's marker)",
+   "water": "land"
+  },
+  {
+   "name": "Bolash Daemon",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Ifrit"
+   ],
+   "place": [
+    "at",
+    0,
+    6850.0,
+    18650.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the hill in Druid's Watch (S), south-east of Melton's pyramid (the wizards' port)",
+   "water": "land"
+  },
+  {
+   "name": "Bolash Daemon",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Ifrit"
+   ],
+   "place": [
+    "at",
+    0,
+    6900.0,
+    18700.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the hill in Druid's Watch (S), south-east of Melton's pyramid (the wizards' port)",
+   "water": "land"
+  },
+  {
+   "name": "Bolash Daemon",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Ifrit"
+   ],
+   "place": [
+    "at",
+    0,
+    6820.0,
+    18720.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the hill in Druid's Watch (S), south-east of Melton's pyramid (the wizards' port)",
+   "water": "land"
+  },
+  {
+   "name": "Bolash Daemon",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Ifrit"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Bolash Daemon"
+   ],
+   "count": 4,
+   "level": 60,
+   "note": "under the big white arch of the Elephant Graveyard (C) (the map's camp)",
+   "water": "land"
+  },
+  {
+   "name": "Grizwald",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "near",
+    "Deputy Brighteye",
+    40,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Merry-by-Water (C), by a tree near the south tower on the road into town",
+   "water": "land"
+  },
+  {
+   "name": "Nelytu",
+   "role": "talker",
+   "body": [
+    "kind",
+    "aviak"
+   ],
+   "place": [
+    "at",
+    0,
+    9100.0,
+    20900.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "on top of the very high peak north-east of the village, Aviak Village (C)",
+   "water": "land"
+  },
+  {
+   "name": "Lenwe Nenharma",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "near",
+    "Majorkahn giant",
+    25,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "Box Canyons (W): the cave at the end of the northern gully, two Majorkahn giants outside",
+   "water": "land"
+  },
+  {
+   "name": "Infected Wolverine",
+   "role": "foe",
+   "body": [
+    "kind",
+    "dog"
+   ],
+   "place": [
+    "at",
+    0,
+    17010.0,
+    18965.0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "by the undead camp a short run east of the Council of Watchmen in Dshinn's Redoubt, among the wolverines (the guide's white con at 60)",
+   "water": "land"
   }
  ]
 }

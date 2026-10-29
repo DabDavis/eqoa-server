@@ -4174,6 +4174,466 @@
     "Envaric Ascension"
    ],
    "notes": "From EQOA-Data Quests/Portal/envaric-ascension-quest.json, ## Envaric Ascension Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Part 1. The reward is the guide's Envaric Ascension (a druid's, necromancer's and wizard's group port to the first chamber of the Prophet's tower): no spellpattern row has it, so the quest is a draft until the spell and its spellgates row are added. Both altars, the Grave Ushers, Tal'Thir, Vorin, the Bishop and the Patriarch are specs in Envar's towers (the Rathe's cell south of the Dead Hills: four towers with basements at y 44-51), their guards left out; the two diamonds and the symbol's death are the altar's words. Part 2, the climb of the Prophet's tower with its gems, begins with the spell's port and is left out."
+  },
+  {
+   "key": "Portal/zaoran-plateau/garlic",
+   "name": "The Wailing Ghost",
+   "giver": "Wailing Ghost",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/zaoran-plateau/portal"
+   ],
+   "offer": "Something comes... I feel it in what is left of me. The Council of Watchmen in Dshinn's Redoubt must know. Find Lerod Damonus there, in the undead village by the river.",
+   "accept": "I will go to the Council.",
+   "decline": "Not now.",
+   "declined": "Then the dead keep wailing.",
+   "started": "Lerod Damonus. Go.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Lerod Damonus",
+     "journal": "Speak with Lerod Damonus of the Council of Watchmen, in the open-roofed tower in Dshinn's Redoubt.",
+     "says": "The ghost is right. Bolash daemons gather on a hill in Druid's Watch, south-east of Melton's pyramid. Bring me five of their skulls."
+    },
+    {
+     "kind": "loot",
+     "target": "Bolash Daemon",
+     "items": [
+      {
+       "item": "bolash daemon skull",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 0.5,
+     "journal": "Kill the bolash daemons on the hill south-east of Melton's pyramid for five skulls."
+    },
+    {
+     "kind": "give",
+     "target": "Lerod Damonus",
+     "items": [
+      {
+       "item": "bolash daemon skull",
+       "count": 5
+      }
+     ],
+     "journal": "Bring the five bolash daemon skulls to Lerod Damonus.",
+     "says": "Five. Grizwald in Merry-by-Water knows more. Go to him."
+    },
+    {
+     "kind": "talk",
+     "target": "Grizwald",
+     "journal": "Speak with Grizwald by a tree near Merry-by-Water's south tower.",
+     "says": "An unnamed champion has driven everyone off the plateau: the Akessans, Marr's own, even the Rallosians. Tell the Council."
+    },
+    {
+     "kind": "talk",
+     "target": "Osrad Martanius",
+     "journal": "Return to the Council and speak with Osrad Martanius.",
+     "says": "Then the bolash are in the Elephant Graveyard too, under the white arch. Bring eight hearts."
+    },
+    {
+     "kind": "loot",
+     "target": "Bolash Daemon",
+     "items": [
+      {
+       "item": "bolash daemon heart",
+       "count": 8
+      }
+     ],
+     "count": 8,
+     "chance": 0.5,
+     "journal": "Kill the bolash daemons under the white arch of the Elephant Graveyard for eight hearts."
+    },
+    {
+     "kind": "talk",
+     "target": "Osrad Martanius",
+     "journal": "Return to Osrad Martanius.",
+     "says": "Eight hearts. Nelytu of the aviaks will want them."
+    },
+    {
+     "kind": "give",
+     "target": "Nelytu",
+     "items": [
+      {
+       "item": "bolash daemon heart",
+       "count": 8
+      }
+     ],
+     "journal": "Bring the eight hearts to Nelytu, on the high peak north-east of Aviak Village.",
+     "says": "Bolash hearts. The sky is safer. Back to your Council."
+    },
+    {
+     "kind": "talk",
+     "target": "Ustelum Devoy",
+     "journal": "Speak with Ustelum Devoy of the Council.",
+     "says": "Take my seal to Lenwe Nenharma in Box Canyons. She may know what the bolash want.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Seal of the Watchman",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Lenwe Nenharma",
+     "items": [
+      {
+       "item": "Seal of the Watchman",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Seal of the Watchman to Lenwe Nenharma, in the cave at the end of Box Canyons' northern gully.",
+     "says": "The Council's champion and their bolash are no worry of mine. Go back to them."
+    },
+    {
+     "kind": "talk",
+     "target": "Ustelum Devoy",
+     "journal": "Return to Ustelum Devoy.",
+     "says": "Then it is the spirit in Crethley Manor. Slay the tormented eidolon."
+    },
+    {
+     "kind": "loot",
+     "target": "a Tormented Eidolon",
+     "items": [
+      {
+       "item": "garlic trinket plans",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the tormented eidolon on the hill south of Crethley Manor and take its garlic trinket plans."
+    },
+    {
+     "kind": "give",
+     "target": "Mecei Lostaud",
+     "items": [
+      {
+       "item": "garlic trinket plans",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the garlic trinket plans to Mecei Lostaud of the Council.",
+     "says": "All hail the hero! Wear this trinket, and never part with it.",
+     "rewards": {
+      "items": [
+       "Garlic Trinket"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Wailing Ghost",
+    "Bolash Daemon",
+    "Grizwald",
+    "Nelytu",
+    "Lenwe Nenharma"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## The Wailing Ghost Garlic Trinket Quest (github.com/Jadiction/EQOA-Data, MIT). The Wailing Ghost stands in Zaoran Plateau's cemetery north of the port-in (tools/quests/npcs/qe.json), so the quest follows the plateau's portal quest. The bolash daemons (both camps, one name), Grizwald, Nelytu and Lenwe are specs; the eidolon's kill group is the questor; the guide's 'some xp' has no figure. The Garlic Trinket (170 HP, 50 AC, 50 AR in the guide) has no itempattern row: it is made like the Etched Rubicite Necklace, whose figures it takes."
+  },
+  {
+   "key": "Portal/zaoran-plateau/broken-blade",
+   "name": "The Broken Blade",
+   "giver": "Wailing Ghost",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/zaoran-plateau/portal"
+   ],
+   "offer": "You hoped I had something for you? Perhaps. A blade lies broken in the fire below the world, its words unread. Find it, and take it to Grimm Brellhand in the Gramash Ruins.",
+   "accept": "I was hoping you had some information for me.",
+   "decline": "Not now.",
+   "declined": "Then wander, as I do.",
+   "started": "Grimm Brellhand. The Gramash Ruins.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Cave Hydra",
+     "items": [
+      {
+       "item": "broken blade",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Kill Graknar, the cave hydra of Solusek's Eye, until it gives up the broken blade."
+    },
+    {
+     "kind": "show",
+     "target": "Grimm Brellhand",
+     "items": [
+      {
+       "item": "broken blade",
+       "count": 1
+      }
+     ],
+     "journal": "Take the broken blade to Grimm Brellhand in the Gramash Ruins (S).",
+     "says": "That inscription... here, an etching of it. Do not lose it, ever. Go back to the ghost.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "etching of the inscription",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Wailing Ghost",
+     "journal": "Return to the Wailing Ghost on Zaoran Plateau.",
+     "says": "Yarn Blackport, the giant skeleton of the Council's round room, reads old tongues. Ask him."
+    },
+    {
+     "kind": "talk",
+     "target": "Yarn Blackport",
+     "journal": "Speak with Yarn Blackport in the Council of Watchmen's round room in Dshinn's Redoubt.",
+     "says": "There is no turning back once you choose... I cannot read it. Ask Grimm."
+    },
+    {
+     "kind": "talk",
+     "target": "Grimm Brellhand",
+     "journal": "Return to Grimm Brellhand in the Gramash Ruins.",
+     "says": "You still have the inscription? Then Teacher Heather Johns, in Dshinn's schoolhouse."
+    },
+    {
+     "kind": "talk",
+     "target": "Heather Johns",
+     "journal": "Speak with Teacher Heather Johns in the schoolhouse of Dshinn's Redoubt.",
+     "says": "Mistmoore, an invasion... Keneto Barillo in Murnf may know the symbols. The smaller inn."
+    },
+    {
+     "kind": "talk",
+     "target": "Keneto Barillo",
+     "journal": "Speak with Keneto Barillo in the smaller inn north of Murnf's coach.",
+     "says": "Not me. Torgias Bullow, here in Murnf."
+    },
+    {
+     "kind": "talk",
+     "target": "Torgias Bullow",
+     "journal": "Speak with Torgias Bullow in Murnf.",
+     "says": "I know these words. Tell Heather Johns: with the lava blade, oil from a bolash in the lava, I will appear."
+    },
+    {
+     "kind": "talk",
+     "target": "Heather Johns",
+     "journal": "Return to Heather Johns.",
+     "says": "With the lava blade. Oil from a bolash in the lava. I will embark... or appear. Take this, and keep it with the etching.",
+     "rewards": {
+      "xp": 25000,
+      "tunar": 25000,
+      "items": [
+       "Elem Kabar Resilan"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Wailing Ghost"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## The Wailing Ghost Broken Blade Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's answer is the accept. The broken blade is Graknar's drop in Solusek's Eye (the game's Cave Hydra; its chance ours), taken in the quest's first step where the guide has it already. The 25,000 experience and 25,000 tunar are the guide's; the resilan is made like Randerith's blood (the guide's vampire-blood vial)."
+  },
+  {
+   "key": "Portal/soluseks-eye/broken-blade",
+   "name": "The Broken Blade's Soul",
+   "giver": "Mecei Lostaud",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/zaoran-plateau/garlic",
+    "Portal/zaoran-plateau/broken-blade"
+   ],
+   "offer": "You carry the etching, the blade, and the trinket? Then the blade's soul can be made. Bring me Solusek's Eye and the twinkling amulet from the hydra that held the blade, with the blade and the etching.",
+   "accept": "I have them.",
+   "decline": "Not now.",
+   "declined": "Come back when you do.",
+   "started": "The hydra first.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Cave Hydra",
+     "items": [
+      {
+       "item": "Solusek's Eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Kill the cave hydra in Solusek's Eye again for Solusek's Eye."
+    },
+    {
+     "kind": "loot",
+     "target": "Cave Hydra",
+     "items": [
+      {
+       "item": "twinkling amulet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.34,
+     "journal": "Kill the cave hydra again for the twinkling amulet."
+    },
+    {
+     "kind": "give",
+     "target": "Mecei Lostaud",
+     "items": [
+      {
+       "item": "broken blade",
+       "count": 1
+      },
+      {
+       "item": "Solusek's Eye",
+       "count": 1
+      },
+      {
+       "item": "twinkling amulet",
+       "count": 1
+      },
+      {
+       "item": "etching of the inscription",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the broken blade, Solusek's Eye, the twinkling amulet and the etching to Mecei Lostaud.",
+     "says": "The soul takes shape. One thing more: the blood of the infected wolverine, east of here."
+    },
+    {
+     "kind": "loot",
+     "target": "Infected Wolverine",
+     "items": [
+      {
+       "item": "infected wolverine blood",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the infected wolverine near the undead camp east of the Council and take its blood."
+    },
+    {
+     "kind": "give",
+     "target": "Mecei Lostaud",
+     "items": [
+      {
+       "item": "infected wolverine blood",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the infected wolverine's blood to Mecei Lostaud.",
+     "says": "It is done. Osrad Martanius has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Osrad Martanius",
+     "journal": "Speak with Osrad Martanius for your reward.",
+     "says": "The broken blade's mystery is laid to rest, and you are its hero. Wear this.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Ricasso Earring"
+        ]
+       },
+       "2": {
+        "items": [
+         "Ricasso Earring"
+        ]
+       },
+       "3": {
+        "items": [
+         "Ricasso Earring"
+        ]
+       },
+       "1": {
+        "items": [
+         "Annulet Earring"
+        ]
+       },
+       "4": {
+        "items": [
+         "Annulet Earring"
+        ]
+       },
+       "5": {
+        "items": [
+         "Annulet Earring"
+        ]
+       },
+       "6": {
+        "items": [
+         "Annulet Earring"
+        ]
+       },
+       "10": {
+        "items": [
+         "Ferrule Earring"
+        ]
+       },
+       "11": {
+        "items": [
+         "Ferrule Earring"
+        ]
+       },
+       "12": {
+        "items": [
+         "Ferrule Earring"
+        ]
+       },
+       "13": {
+        "items": [
+         "Ferrule Earring"
+        ]
+       },
+       "14": {
+        "items": [
+         "Ferrule Earring"
+        ]
+       },
+       "7": {
+        "items": [
+         "Pommel Earring"
+        ]
+       },
+       "8": {
+        "items": [
+         "Pommel Earring"
+        ]
+       },
+       "9": {
+        "items": [
+         "Pommel Earring"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Infected Wolverine"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/soluseks-eye.json, ## Solusek's Eye Broken Balde Quest (github.com/Jadiction/EQOA-Data, MIT). Its steps 2 and 6 (1, 3 and 4 are the two Wailing Ghost quests before it). The guide's archetypal soul, crafted by a weapons master from the blade, Solusek's Eye, the twinkling amulet and one of Graknar's four rings, is the hand-in of the blade, the eye and the amulet to Mecei (the ring that picks the soul's archetype is the class's earring here); the Unnamed Champion's part (step 5) is left out; the wolverines' spawn cycle is left out (the infected one stands). The earrings are the guide's by archetype (the alchemist a caster)."
   }
  ],
  "items": [
@@ -4614,6 +5074,60 @@
    "description": "The Holy Symbol of Envar. Whoever uses it dies, and is given Envaric Ascension.",
    "notrade": true,
    "like": "Greetaa"
+  },
+  {
+   "name": "bolash daemon skull",
+   "description": "The skull of a bolash daemon.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "bolash daemon heart",
+   "description": "The heart of a bolash daemon.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "Seal of the Watchman",
+   "description": "A letter of the Council of Watchmen, sealed, for Lenwe Nenharma.",
+   "notrade": true,
+   "like": "Letter for Captain Rolley"
+  },
+  {
+   "name": "garlic trinket plans",
+   "description": "Plans for a garlic trinket, carried by a tormented eidolon.",
+   "notrade": true,
+   "like": "Letter for Captain Rolley"
+  },
+  {
+   "name": "Garlic Trinket",
+   "description": "A trinket of garlic, given by the Council of Watchmen to the hero who answered the bolash. Keep it: the broken blade's story needs it.",
+   "notrade": true,
+   "like": "Etched Rubicite Necklace"
+  },
+  {
+   "name": "broken blade",
+   "description": "An ancient language is inscribed upon the hilt: Ith na elem kabar. Resilan bolash ith na elem. Gra lisa embek.",
+   "notrade": true,
+   "like": "sword etched stone"
+  },
+  {
+   "name": "etching of the inscription",
+   "description": "An etching of the broken blade's inscription. Keep it close to you at all times.",
+   "notrade": true,
+   "like": "Altered Letter"
+  },
+  {
+   "name": "Elem Kabar Resilan",
+   "description": "A small red vial of resilan blood.",
+   "notrade": true,
+   "like": "Randerith's blood"
+  },
+  {
+   "name": "infected wolverine blood",
+   "description": "The blood of the infected wolverine.",
+   "notrade": true,
+   "like": "Randerith's blood"
   }
  ]
 }

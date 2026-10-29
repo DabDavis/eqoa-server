@@ -2586,18 +2586,12 @@
     "seconds": 20.0,
     "ticks": 0,
     "pet": "",
-    "effects": []
+    "effects": [
+     "hpcap +1",
+     "invulnerable"
+    ]
    },
-   "unread": [
-    {
-     "part": "set maximum hp to 0",
-     "why": "a maximum set, not raised or lowered: the reader has no such clause"
-    },
-    {
-     "part": "invulnerable",
-     "why": "the server has no invulnerability"
-    }
-   ]
+   "unread": []
   },
   {
    "classes": [

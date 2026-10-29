@@ -102,7 +102,8 @@ func (w *World) dummyFightLocked(npc *NPC, now time.Time) {
 // Dummy's heal after it. It reports the player's death.
 func (w *World) dummyHitLocked(sess *session.Session, npc *NPC, p *Player, now time.Time) bool {
 	damage := npcMeleeRoll(npc).hitOn(p, rand.Intn)
-	damage = w.playerWardLocked(p, npc, damage, now) // the player's ward, a sparring dummy's melee too: the hit as taken (ward.go)
+	damage = w.playerInvulnerableLocked(p, npc, damage, now) // invulnerable: nothing taken (spiritform.go)
+	damage = w.playerWardLocked(p, npc, damage, now)         // the player's ward, a sparring dummy's melee too: the hit as taken (ward.go)
 	if npc.Dummy == SparringDummy {
 		if w.sparHitLocked(sess, npc, p, damage, "", now) {
 			return true

@@ -295,6 +295,12 @@ type ActiveEffect struct {
 	Level    int
 	Afflicts CureKind
 	NoCure   bool
+	// HPCap is the most the bearer's maximum hit points are while it lasts,
+	// when HPCapped; Invulnerable: its bearer takes nothing of a creature's
+	// hit (spiritform.go: Spiritform's "Set Maximum HP to 0, Invulnerable")
+	HPCap        int
+	HPCapped     bool
+	Invulnerable bool
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -429,11 +435,15 @@ func (p *Player) StatNow(st Stat) int {
 }
 
 // MaxHPNow is the maximum hit points with effects: what they add, and what
-// their stamina adds through the class's formula.
+// their stamina adds through the class's formula, and at most the lowest
+// ceiling an effect puts on it (spiritform.go).
 func (p *Player) MaxHPNow() int {
 	n := p.MaxHP + p.Mods.MaxHP
 	if sta := p.StatNow(StatSta); sta != p.Sta {
 		n += p.maxHPFor(sta) - p.maxHPFor(p.Sta)
+	}
+	if top, ok := p.hpCap(); ok {
+		n = min(n, top)
 	}
 	return max(n, 1)
 }
@@ -985,6 +995,12 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			ae.Ward = ae.Ward.with(e) // ward.go
 		case EffectMark, EffectMarkHeal:
 			ae.Mark = ae.Mark.with(e, cs) // mark.go
+		case EffectHPCap:
+			if !ae.HPCapped || e.Amount < ae.HPCap { // spiritform.go
+				ae.HPCap, ae.HPCapped = max(e.Amount, 1), true
+			}
+		case EffectInvuln:
+			ae.Invulnerable = true // spiritform.go
 		default:
 			continue
 		}
@@ -1034,6 +1050,13 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			// one that lasts holds the power down as it goes on
 			if !cs.spell.Def.lasts() && t.Power > e.Amount {
 				t.Power = max(e.Amount, 0)
+				t.StatsDirty = true
+			}
+		case EffectHPCap:
+			// so too a ceiling on the hit points (spiritform.go), never
+			// under 1: it kills no one
+			if !cs.spell.Def.lasts() && t.HP > e.Amount {
+				t.HP = max(e.Amount, 1)
 				t.StatsDirty = true
 			}
 		case EffectEndIllusion:

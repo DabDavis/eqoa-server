@@ -82,6 +82,10 @@ type savedMods struct {
 	Level    int      `json:",omitempty"`
 	Afflicts CureKind `json:",omitempty"`
 	NoCure   bool     `json:",omitempty"`
+	// a ceiling on the maximum hit points, and invulnerability
+	// (spiritform.go); a row kept before reads as none
+	HPCap        *int `json:",omitempty"`
+	Invulnerable bool `json:",omitempty"`
 }
 
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
@@ -97,10 +101,14 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 		}
 		sm := savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, ProcScale: e.ProcScale, ProcScalePct: e.ProcScalePct,
 			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Appearance: e.Appearance, Ticks: e.Ticks, Shield: e.Shield, Line: e.Line, Rank: e.Rank,
-			Ward: e.Ward, Level: e.Level, Afflicts: e.Afflicts, NoCure: e.NoCure}
+			Ward: e.Ward, Level: e.Level, Afflicts: e.Afflicts, NoCure: e.NoCure, Invulnerable: e.Invulnerable}
 		if e.PowerCapped {
 			top := e.PowerCap
 			sm.PowerCap = &top
+		}
+		if e.HPCapped {
+			top := e.HPCap
+			sm.HPCap = &top
 		}
 		mods, _ := json.Marshal(sm)
 		flags := 0
@@ -154,6 +162,10 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			if sm.PowerCap != nil {
 				ae.PowerCap, ae.PowerCapped = *sm.PowerCap, true
 			}
+			ae.Invulnerable = sm.Invulnerable
+			if sm.HPCap != nil {
+				ae.HPCap, ae.HPCapped = max(*sm.HPCap, 1), true
+			}
 		}
 		p.Effects = append(p.Effects, ae)
 		if ae.Name != "" && len(p.Buffs) < MaxEffects {
@@ -168,6 +180,9 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 	p.Mods = m
 	if top, ok := p.powerCap(); ok && p.Power > top { // powercap.go
 		p.Power = max(top, 0)
+	}
+	if _, ok := p.hpCap(); ok { // spiritform.go
+		p.HP = min(p.HP, p.MaxHPNow())
 	}
 	p.StatsDirty = true
 	return n

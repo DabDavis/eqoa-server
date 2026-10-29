@@ -144,6 +144,10 @@ func effectWords(e SpellEffect) string {
 		if e.Amount > 0 {
 			s += fmt.Sprintf(" x%d", e.Amount)
 		}
+	case EffectHPCap:
+		s = amount("hpcap")
+	case EffectInvuln:
+		s = "invulnerable"
 	default:
 		s = fmt.Sprintf("kind %d", e.Kind)
 	}

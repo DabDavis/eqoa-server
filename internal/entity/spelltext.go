@@ -64,6 +64,8 @@ const (
 	EffectMark                          // on a creature: each player's or pet's hit on it does Amount to AmountMax more, 0 its default (mark.go)
 	EffectMarkHeal                      // on a creature: each player's or pet's hit on it heals the attacker Amount to AmountMax (mark.go)
 	EffectCure                          // takes Amount harmful effects of the Cure kind off the bearer, 0 by its level (cure.go)
+	EffectHPCap                         // the bearer's maximum hit points at most Amount (1 or more) while it lasts; lasting no time, its hit points taken down to it (spiritform.go)
+	EffectInvuln                        // the bearer takes nothing of a creature's hit while it lasts (spiritform.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -613,6 +615,10 @@ func (d *SpellDef) parsePart(part, verb string) string {
 			d.Effects = append(d.Effects, SpellEffect{Kind: EffectStat, Stat: st, Amount: n, AmountMax: n, Set: true})
 			return verb
 		}
+	}
+	if e, ok := spiritformPart(part); ok { // spiritform.go
+		d.Effects = append(d.Effects, e)
+		return verb
 	}
 	scale, scalePct := StatNone, 0
 	if m := reScaleIn.FindStringSubmatch(part); m != nil {

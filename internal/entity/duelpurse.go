@@ -71,16 +71,17 @@ type duelPurse struct {
 func (w *World) OnDuelPurse(fn DuelPurseFunc) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	w.duelPurse.mu.Lock()
+	defer w.duelPurse.mu.Unlock()
 	w.duelPurse.fn = fn
 }
 
 func (w *World) queueDuelPurseLocked(op DuelPurseOp) {
-	if w.duelPurse.fn == nil {
-		return
-	}
 	w.duelPurse.mu.Lock()
-	w.duelPurse.queue = append(w.duelPurse.queue, op)
-	w.duelPurse.mu.Unlock()
+	defer w.duelPurse.mu.Unlock()
+	if w.duelPurse.fn != nil {
+		w.duelPurse.queue = append(w.duelPurse.queue, op)
+	}
 }
 
 // runDuelPurse runs the ops waiting, outside the world lock (deferred by the

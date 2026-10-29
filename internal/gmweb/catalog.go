@@ -1146,6 +1146,21 @@ var catalog = map[string]tableNote{
 			"sex":     {Label: "Sex", Enum: "sex"},
 		},
 	},
+	"racesize": {
+		Label: "Player sizes by race", Group: "New characters", Title: "race", Sort: "race",
+		Help: "How big a race's PLAYERS are drawn, on every client (the state channel's model size): 1.0 is the race's own " +
+			"body as the disc has it (Sandstorm sends 1.0 for every player), 0.9 a tenth smaller; a race with no row is " +
+			"1.0. Made with jib's gnomes at 0.9 (\"Shrink player gnome size by about 10%\"). A race's illusion cast on " +
+			"anyone takes that race's size. NPCs are never scaled by it: their own row's size is theirs.",
+		Live:   "At once: every player of the race in the world is drawn at the new size from the next tick.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"race":   {Label: "Race", Enum: "race"},
+			"size":   {Label: "Size", Help: "0.25 to 4; 1.0 the race's own body, 0.9 a tenth smaller"},
+			"note":   {Label: "Note", Help: "why"},
+			"source": {Label: "Source", Help: "gm, or seed for the row the table was made with"},
+		},
+	},
 	"guilds": {
 		Label: "Guilds", Group: "Guilds & quests", Title: "name",
 		Cols: map[string]colNote{"leader_id": {Label: "Leader", Ref: "characters"}},

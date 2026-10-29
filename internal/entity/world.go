@@ -93,6 +93,8 @@ type World struct {
 	// Each player race's two bodies by race and sex (charactermodel), the
 	// bodies a race's illusion shows (illusion.go)
 	raceModels map[raceSex]uint32
+	// and each race's body size, table racesize (racesize.go)
+	raceSizes map[int]float32
 
 	// Summoned pets by their owners' ids (pet.go)
 	pets map[EntityID]*petState
@@ -239,7 +241,7 @@ func (w *World) CreatePlayer(sess *session.Session, record *database.CharacterRe
 		Facing:       posFacing,
 		World:        coherentWorldOnLoad(record.CharName, uint8(record.World), posX, posZ),
 		ModelID:      record.ModelID,
-		Size:         PlayerSize,
+		Size:         w.raceSizeLocked(record.Race), // racesize.go
 		Race:         record.Race,
 		Sex:          record.Sex,
 		HumType:      record.HumType,

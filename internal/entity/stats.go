@@ -5,12 +5,14 @@ import (
 	"math/rand"
 )
 
-// PlayerSize is every player's ModelSize (state-channel offset 36-39): 1.0
-// whatever the race. CHAR.ESF's race bodies are authored at their race's own
-// height, and Sandstorm sends 1.00 for every player in its captures (human,
-// elf, dark elf, troll, halfling and erudite; F3 20261025-173632). A table of
-// race factors (a gnome 0.45, an ogre 1.5) stood here until then, a guess
-// from the Go client's days, and drew every gnome NPC at under half size.
+// PlayerSize is a player's ModelSize (state-channel offset 36-39) when table
+// racesize has no row for its race: 1.0. CHAR.ESF's race bodies are authored
+// at their race's own height, and Sandstorm sends 1.00 for every player in
+// its captures (human, elf, dark elf, troll, halfling and erudite; F3
+// 20261025-173632). A table of race factors (a gnome 0.45, an ogre 1.5) stood
+// here until then, a guess from the Go client's days, and drew every gnome
+// NPC at under half size. Since 2026-10-29 a GM's racesize row sizes a race's
+// players (racesize.go): gnomes 0.9, jib's ask; NPCs are never scaled by it.
 const PlayerSize float32 = 1.0
 
 // NPCSize is the ModelSize an npcs row's size sends: the row's own, as

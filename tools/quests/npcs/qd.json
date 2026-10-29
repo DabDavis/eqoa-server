@@ -1,0 +1,875 @@
+{
+ "set": "qd",
+ "npcs": [
+  {
+   "name": "Old Man",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "on the right-hand hill of the gloomy valley in Bandit Hills (E), by the serpent cave",
+   "water": "land"
+  },
+  {
+   "name": "Malisarisent",
+   "role": "talker",
+   "body": [
+    "race",
+    "gnome",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "the little gnome woman on the valley's other hill, Bandit Hills (E)",
+   "water": "land"
+  },
+  {
+   "name": "Lairt'tsal",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "outside the serpent cave, Bandit Hills (E)",
+   "water": "land"
+  },
+  {
+   "name": "Goran's Beast",
+   "role": "foe",
+   "body": [
+    "kind",
+    "bear"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 3,
+   "note": "on the Old Man's hill, Bandit Hills (E); the trials spawn more (a bear's body: the guide gives none)",
+   "water": "land"
+  },
+  {
+   "name": "Goran's Pet",
+   "role": "foe",
+   "body": [
+    "kind",
+    "bear"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "down the right-hand fork inside the serpent cave",
+   "water": "land"
+  },
+  {
+   "name": "Wria Lightningfoot",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Wria Lightningfoot"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "by the southerly of the two big rocks on a tall hill, Hodstock and Temby (C)",
+   "water": "land"
+  },
+  {
+   "name": "Nadine",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Nadine"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "two hills west of the rocks past the bridge with two towers, Hodstock and Temby (SW)",
+   "water": "land"
+  },
+  {
+   "name": "Yvlir",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Yvlir"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "west of Nadine at the zone's western border (SW)",
+   "water": "land"
+  },
+  {
+   "name": "Jimique",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Jimique"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "along the coast just north of Temby (E)",
+   "water": "land"
+  },
+  {
+   "name": "Hogin",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Hogin"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "on the coast south of Temby, near the zone's south border (SE)",
+   "water": "land"
+  },
+  {
+   "name": "Sabbine",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Sabbine"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "the north border near the coast",
+   "water": "land"
+  },
+  {
+   "name": "Ibaggo",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Ibaggo"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "a little west of Sabbine at the northernmost border",
+   "water": "land"
+  },
+  {
+   "name": "Quidox",
+   "role": "talker",
+   "body": [
+    "race",
+    "gnome",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Quidox"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "up the river at the north border, west, near the water (NW)",
+   "water": "land"
+  },
+  {
+   "name": "Brugga",
+   "role": "talker",
+   "body": [
+    "race",
+    "dwarf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Brugga"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "by Wria's rock (the guide never needed her)",
+   "water": "land"
+  },
+  {
+   "name": "Medaesis",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Medaesis"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "outside Freeport's north gate to the west, west-north-west of Mardtirn Poisontongue, by a cactus",
+   "water": "land"
+  },
+  {
+   "name": "Reaver Gnoll",
+   "role": "talker",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Reaver Gnoll"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "among three orange tents north of the Strag's Rest tavern, along the mountain past the T stone (the map's point)",
+   "water": "land"
+  },
+  {
+   "name": "Reaver Gnoll",
+   "role": "talker",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    17003.0,
+    22158.0
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "Serpent Hills (N), the second trial's gnoll (the map's 'the gnoll')",
+   "water": "land"
+  },
+  {
+   "name": "Reaver Gnoll",
+   "role": "talker",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    15721.0,
+    25155.0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Fort Alliance (E), by a rock near the barracks by the Razgut camp (the map's 'Gnoll looking npc')",
+   "water": "land"
+  },
+  {
+   "name": "Reaver Gnoll",
+   "role": "talker",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    19084.0,
+    30499.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "Stone Watchers (C), next to a dam (the map's 'gnoll npc')",
+   "water": "land"
+  },
+  {
+   "name": "eno",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    15557.0,
+    17795.0
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "one of the gnolls the trial's gnoll calls (its round 1: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "owt",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    15569.0,
+    17795.0
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "one of the gnolls the trial's gnoll calls (its round 1: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "eerht",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    15581.0,
+    17795.0
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "one of the gnolls the trial's gnoll calls (its round 1: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "onu",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    16991.0,
+    22172.0
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "one of the gnolls the trial's gnoll calls (its round 2: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "sod",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    17003.0,
+    22172.0
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "one of the gnolls the trial's gnoll calls (its round 2: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "sert",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    17015.0,
+    22172.0
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "one of the gnolls the trial's gnoll calls (its round 2: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "tsrif",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    19072.0,
+    30513.0
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "one of the gnolls the trial's gnoll calls (its round 4: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "dnoces",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    19084.0,
+    30513.0
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "one of the gnolls the trial's gnoll calls (its round 4: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "driht",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    19096.0,
+    30513.0
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "one of the gnolls the trial's gnoll calls (its round 4: the names are one, two, three backwards)",
+   "water": "land"
+  },
+  {
+   "name": "Reaver Leader",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    15569.0,
+    17800.0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "the leader the first trial's gnolls bring (unnamed in the guide)",
+   "water": "land"
+  },
+  {
+   "name": "Reaver Leader",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "at",
+    0,
+    17003.0,
+    22177.0
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "the leader the second trial's gnolls bring (unnamed in the guide)",
+   "water": "land"
+  },
+  {
+   "name": "Gregor Pyrely",
+   "role": "foe",
+   "body": [
+    "race",
+    "erudite",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Gregor Pyrely"
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "Highbourne's dockside, following the ocean bank north to the first big tree outside town",
+   "water": "land"
+  },
+  {
+   "name": "Gnolan Boltratchet",
+   "role": "foe",
+   "body": [
+    "race",
+    "gnome",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Gnolan Boltratchet"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "Ant Colonies (S), at the east-south-east base of the black ant guard hill by a boulder",
+   "water": "land"
+  },
+  {
+   "name": "Nizen Flangletoggle",
+   "role": "foe",
+   "body": [
+    "race",
+    "gnome",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Nizen Flangletoggle"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "Neriak (C), north of the coach, on a small hill with a big rock and a mushroom near the firebat valley",
+   "water": "land"
+  },
+  {
+   "name": "Black Ant Guard",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ant"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 2,
+   "note": "the black ant guards round Gnolan Boltratchet's hill, Ant Colonies (S)",
+   "water": "land"
+  },
+  {
+   "name": "Esmirique",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Esmirique"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "Qeynos (SW), along the ocean south of town, two trees south of the poachers' camp",
+   "water": "land"
+  },
+  {
+   "name": "Zombie #22",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Zombie"
+   ],
+   "place": [
+    "poi",
+    "rathe",
+    "Zombie #22"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the Dead Hills, beside the Plane of Disease portal house, outside the fence opposite the necrologists",
+   "water": "land"
+  },
+  {
+   "name": "Inquiladius Expica",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "south and west of Druid's Watch, near the road",
+   "water": "land"
+  },
+  {
+   "name": "Farmer Moegar",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "in Druid's Watch",
+   "water": "land"
+  },
+  {
+   "name": "Demetricus Olious",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Inquiladius Expica",
+    14,
+    0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "10-15 steps north of Inquiladius Expica (the map's Demetricus)",
+   "water": "land"
+  },
+  {
+   "name": "Grunnie",
+   "role": "talker",
+   "body": [
+    "race",
+    "dwarf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Grunnie"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Darvar Manor ('Feswes Nepus'), left from the coach by the fence",
+   "water": "land"
+  },
+  {
+   "name": "Cylen",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Cylen"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Blackwater ('Cmedixevis'), close to Corliss by the fence",
+   "water": "land"
+  },
+  {
+   "name": "Kibenza",
+   "role": "talker",
+   "body": [
+    "race",
+    "gnome",
+    1
+   ],
+   "place": [
+    "at",
+    0,
+    13546.0,
+    27510.0
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Gertar's Mines ('Hispves Nopit'), east of the coach by the merchants (the map's point, read as Tunaria: it lies in the sheet's Rathe inset)",
+   "water": "land"
+  },
+  {
+   "name": "Sawise",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Sawise"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Kara Village ('Lese Wommehi'), south of the west entrance by a tree",
+   "water": "land"
+  },
+  {
+   "name": "Sylanthia De'Crevast",
+   "role": "talker",
+   "body": [
+    "race",
+    "darkelf",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Sylanthia De'Crevast"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "North Kithicor (NE), on a hill just east of the wild griffawns",
+   "water": "land"
+  },
+  {
+   "name": "Yiggua",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Yiggua"
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "just off the path north of the little outpost outside Grobb",
+   "water": "land"
+  },
+  {
+   "name": "Shuglug",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Shuglug"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "east of Grobb, round the mountain on the beach",
+   "water": "land"
+  },
+  {
+   "name": "Farmer Rulug",
+   "role": "talker",
+   "body": [
+    "race",
+    "troll",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Farmer Rulug"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Kerplunk Outpost, north along the lake's coast",
+   "water": "land"
+  },
+  {
+   "name": "hearty boar",
+   "role": "foe",
+   "body": [
+    "kind",
+    "boar"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "hearty boars"
+   ],
+   "count": 3,
+   "level": 40,
+   "note": "the western Spider Mines, along the river west of Ruddish the Devout",
+   "water": "land"
+  },
+  {
+   "name": "Fripz",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "Oggok Gate (S)",
+   "water": "land"
+  },
+  {
+   "name": "Frapz",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    13555.0,
+    28362.0
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "Oggok Gate (NE), on a hillside among the ponds (the map's point, read as Tunaria: it lies in the sheet's Rathe inset)",
+   "water": "land"
+  }
+ ]
+}

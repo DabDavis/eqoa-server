@@ -424,7 +424,8 @@ func (l *Listener) tickAllSessions() {
 				l.saveEffects(sess)
 				l.saveFactions(sess)
 				l.saveMastery(sess)
-				l.saveRez(sess) // rezsave.go
+				l.saveRez(sess)                // rezsave.go
+				l.saveLogout(sess, time.Now()) // norentsave.go
 			}
 			l.gameWorld.RemovePlayerBySession(sess)
 		}
@@ -534,7 +535,8 @@ func (l *Listener) SaveAll() {
 		l.saveEffects(sess)
 		l.saveFactions(sess)
 		l.saveMastery(sess)
-		l.saveRez(sess) // rezsave.go
+		l.saveRez(sess)                // rezsave.go
+		l.saveLogout(sess, time.Now()) // norentsave.go
 	}
 	log.Printf("SaveAll: %d players saved", len(inWorld))
 }

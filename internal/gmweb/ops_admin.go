@@ -25,7 +25,7 @@ func (s *Server) registerAdminOps() {
 		Name: "audit_log", Title: "The audit log", Scope: scopeRead, Core: true,
 		Description: "Every change made through the panel, by an agent or by a GM command in the game, newest first: who, " +
 			"through what (web, a token, OAuth, game), when, and for a row the row before and after. Filter by GM, table, " +
-			"action (insert, update, delete, live, account, settings, sql, login, token, security) or text.",
+			"action (insert, update, delete, live, account, settings, sql, login, token, security, backup, snapshot, server) or text.",
 		Input: obj(map[string]any{
 			"username": str("only this GM's"),
 			"table":    str("only changes to this table"),

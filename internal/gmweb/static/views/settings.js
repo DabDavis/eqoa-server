@@ -48,6 +48,30 @@ export async function render(box) {
     } catch (e) { mount(backups, h('p', { class: 'err' }, e.message)); }
   };
 
+  // a copy of the database for a GM's own machine (the real-data tests),
+  // every credential and person's data taken out: download_snapshot, the
+  // same operation an agent calls
+  const snapshotOut = h('div', { class: 'stack' });
+  const snapshotButton = button('Make one and download it', { class: 'small primary', icon: 'db', onclick: async () => {
+    snapshotButton.disabled = true;
+    try {
+      const out = await op('download_snapshot');
+      const a = h('a', { href: out.url, download: out.file });
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      mount(snapshotOut,
+        h('p', { class: 'small' }, `${out.file}: ${bytes(out.bytes)} gzipped, ${bytes(out.databaseBytes)} as a database, ${out.tables} tables (sanitiser ${out.sanitiser}).`),
+        h('p', { class: 'mono small' }, 'sha256 ' + out.sha256),
+        h('ul', { class: 'small muted' }, ...(out.removed || []).map((r) => h('li', null, h('span', { class: 'mono' }, r.table), ': ', r.did))));
+      toast('Snapshot downloading', 'ok', 'Its link works once; the file is the server\'s content: keep it out of the repository.');
+    } catch (e) { toast(e.message, 'error'); }
+    snapshotButton.disabled = false;
+  } });
+  const snapshot = h('div', { class: 'stack' },
+    h('p', { class: 'muted small' }, 'A copy of the live database with every credential and person\'s data taken out (password hashes, tokens, authenticators, OAuth clients, the audit log, the work board, e-mail and IP addresses; players\' login names become account-<id>) and the game whole: for the real-data tests on your own machine (EQOA_REAL_DB). Its link works once, for ten minutes. Never commit, attach or share the file.'),
+    snapshotButton, snapshotOut);
+
   mount(box,
     pageHead('Settings', admin ? 'These apply at once and are written to ' + (view.configFile || 'config.yaml') + ' (backed up first), so a restart keeps them.' : 'An admin changes these.'),
     h('div', { class: 'cols' },
@@ -62,9 +86,11 @@ export async function render(box) {
       h('p', { class: 'muted small' }, 'An NPC of this exact name answers a talk with these words instead of the debug box.'),
       rows, admin ? button('Add a line', { icon: 'plus', class: 'small', onclick: () => addRow() }) : null)),
     admin ? h('div', { class: 'row' }, save) : null,
-    admin ? card('Database backups', backups, button('Back up now', { class: 'small primary', onclick: async () => {
-      try { const out = await op('create_backup', { label: 'panel' }); toast('Backed up', 'ok', `${out.path} (${bytes(out.bytes)})`); loadBackups(); } catch (e) { toast(e.message, 'error'); }
-    } })) : null,
+    admin ? h('div', { class: 'cols' },
+      card('Database backups', backups, button('Back up now', { class: 'small primary', onclick: async () => {
+        try { const out = await op('create_backup', { label: 'panel' }); toast('Backed up', 'ok', `${out.path} (${bytes(out.bytes)})`); loadBackups(); } catch (e) { toast(e.message, 'error'); }
+      } })),
+      card('Sanitised snapshot', snapshot)) : null,
     admin && state.session.server.restart ? card('Restart', h('div', { class: 'stack' },
       h('p', null, 'Saves every player as at a logout and starts the server again from its binary on disk. Everyone in the game is disconnected for about ten seconds.'),
       button('Restart the server', { class: 'danger', onclick: async () => {

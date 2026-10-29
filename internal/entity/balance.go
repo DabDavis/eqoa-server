@@ -29,6 +29,7 @@ import (
 //     pets lag their owners by up to thirteen levels at 60 (a magician's
 //     last pet of its levels is Ghilan, 47), and a pet is its owner's
 //     weapon. A charmed creature is still a creature: its own level's.
+//   - a creature's heal out of a fight, by its level (RegenPct, npcregen.go);
 //   - a root on an NPC, by its con on the root's caster: resisted at its
 //     landing, freed by a hit (root.go);
 //   - the combat arts' global cooldown, by the player's level (ArtCooldown):
@@ -190,7 +191,8 @@ func between(x, x0, x1 int, y0, y1 float64) float64 {
 // between the rows on either side, or the nearest end's; every percent 100
 // with no rows.
 func (b *Balance) Level(level int) database.BalanceLevel {
-	out := database.BalanceLevel{Level: level, HPPct: 100, DamagePct: 100, ConPct: 100, PetHPPct: 100, PetDamagePct: 100}
+	out := database.BalanceLevel{Level: level, HPPct: 100, DamagePct: 100, ConPct: 100, PetHPPct: 100, PetDamagePct: 100,
+		RegenPct: npcCalmHealPct}
 	if b == nil || len(b.levels) == 0 {
 		return out
 	}
@@ -209,6 +211,7 @@ func (b *Balance) Level(level int) database.BalanceLevel {
 		out.PetHPPct = between(level, a.Level, c.Level, a.PetHPPct, c.PetHPPct)
 		out.PetDamagePct = between(level, a.Level, c.Level, a.PetDamagePct, c.PetDamagePct)
 		out.ArtCooldownMS = between(level, a.Level, c.Level, a.ArtCooldownMS, c.ArtCooldownMS)
+		out.RegenPct = between(level, a.Level, c.Level, a.RegenPct, c.RegenPct)
 	}
 	out.Level = level
 	return out
@@ -222,6 +225,12 @@ func (b *Balance) ArtCooldown(level int) time.Duration {
 		return 0
 	}
 	return time.Duration(math.Round(b.Level(level).ArtCooldownMS)) * time.Millisecond
+}
+
+// RegenPct is what a creature of the level heals each tick out of a fight
+// (npcregen.go), a percent of its maximum: jib's 15 with no rows.
+func (b *Balance) RegenPct(level int) float64 {
+	return b.Level(level).RegenPct
 }
 
 // isArt is whether a spell is a combat art for the global cooldown: an

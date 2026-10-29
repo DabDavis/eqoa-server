@@ -82,8 +82,9 @@ func TestALeashedCreatureHealsOnItsWayHome(t *testing.T) {
 	}
 }
 
-// A pet, a charmed creature, a dummy and a corpse heal nothing here; a
-// creature of 1 hit point a tick heals 1.
+// A dummy and a corpse heal nothing here (a pet heals as a player,
+// TestAPetHealsAndGainsPowerAsAPlayerDoes); a creature of 1 hit point a tick
+// heals 1.
 func TestWhatDoesNotHealHere(t *testing.T) {
 	f := newAggroFix(t, 10)
 	pet := f.npc(100, "Iron Golem", 20, bearBody, 1100, 1000)
@@ -97,8 +98,8 @@ func TestWhatDoesNotHealHere(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		f.regenTick()
 	}
-	if pet.HP != 10 || dummy.HP != 10 || corpse.HP != 0 {
-		t.Errorf("healed here: pet %d, dummy %d, corpse %d", pet.HP, dummy.HP, corpse.HP)
+	if pet.HP != 70 || dummy.HP != 10 || corpse.HP != 0 {
+		t.Errorf("healed here: pet %d (want 70: 20 a tick), dummy %d, corpse %d", pet.HP, dummy.HP, corpse.HP)
 	}
 	if tiny.HP != 2 {
 		t.Errorf("a 5-HP rat healed to %d at its third tick, want 2 (at least 1)", tiny.HP)
@@ -121,5 +122,67 @@ func TestOnlyTheRegensTicksCount(t *testing.T) {
 	f.w.mu.Unlock()
 	if n.HP != 100 || n.calmTicks != 0 {
 		t.Errorf("between the regen's ticks: HP %d, calm %d", n.HP, n.calmTicks)
+	}
+}
+
+// Under the seed rows a creature heals its level's regen_pct, 5% a tick, from
+// its third tick (the user: "Mobs regen slower"); the control is
+// TestACreatureOutOfAFightHealsFromItsThirdTick: with no rows, jib's 15%.
+func TestACreatureHealsAtItsLevelsRate(t *testing.T) {
+	f := newAggroFix(t, 10)
+	f.w.balance = SeedBalance()
+	n := f.npc(100, "Black Bear", 20, bearBody, 1100, 1000)
+	n.HP, n.MaxHP = 100, 1000
+	want := []int{100, 100, 150, 200, 250}
+	for i, w := range want {
+		f.regenTick()
+		if n.HP != w {
+			t.Fatalf("tick %d: HP %d, want %d (all %v)", i+1, n.HP, w, want)
+		}
+	}
+	// whole from nothing: two calm ticks and twenty of 5%, 2 min 12 s at most
+	n.HP = 1
+	n.calmTicks, n.healing = 0, false
+	ticks := 0
+	for n.HP < n.MaxHP && ticks < 100 {
+		f.regenTick()
+		ticks++
+	}
+	if ticks != 22 {
+		t.Errorf("whole from 1 HP in %d ticks, want 22 (%v)", ticks, time.Duration(ticks)*RegenInterval)
+	}
+}
+
+// A pet, summoned or charmed, heals and gains power every tick as a player
+// does (a 50 of each maximum), in a fight too, from the first tick; a
+// creature that is nobody's pet heals nothing in its fight (the control).
+func TestAPetHealsAndGainsPowerAsAPlayerDoes(t *testing.T) {
+	f := newAggroFix(t, 10)
+	f.w.balance = SeedBalance()
+	pet := f.npc(100, "Iron Golem", 50, bearBody, 1100, 1000)
+	pet.HP, pet.MaxHP, pet.Owner = 10, 1000, f.p.ServerID
+	petPowerLocked(pet)
+	if pet.MaxPower != 1400 || pet.Power != 1400 {
+		t.Fatalf("a level 50 pet's power: %d/%d, want 1400", pet.Power, pet.MaxPower)
+	}
+	pet.Power = 0
+	charmed := f.npc(101, "Black Bear", 20, bearBody, 1110, 1000)
+	charmed.HP, charmed.MaxHP, charmed.Owner, charmed.Charm = 500, 2000, f.p.ServerID, &charmHold{}
+	foe := f.npc(102, "Black Bear", 20, bearBody, 1120, 1000)
+	foe.HP, foe.MaxHP = 300, 1000
+	pet.CurrentEnemy, charmed.CurrentEnemy = foe.ServerID, foe.ServerID // fighting
+	f.hit(foe, 10)
+	f.regenTick()
+	if pet.HP != 30 || pet.Power != 28 || charmed.HP != 540 {
+		t.Errorf("one tick: pet %d HP %d power, charmed %d HP; want 30, 28, 540", pet.HP, pet.Power, charmed.HP)
+	}
+	if foe.HP != 300 {
+		t.Errorf("a creature in its fight healed: %d", foe.HP)
+	}
+	f.w.mu.Lock()
+	f.w.unCharmLocked(charmed)
+	f.w.mu.Unlock()
+	if charmed.MaxPower != 0 || charmed.Power != 0 {
+		t.Errorf("let go, a creature keeps power %d/%d", charmed.Power, charmed.MaxPower)
 	}
 }

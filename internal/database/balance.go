@@ -35,6 +35,11 @@ import (
 // end where their own hit points, AC and archetype leave it too wide. A class
 // with no row takes all of it.
 //
+// balancelevel's regen_pct is what a creature of the level heals out of a
+// fight each six-second tick after its two calm ones, a percent of its most
+// (entity/npcregen.go; 15, jib's, is the column's default and the rate with
+// no rows).
+//
 // balancelevel's art_cooldown_ms is by a PLAYER's level, the one column that
 // is: the global cooldown of the combat arts (an ability with no cast time
 // cast at a creature), the milliseconds from one's start before another may
@@ -53,6 +58,7 @@ const balanceSchema = `
 		pet_hp_pct     REAL NOT NULL DEFAULT 100,
 		pet_damage_pct REAL NOT NULL DEFAULT 100,
 		art_cooldown_ms REAL NOT NULL DEFAULT 0,
+		regen_pct      REAL NOT NULL DEFAULT 15,
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
 	);
@@ -80,7 +86,10 @@ type BalanceLevel struct {
 	PetHPPct, PetDamagePct float64
 	// ArtCooldownMS is by a player's level (the file's doc)
 	ArtCooldownMS float64
-	Note          string
+	// RegenPct is what a creature of the level heals each tick out of a
+	// fight (entity/npcregen.go), a percent of its maximum
+	RegenPct float64
+	Note     string
 }
 
 // BalanceClass is one row of balanceclass.
@@ -99,6 +108,13 @@ type balanceColumn struct {
 
 // balanceColumns are the columns added since 2026-10-29's first tables.
 var balanceColumns = []balanceColumn{
+	{"balancelevel", "regen_pct", "REAL NOT NULL DEFAULT 15", "level", func() map[int]float64 {
+		m := map[int]float64{}
+		for _, r := range BalanceSeedLevels {
+			m[r.Level] = r.RegenPct
+		}
+		return m
+	}},
 	{"balancecon", "root_resist_pct", "REAL NOT NULL DEFAULT 0", "diff", func() map[int]float64 {
 		m := map[int]float64{}
 		for _, r := range BalanceSeedCons {
@@ -176,8 +192,8 @@ func (db *SQLiteDB) ensureBalance() error {
 	if fresh["balancelevel"] {
 		for _, r := range BalanceSeedLevels {
 			if _, err := db.Exec(`INSERT OR IGNORE INTO balancelevel (level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct,
-				art_cooldown_ms, note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'seed')`, r.Level, r.HPPct, r.DamagePct, r.ConPct,
-				r.PetHPPct, r.PetDamagePct, r.ArtCooldownMS, r.Note); err != nil {
+				art_cooldown_ms, regen_pct, note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'seed')`, r.Level, r.HPPct, r.DamagePct,
+				r.ConPct, r.PetHPPct, r.PetDamagePct, r.ArtCooldownMS, r.RegenPct, r.Note); err != nil {
 				return fmt.Errorf("balancelevel: %w", err)
 			}
 		}
@@ -222,7 +238,7 @@ func (db *SQLiteDB) BalanceClasses() ([]BalanceClass, error) {
 
 // BalanceLevels is every row of balancelevel, by level.
 func (db *SQLiteDB) BalanceLevels() ([]BalanceLevel, error) {
-	rows, err := db.Query(`SELECT level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct, art_cooldown_ms, note
+	rows, err := db.Query(`SELECT level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct, art_cooldown_ms, regen_pct, note
 		FROM balancelevel ORDER BY level`)
 	if err != nil {
 		return nil, err
@@ -231,7 +247,8 @@ func (db *SQLiteDB) BalanceLevels() ([]BalanceLevel, error) {
 	var out []BalanceLevel
 	for rows.Next() {
 		var r BalanceLevel
-		if err := rows.Scan(&r.Level, &r.HPPct, &r.DamagePct, &r.ConPct, &r.PetHPPct, &r.PetDamagePct, &r.ArtCooldownMS, &r.Note); err != nil {
+		if err := rows.Scan(&r.Level, &r.HPPct, &r.DamagePct, &r.ConPct, &r.PetHPPct, &r.PetDamagePct, &r.ArtCooldownMS,
+			&r.RegenPct, &r.Note); err != nil {
 			return nil, err
 		}
 		out = append(out, r)

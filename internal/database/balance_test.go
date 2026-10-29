@@ -7,7 +7,8 @@ import (
 
 // A balancelevel table made before a column (2026-10-29's first tables) gets
 // it at the next open: the rows still the seed's take the seed's value of it,
-// a GM's row the column's default; a new table has it with its seed rows.
+// a GM's row the column's default (regen_pct's is jib's 15); a new table has
+// it with its seed rows.
 func TestBalanceColumnsAddedToAnOlderTable(t *testing.T) {
 	path := t.TempDir() + "/old.db"
 	raw, err := sql.Open("sqlite", path)
@@ -30,12 +31,15 @@ func TestBalanceColumnsAddedToAnOlderTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	got := map[int]float64{}
+	got, regen := map[int]float64{}, map[int]float64{}
 	for _, r := range rows {
-		got[r.Level] = r.ArtCooldownMS
+		got[r.Level], regen[r.Level] = r.ArtCooldownMS, r.RegenPct
 	}
 	if len(rows) != 2 || got[30] != 1500 || got[33] != 0 {
 		t.Errorf("after the open: %+v (want the seed row 1500, the GM's 0, no rows added)", rows)
+	}
+	if regen[30] != 5 || regen[33] != 15 {
+		t.Errorf("regen_pct: seed row %g, GM's %g; want 5 (the seed's) and 15 (the column's default)", regen[30], regen[33])
 	}
 
 	fresh, err := NewSQLite(t.TempDir() + "/new.db")

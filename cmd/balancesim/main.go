@@ -9,8 +9,13 @@
 //	    [-tier 0.5] [-pets] [-limit 10m]
 //	    [-try-level 1:300:200:0,60:500:300:100] [-try-con 1:115:95,5:200:60]
 //	    [-try-art 1:0,30:1500,60:2000] [-try-class 1:80,5:80,6:80]
-//	    [-root] [-try-root 0:0:5,3:35:20,5:65:30]
+//	    [-root] [-try-root 0:0:5,3:35:20,5:65:30] [-try-regen 1:5,60:5]
 //	balancesim -db eqoa.db -lines [-classes ...]
+//	balancesim -db eqoa.db -reset 20s [-try-regen 1:5] [-classes ...]
+//
+// -reset fights each fight that long and then breaks it off: the player
+// runs out of the NPC's reach for good and rests, and it prints how long the
+// NPC took to be whole again (its heal out of a fight, regen_pct).
 //
 // -lines prints each class's buff lines instead: the spells of one line, of
 // which only the best counts on a player (entity/buffline.go).
@@ -82,8 +87,10 @@ func main() {
 	tryArt := flag.String("try-art", "", "the arts' cooldown to try, by the player's level: level:ms,...")
 	tryClass := flag.String("try-class", "", "class rows to try: class:melee_taken_pct,... (in place of the table's)")
 	tryRoot := flag.String("try-root", "", "a root's resist and break chances to try, by the con: diff:resist:break,...")
+	tryRegen := flag.String("try-regen", "", "a creature's heal out of a fight to try, by its level: level:pct,...")
 	rootPlay := flag.Bool("root", false, "classes with a root also fight rooting and casting from range, no pet")
 	only := flag.String("only", "", "only this play's rows: false (hand to hand), true (the pet) or root")
+	reset := flag.Duration("reset", 0, "instead: fight this long, then run off for good and rest; how long the NPC takes to be whole")
 	flag.Parse()
 	if *dbPath == "" {
 		flag.Usage()
@@ -156,10 +163,17 @@ func main() {
 		b = b.WithConColumn(resist, func(r *database.BalanceCon, v float64) { r.RootResistPct = v })
 		b = b.WithConColumn(brk, func(r *database.BalanceCon, v float64) { r.RootBreakPct = v })
 	}
+	if *tryRegen != "" {
+		b = b.WithLevelColumn(points(*tryRegen), func(r *database.BalanceLevel, v float64) { r.RegenPct = v })
+	}
 	if *tryArt != "" {
 		b = b.WithLevelColumn(points(*tryArt), func(r *database.BalanceLevel, v float64) { r.ArtCooldownMS = v })
 	}
 	ds := ints(*diffs)
+	if *reset > 0 {
+		printResets(db, b, ints(*classes), ints(*levels), ds, *fights, *tier, *reset)
+		return
+	}
 	fmt.Printf("%-4s %-6s %-3s %-4s", "", "", "lvl", "pet")
 	for _, d := range ds {
 		fmt.Printf(" | %+d won  hp  secs", d)
@@ -199,6 +213,45 @@ func main() {
 				}
 				fmt.Println()
 			}
+		}
+	}
+}
+
+// printResets fights each cell's fights for after, then breaks each off
+// (entity.SimulateReset) and prints the NPC's hit points left at the break,
+// the seconds it took to be whole again, and the player's hit points then
+// (a fight that ended before the break is left out).
+func printResets(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds []int, fights int, tier float64, after time.Duration) {
+	fmt.Printf("broken off after %v: the NPC's HP left at the break, seconds to whole, the player's HP at the break -> when the NPC is whole\n", after)
+	for _, class := range classes {
+		for _, level := range levels {
+			pl, err := entity.SimKitFromDB(db, class, 0, level, tier)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("%-4s %3d", classNames[class], level)
+			for _, d := range ds {
+				var npc, whole, hp0, hp1 float64
+				n := 0
+				for i := range fights {
+					r := entity.SimulateReset(pl, entity.SimNPC{Level: max(level+d, 1)}, b, int64(1+i), after, 10*time.Minute)
+					if r.Ended || r.Whole == 0 {
+						continue
+					}
+					n++
+					npc += r.NPCShare
+					whole += r.Whole.Seconds()
+					hp0 += r.HPShare
+					hp1 += r.HPShareWhenNPCWhole
+				}
+				if n == 0 {
+					fmt.Printf(" | %+d     -", d)
+					continue
+				}
+				k := float64(n)
+				fmt.Printf(" | %+d npc %3.0f%% %4.0fs you %3.0f%%->%3.0f%%", d, 100*npc/k, whole/k, 100*hp0/k, 100*hp1/k)
+			}
+			fmt.Println()
 		}
 	}
 }

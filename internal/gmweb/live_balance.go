@@ -22,7 +22,7 @@ func (s *Server) liveBalance() string {
 	}
 	return fmt.Sprintf("at once (%d level rows, %d con rows): every NPC's hit points are its level's now, "+
 		"each keeping its share of them, and the next hit of every fight uses it (a root's next landing and the next "+
-		"hit on a rooted NPC too), the next combat art its cooldown; "+
+		"hit on a rooted NPC too), the next combat art its cooldown, the next regen tick its rate; "+
 		"a summoned pet's at its next summoning", levels, cons)
 }
 
@@ -38,6 +38,15 @@ func checkBalanceRow(table string, row map[string]any) error {
 				return badRequest("%s: con_pct is a number", table)
 			}
 			if why := database.BalanceConPctProblem(p); why != "" {
+				return badRequest("%s: %s", table, why)
+			}
+		}
+		if v, present := row["regen_pct"]; present && v != nil {
+			r, ok := asFloat(v)
+			if !ok {
+				return badRequest("%s: regen_pct is a number", table)
+			}
+			if why := database.BalanceChanceProblem("regen_pct", r); why != "" {
 				return badRequest("%s: %s", table, why)
 			}
 		}

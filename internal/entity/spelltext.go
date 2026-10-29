@@ -67,6 +67,7 @@ const (
 	EffectHPCap                         // the bearer's maximum hit points at most Amount (1 or more) while it lasts; lasting no time, its hit points taken down to it (spiritform.go)
 	EffectInvuln                        // the bearer takes nothing of a creature's hit while it lasts (spiritform.go)
 	EffectLull                          // a creature notices a player only within LullRadius while it lasts, up to level Amount (0: the spell's own and LullLevelBand) (lull.go)
+	EffectCallHero                      // the caster's group far from it asked to come to its side (callhero.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -628,6 +629,10 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		return verb
 	}
 	if d.lullLevelPart(part) { // lull.go: "up to level N" after a lull
+		return verb
+	}
+	if e, ok := callHeroPart(part); ok { // callhero.go
+		d.Effects = append(d.Effects, e)
 		return verb
 	}
 	scale, scalePct := StatNone, 0

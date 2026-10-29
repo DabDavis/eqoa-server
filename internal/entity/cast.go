@@ -657,6 +657,11 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 	if d.Target == TargetSelf && d.Resurrects() > 0 {
 		return []EntityID{p.ServerID}, ""
 	}
+	// a call goes by its caster's group, whatever its record's scope
+	// (callhero.go): cast on its caster
+	if d.callsHero() {
+		return []EntityID{p.ServerID}, ""
+	}
 	switch spell.Scope {
 	case 0:
 		return []EntityID{p.ServerID}, ""
@@ -856,6 +861,11 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 	// a gate's line may read as its price alone ("Set Maximum Power to 0"),
 	// which is its caster's (gates.go), never its travellers'
 	if w.gateLandLocked(cs, caster, casterSess) && (len(d.Effects) == 0 || d.onlyPowerCaps()) { // gates.go
+		return gate
+	}
+	// a call asks its caster's group far from it (callhero.go); the rest of
+	// its line, if any, lands as any spell's
+	if w.heroCallLandLocked(cs, caster, casterSess, now) && len(d.Effects) == 1 {
 		return gate
 	}
 	if len(d.Effects) == 0 {

@@ -1843,6 +1843,180 @@
    "level": 40,
    "note": "the Dawn Maiden's servant, with a pet (the guide: she spawns it as she dies)",
    "water": "land"
+  },
+  {
+   "name": "Historian Ilena",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Historian Ilena"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Muniel's Tea Garden, a minute south-west of the coach",
+   "water": "land"
+  },
+  {
+   "name": "Snowfist Totemcarrier",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Snowfist Totemcarrier"
+   ],
+   "count": 1,
+   "level": 16,
+   "note": "one of the first rooms of the blue-lit cave in Snowfist (C)",
+   "water": "land"
+  },
+  {
+   "name": "Hatebone Totemcarrier",
+   "role": "foe",
+   "body": [
+    "kind",
+    "orc"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Hatebone Totemcarrier"
+   ],
+   "count": 1,
+   "level": 25,
+   "note": "the Hatebone caves, with the Hatebone Elder and prophets (on the ground above: no floor below on this server)",
+   "water": "land"
+  },
+  {
+   "name": "Gnoll Totemkeeper",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Gnoll totemkeeper"
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "Blackburrow, a dead end by a little tent with a fire, with a gnoll reaver",
+   "water": "land"
+  },
+  {
+   "name": "Spider Totemkeeper",
+   "role": "foe",
+   "body": [
+    "kind",
+    "spider"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Spider Totemkeeper"
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "the Guk, the first right before the circle bridge, with the great heart spiders",
+   "water": "land"
+  },
+  {
+   "name": "Spider Poisonspinner",
+   "role": "foe",
+   "body": [
+    "kind",
+    "spider"
+   ],
+   "place": [
+    "near",
+    "Spider Totemkeeper",
+    8,
+    0
+   ],
+   "count": 1,
+   "level": 45,
+   "note": "guards the spider totemkeeper",
+   "water": "land"
+  },
+  {
+   "name": "Ice Giant Tomekeeper",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Ice giant guard"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Ice Giant Tomekeeper"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "Vox's Castle in Permafrost",
+   "water": "land"
+  },
+  {
+   "name": "Guard Therean",
+   "role": "talker",
+   "body": [
+    "race",
+    "erudite",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Guard Therean"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "Highbourne, near a banker",
+   "water": "land"
+  },
+  {
+   "name": "Etheneric Portal",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Shimmering Portal"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "portal"
+   ],
+   "count": 1,
+   "level": 1,
+   "note": "the portal on Whale Hill, south of Wyndhaven",
+   "water": "land"
+  },
+  {
+   "name": "Dynmath the Tyrant",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "near",
+    "Etheneric Portal",
+    15,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "comes through the Etheneric Portal on Whale Hill with his undead minions",
+   "water": "land"
   }
  ]
 }

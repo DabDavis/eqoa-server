@@ -73,8 +73,6 @@
     }
    ],
    "unresolved": [
-    "Goran's Beast",
-    "Goran's Beast",
     "Goran's Beast"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Goran's five questions are the offer and its one answer here; the popup is a reach step on the hill's east slope (FrontiersForge's sighting of a beast)."
@@ -150,9 +148,6 @@
    ],
    "unresolved": [
     "Old Man",
-    "Goran's Beast",
-    "Goran's Beast",
-    "Goran's Beast",
     "Goran's Beast"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine)."
@@ -234,10 +229,6 @@
    ],
    "unresolved": [
     "Malisarisent",
-    "Goran's Beast",
-    "Goran's Beast",
-    "Goran's Beast",
-    "Goran's Beast",
     "Goran's Beast"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide says the four come at once; they are spawned together here."
@@ -301,7 +292,6 @@
    ],
    "unresolved": [
     "Lairt'tsal",
-    "Goran's Pet",
     "Goran's Pet"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide names the pet's drop only as \"Eye of the something\": it is the Eye of Goran's Pet here. Lairt'tsal spawns the pet at once (one also stands in the cave)."
@@ -704,8 +694,7 @@
     "Wria Lightningfoot",
     "Nadine",
     "Yvlir",
-    "Hogin",
-    "Wria Lightningfoot"
+    "Hogin"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Agility CM Statistic Boost, test 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the AGI mastery line opening for purchase (cmcatalog 'AGI 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's race is timed (17 minutes) and its runners spawn for it; the engine has no timer, so it is a walk to the runners in order, who stand at EQOA-Data's map points. The guide does not say which runners each test sends you to (some at random): the order is ours. The guide's line is Avoid Danger; cmcatalog calls it AGI."
   },
@@ -767,8 +756,7 @@
     "Wria Lightningfoot",
     "Jimique",
     "Sabbine",
-    "Ibaggo",
-    "Wria Lightningfoot"
+    "Ibaggo"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Agility CM Statistic Boost, test 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the AGI mastery line opening for purchase (cmcatalog 'AGI 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's race is timed (15 minutes) and its runners spawn for it; the engine has no timer, so it is a walk to the runners in order, who stand at EQOA-Data's map points. The guide does not say which runners each test sends you to (some at random): the order is ours. The guide's line is Avoid Danger; cmcatalog calls it AGI."
   },
@@ -830,8 +818,7 @@
     "Wria Lightningfoot",
     "Quidox",
     "Nadine",
-    "Jimique",
-    "Wria Lightningfoot"
+    "Jimique"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Agility CM Statistic Boost, test 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the AGI mastery line opening for purchase (cmcatalog 'AGI 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's race is timed (13 minutes) and its runners spawn for it; the engine has no timer, so it is a walk to the runners in order, who stand at EQOA-Data's map points. The guide does not say which runners each test sends you to (some at random): the order is ours. The guide's line is Avoid Danger; cmcatalog calls it AGI."
   },
@@ -900,8 +887,7 @@
     "Hogin",
     "Sabbine",
     "Quidox",
-    "Brugga",
-    "Wria Lightningfoot"
+    "Brugga"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Agility CM Statistic Boost, test 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the AGI mastery line opening for purchase (cmcatalog 'AGI 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's race is timed (14 minutes) and its runners spawn for it; the engine has no timer, so it is a walk to the runners in order, who stand at EQOA-Data's map points. The guide does not say which runners each test sends you to (some at random): the order is ours. The guide's line is Avoid Danger; cmcatalog calls it AGI."
   },
@@ -1026,12 +1012,8 @@
     "Medaesis",
     "Reaver Gnoll",
     "eno",
-    "eno",
-    "owt",
     "owt",
     "eerht",
-    "eerht",
-    "Reaver Leader",
     "Reaver Leader"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Dexterity CM Statistic Boost, 1st Trial (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Unrivaled Grace mastery line opening for purchase (cmcatalog 'Unrivaled Grace 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's mobs are spawned as they are killed, in order: eno, owt and eerht ('one, two, three' backwards, its note's names); the leader is unnamed in the guide and named by us, his 'unusable sword' too. The guide's Patron who calls Leumas when he is not up is left out (he stands there). The gnolls' places are EQOA-Data's map points."
@@ -1139,14 +1121,9 @@
     "Medaesis",
     "Reaver Gnoll",
     "onu",
-    "onu",
-    "sod",
     "sod",
     "sert",
-    "sert",
-    "Reaver Leader",
-    "Reaver Leader",
-    "Medaesis"
+    "Reaver Leader"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Dexterity CM Statistic Boost, 2nd Trial (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Unrivaled Grace mastery line opening for purchase (cmcatalog 'Unrivaled Grace 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide says only that it is the same as the first trial; its note's second round names (onu, sod, sert) are used here."
   },
@@ -1202,8 +1179,7 @@
    ],
    "unresolved": [
     "Medaesis",
-    "Reaver Gnoll",
-    "Medaesis"
+    "Reaver Gnoll"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Dexterity CM Statistic Boost, 3rd Trial (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Unrivaled Grace mastery line opening for purchase (cmcatalog 'Unrivaled Grace 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's minute to kill six reavers, and its port to the spiritmaster on failure, are left out: the engine has no timer. Two reavers spawn at once; the camp's own count."
   },
@@ -1295,12 +1271,8 @@
     "Medaesis",
     "Reaver Gnoll",
     "tsrif",
-    "tsrif",
     "dnoces",
-    "dnoces",
-    "driht",
-    "driht",
-    "Medaesis"
+    "driht"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Dexterity CM Statistic Boost, 4th Trial (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Unrivaled Grace mastery line opening for purchase (cmcatalog 'Unrivaled Grace 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's fourth round is 'similar to the third'; its note's third round names (tsrif, dnoces, driht) are used here."
   },
@@ -1385,7 +1357,6 @@
     }
    ],
    "unresolved": [
-    "Gregor Pyrely",
     "Gregor Pyrely",
     "Nanie Gubbins (attackable)"
    ],
@@ -1481,10 +1452,7 @@
    ],
    "unresolved": [
     "Gnolan Boltratchet",
-    "Gnolan Boltratchet",
     "Black Ant Guard",
-    "Black Ant Guard",
-    "Nizen Flangletoggle",
     "Nizen Flangletoggle"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Gnolan's two ant guards are two Black Ant Guards (FrontiersForge's name there) spawned beside him."
@@ -1592,7 +1560,6 @@
     }
    ],
    "unresolved": [
-    "Esmirique",
     "Esmirique",
     "Necromancer Warpheus (attackable)"
    ],
@@ -1762,8 +1729,7 @@
    ],
    "unresolved": [
     "Inquiladius Expica",
-    "Farmer Moegar",
-    "Inquiladius Expica"
+    "Farmer Moegar"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The freezing goblins are the Freezeblood goblins of the cave between Halas and Castle Lightwolf; their berserkers carry the candle here."
   },
@@ -1859,9 +1825,7 @@
    ],
    "unresolved": [
     "Inquiladius Expica",
-    "Inquiladius Expica",
-    "Farmer Moegar",
-    "Inquiladius Expica"
+    "Farmer Moegar"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's answers (silver, four oranges, three belts) are the steps; the belts drop off the Deathfist reavers here (the guide's reavers, slayers and prophets)."
   },
@@ -1984,8 +1948,7 @@
     "Grunnie",
     "Cylen",
     "Kibenza",
-    "Sawise",
-    "Inquiladius Expica"
+    "Sawise"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's solved puzzle is the steps; a wrong guess (which made you start again) cannot be made here."
   },
@@ -2027,9 +1990,7 @@
    ],
    "unresolved": [
     "Inquiladius Expica",
-    "Inquiladius Expica",
-    "Demetricus Olious",
-    "Inquiladius Expica"
+    "Demetricus Olious"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's ten timed questions (death for a wrong answer) are a talk to Demetricus here; the guide says Dshinn's Redoubt need not be visited."
   },
@@ -2135,11 +2096,7 @@
     "Yiggua",
     "Shuglug",
     "Farmer Rulug",
-    "hearty boar",
-    "Farmer Rulug",
-    "Shuglug",
-    "Yiggua",
-    "Sylanthia De'Crevast"
+    "hearty boar"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's long dialogue is one answer a talk; the 100,000-tunar purchase of the butter is left out for the boars."
   },
@@ -2221,11 +2178,7 @@
    "unresolved": [
     "Sylanthia De'Crevast",
     "Fripz",
-    "Frapz",
-    "Fripz",
-    "Frapz",
-    "Fripz",
-    "Sylanthia De'Crevast"
+    "Frapz"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's eight-trip negotiation is three here."
   },
@@ -2335,7 +2288,6 @@
     }
    ],
    "unresolved": [
-    "Sylanthia De'Crevast",
     "Sylanthia De'Crevast"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's crafted platinum sapphire ring for the bar tab is left out (the tab is the tunar); a wrong guess's 12,000 tunar cannot be made here. The guide's Waitress Jitzie is the game's Waitress Jitzle."
@@ -2412,8 +2364,6 @@
     }
    ],
    "unresolved": [
-    "Sylanthia De'Crevast",
-    "Sylanthia De'Crevast",
     "Sylanthia De'Crevast",
     "Aryee (attackable)"
    ],
@@ -2543,15 +2493,7 @@
       }
      ],
      "count": 3,
-     "chance": 0.5,
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Gust",
-       "hostile": true
-      }
-     ]
+     "chance": 0.5
     },
     {
      "kind": "give",
@@ -2604,9 +2546,6 @@
    "repeatable": true,
    "unresolved": [
     "Shiny Clockwork",
-    "Shiny Clockwork",
-    "Shiny Clockwork",
-    "Gust",
     "Gust",
     "Tiny Spiderbot (attackable)"
    ],
@@ -2736,15 +2675,7 @@
       }
      ],
      "count": 3,
-     "chance": 0.5,
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Gust",
-       "hostile": true
-      }
-     ]
+     "chance": 0.5
     },
     {
      "kind": "give",
@@ -2798,14 +2729,8 @@
    "unresolved": [
     "Bookshelf",
     "Scholar Dafren",
-    "Scholar Dafren",
     "Shiny Clockwork",
-    "Shiny Clockwork",
-    "Shiny Clockwork",
-    "Scholar Dafren",
     "Gust",
-    "Gust",
-    "Scholar Dafren",
     "Tiny Spiderbot (attackable)"
    ],
    "notes": "From EQOA-Data Quests/Misc/qeynosbook.json, # QeynosBook Quest (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the items \"Ultimate Windblade\" (WAR RAN PAL SK MNK BRD RGE DRD), \"Ultimate Windmace\" (and SHA CL) and \"Ultimate Rod\" (MAG WIZ NEC ALC ENC). The guide's purchase of a simple scimitar, rod or mace is a hand-over here: Smithy Grol gives a simple weapon at his window. The tiny spiderbots, caught by a popup and used for a regulator in the guide, are killed for one here. The guide's levels (20s and 30s spawn gusts on different sides of the ravine) are one place here. The giver is the bookshelf in Qeynos's casters' guild (FrontiersForge's Bookshelf); the guide says the quest is repeatable."
@@ -3179,8 +3104,7 @@
    "unresolved": [
     "Jebdo Stikala",
     "Magluza",
-    "Guard Zex",
-    "Jebdo Stikala"
+    "Guard Zex"
    ],
    "notes": "From EQOA-Data Quests/Misc/zentars-keep-pet.json, # Zentar's Keep Pet Quest, steps 1-9 (github.com/Jadiction/EQOA-Data, MIT). Needs 350 faction with the Citizens of Zentar's Keep (the guide also wants Corison's ice glyph quest done 3-5 times first: left out). Each of the five gives a signed promise here (the guide's notes). Jol the Fat's fur trousers (a tailored level-3 pair) are left out: he signs on hearing the story. The swamp rock's popup is a reach step; its place, Jebdo's and Magluza's are ours from the guide's directions, and Guard Zex stands by Fort Seriak's coach (not atop the north-east tower)."
   },
@@ -3523,7 +3447,6 @@
    ],
    "unresolved": [
     "Nolram Barro",
-    "The Dead Acolyte",
     "The Dead Acolyte"
    ],
    "notes": "From EQOA-Data Quests/Misc/the-temple-of-light.json, # The Temple of Light Quest, steps 1-4 (github.com/Jadiction/EQOA-Data, MIT). The guide's first popup (the quest received near Nolram's camp) is this giver: the guide says Nothard gives it anyway. Nayr Nonnahs and Rian Buesh, who camp with Nolram, are left out (only he is killed). The book's popup is a reach step at Lord Chardith's spawn point."
@@ -3600,7 +3523,6 @@
    ],
    "unresolved": [
     "Excavation Leader",
-    "Excavation Leader",
     "Stranger"
    ],
    "notes": "From EQOA-Data Quests/Misc/the-temple-of-light.json, # The Temple of Light Quest, steps 5-7 (github.com/Jadiction/EQOA-Data, MIT). The guide's entry popup ('you have received a quest') and its chest, which spawns the Excavation Leader, are one reach step in the kings' room here (at the excavation team's place). The Stranger's port is a teleport to Kizdean Gix."
@@ -3623,16 +3545,27 @@
    "started": "Permafrost, far to the north-west.",
    "steps": [
     {
-     "kind": "kill",
-     "target": "Voxite mage",
-     "journal": "Approach the Old Man in Permafrost (NW) and kill the bodyguards that come.",
-     "count": 3,
+     "kind": "reach",
+     "world": 0,
+     "x": 4720,
+     "y": 62,
+     "z": 4419,
+     "radius": 40,
+     "journal": "Find the Old Man on the coast of Permafrost (NW), west of Castle Vox.",
      "events": [
       {
-       "on": "start",
+       "on": "done",
        "do": "popup",
        "text": "\"Stay away!\" Bodyguards come at you."
-      },
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Voxite mage",
+     "journal": "Kill the Old Man's bodyguards.",
+     "count": 3,
+     "events": [
       {
        "on": "start",
        "do": "spawn",
@@ -3741,7 +3674,6 @@
    "unresolved": [
     "Old Man",
     "Dercas Warden",
-    "The Dead Guardian",
     "The Dead Guardian"
    ],
    "notes": "From EQOA-Data Quests/Misc/the-temple-of-light.json, # The Temple of Light Quest, steps 8-11 (github.com/Jadiction/EQOA-Data, MIT). The guide's five bodyguards (drake guards, unnamed) are three Voxite mages here, the creature FrontiersForge saw at the Old Man's spot (dark blue to a 60). The old man hands out one of three pages at random; the second (Dinbak, the Dercas Warden and his chest, no fight) is the one here."
@@ -3990,7 +3922,6 @@
    "unresolved": [
     "Enraged Earth",
     "Mountain Spirit",
-    "Mountain Spirit",
     "A sunbaked stone",
     "Pride Lioness"
    ],
@@ -4103,9 +4034,7 @@
    ],
    "unresolved": [
     "Hermit Washburn",
-    "Hermit Washburn",
-    "Urtica Dioica",
-    "Hermit Washburn"
+    "Urtica Dioica"
    ],
    "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 30 ring (github.com/Jadiction/EQOA-Data, MIT). The guide's reward for this ring is a spell that summons a no-rent ring for your archetype, and 'a little xp' with no figure: no such spell is on this server and the experience is not given, so this part gives nothing but the next. The guide's '?' at the graves (talked to until three ores come) is one reach step with a popup."
   },
@@ -4260,7 +4189,6 @@
     }
    ],
    "unresolved": [
-    "Magus Niska",
     "Magus Niska"
    ],
    "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 40 ring (github.com/Jadiction/EQOA-Data, MIT). The guide's reward for this ring is a spell that summons a no-rent ring for your archetype, and 'a little xp' with no figure: no such spell is on this server and the experience is not given, so this part gives nothing but the next. The guide's bookcases (Freeport, Darvar Manor, Highbourne, Neriak, Qeynos, Klick'Anon) are four here, one a race; which book is in which town is ours. Freeport's is the dusty tome in its casters' guild."
@@ -4371,8 +4299,6 @@
     }
    ],
    "unresolved": [
-    "Unsettled Bones",
-    "Unsettled Bones",
     "Unsettled Bones"
    ],
    "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 50 ring (github.com/Jadiction/EQOA-Data, MIT). The guide's reward for this ring is a spell that summons a no-rent ring for your archetype, and 'a little xp' with no figure: no such spell is on this server and the experience is not given, so this part gives nothing but the next. The three unsettled bones share a name: each shard drops off any of them while its step is the one to do (the engine matches a target by name)."
@@ -4571,8 +4497,6 @@
     "Death's Head Beetle",
     "Douglas Aren",
     "Vhi'zan Kaah",
-    "Vhi'zan Kaah",
-    "Minion of Vhi'zan",
     "Minion of Vhi'zan",
     "Ghost of Madrias"
    ],
@@ -4910,9 +4834,7 @@
    "unresolved": [
     "Captain Longley",
     "Cedric",
-    "rare giant skuttlespike",
-    "Cedric",
-    "Captain Longley"
+    "rare giant skuttlespike"
    ],
    "notes": "From EQOA-Data Quests/Misc/stone-of-morthalis.json, # Stone of Morthalis Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's choice (slay Cedric for his head, or help him; the same reward either way) is the helping branch here. Not on this server, left out of the rewards: the item \"Vordan Ring\" (STA 40, HPMax 50, POW 50, level 54)."
   },
@@ -5004,11 +4926,8 @@
    "unresolved": [
     "Fugi Bactor",
     "Largemouth Bottlefish",
-    "Fugi Bactor",
     "Waterboy",
-    "Fugi Bactor",
-    "Fungusman Slave",
-    "Fugi Bactor"
+    "Fungusman Slave"
    ],
    "notes": "From EQOA-Data Quests/Misc/west-feerot.json, # West Feerot Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's coded dialogue (its key: y=a, x=b, w=c ... a=y, z=z) is kept in Fugi's lines, the answer \"Q CQNN.\" ('I will.') too. The places are ours, from the guide's directions out of Oggok's south gate (the Rathe). The guide names no reward (Fugi promises 'great wisdom')."
   },
@@ -5145,15 +5064,7 @@
       }
      ],
      "count": 1,
-     "chance": 1.0,
-     "events": [
-      {
-       "on": "start",
-       "do": "spawn",
-       "npc": "Cyrian Truearrow",
-       "hostile": true
-      }
-     ]
+     "chance": 1.0
     },
     {
      "kind": "give",
@@ -5189,10 +5100,9 @@
     }
    ],
    "unresolved": [
-    "Cyrian Truearrow",
     "Cyrian Truearrow"
    ],
-   "notes": "From EQOA-Data Quests/Misc/the-truearrow.json, # The Truearrow Quest, steps 1-4 (github.com/Jadiction/EQOA-Data, MIT). Taszin's dialogue ('I don't know, do we?', 'I am the mercenary you sent for') is the offer and its answer. Cyrian Truearrow spawns when the step starts (the guide: after the tents are farmed a while; one also stands there). The guide's -500 faction with Pulanga is left out: no such faction on this server. The statue is a made item (it has no stats in the guide)."
+   "notes": "From EQOA-Data Quests/Misc/the-truearrow.json, # The Truearrow Quest, steps 1-4 (github.com/Jadiction/EQOA-Data, MIT). Taszin's dialogue ('I don't know, do we?', 'I am the mercenary you sent for') is the offer and its answer. Cyrian Truearrow stands at the camp (the guide: he comes after the tents are farmed a while). The guide's -500 faction with Pulanga is left out: no such faction on this server. The statue is a made item (it has no stats in the guide)."
   },
   {
    "key": "Misc/the-truearrow/p2",
@@ -5373,8 +5283,6 @@
    "unresolved": [
     "Investigator Flint",
     "Ranger Mek",
-    "Investigator Flint",
-    "Akista Sind",
     "Akista Sind"
    ],
    "notes": "From EQOA-Data Quests/Misc/the-illusionist.json, # The Illusionist Quest, path A i) (Ishal's side) (github.com/Jadiction/EQOA-Data, MIT). The guide's quest branches three ways (Ishal's side, Flint's side through Enchanter Kerina and the mature griffon, and 'when a reward is involved' through the courier and Flint's cave): the engine has no choice of outcomes, so this is Ishal's side, the one with the experience. The goblins' camp is two goblin warriors and a goblin shaman spawned beside the player; the popup at the shaman is a popup on his death. Not on this server, left out of the rewards: Ishal's ring and the illusionist's sashes (Sash of Arcane, Fire, Ice, Lightning, Poison, Disease)."
@@ -5612,6 +5520,22 @@
    "started": "To the stage.",
    "steps": [
     {
+     "kind": "reach",
+     "world": 2,
+     "x": 9110,
+     "y": 150,
+     "z": 11440,
+     "radius": 40,
+     "journal": "Take the stage from stage right, where Acelia waits.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Acelia stands centre stage, four beasts circling her."
+      }
+     ]
+    },
+    {
      "kind": "kill",
      "target": "beast",
      "journal": "Kill the four beasts round Acelia on the stage.",
@@ -5827,10 +5751,1050 @@
    ],
    "repeatable": true,
    "unresolved": [
-    "Servant",
     "Servant"
    ],
    "notes": "From EQOA-Data Quests/Misc/dawn-maiden.json, # Dawn Maiden Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's popups along the path and the nightmares that spawn are one popup and one nightmare spirit here; its random ports off the path are left out. The empty flask is kept (the filled one is given at the pool). The guide says the quest is repeatable, the Storyteller's faction once a telling."
+  },
+  {
+   "key": "Misc/dynmath-the-tyrant/t1",
+   "name": "Totem of the Plains",
+   "giver": "Historian Tsali",
+   "classes": [],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 10,
+   "requires": [],
+   "offer": "Rats carry a smudged old totem about, pestilence rats. Bring me one and I will clean it. Old things speak, if you listen.",
+   "accept": "I will look into it.",
+   "decline": "Not now.",
+   "declined": "Then the totem waits.",
+   "started": "Go, and see what wakes it.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Pestilence Rat",
+     "journal": "Take a smudged totem of the plains from the pestilence rats.",
+     "items": [
+      {
+       "item": "Smudged Totem of the Plains",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Historian Tsali",
+     "journal": "Bring the smudged totem to Historian Tsali.",
+     "items": [
+      {
+       "item": "Smudged Totem of the Plains",
+       "count": 1
+      }
+     ],
+     "says": "Clean, it reads: a jumble meaning Snowfist. I will send you up north, to Halas's gate. From there, east.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Polished Totem of the Plains",
+         "count": 1
+        }
+       ]
+      },
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 13011.0,
+       "y": 79.0,
+       "z": 4945.0
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 15277,
+     "y": 47,
+     "z": 4942,
+     "radius": 40,
+     "journal": "Enter the large blue-glowing cave in Snowfist (C), east of Halas round the mountains.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "As you step into the cave's blue light, the totem in your pack begins to glow."
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Historian Tsali",
+     "journal": "Bring the totem back to Historian Tsali.",
+     "items": [
+      {
+       "item": "Polished Totem of the Plains",
+       "count": 1
+      }
+     ],
+     "says": "It glows! Take it, and this for your trouble. Pass the totem to someone stronger than you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Glowing Totem of the Plains",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 1-10 (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the items \"Ring of Peace\" and \"Earring of Peace\" (the guide's choice of one). The guide's offer to send you up north is a teleport to Halas; the Gems of Potential and Capacity are left out too."
+  },
+  {
+   "key": "Misc/dynmath-the-tyrant/t2",
+   "name": "Totem of the North",
+   "giver": "Historian Ilena",
+   "classes": [],
+   "races": [],
+   "minlevel": 11,
+   "maxlevel": 20,
+   "requires": [],
+   "offer": "You carry a glowing totem of the plains? Let me see it. Old things wake for a reason, and I would know what wakes this one.",
+   "accept": "I will look into it.",
+   "decline": "Not now.",
+   "declined": "Then the totem waits.",
+   "started": "Go, and see what wakes it.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Show Historian Ilena in Muniel's Tea Garden the glowing totem of the plains.",
+     "items": [
+      {
+       "item": "Glowing Totem of the Plains",
+       "count": 1
+      }
+     ],
+     "says": "It glows! Something in that Snowfist cave woke it. A totemcarrier there, perhaps. Find out."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 15377,
+     "y": 47,
+     "z": 4869,
+     "radius": 45,
+     "journal": "Go into the blue-lit cave in Snowfist (C) to its first rooms."
+    },
+    {
+     "kind": "loot",
+     "target": "Snowfist Totemcarrier",
+     "journal": "Take a smudged totem of the north from the Snowfist totemcarrier in the blue cave.",
+     "items": [
+      {
+       "item": "Smudged Totem of the North",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Snowfist Totemcarrier",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Bring the smudged totem to Historian Ilena.",
+     "items": [
+      {
+       "item": "Smudged Totem of the North",
+       "count": 1
+      }
+     ],
+     "says": "The totem of the north. Clean, it points to the mines of TheDruk, out the Fayspires side.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Polished Totem of the North",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 19002,
+     "y": 47,
+     "z": 8805,
+     "radius": 40,
+     "journal": "Take the totem of the north to TheDruk mines, out the Fayspires side.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "In the mines, the totem of the north begins to glow."
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Bring the totem back to Historian Ilena.",
+     "items": [
+      {
+       "item": "Polished Totem of the North",
+       "count": 1
+      }
+     ],
+     "says": "It glows! Take it, and this for your trouble. Pass the totem to someone stronger than you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Glowing Totem of the North",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Historian Ilena",
+    "Snowfist Totemcarrier"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 11-20 (github.com/Jadiction/EQOA-Data, MIT). The guide's totem is passed to a higher-level character for each band: each band is its own quest, open to anyone in its levels who brings the glowing totem (tradeable), with no quest before it. Not on this server, left out of the rewards: the items \"Ring of accord\" and \"Necklace of accord\" (the guide's choice of one). The totemkeeper is in a dungeon whose floors this server's ground files lack: it is spawned beside the player at the den (a reach step there), and one also stands on the ground above."
+  },
+  {
+   "key": "Misc/dynmath-the-tyrant/t3",
+   "name": "Totem of Verdance",
+   "giver": "Historian Ilena",
+   "classes": [],
+   "races": [],
+   "minlevel": 21,
+   "maxlevel": 30,
+   "requires": [],
+   "offer": "You carry a glowing totem of the north? Let me see it. Old things wake for a reason, and I would know what wakes this one.",
+   "accept": "I will look into it.",
+   "decline": "Not now.",
+   "declined": "Then the totem waits.",
+   "started": "Go, and see what wakes it.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Show Historian Ilena in Muniel's Tea Garden the glowing totem of the north.",
+     "items": [
+      {
+       "item": "Glowing Totem of the North",
+       "count": 1
+      }
+     ],
+     "says": "The Hatebone orcs carry such totems. Their totemcarrier sees through invisibility. Bring help."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 18930,
+     "y": -39,
+     "z": 9087,
+     "radius": 45,
+     "journal": "Go into the Hatebone caves, where the totemcarrier walks with the elder."
+    },
+    {
+     "kind": "loot",
+     "target": "Hatebone Totemcarrier",
+     "journal": "Take a smudged totem of verdance from the Hatebone totemcarrier, who walks with the Hatebone Elder.",
+     "items": [
+      {
+       "item": "Smudged Totem of Verdance",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Hatebone Totemcarrier",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Bring the smudged totem to Historian Ilena.",
+     "items": [
+      {
+       "item": "Smudged Totem of Verdance",
+       "count": 1
+      }
+     ],
+     "says": "A totem of verdance. It speaks of Blackburrow.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Polished Totem of Verdance",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 12836,
+     "y": 68,
+     "z": 12571,
+     "radius": 40,
+     "journal": "Take the totem of verdance to just outside Blackburrow.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Outside Blackburrow, the totem of verdance begins to glow."
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Bring the totem back to Historian Ilena.",
+     "items": [
+      {
+       "item": "Polished Totem of Verdance",
+       "count": 1
+      }
+     ],
+     "says": "It glows! Take it, and this for your trouble. Pass the totem to someone stronger than you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Glowing Totem of Verdance",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Historian Ilena",
+    "Hatebone Totemcarrier"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 21-30 (github.com/Jadiction/EQOA-Data, MIT). The guide's totem is passed to a higher-level character for each band: each band is its own quest, open to anyone in its levels who brings the glowing totem (tradeable), with no quest before it. Not on this server, left out of the rewards: the items \"Ring of Unity\" and \"Necklace of Unity\" (the guide's choice of one). The totemkeeper is in a dungeon whose floors this server's ground files lack: it is spawned beside the player at the den (a reach step there), and one also stands on the ground above."
+  },
+  {
+   "key": "Misc/dynmath-the-tyrant/t4",
+   "name": "Totem of the Swamp",
+   "giver": "Historian Ilena",
+   "classes": [],
+   "races": [],
+   "minlevel": 31,
+   "maxlevel": 40,
+   "requires": [],
+   "offer": "You carry a glowing totem of verdance? Let me see it. Old things wake for a reason, and I would know what wakes this one.",
+   "accept": "I will look into it.",
+   "decline": "Not now.",
+   "declined": "Then the totem waits.",
+   "started": "Go, and see what wakes it.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Show Historian Ilena in Muniel's Tea Garden the glowing totem of verdance.",
+     "items": [
+      {
+       "item": "Glowing Totem of Verdance",
+       "count": 1
+      }
+     ],
+     "says": "Inside Blackburrow a gnoll totemkeeper keeps one, down the ramp past the spiritists. Go."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 12803,
+     "y": -51,
+     "z": 12479,
+     "radius": 45,
+     "journal": "Go into Blackburrow, down the ramp to the little tent with a fire."
+    },
+    {
+     "kind": "loot",
+     "target": "Gnoll Totemkeeper",
+     "journal": "Take a smudged totem of the swamp from the gnoll totemkeeper in Blackburrow, by the little tent with a fire.",
+     "items": [
+      {
+       "item": "Smudged Totem of the Swamp",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Gnoll Totemkeeper",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Bring the smudged totem to Historian Ilena.",
+     "items": [
+      {
+       "item": "Smudged Totem of the Swamp",
+       "count": 1
+      }
+     ],
+     "says": "A totem of the swamp. The Guk, it must be.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Polished Totem of the Swamp",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 24692,
+     "y": 10,
+     "z": 29373,
+     "radius": 40,
+     "journal": "Take the totem of the swamp to the entrance of the Guk.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "At the Guk's entrance, the totem of the swamp begins to glow."
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Bring the totem back to Historian Ilena.",
+     "items": [
+      {
+       "item": "Polished Totem of the Swamp",
+       "count": 1
+      }
+     ],
+     "says": "It glows! Take it, and this for your trouble. Pass the totem to someone stronger than you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Glowing Totem of the Swamp",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Historian Ilena",
+    "Gnoll Totemkeeper"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 31-40 (github.com/Jadiction/EQOA-Data, MIT). The guide's totem is passed to a higher-level character for each band: each band is its own quest, open to anyone in its levels who brings the glowing totem (tradeable), with no quest before it. Not on this server, left out of the rewards: the items \"Ring of Concordance\" and \"Necklace of Concordance\" (the guide's choice of one). The totemkeeper is in a dungeon whose floors this server's ground files lack: it is spawned beside the player at the den (a reach step there), and one also stands on the ground above."
+  },
+  {
+   "key": "Misc/dynmath-the-tyrant/t5",
+   "name": "Totem of Raining Ashes",
+   "giver": "Historian Ilena",
+   "classes": [],
+   "races": [],
+   "minlevel": 41,
+   "maxlevel": 50,
+   "requires": [],
+   "offer": "You carry a glowing totem of the swamp? Let me see it. Old things wake for a reason, and I would know what wakes this one.",
+   "accept": "I will look into it.",
+   "decline": "Not now.",
+   "declined": "Then the totem waits.",
+   "started": "Go, and see what wakes it.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Show Historian Ilena in Muniel's Tea Garden the glowing totem of the swamp.",
+     "items": [
+      {
+       "item": "Glowing Totem of the Swamp",
+       "count": 1
+      }
+     ],
+     "says": "In the Guk a spider totemkeeper guards another, with its poisonspinner. Find it."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 24670,
+     "y": 10,
+     "z": 29264,
+     "radius": 45,
+     "journal": "Go into the Guk, the first right before the circle bridge."
+    },
+    {
+     "kind": "loot",
+     "target": "Spider Totemkeeper",
+     "journal": "Take a smudged totem of raining ashes from the spider totemkeeper in the Guk, the first right before the circle bridge.",
+     "items": [
+      {
+       "item": "Smudged Totem of Raining Ashes",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Spider Totemkeeper",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Bring the smudged totem to Historian Ilena.",
+     "items": [
+      {
+       "item": "Smudged Totem of Raining Ashes",
+       "count": 1
+      }
+     ],
+     "says": "'Where the snow dragon is guarded by the tall and the small.' Vox's Castle, in Permafrost.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Polished Totem of Raining Ashes",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 4864,
+     "y": 62,
+     "z": 4548,
+     "radius": 40,
+     "journal": "Take the totem of raining ashes to the entrance of Vox's Castle in Permafrost.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "At the castle where the snow dragon is guarded by the tall and the small, the totem glows."
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Bring the totem back to Historian Ilena.",
+     "items": [
+      {
+       "item": "Polished Totem of Raining Ashes",
+       "count": 1
+      }
+     ],
+     "says": "It glows! Take it, and this for your trouble. Pass the totem to someone stronger than you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Glowing Totem of Raining Ashes",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Historian Ilena",
+    "Spider Totemkeeper"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 41-50 (github.com/Jadiction/EQOA-Data, MIT). The guide's totem is passed to a higher-level character for each band: each band is its own quest, open to anyone in its levels who brings the glowing totem (tradeable), with no quest before it. Not on this server, left out of the rewards: the items \"Ring of Amity\" and \"Neck of Amity\" (the guide's choice of one). The totemkeeper is in a dungeon whose floors this server's ground files lack: it is spawned beside the player at the den (a reach step there), and one also stands on the ground above."
+  },
+  {
+   "key": "Misc/dynmath-the-tyrant/t6",
+   "name": "The Book of Norrath's Union",
+   "giver": "Historian Ilena",
+   "classes": [],
+   "races": [],
+   "minlevel": 51,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The glowing totem of raining ashes. One last mystery: what in Permafrost woke it? Vox's Castle holds the answer. Go and find out.",
+   "accept": "I will find out.",
+   "decline": "Not now.",
+   "declined": "Then the totem waits.",
+   "started": "Vox's Castle, then.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Show Historian Ilena the glowing totem of raining ashes.",
+     "items": [
+      {
+       "item": "Glowing Totem of Raining Ashes",
+       "count": 1
+      }
+     ],
+     "says": "In Vox's Castle an ice giant tomekeeper keeps a book. Bring it."
+    },
+    {
+     "kind": "loot",
+     "target": "Ice Giant Tomekeeper",
+     "journal": "Take the book from the ice giant tomekeeper in Vox's Castle.",
+     "items": [
+      {
+       "item": "Book of Norrath's Union",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "show",
+     "target": "Historian Ilena",
+     "journal": "Show the book to Historian Ilena.",
+     "items": [
+      {
+       "item": "Book of Norrath's Union",
+       "count": 1
+      }
+     ],
+     "says": "It has no pages! Only one word inside the cover: Home. The pages must be in the homes of the races."
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Highmoon",
+     "journal": "Ask Guard Highmoon, south of Fayspires' main entrance, for the page of verdance.",
+     "says": "'Battle an Elf or a halfling and you'll see what I mean.' Here.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Page of Verdance",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Basher Churn",
+     "journal": "Ask Basher Churn, just inside Grobb's entrance, for the page of the swamp.",
+     "says": "Wez come from da swamp. Take it.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Page of the Swamp",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Watchman Ilsey",
+     "journal": "Ask Watchman Ilsey, outside Klick'Anon's south-east gate, for the page of raining ashes.",
+     "says": "'Face a Teir'dal or gnome and be reduced to ashes!' Yours.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Page of Raining Ashes",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Therean",
+     "journal": "Ask Guard Therean, near a banker in Highbourne, for the page of the plains.",
+     "says": "'Facing a human or Erudite from the plains.' Take it.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Page of the Plains",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Kazah",
+     "journal": "Ask Guard Kazah, by Moradhim's blacksmith, for the page of the north.",
+     "says": "'To defeat a barbarian or dwarf!' Here.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Page of the North",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Binder Colessa",
+     "journal": "Have Binder Colessa, in Freeport's Smiling Serpent Inn, bind the pages into the book.",
+     "items": [
+      {
+       "item": "Book of Norrath's Union",
+       "count": 1
+      },
+      {
+       "item": "Page of Verdance",
+       "count": 1
+      },
+      {
+       "item": "Page of the Swamp",
+       "count": 1
+      },
+      {
+       "item": "Page of Raining Ashes",
+       "count": 1
+      },
+      {
+       "item": "Page of the Plains",
+       "count": 1
+      },
+      {
+       "item": "Page of the North",
+       "count": 1
+      }
+     ],
+     "says": "Five pages, one book. There.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bound Book of Norrath's Union",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Bring the bound book to Historian Ilena.",
+     "items": [
+      {
+       "item": "Bound Book of Norrath's Union",
+       "count": 1
+      }
+     ],
+     "says": "Whole again! It tells of Dynmath the Tyrant. Take this, and this totem: it calls him at the portal on Whale Hill, south of Wyndhaven.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "ring of congeniality"
+        ]
+       },
+       "2": {
+        "items": [
+         "ring of congeniality"
+        ]
+       },
+       "3": {
+        "items": [
+         "ring of congeniality"
+        ]
+       },
+       "1": {
+        "items": [
+         "ring of congeniality"
+        ]
+       },
+       "4": {
+        "items": [
+         "ring of congeniality"
+        ]
+       },
+       "5": {
+        "items": [
+         "ring of congeniality"
+        ]
+       },
+       "6": {
+        "items": [
+         "ring of congeniality"
+        ]
+       },
+       "10": {
+        "items": [
+         "Necklace of Congeniality"
+        ]
+       },
+       "11": {
+        "items": [
+         "Necklace of Congeniality"
+        ]
+       },
+       "12": {
+        "items": [
+         "Necklace of Congeniality"
+        ]
+       },
+       "13": {
+        "items": [
+         "Necklace of Congeniality"
+        ]
+       },
+       "7": {
+        "items": [
+         "Necklace of Congeniality"
+        ]
+       },
+       "8": {
+        "items": [
+         "Necklace of Congeniality"
+        ]
+       },
+       "9": {
+        "items": [
+         "Necklace of Congeniality"
+        ]
+       },
+       "14": {
+        "items": [
+         "Necklace of Congeniality"
+        ]
+       }
+      }
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Totem of Dynmath",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Historian Ilena",
+    "Ice Giant Tomekeeper",
+    "Guard Therean"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 51-60 (github.com/Jadiction/EQOA-Data, MIT). The guide's totem is passed to a higher-level character for each band: each band is its own quest, open to anyone in its levels who brings the glowing totem (tradeable), with no quest before it. The guide's reward is a choice of the Ring of Congeniality (STA, AGI, HP) and the Necklace of Congeniality (DEX, INT, POW): the ring to tanks and melees, the necklace to casters, healers and alchemists here. The guide's trouble with evil and good pages (a level 1 of the right city) is left out."
+  },
+  {
+   "key": "Misc/dynmath-the-tyrant/t7",
+   "name": "Dynmath the Tyrant",
+   "giver": "Historian Ilena",
+   "classes": [],
+   "races": [],
+   "minlevel": 51,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/dynmath-the-tyrant/t6"
+   ],
+   "offer": "The totem I gave you calls Dynmath the Tyrant through the portal on Whale Hill. Bind yourself in Wyndhaven: you will die. Speak to the portal, then kill him.",
+   "accept": "I will face him.",
+   "decline": "Not now.",
+   "declined": "Then keep the totem.",
+   "started": "Whale Hill. Bind first.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Etheneric Portal",
+     "journal": "Speak to the portal on Whale Hill, south of Wyndhaven, with the totem.",
+     "items": [
+      {
+       "item": "Totem of Dynmath",
+       "count": 1
+      }
+     ],
+     "says": "The portal tears open. Dynmath the Tyrant steps through, and the dead with him!"
+    },
+    {
+     "kind": "kill",
+     "target": "Dynmath the Tyrant",
+     "journal": "Kill Dynmath the Tyrant.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Dynmath the Tyrant",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Historian Ilena",
+     "journal": "Return to Historian Ilena.",
+     "says": "The Tyrant falls! Should you want him again, another totem costs a million tunar."
+    }
+   ],
+   "unresolved": [
+    "Historian Ilena",
+    "Etheneric Portal",
+    "Dynmath the Tyrant"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Dynmath the Tyrant (github.com/Jadiction/EQOA-Data, MIT). The Tyrant's drops are loot (the guide's Otherworldly items), not a quest reward. His minions are left out; the portal's respawn time (15 minutes to 2.5 hours) is the spawn's ten minutes."
+  },
+  {
+   "key": "Misc/dynmath-the-tyrant/t8",
+   "name": "Another Totem of Dynmath",
+   "giver": "Historian Ilena",
+   "classes": [],
+   "races": [],
+   "minlevel": 51,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/dynmath-the-tyrant/t7"
+   ],
+   "offer": "Another totem? It costs a million tunar to make. Then the portal on Whale Hill is yours again.",
+   "accept": "Here is the tunar.",
+   "decline": "Not now.",
+   "declined": "As you like.",
+   "started": "Whale Hill, then.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Historian Ilena",
+     "journal": "Pay Historian Ilena 1,000,000 tunar for another totem.",
+     "tunar": 1000000,
+     "says": "Here. Try not to die.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Totem of Dynmath",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Etheneric Portal",
+     "journal": "Speak to the portal on Whale Hill with the totem.",
+     "items": [
+      {
+       "item": "Totem of Dynmath",
+       "count": 1
+      }
+     ],
+     "says": "Dynmath the Tyrant steps through once more!"
+    },
+    {
+     "kind": "kill",
+     "target": "Dynmath the Tyrant",
+     "journal": "Kill Dynmath the Tyrant.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Dynmath the Tyrant",
+       "hostile": true
+      }
+     ]
+    }
+   ],
+   "repeatable": true,
+   "unresolved": [
+    "Historian Ilena",
+    "Etheneric Portal",
+    "Dynmath the Tyrant"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Dynmath the Tyrant, another totem (github.com/Jadiction/EQOA-Data, MIT). The guide: after killing (or failing to kill) the Tyrant, the historian makes another totem for 1 million tunar."
   }
  ],
  "items": [
@@ -6391,6 +7355,144 @@
    "description": "A flask filled at the Dawn Maiden's pool.",
    "notrade": true,
    "like": "Dwindel's Potion"
+  },
+  {
+   "name": "Smudged Totem of the Plains",
+   "description": "A smudged totem of the plains, from pestilence rats.",
+   "notrade": true,
+   "like": "Gnoll Elder's Totem"
+  },
+  {
+   "name": "Polished Totem of the Plains",
+   "description": "The totem of the plains, polished: words in a jumble.",
+   "notrade": true,
+   "like": "Gnoll Elder's Totem"
+  },
+  {
+   "name": "Glowing Totem of the Plains",
+   "description": "The totem of the plains, glowing. Pass it to someone stronger.",
+   "notrade": false,
+   "like": "Goblin Hoarder's Totem"
+  },
+  {
+   "name": "Smudged Totem of the North",
+   "description": "A smudged totem of the north, from the Snowfist totemcarrier.",
+   "notrade": true,
+   "like": "Gnoll Elder's Totem"
+  },
+  {
+   "name": "Polished Totem of the North",
+   "description": "The totem of the north, polished: words in a jumble.",
+   "notrade": true,
+   "like": "Gnoll Elder's Totem"
+  },
+  {
+   "name": "Glowing Totem of the North",
+   "description": "The totem of the north, glowing. Pass it to someone stronger.",
+   "notrade": false,
+   "like": "Goblin Hoarder's Totem"
+  },
+  {
+   "name": "Smudged Totem of Verdance",
+   "description": "A smudged totem of verdance, from the Hatebone totemcarrier.",
+   "notrade": true,
+   "like": "Gnoll Elder's Totem"
+  },
+  {
+   "name": "Polished Totem of Verdance",
+   "description": "The totem of verdance, polished: words in a jumble.",
+   "notrade": true,
+   "like": "Gnoll Elder's Totem"
+  },
+  {
+   "name": "Glowing Totem of Verdance",
+   "description": "The totem of verdance, glowing. Pass it to someone stronger.",
+   "notrade": false,
+   "like": "Goblin Hoarder's Totem"
+  },
+  {
+   "name": "Smudged Totem of the Swamp",
+   "description": "A smudged totem of the swamp, from the gnoll totemkeeper.",
+   "notrade": true,
+   "like": "Gnoll Elder's Totem"
+  },
+  {
+   "name": "Polished Totem of the Swamp",
+   "description": "The totem of the swamp, polished: words in a jumble.",
+   "notrade": true,
+   "like": "Gnoll Elder's Totem"
+  },
+  {
+   "name": "Glowing Totem of the Swamp",
+   "description": "The totem of the swamp, glowing. Pass it to someone stronger.",
+   "notrade": false,
+   "like": "Goblin Hoarder's Totem"
+  },
+  {
+   "name": "Smudged Totem of Raining Ashes",
+   "description": "A smudged totem of raining ashes, from the spider totemkeeper.",
+   "notrade": true,
+   "like": "Gnoll Elder's Totem"
+  },
+  {
+   "name": "Polished Totem of Raining Ashes",
+   "description": "The totem of raining ashes, polished: words in a jumble.",
+   "notrade": true,
+   "like": "Gnoll Elder's Totem"
+  },
+  {
+   "name": "Glowing Totem of Raining Ashes",
+   "description": "The totem of raining ashes, glowing. Pass it to someone stronger.",
+   "notrade": false,
+   "like": "Goblin Hoarder's Totem"
+  },
+  {
+   "name": "Book of Norrath's Union",
+   "description": "A book with no pages. Inside the cover, one word: Home.",
+   "notrade": true,
+   "like": "Book of the Stars"
+  },
+  {
+   "name": "Page of Verdance",
+   "description": "A page of the Book of Norrath's Union: verdance.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Page of the Swamp",
+   "description": "A page of the Book of Norrath's Union: the swamp.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Page of Raining Ashes",
+   "description": "A page of the Book of Norrath's Union: raining ashes.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Page of the Plains",
+   "description": "A page of the Book of Norrath's Union: the plains.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Page of the North",
+   "description": "A page of the Book of Norrath's Union: the north.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Bound Book of Norrath's Union",
+   "description": "The Book of Norrath's Union with all its pages bound in.",
+   "notrade": true,
+   "like": "Allister's Journal"
+  },
+  {
+   "name": "Totem of Dynmath",
+   "description": "A totem to call Dynmath the Tyrant at the portal on Whale Hill.",
+   "notrade": false,
+   "like": "totem of dreams"
   }
  ]
 }

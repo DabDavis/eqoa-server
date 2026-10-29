@@ -2418,6 +2418,397 @@
     "Aryee (attackable)"
    ],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's three waves of a channeler, a sorcerer and a crusader before Aryee comes are left out (unnamed). A guilty party who turns on you is a talker the step's start spawns hostile (a copy, attackable); check_quests.py wants an attackable row of the name, so Aryee is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+  },
+  {
+   "key": "Misc/neriak-book/p1",
+   "name": "Binding an Elemental",
+   "giver": "Letala R`Virr",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "That book on my shelf? Strange old thing, about binding an elemental. Take it if you like, but you will need a scholar to read it. Try the enchanters' guild in Freeport.",
+   "accept": "I will find a scholar.",
+   "decline": "Leave it on the shelf.",
+   "declined": "The book stays where it is.",
+   "started": "You take the book.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Scholar Narielle",
+     "journal": "Take the book to Scholar Narielle in the enchanters' guild of Freeport to be translated.",
+     "items": [
+      {
+       "item": "A Neriak Book",
+       "count": 1
+      }
+     ],
+     "says": "This book tells how to bind an air elemental into an item. First we need a simple weapon. Smithy Grol, behind the blacksmith in Highpass, sells them."
+    },
+    {
+     "kind": "talk",
+     "target": "Smithy Grol",
+     "journal": "Get a simple weapon from Smithy Grol, behind the blacksmith in Highpass.",
+     "says": "A simple blade, rod or mace? Take the one you can use.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Simple Weapon",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Scholar Narielle",
+     "journal": "Bring the simple weapon to Scholar Narielle.",
+     "items": [
+      {
+       "item": "Simple Weapon",
+       "count": 1
+      }
+     ],
+     "says": "Good. Now two mechanamagical parts: a fan blade and five arcanic regulators. Rogue Clockworks has both."
+    },
+    {
+     "kind": "loot",
+     "target": "Tiny Spiderbot",
+     "journal": "Catch tiny spiderbots in the north-east of Rogue Clockworks for five arcanic regulators.",
+     "items": [
+      {
+       "item": "Arcanic Regulator",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Shiny Clockwork",
+     "journal": "Find the shiny clockworks on the hill with a huge signpost east of there, and take a fan blade.",
+     "items": [
+      {
+       "item": "Shiny Fan Blade",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Shiny Clockwork",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Shiny Clockwork",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Scholar Narielle",
+     "journal": "Bring the shiny fan blade and the five arcanic regulators to Scholar Narielle.",
+     "items": [
+      {
+       "item": "Shiny Fan Blade",
+       "count": 1
+      },
+      {
+       "item": "Arcanic Regulator",
+       "count": 5
+      }
+     ],
+     "says": "Now the elemental itself must be lured. It prizes its chimes: bring me three from the gusts in the ravine east of Wyndhaven's coach."
+    },
+    {
+     "kind": "loot",
+     "target": "Gust",
+     "journal": "Run the ravine east of Wyndhaven's coach until the gusts come, and take three gust chimes.",
+     "items": [
+      {
+       "item": "Gust Chime",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Gust",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Scholar Narielle",
+     "journal": "Bring the three gust chimes to Scholar Narielle.",
+     "items": [
+      {
+       "item": "Gust Chime",
+       "count": 3
+      }
+     ],
+     "says": "Everything is ready. Take it all to Arcanist Ghibkin in Highpass, in the banker's room behind the siege engine."
+    },
+    {
+     "kind": "talk",
+     "target": "Arcanist Ghibkin",
+     "journal": "Find Arcanist Ghibkin in Highpass, in the banker's room behind the siege engine.",
+     "says": "An air elemental, bound in a simple weapon. Here, it is done. When it strikes, the Gust comes.",
+     "rewards": {
+      "xp": 10000000
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "The Storyteller",
+     "journal": "Tell The Storyteller in Baga Village (NE), by the well, what you did.",
+     "says": "An elemental in a blade! A fine tale.",
+     "rewards": {
+      "factions": [
+       [
+        "The Storyteller",
+        25
+       ]
+      ]
+     }
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "A Neriak Book",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "repeatable": true,
+   "unresolved": [
+    "Shiny Clockwork",
+    "Shiny Clockwork",
+    "Shiny Clockwork",
+    "Gust",
+    "Gust",
+    "Tiny Spiderbot (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/neriak-book.json, # Neriak Book Quest (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the items \"Ultimate Windblade\" (WAR RAN PAL SK MNK BRD RGE DRD), \"Ultimate Windmace\" (and SHA CL) and \"Ultimate Rod\" (MAG WIZ NEC ALC ENC). The guide's purchase of a simple scimitar, rod or mace is a hand-over here: Smithy Grol gives a simple weapon at his window. The tiny spiderbots, caught by a popup and used for a regulator in the guide, are killed for one here. The guide's levels (20s and 30s spawn gusts on different sides of the ravine) are one place here. The guide's giver is the book on a bookshelf in Letala R`Virr's house a few seconds east of Neriak's banker; here Letala gives it (no shelf stands there). The guide says this is the evil version and Qeynos's the good: both are open to everyone here. The guide's Qeynos twin says it is repeatable, so this one is too."
+  },
+  {
+   "key": "Misc/qeynosbook/p1",
+   "name": "Binding an Elemental",
+   "giver": "Bookshelf",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Among the books on the casters' guild shelf is one on binding an elemental, in an old hand you cannot read. A scholar could translate it.",
+   "accept": "I will find a scholar.",
+   "decline": "Leave it on the shelf.",
+   "declined": "The book stays where it is.",
+   "started": "You take the book.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Scholar Dafren",
+     "journal": "Take the book to Scholar Dafren on the third floor of Highbourne's library to be translated.",
+     "items": [
+      {
+       "item": "A Book of Qeynos",
+       "count": 1
+      }
+     ],
+     "says": "This book tells how to bind an air elemental into an item. First we need a simple weapon. Smithy Grol, behind the blacksmith in Highpass, sells them."
+    },
+    {
+     "kind": "talk",
+     "target": "Smithy Grol",
+     "journal": "Get a simple weapon from Smithy Grol, behind the blacksmith in Highpass.",
+     "says": "A simple blade, rod or mace? Take the one you can use.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Simple Weapon",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Scholar Dafren",
+     "journal": "Bring the simple weapon to Scholar Dafren.",
+     "items": [
+      {
+       "item": "Simple Weapon",
+       "count": 1
+      }
+     ],
+     "says": "Good. Now two mechanamagical parts: a fan blade and five arcanic regulators. Rogue Clockworks has both."
+    },
+    {
+     "kind": "loot",
+     "target": "Tiny Spiderbot",
+     "journal": "Catch tiny spiderbots in the north-east of Rogue Clockworks for five arcanic regulators.",
+     "items": [
+      {
+       "item": "Arcanic Regulator",
+       "count": 5
+      }
+     ],
+     "count": 5,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Shiny Clockwork",
+     "journal": "Find the shiny clockworks on the hill with a huge signpost east of there, and take a fan blade.",
+     "items": [
+      {
+       "item": "Shiny Fan Blade",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Shiny Clockwork",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Shiny Clockwork",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Scholar Dafren",
+     "journal": "Bring the shiny fan blade and the five arcanic regulators to Scholar Dafren.",
+     "items": [
+      {
+       "item": "Shiny Fan Blade",
+       "count": 1
+      },
+      {
+       "item": "Arcanic Regulator",
+       "count": 5
+      }
+     ],
+     "says": "Now the elemental itself must be lured. It prizes its chimes: bring me three from the gusts in the ravine east of Wyndhaven's coach."
+    },
+    {
+     "kind": "loot",
+     "target": "Gust",
+     "journal": "Run the ravine east of Wyndhaven's coach until the gusts come, and take three gust chimes.",
+     "items": [
+      {
+       "item": "Gust Chime",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Gust",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Scholar Dafren",
+     "journal": "Bring the three gust chimes to Scholar Dafren.",
+     "items": [
+      {
+       "item": "Gust Chime",
+       "count": 3
+      }
+     ],
+     "says": "Everything is ready. Take it all to Arcanist Ghibkin in Highpass, in the banker's room behind the siege engine."
+    },
+    {
+     "kind": "talk",
+     "target": "Arcanist Ghibkin",
+     "journal": "Find Arcanist Ghibkin in Highpass, in the banker's room behind the siege engine.",
+     "says": "An air elemental, bound in a simple weapon. Here, it is done. When it strikes, the Gust comes.",
+     "rewards": {
+      "xp": 10000000
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "The Storyteller",
+     "journal": "Tell The Storyteller in Baga Village (NE), by the well, what you did.",
+     "says": "An elemental in a blade! A fine tale.",
+     "rewards": {
+      "factions": [
+       [
+        "The Storyteller",
+        25
+       ]
+      ]
+     }
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "A Book of Qeynos",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "repeatable": true,
+   "unresolved": [
+    "Bookshelf",
+    "Scholar Dafren",
+    "Scholar Dafren",
+    "Shiny Clockwork",
+    "Shiny Clockwork",
+    "Shiny Clockwork",
+    "Scholar Dafren",
+    "Gust",
+    "Gust",
+    "Scholar Dafren",
+    "Tiny Spiderbot (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/qeynosbook.json, # QeynosBook Quest (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the items \"Ultimate Windblade\" (WAR RAN PAL SK MNK BRD RGE DRD), \"Ultimate Windmace\" (and SHA CL) and \"Ultimate Rod\" (MAG WIZ NEC ALC ENC). The guide's purchase of a simple scimitar, rod or mace is a hand-over here: Smithy Grol gives a simple weapon at his window. The tiny spiderbots, caught by a popup and used for a regulator in the guide, are killed for one here. The guide's levels (20s and 30s spawn gusts on different sides of the ravine) are one place here. The giver is the bookshelf in Qeynos's casters' guild (FrontiersForge's Bookshelf); the guide says the quest is repeatable."
   }
  ],
  "items": [
@@ -2618,6 +3009,42 @@
    "description": "The staff of Aryee, who led the rebels in Northern Ro.",
    "notrade": true,
    "like": "Ancient Scroll"
+  },
+  {
+   "name": "A Neriak Book",
+   "description": "A book from a Neriak bookshelf: it tells how to bind an elemental. It needs a scholar.",
+   "notrade": true,
+   "like": "Book of the Stars"
+  },
+  {
+   "name": "A Book of Qeynos",
+   "description": "A book from the casters' guild of Qeynos: it tells how to bind an elemental. It needs a scholar.",
+   "notrade": true,
+   "like": "Book of the Stars"
+  },
+  {
+   "name": "Simple Weapon",
+   "description": "A plain weapon from Smithy Grol of Highpass, ready to take an enchantment.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Arcanic Regulator",
+   "description": "A small mechanamagical part, out of a tiny spiderbot.",
+   "notrade": true,
+   "like": "Copper Spring"
+  },
+  {
+   "name": "Shiny Fan Blade",
+   "description": "A fan blade from a shiny clockwork.",
+   "notrade": true,
+   "like": "Mine Spring"
+  },
+  {
+   "name": "Gust Chime",
+   "description": "A wind chime an air elemental prized.",
+   "notrade": true,
+   "like": "gem of wit"
   }
  ]
 }

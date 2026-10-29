@@ -55,7 +55,7 @@
   },
   {
    "name": "Last House Orderly",
-   "role": "talker",
+   "role": "foe",
    "body": [
     "race",
     "human",
@@ -70,12 +70,12 @@
    ],
    "count": 1,
    "level": 52,
-   "note": "the Last House's entrance hall; white-faced until the quest makes them attack (spawned hostile)",
+   "note": "the Last House's entrance hall; white-faced (a players' race's body attacks no one on sight); the quest spawns hostile ones",
    "water": "land"
   },
   {
    "name": "Last House Orderly",
-   "role": "talker",
+   "role": "foe",
    "body": [
     "race",
     "human",
@@ -234,7 +234,7 @@
   },
   {
    "name": "Filth Squid",
-   "role": "talker",
+   "role": "foe",
    "body": [
     "npc",
     "Giant Moray Eel"
@@ -247,12 +247,12 @@
    ],
    "count": 1,
    "level": 58,
-   "note": "PoD's entrance pond, by the whirling portal; peaceful until the mud is inspected (the quest spawns hostile copies)",
+   "note": "PoD's entrance pond, by the whirling portal; the quest spawns more when the mud is inspected",
    "water": "water"
   },
   {
    "name": "Filth Squid",
-   "role": "talker",
+   "role": "foe",
    "body": [
     "npc",
     "Giant Moray Eel"
@@ -270,7 +270,7 @@
   },
   {
    "name": "Sthlumchoxius",
-   "role": "talker",
+   "role": "foe",
    "body": [
     "npc",
     "Giant Moray Eel"
@@ -283,7 +283,7 @@
    ],
    "count": 1,
    "level": 60,
-   "note": "the named kraken of PoD's entrance pond; the quest spawns a hostile copy",
+   "note": "the named kraken of PoD's entrance pond, in it; the quest also spawns one by the player",
    "water": "water"
   },
   {
@@ -432,7 +432,7 @@
   },
   {
    "name": "Grum",
-   "role": "talker",
+   "role": "foe",
    "body": [
     "npc",
     "Patron of Bertoxxulous"
@@ -440,12 +440,12 @@
    "place": [
     "near",
     "Yarfsnoogle",
-    12,
+    70,
     5
    ],
    "count": 1,
    "level": 60,
-   "note": "by Yarfsnoogle in the nox pools' camp; the spell quest spawns a hostile copy at its end",
+   "note": "the nox pools' camp, away from Yarfsnoogle; the spell quest spawns one by the player at its end",
    "water": "land"
   },
   {
@@ -785,7 +785,7 @@
   },
   {
    "name": "Rallosian Brawler",
-   "role": "talker",
+   "role": "foe",
    "body": [
     "race",
     "ogre",
@@ -804,7 +804,7 @@
   },
   {
    "name": "Rallosian Cleric",
-   "role": "talker",
+   "role": "foe",
    "body": [
     "race",
     "ogre",
@@ -823,7 +823,7 @@
   },
   {
    "name": "Rallosian Conjurer",
-   "role": "talker",
+   "role": "foe",
    "body": [
     "race",
     "ogre",
@@ -1339,6 +1339,192 @@
    "count": 1,
    "level": 60,
    "note": "by the undead camp a short run east of the Council of Watchmen in Dshinn's Redoubt, among the wolverines (the guide's white con at 60)",
+   "water": "land"
+  },
+  {
+   "name": "Zek Troop",
+   "role": "foe",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    20250.0,
+    18250.0
+   ],
+   "count": 2,
+   "level": 60,
+   "note": "the Zek camp over the mountains north-west of the old DFC camp, by the palm trees, Deathfist Citadel (N) on the border with NW",
+   "water": "land"
+  },
+  {
+   "name": "Zek Troop",
+   "role": "foe",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "at",
+    0,
+    20280.0,
+    18210.0
+   ],
+   "count": 2,
+   "level": 60,
+   "note": "the Zek camp over the mountains north-west of the old DFC camp, by the palm trees, Deathfist Citadel (N) on the border with NW",
+   "water": "land"
+  },
+  {
+   "name": "Zek Sergeant",
+   "role": "foe",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "near",
+    "Zek Troop",
+    20,
+    0
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "with the Zek troops (the guide's spawn after them)",
+   "water": "land"
+  },
+  {
+   "name": "Portal of Tallon",
+   "role": "talker",
+   "body": [
+    "npc",
+    "dark portal"
+   ],
+   "place": [
+    "near",
+    "Zek Troop",
+    35,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the portal by the Zek camp, which the guide's sergeant's death opens (con blank, talkable)",
+   "water": "land"
+  },
+  {
+   "name": "Zek Sentry",
+   "role": "foe",
+   "body": [
+    "kind",
+    "golem"
+   ],
+   "place": [
+    "at",
+    5,
+    4750.0,
+    7480.0
+   ],
+   "count": 1,
+   "level": 62,
+   "note": "the large red dragon guarding the fortress's ramp, Zaoran Plateau (S) (a golem's body: the server has no red dragon to copy)",
+   "water": "land"
+  },
+  {
+   "name": "Tallon Zek",
+   "role": "foe",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "at",
+    5,
+    4650.0,
+    7700.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "the fortress's deepest hall, down the ramps past Hallway C, Zaoran Plateau (S)",
+   "water": "land"
+  },
+  {
+   "name": "Zek Scout",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "at",
+    0,
+    15300.0,
+    18900.0
+   ],
+   "count": 3,
+   "level": 58,
+   "note": "the camp round a campfire on the east side of the mountain east of Siloth Mines, Salt Mine (C)",
+   "water": "land"
+  },
+  {
+   "name": "Zek Scout",
+   "role": "foe",
+   "body": [
+    "kind",
+    "goblin"
+   ],
+   "place": [
+    "at",
+    0,
+    15330.0,
+    18860.0
+   ],
+   "count": 3,
+   "level": 58,
+   "note": "the camp round a campfire on the east side of the mountain east of Siloth Mines, Salt Mine (C)",
+   "water": "land"
+  },
+  {
+   "name": "Portal of Zek",
+   "role": "talker",
+   "body": [
+    "npc",
+    "dark portal"
+   ],
+   "place": [
+    "near",
+    "Zek Scout",
+    20,
+    0
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "by the Zek scouts' campfire (the guide's portal that a portal rune makes)",
+   "water": "land"
+  },
+  {
+   "name": "Vallon Zek",
+   "role": "foe",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "at",
+    5,
+    4372.0,
+    7105.0
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "the far side of the island, Zaoran Plateau (W): white-faced until spoken to (the quest spawns him hostile)",
    "water": "land"
   }
  ]

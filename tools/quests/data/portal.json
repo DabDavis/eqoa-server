@@ -4634,6 +4634,183 @@
     "Infected Wolverine"
    ],
    "notes": "From EQOA-Data Quests/Portal/soluseks-eye.json, ## Solusek's Eye Broken Balde Quest (github.com/Jadiction/EQOA-Data, MIT). Its steps 2 and 6 (1, 3 and 4 are the two Wailing Ghost quests before it). The guide's archetypal soul, crafted by a weapons master from the blade, Solusek's Eye, the twinkling amulet and one of Graknar's four rings, is the hand-in of the blade, the eye and the amulet to Mecei (the ring that picks the soul's archetype is the class's earring here); the Unnamed Champion's part (step 5) is left out; the wolverines' spawn cycle is left out (the infected one stands). The earrings are the guide's by archetype (the alchemist a caster)."
+  },
+  {
+   "key": "Portal/zaoran-plateau/tallon",
+   "name": "Tallon Zek",
+   "giver": "Portal of Tallon",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The portal hums faintly: its energy is waning. A key from the Zek who camp here would wake it, and it leads to Tallon's fortress on Zaoran Plateau.",
+   "accept": "I will find the key.",
+   "decline": "Not now.",
+   "declined": "The portal fades a little more.",
+   "started": "The Zek camp, here.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Zek Troop",
+     "count": 4,
+     "journal": "Kill the Zek troops of the camp."
+    },
+    {
+     "kind": "loot",
+     "target": "Zek Sergeant",
+     "items": [
+      {
+       "item": "Tallon's Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Zek Sergeant and take Tallon's Key."
+    },
+    {
+     "kind": "give",
+     "target": "Portal of Tallon",
+     "items": [
+      {
+       "item": "Tallon's Key",
+       "count": 1
+      }
+     ],
+     "journal": "Give Tallon's Key to the portal by the Zek camp: you are the last through.",
+     "says": "The portal flares, takes the key, and closes behind you.",
+     "rewards": {
+      "items": [
+       "Tallon's Bent Key"
+      ]
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 4750.0,
+       "y": 148.0,
+       "z": 7380.0
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 5,
+     "x": 4750.0,
+     "y": 160.0,
+     "z": 7460.0,
+     "radius": 25.0,
+     "journal": "Run south up the mountain to the fortress's ramp.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The fortress senses Tallon's key on you, and wakes. Its guardian rears up at the foot of the ramp."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Zek Sentry",
+     "count": 1,
+     "journal": "Kill the Zek Sentry at the foot of the ramp."
+    },
+    {
+     "kind": "kill",
+     "target": "Tallon Zek",
+     "count": 1,
+     "journal": "Go down the fortress's ramps past the golems, take Hallway C, and kill Tallon Zek."
+    }
+   ],
+   "unresolved": [
+    "Portal of Tallon",
+    "Zek Troop",
+    "Zek Sergeant",
+    "Zek Sentry",
+    "Tallon Zek"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Tallon Zek (github.com/Jadiction/EQOA-Data, MIT). A way onto the plateau without its flag (the guide's own words). The troops' spawn cycle is four kills before the sergeant; the portal's 'Yes, I am the last' is its give; the guide's Tallon Rages, golems, assassins and archers are left out; Tallon's five-minute despawn is not kept. The Zek camp, its portal, the sentry and Tallon are specs (the camp's spot and the fortress's halls, read off the ground, are ours). The guide gives no reward but the fight."
+  },
+  {
+   "key": "Portal/zaoran-plateau/vallon",
+   "name": "Vallon Zek",
+   "giver": "Portal of Zek",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Little goblins in Zek's colours keep this fire. One of them carries a portal rune; show it to me, and I open on Vallon Zek's training ground.",
+   "accept": "I will find the rune.",
+   "decline": "Not now.",
+   "declined": "Then leave our fire.",
+   "started": "The goblins, there.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Zek Scout",
+     "items": [
+      {
+       "item": "Portal Rune of Zek",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.2,
+     "journal": "Kill the Zek scouts round the campfire until one drops a Portal Rune of Zek."
+    },
+    {
+     "kind": "give",
+     "target": "Portal of Zek",
+     "items": [
+      {
+       "item": "Portal Rune of Zek",
+       "count": 1
+      }
+     ],
+     "journal": "Touch the portal by the campfire with the Portal Rune of Zek.",
+     "says": "The rune breaks into shards of light, and the portal opens.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 4377.8,
+       "y": 253.5,
+       "z": 7052.8
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Vallon Zek",
+     "journal": "Set up on the island, then speak with Vallon Zek at its far side.",
+     "says": "You have found my training grounds, and you are not welcome. Let me show you how Zek trains!"
+    },
+    {
+     "kind": "kill",
+     "target": "Vallon Zek",
+     "count": 1,
+     "journal": "Kill Vallon Zek.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Vallon Zek",
+       "hostile": true
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Portal of Zek",
+    "Zek Scout",
+    "Vallon Zek"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Vallon Zek (github.com/Jadiction/EQOA-Data, MIT). The scouts' rune (its chance ours: the guide's one in ten or so), the portal and its 20 shards are a give and a teleport (the shards for the raid are not modelled); Vallon is spoken to and spawned hostile, his friends and the Rages of Zek left out, his 90 minutes not kept. The camp, the portal and Vallon are specs. The guide gives no reward but the fight (Sapphyra's Sword is his loot)."
   }
  ],
  "items": [
@@ -5128,6 +5305,24 @@
    "description": "The blood of the infected wolverine.",
    "notrade": true,
    "like": "Randerith's blood"
+  },
+  {
+   "name": "Tallon's Key",
+   "description": "A key carried by a Zek sergeant. The portal by his camp opens to it.",
+   "notrade": true,
+   "like": "Arcane Chest Key"
+  },
+  {
+   "name": "Tallon's Bent Key",
+   "description": "Tallon's key, bent: the fortress has taken its due.",
+   "notrade": true,
+   "like": "Arcane Chest Key"
+  },
+  {
+   "name": "Portal Rune of Zek",
+   "description": "A rune the Zek scouts carry. Their portal knows it.",
+   "notrade": true,
+   "like": "portal rune"
   }
  ]
 }

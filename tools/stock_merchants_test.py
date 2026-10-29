@@ -46,6 +46,9 @@ CREATE TABLE prh_import_npcs (src_id INTEGER PRIMARY KEY, npc_name TEXT, world I
 CREATE TABLE prh_import_ids (tbl TEXT NOT NULL, src_id INTEGER, dst_id INTEGER NOT NULL, status TEXT NOT NULL);
 CREATE TABLE gm_audit (id INTEGER PRIMARY KEY AUTOINCREMENT, tbl TEXT NOT NULL DEFAULT '', rowkey TEXT NOT NULL DEFAULT '',
     before TEXT, after TEXT);
+CREATE TABLE grocer_stock (what TEXT NOT NULL, key INTEGER NOT NULL, old INTEGER);
+CREATE TABLE eqoadata_spell_import_rows (seq INTEGER PRIMARY KEY AUTOINCREMENT, tbl TEXT NOT NULL, key INTEGER NOT NULL,
+    key2 INTEGER, note TEXT);
 """
 PRH_SCHEMA = """
 CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER NOT NULL, patternid INTEGER NOT NULL,
@@ -151,7 +154,7 @@ def build(dirname):
         i = w.npc(f"Tailor Src{n}", 9200 + n, 9000)
         db.execute("UPDATE npcs SET npc_id = id WHERE id = ?", (i,))
         w.stock(i, f"Tier{n} Cap", f"Tier{n} Vest")
-    tailors = [w.npc(f"Tailor New{n}", 1000 + n, 1150) for n in range(4)]
+    tailors = [w.npc(f"Tailor New{n}", 1000 + n, 1150) for n in range(5)]
     general = w.npc("Merchant Plain", 1000, 1100)
     jeweler = w.npc("Jeweler Gem", 1010, 1100)
     keeper = w.npc("Keeper Lore", 1020, 1100)
@@ -163,26 +166,73 @@ def build(dirname):
                (json.dumps({"itemid": 9, "npcid": gmed, "patternid": 1}),))
     db.execute("INSERT INTO gm_audit (tbl, rowkey, after) VALUES ('itempattern', ?, '{}')",
                (json.dumps({"patternid": w.p["GM Thing"]}),))
+    # Sandstorm's own: a tailor the harvest opened (three wares here, by id,
+    # by name, by a renamed id; one this database lacks), which Return Home
+    # stocks too; a smithy none of whose wares are here; a grocer stocked
+    # already; a merchant whose namesake here stands too far
+    w.item("Cotton Shirt", slot=5, level=5, ac=8, pid=6001)
+    w.item("Cotton Cap", slot=1, level=5, ac=2, pid=6100)
+    w.item("Old Pants", slot=10, level=5, ac=5, pid=6003)
+    sand = w.npc("Tailor Sand", 1000, 2000)       # a town of their own
+    moldy = w.npc("Smithy Moldy", 1050, 2000)
+    for name, kind, lvl, cost in (("Ale", "beverage that aids in power regeneration", 3, 30),
+                                  ("Stew", "meal that will increase health regeneration", 4, 40),
+                                  ("Wine", "beverage that aids in power regeneration", 5, 50)):
+        w.item(name, cost=cost, level=lvl, desc=f"A refreshing {kind}.")
+        db.execute("INSERT INTO grocer_stock VALUES ('itemcost', ?, 0)", (w.p[name],))
+    db.execute("INSERT INTO gm_audit (tbl, rowkey, after) VALUES ('itempattern', ?, '{}')",
+               (json.dumps({"patternid": w.p["Wine"]}),))
+    grocer = w.npc("Grocer Kept", 1100, 2000)
+    db.execute("UPDATE npcs SET npc_id = id WHERE id = ?", (grocer,))
+    w.stock(grocer, "Ale", "Stew", "Wine")
+    farname = w.npc("Merchant Far", 3100, 3000)
+    # scrolls import_eqoadata_spells.py made: at 1 (repriced), at 2, at 1 a
+    # GM edited; and one at 1 it did not make
+    for name, cost, made, gm in (("Made Scroll", 1, True, False), ("Made Two", 2, True, False),
+                                 ("Made GM", 1, True, True), ("Other Scroll", 1, False, False)):
+        w.item(name, cost=cost, icon=SCROLL, level=20, desc="A scroll.")
+        if made:
+            db.execute("INSERT INTO eqoadata_spell_import_rows (tbl, key) VALUES ('itempattern', ?)", (w.p[name],))
+        if gm:
+            db.execute("INSERT INTO gm_audit (tbl, rowkey, after) VALUES ('itempattern', ?, '{}')",
+                       (json.dumps({"patternid": w.p[name]}),))
+    vendor = w.npc("Merchant Scrolls", 9300, 9000)
+    db.execute("UPDATE npcs SET npc_id = id WHERE id = ?", (vendor,))
+    w.stock(vendor, "Made Scroll", "Made Two", "Made GM", "Other Scroll")
     loot = w.npc("cave beetle", 1060, 1100, flags=0)
     db.execute("UPDATE npcs SET npc_id = id WHERE id = ?", (loot,))
     w.stock(loot, "Beast Fang")                    # its corpse's loot here: no catalog, no price
     # Return Home's export: its rows 1 (ours: Smithy Able), 2 (imported:
     # Merchant Baker), 3 (ours: Tailor Kept, stocked here), 4 (a beetle's loot)
     for src, name, status, dst in ((1, "Smithy Able", "ours", rh_ours), (2, "Merchant Baker", "imported", rh_imp),
-                                   (3, "Tailor Kept", "ours", stocked), (4, "cave beetle", "ours", loot)):
+                                   (3, "Tailor Kept", "ours", stocked), (4, "cave beetle", "ours", loot),
+                                   (5, "Tailor Sand", "ours", sand)):
         db.execute("INSERT INTO prh_import_npcs VALUES (?, ?, 0, ?, '', ?, '')", (src, name, status, dst))
     # Return Home's patterns 501.. -> ours
     for src, name, status in ((501, "Tin Knife", "ours"), (502, "Tin Axe", "ours"), (503, "Held Thing", "held"),
                               (504, "Priced Thing", "ours"), (505, "Hide Vest", "ours"), (506, "Beast Fang", "ours"),
                               (507, "GM Thing", "ours"), (508, "Old Name Axe", "ours"), (509, "Handout Cap", "ours")):
         db.execute("INSERT INTO prh_import_ids VALUES ('itempattern', ?, ?, ?)", (src, w.p[name], status))
-    for npcid, pids in ((1, (501, 502, 503)), (2, (504, 507, 508, 509)), (3, (505,)), (4, (506,))):
+    for npcid, pids in ((1, (501, 502, 503)), (2, (504, 507, 508, 509)), (3, (505,)), (4, (506,)), (5, (505,))):
         for n, pid in enumerate(pids):
             w.prh.execute("INSERT INTO npcitem (npcid, patternid, listnumber) VALUES (?, ?, ?)", (npcid, pid, n))
     # the harvest: wares and an inventory with Sandstorm's values; what it saw
     harvest = {
         "server": "test", "when": 1, "character": {"name": "Tester", "world": 0},
-        "merchants": [{"name": "Smithy Elsewhere", "pos": [0, 0, 0], "npc_flags": 129, "wares": [
+        "merchants": [
+          {"name": "Tailor Sand", "pos": [1010, 0, 2005], "npc_flags": 129, "wares": [
+            {"id": 6001, "name": "Cotton Shirt", "value": 19, "wear_slot": 5, "level_req": 5, "stats": [[14, 8]]},
+            {"id": 6002, "name": "Cotton Cap", "value": 14, "wear_slot": 1, "level_req": 5, "stats": [[14, 2]]},
+            {"id": 6003, "name": "Cotton Pants", "value": 15, "wear_slot": 10, "level_req": 5, "stats": [[14, 5]]},
+            {"id": 6004, "name": "Cotton Boots", "value": 15, "wear_slot": 11, "level_req": 5, "stats": [[14, 3]]}]},
+          {"name": "Smithy Moldy", "pos": [1050, 0, 2010], "npc_flags": 129, "wares": [
+            {"id": 7001, "name": "Knife Mold", "value": 10, "level_req": 1, "stats": []}]},
+          {"name": "Grocer Kept", "pos": [1100, 0, 2000], "npc_flags": 129, "wares": [
+            {"id": 7101, "name": "Ale", "value": 25, "level_req": 3, "desc": "A refreshing beverage.", "stats": []},
+            {"id": 7103, "name": "Wine", "value": 45, "level_req": 5, "desc": "A refreshing beverage.", "stats": []}]},
+          {"name": "Merchant Far", "pos": [3000, 0, 3000], "npc_flags": 129, "wares": [
+            {"id": 7201, "name": "Far Thing", "value": 5, "level_req": 1, "stats": []}]},
+          {"name": "Smithy Elsewhere", "pos": [0, 0, 0], "npc_flags": 129, "wares": [
             {"id": 900, "name": "Tin Knife", "value": 73, "wear_slot": 14, "level_req": 4, "damage": 40, "max_stack": 1, "stats": []},
             {"id": 901, "name": "Reed Club", "value": 91, "wear_slot": 14, "level_req": 5, "damage": 50, "max_stack": 1, "stats": []},
             {"id": 902, "name": "Reed Staff", "value": 128, "wear_slot": 14, "level_req": 7, "damage": 70, "max_stack": 1, "stats": []},
@@ -209,7 +259,8 @@ def build(dirname):
         json.dump(harvest, f)
     w.ids = dict(rh_ours=rh_ours, rh_imp=rh_imp, stocked=stocked, low1=low1, low2=low2, high=high, far=far,
                  chems=chems, chem_src=chem_src, tailors=tailors, general=general, jeweler=jeweler, keeper=keeper, beast=beast,
-                 unflagged=unflagged, gmed=gmed, loot=loot, gold=gold, reed=reed)
+                 unflagged=unflagged, gmed=gmed, loot=loot, gold=gold, reed=reed, sand=sand, moldy=moldy,
+                 grocer=grocer, farname=farname, vendor=vendor)
     db.close()
     w.prh.close()
     return w
@@ -258,6 +309,37 @@ class StockMerchantsTest(unittest.TestCase):
         self.assertEqual(p.prh_report[("ours", "stocked from it")], 1)
         self.assertEqual(p.prh_report[("imported", "stocked from it")], 1)
 
+    def test_sandstorms_own_catalog(self):
+        p, pats, _ = self.plan()
+        items, src = p.stock[self.ids["sand"]]
+        # Sandstorm's order; by id, by name, by a renamed id; the lacking one listed, not made
+        self.assertEqual(self.names(pats, items), ["Cotton Shirt", "Cotton Cap", "Old Pants"])
+        self.assertEqual(src, "Sandstorm's catalog (3 of 4 wares here)")
+        got, missing, renamed, near = p.sandstorm[self.ids["sand"]]
+        self.assertEqual(missing, ["Cotton Boots"])
+        self.assertEqual(renamed, ["Cotton Pants = our Old Pants"])
+        self.assertFalse(near)
+        self.assertEqual(p.prh_report[("ours", "Sandstorm's own catalog instead")], 1)
+        # none of the smithy's wares here: the next tier, its trade's
+        self.assertEqual(p.sandstorm[self.ids["moldy"]][0], [])
+        self.assertTrue(p.stock[self.ids["moldy"]][1].startswith("weapons:"))
+        # a merchant with a catalog keeps it; a namesake 100 away is no match
+        self.assertNotIn(self.ids["grocer"], p.stock)
+        self.assertEqual([m["name"] for m in p.misses], ["Merchant Far", "Smithy Elsewhere"])
+        self.assertEqual(p.stock[self.ids["farname"]][1], "general goods")
+        # the prices: Sandstorm's, by name and by the renamed id
+        price = {pats[x]["name"]: v for x, (v, _) in p.prices.items()}
+        self.assertEqual((price["Cotton Shirt"], price["Cotton Cap"], price["Old Pants"]), (19, 14, 15))
+
+    def test_the_grocers_exception(self):
+        p, pats, _ = self.plan()
+        got = {pats[x]["name"]: (old, new) for x, (old, new, _) in p.reprice.items()}
+        # a grocer's price of ours that Sandstorm sells otherwise: Sandstorm's
+        self.assertEqual(got, {"Ale": (30, 25)})
+        # not: a grocer's item Sandstorm sells not (Stew) or a GM's (Wine)
+        for name in ("Stew", "Wine", "Made Scroll"):
+            self.assertNotIn(name, got)
+
     def test_a_trades_catalog_by_level_and_town(self):
         p, pats, _ = self.plan()
         a = self.names(pats, p.stock[self.ids["low1"]][0])
@@ -273,10 +355,11 @@ class StockMerchantsTest(unittest.TestCase):
     def test_a_towns_tailors_sell_its_tiers(self):
         p, pats, _ = self.plan()
         got = [self.names(pats, p.stock[i][0])[0] for i in self.ids["tailors"]]
-        # the low town (5): the three tiers within reach it lacks, the
-        # nearest the level first; then one it has (its own Tailor Kept's,
-        # the nearest holder), before the far one (55)
-        self.assertEqual(got, ["Tier0 Cap", "Tier1 Cap", "Tier2 Cap", "Hide Cap"])
+        # the low town (5): the four sets within reach it lacks, the nearest
+        # the level first (Tailor Sand's and Tier0's both 5: the nearer
+        # holder's first); then one it has (its own Tailor Kept's, the
+        # nearest holder), before the far one (55)
+        self.assertEqual(got, ["Cotton Shirt", "Tier0 Cap", "Tier1 Cap", "Tier2 Cap", "Hide Cap"])
 
     def test_a_towns_chemists_sell_the_three_lists(self):
         p, pats, _ = self.plan()
@@ -362,6 +445,10 @@ class StockMerchantsTest(unittest.TestCase):
             JOIN npcs n ON n.npc_id = i.npcid WHERE n.npc_type & 1 AND p.itemcost <= 0""")}
         self.assertEqual(zero, free)
         self.assertEqual(db.execute("SELECT itemcost FROM itempattern WHERE itemname = 'Priced Thing'").fetchone()[0], 77)
+        cost = dict(db.execute("SELECT itemname, itemcost FROM itempattern WHERE itemname IN "
+                               "('Ale', 'Stew', 'Wine', 'Made Scroll', 'Made Two', 'Made GM', 'Other Scroll')"))
+        self.assertEqual(cost, {"Ale": 25, "Stew": 40, "Wine": 50, "Made Scroll": 1, "Made Two": 2, "Made GM": 1,
+                                "Other Scroll": 1})
         # a second --apply is refused
         with self.assertRaises(SystemExit):
             quiet(argv + ["--apply"])

@@ -6,9 +6,9 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// The game's balance (entity/balance.go): tables balancelevel and balancecon,
-// read again whole after a change, every NPC's hit points made those of its
-// level at once (each keeping its share of them).
+// The game's balance (entity/balance.go): tables balancelevel, balancecon and
+// balanceclass, read again whole after a change, every NPC's hit points made
+// those of its level at once (each keeping its share of them).
 
 // liveBalance reads both tables into the world (the change is committed: the
 // database is free).
@@ -25,7 +25,7 @@ func (s *Server) liveBalance() string {
 		"a summoned pet's at its next summoning", levels, cons)
 }
 
-// checkBalanceRow holds a balancelevel or balancecon row to its bounds
+// checkBalanceRow holds a balance table's row to its bounds
 // (database.BalanceProblems).
 func checkBalanceRow(table string, row map[string]any) error {
 	key := "level"
@@ -50,8 +50,11 @@ func checkBalanceRow(table string, row map[string]any) error {
 			}
 		}
 	}
-	if table == "balancecon" {
+	switch table {
+	case "balancecon":
 		key, cols = "diff", []string{"damage_pct", "taken_pct"}
+	case "balanceclass":
+		key, cols = "class", []string{"melee_taken_pct"}
 	}
 	k, ok := asFloat(row[key])
 	if !ok {

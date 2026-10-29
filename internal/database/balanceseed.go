@@ -41,6 +41,25 @@ var (
 		{Level: 50, HPPct: 340, DamagePct: 190, ConPct: 100, PetHPPct: 510, PetDamagePct: 475, ArtCooldownMS: 1500},
 		{Level: 60, HPPct: 400, DamagePct: 160, ConPct: 100, PetHPPct: 800, PetDamagePct: 560, ArtCooldownMS: 1500},
 	}
+	// BalanceSeedClasses: every class's row, 100 but the ranger's, the
+	// bard's and the rogue's. With a melee class's 16 hit points a level and
+	// +15 a hit against a tank's 24 and shield, they won a yellow two up at
+	// 45-60 half the time or less (ranger 15%, rogue 26%, bard 49%) while a
+	// tank won a red five up half the time. The simulator over 40 fights a
+	// cell, levels 1-60 (with the arts' cooldown and the spell fixes of the
+	// same day): the ranger at 70%, the bard at 80% and the rogue at 65% win
+	// two up at 45-60 79%, 85% and 76% of the time with 8-52% of their hit
+	// points left, an even fight with 48-79% left, and never a red five up;
+	// a bard needs less, its songs and heals. Below 45 they were nearer the
+	// targets already and are a little easier now (an even fight with 61-80%
+	// left).
+	BalanceSeedClasses = []BalanceClass{
+		{Class: 0, MeleeTakenPct: 100}, {Class: 1, MeleeTakenPct: 70}, {Class: 2, MeleeTakenPct: 100},
+		{Class: 3, MeleeTakenPct: 100}, {Class: 4, MeleeTakenPct: 100}, {Class: 5, MeleeTakenPct: 80},
+		{Class: 6, MeleeTakenPct: 65}, {Class: 7, MeleeTakenPct: 100}, {Class: 8, MeleeTakenPct: 100},
+		{Class: 9, MeleeTakenPct: 100}, {Class: 10, MeleeTakenPct: 100}, {Class: 11, MeleeTakenPct: 100},
+		{Class: 12, MeleeTakenPct: 100}, {Class: 13, MeleeTakenPct: 100}, {Class: 14, MeleeTakenPct: 100},
+	}
 	BalanceSeedCons = []BalanceCon{
 		{Diff: 0, DamagePct: 100, TakenPct: 100, Note: "even, and every blue and green below it"},
 		{Diff: 1, DamagePct: 112, TakenPct: 91},

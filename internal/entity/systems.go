@@ -197,8 +197,8 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 
 	// Sandstorm's roll on the player's AC, AGI and archetype (defence.go),
 	// as its class template makes it (classtemplate.go), then the balance's
-	// (balance.go)
-	damage := w.npcHitLocked(npc, player.Level, npc.meleeOut(npcMeleeRoll(npc).hitOn(player, meleeIntn)))
+	// (balance.go: its level's, its con's and the player's class's)
+	damage := w.npcHitPlayerLocked(npc, player, npc.meleeOut(npcMeleeRoll(npc).hitOn(player, meleeIntn)))
 	player.HP -= damage
 	if player.HP < 0 {
 		player.HP = 0

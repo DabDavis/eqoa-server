@@ -8,7 +8,7 @@
 //	    [-levels 1,10,20,30,40,50,60] [-diffs 0,1,2,3,4,5] [-fights 40]
 //	    [-tier 0.5] [-pets] [-limit 10m]
 //	    [-try-level 1:300:200:0,60:500:300:100] [-try-con 1:115:95,5:200:60]
-//	    [-try-art 1:0,30:1500,60:2000]
+//	    [-try-art 1:0,30:1500,60:2000] [-try-class 1:80,5:80,6:80]
 //	balancesim -db eqoa.db -lines [-classes ...]
 //
 // -lines prints each class's buff lines instead: the spells of one line, of
@@ -17,7 +17,8 @@
 // -try-level and -try-con try rows before they are written: level:hp_pct:
 // damage_pct[:con_pct[:pet_hp_pct:pet_damage_pct]] and diff:damage_pct:
 // taken_pct, in place of the tables' (balance db or seed) rows; -try-art
-// the arts' cooldown by the player's level (level:ms), the line through them.
+// the arts' cooldown by the player's level (level:ms), the line through them;
+// -try-class class:melee_taken_pct rows in place of the class table's.
 //
 // The database is copied first and the copy opened (opening runs the schema
 // setup); the original is never written. Players are kitted from its own
@@ -74,6 +75,7 @@ func main() {
 	tryCon := flag.String("try-con", "", "con rows to try: diff:damage:taken,...")
 	lines := flag.Bool("lines", false, "print each class's buff lines (only the best of a line counts) and stop")
 	tryArt := flag.String("try-art", "", "the arts' cooldown to try, by the player's level: level:ms,...")
+	tryClass := flag.String("try-class", "", "class rows to try: class:melee_taken_pct,... (in place of the table's)")
 	flag.Parse()
 	if *dbPath == "" {
 		flag.Usage()
@@ -96,7 +98,11 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		b = entity.NewBalance(ls, cs)
+		cls, err := db.BalanceClasses()
+		if err != nil {
+			log.Fatal(err)
+		}
+		b = entity.NewBalance(ls, cs).WithClasses(cls)
 	case "seed":
 		b = entity.SeedBalance()
 	case "none":
@@ -124,7 +130,14 @@ func main() {
 				cs = append(cs, database.BalanceCon{Diff: int(r[0]), DamagePct: r[1], TakenPct: r[2]})
 			}
 		}
-		b = entity.NewBalance(ls, cs)
+		b = entity.NewBalance(ls, cs).WithClasses(b.ClassRows())
+	}
+	if *tryClass != "" {
+		var cls []database.BalanceClass
+		for _, r := range rows(*tryClass, 2) {
+			cls = append(cls, database.BalanceClass{Class: int(r[0]), MeleeTakenPct: r[1]})
+		}
+		b = b.WithClasses(cls)
 	}
 	if *tryArt != "" {
 		b = b.WithLevelColumn(points(*tryArt), func(r *database.BalanceLevel, v float64) { r.ArtCooldownMS = v })

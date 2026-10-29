@@ -618,6 +618,23 @@ var catalog = map[string]tableNote{
 			"source": {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},
 	},
+	"balanceclass": {
+		Label: "Balance by class", Group: "World", Title: "class", Sort: "class",
+		Help: "The game's balance by a player's class (entity/balance.go): melee_taken_pct the share of an NPC's melee " +
+			"hit a player of the class takes, after Balance by level's and Balance by con's (its spells, a template's " +
+			"kick and a dummy's hits are not touched). A class with no row takes all of it. Rows of source seed are " +
+			"the tuning of 2026-10-29 (claude-notes/balance-20261029.md): the ranger, bard and rogue take less, their " +
+			"hit points and defence a melee class's against a tank's; cmd/balancesim's -try-class tries rows before " +
+			"they are written.",
+		Live:   "At once: the next hit of every fight uses it.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"class":           {Label: "Class", Enum: "class"},
+			"melee_taken_pct": {Label: "NPC melee taken %", Help: "of each NPC melee hit on a player of the class"},
+			"note":            {Label: "Note"},
+			"source":          {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
+		},
+	},
 	"balancecon": {
 		Label: "Balance by con", Group: "World", Title: "diff", Sort: "diff",
 		Help: "The game's balance by the con, an NPC's level less its foe's (entity/balance.go; the target box's colours: " +

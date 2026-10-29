@@ -58,6 +58,7 @@ type ChatHandler struct {
 	template func(*session.Session) ([]string, error)
 	mastery  masteryStore         // #grantcm's (mastery.go)
 	cm       *ClassMasteryHandler // #cm's and #cmreset's (classmastery.go)
+	resets   resetStore           // #rst_mastr's, #rst_both's, #banktunar's rows (gmresets.go)
 
 	visuals spellVisualStore // #fx's and #spellfx's spells (spellfx.go)
 
@@ -1017,6 +1018,19 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #craftlearn <recipe id | all [skill]>: recipes in the GM's own
 		// book (craft.go)
 		h.craftLearnCommand(sess, parts[1:])
+	case "#rst_mastr", "#rst_both":
+		// #rst_mastr / #rst_both [name]: the live client's resets, masteries
+		// (and training points) given back (gmresets.go)
+		h.resetCommand(sess, player, strings.Join(parts[1:], " "), cmd == "#rst_both")
+	case "#rem_abil":
+		// #rem_abil <name> <ability>: an ability out of a book (gmresets.go)
+		h.removeAbilityCommand(sess, player, strings.Join(parts[1:], " "))
+	case "#banktunar":
+		// #banktunar [name] <n>: n added to a bank (gmresets.go)
+		h.bankTunarCommand(sess, player, parts[1:])
+	case "#servdown":
+		// #servdown: the server restarted, an admin's, asked twice (gmresets.go)
+		h.servDownCommand(sess, player)
 
 	case "#help":
 		h.gmReply(sess, "GM Commands (each also as /name):")
@@ -1041,6 +1055,11 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #grantcm <amount> - mastery points, never past 1500 spent and unspent")
 		h.gmReply(sess, "  #debt [amount] - your experience debt, or set it (0 clears)")
 		h.gmReply(sess, "  #cm - the masteries your target (a player) or you bought; #cmreset takes them all back, points returned")
+		h.gmReply(sess, "  #rst_mastr [name] - a character's masteries all taken back, points returned (no name: your target, else you)")
+		h.gmReply(sess, "  #rst_both [name] - that and every training point given back")
+		h.gmReply(sess, "  #rem_abil <name> <ability> - an ability (its name or spell id) out of a character's book")
+		h.gmReply(sess, "  #banktunar [name] <amount> - added to a bank (negative takes away; no name: your target, else you)")
+		h.gmReply(sess, "  #servdown - restart the server, everyone saved (an admin's; say it twice)")
 		h.gmReply(sess, "  #aggro [on|off] - whether creatures attack you on sight (off until #aggro on)")
 		h.gmReply(sess, "  #fx <visual> [seconds] | <spell> - play a spell visual (0x1DAEB5B6) on your target, nothing saved")
 		h.gmReply(sess, "  #spellfx <spell> [<visual> | 0] - a spell's visual, or give it one (0: its stand-in)")

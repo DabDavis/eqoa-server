@@ -106,6 +106,25 @@ type Session struct {
 	// factionMessagesOff is the client's Faction Messages option off: 0x00C9's
 	// first byte 1 (sent at the world entry and when the option changes).
 	factionMessagesOff bool
+
+	// mailLiveForms is the client's answer to the mail form offer
+	// (OpcodeMailForm, handlers/mail.go): it sends SOE's live mail forms.
+	mailLiveForms bool
+}
+
+// SetMailLiveForms records the client's answer to the mail form offer.
+func (s *Session) SetMailLiveForms(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.mailLiveForms = on
+}
+
+// MailLiveForms is whether the client said it sends the live mail forms. A
+// client that never answered (a PS2) did not.
+func (s *Session) MailLiveForms() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.mailLiveForms
 }
 
 // SetFactionMessagesOff records the client's Faction Messages option (0x00C9):

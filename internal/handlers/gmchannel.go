@@ -85,6 +85,14 @@ const (
 	gmSubCreate        byte = 53
 	gmSubMastery       byte = 54
 	gmSubTradeLevel    byte = 55
+
+	// SOE's live CLIENT's (eqoa-live-1500) slash commands, no TEST entry's:
+	// gmresets.go
+	gmSubBankTunar     byte = 56  // /banktunar <n>: zigzag n
+	gmSubResetMastery  byte = 57  // /rst_mastr <text>
+	gmSubResetBoth     byte = 58  // /rst_both <text>
+	gmSubRemoveAbility byte = 59  // /rem_abil <text>
+	gmSubServerDown    byte = 101 // /servdown
 )
 
 // gmTrigger is the first byte of a 0x0702 (Do2's constant).
@@ -101,10 +109,14 @@ const (
 	gmIntString             // u32, then a string (Change Name)
 	gmWide                  // u32 unit count, UTF-16LE (BROADCAST's wide text)
 	gmNetSim                // u8 loss, u16 latency, u16 jitter (SendSimulation)
+	gmZigzag                // a zigzag int (the live client's /banktunar)
 )
 
 // gmFields is every sub-op the client sends and its fields (viadmin.cpp's
-// SEND_* senders, Send16/17, Send33, SendText13, SendSimulation, Toggle19).
+// SEND_* senders, Send16/17, Send33, SendText13, SendSimulation, Toggle19),
+// and the live CLIENT's five more (its senders 0x012AFA88: Write(sub) then
+// the zigzag writer 0x013C7750, not WriteU32; 0x012AD940, 0x012ADA20,
+// 0x012ADB00: WriteString; 0x012AF8C8: the sub-op alone).
 var gmFields = map[byte]gmFieldKind{
 	gmSubInvis: gmNone, gmSubRevertSprite: gmNone, gmSub14: gmNone, gmSubSafeMode: gmNone,
 	gmSubServerLoad: gmNone, gmSubToggleNPC: gmNone, gmSubEndSnoop: gmNone, gmSubYes: gmNone, gmSubNo: gmNone,
@@ -123,6 +135,9 @@ var gmFields = map[byte]gmFieldKind{
 	gmSubRename:    gmIntString,
 	gmSubBroadcast: gmWide,
 	gmSubNetSim:    gmNetSim,
+
+	gmSubBankTunar: gmZigzag, gmSubResetMastery: gmString, gmSubResetBoth: gmString,
+	gmSubRemoveAbility: gmString, gmSubServerDown: gmNone,
 }
 
 // gmTextMax bounds a string field: the client's chat line is never 128
@@ -141,7 +156,7 @@ type gmRequest struct {
 
 func (r gmRequest) String() string {
 	switch gmFields[r.Sub] {
-	case gmInt:
+	case gmInt, gmZigzag:
 		return fmt.Sprintf("sub-op %d (%d)", r.Sub, int32(r.A))
 	case gmInt2:
 		return fmt.Sprintf("sub-op %d (%d, %d)", r.Sub, int32(r.A), int32(r.B))
@@ -195,6 +210,14 @@ func parseGMRequest(data []byte) (gmRequest, error) {
 				req.Text, err = r.ReadStringUnicode(int(n))
 			}
 		}
+	case gmZigzag:
+		var z int64
+		if z, err = r.Read7BitEncodedInt64(); err == nil {
+			if z < -1<<31 || z >= 1<<31 {
+				err = errGMShort
+			}
+			req.A = uint32(int32(z))
+		}
 	case gmNetSim:
 		if req.Loss, err = r.ReadByte(); err == nil {
 			if req.Latency, err = r.ReadUint16(); err == nil {
@@ -237,6 +260,8 @@ type gmChannel struct {
 	silenced map[uint32]bool                              // characters (serverid)
 	snoops   map[entity.EntityID]map[entity.EntityID]bool // snooped player: its GMs
 	netWait  map[*session.Session][]entity.EntityID       // a player's session: the GMs asking
+	// downAsked is when each GM's first #servdown asked (gmresets.go)
+	downAsked map[entity.EntityID]time.Time
 
 	inv   *database.InventoryStore
 	names nameStore
@@ -480,6 +505,17 @@ func (h *ChatHandler) gmCommand(sess *session.Session, gm *entity.Player, req gm
 		h.grantMasteryCommand(sess, strings.Fields(req.Text))
 	case gmSubTradeLevel:
 		h.gmReply(sess, "Trade levels: this server has none")
+	case gmSubBankTunar:
+		// the GM's target, else the GM (the client names no one)
+		if s, ok := h.gmCharacter(sess, gm, "", "Bank tunar"); ok {
+			h.addBankTunar(sess, s, int(int32(req.A)))
+		}
+	case gmSubResetMastery, gmSubResetBoth:
+		h.resetCommand(sess, gm, req.Text, req.Sub == gmSubResetBoth)
+	case gmSubRemoveAbility:
+		h.removeAbilityCommand(sess, gm, req.Text)
+	case gmSubServerDown:
+		h.servDownCommand(sess, gm)
 	}
 }
 

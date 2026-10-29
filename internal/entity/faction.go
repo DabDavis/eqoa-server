@@ -166,6 +166,19 @@ func (w *World) standingLocked(p *Player, faction string) int {
 	return w.factions.byName[faction]
 }
 
+// Standing is the session's player's standing with a faction (its own, else
+// its starting one), false when the session has no player in the world: for
+// the quests' faction requirements and anything else outside the World.
+func (w *World) Standing(sess *session.Session, faction string) (int, bool) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil {
+		return 0, false
+	}
+	return w.standingLocked(p, faction), true
+}
+
 // factionKillLocked is a kill's faction hits on its killer, and the lines that
 // tell it (sess nil: none). Must be called with the lock held.
 func (w *World) factionKillLocked(sess *session.Session, p *Player, npc *NPC) {

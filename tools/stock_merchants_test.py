@@ -173,6 +173,7 @@ def build(dirname):
     w.item("Cotton Shirt", slot=5, level=5, ac=8, pid=6001)
     w.item("Cotton Cap", slot=1, level=5, ac=2, pid=6100)
     w.item("Old Pants", slot=10, level=5, ac=5, pid=6003)
+    w.item("Gnolls Gloves", slot=0, level=1, pid=6200)   # Sandstorm's "Gnoll's Gloves", another slot
     sand = w.npc("Tailor Sand", 1000, 2000)       # a town of their own
     moldy = w.npc("Smithy Moldy", 1050, 2000)
     for name, kind, lvl, cost in (("Ale", "beverage that aids in power regeneration", 3, 30),
@@ -224,7 +225,8 @@ def build(dirname):
             {"id": 6001, "name": "Cotton Shirt", "value": 19, "wear_slot": 5, "level_req": 5, "stats": [[14, 8]]},
             {"id": 6002, "name": "Cotton Cap", "value": 14, "wear_slot": 1, "level_req": 5, "stats": [[14, 2]]},
             {"id": 6003, "name": "Cotton Pants", "value": 15, "wear_slot": 10, "level_req": 5, "stats": [[14, 5]]},
-            {"id": 6004, "name": "Cotton Boots", "value": 15, "wear_slot": 11, "level_req": 5, "stats": [[14, 3]]}]},
+            {"id": 6004, "name": "Cotton Boots", "value": 15, "wear_slot": 11, "level_req": 5, "stats": [[14, 3]]},
+            {"id": 6200, "name": "Gnoll's Gloves", "value": 9, "wear_slot": 19, "level_req": 1, "stats": []}]},
           {"name": "Smithy Moldy", "pos": [1050, 0, 2010], "npc_flags": 129, "wares": [
             {"id": 7001, "name": "Knife Mold", "value": 10, "level_req": 1, "stats": []}]},
           {"name": "Grocer Kept", "pos": [1100, 0, 2000], "npc_flags": 129, "wares": [
@@ -313,8 +315,8 @@ class StockMerchantsTest(unittest.TestCase):
         p, pats, _ = self.plan()
         items, src = p.stock[self.ids["sand"]]
         # Sandstorm's order; by id, by name, by a renamed id; the lacking one listed, not made
-        self.assertEqual(self.names(pats, items), ["Cotton Shirt", "Cotton Cap", "Old Pants"])
-        self.assertEqual(src, "Sandstorm's catalog (3 of 4 wares here)")
+        self.assertEqual(self.names(pats, items), ["Cotton Shirt", "Cotton Cap", "Old Pants", "Gnolls Gloves"])
+        self.assertEqual(src, "Sandstorm's catalog (4 of 5 wares here)")
         got, missing, renamed, near = p.sandstorm[self.ids["sand"]]
         self.assertEqual(missing, ["Cotton Boots"])
         self.assertEqual(renamed, ["Cotton Pants = our Old Pants"])
@@ -329,7 +331,8 @@ class StockMerchantsTest(unittest.TestCase):
         self.assertEqual(p.stock[self.ids["farname"]][1], "general goods")
         # the prices: Sandstorm's, by name and by the renamed id
         price = {pats[x]["name"]: v for x, (v, _) in p.prices.items()}
-        self.assertEqual((price["Cotton Shirt"], price["Cotton Cap"], price["Old Pants"]), (19, 14, 15))
+        self.assertEqual((price["Cotton Shirt"], price["Cotton Cap"], price["Old Pants"], price["Gnolls Gloves"]),
+                         (19, 14, 15, 9))  # the last by its name, its apostrophe aside
 
     def test_the_two_exceptions(self):
         p, pats, _ = self.plan()

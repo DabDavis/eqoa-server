@@ -206,7 +206,7 @@ func TestAnAdminDownloadsASanitisedSnapshotOnce(t *testing.T) {
 		t.Fatal(log)
 	}
 	all := fmt.Sprint(log["entries"])
-	for _, want := range []string{"made the sanitised snapshot " + file, "sanitiser 1", "fetched the sanitised snapshot " + file} {
+	for _, want := range []string{"made the sanitised snapshot " + file, fmt.Sprintf("sanitiser %d", database.SnapshotVersion), "fetched the sanitised snapshot " + file} {
 		if !strings.Contains(all, want) {
 			t.Errorf("no audit line with %q in %s", want, all)
 		}

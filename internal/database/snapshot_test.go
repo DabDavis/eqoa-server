@@ -5,8 +5,10 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestSecretLikeNames(t *testing.T) {
@@ -70,6 +72,7 @@ var planted = map[string]string{
 	"mapmark.sender_hash":   "9999eeee8888dddd7777cccc6666bbbb5555aaaa4444ffff3333eeee2222dddd",
 	"workboard.notes":       "the test login is keeper / hunter2-planted-password",
 	"workboard.overview":    "PLANTED overview: the box's root password is not here",
+	"petitions.text":        "PLANTED petition: someone took my account, write me at planted.petitioner@example.org",
 }
 
 // seededDB is a database with the game's tables, the panel's, content, a GM
@@ -134,6 +137,10 @@ func seededDB(t *testing.T) (*SQLiteDB, string) {
 		t.Fatal(err)
 	}
 	if _, _, err := db.SetWorkOverview(p["workboard.overview"], 1, who); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.FilePetition(Petition{ServerID: 1, CharName: "Hero", AccountID: 2, Text: p["petitions.text"]},
+		time.Date(2026, 10, 29, 10, 3, 0, 0, time.UTC)); err != nil {
 		t.Fatal(err)
 	}
 	return db, path
@@ -216,7 +223,7 @@ func TestASnapshotTakesOutEverySecretAndKeepsTheGame(t *testing.T) {
 			t.Errorf("%s: %d rows, %d in the snapshot", table, a, b)
 		}
 	}
-	for _, table := range []string{"gm_tokens", "gm_totp", "gm_oauth_clients", "gm_audit", "spellfx_meta", "mapmark_meta", "workboard"} {
+	for _, table := range []string{"gm_tokens", "gm_totp", "gm_oauth_clients", "gm_audit", "spellfx_meta", "mapmark_meta", "workboard", "petitions"} {
 		if n := count(snap, `SELECT COUNT(*) FROM `+table); n != 0 {
 			t.Errorf("%s kept %d rows", table, n)
 		}
@@ -252,7 +259,7 @@ func TestASnapshotTakesOutEverySecretAndKeepsTheGame(t *testing.T) {
 		t.Errorf("%d work board triggers in the snapshot, not 2", n)
 	}
 	info, err := ReadSnapshotInfo(snap.DB)
-	if err != nil || info["sanitiser"] != "1" || info["by"] != "keeper" || !strings.Contains(info["removed"], "gm_tokens") {
+	if err != nil || info["sanitiser"] != strconv.Itoa(SnapshotVersion) || info["by"] != "keeper" || !strings.Contains(info["removed"], "gm_tokens") {
 		t.Errorf("snapshot_info %v, %v", info, err)
 	}
 	if _, err := ReadSnapshotInfo(db.DB); !errors.Is(err, ErrSnapshotNotSanitised) {

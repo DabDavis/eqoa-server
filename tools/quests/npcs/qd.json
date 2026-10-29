@@ -2278,6 +2278,185 @@
    "level": 50,
    "note": "comes with Siliskor in the Elephant Graveyard (FrontiersForge's name; the guide's Pomus Magewell)",
    "water": "land"
+  },
+  {
+   "name": "Yulil Ashebrooke",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "the glowing rock pile directly north of the monk tower in the Eternal Desert (N) (a rare spawn)",
+   "water": "land"
+  },
+  {
+   "name": "Death Weaver",
+   "role": "foe",
+   "body": [
+    "kind",
+    "spider"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "the glowing rocks on a small dune just south of the river, Tak Xiv West (W)",
+   "water": "land"
+  },
+  {
+   "name": "Death Spitter",
+   "role": "foe",
+   "body": [
+    "kind",
+    "spider"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "a lone rock on a small hill south in the east of the next zone west",
+   "water": "land"
+  },
+  {
+   "name": "Terrorantula",
+   "role": "foe",
+   "body": [
+    "kind",
+    "spider"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "spawns on Yulil Ashebrooke's rock pile, with 7-8 poisonweavers",
+   "water": "land"
+  },
+  {
+   "name": "Poisonweaver",
+   "role": "foe",
+   "body": [
+    "kind",
+    "spider"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 2,
+   "note": "Terrorantula's brood (level 43)",
+   "water": "land"
+  },
+  {
+   "name": "Spirit of Tellainain",
+   "role": "talker",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "at",
+    1,
+    4900.0,
+    9400.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the island off the south-west corner of Envar (the place is ours)",
+   "water": "land"
+  },
+  {
+   "name": "Tal'thex Knight",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "near",
+    "Spirit of Tellainain",
+    30,
+    1
+   ],
+   "count": 2,
+   "level": 56,
+   "note": "the Tal'thex undead that rise on the island (dark blue to a 60)",
+   "water": "land"
+  },
+  {
+   "name": "Tal'thex Soldier",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "near",
+    "Spirit of Tellainain",
+    40,
+    1
+   ],
+   "count": 2,
+   "level": 55,
+   "note": "the Tal'thex undead that rise on the island",
+   "water": "land"
+  },
+  {
+   "name": "Tal'thex Sorcerer",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "near",
+    "Spirit of Tellainain",
+    50,
+    1
+   ],
+   "count": 2,
+   "level": 55,
+   "note": "the Tal'thex undead that rise on the island; killing them brings Lord Valkanith sooner",
+   "water": "land"
+  },
+  {
+   "name": "Lord Valkanith",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Lord Chardith"
+   ],
+   "place": [
+    "near",
+    "Spirit of Tellainain",
+    20,
+    1
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "comes at last on Envar's island (he looks like Lord Chardith)",
+   "water": "land"
+  },
+  {
+   "name": "Jaeger Mansion Statue",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Jaeger Statue"
+   ],
+   "place": [
+    "near",
+    "Jaeger Statue",
+    4,
+    0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the statue, turned hostile when the hourglass is set in it",
+   "water": "land"
   }
  ]
 }

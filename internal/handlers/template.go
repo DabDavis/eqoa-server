@@ -351,7 +351,9 @@ func (h *CharacterHandler) ApplyTemplate(sess *session.Session) ([]string, error
 	if err := h.store.SetProgress(sid, templateLevel, entity.TotalXP(templateLevel, 0)); err != nil {
 		return nil, fmt.Errorf("the level: %w", err)
 	}
-	if err := h.inventoryStore.SetTunar(sid, templateTunar, snap.BankTunar); err != nil {
+	// the purse alone: the bank's tunar is written only under bankMu
+	// (bank.go), and the snapshot's may be older than an auction's payment
+	if err := h.inventoryStore.SetPurse(sid, templateTunar); err != nil {
 		return nil, fmt.Errorf("the tunar: %w", err)
 	}
 	added, err := h.store.GrantClassSpells(sid, snap.Class)
@@ -367,7 +369,9 @@ func (h *CharacterHandler) ApplyTemplate(sess *session.Session) ([]string, error
 			log.Printf("Template: '%s' training points not kept: %v", player.Name, err)
 		}
 	}
-	gw.SetPlayerTunar(sid, templateTunar, snap.BankTunar)
+	bankMu.Lock()
+	gw.SetPlayerTunar(sid, templateTunar, player.BankTunar)
+	bankMu.Unlock()
 	h.applyEquipmentFromDB(player, sid, true)
 	gw.SyncSelfChannels(sess)
 	if now, ok := gw.PlayerSnapshot(player.ServerID); ok {

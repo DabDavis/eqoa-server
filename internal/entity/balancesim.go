@@ -459,17 +459,33 @@ func (f *simFight) sortBook() {
 	}
 }
 
-// simBuffLine is what a buff changes (its effects' kinds and stats): the
-// buffs of one line, a spell and its higher ranks, change the same, and a
-// player keeps the highest of a line on (a line's ranks stack on this
-// server, as distinct spells: the simulator does not stack them).
+// simBuffLine is a buff's line as the server takes it (buffline.go: only
+// the best of a line counts), else what its effects change.
 func simBuffLine(s *CastSpell) string {
+	if l := BuffLine(s); l != "" {
+		return l
+	}
 	var keys []string
 	for _, e := range s.Def.Effects {
 		keys = append(keys, fmt.Sprintf("%d.%d", e.Kind, e.Stat))
 	}
 	sort.Strings(keys)
 	return fmt.Sprint(s.Scope == 3, keys)
+}
+
+// SimBuffLines is a book's buff lines (BuffLine) and the spells of each, by
+// level: what only the best of counts.
+func SimBuffLines(book []CastSpell) map[string][]CastSpell {
+	out := map[string][]CastSpell{}
+	for _, s := range book {
+		if l := BuffLine(&s); l != "" {
+			out[l] = append(out[l], s)
+		}
+	}
+	for _, ss := range out {
+		sort.SliceStable(ss, func(i, j int) bool { return ss[i].Level < ss[j].Level })
+	}
+	return out
 }
 
 // buffs is the book's buffs, the highest of each line.

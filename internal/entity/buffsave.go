@@ -67,6 +67,10 @@ type savedMods struct {
 	// a ceiling on the maximum power (powercap.go); a row kept before reads
 	// as none
 	PowerCap *int `json:",omitempty"`
+	// a beneficial spell's line and rank (buffline.go); a row kept before
+	// reads as none
+	Line string `json:",omitempty"`
+	Rank int    `json:",omitempty"`
 }
 
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
@@ -81,7 +85,7 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 			tick = max(0, e.NextTick.Sub(now).Milliseconds())
 		}
 		sm := savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, ProcScale: e.ProcScale, ProcScalePct: e.ProcScalePct,
-			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield}
+			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield, Line: e.Line, Rank: e.Rank}
 		if e.PowerCapped {
 			top := e.PowerCap
 			sm.PowerCap = &top
@@ -132,6 +136,7 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			ae.Form, ae.FormSize = sm.Form, sm.FormSize
 			ae.Ticks = sm.Ticks
 			ae.Shield = sm.Shield
+			ae.Line, ae.Rank = sm.Line, sm.Rank
 			if sm.PowerCap != nil {
 				ae.PowerCap, ae.PowerCapped = *sm.PowerCap, true
 			}

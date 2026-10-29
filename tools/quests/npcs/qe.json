@@ -839,6 +839,344 @@
    "level": 58,
    "note": "Coach Rubgar's third trial set, four casters",
    "water": "land"
+  },
+  {
+   "name": "Grave Usher",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    1,
+    5110.0,
+    9150.0
+   ],
+   "count": 1,
+   "level": 57,
+   "note": "atop one of Envar's four towers, each guarded by gargoyle servants (left out)",
+   "water": "land"
+  },
+  {
+   "name": "Grave Usher",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    1,
+    5390.0,
+    9150.0
+   ],
+   "count": 1,
+   "level": 57,
+   "note": "atop one of Envar's four towers, each guarded by gargoyle servants (left out)",
+   "water": "land"
+  },
+  {
+   "name": "Grave Usher",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    1,
+    5150.0,
+    9350.0
+   ],
+   "count": 1,
+   "level": 57,
+   "note": "atop one of Envar's four towers, each guarded by gargoyle servants (left out)",
+   "water": "land"
+  },
+  {
+   "name": "Grave Usher",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    1,
+    5390.0,
+    9390.0
+   ],
+   "count": 1,
+   "level": 57,
+   "note": "atop one of Envar's four towers, each guarded by gargoyle servants (left out)",
+   "water": "land"
+  },
+  {
+   "name": "Subdued Magus",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Fire Giant Magus"
+   ],
+   "place": [
+    "near",
+    "Fire Giant Magus",
+    14,
+    3
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "by the Fire Giant Magus near the north bridge in Solusek's Eye; the Magus subdued (the guide's respawn as Subdued), who sends raiders to Lord Nagafen",
+   "water": "land"
+  },
+  {
+   "name": "Rudro Balenthorpe",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "right outside the blacksmith in Qeynos (a rare spawn in the live game)",
+   "water": "land"
+  },
+  {
+   "name": "Fendren the Forgotten",
+   "role": "talker",
+   "body": [
+    "race",
+    "erudite",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    5650.0,
+    7650.0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "Dead Hills (SE), surrounded by treants",
+   "water": "land"
+  },
+  {
+   "name": "Dead Hills Treant",
+   "role": "foe",
+   "body": [
+    "npc",
+    "treant"
+   ],
+   "place": [
+    "near",
+    "Fendren the Forgotten",
+    30,
+    1
+   ],
+   "count": 3,
+   "level": 55,
+   "note": "the treants round Fendren in the Dead Hills (SE)",
+   "water": "land"
+  },
+  {
+   "name": "Jal'Raeth Commoner",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    5160.0,
+    9320.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the basement of Envar's south-west tower (the Rathe, the cell south of the Dead Hills)",
+   "water": "land"
+  },
+  {
+   "name": "Jal'Raeth Commoner",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    5200.0,
+    9347.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the basement of Envar's south-west tower (the Rathe, the cell south of the Dead Hills)",
+   "water": "land"
+  },
+  {
+   "name": "Jal'Raeth Commoner",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    5229.0,
+    9330.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the basement of Envar's south-west tower (the Rathe, the cell south of the Dead Hills)",
+   "water": "land"
+  },
+  {
+   "name": "Jal'Raeth Commoner",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    5150.0,
+    9347.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "the basement of Envar's south-west tower (the Rathe, the cell south of the Dead Hills)",
+   "water": "land"
+  },
+  {
+   "name": "Northeast Altar of Envar",
+   "role": "talker",
+   "body": [
+    "npc",
+    "dark portal"
+   ],
+   "place": [
+    "at",
+    1,
+    5393.0,
+    9198.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the back room of the NE tower's basement library in Envar",
+   "water": "land"
+  },
+  {
+   "name": "Southwest Altar of Envar",
+   "role": "talker",
+   "body": [
+    "npc",
+    "dark portal"
+   ],
+   "place": [
+    "at",
+    1,
+    5187.0,
+    9368.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the back room of the SW tower's basement library in Envar",
+   "water": "land"
+  },
+  {
+   "name": "Tal'Thir",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghost"
+   ],
+   "place": [
+    "at",
+    1,
+    5115.0,
+    9150.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the NW tower's basement, among accursed maggots, rats and zombies (left out)",
+   "water": "land"
+  },
+  {
+   "name": "High Priest Vorin",
+   "role": "foe",
+   "body": [
+    "kind",
+    "skeleton"
+   ],
+   "place": [
+    "at",
+    1,
+    5360.0,
+    9378.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the SE tower's basement, with his construct (left out)",
+   "water": "land"
+  },
+  {
+   "name": "Jal'Raeth Bishop",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    5369.0,
+    9150.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 60,
+   "note": "the NE tower's basement",
+   "water": "land"
+  },
+  {
+   "name": "Jal'Raeth Patriarch",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    1,
+    5148.0,
+    9368.0,
+    "low"
+   ],
+   "count": 1,
+   "level": 59,
+   "note": "the SW tower's library",
+   "water": "land"
   }
  ]
 }

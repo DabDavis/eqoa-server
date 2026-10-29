@@ -115,4 +115,16 @@ func TestClassTemplatesInThePanel(t *testing.T) {
 	if n, tm := hp(); n != entity.NPCMaxHP(3)*2 || tm != "tank" {
 		t.Errorf("after the revert: %d HP, template %q", n, tm)
 	}
+
+	// a row written outside the panel (SQL) reaches the world with reload_npcs
+	mustExec(t, f.db, `INSERT INTO npctemplate (name, template) VALUES ('guard dahvel', 'shadowknight')`)
+	if st, _ := f.world.NPCStateOf(500); st.Template != "" {
+		t.Fatalf("the control: the guard by %q before the reload", st.Template)
+	}
+	if code, out := c.op("reload_npcs", map[string]any{}); code != 200 || !strings.Contains(fmt.Sprint(out["message"]), "2 fight by a class template") {
+		t.Errorf("reload_npcs: %d %v", code, out)
+	}
+	if st, _ := f.world.NPCStateOf(500); st.Template != "shadowknight" || st.MaxHP != entity.NPCMaxHP(30)*120/100 || st.Class != 3 {
+		t.Errorf("the guard after the reload: %q, %d HP, class %d", st.Template, st.MaxHP, st.Class)
+	}
 }

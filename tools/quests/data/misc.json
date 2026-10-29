@@ -11,11 +11,34 @@
    "maxlevel": 60,
    "requires": [],
    "offer": "You think you are strong? We shall see. My beasts roam the Old Man's hill in the gloomy valley of Bandit Hills, east of Jared's Blight. Walk its eastern slope, and bring me two of their tails.",
-   "accept": "I bow to no one!",
+   "accept": "Test me.",
    "decline": "I am not strong enough.",
    "declined": "Then come back when you are.",
    "started": "Go, and do not come back without the tails.",
    "steps": [
+    {
+     "kind": "talk",
+     "target": "Goran the Strong",
+     "journal": "Answer Goran the Strong's questions.",
+     "says": "Good. Then go, and do not come back without the tails.",
+     "waiting": "Before you go: do you bow to anyone?",
+     "choose": "Do you bow to anyone?",
+     "choices": [
+      {
+       "answer": "I bow to no one!"
+      },
+      {
+       "answer": "I bow to the king.",
+       "says": "Then you are not ready. Come back when you are.",
+       "stay": true
+      },
+      {
+       "answer": "I bow to you, Goran.",
+       "says": "Flattery! The strong need none. Come back when you mean it.",
+       "stay": true
+      }
+     ]
+    },
     {
      "kind": "reach",
      "world": 0,
@@ -75,7 +98,7 @@
    "unresolved": [
     "Goran's Beast"
    ],
-   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Goran's five questions are the offer and its one answer here; the popup is a reach step on the hill's east slope (FrontiersForge's sighting of a beast)."
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Goran's five questions are one choice here (the guide's first answer; a wrong one: come back), the others his trials' accept lines; his port home after four failed tries is left out. The popup is a reach step on the hill's east slope (FrontiersForge's sighting of a beast)."
   },
   {
    "key": "Misc/stat-boost-quests/str2",
@@ -4640,7 +4663,7 @@
     "Minion of Vhi'zan",
     "Ghost of Madrias"
    ],
-   "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 60 ring (github.com/Jadiction/EQOA-Data, MIT). The tanks' ring, The Stoneheart, is given to warriors, paladins and shadowknights. Not on this server, left out of the rewards: The Nexus (casters), The Soulstone (healers) and The Wildheart (melees); the guide's 'little xp' has no figure. The whole quest's 240 Storyteller faction is given at its end. Laknar's '?' that gives the sulfursits is a reach step with a popup. Douglas Aren's questions (trick him into selling) are a payment here; he stands by Paineel's banker (the guide's tent by the main house). Madrias's summoning in Castle Felstar is a reach step; Vhi'zan Kaah comes with two of his five minions."
+   "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 60 ring (github.com/Jadiction/EQOA-Data, MIT). The tanks' ring, The Stoneheart, is given to warriors, paladins and shadowknights. Not on this server, left out of the rewards: The Nexus (casters), The Soulstone (healers) and The Wildheart (melees); the guide's 'little xp' has no figure. The whole quest's 240 Storyteller faction is given at its end. Laknar's '?' that gives the sulfursits is a reach step with a popup. Douglas Aren's questions (trick him into selling) are a payment here; he stands at EQOA-Data's map point. Madrias's summoning in Castle Felstar is a reach step; Vhi'zan Kaah comes with two of his five minions."
   },
   {
    "key": "Misc/heather-johns/p1",
@@ -9543,7 +9566,7 @@
     "Lord Tallivar",
     "Lord Vengal"
    ],
-   "notes": "From EQOA-Data Quests/Misc/harbingers-of-khalimet.json, # Harbingers of Khalimet, Part I (github.com/Jadiction/EQOA-Data, MIT). The scrolls' riddles (written backwards, the vowels shifted) are in the journal lines, decoded. The Assassins of Khal, who may attack at any time, are one spawned at Salin's. The guide's gem bag from Salin and its luck-stone reward (a 5-charge 'lucky stone': not on this server) are left out; the gems are kept, as the guide says. The harbingers' places are ours, from the zones the guide names. Part II (Khalimet's portal, the hounds, the waves and the Khal Viceroy) and Part IV (the Warrior, the city portals, the Desmosdus breeders of ZP, the Chiktar King) are not written."
+   "notes": "From EQOA-Data Quests/Misc/harbingers-of-khalimet.json, # Harbingers of Khalimet, Part I (github.com/Jadiction/EQOA-Data, MIT). The scrolls' riddles (written backwards, the vowels shifted) are in the journal lines, decoded. The Assassins of Khal, who may attack at any time, are one spawned at Salin's. The guide's gem bag, and the luck-stone reward (a five-charge lucky stone, which itempattern lacks), are left out; the gems are kept, as the guide says. The harbingers' places are ours, from the zones the guide names. Part II (Khalimet's portal, the hounds, the waves and the Khal Viceroy) and Part IV (the Warrior, the city portals, the Desmosdus breeders of ZP, the Chiktar King) are not written."
   },
   {
    "key": "Misc/harbingers-of-khalimet/p3",

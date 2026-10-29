@@ -479,8 +479,8 @@
    "place": [
     "at",
     0,
-    19096.0,
-    30513.0
+    19059.0,
+    30528.0
    ],
    "count": 1,
    "level": 52,
@@ -911,7 +911,8 @@
     "at",
     0,
     25300.0,
-    6650.0
+    6650.0,
+    "low"
    ],
    "count": 5,
    "level": 20,
@@ -1436,7 +1437,8 @@
     "at",
     0,
     8763.0,
-    12632.0
+    12632.0,
+    "low"
    ],
    "count": 1,
    "level": 57,
@@ -1487,14 +1489,14 @@
     0
    ],
    "place": [
-    "near",
-    "Banker Narishay",
-    40,
-    2
+    "at",
+    2,
+    6344.0,
+    8885.0
    ],
    "count": 1,
    "level": 50,
-   "note": "Paineel, left of the entrance to the main house, under a tent with a chest before him (here by the banker)",
+   "note": "Paineel, left of the entrance to the main house, under a tent with a chest before him (EQOA-Data's map point, by a fit of its Odus points)",
    "water": "land"
   },
   {
@@ -1651,7 +1653,7 @@
    "place": [
     "at",
     1,
-    8750.0,
+    8810.0,
     7900.0
    ],
    "count": 1,
@@ -1706,8 +1708,8 @@
    "place": [
     "at",
     1,
-    8250.0,
-    7850.0
+    8281.0,
+    7776.0
    ],
    "count": 1,
    "level": 25,
@@ -1870,13 +1872,14 @@
     "goblin"
    ],
    "place": [
-    "poi",
-    "tunaria",
-    "Snowfist Totemcarrier"
+    "at",
+    0,
+    15277.0,
+    4942.0
    ],
    "count": 1,
    "level": 16,
-   "note": "one of the first rooms of the blue-lit cave in Snowfist (C)",
+   "note": "one of the first rooms of the blue-lit cave in Snowfist (C) (here at its mouth: no floor inside on this server)",
    "water": "land"
   },
   {
@@ -1904,13 +1907,14 @@
     "gnoll"
    ],
    "place": [
-    "poi",
-    "tunaria",
-    "Gnoll totemkeeper"
+    "at",
+    0,
+    12836.0,
+    12571.0
    ],
    "count": 1,
    "level": 35,
-   "note": "Blackburrow, a dead end by a little tent with a fire, with a gnoll reaver",
+   "note": "Blackburrow, a dead end by a little tent with a fire, with a gnoll reaver (here outside its entrance)",
    "water": "land"
   },
   {
@@ -1923,7 +1927,8 @@
    "place": [
     "poi",
     "tunaria",
-    "Spider Totemkeeper"
+    "Spider Totemkeeper",
+    "low"
    ],
    "count": 1,
    "level": 45,
@@ -2920,7 +2925,7 @@
     "at",
     0,
     23500.0,
-    19500.0
+    19560.0
    ],
    "count": 3,
    "level": 60,

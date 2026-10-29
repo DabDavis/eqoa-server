@@ -5228,6 +5228,609 @@
     "Gobzen"
    ],
    "notes": "From EQOA-Data Quests/Misc/the-truearrow.json, # The Truearrow Quest, option 3 (work out a deal) (github.com/Jadiction/EQOA-Data, MIT). The guide's proximity popup with Pulanga's three options (pay 25,000 tunar, refuse and kill her, or work out a deal) is the deal here: the engine has no choice of outcomes (killing her, an attackable level 60, drops her blade Widowspite). Not on this server, left out of the rewards: the item \"Happy Love Bracers\" and +250 faction with Pulanga (no such faction)."
+  },
+  {
+   "key": "Misc/the-illusionist/p1",
+   "name": "The Illusionist",
+   "giver": "Investigator Ishal",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Townspeople go missing from Highpass, and no one knows why. Investigator Flint, at the first guard tower on the road south to Trail's End, has been looking into it. Find out what he knows.",
+   "accept": "I will find him.",
+   "decline": "Not now.",
+   "declined": "Then Highpass waits.",
+   "started": "Trail's End, south.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Investigator Flint",
+     "journal": "Find Investigator Flint at the first guard tower on the road south to Trail's End.",
+     "says": "A conspiracy, in Highpass itself! Here are my notes. Fetch me griffon's blood from the enchanters, and...",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Flint's Notes",
+         "count": 1
+        }
+       ]
+      }
+     ],
+     "answer": "For the good of Highpass."
+    },
+    {
+     "kind": "show",
+     "target": "Investigator Ishal",
+     "journal": "Tell Investigator Ishal of Flint's conspiracy and show him the notes.",
+     "items": [
+      {
+       "item": "Flint's Notes",
+       "count": 1
+      }
+     ],
+     "says": "Flint's notes, hm. And Utmoor's bodyguard went missing this morning. The rangers track him: help them."
+    },
+    {
+     "kind": "talk",
+     "target": "Ranger Mek",
+     "journal": "Find Ranger Mek in Mossmouth (SW), close to the mountains, out the Pickclaw gate.",
+     "says": "I tracked the goblins this far, but I cannot take them alone. They are a bow-shot north, between two trees."
+    },
+    {
+     "kind": "kill",
+     "target": "goblin warrior",
+     "journal": "Kill the two goblin warriors between the trees north of Ranger Mek.",
+     "count": 2,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "goblin warrior",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "goblin warrior",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "goblin shaman",
+     "journal": "Kill the goblin shaman, and stand near him as he falls.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "goblin shaman",
+       "hostile": true
+      },
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "On the shaman you find the bodyguard's ring, and a note in Flint's hand. Flint is behind it!"
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Investigator Ishal",
+     "journal": "Return to Investigator Ishal.",
+     "says": "Flint! Then arrest him. He will not come quietly."
+    },
+    {
+     "kind": "talk",
+     "target": "Investigator Flint",
+     "journal": "Arrest Investigator Flint at the guard tower.",
+     "says": "Clever. Too clever. See me as I am: Akista Sind!"
+    },
+    {
+     "kind": "kill",
+     "target": "Akista Sind",
+     "journal": "Kill Akista Sind, the illusionist.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Akista Sind",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Investigator Ishal",
+     "journal": "Return to Investigator Ishal.",
+     "says": "Akista Sind, wearing Flint's face all along. Highpass is in your debt.",
+     "rewards": {
+      "xp": 25000000
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "The Storyteller",
+     "journal": "Tell The Storyteller in Baga Village (NE), by the well, the tale.",
+     "says": "An illusionist unmasked! A fine tale.",
+     "rewards": {
+      "factions": [
+       [
+        "The Storyteller",
+        50
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Investigator Flint",
+    "Ranger Mek",
+    "Investigator Flint",
+    "Akista Sind",
+    "Akista Sind"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/the-illusionist.json, # The Illusionist Quest, path A i) (Ishal's side) (github.com/Jadiction/EQOA-Data, MIT). The guide's quest branches three ways (Ishal's side, Flint's side through Enchanter Kerina and the mature griffon, and 'when a reward is involved' through the courier and Flint's cave): the engine has no choice of outcomes, so this is Ishal's side, the one with the experience. The goblins' camp is two goblin warriors and a goblin shaman spawned beside the player; the popup at the shaman is a popup on his death. Not on this server, left out of the rewards: Ishal's ring and the illusionist's sashes (Sash of Arcane, Fire, Ice, Lightning, Poison, Disease)."
+  },
+  {
+   "key": "Misc/the-theatre/p1",
+   "name": "Act 1: Leonardo",
+   "giver": "Maxmillions",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A play! A love story, and you shall choose how it goes. Speak with Leonardo, then take the stage from stage right. Mind the soldiers: they are not acting.",
+   "accept": "On with the show!",
+   "decline": "Not now.",
+   "declined": "The show must wait, then.",
+   "started": "Speak with Leonardo.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Leonardo",
+     "journal": "Speak with Leonardo in the tents behind the Theatre.",
+     "says": "Our hero arrives! To the stage, from stage right."
+    },
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 9110,
+     "y": 150,
+     "z": 11440,
+     "radius": 40,
+     "journal": "Walk onto the Theatre's stage from stage right.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The curtain rises. Five soldiers and their General take the stage!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "soldier",
+     "journal": "Kill the five soldiers on the stage.",
+     "count": 5,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "soldier",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "soldier",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "General",
+     "journal": "Kill the General.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "General",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Leonardo",
+     "journal": "Speak with Leonardo, beside the stage.",
+     "says": "Bravo! Act One is done. Esmeralda has the next."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/the-theatre.json, # The Theatre Quest, Act 1 (github.com/Jadiction/EQOA-Data, MIT). One questor at a time in the guide: anyone here. The stage's popup is a reach step. The soldiers and General stand on the stage (two soldiers and the General are spawned too). The guide's 30-minute waits between acts are left out."
+  },
+  {
+   "key": "Misc/the-theatre/p2",
+   "name": "Act 2: Esmeralda",
+   "giver": "Esmeralda",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/the-theatre/p1"
+   ],
+   "offer": "All you have to do is go with the flow and do what you think is best for the play. Take the stage. The lovers' fear will rise; face it head on.",
+   "accept": "Go with the flow.",
+   "decline": "Not now.",
+   "declined": "The show must wait, then.",
+   "started": "To the stage.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 9110,
+     "y": 150,
+     "z": 11440,
+     "radius": 40,
+     "journal": "Take the stage again from stage right.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Never leave her side, through thick and thin. Face their fears head on. Lover's Fear rises!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Lover's Fear",
+     "journal": "Kill Lover's Fear.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Lover's Fear",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Esmeralda",
+     "journal": "Speak with Esmeralda.",
+     "says": "Beautifully played. Sabrina has the third act."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/the-theatre.json, # The Theatre Quest, Act 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's quest chat (its choices: never leave her side, the parents, face the fears) is the popup here. Not on this server, left out of the rewards: the item \"Esmerelda's Belt\"."
+  },
+  {
+   "key": "Misc/the-theatre/p3",
+   "name": "Act 3: Sabrina",
+   "giver": "Sabrina",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/the-theatre/p2"
+   ],
+   "offer": "A plague of slime has fouled our stage. Rid us of it, every drop. It grows as it dies, so be ready.",
+   "accept": "Every drop.",
+   "decline": "Not now.",
+   "declined": "The show must wait, then.",
+   "started": "To the stage.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 9110,
+     "y": 150,
+     "z": 11440,
+     "radius": 40,
+     "journal": "Take the stage from stage right.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Something oozes on the far side of the stage."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "clump of slime",
+     "journal": "Kill the clumps of slime.",
+     "count": 2,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "clump of slime",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "clump of slime",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "mound of slime",
+     "journal": "Kill the mound of slime.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "mound of slime",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Sabrina",
+     "journal": "Speak with Sabrina in the tents behind the Theatre.",
+     "says": "Clean at last! Macaellius has the last act."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/the-theatre.json, # The Theatre Quest, Act 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's slime grows drop, clump, clump, mound: the clumps and the mound here (no drop of slime on this server). Its kill-steal group rule is left out. Not on this server, left out of the rewards: Sabrina's Earrings of Healing and of Power."
+  },
+  {
+   "key": "Misc/the-theatre/p4",
+   "name": "Act 4: Macaellius",
+   "giver": "Macaellius",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/the-theatre/p3"
+   ],
+   "offer": "The last act. Acelia is on the stage with four beasts. Save her. When she thanks you, be humble: it is your pleasure, her safety is enough, you are her servant, you want no reward. And let the beasts come.",
+   "accept": "Let the beasts come.",
+   "decline": "Not now.",
+   "declined": "The show must wait, then.",
+   "started": "To the stage.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "beast",
+     "journal": "Kill the four beasts round Acelia on the stage.",
+     "count": 4,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "beast",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "beast",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Acelia",
+     "journal": "Speak with Acelia, and answer as Macaellius told you.",
+     "says": "Knowing you are safe is enough? Such a humble hero.",
+     "answer": "It is my pleasure my lady"
+    },
+    {
+     "kind": "talk",
+     "target": "Macaellius",
+     "journal": "Meet Macaellius at his tent.",
+     "says": "Perfect! Take my script, and see Leonardo.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Macaellius's Script",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Leonardo",
+     "journal": "Speak with Leonardo again.",
+     "says": "The play is done. Fuzzlemop, by the fire, will want that script."
+    },
+    {
+     "kind": "give",
+     "target": "Fuzzlemop",
+     "journal": "Trade Macaellius's script to Fuzzlemop, by the fire near Leonardo's tent.",
+     "items": [
+      {
+       "item": "Macaellius's Script",
+       "count": 1
+      }
+     ],
+     "says": "The script! A fair trade."
+    },
+    {
+     "kind": "talk",
+     "target": "The Storyteller",
+     "journal": "Tell The Storyteller in Baga Village (NE), by the well, the tale.",
+     "says": "A play, and you the star! A fine tale.",
+     "rewards": {
+      "factions": [
+       [
+        "The Storyteller",
+        50
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/the-theatre.json, # The Theatre Quest, Act 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's five answers to Acelia are her answer and Macaellius's offer here. Not on this server, left out of the rewards: the item \"Fuzzlemop's necklace\" (HoT 10, PoT 10, AR 25)."
+  },
+  {
+   "key": "Misc/dawn-maiden/p1",
+   "name": "The Dawn Maiden",
+   "giver": "Lieutenant Amin",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 46,
+   "requires": [],
+   "offer": "Nightmares walk in Morningveil and drive folk mad. The Dawn Maiden's pool by the lake shrine is behind it. Take this flask, hug the mountain wall south, and fill it at her pool. Beware: the nightmares hunt the weak.",
+   "accept": "I will fill it.",
+   "decline": "Not now.",
+   "declined": "Then sleep lightly.",
+   "started": "Hug the mountain wall.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 8970,
+     "y": 80,
+     "z": 5380,
+     "radius": 40,
+     "journal": "Hug the mountain wall south of Lieutenant Amin to the big rock.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A chill. Something follows you out of your own worst dreams!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "nightmare spirit",
+     "journal": "Kill the nightmare that comes for you.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "nightmare spirit",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Dawn Maiden",
+     "journal": "Kill the Dawn Maiden at her little pool by the lake shrine.",
+     "count": 1
+    },
+    {
+     "kind": "kill",
+     "target": "Servant",
+     "journal": "Kill the Dawn Maiden's servant.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Servant",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 8430,
+     "y": 81,
+     "z": 5166,
+     "radius": 12,
+     "journal": "Step into the Dawn Maiden's little pond.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You fill the flask from the pond."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Flask of Dawn Water",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Lieutenant Amin",
+     "journal": "Bring the filled flask to Lieutenant Amin.",
+     "items": [
+      {
+       "item": "Flask of Dawn Water",
+       "count": 1
+      }
+     ],
+     "says": "The nightmares will fade now. Well done.",
+     "rewards": {
+      "xp": 5000000
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "The Storyteller",
+     "journal": "Tell The Storyteller in Baga Village (NE), by the well, the tale.",
+     "says": "Nightmares made flesh! A fine tale.",
+     "rewards": {
+      "factions": [
+       [
+        "The Storyteller",
+        25
+       ]
+      ]
+     }
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "Empty Flask",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "repeatable": true,
+   "unresolved": [
+    "Servant",
+    "Servant"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/dawn-maiden.json, # Dawn Maiden Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's popups along the path and the nightmares that spawn are one popup and one nightmare spirit here; its random ports off the path are left out. The empty flask is kept (the filled one is given at the pool). The guide says the quest is repeatable, the Storyteller's faction once a telling."
   }
  ],
  "items": [
@@ -5764,6 +6367,30 @@
    "description": "An ivory and gold statue of an elven noblewoman.",
    "notrade": true,
    "like": "Orb of Parathior"
+  },
+  {
+   "name": "Flint's Notes",
+   "description": "Investigator Flint's notes on a conspiracy in Highpass.",
+   "notrade": true,
+   "like": "Tower Log Journal"
+  },
+  {
+   "name": "Macaellius's Script",
+   "description": "Macaellius's script for the play. Fuzzlemop wants it.",
+   "notrade": true,
+   "like": "Allister's Journal"
+  },
+  {
+   "name": "Empty Flask",
+   "description": "An empty flask from Lieutenant Amin, for the Dawn Maiden's pool.",
+   "notrade": true,
+   "like": "Clay Mixing Vial"
+  },
+  {
+   "name": "Flask of Dawn Water",
+   "description": "A flask filled at the Dawn Maiden's pool.",
+   "notrade": true,
+   "like": "Dwindel's Potion"
   }
  ]
 }

@@ -168,7 +168,7 @@ def route(samples):
             a = math.atan2(ups[i - 1]["v"][2], ups[i - 1]["v"][0])
             b = math.atan2(u["v"][2], u["v"][0])
             if abs((b - a + math.pi) % (2 * math.pi) - math.pi) > TURN:
-                core.append((u["x"], u["y"], u["z"], 0.0))
+                core.append((u["x"], u["y"], u["z"], None))  # a turn: no pause of its own
     wps = []  # [x, y, z, [pauses]]
 
     def waypoint(x, y, z, p):
@@ -183,9 +183,10 @@ def route(samples):
     seq = [waypoint(*m) for m in core]
     dedup = [s for i, s in enumerate(seq) if i == 0 or s != seq[i - 1]]
     mode, order, full = "pingpong", [], False
-    # the route is its stops' and turns' shortest repeat, seen once and more
-    for p in range(2, len(dedup) // 2 + 1):
-        if len(dedup) >= p + 2 and all(dedup[i] == dedup[i + p] for i in range(len(dedup) - p)):
+    # the route is its stops' and turns' shortest repeat: seen once whole and
+    # then again for three of its waypoints (both of a pacer's two)
+    for p in range(2, len(dedup)):
+        if len(dedup) - p >= min(3, p) and all(dedup[i] == dedup[i + p] for i in range(len(dedup) - p)):
             cycle, full = dedup[:p], True
             mode, order = "loop", cycle
             # back and forth when the cycle reads the same both ways round

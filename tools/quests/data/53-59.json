@@ -1,0 +1,5186 @@
+{
+ "city": "53-59",
+ "quests": [
+  {
+   "key": "53-59/53/p1",
+   "name": "The Dead Hills' Blight",
+   "giver": "Tomb Spirit",
+   "classes": [],
+   "races": [],
+   "minlevel": 53,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "You see me? Few do. The Dead Hills die, and I know not why. Go west to the lizardman ruins and climb their towers. What waits there will tell you more.",
+   "accept": "I will find out.",
+   "decline": "Not now.",
+   "declined": "Then the hills will keep dying.",
+   "started": "Mind the mummies and zombies about this tomb; they see you, whatever you wear.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 4333.3,
+     "y": 0,
+     "z": 7000.0,
+     "radius": 250,
+     "journal": "Search the three towers of the lizardman ruins in the Dead Hills (W).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "In one of the ruined towers a voice whispers: \"Nolius Adder knows. Find him, in a house in Hagley Village.\""
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Nolius Adder",
+     "journal": "Find Nolius Adder in a house in Hagley Village (NW).",
+     "says": "The Dead Hills? Go to the Ghastly Kin's cave in the West Feerrott (W). In the tomb there, wave your arms and shout. Something will answer."
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 6275,
+     "y": 0,
+     "z": 8750,
+     "radius": 60,
+     "journal": "Find the tomb in the Ghastly Kin's cave in the West Feerrott (W), in a side cave near the top.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You address the empty room and ask about the Dead Hills. The air grows cold: an Ancient Spirit takes shape to ambush you!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Ancient Spirit",
+     "count": 1,
+     "journal": "Defeat the Ancient Spirit in the Ghastly Kin's tomb."
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 5262,
+     "y": 0,
+     "z": 8940,
+     "radius": 80,
+     "journal": "Follow the road toward the north door of the castle of Envar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A lizardman's ghost had told you: Envar. Now, on the road to the north door, a cloud of ashen dust parts before you, and the origin of the Dead Hills' blight shows itself: the castle's north-west tower."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 5150,
+     "y": 0,
+     "z": 9150,
+     "radius": 45,
+     "journal": "Investigate the north-west tower of Envar (by the far stairway down from the middle of the complex).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Below the tower lies a dungeon. Tal Thir and his servant keep a throne room there. Kradesh Du'Klot in Freeport, in a bar house near the docks, knows who they serve."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Kradesh Du'Klot",
+     "journal": "Speak with Kradesh Du'Klot in a bar house near Freeport's docks.",
+     "says": "Tal Thir. I had a book on him until Rogue Ethrix stole it. He hides under the stairs of the Pilgrim's Inn, on the road from Freeport's north gate toward Highpass. Bring it, and 7000 tunar for my trouble."
+    },
+    {
+     "kind": "loot",
+     "target": "Rogue Ethrix",
+     "items": [
+      {
+       "item": "stolen book of Jal Raeth",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the stolen book from Rogue Ethrix, under the stairs of the Pilgrim's Inn."
+    },
+    {
+     "kind": "give",
+     "target": "Kradesh Du'Klot",
+     "items": [
+      {
+       "item": "stolen book of Jal Raeth",
+       "count": 1
+      }
+     ],
+     "tunar": 7000,
+     "journal": "Bring the book and 7000 tunar to Kradesh Du'Klot in Freeport.",
+     "says": "Good. Go back to the throne room under Envar's north-west tower and kill the Servant of Tal Thir. Leave Tal Thir himself alone.",
+     "notyet": "The book, and 7000 tunar."
+    },
+    {
+     "kind": "kill",
+     "target": "Servant of Tal Thir",
+     "count": 1,
+     "journal": "Defeat the Servant of Tal Thir in the throne room under Envar's north-west tower.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The Servant rises again, no longer hostile: \"Seek the other servants. The one under the south-east tower.\""
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 5375,
+     "y": 0,
+     "z": 9350,
+     "radius": 45,
+     "journal": "Go down to the bottom of Envar's south-east tower and approach High Priest Vorin's throne.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "At the throne a voice speaks of Explorer Graeven, who roams the desert outside Chardith's city in Takish'Hiz at dusk, near the Truearrow camp."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Explorer Graeven",
+     "journal": "Find Explorer Graeven in Takish'Hiz (NE, E), near the Truearrow camp at dusk.",
+     "says": "Envar's servants? I study them. Bring me the Legacy of Averyth: it drops off the creatures of Takish'Hiz, cinder cats among them."
+    },
+    {
+     "kind": "loot",
+     "target": "cinder cat",
+     "items": [
+      {
+       "item": "Legacy of Averyth",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.15,
+     "journal": "Take the Legacy of Averyth from the creatures of Takish'Hiz (the cinder cats drop it)."
+    },
+    {
+     "kind": "give",
+     "target": "Explorer Graeven",
+     "items": [
+      {
+       "item": "Legacy of Averyth",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Legacy of Averyth to Explorer Graeven, quickly.",
+     "says": "This is it. Vorin's servant guards the rest: kill the Servant of Vorin under the south-east tower."
+    },
+    {
+     "kind": "kill",
+     "target": "Servant of Vorin",
+     "count": 1,
+     "journal": "Defeat the Servant of Vorin under Envar's south-east tower.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The Servant of Vorin stands again, calm now: \"Search the libraries in the north-east and south-west towers for the Jal Raeth.\""
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Jal Raeth Librarian",
+     "items": [
+      {
+       "item": "Jal Raeth tome",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the Jal Raeth tome from the Jal Raeth Librarian in the first room on the left in Envar's south-west tower."
+    },
+    {
+     "kind": "give",
+     "target": "Kradesh Du'Klot",
+     "items": [
+      {
+       "item": "Jal Raeth tome",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Jal Raeth tome to Kradesh Du'Klot in Freeport.",
+     "says": "The Jal Raeth. Go back to the ruined lizardman towers in the Dead Hills (W). They are waiting for you."
+    },
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 4333.3,
+     "y": 0,
+     "z": 7000.0,
+     "radius": 250,
+     "journal": "Walk into the ruined lizardman towers in the Dead Hills (W).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Three Jal Raeth Librarians step out of the stones. They speak, and then they attack!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Jal Raeth Librarian",
+     "items": [
+      {
+       "item": "portal charge gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat the three Jal Raeth Librarians and take a portal charge gem.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Jal Raeth Librarian",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Jal Raeth Librarian",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Jal Raeth Librarian",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Jal Raeth Chancellor",
+     "count": 1,
+     "journal": "The gem takes you to the top of Envar's middle tower: defeat the Jal Raeth Chancellor.",
+     "events": [
+      {
+       "on": "start",
+       "do": "teleport",
+       "world": 1,
+       "x": 5271,
+       "y": 159.5,
+       "z": 9269
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Chancellor's Servant",
+     "journal": "Speak with the Chancellor's Servant at the lizardman ruins in the Dead Hills (W).",
+     "says": "The Chancellor has fallen and the blight lifts from the hills. Take this, and the hills' thanks.",
+     "rewards": {
+      "xp": 45000000,
+      "byclass": {
+       "0": {
+        "items": [
+         "etheric no-dachi"
+        ]
+       },
+       "1": {
+        "items": [
+         "etheric kama"
+        ]
+       },
+       "2": {
+        "items": [
+         "etheric no-dachi"
+        ]
+       },
+       "3": {
+        "items": [
+         "etheric no-dachi"
+        ]
+       },
+       "4": {
+        "items": [
+         "etheric kama"
+        ]
+       },
+       "5": {
+        "items": [
+         "etheric kama"
+        ]
+       },
+       "6": {
+        "items": [
+         "etheric kama"
+        ]
+       },
+       "7": {
+        "items": [
+         "etheric shield"
+        ]
+       },
+       "8": {
+        "items": [
+         "etheric shield"
+        ]
+       },
+       "9": {
+        "items": [
+         "etheric shield"
+        ]
+       },
+       "10": {
+        "items": [
+         "Etheric Tunic"
+        ]
+       },
+       "11": {
+        "items": [
+         "Etheric Tunic"
+        ]
+       },
+       "12": {
+        "items": [
+         "Etheric Tunic"
+        ]
+       },
+       "13": {
+        "items": [
+         "Etheric Tunic"
+        ]
+       },
+       "14": {
+        "items": [
+         "Etheric Tunic"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Tomb Spirit",
+    "Nolius Adder",
+    "Ancient Spirit",
+    "Servant of Tal Thir",
+    "Explorer Graeven",
+    "Servant of Vorin",
+    "Jal Raeth Librarian",
+    "Jal Raeth Chancellor",
+    "Chancellor's Servant"
+   ],
+   "notes": "From EQOA-Data Quests/53-59/53.json, Quest 1: Dead Hills 53 (github.com/Jadiction/EQOA-Data, MIT). The giver is the guide's blank con at the tomb's door (Dead Hills (E)); its name is ours. The Ghastly Kin tomb's choice is the pop-up's right answer (waving your arms despawned the lizardman); his words and the throne rooms' are pop-ups; the gem's group port is a teleport for the quester alone, onto the middle tower. Envar has no creatures on this server, so its named ones are seeded (Tal Thir, the servants, the librarians, the Chancellor) with a few Accursed Maggots and Zombies; the Explorer is always up (a rare at dusk in the live game). The alchemist's reward (the guide's \"Alc ?\") is the casters' tunic, a copy of a Wyrm Wing Tunic; the Dead Hills group port (Astral Displacement) for necromancers, druids and wizards is left out: this server has no such spell."
+  },
+  {
+   "key": "53-59/53/p2",
+   "name": "A Totem of Good Will",
+   "giver": "Prophet of Kumaj",
+   "classes": [],
+   "races": [],
+   "minlevel": 53,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The Kerra and the Arcadians need peace. Help me build a totem of good will: bring me a tusk of the Elder Elephant, the Ancient Deepmare's mane and the skin of the Ancient Swampfire Cobra.",
+   "accept": "I will help you build it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Elder Elephant",
+     "items": [
+      {
+       "item": "elder elephant tusk",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the Elder Elephant's tusk in Sylhilthis' Dwell (SE, C), near the kappa warrior tents."
+    },
+    {
+     "kind": "loot",
+     "target": "Ancient Deepmare",
+     "items": [
+      {
+       "item": "ancient deepmare mane",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the Ancient Deepmare's mane in the waters of Sylhilthis' Dwell (NE), north-east of the Kappa Citadel."
+    },
+    {
+     "kind": "loot",
+     "target": "Ancient Swampfire Cobra",
+     "items": [
+      {
+       "item": "ancient cobra skin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the Ancient Swampfire Cobra's skin in South Toxxulia (NE, N, NW)."
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "elder elephant tusk",
+       "count": 1
+      },
+      {
+       "item": "ancient deepmare mane",
+       "count": 1
+      },
+      {
+       "item": "ancient cobra skin",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the tusk, the mane and the skin to the Prophet of Kumaj on the rune hill in Kerra Isle (SE).",
+     "says": "The totem begins. Now go to Advisor Kellum in Arcadin, and tell him what we build."
+    },
+    {
+     "kind": "talk",
+     "target": "Advisor Kellum",
+     "journal": "Speak with Advisor Kellum in Arcadin.",
+     "says": "A totem of good will, from the Kerra? I will tell the Council. Go back to the Prophet."
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj in Kerra Isle (SE).",
+     "says": "Now the hard part: the kerran slaves. Speak with General Talya in Arcadin about them."
+    },
+    {
+     "kind": "talk",
+     "target": "General Talya",
+     "journal": "Speak with General Talya in Arcadin about the kerran slaves.",
+     "says": "Slaves? I will hear the Prophet out, if you bring me a gargoyle statue from the statue guardian in the gargoyle fortress: the back left corner of its first main room."
+    },
+    {
+     "kind": "loot",
+     "target": "statue guardian",
+     "items": [
+      {
+       "item": "gargoyle statue",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Take a gargoyle statue from the statue guardian in the first main room of the gargoyle fortress."
+    },
+    {
+     "kind": "give",
+     "target": "General Talya",
+     "items": [
+      {
+       "item": "gargoyle statue",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the gargoyle statue to General Talya in Arcadin.",
+     "says": "Well done. Tell the Prophet that Arcadin will listen."
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj in Kerra Isle (SE).",
+     "says": "The totem needs the beads of two kerran shamen: one in the valley of the ancient manticores in The Hunt, one roaming West Toxxulia near the river."
+    },
+    {
+     "kind": "loot",
+     "target": "Kerran Shaman",
+     "items": [
+      {
+       "item": "kerran shaman beads",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 1.0,
+     "journal": "Take the beads of two kerran shamen: in The Hunt (C, N), and in West Toxxulia (E, C, N) by the river."
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "kerran shaman beads",
+       "count": 2
+      }
+     ],
+     "journal": "Bring both strings of beads to the Prophet of Kumaj.",
+     "says": "Good. Buy a piece of yellow marble from Stonemason Aething in Arcadin: 7004 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Stonemason Aething",
+     "tunar": 7004,
+     "journal": "Buy a piece of yellow marble from Stonemason Aething in Arcadin (7004 tunar).",
+     "says": "Yellow marble, the finest. Here.",
+     "notyet": "7004 tunar, friend.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "piece of yellow marble",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "ty'rizeth soulcaller",
+     "items": [
+      {
+       "item": "soulcaller's skull",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the skull the Ty'Rizeth SoulCaller carries, deep in the Ty'Rizeth lair in South Barren Coast (C)."
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "piece of yellow marble",
+       "count": 1
+      },
+      {
+       "item": "soulcaller's skull",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the yellow marble and the SoulCaller's skull to the Prophet of Kumaj.",
+     "says": "The totem is done, and peace has a chance. Take this, from all the Kerra.",
+     "rewards": {
+      "xp": 45000000,
+      "byclass": {
+       "0": {
+        "items": [
+         "Gulam Warrior Bracers"
+        ]
+       },
+       "1": {
+        "items": [
+         "Gulam Scout Belt"
+        ]
+       },
+       "2": {
+        "items": [
+         "Gulam Warrior Bracers"
+        ]
+       },
+       "3": {
+        "items": [
+         "Gulam Warrior Bracers"
+        ]
+       },
+       "4": {
+        "items": [
+         "Gulam Scout Belt"
+        ]
+       },
+       "5": {
+        "items": [
+         "Gulam Scout Belt"
+        ]
+       },
+       "6": {
+        "items": [
+         "Gulam Scout Belt"
+        ]
+       },
+       "7": {
+        "items": [
+         "Ring of Ancestors"
+        ]
+       },
+       "8": {
+        "items": [
+         "Ring of Ancestors"
+        ]
+       },
+       "9": {
+        "items": [
+         "Ring of Ancestors"
+        ]
+       },
+       "10": {
+        "items": [
+         "amulet of ancestors"
+        ]
+       },
+       "11": {
+        "items": [
+         "amulet of ancestors"
+        ]
+       },
+       "12": {
+        "items": [
+         "amulet of ancestors"
+        ]
+       },
+       "13": {
+        "items": [
+         "amulet of ancestors"
+        ]
+       },
+       "14": {
+        "items": [
+         "Ring of Ancestors"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Advisor Kellum",
+    "Kerran Shaman"
+   ],
+   "notes": "From EQOA-Data Quests/53-59/53.json, Quest 2: 53 Kerra Isle (github.com/Jadiction/EQOA-Data, MIT). The guide's other path (Advisor Kellum and Slave Trader Dunbarr in Stone of Morthalis, by alignment) is left out: the engine has one path, Arcadin's. The three creatures' parts are named by us. The alchemist's ring (45 WIS, 80 POW, unnamed) is the healers' Ring of Ancestors; it, the Gulam bracers and belt are copies of existing items (their stats, not the guide's)."
+  },
+  {
+   "key": "53-59/53/p3",
+   "name": "The Scepter's Map",
+   "giver": "Minastikie",
+   "classes": [],
+   "races": [],
+   "minlevel": 53,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "I found a paper, part of a map to a powerful scepter, I think. I cannot read it. Professor Ceryk in Freeport, by the magicians' guild past the archway, can. Take it to him.",
+   "accept": "I will take it to him.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Professor Ceryk",
+     "journal": "Take Minastikie's paper to Professor Ceryk in Freeport, by the magicians' guild past the archway.",
+     "says": "I cannot read a thing: my glasses are broken. The sand from a sand wasp's carapace would mend them. They live in South Barren Coast (C, E, NE)."
+    },
+    {
+     "kind": "loot",
+     "target": "Sand Wasp",
+     "items": [
+      {
+       "item": "sandy carapace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take a sandy carapace from a sand wasp in South Barren Coast (C, E, NE)."
+    },
+    {
+     "kind": "give",
+     "target": "Professor Ceryk",
+     "items": [
+      {
+       "item": "sandy carapace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the sandy carapace to Professor Ceryk in Freeport.",
+     "says": "Ah, I can see again. It is a map, and Minastikie is right. Tell her."
+    },
+    {
+     "kind": "talk",
+     "target": "Minastikie",
+     "journal": "Return to Minastikie in Lavastorm Mountains (SE).",
+     "says": "There have been sabotages lately, strange ones. Ask Exploring Aid Mixxa, by the bridge at the entrance of Klick'Anon."
+    },
+    {
+     "kind": "talk",
+     "target": "Exploring Aid Mixxa",
+     "journal": "Speak with Exploring Aid Mixxa by the bridge at Klick'Anon's entrance.",
+     "says": "The sabotage? An ancient eel off the coast of the Rogue Clockworks (SE) carries what we lost. Kill it: east of the clockworks village, past the small island."
+    },
+    {
+     "kind": "loot",
+     "target": "ancient eel",
+     "items": [
+      {
+       "item": "ancient eel scale",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take a scale from the Ancient Eel in the sea east of the Rogue Clockworks (SE)."
+    },
+    {
+     "kind": "give",
+     "target": "Exploring Aid Mixxa",
+     "items": [
+      {
+       "item": "ancient eel scale",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ancient eel's scale to Exploring Aid Mixxa.",
+     "says": "That is it. Tell Minastikie the sabotage is over."
+    },
+    {
+     "kind": "talk",
+     "target": "Minastikie",
+     "journal": "Return to Minastikie in Lavastorm Mountains.",
+     "says": "Good. The professor will want to go on with the map."
+    },
+    {
+     "kind": "talk",
+     "target": "Professor Ceryk",
+     "journal": "Return to Professor Ceryk in Freeport.",
+     "says": "A section is too faded. I need cleaning solution, from Merchant Dwindel by the well in north-western Hagley (7100 tunar), and a swampfire cobra's venom sack, from South Toxxulia (N, NW)."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Dwindel",
+     "tunar": 7100,
+     "journal": "Buy cleaning solution from Merchant Dwindel in Hagley (NW), near the well (7100 tunar).",
+     "says": "Cleaning solution, for the professor? Here.",
+     "notyet": "That will be 7100 tunar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "cleaning solution",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "swampfire cobra",
+     "items": [
+      {
+       "item": "swampfire venom sack",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.4,
+     "journal": "Take a venom sack from the swampfire cobras of South Toxxulia (N, NW)."
+    },
+    {
+     "kind": "give",
+     "target": "Professor Ceryk",
+     "items": [
+      {
+       "item": "cleaning solution",
+       "count": 1
+      },
+      {
+       "item": "swampfire venom sack",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the cleaning solution and the venom sack to Professor Ceryk.",
+     "says": "Another piece is in Yavreh's Sanctuary, the underground temple in South Barren Coast (C). A Ty'Rizeth scout carries it."
+    },
+    {
+     "kind": "loot",
+     "target": "ty'rizeth scout",
+     "items": [
+      {
+       "item": "scout's map piece",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the map piece from the Ty'Rizeth scout in Yavreh's Sanctuary, South Barren Coast (C).",
+     "events": [
+      {
+       "on": "start",
+       "do": "popup",
+       "text": "You come to the entrance of Yavreh's Sanctuary. The Ty'Rizeth inside cast fire."
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Professor Ceryk",
+     "items": [
+      {
+       "item": "scout's map piece",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the scout's map piece to Professor Ceryk.",
+     "says": "Two pieces are left: a Ty'Rizeth scavenger holds one, north-west of the scout's room, and the Ancient Drudge of Geomancer's Citadel (C) the other."
+    },
+    {
+     "kind": "loot",
+     "target": "ty'rizeth scavenger",
+     "items": [
+      {
+       "item": "scavenger's map piece",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the map piece from the Ty'Rizeth scavenger, north-west of the scout's room in Yavreh's Sanctuary."
+    },
+    {
+     "kind": "loot",
+     "target": "Ancient Drudge",
+     "items": [
+      {
+       "item": "drudge's map piece",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the map piece from the Ancient Drudge in Geomancer's Citadel (C)."
+    },
+    {
+     "kind": "give",
+     "target": "Professor Ceryk",
+     "items": [
+      {
+       "item": "scavenger's map piece",
+       "count": 1
+      },
+      {
+       "item": "drudge's map piece",
+       "count": 1
+      }
+     ],
+     "journal": "Bring both map pieces to Professor Ceryk.",
+     "says": "The map is whole. Take it, and this note, to Minastikie.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Professor Ceryk's note",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Minastikie",
+     "items": [
+      {
+       "item": "Professor Ceryk's note",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the map and Professor Ceryk's note to Minastikie.",
+     "says": "The scepter is real, then. You have earned this.",
+     "rewards": {
+      "xp": 45000000,
+      "byclass": {
+       "0": {
+        "items": [
+         "magmanite shield"
+        ]
+       },
+       "1": {
+        "items": [
+         "magmanite earring"
+        ]
+       },
+       "2": {
+        "items": [
+         "magmanite shield"
+        ]
+       },
+       "3": {
+        "items": [
+         "magmanite shield"
+        ]
+       },
+       "4": {
+        "items": [
+         "magmanite earring"
+        ]
+       },
+       "5": {
+        "items": [
+         "magmanite earring"
+        ]
+       },
+       "6": {
+        "items": [
+         "magmanite earring"
+        ]
+       },
+       "7": {
+        "items": [
+         "magmanite necklace"
+        ]
+       },
+       "8": {
+        "items": [
+         "magmanite necklace"
+        ]
+       },
+       "9": {
+        "items": [
+         "magmanite necklace"
+        ]
+       },
+       "10": {
+        "items": [
+         "magmanite bracelet"
+        ]
+       },
+       "11": {
+        "items": [
+         "magmanite bracelet"
+        ]
+       },
+       "12": {
+        "items": [
+         "magmanite bracelet"
+        ]
+       },
+       "13": {
+        "items": [
+         "magmanite bracelet"
+        ]
+       },
+       "14": {
+        "items": [
+         "magmanite belt"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Sand Wasp",
+    "swampfire cobra"
+   ],
+   "notes": "From EQOA-Data Quests/53-59/53.json, Quest 3: Lavastorm 53 (github.com/Jadiction/EQOA-Data, MIT). The guide's Minastickie and Professer Cyrk are the game's Minastikie and Professor Ceryk; the merchant by Hagley's well is Merchant Dwindel (the map puts both there). The long spawns and placeholders are left out (the named ones stand). The magmanite bracelet and belt are copies of existing items (their stats, not the guide's). Lavastorm (Minastikie's) is reached by Waysender Brindel's trip, which this server gives from level 55 (waysender.go), so the quest starts at 55 in practice."
+  },
+  {
+   "key": "53-59/55/p1",
+   "name": "Arios the Battered",
+   "giver": "Arios the Battered",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "I was a general once, and I was betrayed. Prove you are worth my story. Grundle lurks in Geomancer's Citadel, through the tunnel under the river from the Cyclops Fortress. Kill him.",
+   "accept": "I will kill Grundle.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Grundle",
+     "count": 1,
+     "journal": "Defeat Grundle in Geomancer's Citadel (through the tunnel under the river from the Cyclops Fortress)."
+    },
+    {
+     "kind": "talk",
+     "target": "Arios the Battered",
+     "journal": "Return to Arios the Battered by the bridge south of Forkwatch.",
+     "says": "You will do. Go to Box Canyons (NE) and find Pasha's chamber. Go unseen."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 21615,
+     "y": 7.1,
+     "z": 20631,
+     "radius": 35,
+     "journal": "Find Pasha's chamber in Box Canyons (NE).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Skahyir is right behind you!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Skahyir",
+     "count": 1,
+     "journal": "Defeat Skahyir.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Skahyir",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Arios the Battered",
+     "journal": "Return to Arios the Battered by the bridge south of Forkwatch.",
+     "says": "Now draw out Bloodletter. Kill Ealin the Mad by Lord Chardith's lair, Rip Claw among the ancient manticores of The Hunt, and Crocosaurus on the island in Lake Noregard."
+    },
+    {
+     "kind": "kill",
+     "target": "Ealin the Mad",
+     "count": 1,
+     "journal": "Defeat Ealin the Mad near the entrance of Lord Chardith's lair in Takish'Hiz."
+    },
+    {
+     "kind": "kill",
+     "target": "Rip Claw",
+     "count": 1,
+     "journal": "Defeat Rip Claw in the hills of the ancient manticores in The Hunt."
+    },
+    {
+     "kind": "kill",
+     "target": "Crocosaurus",
+     "count": 1,
+     "journal": "Defeat Crocosaurus on the island in the middle of Lake Noregard, in the crocodile head rocks."
+    },
+    {
+     "kind": "talk",
+     "target": "Arios the Battered",
+     "journal": "Return to Arios the Battered.",
+     "says": "Bloodletter will come now. On the Isle of Dread, go left: a Graumaud ritualist stands at an altar. Speak with him."
+    },
+    {
+     "kind": "talk",
+     "target": "Graumaud Ritualist",
+     "journal": "Speak with the Graumaud ritualist at the altar on the Isle of Dread (go left).",
+     "says": "You want Bloodletter? Then have him!"
+    },
+    {
+     "kind": "loot",
+     "target": "Bloodletter",
+     "items": [
+      {
+       "item": "Bloodletter's sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat Bloodletter and take his sword. Keep it.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Bloodletter",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Arios the Battered",
+     "journal": "Return to Arios the Battered with Bloodletter's sword.",
+     "says": "Two more: Quintashi's Handmaiden in the deep ravines of the Abysmal Sea, and the Giant Skeleton that roams the Elephant Graveyard."
+    },
+    {
+     "kind": "kill",
+     "target": "Quintashi's Handmaiden",
+     "count": 1,
+     "journal": "Defeat Quintashi's Handmaiden in the deep ravines of the Abysmal Sea."
+    },
+    {
+     "kind": "kill",
+     "target": "Giant Skeleton",
+     "count": 1,
+     "journal": "Defeat the Giant Skeleton roaming the Elephant Graveyard."
+    },
+    {
+     "kind": "talk",
+     "target": "Arios the Battered",
+     "journal": "Return to Arios the Battered.",
+     "says": "Take the sword to Grimm Brellhand to be mended. It will cost you 15,000 tunar. Keep it afterward."
+    },
+    {
+     "kind": "give",
+     "target": "Grimm Brellhand",
+     "items": [
+      {
+       "item": "Bloodletter's sword",
+       "count": 1
+      }
+     ],
+     "tunar": 15000,
+     "journal": "Bring Bloodletter's sword and 15,000 tunar to Grimm Brellhand.",
+     "says": "A fine old blade. There, mended. Keep it close.",
+     "notyet": "The sword, and 15,000 tunar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Arios's war sword",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Arios the Battered",
+     "items": [
+      {
+       "item": "Arios's war sword",
+       "count": 1
+      }
+     ],
+     "journal": "Show the mended sword to Arios the Battered.",
+     "says": "Good. Keep that blade: you will need it against Sarek's anvil one day. Take this for now.",
+     "rewards": {
+      "xp": 56000000,
+      "byclass": {
+       "0": {
+        "items": [
+         "war torn gauntlets"
+        ]
+       },
+       "1": {
+        "items": [
+         "war torn scale boots"
+        ]
+       },
+       "2": {
+        "items": [
+         "war torn gauntlets"
+        ]
+       },
+       "3": {
+        "items": [
+         "war torn gauntlets"
+        ]
+       },
+       "4": {
+        "items": [
+         "war torn leathers"
+        ]
+       },
+       "5": {
+        "items": [
+         "war torn scale boots"
+        ]
+       },
+       "6": {
+        "items": [
+         "war torn scale boots"
+        ]
+       },
+       "7": {
+        "items": [
+         "war torn leathers"
+        ]
+       },
+       "8": {
+        "items": [
+         "war torn scale boots"
+        ]
+       },
+       "9": {
+        "items": [
+         "war torn gauntlets"
+        ]
+       },
+       "10": {
+        "items": [
+         "war torn girdle"
+        ]
+       },
+       "11": {
+        "items": [
+         "war torn girdle"
+        ]
+       },
+       "12": {
+        "items": [
+         "war torn girdle"
+        ]
+       },
+       "13": {
+        "items": [
+         "war torn girdle"
+        ]
+       },
+       "14": {
+        "items": [
+         "war torn leathers"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Arios the Battered",
+    "Rip Claw",
+    "Crocosaurus",
+    "Graumaud Ritualist",
+    "Giant Skeleton"
+   ],
+   "notes": "From EQOA-Data Quests/53-59/55.json, Quest 1: 55 Arios the Battered (github.com/Jadiction/EQOA-Data, MIT). The flag (being near Grundle as he dies) is a kill step, and Arios offers it where he stands by Forkwatch's bridge (the guide's first meeting is his spawn on the road from Darvar Manor). Skahyir and Bloodletter come for the player (the quest's Bloodletter, a copy of the server's). Crocosaurus stands (the guide spawns him off the Tae Ew hierophants); the guide's Garmaund ritualist is the game's Graumaud Ritualist."
+  },
+  {
+   "key": "53-59/55/p2",
+   "name": "The Shrine of Kejan",
+   "giver": "Prophet of Kumaj",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "53-59/53/p2"
+   ],
+   "offer": "Carry this totem, the Totem of Kejan, to the shrine on the coast of the Abysmal Sea (S), between the two fishing villages: a ring of monoliths among dryads. Keep it with you, not in a bank.",
+   "accept": "I will carry it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 5000.0,
+     "y": 0,
+     "z": 9666.7,
+     "radius": 250,
+     "journal": "Carry the Totem of Kejan to the shrine of monoliths on the coast of the Abysmal Sea (S).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The shrine speaks: a renegade merman has been killing Kerran fishermen. He swims west of here, near one of the fishing ports. Bring proof."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "renegade merman",
+     "items": [
+      {
+       "item": "renegade merman's fin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take a fin from the renegade merman, west of the shrine near a Kerran fishing port."
+    },
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 5000.0,
+     "y": 0,
+     "z": 9666.7,
+     "radius": 250,
+     "journal": "Return to the shrine on the coast of the Abysmal Sea (S).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The shrine is pleased. Now: the Clan Kolbok Battlemaster, in the first large room on the right inside the kobold cave of The Warrens (W)."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Clan Kolbok Battlemaster",
+     "items": [
+      {
+       "item": "Battlemaster's insignia",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the insignia of the Clan Kolbok Battlemaster in the kobold cave of The Warrens (W)."
+    },
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 5000.0,
+     "y": 0,
+     "z": 9666.7,
+     "radius": 250,
+     "journal": "Return to the shrine.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The shrine asks for three kappa defiler staves, for the Prophet. The defiler spawns in the basement of the Kappa Citadel in Sylhilthis' Dwell."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "kappa defiler",
+     "items": [
+      {
+       "item": "kappa defiler staff",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 1.0,
+     "journal": "Take three kappa defiler staves in the basement of the Kappa Citadel (the ramp down in the first room on the right)."
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "kappa defiler staff",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three kappa defiler staves to the Prophet of Kumaj.",
+     "says": "Thank you. Go back to the shrine; it has more to ask."
+    },
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 5000.0,
+     "y": 0,
+     "z": 9666.7,
+     "radius": 250,
+     "journal": "Return to the shrine.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The shrine asks for the remains of three Kerran shamen, which pirate graverobbers took to the small isles around the ratmen's fortress in Cape Dreg."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Pirate Graverobber",
+     "items": [
+      {
+       "item": "remains of a kerran shaman",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three sets of kerran shaman remains from the pirate graverobbers on the isles of Cape Dreg."
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "remains of a kerran shaman",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three sets of remains to the Prophet of Kumaj.",
+     "says": "They can rest now. Othmet, the necromancer of South Toxxulia, did this. Bring me what he carries."
+    },
+    {
+     "kind": "loot",
+     "target": "Othmet",
+     "items": [
+      {
+       "item": "Othmet's skull",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Othmet's skull in South Toxxulia (W, S, NE)."
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "Othmet's skull",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Othmet's skull to the Prophet of Kumaj.",
+     "says": "Now the staff of the Minion of Krrgar: left in the kobold cave of The Warrens, then right, in an alcove."
+    },
+    {
+     "kind": "loot",
+     "target": "Minion of Krrgar",
+     "items": [
+      {
+       "item": "Krrgar's staff",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the staff of the Minion of Krrgar in the kobold cave of The Warrens."
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "Krrgar's staff",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Krrgar's staff to the Prophet of Kumaj.",
+     "says": "Last: speak with General Talya again. Arcadin must give something too."
+    },
+    {
+     "kind": "talk",
+     "target": "General Talya",
+     "journal": "Speak with General Talya in Arcadin.",
+     "says": "A statue for the Kerra, then. An Erudite courier near the bridge in Qeynos Prison (S) sells one. Bring 10,770 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Erudite Courier",
+     "tunar": 10770,
+     "journal": "Buy the statue from the Erudite courier near the bridge in Qeynos Prison (S) (10,770 tunar).",
+     "says": "For General Talya? Here it is.",
+     "notyet": "10,770 tunar, no less.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "erudite statue",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "erudite statue",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the statue to the Prophet of Kumaj.",
+     "says": "It is done. The Kerra will remember you.",
+     "rewards": {
+      "xp": 56000000,
+      "byclass": {
+       "0": {
+        "items": [
+         "Helm of Spiritual Might"
+        ]
+       },
+       "1": {
+        "items": [
+         "ring of spiritual prowess"
+        ]
+       },
+       "2": {
+        "items": [
+         "Helm of Spiritual Might"
+        ]
+       },
+       "3": {
+        "items": [
+         "Helm of Spiritual Might"
+        ]
+       },
+       "4": {
+        "items": [
+         "ring of spiritual prowess"
+        ]
+       },
+       "5": {
+        "items": [
+         "ring of spiritual prowess"
+        ]
+       },
+       "6": {
+        "items": [
+         "ring of spiritual prowess"
+        ]
+       },
+       "7": {
+        "items": [
+         "Shield of Spiritual Wisdom"
+        ]
+       },
+       "8": {
+        "items": [
+         "Shield of Spiritual Wisdom"
+        ]
+       },
+       "9": {
+        "items": [
+         "Shield of Spiritual Wisdom"
+        ]
+       },
+       "10": {
+        "items": [
+         "cap of spiritual insight"
+        ]
+       },
+       "11": {
+        "items": [
+         "cap of spiritual insight"
+        ]
+       },
+       "12": {
+        "items": [
+         "cap of spiritual insight"
+        ]
+       },
+       "13": {
+        "items": [
+         "cap of spiritual insight"
+        ]
+       },
+       "14": {
+        "items": [
+         "cap of spiritual insight"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "Totem of Kejan",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Clan Kolbok Battlemaster",
+    "Pirate Graverobber",
+    "Erudite Courier"
+   ],
+   "notes": "From EQOA-Data Quests/53-59/55.json, Quest 2: 55 Kerra Isle (github.com/Jadiction/EQOA-Data, MIT). Each of the shrine's pop-ups is a return to it; the guide's Clan Kobold Battlemaster is named as this server's kobolds are (Clan Kolbok). The placeholders and long spawns are left out; the courier's statue is a purchase (a give of tunar). The guide's other path (Slave Trader Dunbarr in Stone of Morthalis) is left out. The Helm of Spiritual Might is a copy of an existing helm (its stats, not the guide's)."
+  },
+  {
+   "key": "53-59/55/p3",
+   "name": "The Professor's Field Work",
+   "giver": "Minastikie",
+   "classes": [],
+   "races": [],
+   "minlevel": 55,
+   "maxlevel": 60,
+   "requires": [
+    "53-59/53/p3"
+   ],
+   "offer": "Professor Ceryk has moved to Mila's Reef, in the north of it. He has found more of the map and wants a helper. Go to him.",
+   "accept": "I will go to him.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Professor Ceryk",
+     "journal": "Speak with Professor Ceryk in Mila's Reef (N).",
+     "says": "Chief Terican, in The Hunt (NW), knows the old roads. Go to him first."
+    },
+    {
+     "kind": "talk",
+     "target": "Chief Terican",
+     "journal": "Speak with Chief Terican on the shore in The Hunt (NW).",
+     "says": "The professor's helper? Bring me the horn of the Monstrous Rhino, in The Hunt (C), and I will talk."
+    },
+    {
+     "kind": "loot",
+     "target": "Monstrous Rhino",
+     "items": [
+      {
+       "item": "monstrous rhino horn",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the horn of the Monstrous Rhino in The Hunt (C)."
+    },
+    {
+     "kind": "give",
+     "target": "Chief Terican",
+     "items": [
+      {
+       "item": "monstrous rhino horn",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Monstrous Rhino's horn to Chief Terican.",
+     "says": "A fine horn. Tell the professor the roads lead to Quintashi's lair."
+    },
+    {
+     "kind": "talk",
+     "target": "Professor Ceryk",
+     "journal": "Return to Professor Ceryk in Mila's Reef.",
+     "says": "Quintashi's lair, in the Abysmal Sea (NW): its underwater cavern opens in the Abysmal Sea (W). Find what the Dark Ritualists hide there. Bring a way to breathe water."
+    },
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 4333.3,
+     "y": 0,
+     "z": 9000.0,
+     "radius": 250,
+     "journal": "Find the underwater tunnel at the back of Quintashi's lair, in the Abysmal Sea (W).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Along the floor, near a large seashell, you realize you are being ambushed: Dark Ritualist scouts!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Dark Ritualist Scout",
+     "items": [
+      {
+       "item": "ritualist's orders",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat the Dark Ritualist scout that cons yellow and take its orders."
+    },
+    {
+     "kind": "give",
+     "target": "Professor Ceryk",
+     "items": [
+      {
+       "item": "ritualist's orders",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ritualist's orders to Professor Ceryk in Mila's Reef.",
+     "says": "The Dark Ritualists want the scepter too. Warn Exploring Aid Mixxa in Klick'Anon."
+    },
+    {
+     "kind": "talk",
+     "target": "Exploring Aid Mixxa",
+     "journal": "Speak with Exploring Aid Mixxa in Klick'Anon.",
+     "says": "Ritualists? Then Minastikie must be told at once."
+    },
+    {
+     "kind": "talk",
+     "target": "Minastikie",
+     "journal": "Return to Minastikie in Lavastorm Mountains (SE).",
+     "says": "The fire goblins work for them. Kill their general: a pop-up in the citadel of Lavastorm (N) will draw him out."
+    },
+    {
+     "kind": "reach",
+     "world": 3,
+     "x": 6380,
+     "y": 82,
+     "z": 4364,
+     "radius": 80,
+     "journal": "Find the goblins' citadel in Lavastorm Mountains (N).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Horns blow in the citadel. The Fire Goblin General comes out to meet you!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Fire Goblin General",
+     "items": [
+      {
+       "item": "fire goblin general's plans",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat the Fire Goblin General and take his plans."
+    },
+    {
+     "kind": "give",
+     "target": "Minastikie",
+     "items": [
+      {
+       "item": "fire goblin general's plans",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the general's plans to Minastikie.",
+     "says": "The professor left things all over Lavastorm and Solusek's Eye: a compass, a blanket, rations and a gyropick. Find them for me."
+    },
+    {
+     "kind": "reach",
+     "world": 3,
+     "x": 7666.7,
+     "y": 0,
+     "z": 5516.7,
+     "radius": 250,
+     "journal": "Search Lavastorm Mountains (S, SE) for the professor's compass.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You find an old compass."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "old compass",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 3,
+     "x": 7000.0,
+     "y": 0,
+     "z": 4333.3,
+     "radius": 250,
+     "journal": "Search Lavastorm Mountains (N) for the professor's blanket.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You find a tattered blanket."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "tattered blanket",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 3,
+     "x": 6333.3,
+     "y": 0,
+     "z": 5666.7,
+     "radius": 250,
+     "journal": "Search Lavastorm Mountains (SW), toward Solusek's Eye, for the professor's rations.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You find a pack of old rations."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "old rations",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 3,
+     "x": 5000.0,
+     "y": 0,
+     "z": 4333.3,
+     "radius": 250,
+     "journal": "Search Solusek's Eye (N) for the professor's gyropick.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You find a gnomish gyropick."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "gyropick",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Minastikie",
+     "items": [
+      {
+       "item": "old compass",
+       "count": 1
+      },
+      {
+       "item": "tattered blanket",
+       "count": 1
+      },
+      {
+       "item": "old rations",
+       "count": 1
+      },
+      {
+       "item": "gyropick",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the compass, the blanket, the rations and the gyropick to Minastikie.",
+     "says": "All of it. Take them back to the professor."
+    },
+    {
+     "kind": "talk",
+     "target": "Professor Ceryk",
+     "journal": "Return to Professor Ceryk in Mila's Reef.",
+     "says": "I... have been poisoned. And my map is gone. Merchant Dwindel in Hagley may have a cure."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Dwindel",
+     "tunar": 12000,
+     "journal": "Ask Merchant Dwindel in Hagley for a cure (12,000 tunar).",
+     "says": "A cure, yes. I need a paradise basilisk's eye, from Sylhilthis' Dwell (C, W, NW), and three scales of an Abrosian snapper, on the coast of The Warrens (S, C).",
+     "notyet": "12,000 tunar first."
+    },
+    {
+     "kind": "loot",
+     "target": "Paradise Basilisk",
+     "items": [
+      {
+       "item": "paradise basilisk eye",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take a paradise basilisk's eye in Sylhilthis' Dwell (C, W, NW)."
+    },
+    {
+     "kind": "loot",
+     "target": "Abrosian Snapper",
+     "items": [
+      {
+       "item": "abrosian snapper scale",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Take three Abrosian snapper scales on the coast of The Warrens (S, C)."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Dwindel",
+     "items": [
+      {
+       "item": "paradise basilisk eye",
+       "count": 1
+      },
+      {
+       "item": "abrosian snapper scale",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the basilisk's eye and the three scales to Merchant Dwindel in Hagley.",
+     "says": "Here is the cure. Hurry.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Dwindel's cure",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Professor Ceryk",
+     "items": [
+      {
+       "item": "Dwindel's cure",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Dwindel's cure to Professor Ceryk in Mila's Reef.",
+     "says": "Better. Much better. You have saved an old explorer's life; take this.",
+     "rewards": {
+      "xp": 56700000,
+      "byclass": {
+       "0": {
+        "items": [
+         "ring of exploration"
+        ]
+       },
+       "1": {
+        "items": [
+         "talisman of exploration"
+        ]
+       },
+       "2": {
+        "items": [
+         "ring of exploration"
+        ]
+       },
+       "3": {
+        "items": [
+         "ring of exploration"
+        ]
+       },
+       "4": {
+        "items": [
+         "talisman of exploration"
+        ]
+       },
+       "5": {
+        "items": [
+         "talisman of exploration"
+        ]
+       },
+       "6": {
+        "items": [
+         "talisman of exploration"
+        ]
+       },
+       "7": {
+        "items": [
+         "exploratory hammer"
+        ]
+       },
+       "8": {
+        "items": [
+         "exploratory hammer"
+        ]
+       },
+       "9": {
+        "items": [
+         "exploratory hammer"
+        ]
+       },
+       "10": {
+        "items": [
+         "exploratory staff"
+        ]
+       },
+       "11": {
+        "items": [
+         "exploratory staff"
+        ]
+       },
+       "12": {
+        "items": [
+         "exploratory staff"
+        ]
+       },
+       "13": {
+        "items": [
+         "exploratory staff"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Chief Terican",
+    "Monstrous Rhino",
+    "Dark Ritualist Scout",
+    "Fire Goblin General",
+    "Paradise Basilisk",
+    "Abrosian Snapper"
+   ],
+   "notes": "From EQOA-Data Quests/53-59/55.json, Quest 3: Lavastorm 55 (github.com/Jadiction/EQOA-Data, MIT). Quintashi's teleporting question is left out: the ambush is at the lair. The Fire Goblin General and the Dark Ritualist scout stand where they are seeded (the guide's pop-ups spawn them). The four finds are the guide's places on CLIENT's zone grid. The guide names no alchemist's reward: an alchemist gets the experience alone."
+  },
+  {
+   "key": "53-59/57/p1",
+   "name": "The Chamberlain's Errands",
+   "giver": "Arios the Battered",
+   "classes": [],
+   "races": [],
+   "minlevel": 57,
+   "maxlevel": 60,
+   "requires": [
+    "53-59/55/p1"
+   ],
+   "offer": "There is more to my story, and more to do. Go to the Chamberlain on the east side of the bridge south of the kappa fortress, in Sylhilthis' Dwell (NW). He has use for you.",
+   "accept": "I will go to him.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Chamberlain",
+     "journal": "Speak with the Chamberlain on the bridge south of the kappa fortress in Sylhilthis' Dwell (NW).",
+     "says": "Arios sent you? Blacksmith Kratak, an escaped kappa, wanders south of the phantoms in the West Plateau. Bring me his hammer."
+    },
+    {
+     "kind": "loot",
+     "target": "Blacksmith Kratak",
+     "items": [
+      {
+       "item": "kappa blacksmith's hammer",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Blacksmith Kratak's hammer, south of the phantoms in the West Plateau."
+    },
+    {
+     "kind": "give",
+     "target": "Chamberlain",
+     "items": [
+      {
+       "item": "kappa blacksmith's hammer",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Kratak's hammer to the Chamberlain.",
+     "says": "Good. Now Shrixiv, by the mud river in South Toxxulia (N), has questions only you can answer."
+    },
+    {
+     "kind": "talk",
+     "target": "Shrixiv",
+     "journal": "Speak with Shrixiv by the mud river in South Toxxulia (N).",
+     "says": "Magnar the Skald, in Permafrost, on the frost giants' floor. Bring me his war horn."
+    },
+    {
+     "kind": "loot",
+     "target": "Magnar the Skald",
+     "items": [
+      {
+       "item": "Magnar's war horn",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Magnar the Skald's war horn on the frost giants' floor of Permafrost."
+    },
+    {
+     "kind": "give",
+     "target": "Shrixiv",
+     "items": [
+      {
+       "item": "Magnar's war horn",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Magnar's war horn to Shrixiv.",
+     "says": "Next, Oracle Frish, by the lava to the right of the bridge before the goblins' fort in Lavastorm. Bring his memory stone."
+    },
+    {
+     "kind": "loot",
+     "target": "Oracle Frish",
+     "items": [
+      {
+       "item": "memory stone",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Oracle Frish's memory stone by the lava right of the bridge before the goblins' fort in Lavastorm."
+    },
+    {
+     "kind": "give",
+     "target": "Shrixiv",
+     "items": [
+      {
+       "item": "memory stone",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the memory stone to Shrixiv.",
+     "says": "Last, Varae the Chronicler, who roams Tak'Xiz South. Bring her disheveled tome."
+    },
+    {
+     "kind": "loot",
+     "target": "Varae the Chronicler",
+     "items": [
+      {
+       "item": "disheveled tome",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Varae the Chronicler's disheveled tome in Tak'Xiz South (SE)."
+    },
+    {
+     "kind": "give",
+     "target": "Shrixiv",
+     "items": [
+      {
+       "item": "disheveled tome",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the disheveled tome to Shrixiv.",
+     "says": "Thank you, fool. We will meet again, on the kappa fortress's third level."
+    },
+    {
+     "kind": "loot",
+     "target": "Shrixiv",
+     "items": [
+      {
+       "item": "Shrixiv's scale",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat Shrixiv by the spiral staircase on the third level of the kappa fortress.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Near where Shrixiv fell, you find what she was guarding: Arios's old orders."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Arios the Battered",
+     "journal": "Return to Arios the Battered by the bridge south of Forkwatch.",
+     "says": "Shrixiv, a traitor too. Go to Malsis, a magician in Freeport's casters' guild."
+    },
+    {
+     "kind": "talk",
+     "target": "Malsis",
+     "journal": "Speak with Malsis in Freeport's casters' guild.",
+     "says": "Arios wants my help? Then bring me a rune from a rune dervish in the desert of the Elemental Towers, and 15,000 tunar."
+    },
+    {
+     "kind": "loot",
+     "target": "rune dervish",
+     "items": [
+      {
+       "item": "rune dervish's rune",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take a rune from a rune dervish in the desert of the Elemental Towers."
+    },
+    {
+     "kind": "give",
+     "target": "Malsis",
+     "items": [
+      {
+       "item": "rune dervish's rune",
+       "count": 1
+      }
+     ],
+     "tunar": 15000,
+     "journal": "Bring the rune and 15,000 tunar to Malsis.",
+     "says": "Done. Tell Arios his old army's sign can be found in Envar.",
+     "notyet": "The rune, and 15,000 tunar."
+    },
+    {
+     "kind": "talk",
+     "target": "Arios the Battered",
+     "journal": "Return to Arios the Battered.",
+     "says": "A Rallosian insignia, in Envar: any of its dead may carry one. Find it."
+    },
+    {
+     "kind": "loot",
+     "target": "Accursed Zombie",
+     "items": [
+      {
+       "item": "Rallosian insignia",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.15,
+     "journal": "Take a Rallosian insignia from the dead of Envar."
+    },
+    {
+     "kind": "give",
+     "target": "Arios the Battered",
+     "items": [
+      {
+       "item": "Rallosian insignia",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Rallosian insignia to Arios the Battered.",
+     "says": "My old army's sign. Now Dresk the Lost and Starn the Aimless, who roam outside Envar: bring their tomes."
+    },
+    {
+     "kind": "loot",
+     "target": "Dresk the Lost",
+     "items": [
+      {
+       "item": "Dresk's tome",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Dresk the Lost's tome, outside Envar (W, S)."
+    },
+    {
+     "kind": "loot",
+     "target": "Starn the Aimless",
+     "items": [
+      {
+       "item": "Starn's tome",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Starn the Aimless's tome, outside Envar (SE, E)."
+    },
+    {
+     "kind": "give",
+     "target": "Arios the Battered",
+     "items": [
+      {
+       "item": "Dresk's tome",
+       "count": 1
+      },
+      {
+       "item": "Starn's tome",
+       "count": 1
+      }
+     ],
+     "journal": "Bring both tomes to Arios the Battered.",
+     "says": "Overseer Durekar, in the constructs' halls of Geomancer's Citadel. Kill him, and look about where he falls."
+    },
+    {
+     "kind": "kill",
+     "target": "Overseer Durekar",
+     "count": 1,
+     "journal": "Defeat Overseer Durekar in Geomancer's Citadel.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Where the Overseer fell, a voice: \"Go to the bridge of Geomancer's Pass. The Archon waits.\""
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Archon Seradesh",
+     "journal": "Speak with Archon Seradesh on the bridge in Geomancer's Pass (C), coming from the south.",
+     "says": "Arios's errand-runner. Tell him Sarek's walls are weaker than they were."
+    },
+    {
+     "kind": "talk",
+     "target": "Arios the Battered",
+     "journal": "Return to Arios the Battered by the bridge south of Forkwatch.",
+     "says": "Then we are close. Take this.",
+     "rewards": {
+      "xp": 56000000,
+      "byclass": {
+       "0": {
+        "items": [
+         "war torn greaves"
+        ]
+       },
+       "1": {
+        "items": [
+         "war torn scale gloves"
+        ]
+       },
+       "2": {
+        "items": [
+         "war torn greaves"
+        ]
+       },
+       "3": {
+        "items": [
+         "war torn greaves"
+        ]
+       },
+       "4": {
+        "items": [
+         "war torn tunic"
+        ]
+       },
+       "5": {
+        "items": [
+         "war torn scale gloves"
+        ]
+       },
+       "6": {
+        "items": [
+         "war torn scale gloves"
+        ]
+       },
+       "7": {
+        "items": [
+         "war torn tunic"
+        ]
+       },
+       "8": {
+        "items": [
+         "war torn scale gloves"
+        ]
+       },
+       "9": {
+        "items": [
+         "war torn greaves"
+        ]
+       },
+       "10": {
+        "items": [
+         "War torn gloves"
+        ]
+       },
+       "11": {
+        "items": [
+         "War torn gloves"
+        ]
+       },
+       "12": {
+        "items": [
+         "War torn gloves"
+        ]
+       },
+       "13": {
+        "items": [
+         "War torn gloves"
+        ]
+       },
+       "14": {
+        "items": [
+         "war torn tunic"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Arios the Battered",
+    "Oracle Frish",
+    "Varae the Chronicler",
+    "rune dervish",
+    "Accursed Zombie",
+    "Dresk the Lost",
+    "Starn the Aimless",
+    "Magnar the Skald (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/53-59/57.json, Quest 1: 57 Arios the Battered (github.com/Jadiction/EQOA-Data, MIT). Shrixiv the questioner (seeded in South Toxxulia) and the Shrixiv fought in the kappa fortress (the server's) share a name, as in the guide. The insignia drops off Envar's seeded Accursed Zombies (the guide: any of the complex's creatures). Magnar the Skald carries a blacksmith's NPC flags here (npc_type 136): the seed makes him attackable (npcs/qc.json). The casters' War torn gloves are a copy of an existing pair (their stats, not the guide's)."
+  },
+  {
+   "key": "53-59/57/p2",
+   "name": "The Kerran Disguise",
+   "giver": "Prophet of Kumaj",
+   "classes": [],
+   "races": [],
+   "minlevel": 57,
+   "maxlevel": 60,
+   "requires": [
+    "53-59/55/p2"
+   ],
+   "offer": "Sickness spreads from South Toxxulia. Kill the two that carry it, a diseased tempest panther and a pestiferous spider queen, west of Toxx's cave in the south of it.",
+   "accept": "I will hunt them.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Diseased Tempest Panther",
+     "items": [
+      {
+       "item": "diseased panther pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the diseased tempest panther's pelt in South Toxxulia, west of Toxx's cave."
+    },
+    {
+     "kind": "loot",
+     "target": "Pestiferous Spider Queen",
+     "items": [
+      {
+       "item": "spider queen's fang",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the pestiferous spider queen's fang in South Toxxulia, west of Toxx's cave."
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "diseased panther pelt",
+       "count": 1
+      },
+      {
+       "item": "spider queen's fang",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the pelt and the fang to the Prophet of Kumaj.",
+     "says": "Good. Healer Ometoj, by the waysender and the spiritmaster in Arcadin, sells timballa leaves. Bring some, about 7000 tunar's worth."
+    },
+    {
+     "kind": "give",
+     "target": "Healer Ometoj",
+     "tunar": 7000,
+     "journal": "Buy timballa leaves from Healer Ometoj in Arcadin (7000 tunar).",
+     "says": "Timballa leaves, for the Prophet. Here.",
+     "notyet": "7000 tunar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "timballa leaves",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "timballa leaves",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the timballa leaves to the Prophet of Kumaj.",
+     "says": "Krend Catsbane hunts our people near the border of The Hunt, in the Abysmal Sea (S, SE). End him."
+    },
+    {
+     "kind": "kill",
+     "target": "Krend Catsbane",
+     "count": 1,
+     "journal": "Defeat Krend Catsbane, south-east of a Kerran camp in the Abysmal Sea (S, SE)."
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj.",
+     "says": "A kappa skinner on the second floor of the castle in Sylhilthis' Dwell keeps a pile of kerran hides. Take it."
+    },
+    {
+     "kind": "loot",
+     "target": "kappa skinner",
+     "items": [
+      {
+       "item": "pile of kerran hides",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the pile of kerran hides from the kappa skinner on the second floor of the kappa castle in Sylhilthis' Dwell."
+    },
+    {
+     "kind": "give",
+     "target": "Costume Maker Leboi",
+     "items": [
+      {
+       "item": "pile of kerran hides",
+       "count": 1
+      }
+     ],
+     "tunar": 10144,
+     "journal": "Bring the hides and 10,144 tunar to Costume Maker Leboi on the marionette island in the Gulf of Uzun (SW).",
+     "says": "A kerran costume? I can make that. There.",
+     "notyet": "The hides, and 10,144 tunar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "kerran costume",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "kerran costume",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the kerran costume to the Prophet of Kumaj.",
+     "says": "Now Elder Garfeg, in the kobold camp's huts by the river in East Toxxulia (S). Bring his spear."
+    },
+    {
+     "kind": "loot",
+     "target": "Elder Garfeg",
+     "items": [
+      {
+       "item": "Garfeg's spear",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Elder Garfeg's spear in a hut of the kobold camp in East Toxxulia (S)."
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "Garfeg's spear",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Garfeg's spear to the Prophet of Kumaj.",
+     "says": "Wear the costume and go east down the river to the Tendori-buki village in West Toxxulia (E). Shadza Letwin waits by the well."
+    },
+    {
+     "kind": "talk",
+     "target": "Shadza Letwin",
+     "journal": "Speak with Shadza Letwin by the well of the Tendori-buki village in West Toxxulia (E).",
+     "says": "You look kerran enough. Tell the Prophet the Tendori-buki will help."
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj.",
+     "says": "The sickness has reached The Hunt: kill a diseased manticore (NW) and a diseased Welahi'nai brute (E)."
+    },
+    {
+     "kind": "kill",
+     "target": "Diseased Manticore",
+     "count": 1,
+     "journal": "Defeat a diseased manticore in The Hunt (NW)."
+    },
+    {
+     "kind": "kill",
+     "target": "Diseased Welahi'nai Brute",
+     "count": 1,
+     "journal": "Defeat a diseased Welahi'nai brute in The Hunt (E)."
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj.",
+     "says": "Speak with Chief Terican on the shore of The Hunt (NW)."
+    },
+    {
+     "kind": "talk",
+     "target": "Chief Terican",
+     "journal": "Speak with Chief Terican on the shore of The Hunt (NW).",
+     "says": "The Prophet's friend. The Kolbok jail our people; tell him so."
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj.",
+     "says": "Kill the Kolbok Warden, the middle jailer in the jail of the kobold cave in The Warrens."
+    },
+    {
+     "kind": "kill",
+     "target": "Kolbok Warden",
+     "count": 1,
+     "journal": "Defeat the Kolbok Warden in the jail of the kobold cave in The Warrens."
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj.",
+     "says": "The Ratman Plaguespreader, in a room on the right under the ratmen's lair in Cape Dreg (N)."
+    },
+    {
+     "kind": "kill",
+     "target": "Ratman Plaguespreader",
+     "count": 1,
+     "journal": "Defeat the Ratman Plaguespreader under the ratmen's lair in Cape Dreg (N)."
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj.",
+     "says": "Last, the necromancer Yevran Ty'Rizeth, in the Ty'Rizeth cave of South Barren Coast (C)."
+    },
+    {
+     "kind": "kill",
+     "target": "Yevran Ty'Rizeth",
+     "count": 1,
+     "journal": "Defeat Yevran Ty'Rizeth in the Ty'Rizeth cave of South Barren Coast (C)."
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj in Kerra Isle (SE).",
+     "says": "The sickness is broken. The Kerra thank you.",
+     "rewards": {
+      "xp": 64100000,
+      "byclass": {
+       "0": {
+        "items": [
+         "Welahi Warlord Breastplate"
+        ]
+       },
+       "1": {
+        "items": [
+         "Welahi Pouncer Boots"
+        ]
+       },
+       "2": {
+        "items": [
+         "Welahi Warlord Breastplate"
+        ]
+       },
+       "3": {
+        "items": [
+         "Welahi Warlord Breastplate"
+        ]
+       },
+       "4": {
+        "items": [
+         "Welahi Pouncer Boots"
+        ]
+       },
+       "5": {
+        "items": [
+         "Welahi Pouncer Boots"
+        ]
+       },
+       "6": {
+        "items": [
+         "Welahi Pouncer Boots"
+        ]
+       },
+       "7": {
+        "items": [
+         "Welahi Spirit Shield"
+        ]
+       },
+       "8": {
+        "items": [
+         "Welahi Spirit Shield"
+        ]
+       },
+       "9": {
+        "items": [
+         "Welahi Spirit Shield"
+        ]
+       },
+       "10": {
+        "items": [
+         "tunic of living mana"
+        ]
+       },
+       "11": {
+        "items": [
+         "tunic of living mana"
+        ]
+       },
+       "12": {
+        "items": [
+         "tunic of living mana"
+        ]
+       },
+       "13": {
+        "items": [
+         "tunic of living mana"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Diseased Tempest Panther",
+    "Pestiferous Spider Queen",
+    "Healer Ometoj",
+    "Krend Catsbane",
+    "Costume Maker Leboi",
+    "Elder Garfeg",
+    "Shadza Letwin",
+    "Diseased Manticore",
+    "Diseased Welahi'nai Brute",
+    "Chief Terican",
+    "Kolbok Warden",
+    "Ratman Plaguespreader"
+   ],
+   "notes": "From EQOA-Data Quests/53-59/57.json, Quest 2: 57 Kerra Isle (github.com/Jadiction/EQOA-Data, MIT). The Prophet's temporary Kerran illusion is left out (the engine has no illusion event); Ithwutet is left out. The guide's Chief Terrican is the 55's Chief Terican (one NPC); the healer is Arcadin's (the other path, Healer Yemev in Stone of Morthalis, is left out). The guide names no alchemist's reward. The Welahi breastplate and boots are copies of existing items (their stats, not the guide's)."
+  },
+  {
+   "key": "53-59/57/p3",
+   "name": "The Scepter of the Ritualists",
+   "giver": "Professor Ceryk",
+   "classes": [],
+   "races": [],
+   "minlevel": 57,
+   "maxlevel": 60,
+   "requires": [
+    "53-59/55/p3"
+   ],
+   "offer": "The Dark Ritualists want the scepter, and the fire goblins fight for them. Minastikie needs help in Lavastorm. Go to her.",
+   "accept": "I will go to her.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Minastikie",
+     "journal": "Speak with Minastikie in Lavastorm Mountains (SE).",
+     "says": "The goblins are attacking the outpost! Their warlord, Broga, is with them. Pull him away and kill him."
+    },
+    {
+     "kind": "loot",
+     "target": "Warlord Broga",
+     "items": [
+      {
+       "item": "Broga's plans",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat Warlord Broga outside the gnome outpost and take his plans.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Warlord Broga",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Minastikie",
+     "items": [
+      {
+       "item": "Broga's plans",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Broga's plans to Minastikie.",
+     "says": "Mistress Sanchez, in the Plane of Sky, knows where the scepter lies. Go to her."
+    },
+    {
+     "kind": "talk",
+     "target": "Mistress Sanchez",
+     "journal": "Speak with Mistress Sanchez in the Plane of Sky.",
+     "says": "My help has a price: punish Siliskor. To draw him out, bring King Bardag's Wealth from The Warrens and Sylhilthis' Bounty from Messik in the Kappa Citadel."
+    },
+    {
+     "kind": "loot",
+     "target": "King Bardag",
+     "items": [
+      {
+       "item": "King Bardag's Wealth",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take King Bardag's Wealth in The Warrens."
+    },
+    {
+     "kind": "loot",
+     "target": "Messik",
+     "items": [
+      {
+       "item": "Sylhilthis' Bounty",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Sylhilthis' Bounty from Messik in the Kappa Citadel of Sylhilthis' Dwell."
+    },
+    {
+     "kind": "give",
+     "target": "Mistress Sanchez",
+     "items": [
+      {
+       "item": "King Bardag's Wealth",
+       "count": 1
+      },
+      {
+       "item": "Sylhilthis' Bounty",
+       "count": 1
+      }
+     ],
+     "journal": "Bring King Bardag's Wealth and Sylhilthis' Bounty to Mistress Sanchez.",
+     "says": "There: an enchanted treasure chest. Drop it where Siliskor sleeps, in the Elephant Graveyard (W).",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "enchanted treasure chest",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 14333.3,
+     "y": 0.0,
+     "z": 27000.0,
+     "radius": 200,
+     "journal": "Walk out to the middle of the field in the Elephant Graveyard (W), where Siliskor sleeps.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You set down the enchanted chest. A dragon lands before you!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Siliskor",
+     "count": 1,
+     "journal": "Defeat Siliskor.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Siliskor",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Mistress Sanchez",
+     "journal": "Return to Mistress Sanchez in the Plane of Sky.",
+     "says": "Now Lady Vox. Bring me great war bear meat from South Toxxulia and primal eel meat from off the coast of Zentar's Keep (SW), and I will make a stew she cannot resist."
+    },
+    {
+     "kind": "loot",
+     "target": "Great War Bear",
+     "items": [
+      {
+       "item": "great war bear meat",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the Great War Bear's meat on a hilltop in South Toxxulia."
+    },
+    {
+     "kind": "loot",
+     "target": "Primal Eel",
+     "items": [
+      {
+       "item": "primal eel meat",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the Primal Eel's meat off the coast of Zentar's Keep (SW)."
+    },
+    {
+     "kind": "give",
+     "target": "Mistress Sanchez",
+     "items": [
+      {
+       "item": "great war bear meat",
+       "count": 1
+      },
+      {
+       "item": "primal eel meat",
+       "count": 1
+      }
+     ],
+     "journal": "Bring both meats to Mistress Sanchez.",
+     "says": "A primal stew. Take it to Permafrost.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "primal stew",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Enraged Lady Vox",
+     "items": [
+      {
+       "item": "Lady Vox's gluttony",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Set the primal stew down in Permafrost, then defeat the enraged Lady Vox."
+    },
+    {
+     "kind": "talk",
+     "target": "Mistress Sanchez",
+     "journal": "Return to Mistress Sanchez in the Plane of Sky.",
+     "says": "Impressive. The scepter lies at the end of the rain chain, on the fifth isle, Chimareon the Tyrant's."
+    },
+    {
+     "kind": "reach",
+     "world": 4,
+     "x": 4556,
+     "y": 31,
+     "z": 4276,
+     "radius": 60,
+     "journal": "Go to the fifth isle of the rain chain, Chimareon the Tyrant's, in the Plane of Sky.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Among the rocks you find a piece of the scepter, while Dark Ritualists close in."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "scepter piece",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Mistress Sanchez",
+     "journal": "Return to Mistress Sanchez.",
+     "says": "The last piece: kill the Avatar of Fear in Cazic Thule, and speak with the orb of light over his body."
+    },
+    {
+     "kind": "kill",
+     "target": "Avatar of Fear",
+     "count": 1,
+     "journal": "Defeat the Avatar of Fear in Cazic Thule."
+    },
+    {
+     "kind": "talk",
+     "target": "Orb of Light",
+     "journal": "Speak with the orb of light over the Avatar of Fear's body.",
+     "says": "Take the last piece, and be gone from this place.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "scepter piece",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Professor Ceryk",
+     "journal": "Take the scepter's pieces to Professor Ceryk in Mila's Reef.",
+     "says": "Not here! They are watching me, the Dark Ritualists. Keep the pieces and go to Minastikie. I must hide."
+    },
+    {
+     "kind": "talk",
+     "target": "Minastikie",
+     "journal": "Speak with Minastikie in Lavastorm Mountains.",
+     "says": "The professor never came! The Dark Ritualists have taken him, and want the scepter for him. Take their ransom note to Exploring Aid Mixxa.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "ransom note",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Exploring Aid Mixxa",
+     "items": [
+      {
+       "item": "ransom note",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ransom note to Exploring Aid Mixxa in Klick'Anon.",
+     "says": "Look for clues in Aviak Village: the south-west base of the large mountain, in the middle."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 9000.0,
+     "y": 0.0,
+     "z": 21000.0,
+     "radius": 250,
+     "journal": "Look for clues at the south-west base of the large mountain in Aviak Village (C).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Tracks, and a torn sleeve of the professor's coat."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Exploring Aid Mixxa",
+     "journal": "Return to Exploring Aid Mixxa in Klick'Anon.",
+     "says": "Now Jethro's Cast: a small hill south-east of the old woman's house, north of the lake."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 7000.0,
+     "y": 0.0,
+     "z": 13000.0,
+     "radius": 250,
+     "journal": "Look for clues on the small hill south-east of the old woman's house in Jethro's Cast (C).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A camp, recently left. They are moving east."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Exploring Aid Mixxa",
+     "journal": "Return to Exploring Aid Mixxa.",
+     "says": "The Great Waste: a little flat hill of cactus, west of the glowing rubble north of the great ribcage."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 23000.0,
+     "y": 0.0,
+     "z": 25000.0,
+     "radius": 250,
+     "journal": "Look for clues on the cactus hill west of the glowing rubble in the Great Waste (C).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A scrap of the professor's notes, pointing north: the Green Rift."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Exploring Aid Mixxa",
+     "journal": "Return to Exploring Aid Mixxa.",
+     "says": "The Green Rift (E), just south of the Wailing Tree. That is where they hold him. Go carefully."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 23666.7,
+     "y": 0.0,
+     "z": 11000.0,
+     "radius": 250,
+     "journal": "Rescue Professor Ceryk, just south of the Wailing Tree in the Green Rift (E).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Eight Dark Ritualists rise to ambush you, but the professor slips away in the fight: \"Meet me in Mila's Reef!\""
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Professor Ceryk",
+     "items": [
+      {
+       "item": "scepter piece",
+       "count": 2
+      }
+     ],
+     "journal": "Meet Professor Ceryk in Mila's Reef and give him the scepter's pieces.",
+     "says": "Alive, thanks to you, and the scepter whole again. Tell Minastikie."
+    },
+    {
+     "kind": "talk",
+     "target": "Minastikie",
+     "journal": "Return to Minastikie in Lavastorm Mountains (SE).",
+     "says": "The scepter is whole and the professor safe. Take this.",
+     "rewards": {
+      "xp": 67000000,
+      "byclass": {
+       "0": {
+        "items": [
+         "astral gauntlets of brawn"
+        ]
+       },
+       "1": {
+        "items": [
+         "astral bracelet of speed"
+        ]
+       },
+       "2": {
+        "items": [
+         "astral gauntlets of brawn"
+        ]
+       },
+       "3": {
+        "items": [
+         "astral gauntlets of brawn"
+        ]
+       },
+       "4": {
+        "items": [
+         "astral bracelet of speed"
+        ]
+       },
+       "5": {
+        "items": [
+         "astral bracelet of speed"
+        ]
+       },
+       "6": {
+        "items": [
+         "astral bracelet of speed"
+        ]
+       },
+       "7": {
+        "items": [
+         "astral bracelet of wisdom"
+        ]
+       },
+       "8": {
+        "items": [
+         "astral bracelet of wisdom"
+        ]
+       },
+       "9": {
+        "items": [
+         "astral bracelet of wisdom"
+        ]
+       },
+       "10": {
+        "items": [
+         "astral leggings of insight"
+        ]
+       },
+       "11": {
+        "items": [
+         "astral leggings of insight"
+        ]
+       },
+       "12": {
+        "items": [
+         "astral leggings of insight"
+        ]
+       },
+       "13": {
+        "items": [
+         "astral leggings of insight"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Warlord Broga",
+    "Great War Bear",
+    "Primal Eel",
+    "Enraged Lady Vox"
+   ],
+   "notes": "From EQOA-Data Quests/53-59/57.json, Quest 3: Lavastorm 57 (github.com/Jadiction/EQOA-Data, MIT). The goblin troopers, the rain chain's Dark Ritualists and the eight at the Green Rift are pop-ups (no time limit); Broga and Siliskor come for the player (copies of the server's), Lady Vox stands where she is seeded; the professor cannot despawn (he is this quest's giver), so he sends the player away before he is taken (the guide's Pimal Eel is the game's Primal Eel, Chimeron the game's Chimareon). The guide lists the clerics for both the gauntlets and the bracelet: they get the gauntlets. No alchemist's reward is named. The astral bracelet of wisdom is a copy of an existing bracelet (its stats, not the guide's). The Plane of Sky and its rain isles are reached by their own portal quests' trips (the Sky Portal and the essences, waysender.go), which this quest does not open."
+  },
+  {
+   "key": "53-59/59/p1",
+   "name": "Sarek the Betrayer",
+   "giver": "Arios the Battered",
+   "classes": [],
+   "races": [],
+   "minlevel": 59,
+   "maxlevel": 60,
+   "requires": [
+    "53-59/57/p1"
+   ],
+   "offer": "Sarek betrayed his armies and Rallos Zek for a god's seat, and walled himself in Geomancer's Citadel. Help me end him. First, two terran caretakers carry halves of a key. Bring them.",
+   "accept": "I will bring the key.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "terran caretaker",
+     "items": [
+      {
+       "item": "terran key half",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 1.0,
+     "journal": "Take the key halves from two terran caretakers: by the bridge in Geomancer's Pass (N), and in the Elemental Towers (SW, W)."
+    },
+    {
+     "kind": "give",
+     "target": "Arios the Battered",
+     "items": [
+      {
+       "item": "terran key half",
+       "count": 2
+      }
+     ],
+     "journal": "Bring both key halves to Arios the Battered.",
+     "says": "Now approach the Anvil of Sarek in Geomancer's Pass (N). Slowly."
+    },
+    {
+     "kind": "talk",
+     "target": "Anvil of Sarek",
+     "journal": "Approach the Anvil of Sarek in Geomancer's Pass (N), slowly, and answer it.",
+     "choose": "WHO DARES APPROACH THE ANVIL OF SAREK?",
+     "choices": [
+      {
+       "answer": "I come for Sarek.",
+       "says": "THEN COME, AND DIE BENEATH HIS STONE. Go, little thing, while you can."
+      },
+      {
+       "answer": "Arios the Battered sends me.",
+       "says": "ARIOS. HE STILL CRAWLS? Go back to him, little thing."
+      },
+      {
+       "answer": "I am only passing.",
+       "says": "THEN PASS, AND DO NOT RETURN."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Arios the Battered",
+     "journal": "Return to Arios the Battered by the bridge south of Forkwatch.",
+     "says": "Informant Liarah, on the small isles of Cape Dreg (E), north of the pirate ship, knows the Anvil's secret. Bring 20,000 tunar, and be quick: she does not stay long."
+    },
+    {
+     "kind": "give",
+     "target": "Informant Liarah",
+     "tunar": 20000,
+     "journal": "Find Informant Liarah on the isles of Cape Dreg (E) and pay her 20,000 tunar.",
+     "says": "Three lost pages tell it: one with the kejekans of Stonebrunt, one with the kerrans of Kerra Isle, one on an obsidian assassin in Geomancer's Citadel.",
+     "notyet": "20,000 tunar, or nothing."
+    },
+    {
+     "kind": "loot",
+     "target": "kejekan warrior",
+     "items": [
+      {
+       "item": "discarded page #176",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.2,
+     "journal": "Take discarded page #176 from the kejekans of Stonebrunt Mountains (C)."
+    },
+    {
+     "kind": "loot",
+     "target": "kerran soldier",
+     "items": [
+      {
+       "item": "discarded page #112",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.2,
+     "journal": "Take discarded page #112 from the kerrans of Kerra Isle."
+    },
+    {
+     "kind": "loot",
+     "target": "Obsidian Assassin",
+     "items": [
+      {
+       "item": "discarded page #201",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take discarded page #201 from an obsidian assassin in Geomancer's Citadel, on its western side."
+    },
+    {
+     "kind": "give",
+     "target": "Arios the Battered",
+     "items": [
+      {
+       "item": "discarded page #176",
+       "count": 1
+      },
+      {
+       "item": "discarded page #112",
+       "count": 1
+      },
+      {
+       "item": "discarded page #201",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the three pages to Arios the Battered.",
+     "says": "Now kill the Anvil of Sarek. Strike it with the sword Grimm mended for you."
+    },
+    {
+     "kind": "kill",
+     "target": "Anvil of Sarek",
+     "count": 1,
+     "journal": "Defeat the Anvil of Sarek in Geomancer's Pass (N).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The Anvil breaks. Sarek's walls weaken."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Arios the Battered",
+     "journal": "Return to Arios the Battered.",
+     "says": "Now his sources of power. Two earthen dryads' hearts, from the constructs' side of Geomancer's Citadel (N)."
+    },
+    {
+     "kind": "loot",
+     "target": "Earthen Dryad",
+     "items": [
+      {
+       "item": "earthen dryad heart",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 0.5,
+     "journal": "Take two earthen dryad hearts near the constructs in Geomancer's Citadel (N)."
+    },
+    {
+     "kind": "loot",
+     "target": "Sarek's Keeper",
+     "items": [
+      {
+       "item": "geode talisman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the geode talisman from Sarek's Keeper, on the bridge at the constructs' gate in Geomancer's Citadel."
+    },
+    {
+     "kind": "loot",
+     "target": "Archon Aereth",
+     "items": [
+      {
+       "item": "heart of Archon Aereth",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the heart of Archon Aereth, in the constructs' towers of Geomancer's Citadel."
+    },
+    {
+     "kind": "loot",
+     "target": "Archon Vetash",
+     "items": [
+      {
+       "item": "heart of Archon Vetash",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the heart of Archon Vetash, in the constructs' towers of Geomancer's Citadel."
+    },
+    {
+     "kind": "give",
+     "target": "Arios the Battered",
+     "items": [
+      {
+       "item": "earthen dryad heart",
+       "count": 2
+      },
+      {
+       "item": "geode talisman",
+       "count": 1
+      },
+      {
+       "item": "heart of Archon Aereth",
+       "count": 1
+      },
+      {
+       "item": "heart of Archon Vetash",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the dryads' hearts, the geode talisman and the Archons' hearts to Arios the Battered.",
+     "says": "Last, the channeling stone of Thornmage Lirial, on the main floor of Toxxulia's dungeon in South Toxxulia (S)."
+    },
+    {
+     "kind": "loot",
+     "target": "Thornmage Lirial",
+     "items": [
+      {
+       "item": "channeling stone",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Thornmage Lirial's channeling stone on the main floor of Toxxulia's dungeon in South Toxxulia (S)."
+    },
+    {
+     "kind": "give",
+     "target": "Arios the Battered",
+     "items": [
+      {
+       "item": "channeling stone",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the channeling stone to Arios the Battered.",
+     "says": "The talisman is awake. It will take you to Sarek's tower. Kill him."
+    },
+    {
+     "kind": "kill",
+     "target": "Sarek the Betrayer",
+     "count": 1,
+     "journal": "The geode talisman takes you to Sarek's tower: defeat Sarek the Betrayer.",
+     "events": [
+      {
+       "on": "start",
+       "do": "teleport",
+       "world": 1,
+       "x": 4307,
+       "y": 219.3,
+       "z": 2576
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Archon Seradesh",
+     "journal": "Speak with Archon Seradesh in Sarek's tower.",
+     "says": "Sarek is dead. Go back to Arios: there is a debt there too."
+    },
+    {
+     "kind": "talk",
+     "target": "Arios the Battered",
+     "journal": "Return to Arios the Battered by the bridge south of Forkwatch.",
+     "says": "Sarek is dead. Now Arcanablade Zerin, on the cyclopian bridge south of Urglunt's wall in Urglunt's Gate (C), wants a word with you."
+    },
+    {
+     "kind": "talk",
+     "target": "Arcanablade Zerin",
+     "journal": "Speak with Arcanablade Zerin on the cyclopian bridge in Urglunt's Gate (C).",
+     "says": "You know too much, friend of Arios. The Zaoran order cannot allow that."
+    },
+    {
+     "kind": "loot",
+     "target": "Arcanablade Zerin",
+     "items": [
+      {
+       "item": "Arcanablade Zerin's head",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat Arcanablade Zerin and take his head."
+    },
+    {
+     "kind": "give",
+     "target": "Arios the Battered",
+     "items": [
+      {
+       "item": "Arcanablade Zerin's head",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Arcanablade Zerin's head to Arios the Battered.",
+     "says": "Zerin was sent to kill you. Then let the Rallosians judge between us. Come."
+    },
+    {
+     "kind": "talk",
+     "target": "Rallosian Arbiter",
+     "journal": "Speak with the Rallosian Arbiter.",
+     "says": "Arios hid what he is: a Zaoran. Your dispute is judged by blood. Fight him.",
+     "events": [
+      {
+       "on": "start",
+       "do": "teleport",
+       "world": 5,
+       "x": 4900.0,
+       "y": 148.0,
+       "z": 7030.0
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Arios the Battered",
+     "count": 1,
+     "journal": "Defeat Arios the Battered before the Rallosian Arbiter."
+    },
+    {
+     "kind": "talk",
+     "target": "Rallosian Arbiter",
+     "journal": "Speak with the Rallosian Arbiter again.",
+     "says": "It is judged. Take your reward, and this token of the Rathe. The way out is your own: Return Home.",
+     "rewards": {
+      "xp": 100000000,
+      "items": [
+       "Token of Rathe"
+      ],
+      "byclass": {
+       "0": {
+        "items": [
+         "war torn great helm"
+        ]
+       },
+       "1": {
+        "items": [
+         "war torn scale greaves"
+        ]
+       },
+       "2": {
+        "items": [
+         "war torn great helm"
+        ]
+       },
+       "3": {
+        "items": [
+         "war torn great helm"
+        ]
+       },
+       "4": {
+        "items": [
+         "war torn wristband"
+        ]
+       },
+       "5": {
+        "items": [
+         "war torn scale greaves"
+        ]
+       },
+       "6": {
+        "items": [
+         "war torn scale greaves"
+        ]
+       },
+       "7": {
+        "items": [
+         "war torn wristband"
+        ]
+       },
+       "8": {
+        "items": [
+         "war torn scale greaves"
+        ]
+       },
+       "9": {
+        "items": [
+         "war torn great helm"
+        ]
+       },
+       "10": {
+        "items": [
+         "War Torn Robe"
+        ]
+       },
+       "11": {
+        "items": [
+         "War Torn Robe"
+        ]
+       },
+       "12": {
+        "items": [
+         "War Torn Robe"
+        ]
+       },
+       "13": {
+        "items": [
+         "War Torn Robe"
+        ]
+       },
+       "14": {
+        "items": [
+         "war torn wristband"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Arios the Battered",
+    "terran caretaker",
+    "Informant Liarah",
+    "Obsidian Assassin",
+    "Thornmage Lirial",
+    "Arcanablade Zerin",
+    "Rallosian Arbiter"
+   ],
+   "notes": "From EQOA-Data Quests/53-59/59.json, Quest 1: 59 Arios the Battered (github.com/Jadiction/EQOA-Data, MIT). The Anvil's pop-up is a choice (any answer does, as the guide's \"pick one of the options\"); its debuffs by the 55's weapons are left out (it is simply fought). The geode talisman's port is a teleport for the quester alone; the Arbiter's secret place is ours, on the Zaoran Plateau (the Secrets world), where the attackable Arios stands (the guide's Arbiter summons him). The Zaoran Brotherhood's faction (+1000, +1000, -1000, -10) is left out: this server has no such faction. The kejekans' and kerrans' pages drop off one kind each (a warrior, a soldier), the guide's \"random drop\". The War Torn Robe is a copy of an existing tunic (its stats, not the guide's)."
+  },
+  {
+   "key": "53-59/59/p2",
+   "name": "The Soul of Decay",
+   "giver": "Prophet of Kumaj",
+   "classes": [],
+   "races": [],
+   "minlevel": 59,
+   "maxlevel": 60,
+   "requires": [
+    "53-59/57/p2"
+   ],
+   "offer": "A sea nymph on the east coast of Kerra Isle wears a collar that should not exist. Kill her and bring it to me.",
+   "accept": "I will bring the collar.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Sea Nymph",
+     "items": [
+      {
+       "item": "sea nymph's collar",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the sea nymph's collar on the east coast of Kerra Isle (S, E, C)."
+    },
+    {
+     "kind": "show",
+     "target": "Historian Musafik",
+     "items": [
+      {
+       "item": "sea nymph's collar",
+       "count": 1
+      }
+     ],
+     "journal": "Show the collar to Historian Musafik in the spire on the hill near Arcadin's dockmaster.",
+     "says": "A cursed thing. Destroy it at the altar of Saftemoot's isle, in Erud's Crossing (C). Its guardian will not like it."
+    },
+    {
+     "kind": "kill",
+     "target": "Altar Guardian",
+     "count": 1,
+     "journal": "Defeat the altar guardian on the bridge to Saftemoot's isle in Erud's Crossing (C)."
+    },
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 11000.0,
+     "y": 0,
+     "z": 3000.0,
+     "radius": 250,
+     "journal": "Approach the altar on Saftemoot's isle and destroy the collar.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You lay the collar on the altar and it crumbles to dust."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj in Kerra Isle (SE).",
+     "says": "Good. Kaytin Mowler, in the Kerran fishing village of Erud's Crossing (N), needs a hand."
+    },
+    {
+     "kind": "talk",
+     "target": "Kaytin Mowler",
+     "journal": "Speak with Kaytin Mowler in the Kerran fishing village of Erud's Crossing (N).",
+     "says": "An undead kerrath master haunts Erud's Crossing (W). Bring me his ring."
+    },
+    {
+     "kind": "loot",
+     "target": "Undead Kerrath Master",
+     "items": [
+      {
+       "item": "kerrath master's ring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the undead kerrath master's ring in Erud's Crossing (W)."
+    },
+    {
+     "kind": "give",
+     "target": "Kaytin Mowler",
+     "items": [
+      {
+       "item": "kerrath master's ring",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the kerrath master's ring to Kaytin Mowler.",
+     "says": "Now the Shiran Harpy Queen, in Erud's Crossing (NE), took an Erudite pilgrim's satchel. Get it back."
+    },
+    {
+     "kind": "loot",
+     "target": "Shiran Harpy Queen",
+     "items": [
+      {
+       "item": "Erudite Pilgrim's Satchel",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the Erudite pilgrim's satchel from the Shiran Harpy Queen in Erud's Crossing (NE)."
+    },
+    {
+     "kind": "give",
+     "target": "Kaytin Mowler",
+     "items": [
+      {
+       "item": "Erudite Pilgrim's Satchel",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the satchel to Kaytin Mowler.",
+     "says": "Thank you. Go back to the Prophet."
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj.",
+     "says": "High Shaman Thulgrr, in the kobold dungeon of The Warrens (N), keeps a totem. Take it to Khonza Meysla in Stonebrunt Mountains (SW)."
+    },
+    {
+     "kind": "loot",
+     "target": "High Shaman Thulgrr",
+     "items": [
+      {
+       "item": "Thulgrr's totem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take High Shaman Thulgrr's totem in the kobold dungeon of The Warrens (N), behind his two guardians."
+    },
+    {
+     "kind": "give",
+     "target": "Khonza Meysla",
+     "items": [
+      {
+       "item": "Thulgrr's totem",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Thulgrr's totem to Khonza Meysla in Stonebrunt Mountains (SW).",
+     "says": "Thulgrr's totem! Now Karnarf the Hunter, who wanders Stonebrunt: bring his spear."
+    },
+    {
+     "kind": "loot",
+     "target": "Karnarf the Hunter",
+     "items": [
+      {
+       "item": "Karnarf's spear",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take Karnarf the Hunter's spear in Stonebrunt Mountains."
+    },
+    {
+     "kind": "give",
+     "target": "Khonza Meysla",
+     "items": [
+      {
+       "item": "Karnarf's spear",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Karnarf's spear to Khonza Meysla.",
+     "says": "Last, the grizz chieftain's necklace, in the grizz camp under the mountain in the middle of Stonebrunt."
+    },
+    {
+     "kind": "loot",
+     "target": "grizz chieftain",
+     "items": [
+      {
+       "item": "grizz necklace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the grizz chieftain's necklace in the grizz camp under the mountain in Stonebrunt."
+    },
+    {
+     "kind": "give",
+     "target": "Khonza Meysla",
+     "items": [
+      {
+       "item": "grizz necklace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the grizz necklace to Khonza Meysla.",
+     "says": "You have done the kerrans of Stonebrunt a great service. Go back to the Prophet."
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj.",
+     "says": "Glox Kognik, in the first building on the right on the road into Blakedown from Forkwatch, wants 11,000 tunar for what he knows."
+    },
+    {
+     "kind": "give",
+     "target": "Glox Kognik",
+     "tunar": 11000,
+     "journal": "Pay Glox Kognik in Blakedown 11,000 tunar for what he knows.",
+     "says": "A gem was smuggled out of Odus. Rynlek knows who has it.",
+     "notyet": "11,000 tunar."
+    },
+    {
+     "kind": "talk",
+     "target": "Prophet of Kumaj",
+     "journal": "Return to the Prophet of Kumaj.",
+     "says": "Rynlek, in the lord's tower in Highpass, sells what he knows: 8000 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Rynlek",
+     "tunar": 8000,
+     "journal": "Pay Rynlek in the lord's tower of Highpass Hold 8000 tunar.",
+     "says": "The artifact smuggler, on the indigo pirates' island in Cape Dreg (W), has your gem.",
+     "notyet": "8000 tunar."
+    },
+    {
+     "kind": "loot",
+     "target": "artifact smuggler",
+     "items": [
+      {
+       "item": "smuggled gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the gem from the artifact smuggler in the indigo pirates' camp in Cape Dreg (W)."
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "smuggled gem",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the smuggled gem to the Prophet of Kumaj.",
+     "says": "Now the Monarch of Stone and the Monarch of Flame, in Geomancer's Citadel (SW). Bring their hearts."
+    },
+    {
+     "kind": "loot",
+     "target": "Monarch of Stone",
+     "items": [
+      {
+       "item": "monarch's stone heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the Monarch of Stone's heart in Geomancer's Citadel (SW)."
+    },
+    {
+     "kind": "loot",
+     "target": "Monarch of Flame",
+     "items": [
+      {
+       "item": "monarch's flame heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the Monarch of Flame's heart in Geomancer's Citadel (SW)."
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "monarch's stone heart",
+       "count": 1
+      },
+      {
+       "item": "monarch's flame heart",
+       "count": 1
+      }
+     ],
+     "journal": "Bring both hearts to the Prophet of Kumaj.",
+     "says": "Last, the Soul of Decay: the Pleglund, deep in Toxxulia's lair (S), down the second path on the left."
+    },
+    {
+     "kind": "loot",
+     "target": "The Pleglund",
+     "items": [
+      {
+       "item": "Soul of Decay",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the Soul of Decay from the Pleglund deep in Toxxulia's lair, South Toxxulia (S)."
+    },
+    {
+     "kind": "give",
+     "target": "Prophet of Kumaj",
+     "items": [
+      {
+       "item": "Soul of Decay",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Soul of Decay to the Prophet of Kumaj.",
+     "says": "It is over. Take this token of Odus, and the Kerra's thanks.",
+     "rewards": {
+      "xp": 100000000,
+      "items": [
+       "Token of Odus"
+      ],
+      "byclass": {
+       "0": {
+        "items": [
+         "starshimmer bracers"
+        ]
+       },
+       "1": {
+        "items": [
+         "emberscale tunic"
+        ]
+       },
+       "2": {
+        "items": [
+         "starshimmer bracers"
+        ]
+       },
+       "3": {
+        "items": [
+         "starshimmer bracers"
+        ]
+       },
+       "4": {
+        "items": [
+         "Boots of the Kedge"
+        ]
+       },
+       "5": {
+        "items": [
+         "emberscale tunic"
+        ]
+       },
+       "6": {
+        "items": [
+         "emberscale tunic"
+        ]
+       },
+       "7": {
+        "items": [
+         "Boots of the Kedge"
+        ]
+       },
+       "8": {
+        "items": [
+         "emberscale tunic"
+        ]
+       },
+       "9": {
+        "items": [
+         "starshimmer bracers"
+        ]
+       },
+       "10": {
+        "items": [
+         "starsilk hood"
+        ]
+       },
+       "11": {
+        "items": [
+         "starsilk hood"
+        ]
+       },
+       "12": {
+        "items": [
+         "starsilk hood"
+        ]
+       },
+       "13": {
+        "items": [
+         "starsilk hood"
+        ]
+       },
+       "14": {
+        "items": [
+         "Boots of the Kedge"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Sea Nymph",
+    "Altar Guardian",
+    "Kaytin Mowler",
+    "Undead Kerrath Master",
+    "Khonza Meysla",
+    "Rynlek",
+    "Monarch of Stone",
+    "Monarch of Flame"
+   ],
+   "notes": "From EQOA-Data Quests/53-59/59.json, Quest 2: 59 Kerra Isle (github.com/Jadiction/EQOA-Data, MIT). The historian is Arcadin's (Historian Neilok in Stone of Morthalis, the other path, is left out); the altar guardian stands at its bridge and the collar's destruction is a pop-up (the collar stays). The guide's Glox is the game's Glox Kognik, its indigo artifact smuggler the game's artifact smuggler. The Boots of the Kedge are a copy of an existing pair (their stats, not the guide's)."
+  },
+  {
+   "key": "53-59/59/p3",
+   "name": "The Harbingers of Rag-Adah",
+   "giver": "Professor Ceryk",
+   "classes": [],
+   "races": [],
+   "minlevel": 59,
+   "maxlevel": 60,
+   "requires": [
+    "53-59/57/p3"
+   ],
+   "offer": "The Dark Ritualists have not given up. One came for me at my camp, and another is near. Kill him and bring me what he carries.",
+   "accept": "I will deal with him.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Dark Ritualist Enforcer",
+     "items": [
+      {
+       "item": "enforcer's note",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Defeat the Dark Ritualist enforcer by Professor Ceryk in Mila's Reef and take his note.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Dark Ritualist Enforcer",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Professor Ceryk",
+     "items": [
+      {
+       "item": "enforcer's note",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the enforcer's note to Professor Ceryk.",
+     "says": "They serve Rag-Adah. Tell Minastikie at once."
+    },
+    {
+     "kind": "talk",
+     "target": "Minastikie",
+     "journal": "Speak with Minastikie in Lavastorm Mountains (SE).",
+     "says": "Monsters in Klick'Anon: an ancient clockwork on a hill west of the coach. Bring me its essence."
+    },
+    {
+     "kind": "loot",
+     "target": "Ancient Clockwork",
+     "items": [
+      {
+       "item": "clockwork essence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the ancient clockwork's essence on the hill west of Klick'Anon's coach."
+    },
+    {
+     "kind": "give",
+     "target": "Minastikie",
+     "items": [
+      {
+       "item": "clockwork essence",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the clockwork essence to Minastikie.",
+     "says": "Rag-Adah's harbingers are waking: the leviathan off Wyndhaven (W), the icebone lord south-east of Zentar's Keep, a wind of the plains on a hill in Highbourne (NE), a master centaur in Fort Alliance (S)."
+    },
+    {
+     "kind": "loot",
+     "target": "Leviathan",
+     "items": [
+      {
+       "item": "leviathan scale",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take a scale of the leviathan west of Wyndhaven's coach (W)."
+    },
+    {
+     "kind": "loot",
+     "target": "icebone lord",
+     "items": [
+      {
+       "item": "icebone lord's bone",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take a bone of the icebone lord on a hillside south-east of Zentar's Keep (E)."
+    },
+    {
+     "kind": "loot",
+     "target": "Wind of the Plains",
+     "items": [
+      {
+       "item": "wind of the plains essence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the essence of the wind of the plains on a tall hill in Highbourne (NE)."
+    },
+    {
+     "kind": "loot",
+     "target": "master centaur",
+     "items": [
+      {
+       "item": "master centaur's hoof",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take a hoof of the master centaur in Fort Alliance (S)."
+    },
+    {
+     "kind": "give",
+     "target": "Minastikie",
+     "items": [
+      {
+       "item": "leviathan scale",
+       "count": 1
+      },
+      {
+       "item": "icebone lord's bone",
+       "count": 1
+      },
+      {
+       "item": "wind of the plains essence",
+       "count": 1
+      },
+      {
+       "item": "master centaur's hoof",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the four trophies to Minastikie.",
+     "says": "Mistress Sanchez must see these. Go to the Plane of Sky."
+    },
+    {
+     "kind": "talk",
+     "target": "Mistress Sanchez",
+     "journal": "Speak with Mistress Sanchez in the Plane of Sky.",
+     "says": "Go to the entrance of Solusek's Eye and walk east until you near the lava, in Lavastorm Mountains (W)."
+    },
+    {
+     "kind": "reach",
+     "world": 3,
+     "x": 6333.3,
+     "y": 0.0,
+     "z": 5000.0,
+     "radius": 250,
+     "journal": "Walk east of the entrance of Solusek's Eye until you near the lava, in Lavastorm Mountains (W).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The lava stirs, and you understand: the scepter must be destroyed. Return to Mistress Sanchez."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Mistress Sanchez",
+     "journal": "Return to Mistress Sanchez in the Plane of Sky.",
+     "says": "Madam Watrya, on the second isle of the sun chain, knows how."
+    },
+    {
+     "kind": "talk",
+     "target": "Madam Watrya",
+     "journal": "Speak with Madam Watrya on the second isle of the sun chain in the Plane of Sky.",
+     "says": "To unmake it I need a deranged simian's paw from Stonebrunt (SW), the eye of a madman, and a pristine drake's hide from the fourth isle of the sun chain. Merchant Dwindel in Hagley knows the madman."
+    },
+    {
+     "kind": "loot",
+     "target": "Deranged Simian",
+     "items": [
+      {
+       "item": "deranged simian's paw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the deranged simian's paw on a hill in Stonebrunt Mountains (SW)."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Dwindel",
+     "tunar": 20000,
+     "journal": "Pay Merchant Dwindel in Hagley 20,000 tunar for word of the madman.",
+     "says": "The madman lives on a small isle south of the lighthouse, in Northern Ro (C).",
+     "notyet": "20,000 tunar."
+    },
+    {
+     "kind": "loot",
+     "target": "Island Madman",
+     "items": [
+      {
+       "item": "eye of a madman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the eye of the island madman, on the small isle south of the lighthouse in Northern Ro (C)."
+    },
+    {
+     "kind": "loot",
+     "target": "pristine drake",
+     "items": [
+      {
+       "item": "pristine drake hide",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the pristine drake's hide on the fourth isle of the sun chain."
+    },
+    {
+     "kind": "give",
+     "target": "Madam Watrya",
+     "items": [
+      {
+       "item": "deranged simian's paw",
+       "count": 1
+      },
+      {
+       "item": "eye of a madman",
+       "count": 1
+      },
+      {
+       "item": "pristine drake hide",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the paw, the eye and the hide to Madam Watrya.",
+     "says": "Now take the scepter to the fifth isle of the rain chain and throw it into the lava there."
+    },
+    {
+     "kind": "reach",
+     "world": 4,
+     "x": 4669,
+     "y": 25,
+     "z": 4351,
+     "radius": 60,
+     "journal": "Throw the scepter into the lava at the end of the rain chain.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The scepter sinks into the lava, and Rag-Adah rises from it!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Rag-Adah",
+     "count": 1,
+     "journal": "Defeat Rag-Adah."
+    },
+    {
+     "kind": "talk",
+     "target": "Minastikie",
+     "journal": "Return to Minastikie in Lavastorm Mountains (SE).",
+     "says": "Rag-Adah is gone. Go down to the professor; he has something for you."
+    },
+    {
+     "kind": "talk",
+     "target": "Professor Ceryk",
+     "journal": "Return to Professor Ceryk in Mila's Reef.",
+     "says": "The harbingers' gear, made for them centuries ago. Now it is yours.",
+     "rewards": {
+      "xp": 100000000,
+      "byclass": {
+       "0": {
+        "items": [
+         "harbinger's gauntlets"
+        ]
+       },
+       "1": {
+        "items": [
+         "Harbinger's Coif"
+        ]
+       },
+       "2": {
+        "items": [
+         "harbinger's gauntlets"
+        ]
+       },
+       "3": {
+        "items": [
+         "harbinger's gauntlets"
+        ]
+       },
+       "4": {
+        "items": [
+         "harbinger's gloves"
+        ]
+       },
+       "5": {
+        "items": [
+         "Harbinger's Coif"
+        ]
+       },
+       "6": {
+        "items": [
+         "Harbinger's Coif"
+        ]
+       },
+       "7": {
+        "items": [
+         "harbinger's gloves"
+        ]
+       },
+       "8": {
+        "items": [
+         "Harbinger's Coif"
+        ]
+       },
+       "9": {
+        "items": [
+         "harbinger's gauntlets"
+        ]
+       },
+       "10": {
+        "items": [
+         "harbinger's bracelet"
+        ]
+       },
+       "11": {
+        "items": [
+         "harbinger's bracelet"
+        ]
+       },
+       "12": {
+        "items": [
+         "harbinger's bracelet"
+        ]
+       },
+       "13": {
+        "items": [
+         "harbinger's bracelet"
+        ]
+       },
+       "14": {
+        "items": [
+         "harbinger's gloves"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Dark Ritualist Enforcer",
+    "Ancient Clockwork",
+    "Leviathan",
+    "Wind of the Plains",
+    "Madam Watrya",
+    "Island Madman"
+   ],
+   "notes": "From EQOA-Data Quests/53-59/59.json, Quest 3: Lavastorm 59 (github.com/Jadiction/EQOA-Data, MIT). The professor's enforcer comes for the player when the quest is taken; the madman and Rag-Adah stand (the guide's quest spawns them); the guide's Rag'Adah is the game's Rag-Adah. The harbinger's gloves are a copy of an existing pair (their stats, not the guide's). The Plane of Sky and its sun and rain isles are reached by their own portal quests' trips (waysender.go), which this quest does not open."
+  }
+ ],
+ "items": [
+  {
+   "name": "stolen book of Jal Raeth",
+   "description": "A book Rogue Ethrix stole from Kradesh Du'Klot.",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "Legacy of Averyth",
+   "description": "A worn book, the legacy of Averyth.",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "Jal Raeth tome",
+   "description": "A tome from the libraries of Envar, on the Jal Raeth.",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "portal charge gem",
+   "description": "A gem with one charge of a group portal.",
+   "notrade": true,
+   "like": "sparkling green gem"
+  },
+  {
+   "name": "Etheric Tunic",
+   "description": "A tunic of a strange alloy that shifts in and out of existence.",
+   "notrade": true,
+   "like": "Wyrm Wing Tunic"
+  },
+  {
+   "name": "elder elephant tusk",
+   "description": "A tusk from the Elder Elephant of Sylhilthis' Dwell.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "ancient deepmare mane",
+   "description": "A mane of the Ancient Deepmare.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "ancient cobra skin",
+   "description": "The skin of the Ancient Swampfire Cobra.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "gargoyle statue",
+   "description": "A small statue taken from a statue guardian.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "kerran shaman beads",
+   "description": "A string of beads a kerran shaman wore.",
+   "notrade": true,
+   "like": "bone earring"
+  },
+  {
+   "name": "piece of yellow marble",
+   "description": "A piece of yellow marble, cut by a stonemason.",
+   "notrade": true,
+   "like": "block of ore"
+  },
+  {
+   "name": "soulcaller's skull",
+   "description": "The skull the Ty'Rizeth SoulCaller carried.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "Ring of Ancestors",
+   "description": "A ring awarded to the most prestigious kerran shaman.",
+   "notrade": true,
+   "like": "mystical ward of resistance"
+  },
+  {
+   "name": "Gulam Warrior Bracers",
+   "description": "Bracers awarded to the mightiest gulam warriors of the kerrans.",
+   "notrade": true,
+   "like": "Rhino Horn Bracers"
+  },
+  {
+   "name": "Gulam Scout Belt",
+   "description": "A belt awarded to the most skilled scouts of the kerrans.",
+   "notrade": true,
+   "like": "Runed Bolster Belt"
+  },
+  {
+   "name": "sandy carapace",
+   "description": "A sand wasp's carapace, gritty with fine sand.",
+   "notrade": true,
+   "like": "beetle carapace fragment"
+  },
+  {
+   "name": "ancient eel scale",
+   "description": "A scale of the Ancient Eel.",
+   "notrade": true,
+   "like": "beetle carapace fragment"
+  },
+  {
+   "name": "cleaning solution",
+   "description": "A bottle of cleaning solution.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "swampfire venom sack",
+   "description": "A swampfire cobra's venom sack.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "scout's map piece",
+   "description": "A piece of an old map, taken from a Ty'Rizeth scout.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "scavenger's map piece",
+   "description": "A piece of an old map, taken from a Ty'Rizeth scavenger.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "drudge's map piece",
+   "description": "A piece of an old map, taken from the Ancient Drudge.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Professor Ceryk's note",
+   "description": "Professor Ceryk's note and the restored map, for Minastikie.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "magmanite bracelet",
+   "description": "A bracelet crafted from magmanite.",
+   "notrade": true,
+   "like": "evoker's bracelet"
+  },
+  {
+   "name": "magmanite belt",
+   "description": "A belt crafted from magmanite.",
+   "notrade": true,
+   "like": "Etheric Leather Belt"
+  },
+  {
+   "name": "Bloodletter's sword",
+   "description": "A notched sword taken from Bloodletter.",
+   "notrade": true,
+   "like": "rusted blade"
+  },
+  {
+   "name": "Arios's war sword",
+   "description": "The sword of Bloodletter, mended by Grimm Brellhand. Keep it.",
+   "notrade": true,
+   "like": "rusted blade"
+  },
+  {
+   "name": "Totem of Kejan",
+   "description": "A totem of the Kerra, to be carried to the shrine.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "renegade merman's fin",
+   "description": "A fin cut from the renegade merman.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "Battlemaster's insignia",
+   "description": "The insignia of the Clan Kolbok Battlemaster.",
+   "notrade": true,
+   "like": "Akuion's insignia"
+  },
+  {
+   "name": "kappa defiler staff",
+   "description": "A kappa defiler's staff.",
+   "notrade": true,
+   "like": "wooden shaft"
+  },
+  {
+   "name": "remains of a kerran shaman",
+   "description": "The bones of a kerran shaman, taken by grave robbers.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "Othmet's skull",
+   "description": "The skull of the necromancer Othmet.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "Krrgar's staff",
+   "description": "The staff of the Minion of Krrgar.",
+   "notrade": true,
+   "like": "wooden shaft"
+  },
+  {
+   "name": "erudite statue",
+   "description": "A small statue bought from an Erudite courier.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Helm of Spiritual Might",
+   "description": "A magical plate helm of kerran craftsmanship.",
+   "notrade": true,
+   "like": "Helm of the Sand Storms"
+  },
+  {
+   "name": "monstrous rhino horn",
+   "description": "A horn from the Monstrous Rhino.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "ritualist's orders",
+   "description": "Orders carried by a Dark Ritualist scout.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "fire goblin general's plans",
+   "description": "The Fire Goblin General's plans.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "old compass",
+   "description": "An old compass, found in Lavastorm.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "tattered blanket",
+   "description": "A tattered blanket, found in Lavastorm.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "old rations",
+   "description": "A pack of old rations, found by Solusek's Eye.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "gyropick",
+   "description": "A gnomish gyropick, found in Solusek's Eye.",
+   "notrade": true,
+   "like": "The Foreman's Pick"
+  },
+  {
+   "name": "paradise basilisk eye",
+   "description": "The eye of a paradise basilisk.",
+   "notrade": true,
+   "like": "raven eye"
+  },
+  {
+   "name": "abrosian snapper scale",
+   "description": "A scale from an Abrosian snapper.",
+   "notrade": true,
+   "like": "beetle carapace fragment"
+  },
+  {
+   "name": "Dwindel's cure",
+   "description": "A cure for poison, mixed by Merchant Dwindel.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "kappa blacksmith's hammer",
+   "description": "The hammer of Blacksmith Kratak, an escaped kappa.",
+   "notrade": true,
+   "like": "The Foreman's Pick"
+  },
+  {
+   "name": "Magnar's war horn",
+   "description": "The war horn of Magnar the Skald.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "memory stone",
+   "description": "A memory stone, taken from Oracle Frish.",
+   "notrade": true,
+   "like": "moonstone"
+  },
+  {
+   "name": "disheveled tome",
+   "description": "The disheveled tome of Varae the Chronicler.",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "Shrixiv's scale",
+   "description": "A scale from Shrixiv.",
+   "notrade": true,
+   "like": "beetle carapace fragment"
+  },
+  {
+   "name": "rune dervish's rune",
+   "description": "A rune taken from a rune dervish.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Rallosian insignia",
+   "description": "An insignia of the armies of Rallos Zek.",
+   "notrade": true,
+   "like": "Akuion's insignia"
+  },
+  {
+   "name": "Dresk's tome",
+   "description": "The tome of Dresk the Lost.",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "Starn's tome",
+   "description": "The tome of Starn the Aimless.",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "War torn gloves",
+   "description": "Cloth gloves that have seen more battle than most modern kingdoms.",
+   "notrade": true,
+   "like": "Gloves of Yevrah"
+  },
+  {
+   "name": "diseased panther pelt",
+   "description": "The pelt of a diseased tempest panther.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "spider queen's fang",
+   "description": "A fang of the pestiferous spider queen.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "timballa leaves",
+   "description": "A bundle of timballa leaves.",
+   "notrade": true,
+   "like": "sack of wild herbs"
+  },
+  {
+   "name": "pile of kerran hides",
+   "description": "A pile of kerran hides, taken from the kappa skinner.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "kerran costume",
+   "description": "A costume of kerran hides, made by Costume Maker Leboi.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "Garfeg's spear",
+   "description": "The spear of Elder Garfeg.",
+   "notrade": true,
+   "like": "wooden shaft"
+  },
+  {
+   "name": "Welahi Warlord Breastplate",
+   "description": "An ornate magical breastplate of the welahi-nai warlords.",
+   "notrade": true,
+   "like": "Lava Etched Breastplate"
+  },
+  {
+   "name": "Welahi Pouncer Boots",
+   "description": "Ornate leather boots of the welahi-nai's swiftest hunters.",
+   "notrade": true,
+   "like": "firescale boots"
+  },
+  {
+   "name": "Broga's plans",
+   "description": "Warlord Broga's battle plans.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "King Bardag's Wealth",
+   "description": "The hoard of King Bardag.",
+   "notrade": true,
+   "like": "bag of coins"
+  },
+  {
+   "name": "Sylhilthis' Bounty",
+   "description": "A bounty from the Kappa Citadel of Sylhilthis' Dwell.",
+   "notrade": true,
+   "like": "bag of coins"
+  },
+  {
+   "name": "enchanted treasure chest",
+   "description": "A treasure chest enchanted by Mistress Sanchez, to tempt a dragon.",
+   "notrade": true,
+   "like": "chest of gnoll goods"
+  },
+  {
+   "name": "great war bear meat",
+   "description": "Meat of the Great War Bear.",
+   "notrade": true,
+   "like": "bat meat"
+  },
+  {
+   "name": "primal eel meat",
+   "description": "Meat of the Primal Eel.",
+   "notrade": true,
+   "like": "bat meat"
+  },
+  {
+   "name": "primal stew",
+   "description": "A primal stew, to tempt a dragon.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "Lady Vox's gluttony",
+   "description": "Proof of Lady Vox's gluttony.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "scepter piece",
+   "description": "A piece of the scepter.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "ransom note",
+   "description": "The Dark Ritualists' ransom note for Professor Ceryk.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "astral bracelet of wisdom",
+   "description": "A bracelet forged from the ore of the Plane of Sky.",
+   "notrade": true,
+   "like": "chimera eyed bracelet"
+  },
+  {
+   "name": "terran key half",
+   "description": "Half of a key, carried by a terran caretaker.",
+   "notrade": true,
+   "like": "shoddy pickclaw key"
+  },
+  {
+   "name": "discarded page #176",
+   "description": "A discarded page, numbered 176.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "discarded page #112",
+   "description": "A discarded page, numbered 112.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "discarded page #201",
+   "description": "A discarded page, numbered 201.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "earthen dryad heart",
+   "description": "The heart of an earthen dryad.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "heart of Archon Aereth",
+   "description": "The heart of Archon Aereth.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "heart of Archon Vetash",
+   "description": "The heart of Archon Vetash.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "channeling stone",
+   "description": "A channeling stone, taken from Thornmage Lirial.",
+   "notrade": true,
+   "like": "moonstone"
+  },
+  {
+   "name": "Arcanablade Zerin's head",
+   "description": "The head of Arcanablade Zerin.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "Token of Rathe",
+   "description": "A token of the Rathe. What it does, no one knows.",
+   "notrade": true,
+   "like": "token of marr"
+  },
+  {
+   "name": "War Torn Robe",
+   "description": "A robe that has seen more battle than most modern kingdoms.",
+   "notrade": true,
+   "like": "Tunic of Yevrah"
+  },
+  {
+   "name": "sea nymph's collar",
+   "description": "A collar worn by a sea nymph.",
+   "notrade": true,
+   "like": "silk cord"
+  },
+  {
+   "name": "kerrath master's ring",
+   "description": "A ring from the undead kerrath master.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "Erudite Pilgrim's Satchel",
+   "description": "A satchel an Erudite pilgrim carried.",
+   "notrade": true,
+   "like": "sack of wild herbs"
+  },
+  {
+   "name": "Thulgrr's totem",
+   "description": "The totem of High Shaman Thulgrr.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Karnarf's spear",
+   "description": "The spear of Karnarf the Hunter.",
+   "notrade": true,
+   "like": "wooden shaft"
+  },
+  {
+   "name": "grizz necklace",
+   "description": "The necklace of the grizz chieftain.",
+   "notrade": true,
+   "like": "bone earring"
+  },
+  {
+   "name": "smuggled gem",
+   "description": "A gem the artifact smuggler carried.",
+   "notrade": true,
+   "like": "sparkling green gem"
+  },
+  {
+   "name": "monarch's stone heart",
+   "description": "A heart of living stone from the Monarch of Stone.",
+   "notrade": true,
+   "like": "moonstone"
+  },
+  {
+   "name": "monarch's flame heart",
+   "description": "A heart of living flame from the Monarch of Flame.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Soul of Decay",
+   "description": "The Soul of Decay, taken from the Pleglund.",
+   "notrade": true,
+   "like": "sparkling green gem"
+  },
+  {
+   "name": "Token of Odus",
+   "description": "A token of Odus. What it does, no one knows.",
+   "notrade": true,
+   "like": "token of marr"
+  },
+  {
+   "name": "Boots of the Kedge",
+   "description": "Leather boots of the Kedge.",
+   "notrade": true,
+   "like": "badland boots"
+  },
+  {
+   "name": "enforcer's note",
+   "description": "A note carried by a Dark Ritualist enforcer.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "clockwork essence",
+   "description": "The essence of an ancient clockwork.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "leviathan scale",
+   "description": "A scale of the leviathan.",
+   "notrade": true,
+   "like": "beetle carapace fragment"
+  },
+  {
+   "name": "icebone lord's bone",
+   "description": "A bone of the icebone lord.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "wind of the plains essence",
+   "description": "The essence of a wind of the plains.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "master centaur's hoof",
+   "description": "A hoof of the master centaur.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "deranged simian's paw",
+   "description": "A paw of the deranged simian.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "eye of a madman",
+   "description": "The eye of the island madman.",
+   "notrade": true,
+   "like": "raven eye"
+  },
+  {
+   "name": "pristine drake hide",
+   "description": "The hide of a pristine drake.",
+   "notrade": true,
+   "like": "leather strip"
+  },
+  {
+   "name": "harbinger's gloves",
+   "description": "Gloves forged centuries past for the harbingers of Rag-Adah.",
+   "notrade": true,
+   "like": "badland gloves"
+  }
+ ]
+}

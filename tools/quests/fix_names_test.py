@@ -154,5 +154,41 @@ class Fix(unittest.TestCase):
         self.assertEqual(fx.join([("A is B;", False), ("c is d.", False)]), "A is B; c is d.")
 
 
+class LaterFields(unittest.TestCase):
+    """The later guides' fields: an unlock's travel NPC and the factions a
+    quest asks a standing with or moves respelled as the database spells
+    them, and a faction still missing kept in unresolved."""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp(prefix="fixnames-later-")
+        self.db = os.path.join(self.dir, "eqoa.db")
+        db = sqlite3.connect(self.db)
+        db.executescript("""
+            CREATE TABLE npcs (npc_name TEXT, npc_type INTEGER);
+            CREATE TABLE itempattern (itemname TEXT);
+            CREATE TABLE spellpattern (spellname TEXT);
+            CREATE TABLE factions (name TEXT PRIMARY KEY, standing INTEGER);
+            INSERT INTO npcs VALUES ('Mayor', 128), ('Waysender Ti`Thox', 128);
+            INSERT INTO factions VALUES ('Freeport Militia', 0);
+        """)
+        db.commit()
+        db.close()
+        self.path = os.path.join(self.dir, "misc.json")
+        q = quest("Misc/writ/p1", "Mayor", [step("talk", "Mayor", rewards={"xp": 1, "factions": [["Freeport Militias", 5]]})],
+                  factions_required=[["the freeport militia", 10], ["Moor Hermits", 0]],
+                  unlocks=[{"npc": "Waysender Ti'Thox", "to": "Grobb"}], unresolved=[])
+        with open(self.path, "w") as f:
+            f.write(json.dumps(dict(city="misc", quests=[q]), indent=1) + "\n")
+
+    def test_they_are_respelled_and_what_is_missing_listed(self):
+        report, changed = fx.fix([self.path], self.db)
+        q = json.loads(changed[self.path])["quests"][0]
+        self.assertEqual(q["unlocks"][0]["npc"], "Waysender Ti`Thox")
+        self.assertEqual(q["factions_required"], [["Freeport Militia", 10], ["Moor Hermits", 0]])
+        self.assertEqual(q["steps"][0]["rewards"]["factions"], [["Freeport Militia", 5]])
+        self.assertEqual(q["unresolved"], ["Moor Hermits"], "the faction no row has")
+        self.assertTrue(any("faction 'the freeport militia' -> 'Freeport Militia'" in r for r in report))
+
+
 if __name__ == "__main__":
     unittest.main()

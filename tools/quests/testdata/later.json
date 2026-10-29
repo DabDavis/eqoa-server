@@ -1,0 +1,138 @@
+{
+  "city": "misc",
+  "quests": [
+    {
+      "key": "Misc/testmoor-writ/p1",
+      "name": "The Testmoor Writ",
+      "giver": "captain brindle",
+      "classes": [],
+      "minlevel": 20,
+      "maxlevel": 60,
+      "requires": [],
+      "factions_required": [
+        [
+          "testmoor watch",
+          100,
+          500
+        ]
+      ],
+      "repeatable": true,
+      "offer": "The Watch writes passes for those it trusts.",
+      "accept": "I will earn one.",
+      "steps": [
+        {
+          "kind": "kill",
+          "target": "Field Boar",
+          "count": 2,
+          "journal": "Kill two field boars.",
+          "rewards": {
+            "xp": 100,
+            "tunar": 5,
+            "byclass": {
+              "0": {
+                "items": [
+                  "Old Spear"
+                ],
+                "spells": [
+                  "Swipe"
+                ],
+                "xp": 50
+              },
+              "4": {
+                "spells": [
+                  "Swipe"
+                ],
+                "tunar": 10
+              }
+            }
+          }
+        }
+      ],
+      "unlocks": [
+        {
+          "npc": "Waysender Ti'Thox",
+          "to": "the grobb"
+        },
+        {
+          "npc": "Waysender Ti`Thox",
+          "to": "Testmoor Isle"
+        }
+      ],
+      "unresolved": [],
+      "notes": "A made-up quest."
+    },
+    {
+      "key": "Misc/testmoor-writ/p2",
+      "name": "The Lost Faction",
+      "giver": "Captain Brindle",
+      "minlevel": 20,
+      "requires": [
+        "Misc/testmoor-writ/p1"
+      ],
+      "factions_required": [
+        [
+          "Moor Hermits",
+          0
+        ]
+      ],
+      "offer": "Only the hermits' friends.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Captain Brindle",
+          "journal": "Talk to the captain."
+        }
+      ],
+      "unresolved": [
+        "Moor Hermits"
+      ]
+    },
+    {
+      "key": "60/testmoor-epic/p1",
+      "name": "The Testmoor Epic",
+      "giver": "Captain Brindle",
+      "classes": [
+        0
+      ],
+      "minlevel": 60,
+      "offer": "Choose well.",
+      "steps": [
+        {
+          "kind": "talk",
+          "target": "Captain Brindle",
+          "journal": "Choose your reward.",
+          "choose": "Which will you take?",
+          "choices": [
+            {
+              "answer": "The spear.",
+              "rewards": {
+                "items": [
+                  "Old Spear"
+                ]
+              }
+            },
+            {
+              "answer": "The swipe.",
+              "rewards": {
+                "spells": [
+                  "Swipe"
+                ],
+                "xp": 5
+              }
+            },
+            {
+              "answer": "Neither.",
+              "says": "Then think on it.",
+              "stay": true
+            }
+          ],
+          "rewards": {
+            "xp": 1000
+          }
+        }
+      ],
+      "unresolved": []
+    }
+  ],
+  "items": []
+}

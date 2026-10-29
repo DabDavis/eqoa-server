@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -21,6 +22,10 @@ import (
 // questLog, questStep; playerquest) were never filled or read here. Empty,
 // they are dropped for these; holding rows (another server's), they are kept
 // as quests_returnhome and playerquest_returnhome.
+//
+// questunlocks is the trips quests open (QuestUnlock): a travel NPC's route
+// (handlers/waysender.go) offered only to a player who has finished one of the
+// quests that unlock it.
 const questSchema = `
 CREATE TABLE IF NOT EXISTS quests (
 	questid    INTEGER PRIMARY KEY,
@@ -40,7 +45,8 @@ CREATE TABLE IF NOT EXISTS quests (
 	started    TEXT NOT NULL DEFAULT '',
 	source     TEXT NOT NULL DEFAULT '',
 	notes      TEXT NOT NULL DEFAULT '',
-	events     TEXT NOT NULL DEFAULT ''
+	events     TEXT NOT NULL DEFAULT '',
+	factionreq TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS queststeps (
 	questid     INTEGER NOT NULL,
@@ -69,7 +75,15 @@ CREATE TABLE IF NOT EXISTS queststeps (
 	spells      TEXT NOT NULL DEFAULT '',
 	chance      REAL NOT NULL DEFAULT 0,
 	events      TEXT NOT NULL DEFAULT '',
+	byclass     TEXT NOT NULL DEFAULT '',
+	choices     TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (questid, step)
+);
+CREATE TABLE IF NOT EXISTS questunlocks (
+	questid INTEGER NOT NULL,
+	npc     TEXT NOT NULL,
+	dest    TEXT NOT NULL,
+	PRIMARY KEY (questid, npc, dest)
 );
 CREATE TABLE IF NOT EXISTS charquests (
 	serverid INTEGER NOT NULL,
@@ -99,6 +113,8 @@ func (db *SQLiteDB) initQuests() error {
 		{"queststeps", "reminder", `TEXT NOT NULL DEFAULT ''`},
 		{"quests", "events", `TEXT NOT NULL DEFAULT ''`}, {"queststeps", "events", `TEXT NOT NULL DEFAULT ''`},
 		{"queststeps", "chance", `REAL NOT NULL DEFAULT 0`},
+		{"quests", "factionreq", `TEXT NOT NULL DEFAULT ''`}, {"queststeps", "byclass", `TEXT NOT NULL DEFAULT ''`},
+		{"queststeps", "choices", `TEXT NOT NULL DEFAULT ''`},
 	} {
 		has, err := hasColumn(db.DB, c.table, c.col)
 		if err != nil {
@@ -374,7 +390,13 @@ type Quest struct {
 	Notes    string
 	// Events are what happens when it is taken (accept) and finished (finish).
 	Events []QuestEvent
-	Steps  []QuestStep
+	// FactionReqs are the standings it asks for (the factionreq column): it
+	// is offered, and its steps at its giver are done, only while the player
+	// meets every one.
+	FactionReqs []FactionReq
+	// Unlocks are the trips it opens (the questunlocks table).
+	Unlocks []QuestUnlock
+	Steps   []QuestStep
 }
 
 // EventsOn is the events of one time, in order.
@@ -459,6 +481,346 @@ type QuestStep struct {
 	RewardItems []ItemCount
 	Factions    []FactionDelta
 	Spells      []int
+	// ByClass is what a player of a class (its id) is given besides those
+	// (the byclass column; the guides' "Rewards by Class").
+	ByClass map[int]ClassReward
+	// Choices is the pick a talk, show or give step asks for when it is done
+	// (the choices column; a guide's "choose your epic weapon").
+	Choices StepChoices
+}
+
+// StepChoices is a step's question and the options the player picks among
+// when the step is done at its NPC: an option's rewards are given besides
+// the step's own, and an option that stays does not do the step.
+type StepChoices struct {
+	Ask     string
+	Options []StepOption
+}
+
+// StepOption is one answer of a step's choice.
+type StepOption struct {
+	Answer string // the player's answer (63 characters show)
+	Says   string // the NPC's words when it is picked, a line a box
+	Stay   bool   // picked, the step is not done (a wrong answer: talk again)
+	Reward ClassReward
+}
+
+// MaxStepOptions is how many answers a choice has room for (CLIENT's
+// Msg0034 shows six).
+const MaxStepOptions = 6
+
+// stepChoicesJSON is StepChoices as the choices column keeps it, an
+// option's items and spells written as the step's own columns have them.
+type stepChoicesJSON struct {
+	Ask     string `json:"ask,omitempty"`
+	Options []struct {
+		Answer string `json:"answer"`
+		Says   string `json:"says,omitempty"`
+		Stay   bool   `json:"stay,omitempty"`
+		XP     int    `json:"xp,omitempty"`
+		Tunar  int    `json:"tunar,omitempty"`
+		Items  string `json:"items,omitempty"`
+		Spells string `json:"spells,omitempty"`
+	} `json:"options"`
+}
+
+// ParseStepChoices reads a choices column: {"ask": "<the question>",
+// "options": [{"answer", "says", "stay", "xp", "tunar", "items":
+// "patternid*count, ...", "spells": "id, ..."}]} ("" none). Options past
+// MaxStepOptions and without an answer are left out (ChoiceProblems names
+// them).
+func ParseStepChoices(s string) (StepChoices, error) {
+	if strings.TrimSpace(s) == "" {
+		return StepChoices{}, nil
+	}
+	var raw stepChoicesJSON
+	if err := json.Unmarshal([]byte(s), &raw); err != nil {
+		return StepChoices{}, err
+	}
+	out := StepChoices{Ask: strings.TrimSpace(raw.Ask)}
+	for _, o := range raw.Options {
+		if strings.TrimSpace(o.Answer) == "" || len(out.Options) == MaxStepOptions {
+			continue
+		}
+		out.Options = append(out.Options, StepOption{Answer: strings.TrimSpace(o.Answer), Says: o.Says, Stay: o.Stay,
+			Reward: ClassReward{XP: o.XP, Tunar: o.Tunar, Items: ParseItemCounts(o.Items), Spells: ParseIntList(o.Spells)}})
+	}
+	return out, nil
+}
+
+// ChoiceProblems is what is wrong with a choices column on a step of a kind:
+// unreadable JSON, a choice on a step not done at an NPC, no options or more
+// than CLIENT shows, an answer missing or longer than 63 characters, items
+// or spells not written as the step's own are, negative experience or tunar.
+// It checks nothing in the database.
+func ChoiceProblems(s, kind string) []string {
+	if strings.TrimSpace(s) == "" {
+		return nil
+	}
+	var raw stepChoicesJSON
+	if err := json.Unmarshal([]byte(s), &raw); err != nil {
+		return []string{`its choice is not {"ask", "options": [{"answer", "says", "stay", "xp", "tunar", "items", "spells"}]}: ` + err.Error()}
+	}
+	var out []string
+	if !AtNPC(kind) {
+		out = append(out, fmt.Sprintf("a %s step asks no choice (talk, show and give steps do, at their NPC)", kind))
+	}
+	switch {
+	case len(raw.Options) == 0:
+		out = append(out, "its choice has no options")
+	case len(raw.Options) > MaxStepOptions:
+		out = append(out, fmt.Sprintf("its choice has %d options: the client shows %d", len(raw.Options), MaxStepOptions))
+	}
+	for i, o := range raw.Options {
+		where := fmt.Sprintf("option %d", i+1)
+		switch n := len([]rune(strings.TrimSpace(o.Answer))); {
+		case n == 0:
+			out = append(out, where+" has no answer")
+		case n > 63:
+			out = append(out, where+"'s answer is longer than 63 characters: the client cuts it")
+		}
+		if o.XP < 0 || o.Tunar < 0 {
+			out = append(out, where+": experience and tunar are not below 0")
+		}
+		if len(nonEmptyParts(o.Items)) != len(ParseItemCounts(o.Items)) {
+			out = append(out, fmt.Sprintf("%s: items %q are not patternid*count, comma separated", where, o.Items))
+		}
+		if len(nonEmptyParts(o.Spells)) != len(ParseIntList(o.Spells)) {
+			out = append(out, fmt.Sprintf("%s: spells %q are not spell ids, comma separated", where, o.Spells))
+		}
+	}
+	return out
+}
+
+// RewardFor is the step's rewards for a player of a class: its own and then
+// its class's (ByClass), each spell once.
+func (s *QuestStep) RewardFor(class int) ClassReward {
+	out := ClassReward{XP: s.XP, Tunar: s.RewardTunar,
+		Items: append([]ItemCount(nil), s.RewardItems...), Spells: append([]int(nil), s.Spells...)}
+	if cr, ok := s.ByClass[class]; ok {
+		out = out.Plus(cr)
+	}
+	return out
+}
+
+// Plus is r and o together: experience and tunar added, o's items after r's,
+// each spell once.
+func (r ClassReward) Plus(o ClassReward) ClassReward {
+	out := ClassReward{XP: r.XP + o.XP, Tunar: r.Tunar + o.Tunar,
+		Items: append(append([]ItemCount(nil), r.Items...), o.Items...), Spells: append([]int(nil), r.Spells...)}
+	for _, sp := range o.Spells {
+		seen := false
+		for _, have := range out.Spells {
+			seen = seen || have == sp
+		}
+		if !seen {
+			out.Spells = append(out.Spells, sp)
+		}
+	}
+	return out
+}
+
+// ClassReward is a step's rewards for one class: experience, tunar, items
+// and spells. RewardFor makes one of a step's own rewards too.
+type ClassReward struct {
+	XP     int
+	Tunar  int
+	Items  []ItemCount
+	Spells []int
+}
+
+// classRewardJSON is a ClassReward as the byclass column keeps it: the items
+// and spells in the forms the step's own columns have them (rewarditems,
+// spells), so a GM reads one way of writing them.
+type classRewardJSON struct {
+	XP     int    `json:"xp,omitempty"`
+	Tunar  int    `json:"tunar,omitempty"`
+	Items  string `json:"items,omitempty"`
+	Spells string `json:"spells,omitempty"`
+}
+
+// MaxClassID is the last class id (14, the alchemist: root CLAUDE.md's
+// verified ids).
+const MaxClassID = 14
+
+// ParseClassRewards reads a byclass column: a JSON object by class id, each
+// {"xp", "tunar", "items": "patternid*count, ...", "spells": "id, ..."}
+// ("" none). A key that is not a class id is left out (ClassRewardProblems
+// names it).
+func ParseClassRewards(s string) (map[int]ClassReward, error) {
+	if strings.TrimSpace(s) == "" {
+		return nil, nil
+	}
+	var raw map[string]classRewardJSON
+	if err := json.Unmarshal([]byte(s), &raw); err != nil {
+		return nil, err
+	}
+	out := map[int]ClassReward{}
+	for k, v := range raw {
+		id, err := strconv.Atoi(strings.TrimSpace(k))
+		if err != nil || id < 0 || id > MaxClassID {
+			continue
+		}
+		out[id] = ClassReward{XP: v.XP, Tunar: v.Tunar, Items: ParseItemCounts(v.Items), Spells: ParseIntList(v.Spells)}
+	}
+	if len(out) == 0 {
+		return nil, nil
+	}
+	return out, nil
+}
+
+// FormatClassRewards writes rewards by class as ParseClassRewards reads them
+// ("" none), class ids in order.
+func FormatClassRewards(m map[int]ClassReward) string {
+	if len(m) == 0 {
+		return ""
+	}
+	raw := map[string]classRewardJSON{}
+	for id, cr := range m {
+		raw[strconv.Itoa(id)] = classRewardJSON{XP: cr.XP, Tunar: cr.Tunar, Items: FormatItemCounts(cr.Items), Spells: FormatIntList(cr.Spells)}
+	}
+	b, err := json.Marshal(raw) // encoding/json sorts a map's keys
+	if err != nil {
+		return ""
+	}
+	return string(b)
+}
+
+// ClassRewardProblems is what is wrong with a byclass column: unreadable
+// JSON, a key that is no class id (0 Warrior ... 14 Alchemist), negative
+// experience or tunar, items or spells not written as the step's own are.
+// It checks nothing in the database.
+func ClassRewardProblems(s string) []string {
+	if strings.TrimSpace(s) == "" {
+		return nil
+	}
+	var raw map[string]classRewardJSON
+	if err := json.Unmarshal([]byte(s), &raw); err != nil {
+		return []string{`its rewards by class are not a JSON object of class ids ({"10": {"xp": 100, "items": "4866*2", "spells": "12"}}): ` + err.Error()}
+	}
+	var out []string
+	keys := make([]string, 0, len(raw))
+	for k := range raw {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := raw[k]
+		id, err := strconv.Atoi(strings.TrimSpace(k))
+		if err != nil || id < 0 || id > MaxClassID {
+			out = append(out, fmt.Sprintf("rewards for class %q: no such class (0 Warrior ... 14 Alchemist)", k))
+			continue
+		}
+		if v.XP < 0 || v.Tunar < 0 {
+			out = append(out, fmt.Sprintf("rewards for class %d: experience and tunar are not below 0", id))
+		}
+		if n := len(nonEmptyParts(v.Items)); n != len(ParseItemCounts(v.Items)) {
+			out = append(out, fmt.Sprintf("rewards for class %d: items %q are not patternid*count, comma separated", id, v.Items))
+		}
+		if n := len(nonEmptyParts(v.Spells)); n != len(ParseIntList(v.Spells)) {
+			out = append(out, fmt.Sprintf("rewards for class %d: spells %q are not spell ids, comma separated", id, v.Spells))
+		}
+	}
+	return out
+}
+
+// nonEmptyParts is a list's comma-separated entries that say something.
+func nonEmptyParts(s string) []string {
+	var out []string
+	for _, f := range strings.Split(s, ",") {
+		if strings.TrimSpace(f) != "" {
+			out = append(out, f)
+		}
+	}
+	return out
+}
+
+// FactionReq is a standing a quest asks for: at least Min with a faction,
+// and at most Max when HasMax.
+type FactionReq struct {
+	Faction string
+	Min     int
+	Max     int
+	HasMax  bool
+}
+
+// Met is whether a standing meets it.
+func (r FactionReq) Met(standing int) bool {
+	return standing >= r.Min && (!r.HasMax || standing <= r.Max)
+}
+
+// ParseFactionReqs reads a factionreq column: "Freeport Militia:100,
+// Lockjaw:-500..0" (a faction's name as the factions table has it, a colon,
+// the lowest standing, and after ".." the highest). An entry that cannot be
+// read is left out (FactionReqProblems names it).
+func ParseFactionReqs(s string) []FactionReq {
+	var out []FactionReq
+	for _, f := range strings.Split(s, ",") {
+		if r, ok := parseFactionReq(f); ok {
+			out = append(out, r)
+		}
+	}
+	return out
+}
+
+func parseFactionReq(f string) (FactionReq, bool) {
+	i := strings.LastIndex(f, ":")
+	if i < 0 {
+		return FactionReq{}, false
+	}
+	name := strings.TrimSpace(f[:i])
+	lo, hi, ranged := strings.Cut(strings.TrimSpace(f[i+1:]), "..")
+	lowest, err := strconv.Atoi(strings.TrimPrefix(strings.TrimSpace(lo), "+"))
+	if name == "" || err != nil {
+		return FactionReq{}, false
+	}
+	r := FactionReq{Faction: name, Min: lowest}
+	if ranged {
+		highest, err := strconv.Atoi(strings.TrimPrefix(strings.TrimSpace(hi), "+"))
+		if err != nil || highest < lowest {
+			return FactionReq{}, false
+		}
+		r.Max, r.HasMax = highest, true
+	}
+	return r, true
+}
+
+// FormatFactionReqs writes requirements as ParseFactionReqs reads them.
+func FormatFactionReqs(v []FactionReq) string {
+	parts := make([]string, len(v))
+	for i, r := range v {
+		parts[i] = fmt.Sprintf("%s:%d", r.Faction, r.Min)
+		if r.HasMax {
+			parts[i] += fmt.Sprintf("..%d", r.Max)
+		}
+	}
+	return strings.Join(parts, ", ")
+}
+
+// FactionReqProblems is what is wrong with a factionreq column: an entry that
+// is not "Faction Name:min" or "Faction Name:min..max", a range that runs
+// backwards. It checks nothing in the database.
+func FactionReqProblems(s string) []string {
+	var out []string
+	for _, f := range strings.Split(s, ",") {
+		if strings.TrimSpace(f) == "" {
+			continue
+		}
+		if _, ok := parseFactionReq(f); !ok {
+			out = append(out, fmt.Sprintf("the faction requirement %q is not Faction Name:min or Faction Name:min..max (min not above max)", strings.TrimSpace(f)))
+		}
+	}
+	return out
+}
+
+// QuestUnlock is a trip a quest opens: the travel NPC NPC (by name, as npcs
+// spells it) offers its route to Dest (the route's label, handlers/
+// waysender.go) only to a player who has finished this quest or another that
+// unlocks the same trip, while one of those quests is in the game.
+type QuestUnlock struct {
+	Quest int
+	NPC   string
+	Dest  string
 }
 
 // LootItem is a loot step's item and how many of it are to be taken: Count,
@@ -509,7 +871,7 @@ func NewQuestStore(db *SQLiteDB) *QuestStore { return &QuestStore{db: db} }
 // LoadQuests reads every quest, drafts too, with its steps in order.
 func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	rs, err := s.db.Query(`SELECT questid, name, enabled, giver, minlevel, maxlevel, classes, races, requires,
-		repeatable, offer, accept, decline, declined, started, source, notes, events FROM quests ORDER BY questid`)
+		repeatable, offer, accept, decline, declined, started, source, notes, events, factionreq FROM quests ORDER BY questid`)
 	if err != nil {
 		return nil, err
 	}
@@ -518,9 +880,9 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	for rs.Next() {
 		var q Quest
 		var enabled, repeatable int
-		var classes, races, requires, events string
+		var classes, races, requires, events, factionReq string
 		if err := rs.Scan(&q.ID, &q.Name, &enabled, &q.Giver, &q.MinLevel, &q.MaxLevel, &classes, &races, &requires,
-			&repeatable, &q.Offer, &q.Accept, &q.Decline, &q.Declined, &q.Started, &q.Source, &q.Notes, &events); err != nil {
+			&repeatable, &q.Offer, &q.Accept, &q.Decline, &q.Declined, &q.Started, &q.Source, &q.Notes, &events, &factionReq); err != nil {
 			rs.Close()
 			return nil, err
 		}
@@ -528,6 +890,11 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		q.Classes, q.Races, q.Requires = ParseIntList(classes), ParseIntList(races), ParseIntList(requires)
 		if q.Events, err = ParseQuestEvents(events); err != nil {
 			log.Printf("Quests: quest %d's events are not read: %v", q.ID, err)
+		}
+		q.FactionReqs = ParseFactionReqs(factionReq)
+		if ps := FactionReqProblems(factionReq); len(ps) > 0 {
+			// left out, the quest asks less than written: said, as the panel says it
+			log.Printf("Quests: quest %d: %s", q.ID, strings.Join(ps, "; "))
 		}
 		byID[q.ID] = len(out)
 		out = append(out, q)
@@ -537,19 +904,19 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		return nil, err
 	}
 	srs, err := s.db.Query(`SELECT questid, step, kind, target, npcid, items, tunar, count, world, x, y, z, radius,
-		journal, answer, says, waiting, notyet, reminder, xp, rewardtunar, rewarditems, factions, spells, chance, events
-		FROM queststeps ORDER BY questid, step`)
+		journal, answer, says, waiting, notyet, reminder, xp, rewardtunar, rewarditems, factions, spells, chance, events, byclass,
+		choices FROM queststeps ORDER BY questid, step`)
 	if err != nil {
 		return nil, err
 	}
-	defer srs.Close()
 	for srs.Next() {
 		var st QuestStep
-		var items, rewardItems, factions, spells, events string
+		var items, rewardItems, factions, spells, events, byClass, choices string
 		if err := srs.Scan(&st.Quest, &st.Step, &st.Kind, &st.Target, &st.NPCID, &items, &st.Tunar, &st.Count, &st.World,
 			&st.X, &st.Y, &st.Z, &st.Radius, &st.Journal, &st.Answer, &st.Says, &st.Waiting, &st.NotYet, &st.Reminder,
 			&st.XP, &st.RewardTunar,
-			&rewardItems, &factions, &spells, &st.Chance, &events); err != nil {
+			&rewardItems, &factions, &spells, &st.Chance, &events, &byClass, &choices); err != nil {
+			srs.Close()
 			return nil, err
 		}
 		st.Kind = strings.ToLower(strings.TrimSpace(st.Kind))
@@ -558,11 +925,38 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		if st.Events, err = ParseQuestEvents(events); err != nil {
 			log.Printf("Quests: quest %d step %d's events are not read: %v", st.Quest, st.Step, err)
 		}
+		if st.ByClass, err = ParseClassRewards(byClass); err != nil {
+			log.Printf("Quests: quest %d step %d's rewards by class are not read: %v", st.Quest, st.Step, err)
+		}
+		if st.Choices, err = ParseStepChoices(choices); err != nil {
+			log.Printf("Quests: quest %d step %d's choice is not read: %v", st.Quest, st.Step, err)
+		} else if len(st.Choices.Options) > 0 && !AtNPC(st.Kind) {
+			log.Printf("Quests: quest %d step %d is a %s step: its choice is never asked", st.Quest, st.Step, st.Kind)
+		}
 		if i, ok := byID[st.Quest]; ok {
 			out[i].Steps = append(out[i].Steps, st)
 		}
 	}
-	return out, srs.Err()
+	srs.Close()
+	if err := srs.Err(); err != nil {
+		return nil, err
+	}
+	urs, err := s.db.Query(`SELECT questid, npc, dest FROM questunlocks ORDER BY questid, npc, dest`)
+	if err != nil {
+		return nil, err
+	}
+	defer urs.Close()
+	for urs.Next() {
+		var u QuestUnlock
+		if err := urs.Scan(&u.Quest, &u.NPC, &u.Dest); err != nil {
+			return nil, err
+		}
+		u.NPC, u.Dest = strings.TrimSpace(u.NPC), strings.TrimSpace(u.Dest)
+		if i, ok := byID[u.Quest]; ok && u.NPC != "" && u.Dest != "" {
+			out[i].Unlocks = append(out[i].Unlocks, u)
+		}
+	}
+	return out, urs.Err()
 }
 
 // CharQuests is a character's quests, under way and finished.

@@ -119,8 +119,9 @@ func TestQuestMarksAreWhatThePlayerMayDo(t *testing.T) {
 		marks[0].quests[0].line != "Go speak to Kellina." {
 		t.Fatalf("after taking it: %+v (sent %v), want Kellina's step", marks, ok)
 	}
+	// no drain between: the worker may have sent the set already (the
+	// step's save nudges it), and sentMarks takes the last one queued
 	f.tw.talk(kellina)
-	f.msgs()
 	f.qe.syncMarks(time.Now())
 	marks, _ = sentMarks(t, f.tw.s)
 	if len(marks) != 1 || marks[0].quests[0].detail != "2 cracked ant pincer" ||

@@ -50,7 +50,10 @@ const STATUS = {
   draft: ['warn', 'draft'],
 };
 const SHORT = ['WAR', 'RNG', 'PAL', 'SK', 'MNK', 'BRD', 'RGE', 'DRU', 'SHA', 'CLR', 'MAG', 'NEC', 'ENC', 'WIZ', 'ALC'];
-const CITY_NAMES = { 'klick-anon': "Klick'Anon", 'neriak-nektulos': 'Neriak' };
+const CITY_NAMES = { 'klick-anon': "Klick'Anon", 'neriak-nektulos': 'Neriak',
+  // the later guides' categories (tools/quests/data/<category>.json, questindex.go's questCity)
+  17: 'Level 17', '23-47': 'Levels 23-47', '30-40-49': 'Levels 30, 40, 49', '53-59': 'Levels 53-59', 60: 'Level 60 epics',
+  'hunt-and-gather': 'Hunt and gather', 'tank-exemplar': 'Tank exemplar', weres: 'Weres', misc: 'Misc', portal: 'Portals' };
 
 function cityName(c) {
   if (!c) return '—';
@@ -93,7 +96,7 @@ async function list(box, params) {
   const search = input('search', { type: 'search', placeholder: 'Search by name, giver, note or key', 'aria-label': 'Search quests' });
   const status = select('status', 'Status', [['', 'every status'], ['in the game', 'in the game'], ['draft', 'every draft'],
     ['ready', 'drafts ready to go in'], ['blocked', 'drafts not ready']]);
-  const citySel = select('city', 'City', [['', 'every city']]);
+  const citySel = select('city', 'City or category', [['', 'every city or category']]);
   const klass = select('class', 'Class', [['', 'every class'], ...CLASSES.map((c, i) => [String(i), c])]);
   const level = input('level', { type: 'number', min: 1, max: 60, placeholder: 'for level', 'aria-label': 'For a level', class: 'narrow' });
   const giver = input('giver', { type: 'search', placeholder: 'giver', 'aria-label': 'Giver' });
@@ -128,7 +131,7 @@ async function list(box, params) {
     last = out;
     // the cities, with their counts, kept in the choice
     const have = f.city ?? '';
-    mount(citySel, h('option', { value: '' }, 'every city'),
+    mount(citySel, h('option', { value: '' }, 'every city or category'),
       ...out.cities.map((c) => h('option', { value: c.city || 'none', selected: have === (c.city || 'none') },
         `${c.city ? cityName(c.city) : 'no city (a GM\'s)'} · ${c.quests}${c.drafts ? `, ${c.drafts} drafts` : ''}${c.ready ? `, ${c.ready} ready` : ''}`)));
     mount(chips, f.missing ? h('span', { class: 'chip' }, 'lacking ' + f.missing,
@@ -159,7 +162,7 @@ async function list(box, params) {
       h('td', { class: 'num' }, String(q.steps)), h('td', { class: 'num' }, String(q.underway)), h('td', { class: 'num' }, String(q.finished)),
       h('td', { class: 'small muted', title: (q.why || []).join('\n') }, (q.why || []).length ? q.why[0] + (q.why.length > 1 ? ` (+${q.why.length - 1})` : '') : '')));
     mount(body, h('div', { class: 'grid-scroll' }, h('table', { class: 'grid' },
-      h('thead', null, h('tr', null, ...['#', 'Name', 'Status', 'City', 'Classes', 'Levels', 'Giver', 'Steps', 'Under way', 'Finished', 'Why it is a draft'].map((x) => h('th', null, x)))),
+      h('thead', null, h('tr', null, ...['#', 'Name', 'Status', 'City or category', 'Classes', 'Levels', 'Giver', 'Steps', 'Under way', 'Finished', 'Why it is a draft'].map((x) => h('th', null, x)))),
       h('tbody', null, ...rows))));
   };
   // turning many on or off: a dry run, what it does, then for real
@@ -250,8 +253,9 @@ function idSet(obj, key, names) {
   }));
 }
 
-// pick asks for an NPC or an item by name (the search operation).
-function pick(kind, title) {
+// pick asks for an NPC, an item or a spell by name (the search operation), or
+// for anything find(query) lists ({title, subtitle, key}).
+function pick(kind, title, find) {
   return new Promise((resolve) => {
     let done = false;
     let dlg;
@@ -261,7 +265,7 @@ function pick(kind, title) {
       const q = search.value.trim();
       if (!q) { mount(out, h('p', { class: 'muted small' }, 'Type part of a name.')); return; }
       try {
-        const r = await op('search', { query: q, kinds: [kind], limit: 25 });
+        const r = find ? { results: await find(q) } : await op('search', { query: q, kinds: [kind], limit: 25 });
         mount(out, ...(r.results || []).map((x) => {
           const b = h('button', { type: 'button', class: 'ghost' }, h('strong', null, x.title), ' ', h('span', { class: 'muted small' }, x.subtitle || ''));
           b.addEventListener('click', () => { done = true; resolve(x); dlg.close(); });
@@ -309,6 +313,202 @@ export function itemsInput(obj, key) {
     toast(`${r.title} added (one; write *2 after its id for two)`, 'ok');
   } });
   return h('div', { class: 'with' }, i, add);
+}
+
+// spellsInput is spell ids, comma separated, with a picker that adds one.
+function spellsInput(obj, key) {
+  const i = text(obj, key, { placeholder: 'spell ids, comma separated', class: 'mono' });
+  const add = button('Add', { title: 'Pick a spell to add', onclick: async () => {
+    const r = await pick('spell', 'Add a spell');
+    if (!r) return;
+    const cur = (obj[key] || '').trim();
+    obj[key] = (cur ? cur + ', ' : '') + r.key;
+    i.value = obj[key];
+    toast(`${r.title} added`, 'ok');
+  } });
+  return h('div', { class: 'with' }, i, add);
+}
+
+// findFactions lists this server's factions whose names hold q (the factions
+// table, through query_rows), for pick.
+async function findFactions(q) {
+  const r = await op('query_rows', { table: 'factions', filters: [{ column: 'name', op: 'like', value: q }], limit: 25, columns: ['name', 'standing'] });
+  return (r.rows || []).map((x) => ({ title: x.name, subtitle: `starts at ${x.standing}`, key: x.name }));
+}
+
+// factionReqs edits obj[key], the standings a quest asks for ("Faction:min"
+// or "Faction:min..max", comma separated: database.ParseFactionReqs), a row a
+// faction: its name as the factions table has it, its lowest standing and,
+// when there is one, its highest.
+function factionReqs(obj, key) {
+  const box = h('div', { class: 'stack' });
+  const list = String(obj[key] || '').split(',').map((x) => x.trim()).filter(Boolean).map((x) => {
+    const i = x.lastIndexOf(':');
+    if (i < 0) return { faction: x, min: 0, max: '' };
+    const [lo, hi] = x.slice(i + 1).split('..');
+    return { faction: x.slice(0, i).trim(), min: Number(lo) || 0, max: hi === undefined ? '' : String(Number(hi)) };
+  });
+  const keep = () => {
+    obj[key] = list.filter((r) => r.faction.trim())
+      .map((r) => `${r.faction.trim()}:${Number(r.min) || 0}${String(r.max).trim() === '' ? '' : '..' + Number(r.max)}`).join(', ');
+  };
+  const row = (r, i) => {
+    const name = text(r, 'faction', { placeholder: 'its name as the factions table has it' });
+    name.addEventListener('input', keep);
+    const pickB = button('Pick', { onclick: async () => {
+      const x = await pick('faction', 'Pick a faction', findFactions);
+      if (x) { r.faction = x.key; name.value = x.key; keep(); }
+    } });
+    const lo = num(r, 'min', { min: -2000, max: 2000 });
+    lo.addEventListener('input', keep);
+    const hi = h('input', { type: 'number', min: -2000, max: 2000, value: r.max, placeholder: 'none' });
+    hi.addEventListener('input', () => { r.max = hi.value; keep(); });
+    return h('div', { class: 'fields' }, field('Faction', h('div', { class: 'with' }, name, pickB), null, true),
+      field('At least', lo), field('At most', hi, 'empty: no highest'),
+      field('', button('Remove', { icon: 'trash', onclick: () => { list.splice(i, 1); keep(); draw(); } })));
+  };
+  const draw = () => mount(box, ...list.map(row),
+    list.length ? null : h('p', { class: 'muted small' }, 'None: whoever its levels, classes and races allow.'),
+    button('Ask a standing', { icon: 'plus', onclick: () => { list.push({ faction: '', min: 0, max: '' }); draw(); } }));
+  draw();
+  return box;
+}
+
+// classRewards edits obj[key], a step's rewards by class (database.
+// ClassReward: a JSON object by class id, each {xp, tunar, items, spells},
+// items and spells written as the step's own are), a row a class. Text that
+// is not such an object is shown as it is, to be mended by hand.
+function classRewards(obj, key) {
+  const box = h('div', { class: 'stack' });
+  let rows;
+  try {
+    const m = obj[key] ? JSON.parse(obj[key]) : {};
+    if (!m || typeof m !== 'object' || Array.isArray(m)) throw new Error('not an object of class ids');
+    rows = Object.entries(m).map(([c, v]) => ({ class: c, xp: v.xp || 0, tunar: v.tunar || 0, items: v.items || '', spells: v.spells || '' }));
+  } catch (e) {
+    mount(box, h('p', { class: 'err small' }, 'These rewards by class are not a JSON object (' + e.message + '): mend them here.'), area(obj, key, 3));
+    return box;
+  }
+  const keep = () => {
+    const out = {};
+    for (const r of rows) {
+      const v = {};
+      if (Number(r.xp)) v.xp = Number(r.xp);
+      if (Number(r.tunar)) v.tunar = Number(r.tunar);
+      if (String(r.items).trim()) v.items = String(r.items).trim();
+      if (String(r.spells).trim()) v.spells = String(r.spells).trim();
+      out[String(r.class)] = v;
+    }
+    obj[key] = rows.length ? JSON.stringify(out) : '';
+  };
+  box.addEventListener('input', keep);
+  box.addEventListener('change', keep);
+  const row = (r, i) => {
+    const cls = h('select', null, ...CLASSES.map((c, k) => h('option', { value: String(k), selected: String(r.class) === String(k) }, c)));
+    cls.addEventListener('change', () => { r.class = cls.value; keep(); });
+    return h('div', { class: 'fields' }, field('Class', cls), field('Experience', num(r, 'xp', { min: 0 })), field('Tunar', num(r, 'tunar', { min: 0 })),
+      field('Items', itemsInput(r, 'items'), null, true), field('Spells taught', spellsInput(r, 'spells'), 'its own class\'s', true),
+      field('', button('Remove', { icon: 'trash', onclick: () => { rows.splice(i, 1); keep(); draw(); } })));
+  };
+  const draw = () => mount(box, ...rows.map(row),
+    rows.length ? null : h('p', { class: 'muted small' }, 'None: every class gets the rewards above alone.'),
+    button('Add a class', { icon: 'plus', onclick: () => {
+      const free = CLASSES.findIndex((_, k) => !rows.some((r) => String(r.class) === String(k)));
+      rows.push({ class: String(Math.max(free, 0)), xp: 0, tunar: 0, items: '', spells: '' });
+      keep();
+      draw();
+    } }));
+  draw();
+  return box;
+}
+
+// choiceEditor edits obj[key], a talk, show or give step's choice
+// (database.StepChoices: {ask, options: [{answer, says, stay, xp, tunar,
+// items, spells}]}): its question and a row an option. Text that is not such
+// a choice is shown as it is, to be mended by hand.
+function choiceEditor(obj, key) {
+  const box = h('div', { class: 'stack' });
+  let ch;
+  try {
+    ch = obj[key] ? JSON.parse(obj[key]) : { options: [] };
+    if (!ch || typeof ch !== 'object' || !Array.isArray(ch.options || [])) throw new Error('no options list');
+    ch.options = ch.options || [];
+  } catch (e) {
+    mount(box, h('p', { class: 'err small' }, 'This choice is not {ask, options} (' + e.message + '): mend it here.'), area(obj, key, 3));
+    return box;
+  }
+  const keep = () => {
+    const opts = ch.options.map((o) => {
+      const v = { answer: String(o.answer || '').trim() };
+      if (String(o.says || '').trim()) v.says = o.says;
+      if (o.stay) v.stay = true;
+      if (Number(o.xp)) v.xp = Number(o.xp);
+      if (Number(o.tunar)) v.tunar = Number(o.tunar);
+      if (String(o.items || '').trim()) v.items = String(o.items).trim();
+      if (String(o.spells || '').trim()) v.spells = String(o.spells).trim();
+      return v;
+    });
+    obj[key] = opts.length ? JSON.stringify(String(ch.ask || '').trim() ? { ask: ch.ask.trim(), options: opts } : { options: opts }) : '';
+  };
+  box.addEventListener('input', keep);
+  box.addEventListener('change', keep);
+  const row = (o, i) => {
+    const stay = h('input', { type: 'checkbox', checked: !!o.stay });
+    stay.addEventListener('change', () => { o.stay = stay.checked; keep(); });
+    return h('div', { class: 'fields' }, field(`Answer ${i + 1}`, counted(o, 'answer', 63), null, true),
+      field('NPC says when picked', area(o, 'says', 2), 'a line a box', true),
+      field('', h('label', { class: 'check' }, stay, 'Stays: the step is not done (a wrong answer)')),
+      field('Experience', num(o, 'xp', { min: 0 })), field('Tunar', num(o, 'tunar', { min: 0 })),
+      field('Items', itemsInput(o, 'items'), null, true), field('Spells taught', spellsInput(o, 'spells'), null, true),
+      field('', button('Remove', { icon: 'trash', onclick: () => { ch.options.splice(i, 1); keep(); draw(); } })));
+  };
+  const ask = text(ch, 'ask', { placeholder: 'Which do you choose?' });
+  const draw = () => mount(box, ch.options.length ? field('The question', ask, 'asked when the step is done', true) : null,
+    ...ch.options.map(row),
+    ch.options.length ? null : h('p', { class: 'muted small' }, 'None: the step is done when talked to.'),
+    ch.options.length < 6 ? button('Add an option', { icon: 'plus', onclick: () => { ch.options.push({ answer: '' }); keep(); draw(); } }) : null);
+  draw();
+  return box;
+}
+
+// routeKey is a place as an unlock's is matched to a route's label
+// (handlers/questtrips.go): case, a leading "the" and all but letters and
+// digits aside.
+function routeKey(s) {
+  return String(s || '').trim().toLowerCase().replace(/^the /, '').replace(/[^\p{L}\p{N}]/gu, '');
+}
+
+// unlocksEditor edits list, the trips a quest unlocks ({npc, dest}), a row a
+// trip: the travel NPC and its route's place, offered from routes (quest_get's:
+// every waysender's and portal's trips); a place no route of that NPC is
+// opens nothing until one is there.
+function unlocksEditor(list, routes) {
+  const box = h('div', { class: 'stack' });
+  const row = (u, i) => {
+    const dl = h('datalist', { id: `unlock-routes-${i}` });
+    const note = h('span', { class: 'hint' });
+    const dest = text(u, 'dest', { placeholder: "the route's place", list: dl.id });
+    const refresh = () => {
+      const mine = routes.filter((r) => r.npc.trim().toLowerCase() === String(u.npc || '').trim().toLowerCase());
+      mount(dl, ...mine.map((r) => h('option', { value: r.to })));
+      const found = mine.some((r) => routeKey(r.to) === routeKey(u.dest));
+      note.textContent = !u.npc ? '' : !mine.length ? 'no route of that NPC' : found ? '' : `no such trip: ${mine.map((r) => r.to).join(', ')}`;
+      note.style.color = note.textContent ? 'var(--danger, #e66)' : '';
+    };
+    const npc = npcInput(u, 'npc', 'the travel NPC');
+    npc.addEventListener('input', refresh);
+    dest.addEventListener('input', refresh);
+    dest.addEventListener('focus', refresh); // after a pick, which sets the NPC without an input event
+    refresh();
+    return h('div', { class: 'fields' }, field('Travel NPC', npc, 'a waysender or a portal', true),
+      field('Trip to', h('div', { class: 'stack' }, dest, dl, note), null, true),
+      field('', button('Remove', { icon: 'trash', onclick: () => { list.splice(i, 1); draw(); } })));
+  };
+  const draw = () => mount(box, ...list.map(row),
+    list.length ? null : h('p', { class: 'muted small' }, 'None.'),
+    button('Unlock a trip', { icon: 'plus', onclick: () => { list.push({ npc: '', dest: '' }); draw(); } }));
+  draw();
+  return box;
 }
 
 // eventsEditor edits obj[key], a JSON list of events (handlers/questevents.go),
@@ -373,8 +573,8 @@ function eventsEditor(obj, key, whens, worlds) {
 async function editor(box, id) {
   let data = {
     quest: { name: '', enabled: 0, giver: '', minlevel: 1, maxlevel: 60, classes: '', races: '', requires: '', repeatable: 0,
-      offer: '', accept: '', decline: '', declined: '', started: '', source: 'gm', notes: '', events: '' },
-    steps: [], problems: [], characters: [],
+      offer: '', accept: '', decline: '', declined: '', started: '', source: 'gm', notes: '', events: '', factionreq: '' },
+    steps: [], unlocks: [], routes: [], problems: [], characters: [],
   };
   if (id) {
     try {
@@ -386,6 +586,7 @@ async function editor(box, id) {
   }
   const q = { ...data.quest };
   const steps = data.steps.map((s) => ({ ...s }));
+  const unlocks = (data.unlocks || []).map((u) => ({ ...u }));
   let worlds = [];
   try { worlds = (await describe('queststeps')).enums?.world || []; } catch { /* no catalog: numbers */ }
 
@@ -401,7 +602,7 @@ async function editor(box, id) {
     button('Add a step', { icon: 'plus', onclick: () => {
       steps.push({ kind: 'talk', target: q.giver || '', npcid: 0, items: '', tunar: 0, count: 1, world: 0, x: 0, y: 0, z: 0, radius: 15,
         journal: '', answer: '', says: '', waiting: '', notyet: '', reminder: '', xp: 0, rewardtunar: 0, rewarditems: '', factions: '', spells: '',
-        chance: 0, events: '' });
+        chance: 0, events: '', byclass: '', choices: '' });
       drawSteps();
     } }));
 
@@ -454,7 +655,9 @@ async function editor(box, id) {
       field('Reward: experience', num(s, 'xp', { min: 0 })), field('Reward: tunar', num(s, 'rewardtunar', { min: 0 })),
       field('Reward: items', itemsInput(s, 'rewarditems'), null, true),
       field('Reward: faction changes', text(s, 'factions', { placeholder: 'Faction Name:+10, ...' }), null, true),
-      field('Reward: spells taught', text(s, 'spells', { placeholder: 'spell ids, comma separated', class: 'mono' }), null, true),
+      field('Reward: spells taught', spellsInput(s, 'spells'), null, true),
+      field('Rewards by class', classRewards(s, 'byclass'), 'besides those above, for a player of that class', true),
+      AT_NPC.has(s.kind) ? field('A choice', choiceEditor(s, 'choices'), "asked when it is done: the pick's rewards besides those above", true) : null,
       field('Events', eventsEditor(s, 'events', STEP_WHENS, worlds), 'run in order after the step\'s own words', true));
     const move = (d) => { const j = i + d; if (j < 0 || j >= steps.length) return; [steps[i], steps[j]] = [steps[j], steps[i]]; drawSteps(); };
     return card(`Step ${i + 1} · ${KINDS[s.kind] || s.kind}`, h('div', { class: 'fields' }, ...fields),
@@ -465,7 +668,7 @@ async function editor(box, id) {
 
   const save = button('Save', { class: 'primary', icon: 'save', onclick: async () => {
     try {
-      const out = await op('quest_save', { quest: { ...q, questid: id || undefined }, steps });
+      const out = await op('quest_save', { quest: { ...q, questid: id || undefined }, steps, unlocks });
       const newID = Number(out.quest.questid);
       toast(out.changes ? `Saved (${out.changes} row change${out.changes === 1 ? '' : 's'})` : 'Nothing to save', 'ok', out.live);
       showProblems(out.problems);
@@ -538,7 +741,8 @@ async function editor(box, id) {
           field('From level', num(q, 'minlevel', { min: 0 })), field('To level', num(q, 'maxlevel', { min: 0 }), '0: any'),
           field('Classes', idSet(q, 'classes', CLASSES), 'none ticked: any', true),
           field('Races', idSet(q, 'races', RACES), 'none ticked: any', true),
-          field('Quests finished first', text(q, 'requires', { placeholder: 'quest ids, comma separated', class: 'mono' }), null, true))),
+          field('Quests finished first', text(q, 'requires', { placeholder: 'quest ids, comma separated', class: 'mono' }), null, true),
+          field('Standings asked', factionReqs(q, 'factionreq'), 'offered, marked and done at its giver only while each is met (-2000 to 2000)', true))),
         card('What the giver says', h('div', { class: 'fields' },
           field('Offer', area(q, 'offer', 6), 'a paragraph a question: its lines a box each, its last line the question (no name before it)', true),
           field('Answers taking it', area(q, 'accept', 2), 'a line a question; empty: taken as soon as the giver is talked to', true),
@@ -548,6 +752,9 @@ async function editor(box, id) {
           h('p', { class: 'muted small field wide' }, "An NPC's lines are shown with its name before them, as Sandstorm's are, unless they begin with it."))),
         card('Events', h('div', { class: 'fields' },
           field('', eventsEditor(q, 'events', QUEST_WHENS, worlds), "run in order after the giver's words when it is taken, and after the last step's when it is finished", true))),
+        card('Trips it unlocks', h('div', { class: 'stack' },
+          h('p', { class: 'muted small' }, "A travel NPC offers each trip only to a player who has finished this quest (or another that unlocks it), while one of them is in the game."),
+          unlocksEditor(unlocks, data.routes || []))),
         card('Steps', stepsBox)),
       h('div', { class: 'stack' },
         stands ? card('Where it stands', stands) : null,

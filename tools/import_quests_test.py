@@ -2,8 +2,10 @@
 """tools/import_quests.py against a made-up database and content file
 (tools/quests/testdata/sample.json): names resolved as a player reads them, a
 quest item made from its like, a quest with a missing creature a draft and the
-quest after it too, a run again a no-op, a GM's change kept, and --undo exact.
-No game data.
+quest after it too, a run again a no-op, a GM's change kept, and --undo exact;
+and the later guides' fields (tools/quests/testdata/later.json): a faction
+requirement, repeatable, the trips a quest unlocks and rewards by class. No
+game data.
 
     python3 tools/import_quests_test.py
 """
@@ -20,6 +22,9 @@ sys.path.insert(0, HERE)
 import import_quests as iq  # noqa: E402
 
 SAMPLE = os.path.join(HERE, "quests", "testdata", "sample.json")
+LATER = os.path.join(HERE, "quests", "testdata", "later.json")
+# the routes the unlocks are matched to, as waysender.go's would be
+ROUTES = [("Waysender Ti`Thox", "Freeport"), ("Waysender Ti`Thox", "Grobb"), ("Waysender Abodai", "Neriak")]
 
 SCHEMA = """
 CREATE TABLE npcs (id INTEGER PRIMARY KEY AUTOINCREMENT, npc_name TEXT, world INTEGER);
@@ -54,7 +59,7 @@ def state(db):
     anyway left out) and the item counter."""
     h = hashlib.md5()
     for (t,) in db.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name"):
-        cols = [c for c in iq.columns(db, t) if c not in ("events", "chance")]
+        cols = [c for c in iq.columns(db, t) if c not in ("events", "chance", "factionreq", "byclass")]
         for r in db.execute(f"SELECT {', '.join(cols)} FROM {t} ORDER BY 1"):
             h.update(repr((t, r)).encode())
     h.update(repr(db.execute("SELECT * FROM sqlite_sequence WHERE name = 'itempattern'").fetchall()).encode())
@@ -141,6 +146,116 @@ class ImportQuests(unittest.TestCase):
         n = iq.undo(self.db)
         self.assertEqual((n["quests"], n["items"], n["progress"], n["held"]), (3, 1, 1, 1))
         self.assertEqual(state(self.db), before, "undo leaves the database as it was")
+
+
+
+def old_digest(db, qid):
+    """An import's digest as it was before the later columns and the unlocks
+    (its columns verbatim), which quest_import_quests rows of an earlier
+    import hold."""
+    qcols = [c for c in iq.QUEST_COLS if c not in iq.LATER_COLS]
+    scols = [c for c in iq.STEP_COLS if c not in iq.LATER_COLS]
+    h = hashlib.md5()
+    for r in db.execute(f"SELECT {', '.join(qcols)} FROM quests WHERE questid = ?", (qid,)):
+        h.update(repr(tuple(r)).encode())
+    for r in db.execute(f"SELECT {', '.join(scols)} FROM queststeps WHERE questid = ? ORDER BY step", (qid,)):
+        h.update(repr(tuple(r)).encode())
+    return h.hexdigest()
+
+
+class LaterFields(unittest.TestCase):
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.dir.name, "q.db")
+        self.db = make_db(self.path)
+        self.db.execute("INSERT INTO npcs (npc_name, world) VALUES ('Waysender Ti`Thox', 1)")
+        self.files = iq.load_files([SAMPLE, LATER])
+
+    def tearDown(self):
+        self.db.close()
+        self.dir.cleanup()
+
+    def quest(self, key):
+        return ImportQuests.quest(self, key)
+
+    def test_the_later_fields_resolve(self):
+        p = iq.plan(self.db, self.files, routes=ROUTES)
+        iq.write(self.db, p)
+        q, (st,) = self.quest("Misc/testmoor-writ/p1")
+        self.assertEqual((q["enabled"], q["repeatable"], q["factionreq"]), (1, 1, "Testmoor Watch:100..500"),
+                         "the faction as the database spells it, its range")
+        self.assertEqual(json.loads(st["byclass"]), {"0": {"xp": 50, "items": "2", "spells": "2"}, "4": {"tunar": 10, "spells": "1"}},
+                         "each class's Swipe its own (the warrior's 2, the monk's 1), the item by its id")
+        trips = self.db.execute("SELECT npc, dest FROM questunlocks WHERE questid = ? ORDER BY dest", (q["questid"],)).fetchall()
+        self.assertEqual(trips, [("Waysender Ti`Thox", "Grobb"), ("Waysender Ti`Thox", "Testmoor Isle")],
+                         "the route's own label where one is matched; one naming no route written as given")
+        warned = "\n".join(p["warnings"])
+        self.assertIn("'Testmoor Isle', which is no route", warned)
+        self.assertNotIn("'the grobb', which is no route", warned, "the control: the grobb is Grobb")
+        self.assertEqual(q["source"], "EQOA-Data Misc/testmoor-writ/p1 (tools/import_quests.py)", "the new category's key")
+
+    def test_a_choice_resolves_as_a_steps_rewards(self):
+        iq.write(self.db, iq.plan(self.db, self.files, routes=ROUTES))
+        q, (st,) = self.quest("60/testmoor-epic/p1")
+        self.assertEqual(q["enabled"], 1)
+        self.assertEqual(json.loads(st["choices"]), {"ask": "Which will you take?", "options": [
+            {"answer": "The spear.", "items": "2"}, {"answer": "The swipe.", "xp": 5, "spells": "2"},
+            {"answer": "Neither.", "says": "Then think on it.", "stay": True}]}, "the warrior's Swipe, the spear by its id")
+        # an option's missing item makes a draft, as a step's reward does
+        files = json.loads(json.dumps(self.files))
+        files[1][1]["quests"][2]["steps"][0]["choices"][0]["rewards"]["items"] = ["Golden Spear"]
+        p = iq.plan(self.db, files, routes=ROUTES)
+        epic = [x for x in p["quests"] if x["key"] == "60/testmoor-epic/p1"][0]
+        self.assertIn("item 'Golden Spear' (step 1 option 1)", epic["why"])
+
+    def test_a_faction_this_database_lacks_makes_a_draft(self):
+        iq.write(self.db, iq.plan(self.db, self.files, routes=ROUTES))
+        q, _ = self.quest("Misc/testmoor-writ/p2")
+        self.assertEqual(q["enabled"], 0)
+        self.assertIn("faction 'Moor Hermits' (required)", q["notes"])
+        self.db.execute("INSERT INTO factions VALUES ('Moor Hermits', 0)")
+        p = iq.plan(self.db, self.files, routes=ROUTES)
+        lost = [x for x in p["quests"] if x["key"] == "Misc/testmoor-writ/p2"][0]
+        self.assertEqual(lost["why"], ["the file's unresolved 'Moor Hermits'"],
+                         "the faction now here: only the file's own list keeps it out (fix_names.py mends that)")
+
+    def test_unlocks_go_with_undo_and_a_run_again_is_a_no_op(self):
+        before = state(self.db)
+        iq.write(self.db, iq.plan(self.db, self.files, routes=ROUTES))
+        once = state(self.db)
+        trips = self.db.execute("SELECT * FROM questunlocks ORDER BY dest").fetchall()
+        written, kept, _ = iq.write(self.db, iq.plan(self.db, self.files, routes=ROUTES))
+        self.assertEqual((written, kept), (6, []))
+        self.assertEqual((state(self.db), self.db.execute("SELECT * FROM questunlocks ORDER BY dest").fetchall()), (once, trips))
+        # a GM's unlock row on an imported quest is a GM's change: left as it is
+        qid = self.quest("Misc/testmoor-writ/p1")[0]["questid"]
+        self.db.execute("INSERT INTO questunlocks VALUES (?, 'Waysender Abodai', 'Neriak')", (qid,))
+        _, kept, _ = iq.write(self.db, iq.plan(self.db, self.files, routes=ROUTES))
+        self.assertEqual(kept, ["Misc/testmoor-writ/p1"])
+        n = iq.undo(self.db)
+        self.assertEqual(n["trips"], 3)
+        self.assertEqual(self.db.execute("SELECT count(*) FROM questunlocks").fetchone()[0], 0)
+        self.assertEqual(state(self.db), before, "undo leaves the database as it was")
+
+    def test_an_earlier_imports_digest_still_holds(self):
+        iq.write(self.db, iq.plan(self.db, self.files, routes=ROUTES))
+        plain = self.quest("1-20/testmoor/warrior/L1")[0]["questid"]
+        later = self.quest("Misc/testmoor-writ/p1")[0]["questid"]
+        self.assertEqual(iq.digest(self.db, plain), old_digest(self.db, plain),
+                         "a quest with none of the later fields digests as an earlier import logged it")
+        self.assertNotEqual(iq.digest(self.db, later), old_digest(self.db, later),
+                            "the control: a quest with them digests them too")
+
+    def test_the_servers_routes_are_read(self):
+        rs = iq.travel.travel_routes()
+        self.assertIsNotNone(rs, "waysender.go beside the tools")
+        self.assertIn(("Necrologist Zizclank", "the Plane of Disease"), rs)
+        with open(iq.travel.WAYSENDER) as f:
+            src = f.read()
+        block = src[src.index("var wayRoutes"):src.index("\n}\n", src.index("var wayRoutes"))]
+        self.assertEqual(len(rs), block.count("{To:"), "every route of the map, none past it")
+        self.assertEqual(iq.travel.route_of("waysender windfoot", "Klik`Anon", rs), ("Waysender Windfoot", "Klik'Anon"))
+        self.assertIsNone(iq.travel.route_of("Waysender Windfoot", "Klick'Anon", rs), "a letter is another place")
 
 
 if __name__ == "__main__":

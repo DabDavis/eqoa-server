@@ -19,12 +19,19 @@ import (
 
 // questCols are a quest row's columns the editor sends, in the table's order.
 var questCols = []string{"name", "enabled", "giver", "minlevel", "maxlevel", "classes", "races", "requires",
-	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes", "events"}
+	"repeatable", "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq"}
 
 // stepCols are a step row's columns the editor sends.
 var stepCols = []string{"kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
 	"journal", "answer", "says", "waiting", "notyet", "reminder", "xp", "rewardtunar", "rewarditems", "factions", "spells",
-	"chance", "events"}
+	"chance", "events", "byclass", "choices"}
+
+// questUnlock is one trip a quest unlocks as the editor sends it (a
+// questunlocks row: handlers/questtrips.go).
+type questUnlock struct {
+	NPC  string `json:"npc"`
+	Dest string `json:"dest"`
+}
 
 // eventsHelp is what an events column holds, for the schemas.
 const eventsHelp = `a JSON list of events, each {"on", "do", ...}: popup {text, answer} a window the player closes ` +
@@ -53,6 +60,8 @@ func (s *Server) registerQuestOps() {
 		"source":     str("where it came from"),
 		"notes":      str("for GMs"),
 		"events":     str("what happens when it is taken (on accept) and finished (on finish): " + eventsHelp),
+		"factionreq": str("the standings it asks for: Faction Name:min or Faction Name:min..max, comma separated (as the " +
+			"factions table spells them; -2000 to 2000): offered, marked and its steps at its giver done only while each is met; empty: none"),
 	})
 	stepSchema := obj(map[string]any{
 		"kind":        strEnum("talk: talk to target; show: talk to target holding items (kept); give: hand target items and tunar (taken); kill: kill count of target; loot: kill target until count of the item in items have been taken off their corpses during the step, each kill dropping one on the corpse with chance; reach: come within radius of x, z in world", database.StepKinds...),
@@ -79,7 +88,17 @@ func (s *Server) registerQuestOps() {
 		"factions":    str("reward: faction changes, Faction Name:+10, comma separated"),
 		"spells":      str("reward: spell ids, comma separated"),
 		"events":      str("what happens when it becomes the step to do (on start) and when it is done (on done): " + eventsHelp),
+		"byclass": str(`rewards for a player of one class besides the above: a JSON object by class id (0 Warrior ... 14 ` +
+			`Alchemist), each {"xp", "tunar", "items": "patternid*count, ...", "spells": "spell ids, comma separated"}; empty: none`),
+		"choices": str(`talk/show/give: a pick asked when the step is done at its NPC (a guide's "choose your epic weapon"): ` +
+			`{"ask": "the question", "options": [{"answer", "says", "stay", "xp", "tunar", "items": "patternid*count, ...", ` +
+			`"spells": "spell ids"}]}, at most six options; the picked one's rewards are given besides the step's own, and one ` +
+			`with stay does not do the step (a wrong answer: its words said, the player may talk again); empty: none`),
 	})
+	unlockSchema := obj(map[string]any{
+		"npc":  str("the travel NPC (a waysender, a portal), by its name as the game shows it"),
+		"dest": str("the place, as that NPC's route is labelled (quest_get's routes lists them)"),
+	}, "npc", "dest")
 	filterFields := map[string]any{
 		"search":   str("part of a name, giver, note or import key, or a quest's id"),
 		"status":   strEnum("in the game; draft (every draft); ready (a draft nothing keeps out now: every name it uses is here and every quest it requires is in the game or ready too); blocked (a draft that is not ready); empty: all", "", questInGame, "draft", questReady, "blocked"),
@@ -151,8 +170,9 @@ func (s *Server) registerQuestOps() {
 	})
 	s.addOp(&Op{
 		Name: "quest_get", Title: "Get a quest", Scope: scopeRead, Core: true,
-		Description: "One quest with its steps in order, what is wrong with it (problems: unknown NPCs or items, " +
-			"a step no one can do), and who has it.",
+		Description: "One quest with its steps in order, the trips it unlocks, what is wrong with it (problems: unknown " +
+			"NPCs, items, spells or factions, a bad class id, a trip no route is, a step no one can do), who has it, and " +
+			"routes: every travel NPC's trips an unlock may name.",
 		Input: obj(map[string]any{"quest": integer("the quest's id")}, "quest"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct{ Quest int64 }
@@ -165,21 +185,24 @@ func (s *Server) registerQuestOps() {
 	s.addOp(&Op{
 		Name: "quest_save", Title: "Save a quest", Scope: scopeWrite, Core: true,
 		Description: "Make or change a quest and its steps in one go: quest is its row (no questid: a new one), steps " +
-			"its steps in order (numbered 1, 2, ... as given; steps past the last are deleted). Each row changed is " +
-			"logged and revertible. The game uses it at once. The answer lists its problems.",
+			"its steps in order (numbered 1, 2, ... as given; steps past the last are deleted), unlocks (when given) the " +
+			"travel NPCs' trips it opens, offered only to a player who has finished it (quest_get's routes lists them). " +
+			"Each row changed is logged and revertible. The game uses it at once. The answer lists its problems.",
 		Input: obj(map[string]any{
-			"quest": questSchema,
-			"steps": arr(stepSchema, "the steps in order"),
+			"quest":   questSchema,
+			"steps":   arr(stepSchema, "the steps in order"),
+			"unlocks": arr(unlockSchema, "the trips it unlocks (left as they are when not given; an empty list: none)"),
 		}, "quest", "steps"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
-				Quest map[string]any
-				Steps []map[string]any
+				Quest   map[string]any
+				Steps   []map[string]any
+				Unlocks *[]questUnlock
 			}
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			return c.s.questSave(c.a, req.Quest, req.Steps)
+			return c.s.questSave(c.a, req.Quest, req.Steps, req.Unlocks)
 		},
 	})
 	s.addOp(&Op{
@@ -422,7 +445,9 @@ func (s *Server) questGet(id int64) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	out := map[string]any{"quest": quest[0], "steps": steps, "problems": s.questProblems(quest[0], steps), "characters": who}
+	unlocks := s.questUnlocks(id)
+	out := map[string]any{"quest": quest[0], "steps": steps, "unlocks": unlocks,
+		"problems": s.questProblems(quest[0], steps, unlocks), "characters": who, "routes": handlers.TravelRoutes()}
 	// where it stands among the rest: its status and why, the quests it
 	// requires and those that require it
 	if idx, err := s.loadQuestIndex(); err == nil {
@@ -453,9 +478,26 @@ func (s *Server) questGet(id int64) (any, error) {
 	return out, nil
 }
 
+// questUnlocks is the trips a quest unlocks, by NPC and place.
+func (s *Server) questUnlocks(id int64) []questUnlock {
+	out := []questUnlock{}
+	rs, err := s.d.DB.Query(`SELECT npc, dest FROM questunlocks WHERE questid = ? ORDER BY npc, dest`, id)
+	if err != nil {
+		return out // a database without the table has none
+	}
+	defer rs.Close()
+	for rs.Next() {
+		var u questUnlock
+		if rs.Scan(&u.NPC, &u.Dest) == nil {
+			out = append(out, u)
+		}
+	}
+	return out
+}
+
 // questProblems is what keeps a quest from being done as written: names and
 // ids this server does not have, a step no one can do, words the client cuts.
-func (s *Server) questProblems(q map[string]any, steps []map[string]any) []string {
+func (s *Server) questProblems(q map[string]any, steps []map[string]any, unlocks []questUnlock) []string {
 	text := func(r map[string]any, col string) string { v, _ := r[col].(string); return strings.TrimSpace(v) }
 	num := func(r map[string]any, col string) float64 { v, _ := asFloat(r[col]); return v }
 	var out []string
@@ -493,6 +535,17 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 		add("it has no steps: it cannot be taken")
 	}
 	s.eventProblems(text(q, "events"), false, "the quest's", add)
+	for _, p := range database.FactionReqProblems(text(q, "factionreq")) {
+		add("%s", p)
+	}
+	for _, r := range database.ParseFactionReqs(text(q, "factionreq")) {
+		if !s.hasFaction(r.Faction) {
+			add("it asks a standing with faction %q, which this server does not have: no one is offered it", r.Faction)
+		}
+	}
+	for _, u := range unlocks {
+		s.unlockProblems(u, add)
+	}
 	if strings.HasPrefix(text(q, "source"), "EQOA-Data") && len(steps) == 1 &&
 		strings.EqualFold(text(steps[0], "kind"), database.StepTalk) && strings.EqualFold(text(steps[0], "target"), text(q, "giver")) {
 		add("an imported draft: its steps are still the one talk to its giver; write them from its notes before turning it on")
@@ -571,14 +624,92 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any) []strin
 			}
 		}
 		for _, f := range database.ParseFactionDeltas(text(st, "factions")) {
-			var n int
-			s.d.DB.QueryRow(`SELECT COUNT(*) FROM factions WHERE name = ?`, f.Faction).Scan(&n)
-			if n == 0 {
+			if !s.hasFaction(f.Faction) {
 				add("%s moves faction %q, which this server does not have", where, f.Faction)
+			}
+		}
+		s.classRewardProblems(text(st, "byclass"), where, add)
+		for _, p := range database.ChoiceProblems(text(st, "choices"), kind) {
+			add("%s: %s", where, p)
+		}
+		if ch, err := database.ParseStepChoices(text(st, "choices")); err == nil {
+			for k, o := range ch.Options {
+				s.itemProblems(o.Reward.Items, fmt.Sprintf("%s's option %d gives", where, k+1), add)
+				for _, sp := range o.Reward.Spells {
+					var n int
+					s.d.DB.QueryRow(`SELECT COUNT(*) FROM spellpattern WHERE spellid = ?`, sp).Scan(&n)
+					if n == 0 {
+						add("%s's option %d gives spell %d, which does not exist", where, k+1, sp)
+					}
+				}
 			}
 		}
 	}
 	return out
+}
+
+// hasFaction is whether this server has a faction of that name, spelled so
+// (entity/faction.go matches it exactly).
+func (s *Server) hasFaction(name string) bool {
+	var n int
+	s.d.DB.QueryRow(`SELECT COUNT(*) FROM factions WHERE name = ?`, name).Scan(&n)
+	return n > 0
+}
+
+// classRewardProblems says what is wrong with a step's rewards by class: its
+// form (database.ClassRewardProblems), and the items and spells it gives that
+// this server lacks.
+func (s *Server) classRewardProblems(byclass, where string, add func(string, ...any)) {
+	for _, p := range database.ClassRewardProblems(byclass) {
+		add("%s's %s", where, p)
+	}
+	m, err := database.ParseClassRewards(byclass)
+	if err != nil {
+		return
+	}
+	for _, id := range sortedKeys(m) {
+		cr := m[id]
+		s.itemProblems(cr.Items, fmt.Sprintf("%s gives class %d", where, id), add)
+		for _, sp := range cr.Spells {
+			var n int
+			s.d.DB.QueryRow(`SELECT COUNT(*) FROM spellpattern WHERE spellid = ?`, sp).Scan(&n)
+			if n == 0 {
+				add("%s gives class %d spell %d, which does not exist", where, id, sp)
+			}
+		}
+	}
+}
+
+// sortedKeys is a map's int keys in order.
+func sortedKeys[V any](m map[int]V) []int {
+	out := make([]int, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	sortInts(out)
+	return out
+}
+
+func sortInts(v []int) {
+	for i := 1; i < len(v); i++ {
+		for j := i; j > 0 && v[j] < v[j-1]; j-- {
+			v[j], v[j-1] = v[j-1], v[j]
+		}
+	}
+}
+
+// unlockProblems says what is wrong with a trip a quest unlocks: no NPC of
+// the name, or no route of that NPC to that place (handlers.RouteOf), which
+// opens nothing until one is there.
+func (s *Server) unlockProblems(u questUnlock, add func(string, ...any)) {
+	var n int
+	s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(TRIM(npc_name)) = LOWER(TRIM(?))`, u.NPC).Scan(&n)
+	if n == 0 {
+		add("it unlocks %s's trip to %s, and no NPC is named %q", u.NPC, u.Dest, u.NPC)
+	}
+	if _, ok := handlers.RouteOf(u.NPC, u.Dest); !ok {
+		add("it unlocks %s's trip to %s, which is no route (the server's waysender.go lists them): it opens nothing yet", u.NPC, u.Dest)
+	}
 }
 
 // npcProblems says what is wrong with an NPC a quest names: none of the name.
@@ -633,7 +764,7 @@ func (s *Server) itemProblems(items []database.ItemCount, what string, add func(
 	}
 }
 
-func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]any) (any, error) {
+func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]any, unlocks *[]questUnlock) (any, error) {
 	qt, err := s.table("quests")
 	if err != nil {
 		return nil, err
@@ -641,6 +772,13 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 	st, err := s.table("queststeps")
 	if err != nil {
 		return nil, err
+	}
+	if unlocks != nil {
+		for i, u := range *unlocks {
+			if strings.TrimSpace(u.NPC) == "" || strings.TrimSpace(u.Dest) == "" {
+				return nil, badRequest("unlock %d: a trip is its NPC and its place (npc, dest)", i+1)
+			}
+		}
 	}
 	pick := func(src map[string]any, cols []string) map[string]any {
 		out := map[string]any{}
@@ -737,6 +875,13 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 			changes = append(changes, ch)
 		}
 	}
+	if unlocks != nil {
+		chs, err := s.saveUnlocks(a, int64(id), *unlocks)
+		if err != nil {
+			return nil, err
+		}
+		changes = append(changes, chs...)
+	}
 	out, err := s.questGet(int64(id))
 	if err != nil {
 		return nil, err
@@ -749,6 +894,46 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 	}
 	m["live"] = live
 	return m, nil
+}
+
+// saveUnlocks makes a quest's questunlocks rows these trips: the ones not
+// given deleted, the new ones inserted, each a row change (logged, revertible).
+func (s *Server) saveUnlocks(a *actor, id int64, want []questUnlock) ([]*change, error) {
+	ut, err := s.table("questunlocks")
+	if err != nil {
+		return nil, err
+	}
+	key := func(u questUnlock) string { return strings.TrimSpace(u.NPC) + "\x00" + strings.TrimSpace(u.Dest) }
+	keep := map[string]bool{}
+	for _, u := range want {
+		keep[key(u)] = true
+	}
+	var changes []*change
+	have := map[string]bool{}
+	for _, u := range s.questUnlocks(id) {
+		have[key(u)] = true
+		if keep[key(u)] {
+			continue
+		}
+		ch, err := s.deleteRow(a, ut, map[string]any{"questid": id, "npc": u.NPC, "dest": u.Dest}, writeOpts{NoLive: true})
+		if err != nil {
+			return nil, fmt.Errorf("unlock %s to %s: %w", u.NPC, u.Dest, err)
+		}
+		changes = append(changes, ch)
+	}
+	for _, u := range want {
+		if have[key(u)] {
+			continue
+		}
+		have[key(u)] = true
+		ch, err := s.insertRow(a, ut, map[string]any{"questid": id, "npc": strings.TrimSpace(u.NPC), "dest": strings.TrimSpace(u.Dest)},
+			writeOpts{NoLive: true})
+		if err != nil {
+			return nil, fmt.Errorf("unlock %s to %s: %w", u.NPC, u.Dest, err)
+		}
+		changes = append(changes, ch)
+	}
+	return changes, nil
 }
 
 func containsStr(v []string, s string) bool {
@@ -784,6 +969,13 @@ func (s *Server) questDelete(a *actor, id int64, dry bool) (any, error) {
 		sid, _ := asFloat(r["serverid"])
 		if _, err := s.deleteRow(a, ct, map[string]any{"serverid": int64(sid), "questid": id}, writeOpts{}); err != nil {
 			return nil, err
+		}
+	}
+	if ut, err := s.table("questunlocks"); err == nil {
+		for _, u := range s.questUnlocks(id) {
+			if _, err := s.deleteRow(a, ut, map[string]any{"questid": id, "npc": u.NPC, "dest": u.Dest}, writeOpts{}); err != nil {
+				return nil, err
+			}
 		}
 	}
 	sr, err := s.rowsOf(`SELECT step FROM queststeps WHERE questid = ?`, id)

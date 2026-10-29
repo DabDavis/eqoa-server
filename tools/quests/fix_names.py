@@ -6,12 +6,15 @@ as the database spells it, and its `unresolved` what still does not resolve.
         [--drop-note REGEX ...] [--write] [file.json ...]
 
 With no files it takes every tools/quests/data/*.json. A name a quest uses
-(its giver, a step's target, a say or spawn event's NPC) that no npcs row has
-is respelled as the one npcs spelling that agrees with it but for case,
+(its giver, a step's target, a say or spawn event's NPC, the travel NPC of a
+trip it unlocks) that no npcs row has is respelled as the one npcs spelling
+that agrees with it but for case,
 apostrophes and backticks, hyphens, a leading "the" and plurals ("Counselor
 Du'Klot" -> "Counselor Du`Klot", "thick coat wolf" -> "Thick Coat Wolves");
 --rename gives any other ("OLD=NEW" in every quest, "KEY:OLD=NEW" in the
-quests whose key starts with KEY), found or not. Then each quest's
+quests whose key starts with KEY), found or not. A faction a quest asks a
+standing with or moves is respelled the same way, as the factions table
+spells it. Then each quest's
 `unresolved` is what check_quests.py finds missing (the entries it keeps in
 their order, new ones after), and its notes lose what is no longer true: a
 sentence that only says names are not in the database (or on this server),
@@ -103,7 +106,32 @@ def references(q):
             out.append((st, "target"))
             out += [(ev, "npc") for ev in st.get("events", []) if isinstance(ev, dict)]
     out += [(ev, "npc") for ev in q.get("events", []) if isinstance(ev, dict)]
+    out += [(u, "npc") for u in q.get("unlocks", []) if isinstance(u, dict)]
     return [(h, f) for h, f in out if isinstance(h.get(f), str) and h[f].strip()]
+
+
+def faction_references(q):
+    """The places a quest names a faction: its factions_required and its
+    steps' reward factions, as (entry, 0) pairs (the entry a list, the name
+    its first)."""
+    out = [fr for fr in q.get("factions_required", []) if isinstance(fr, list)]
+    for st in q.get("steps", []):
+        rw = st.get("rewards") if isinstance(st, dict) else None
+        if isinstance(rw, dict):
+            out += [f for f in rw.get("factions", []) if isinstance(f, list)]
+    return [(e, 0) for e in out if e and isinstance(e[0], str) and e[0].strip()]
+
+
+def faction_spellings(db_path):
+    """The factions table's names by key() (none: no table)."""
+    db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    out = collections.defaultdict(collections.Counter)
+    if db.execute("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'factions'").fetchone()[0]:
+        for (n,) in db.execute("SELECT name FROM factions"):
+            if n and n.strip():
+                out[key(n)][n.strip()] += 1
+    db.close()
+    return out
 
 
 def sentences(text):
@@ -142,6 +170,7 @@ def mentions(text, name):
 def fix(files, db_path, renames=(), drops=()):
     names = cq.Names(db_path)
     by_key = spellings(db_path)
+    factions_by_key = faction_spellings(db_path)
     drops = [re.compile(d) for d in drops]
     docs = []
     for path in files:
@@ -174,6 +203,15 @@ def fix(files, db_path, renames=(), drops=()):
                     holder[field] = new
                     renamed[fold(n)] = new
                     report.append(f"{fname} {k}: {field} {n!r} -> {new!r}")
+            for holder, field in faction_references(q):
+                n = holder[field]
+                if names.faction is None or fold(n) in names.faction:
+                    continue
+                sp = factions_by_key.get(key(n))
+                if sp and len({fold(x) for x in sp}) == 1:
+                    new = sp.most_common(1)[0][0]
+                    holder[field] = new
+                    report.append(f"{fname} {k}: faction {n!r} -> {new!r}")
             ck.quest(fname, q, file_items)
             miss = ck.misses.get(k, [])
             want = {fold(m) for m in miss}

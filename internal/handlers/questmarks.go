@@ -80,12 +80,25 @@ type markQuest struct {
 }
 
 // questText is a quest's words for the marks, made when the quests are read
-// (Reload): the start of its offer, its rewards in all, and each step's needs
+// (Reload): the start of its offer, its rewards in all (and for each class
+// its steps reward besides, its own and the class's), and each step's needs
 // (items and tunar), with the items' and spells' names.
 type questText struct {
 	offer   string
 	rewards string
+	byClass map[int]string
 	needs   map[int]string
+}
+
+// rewardsFor is the quest's rewards for a player of a class.
+func (t *questText) rewardsFor(class int) string {
+	if t == nil {
+		return ""
+	}
+	if s, ok := t.byClass[class]; ok {
+		return s
+	}
+	return t.rewards
 }
 
 // buildQuestMarkersOffer is OpcodeQuestMarkers from the server: a u32, 1.
@@ -177,7 +190,7 @@ func (q *QuestEngine) sendMarksLocked(sess *session.Session, p *entity.Player, c
 	if sess == nil || p == nil {
 		return
 	}
-	marks, ok := q.marksLocked(p, c, time.Now())
+	marks, ok := q.marksLocked(q.lookAt(sess), p, c, time.Now())
 	if !ok {
 		return
 	}
@@ -215,10 +228,11 @@ func (q *QuestEngine) markSpotsLocked(now time.Time) map[string][]entity.NPCSpot
 	return q.spots
 }
 
-// marksLocked is the player's marks, the steps' first then the quests to take,
-// each in the player's world first and nearest first; false when the player
-// is not in the world (dead, loading). Must be called with q.mu held.
-func (q *QuestEngine) marksLocked(p *entity.Player, c *questChar, now time.Time) ([]questMark, bool) {
+// marksLocked is the player's marks, the steps' first then the quests to take
+// (its standings asked of look), each in the player's world first and nearest
+// first; false when the player is not in the world (dead, loading). Must be
+// called with q.mu held.
+func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questChar, now time.Time) ([]questMark, bool) {
 	var world uint8
 	var x, z float32
 	if q.gw != nil {
@@ -304,11 +318,11 @@ func (q *QuestEngine) marksLocked(p *entity.Player, c *questChar, now time.Time)
 	sort.Strings(givers)
 	for _, g := range givers {
 		for _, qu := range q.cat.givers[g] {
-			if q.mayTakeLocked(p, c, qu) != "" {
+			if q.mayTakeLocked(look, p, c, qu) != "" {
 				continue
 			}
 			t := q.texts[qu.ID]
-			add(markTake, qu.Giver, 0, markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: t.offer, detail: t.rewards})
+			add(markTake, qu.Giver, 0, markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: t.offer, detail: t.rewardsFor(p.Class)})
 		}
 	}
 	sort.SliceStable(marks, func(i, j int) bool {
@@ -426,15 +440,64 @@ func (q *QuestEngine) questTexts(all []*database.Quest) (map[int]*questText, map
 			}
 			t.offer = line
 		}
-		xp, tunar := 0, 0
-		var got []string
-		for _, st := range qu.Steps {
-			xp += st.XP
-			tunar += st.RewardTunar
-			got = append(got, items(st.RewardItems)...)
-			for _, id := range st.Spells {
+		// the rewards of every step for a class (-1: none, the steps' own)
+		// one choice's option's rewards in a few words ("Ash Staff, 50 XP")
+		optionOf := func(rw database.ClassReward) string {
+			got := items(rw.Items)
+			for _, id := range rw.Spells {
 				got = append(got, spellOf(id))
 			}
+			if rw.XP > 0 {
+				got = append(got, fmt.Sprintf("%d XP", rw.XP))
+			}
+			if rw.Tunar > 0 {
+				got = append(got, fmt.Sprintf("%d tunar", rw.Tunar))
+			}
+			return strings.Join(got, ", ")
+		}
+		rewardsOf := func(class int) string {
+			xp, tunar := 0, 0
+			var got []string
+			for i := range qu.Steps {
+				rw := qu.Steps[i].RewardFor(class)
+				xp += rw.XP
+				tunar += rw.Tunar
+				got = append(got, items(rw.Items)...)
+				for _, id := range rw.Spells {
+					got = append(got, spellOf(id))
+				}
+				// a step's choice: one of its options' rewards
+				var picks []string
+				for _, o := range qu.Steps[i].Choices.Options {
+					if w := optionOf(o.Reward); w != "" && !o.Stay {
+						picks = append(picks, w)
+					}
+				}
+				if len(picks) > 0 {
+					got = append(got, "a choice of "+strings.Join(picks, " or "))
+				}
+			}
+			var reward []string
+			if xp > 0 {
+				reward = append(reward, fmt.Sprintf("%d XP", xp))
+			}
+			if tunar > 0 {
+				reward = append(reward, fmt.Sprintf("%d tunar", tunar))
+			}
+			return strings.Join(append(reward, got...), ", ")
+		}
+		t.rewards = rewardsOf(-1)
+		for _, st := range qu.Steps {
+			for class := range st.ByClass {
+				if _, done := t.byClass[class]; !done {
+					if t.byClass == nil {
+						t.byClass = map[int]string{}
+					}
+					t.byClass[class] = rewardsOf(class)
+				}
+			}
+		}
+		for _, st := range qu.Steps {
 			var need []string
 			if st.Kind == database.StepLoot {
 				if id, _, ok := st.LootItem(); ok {
@@ -450,14 +513,6 @@ func (q *QuestEngine) questTexts(all []*database.Quest) (map[int]*questText, map
 				t.needs[st.Step] = strings.Join(need, ", ")
 			}
 		}
-		var reward []string
-		if xp > 0 {
-			reward = append(reward, fmt.Sprintf("%d XP", xp))
-		}
-		if tunar > 0 {
-			reward = append(reward, fmt.Sprintf("%d tunar", tunar))
-		}
-		t.rewards = strings.Join(append(reward, got...), ", ")
 		out[qu.ID] = t
 	}
 	return out, itemName

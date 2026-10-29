@@ -14,7 +14,7 @@ What it decides, and from what (SPECS below, one entry a name):
 - Where, the first of these that has the name:
   1. FrontiersForge's sightings of it (npcs_ff_import, tools/import_ff_npcs.py:
      the live game's own positions, game coordinates; a sighting marked
-     pos_suspect is not used);
+     pos_suspect is not used, nor one at a spot SENTINEL_NAMES names share);
   2. EQOA-Data's map (Map/zones.json `pois`, the quest guides' points, tied
      to a guide by questGuideIds), laid over the game: Tunaria by a fit of
      the map's points to the NPCs of the same unique names (x = 2.13 mx -
@@ -56,13 +56,30 @@ missing with the seed in. Every row it writes is in one transaction and
 logged in quest_npc_seed_rows (the npcs row, the name, its source, the row it
 copies), every npc_type it changes in quest_npc_seed_types (the old value);
 --undo deletes exactly those rows, puts the types back (a row a GM changed
-since is left alone, said) and drops the logs. A second --apply is refused
-while a seed is in. The same database and ground give the same plan (a
-fixed random seed). Report only by default. Stop the server to apply and
-start it after (it reads npcs at the start).
+since is left alone, said) and drops the logs. The same database and ground
+give the same plan (a fixed random seed). Report only by default. Stop the
+server to apply and start it after (it reads npcs at the start).
+
+Seed sets. SPECS below are the set "1-20" (the city guides'); every
+tools/quests/npcs/<set>.json is one more ({"set": "<set>", "npcs": [Spec,
+...], "attackable": [names], "peaceful": [names]}: a Spec is S()'s arguments
+by name, its body and place as JSON lists, FORMAT.md), written for the later
+guides. "attackable" are townsfolk a set's quests kill, their NPC bit
+cleared as ATTACKABLE's; "peaceful" are creatures the quests talk to that
+attack on sight, each given an npcaggro row (aggressive 0, source
+"questnpcs:<set>", entity/aggro.go's rule for the name; a row the name had is
+logged and put back at the undo, unless a GM changed it since). Each set
+is applied and taken back on its own (--apply --set X, --undo --set X), its
+rows, types and meta logged under its name (quest_npc_seed_*.seedset), so
+several are in at once; a set already in is refused, not planned again. A log
+made before the sets (one seed, no seedset column) is the set 1-20's, made so
+in place the first time a set is applied or undone. Sets applied in one run
+go in the order named, each planned against the database with the ones
+before it in.
 
     tools/seed_quest_npcs.py --ground worlds/ground [--db eqoa.db]
-        [--data ../external/EQOA-Data] [--apply | --undo] [--verbose]
+        [--data ../external/EQOA-Data] [--specs FILE ...] [--set X ...]
+        [--apply | --undo] [--verbose]
 """
 import argparse
 import collections
@@ -80,7 +97,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
 DEFAULT_GROUND = os.path.join(HERE, "..", "worlds", "ground")
 DEFAULT_DATA = os.path.join(HERE, "..", "..", "external", "EQOA-Data")
+DEFAULT_SPECS = os.path.join(HERE, "quests", "npcs")
 DEFAULT_SEED = 18
+BUILTIN = "1-20"   # the set SPECS and ATTACKABLE are
 
 # seed_wildlife.py reads the ground files; its Ground is this tool's too
 _spec = importlib.util.spec_from_file_location("seed_wildlife", os.path.join(HERE, "seed_wildlife.py"))
@@ -121,7 +140,7 @@ def S(name, role, body, place, count=1, level=None, note="", water=LAND):
 
 
 # body: ("race", race, sex) | ("kind", KIND key) | ("npc", name: that row's body)
-# place: ("ff",) | ("poi", "tunaria" | "rathe", poi name) | ("near", npc, distance, world) |
+# place: ("ff",) | ("poi", "tunaria" | "rathe" | "odus", poi name) | ("near", npc, distance, world) |
 #        ("at", world, x, z) ; each may be followed by "low" (a lower floor) in the tuple's end
 # water: LAND (out of the water), WATER (a fish: in it) or BOTH (an alligator, a crab)
 SPECS = [
@@ -437,6 +456,28 @@ ATTACKABLE = ["Squire Janxt", "Gamor", "Furdle Nimdar"]
 # The Tunaria fit's own points are only those that match one NPC there; the
 # Rathe inset's anchor is the map's "Oggok" and Oggok's people.
 INSET = (4500.0, 8500.0, 9000.0, 12800.0)
+# The box holds south Tunaria too (Kelinar, Gerntar Mines, Oggok Gate, Mila's
+# Reef, Widow's Peak: the sheet draws the inset beside them, its easternmost
+# point x 7280 and theirs westernmost 7569), so a point in it is the Rathe's
+# only when the nearest place the sheet names (its zones and towns) is one of
+# the Rathe's (qa lane: Gerntar's Mine, Oggok Gate, Kelinar and the Mila's
+# Reef lighthouse were taken for the Rathe's). The fit still leaves the whole
+# box out, as the 1-20 seed (in on eqoaclassic) was planned: a fit with south
+# Tunaria's points in moves every map placement a little.
+RATHE_PLACES = {"Geomancer's Citadel", "Cyclops' Fortress", "Urgulnt's Gate", "Sphinx Pyramid", "Lake Rathe",
+                "Geomancer's Pass", "Dead Hills", "Ogre Ruins", "West Feerrott", "Moggok's Gate", "Envar", "Oggok"}
+# Odus (world 2), drawn on the same sheet south-west of Tunaria, has a fit of
+# its own (place ("poi", "odus", <point>)): on the sheet's points whose name,
+# case and a level in brackets aside, is exactly one NPC's of the server's and
+# that one in Odus. It is tools/gen_camp_teles.py's: 180 off on the 37 points
+# key() pairs (29 kept, 164 on those), where key()'s looser match let a
+# namesake in and its fit came out 190 off (the Misc lane's x = 2.3268 mx +
+# 4036.1, z = 2.2996 my - 16408.1). Lavastorm has none.
+ODUS = 2
+# A spot FrontiersForge saw this many names at is its placeholder, not a place
+# (the import flags most such sightings pos_suspect, not all: 71 of the 433 at
+# (3001, 18025) were not)
+SENTINEL_NAMES = 8
 SCALE = 2.13
 OGGOK_MAP = (6855.0, 10988.0)
 SPREAD = (25.0, 120.0)
@@ -498,11 +539,31 @@ def fit(points):
     return (a, b, c, d), len(cur), res[len(res) // 2]
 
 
+def sentinels(ff):
+    """The spots FrontiersForge's placeholders hold: (world, x, z) rounded,
+    where SENTINEL_NAMES names or more were seen."""
+    names = collections.defaultdict(set)
+    for s in ff:
+        names[(s["world"], round(s["x_coord"]), round(s["z_coord"]))].add(key(s["npc_name"]))
+    return {c for c, n in names.items() if len(n) >= SENTINEL_NAMES}
+
+
+def suspect_test(ff):
+    """Whether a sighting's place is not to be used: flagged pos_suspect, or
+    at a placeholder spot (sentinels)."""
+    bad = sentinels(ff)
+    return lambda s: bool(s["pos_suspect"]) or (s["world"], round(s["x_coord"]), round(s["z_coord"])) in bad
+
+
 class Map:
     """EQOA-Data's sheet over Tunaria (a fit) and the Rathe (Oggok-anchored)."""
 
-    def __init__(self, zones, npcs, ff):
+    def __init__(self, zones, npcs, ff, suspect=None):
+        suspect = suspect or suspect_test(ff)
         self.pois = zones["pois"] + zones["zones"] + zones["towns"]
+        # the places the sheet names in the inset's box, to tell the Rathe's
+        # points from south Tunaria's
+        self.places = [(q["name"], q["x"], q["y"]) for q in zones["zones"] + zones["towns"] if self.in_inset(q)]
         byname = collections.defaultdict(list)
         for n in npcs:
             byname[(n["world"], key(n["name"]))].append(n)
@@ -517,11 +578,11 @@ class Map:
         # the sheet's misses where FrontiersForge saw the same name once
         seen = collections.defaultdict(list)
         for s in ff:
-            if s["world"] == 0 and not s["pos_suspect"]:
+            if s["world"] == 0 and not suspect(s):
                 seen[key(s["npc_name"])].append(s)
         self.misses = []
         for p in zones["pois"]:
-            if self.in_inset(p):
+            if self.rathe(p):
                 continue
             s = seen.get(key(p["name"]))
             if s and len(s) == 1:
@@ -531,10 +592,28 @@ class Map:
                     self.misses.append((p["x"], p["y"], dx, dz))
         town = [n for n in npcs if n["world"] == 1 and re.match(r"(bouncer|merchant) ", n["name"].lower())]
         self.oggok = (sum(n["x"] for n in town) / len(town), sum(n["z"] for n in town) / len(town)) if town else None
+        # Odus: exact names (gen_camp_teles.py's), unique among every world's NPCs
+        exact = collections.defaultdict(list)
+        for n in npcs:
+            exact[n["name"].strip().lower()].append(n)
+        opairs = []
+        for p in zones["pois"] + zones["towns"]:
+            rs = exact.get(re.sub(r"\s*\([^)]*\)\s*", " ", p["name"]).strip().lower())
+            if rs and len(rs) == 1 and rs[0]["world"] == ODUS:
+                opairs.append((p["x"], p["y"], rs[0]["x"], rs[0]["z"]))
+        self.odus = fit(opairs) if len(opairs) >= 3 else None
 
     @staticmethod
     def in_inset(p):
         return INSET[0] <= p["x"] <= INSET[1] and INSET[2] <= p["y"] <= INSET[3]
+
+    def rathe(self, p):
+        """Whether a sheet point is the Rathe's: in the inset's box and nearest
+        a place of the Rathe's (south Tunaria's are in the box too)."""
+        if not self.in_inset(p) or not self.places:
+            return False
+        near = min(self.places, key=lambda q: (q[1] - p["x"]) ** 2 + (q[2] - p["y"]) ** 2)
+        return near[0] in RATHE_PLACES
 
     def tunaria_at(self, mx, my):
         a, b, c, d = self.tunaria
@@ -556,11 +635,19 @@ class Map:
         ox, oz = self.oggok
         return ox + SCALE * (mx - OGGOK_MAP[0]), oz + SCALE * (my - OGGOK_MAP[1])
 
-    def poi(self, name, guides):
-        """The map's point of that name (one of the quest's guides' first)."""
+    def odus_at(self, mx, my):
+        (a, b, c, d), _, _ = self.odus
+        return a * mx + b, c * my + d
+
+    def poi(self, name, guides, rathe=None):
+        """The map's point of that name: of those in the region asked (rathe
+        True, False; None either) when any is, one of the quest's guides'
+        first."""
         k = key(name)
         cands = [p for p in self.pois if key(p["name"]) == k]
-        mine = [p for p in cands if set(p.get("questGuideIds", [])) & guides]
+        if rathe is not None:
+            cands = [p for p in cands if self.rathe(p) == rathe] or cands
+        mine = [p for p in cands if {g.lower() for g in p.get("questGuideIds", [])} & guides]
         pick = mine or cands
         return pick[0] if pick else None
 
@@ -586,6 +673,18 @@ def load(db):
     return cols, npcs, bodies, pc, ff
 
 
+def guide_of(key):
+    """A quest key's guide as EQOA-Data's map ties its points to one
+    (questGuideIds): "1-20/freeport/warrior" of "1-20/freeport/warrior/L3",
+    and of a later guide's "<folder>/<stem>/<part>" the folder in lower case,
+    its commas hyphens ("30,40,49/group-4-evil/p1" is
+    "30-40-49/group-4-evil")."""
+    parts = key.lower().split("/")
+    if parts[0] == "1-20":
+        return "/".join(parts[:3])
+    return "/".join([parts[0].replace(",", "-")] + parts[1:2])
+
+
 def guides_of(data_dir):
     """Each name the quest files use (a giver, a step's target, an event's
     NPC, what is unresolved): the guides (1-20/<city>/<class>) it comes from.
@@ -598,7 +697,7 @@ def guides_of(data_dir):
         with open(os.path.join(data_dir, f)) as fh:
             quests = json.load(fh)["quests"]
         for q in quests:
-            guide = "/".join(q["key"].split("/")[:3])
+            guide = guide_of(q["key"])
             names = [q.get("giver", "")] + [u.replace(" (attackable)", "") for u in q.get("unresolved", [])]
             for st in q.get("steps", []):
                 names.append(st.get("target", ""))
@@ -612,12 +711,16 @@ def guides_of(data_dir):
 
 # ---- the plan ---------------------------------------------------------------------
 
-def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
+def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None, attackable=None, peaceful=()):
+    """The rows a set would write: specs, attackable and peaceful are its
+    (specs and attackable not given: the set 1-20's, SPECS and ATTACKABLE)."""
     specs = SPECS if specs is None else specs
+    attackable = ATTACKABLE if attackable is None else attackable
     cols, npcs, bodies, pc, ff = load(db)
     with open(os.path.join(data_dir, "Map", "zones.json")) as f:
         zones = json.load(f)
-    sheet = Map(zones, npcs, ff)
+    suspect = suspect_test(ff)
+    sheet = Map(zones, npcs, ff, suspect)
     guides = guides_of(quest_dir) if quest_dir and os.path.isdir(quest_dir) else {}
     rng = None   # each entry's own, below
     grounds, envs = {}, {}
@@ -626,7 +729,7 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
         by_name[fold(n["name"])].append(n)
     seen = collections.defaultdict(list)
     for s in ff:
-        if not s["pos_suspect"]:
+        if not suspect(s):
             seen[key(s["npc_name"])].append(s)
     placed = []   # every new spawn: world, x, z (spacing)
     others = collections.defaultdict(list)   # the NPCs there are, by (world, 16-unit cell)
@@ -731,9 +834,19 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
                 return None, "no FrontiersForge sighting"
             return [(s["world"], s["x_coord"], s["z_coord"], s["y_coord"], low, s["npc_level"], None) for s in ss], "ff"
         if pl[0] == "poi":
-            p = sheet.poi(pl[2], guides.get(key(spec["name"]), set()) | guides.get(key(pl[2]), set()))
+            if pl[1] == "odus":
+                p = sheet.poi(pl[2], guides.get(key(spec["name"]), set()) | guides.get(key(pl[2]), set()))
+                if p is None or sheet.odus is None:
+                    return None, f"no map point {pl[2]!r}" if p is None else "no Odus fit (too few of its points match)"
+                m = re.search(r"\((\d+)", p["name"])
+                x, z = sheet.odus_at(p["x"], p["y"])
+                return [(ODUS, x, z, around_y(ODUS, x, z), low, int(m.group(1)) if m else None, None)], "map (Odus)"
+            p = sheet.poi(pl[2], guides.get(key(spec["name"]), set()) | guides.get(key(pl[2]), set()), pl[1] == "rathe")
             if p is None:
                 return None, f"no map point {pl[2]!r}"
+            if sheet.rathe(p) != (pl[1] == "rathe"):
+                where = ("the Rathe's inset", "Tunaria") if pl[1] != "rathe" else ("Tunaria", "the Rathe")
+                return None, f"map point {pl[2]!r} is {where[0]}'s (asked: {where[1]}'s)"
             m = re.search(r"\((\d+)", p["name"])
             lv = int(m.group(1)) if m else None
             if pl[1] == "rathe":
@@ -829,27 +942,192 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None):
                 left.append((spec["name"], f"{what} round ({ax:.0f}, {az:.0f}) in world {world}"))
         if made and made < want:
             left.append((spec["name"], f"{want - made} of {want} spawns found no place"))
-    for name in ATTACKABLE:
+    for name in attackable:
         for n in by_name.get(fold(name), []):
             if n["type"] & 0x80:
                 types.append(dict(id=n["id"], name=n["name"], old=n["type"], new=n["type"] & ~0x80))
-    return dict(cols=cols, rows=rows, left=left, types=types, fit=(sheet.tunaria, sheet.fit_kept, sheet.fit_median),
-                misses=len(sheet.misses), oggok=sheet.oggok)
+    # the creatures to talk to that attack on sight: an npcaggro row each, the
+    # name as npcs (or this set) spells it
+    aggro = []
+    have = {}
+    if db.execute("SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'npcaggro'").fetchone()[0]:
+        have = {fold(r[0]): r for r in db.execute("SELECT npc_name, aggressive, radius, note, source FROM npcaggro")}
+    for name in peaceful:
+        spelled = [n["name"] for n in by_name.get(fold(name), [])] + \
+            [r["name"] for r in rows if fold(r["name"]) == fold(name)]
+        if not spelled:
+            left.append((name, "no NPC of the name to make peaceful"))
+            continue
+        spelling = collections.Counter(spelled).most_common(1)[0][0]
+        old = have.get(fold(spelling))
+        if old is not None and old[1] == 0:
+            continue   # peaceful already (its rule left as it is)
+        aggro.append(dict(name=old[0] if old else spelling, old=list(old) if old else None))
+    return dict(cols=cols, rows=rows, left=left, types=types, aggro=aggro,
+                fit=(sheet.tunaria, sheet.fit_kept, sheet.fit_median), misses=len(sheet.misses), oggok=sheet.oggok,
+                odus=sheet.odus)
+
+
+# ---- the sets: the built-in one and the spec files ---------------------------------
+
+PLACES = ("ff", "poi", "near", "at")
+
+
+def spec_of(d, where):
+    """One of a spec file's npcs as S() makes one (its body and place lists made
+    tuples), and what is wrong with it (nothing: [])."""
+    errs = []
+    if not isinstance(d, dict):
+        return None, [f"{where}: not an object"]
+    name = d.get("name")
+    if not isinstance(name, str) or not name.strip():
+        errs.append(f"{where}: no name")
+        name = "?"
+    where = f"{where} {name!r}"
+    role = d.get("role")
+    if role not in TYPE:
+        errs.append(f"{where}: role {role!r} (foe or talker)")
+    body = d.get("body")
+    ok = isinstance(body, list) and body and (
+        (body[0] == "race" and len(body) == 3 and body[1] in RACE and body[2] in (MALE, FEMALE)) or
+        (body[0] == "kind" and len(body) == 2 and body[1] in KIND) or
+        (body[0] == "npc" and len(body) == 2 and isinstance(body[1], str) and body[1].strip()))
+    if not ok:
+        errs.append(f"{where}: body {body!r} (['race', <{'|'.join(RACE)}>, 0|1], ['kind', <a KIND key>] or ['npc', <name>])")
+    place = d.get("place")
+    pl = list(place) if isinstance(place, list) else []
+    low = bool(pl) and pl[-1] == "low"
+    core = pl[:-1] if low else pl
+    num = (int, float)
+    ok = bool(core) and core[0] in PLACES and (
+        (core[0] == "ff" and len(core) == 1) or
+        (core[0] == "poi" and len(core) == 3 and core[1] in ("tunaria", "rathe", "odus") and isinstance(core[2], str)) or
+        (core[0] == "near" and len(core) in (4, 5) and isinstance(core[1], str) and isinstance(core[2], num)
+         and isinstance(core[3], int) and (len(core) == 4 or core[4] == "north")) or
+        (core[0] == "at" and len(core) == 4 and isinstance(core[1], int) and isinstance(core[2], num) and isinstance(core[3], num)))
+    if not ok:
+        errs.append(f"{where}: place {place!r} (['ff'], ['poi', 'tunaria'|'rathe'|'odus', <point>], ['near', <npc>, <distance>, "
+                    "<world>], ['at', <world>, <x>, <z>], each with a last 'low' or not)")
+    count = d.get("count", 1)
+    if not isinstance(count, int) or isinstance(count, bool) or count < 1:
+        errs.append(f"{where}: count {count!r}")
+    level = d.get("level")
+    if level is not None and (not isinstance(level, int) or isinstance(level, bool) or not 1 <= level <= 100):
+        errs.append(f"{where}: level {level!r}")
+    water = d.get("water", LAND)
+    if water not in (LAND, WATER, BOTH):
+        errs.append(f"{where}: water {water!r} (land, water or both)")
+    note = d.get("note", "")
+    if not isinstance(note, str):
+        errs.append(f"{where}: note is not text")
+    if errs:
+        return None, errs
+    return S(name.strip(), role, tuple(body), tuple(pl), count=count, level=level, note=note, water=water), []
+
+
+def load_sets(paths):
+    """The sets: the built-in one ("1-20": SPECS, ATTACKABLE) and each spec
+    file's ({set: dict(specs, attackable, file)} in that order), and what is
+    wrong with the files."""
+    sets = {BUILTIN: dict(specs=SPECS, attackable=ATTACKABLE, peaceful=[], file="(built in)")}
+    errs = []
+    for path in paths:
+        try:
+            with open(path) as f:
+                d = json.load(f)
+        except (OSError, ValueError) as e:
+            errs.append(f"{path}: {e}")
+            continue
+        name = d.get("set") if isinstance(d, dict) else None
+        if not isinstance(name, str) or not name.strip() or any(ch.isspace() for ch in name.strip()):
+            errs.append(f"{path}: no set name (\"set\": a word)")
+            continue
+        name = name.strip()
+        if name in sets:
+            errs.append(f"{path}: set {name!r} is {sets[name]['file']}'s already")
+            continue
+        specs = []
+        for i, e in enumerate(d.get("npcs") or [], 1):
+            sp, es = spec_of(e, f"{os.path.basename(path)} npc {i}")
+            errs += es
+            if sp:
+                specs.append(sp)
+        lists = {}
+        for field in ("attackable", "peaceful"):
+            v = d.get(field) or []
+            if not isinstance(v, list) or not all(isinstance(a, str) and a.strip() for a in v):
+                errs.append(f"{path}: {field} is not a list of names")
+                v = []
+            lists[field] = [a.strip() for a in v]
+        sets[name] = dict(specs=specs, attackable=lists["attackable"], peaceful=lists["peaceful"], file=path)
+    return sets, errs
 
 
 # ---- writing it, and taking it back out ---------------------------------------------
 
+# seedset last: a log from before the sets gains it at the end (migrate)
 LOG_DDL = [
-    "CREATE TABLE quest_npc_seed_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
-    "CREATE TABLE quest_npc_seed_rows (npc_row INTEGER PRIMARY KEY, name TEXT NOT NULL, "
-    "source TEXT NOT NULL, template_row INTEGER)",
-    "CREATE TABLE quest_npc_seed_types (npc_row INTEGER PRIMARY KEY, old_type INTEGER NOT NULL, "
-    "new_type INTEGER NOT NULL)",
+    "CREATE TABLE IF NOT EXISTS quest_npc_seed_meta (seedset TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, "
+    "PRIMARY KEY (seedset, key))",
+    "CREATE TABLE IF NOT EXISTS quest_npc_seed_rows (npc_row INTEGER PRIMARY KEY, name TEXT NOT NULL, "
+    f"source TEXT NOT NULL, template_row INTEGER, seedset TEXT NOT NULL DEFAULT '{BUILTIN}')",
+    "CREATE TABLE IF NOT EXISTS quest_npc_seed_types (npc_row INTEGER PRIMARY KEY, old_type INTEGER NOT NULL, "
+    f"new_type INTEGER NOT NULL, seedset TEXT NOT NULL DEFAULT '{BUILTIN}')",
+    # a set's npcaggro rows: the name's row before (a JSON list, NULL: none)
+    "CREATE TABLE IF NOT EXISTS quest_npc_seed_aggro (seedset TEXT NOT NULL, npc_name TEXT NOT NULL, old TEXT, "
+    "PRIMARY KEY (seedset, npc_name))",
 ]
+LOG_TABLES = ("quest_npc_seed_rows", "quest_npc_seed_types", "quest_npc_seed_aggro", "quest_npc_seed_meta")
+# the server's npcaggro (database/npcaggro.go), made when a database lacks it
+NPCAGGRO_DDL = ("CREATE TABLE IF NOT EXISTS npcaggro (npc_name TEXT PRIMARY KEY, aggressive INTEGER NOT NULL DEFAULT 1, "
+                "radius REAL NOT NULL DEFAULT 0, note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm')")
+
+
+def aggro_source(seedset):
+    """The source of a set's npcaggro rows."""
+    return f"questnpcs:{seedset}"
 
 
 def seeded(db):
     return db.execute("SELECT count(*) FROM sqlite_master WHERE name = 'quest_npc_seed_rows'").fetchone()[0] > 0
+
+
+def log_columns(db, t):
+    return [r[1] for r in db.execute(f"PRAGMA table_info({t})")]
+
+
+def sets_in(db):
+    """The sets in this database, each with its rows (a log from before the
+    sets is the set 1-20's, whatever its shape)."""
+    if not seeded(db):
+        return {}
+    if "seedset" not in log_columns(db, "quest_npc_seed_meta"):
+        return {BUILTIN: db.execute("SELECT count(*) FROM quest_npc_seed_rows").fetchone()[0]}
+    out = {s: 0 for (s,) in db.execute("SELECT DISTINCT seedset FROM quest_npc_seed_meta ORDER BY seedset")}
+    for s, n in db.execute("SELECT seedset, count(*) FROM quest_npc_seed_rows GROUP BY seedset"):
+        out[s] = n
+    return out
+
+
+def migrate(db):
+    """A log made before the sets made the set 1-20's, in place: seedset
+    added to its rows and types, its meta keyed by set (in the caller's
+    transaction)."""
+    if not seeded(db):
+        return False
+    done = False
+    for t in ("quest_npc_seed_rows", "quest_npc_seed_types"):
+        if "seedset" not in log_columns(db, t):
+            db.execute(f"ALTER TABLE {t} ADD COLUMN seedset TEXT NOT NULL DEFAULT '{BUILTIN}'")
+            done = True
+    if "seedset" not in log_columns(db, "quest_npc_seed_meta"):
+        db.execute("CREATE TABLE quest_npc_seed_meta_sets (seedset TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, "
+                   "PRIMARY KEY (seedset, key))")
+        db.execute("INSERT INTO quest_npc_seed_meta_sets SELECT ?, key, value FROM quest_npc_seed_meta", (BUILTIN,))
+        db.execute("DROP TABLE quest_npc_seed_meta")
+        db.execute("ALTER TABLE quest_npc_seed_meta_sets RENAME TO quest_npc_seed_meta")
+        done = True
+    return done
 
 
 def npc_seq(db):
@@ -875,12 +1153,14 @@ def gm_edited(db, ids):
     return out & set(ids)
 
 
-def apply(db, p):
-    if seeded(db):
-        sys.exit("this database already holds a quest NPC seed (quest_npc_seed_rows): --undo it first")
+def apply(db, p, seedset=BUILTIN):
+    """Write a set's plan, logged under its name (refused while it is in)."""
     cols = [c for c in p["cols"] if c != "id"]
     db.execute("BEGIN IMMEDIATE")
     try:
+        migrate(db)
+        if seedset in sets_in(db):
+            raise SystemExit(f"the set {seedset!r} is in this database already: --undo --set {seedset} first")
         for stmt in LOG_DDL:
             db.execute(stmt)
         meta = dict(when=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
@@ -888,35 +1168,65 @@ def apply(db, p):
         for r in p["rows"]:
             cur = db.execute(f"INSERT INTO npcs ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
                              [r["row"].get(c) for c in cols])
-            db.execute("INSERT INTO quest_npc_seed_rows VALUES (?, ?, ?, ?)",
-                       (cur.lastrowid, r["name"], r["source"], r["template"]))
+            db.execute("INSERT INTO quest_npc_seed_rows (npc_row, name, source, template_row, seedset) VALUES (?, ?, ?, ?, ?)",
+                       (cur.lastrowid, r["name"], r["source"], r["template"], seedset))
         skip = gm_edited(db, [t["id"] for t in p["types"]])
         for t in p["types"]:
             if t["id"] in skip:
                 continue
             db.execute("UPDATE npcs SET npc_type = ? WHERE id = ?", (t["new"], t["id"]))
-            db.execute("INSERT INTO quest_npc_seed_types VALUES (?, ?, ?)", (t["id"], t["old"], t["new"]))
-        db.executemany("INSERT INTO quest_npc_seed_meta VALUES (?, ?)", sorted(meta.items()))
+            db.execute("INSERT INTO quest_npc_seed_types (npc_row, old_type, new_type, seedset) VALUES (?, ?, ?, ?)",
+                       (t["id"], t["old"], t["new"], seedset))
+        if p.get("aggro"):
+            db.execute(NPCAGGRO_DDL)
+        for a in p.get("aggro", []):
+            note = f"talked to by the quests (tools/seed_quest_npcs.py set {seedset})"
+            db.execute("INSERT INTO npcaggro (npc_name, aggressive, radius, note, source) VALUES (?, 0, 0, ?, ?) "
+                       "ON CONFLICT(npc_name) DO UPDATE SET aggressive = 0, radius = 0, note = excluded.note, source = excluded.source",
+                       (a["name"], note, aggro_source(seedset)))
+            db.execute("INSERT INTO quest_npc_seed_aggro (seedset, npc_name, old) VALUES (?, ?, ?)",
+                       (seedset, a["name"], None if a["old"] is None else json.dumps(a["old"])))
+        db.executemany("INSERT INTO quest_npc_seed_meta (seedset, key, value) VALUES (?, ?, ?)",
+                       [(seedset, k, v) for k, v in sorted(meta.items())])
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
         raise
 
 
-def undo(db):
-    if not seeded(db):
-        sys.exit("no quest NPC seed to undo here")
-    meta = dict(db.execute("SELECT key, value FROM quest_npc_seed_meta"))
+def undo(db, seedset=BUILTIN):
+    """Take a set back out: its rows deleted, its types put back (a row a GM
+    changed since is left), the npcs counter put back when nothing past it is
+    left, its log rows gone (the logs too, once no set is in)."""
     db.execute("BEGIN IMMEDIATE")
     try:
-        n = db.execute("DELETE FROM npcs WHERE id IN (SELECT npc_row FROM quest_npc_seed_rows)").rowcount
+        migrate(db)
+        if seedset not in sets_in(db):
+            raise SystemExit(f"the set {seedset!r} is not in this database")
+        meta = dict(db.execute("SELECT key, value FROM quest_npc_seed_meta WHERE seedset = ?", (seedset,)))
+        n = db.execute("DELETE FROM npcs WHERE id IN (SELECT npc_row FROM quest_npc_seed_rows WHERE seedset = ?)",
+                       (seedset,)).rowcount
         kept = []
-        for rid, old, new in db.execute("SELECT npc_row, old_type, new_type FROM quest_npc_seed_types").fetchall():
+        for rid, old, new in db.execute("SELECT npc_row, old_type, new_type FROM quest_npc_seed_types WHERE seedset = ?",
+                                        (seedset,)).fetchall():
             cur = db.execute("SELECT npc_type FROM npcs WHERE id = ?", (rid,)).fetchone()
             if cur is None or cur[0] != new:
                 kept.append(rid)
                 continue
             db.execute("UPDATE npcs SET npc_type = ? WHERE id = ?", (old, rid))
+        for stmt in LOG_DDL:   # a set from before the aggro log has none
+            db.execute(stmt)
+        for name, old in db.execute("SELECT npc_name, old FROM quest_npc_seed_aggro WHERE seedset = ?", (seedset,)).fetchall():
+            cur = db.execute("SELECT aggressive, source FROM npcaggro WHERE npc_name = ?", (name,)).fetchone()
+            if cur is None or cur[0] != 0 or cur[1] != aggro_source(seedset):
+                kept.append(f"npcaggro {name!r}")
+                continue
+            if old is None:
+                db.execute("DELETE FROM npcaggro WHERE npc_name = ?", (name,))
+            else:
+                o = json.loads(old)
+                db.execute("UPDATE npcaggro SET aggressive = ?, radius = ?, note = ?, source = ? WHERE npc_name = ?",
+                           (o[1], o[2], o[3], o[4], name))
         before = meta.get("seq_before", "")
         top = db.execute("SELECT max(id) FROM npcs").fetchone()[0] or 0
         if before == "":
@@ -924,8 +1234,20 @@ def undo(db):
                 db.execute("DELETE FROM sqlite_sequence WHERE name = 'npcs'")
         elif top <= int(before):
             db.execute("UPDATE sqlite_sequence SET seq = ? WHERE name = 'npcs'", (int(before),))
-        for t in ("quest_npc_seed_rows", "quest_npc_seed_types", "quest_npc_seed_meta"):
-            db.execute(f"DROP TABLE {t}")
+        # a set applied after this one now counts from this one's counter
+        # when no row holds an id between the two: so whichever order the
+        # sets go back out in, the last one out puts the counter where it was
+        low = int(before or 0)
+        for other, b in db.execute("SELECT seedset, value FROM quest_npc_seed_meta WHERE key = 'seq_before' AND seedset != ?",
+                                   (seedset,)).fetchall():
+            if int(b or 0) > low and not db.execute("SELECT count(*) FROM npcs WHERE id > ? AND id <= ?",
+                                                    (low, int(b or 0))).fetchone()[0]:
+                db.execute("UPDATE quest_npc_seed_meta SET value = ? WHERE seedset = ? AND key = 'seq_before'", (before, other))
+        for t in LOG_TABLES:
+            db.execute(f"DELETE FROM {t} WHERE seedset = ?", (seedset,))
+        if not db.execute("SELECT count(*) FROM quest_npc_seed_meta").fetchone()[0]:
+            for t in LOG_TABLES:
+                db.execute(f"DROP TABLE {t}")
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
@@ -948,6 +1270,9 @@ def report(p, verbose=False):
           f"{p['misses']} points FrontiersForge also saw move what is near them")
     if p["oggok"]:
         print(f"the Rathe: anchored on Oggok's people at ({p['oggok'][0]:.0f}, {p['oggok'][1]:.0f}), {SCALE} a map unit")
+    if p.get("odus"):
+        (a, b, c, d), kept, med = p["odus"]
+        print(f"Odus: x = {a:.5f} mx {b:+.1f}, z = {c:.5f} my {d:+.1f} ({kept} points, a median {med:.1f} off)")
     by = collections.defaultdict(list)
     for r in p["rows"]:
         by[r["name"]].append(r)
@@ -960,6 +1285,8 @@ def report(p, verbose=False):
                 print(f"      also ({x['row']['x_coord']:.0f}, {x['row']['y_coord']:.1f}, {x['row']['z_coord']:.0f})")
     for t in p["types"]:
         print(f"  {t['name']!r} (row {t['id']}): npc_type {t['old']} -> {t['new']} (attackable)")
+    for a in p.get("aggro", []):
+        print(f"  {a['name']!r}: npcaggro aggressive 0 (peaceful){' (its rule now: ' + repr(a['old'][1:3]) + ')' if a['old'] else ''}")
     if p["left"]:
         print("left out:")
         for name, why in p["left"]:
@@ -972,37 +1299,70 @@ def main():
     ap.add_argument("--ground", default=DEFAULT_GROUND, help="the ground files' folder (worlds/ground)")
     ap.add_argument("--data", default=DEFAULT_DATA, help="a checkout of EQOA-Data (its Map/zones.json)")
     ap.add_argument("--quests", default=os.path.join(HERE, "quests", "data"), help="the quest files (their guides)")
-    ap.add_argument("--apply", action="store_true", help="write the NPCs")
-    ap.add_argument("--undo", action="store_true", help="delete every NPC a seed wrote and put the types back")
+    ap.add_argument("--specs", nargs="+", metavar="FILE",
+                    help="the spec files, a set each (default: every tools/quests/npcs/*.json)")
+    ap.add_argument("--set", action="append", default=[], metavar="SET", dest="sets",
+                    help=f"a set to plan, apply or undo ({BUILTIN} the built-in one, a spec file's \"set\", or all); "
+                         "a report without one plans every set")
+    ap.add_argument("--apply", action="store_true", help="write the sets named")
+    ap.add_argument("--undo", action="store_true", help="delete every NPC the sets named wrote and put the types back")
     ap.add_argument("--seed", type=int, default=DEFAULT_SEED, help="the placement's random seed")
     ap.add_argument("--no-backup", action="store_true", help="write without a copy first")
     ap.add_argument("--verbose", action="store_true", help="every spawn")
     args = ap.parse_args()
+    paths = args.specs if args.specs is not None else sorted(
+        os.path.join(DEFAULT_SPECS, f) for f in (os.listdir(DEFAULT_SPECS) if os.path.isdir(DEFAULT_SPECS) else [])
+        if f.endswith(".json"))
+    sets, errs = load_sets(paths)
+    if errs:
+        for e in errs:
+            print("ERROR:", e)
+        sys.exit(f"{len(errs)} errors in the spec files: nothing planned")
     writing = args.apply or args.undo
     target = os.path.abspath(args.db) if writing else f"file:{os.path.abspath(args.db)}?mode=ro"
     db = sqlite3.connect(target, isolation_level=None, uri=True)
     db.execute("PRAGMA busy_timeout = 5000")
+    have = sets_in(db)
+    names = list(sets) if "all" in args.sets else args.sets
+    for n in names:
+        if n not in sets and not (args.undo and n in have):
+            sys.exit(f"no set {n!r} (the sets: {', '.join(sets)})")
     if args.undo:
+        if not names:
+            if len(have) != 1:
+                sys.exit(f"name the set to undo (--set X): in this database {', '.join(have) or 'none'}")
+            names = list(have)
+        names = [n for n in names if n in have] if "all" in args.sets else names
         if not args.no_backup:
             print("backup:", backup(db, args.db))
-        n, kept = undo(db)
-        print(f"deleted {n} seeded NPCs; restart the server")
-        for rid in kept:
-            print(f"  row {rid}'s npc_type was changed since: left as it is")
+        for n in reversed(names):   # the last applied first, so each counter goes back
+            got, kept = undo(db, n)
+            print(f"set {n}: deleted {got} seeded NPCs")
+            for rid in kept:
+                print(f"  {rid if isinstance(rid, str) else f'row {rid}'}: changed since, left as it is")
+        print("restart the server")
         return
-    if seeded(db):
-        n = db.execute("SELECT count(*) FROM quest_npc_seed_rows").fetchone()[0]
-        print(f"a quest NPC seed is in already ({n} NPCs): --undo it to plan again")
-        return
-    p = plan(db, args.ground, args.data, args.quests, seed=args.seed)
-    report(p, args.verbose)
-    if not args.apply:
-        print(f"{len(p['rows'])} spawns, {len(p['types'])} made attackable (report only: --apply writes them)")
-        return
-    if not args.no_backup:
+    if args.apply and not names:
+        sys.exit(f"name the sets to apply: --set {' --set '.join(sets)} (or --set all)")
+    todo = names or list(sets)
+    if args.apply and not args.no_backup:
         print("backup:", backup(db, args.db))
-    apply(db, p)
-    print(f"wrote {len(p['rows'])} spawns, made {len(p['types'])} attackable; restart the server to read them")
+    for n in todo:
+        print(f"== set {n} ({sets[n]['file']}): {len(sets[n]['specs'])} names")
+        if n in sets_in(db):
+            print(f"   in this database already ({sets_in(db)[n]} NPCs): --undo --set {n} to plan it again")
+            continue
+        p = plan(db, args.ground, args.data, args.quests, seed=args.seed,
+                 specs=sets[n]["specs"], attackable=sets[n]["attackable"], peaceful=sets[n]["peaceful"])
+        report(p, args.verbose)
+        if not args.apply:
+            print(f"{len(p['rows'])} spawns, {len(p['types'])} made attackable, {len(p['aggro'])} made peaceful "
+                  f"(report only: --apply --set {n} writes them)")
+            continue
+        apply(db, p, n)
+        print(f"wrote {len(p['rows'])} spawns, made {len(p['types'])} attackable and {len(p['aggro'])} peaceful")
+    if args.apply:
+        print("restart the server to read them")
 
 
 if __name__ == "__main__":

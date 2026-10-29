@@ -42,9 +42,12 @@ import (
 //     killed (ours): the town creatures the seed gives a city include quest
 //     targets (Klick'Anon's clockworks, which EQOA-Data's guide says cost no
 //     faction), so a default would invent hits no record holds.
-//   - Each change is a line as EverQuest words it ("Your faction standing
-//     with X got worse."), unless the client's Faction Messages option is off
-//     (0x00C9: session.FactionMessagesOff); the client filters none itself.
+//   - Each change is a white chat line (0x0A7A) as Sandstorm words it: the
+//     standing after it, " faction with ", the faction, the change ("-690
+//     faction with Centaurs of the Plains (-10)", "11 faction with Merchant
+//     House Nothard (+10)": factionLine), unless the client's Faction
+//     Messages option is off (0x00C9: session.FactionMessagesOff); the
+//     client filters none itself.
 //   - A standing stays within FactionMin..FactionMax.
 
 // FactionMin and FactionMax bound a standing: -2000 and 2000, the capture's
@@ -534,24 +537,23 @@ func (w *World) factionKillLocked(sess *session.Session, p *Player, npc *NPC) {
 		}
 		log.Printf("Factions: %s killed %q: %s %d -> %d", p.Name, npc.Name, h.Faction, old, now)
 		if !quiet {
-			w.sendChatToSession(sess, factionLine(h.Faction, h.Delta, now != old))
+			w.sendChatToSession(sess, factionLine(h.Faction, h.Delta, now))
 		}
 	}
 }
 
-// factionLine is EverQuest's words for a standing moved, or held at its end.
-func factionLine(faction string, delta int, moved bool) string {
-	name := strings.TrimSpace(faction)
-	switch {
-	case delta < 0 && moved:
-		return fmt.Sprintf("Your faction standing with %s got worse.", name)
-	case delta < 0:
-		return fmt.Sprintf("Your faction standing with %s could not possibly get any worse.", name)
-	case moved:
-		return fmt.Sprintf("Your faction standing with %s got better.", name)
-	default:
-		return fmt.Sprintf("Your faction standing with %s could not possibly get any better.", name)
-	}
+// factionLine is Sandstorm's line for a change to a standing: the standing
+// now, " faction with ", the faction, and the change asked in brackets with
+// its sign. Sandstorm's own, as its client saw them (0x0A7A, white): the
+// quest rewards questrec16 recorded ("11 faction with Merchant House Nothard
+// (+10)", "6 faction with Citizens of Freeport (+5)") and kills in players'
+// reports ("-690 faction with Centaurs of the Plains (-10)", "-561 faction
+// with Citizens of Caer Sloth (+1)"). At the end of the range it is the same
+// line, the standing held and the change as asked: a gnoll killed at the
+// floor, nine times running, said "-2000 faction with Blackburrow Gnolls
+// (-10)" every time (F3 20261024-200725).
+func factionLine(faction string, delta, standing int) string {
+	return fmt.Sprintf("%d faction with %s (%+d)", standing, strings.TrimSpace(faction), delta)
 }
 
 // PlayerFactions is the standings the session's faction window lists, in its

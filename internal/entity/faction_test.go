@@ -38,7 +38,7 @@ func lines(sess *session.Session) []string {
 func factionLines(sess *session.Session) []string {
 	var out []string
 	for _, l := range lines(sess) {
-		if strings.HasPrefix(l, "Your faction standing") {
+		if strings.Contains(l, " faction with ") {
 			out = append(out, l)
 		}
 	}
@@ -59,8 +59,9 @@ func newGuardFight(t *testing.T) *fight {
 }
 
 // A melee kill moves the killer's standings by the NPC's rows, from the
-// starting standing (1 for both in the capture), and says so in EverQuest's
-// words; the XP line is still there.
+// starting standing (1 for both in the capture), and says so in Sandstorm's
+// white lines, the standing after the change and the change; the XP line is
+// still there.
 func TestAKillChangesTheKillersFactions(t *testing.T) {
 	f := newGuardFight(t)
 	f.w.mu.Lock()
@@ -73,8 +74,8 @@ func TestAKillChangesTheKillersFactions(t *testing.T) {
 		t.Errorf("standings %v, want Citizens of Freeport -24 and The Freeport Militia -49", got)
 	}
 	want := []string{
-		"Your faction standing with Citizens of Freeport got worse.",
-		"Your faction standing with The Freeport Militia got worse.",
+		"-24 faction with Citizens of Freeport (-25)",
+		"-49 faction with The Freeport Militia (-50)",
 	}
 	if got := factionLines(f.sess); strings.Join(got, "|") != strings.Join(want, "|") {
 		t.Errorf("lines %q, want %q", got, want)
@@ -129,9 +130,11 @@ func TestFactionLinesHonourTheOption(t *testing.T) {
 	}
 }
 
-// A standing stops at -2000: the step that reaches it got worse, the next
-// could not possibly get any worse and changes nothing; and at 2000 the same
-// the other way.
+// A standing stops at -2000: the step that reaches it says -2000 and the
+// change asked; the next changes nothing and says the same, as Sandstorm's
+// gnoll kills at the floor did (F3 20261024-200725: "-2000 faction with
+// Blackburrow Gnolls (-10)" nine times running); and at 2000 the same the
+// other way.
 func TestStandingsStayInRange(t *testing.T) {
 	f := newGuardFight(t)
 	f.w.SetFactionHits([]database.FactionHitRow{{NPCName: "Guard Dahvel", Faction: "Citizens of Freeport", Delta: -25}})
@@ -148,8 +151,8 @@ func TestStandingsStayInRange(t *testing.T) {
 		t.Errorf("standing %d, want %d", got, FactionMin)
 	}
 	want := []string{
-		"Your faction standing with Citizens of Freeport got worse.",
-		"Your faction standing with Citizens of Freeport could not possibly get any worse.",
+		"-2000 faction with Citizens of Freeport (-25)",
+		"-2000 faction with Citizens of Freeport (-25)",
 	}
 	if got := factionLines(f.sess); strings.Join(got, "|") != strings.Join(want, "|") {
 		t.Errorf("lines %q, want %q", got, want)
@@ -162,8 +165,8 @@ func TestStandingsStayInRange(t *testing.T) {
 		t.Errorf("standing %d, want %d", got, FactionMax)
 	}
 	want = []string{
-		"Your faction standing with Citizens of Freeport got better.",
-		"Your faction standing with Citizens of Freeport could not possibly get any better.",
+		"2000 faction with Citizens of Freeport (+4000)",
+		"2000 faction with Citizens of Freeport (+4000)",
 	}
 	if got := factionLines(f.sess); strings.Join(got, "|") != strings.Join(want, "|") {
 		t.Errorf("lines %q, want %q", got, want)
@@ -249,5 +252,56 @@ func TestStandingsKeptAndEditedOnline(t *testing.T) {
 	}
 	if _, online := f.w.SetOnlineFaction(78, "Citizens of Freeport", 1, false); online {
 		t.Error("an offline character was found")
+	}
+}
+
+// Sandstorm's faction lines, word for word as its client showed them: the
+// standing after the change, the faction, the change asked with its sign;
+// at the floor the standing held and the change as asked.
+func TestFactionLinesAreSandstorms(t *testing.T) {
+	for _, c := range []struct {
+		faction         string
+		delta, standing int
+		want            string
+	}{
+		// questrec16's first Freeport warrior quest (r04-buy-return)
+		{"Merchant House Nothard", 10, 11, "11 faction with Merchant House Nothard (+10)"},
+		{"Citizens of Freeport", 5, 6, "6 faction with Citizens of Freeport (+5)"},
+		// a kill's, in a report's chat log (F3 20261029-130643)
+		{"Centaurs of the Plains", -10, -690, "-690 faction with Centaurs of the Plains (-10)"},
+		{"Citizens of Caer Sloth", 1, -561, "-561 faction with Citizens of Caer Sloth (+1)"},
+		// at the floor (F3 20261024-200725, nine kills running)
+		{"Blackburrow Gnolls", -10, FactionMin, "-2000 faction with Blackburrow Gnolls (-10)"},
+		// a name as a table may keep it, and a standing of 0
+		{" Citizens of Qeynos ", -1, 0, "0 faction with Citizens of Qeynos (-1)"},
+	} {
+		if got := factionLine(c.faction, c.delta, c.standing); got != c.want {
+			t.Errorf("factionLine(%q, %d, %d) = %q, want %q", c.faction, c.delta, c.standing, got, c.want)
+		}
+	}
+}
+
+// A quest's faction rewards (World.ApplyFactionHits) say Sandstorm's lines
+// too, as white chat (0x0A7A, as Sandstorm sent its quest's), one a faction in
+// the step's order; with Faction Messages off they still move and say nothing.
+func TestQuestFactionRewardsSaySandstormsLines(t *testing.T) {
+	f := newFight(t)
+	hits := []FactionHit{{"Citizens of Freeport", 10}, {"The Freeport Militia", 5}, {"Citizens of Freeport", 0}}
+	f.w.ApplyFactionHits(f.sess, f.p, hits)
+	want := []string{"11 faction with Citizens of Freeport (+10)", "6 faction with The Freeport Militia (+5)"}
+	if got := factionLines(f.sess); strings.Join(got, "|") != strings.Join(want, "|") {
+		t.Errorf("lines %q, want %q", got, want)
+	}
+	for _, m := range f.sess.Queue().PeekPending() {
+		d := m.Data()
+		if op := protocol.GameOpcode(binary.LittleEndian.Uint16(d)); op != protocol.OpcodeClientMessage {
+			t.Errorf("a %#04x among the lines, want only 0x0A7A", uint16(op))
+		}
+	}
+	g := newFight(t)
+	g.sess.SetFactionMessagesOff(true)
+	g.w.ApplyFactionHits(g.sess, g.p, hits)
+	if got := factionLines(g.sess); len(got) != 0 || g.p.Factions["Citizens of Freeport"] != 11 {
+		t.Errorf("Faction Messages off: lines %q, standing %d", got, g.p.Factions["Citizens of Freeport"])
 	}
 }

@@ -40,6 +40,17 @@ record, claude-notes/tradeskill-sources-20261029.md.
   and the merchants of hammers, molds and ore, whose stand-in "general goods"
   (tools/stock_merchants.py's) give way to the craft's wares.
 
+**Jewelry** (--craft jewel): Prima's Frontiers guide's gem tables (pp. 442-443,
+out of its layout text: each gem's rarity, least trade level and columns, read
+by the rotated labels' places, and its cells by metal), a recipe a cell and a
+mold (a bar, the mold and the gem, the gem kept on a failure), the products
+"<metal> <gem> <piece>" at the same level rule (no metal's hit points; Prima's
+bonus durability); the eight gems SOE changed on 5 Dec 2003 by the live
+records' figures (GEM_ANCHORS); Sandstorm's own kits, wax molds and bars; the
+gems this server lacks made as Sandstorm's are, a drop table "craft gems";
+eqoatrade's starter (a glass trinket, a cracked glass earring) under Special.
+A live record is the product only with the product's stats too.
+
 A product this server has the live record of (its name, level and slot: the
 heartsblood and mindflow sets, "heartsblood seralite breastplate") is that
 record; one of the name that is another item (a found "Steel Chain Tunic" of
@@ -59,7 +70,7 @@ Every row written and every value changed is logged in tradeskill_seed;
 the log is there. Report only by default. The server reads recipes, stock and
 loot as it goes; new items reach a client at its next login.
 
-    tools/seed_tradeskills.py [--db eqoa.db] --sources <folder> --harvests <dir or file> ... [--craft armor] [--apply | --undo]
+    tools/seed_tradeskills.py [--db eqoa.db] --sources <folder> --harvests <dir or file> ... [--craft armor|jewel] [--apply | --undo]
 """
 import argparse
 import collections
@@ -325,14 +336,16 @@ def commonest(db, sql, args=()):
     return r[0] if r else None
 
 
-def harvest_components(harvests):
-    """Sandstorm's own records of the craft's hammers, molds and ores, by name,
-    off every harvest file's merchants (a file of another kind is passed over)."""
+def harvest_components(harvests, want=None):
+    """Sandstorm's own records of a craft's tools, molds and metals (want: the
+    names; Armor's by default), by name, off every harvest file's merchants (a
+    file of another kind is passed over)."""
     files = []
     for p in harvests:
         files += sorted(glob.glob(os.path.join(p, "*.json"))) if os.path.isdir(p) else [p]
-    want = {f"{h} Armorsmith Hammer" for h in HAMMERS} | {m for _, _, _, m in PIECES.values()} | \
-           {m for _, _, _, m in EXTRA_SHIELDS.values()} | {f"{m} Ore" for m in METALS}
+    if want is None:
+        want = {f"{h} Armorsmith Hammer" for h in HAMMERS} | {m for _, _, _, m in PIECES.values()} | \
+               {m for _, _, _, m in EXTRA_SHIELDS.values()} | {f"{m} Ore" for m in METALS}
     got = {}
     for f in files:
         try:
@@ -671,7 +684,341 @@ def undo(db, craft):
     print(f"took back {back} changes; {kept} changed since left as they are")
 
 
-PLANS = {"armor": plan}
+# ---- Jewelcrafting
+
+
+JEWEL = 3  # the skill: CLIENT's craft slot
+# Prima p. 443, "Metals": the order is CLIENT's Jewel list (spec 3.2), its Special tab after them
+JEWEL_METALS = ["Iron", "Bronze", "Steel", "Copper", "Silver", "Electrum", "Gold", "Platinum", "Adamantite", "Mithril"]
+JEWEL_BONUS_DUR = [0, 2, 4, 6, 8, 10, 12, 15, 18, 20]
+JEWEL_SPECIAL = 10
+# Sandstorm's ten kits, a tier a metal (Freeport's Merchant Gillinen), and its four wax molds and ten bars (Merchant
+# Rothien): the tool held while working, worn in Held as a hammer is (wear slot 22 + 3)
+KITS = ["Novice", "Initiate", "Assistant", "Apprentice", "Adept", "Journeyman", "Expert", "Artisan", "Master", "Grandmaster"]
+# p. 443, "Casting Molds": a mold's piece and its equip slot (Ring, Ear, Neck, one Forearm)
+JEWEL_MOLDS = {"Ring Mold": ("ring", 8), "Earring Mold": ("earring", 3), "Pendant Mold": ("pendant", 4),
+               "Bracelet Mold": ("bracelet", 6)}
+# p. 442, "Gem Properties": its columns left to right, as their rotated labels stand (Lightning before Cold; Sandstorm's
+# Turquoise is "cold resistance" and its Topaz "lightning and arcane", as these columns read)
+GEM_LABELS = ["Str", "Sta", "Agi", "Dex", "Wis", "Int", "Chr", "HP Max", "PWR Max", "HoT", "PoT", "AC", "Fire", "Lightening",
+              "Cold", "Arcane", "Poison", "Disease"]
+GEM_COLS = ["str", "sta", "agi", "dex", "wis", "intelligence", "cha", "HPMAX", "POWMAX", "HoT", "PoT", "AC", "FR", "LR", "CR",
+            "AR", "PR", "DR"]
+GEM_RARITY = {"common": 0, "uncommon": 1, "rare": 2, "ultra-rare": 3}
+# a gem's item where this server's record is named otherwise than the table (Sandstorm's "Black Bloodstone", "These gems
+# are often sought after by jewelers ... stamina"), and its word in a product's name, as the live records have them
+# ("electrum bloodstone earring", "mithril rose quartz earring")
+GEM_ITEM = {"Bloodstone": "Black Bloodstone"}
+GEM_WORD = {"Bloodstone": "bloodstone", "Star Rose Quartz": "rose quartz"}
+# The eight gems SOE changed on 5 Dec 2003: "we have removed these [HoT/PoT] effects and changed the stats of the
+# jewelry crafting products made from: Ruby, Emerald, Sapphire, Star Ruby, Fire Emerald, Black Sapphire, Diamond, and
+# Blue Diamond" (Allakhazam story 2762); Prima, a year later, prints them as before. Their stats as the live game's own
+# records have them at one metal (in this server's items, out of Hagley's and Return Home's captures; EQOA-Data's
+# gems.json gives the same kinds), the other metals along Prima's curve for that kind of stat (an attribute's or a
+# resist's: Amber's row; hit points' or power's: Tourmaline's; AC: Pyrite's).
+GEM_ANCHORS = {
+    "Ruby": (9, {"HPMAX": 129}),                                                # adamantite ruby bracelet
+    "Star Ruby": (10, {"str": 24, "HPMAX": 92, "PR": 24}),                      # mithril star ruby ring
+    "Black Sapphire": (10, {"sta": 25, "HPMAX": 84, "POWMAX": 21, "AR": 25}),   # mithril black sapphire earring
+    "Diamond": (10, {"cha": 24, "HPMAX": 84, "AC": 56}),                        # mithril diamond earring, pendant
+}
+# ours, for the four no record shows: a twin's stats where Prima's rows pair them; Sapphire ("hp, pow major") the
+# Emerald's power with the plain hit points the diamond's and the black sapphire's records share; Blue Diamond Prima's
+# cells, which already carry hit points, power and AC
+GEM_TWINS = {"Emerald": ("Ruby", {"HPMAX": "POWMAX"}),
+             "Fire Emerald": ("Star Ruby", {"str": "dex", "PR": "FR", "HPMAX": "POWMAX"})}
+CHANGED_GEMS = ("Ruby", "Emerald", "Sapphire", "Star Ruby", "Fire Emerald", "Black Sapphire", "Diamond", "Blue Diamond")
+GEM_PRICE = [20, 60, 270, 800]       # the gems Sandstorm prices (20, 60, 270); the ultra rare ours
+JEWEL_LOOT_TABLE = "craft gems"
+# the starter (eqoatrade's tutorial: the jeweler's kit, "a glass trinket recipe, 1 piece of glass, 1 piece of cracked
+# glass, an earring mold, a pendant mold, and 1 iron bar"; the trinket by the recipe, the cracked glass earring by
+# experiment, both under Special; their stats ours)
+STARTER_KIT = "Novice Jewelers Kit"
+GLASS, CRACKED = "Piece of Glass", "Piece of Cracked Glass"
+TRINKET_SCROLL, TRINKET, CRACKED_EARRING = "Glass Trinket Recipe", "glass trinket", "cracked glass earring"
+STAT_WORDS = {"str": "strength", "sta": "stamina", "agi": "agility", "dex": "dexterity", "wis": "wisdom",
+              "intelligence": "intelligence", "cha": "charisma", "HPMAX": "vitality", "POWMAX": "power", "HoT": "health",
+              "PoT": "power regeneration", "AC": "armor class", "FR": "fire", "LR": "lightning", "CR": "cold", "AR": "arcane",
+              "PR": "poison", "DR": "disease"}
+RESISTS = ("FR", "LR", "CR", "AR", "PR", "DR")
+# Prima's city tables where eqoatrade's list names an NPC this server lacks: Neriak's "Jeweler K`Trath, Jewelry Making
+# Tools" (eqoatrade: "Helenth K'Trath"). Surefall Glade has no kit seller in either.
+JEWEL_SELLERS = {"Neriak": {"hammers": "Jeweler K`Trath"}}
+
+
+def read_prima_jewel(folder):
+    """Prima's Frontiers guide, pp. 442-443, out of its layout text (pdftotext
+    -layout, tools/fetch_tradeskill_sources.py --craft jewel): each gem's
+    rarity, its least trade level and the columns its marks stand under (Gem
+    Properties, by the rotated labels' places), and its ten cells by metal (Gem
+    & Metal Combinations, by the header's places; a cell's lines joined)."""
+    path = os.path.join(folder, "prima", "prima-frontiers-layout.txt")
+    with open(path, encoding="utf-8") as f:
+        lines = f.read().split("\n")
+    start = next(i for i, ln in enumerate(lines) if ln.strip() == "Jewel Crafting")
+    end = next(i for i in range(start, len(lines)) if lines[i].strip() == "Tailoring")
+    sec = lines[start:end]
+    row = re.compile(r"^([A-Z][A-Za-z' ]+?)\s{2,}(Common|Uncommon|Rare|Ultra-Rare)\s+(\d+)\s+(.*)$")
+    props, problems = {}, []
+    i = 0
+    while i < len(sec):
+        if not sec[i].strip().startswith("Gem Properties"):
+            i += 1
+            continue
+        xs = {}
+        i += 1
+        while i < len(sec) and not sec[i].startswith("Gem Name"):
+            for lab in GEM_LABELS:
+                m = re.search(r"(?<![A-Za-z])" + re.escape(lab) + r"(?![A-Za-z])", sec[i])
+                if m:
+                    xs.setdefault(lab, m.start() + len(lab) / 2)
+            i += 1
+        if len(xs) != len(GEM_LABELS):
+            problems.append(f"Gem Properties: no label {sorted(set(GEM_LABELS) - set(xs))}")
+            continue
+        i += 1
+        while i < len(sec):
+            m = row.match(sec[i])
+            if not m:
+                break
+            marks = [k.start() for k in re.finditer("[—X]", sec[i])][-len(GEM_LABELS):]
+            cols = sorted({min(xs, key=lambda lab, x=x: abs(xs[lab] - x)) for x in marks if sec[i][x] == "X"},
+                          key=GEM_LABELS.index)
+            props[m.group(1)] = (GEM_RARITY[m.group(2).lower()], int(m.group(3)), [GEM_COLS[GEM_LABELS.index(c)] for c in cols])
+            i += 1
+    cells = {}
+    i = 0
+    while i < len(sec):
+        if not sec[i].strip().startswith("Gem & Metal Combinations"):
+            i += 1
+            continue
+        hdr = sec[i + 1]
+        mx = [hdr.index(m) + len(m) / 2 for m in JEWEL_METALS]
+        i += 2
+        name = None
+        while i < len(sec):
+            ln = sec[i]
+            if ln.strip().startswith("Gem & Metal Combinations"):
+                break  # the table's next page (pdftotext puts a form feed before it too)
+            m = re.match(r"^([A-Z][A-Za-z' ]+?)\s{2,}(\S.*)$", ln)
+            if m and m.group(1) in props:
+                name = m.group(1)
+                cells[name] = [""] * 10
+                body = " " * m.start(2) + ln[m.start(2):]
+            elif ln.strip() and not ln.startswith(" "):
+                break
+            elif name and "+" in ln:
+                body = ln
+            else:
+                i += 1
+                continue
+            for t in re.finditer(r"\S+", body):
+                c = min(range(10), key=lambda k: abs(mx[k] - (t.start() + len(t.group()) / 2)))
+                cells[name][c] += t.group()
+            i += 1
+    for g in props:
+        if g not in cells:
+            problems.append(f"no Gem & Metal row for {g}")
+    return props, cells, problems
+
+
+def gem_stats(props, cells, problems):
+    """{gem: {trade level: {column: value}}}: Prima's cells as printed, but for
+    the eight gems changed in 2003 (GEM_ANCHORS's comment)."""
+    out = {}
+    for gem, (_, _, cols) in props.items():
+        if gem in CHANGED_GEMS:
+            continue
+        per = {}
+        for t, c in enumerate(cells.get(gem, []), 1):
+            if not c or c == "N\\A":
+                continue
+            vals = [int(v) for v in re.findall(r"\+(\d+)", c)]
+            if len(vals) != len(cols):
+                problems.append(f"{gem} at trade level {t}: {c!r} for {cols}")
+                continue
+            per[t] = dict(zip(cols, vals))
+        out[gem] = per
+
+    def curve(gem):
+        return [int(c.lstrip("+")) for c in cells[gem]]
+    curves = {"attr": curve("Amber"), "hp": curve("Tourmaline"), "ac": curve("Pyrite")}
+
+    def along(col, at, value, t):
+        c = curves["hp" if col in ("HPMAX", "POWMAX") else "ac" if col == "AC" else "attr"]
+        return int(value * c[t - 1] / c[at - 1] + 0.5)
+    anchors = dict(GEM_ANCHORS)
+    for twin, (src, rename) in GEM_TWINS.items():
+        at, vals = anchors[src]
+        anchors[twin] = (at, {rename.get(k, k): v for k, v in vals.items()})
+    at, vals = anchors["Emerald"]
+    anchors["Sapphire"] = (10, {"HPMAX": GEM_ANCHORS["Diamond"][1]["HPMAX"], "POWMAX": along("POWMAX", at, vals["POWMAX"], 10)})
+    for gem, (at, vals) in anchors.items():
+        out[gem] = {t: {c: along(c, at, v, t) for c, v in vals.items()} for t in range(props[gem][1], 11)}
+    label = {"HP": "HPMAX", "PM": "POWMAX", "Pwr": "POWMAX", "AC": "AC"}
+    per = {}
+    for t, c in enumerate(cells.get("Blue Diamond", []), 1):
+        if c and c != "N\\A":
+            per[t] = {label[lab]: int(v) for v, lab in re.findall(r"\+(\d+)([A-Za-z]+)", c)}
+    out["Blue Diamond"] = per
+    return out
+
+
+def gem_desc(cols):
+    """A gem's line, as Sandstorm's gems word theirs."""
+    res = [STAT_WORDS[c] for c in cols if c in RESISTS]
+    other = [STAT_WORDS[c] for c in cols if c not in RESISTS]
+    if res:
+        other.append(f"{' and '.join(res)} resistance{'s' if len(res) > 1 else ''}")
+    words = other[0] if len(other) == 1 else ", ".join(other[:-1]) + " and " + other[-1]
+    return f"These gems are often sought after by jewelers for their seemingly magical ability to enhance {words}."
+
+
+def crafted_jewel(db, name, level, slot, row):
+    """This server's record of a jewelry product, made by a live craftsman:
+    the name (the live records' names stop at 32 letters), level and slot, and
+    its hit points, durability and stats all the product's, so a found "Silver
+    Pearl Earring" of another make, or a record without its stats, is another
+    item."""
+    names = sorted({name.lower(), name.lower()[:32]})
+    cols = ["patternid", "maxhp", "duration"] + STAT_COLS
+    for r in db.execute(f"SELECT {', '.join(cols)} FROM itempattern WHERE lower(itemname) IN ({','.join('?' * len(names))}) "
+                        "AND levelreq = ? AND equipslot = ? ORDER BY patternid", (*names, level, slot)):
+        rec = dict(zip(cols, r))
+        if rec["maxhp"] == row["maxhp"] and rec["duration"] == row["duration"] and \
+                all((rec[c] or 0) == row.get(c, 0) for c in STAT_COLS):
+            return rec["patternid"]
+    return None
+
+
+def npc_named(db, name):
+    return db.execute("SELECT id, npc_id, npc_type FROM npcs WHERE lower(replace(npc_name, '`', \"'\")) = ? ORDER BY id",
+                      (norm(name),)).fetchall()
+
+
+def plan_jewel(db, folder, harvests):
+    """Jewelcrafting's items, recipes, stock and drops (the module's doc)."""
+    problems = []
+    props, cells, more = read_prima_jewel(folder)
+    problems += more
+    stats = gem_stats(props, cells, problems)
+    vendors = read_vendors(folder, "jewel")
+    want = {f"{k} Jewelers Kit" for k in KITS} | set(JEWEL_MOLDS) | {f"{m} Bar" for m in JEWEL_METALS}
+    comps, missing = harvest_components(harvests, want)
+    if missing:
+        problems.append(f"the harvests lack Sandstorm's records of: {', '.join(missing)}")
+    cols = [r[1] for r in db.execute("PRAGMA table_info(itempattern)")]
+    taken = {r[0] for r in db.execute("SELECT patternid FROM itempattern")}
+    items, ids = [], {}
+    for name, row in sorted(comps.items()):
+        have = item_by_name(db, name)
+        if have is not None:
+            ids[name] = have
+            continue
+        pid = row["patternid"] if row["patternid"] not in taken else None
+        r = {c: v for c, v in row.items() if c in cols}
+        r.pop("patternid", None)
+        r.setdefault("model", 0)
+        r.setdefault("color", 0)
+        items.append((pid, r))
+        ids[name] = pid
+
+    # the gems: this server's own where it has them, else made as Sandstorm's are
+    gem_rows = db.execute("SELECT itemicon, itemcost FROM itempattern WHERE craft > 0 AND equipslot = -1 AND "
+                          "itemdesc LIKE '%sought after by jewelers%'").fetchall()
+    for gem, (rarity, _, _) in props.items():
+        name = GEM_ITEM.get(gem, gem)
+        have = item_by_name(db, name)
+        if have is not None:
+            ids[name] = have
+            continue
+        price = GEM_PRICE[rarity]
+        icons = collections.Counter(i for i, c in gem_rows if c == min(price, GEM_PRICE[2]))
+        icon = sorted(icons.items(), key=lambda x: (-x[1], x[0]))[0][0] if icons else 0
+        items.append((None, base_item(name, icon, price, 0, -1, maxstack=50, craft=1,
+                                      desc=gem_desc(sorted(stats[gem][max(stats[gem])], key=GEM_COLS.index)))))
+        ids[name] = None
+    scroll_icon = commonest(db, "SELECT itemicon AS x FROM itempattern WHERE lower(itemname) LIKE '%recipe%'")
+    glass_icon = commonest(db, "SELECT itemicon AS x FROM itempattern WHERE itemdesc LIKE '%sought after by jewelers%'")
+    for name, icon, price, desc, craft, stack in [
+        (TRINKET_SCROLL, scroll_icon, 10, "A recipe for a glass trinket. Use it to scribe the recipe.", 0, 1),
+        (GLASS, glass_icon, 2, "A piece of clear glass, for a jeweler's first work.", 1, 50),
+        (CRACKED, glass_icon, 1, "A piece of glass with a crack through it.", 1, 50),
+    ]:
+        have = item_by_name(db, name)
+        if have is None:
+            items.append((None, base_item(name, icon or 0, price, 0, -1, maxstack=stack, craft=craft, desc=desc)))
+        ids[name] = have
+
+    # the products: a gem, a metal and a mold, each piece's icon the live records'
+    metal_re = "|".join(m.lower() for m in JEWEL_METALS)
+    live = collections.defaultdict(collections.Counter)
+    for name, slot, icon, hp in db.execute("SELECT itemname, equipslot, itemicon, maxhp FROM itempattern "
+                                           "WHERE equipslot IN (3, 4, 6, 8)"):
+        if hp and re.match(rf"^({metal_re}) .+ (ring|earring|pendant|bracelet|bracele)$", (name or "").lower()):
+            live[slot][icon] += 1
+
+    def piece_icon(slot):
+        if live[slot]:
+            return sorted(live[slot].items(), key=lambda x: (-x[1], x[0]))[0][0]
+        return commonest(db, "SELECT itemicon AS x FROM itempattern WHERE equipslot = ?", (slot,)) or 0
+    products, cells_n = [], 0
+    for gem, (rarity, _, _) in props.items():
+        for t, st in sorted(stats[gem].items()):
+            cells_n += 1
+            metal = JEWEL_METALS[t - 1]
+            level = 5 * t - 2
+            bar_price = (comps.get(f"{metal} Bar") or {}).get("itemcost") or 10 * t * t
+            for mold, (piece, slot) in JEWEL_MOLDS.items():
+                name = f"{metal.lower()} {GEM_WORD.get(gem, gem.lower())} {piece}"
+                row = base_item(name, piece_icon(slot), 3 * bar_price + 10 + MOD_WORTH[rarity], level, slot, maxstack=1,
+                                craft=0, desc=f"A{'n' if piece[0] in 'ae' else ''} {piece} cast of {metal.lower()}, set with "
+                                              f"{'an' if gem[0] in 'AEIOU' else 'a'} {gem.lower()}.",
+                                maxhp=200 * level, duration=50 + JEWEL_BONUS_DUR[t - 1])
+                row.update(st)
+                ings = [(f"{metal} Bar", 1, False), (mold, 1, False), (GEM_ITEM.get(gem, gem), 1, True)]
+                products.append({"name": name, "row": row, "have": crafted_jewel(db, name, level, slot, row), "comp": t - 1,
+                                 "level": t, "rarity": rarity, "ings": ings, "sort": (t, rarity, name), "kind": piece,
+                                 "magical": True})
+    for name, slot, stat, ings, extra in [
+        (TRINKET, 4, "cha", [(GLASS, 1, True), ("Pendant Mold", 1, False)],
+         {"scroll": TRINKET_SCROLL, "discover": 0, "description": "The first piece a jeweler's apprentice makes."}),
+        (CRACKED_EARRING, 3, "intelligence", [(CRACKED, 1, True), ("Earring Mold", 1, False), ("Iron Bar", 1, False)],
+         {"discover": 1, "description": "An apprentice's earring of cracked glass."}),
+    ]:
+        row = base_item(name, piece_icon(slot), 2, 1, slot, maxstack=1, craft=0, desc=f"A jeweler's first {name}.",
+                        maxhp=200, duration=50)
+        row[stat] = 1
+        products.append(dict({"name": name, "row": row, "have": None, "comp": JEWEL_SPECIAL, "level": 1, "rarity": 0,
+                              "ings": ings, "sort": (99, name), "kind": "starter", "magical": False, "difficulty": 1,
+                              "xp": 10}, **extra))
+    names = collections.Counter(p["name"] for p in products)
+    problems += [f"{k} products named {n!r}" for n, k in names.items() if k > 1]
+
+    stock, left = [], []
+    kits = [f"{k} Jewelers Kit" for k in KITS]
+    rest = list(JEWEL_MOLDS) + [f"{m} Bar" for m in JEWEL_METALS] + [GLASS, CRACKED]
+    for city, v in sorted(vendors.items()):
+        v = dict(v, **JEWEL_SELLERS.get(city, {}))
+        for role, wares, what in (("hammers", kits, "kits"), ("molds", rest, "molds, bars and glass")):
+            name = v.get(role)
+            if not name:
+                left.append(f"{city}: no {what} seller on eqoatrade's list")
+                continue
+            r = npc_named(db, name)
+            if not r:
+                left.append(f"{city}: {name} ({what}) is no NPC here")
+                continue
+            if len(r) > 1:
+                left.append(f"{city}: {len(r)} NPCs named {name}: the first stocked")
+            stock.append((city, role, name, r[0], wares))
+    loot = {"table": JEWEL_LOOT_TABLE, "mods": [(GEM_ITEM.get(g, g), props[g][0]) for g in props],
+            "note": "the jewelers' gems: any creature (eqoatrade: random)"}
+    return {"skill": JEWEL, "cells": cells_n, "vendors": vendors, "comps": comps, "items": items, "ids": ids,
+            "products": products, "stock": stock, "left": left, "problems": problems, "loot": loot}
+
+
+PLANS = {"armor": plan, "jewel": plan_jewel}
 
 
 def backup(path):

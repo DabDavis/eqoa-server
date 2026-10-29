@@ -8,7 +8,7 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer, a recipe and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
       "accept": "I will learn the forge.",
       "decline": "Not now.",
       "declined": "The forge will be here when you are ready.",
@@ -25,7 +25,7 @@
           ],
           "journal": "Make a pair of blacksmith's bracers and show them to Smithy Vargis.",
           "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
-          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds by the forge and experiment: ore and a mold make a piece, and a gem or an alloy makes it more. A better hammer works finer metal."
         }
       ],
       "events": [
@@ -33,11 +33,26 @@
           "on": "accept",
           "do": "give",
           "items": [
-            "Novice Armorsmith Hammer",
-            "Blacksmith's Bracers Recipe",
-            "Blacksmith's Emblem",
-            "Chain Bracers Mold",
-            "Crude Iron Ore"
+            {
+              "item": "Novice Armorsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Bracers Recipe",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Emblem",
+              "count": 1
+            },
+            {
+              "item": "Chain Bracers Mold",
+              "count": 1
+            },
+            {
+              "item": "Crude Iron Ore",
+              "count": 1
+            }
           ]
         }
       ],
@@ -51,7 +66,7 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer, a recipe and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
       "accept": "I will learn the forge.",
       "decline": "Not now.",
       "declined": "The forge will be here when you are ready.",
@@ -68,7 +83,7 @@
           ],
           "journal": "Make a pair of blacksmith's bracers and show them to Smithy Laryn.",
           "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
-          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds by the forge and experiment: ore and a mold make a piece, and a gem or an alloy makes it more. A better hammer works finer metal."
         }
       ],
       "events": [
@@ -76,11 +91,26 @@
           "on": "accept",
           "do": "give",
           "items": [
-            "Novice Armorsmith Hammer",
-            "Blacksmith's Bracers Recipe",
-            "Blacksmith's Emblem",
-            "Chain Bracers Mold",
-            "Crude Iron Ore"
+            {
+              "item": "Novice Armorsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Bracers Recipe",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Emblem",
+              "count": 1
+            },
+            {
+              "item": "Chain Bracers Mold",
+              "count": 1
+            },
+            {
+              "item": "Crude Iron Ore",
+              "count": 1
+            }
           ]
         }
       ],
@@ -94,7 +124,7 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer, a recipe and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
       "accept": "I will learn the forge.",
       "decline": "Not now.",
       "declined": "The forge will be here when you are ready.",
@@ -111,7 +141,7 @@
           ],
           "journal": "Make a pair of blacksmith's bracers and show them to Smithy Belyss.",
           "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
-          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds by the forge and experiment: ore and a mold make a piece, and a gem or an alloy makes it more. A better hammer works finer metal."
         }
       ],
       "events": [
@@ -119,11 +149,26 @@
           "on": "accept",
           "do": "give",
           "items": [
-            "Novice Armorsmith Hammer",
-            "Blacksmith's Bracers Recipe",
-            "Blacksmith's Emblem",
-            "Chain Bracers Mold",
-            "Crude Iron Ore"
+            {
+              "item": "Novice Armorsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Bracers Recipe",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Emblem",
+              "count": 1
+            },
+            {
+              "item": "Chain Bracers Mold",
+              "count": 1
+            },
+            {
+              "item": "Crude Iron Ore",
+              "count": 1
+            }
           ]
         }
       ],
@@ -137,7 +182,7 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer, a recipe and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
       "accept": "I will learn the forge.",
       "decline": "Not now.",
       "declined": "The forge will be here when you are ready.",
@@ -154,7 +199,7 @@
           ],
           "journal": "Make a pair of blacksmith's bracers and show them to Smithy Jeilin.",
           "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
-          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds by the forge and experiment: ore and a mold make a piece, and a gem or an alloy makes it more. A better hammer works finer metal."
         }
       ],
       "events": [
@@ -162,11 +207,26 @@
           "on": "accept",
           "do": "give",
           "items": [
-            "Novice Armorsmith Hammer",
-            "Blacksmith's Bracers Recipe",
-            "Blacksmith's Emblem",
-            "Chain Bracers Mold",
-            "Crude Iron Ore"
+            {
+              "item": "Novice Armorsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Bracers Recipe",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Emblem",
+              "count": 1
+            },
+            {
+              "item": "Chain Bracers Mold",
+              "count": 1
+            },
+            {
+              "item": "Crude Iron Ore",
+              "count": 1
+            }
           ]
         }
       ],
@@ -180,7 +240,7 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer, a recipe and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
       "accept": "I will learn the forge.",
       "decline": "Not now.",
       "declined": "The forge will be here when you are ready.",
@@ -197,7 +257,7 @@
           ],
           "journal": "Make a pair of blacksmith's bracers and show them to Smithy Jekul.",
           "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
-          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds by the forge and experiment: ore and a mold make a piece, and a gem or an alloy makes it more. A better hammer works finer metal."
         }
       ],
       "events": [
@@ -205,11 +265,26 @@
           "on": "accept",
           "do": "give",
           "items": [
-            "Novice Armorsmith Hammer",
-            "Blacksmith's Bracers Recipe",
-            "Blacksmith's Emblem",
-            "Chain Bracers Mold",
-            "Crude Iron Ore"
+            {
+              "item": "Novice Armorsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Bracers Recipe",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Emblem",
+              "count": 1
+            },
+            {
+              "item": "Chain Bracers Mold",
+              "count": 1
+            },
+            {
+              "item": "Crude Iron Ore",
+              "count": 1
+            }
           ]
         }
       ],
@@ -223,7 +298,7 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer, a recipe and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
       "accept": "I will learn the forge.",
       "decline": "Not now.",
       "declined": "The forge will be here when you are ready.",
@@ -240,7 +315,7 @@
           ],
           "journal": "Make a pair of blacksmith's bracers and show them to Smithy Argillina.",
           "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
-          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds by the forge and experiment: ore and a mold make a piece, and a gem or an alloy makes it more. A better hammer works finer metal."
         }
       ],
       "events": [
@@ -248,11 +323,26 @@
           "on": "accept",
           "do": "give",
           "items": [
-            "Novice Armorsmith Hammer",
-            "Blacksmith's Bracers Recipe",
-            "Blacksmith's Emblem",
-            "Chain Bracers Mold",
-            "Crude Iron Ore"
+            {
+              "item": "Novice Armorsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Bracers Recipe",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Emblem",
+              "count": 1
+            },
+            {
+              "item": "Chain Bracers Mold",
+              "count": 1
+            },
+            {
+              "item": "Crude Iron Ore",
+              "count": 1
+            }
           ]
         }
       ],
@@ -266,7 +356,7 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer, a recipe and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
       "accept": "I will learn the forge.",
       "decline": "Not now.",
       "declined": "The forge will be here when you are ready.",
@@ -283,7 +373,7 @@
           ],
           "journal": "Make a pair of blacksmith's bracers and show them to Smithy Figglenam.",
           "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
-          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds by the forge and experiment: ore and a mold make a piece, and a gem or an alloy makes it more. A better hammer works finer metal."
         }
       ],
       "events": [
@@ -291,11 +381,26 @@
           "on": "accept",
           "do": "give",
           "items": [
-            "Novice Armorsmith Hammer",
-            "Blacksmith's Bracers Recipe",
-            "Blacksmith's Emblem",
-            "Chain Bracers Mold",
-            "Crude Iron Ore"
+            {
+              "item": "Novice Armorsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Bracers Recipe",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Emblem",
+              "count": 1
+            },
+            {
+              "item": "Chain Bracers Mold",
+              "count": 1
+            },
+            {
+              "item": "Crude Iron Ore",
+              "count": 1
+            }
           ]
         }
       ],
@@ -309,7 +414,7 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer, a recipe and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
       "accept": "I will learn the forge.",
       "decline": "Not now.",
       "declined": "The forge will be here when you are ready.",
@@ -326,7 +431,7 @@
           ],
           "journal": "Make a pair of blacksmith's bracers and show them to Smithy Bargis.",
           "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
-          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds by the forge and experiment: ore and a mold make a piece, and a gem or an alloy makes it more. A better hammer works finer metal."
         }
       ],
       "events": [
@@ -334,11 +439,26 @@
           "on": "accept",
           "do": "give",
           "items": [
-            "Novice Armorsmith Hammer",
-            "Blacksmith's Bracers Recipe",
-            "Blacksmith's Emblem",
-            "Chain Bracers Mold",
-            "Crude Iron Ore"
+            {
+              "item": "Novice Armorsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Bracers Recipe",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Emblem",
+              "count": 1
+            },
+            {
+              "item": "Chain Bracers Mold",
+              "count": 1
+            },
+            {
+              "item": "Crude Iron Ore",
+              "count": 1
+            }
           ]
         }
       ],
@@ -352,7 +472,7 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer, a recipe and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
       "accept": "I will learn the forge.",
       "decline": "Not now.",
       "declined": "The forge will be here when you are ready.",
@@ -369,7 +489,7 @@
           ],
           "journal": "Make a pair of blacksmith's bracers and show them to Smithy Melliom.",
           "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
-          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds by the forge and experiment: ore and a mold make a piece, and a gem or an alloy makes it more. A better hammer works finer metal."
         }
       ],
       "events": [
@@ -377,11 +497,26 @@
           "on": "accept",
           "do": "give",
           "items": [
-            "Novice Armorsmith Hammer",
-            "Blacksmith's Bracers Recipe",
-            "Blacksmith's Emblem",
-            "Chain Bracers Mold",
-            "Crude Iron Ore"
+            {
+              "item": "Novice Armorsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Bracers Recipe",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Emblem",
+              "count": 1
+            },
+            {
+              "item": "Chain Bracers Mold",
+              "count": 1
+            },
+            {
+              "item": "Crude Iron Ore",
+              "count": 1
+            }
           ]
         }
       ],
@@ -395,7 +530,7 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer, a recipe and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
       "accept": "I will learn the forge.",
       "decline": "Not now.",
       "declined": "The forge will be here when you are ready.",
@@ -412,7 +547,7 @@
           ],
           "journal": "Make a pair of blacksmith's bracers and show them to Smithy Tailwen.",
           "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
-          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds by the forge and experiment: ore and a mold make a piece, and a gem or an alloy makes it more. A better hammer works finer metal."
         }
       ],
       "events": [
@@ -420,11 +555,26 @@
           "on": "accept",
           "do": "give",
           "items": [
-            "Novice Armorsmith Hammer",
-            "Blacksmith's Bracers Recipe",
-            "Blacksmith's Emblem",
-            "Chain Bracers Mold",
-            "Crude Iron Ore"
+            {
+              "item": "Novice Armorsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Bracers Recipe",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Emblem",
+              "count": 1
+            },
+            {
+              "item": "Chain Bracers Mold",
+              "count": 1
+            },
+            {
+              "item": "Crude Iron Ore",
+              "count": 1
+            }
           ]
         }
       ],
@@ -438,7 +588,7 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer, a recipe and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
       "accept": "I will learn the forge.",
       "decline": "Not now.",
       "declined": "The forge will be here when you are ready.",
@@ -455,7 +605,7 @@
           ],
           "journal": "Make a pair of blacksmith's bracers and show them to Smithy N`Darg.",
           "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
-          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds by the forge and experiment: ore and a mold make a piece, and a gem or an alloy makes it more. A better hammer works finer metal."
         }
       ],
       "events": [
@@ -463,11 +613,26 @@
           "on": "accept",
           "do": "give",
           "items": [
-            "Novice Armorsmith Hammer",
-            "Blacksmith's Bracers Recipe",
-            "Blacksmith's Emblem",
-            "Chain Bracers Mold",
-            "Crude Iron Ore"
+            {
+              "item": "Novice Armorsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Bracers Recipe",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Emblem",
+              "count": 1
+            },
+            {
+              "item": "Chain Bracers Mold",
+              "count": 1
+            },
+            {
+              "item": "Crude Iron Ore",
+              "count": 1
+            }
           ]
         }
       ],
@@ -481,7 +646,7 @@
       "minlevel": 1,
       "maxlevel": 60,
       "requires": [],
-      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer to hold while you work, a recipe to read, and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
+      "offer": "So you would work the forge? Every suit of armor begins with ore and a mold. I will give you a novice's hammer, a recipe and what it takes. Make a pair of blacksmith's bracers and show them to me. Will you learn?",
       "accept": "I will learn the forge.",
       "decline": "Not now.",
       "declined": "The forge will be here when you are ready.",
@@ -498,7 +663,7 @@
           ],
           "journal": "Make a pair of blacksmith's bracers and show them to Smithy Orgam.",
           "notyet": "Not yet. Hold the hammer, read the recipe, and make the bracers from your recipe book.",
-          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds from the merchants by the forge and experiment: a mold and ore make a piece, and a gem or an alloy makes it more. The better your hammer, the finer the metal it will work."
+          "says": "Good work. Every armorsmith begins with a pair of those. Buy ore and molds by the forge and experiment: ore and a mold make a piece, and a gem or an alloy makes it more. A better hammer works finer metal."
         }
       ],
       "events": [
@@ -506,16 +671,823 @@
           "on": "accept",
           "do": "give",
           "items": [
-            "Novice Armorsmith Hammer",
-            "Blacksmith's Bracers Recipe",
-            "Blacksmith's Emblem",
-            "Chain Bracers Mold",
-            "Crude Iron Ore"
+            {
+              "item": "Novice Armorsmith Hammer",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Bracers Recipe",
+              "count": 1
+            },
+            {
+              "item": "Blacksmith's Emblem",
+              "count": 1
+            },
+            {
+              "item": "Chain Bracers Mold",
+              "count": 1
+            },
+            {
+              "item": "Crude Iron Ore",
+              "count": 1
+            }
           ]
         }
       ],
       "unresolved": [],
       "notes": "eqoatrade.com's armor tutorial (2003-04): the trainer's kit and the first recipe. The words are ours."
+    },
+    {
+      "key": "tradeskills/jewel/fayspires",
+      "name": "Jewelcrafting",
+      "giver": "Jeweler Gratyll",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You have a careful eye. Every ring begins with a metal, a mold and a gem, but a jeweler begins with glass. Take this kit, a recipe and enough to start. Make a glass trinket and show it to me. Will you learn?",
+      "accept": "I will learn the jeweler's craft.",
+      "decline": "Not now.",
+      "declined": "The gems will keep. Come back when your hands are steady.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Jewelry and make the trinket from the glass and the pendant mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Jeweler Gratyll",
+          "items": [
+            {
+              "item": "glass trinket",
+              "count": 1
+            }
+          ],
+          "journal": "Make a glass trinket and show it to Jeweler Gratyll.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and make the trinket from your recipe book.",
+          "says": "A fine first piece. Now experiment: the cracked glass, the earring mold and the iron bar make something too. A bar, a mold and a gem make a piece, and finer metal needs a finer kit. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Jewelers Kit",
+              "count": 1
+            },
+            {
+              "item": "Glass Trinket Recipe",
+              "count": 1
+            },
+            {
+              "item": "Piece of Glass",
+              "count": 1
+            },
+            {
+              "item": "Piece of Cracked Glass",
+              "count": 1
+            },
+            {
+              "item": "Earring Mold",
+              "count": 1
+            },
+            {
+              "item": "Pendant Mold",
+              "count": 1
+            },
+            {
+              "item": "Iron Bar",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
+    },
+    {
+      "key": "tradeskills/jewel/freeport",
+      "name": "Jewelcrafting",
+      "giver": "Jeweler Frinder",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You have a careful eye. Every ring begins with a metal, a mold and a gem, but a jeweler begins with glass. Take this kit, a recipe and enough to start. Make a glass trinket and show it to me. Will you learn?",
+      "accept": "I will learn the jeweler's craft.",
+      "decline": "Not now.",
+      "declined": "The gems will keep. Come back when your hands are steady.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Jewelry and make the trinket from the glass and the pendant mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Jeweler Frinder",
+          "items": [
+            {
+              "item": "glass trinket",
+              "count": 1
+            }
+          ],
+          "journal": "Make a glass trinket and show it to Jeweler Frinder.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and make the trinket from your recipe book.",
+          "says": "A fine first piece. Now experiment: the cracked glass, the earring mold and the iron bar make something too. A bar, a mold and a gem make a piece, and finer metal needs a finer kit. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Jewelers Kit",
+              "count": 1
+            },
+            {
+              "item": "Glass Trinket Recipe",
+              "count": 1
+            },
+            {
+              "item": "Piece of Glass",
+              "count": 1
+            },
+            {
+              "item": "Piece of Cracked Glass",
+              "count": 1
+            },
+            {
+              "item": "Earring Mold",
+              "count": 1
+            },
+            {
+              "item": "Pendant Mold",
+              "count": 1
+            },
+            {
+              "item": "Iron Bar",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
+    },
+    {
+      "key": "tradeskills/jewel/grobb",
+      "name": "Jewelcrafting",
+      "giver": "Jeweler Grubor",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You have a careful eye. Every ring begins with a metal, a mold and a gem, but a jeweler begins with glass. Take this kit, a recipe and enough to start. Make a glass trinket and show it to me. Will you learn?",
+      "accept": "I will learn the jeweler's craft.",
+      "decline": "Not now.",
+      "declined": "The gems will keep. Come back when your hands are steady.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Jewelry and make the trinket from the glass and the pendant mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Jeweler Grubor",
+          "items": [
+            {
+              "item": "glass trinket",
+              "count": 1
+            }
+          ],
+          "journal": "Make a glass trinket and show it to Jeweler Grubor.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and make the trinket from your recipe book.",
+          "says": "A fine first piece. Now experiment: the cracked glass, the earring mold and the iron bar make something too. A bar, a mold and a gem make a piece, and finer metal needs a finer kit. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Jewelers Kit",
+              "count": 1
+            },
+            {
+              "item": "Glass Trinket Recipe",
+              "count": 1
+            },
+            {
+              "item": "Piece of Glass",
+              "count": 1
+            },
+            {
+              "item": "Piece of Cracked Glass",
+              "count": 1
+            },
+            {
+              "item": "Earring Mold",
+              "count": 1
+            },
+            {
+              "item": "Pendant Mold",
+              "count": 1
+            },
+            {
+              "item": "Iron Bar",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
+    },
+    {
+      "key": "tradeskills/jewel/halas",
+      "name": "Jewelcrafting",
+      "giver": "Jeweler Glaciel",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You have a careful eye. Every ring begins with a metal, a mold and a gem, but a jeweler begins with glass. Take this kit, a recipe and enough to start. Make a glass trinket and show it to me. Will you learn?",
+      "accept": "I will learn the jeweler's craft.",
+      "decline": "Not now.",
+      "declined": "The gems will keep. Come back when your hands are steady.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Jewelry and make the trinket from the glass and the pendant mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Jeweler Glaciel",
+          "items": [
+            {
+              "item": "glass trinket",
+              "count": 1
+            }
+          ],
+          "journal": "Make a glass trinket and show it to Jeweler Glaciel.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and make the trinket from your recipe book.",
+          "says": "A fine first piece. Now experiment: the cracked glass, the earring mold and the iron bar make something too. A bar, a mold and a gem make a piece, and finer metal needs a finer kit. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Jewelers Kit",
+              "count": 1
+            },
+            {
+              "item": "Glass Trinket Recipe",
+              "count": 1
+            },
+            {
+              "item": "Piece of Glass",
+              "count": 1
+            },
+            {
+              "item": "Piece of Cracked Glass",
+              "count": 1
+            },
+            {
+              "item": "Earring Mold",
+              "count": 1
+            },
+            {
+              "item": "Pendant Mold",
+              "count": 1
+            },
+            {
+              "item": "Iron Bar",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
+    },
+    {
+      "key": "tradeskills/jewel/highbourne",
+      "name": "Jewelcrafting",
+      "giver": "Jeweler Izcen",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You have a careful eye. Every ring begins with a metal, a mold and a gem, but a jeweler begins with glass. Take this kit, a recipe and enough to start. Make a glass trinket and show it to me. Will you learn?",
+      "accept": "I will learn the jeweler's craft.",
+      "decline": "Not now.",
+      "declined": "The gems will keep. Come back when your hands are steady.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Jewelry and make the trinket from the glass and the pendant mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Jeweler Izcen",
+          "items": [
+            {
+              "item": "glass trinket",
+              "count": 1
+            }
+          ],
+          "journal": "Make a glass trinket and show it to Jeweler Izcen.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and make the trinket from your recipe book.",
+          "says": "A fine first piece. Now experiment: the cracked glass, the earring mold and the iron bar make something too. A bar, a mold and a gem make a piece, and finer metal needs a finer kit. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Jewelers Kit",
+              "count": 1
+            },
+            {
+              "item": "Glass Trinket Recipe",
+              "count": 1
+            },
+            {
+              "item": "Piece of Glass",
+              "count": 1
+            },
+            {
+              "item": "Piece of Cracked Glass",
+              "count": 1
+            },
+            {
+              "item": "Earring Mold",
+              "count": 1
+            },
+            {
+              "item": "Pendant Mold",
+              "count": 1
+            },
+            {
+              "item": "Iron Bar",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
+    },
+    {
+      "key": "tradeskills/jewel/klick-anon",
+      "name": "Jewelcrafting",
+      "giver": "Jeweler Fizzrob",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You have a careful eye. Every ring begins with a metal, a mold and a gem, but a jeweler begins with glass. Take this kit, a recipe and enough to start. Make a glass trinket and show it to me. Will you learn?",
+      "accept": "I will learn the jeweler's craft.",
+      "decline": "Not now.",
+      "declined": "The gems will keep. Come back when your hands are steady.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Jewelry and make the trinket from the glass and the pendant mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Jeweler Fizzrob",
+          "items": [
+            {
+              "item": "glass trinket",
+              "count": 1
+            }
+          ],
+          "journal": "Make a glass trinket and show it to Jeweler Fizzrob.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and make the trinket from your recipe book.",
+          "says": "A fine first piece. Now experiment: the cracked glass, the earring mold and the iron bar make something too. A bar, a mold and a gem make a piece, and finer metal needs a finer kit. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Jewelers Kit",
+              "count": 1
+            },
+            {
+              "item": "Glass Trinket Recipe",
+              "count": 1
+            },
+            {
+              "item": "Piece of Glass",
+              "count": 1
+            },
+            {
+              "item": "Piece of Cracked Glass",
+              "count": 1
+            },
+            {
+              "item": "Earring Mold",
+              "count": 1
+            },
+            {
+              "item": "Pendant Mold",
+              "count": 1
+            },
+            {
+              "item": "Iron Bar",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
+    },
+    {
+      "key": "tradeskills/jewel/moradhim",
+      "name": "Jewelcrafting",
+      "giver": "Jeweler Nuddrem",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You have a careful eye. Every ring begins with a metal, a mold and a gem, but a jeweler begins with glass. Take this kit, a recipe and enough to start. Make a glass trinket and show it to me. Will you learn?",
+      "accept": "I will learn the jeweler's craft.",
+      "decline": "Not now.",
+      "declined": "The gems will keep. Come back when your hands are steady.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Jewelry and make the trinket from the glass and the pendant mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Jeweler Nuddrem",
+          "items": [
+            {
+              "item": "glass trinket",
+              "count": 1
+            }
+          ],
+          "journal": "Make a glass trinket and show it to Jeweler Nuddrem.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and make the trinket from your recipe book.",
+          "says": "A fine first piece. Now experiment: the cracked glass, the earring mold and the iron bar make something too. A bar, a mold and a gem make a piece, and finer metal needs a finer kit. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Jewelers Kit",
+              "count": 1
+            },
+            {
+              "item": "Glass Trinket Recipe",
+              "count": 1
+            },
+            {
+              "item": "Piece of Glass",
+              "count": 1
+            },
+            {
+              "item": "Piece of Cracked Glass",
+              "count": 1
+            },
+            {
+              "item": "Earring Mold",
+              "count": 1
+            },
+            {
+              "item": "Pendant Mold",
+              "count": 1
+            },
+            {
+              "item": "Iron Bar",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
+    },
+    {
+      "key": "tradeskills/jewel/neriak",
+      "name": "Jewelcrafting",
+      "giver": "Jeweler Dreshia",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You have a careful eye. Every ring begins with a metal, a mold and a gem, but a jeweler begins with glass. Take this kit, a recipe and enough to start. Make a glass trinket and show it to me. Will you learn?",
+      "accept": "I will learn the jeweler's craft.",
+      "decline": "Not now.",
+      "declined": "The gems will keep. Come back when your hands are steady.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Jewelry and make the trinket from the glass and the pendant mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Jeweler Dreshia",
+          "items": [
+            {
+              "item": "glass trinket",
+              "count": 1
+            }
+          ],
+          "journal": "Make a glass trinket and show it to Jeweler Dreshia.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and make the trinket from your recipe book.",
+          "says": "A fine first piece. Now experiment: the cracked glass, the earring mold and the iron bar make something too. A bar, a mold and a gem make a piece, and finer metal needs a finer kit. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Jewelers Kit",
+              "count": 1
+            },
+            {
+              "item": "Glass Trinket Recipe",
+              "count": 1
+            },
+            {
+              "item": "Piece of Glass",
+              "count": 1
+            },
+            {
+              "item": "Piece of Cracked Glass",
+              "count": 1
+            },
+            {
+              "item": "Earring Mold",
+              "count": 1
+            },
+            {
+              "item": "Pendant Mold",
+              "count": 1
+            },
+            {
+              "item": "Iron Bar",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
+    },
+    {
+      "key": "tradeskills/jewel/qeynos",
+      "name": "Jewelcrafting",
+      "giver": "Jeweler Glarash",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You have a careful eye. Every ring begins with a metal, a mold and a gem, but a jeweler begins with glass. Take this kit, a recipe and enough to start. Make a glass trinket and show it to me. Will you learn?",
+      "accept": "I will learn the jeweler's craft.",
+      "decline": "Not now.",
+      "declined": "The gems will keep. Come back when your hands are steady.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Jewelry and make the trinket from the glass and the pendant mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Jeweler Glarash",
+          "items": [
+            {
+              "item": "glass trinket",
+              "count": 1
+            }
+          ],
+          "journal": "Make a glass trinket and show it to Jeweler Glarash.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and make the trinket from your recipe book.",
+          "says": "A fine first piece. Now experiment: the cracked glass, the earring mold and the iron bar make something too. A bar, a mold and a gem make a piece, and finer metal needs a finer kit. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Jewelers Kit",
+              "count": 1
+            },
+            {
+              "item": "Glass Trinket Recipe",
+              "count": 1
+            },
+            {
+              "item": "Piece of Glass",
+              "count": 1
+            },
+            {
+              "item": "Piece of Cracked Glass",
+              "count": 1
+            },
+            {
+              "item": "Earring Mold",
+              "count": 1
+            },
+            {
+              "item": "Pendant Mold",
+              "count": 1
+            },
+            {
+              "item": "Iron Bar",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
+    },
+    {
+      "key": "tradeskills/jewel/rivervale",
+      "name": "Jewelcrafting",
+      "giver": "Jeweler Dobi",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You have a careful eye. Every ring begins with a metal, a mold and a gem, but a jeweler begins with glass. Take this kit, a recipe and enough to start. Make a glass trinket and show it to me. Will you learn?",
+      "accept": "I will learn the jeweler's craft.",
+      "decline": "Not now.",
+      "declined": "The gems will keep. Come back when your hands are steady.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Jewelry and make the trinket from the glass and the pendant mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Jeweler Dobi",
+          "items": [
+            {
+              "item": "glass trinket",
+              "count": 1
+            }
+          ],
+          "journal": "Make a glass trinket and show it to Jeweler Dobi.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and make the trinket from your recipe book.",
+          "says": "A fine first piece. Now experiment: the cracked glass, the earring mold and the iron bar make something too. A bar, a mold and a gem make a piece, and finer metal needs a finer kit. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Jewelers Kit",
+              "count": 1
+            },
+            {
+              "item": "Glass Trinket Recipe",
+              "count": 1
+            },
+            {
+              "item": "Piece of Glass",
+              "count": 1
+            },
+            {
+              "item": "Piece of Cracked Glass",
+              "count": 1
+            },
+            {
+              "item": "Earring Mold",
+              "count": 1
+            },
+            {
+              "item": "Pendant Mold",
+              "count": 1
+            },
+            {
+              "item": "Iron Bar",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
+    },
+    {
+      "key": "tradeskills/jewel/surefall-glade",
+      "name": "Jewelcrafting",
+      "giver": "Jeweler Trailwynd",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You have a careful eye. Every ring begins with a metal, a mold and a gem, but a jeweler begins with glass. Take this kit, a recipe and enough to start. Make a glass trinket and show it to me. Will you learn?",
+      "accept": "I will learn the jeweler's craft.",
+      "decline": "Not now.",
+      "declined": "The gems will keep. Come back when your hands are steady.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Jewelry and make the trinket from the glass and the pendant mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Jeweler Trailwynd",
+          "items": [
+            {
+              "item": "glass trinket",
+              "count": 1
+            }
+          ],
+          "journal": "Make a glass trinket and show it to Jeweler Trailwynd.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and make the trinket from your recipe book.",
+          "says": "A fine first piece. Now experiment: the cracked glass, the earring mold and the iron bar make something too. A bar, a mold and a gem make a piece, and finer metal needs a finer kit. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Jewelers Kit",
+              "count": 1
+            },
+            {
+              "item": "Glass Trinket Recipe",
+              "count": 1
+            },
+            {
+              "item": "Piece of Glass",
+              "count": 1
+            },
+            {
+              "item": "Piece of Cracked Glass",
+              "count": 1
+            },
+            {
+              "item": "Earring Mold",
+              "count": 1
+            },
+            {
+              "item": "Pendant Mold",
+              "count": 1
+            },
+            {
+              "item": "Iron Bar",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
+    },
+    {
+      "key": "tradeskills/jewel/tethelin",
+      "name": "Jewelcrafting",
+      "giver": "Jeweler Thrin",
+      "minlevel": 1,
+      "maxlevel": 60,
+      "requires": [],
+      "offer": "You have a careful eye. Every ring begins with a metal, a mold and a gem, but a jeweler begins with glass. Take this kit, a recipe and enough to start. Make a glass trinket and show it to me. Will you learn?",
+      "accept": "I will learn the jeweler's craft.",
+      "decline": "Not now.",
+      "declined": "The gems will keep. Come back when your hands are steady.",
+      "started": "Hold the kit, read the recipe, then open your recipe book under Jewelry and make the trinket from the glass and the pendant mold, under Special. Show it to me when it is done.",
+      "steps": [
+        {
+          "kind": "show",
+          "target": "Jeweler Thrin",
+          "items": [
+            {
+              "item": "glass trinket",
+              "count": 1
+            }
+          ],
+          "journal": "Make a glass trinket and show it to Jeweler Thrin.",
+          "notyet": "Not yet. Hold the kit, read the recipe, and make the trinket from your recipe book.",
+          "says": "A fine first piece. Now experiment: the cracked glass, the earring mold and the iron bar make something too. A bar, a mold and a gem make a piece, and finer metal needs a finer kit. A failed combine keeps the gem."
+        }
+      ],
+      "events": [
+        {
+          "on": "accept",
+          "do": "give",
+          "items": [
+            {
+              "item": "Novice Jewelers Kit",
+              "count": 1
+            },
+            {
+              "item": "Glass Trinket Recipe",
+              "count": 1
+            },
+            {
+              "item": "Piece of Glass",
+              "count": 1
+            },
+            {
+              "item": "Piece of Cracked Glass",
+              "count": 1
+            },
+            {
+              "item": "Earring Mold",
+              "count": 1
+            },
+            {
+              "item": "Pendant Mold",
+              "count": 1
+            },
+            {
+              "item": "Iron Bar",
+              "count": 1
+            }
+          ]
+        }
+      ],
+      "unresolved": [],
+      "notes": "eqoatrade.com's jewelry tutorial (2003-04): the trainer's kit, the glass trinket recipe and the cracked glass earring found by experiment. The words are ours."
     }
   ],
   "items": []

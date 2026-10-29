@@ -1,0 +1,1437 @@
+{
+ "city": "portal",
+ "quests": [
+  {
+   "key": "Portal/plane-of-disease/flag-1",
+   "name": "The Death Knights' Hearts",
+   "giver": "Necrologist Zizclank",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The Plague Lord's realm opens to few. Bring me the hearts of three death knights who walk Tunaria: Endraval, Bileheart and Halik. And see my assistant Xeptip first: you will need a suit.",
+   "accept": "I will bring you their hearts.",
+   "decline": "Not now.",
+   "declined": "The dead are patient. I am not.",
+   "started": "Go. Xeptip waits beside me.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Necrologist Xeptip",
+     "journal": "Speak with Necrologist Xeptip, beside Zizclank in the Dead Hills.",
+     "says": "A suit of zombie flesh, sewn tight. Carry it whenever you go to the Plague Lord. The dead there do not question their own.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "zombie flesh suit",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Deathknight Endraval",
+     "items": [
+      {
+       "item": "Endraval's petrified heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Deathknight Endraval among the dead trees west of Takish'Hiz and take his heart."
+    },
+    {
+     "kind": "loot",
+     "target": "Deathknight Blieheart",
+     "items": [
+      {
+       "item": "corin's petrified heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Deathknight Bileheart in the rift of dead trees in Salisearaneen and take his heart."
+    },
+    {
+     "kind": "loot",
+     "target": "deathknight Halik",
+     "items": [
+      {
+       "item": "Halik's petrified heart",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Deathknight Halik at the ring of rune stones south of Blackwater and take his heart."
+    },
+    {
+     "kind": "give",
+     "target": "Necrologist Zizclank",
+     "items": [
+      {
+       "item": "Endraval's petrified heart",
+       "count": 1
+      },
+      {
+       "item": "corin's petrified heart",
+       "count": 1
+      },
+      {
+       "item": "Halik's petrified heart",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the three death knights' hearts to Necrologist Zizclank in the Dead Hills.",
+     "says": "Three hearts, cold as the grave. The mausoleum will open to you now."
+    }
+   ],
+   "unresolved": [
+    "Deathknight Endraval"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Its first half. The guide's zombie flesh suit is crafted or bought at auction in the live game; nothing sells one here, so Xeptip hands one over. The guide lets the hearts be taken before the quest is logged; here each drops on its step, in the guide's order (Endraval, Bileheart, Halik). Deathknight Endraval is FrontiersForge's sighting (tools/quests/npcs/qe.json); Bileheart is the game's Deathknight Blieheart, his heart Corin Bileheart's."
+  },
+  {
+   "key": "Portal/plane-of-disease/flag-2",
+   "name": "The Last House",
+   "giver": "Necrologist Zizclank",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-disease/flag-1"
+   ],
+   "unlocks": [
+    {
+     "npc": "Necrologist Zizclank",
+     "to": "the Plane of Disease"
+    }
+   ],
+   "offer": "Beyond the mausoleum's portal lies the Last House, where plague is tended like a garden. Find your way through it to its far portal, and the Plane of Disease will be open to you.",
+   "accept": "I will go through.",
+   "decline": "Not now.",
+   "declined": "Then keep the hearts' cold company.",
+   "started": "The mausoleum is in the middle of the tomb yard.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Mausoleum Portal",
+     "items": [
+      {
+       "item": "zombie flesh suit",
+       "count": 1
+      }
+     ],
+     "journal": "Show your zombie flesh suit to the portal in the mausoleum of the Dead Hills' tomb yard.",
+     "says": "The portal ripples, tastes the dead flesh, and pulls you through.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 4644.0,
+       "y": -12.3,
+       "z": 3814.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Fatima",
+     "journal": "Speak with Fatima in the Last House's entrance hall.",
+     "says": "A visitor? The orderlies do not like visitors. There, they have seen you."
+    },
+    {
+     "kind": "kill",
+     "target": "Last House Orderly",
+     "count": 2,
+     "journal": "Kill the Last House orderlies that turn on you.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Last House Orderly",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Last House Orderly",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 5,
+     "x": 4600.0,
+     "y": -12.4,
+     "z": 3784.0,
+     "radius": 12.0,
+     "journal": "Go to the end of the hall with the three bathtubs, as Fatima told you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The water in the three bathtubs is black and still. Someone is tending it, and does not want to be disturbed."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Last House Healer",
+     "count": 1,
+     "journal": "Kill the Last House healer at the bathtubs."
+    },
+    {
+     "kind": "talk",
+     "target": "Rebo",
+     "journal": "Go on past Fatima and find Rebo, along the east hall.",
+     "says": "You should not be here. Orderlies!"
+    },
+    {
+     "kind": "kill",
+     "target": "Last House Orderly",
+     "count": 2,
+     "journal": "Kill the orderlies Rebo called down on you.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Last House Orderly",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Last House Orderly",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Fatima",
+     "journal": "Return to Fatima.",
+     "says": "Rebo will not help you. The pharmacist keeps the wasp venom: bring it to me."
+    },
+    {
+     "kind": "loot",
+     "target": "Last House Pharmacist",
+     "items": [
+      {
+       "item": "wasp venom",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Last House pharmacist and take his wasp venom."
+    },
+    {
+     "kind": "give",
+     "target": "Fatima",
+     "items": [
+      {
+       "item": "wasp venom",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the wasp venom to Fatima.",
+     "says": "Good. Medelonia knows the way on. Go to her."
+    },
+    {
+     "kind": "talk",
+     "target": "Medelonia",
+     "journal": "Speak with Medelonia in the middle hall.",
+     "says": "The physician wears the only robe the orderlies obey. Take it from him."
+    },
+    {
+     "kind": "loot",
+     "target": "Last House Physician",
+     "items": [
+      {
+       "item": "last house physician robe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Last House physician and take his robe."
+    },
+    {
+     "kind": "talk",
+     "target": "Watchful Orderly",
+     "journal": "Wearing the robe, talk to the orderly at the end of the small hallway off the physician's room.",
+     "says": "Physician? Through the wall, then. Up the ramp and along the halls to the portal.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 4545.0,
+       "y": -1.3,
+       "z": 3676.0
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Portal of the Last House",
+     "journal": "Go up the ramp and along the halls to the Last House's portal and pass through.",
+     "says": "The portal opens onto the Plane of Disease.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 5,
+       "x": 5063.0,
+       "y": -25.3,
+       "z": 3866.0
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Mausoleum Portal",
+    "Fatima",
+    "Last House Orderly",
+    "Last House Healer",
+    "Rebo",
+    "Last House Pharmacist",
+    "Medelonia",
+    "Last House Physician",
+    "Watchful Orderly",
+    "Portal of the Last House"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Its second half; finishing it flags the player for Zizclank's trip to PoD (unlocks). The Last House is placed in PoD's small closed building in the south-west (no walk enters it): its halls at y -12, the far side of the wall the west wing at -1.3; every spot there is ours. The orderlies stand white-faced and turn hostile by spawn events (two each time, where the guide says two or three); the bathtub popup, the healer, the pharmacist and the physician stand in their rooms; the walk through the far side is cut to the portal by the landing. The guide's rule that the trip needs the flesh suit every time is not modelled (unlocks only). The guide names no reward but the flag."
+  },
+  {
+   "key": "Portal/plane-of-disease/queen-1",
+   "name": "The Whirling Portal",
+   "giver": "Witchdoctor Muglchlur",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "unlocks": [
+    {
+     "npc": "Whirling Portal",
+     "to": "the wasp hive"
+    }
+   ],
+   "offer": "The whirling portal in the lake goes to the Queen's hive, but it opens to no stranger. Clear the lake's shore and speak to it. Then see Bonefisher Chklurgl in his tent north of the lake.",
+   "accept": "I will speak to the portal.",
+   "decline": "Not now.",
+   "declined": "Then the lake keeps its secret.",
+   "started": "Mind the lake. Something lives in it.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Whirling Portal",
+     "journal": "Clear the creatures by the lake and speak to the whirling portal.",
+     "says": "A hum rises from the portal: the lake is sick, and something in it feeds on the puslings."
+    },
+    {
+     "kind": "talk",
+     "target": "Bonefisher Chklurgl",
+     "journal": "Speak with Bonefisher Chklurgl in his tent north of the lake.",
+     "says": "Something in lake eat puslings! You swim out over portal, look in mud. Kill what comes."
+    },
+    {
+     "kind": "reach",
+     "world": 5,
+     "x": 5060.0,
+     "y": -50.0,
+     "z": 3600.0,
+     "radius": 20.0,
+     "journal": "Swim out over the lake by the whirling portal and inspect the mud.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You stir the mud with your hand. It boils, and filth squids rise around you!"
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Filth Squid",
+     "count": 4,
+     "journal": "Kill the filth squids that rose from the mud.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Filth Squid",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Filth Squid",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Filth Squid",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Filth Squid",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Sthlumchoxius",
+     "count": 1,
+     "journal": "Kill Sthlumchoxius, the kraken that kills the puslings.",
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Sthlumchoxius",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Bonefisher Chklurgl",
+     "journal": "Return to Bonefisher Chklurgl.",
+     "says": "Lake quiet again! Take chitin from Queen's hive. Show to portal: it lets you through.",
+     "rewards": {
+      "xp": 500,
+      "items": [
+       "queen chitin"
+      ],
+      "factions": [
+       [
+        "The Pusling",
+        250
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Filth Squid",
+    "Sthlumchoxius"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Queen Qy'tha Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Steps 1-8; finishing it flags the player for the whirling portal's trip to the wasp hive (unlocks); the chitin is the guide's keepsake. The sacrifice swim (the popup's choice, deaths and rezzes), the ten minutes before Sthlumchoxius rises and the kill group's flag are simplified: the squids (four, the guide's) and Sthlumchoxius are spawned hostile beside the player at once. The 500 experience is the guide's; the faction with the puslings is ours (the guide's scepter needs a positive standing with them and names no other way to it)."
+  },
+  {
+   "key": "Portal/plane-of-disease/queen-2",
+   "name": "The Queen's Stinger",
+   "giver": "Witchdoctor Muglchlur",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-disease/queen-1"
+   ],
+   "offer": "The Bonefisher gave you the chitin. The whirling portal will take you to the wasp hive now. Kill Queen Qy'tha among her children and bring her stinger to me.",
+   "accept": "I will bring you her stinger.",
+   "decline": "Not now.",
+   "declined": "She waits.",
+   "started": "Mind her wasps. They will see you coming.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Queen Qy'tha",
+     "items": [
+      {
+       "item": "Queen Qy'tha's stinger",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the whirling portal to the wasp hive, kill Queen Qy'tha and take her stinger."
+    },
+    {
+     "kind": "show",
+     "target": "Witchdoctor Muglchlur",
+     "items": [
+      {
+       "item": "Queen Qy'tha's stinger",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Queen Qy'tha's stinger to Witchdoctor Muglchlur by the lake.",
+     "says": "The Queen's stinger! Keep it safe. The puslings will remember this.",
+     "rewards": {
+      "factions": [
+       [
+        "The Pusling",
+        200
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Queen Qy'tha Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Steps 9-10. The tormented caddis farmed until she spawns are left out: the Queen stands always up here. The guide's totem for the stinger needs a positive standing with the puslings (its Bertoxxulous section): that exchange is the next quest. The faction is ours, as the first part's."
+  },
+  {
+   "key": "Portal/plane-of-disease/bert",
+   "name": "Bertoxxulous and the Throne of Plague",
+   "giver": "Witchdoctor Muglchlur",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-disease/queen-2",
+    "Portal/plane-of-disease/noroxus-2"
+   ],
+   "factions_required": [
+    [
+     "The Pusling",
+     1
+    ]
+   ],
+   "offer": "You are a friend of the puslings now. Give me the Queen's stinger and I will make a scepter of it. Show the scepter to the Throne of Bertoxxulous, past the Bloody Portal, and he will come.",
+   "accept": "Make me the scepter.",
+   "decline": "Not now.",
+   "declined": "The throne can wait.",
+   "started": "Bring your strongest. He is one tough foe.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Witchdoctor Muglchlur",
+     "items": [
+      {
+       "item": "Queen Qy'tha's stinger",
+       "count": 1
+      }
+     ],
+     "journal": "Give Queen Qy'tha's stinger to Witchdoctor Muglchlur.",
+     "says": "There. The scepter of plague. The throne will answer it.",
+     "rewards": {
+      "items": [
+       "scepter of plague"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Throne of Bertoxxulous",
+     "items": [
+      {
+       "item": "scepter of plague",
+       "count": 1
+      }
+     ],
+     "journal": "Take the Bloody Portal to the Twins' valley and show the scepter of plague to the Throne of Bertoxxulous.",
+     "says": "The throne shudders, and the Plaguebringer turns to face you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Bertoxxulous the Plaguebringer rises from his throne. He has noticed you."
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Bertoxxulous the Plaguebringer",
+     "count": 1,
+     "journal": "Kill Bertoxxulous the Plaguebringer."
+    }
+   ],
+   "unresolved": [
+    "Throne of Bertoxxulous"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Bertoxxulous the Plaguebringer (github.com/Jadiction/EQOA-Data, MIT). The scepter is the guide's, for the stinger, with a positive standing with the puslings (factions_required). Bertoxxulous stands always up here (the guide's every-three-days throne is not modelled), so the scepter only wakes him. The guide gives no quest reward: his loot is his."
+  },
+  {
+   "key": "Portal/plane-of-disease/noroxus-1",
+   "name": "The Fuming Portal",
+   "giver": "Honcho Ulgurglch",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "unlocks": [
+    {
+     "npc": "Fuming Portal",
+     "to": "Noroxus's lair"
+    }
+   ],
+   "offer": "Noroxus! Ulgurglch masters want him dead. Kill the toxic slimes in the three pools round the cauldron and bring three slime hearts. Take a viturille skin too: no skin, no going through.",
+   "accept": "I will bring the hearts.",
+   "decline": "Not now.",
+   "declined": "Noroxus waits. Ulgurglch waits.",
+   "started": "Three pools, three hearts. Go!",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "cillieane viturille",
+     "items": [
+      {
+       "item": "viturille skin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Take a viturille skin from the cillieane viturilles by the nox pools."
+    },
+    {
+     "kind": "loot",
+     "target": "toxic pollutive slime",
+     "items": [
+      {
+       "item": "slime heart",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 1.0,
+     "journal": "Kill the toxic pollutive slime in each of the three nox pools round the cauldron and take its heart."
+    },
+    {
+     "kind": "give",
+     "target": "Honcho Ulgurglch",
+     "items": [
+      {
+       "item": "slime heart",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three slime hearts to Honcho Ulgurglch.",
+     "says": "Three hearts! Ulgurglch mix them... there. Take to big cauldron in middle of pools.",
+     "rewards": {
+      "items": [
+       "fused slime heart"
+      ]
+     }
+    },
+    {
+     "kind": "kill",
+     "target": "plague toxicologist",
+     "count": 3,
+     "journal": "Kill the plague toxicologists round the great cauldron among the three pools."
+    },
+    {
+     "kind": "give",
+     "target": "Fuming Portal",
+     "items": [
+      {
+       "item": "fused slime heart",
+       "count": 1
+      }
+     ],
+     "journal": "Give the fused slime heart to the fuming portal at the cauldron.",
+     "says": "The cauldron boils over, and the fuming portal opens.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Green smoke pours from the cauldron and the fuming portal flares open. Beyond it waits Noroxus."
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "cillieane viturille",
+    "toxic pollutive slime",
+    "plague toxicologist"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Noroxus Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Steps 1-5; finishing it flags the player for the fuming portal's trip to Noroxus (unlocks). The guide's giver line names Honcho Oogurlgze, its steps Honcho Ulgurglch, the game's name. The slimes stand in the pools (the guide's connable slime that spawns them is not modelled); the skin is the guide's pass, its portal check is the flag; the goo that debuffs Noroxus, the portal's 10-15 minutes and 'Noroxus must be up' are left out."
+  },
+  {
+   "key": "Portal/plane-of-disease/noroxus-2",
+   "name": "Blood of Noroxus",
+   "giver": "Honcho Ulgurglch",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-disease/noroxus-1"
+   ],
+   "unlocks": [
+    {
+     "npc": "Bloody Portal",
+     "to": "the Twins' valley"
+    }
+   ],
+   "offer": "The fuming portal is open to you. Go through and kill Noroxus. His blood opens the closed portal, the Bloody Portal, round the ring past Ulgurglch: the way to the twins.",
+   "accept": "I will bring his blood.",
+   "decline": "Not now.",
+   "declined": "He waits for you.",
+   "started": "Stand behind him. His breath goes only forward.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Noroxus",
+     "items": [
+      {
+       "item": "blood of Noroxus",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Take the fuming portal to Noroxus's lair, kill Noroxus and take his blood."
+    },
+    {
+     "kind": "show",
+     "target": "Bloody Portal",
+     "items": [
+      {
+       "item": "blood of Noroxus",
+       "count": 1
+      }
+     ],
+     "journal": "Show the blood of Noroxus to the Bloody Portal, round the ring past Honcho Ulgurglch.",
+     "says": "The closed portal drinks a drop of the blood and opens. Keep the rest: it opens every time."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Noroxus Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Step 7 and its reward: the blood of Noroxus opens the Bloody Portal to the twins (unlocks; the item is kept, as the guide's 'unlimited use')."
+  },
+  {
+   "key": "Portal/plane-of-disease/spell",
+   "name": "Yarfsnoogle's Anatomy",
+   "giver": "Yarfsnoogle",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Portal/plane-of-disease/noroxus-2",
+    "Portal/plane-of-disease/queen-1"
+   ],
+   "offer": "Yarfsnoogle studies the rot! Bring eight pieces: femur, organ, skin, tibia, skull, gland, eyeball and soul dust. The great ones of this plane each carry one.",
+   "accept": "I will bring them.",
+   "decline": "Not now.",
+   "declined": "Rot waits for no one. Yarfsnoogle waits.",
+   "started": "Eight pieces! Go, go.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Rallius Rattican",
+     "items": [
+      {
+       "item": "fetid rotting femur",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Rallius Rattican, the robed rat of the entrance valleys, and take a fetid rotting femur."
+    },
+    {
+     "kind": "loot",
+     "target": "Lich Overlord",
+     "items": [
+      {
+       "item": "fetid rotting organ",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Lich Overlord behind the tree by the banker in the first tunnel and take a fetid rotting organ."
+    },
+    {
+     "kind": "loot",
+     "target": "Fleshripper",
+     "items": [
+      {
+       "item": "fetid rotting skin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Fleshripper, the vulture of the second valley, and take a fetid rotting skin."
+    },
+    {
+     "kind": "loot",
+     "target": "Gluboxious the Fetid",
+     "items": [
+      {
+       "item": "fetid rotting tibia",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Gluboxious the Fetid in the lake past the second tunnel and take a fetid rotting tibia."
+    },
+    {
+     "kind": "loot",
+     "target": "Rawgl the Carnage Hound",
+     "items": [
+      {
+       "item": "fetid rotting skull",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Rawgl the Carnage Hound by the nox pools and take a fetid rotting skull."
+    },
+    {
+     "kind": "loot",
+     "target": "Noroxus",
+     "items": [
+      {
+       "item": "fetid rotting gland",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Noroxus in his lair and take a fetid rotting gland."
+    },
+    {
+     "kind": "loot",
+     "target": "Bertoxxulous the Plaguebringer",
+     "items": [
+      {
+       "item": "soul dust",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Bertoxxulous the Plaguebringer and take his soul dust."
+    },
+    {
+     "kind": "loot",
+     "target": "Queen Qy'tha",
+     "items": [
+      {
+       "item": "fetid rotting eyeball",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Queen Qy'tha in the wasp hive and take a fetid rotting eyeball."
+    },
+    {
+     "kind": "give",
+     "target": "Yarfsnoogle",
+     "items": [
+      {
+       "item": "fetid rotting femur",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting organ",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting skin",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting tibia",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting skull",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting gland",
+       "count": 1
+      },
+      {
+       "item": "soul dust",
+       "count": 1
+      },
+      {
+       "item": "fetid rotting eyeball",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the eight pieces to Yarfsnoogle in the nox pools' camp.",
+     "says": "All eight! Yarfsnoogle teaches you. But Grum is not pleased...",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "spells": [
+         "Immortal Skin"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Lightning Arrow"
+        ]
+       },
+       "2": {
+        "spells": [
+         "Rodcet's Touch"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Hand of Bertoxxulous"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Mending of Nife"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Hymn of Nife"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Virulent Blade Assassin"
+        ]
+       },
+       "7": {
+        "spells": [
+         "Briarshield"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Barbiedolls of Karana",
+         "Acidic Storm"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Lightning Storm"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Largesse of Plague"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Stormlord's Touch"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Lightning Column"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Wonderous Vaccination"
+        ]
+       }
+      }
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "spawn",
+       "npc": "Grum",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "Grum",
+     "count": 1,
+     "journal": "Kill Grum, who attacks as Yarfsnoogle finishes.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "Fetid Flesh Shield"
+        ]
+       },
+       "2": {
+        "items": [
+         "Fetid Flesh Shield"
+        ]
+       },
+       "3": {
+        "items": [
+         "Fetid Flesh Shield"
+        ]
+       },
+       "10": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "11": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "12": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "13": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "14": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "7": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "8": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "9": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       },
+       "4": {
+        "items": [
+         "fetid flesh robe"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Grum"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Spell Quest (github.com/Jadiction/EQOA-Data, MIT). Each piece is its giver's primary drop in the guide (Rotwood the Hollow's skull and the secondary drops aside), a sure drop on its step, in the guide's order but for the eyeball last; the rare spawns stand always up here. Each class's PoD ability is the spell the guide lists for it, as this server spells it (the rogue's 'Virulet Blade' is Virulent Blade Assassin, the same figures; the shaman's two spells both); the cleric's Purifying Winds of Nife has no spellpattern row, so a cleric gets Grum's robe alone. Grum's drop is the guide's item for the class as a reward on his kill: the shield (war, pal, sk) and the robe (casters, healers, monk); the helms, tunics and boots it lists for rangers, rogues and bards have no itempattern rows. Yarfsnoogle's pet's bag is left out."
+  },
+  {
+   "key": "Portal/plane-of-disease/weapon",
+   "name": "The Plague Weapons",
+   "giver": "Witchdoctor Yurplag",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The four great insects of this valley grow fat on plague. Bring me wax dust from the Moth Monarch, bile from the Locust Monarch, and the legs and mandibles of the two Matriarchs.",
+   "accept": "I will hunt them.",
+   "decline": "Not now.",
+   "declined": "The insects grow fatter.",
+   "started": "Larvae first, then the great ones.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Moth Monarch",
+     "items": [
+      {
+       "item": "wax dust",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Moth Monarch in the pocket of seven pools and take its wax dust."
+    },
+    {
+     "kind": "loot",
+     "target": "Locust Monarch",
+     "items": [
+      {
+       "item": "acidic blood bile",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Locust Monarch and take its acidic blood bile."
+    },
+    {
+     "kind": "loot",
+     "target": "Mantis Matriarch",
+     "items": [
+      {
+       "item": "front legs of the Mantis Matriarch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Mantis Matriarch and take her front legs."
+    },
+    {
+     "kind": "loot",
+     "target": "Millipede Matriarch",
+     "items": [
+      {
+       "item": "mandibles of the Millipede Matriarch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Millipede Matriarch and take her mandibles."
+    },
+    {
+     "kind": "give",
+     "target": "Witchdoctor Yurplag",
+     "items": [
+      {
+       "item": "wax dust",
+       "count": 1
+      },
+      {
+       "item": "acidic blood bile",
+       "count": 1
+      },
+      {
+       "item": "front legs of the Mantis Matriarch",
+       "count": 1
+      },
+      {
+       "item": "mandibles of the Millipede Matriarch",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the four pieces to Witchdoctor Yurplag.",
+     "says": "All four! Yurplag makes you a weapon worthy of this plane.",
+     "rewards": {
+      "byclass": {
+       "0": {
+        "items": [
+         "gory cleaver of Mavis"
+        ]
+       },
+       "2": {
+        "items": [
+         "gory cleaver of Mavis"
+        ]
+       },
+       "3": {
+        "items": [
+         "gory cleaver of Mavis"
+        ]
+       },
+       "10": {
+        "items": [
+         "Totem of Avhi"
+        ]
+       },
+       "11": {
+        "items": [
+         "Totem of Avhi"
+        ]
+       },
+       "12": {
+        "items": [
+         "Totem of Avhi"
+        ]
+       },
+       "13": {
+        "items": [
+         "Totem of Avhi"
+        ]
+       },
+       "14": {
+        "items": [
+         "Totem of Avhi"
+        ]
+       },
+       "7": {
+        "items": [
+         "Totem of Toluwon"
+        ]
+       },
+       "8": {
+        "items": [
+         "Totem of Toluwon"
+        ]
+       },
+       "9": {
+        "items": [
+         "Totem of Toluwon"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Weapon Quest (github.com/Jadiction/EQOA-Data, MIT). The larvae, mid-level spawns and despawning bosses of the guide's cycle are left out: the four bosses stand always up here, each a sure drop. The rewards are the guide's by archetype (Tank the Gory Cleaver of Mavis, Caster the Totem of Avhi, Healer the Totem of Tolawon, the game's Toluwon); The Bloodsabre (rangers, rogues, bards) and the Thorn of Deatharn (monks) have no itempattern rows, so those classes get nothing yet. The guide's 'some small xp' has no figure."
+  },
+  {
+   "key": "Portal/plane-of-disease/tusks",
+   "name": "Plagueswine Tusks",
+   "giver": "Tuskmaster Helgley",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The plague swine in these valleys grow fine tusks. Bring me four and I will pay you well, as often as you like.",
+   "accept": "I will bring tusks.",
+   "decline": "Not now.",
+   "declined": "The swine will wait.",
+   "started": "Four tusks, then.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "plague swine",
+     "items": [
+      {
+       "item": "plagueswine tusk",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Take four plagueswine tusks from the plague swine of the second valley."
+    },
+    {
+     "kind": "give",
+     "target": "Tuskmaster Helgley",
+     "items": [
+      {
+       "item": "plagueswine tusk",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four plagueswine tusks to Tuskmaster Helgley in the tents by the first pond.",
+     "says": "Fine tusks. Here is your pay. Bring more any time.",
+     "rewards": {
+      "xp": 250000,
+      "tunar": 956
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Spell Quest (github.com/Jadiction/EQOA-Data, MIT). Its note on Tuskmaster Helgley's hunt and gather: 250,000 experience (the guide's 'about 250k') and 956 tunar for four tusks, no faction with the puslings (the guide's own words). The drop chance is ours."
+  },
+  {
+   "key": "Portal/plane-of-disease/stew",
+   "name": "Scuzz Toad Eyes",
+   "giver": "Pluxklez",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Scuzz toads in the lakes past the second tunnel have good eyes for stew. Bring Pluxklez four, and Pluxklez gives stew. Again and again!",
+   "accept": "I will bring eyes.",
+   "decline": "Not now.",
+   "declined": "Pluxklez waits, hungry.",
+   "started": "Four eyes!",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "scuzz toad",
+     "items": [
+      {
+       "item": "scuzz toad eye",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Take four scuzz toad eyes from the scuzz toads in Gluboxious's lake."
+    },
+    {
+     "kind": "give",
+     "target": "Pluxklez",
+     "items": [
+      {
+       "item": "scuzz toad eye",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four scuzz toad eyes to Pluxklez, where the Lich Overlord spawns.",
+     "says": "Good eyes! Here, stew. Eat it, feel better.",
+     "rewards": {
+      "xp": 251000,
+      "items": [
+       "scuzz toad stew"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "scuzz toad"
+   ],
+   "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Spell Quest (github.com/Jadiction/EQOA-Data, MIT). Its note on Pluxklez: 251,000 experience and scuzz toad stew for four eyes (the guide's figures). The scuzz toads' spawn cycle from the jellies and piranhas is left out: they stand at the lake (tools/quests/npcs/qe.json); the stew takes the sondereel fish soup's effect, not the guide's 156 a tick; the drop chance is ours."
+  }
+ ],
+ "items": [
+  {
+   "name": "Endraval's petrified heart",
+   "description": "The petrified heart of the deathknight Endraval.",
+   "notrade": true,
+   "like": "Halik's petrified heart"
+  },
+  {
+   "name": "wasp venom",
+   "description": "Venom drawn from the plague wasps, kept by the Last House's pharmacist.",
+   "notrade": true,
+   "like": "poison vial"
+  },
+  {
+   "name": "queen chitin",
+   "description": "A piece of the Queen's hive. The whirling portal knows it.",
+   "notrade": true,
+   "like": "fine ice worm chitin"
+  },
+  {
+   "name": "Queen Qy'tha's stinger",
+   "description": "The stinger of Queen Qy'tha, still wet with venom.",
+   "notrade": true,
+   "like": "Zapper Stinger"
+  },
+  {
+   "name": "scepter of plague",
+   "description": "Made by Witchdoctor Muglchlur from the Queen's stinger. The Throne of Bertoxxulous answers it.",
+   "notrade": true,
+   "like": "Lord Pickclaw's Scepter"
+  },
+  {
+   "name": "viturille skin",
+   "description": "The skin of a cillieane viturille from the nox pools.",
+   "notrade": true,
+   "like": "tasty froglok skins"
+  },
+  {
+   "name": "slime heart",
+   "description": "The heart of a toxic pollutive slime.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "fused slime heart",
+   "description": "Three slime hearts fused by Honcho Ulgurglch. The cauldron by the nox pools wants it.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "blood of Noroxus",
+   "description": "The blood of Noroxus. The closed portal opens to it, as often as it is shown.",
+   "notrade": true,
+   "like": "Randerith's blood"
+  },
+  {
+   "name": "fetid rotting femur",
+   "description": "A rotting femur from the Plane of Disease.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "fetid rotting tibia",
+   "description": "A rotting tibia from the Plane of Disease.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "fetid rotting skull",
+   "description": "A rotting skull from the Plane of Disease.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "fetid rotting organ",
+   "description": "A rotting organ from the Plane of Disease.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "fetid rotting gland",
+   "description": "A rotting gland from the Plane of Disease.",
+   "notrade": true,
+   "like": "warm heart"
+  },
+  {
+   "name": "fetid rotting eyeball",
+   "description": "A rotting eyeball from the Plane of Disease.",
+   "notrade": true,
+   "like": "raven eye"
+  },
+  {
+   "name": "fetid rotting skin",
+   "description": "A strip of rotting skin from the Plane of Disease.",
+   "notrade": true,
+   "like": "tasty froglok skins"
+  },
+  {
+   "name": "soul dust",
+   "description": "The dust of souls the Plaguebringer has spent.",
+   "notrade": true,
+   "like": "Pixie Dust"
+  },
+  {
+   "name": "wax dust",
+   "description": "Wax dust from the wings of the Moth Monarch.",
+   "notrade": true,
+   "like": "Pixie Dust"
+  },
+  {
+   "name": "acidic blood bile",
+   "description": "Acidic blood bile from the Locust Monarch.",
+   "notrade": true,
+   "like": "poison vial"
+  },
+  {
+   "name": "front legs of the Mantis Matriarch",
+   "description": "The front legs of the Mantis Matriarch.",
+   "notrade": true,
+   "like": "cracked beetle mandible"
+  },
+  {
+   "name": "mandibles of the Millipede Matriarch",
+   "description": "The mandibles of the Millipede Matriarch.",
+   "notrade": true,
+   "like": "cracked beetle mandible"
+  },
+  {
+   "name": "plagueswine tusk",
+   "description": "A tusk from a plague swine.",
+   "notrade": false,
+   "like": "preserved mammoth tusk"
+  },
+  {
+   "name": "scuzz toad eye",
+   "description": "The eye of a scuzz toad.",
+   "notrade": false,
+   "like": "crusty goblin eye"
+  },
+  {
+   "name": "scuzz toad stew",
+   "description": "A stew of scuzz toad. It heals over time.",
+   "notrade": false,
+   "like": "sondereel fish soup"
+  }
+ ]
+}

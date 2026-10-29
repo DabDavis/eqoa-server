@@ -103,16 +103,16 @@ func (s *Server) registerWorkOps() {
 				return nil, err
 			}
 			var req struct {
-				ID       int64           `json:"id"`
-				Status   json.RawMessage `json:"status"`
-				Area     string          `json:"area"`
-				Owner    string          `json:"owner"`
-				Touches  json.RawMessage `json:"touches"`
-				Search   string          `json:"search"`
-				OldDone  bool            `json:"include_old_done"`
-				Full     bool            `json:"full"`
-				Limit    int             `json:"limit"`
-				Offset   int             `json:"offset"`
+				ID      int64           `json:"id"`
+				Status  json.RawMessage `json:"status"`
+				Area    string          `json:"area"`
+				Owner   string          `json:"owner"`
+				Touches json.RawMessage `json:"touches"`
+				Search  string          `json:"search"`
+				OldDone bool            `json:"include_old_done"`
+				Full    bool            `json:"full"`
+				Limit   int             `json:"limit"`
+				Offset  int             `json:"offset"`
 			}
 			if err := c.decode(&req); err != nil {
 				return nil, err

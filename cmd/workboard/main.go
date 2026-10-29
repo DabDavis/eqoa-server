@@ -488,8 +488,8 @@ func (c *cli) printOverlaps(overlaps []database.WorkOverlap) {
 // entryFlags are the flags add and update share.
 type entryFlags struct {
 	title, area, touches, status, owner, details, result, note opt
-	detailsFile                                                 string
-	version                                                     int64
+	detailsFile                                                string
+	version                                                    int64
 }
 
 func (c *cli) entryFlagSet(name string, f *entryFlags, withVersion bool) *flag.FlagSet {

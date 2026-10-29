@@ -87,5 +87,5 @@ func (s *Server) handleOpenAPI(w http.ResponseWriter, r *http.Request) {
 // handleGuide is the guide as text, for a person or an agent that reads URLs.
 func (s *Server) handleGuide(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
-	w.Write([]byte(guideText))
+	w.Write([]byte(s.guideFor(r)))
 }

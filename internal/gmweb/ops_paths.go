@@ -57,6 +57,9 @@ func pathRecordOf(row map[string]any) (database.NPCPathRecord, error) {
 // (checkMapMarkRow). It reads nothing (it runs inside the change's
 // transaction, and the database has one connection).
 func checkRow(table string, row map[string]any) error {
+	if (table == "workboard" || table == "workboard_overview") && row != nil {
+		return checkWorkRow(table, row) // ops_work.go
+	}
 	if table == "mapmarks" && row != nil {
 		return checkMapMarkRow(row)
 	}

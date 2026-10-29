@@ -10,8 +10,10 @@ entity/dialog.go). No record of the live game's lines for them exists, and
 Sandstorm's own were guesses, so these are ours: tools/dialog/town_lines.json
 (--lines), written in EQOA's voice from the cities' lore and the dangers
 near them. Each block there is lines and who says them (town, role, name,
-mood, race, weight, an absent field any); each line becomes a row of source
-"ours".
+mood, race, sex, weight, an absent field any; sex "male" or "female", the
+speaker's by its body: the user, 2026-10-29, "most of the city folk are men so
+would be nice if we had Male/Female lines"); each line becomes a row of
+source "ours". A table made before the sex column has it added.
 
 The report says per town how many lines it has, and names a town the file
 gives lines that no faction of the database names (a town is its faction's:
@@ -40,6 +42,7 @@ DEFAULT_LINES = os.path.join(HERE, "dialog", "town_lines.json")
 SOURCE = "ours"
 ROLES = {"guard", "trader", "priest", "scholar", "worker", "noble", "citizen"}
 MOODS = {"neutral", "friendly", "warm", "wary", "hostile"}
+SEXES = {"", "male", "female"}
 # database/npcdialog.go's npcDialogSchema, word for word
 SCHEMA = """CREATE TABLE IF NOT EXISTS npcdialog (
 	id     INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,6 +51,7 @@ SCHEMA = """CREATE TABLE IF NOT EXISTS npcdialog (
 	name   TEXT NOT NULL DEFAULT '',
 	mood   TEXT NOT NULL DEFAULT '',
 	race   INTEGER NOT NULL DEFAULT -1,
+	sex    TEXT NOT NULL DEFAULT '',
 	line   TEXT NOT NULL,
 	weight INTEGER NOT NULL DEFAULT 1,
 	source TEXT NOT NULL DEFAULT 'gm'
@@ -60,7 +64,7 @@ LOG_SCHEMA = """CREATE TABLE npcdialog_seed (
 TOWN_FACTIONS = {"The Freeport Militia": "Freeport", "The Qeynos Guard": "Qeynos", "The Highpass Guard": "Highpass",
                  "Klick`Anon Watch": "Klick`Anon", "House U`Dedne": "Neriak", "House J`Narus": "Neriak",
                  "House Do`Vexis": "Neriak", "House Gal`Saris": "Neriak", "Merchant House Nothard": "Freeport"}
-COLS = ("town", "role", "name", "mood", "race", "line", "weight")
+COLS = ("town", "role", "name", "mood", "race", "sex", "line", "weight")
 
 
 def has_table(db, name):
@@ -78,12 +82,15 @@ def rows_of(path):
             problems.append(f"block {i}: role {role!r}")
         if mood and any(m.strip() not in MOODS for m in mood.split(",")):
             problems.append(f"block {i}: mood {mood!r}")
+        sex = b.get("sex", "")
+        if sex not in SEXES:
+            problems.append(f"block {i}: sex {sex!r}")
         for line in b["say"]:
             if not line.strip():
                 problems.append(f"block {i}: an empty line")
                 continue
             rows.append({"town": b.get("town", ""), "role": role, "name": b.get("name", ""), "mood": mood,
-                         "race": int(b.get("race", -1)), "line": line, "weight": int(b.get("weight", 1))})
+                         "race": int(b.get("race", -1)), "sex": sex, "line": line, "weight": int(b.get("weight", 1))})
     return rows, problems
 
 
@@ -107,10 +114,17 @@ def backup(path):
     return dst
 
 
+def ensure_sex(db):
+    """The sex column, on a table made before it (the server adds it too)."""
+    if has_table(db, "npcdialog") and "sex" not in [r[1] for r in db.execute("PRAGMA table_info(npcdialog)")]:
+        db.execute("ALTER TABLE npcdialog ADD COLUMN sex TEXT NOT NULL DEFAULT ''")
+
+
 def apply(db, rows):
     db.execute("BEGIN IMMEDIATE")
     try:
         db.execute(SCHEMA)
+        ensure_sex(db)
         db.execute(LOG_SCHEMA)
         for r in rows:
             cur = db.execute(f"INSERT INTO npcdialog ({', '.join(COLS)}, source) VALUES ({', '.join('?' * len(COLS))}, ?)",
@@ -129,12 +143,15 @@ def undo(db):
     db.execute("BEGIN IMMEDIATE")
     try:
         gone = kept = 0
+        ensure_sex(db)
         for i, row in db.execute("SELECT id, row FROM npcdialog_seed").fetchall():
             r = json.loads(row)
             now = db.execute(f"SELECT {', '.join(COLS)}, source FROM npcdialog WHERE id = ?", (i,)).fetchone()
             if now is None:
                 continue
-            if dict(zip(COLS, now[:-1])) != r or now[-1] != SOURCE:
+            have = dict(zip(COLS, now[:-1]))
+            # a row logged before the sex column has no "sex": it is compared on what it was written with
+            if any(have.get(k) != v for k, v in r.items()) or have.get("sex", "") != r.get("sex", "") or now[-1] != SOURCE:
                 kept += 1
                 continue
             db.execute("DELETE FROM npcdialog WHERE id = ?", (i,))

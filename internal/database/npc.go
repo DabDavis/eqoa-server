@@ -221,6 +221,27 @@ func (s *NPCStore) RaceModels() (map[[2]int]uint32, error) {
 	return out, rows.Err()
 }
 
+// ModelSexes is each players' race body's sex (charactermodel: 0 male, 1
+// female), by its model id as the wire carries it: whom a line of town
+// dialog for a husband or a wife fits (entity/dialog.go).
+func (s *NPCStore) ModelSexes() (map[uint32]int, error) {
+	rows, err := s.db.Query(`SELECT modelid, sex FROM charactermodel`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make(map[uint32]int)
+	for rows.Next() {
+		var m int64
+		var sex int
+		if err := rows.Scan(&m, &sex); err != nil {
+			return nil, err
+		}
+		out[uint32(m)] = sex
+	}
+	return out, rows.Err()
+}
+
 // NPCClasses is the npcclass table (tools/import_npc_classes.py): each NPC
 // name's class, by NPCClassKey. A name it does not hold is a warrior's.
 func (s *NPCStore) NPCClasses() (map[string]int, error) {

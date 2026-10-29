@@ -107,6 +107,11 @@ func realWorld(t *testing.T) *World {
 		t.Fatal(err)
 	}
 	w.SetPlayerModels(models)
+	sexes, err := store.ModelSexes()
+	if err != nil {
+		t.Fatal(err)
+	}
+	w.SetModelSexes(sexes)
 	w.LoadNPCs(store)
 	return w
 }

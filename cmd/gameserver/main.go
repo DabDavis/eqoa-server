@@ -86,6 +86,12 @@ func main() {
 	} else {
 		gameWorld.SetRaceModels(models)
 	}
+	// each body's sex, whom a town's line for a husband or a wife fits (entity/dialog.go)
+	if sexes, err := npcStore.ModelSexes(); err != nil {
+		log.Printf("Entity world: the bodies' sexes: %v (no line of town dialog asks for one)", err)
+	} else {
+		gameWorld.SetModelSexes(sexes)
+	}
 	gameWorld.LoadNPCs(npcStore)
 	// The ground creatures stand on (internal/ground), baked from the game's
 	// disc into <worlds>/ground by cmd/groundbake; without it they keep the

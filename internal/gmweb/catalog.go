@@ -534,6 +534,31 @@ var catalog = map[string]tableNote{
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_undead.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npcdialog": {
+		Label: "NPC dialog", Group: "World", Title: "line", Sort: "town",
+		Help: "What a town's people and the guards of Norrath say when talked to and nothing else answers (no quest, " +
+			"shop, route, bind or sign post's words; entity/dialog.go). A speaker is an NPC of a town's faction (NPC " +
+			"factions: a town's Citizens, its guards', Neriak's houses) or one named a guard, on a body of a players' race, " +
+			"never wildlife, undead, a pet or a dummy. Each row is one line and who says it to whom; an empty field fits " +
+			"anyone: town (as its faction names it: Freeport, Klick`Anon), role (by the speaker's name: guard, trader, " +
+			"priest, scholar, worker, noble, citizen), name (one NPC), mood (empty: neutral, friendly or warm; else a comma " +
+			"list of neutral, friendly, warm, wary, hostile: the listener's standing with the speaker's faction, as the " +
+			"target box's face shows it), race (the listener's), weight. A line of its town counts three times, of its role " +
+			"twice, of its name six times. In a line %p is the listener's name, %r its race, %c its class, %t the town, %n " +
+			"the speaker. tools/seed_town_dialog.py's rows are source ours (its --undo deletes those no GM changed).",
+		Live:   "At once: the next talk.",
+		Search: []string{"line", "town", "role", "name", "mood", "source"},
+		Cols: map[string]colNote{
+			"town":   {Label: "Town", Help: "the speaker's town, as its faction names it; empty any"},
+			"role":   {Label: "Role", Help: "guard, trader, priest, scholar, worker, noble or citizen; empty any"},
+			"name":   {Label: "NPC", Help: "one NPC's name; empty any"},
+			"mood":   {Label: "Mood", Help: "empty: neutral, friendly or warm; else e.g. wary or hostile,friendly"},
+			"race":   {Label: "Listener's race", Enum: "race", Help: "-1 any"},
+			"line":   {Label: "Line", Help: "%p name, %r race, %c class, %t town, %n speaker"},
+			"weight": {Label: "Weight", Help: "how often against the others that fit"},
+			"source": {Label: "Source", Help: "gm, or ours for tools/seed_town_dialog.py's rows"},
+		},
+	},
 	"npcsocial": {
 		Label: "Social NPCs", Group: "World", Title: "npc_name", Sort: "npc_name",
 		Help: "Which NPCs come to the help of their own, by NPC name (entity/socialaggro.go): when a player (or a player's " +

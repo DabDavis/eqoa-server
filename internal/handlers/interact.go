@@ -3,9 +3,11 @@ package handlers
 import (
 	"fmt"
 	"log"
+	"sync"
 	"sync/atomic"
 
 	"github.com/eqoa/pkg/pkg/buffer"
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -26,6 +28,57 @@ type InteractHandler struct {
 	// spend takes a waysender's fee from the player, kept and shown
 	// (NPCWindowHandler.spendTunar); false when it cannot pay. Nil: free.
 	spend func(*session.Session, *entity.Player, int) bool
+
+	// dialogLines is npcdialog (database.NPCDialog): what a town's people and
+	// the guards say (entity/dialog.go). Nil: they say nothing.
+	dialogLines func() ([]database.NPCDialogLine, error)
+
+	// lastLine is the npcdialog line each speaker said to each listener last
+	// (by lineKey), so a second talk hears another.
+	lastMu   sync.Mutex
+	lastLine map[uint64]int
+}
+
+// SetDialogLines gives the handler npcdialog's reader (database.NPCDialog).
+func (h *InteractHandler) SetDialogLines(f func() ([]database.NPCDialogLine, error)) {
+	h.dialogLines = f
+}
+
+func lineKey(p *entity.Player, npc *entity.NPC) uint64 {
+	return uint64(p.ServerID)<<32 | uint64(uint32(npc.ServerID))
+}
+
+// townSay is a town's person's or a guard's line to the player, if it says
+// one (entity.World.TownLine): its name and words in a box of their own, as
+// a quest NPC's are (QuestEngine.tellLocked).
+func (h *InteractHandler) townSay(sess *session.Session, player *entity.Player, npc *entity.NPC) bool {
+	if h.dialogLines == nil {
+		return false
+	}
+	lines, err := h.dialogLines()
+	if err != nil {
+		log.Printf("Interact: npcdialog: %v", err)
+		return false
+	}
+	key := lineKey(player, npc)
+	h.lastMu.Lock()
+	last := h.lastLine[key]
+	h.lastMu.Unlock()
+	speaker, line, id, ok := h.gameWorld.TownLine(player, npc, lines, last)
+	if !ok {
+		return false
+	}
+	h.lastMu.Lock()
+	if h.lastLine == nil || len(h.lastLine) > 20000 {
+		h.lastLine = make(map[uint64]int)
+	}
+	h.lastLine[key] = id
+	h.lastMu.Unlock()
+	forgetDialogs(player)
+	for _, part := range splitSay(speaker+": "+line, questBoxChars) {
+		SendDialogueBox(sess, 0, part)
+	}
+	return true
 }
 
 // npcText is what an NPC says when talked to, by name (config
@@ -82,7 +135,8 @@ func (h *InteractHandler) RegisterHandlers(r *Registry) {
 // HandleInteract handles NPC interaction requests (opcode 0x0004).
 // Client sends: uint32 targetObjectID
 // A corpse opens its loot, the hard-disk technician his menu, a travel NPC
-// its routes and a greeter its words; anything else answers nothing.
+// its routes, a greeter its words and a town's person or a guard a line of
+// npcdialog; anything else answers nothing.
 func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {
@@ -221,6 +275,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 			h.sendDialogueBox(sess, text)
 			return nil
 		}
+	}
+
+	// A town's people and the guards of Norrath (entity/dialog.go): a line of
+	// npcdialog, when one fits.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.townSay(sess, player, npc) {
+		return nil
 	}
 
 	// Anything else has nothing to say: the interact button does nothing, as

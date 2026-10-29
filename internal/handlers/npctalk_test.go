@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -100,6 +101,40 @@ func TestASilentNPCAnswersNothing(t *testing.T) {
 	tw.talk(sign)
 	if got := opcodes(tw.s); len(got) != 1 || got[0] != protocol.OpcodeDialogueBox {
 		t.Errorf("the control: the sign post answered %v, want its words (a dialogue box)", got)
+	}
+}
+
+// A town's person with nothing else to say says a line of npcdialog, its
+// name before it, in a dialogue box; with no lines (the reader nil, or none
+// fitting) it says nothing, as before; a creature of the town says nothing.
+func TestATownsPersonSpeaks(t *testing.T) {
+	tw := newTalkWorld(t, 25403, 15725)
+	const human = 0x70D898C6
+	tw.w.SetPlayerModels(map[uint32]bool{human: true})
+	tw.w.SetNPCFactions([]database.NPCFactionRow{{Name: "vahji shandun", World: -1, Faction: "Citizens of Freeport"},
+		{Name: "city rat", World: -1, Faction: "Citizens of Freeport"}})
+	vahji := tw.add(1, &entity.NPC{ServerID: 691, Name: "Vahji Shandun", ModelID: human, SpawnX: 25403.2, SpawnY: 54.1, SpawnZ: 15725.3})
+	rat := tw.add(2, &entity.NPC{ServerID: 692, Name: "City Rat", ModelID: 0x11111111, SpawnX: 25404, SpawnY: 54.1, SpawnZ: 15726})
+	tw.talk(vahji)
+	if got := opcodes(tw.s); len(got) != 0 {
+		t.Fatalf("with no lines: %v", got)
+	}
+	tw.h.SetDialogLines(func() ([]database.NPCDialogLine, error) {
+		return []database.NPCDialogLine{{ID: 1, Town: "Freeport", Line: "Gold talks in %t, %p.", Race: -1, Weight: 1}}, nil
+	})
+	tw.talk(vahji)
+	var box string
+	for _, m := range tw.s.Queue().GetPending() {
+		if d := m.Data(); len(d) > 10 && protocol.GameOpcode(binary.LittleEndian.Uint16(d)) == protocol.OpcodeDialogueBox {
+			box = wideText(d[6:])
+		}
+	}
+	if box != "Vahji Shandun: Gold talks in Freeport, Talker." {
+		t.Errorf("the box: %q", box)
+	}
+	tw.talk(rat)
+	if got := opcodes(tw.s); len(got) != 0 {
+		t.Errorf("the town's rat answered %v", got)
 	}
 }
 

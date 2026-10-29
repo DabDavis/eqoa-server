@@ -39,6 +39,9 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveUndead()
 	case "npcsocial":
 		return s.liveSocial()
+	case "npcdialog":
+		database.InvalidateNPCDialog()
+		return "at once: the next talk to a town's person or a guard"
 	case "npcmove":
 		return s.liveMove()
 	case "spellgates":

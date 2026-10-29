@@ -17,38 +17,6 @@
    "water": "land"
   },
   {
-   "name": "Razuam Marus",
-   "role": "foe",
-   "body": [
-    "race",
-    "human",
-    0
-   ],
-   "place": [
-    "ff"
-   ],
-   "count": 1,
-   "level": null,
-   "note": "upstairs at the inn in Wyndhaven",
-   "water": "land"
-  },
-  {
-   "name": "Apprentice Buerma",
-   "role": "talker",
-   "body": [
-    "race",
-    "human",
-    0
-   ],
-   "place": [
-    "ff"
-   ],
-   "count": 1,
-   "level": null,
-   "note": "by the blacksmith at the inn in Darvar Manor",
-   "water": "land"
-  },
-  {
    "name": "Ancient Stone Golem",
    "role": "foe",
    "body": [
@@ -124,22 +92,6 @@
    "count": 1,
    "level": 30,
    "note": "NW of the Al'Karad Ruins north of Blakedown (the server's other savage bears are level 43, far north)",
-   "water": "land"
-  },
-  {
-   "name": "Connor Dunn",
-   "role": "talker",
-   "body": [
-    "race",
-    "human",
-    0
-   ],
-   "place": [
-    "ff"
-   ],
-   "count": 1,
-   "level": null,
-   "note": "Bastable, by the ornate chest",
    "water": "land"
   },
   {
@@ -424,22 +376,6 @@
    "water": "land"
   },
   {
-   "name": "Merchant Samwe",
-   "role": "talker",
-   "body": [
-    "race",
-    "gnome",
-    0
-   ],
-   "place": [
-    "ff"
-   ],
-   "count": 1,
-   "level": null,
-   "note": "Klick`Anon (sells nothing here: the battery is handed over)",
-   "water": "land"
-  },
-  {
    "name": "Rivard Gyrind",
    "role": "talker",
    "body": [
@@ -513,21 +449,6 @@
    "count": 1,
    "level": null,
    "note": "the tree outside the Taksehir stronghold",
-   "water": "land"
-  },
-  {
-   "name": "Blacktongue Orc Ravager",
-   "role": "foe",
-   "body": [
-    "npc",
-    "Blacktongue orc"
-   ],
-   "place": [
-    "ff"
-   ],
-   "count": 1,
-   "level": null,
-   "note": "Ferran's Hope",
    "water": "land"
   },
   {
@@ -841,21 +762,6 @@
    "water": "land"
   },
   {
-   "name": "Ancient Mummy",
-   "role": "foe",
-   "body": [
-    "npc",
-    "mummy"
-   ],
-   "place": [
-    "ff"
-   ],
-   "count": 3,
-   "level": 18,
-   "note": "the hills north of the Freeport human camp in north-western Ro",
-   "water": "land"
-  },
-  {
    "name": "Talya Montar",
    "role": "talker",
    "body": [
@@ -949,22 +855,6 @@
    "water": "land"
   },
   {
-   "name": "Vuldrek Undogeem",
-   "role": "talker",
-   "body": [
-    "race",
-    "gnome",
-    0
-   ],
-   "place": [
-    "ff"
-   ],
-   "count": 1,
-   "level": null,
-   "note": "the rogues' guild of Klick`Anon",
-   "water": "land"
-  },
-  {
    "name": "Wandering Priestess",
    "role": "foe",
    "body": [
@@ -994,22 +884,6 @@
    "count": 1,
    "level": null,
    "note": "the paladins' guild in Qeynos",
-   "water": "land"
-  },
-  {
-   "name": "Nanigar Volsweath",
-   "role": "talker",
-   "body": [
-    "race",
-    "human",
-    0
-   ],
-   "place": [
-    "ff"
-   ],
-   "count": 1,
-   "level": null,
-   "note": "Wyndhaven",
    "water": "land"
   },
   {

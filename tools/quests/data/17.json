@@ -126,7 +126,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Ancient Mummy",
+     "target": "mummy",
      "items": [
       {
        "item": "Embalming Fluid",
@@ -250,10 +250,9 @@
     }
    ],
    "unresolved": [
-    "Ancient Mummy",
     "Talya Montar"
    ],
-   "notes": "From EQOA-Data Quests/17/freeport.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's necromancers' Bracers of Shadow are their set's Bracer of the Shadow, its bards' Gloves the Gloves of Harmony; the mummies are seeded where FrontiersForge saw one. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the magician, alchemist, who get the experience alone. Bracers of Brilliance is made here (no item has the name), with the look and stats of Bracers of Radiance."
+   "notes": "From EQOA-Data Quests/17/freeport.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's necromancers' Bracers of Shadow are their set's Bracer of the Shadow, its bards' Gloves the Gloves of Harmony; the ancient mummies are the server's mummies of Ro (FrontiersForge's Ancient Mummy stands where one of them does). The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the magician, alchemist, who get the experience alone. Bracers of Brilliance is made here (no item has the name), with the look and stats of Bracers of Radiance."
   },
   {
    "key": "17/grobb/main",
@@ -846,12 +845,12 @@
       }
      ],
      "journal": "Bring Deidre IV's cog and the intense grease to Ludvick Undogeem.",
-     "says": "Now she can be mended. My brother Vuldrek, in the rogues' guild, has your reward."
+     "says": "Now she can be mended. My brother Aldrek, in the rogues' guild, has your reward."
     },
     {
      "kind": "talk",
-     "target": "Vuldrek Undogeem",
-     "journal": "See Vuldrek Undogeem in the rogues' guild.",
+     "target": "Aldrek Undogeem",
+     "journal": "See Aldrek Undogeem, Ludvick's brother, in the rogues' guild.",
      "says": "Ludvick said you would come.",
      "rewards": {
       "xp": 263426,
@@ -920,10 +919,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Vuldrek Undogeem"
-   ],
-   "notes": "From EQOA-Data Quests/17/klick-anon.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Ludvick and Weedle Zintink are the game's Ludvick Undogeem and Weedle Zinktink; the bards' Breast Plate is the Tunic of Harmony, the paladins' Greaves the Greaves of Virtue. The cog is ours. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the monk, magician, alchemist, who get the experience alone. Ring of Brilliance is made here (no item has the name), with the look and stats of Ring of Shadow."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/17/klick-anon.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Ludvick, Vuldrek and Weedle Zintink are the server's Ludvick Undogeem, Aldrek Undogeem and Weedle Zinktink; the bards' Breast Plate is the Tunic of Harmony, the paladins' Greaves the Greaves of Virtue. The cog is ours. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the monk, magician, alchemist, who get the experience alone. Ring of Brilliance is made here (no item has the name), with the look and stats of Ring of Shadow."
   },
   {
    "key": "17/moradhim/main",
@@ -1170,7 +1167,7 @@
      "kind": "talk",
      "target": "Captain Drailis",
      "journal": "Find Captain Drailis in Forkwatch.",
-     "says": "The Shadowhand bandits in the Qeynos farmlands carry receipts for stolen goods. Bring one to Nanigar Volsweath in Wyndhaven."
+     "says": "The Shadowhand bandits in the Qeynos farmlands carry receipts for stolen goods. Bring one to Nanibar Volsweath in Wyndhaven."
     },
     {
      "kind": "loot",
@@ -1187,7 +1184,7 @@
     },
     {
      "kind": "give",
-     "target": "Nanigar Volsweath",
+     "target": "Nanibar Volsweath",
      "items": [
       {
        "item": "Shadowhand Receipt",
@@ -1195,7 +1192,7 @@
       }
      ],
      "tunar": 600,
-     "journal": "Take the receipt to Nanigar Volsweath in Wyndhaven, and buy his blade (600 tunar).",
+     "journal": "Take the receipt to Nanibar Volsweath in Wyndhaven, and buy his blade (600 tunar).",
      "says": "So that is where it went. Take the blade to Laressa.",
      "events": [
       {
@@ -1290,10 +1287,9 @@
     }
    ],
    "unresolved": [
-    "Laressa Nevar",
-    "Nanigar Volsweath"
+    "Laressa Nevar"
    ],
-   "notes": "From EQOA-Data Quests/17/qeynos.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Drailis is Captain Drailis; the receipt and blade are ours by name. The monks' Disciple's Sash is the Sash of the Disciple, the warriors' Ring the Soldier's Insignia. Its dark elf note is not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the shadowknight, bard, wizard, alchemist, who get the experience alone. Ring of the Silent Strider is made here (no item has the name), with the look and stats of Ring of Guarding."
+   "notes": "From EQOA-Data Quests/17/qeynos.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Drailis is Captain Drailis, its Nanigar Volsweath the server's Nanibar Volsweath; the receipt and blade are ours by name. The monks' Disciple's Sash is the Sash of the Disciple, the warriors' Ring the Soldier's Insignia. Its dark elf note is not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the shadowknight, bard, wizard, alchemist, who get the experience alone. Ring of the Silent Strider is made here (no item has the name), with the look and stats of Ring of Guarding."
   },
   {
    "key": "17/rivervale/main",
@@ -1568,7 +1564,7 @@
   },
   {
    "name": "Volsweath's Blade",
-   "description": "A blade bought from Nanigar Volsweath of Wyndhaven.",
+   "description": "A blade bought from Nanibar Volsweath of Wyndhaven.",
    "notrade": true,
    "like": "rusted blade"
   },

@@ -34,7 +34,8 @@ _spec.loader.exec_module(M)
 def walk(rows, sid, name, legs, t0=0, pace=4.0, pause=2.0):
     """Rows of a walker going through legs [(x, z)...]: at each point a stop
     (velocity 0) held `pause` s, then a leg at `pace`, sampled every 0.5 s,
-    its place sent only at the stops and as it sets off."""
+    its place sent only at the stops, as it sets off and every 10 s on a leg
+    (Sandstorm's)."""
     t = t0
     sent = legs[0]
     for (ax, az), (bx, bz) in zip(legs, legs[1:]):
@@ -43,8 +44,9 @@ def walk(rows, sid, name, legs, t0=0, pace=4.0, pause=2.0):
             t += 0.5
         d = math.hypot(bx - ax, bz - az)
         v = [pace * (bx - ax) / d, 0, pace * (bz - az) / d]
-        for _ in range(int(d / pace / 0.5)):
-            rows.append({"t": int(t * 1000), "id": sid, "name": name, "x": ax, "y": 10, "z": az, "v": v})
+        for k in range(int(d / pace / 0.5)):
+            at = (k // 20) * 10.0  # the place sent again every 10 s
+            rows.append({"t": int(t * 1000), "id": sid, "name": name, "x": ax + v[0] * at, "y": 10, "z": az + v[2] * at, "v": v})
             t += 0.5
         sent = (bx, bz)
     rows.append({"t": int(t * 1000), "id": sid, "name": name, "x": sent[0], "y": 10, "z": sent[1], "v": [0, 0, 0]})
@@ -54,7 +56,8 @@ def walk(rows, sid, name, legs, t0=0, pace=4.0, pause=2.0):
 def walk_stops(rows, sid, name, stops, t0=0.0, pace=3.0):
     """Rows of a walker through stops [(x, z, pause)...]: a stop of pause s
     at each (0: a turn, no stop), then a leg at `pace` to the next, sampled
-    every 0.5 s, its place sent only at the stops and as it sets off."""
+    every 0.5 s, its place sent only at the stops, as it sets off and every
+    10 s on a leg (Sandstorm's)."""
     t = t0
     for (ax, az, pause), (bx, bz, _) in zip(stops, stops[1:]):
         for _ in range(int(pause / 0.5)):
@@ -62,8 +65,9 @@ def walk_stops(rows, sid, name, stops, t0=0.0, pace=3.0):
             t += 0.5
         d = math.hypot(bx - ax, bz - az)
         v = [pace * (bx - ax) / d, 0, pace * (bz - az) / d]
-        for _ in range(max(1, round(d / pace / 0.5))):
-            rows.append({"t": int(t * 1000), "id": sid, "name": name, "x": ax, "y": 10, "z": az, "v": v})
+        for k in range(max(1, round(d / pace / 0.5))):
+            at = (k // 20) * 10.0  # the place sent again every 10 s
+            rows.append({"t": int(t * 1000), "id": sid, "name": name, "x": ax + v[0] * at, "y": 10, "z": az + v[2] * at, "v": v})
             t += 0.5
     x, z, pause = stops[-1]
     for _ in range(max(1, int(pause / 0.5))):
@@ -209,6 +213,16 @@ class ReadingARoute(unittest.TestCase):
         walk_stops(rows, 4, "P", [(0, 0, 3), (30, 0, 3), (0, 0, 3)])
         r = M.route(rows)
         self.assertEqual((r.mode, [(p[0], p[2]) for p in r.points]), ("pingpong", [(0, 0), (30, 0)]))
+
+    def test_a_velocity_held_with_no_new_place_stands(self):
+        # sent once, moving north, and never again in three minutes in view
+        rows = [{"t": t, "id": 5, "name": "S", "x": 100, "y": 10, "z": 100, "v": [0, 0, 4.76]} for t in range(0, 189001, 500)]
+        self.assertIsNone(M.route(rows))
+        # a long leg sent again every 10 s walks
+        rows = [{"t": t, "id": 6, "name": "L", "x": 100, "y": 10, "z": 100 + 3 * (t // 10000) * 10, "v": [0, 0, 3]}
+                for t in range(0, 60001, 500)]
+        r = M.route(rows)
+        self.assertEqual((r.mode, [(p[0], p[2]) for p in r.points]), ("pingpong", [(100, 100), (100, 280)]))
 
     def test_a_leg_off_the_walk_is_measured(self):
         walk_ = [[0, 0, 0], [50, 0, 0], [50, 0, 50]]

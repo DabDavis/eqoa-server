@@ -642,6 +642,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureWorkBoard(); err != nil { // workboard.go
 		return err
 	}
+	if err := db.ensurePetitions(); err != nil { // petitions.go
+		return err
+	}
 	if err := db.ensureStartItems(); err != nil { // startitems.go
 		return err
 	}

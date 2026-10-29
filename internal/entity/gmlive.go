@@ -372,6 +372,18 @@ func (w *World) SetPlayerLevel(serverID uint32, level int) bool {
 // SetPlayerTunar sets an online player's purse and bank where the game holds
 // them (a merchant's sale writes the Player's purse back to the row, so a row
 // changed alone would be undone by the next one).
+// PurseOf is an online character's tunar carried and banked as the game holds
+// them; false when it is not in the world.
+func (w *World) PurseOf(serverID uint32) (tunar, bank int, ok bool) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.playerByCharacterLocked(serverID)
+	if p == nil {
+		return 0, 0, false
+	}
+	return p.Tunar, p.BankTunar, true
+}
+
 func (w *World) SetPlayerTunar(serverID uint32, tunar, bank int) bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()

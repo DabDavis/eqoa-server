@@ -410,7 +410,7 @@ func TestCMBuyAndItsRefusals(t *testing.T) {
 	if rs, red := c.send(cmBuy, 20); len(red) != 0 || rs[0][0] != cmRespBought {
 		t.Fatalf("buying Destroyer 1: % x %v", rs, red)
 	}
-	refused(21, "only one Master Class")
+	refused(21, entity.OneMasterClass)
 	if rs, red := c.send(cmRemove, 20); len(red) != 0 || len(rs) != 2 || rs[0][0] != cmRespRemoved || rs[1][0] != cmRespPoints {
 		t.Fatalf("removing Destroyer 1: % x %v", rs, red)
 	}
@@ -861,4 +861,32 @@ func (k *keptMastery) RemoveSpellFromBook(_ uint32, spellID int) (bool, error) {
 		delete(k.book.spells, spellID)
 	}
 	return true, nil
+}
+
+// A second Master Class is refused with the live client's word 1840 before
+// anything else it needs is looked at (the live client tests it first): a
+// warrior holding Destroyer 1, below Defender 1's level 55, is told 1840, not
+// the level, and the list shows Defender 1 locked. The control: with
+// Destroyer 1 gone the same buy is refused for the level.
+func TestCMOneMasterClassIsWord1840(t *testing.T) {
+	c := newCMTest(t, 0, 0, 60)
+	c.p.Mastery.Points = 1000
+	if rs, red := c.send(cmBuy, 20); len(red) != 0 || rs[0][0] != cmRespBought {
+		t.Fatalf("buying Destroyer 1: % x %v", rs, red)
+	}
+	c.p.Level = 50
+	if replies, red := c.send(cmBuy, 21); len(replies) != 1 || replies[0][0] != cmRespDone || len(red) != 1 || red[0] != entity.OneMasterClass {
+		t.Fatalf("a second master class: replies % x, red %q", replies, red)
+	}
+	if s := skillIDs(c.list())[21]; s.known {
+		t.Error("Defender 1 listed as buyable beside Destroyer 1")
+	}
+	c.p.Level = 60
+	if rs, red := c.send(cmRemove, 20); len(red) != 0 || len(rs) != 2 {
+		t.Fatalf("removing Destroyer 1: % x %v", rs, red)
+	}
+	c.p.Level = 50
+	if _, red := c.send(cmBuy, 21); len(red) != 1 || !strings.Contains(red[0], "level 55") {
+		t.Errorf("the control, no master class held: %q", red)
+	}
 }

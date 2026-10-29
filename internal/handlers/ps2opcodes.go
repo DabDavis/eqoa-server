@@ -235,6 +235,23 @@ func SendAbilityAdd(sess *session.Session, stamp uint32, announce bool, e *datab
 	queueReliable(sess, protocol.OpcodeAbilityAdd, buildAbilityAdd(stamp, announce, e))
 }
 
+// buildAbilityRemove is opcode 0x00B8, the case at viclient.cpp's 0x00B8 and
+// Msg00B8: the u32 ability stamp, then the zigzag display index of the
+// ability CLIENT erases from its list (the first of that index; a book's
+// indices below 252 are its own, nextDisplayIndex).
+func buildAbilityRemove(stamp uint32, index int) []byte {
+	return build(protocol.OpcodeAbilityRemove, 16, func(w *buffer.Writer) {
+		w.WriteUint32(stamp)
+		w.Write7BitEncodedInt64(int64(index))
+	})
+}
+
+// SendAbilityRemove sends opcode 0x00B8: the ability at that display index
+// gone from the client's book now.
+func SendAbilityRemove(sess *session.Session, index int) {
+	queueReliable(sess, protocol.OpcodeAbilityRemove, buildAbilityRemove(0, index))
+}
+
 // SendCooldownTimer sends opcode 0x00CD — the case at 0x00BD2168 and Msg00CD:
 // u8 display index, the u32 ability stamp (0 here), zigzag lockout in ms, which
 // lands on the first ability with that display index.

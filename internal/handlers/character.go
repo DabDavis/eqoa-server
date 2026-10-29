@@ -721,6 +721,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// duel window asks for them, a PS2 ignores it and duels by boxes
 	SendDuelOffer(sess)
 
+	// Offer the live mail forms (mail.go): a client that sends them says so,
+	// a PS2 ignores it
+	SendMailOffer(sess)
+
 	// The four weapon sets (gearsets.go): SOE's live client reads them, a PS2
 	// skips them
 	if h.gearSets != nil {

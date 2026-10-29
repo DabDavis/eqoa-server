@@ -592,8 +592,9 @@ var catalog = map[string]tableNote{
 			"order once it is. A rank is " +
 			"listed to the classes and races its bit sets name, and buyable (\"known\") once the character's level, " +
 			"the points it has spent, its base stats (minstats, \"STR:100,STA:150\"), the abilities it needs " +
-			"(require_spells), its parent and the other masteries' ranks it needs (require_ranks) are there; the cost " +
-			"is then taken from its unspent points. effects is " +
+			"(require_spells), its parent, the other masteries' ranks it needs (require_ranks) and the quests it needs " +
+			"finished (require_quests: the stat-boost quests open the stat-boost lines, tools/gate_stat_masteries.py) are " +
+			"there; the cost is then taken from its unspent points. effects is " +
 			"what it gives, in EQOA-Data's names: STR..CHA, STRMax..CHAMax (the stat caps: a character's cap is the " +
 			"level's, 400 from 46 and 350 below, plus what its masteries raise), HP, Pow, HoT, PoT, AC, Off Mod and " +
 			"Def Mod (shown), HP Factor (a level's HP each), FR CR LR AR PR DR, MovRate (20 a run, 100 Spirit of the " +
@@ -619,6 +620,7 @@ var catalog = map[string]tableNote{
 			"requires":       {Label: "Abilities needed", Help: "Name@level; ... as shown"},
 			"require_ranks":  {Label: "Masteries needed", Help: "other masteries' ranks owned first, their ids (6634, ...); the rank before it in its own line is Rank before; an id the catalog lacks is not checked, and a rank another one needs is not removed before it"},
 			"require_spells": {Label: "Abilities needed (spells)", Help: "their spellpattern ids, in the same order: the book must hold them; 0 is not checked"},
+			"require_quests": {Label: "Quests needed", Help: "quests finished first, their ids (quests.questid: 101195, ...); a quest not in the game (a draft, or none) bars no one, and a quest put in or taken out counts at once"},
 			"effects":        {Label: "Gives", Help: "STR:1,STRMax:15 in EQOA-Data's names (the table's help lists them)"},
 			"adds":           {Label: "Adds abilities", Help: "Name@level; ... as shown"},
 			"add_spells":     {Label: "Adds (spells)", Help: "their spellpattern ids, put in the book at the purchase"},

@@ -216,21 +216,30 @@ func b2u8(b bool) byte {
 	return 0
 }
 
-// cmBookOf is the spells in the player's spell book, by id.
-func (h *ClassMasteryHandler) cmBookOf(p *entity.Player) map[int]bool {
-	out := map[int]bool{}
-	if h.book == nil || p == nil {
-		return out
+// cmKnowsOf is what the character's ranks' prerequisites read outside the
+// World (entity.CMKnows): the spells in its book, by id, and the quests it has
+// finished and those in the game (the quest engine's: the stat-boost quests
+// open the stat-boost lines, cmcatalog.require_quests).
+func (h *ClassMasteryHandler) cmKnowsOf(p *entity.Player) entity.CMKnows {
+	k := entity.CMKnows{Book: map[int]bool{}}
+	if p == nil {
+		return k
+	}
+	if q := Quests(); q != nil {
+		k.Quests, k.QuestNames = q.FinishedBy(p.CharServerID), q.InGame()
+	}
+	if h.book == nil {
+		return k
 	}
 	book, err := h.book.GetCharacterSpells(p.CharServerID)
 	if err != nil {
 		log.Printf("ClassMastery: %s's book: %v", p.Name, err)
-		return out
+		return k
 	}
 	for _, e := range book {
-		out[e.Pattern.SpellID] = true
+		k.Book[e.Pattern.SpellID] = true
 	}
-	return out
+	return k
 }
 
 // list is Recv08: the token and every rank the character is offered.
@@ -239,7 +248,7 @@ func (h *ClassMasteryHandler) list(sess *session.Session, token uint32) []byte {
 		return nil
 	}
 	p := h.gameWorld.SessionPlayer(sess)
-	entries := h.gameWorld.CMList(sess, h.cmBookOf(p))
+	entries := h.gameWorld.CMList(sess, h.cmKnowsOf(p))
 	log.Printf("ClassMastery: list of %d masteries to %s", len(entries), sess.RemoteAddr())
 	return cmBig(func(w *buffer.Writer) {
 		w.WriteByte(cmRespList)
@@ -258,7 +267,7 @@ func (h *ClassMasteryHandler) browse(sess *session.Session, token uint32, id int
 		return nil
 	}
 	p := h.gameWorld.SessionPlayer(sess)
-	n, ok := h.gameWorld.CMNodeOf(sess, id, h.cmBookOf(p))
+	n, ok := h.gameWorld.CMNodeOf(sess, id, h.cmKnowsOf(p))
 	if !ok {
 		SendErrorMessage(sess, "That mastery is not offered to you.")
 		return nil
@@ -340,7 +349,7 @@ func (h *ClassMasteryHandler) buy(sess *session.Session, token uint32, id int) [
 	if p == nil {
 		return nil
 	}
-	res := h.gameWorld.BuyCM(sess, id, h.cmBookOf(p))
+	res := h.gameWorld.BuyCM(sess, id, h.cmKnowsOf(p))
 	if res.Refusal != "" {
 		log.Printf("ClassMastery: %s buying %d refused: %s", p.Name, id, res.Refusal)
 		SendErrorMessage(sess, res.Refusal)
@@ -355,7 +364,7 @@ func (h *ClassMasteryHandler) buy(sess *session.Session, token uint32, id int) [
 	gives, takes := res.Rank.BookChange()
 	h.giveAbilities(sess, p, gives)
 	h.takeAbilities(sess, p, takes)
-	list := h.gameWorld.CMList(sess, h.cmBookOf(p))
+	list := h.gameWorld.CMList(sess, h.cmKnowsOf(p))
 	return cmBig(func(w *buffer.Writer) {
 		w.WriteByte(cmRespBought)
 		w.WriteUint32(token)
@@ -397,7 +406,7 @@ func (h *ClassMasteryHandler) remove(sess *session.Session, token uint32, id int
 		h.giveAbilities(sess, p, takes)
 	}
 	SendColoredChat(sess, fmt.Sprintf("You have removed %s: its %d mastery points are gone, to be earned again.", name, res.Paid), 255, 255, 0)
-	list := h.gameWorld.CMList(sess, h.cmBookOf(p))
+	list := h.gameWorld.CMList(sess, h.cmKnowsOf(p))
 	removed := cmBig(func(w *buffer.Writer) {
 		w.WriteByte(cmRespRemoved)
 		w.WriteUint32(token)
@@ -554,7 +563,7 @@ func (h *ClassMasteryHandler) GMReset(sess *session.Session, objectID uint32) st
 			return fmt.Sprintf("%s's masteries were reset but not kept: %v", p.Name, err)
 		}
 	}
-	list := h.gameWorld.CMList(who, h.cmBookOf(p))
+	list := h.gameWorld.CMList(who, h.cmKnowsOf(p))
 	for _, id := range res.Removed {
 		if r := h.gameWorld.CMRankByID(id); r != nil {
 			gives, takes := r.BookChange()

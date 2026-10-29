@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 )
 
 // cmChain is VIWndClassMastery::Chain (decomp viwndclassmastery.cpp): out of
@@ -188,7 +189,7 @@ func TestCMWindowReadsAMasterClassesAbilities(t *testing.T) {
 	c.p.Level = 60
 	list := c.list()
 	want("buyable", list, nil, []string{"Bulwark 200", "Hero 200", "???", "???"})
-	if n, ok := c.w.gw.CMNodeOf(c.sess, 52, nil); !ok || !slices.Equal(n.Masteries, []string{"Bulwark"}) {
+	if n, ok := c.w.gw.CMNodeOf(c.sess, 52, entity.CMKnows{}); !ok || !slices.Equal(n.Masteries, []string{"Bulwark"}) {
 		t.Errorf("Toughness before Bulwark: needs %q, want the class", n.Masteries)
 	}
 	list = buy(list, 50)

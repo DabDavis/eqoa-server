@@ -639,6 +639,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCDialog(); err != nil { // npcdialog.go
 		return err
 	}
+	if err := db.ensureCraft(); err != nil { // craft.go
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil
@@ -910,7 +913,8 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	if _, err := s.db.Exec(`DELETE FROM charbind WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
-	return nil
+	// and its tradeskills and recipe book (craft.go), for the same reason
+	return s.db.deleteCharCraft(serverID)
 }
 
 // Count returns the total number of characters.

@@ -38,6 +38,8 @@ with the row before and after, and `revert_change` undoes a row change.
 | `npcpaths` | the path an NPC walks: `points` (JSON waypoints), `mode`, `pause`, `speed`; use the path operations | `npcid` |
 | `npcundead` | which creatures are undead, by NPC NAME (lower case): `undead` 1 or 0, whatever the name says; a name with no row is undead when its words say so (skeleton, zombie, ghoul, mummy, wraith, ghost...) | `name` |
 | `npcsocial` | which NPCs come to the help of their own when one is attacked, by NPC name: `social` 1, the `faction` (or any group name) they belong to and help, `radius` (0: 30) | `npc_name` |
+| `classtemplates` | NPC class templates, a row each (jib's five seeded: `tank`, `melee`, `wizard`, `necromancer`, `shadowknight`): the `class` it fights as (-1 its own), `hp_pct` / `taken_pct` / `melee_pct` (its hit points, the share of melee on it that lands, its own melee, % of its level's), a kick (`special`, `special_chance` % of rounds, `special_damage` a level), `abilities` (a JSON list: what it casts and when) | `name` |
+| `npctemplate` | which NPCs fight by a class template, by NPC NAME (lower case): `template` a `classtemplates` name; empty until a GM fills it | `name` |
 | `npcmove` | how the creatures of a name move, by NPC NAME (lower case): `roam` -1 as its kind (the default: wildlife wanders, the rest stands), 0 stands it until pulled, 1 wanders whatever it is, `radius` its own wander radius (0: the server's), `water` land / both / water (empty: by where it spawned) | `name` |
 | `itempattern` | every item that exists; `trade` 1 is NO TRADE | `patternid` |
 | `itemeffect` | what using an item does (the alchemists' potions): `line` in spell words, `Self` drunk or `Target` thrown; `name`/`icon` on the effects list; `breaks` attack/damage; `wear` % a tick; `area` a thrown one's splash | `patternid` |
@@ -84,6 +86,9 @@ with the row before and after, and `revert_change` undoes a row change.
   `sql_execute`) reach the world with `reload_npcs`.
 - **Merchant stock, spell effects: at once** (read each time a window opens or a spell is cast), a spell's
   visual included.
+- **Class templates: at once.** An `npctemplate` or `classtemplates` row saved gives the NPCs of the name the
+  template's hit points where they stand and its abilities from their next fight; a spell's row changed changes
+  what they cast; rows written outside the panel (`sql_execute`) with `reload_npcs`, which reads them first.
 - **NPC paths: at once.** The NPC walks its new path from the nearest leg; with its path taken away it walks
   back to its spawn point. A path survives the NPC's deaths and a restart.
 - **A character in the world**: `level`, `tunar`, `bankTunar` and its place (`x`, `y`, `z`, `world`) are
@@ -121,6 +126,17 @@ with the row before and after, and `revert_change` undoes a row change.
   of every faction its kill lowers (`factionhits`), so a guard with Freeport's militia hits is helped by rows of
   faction "The Freeport Militia". Not on a creature's own notice of a player, and not by one already fighting.
   The town guards already have rows (source `seed`). At once.
+- **Give creatures a class** (a camp's casters, a boss; applied at once): `insert_row` into `npctemplate`
+  `{name: "<its name, lower case>", template: "wizard"}`. Every NPC of the name then fights by the template:
+  its class's swing, `hp_pct` of its level's hit points (where it stands), its kick in `special_chance` of its
+  rounds, and its `abilities` in its fights, each the highest spell of its `kind` its class has at or below its
+  level (`nuke`, `aoe`, `lifetap`, a `heal` on itself below `below`% of its hit points), on its own clock
+  (`every` seconds, `first` into the fight) or `chain`ed right after the one before it, at `damage_pct` of the
+  spell's figures, less the player's resist to its element; a spell's lasting part is not put on a player. `#stats`
+  on one says what it casts at its level. Make a template of your own with `insert_row` into `classtemplates`
+  (or `clone_row` a seed with changes); a row the server cannot fight by is refused with the reason. Delete the
+  `npctemplate` row to take it away (revertible). The seeds' numbers are the server's own: try one on a single
+  creature (`#spawn` a copy) before giving it to a camp.
 - **Make a merchant**: set `npc_type` to 129 (0x81), then `insert_row` into `npcitem` one row per item:
   `{npcid, patternid, stackleft: 1, listnumber: 0, 1, 2...}`.
 - **Change what a spell does**: `update_row` on `spelleffect` (`line`). The words the server reads:

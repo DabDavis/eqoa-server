@@ -642,6 +642,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCraft(); err != nil { // craft.go
 		return err
 	}
+	if err := db.ensureClassTemplates(); err != nil { // classtemplates.go
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil

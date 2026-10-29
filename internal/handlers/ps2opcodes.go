@@ -208,15 +208,10 @@ func writeAbilityRecord(w *buffer.Writer, e *database.CharSpellEntry) {
 
 // abilityRangeBits is the range float as the record holds it (see
 // writeAbilityRecord): its high half from Range, its low bytes from the
-// zigzag Unk3 and Unk2.
+// zigzag Unk3 and Unk2 (database's RangeBits, which a template's NPC casts
+// with too: entity/classtemplate.go).
 func abilityRangeBits(sp *database.SpellPatternRecord) uint32 {
-	lowByte := func(v int) uint32 {
-		if v < 0 || v > 63 {
-			return 0
-		}
-		return uint32(v << 1) // zigzag of a small non-negative value, one byte
-	}
-	return uint32(uint16(sp.Range))<<16 | lowByte(sp.Unk3)<<8 | lowByte(sp.Unk2)
+	return sp.RangeBits()
 }
 
 // buildAbilityAdd is opcode 0x00B3 — Msg00B3 (0x00BCF3A0): the u32 ability

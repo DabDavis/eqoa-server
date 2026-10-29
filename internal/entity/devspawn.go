@@ -107,6 +107,7 @@ func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) 
 	c.LastCombatTime = time.Time{}
 	c.Temporary = true
 	c.endDummyFight()
+	c.tfight = nil // its template's fight is its own (classtemplate.go)
 	w.NPCs[c.ServerID] = &c
 	w.SpatialIndex.Insert(c.ServerID, x, z)
 	return c.ServerID, t.Name, true

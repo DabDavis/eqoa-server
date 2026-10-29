@@ -8528,6 +8528,733 @@
     "Radavex Planeswalker (attackable)"
    ],
    "notes": "From EQOA-Data Quests/Misc/radavex.json, # Radavex Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's semi-rare spawns (the orb, Ealesha and Yavim) stand here. Radavex's orb (a two-second group port to the top of the tower) is a crystal the orb gives, and Radavex is spawned beside the player. His and his guards' Planeswalker faction (-10 a kill) is the kill's faction here (one -10 at the kill step). The reward is his loot (Radavex's bracers, the nullfield earring, the starbladed staff). Apprentice Yavim and Radavex Planeswalker stands as a townsperson in the database (npc_type 0x80): the step's start spawns a hostile copy, but check_quests.py wants an attackable row of the name, so it is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+  },
+  {
+   "key": "Misc/acolyte-of-bristlebane/p1",
+   "name": "The Staff of Rainbow Magic: The Blue Gem",
+   "giver": "Acolyte of Bristlebane",
+   "classes": [],
+   "races": [],
+   "minlevel": 51,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Bristlebane's Staff of Rainbow Magic lies shattered, its gems scattered. Help me make it whole. Gil Swimmerbee, in a boat by a dock in Vastly Deep (W), lost the blue gem. Start with him.",
+   "accept": "I will help.",
+   "decline": "Not now.",
+   "declined": "Then the staff stays broken.",
+   "started": "Gil Swimmerbee first.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Gil Swimmerbee",
+     "journal": "Find Gil Swimmerbee in a boat by a dock in Vastly Deep (W).",
+     "says": "My gem is at the bottom of the sea. I need a breathing device: Steely Stoutdale, by Anu Village's west wall, makes them."
+    },
+    {
+     "kind": "talk",
+     "target": "Steely Stoutdale",
+     "journal": "Find Steely Stoutdale outside the west wall of Anu Village.",
+     "says": "A breathing device? Bring me the mask of the sly ice giant, north-west over the dark ice."
+    },
+    {
+     "kind": "loot",
+     "target": "Sly Ice Giant",
+     "journal": "Kill the sly ice giant in the valley north-west of Steely and take his mask.",
+     "items": [
+      {
+       "item": "Mask of the Sly Ice Giant",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Steely Stoutdale",
+     "journal": "Bring the mask to Steely Stoutdale.",
+     "items": [
+      {
+       "item": "Mask of the Sly Ice Giant",
+       "count": 1
+      }
+     ],
+     "says": "Here, a breath potion. Take 3000 tunar for Ks'or, the merman below.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Breath Potion",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Ks'or",
+     "journal": "Swim to the underwater ruins at the bottom of Vastly Deep and pay Ks'or 3000 tunar.",
+     "tunar": 3000,
+     "says": "The blue gem, for your coin. Mind the mermaids.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Blue Gem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Gemmaster Thoren",
+     "journal": "Have Gemmaster Thoren, west of Moradhim's coach by a tree, polish it for 1500 tunar.",
+     "items": [
+      {
+       "item": "Blue Gem",
+       "count": 1
+      }
+     ],
+     "tunar": 1500,
+     "says": "There, it shines.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Polished Blue Gem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Acolyte of Bristlebane",
+     "journal": "Bring the polished blue gem to the Acolyte of Bristlebane by Bobble-by-Water's coach.",
+     "items": [
+      {
+       "item": "Polished Blue Gem",
+       "count": 1
+      }
+     ],
+     "says": "The blue gem! One of five.",
+     "rewards": {
+      "xp": 20000000
+     }
+    }
+   ],
+   "unresolved": [
+    "Gil Swimmerbee",
+    "Sly Ice Giant",
+    "Ks'or"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Blue Gem] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here. Steely and Gil's back-and-forth after Ks'or is cut (the guide: you may go straight to Thoren). The breath potion is a quest item; this server's breathing is its own."
+  },
+  {
+   "key": "Misc/acolyte-of-bristlebane/p2",
+   "name": "The Staff of Rainbow Magic: The Green Gem",
+   "giver": "Acolyte of Bristlebane",
+   "classes": [],
+   "races": [],
+   "minlevel": 51,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/acolyte-of-bristlebane/p1"
+   ],
+   "offer": "The green gem. Mixoxullous, just south-east of Murnf's coach, knows of it. Hear him out.",
+   "accept": "I will find it.",
+   "decline": "Not now.",
+   "declined": "Then the staff stays broken.",
+   "started": "Murnf.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Mixoxullous",
+     "journal": "Find Mixoxullous just south-east of Murnf's coach.",
+     "says": "Creepyman holds Baylor, who had the green gem. South-west of 'The Golden Road' signpost in Salisearaneen (W). Kill him."
+    },
+    {
+     "kind": "kill",
+     "target": "Creepyman",
+     "journal": "Kill Creepyman, south-west of the Golden Road signpost in Salisearaneen (W).",
+     "count": 1
+    },
+    {
+     "kind": "talk",
+     "target": "Baylor",
+     "journal": "Speak with Baylor, freed.",
+     "says": "I gave the gem to Oppydna, east of here, at the foot of a hill."
+    },
+    {
+     "kind": "give",
+     "target": "Oppydna",
+     "journal": "Buy the green gem from Oppydna in Salisearaneen (C) for 3500 tunar.",
+     "tunar": 3500,
+     "says": "It is yours.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Green Gem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Acolyte of Bristlebane",
+     "journal": "Bring the green gem to the Acolyte of Bristlebane.",
+     "items": [
+      {
+       "item": "Green Gem",
+       "count": 1
+      }
+     ],
+     "says": "Two of five!",
+     "rewards": {
+      "xp": 20000000
+     }
+    }
+   ],
+   "unresolved": [
+    "Creepyman",
+    "Baylor",
+    "Oppydna"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Green Gem] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here."
+  },
+  {
+   "key": "Misc/acolyte-of-bristlebane/p3",
+   "name": "The Staff of Rainbow Magic: The Red Gem",
+   "giver": "Acolyte of Bristlebane",
+   "classes": [],
+   "races": [],
+   "minlevel": 51,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/acolyte-of-bristlebane/p2"
+   ],
+   "offer": "The red gem lies in the fire of Mount Hatespike. Leeanna, on the shore just north of Wyndhaven, has something that will let you touch it.",
+   "accept": "I will brave the fire.",
+   "decline": "Not now.",
+   "declined": "Then the staff stays broken.",
+   "started": "North of Wyndhaven.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Leeanna",
+     "journal": "Find Leeanna on the shore just north of Wyndhaven.",
+     "says": "Wear these Gloves of No Ouchies. By the Bloodfoot camp's blacksmith on Mount Hatespike, a ledge faces the lava.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Gloves of No Ouchies",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 12105,
+     "y": 27,
+     "z": 11063,
+     "radius": 40,
+     "journal": "Find the ledge facing the lava by the blacksmith at the Bloodfoot camp, Mount Hatespike.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "Your gloves close on a scorched red gem in the heat."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Scorched Red Gem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Leeanna",
+     "journal": "Show the scorched red gem to Leeanna.",
+     "items": [
+      {
+       "item": "Scorched Red Gem",
+       "count": 1
+      }
+     ],
+     "says": "Scorched! High Druid Postmanjim, outside Qeynos's south wall, can help."
+    },
+    {
+     "kind": "talk",
+     "target": "High Druid Postmanjim",
+     "journal": "Find High Druid Postmanjim outside Qeynos's south wall.",
+     "says": "High Shaman Bradue, at the west wall's corner, knows the cleaning."
+    },
+    {
+     "kind": "talk",
+     "target": "High Shaman Bradue",
+     "journal": "Find High Shaman Bradue at the corner of Qeynos's west wall.",
+     "says": "Bring me an icy vial from the tenacious frost giants."
+    },
+    {
+     "kind": "loot",
+     "target": "tenacious frost giant",
+     "journal": "Take an icy vial from a tenacious frost giant.",
+     "items": [
+      {
+       "item": "Icy Vial",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "High Shaman Bradue",
+     "journal": "Bring the icy vial to High Shaman Bradue.",
+     "items": [
+      {
+       "item": "Icy Vial",
+       "count": 1
+      }
+     ],
+     "says": "Now a polishing cloth: High Sorcerer Coolade sells them in Kelinar."
+    },
+    {
+     "kind": "give",
+     "target": "High Sorcerer Coolade",
+     "journal": "Buy a polishing cloth from High Sorcerer Coolade in Kelinar, 12,000 tunar.",
+     "tunar": 12000,
+     "says": "Two thousand... and ten more. A fine cloth.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Polishing Cloth",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "High Druid Postmanjim",
+     "journal": "Bring the gem and the cloth to High Druid Postmanjim.",
+     "items": [
+      {
+       "item": "Scorched Red Gem",
+       "count": 1
+      },
+      {
+       "item": "Polishing Cloth",
+       "count": 1
+      }
+     ],
+     "says": "Clean as new. Take it back to Leeanna.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Red Gem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Leeanna",
+     "journal": "Return to Leeanna.",
+     "says": "Beautiful! Take it to the acolyte."
+    },
+    {
+     "kind": "give",
+     "target": "Acolyte of Bristlebane",
+     "journal": "Bring the red gem to the Acolyte of Bristlebane.",
+     "items": [
+      {
+       "item": "Red Gem",
+       "count": 1
+      }
+     ],
+     "says": "Three of five!",
+     "rewards": {
+      "xp": 20000000
+     }
+    }
+   ],
+   "unresolved": [
+    "Leeanna",
+    "High Druid Postmanjim",
+    "High Shaman Bradue",
+    "High Sorcerer Coolade"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Red Gem] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here. The ledge's popup is a reach step at EQOA-Data's map point."
+  },
+  {
+   "key": "Misc/acolyte-of-bristlebane/p4",
+   "name": "The Staff of Rainbow Magic: The Yellow Gem",
+   "giver": "Acolyte of Bristlebane",
+   "classes": [],
+   "races": [],
+   "minlevel": 51,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/acolyte-of-bristlebane/p3"
+   ],
+   "offer": "The yellow gem's last owners were Sunshine and Beam Brightray, in the south of Merry-by-Water. Ask them.",
+   "accept": "I will ask them.",
+   "decline": "Not now.",
+   "declined": "Then the staff stays broken.",
+   "started": "Merry-by-Water.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sunshine Brightray",
+     "journal": "Find Sunshine and Beam Brightray in the south of Merry-by-Water.",
+     "says": "We split its power among our four children, and a necromancer's star-magic took them: four starfish on far shores."
+    },
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 10370,
+     "y": 42,
+     "z": 3690,
+     "radius": 40,
+     "journal": "Find the starfish on the shore of Erud's Crossing (SW).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A starfish glows at your touch: the gem's power, set free."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 4885,
+     "y": 54,
+     "z": 7591,
+     "radius": 40,
+     "journal": "Find the starfish on the shore of Kerra Isle (C/S).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A starfish glows at your touch: the gem's power, set free."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 4264,
+     "y": 54,
+     "z": 6859,
+     "radius": 40,
+     "journal": "Find the starfish on the shore of Kerra Isle (W/S).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A starfish glows at your touch: the gem's power, set free."
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 2,
+     "x": 5660,
+     "y": 52,
+     "z": 5516,
+     "radius": 40,
+     "journal": "Find the starfish on the shore of West Toxxulia (E/SE).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A starfish glows at your touch: the gem's power, set free."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Beam Brightray",
+     "journal": "Return to Beam Brightray in Merry-by-Water.",
+     "says": "Our children are home! The gem is whole.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Yellow Gem",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Acolyte of Bristlebane",
+     "journal": "Bring the yellow gem to the Acolyte of Bristlebane.",
+     "items": [
+      {
+       "item": "Yellow Gem",
+       "count": 1
+      }
+     ],
+     "says": "Four of five!",
+     "rewards": {
+      "xp": 20000000
+     }
+    }
+   ],
+   "unresolved": [
+    "Sunshine Brightray",
+    "Beam Brightray"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Yellow Gem] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here. The starfish's places are EQOA-Data's map points (Odus, by a fit of its points)."
+  },
+  {
+   "key": "Misc/acolyte-of-bristlebane/p5",
+   "name": "The Staff of Rainbow Magic: The Gem of Nykitas",
+   "giver": "Acolyte of Bristlebane",
+   "classes": [],
+   "races": [],
+   "minlevel": 51,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/acolyte-of-bristlebane/p4"
+   ],
+   "offer": "The last gem, the Gem of Nykitas. Blacksmith Kadeshi knows where it is, but the fire goblins hold him in Lavastorm, near their fort. Free him.",
+   "accept": "I will free him.",
+   "decline": "Not now.",
+   "declined": "Then the staff stays broken.",
+   "started": "Lavastorm.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "fire goblin champion",
+     "journal": "Kill the fire goblins near their fort in Lavastorm (NW) for an oddly shaped key.",
+     "items": [
+      {
+       "item": "Oddly Shaped Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Blacksmith Kadeshi",
+     "journal": "Free Blacksmith Kadeshi with the key.",
+     "items": [
+      {
+       "item": "Oddly Shaped Key",
+       "count": 1
+      }
+     ],
+     "says": "Free! The Gem of Nykitas is with Xalakharx, at the first spectral rallosian cave in Geomancer's Pass (W)."
+    },
+    {
+     "kind": "give",
+     "target": "Xalakharx",
+     "journal": "Pay Xalakharx in Geomancer's Pass 10,000 tunar.",
+     "tunar": 10000,
+     "says": "A spectral warlord carries the gem. Kill them until the named one comes."
+    },
+    {
+     "kind": "loot",
+     "target": "spectral warlord",
+     "journal": "Kill the spectral warlords for the Gem of Nykitas.",
+     "items": [
+      {
+       "item": "Gem of Nykitas",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25
+    },
+    {
+     "kind": "give",
+     "target": "Xalakharx",
+     "journal": "Bring the Gem of Nykitas to Xalakharx.",
+     "items": [
+      {
+       "item": "Gem of Nykitas",
+       "count": 1
+      }
+     ],
+     "says": "Now I set the gems. The Staff of Rainbow Magic, all but its handle.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Staff of Rainbow Magic",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Acolyte of Bristlebane",
+     "journal": "Show the staff to the Acolyte of Bristlebane.",
+     "items": [
+      {
+       "item": "Staff of Rainbow Magic",
+       "count": 1
+      }
+     ],
+     "says": "Five of five! Only the handle now.",
+     "rewards": {
+      "xp": 20000000
+     }
+    }
+   ],
+   "unresolved": [
+    "Blacksmith Kadeshi",
+    "Xalakharx"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Gem of Nykitas] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here. The fire goblins' key drops off their champions here; the named warlord (unnamed in the guide) is any spectral warlord at a quarter's chance."
+  },
+  {
+   "key": "Misc/acolyte-of-bristlebane/p6",
+   "name": "The Staff of Rainbow Magic: The Handle",
+   "giver": "Acolyte of Bristlebane",
+   "classes": [],
+   "races": [],
+   "minlevel": 51,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/acolyte-of-bristlebane/p5"
+   ],
+   "offer": "The handle lies on an island of necro birds in Lake Rathe, to the east. Its guardian will not give it up easily.",
+   "accept": "I will get the handle.",
+   "decline": "Not now.",
+   "declined": "Then the staff stays broken.",
+   "started": "Lake Rathe, the east.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 1,
+     "x": 7188,
+     "y": 53,
+     "z": 4686,
+     "radius": 40,
+     "journal": "Climb to the top of the island with necro birds in Lake Rathe (E).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The Rainbow Magic Guardian rears up, a dragon of every colour!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Rainbow Magic Guardian",
+     "journal": "Kill the Rainbow Magic Guardian and take the hand grip.",
+     "items": [
+      {
+       "item": "Unraveled Hand Grip",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rainbow Magic Guardian",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Tree of Life",
+     "journal": "Speak with the Tree of Life that grows on the island.",
+     "items": [
+      {
+       "item": "Unraveled Hand Grip",
+       "count": 1
+      },
+      {
+       "item": "Staff of Rainbow Magic",
+       "count": 1
+      }
+     ],
+     "says": "Bristlebane's staff, whole. He laughs, somewhere. Take this.",
+     "rewards": {
+      "xp": 30000000,
+      "byclass": {
+       "10": {
+        "items": [
+         "slippers of the trickster"
+        ]
+       },
+       "0": {
+        "items": [
+         "boots of mischief"
+        ]
+       },
+       "1": {
+        "items": [
+         "mischievous boots"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Rainbow Magic Guardian",
+    "Tree of Life"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Handle] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here. The class item is given where this server has the guide's: the magician's Slippers of the Trickster, the warrior's Boots of Mischief, the ranger's Mischievous Boots (a level 60 item here). Not on this server, left out: the other classes' (Mischievous Pants, Leggings of the Trickster, Pants of the Trickster, Leggings of Trickery, Gloves of Mischief, Trickster's Gloves, Boots of Trickery, Gloves of Trickery; the bard's, druid's, monk's and shaman's are unnamed)."
   }
  ],
  "items": [
@@ -9412,6 +10139,96 @@
    "description": "A one-use crystal that takes you to the top of Radavex's tower.",
    "notrade": true,
    "like": "Orb of Parathior"
+  },
+  {
+   "name": "Mask of the Sly Ice Giant",
+   "description": "The mask of the sly ice giant, for a breathing device.",
+   "notrade": true,
+   "like": "Goblin Commander's Headdress"
+  },
+  {
+   "name": "Breath Potion",
+   "description": "Steely Stoutdale's breath potion: water to breathe, for a while.",
+   "notrade": true,
+   "like": "Dwindel's Potion"
+  },
+  {
+   "name": "Blue Gem",
+   "description": "The blue gem of the Staff of Rainbow Magic, dull from the deep.",
+   "notrade": true,
+   "like": "gem of obfuscation"
+  },
+  {
+   "name": "Polished Blue Gem",
+   "description": "The blue gem of the Staff of Rainbow Magic, polished by Gemmaster Thoren.",
+   "notrade": true,
+   "like": "gem of obfuscation"
+  },
+  {
+   "name": "Green Gem",
+   "description": "The green gem of the Staff of Rainbow Magic.",
+   "notrade": true,
+   "like": "gem of wit"
+  },
+  {
+   "name": "Gloves of No Ouchies",
+   "description": "Leeanna's gloves, against the heat of Mount Hatespike.",
+   "notrade": true,
+   "like": "Goblin Commander's Headdress"
+  },
+  {
+   "name": "Scorched Red Gem",
+   "description": "The red gem of the Staff of Rainbow Magic, scorched.",
+   "notrade": true,
+   "like": "gem of fury"
+  },
+  {
+   "name": "Icy Vial",
+   "description": "An icy vial a tenacious frost giant carried.",
+   "notrade": true,
+   "like": "Clay Mixing Vial"
+  },
+  {
+   "name": "Polishing Cloth",
+   "description": "A polishing cloth from High Sorcerer Coolade.",
+   "notrade": true,
+   "like": "Fine Silk String"
+  },
+  {
+   "name": "Red Gem",
+   "description": "The red gem of the Staff of Rainbow Magic, polished.",
+   "notrade": true,
+   "like": "gem of fury"
+  },
+  {
+   "name": "Yellow Gem",
+   "description": "The yellow gem of the Staff of Rainbow Magic, its power gathered from four starfish.",
+   "notrade": true,
+   "like": "gem of deception"
+  },
+  {
+   "name": "Oddly Shaped Key",
+   "description": "An oddly shaped key, from the fire goblins holding Blacksmith Kadeshi.",
+   "notrade": true,
+   "like": "Prison Key"
+  },
+  {
+   "name": "Gem of Nykitas",
+   "description": "The Gem of Nykitas, held by a spectral warlord.",
+   "notrade": true,
+   "like": "Final Thought Gem"
+  },
+  {
+   "name": "Staff of Rainbow Magic",
+   "description": "Bristlebane's Staff of Rainbow Magic, its gems set, but no handle.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Unraveled Hand Grip",
+   "description": "The unraveled hand grip of the Staff of Rainbow Magic.",
+   "notrade": true,
+   "like": "Fine Silk String"
   }
  ]
 }

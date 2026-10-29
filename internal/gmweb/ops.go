@@ -112,6 +112,7 @@ func (s *Server) registerOps() {
 	s.registerPlayerOps()
 	s.registerAccountOps()
 	s.registerAdminOps()
+	s.registerSnapshotOps() // ops_snapshot.go: a sanitised copy of the database, for an admin's own machine
 	s.registerQuestOps()
 	s.registerPathOps()
 	s.registerVisualOps()

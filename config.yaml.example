@@ -193,7 +193,8 @@ gm:
   # require_totp: false
 
   # The log the panel shows the end of, and where its backups go (beside the
-  # database when relative).
+  # database when relative); a sanitised snapshot waits in its snapshots/
+  # (owner-only) until its link is used or expires.
   # log_path: "gameserver.log"
   # backup_dir: "backups"
 

@@ -62,7 +62,7 @@ export async function render(box) {
   const list = h('div', { class: 'card' });
   const user = h('input', { type: 'search', placeholder: 'GM' });
   const table = h('input', { type: 'search', placeholder: 'table' });
-  const action = h('select', null, ...['', 'insert', 'update', 'delete', 'live', 'account', 'settings', 'sql', 'token', 'security', 'login', 'backup', 'server']
+  const action = h('select', null, ...['', 'insert', 'update', 'delete', 'live', 'account', 'settings', 'sql', 'token', 'security', 'login', 'backup', 'snapshot', 'server']
     .map((a) => h('option', { value: a }, a || 'any action')));
   const text = h('input', { type: 'search', placeholder: 'text in the entry' });
   let offset = 0;

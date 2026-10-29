@@ -1,0 +1,2623 @@
+{
+ "city": "misc",
+ "quests": [
+  {
+   "key": "Misc/stat-boost-quests/str1",
+   "name": "Bulging Muscles: The First Trial",
+   "giver": "Goran the Strong",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "You think you are strong? We shall see. My beasts roam the Old Man's hill in the gloomy valley of Bandit Hills, east of Jared's Blight. Walk its eastern slope, and bring me two of their tails.",
+   "accept": "I bow to no one!",
+   "decline": "I am not strong enough.",
+   "declined": "Then come back when you are.",
+   "started": "Go, and do not come back without the tails.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 15439,
+     "y": 107,
+     "z": 15274,
+     "radius": 30,
+     "journal": "Walk the eastern slope of the Old Man's hill in Bandit Hills (E).",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You are ready for the first trial of Goran! Two of his beasts come at you."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Goran's Beast",
+     "journal": "Kill Goran's beasts on the hill and take two beast tails.",
+     "items": [
+      {
+       "item": "Beast Tail",
+       "count": 2
+      }
+     ],
+     "count": 2,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Goran's Beast",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Goran's Beast",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Goran the Strong",
+     "journal": "Bring the two beast tails to Goran the Strong in Halas.",
+     "items": [
+      {
+       "item": "Beast Tail",
+       "count": 2
+      }
+     ],
+     "says": "Two tails! Not bad. When you are ready, the Old Man has a harder trial for you."
+    }
+   ],
+   "unresolved": [
+    "Goran's Beast",
+    "Goran's Beast",
+    "Goran's Beast"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Goran's five questions are the offer and its one answer here; the popup is a reach step on the hill's east slope (FrontiersForge's sighting of a beast)."
+  },
+  {
+   "key": "Misc/stat-boost-quests/str2",
+   "name": "Bulging Muscles: The Second Trial",
+   "giver": "Goran the Strong",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/str1"
+   ],
+   "offer": "Your second trial. Find the Old Man on the right-hand hill of that valley in Bandit Hills and speak with him. Three of my beasts will answer. Bring me their furs.",
+   "accept": "I can take anything you throw at me.",
+   "decline": "Not yet.",
+   "declined": "Then rest your arms.",
+   "started": "The Old Man is waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Old Man",
+     "journal": "Speak with the Old Man on the hill in Bandit Hills (E).",
+     "says": "Goran sent another one, did he? Then face his beasts."
+    },
+    {
+     "kind": "loot",
+     "target": "Goran's Beast",
+     "journal": "Kill the three beasts the Old Man calls and take their furs.",
+     "items": [
+      {
+       "item": "Beast Fur",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Goran's Beast",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Goran's Beast",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Goran's Beast",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Goran the Strong",
+     "journal": "Bring the three beast furs to Goran the Strong in Halas.",
+     "items": [
+      {
+       "item": "Beast Fur",
+       "count": 3
+      }
+     ],
+     "says": "Three furs. You are stronger than you look. One more trial before the last."
+    }
+   ],
+   "unresolved": [
+    "Old Man",
+    "Goran's Beast",
+    "Goran's Beast",
+    "Goran's Beast",
+    "Goran's Beast"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine)."
+  },
+  {
+   "key": "Misc/stat-boost-quests/str3",
+   "name": "Bulging Muscles: The Third Trial",
+   "giver": "Goran the Strong",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/str2"
+   ],
+   "offer": "The third trial is harder. Malisarisent, a little gnome woman, waits on the other hill of the valley in Bandit Hills. Speak with her and four of my beasts will come. Bring me four of their claws.",
+   "accept": "I am strong enough.",
+   "decline": "Not yet.",
+   "declined": "Then rest your arms.",
+   "started": "Malisarisent is waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Malisarisent",
+     "journal": "Speak with Malisarisent on the valley's other hill, Bandit Hills (E).",
+     "says": "Oh dear, Goran's beasts again. Here they come!"
+    },
+    {
+     "kind": "loot",
+     "target": "Goran's Beast",
+     "journal": "Kill the four beasts Malisarisent calls and take their claws.",
+     "items": [
+      {
+       "item": "Beast Claw",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Goran's Beast",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Goran's Beast",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Goran's Beast",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Goran's Beast",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Goran the Strong",
+     "journal": "Bring the four beast claws to Goran the Strong in Halas.",
+     "items": [
+      {
+       "item": "Beast Claw",
+       "count": 4
+      }
+     ],
+     "says": "Four claws. Now only my pet stands between you and the last of my strength."
+    }
+   ],
+   "unresolved": [
+    "Malisarisent",
+    "Goran's Beast",
+    "Goran's Beast",
+    "Goran's Beast",
+    "Goran's Beast",
+    "Goran's Beast"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide says the four come at once; they are spawned together here."
+  },
+  {
+   "key": "Misc/stat-boost-quests/str4",
+   "name": "Bulging Muscles: The Final Trial",
+   "giver": "Goran the Strong",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/str3"
+   ],
+   "offer": "My pet lives in the serpent cave in Bandit Hills. Speak with Lairt'tsal outside it, fight your way past my beasts down the right-hand fork, and bring me my pet's eye. Then you will know true strength.",
+   "accept": "Cave, Bandit Hill, I got it.",
+   "decline": "Not yet.",
+   "declined": "Then rest your arms.",
+   "started": "Go. My pet does not like visitors.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Lairt'tsal",
+     "journal": "Speak with Lairt'tsal outside the serpent cave in Bandit Hills (E).",
+     "says": "The last trial. Goran's pet is awake now. Take the right-hand fork."
+    },
+    {
+     "kind": "loot",
+     "target": "Goran's Pet",
+     "journal": "Kill Goran's pet down the right-hand fork of the serpent cave.",
+     "items": [
+      {
+       "item": "Eye of Goran's Pet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Goran's Pet",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Goran the Strong",
+     "journal": "Bring the eye of Goran's pet to Goran the Strong in Halas.",
+     "items": [
+      {
+       "item": "Eye of Goran's Pet",
+       "count": 1
+      }
+     ],
+     "says": "My pet's eye! You are as strong as I am. There is nothing more I can teach you."
+    }
+   ],
+   "unresolved": [
+    "Lairt'tsal",
+    "Goran's Pet",
+    "Goran's Pet"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide names the pet's drop only as \"Eye of the something\": it is the Eye of Goran's Pet here. Lairt'tsal spawns the pet at once (one also stands in the cave)."
+  },
+  {
+   "key": "Misc/stat-boost-quests/sta1",
+   "name": "Intestinal Fortitude: The First Wave",
+   "giver": "Faercis",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Stamina is not strength. It is standing when others fall. My brother Bearcis waits on the hill to the south. Ask him for the first wave, outlast it, and bring me the mark its leader carries.",
+   "accept": "I will stand.",
+   "decline": "Not today.",
+   "declined": "Then rest. The waves will wait.",
+   "started": "Go to Bearcis. Do not fall.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Bearcis",
+     "journal": "Ask Bearcis, on the hill south of Faercis, for the first wave.",
+     "says": "Then stand your ground. Here they come!"
+    },
+    {
+     "kind": "kill",
+     "target": "night wolf",
+     "journal": "Outlast the first wave: kill the three that come at you.",
+     "count": 3,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "night wolf",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "night wolf",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "night wolf",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "black greatbear",
+     "journal": "Kill the leader of the first wave and take its mark.",
+     "items": [
+      {
+       "item": "Mark of the First Wave",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "black greatbear",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Faercis",
+     "journal": "Bring the mark of the first wave to Faercis by the pond.",
+     "items": [
+      {
+       "item": "Mark of the First Wave",
+       "count": 1
+      }
+     ],
+     "says": "Still standing. Good. My brother has more for you."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Stamina CM Statistic Boost, wave 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Intestinal Fortitude mastery line opening for purchase (cmcatalog 'Intestinal Fortitude 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's waves are ten unnamed creatures, the tenth carrying the item; here three of the level-38 creatures standing in a row by Faercis are spawned at once, then a leader with the mark (named by us). The guide does all four waves in one visit; here each is its own quest."
+  },
+  {
+   "key": "Misc/stat-boost-quests/sta2",
+   "name": "Intestinal Fortitude: The Second Wave",
+   "giver": "Faercis",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/sta1"
+   ],
+   "offer": "You stood through the first wave. Go back to Bearcis on the hill to the south and ask for the second. Bring me the mark its leader carries.",
+   "accept": "I will stand.",
+   "decline": "Not today.",
+   "declined": "Then rest. The waves will wait.",
+   "started": "Go to Bearcis. Do not fall.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Bearcis",
+     "journal": "Ask Bearcis, on the hill south of Faercis, for the second wave.",
+     "says": "Then stand your ground. Here they come!"
+    },
+    {
+     "kind": "kill",
+     "target": "griffenne",
+     "journal": "Outlast the second wave: kill the three that come at you.",
+     "count": 3,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "griffenne",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "griffenne",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "griffenne",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "black greatbear",
+     "journal": "Kill the leader of the second wave and take its mark.",
+     "items": [
+      {
+       "item": "Mark of the Second Wave",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "black greatbear",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Faercis",
+     "journal": "Bring the mark of the second wave to Faercis by the pond.",
+     "items": [
+      {
+       "item": "Mark of the Second Wave",
+       "count": 1
+      }
+     ],
+     "says": "Still standing. Good. My brother has more for you."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Stamina CM Statistic Boost, wave 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Intestinal Fortitude mastery line opening for purchase (cmcatalog 'Intestinal Fortitude 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's waves are ten unnamed creatures, the tenth carrying the item; here three of the level-38 creatures standing in a row by Faercis are spawned at once, then a leader with the mark (named by us). The guide does all four waves in one visit; here each is its own quest."
+  },
+  {
+   "key": "Misc/stat-boost-quests/sta3",
+   "name": "Intestinal Fortitude: The Third Wave",
+   "giver": "Faercis",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/sta2"
+   ],
+   "offer": "You stood through the second wave. Go back to Bearcis on the hill to the south and ask for the third. Bring me the mark its leader carries.",
+   "accept": "I will stand.",
+   "decline": "Not today.",
+   "declined": "Then rest. The waves will wait.",
+   "started": "Go to Bearcis. Do not fall.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Bearcis",
+     "journal": "Ask Bearcis, on the hill south of Faercis, for the third wave.",
+     "says": "Then stand your ground. Here they come!"
+    },
+    {
+     "kind": "kill",
+     "target": "spirit",
+     "journal": "Outlast the third wave: kill the three that come at you.",
+     "count": 3,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "spirit",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "spirit",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "spirit",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "wraith",
+     "journal": "Kill the leader of the third wave and take its mark.",
+     "items": [
+      {
+       "item": "Mark of the Third Wave",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "wraith",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Faercis",
+     "journal": "Bring the mark of the third wave to Faercis by the pond.",
+     "items": [
+      {
+       "item": "Mark of the Third Wave",
+       "count": 1
+      }
+     ],
+     "says": "Still standing. Good. My brother has more for you."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Stamina CM Statistic Boost, wave 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Intestinal Fortitude mastery line opening for purchase (cmcatalog 'Intestinal Fortitude 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's waves are ten unnamed creatures, the tenth carrying the item; here three of the level-38 creatures standing in a row by Faercis are spawned at once, then a leader with the mark (named by us). The guide does all four waves in one visit; here each is its own quest."
+  },
+  {
+   "key": "Misc/stat-boost-quests/sta4",
+   "name": "Intestinal Fortitude: The Fourth Wave",
+   "giver": "Faercis",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/sta3"
+   ],
+   "offer": "You stood through the third wave. Go back to Bearcis on the hill to the south and ask for the fourth. Bring me the mark its leader carries.",
+   "accept": "I will stand.",
+   "decline": "Not today.",
+   "declined": "Then rest. The waves will wait.",
+   "started": "Go to Bearcis. Do not fall.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Bearcis",
+     "journal": "Ask Bearcis, on the hill south of Faercis, for the fourth wave.",
+     "says": "Then stand your ground. Here they come!"
+    },
+    {
+     "kind": "kill",
+     "target": "green goo",
+     "journal": "Outlast the fourth wave: kill the three that come at you.",
+     "count": 3,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "green goo",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "green goo",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "green goo",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "wraith",
+     "journal": "Kill the leader of the fourth wave and take its mark.",
+     "items": [
+      {
+       "item": "Mark of the Fourth Wave",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "wraith",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Faercis",
+     "journal": "Bring the mark of the fourth wave to Faercis by the pond.",
+     "items": [
+      {
+       "item": "Mark of the Fourth Wave",
+       "count": 1
+      }
+     ],
+     "says": "Four waves, and still on your feet. You have nothing more to learn from us."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Stamina CM Statistic Boost, wave 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Intestinal Fortitude mastery line opening for purchase (cmcatalog 'Intestinal Fortitude 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's waves are ten unnamed creatures, the tenth carrying the item; here three of the level-38 creatures standing in a row by Faercis are spawned at once, then a leader with the mark (named by us). The guide does all four waves in one visit; here each is its own quest."
+  },
+  {
+   "key": "Misc/stat-boost-quests/agi1",
+   "name": "Avoid Danger: Race 1",
+   "giver": "Wria Lightningfoot",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Quick feet keep you alive. Race me! Find Nadine, Yvlir and Hogin out in Hodstock and Temby, then run back to me. Take this stone for speed. They say 17 minutes, but I will not count.",
+   "accept": "Ready, set, go!",
+   "decline": "My feet hurt.",
+   "declined": "Come back when you can run.",
+   "started": "Go! Run!",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Nadine",
+     "journal": "Run to Nadine (two hills west of the rocks past the bridge with two towers).",
+     "says": "Wria sent you? Already here! Go on, the next one is waiting!"
+    },
+    {
+     "kind": "talk",
+     "target": "Yvlir",
+     "journal": "Run to Yvlir (west of Nadine at the zone's western border (SW)).",
+     "says": "Wria sent you? Already here! Go on, the next one is waiting!"
+    },
+    {
+     "kind": "talk",
+     "target": "Hogin",
+     "journal": "Run to Hogin (on the coast south of Temby).",
+     "says": "Wria sent you? Already here! Go on, back to Wria!"
+    },
+    {
+     "kind": "talk",
+     "target": "Wria Lightningfoot",
+     "journal": "Run back to Wria Lightningfoot on her hill.",
+     "says": "Not bad at all! Rest your legs. There is another race when you are ready."
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "stone of agility",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Wria Lightningfoot",
+    "Nadine",
+    "Yvlir",
+    "Hogin",
+    "Wria Lightningfoot"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Agility CM Statistic Boost, test 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the AGI mastery line opening for purchase (cmcatalog 'AGI 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's race is timed (17 minutes) and its runners spawn for it; the engine has no timer, so it is a walk to the runners in order, who stand at EQOA-Data's map points. The guide does not say which runners each test sends you to (some at random): the order is ours. The guide's line is Avoid Danger; cmcatalog calls it AGI."
+  },
+  {
+   "key": "Misc/stat-boost-quests/agi2",
+   "name": "Avoid Danger: Race 2",
+   "giver": "Wria Lightningfoot",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/agi1"
+   ],
+   "offer": "Quick feet keep you alive. Race me! Find Jimique, Sabbine and Ibaggo out in Hodstock and Temby, then run back to me. Take this stone for speed. They say 15 minutes, but I will not count.",
+   "accept": "Ready, set, go!",
+   "decline": "My feet hurt.",
+   "declined": "Come back when you can run.",
+   "started": "Go! Run!",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Jimique",
+     "journal": "Run to Jimique (along the coast just north of Temby (E)).",
+     "says": "Wria sent you? Already here! Go on, the next one is waiting!"
+    },
+    {
+     "kind": "talk",
+     "target": "Sabbine",
+     "journal": "Run to Sabbine (the north border near the coast).",
+     "says": "Wria sent you? Already here! Go on, the next one is waiting!"
+    },
+    {
+     "kind": "talk",
+     "target": "Ibaggo",
+     "journal": "Run to Ibaggo (a little west of Sabbine at the northernmost border).",
+     "says": "Wria sent you? Already here! Go on, back to Wria!"
+    },
+    {
+     "kind": "talk",
+     "target": "Wria Lightningfoot",
+     "journal": "Run back to Wria Lightningfoot on her hill.",
+     "says": "Not bad at all! Rest your legs. There is another race when you are ready."
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "stone of agility",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Wria Lightningfoot",
+    "Jimique",
+    "Sabbine",
+    "Ibaggo",
+    "Wria Lightningfoot"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Agility CM Statistic Boost, test 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the AGI mastery line opening for purchase (cmcatalog 'AGI 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's race is timed (15 minutes) and its runners spawn for it; the engine has no timer, so it is a walk to the runners in order, who stand at EQOA-Data's map points. The guide does not say which runners each test sends you to (some at random): the order is ours. The guide's line is Avoid Danger; cmcatalog calls it AGI."
+  },
+  {
+   "key": "Misc/stat-boost-quests/agi3",
+   "name": "Avoid Danger: Race 3",
+   "giver": "Wria Lightningfoot",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/agi2"
+   ],
+   "offer": "Quick feet keep you alive. Race me! Find Quidox, Nadine and Jimique out in Hodstock and Temby, then run back to me. Take this stone for speed. They say 13 minutes, but I will not count.",
+   "accept": "Ready, set, go!",
+   "decline": "My feet hurt.",
+   "declined": "Come back when you can run.",
+   "started": "Go! Run!",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Quidox",
+     "journal": "Run to Quidox (up the river at the north border).",
+     "says": "Wria sent you? Already here! Go on, the next one is waiting!"
+    },
+    {
+     "kind": "talk",
+     "target": "Nadine",
+     "journal": "Run to Nadine (two hills west of the rocks past the bridge with two towers).",
+     "says": "Wria sent you? Already here! Go on, the next one is waiting!"
+    },
+    {
+     "kind": "talk",
+     "target": "Jimique",
+     "journal": "Run to Jimique (along the coast just north of Temby (E)).",
+     "says": "Wria sent you? Already here! Go on, back to Wria!"
+    },
+    {
+     "kind": "talk",
+     "target": "Wria Lightningfoot",
+     "journal": "Run back to Wria Lightningfoot on her hill.",
+     "says": "Not bad at all! Rest your legs. There is another race when you are ready."
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "stone of agility",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Wria Lightningfoot",
+    "Quidox",
+    "Nadine",
+    "Jimique",
+    "Wria Lightningfoot"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Agility CM Statistic Boost, test 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the AGI mastery line opening for purchase (cmcatalog 'AGI 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's race is timed (13 minutes) and its runners spawn for it; the engine has no timer, so it is a walk to the runners in order, who stand at EQOA-Data's map points. The guide does not say which runners each test sends you to (some at random): the order is ours. The guide's line is Avoid Danger; cmcatalog calls it AGI."
+  },
+  {
+   "key": "Misc/stat-boost-quests/agi4",
+   "name": "Avoid Danger: Race 4",
+   "giver": "Wria Lightningfoot",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/agi3"
+   ],
+   "offer": "Quick feet keep you alive. Race me! Find Hogin, Sabbine, Quidox and Brugga out in Hodstock and Temby, then run back to me. Take this stone for speed. They say 14 minutes, but I will not count.",
+   "accept": "Ready, set, go!",
+   "decline": "My feet hurt.",
+   "declined": "Come back when you can run.",
+   "started": "Go! Run!",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Hogin",
+     "journal": "Run to Hogin (on the coast south of Temby).",
+     "says": "Wria sent you? Already here! Go on, the next one is waiting!"
+    },
+    {
+     "kind": "talk",
+     "target": "Sabbine",
+     "journal": "Run to Sabbine (the north border near the coast).",
+     "says": "Wria sent you? Already here! Go on, the next one is waiting!"
+    },
+    {
+     "kind": "talk",
+     "target": "Quidox",
+     "journal": "Run to Quidox (up the river at the north border).",
+     "says": "Wria sent you? Already here! Go on, the next one is waiting!"
+    },
+    {
+     "kind": "talk",
+     "target": "Brugga",
+     "journal": "Run to Brugga (by Wria's rock (the guide never needed her)).",
+     "says": "Wria sent you? Already here! Go on, back to Wria!"
+    },
+    {
+     "kind": "talk",
+     "target": "Wria Lightningfoot",
+     "journal": "Run back to Wria Lightningfoot on her hill.",
+     "says": "The fastest feet in Tunaria! I have nothing left to teach you."
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "stone of agility",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Wria Lightningfoot",
+    "Hogin",
+    "Sabbine",
+    "Quidox",
+    "Brugga",
+    "Wria Lightningfoot"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Agility CM Statistic Boost, test 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the AGI mastery line opening for purchase (cmcatalog 'AGI 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's race is timed (14 minutes) and its runners spawn for it; the engine has no timer, so it is a walk to the runners in order, who stand at EQOA-Data's map points. The guide does not say which runners each test sends you to (some at random): the order is ours. The guide's line is Avoid Danger; cmcatalog calls it AGI."
+  },
+  {
+   "key": "Misc/stat-boost-quests/dex1",
+   "name": "Unrivaled Grace: The First Trial",
+   "giver": "Medaesis",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Grace is not given, it is learned in a fight. Find the halfling Baloren in the tavern north of the coachman. He will put you on the road to Leumas Si Taerg, who sets the first trial. Bring 5000 tunar.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Baloren",
+     "journal": "Find the halfling Baloren on the first floor of the tavern north of Freeport's coachman.",
+     "says": "Medaesis sent you? Then go upstairs and see Aldan Vas. He will want paying."
+    },
+    {
+     "kind": "give",
+     "target": "Aldan Vas",
+     "journal": "Pay Aldan Vas, upstairs in the tavern, 500 tunar.",
+     "tunar": 500,
+     "says": "Leumas Si Taerg is upstairs in the tavern in Strag's Rest, just off the road. Tell him I sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Leumas Si Taerg",
+     "journal": "Find Leumas Si Taerg upstairs in the tavern of Strag's Rest (SE).",
+     "says": "North along the mountain, past the T stone, are three orange tents. Speak to the gnoll there."
+    },
+    {
+     "kind": "talk",
+     "target": "Reaver Gnoll",
+     "journal": "Speak to the gnoll among three orange tents north of Strag's Rest.",
+     "says": "One, two, three, but not as you count them. Fight!"
+    },
+    {
+     "kind": "kill",
+     "target": "eno",
+     "journal": "Kill the gnoll called eno (one of three, in order) at the tents.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "eno",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "owt",
+     "journal": "Kill the gnoll called owt (two of three, in order) at the tents.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "owt",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "eerht",
+     "journal": "Kill the gnoll called eerht (three of three, in order) at the tents.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "eerht",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Reaver Leader",
+     "journal": "Kill the reaver leader and take his sword.",
+     "items": [
+      {
+       "item": "Reaver Leader's Sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Reaver Leader",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Leumas Si Taerg",
+     "journal": "Bring the leader's sword and 4500 tunar to Leumas Si Taerg in Strag's Rest.",
+     "items": [
+      {
+       "item": "Reaver Leader's Sword",
+       "count": 1
+      }
+     ],
+     "tunar": 4500,
+     "says": "The first trial is passed. Medaesis will have more for you."
+    }
+   ],
+   "unresolved": [
+    "Medaesis",
+    "Reaver Gnoll",
+    "eno",
+    "eno",
+    "owt",
+    "owt",
+    "eerht",
+    "eerht",
+    "Reaver Leader",
+    "Reaver Leader"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Dexterity CM Statistic Boost, 1st Trial (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Unrivaled Grace mastery line opening for purchase (cmcatalog 'Unrivaled Grace 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's mobs are spawned as they are killed, in order: eno, owt and eerht ('one, two, three' backwards, its note's names); the leader is unnamed in the guide and named by us, his 'unusable sword' too. The guide's Patron who calls Leumas when he is not up is left out (he stands there). The gnolls' places are EQOA-Data's map points."
+  },
+  {
+   "key": "Misc/stat-boost-quests/dex2",
+   "name": "Unrivaled Grace: The Second Trial",
+   "giver": "Medaesis",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/dex1"
+   ],
+   "offer": "The second trial is in Serpent Hills, to the north. Find the gnoll there and win his fight as you won the first. Bring me what the leader carries.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Reaver Gnoll",
+     "journal": "Speak to the gnoll in Serpent Hills (N).",
+     "says": "Uno, dos, tres. Backwards! Fight!"
+    },
+    {
+     "kind": "kill",
+     "target": "onu",
+     "journal": "Kill the gnoll called onu (one of three, in order) in Serpent Hills.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "onu",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "sod",
+     "journal": "Kill the gnoll called sod (two of three, in order) in Serpent Hills.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "sod",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "sert",
+     "journal": "Kill the gnoll called sert (three of three, in order) in Serpent Hills.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "sert",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Reaver Leader",
+     "journal": "Kill the reaver leader and take his sword.",
+     "items": [
+      {
+       "item": "Reaver Leader's Sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Reaver Leader",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Medaesis",
+     "journal": "Bring the leader's sword to Medaesis outside Freeport's north gate.",
+     "items": [
+      {
+       "item": "Reaver Leader's Sword",
+       "count": 1
+      }
+     ],
+     "says": "Faster than the first time. Good."
+    }
+   ],
+   "unresolved": [
+    "Medaesis",
+    "Reaver Gnoll",
+    "onu",
+    "onu",
+    "sod",
+    "sod",
+    "sert",
+    "sert",
+    "Reaver Leader",
+    "Reaver Leader",
+    "Medaesis"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Dexterity CM Statistic Boost, 2nd Trial (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Unrivaled Grace mastery line opening for purchase (cmcatalog 'Unrivaled Grace 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide says only that it is the same as the first trial; its note's second round names (onu, sod, sert) are used here."
+  },
+  {
+   "key": "Misc/stat-boost-quests/dex3",
+   "name": "Unrivaled Grace: The Third Trial",
+   "giver": "Medaesis",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/dex2"
+   ],
+   "offer": "The third trial changes the rules. Go to Fort Alliance, near the Razgut camp, and speak to the gnoll by the rock near the barracks. Kill six of the reavers he sets on you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Reaver Gnoll",
+     "journal": "Speak to the gnoll by a rock near the barracks in Fort Alliance (E).",
+     "says": "New rules. Six reavers, and quickly!"
+    },
+    {
+     "kind": "kill",
+     "target": "Razgut reaver",
+     "journal": "Kill six Razgut reavers.",
+     "count": 6,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Razgut reaver",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Razgut reaver",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Medaesis",
+     "journal": "Return to Medaesis outside Freeport's north gate.",
+     "says": "Six! You are quick. One trial left."
+    }
+   ],
+   "unresolved": [
+    "Medaesis",
+    "Reaver Gnoll",
+    "Medaesis"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Dexterity CM Statistic Boost, 3rd Trial (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Unrivaled Grace mastery line opening for purchase (cmcatalog 'Unrivaled Grace 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's minute to kill six reavers, and its port to the spiritmaster on failure, are left out: the engine has no timer. Two reavers spawn at once; the camp's own count."
+  },
+  {
+   "key": "Misc/stat-boost-quests/dex4",
+   "name": "Unrivaled Grace: The Final Trial",
+   "giver": "Medaesis",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/dex3"
+   ],
+   "offer": "The last trial. Psahn, in Highpass, by the fireplace outside the north gates, will send you on. Do as he says.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Psahn",
+     "journal": "Find Psahn in a nook by the fireplace outside Highpass's north gates.",
+     "says": "Medaesis's student? The gnoll by the dam in Stone Watchers waits for you."
+    },
+    {
+     "kind": "talk",
+     "target": "Reaver Gnoll",
+     "journal": "Speak to the gnoll by the dam in Stone Watchers (C).",
+     "says": "First, second, third. Backwards!"
+    },
+    {
+     "kind": "kill",
+     "target": "tsrif",
+     "journal": "Kill the gnoll called tsrif (one of three, in order) by the dam.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "tsrif",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "dnoces",
+     "journal": "Kill the gnoll called dnoces (two of three, in order) by the dam.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "dnoces",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "kill",
+     "target": "driht",
+     "journal": "Kill the gnoll called driht (three of three, in order) by the dam.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "driht",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Psahn",
+     "journal": "Return to Psahn in Highpass.",
+     "says": "Done? Then Medaesis will want to know."
+    },
+    {
+     "kind": "talk",
+     "target": "Medaesis",
+     "journal": "Return to Medaesis outside Freeport's north gate.",
+     "says": "You move like water now. There is nothing more I can teach you."
+    }
+   ],
+   "unresolved": [
+    "Medaesis",
+    "Reaver Gnoll",
+    "tsrif",
+    "tsrif",
+    "dnoces",
+    "dnoces",
+    "driht",
+    "driht",
+    "Medaesis"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Dexterity CM Statistic Boost, 4th Trial (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Unrivaled Grace mastery line opening for purchase (cmcatalog 'Unrivaled Grace 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's fourth round is 'similar to the third'; its note's third round names (tsrif, dnoces, driht) are used here."
+  },
+  {
+   "key": "Misc/stat-boost-quests/wis1",
+   "name": "Sage's Wit: The First Cases",
+   "giver": "Judicial Advisor Lot",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Wisdom is judging rightly. Two cases wait. Nanie Gubbins or Debo Diblin poisoned a pie in Bobble-by-Water; Gregor Pyrely or Snidely Infernis wronged the other in Highbourne. Find the guilty and bring me proof.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Nanie Gubbins",
+     "journal": "Find Nanie Gubbins by the first big tree up the river from Bobble-by-Water's coachman.",
+     "says": "A pie? I know nothing of a pie! How dare you! You will never prove it!",
+     "answer": "You poisoned the pie!"
+    },
+    {
+     "kind": "loot",
+     "target": "Nanie Gubbins",
+     "journal": "Defeat Nanie Gubbins and take her gown.",
+     "items": [
+      {
+       "item": "Nanie's Gown",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Nanie Gubbins",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Gregor Pyrely",
+     "journal": "Find Gregor Pyrely by the first big tree north along Highbourne's dockside.",
+     "says": "Snidely told you that? Then you know too much!",
+     "answer": "It was you, Gregor."
+    },
+    {
+     "kind": "loot",
+     "target": "Gregor Pyrely",
+     "journal": "Defeat Gregor Pyrely and take his spellbook.",
+     "items": [
+      {
+       "item": "Gregor's Spellbook",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Judicial Advisor Lot",
+     "journal": "Bring the gown and the spellbook to Judicial Advisor Lot on Hazinak's eastern wall.",
+     "items": [
+      {
+       "item": "Nanie's Gown",
+       "count": 1
+      },
+      {
+       "item": "Gregor's Spellbook",
+       "count": 1
+      }
+     ],
+     "says": "Rightly judged, both. Two harder cases wait when you are ready."
+    }
+   ],
+   "unresolved": [
+    "Gregor Pyrely",
+    "Gregor Pyrely",
+    "Nanie Gubbins (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Nanie Gibbons and Debo Bibin in the guide are the live game's Nanie Gubbins and Debo Diblin (FrontiersForge's names; both spellings stand in Bobble-by-Water). The guide's 5000-tunar reset for a wrong judgment is left out: the innocent are not part of the quest. A guilty party who turns on you is a talker the step's start spawns hostile (a copy, attackable); check_quests.py wants an attackable row of the name, so Nanie Gubbins is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+  },
+  {
+   "key": "Misc/stat-boost-quests/wis2",
+   "name": "Sage's Wit: The Second Cases",
+   "giver": "Judicial Advisor Lot",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/wis1"
+   ],
+   "offer": "Two more cases. Znib Crankshaft and Gnolan Boltratchet, ant farmers, accuse each other in the Ant Colonies. And Rizik Flangletoggle is missing: his brother Nizen blames the troll Ugmar Malgus. Judge them both.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Gnolan Boltratchet",
+     "journal": "Find Gnolan Boltratchet by a boulder at the black ant guard hill, Ant Colonies (S).",
+     "says": "Branded his ants? Prove it! Guards!",
+     "answer": "You branded Znib's ants."
+    },
+    {
+     "kind": "loot",
+     "target": "Gnolan Boltratchet",
+     "journal": "Defeat Gnolan Boltratchet and take his ant brander.",
+     "items": [
+      {
+       "item": "Gnolan's Ant Brander",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Black Ant Guard",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Black Ant Guard",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Nizen Flangletoggle",
+     "journal": "Find Nizen Flangletoggle on a small hill north of Neriak's coach, near the firebat valley.",
+     "says": "The troll ate him, everyone knows that! Why are you looking at me like that?",
+     "answer": "You did away with your own brother."
+    },
+    {
+     "kind": "loot",
+     "target": "Nizen Flangletoggle",
+     "journal": "Defeat Nizen Flangletoggle and take the cog he carries.",
+     "items": [
+      {
+       "item": "Nizen's Cog",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Judicial Advisor Lot",
+     "journal": "Bring the ant brander and the cog to Judicial Advisor Lot in Hazinak.",
+     "items": [
+      {
+       "item": "Gnolan's Ant Brander",
+       "count": 1
+      },
+      {
+       "item": "Nizen's Cog",
+       "count": 1
+      }
+     ],
+     "says": "The troll is cleared, and the brother answers for it. Well judged."
+    }
+   ],
+   "unresolved": [
+    "Gnolan Boltratchet",
+    "Gnolan Boltratchet",
+    "Black Ant Guard",
+    "Black Ant Guard",
+    "Nizen Flangletoggle",
+    "Nizen Flangletoggle"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Gnolan's two ant guards are two Black Ant Guards (FrontiersForge's name there) spawned beside him."
+  },
+  {
+   "key": "Misc/stat-boost-quests/wis3",
+   "name": "Sage's Wit: The Third Cases",
+   "giver": "Judicial Advisor Lot",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/wis2"
+   ],
+   "offer": "Two enchantresses, Esmirique and Snylvia, fight over a man south of Qeynos. And Dragoon Tyr'win in the Green Rift accuses the necromancer Warpheus in Collonridge Cemetery. Find the guilty and bring me proof.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Esmirique",
+     "journal": "Find Esmirique on the shore south of Qeynos, two trees south of the poachers' camp.",
+     "says": "Drake is mine! Snylvia will never have him, and neither will you!",
+     "answer": "You lied about Snylvia."
+    },
+    {
+     "kind": "loot",
+     "target": "Esmirique",
+     "journal": "Defeat Esmirique and take her staff.",
+     "items": [
+      {
+       "item": "Esmirique's Staff",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "talk",
+     "target": "Necromancer Warpheus",
+     "journal": "Find Necromancer Warpheus in the elder's tomb of Collonridge Cemetery, by the crumbling bones.",
+     "says": "Tyr'win sent you? Rover! An ancient death for our guest!",
+     "answer": "You are guilty, Warpheus."
+    },
+    {
+     "kind": "kill",
+     "target": "Ancient Death",
+     "journal": "Destroy the ancient death Warpheus calls.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Ancient Death",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Necromancer Warpheus",
+     "journal": "Defeat Necromancer Warpheus and take his ring.",
+     "items": [
+      {
+       "item": "Warpheus's Ring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Necromancer Warpheus",
+       "hostile": true
+      },
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Rover",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Judicial Advisor Lot",
+     "journal": "Bring the staff and the ring to Judicial Advisor Lot in Hazinak.",
+     "items": [
+      {
+       "item": "Esmirique's Staff",
+       "count": 1
+      },
+      {
+       "item": "Warpheus's Ring",
+       "count": 1
+      }
+     ],
+     "says": "Both guilty, as you found. One last pair of cases."
+    }
+   ],
+   "unresolved": [
+    "Esmirique",
+    "Esmirique",
+    "Necromancer Warpheus (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Warpheus's pet Rover joins the fight as a hostile copy. A guilty party who turns on you is a talker the step's start spawns hostile (a copy, attackable); check_quests.py wants an attackable row of the name, so Necromancer Warpheus is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+  },
+  {
+   "key": "Misc/stat-boost-quests/wis4",
+   "name": "Sage's Wit: The Last Cases",
+   "giver": "Judicial Advisor Lot",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/wis3"
+   ],
+   "offer": "The last cases. Chipo the bartender and Brunsgill dispute a bar tab by Moradhim's mining pit. And two zombies, #18 and #22, both claim a hunting ground in the Dead Hills. Judge them, and you will have my wisdom.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Brunsgill",
+     "journal": "Find Brunsgill at the edge of the mining pit by Moradhim's coach.",
+     "says": "Pay? I paid! Chipo is a liar! Put up your fists!",
+     "answer": "You never paid your tab, Brunsgill."
+    },
+    {
+     "kind": "loot",
+     "target": "Brunsgill",
+     "journal": "Defeat Brunsgill and take his favorite mug.",
+     "items": [
+      {
+       "item": "Brunsgill's Favorite Mug",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Brunsgill",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Zombie #22",
+     "journal": "Destroy Zombie #22 outside the fence of the Plane of Disease portal house in the Dead Hills.",
+     "items": [
+      {
+       "item": "Zombie #22's Jawbone",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Judicial Advisor Lot",
+     "journal": "Bring the mug and the jawbone to Judicial Advisor Lot in Hazinak.",
+     "items": [
+      {
+       "item": "Brunsgill's Favorite Mug",
+       "count": 1
+      },
+      {
+       "item": "Zombie #22's Jawbone",
+       "count": 1
+      }
+     ],
+     "says": "Every case rightly judged. There is no wiser head in Tunaria than yours."
+    }
+   ],
+   "unresolved": [
+    "Zombie #22",
+    "Brunsgill (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide does not name Zombie #22's drop: a jawbone here. A guilty party who turns on you is a talker the step's start spawns hostile (a copy, attackable); check_quests.py wants an attackable row of the name, so Brunsgill is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+  },
+  {
+   "key": "Misc/stat-boost-quests/int1",
+   "name": "Superior Intellect: Three Riddles",
+   "giver": "Inquiladius Expica",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Answer my riddles with things, not words. On and on, with I between. Four fingers and a thumb, not flesh nor fowl. My life is measured in hours; when I am aglow, wind is my foe. Bring me all three.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Farmer Moegar",
+     "journal": "Buy onions from Farmer Moegar in Druid's Watch for 1200 tunar.",
+     "tunar": 1200,
+     "says": "Onions! Here you are.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bag of Onions",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Bandit",
+     "journal": "Take a glove from the bandits in the hills by Darvar Manor.",
+     "items": [
+      {
+       "item": "Bandit Glove",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "loot",
+     "target": "Freezeblood berserker",
+     "journal": "Take a candle from the freezing goblins in the cave between Halas and Castle Lightwolf.",
+     "items": [
+      {
+       "item": "Freezing Candle",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Inquiladius Expica",
+     "journal": "Bring the onions, the glove and the candle to Inquiladius Expica outside Druid's Watch.",
+     "items": [
+      {
+       "item": "Bag of Onions",
+       "count": 1
+      },
+      {
+       "item": "Bandit Glove",
+       "count": 1
+      },
+      {
+       "item": "Freezing Candle",
+       "count": 1
+      }
+     ],
+     "says": "Onions, a glove, a candle. Correct, all three. Your mind is quick."
+    }
+   ],
+   "unresolved": [
+    "Inquiladius Expica",
+    "Farmer Moegar",
+    "Inquiladius Expica"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The freezing goblins are the Freezeblood goblins of the cave between Halas and Castle Lightwolf; their berserkers carry the candle here."
+  },
+  {
+   "key": "Misc/stat-boost-quests/int2",
+   "name": "Superior Intellect: Three Puzzles",
+   "giver": "Inquiladius Expica",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/int1"
+   ],
+   "offer": "Three puzzles, and 2500 tunar for my trouble. Pass the runner in second place: what medal is yours? How many oranges did you eat? And at what level is the orc pawn? Bring me the medal, the oranges and the belts.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Inquiladius Expica",
+     "journal": "Pay Inquiladius Expica 2500 tunar to go on.",
+     "tunar": 2500,
+     "says": "Thank you. Now think. The Nasehirs of Al'Farak Ruins hand out the medals."
+    },
+    {
+     "kind": "loot",
+     "target": "Nasehir Rogue",
+     "journal": "Take the medal for second place from the Nasehirs in Al'Farak Ruins.",
+     "items": [
+      {
+       "item": "Silver Medal",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Farmer Moegar",
+     "journal": "Buy the bag of oranges you ate from Farmer Moegar for 4000 tunar.",
+     "tunar": 4000,
+     "says": "The bag of four? Here you are.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bag of Four Oranges",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Deathfist Reaver",
+     "journal": "Take three crude Deathfist belts from the Deathfist orcs: the pawn's level.",
+     "items": [
+      {
+       "item": "Crude Deathfist Belt",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Inquiladius Expica",
+     "journal": "Bring the silver medal, the four oranges and three Deathfist belts to Inquiladius Expica.",
+     "items": [
+      {
+       "item": "Silver Medal",
+       "count": 1
+      },
+      {
+       "item": "Bag of Four Oranges",
+       "count": 1
+      },
+      {
+       "item": "Crude Deathfist Belt",
+       "count": 3
+      }
+     ],
+     "says": "Silver, four and three. You did not guess, you worked it out."
+    }
+   ],
+   "unresolved": [
+    "Inquiladius Expica",
+    "Inquiladius Expica",
+    "Farmer Moegar",
+    "Inquiladius Expica"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's answers (silver, four oranges, three belts) are the steps; the belts drop off the Deathfist reavers here (the guide's reavers, slayers and prophets)."
+  },
+  {
+   "key": "Misc/stat-boost-quests/int3",
+   "name": "Superior Intellect: Four Strangers",
+   "giver": "Inquiladius Expica",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/int2"
+   ],
+   "offer": "Four towns: Feswes Nepus, Cmedixevis, Hispves Nopit and Lese Wommehi. In each, one of Cylen, Kibenza, Sawise and Grunnie waits with a ring, a note, a rune or a pouch. Work out who is where, and bring me all four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Grunnie",
+     "journal": "Find the dwarf Grunnie in Darvar Manor ('Feswes Nepus'), left of the coach by the fence.",
+     "says": "You worked it out! The ring is yours to carry.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Grunnie's Ring",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Cylen",
+     "journal": "Find the elf Cylen in Blackwater ('Cmedixevis'), by the fence near Corliss.",
+     "says": "Clever. Here is the pouch.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Cylen's Pouch",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Kibenza",
+     "journal": "Find the gnome Kibenza in Gertar's Mines ('Hispves Nopit'), east of the coach by the merchants.",
+     "says": "A rune for a riddle solved. Take it.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Kibenza's Rune",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Sawise",
+     "journal": "Find Sawise in Kara Village ('Lese Wommehi'), south of the west entrance by a tree.",
+     "says": "The note, then. It would never fit on a finger.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Sawise's Note",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Inquiladius Expica",
+     "journal": "Bring the ring, the pouch, the rune and the note to Inquiladius Expica.",
+     "items": [
+      {
+       "item": "Grunnie's Ring",
+       "count": 1
+      },
+      {
+       "item": "Cylen's Pouch",
+       "count": 1
+      },
+      {
+       "item": "Kibenza's Rune",
+       "count": 1
+      },
+      {
+       "item": "Sawise's Note",
+       "count": 1
+      }
+     ],
+     "says": "Every name in its place. One test remains."
+    }
+   ],
+   "unresolved": [
+    "Inquiladius Expica",
+    "Grunnie",
+    "Cylen",
+    "Kibenza",
+    "Sawise",
+    "Inquiladius Expica"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's solved puzzle is the steps; a wrong guess (which made you start again) cannot be made here."
+  },
+  {
+   "key": "Misc/stat-boost-quests/int4",
+   "name": "Superior Intellect: The Memory Test",
+   "giver": "Inquiladius Expica",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/int3"
+   ],
+   "offer": "Spend some time in Dshinn's Redoubt, among its dead, and remember what you see. Then let Demetricus Olious, a few steps north of me, test your memory. Answer wrongly, and you die.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Inquiladius Expica",
+     "journal": "Tell Inquiladius Expica you know Dshinn's Redoubt well enough.",
+     "says": "Do you? Then go to Demetricus, a few steps north. Thirty seconds a question."
+    },
+    {
+     "kind": "talk",
+     "target": "Demetricus Olious",
+     "journal": "Take Demetricus Olious's memory test, a few steps north of Inquiladius Expica.",
+     "says": "Ten questions, ten right answers. Remarkable. Go back to Inquiladius."
+    },
+    {
+     "kind": "talk",
+     "target": "Inquiladius Expica",
+     "journal": "Return to Inquiladius Expica.",
+     "says": "A perfect memory. Your mind is as sharp as mine."
+    }
+   ],
+   "unresolved": [
+    "Inquiladius Expica",
+    "Inquiladius Expica",
+    "Demetricus Olious",
+    "Inquiladius Expica"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's ten timed questions (death for a wrong answer) are a talk to Demetricus here; the guide says Dshinn's Redoubt need not be visited."
+  },
+  {
+   "key": "Misc/stat-boost-quests/cha1",
+   "name": "Razzle Dazzle: Yiggua's Love",
+   "giver": "Sylanthia De'Crevast",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Charm is helping others say what they cannot. Yiggua, north of the outpost outside Grobb, has quarreled with the troll she loves. Talk to her, then to him, and mend it. Kindly, mind.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Yiggua",
+     "journal": "Find Yiggua off the path north of the little outpost outside Grobb.",
+     "says": "I missed our meeting and now he will not look at me. He is a shadowknight. He loves froglok legs with drawn butter.",
+     "answer": "You look wonderful today."
+    },
+    {
+     "kind": "talk",
+     "target": "Shuglug",
+     "journal": "Find Shuglug on the beach round the mountain east of Grobb.",
+     "says": "She was sick? And shy? Froglegs and butter would mend it. Get me some butter.",
+     "answer": "You look sad. Want to talk?"
+    },
+    {
+     "kind": "talk",
+     "target": "Farmer Rulug",
+     "journal": "Ask Farmer Rulug in Kerplunk Outpost for butter.",
+     "says": "Butter costs. Bring me three stunned hearty boars from the river west of Ruddish the Devout."
+    },
+    {
+     "kind": "loot",
+     "target": "hearty boar",
+     "journal": "Stun three hearty boars along the river in the western Spider Mines.",
+     "items": [
+      {
+       "item": "Stunned Boar",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Farmer Rulug",
+     "journal": "Bring the three stunned boars to Farmer Rulug.",
+     "items": [
+      {
+       "item": "Stunned Boar",
+       "count": 3
+      }
+     ],
+     "says": "Three fine boars. Here is your butter.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Drawn Butter",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Shuglug",
+     "journal": "Bring the drawn butter to Shuglug.",
+     "items": [
+      {
+       "item": "Drawn Butter",
+       "count": 1
+      }
+     ],
+     "says": "Froglegs and butter for two. Tell her I will be there."
+    },
+    {
+     "kind": "talk",
+     "target": "Yiggua",
+     "journal": "Tell Yiggua the good news.",
+     "says": "He will? Oh, thank you!"
+    },
+    {
+     "kind": "talk",
+     "target": "Sylanthia De'Crevast",
+     "journal": "Return to Sylanthia De'Crevast in North Kithicor.",
+     "says": "Love mended. You have a gift."
+    }
+   ],
+   "unresolved": [
+    "Sylanthia De'Crevast",
+    "Yiggua",
+    "Shuglug",
+    "Farmer Rulug",
+    "hearty boar",
+    "Farmer Rulug",
+    "Shuglug",
+    "Yiggua",
+    "Sylanthia De'Crevast"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's long dialogue is one answer a talk; the 100,000-tunar purchase of the butter is left out for the boars."
+  },
+  {
+   "key": "Misc/stat-boost-quests/cha2",
+   "name": "Razzle Dazzle: Fripz and Frapz",
+   "giver": "Sylanthia De'Crevast",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/cha1"
+   ],
+   "offer": "Two brothers at Oggok Gate, Fripz and Frapz, are close to killing each other over a joke. Talk them down. Carry their words between them until each says he is sorry.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Fripz",
+     "journal": "Find Fripz at Oggok Gate (S).",
+     "says": "He mocked me! I will crush him!",
+     "answer": "While it is quite rude, it's not worth death..."
+    },
+    {
+     "kind": "talk",
+     "target": "Frapz",
+     "journal": "Find Frapz on a hillside among the ponds of Oggok Gate (NE).",
+     "says": "It was a joke! A good one! Well... maybe not then.",
+     "answer": "It could be funny. But only at the proper time."
+    },
+    {
+     "kind": "talk",
+     "target": "Fripz",
+     "journal": "Carry Frapz's words back to Fripz.",
+     "says": "Fine. I write I am sorry, if he is sorry. Give him this.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Fripz's Note",
+         "count": 1
+        }
+       ]
+      }
+     ],
+     "answer": "Maybe you have both done some regretful things"
+    },
+    {
+     "kind": "give",
+     "target": "Frapz",
+     "journal": "Bring Fripz's note to Frapz.",
+     "items": [
+      {
+       "item": "Fripz's Note",
+       "count": 1
+      }
+     ],
+     "says": "He is sorry? Then so am I. Tell him."
+    },
+    {
+     "kind": "talk",
+     "target": "Fripz",
+     "journal": "Tell Fripz his brother is sorry too.",
+     "says": "Brother. Hmph. Brothers, then."
+    },
+    {
+     "kind": "talk",
+     "target": "Sylanthia De'Crevast",
+     "journal": "Return to Sylanthia De'Crevast in North Kithicor.",
+     "says": "Two brothers, and no blood spilled."
+    }
+   ],
+   "unresolved": [
+    "Sylanthia De'Crevast",
+    "Fripz",
+    "Frapz",
+    "Fripz",
+    "Frapz",
+    "Fripz",
+    "Sylanthia De'Crevast"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's eight-trip negotiation is three here."
+  },
+  {
+   "key": "Misc/stat-boost-quests/cha3",
+   "name": "Razzle Dazzle: Sweggy's Ring",
+   "giver": "Sylanthia De'Crevast",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/cha2"
+   ],
+   "offer": "A ring of mine is with Sweggy at the Last Inn near Hatespike. He is too strong to fight, so charm it out of him. Bring plenty of tunar.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Sweggy",
+     "journal": "Find Sweggy inside the Last Inn.",
+     "says": "A ring? Talk is thirsty work. Buy me a drink."
+    },
+    {
+     "kind": "give",
+     "target": "Bartender",
+     "journal": "Buy Sweggy a drink from the Bartender for 400 tunar.",
+     "tunar": 400,
+     "says": "One ale.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Mug of Ale",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Sweggy",
+     "journal": "Give Sweggy the ale.",
+     "items": [
+      {
+       "item": "Mug of Ale",
+       "count": 1
+      }
+     ],
+     "says": "Ahh. The ring? Pay my tab and it is yours."
+    },
+    {
+     "kind": "give",
+     "target": "Bartender",
+     "journal": "Settle Sweggy's tab with the Bartender: 6700 tunar.",
+     "tunar": 6700,
+     "says": "Paid in full. Funny, though: Sweggy says the ring is gone."
+    },
+    {
+     "kind": "talk",
+     "target": "Waitress Jitzle",
+     "journal": "Hear Waitress Jitzle's story.",
+     "says": "I never touched it. The Bartender was near his table all night."
+    },
+    {
+     "kind": "talk",
+     "target": "Roerx",
+     "journal": "Hear Roerx's story.",
+     "says": "Me? I was drinking. Ask the one behind the bar."
+    },
+    {
+     "kind": "talk",
+     "target": "Sweggy",
+     "journal": "Tell Sweggy who stole the ring.",
+     "says": "The Bartender! Here, take the ring before anyone else does.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Sylanthia's Ring",
+         "count": 1
+        }
+       ]
+      }
+     ],
+     "answer": "The Bartender took it."
+    },
+    {
+     "kind": "give",
+     "target": "Sylanthia De'Crevast",
+     "journal": "Bring the ring to Sylanthia De'Crevast in North Kithicor.",
+     "items": [
+      {
+       "item": "Sylanthia's Ring",
+       "count": 1
+      }
+     ],
+     "says": "My ring! And no one was hurt."
+    }
+   ],
+   "unresolved": [
+    "Sylanthia De'Crevast",
+    "Sylanthia De'Crevast"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's crafted platinum sapphire ring for the bar tab is left out (the tab is the tunar); a wrong guess's 12,000 tunar cannot be made here. The guide's Waitress Jitzie is the game's Waitress Jitzle."
+  },
+  {
+   "key": "Misc/stat-boost-quests/cha4",
+   "name": "Razzle Dazzle: The Rebellion",
+   "giver": "Sylanthia De'Crevast",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/stat-boost-quests/cha3"
+   ],
+   "offer": "Agead, out the back door of Freeport, must give a speech. Help him write it. When it is given, those who oppose it will rise: their leader Aryee is in Northern Ro. Bring me her staff, by any means.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Agead",
+     "journal": "Help Agead write his speech, out Freeport's back door at the north-east corner.",
+     "says": "Routine checks on the guards, mercenaries, a festival. They will love it!",
+     "answer": "Keep the taxes the same."
+    },
+    {
+     "kind": "talk",
+     "target": "Sylanthia De'Crevast",
+     "journal": "Tell Sylanthia De'Crevast how the speech went.",
+     "says": "It went well, but a rebellion forms. Aryee leads it, on a hill by the stone markers in Northern Ro (W)."
+    },
+    {
+     "kind": "talk",
+     "target": "Aryee",
+     "journal": "Find Aryee on a hill by a set of stone markers in Northern Ro (W).",
+     "says": "Negotiate? The speech was lies. Then we fight!",
+     "answer": "Your rebellion ends here."
+    },
+    {
+     "kind": "loot",
+     "target": "Aryee",
+     "journal": "Defeat Aryee and take her staff.",
+     "items": [
+      {
+       "item": "Aryee's Staff",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Aryee",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Sylanthia De'Crevast",
+     "journal": "Bring Aryee's staff to Sylanthia De'Crevast in North Kithicor.",
+     "items": [
+      {
+       "item": "Aryee's Staff",
+       "count": 1
+      }
+     ],
+     "says": "It is done. Few can talk a city into peace. You can."
+    }
+   ],
+   "unresolved": [
+    "Sylanthia De'Crevast",
+    "Sylanthia De'Crevast",
+    "Sylanthia De'Crevast",
+    "Aryee (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's three waves of a channeler, a sorcerer and a crusader before Aryee comes are left out (unnamed). A guilty party who turns on you is a talker the step's start spawns hostile (a copy, attackable); check_quests.py wants an attackable row of the name, so Aryee is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+  }
+ ],
+ "items": [
+  {
+   "name": "Beast Tail",
+   "description": "The tail of one of Goran's beasts.",
+   "notrade": true,
+   "like": "Lion Tail"
+  },
+  {
+   "name": "Beast Fur",
+   "description": "A thick hank of fur from one of Goran's beasts.",
+   "notrade": true,
+   "like": "Diseased Fur"
+  },
+  {
+   "name": "Beast Claw",
+   "description": "A claw torn from one of Goran's beasts.",
+   "notrade": true,
+   "like": "Oversized Claw"
+  },
+  {
+   "name": "Eye of Goran's Pet",
+   "description": "The eye of the beast Goran keeps in the serpent cave.",
+   "notrade": true,
+   "like": "Giant Beetle Eye"
+  },
+  {
+   "name": "Mark of the First Wave",
+   "description": "Proof that you outlasted Bearcis's first wave.",
+   "notrade": true,
+   "like": "token of marr"
+  },
+  {
+   "name": "Mark of the Second Wave",
+   "description": "Proof that you outlasted Bearcis's second wave.",
+   "notrade": true,
+   "like": "token of marr"
+  },
+  {
+   "name": "Mark of the Third Wave",
+   "description": "Proof that you outlasted Bearcis's third wave.",
+   "notrade": true,
+   "like": "token of marr"
+  },
+  {
+   "name": "Mark of the Fourth Wave",
+   "description": "Proof that you outlasted Bearcis's fourth wave.",
+   "notrade": true,
+   "like": "token of marr"
+  },
+  {
+   "name": "Reaver Leader's Sword",
+   "description": "The reaver leader's sword. It is of no use to you.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Nanie's Gown",
+   "description": "The gown Nanie Gubbins wore the day the pie was poisoned.",
+   "notrade": true,
+   "like": "dirty silken gown"
+  },
+  {
+   "name": "Gregor's Spellbook",
+   "description": "Gregor Pyrely's spellbook, proof of what he did.",
+   "notrade": true,
+   "like": "Syndia's Book of Disease"
+  },
+  {
+   "name": "Gnolan's Ant Brander",
+   "description": "The brander Gnolan Boltratchet used on another farmer's ants.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Nizen's Cog",
+   "description": "A cog Nizen Flangletoggle carried. It was his brother's.",
+   "notrade": true,
+   "like": "Copper Spring"
+  },
+  {
+   "name": "Esmirique's Staff",
+   "description": "The enchantress Esmirique's staff.",
+   "notrade": true,
+   "like": "Ancient Scroll"
+  },
+  {
+   "name": "Warpheus's Ring",
+   "description": "The necromancer Warpheus's ring.",
+   "notrade": true,
+   "like": "Fredly's Gold Ring"
+  },
+  {
+   "name": "Brunsgill's Favorite Mug",
+   "description": "Brunsgill's favorite mug. His bar tab is still unpaid.",
+   "notrade": true,
+   "like": "Clay Mixing Vial"
+  },
+  {
+   "name": "Zombie #22's Jawbone",
+   "description": "The jawbone of Zombie #22, who hunted where it should not.",
+   "notrade": true,
+   "like": "Skull of Vitsh"
+  },
+  {
+   "name": "Bag of Onions",
+   "description": "Onions from Farmer Moegar: on and on with I between.",
+   "notrade": true,
+   "like": "Potion Ingredients"
+  },
+  {
+   "name": "Bandit Glove",
+   "description": "A bandit's glove: four fingers and a thumb.",
+   "notrade": true,
+   "like": "Goblin Commander's Headdress"
+  },
+  {
+   "name": "Freezing Candle",
+   "description": "A candle the freezing goblins burned against the cold.",
+   "notrade": true,
+   "like": "fire potion"
+  },
+  {
+   "name": "Silver Medal",
+   "description": "A silver medal from a Nasehir footrace: second place.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "Bag of Four Oranges",
+   "description": "Four oranges from Farmer Moegar.",
+   "notrade": true,
+   "like": "Potion Ingredients"
+  },
+  {
+   "name": "Crude Deathfist Belt",
+   "description": "A crude belt of the Deathfist orcs.",
+   "notrade": true,
+   "like": "Mine Spring"
+  },
+  {
+   "name": "Grunnie's Ring",
+   "description": "A dwarf's ring, from Grunnie of Darvar Manor.",
+   "notrade": true,
+   "like": "Fredly's Gold Ring"
+  },
+  {
+   "name": "Cylen's Pouch",
+   "description": "An elf's pouch, from Cylen of Blackwater.",
+   "notrade": true,
+   "like": "Bag of Gems"
+  },
+  {
+   "name": "Kibenza's Rune",
+   "description": "A rune, from the gnome Kibenza of Gertar's Mines.",
+   "notrade": true,
+   "like": "Suspicious Looking Stone"
+  },
+  {
+   "name": "Sawise's Note",
+   "description": "A note, from Sawise of Kara Village.",
+   "notrade": true,
+   "like": "Sealed Letter"
+  },
+  {
+   "name": "Stunned Boar",
+   "description": "A hearty boar, stunned, for Farmer Rulug.",
+   "notrade": true,
+   "like": "Goretusk's Hoof"
+  },
+  {
+   "name": "Drawn Butter",
+   "description": "Farmer Rulug's drawn butter, for froglok legs.",
+   "notrade": true,
+   "like": "buttermilk"
+  },
+  {
+   "name": "Fripz's Note",
+   "description": "Fripz's note: he is sorry, if Frapz is sorry too.",
+   "notrade": true,
+   "like": "Love Letter"
+  },
+  {
+   "name": "Mug of Ale",
+   "description": "A mug of the Last Inn's ale.",
+   "notrade": true,
+   "like": "Clay Mixing Vial"
+  },
+  {
+   "name": "Sylanthia's Ring",
+   "description": "The ring Sweggy kept for Sylanthia De'Crevast.",
+   "notrade": true,
+   "like": "Fredly's Gold Ring"
+  },
+  {
+   "name": "Aryee's Staff",
+   "description": "The staff of Aryee, who led the rebels in Northern Ro.",
+   "notrade": true,
+   "like": "Ancient Scroll"
+  }
+ ]
+}

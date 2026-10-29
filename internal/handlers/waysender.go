@@ -24,10 +24,23 @@ import (
 type wayRoute struct {
 	// To is the place, as the menu lists it.
 	To string
-	// Arrive is the NPC whose spot the player lands on.
+	// Arrive is the NPC whose spot the player lands in front of; At, when
+	// set, is the place itself instead (a point the guides give, no NPC's).
 	Arrive string
+	At     *wayPlace
 	// Fee is its tunar, MinLevel the level it needs (0: none).
 	Fee, MinLevel int
+	// QuestOnly is a trip only a quest opens (questtrips.go): with no quest
+	// in the game unlocking it, it is offered to no one who has not finished
+	// one that did. Every other trip is open until a quest in the game gates
+	// it.
+	QuestOnly bool
+}
+
+// wayPlace is where a trip lands: a world and a point in it.
+type wayPlace struct {
+	World   uint8
+	X, Y, Z float32
 }
 
 // wayRoutes are each waysender's trips, by name; the guides' words beside.
@@ -127,6 +140,47 @@ var wayRoutes = map[string][]wayRoute{
 	"Portal to the Cauldron": {
 		{To: "the cauldron", Arrive: "Fuming Portal"},
 	},
+
+	// The Portal guides' trips (tools/quests/data/portal.json; the places the
+	// Portal lane read off its guides and the ground: notes qe.md), each only a
+	// quest opens (QuestOnly: the quest that unlocks it). No guide gives a
+	// way back from any of them (Return Home, a gate or the bind do), so none
+	// is wired.
+	// "talk to the Sky Portal at the top of the Endless Tower": the Plane of
+	// Sky (world 4), beside Sartheret
+	"Sky Portal": {
+		{To: "the Plane of Sky", At: &wayPlace{World: 4, X: 4834.8, Y: 250.1, Z: 5524.7}, QuestOnly: true},
+	},
+	// "pay him the 10k (which you have to pay each and every time)"
+	// (isle-of-dread): the west edge of Graumord, the isle's town
+	"Norach": {
+		{To: "the Isle of Dread", At: &wayPlace{World: 0, X: 24500, Y: 54.1, Z: 3330}, Fee: 10000, QuestOnly: true},
+	},
+	// "return to Lake Rathe (c) and speak with the portal guardian. Bring 1
+	// tunar for passage each time!" (zaoran-plateau): the plateau, zone 5 of
+	// the Secrets world (5), at the ZP1 marker
+	"portal guardian": {
+		{To: "Zaoran Plateau", At: &wayPlace{World: 5, X: 4899, Y: 148, Z: 7049}, Fee: 1, QuestOnly: true},
+	},
+	// the Fire Giant Magus subdued sends raiders to Lord Nagafen's island
+	// (soluseks-eye), by the Nagafen Teleport Arrive marker in Lavastorm
+	"Subdued Magus": {
+		{To: "Lord Nagafen's lair", Arrive: "Nagafen Teleport Arrive", QuestOnly: true},
+	},
+	// the Plane of Sky's isles (plane-of-sky): each essence's key, or the
+	// Mark of the Majestic's, the passage to its isle
+	"essence of rain": {
+		{To: "Rain 1", At: &wayPlace{World: 4, X: 4228.2, Y: 233.8, Z: 5695.7}, QuestOnly: true},
+	},
+	"essence of sun": {
+		{To: "Sun 1", At: &wayPlace{World: 4, X: 5607, Y: 235.1, Z: 5360.3}, QuestOnly: true},
+	},
+	"essence of night": {
+		{To: "Night 1", At: &wayPlace{World: 4, X: 4161, Y: 612.4, Z: 6384}, QuestOnly: true},
+	},
+	"Mark of the Majestic": {
+		{To: "Snow 1", At: &wayPlace{World: 4, X: 5670.8, Y: 552.9, Z: 6358.8}, QuestOnly: true},
+	},
 }
 
 // The waysender's words. A trip is asked as Sandstorm's dockmasters ask one
@@ -176,10 +230,16 @@ type lockedTrip struct{ place, quest string }
 // kept it from (or "" if none did) and the first a quest did.
 func wayDests(gw *entity.World, sess *session.Session, waysender string, player *entity.Player) (dests []entity.CoachDest, barred string, locked lockedTrip) {
 	for _, r := range wayRoutes[waysender] {
-		x, y, z, facing, world, ok := gw.SpawnOfNPC(r.Arrive)
-		if !ok {
-			log.Printf("Waysender: %s's trip to %s lands on %s, who is not here", waysender, r.To, r.Arrive)
-			continue
+		var x, y, z, facing float32
+		var world uint8
+		if r.At != nil {
+			x, y, z, world = r.At.X, r.At.Y, r.At.Z, r.At.World
+		} else {
+			var ok bool
+			if x, y, z, facing, world, ok = gw.SpawnOfNPC(r.Arrive); !ok {
+				log.Printf("Waysender: %s's trip to %s lands on %s, who is not here", waysender, r.To, r.Arrive)
+				continue
+			}
 		}
 		if !CanLoadWorld(sess, world) {
 			continue
@@ -196,8 +256,11 @@ func wayDests(gw *entity.World, sess *session.Session, waysender string, player 
 			}
 			continue
 		}
-		// in front of them, not inside them: a body is solid
-		fx, fz, face := inFrontOf(x, z, facing)
+		// in front of them, not inside them: a body is solid (a place: on it)
+		fx, fz, face := x, z, facing
+		if r.At == nil {
+			fx, fz, face = inFrontOf(x, z, facing)
+		}
 		dests = append(dests, entity.CoachDest{Name: r.To, X: fx, Y: y, Z: fz, Facing: face,
 			World: world, Fee: r.Fee, MinLevel: r.MinLevel, Via: waysender})
 	}

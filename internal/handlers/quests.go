@@ -142,8 +142,11 @@ type questCatalog struct {
 	givers map[string][]*database.Quest // by the giver's folded name, enabled ones, by id
 	all    []*database.Quest
 	// gates are the trips enabled quests unlock, by tripKey: the quests that
-	// unlock each, by id (a draft's unlock bars no one: no one can finish it)
-	gates map[string][]*database.Quest
+	// unlock each, by id (a draft's unlock bars no one: no one can finish it);
+	// unlockers every quest that unlocks each, drafts too (one finished
+	// opens it)
+	gates     map[string][]*database.Quest
+	unlockers map[string][]*database.Quest
 }
 
 // questChar is one character's quests.
@@ -294,7 +297,8 @@ func (q *QuestEngine) Reload() error {
 	if err != nil {
 		return err
 	}
-	cat := questCatalog{byID: map[int]*database.Quest{}, givers: map[string][]*database.Quest{}, gates: map[string][]*database.Quest{}}
+	cat := questCatalog{byID: map[int]*database.Quest{}, givers: map[string][]*database.Quest{}, gates: map[string][]*database.Quest{},
+		unlockers: map[string][]*database.Quest{}}
 	for i := range all {
 		qu := &all[i]
 		cat.byID[qu.ID] = qu
@@ -303,9 +307,10 @@ func (q *QuestEngine) Reload() error {
 			k := foldName(qu.Giver)
 			cat.givers[k] = append(cat.givers[k], qu)
 		}
-		if qu.Enabled {
-			for _, u := range qu.Unlocks {
-				k := tripKey(u.NPC, u.Dest)
+		for _, u := range qu.Unlocks {
+			k := tripKey(u.NPC, u.Dest)
+			cat.unlockers[k] = append(cat.unlockers[k], qu)
+			if qu.Enabled {
 				cat.gates[k] = append(cat.gates[k], qu)
 			}
 		}

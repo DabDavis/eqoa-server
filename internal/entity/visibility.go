@@ -294,6 +294,7 @@ func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, ob
 			buf[26] = 3
 			buf[27] = 0
 		}
+		w.duelViewPetLocked(sess, npc, buf) // a duel opponent's pet as a creature (duel.go)
 		w.putChannelTargetLocked(sess, npc, buf)
 		return buf
 	}
@@ -322,6 +323,7 @@ func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, ob
 		// which is what the serializer already does, so there is nothing for
 		// the visibility path to add.
 		buf := SerializePlayerUpdate(objectID, p)
+		w.duelViewLocked(sess, p.ServerID, buf) // a duel opponent as a creature (duel.go)
 		w.putChannelTargetLocked(sess, p, buf)
 		return buf
 	}

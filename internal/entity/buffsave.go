@@ -73,7 +73,7 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 	var rows []database.BuffRow
 	for _, e := range p.Effects {
 		left := e.Until.Sub(now)
-		if left <= 0 {
+		if left <= 0 || e.duelFoe != 0 { // a duel's harm ends with it (duel.go)
 			continue
 		}
 		tick := int64(-1)

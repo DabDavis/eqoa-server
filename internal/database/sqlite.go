@@ -633,6 +633,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureFishCatch(); err != nil { // fishing.go
 		return err
 	}
+	if err := db.ensureDuelStakes(); err != nil { // duel.go: a duel's wager held
+		return err
+	}
 	if err := db.ensureGMTriggers(); err != nil { // gmtriggers.go
 		return err
 	}

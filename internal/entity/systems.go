@@ -23,6 +23,7 @@ const (
 // with the lock let go (respawn.go).
 func (w *World) Tick(now time.Time) {
 	due, gates, gone := w.tickLocked(now)
+	w.runDuelPurse() // a duel's wager held or paid (duelpurse.go)
 	w.runRespawns(due)
 	w.runGates(gates)
 	w.runTravels() // the spells that send players to a named place (gates.go)
@@ -44,6 +45,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.homeSystem(now)
 	w.attackSystem(now)
 	w.petSystem(now)
+	w.duelSystem(now) // duels' invitations and ends (duel.go)
 	gates := w.castSystem(now)
 	w.effectSystem(now)
 	w.consumableSystem(now)

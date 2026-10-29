@@ -240,8 +240,12 @@ const (
 	OpcodeCharSelectNeedsFrontiers  GameOpcode = 0x07F4 // char select: word 1662 (that character needs the Frontiers disc); 0x07F2 too
 	OpcodeCharSelectAreaUnavailable GameOpcode = 0x07F0 // char select: word 676 (the character's area is unavailable); 0x07F1/0x07F3 too
 	OpcodeWorldUnavailable          GameOpcode = 0x07F3 // char select: word 676, as 0x07F0
-	OpcodeCamera2                   GameOpcode = 0x07F5 // Server Unknown (camera related)
-	OpcodeTeleport                  GameOpcode = 0x00B2 // Msg00B2: u8 world, pos, HPR, u32 token -- Respawn, answered by 0x0049 = zigzag(token)
+	// OpcodeLiveFeatures (once "Camera2", the C# reference's 0x1B) is SOE's live
+	// client's server feature word: a u32 into VIClient+0x813C (live
+	// 0x012C9548), 0x1B in both retail save states; bit 0x10 lets its duel
+	// part challenge and surrender (entity/duel.go). The disc has no case.
+	OpcodeLiveFeatures GameOpcode = 0x07F5
+	OpcodeTeleport     GameOpcode = 0x00B2 // Msg00B2: u8 world, pos, HPR, u32 token -- Respawn, answered by 0x0049 = zigzag(token)
 )
 
 // =============================================================================
@@ -329,8 +333,13 @@ const (
 // 0x15XX - Dueling
 // =============================================================================
 
+// SOE's live client's duel (eqoa-live-1500, entity/duelwire.go): 0x1501 up,
+// 0x1502 down, each {u8 sub, u32 duel id, ...}. The Frontiers disc has
+// neither. Sandstorm's S2 player search runs the other way (0x1502 up,
+// 0x1500/0x1501 down), so neither direction clashes.
 const (
-	OpcodeDuelRequest GameOpcode = 0x1501 // Duel Request (client)
+	OpcodeDuelRequest GameOpcode = 0x1501 // client: challenge, decline, accept, surrender, the wager's
+	OpcodeDuel        GameOpcode = 0x1502 // server: the invitation, its answers, the duel's state
 )
 
 // =============================================================================
@@ -406,6 +415,15 @@ const (
 	// client's own word, TRIGGER. Sent after the client's 1 and whenever a
 	// trigger is saved, deleted, starts or ends.
 	OpcodeGMTriggersData GameOpcode = 0x7E08
+
+	// OpcodeDuelWindow is not retail: whether a client has SOE's live duel
+	// window (VIWndDuel, entity/duel.go), a u32 after the opcode, both ways.
+	// The server offers it (1) once the player is in the world; a client
+	// that shows the live window answers 1 to be sent the live game's duel
+	// messages (OpcodeDuel) in place of boxes, and to see its opponent as a
+	// player (its own TargetInRange asks its duel part), 0 to go back. A PS2
+	// ignores the offer and duels by boxes.
+	OpcodeDuelWindow GameOpcode = 0x7E09
 
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length
@@ -583,8 +601,8 @@ func (op GameOpcode) String() string {
 		return "BestEffortPing"
 	case OpcodeExpansionFlags:
 		return "ExpansionFlags"
-	case OpcodeCamera2:
-		return "Camera2"
+	case OpcodeLiveFeatures:
+		return "LiveFeatures"
 	case OpcodeTeleport:
 		return "Teleport"
 	case OpcodeClientSayChat:
@@ -657,6 +675,10 @@ func (op GameOpcode) String() string {
 		return "SkyboxWeather"
 	case OpcodeDuelRequest:
 		return "DuelRequest"
+	case OpcodeDuel:
+		return "Duel"
+	case OpcodeDuelWindow:
+		return "DuelWindow"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:

@@ -101,6 +101,10 @@ type World struct {
 	// Summoned pets by their owners' ids (pet.go)
 	pets map[EntityID]*petState
 
+	// Duels, asked and on (duel.go), and their wagers' writes (duelpurse.go)
+	duels     duelTable
+	duelPurse duelPurse
+
 	// The life taps a necromancer's pets cast, by level (pettap.go)
 	petTaps []PetTap
 
@@ -392,6 +396,7 @@ func (w *World) PlayerEntered(sess *session.Session) {
 func (w *World) leavingLocked(p *Player) []func(*Player) {
 	delete(w.announced, p)
 	w.voiceGoneLocked(p)
+	w.duelLeavingLocked(p) // its invitation lapses, its duel is forfeit (duel.go)
 	fns := make([]func(*Player), len(w.leaving))
 	copy(fns, w.leaving)
 	return fns

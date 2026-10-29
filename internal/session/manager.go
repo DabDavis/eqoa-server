@@ -404,23 +404,30 @@ func (m *Manager) LiveLogin(accountID int, ip net.IP, ipOf func(*net.UDPAddr) ne
 }
 
 // LiveCharacter reports whether the character (by serverID) is in the game
-// in a session other than except, live as LiveLogin counts one: the first
-// window keeps its character, and character select refuses it to another.
+// in a session other than except, live as LiveLogin counts one (LiveHolder).
 func (m *Manager) LiveCharacter(charServerID uint32, except *Session) bool {
+	return m.LiveHolder(charServerID, except) != nil
+}
+
+// LiveHolder is the session other than except that has the character (by
+// serverID) in the game, live as LiveLogin counts one, or nil. Character
+// select takes the character over from it when it is the same account's
+// (entity/takeover.go), and refuses it while another account's holds it.
+func (m *Manager) LiveHolder(charServerID uint32, except *Session) *Session {
 	if charServerID == 0 {
-		return false
+		return nil
 	}
 	now := time.Now()
-	live := false
+	var holder *Session
 	m.sessions.Range(func(_, value interface{}) bool {
 		sess := value.(*Session)
 		if sess != except && sess.CharacterServerID() == charServerID && holdsLogin(sess, now) {
-			live = true
+			holder = sess
 			return false
 		}
 		return true
 	})
-	return live
+	return holder
 }
 
 // holdsLogin reports whether sess holds its login (LiveLogin, LiveCharacter):
@@ -478,6 +485,27 @@ func (m *Manager) SetOnReplaced(fn func(*Session)) {
 	m.onReplaced = fn
 }
 
+// ReplaceSession ends sess because another login took its character: one in
+// the game is told (0x07A4, "You have logged in from another location.") and
+// kept ReplacedGrace to hear it; one not in the game, or with nothing to tell
+// it, is dropped at the next tick. One already replaced is left alone. It
+// reports whether sess was told.
+func (m *Manager) ReplaceSession(sess *Session) bool {
+	if sess == nil {
+		return false
+	}
+	if _, done := sess.ReplacedFor(); done {
+		return false
+	}
+	if m.onReplaced == nil || !sess.InGame() {
+		sess.SetPendingTermination(true)
+		return false
+	}
+	sess.MarkReplaced()
+	m.onReplaced(sess)
+	return true
+}
+
 // RemoveSessionForCharacter retires any existing session that holds the given
 // character (by serverID). Called from World.CreatePlayer so that reconnecting
 // the same character cleans up the ghost, while different characters from the
@@ -502,16 +530,13 @@ func (m *Manager) RemoveSessionForCharacter(charServerID uint32, exceptInstanceI
 				return true
 			}
 			count++
-			if m.onReplaced == nil || !sess.InGame() {
-				log.Printf("RemoveSessionForCharacter: flagging old session for char serverID=%d (addr=%s, instance=0x%X)",
+			if m.ReplaceSession(sess) {
+				log.Printf("RemoveSessionForCharacter: told old session for char serverID=%d it was replaced (addr=%s, instance=0x%X)",
 					charServerID, k.Addr, k.InstanceID)
-				sess.SetPendingTermination(true)
-				return true
+			} else {
+				log.Printf("RemoveSessionForCharacter: flagged old session for char serverID=%d (addr=%s, instance=0x%X)",
+					charServerID, k.Addr, k.InstanceID)
 			}
-			log.Printf("RemoveSessionForCharacter: telling old session for char serverID=%d it was replaced (addr=%s, instance=0x%X)",
-				charServerID, k.Addr, k.InstanceID)
-			sess.MarkReplaced()
-			m.onReplaced(sess)
 		}
 		return true
 	})

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""The measured rows of factionstart: the standing each race, class and home
-city starts with in every faction, as Sandstorm gives a new character
+"""The measured starting standings: factionstart's rows, and the factions
+table's own standings and names, as Sandstorm gives a new character
 (entity/faction.go; 2026-10-29, the user's new dark elf killed by Neriak's
 ghoul servant, which "should be revered").
 
@@ -10,34 +10,41 @@ The measurement is a TSV, a line a combo and a faction:
 
 race, class and humtype as defaultcharacter has them (humtype 0 for every
 race but the humans, 1 the east's, 2 the west's), off a new character of each
-of defaultcharacter's combos made on Sandstorm and its faction window read. A
-first line naming the columns, blank lines and lines starting with # are
-passed over. A faction is the factions table's of that name, else the one
-whose name is the same but for spaces at its ends (said).
+of defaultcharacter's combos made on Sandstorm and its faction window read
+(the coordinator's survey, harvest-runs/sandstorm/survey/starts.tsv). A first
+line naming the columns, blank lines and lines starting with # are passed
+over; a combo is read as the server reads a character's (a froglok and a
+human of no city as the east's, another race's city 0).
 
-What is written is compressed, not a row a combo and a faction:
+The factions table's standings were one eqoa.live character's (a gnome's,
+moved since it was made: a new gnome on Sandstorm differs in 174 of 370), so
+they are no one's start, and by default each faction's own standing is made
+the start most measured combos have (--keep-defaults leaves them, and the
+rows then say every difference from them). On top of that, the fewest rows:
 
-- a faction every combo starts with at one standing gets no row: the factions
-  table's own standing is everyone's start. Where that differs from the
-  measurement it is said, and --defaults sets the factions table's standing
-  to it (logged; --undo puts it back);
+- a faction every combo starts with at one standing gets no row;
 - otherwise, for each race, the standing most of its combos start with is one
   row (class -1, humtype -1), unless it is the faction's own; for each human
   city whose start differs from its race's a row (humtype 1 or 2); and a row a
-  class whose start differs from its race's (or its city's). With --defaults
-  the faction's own is first made the standing most combos start with.
+  class whose start differs from its race's (or its city's);
 - before anything is written the rows are checked: every measured combo
   comes out (the server's rule: its most specific row, else the faction's
   own) at its measured standing, or the tool stops.
 
+A faction Sandstorm lists and the table lacks is added, at the start most
+combos have, so the faction window lists what Sandstorm's does; one whose name
+starts with '*' ("*Delete") is junk and left out. A faction of the table the
+measurement never lists is said, not deleted (a quest or a hit may name it).
+
 Rows are written with source "seed" and never over a GM's row (another
 source) for the same race, class, city and faction, which is said, with every
 combo such a row keeps from its measured start. A factions standing a GM
-edited in the panel (gm_audit) is not changed by --defaults. Each row written
-and each standing changed is logged in table factionstart_seed; --undo deletes
-the rows and puts the standings back, but not a row or a standing changed
-since (said), and drops the log. A second --apply is refused while the log is
-there. Both take a copy of the database first (<db>.bak-<when>-pre-factionstart).
+edited in the panel (gm_audit) is left. Everything written is logged in table
+factionstart_seed; --undo deletes the rows and the factions it added and puts
+the standings back, but not what was changed since (said), and drops the
+log. A second --apply is refused while the log is there, and so is an
+--apply with a defaultcharacter combo unmeasured (--partial writes anyway).
+Both take a copy of the database first (<db>.bak-<when>-pre-factionstart).
 Report only by default.
 
 The tables are the server's (database/factions.go); --apply makes factionstart
@@ -45,7 +52,7 @@ if the server has not yet. The running server reads them at its start, and
 again after any GM panel edit of Faction starts or Factions.
 
     tools/seed_faction_starts.py --db eqoa.db --measured starts.tsv
-        [--apply | --undo] [--defaults] [--no-backup] [--quiet]
+        [--apply | --undo] [--keep-defaults] [--partial] [--no-backup] [--quiet]
 """
 import argparse
 import collections
@@ -77,7 +84,8 @@ SCHEMA = """CREATE TABLE IF NOT EXISTS factionstart (
 )"""
 
 LOG_SCHEMA = f"""CREATE TABLE IF NOT EXISTS {LOG} (
-    what    TEXT NOT NULL,     -- 'row': a factionstart row written; 'default': a factions standing changed
+    what    TEXT NOT NULL,     -- 'row' a factionstart row written, 'default' a factions standing changed,
+                               -- 'faction' a factions row added
     rowid   INTEGER,           -- the factionstart row ('row')
     faction TEXT NOT NULL,
     old     INTEGER,           -- the factions standing before ('default')
@@ -129,7 +137,7 @@ def resolve(rows, base, combo):
     return best[3] if best else base
 
 
-def mode(values, prefer):
+def mode(values, prefer=None):
     """The value most often in values; of equals, prefer if it is one, else
     the highest."""
     count = collections.Counter(values)
@@ -169,9 +177,10 @@ def compress(values, base):
 
 def read_measured(path, factions):
     """The TSV: {faction: {combo: standing}}, and what was said about it
-    (unknown factions, names taken without their ends' spaces, standings out
-    of range, lines that are no row). Two different standings for one combo
-    and faction stop the tool."""
+    (factions the table lacks, junk left out, names taken without their
+    ends' spaces, combos read otherwise, standings out of range, lines that
+    are no row). Two different standings for one combo and faction stop the
+    tool."""
     stripped = collections.defaultdict(list)
     for f in factions:
         stripped[f.strip()].append(f)
@@ -195,18 +204,22 @@ def read_measured(path, factions):
                 said["not a row"].append(f"line {n}: {line[:60]!r}")
                 continue
             name = parts[3]
+            if name.startswith("*") or not name.strip():
+                said["junk, left out"].append(repr(name))
+                continue
             if name not in factions:
                 cands = stripped.get(name.strip(), [])
-                if len(cands) != 1:
-                    said["no such faction"].append(name)
-                    continue
-                said["taken without the spaces at its ends"].append(f"{name!r} as {cands[0]!r}")
-                name = cands[0]
+                if len(cands) == 1:
+                    said["taken without the spaces at its ends"].append(f"{name!r} as {cands[0]!r}")
+                    name = cands[0]
+                else:
+                    said["not in the factions table: added"].append(repr(name))
             if not -2000 <= standing <= 2000:
                 said["out of -2000..2000"].append(f"line {n}: {name} {standing}")
             combo = combo_of(race, cls, hum)
             if combo != (race, cls, hum):
-                said["read as the server reads them"].append(f"{combo_name((race, cls, hum))} (humtype {hum}) as {combo_name(combo)}")
+                said["read as the server reads them"].append(
+                    f"{combo_name((race, cls, hum))} (humtype {hum}) as {combo_name(combo)}")
             if combo in measured[name] and measured[name][combo] != standing:
                 clash.append(f"{combo_name(combo)} {name}: {measured[name][combo]} and {standing}")
             measured[name][combo] = standing
@@ -232,10 +245,12 @@ def gm_edited_factions(db):
     return out
 
 
-def plan(db, measured, use_defaults):
-    """What --apply would write: the rows, the factions standings to change,
-    the factions every combo shares a start in (and whether the table holds
-    it), the GM rows kept and the combos they keep from their measurement."""
+def plan(db, measured, keep_defaults=False):
+    """What --apply would write: the factions to add, the factions standings
+    to change, the rows, and what is said: the factions every combo shares a
+    start in that the table does not hold (--keep-defaults), the table's
+    factions the measurement lacks, a GM's standings and rows kept and the
+    combos those rows keep from their measurement, the combos unmeasured."""
     defaults = dict(db.execute("SELECT name, standing FROM factions"))
     combos = sorted({combo_of(r, c, h) for r, c, h in db.execute("SELECT race, tclass, humType FROM defaultcharacter")})
     try:
@@ -249,18 +264,23 @@ def plan(db, measured, use_defaults):
     gm_keys = {(r[0], r[1], r[2], r[3]) for r in gm}
     edited = gm_edited_factions(db)
 
-    rows, new_defaults, shared, gm_defaults, kept_gm, overridden = [], {}, [], [], [], []
+    added, new_defaults, rows, shared, gm_defaults, kept_gm, overridden = {}, {}, [], [], [], [], []
+    bases = {}
     for faction in sorted(measured):
         values = measured[faction]
-        base = defaults.get(faction, 0)
-        if use_defaults:
+        if faction not in defaults:
+            base = mode(list(values.values()))
+            added[faction] = base
+        else:
+            base = defaults[faction]
             want = mode(list(values.values()), base)
-            if want != base:
+            if not keep_defaults and want != base:
                 if faction in edited:
                     gm_defaults.append((faction, want, base))
                 else:
                     new_defaults[faction] = (base, want)
                     base = want
+        bases[faction] = base
         distinct = set(values.values())
         if len(distinct) == 1:
             v = next(iter(distinct))
@@ -273,28 +293,29 @@ def plan(db, measured, use_defaults):
                 continue
             rows.append((race, cls, hum, faction, v))
     # the check: every measured combo comes out at its measurement, but where
-    # a GM's row holds it
+    # a GM's row holds it, or the table keeps its own standing (said)
     by_faction = collections.defaultdict(list)
     for race, cls, hum, faction, v in rows:
         by_faction[faction].append((race, cls, hum, v))
     unshared = {f for f, _, _ in shared}
     for faction, values in measured.items():
         if faction in unshared:
-            continue  # the factions table's own, said
-        base = new_defaults[faction][1] if faction in new_defaults else defaults.get(faction, 0)
+            continue
         effective = by_faction[faction] + gm_by[faction]
         for combo, v in values.items():
-            got = resolve(effective, base, combo)
+            got = resolve(effective, bases[faction], combo)
             if got == v:
                 continue
             if any(holds(g, combo) for g in gm_by[faction]):
                 overridden.append((combo, faction, v, got))
             else:
                 sys.exit(f"the compression is wrong: {combo_name(combo)} {faction} comes out at {got}, measured {v}")
-    missing = [c for c in combos if not any(c in vals for vals in measured.values())]
-    unlisted = sorted({c for vals in measured.values() for c in vals} - set(combos))
-    return dict(rows=rows, new_defaults=new_defaults, shared=shared, gm_defaults=gm_defaults, kept_gm=kept_gm,
-                overridden=overridden, missing=missing, unlisted=unlisted, combos=combos)
+    measured_combos = {c for vals in measured.values() for c in vals}
+    return dict(added=added, new_defaults=new_defaults, rows=rows, shared=shared, gm_defaults=gm_defaults,
+                kept_gm=kept_gm, overridden=overridden, combos=combos,
+                missing=[c for c in combos if c not in measured_combos],
+                unlisted=sorted(measured_combos - set(combos)),
+                absent=sorted(f for f in defaults if f not in measured))
 
 
 def backup(db, path):
@@ -314,6 +335,9 @@ def apply(db, p):
     db.execute("BEGIN")
     db.execute(SCHEMA)
     db.execute(LOG_SCHEMA)
+    for faction, v in sorted(p["added"].items()):
+        db.execute("INSERT INTO factions (name, standing) VALUES (?, ?)", (faction, v))
+        db.execute(f"INSERT INTO {LOG} (what, faction, new) VALUES ('faction', ?, ?)", (faction, v))
     for faction, (old, new) in sorted(p["new_defaults"].items()):
         db.execute("UPDATE factions SET standing = ? WHERE name = ?", (new, faction))
         db.execute(f"INSERT INTO {LOG} (what, faction, old, new) VALUES ('default', ?, ?, ?)", (faction, old, new))
@@ -327,10 +351,10 @@ def apply(db, p):
 def undo(db):
     """Put back what the logged --apply wrote; what was changed since is left
     and said."""
-    log = list(db.execute(f"SELECT what, rowid, faction, old, new FROM {LOG} ORDER BY rowid IS NULL, rowid"))
+    log = list(db.execute(f"SELECT what, rowid, faction, old, new FROM {LOG}"))
     done, kept = collections.Counter(), []
     db.execute("BEGIN")
-    for what, rowid, faction, old, new in log:
+    for what, rowid, faction, old, new in sorted(log, key=lambda r: ("row", "default", "faction").index(r[0])):
         if what == "row":
             r = db.execute("SELECT standing FROM factionstart WHERE id = ?", (rowid,)).fetchone()
             if r is None:
@@ -347,6 +371,21 @@ def undo(db):
                 continue
             db.execute("UPDATE factions SET standing = ? WHERE name = ?", (old, faction))
             done["standings"] += 1
+        elif what == "faction":
+            r = db.execute("SELECT standing FROM factions WHERE name = ?", (faction,)).fetchone()
+            if r is None:
+                continue
+            if r[0] != new:
+                kept.append(f"factions {faction!r}: {r[0]} now, the seed added it at {new}")
+                continue
+            db.execute("DELETE FROM factions WHERE name = ?", (faction,))
+            done["factions"] += 1
+            try:
+                held = db.execute("SELECT COUNT(*) FROM charfactions WHERE faction = ?", (faction,)).fetchone()[0]
+            except sqlite3.OperationalError:
+                held = 0
+            if held:
+                kept.append(f"{held} characters' standings in {faction!r} (charfactions): kept, unlisted")
     db.execute(f"DROP TABLE {LOG}")
     db.execute("COMMIT")
     return done, kept
@@ -355,26 +394,35 @@ def undo(db):
 def report(p, quiet):
     rows = p["rows"]
     per_race = collections.Counter(r[0] for r in rows)
-    print(f"{len(p['combos'])} combos in defaultcharacter; {len(rows)} rows on "
-          f"{len({r[3] for r in rows})} factions (by race: "
+    print(f"{len(p['combos'])} combos in defaultcharacter, {len(p['combos']) - len(p['missing'])} measured; "
+          f"{len(rows)} rows on {len({r[3] for r in rows})} factions (by race: "
           + ", ".join(f"{name_of(RACES, r)} {n}" for r, n in sorted(per_race.items())) + ")")
     if p["missing"]:
-        print(f"  {len(p['missing'])} combos not measured: " + ", ".join(combo_name(c) for c in p["missing"]))
+        print(f"  {len(p['missing'])} combos not measured (--apply refuses but with --partial): "
+              + ", ".join(combo_name(c) for c in p["missing"]))
     if p["unlisted"]:
         print(f"  {len(p['unlisted'])} measured combos defaultcharacter lacks (their rows still count): "
               + ", ".join(combo_name(c) for c in p["unlisted"]))
+    if p["added"]:
+        print(f"  {len(p['added'])} factions Sandstorm lists added to the factions table, at the commonest start:")
+        if not quiet:
+            for f, v in sorted(p["added"].items()):
+                print(f"      {f!r}: {v}")
+    if p["absent"]:
+        print(f"  {len(p['absent'])} factions of the table the measurement does not list (left): "
+              + ", ".join(repr(f) for f in p["absent"]))
     if p["new_defaults"]:
-        print(f"  --defaults: {len(p['new_defaults'])} factions' own standings set to the commonest start:")
+        print(f"  {len(p['new_defaults'])} factions' own standings set to the commonest start (--keep-defaults leaves them):")
         if not quiet:
             for f, (old, new) in sorted(p["new_defaults"].items()):
                 print(f"      {f!r}: {old} -> {new}")
     if p["shared"]:
         print(f"  {len(p['shared'])} factions every combo starts at one standing the factions table does not hold "
-              f"(--defaults sets it there; until then every character starts at the table's):")
+              f"(kept; every character starts at the table's):")
         for f, v, base in p["shared"]:
             print(f"      {f!r}: measured {v}, the table {base}")
     if p["gm_defaults"]:
-        print(f"  {len(p['gm_defaults'])} factions' own standings a GM edited, left alone by --defaults:")
+        print(f"  {len(p['gm_defaults'])} factions' own standings a GM edited, left:")
         for f, v, base in p["gm_defaults"]:
             print(f"      {f!r}: commonest start {v}, the table {base}")
     if p["kept_gm"]:
@@ -396,10 +444,11 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--db", default=DEFAULT_DB)
     ap.add_argument("--measured", help="the measured TSV: race, class, humtype, faction, standing")
-    ap.add_argument("--apply", action="store_true", help="write the rows")
+    ap.add_argument("--apply", action="store_true", help="write the rows, the standings and the factions")
     ap.add_argument("--undo", action="store_true", help="put back what --apply wrote")
-    ap.add_argument("--defaults", action="store_true",
-                    help="also set each faction's own standing to the start most combos have")
+    ap.add_argument("--keep-defaults", action="store_true",
+                    help="leave each faction's own standing; the rows say every difference from it")
+    ap.add_argument("--partial", action="store_true", help="--apply with a defaultcharacter combo unmeasured")
     ap.add_argument("--no-backup", action="store_true", help="write without a copy first")
     ap.add_argument("--quiet", action="store_true", help="the counts, not every row")
     a = ap.parse_args(argv)
@@ -422,7 +471,7 @@ def run(ap, a, db):
         done, kept = undo(db)
         print("put back:", dict(done) or "nothing")
         for k in kept:
-            print("  left (changed since):", k)
+            print("  left:", k)
         print("restart the server, or edit a Faction starts row in the GM panel, for the world to read it")
         return 0
     if not a.measured:
@@ -435,16 +484,20 @@ def run(ap, a, db):
     measured, said = read_measured(a.measured, set(factions))
     for what, items in said.items():
         print(f"{len(items)} {what}: " + "; ".join(items[:12]) + (" ..." if len(items) > 12 else ""))
-    p = plan(db, measured, a.defaults)
+    p = plan(db, measured, a.keep_defaults)
     report(p, a.quiet)
     if not a.apply:
         print("(report only: --apply writes them)")
         return 0
+    if p["missing"] and not a.partial:
+        ap.error(f"{len(p['missing'])} combos are not measured: the factions' own standings would be the others' "
+                 f"(--partial writes anyway)")
     if not a.no_backup:
         print("backup:", backup(db, a.db))
     apply(db, p)
-    print(f"wrote {len(p['rows'])} rows and {len(p['new_defaults'])} factions' own standings; restart the server, "
-          f"or edit a Faction starts row in the GM panel, for the world to read them")
+    print(f"wrote {len(p['rows'])} rows, {len(p['new_defaults'])} factions' own standings and "
+          f"{len(p['added'])} new factions; restart the server, or edit a Faction starts row in the GM panel, "
+          f"for the world to read them")
     return 0
 
 

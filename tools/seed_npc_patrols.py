@@ -42,6 +42,10 @@ WANDER_PACE never seen to repeat is a wanderer: its name gets an npcmove row
 seen from the middle of its walk, 15 to 75), never a path, and no NPC is
 made for one; a name with an npcmove row already is left.
 
+A runner is no patrol either: Sandstorm's patrols walk (2.62-4.43); one at
+RUN_PACE or more (a magician's Air Elementalkin at 9.68 in Qeynos, after its
+owner) is chasing or following.
+
 Who is left out: an animal by its name (seed_npc_move.py's wildlife_word, the
 server's own list), the watcher itself, and every player: an id of
 PLAYER_IDS or more (the channels give players and NPCs one kind; Sandstorm's
@@ -94,6 +98,7 @@ TURN = math.radians(15)
 MATCH = 150.0         # a route to an NPC of its name whose spawn is this near it
 OWN_PAUSE = 2.0       # a point's own pause when its stops differ by this
 PLAYER_IDS = 100_000_000  # an id this or more is a player's, never an NPC's
+RUN_PACE = 7.0           # a walker this fast runs: a chase or a pet after its owner, no route
 WANDER_PACE = (4.8, 5.2)  # Sandstorm's wander (4.87-4.98 measured; roam.go's 5); patrols 2.62-3.94, an ogre's 4.32-4.43
 WANDER_RADIUS = (15.0, 75.0)
 MOVE_LOG = """CREATE TABLE npcmove_seed (
@@ -318,6 +323,9 @@ def plan(db, files, add=False):
             if r is None:
                 continue
             points, mode, pace, pause, full, spread = r
+            if pace >= RUN_PACE:
+                left.append((name, f"runs ({pace:g}/s): a chase or a pet after its owner, no patrol"))
+                continue
             if WANDER_PACE[0] <= pace <= WANDER_PACE[1] and not full:
                 wanders.setdefault(key(name), (name, spread, f"{os.path.basename(path)} {sid}"))
                 continue

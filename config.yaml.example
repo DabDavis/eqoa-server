@@ -54,6 +54,12 @@ world:
   # max_entity_slots: 128
   # max_view_distance: 600
 
+  # A line every player in the world gets when the server stops (a restart:
+  # SIGTERM from systemctl, or the GM panel's restart), restart_notice_wait
+  # (5s when unset) before the game goes back to its login. Unset: none.
+  # restart_notice: "Restarting Server, log back in 20 seconds."
+  # restart_notice_wait: 5s
+
 patch:
   # Directory holding the client patch payloads. A relative path resolves
   # against the working directory first, then against the executable's

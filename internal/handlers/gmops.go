@@ -69,6 +69,13 @@ func Broadcast(sm *session.Manager, text string, rgb [3]byte) int {
 	return len(to)
 }
 
+// RestartNotice sends world.restart_notice's line to every player in the
+// world as a GM's BROADCAST reads (gmBroadcastRGB), the server about to stop,
+// and returns how many it went to.
+func RestartNotice(sm *session.Manager, text string) int {
+	return Broadcast(sm, text, gmBroadcastRGB)
+}
+
 // Eject ends a session as a server administrator does: 0x07A2, Disconnect(14)
 // (word 716, "You have been ejected by a server administrator."), and the
 // session kept session.ReplacedGrace to deliver it. The listener then saves

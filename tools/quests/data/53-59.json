@@ -375,17 +375,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Tomb Spirit",
-    "Nolius Adder",
-    "Ancient Spirit",
-    "Servant of Tal Thir",
-    "Explorer Graeven",
-    "Servant of Vorin",
-    "Jal Raeth Librarian",
-    "Jal Raeth Chancellor",
-    "Chancellor's Servant"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/53-59/53.json, Quest 1: Dead Hills 53 (github.com/Jadiction/EQOA-Data, MIT). The giver is the guide's blank con at the tomb's door (Dead Hills (E)); its name is ours. The Ghastly Kin tomb's choice is the pop-up's right answer (waving your arms despawned the lizardman); his words and the throne rooms' are pop-ups; the gem's group port is a teleport for the quester alone, onto the middle tower. Envar has no creatures on this server, so its named ones are seeded (Tal Thir, the servants, the librarians, the Chancellor) with a few Accursed Maggots and Zombies; the Explorer is always up (a rare at dusk in the live game). The alchemist's reward (the guide's \"Alc ?\") is the casters' tunic, a copy of a Wyrm Wing Tunic; the Dead Hills group port (Astral Displacement) for necromancers, druids and wizards is left out: this server has no such spell."
   },
   {
@@ -666,10 +656,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Advisor Kellum",
-    "Kerran Shaman"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/53-59/53.json, Quest 2: 53 Kerra Isle (github.com/Jadiction/EQOA-Data, MIT). The guide's other path (Advisor Kellum and Slave Trader Dunbarr in Stone of Morthalis, by alignment) is left out: the engine has one path, Arcadin's. The three creatures' parts are named by us. The alchemist's ring (45 WIS, 80 POW, unnamed) is the healers' Ring of Ancestors; it, the Gulam bracers and belt are copies of existing items (their stats, not the guide's)."
   },
   {
@@ -995,10 +982,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Sand Wasp",
-    "swampfire cobra"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/53-59/53.json, Quest 3: Lavastorm 53 (github.com/Jadiction/EQOA-Data, MIT). The guide's Minastickie and Professer Cyrk are the game's Minastikie and Professor Ceryk; the merchant by Hagley's well is Merchant Dwindel (the map puts both there). The long spawns and placeholders are left out (the named ones stand). The magmanite bracelet and belt are copies of existing items (their stats, not the guide's). Lavastorm (Minastikie's) is reached by Waysender Brindel's trip, which this server gives from level 55 (waysender.go), so the quest starts at 55 in practice."
   },
   {
@@ -1258,13 +1242,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Arios the Battered",
-    "Rip Claw",
-    "Crocosaurus",
-    "Graumaud Ritualist",
-    "Giant Skeleton"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/53-59/55.json, Quest 1: 55 Arios the Battered (github.com/Jadiction/EQOA-Data, MIT). The flag (being near Grundle as he dies) is a kill step, and Arios offers it where he stands by Forkwatch's bridge (the guide's first meeting is his spawn on the road from Darvar Manor). Skahyir and Bloodletter come for the player (the quest's Bloodletter, a copy of the server's). Crocosaurus stands (the guide spawns him off the Tae Ew hierophants); the guide's Garmaund ritualist is the game's Graumaud Ritualist."
   },
   {
@@ -1605,11 +1583,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Clan Kolbok Battlemaster",
-    "Pirate Graverobber",
-    "Erudite Courier"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/53-59/55.json, Quest 2: 55 Kerra Isle (github.com/Jadiction/EQOA-Data, MIT). Each of the shrine's pop-ups is a return to it; the guide's Clan Kobold Battlemaster is named as this server's kobolds are (Clan Kolbok). The placeholders and long spawns are left out; the courier's statue is a purchase (a give of tunar). The guide's other path (Slave Trader Dunbarr in Stone of Morthalis) is left out. The Helm of Spiritual Might is a copy of an existing helm (its stats, not the guide's)."
   },
   {
@@ -2050,14 +2024,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Chief Terican",
-    "Monstrous Rhino",
-    "Dark Ritualist Scout",
-    "Fire Goblin General",
-    "Paradise Basilisk",
-    "Abrosian Snapper"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/53-59/55.json, Quest 3: Lavastorm 55 (github.com/Jadiction/EQOA-Data, MIT). Quintashi's teleporting question is left out: the ambush is at the lair. The Fire Goblin General and the Dark Ritualist scout stand where they are seeded (the guide's pop-ups spawn them). The four finds are the guide's places on CLIENT's zone grid. The guide names no alchemist's reward: an alchemist gets the experience alone."
   },
   {
@@ -2427,16 +2394,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Arios the Battered",
-    "Oracle Frish",
-    "Varae the Chronicler",
-    "rune dervish",
-    "Accursed Zombie",
-    "Dresk the Lost",
-    "Starn the Aimless",
-    "Magnar the Skald (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/53-59/57.json, Quest 1: 57 Arios the Battered (github.com/Jadiction/EQOA-Data, MIT). Shrixiv the questioner (seeded in South Toxxulia) and the Shrixiv fought in the kappa fortress (the server's) share a name, as in the guide. The insignia drops off Envar's seeded Accursed Zombies (the guide: any of the complex's creatures). Magnar the Skald carries a blacksmith's NPC flags here (npc_type 136): the seed makes him attackable (npcs/qc.json). The casters' War torn gloves are a copy of an existing pair (their stats, not the guide's)."
   },
   {
@@ -2772,20 +2730,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Diseased Tempest Panther",
-    "Pestiferous Spider Queen",
-    "Healer Ometoj",
-    "Krend Catsbane",
-    "Costume Maker Leboi",
-    "Elder Garfeg",
-    "Shadza Letwin",
-    "Diseased Manticore",
-    "Diseased Welahi'nai Brute",
-    "Chief Terican",
-    "Kolbok Warden",
-    "Ratman Plaguespreader"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/53-59/57.json, Quest 2: 57 Kerra Isle (github.com/Jadiction/EQOA-Data, MIT). The Prophet's temporary Kerran illusion is left out (the engine has no illusion event); Ithwutet is left out. The guide's Chief Terrican is the 55's Chief Terican (one NPC); the healer is Arcadin's (the other path, Healer Yemev in Stone of Morthalis, is left out). The guide names no alchemist's reward. The Welahi breastplate and boots are copies of existing items (their stats, not the guide's)."
   },
   {
@@ -3281,12 +3226,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Warlord Broga",
-    "Great War Bear",
-    "Primal Eel",
-    "Enraged Lady Vox"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/53-59/57.json, Quest 3: Lavastorm 57 (github.com/Jadiction/EQOA-Data, MIT). The goblin troopers, the rain chain's Dark Ritualists and the eight at the Green Rift are pop-ups (no time limit); Broga and Siliskor come for the player (copies of the server's), Lady Vox stands where she is seeded; the professor cannot despawn (he is this quest's giver), so he sends the player away before he is taken (the guide's Pimal Eel is the game's Primal Eel, Chimeron the game's Chimareon). The guide lists the clerics for both the gauntlets and the bracelet: they get the gauntlets. No alchemist's reward is named. The astral bracelet of wisdom is a copy of an existing bracelet (its stats, not the guide's). The Plane of Sky and its rain isles are reached by their own portal quests' trips (the Sky Portal and the essences, waysender.go), which this quest does not open."
   },
   {
@@ -3715,15 +3655,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Arios the Battered",
-    "terran caretaker",
-    "Informant Liarah",
-    "Obsidian Assassin",
-    "Thornmage Lirial",
-    "Arcanablade Zerin",
-    "Rallosian Arbiter"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/53-59/59.json, Quest 1: 59 Arios the Battered (github.com/Jadiction/EQOA-Data, MIT). The Anvil's pop-up is a choice (any answer does, as the guide's \"pick one of the options\"); its debuffs by the 55's weapons are left out (it is simply fought). The geode talisman's port is a teleport for the quester alone; the Arbiter's secret place is ours, on the Zaoran Plateau (the Secrets world), where the attackable Arios stands (the guide's Arbiter summons him). The Zaoran Brotherhood's faction (+1000, +1000, -1000, -10) is left out: this server has no such faction. The kejekans' and kerrans' pages drop off one kind each (a warrior, a soldier), the guide's \"random drop\". The War Torn Robe is a copy of an existing tunic (its stats, not the guide's)."
   },
   {
@@ -4137,16 +4069,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Sea Nymph",
-    "Altar Guardian",
-    "Kaytin Mowler",
-    "Undead Kerrath Master",
-    "Khonza Meysla",
-    "Rynlek",
-    "Monarch of Stone",
-    "Monarch of Flame"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/53-59/59.json, Quest 2: 59 Kerra Isle (github.com/Jadiction/EQOA-Data, MIT). The historian is Arcadin's (Historian Neilok in Stone of Morthalis, the other path, is left out); the altar guardian stands at its bridge and the collar's destruction is a pop-up (the collar stays). The guide's Glox is the game's Glox Kognik, its indigo artifact smuggler the game's artifact smuggler. The Boots of the Kedge are a copy of an existing pair (their stats, not the guide's)."
   },
   {
@@ -4522,14 +4445,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Dark Ritualist Enforcer",
-    "Ancient Clockwork",
-    "Leviathan",
-    "Wind of the Plains",
-    "Madam Watrya",
-    "Island Madman"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/53-59/59.json, Quest 3: Lavastorm 59 (github.com/Jadiction/EQOA-Data, MIT). The professor's enforcer comes for the player when the quest is taken; the madman and Rag-Adah stand (the guide's quest spawns them); the guide's Rag'Adah is the game's Rag-Adah. The harbinger's gloves are a copy of an existing pair (their stats, not the guide's). The Plane of Sky and its sun and rain isles are reached by their own portal quests' trips (waysender.go), which this quest does not open."
   }
  ],

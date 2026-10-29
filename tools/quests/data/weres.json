@@ -58,10 +58,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Martin Flicker",
-    "Jasmine"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/wolfwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Ranger, Bard and Rogue). Martin Flicker and Jasmine are the seeded rows' levels, not triggered by the player."
   },
   {
@@ -123,8 +120,6 @@
     }
    ],
    "unresolved": [
-    "Martin Flicker",
-    "Jasmine",
     "Rage of Drinal"
    ],
    "notes": "From EQOA-Data Quests/Weres/wolfwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Ranger, Bard and Rogue). Martin Flicker and Jasmine are the seeded rows' levels, not triggered by the player."
@@ -189,8 +184,6 @@
     }
    ],
    "unresolved": [
-    "Martin Flicker",
-    "Jasmine",
     "Howl of Terror"
    ],
    "notes": "From EQOA-Data Quests/Weres/wolfwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Ranger, Bard and Rogue). Martin Flicker and Jasmine are the seeded rows' levels, not triggered by the player."
@@ -253,8 +246,6 @@
     }
    ],
    "unresolved": [
-    "Martin Flicker",
-    "Jasmine",
     "Howl of Doom"
    ],
    "notes": "From EQOA-Data Quests/Weres/wolfwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Ranger, Bard and Rogue). Martin Flicker and Jasmine are the seeded rows' levels, not triggered by the player."
@@ -410,9 +401,7 @@
      "says": "So the curse spreads. Levandius, in the druid village of Unkempt North, knows the wolf's blood better than anyone. Go to him."
     }
    ],
-   "unresolved": [
-    "John Lightwolf"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/wolfwere.json, the first two parts (github.com/Jadiction/EQOA-Data, MIT). The three each part sets on the player are wolfweres of their own level (38 to 40), not the player's: bring friends. The guide names no reward for these parts."
   },
   {
@@ -539,11 +528,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Golden Gnoll",
-    "Green Racer Snake",
-    "Briggs"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/bearwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"your class-specific NPC\" in Unkempt North (S), unnamed: Dorandas, the line's NPC there, gives it, one quest an archetype with its spell. The return is to him, not the Unkempt Glade."
   },
   {
@@ -605,9 +590,6 @@
     }
    ],
    "unresolved": [
-    "Golden Gnoll",
-    "Green Racer Snake",
-    "Briggs",
     "Cave Bear Strength"
    ],
    "notes": "From EQOA-Data Quests/Weres/bearwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"your class-specific NPC\" in Unkempt North (S), unnamed: Dorandas, the line's NPC there, gives it, one quest an archetype with its spell. The return is to him, not the Unkempt Glade."
@@ -672,9 +654,6 @@
     }
    ],
    "unresolved": [
-    "Golden Gnoll",
-    "Green Racer Snake",
-    "Briggs",
     "Summon Blessed Fish"
    ],
    "notes": "From EQOA-Data Quests/Weres/bearwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"your class-specific NPC\" in Unkempt North (S), unnamed: Dorandas, the line's NPC there, gives it, one quest an archetype with its spell. The return is to him, not the Unkempt Glade."
@@ -737,9 +716,6 @@
     }
    ],
    "unresolved": [
-    "Golden Gnoll",
-    "Green Racer Snake",
-    "Briggs",
     "Bear Nobility"
    ],
    "notes": "From EQOA-Data Quests/Weres/bearwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"your class-specific NPC\" in Unkempt North (S), unnamed: Dorandas, the line's NPC there, gives it, one quest an archetype with its spell. The return is to him, not the Unkempt Glade."
@@ -801,7 +777,6 @@
     }
    ],
    "unresolved": [
-    "Mirin",
     "Bearwere"
    ],
    "notes": "From EQOA-Data Quests/Weres/bearwere.json, the infection (github.com/Jadiction/EQOA-Data, MIT). The form's spell is named as the guide's table names it (Bearwere): this server has no bear form yet, so the quest stays a draft until it does. Mirin is the seeded row's level. The antidote is the decline. The faction with Werehunters of Tunaria (-1000) is ours (see the wolfwere's)."
@@ -922,10 +897,7 @@
      "says": "Twice now. You have their respect, and that means something. Dorandas, in the druid village of Unkempt North, will tell you what."
     }
    ],
-   "unresolved": [
-    "Barbiedolls Paw",
-    "Flurry"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/bearwere.json, the first two parts (github.com/Jadiction/EQOA-Data, MIT). The pop-ups' 30-minute timer is left out; the two bears come one after the other, at their seeded level (35 and 34) rather than the player's. The guide names no reward for these parts."
   },
   {
@@ -1064,10 +1036,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Trick Trune",
-    "Tae Ew Hoarder"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/ratwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"the appropriate class NPC in Temby\", unnamed: the Shady Swashbuckler gives it, one quest an archetype with its spell (monks with the melee: the guide's list names Rogue, Bard and Ranger). The Tae Ew are the server's rows, fought where they stand rather than triggered."
   },
   {
@@ -1140,10 +1109,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Trick Trune",
-    "Tae Ew Hoarder"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/ratwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"the appropriate class NPC in Temby\", unnamed: the Shady Swashbuckler gives it, one quest an archetype with its spell (monks with the melee: the guide's list names Rogue, Bard and Ranger). The Tae Ew are the server's rows, fought where they stand rather than triggered."
   },
   {
@@ -1218,8 +1184,6 @@
     }
    ],
    "unresolved": [
-    "Trick Trune",
-    "Tae Ew Hoarder",
     "Swarm Mentality"
    ],
    "notes": "From EQOA-Data Quests/Weres/ratwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"the appropriate class NPC in Temby\", unnamed: the Shady Swashbuckler gives it, one quest an archetype with its spell (monks with the melee: the guide's list names Rogue, Bard and Ranger). The Tae Ew are the server's rows, fought where they stand rather than triggered."
@@ -1294,8 +1258,6 @@
     }
    ],
    "unresolved": [
-    "Trick Trune",
-    "Tae Ew Hoarder",
     "Cunning Subterfuge"
    ],
    "notes": "From EQOA-Data Quests/Weres/ratwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is \"the appropriate class NPC in Temby\", unnamed: the Shady Swashbuckler gives it, one quest an archetype with its spell (monks with the melee: the guide's list names Rogue, Bard and Ranger). The Tae Ew are the server's rows, fought where they stand rather than triggered."
@@ -1661,11 +1623,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Undead Slave",
-    "Branty",
-    "Zipnick"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is a choice, its words ours (the guide gives none): a wrong one changes nothing. Undead Slave and Zipnick are the seeded rows' levels."
   },
   {
@@ -1813,9 +1771,6 @@
     }
    ],
    "unresolved": [
-    "Undead Slave",
-    "Branty",
-    "Zipnick",
     "Agility of Kehrahn"
    ],
    "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is a choice, its words ours (the guide gives none): a wrong one changes nothing. Undead Slave and Zipnick are the seeded rows' levels."
@@ -1966,9 +1921,6 @@
     }
    ],
    "unresolved": [
-    "Undead Slave",
-    "Branty",
-    "Zipnick",
     "Accelerated Foliage"
    ],
    "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is a choice, its words ours (the guide gives none): a wrong one changes nothing. Undead Slave and Zipnick are the seeded rows' levels."
@@ -2117,9 +2069,6 @@
     }
    ],
    "unresolved": [
-    "Undead Slave",
-    "Branty",
-    "Zipnick",
     "Lion's Nobility"
    ],
    "notes": "From EQOA-Data Quests/Weres/lionwere.json, Level 40 Spell Quest (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype, each with its spell (monks with the melee: the guide's list names Rogue, Ranger and Bard). The \"correct line\" Trizzia and Branty want is a choice, its words ours (the guide gives none): a wrong one changes nothing. Undead Slave and Zipnick are the seeded rows' levels."
@@ -2180,9 +2129,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Jensen"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/lionwere.json, the infection (github.com/Jadiction/EQOA-Data, MIT). Jensen is the seeded row's level, not triggered. The antidote is the decline. The faction with Werehunters of Tunaria (-1000) is ours (see the wolfwere's)."
   },
   {
@@ -2289,9 +2236,7 @@
      "says": "Herman will hunt no one now. Corindas, here by the river, has work for one like you."
     }
    ],
-   "unresolved": [
-    "Lionell Redrick"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/lionwere.json, the first two parts (github.com/Jadiction/EQOA-Data, MIT). The escort is left out: the two ambushes (three Siloth knights each, the guide's one necromancer and two melee) come where the player stands after speaking with Lionell, and the walk to the tree is skipped. Herman's hunters are the three Werehunters at his tent. The guide names no reward for these parts."
   },
   {
@@ -2410,11 +2355,7 @@
      }
     }
    ],
-   "unresolved": [
-    "The Bone Crusher",
-    "Gypsy Treheart",
-    "Nullo"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/gatorwere.json, Level 40 Spell Quest Notes (github.com/Jadiction/EQOA-Data, MIT). The guide's three class NPCs (on Crocosaurus's island, at Fort Alliance (SE), in Taksehir city) are unnamed and left out: The Bone Crusher gives it, one quest an archetype with its spell, and the two kills are its steps. Gypsy Treheart and Nullo are the seeded rows' levels, not triggered."
   },
   {
@@ -2464,9 +2405,6 @@
     }
    ],
    "unresolved": [
-    "The Bone Crusher",
-    "Gypsy Treheart",
-    "Nullo",
     "Reptillian Frenzy"
    ],
    "notes": "From EQOA-Data Quests/Weres/gatorwere.json, Level 40 Spell Quest Notes (github.com/Jadiction/EQOA-Data, MIT). The guide's three class NPCs (on Crocosaurus's island, at Fort Alliance (SE), in Taksehir city) are unnamed and left out: The Bone Crusher gives it, one quest an archetype with its spell, and the two kills are its steps. Gypsy Treheart and Nullo are the seeded rows' levels, not triggered."
@@ -2519,9 +2457,6 @@
     }
    ],
    "unresolved": [
-    "The Bone Crusher",
-    "Gypsy Treheart",
-    "Nullo",
     "Swamp Vines"
    ],
    "notes": "From EQOA-Data Quests/Weres/gatorwere.json, Level 40 Spell Quest Notes (github.com/Jadiction/EQOA-Data, MIT). The guide's three class NPCs (on Crocosaurus's island, at Fort Alliance (SE), in Taksehir city) are unnamed and left out: The Bone Crusher gives it, one quest an archetype with its spell, and the two kills are its steps. Gypsy Treheart and Nullo are the seeded rows' levels, not triggered."
@@ -2572,9 +2507,6 @@
     }
    ],
    "unresolved": [
-    "The Bone Crusher",
-    "Gypsy Treheart",
-    "Nullo",
     "Reptilian Gaze"
    ],
    "notes": "From EQOA-Data Quests/Weres/gatorwere.json, Level 40 Spell Quest Notes (github.com/Jadiction/EQOA-Data, MIT). The guide's three class NPCs (on Crocosaurus's island, at Fort Alliance (SE), in Taksehir city) are unnamed and left out: The Bone Crusher gives it, one quest an archetype with its spell, and the two kills are its steps. Gypsy Treheart and Nullo are the seeded rows' levels, not triggered."
@@ -2636,8 +2568,6 @@
     }
    ],
    "unresolved": [
-    "The Bone Crusher",
-    "Julian",
     "Gatorwere"
    ],
    "notes": "From EQOA-Data Quests/Weres/gatorwere.json, the infection (github.com/Jadiction/EQOA-Data, MIT). The form's spell is named as the guide's table names it (Gatorwere): this server has no gator form yet, so the quest stays a draft until it does. Julian is the seeded row's level. The antidote is the decline. The faction with Werehunters of Tunaria (-1000) is ours (see the wolfwere's)."
@@ -2760,14 +2690,7 @@
      "says": "Unga and Daraznak, gone. Now you hunt for me."
     }
    ],
-   "unresolved": [
-    "Ivander Yaroslav",
-    "Isabella Yaroslav",
-    "Dimitri Yaroslav",
-    "The Bone Crusher",
-    "Unga",
-    "Daraznak Vekiz"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/gatorwere.json, the first parts (github.com/Jadiction/EQOA-Data, MIT). The Yaroslavs, Unga and Daraznak \"reappear as KoS\": here they are fought where they stand, at the seeded rows' levels (28 to 32), after the talk. The guide names no reward for these parts."
   },
   {
@@ -2834,10 +2757,7 @@
      }
     }
    ],
-   "unresolved": [
-    "The Bone Crusher",
-    "gatorwere"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/gatorwere.json, the tail quest (github.com/Jadiction/EQOA-Data, MIT). The live game's infection was a chance on killing a were that conned yellow; here it is the society's standing alone: the tail quest repeats, each four tails +250 with The Bone Crusher (ours), and the urgent word comes at 1000. The guide names no faction for the gatorweres' 1000; The Bone Crusher's own is used. The server has no gatorwere: a few are seeded in Dinbak."
   },
   {
@@ -3042,12 +2962,6 @@
     }
    ],
    "unresolved": [
-    "Nivaan D'Tarin",
-    "Trainer Iruko",
-    "Irlynn Poe",
-    "Master Landaar",
-    "Vicious Wolfwere",
-    "Assistant Urtoe",
     "Shards of the Hunter"
    ],
    "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part III - The Trials (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its ability (and the casters' Luminous Arcane Band, a copy of an existing ring). The ten- and fifteen-minute clocks and the quiz on the three were-beasts' places are left out (the memory test is Nivaan's line, Iruko's choice; a wrong answer only asks again, where the guide's cost 75 faction with the WereHunters of Tunaria); the scent's four pop-ups are reach steps round Master Landaar (their places ours), the were-beast a wolfwere for every player. The non-casters' ring upgrades are not named in the guide and are left out. This server has none of the four abilities yet, so these stay drafts."
@@ -3231,12 +3145,6 @@
     }
    ],
    "unresolved": [
-    "Nivaan D'Tarin",
-    "Trainer Iruko",
-    "Irlynn Poe",
-    "Master Landaar",
-    "Vicious Wolfwere",
-    "Assistant Urtoe",
     "Hunters Scorn"
    ],
    "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part III - The Trials (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its ability (and the casters' Luminous Arcane Band, a copy of an existing ring). The ten- and fifteen-minute clocks and the quiz on the three were-beasts' places are left out (the memory test is Nivaan's line, Iruko's choice; a wrong answer only asks again, where the guide's cost 75 faction with the WereHunters of Tunaria); the scent's four pop-ups are reach steps round Master Landaar (their places ours), the were-beast a wolfwere for every player. The non-casters' ring upgrades are not named in the guide and are left out. This server has none of the four abilities yet, so these stay drafts."
@@ -3421,12 +3329,6 @@
     }
    ],
    "unresolved": [
-    "Nivaan D'Tarin",
-    "Trainer Iruko",
-    "Irlynn Poe",
-    "Master Landaar",
-    "Vicious Wolfwere",
-    "Assistant Urtoe",
     "Precious Strike"
    ],
    "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part III - The Trials (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its ability (and the casters' Luminous Arcane Band, a copy of an existing ring). The ten- and fifteen-minute clocks and the quiz on the three were-beasts' places are left out (the memory test is Nivaan's line, Iruko's choice; a wrong answer only asks again, where the guide's cost 75 faction with the WereHunters of Tunaria); the scent's four pop-ups are reach steps round Master Landaar (their places ours), the were-beast a wolfwere for every player. The non-casters' ring upgrades are not named in the guide and are left out. This server has none of the four abilities yet, so these stay drafts."
@@ -3610,12 +3512,6 @@
     }
    ],
    "unresolved": [
-    "Nivaan D'Tarin",
-    "Trainer Iruko",
-    "Irlynn Poe",
-    "Master Landaar",
-    "Vicious Wolfwere",
-    "Assistant Urtoe",
     "Combat Healing"
    ],
    "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part III - The Trials (github.com/Jadiction/EQOA-Data, MIT). One quest an archetype with its ability (and the casters' Luminous Arcane Band, a copy of an existing ring). The ten- and fifteen-minute clocks and the quiz on the three were-beasts' places are left out (the memory test is Nivaan's line, Iruko's choice; a wrong answer only asks again, where the guide's cost 75 faction with the WereHunters of Tunaria); the scent's four pop-ups are reach steps round Master Landaar (their places ours), the were-beast a wolfwere for every player. The non-casters' ring upgrades are not named in the guide and are left out. This server has none of the four abilities yet, so these stay drafts."
@@ -3870,13 +3766,7 @@
      "says": "It is done. Delegate Tenrathe, by the fence near the river, will open the trials to you."
     }
    ],
-   "unresolved": [
-    "Yrin Croto",
-    "gatorwere",
-    "The Bone Crusher",
-    "Yindrius (attackable)",
-    "Corindas (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/werehunter.json, Elder Tchekof (github.com/Jadiction/EQOA-Data, MIT). Dram Corma's repeatable side quest (Polinee Hirbo's four platinum sprockets, 2 million experience) is left out: only the disguise is fetched. Yindrius and Corindas stand as townsfolk and are made attackable by the seed (npcs/qc.json); Levandius's five guardians are left out. The guide names no reward but the masteries it opens."
   },
   {
@@ -4563,10 +4453,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Necrologist Quenka",
-    "Vampire Tserrina"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/werehunter.json, PART 2 (github.com/Jadiction/EQOA-Data, MIT). The spirit's words are a pop-up; the coffin's incantation is left out (Tserrina stands up). The guide gives only the healers' charm (\"rewards will vary by class\"): the other classes get the experience alone."
   },
   {
@@ -4919,11 +4806,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Necrologist Ipstock",
-    "Bucktooth (attackable)",
-    "Lynda Elmquist (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/werehunter.json, PART 1 (github.com/Jadiction/EQOA-Data, MIT). Slick Stevenson and Bucktooth are the server's rows (level 63, the guide's Slick Svenson); Bucktooth and Lynda Elmquist stand as townsfolk and are made attackable by the seed (npcs/qc.json) and are fought where they stand. Ipstock's swarming minion and the guide's NTL drops are left out. A lycan (-1000 with Werehunters of Tunaria, ours) is not offered it."
   },
   {
@@ -5054,9 +4937,7 @@
      }
     }
    ],
-   "unresolved": [
-    "gatorwere"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Weres/werehunter.json, the WereHunter Trials, Quest Part II - Hunt + Gather (github.com/Jadiction/EQOA-Data, MIT). One kind of set (tails); the guide's stacks and its sets of hides, meats, claws and teeth are left out, and +50 a set is ours (the guide: \"very slowly\"). Repeatable from 1851 to 2000."
   },
   {
@@ -5172,7 +5053,6 @@
     }
    ],
    "unresolved": [
-    "Hinder",
     "Feed",
     "Sanctuary"
    ],
@@ -5209,7 +5089,6 @@
     }
    ],
    "unresolved": [
-    "Creed",
     "Vampiric Strike",
     "Vampire Form"
    ],
@@ -5246,7 +5125,6 @@
     }
    ],
    "unresolved": [
-    "Weaver",
     "Bat Form",
     "Vitality"
    ],
@@ -5284,7 +5162,6 @@
     }
    ],
    "unresolved": [
-    "Simmons",
     "Frenzy",
     "Mist Form",
     "Vampiric Gaze"

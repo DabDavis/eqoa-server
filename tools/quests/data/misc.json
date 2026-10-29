@@ -95,9 +95,7 @@
      "says": "Two tails! Not bad. When you are ready, the Old Man has a harder trial for you."
     }
    ],
-   "unresolved": [
-    "Goran's Beast"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Goran's five questions are one choice here (the guide's first answer; a wrong one: come back), the others his trials' accept lines; his port home after four failed tries is left out. The popup is a reach step on the hill's east slope (FrontiersForge's sighting of a beast)."
   },
   {
@@ -169,10 +167,7 @@
      "says": "Three furs. You are stronger than you look. One more trial before the last."
     }
    ],
-   "unresolved": [
-    "Old Man",
-    "Goran's Beast"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine)."
   },
   {
@@ -250,10 +245,7 @@
      "says": "Four claws. Now only my pet stands between you and the last of my strength."
     }
    ],
-   "unresolved": [
-    "Malisarisent",
-    "Goran's Beast"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide says the four come at once; they are spawned together here."
   },
   {
@@ -313,10 +305,7 @@
      "says": "My pet's eye! You are as strong as I am. There is nothing more I can teach you."
     }
    ],
-   "unresolved": [
-    "Lairt'tsal",
-    "Goran's Pet"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Strength CM Statistic Boost, Trial 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Buldging Muscles mastery line opening for purchase (cmcatalog 'Buldging Muscles 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide names the pet's drop only as \"Eye of the something\": it is the Eye of Goran's Pet here. Lairt'tsal spawns the pet at once (one also stands in the cave)."
   },
   {
@@ -713,12 +702,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Wria Lightningfoot",
-    "Nadine",
-    "Yvlir",
-    "Hogin"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Agility CM Statistic Boost, test 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the AGI mastery line opening for purchase (cmcatalog 'AGI 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's race is timed (17 minutes) and its runners spawn for it; the engine has no timer, so it is a walk to the runners in order, who stand at EQOA-Data's map points. The guide does not say which runners each test sends you to (some at random): the order is ours. The guide's line is Avoid Danger; cmcatalog calls it AGI."
   },
   {
@@ -775,12 +759,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Wria Lightningfoot",
-    "Jimique",
-    "Sabbine",
-    "Ibaggo"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Agility CM Statistic Boost, test 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the AGI mastery line opening for purchase (cmcatalog 'AGI 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's race is timed (15 minutes) and its runners spawn for it; the engine has no timer, so it is a walk to the runners in order, who stand at EQOA-Data's map points. The guide does not say which runners each test sends you to (some at random): the order is ours. The guide's line is Avoid Danger; cmcatalog calls it AGI."
   },
   {
@@ -837,12 +816,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Wria Lightningfoot",
-    "Quidox",
-    "Nadine",
-    "Jimique"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Agility CM Statistic Boost, test 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the AGI mastery line opening for purchase (cmcatalog 'AGI 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's race is timed (13 minutes) and its runners spawn for it; the engine has no timer, so it is a walk to the runners in order, who stand at EQOA-Data's map points. The guide does not say which runners each test sends you to (some at random): the order is ours. The guide's line is Avoid Danger; cmcatalog calls it AGI."
   },
   {
@@ -905,13 +879,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Wria Lightningfoot",
-    "Hogin",
-    "Sabbine",
-    "Quidox",
-    "Brugga"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Agility CM Statistic Boost, test 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the AGI mastery line opening for purchase (cmcatalog 'AGI 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's race is timed (14 minutes) and its runners spawn for it; the engine has no timer, so it is a walk to the runners in order, who stand at EQOA-Data's map points. The guide does not say which runners each test sends you to (some at random): the order is ours. The guide's line is Avoid Danger; cmcatalog calls it AGI."
   },
   {
@@ -1031,14 +999,7 @@
      "says": "The first trial is passed. Medaesis will have more for you."
     }
    ],
-   "unresolved": [
-    "Medaesis",
-    "Reaver Gnoll",
-    "eno",
-    "owt",
-    "eerht",
-    "Reaver Leader"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Dexterity CM Statistic Boost, 1st Trial (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Unrivaled Grace mastery line opening for purchase (cmcatalog 'Unrivaled Grace 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's mobs are spawned as they are killed, in order: eno, owt and eerht ('one, two, three' backwards, its note's names); the leader is unnamed in the guide and named by us, his 'unusable sword' too. The guide's Patron who calls Leumas when he is not up is left out (he stands there). The gnolls' places are EQOA-Data's map points."
   },
   {
@@ -1140,14 +1101,7 @@
      "says": "Faster than the first time. Good."
     }
    ],
-   "unresolved": [
-    "Medaesis",
-    "Reaver Gnoll",
-    "onu",
-    "sod",
-    "sert",
-    "Reaver Leader"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Dexterity CM Statistic Boost, 2nd Trial (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Unrivaled Grace mastery line opening for purchase (cmcatalog 'Unrivaled Grace 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide says only that it is the same as the first trial; its note's second round names (onu, sod, sert) are used here."
   },
   {
@@ -1200,10 +1154,7 @@
      "says": "Six! You are quick. One trial left."
     }
    ],
-   "unresolved": [
-    "Medaesis",
-    "Reaver Gnoll"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Dexterity CM Statistic Boost, 3rd Trial (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Unrivaled Grace mastery line opening for purchase (cmcatalog 'Unrivaled Grace 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's minute to kill six reavers, and its port to the spiritmaster on failure, are left out: the engine has no timer. Two reavers spawn at once; the camp's own count."
   },
   {
@@ -1290,13 +1241,7 @@
      "says": "You move like water now. There is nothing more I can teach you."
     }
    ],
-   "unresolved": [
-    "Medaesis",
-    "Reaver Gnoll",
-    "tsrif",
-    "dnoces",
-    "driht"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Dexterity CM Statistic Boost, 4th Trial (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Unrivaled Grace mastery line opening for purchase (cmcatalog 'Unrivaled Grace 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's fourth round is 'similar to the third'; its note's third round names (tsrif, dnoces, driht) are used here."
   },
   {
@@ -1379,10 +1324,7 @@
      "says": "Rightly judged, both. Two harder cases wait when you are ready."
     }
    ],
-   "unresolved": [
-    "Gregor Pyrely",
-    "Nanie Gubbins (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Nanie Gibbons and Debo Bibin in the guide are the live game's Nanie Gubbins and Debo Diblin (FrontiersForge's names; both spellings stand in Bobble-by-Water). The guide's 5000-tunar reset for a wrong judgment is left out: the innocent are not part of the quest. Nanie Gubbins stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy that attacks (the guide's turn on you)."
   },
   {
@@ -1473,11 +1415,7 @@
      "says": "The troll is cleared, and the brother answers for it. Well judged."
     }
    ],
-   "unresolved": [
-    "Gnolan Boltratchet",
-    "Black Ant Guard",
-    "Nizen Flangletoggle"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Gnolan's two ant guards are two Black Ant Guards (FrontiersForge's name there) spawned beside him."
   },
   {
@@ -1582,10 +1520,7 @@
      "says": "Both guilty, as you found. One last pair of cases."
     }
    ],
-   "unresolved": [
-    "Esmirique",
-    "Necromancer Warpheus (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Warpheus's pet Rover joins the fight as a hostile copy. Necromancer Warpheus stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy that attacks (the guide's turn on you)."
   },
   {
@@ -1663,10 +1598,7 @@
      "says": "Every case rightly judged. There is no wiser head in Tunaria than yours."
     }
    ],
-   "unresolved": [
-    "Zombie #22",
-    "Brunsgill (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide does not name Zombie #22's drop: a jawbone here. Brunsgill stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy that attacks (the guide's turn on you)."
   },
   {
@@ -1750,10 +1682,7 @@
      "says": "Onions, a glove, a candle. Correct, all three. Your mind is quick."
     }
    ],
-   "unresolved": [
-    "Inquiladius Expica",
-    "Farmer Moegar"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The freezing goblins are the Freezeblood goblins of the cave between Halas and Castle Lightwolf; their berserkers carry the candle here."
   },
   {
@@ -1846,10 +1775,7 @@
      "says": "Silver, four and three. You did not guess, you worked it out."
     }
    ],
-   "unresolved": [
-    "Inquiladius Expica",
-    "Farmer Moegar"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's answers (silver, four oranges, three belts) are the steps; the belts drop off the Deathfist reavers here (the guide's reavers, slayers and prophets)."
   },
   {
@@ -2054,13 +1980,7 @@
      "says": "Every name in its place. One test remains."
     }
    ],
-   "unresolved": [
-    "Inquiladius Expica",
-    "Grunnie",
-    "Cylen",
-    "Kibenza",
-    "Sawise"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's solved puzzle is the steps' order; at each, what they hold is a choice, a wrong guess (the guide: back to the start) sending you to think again."
   },
   {
@@ -2099,10 +2019,7 @@
      "says": "A perfect memory. Your mind is as sharp as mine."
     }
    ],
-   "unresolved": [
-    "Inquiladius Expica",
-    "Demetricus Olious"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's ten timed questions (death for a wrong answer) are a talk to Demetricus here; the guide says Dshinn's Redoubt need not be visited."
   },
   {
@@ -2202,13 +2119,7 @@
      "says": "Love mended. You have a gift."
     }
    ],
-   "unresolved": [
-    "Sylanthia De'Crevast",
-    "Yiggua",
-    "Shuglug",
-    "Farmer Rulug",
-    "hearty boar"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's long dialogue is one answer a talk; the 100,000-tunar purchase of the butter is left out for the boars."
   },
   {
@@ -2286,11 +2197,7 @@
      "says": "Two brothers, and no blood spilled."
     }
    ],
-   "unresolved": [
-    "Sylanthia De'Crevast",
-    "Fripz",
-    "Frapz"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 2 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 2'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's eight-trip negotiation is three here."
   },
   {
@@ -2413,9 +2320,7 @@
      "says": "My ring! And no one was hurt."
     }
    ],
-   "unresolved": [
-    "Sylanthia De'Crevast"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's crafted platinum sapphire ring for the bar tab is left out (the tab is the tunar); the culprit is a choice, and a wrong guess (12,000 tunar in the guide) only sends you to think again. The guide's Waitress Jitzie is the game's Waitress Jitzle."
   },
   {
@@ -2505,10 +2410,7 @@
      "says": "It is done. Few can talk a city into peace. You can."
     }
    ],
-   "unresolved": [
-    "Sylanthia De'Crevast",
-    "Aryee (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's three waves of a channeler, a sorcerer and a crusader before Aryee comes are left out (unnamed). Aryee stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy that attacks (the guide's turn on you)."
   },
   {
@@ -2686,11 +2588,7 @@
     }
    ],
    "repeatable": true,
-   "unresolved": [
-    "Shiny Clockwork",
-    "Gust",
-    "Tiny Spiderbot (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/neriak-book.json, # Neriak Book Quest (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the items \"Ultimate Windblade\" (WAR RAN PAL SK MNK BRD RGE DRD), \"Ultimate Windmace\" (and SHA CL) and \"Ultimate Rod\" (MAG WIZ NEC ALC ENC). The guide's purchase of a simple scimitar, rod or mace is a hand-over here: Smithy Grol gives a simple weapon at his window. The tiny spiderbots, caught by a popup and used for a regulator in the guide, are killed for one here. The guide's levels (20s and 30s spawn gusts on different sides of the ravine) are one place here. The guide's giver is the book on a bookshelf in Letala R`Virr's house a few seconds east of Neriak's banker; here Letala gives it (no shelf stands there). The guide says this is the evil version and Qeynos's the good: both are open to everyone here. The guide's Qeynos twin says it is repeatable, so this one is too."
   },
   {
@@ -2868,13 +2766,7 @@
     }
    ],
    "repeatable": true,
-   "unresolved": [
-    "Bookshelf",
-    "Scholar Dafren",
-    "Shiny Clockwork",
-    "Gust",
-    "Tiny Spiderbot (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/qeynosbook.json, # QeynosBook Quest (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the items \"Ultimate Windblade\" (WAR RAN PAL SK MNK BRD RGE DRD), \"Ultimate Windmace\" (and SHA CL) and \"Ultimate Rod\" (MAG WIZ NEC ALC ENC). The guide's purchase of a simple scimitar, rod or mace is a hand-over here: Smithy Grol gives a simple weapon at his window. The tiny spiderbots, caught by a popup and used for a regulator in the guide, are killed for one here. The guide's levels (20s and 30s spawn gusts on different sides of the ravine) are one place here. The giver is the bookshelf in Qeynos's casters' guild (FrontiersForge's Bookshelf); the guide says the quest is repeatable."
   },
   {
@@ -3009,13 +2901,7 @@
      150
     ]
    ],
-   "unresolved": [
-    "Vargilder Souralld",
-    "Warlord Treg",
-    "Orc Excavation Site",
-    "Prophet Olvadr Korskr",
-    "Giant Excavation Site"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/anu-village-pet.json, # Anu Village Pet Quest (github.com/Jadiction/EQOA-Data, MIT). Needs 150 faction with Anu Village, which is the Barbarians of the Anu Tribe here. The excavation sites, talked to in the guide to blow them up, take a stick of dynamite here. Not on this server, left out of the rewards: the archetype items (casters' Ice Totem, melees' Frozen Throwing Knife, healers' Mammoth Guardian stone, tanks' level 50 spear with The Howler) and their recharge. The guide's raid (two to three groups) is the same two kills here."
   },
   {
@@ -3243,11 +3129,7 @@
      350
     ]
    ],
-   "unresolved": [
-    "Jebdo Stikala",
-    "Magluza",
-    "Guard Zex"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/zentars-keep-pet.json, # Zentar's Keep Pet Quest, steps 1-9 (github.com/Jadiction/EQOA-Data, MIT). Needs 350 faction with the Citizens of Zentar's Keep (the guide also wants Corison's ice glyph quest done 3-5 times first: left out). Each of the five gives a signed promise here (the guide's notes). Jol the Fat's fur trousers (a tailored level-3 pair) are left out: he signs on hearing the story. The swamp rock's popup is a reach step; its place, Jebdo's and Magluza's are ours from the guide's directions, and Guard Zex stands by Fort Seriak's coach (not atop the north-east tower)."
   },
   {
@@ -3337,9 +3219,7 @@
      350
     ]
    ],
-   "unresolved": [
-    "Arctic Spiritcaller"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/zentars-keep-pet.json, # Zentar's Keep Pet Quest, steps 9-11 (github.com/Jadiction/EQOA-Data, MIT). The guide's frost item is an archetype's own (tanks' Frost Emblem, melees' Frost Talisman, casters' Frost Essence, healers' Frost Rune) with a stack that differs too: one frost and four frost giant staves (the melees') for every class here. The Arctic Spiritcaller stands at the camp (FrontiersForge saw one) instead of spawning in a giant's place; the Arctic Adept is left out. Not on this server, left out of the rewards: the archetype rewards (tanks' Snow Fighter, melees' Snow Gladiator, casters' snowman form) and their recharge."
   },
   {
@@ -3525,10 +3405,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Kerran Escapee",
-    "Arjinn Jais"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/paineel.json, # Paineel Quest (github.com/Jadiction/EQOA-Data, MIT). The guide gives no level or class: level 45 here (its recovery agents are red to a 60). Balidos's items (the guide's talk after his death) are his drop here; the popup needed to talk to Naris is left out. A wrong code (6642a is right) is a choice whose wrong answers send you away to think again (the guide's, killing Arjinn, is left out). Not on this server, left out of the rewards: Setham's choice of nine items (Str/Dex ... HP/Pwr; the AC/HP one is the Acaesdin Choker): none of the nine is in itempattern."
   },
   {
@@ -3608,10 +3485,7 @@
      "says": "'The secret lies within the tombs of the Rowen'dal. An incredible power waits to be unleashed.' The Tomb of Kings, then."
     }
    ],
-   "unresolved": [
-    "Nolram Barro",
-    "The Dead Acolyte"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/the-temple-of-light.json, # The Temple of Light Quest, steps 1-4 (github.com/Jadiction/EQOA-Data, MIT). The guide's first popup (the quest received near Nolram's camp) is this giver: the guide says Nothard gives it anyway. Nayr Nonnahs and Rian Buesh, who camp with Nolram, are left out (only he is killed). The book's popup is a reach step at Lord Chardith's spawn point."
   },
   {
@@ -3684,10 +3558,7 @@
      "says": "The tome is torn. An old man in Permafrost, west of Castle Vox, as far north as the coast goes, has a page."
     }
    ],
-   "unresolved": [
-    "Excavation Leader",
-    "Stranger"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/the-temple-of-light.json, # The Temple of Light Quest, steps 5-7 (github.com/Jadiction/EQOA-Data, MIT). The guide's entry popup ('you have received a quest') and its chest, which spawns the Excavation Leader, are one reach step in the kings' room here (at the excavation team's place). The Stranger's port is a teleport to Kizdean Gix."
   },
   {
@@ -3834,11 +3705,7 @@
      "says": "Now, to the Temple of Light. Sir Roger Rodgers guards the way."
     }
    ],
-   "unresolved": [
-    "Old Man",
-    "Dercas Warden",
-    "The Dead Guardian"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/the-temple-of-light.json, # The Temple of Light Quest, steps 8-11 (github.com/Jadiction/EQOA-Data, MIT). The guide's five bodyguards (drake guards, unnamed) are three Voxite mages here, the creature FrontiersForge saw at the Old Man's spot (dark blue to a 60). The old man hands out one of three pages at random; the second (Dinbak, the Dercas Warden and his chest, no fight) is the one here."
   },
   {
@@ -4082,12 +3949,7 @@
      "says": "Your first ring. It will grow with you, if you keep helping me."
     }
    ],
-   "unresolved": [
-    "Enraged Earth",
-    "Mountain Spirit",
-    "A sunbaked stone",
-    "Pride Lioness"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 20 ring (github.com/Jadiction/EQOA-Data, MIT). The guide's reward for this ring is a spell that summons a no-rent ring for your archetype, and 'a little xp' with no figure: no such spell is on this server and the experience is not given, so this part gives nothing but the next. The guide does not name what the polisher wants or the bugs: the lost souls' dust (the guide's undead in the necromancers' guild) and the elusive stone ants by the stone are ours. Abyas, who also drops blood, stands with the pride."
   },
   {
@@ -4195,10 +4057,7 @@
      "says": "Forged anew. Your second ring."
     }
    ],
-   "unresolved": [
-    "Hermit Washburn",
-    "Urtica Dioica"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 30 ring (github.com/Jadiction/EQOA-Data, MIT). The guide's reward for this ring is a spell that summons a no-rent ring for your archetype, and 'a little xp' with no figure: no such spell is on this server and the experience is not given, so this part gives nothing but the next. The guide's '?' at the graves (talked to until three ores come) is one reach step with a popup."
   },
   {
@@ -4351,9 +4210,7 @@
      "says": "Niska is grateful. Your third ring."
     }
    ],
-   "unresolved": [
-    "Magus Niska"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 40 ring (github.com/Jadiction/EQOA-Data, MIT). The guide's reward for this ring is a spell that summons a no-rent ring for your archetype, and 'a little xp' with no figure: no such spell is on this server and the experience is not given, so this part gives nothing but the next. The guide's bookcases (Freeport, Darvar Manor, Highbourne, Neriak, Qeynos, Klick'Anon) are four here, one a race; which book is in which town is ours. Freeport's is the dusty tome in its casters' guild."
   },
   {
@@ -4461,9 +4318,7 @@
      "says": "The Great Three are at peace. Your fourth ring."
     }
    ],
-   "unresolved": [
-    "Unsettled Bones"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 50 ring (github.com/Jadiction/EQOA-Data, MIT). The guide's reward for this ring is a spell that summons a no-rent ring for your archetype, and 'a little xp' with no figure: no such spell is on this server and the experience is not given, so this part gives nothing but the next. The three unsettled bones share a name: each shard drops off any of them while its step is the one to do (the engine matches a target by name)."
   },
   {
@@ -4656,13 +4511,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Death's Head Beetle",
-    "Douglas Aren",
-    "Vhi'zan Kaah",
-    "Minion of Vhi'zan",
-    "Ghost of Madrias"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 60 ring (github.com/Jadiction/EQOA-Data, MIT). The tanks' ring, The Stoneheart, is given to warriors, paladins and shadowknights. Not on this server, left out of the rewards: The Nexus (casters), The Soulstone (healers) and The Wildheart (melees); the guide's 'little xp' has no figure. The whole quest's 240 Storyteller faction is given at its end. Laknar's '?' that gives the sulfursits is a reach step with a popup. Douglas Aren's questions (trick him into selling) are a payment here; he stands at EQOA-Data's map point. Madrias's summoning in Castle Felstar is a reach step; Vhi'zan Kaah comes with two of his five minions."
   },
   {
@@ -4777,10 +4626,7 @@
      "says": "He is alive. Thank you, truly."
     }
    ],
-   "unresolved": [
-    "Grocer Fern",
-    "Rian Johns"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/heather-johns.json, # Heather Johns Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's dogs are Rex and Fido here, the two named dogs of Dshinn's Redoubt, a volume each. Not on this server, left out of the rewards: the item \"Ring of Knowledge\" (Wis+15 Str+30, level 48)."
   },
   {
@@ -4994,11 +4840,7 @@
      "says": "Cedric lives! Then all is well."
     }
    ],
-   "unresolved": [
-    "Captain Longley",
-    "Cedric",
-    "rare giant skuttlespike"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/stone-of-morthalis.json, # Stone of Morthalis Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's choice (slay Cedric for his head, or help him; the same reward either way) is the helping branch here. Not on this server, left out of the rewards: the item \"Vordan Ring\" (STA 40, HPMax 50, POW 50, level 54)."
   },
   {
@@ -5086,12 +4928,7 @@
      "says": "Q CQNN LUDUH TKHSUF. (I will never forget.)"
     }
    ],
-   "unresolved": [
-    "Fugi Bactor",
-    "Largemouth Bottlefish",
-    "Waterboy",
-    "Fungusman Slave"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/west-feerot.json, # West Feerot Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's coded dialogue (its key: y=a, x=b, w=c ... a=y, z=z) is kept in Fugi's lines, the answer \"Q CQNN.\" ('I will.') too. The places are ours, from the guide's directions out of Oggok's south gate (the Rathe). The guide names no reward (Fugi promises 'great wisdom')."
   },
   {
@@ -5196,9 +5033,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Lothaxae"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/thenon-the-wise.json, # Thenon the Wise Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's unnamed 45+ necromancer past the statue is Lothaxae here (the cult leader Thenon names). The statue is the barrow's Golem Statue. Not on this server, left out of the rewards: the crown (20-30 WIS)."
   },
   {
@@ -5262,9 +5097,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Cyrian Truearrow"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/the-truearrow.json, # The Truearrow Quest, steps 1-4 (github.com/Jadiction/EQOA-Data, MIT). Taszin's dialogue ('I don't know, do we?', 'I am the mercenary you sent for') is the offer and its answer. Cyrian Truearrow stands at the camp (the guide: he comes after the tents are farmed a while). The guide's -500 faction with Pulanga is left out: no such faction on this server. The statue is a made item (it has no stats in the guide)."
   },
   {
@@ -5297,9 +5130,7 @@
      "says": "Gobzen is dead? Then we are square."
     }
    ],
-   "unresolved": [
-    "Gobzen"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/the-truearrow.json, # The Truearrow Quest, option 3 (work out a deal) (github.com/Jadiction/EQOA-Data, MIT). The guide's proximity popup with Pulanga's three options (pay 25,000 tunar, refuse and kill her, or work out a deal) is the deal here: the engine has no choice of outcomes (killing her, an attackable level 60, drops her blade Widowspite). Not on this server, left out of the rewards: the item \"Happy Love Bracers\" and +250 faction with Pulanga (no such faction)."
   },
   {
@@ -5443,11 +5274,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Investigator Flint",
-    "Ranger Mek",
-    "Akista Sind"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/the-illusionist.json, # The Illusionist Quest, path A i) (Ishal's side) (github.com/Jadiction/EQOA-Data, MIT). The guide's quest branches three ways (Ishal's side, Flint's side through Enchanter Kerina and the mature griffon, and 'when a reward is involved' through the courier and Flint's cave): the engine has no choice of outcomes, so this is Ishal's side, the one with the experience. The goblins' camp is two goblin warriors and a goblin shaman spawned beside the player; the popup at the shaman is a popup on his death. Not on this server, left out of the rewards: Ishal's ring and the illusionist's sashes (Sash of Arcane, Fire, Ice, Lightning, Poison, Disease)."
   },
   {
@@ -5929,9 +5756,7 @@
     }
    ],
    "repeatable": true,
-   "unresolved": [
-    "Servant"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/dawn-maiden.json, # Dawn Maiden Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's popups along the path and the nightmares that spawn are one popup and one nightmare spirit here; its random ports off the path are left out. The empty flask is kept (the filled one is given at the pool). The guide says the quest is repeatable, the Storyteller's faction once a telling."
   },
   {
@@ -6160,10 +5985,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Historian Ilena",
-    "Snowfist Totemcarrier"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 11-20 (github.com/Jadiction/EQOA-Data, MIT). The guide's totem is passed to a higher-level character for each band: each band is its own quest, open to anyone in its levels who brings the glowing totem (tradeable), with no quest before it. Not on this server, left out of the rewards: the items \"Ring of accord\" and \"Necklace of accord\" (the guide's choice of one). The totemkeeper is in a dungeon whose floors this server's ground files lack: it is spawned beside the player at the den (a reach step there), and one also stands on the ground above."
   },
   {
@@ -6288,10 +6110,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Historian Ilena",
-    "Hatebone Totemcarrier"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 21-30 (github.com/Jadiction/EQOA-Data, MIT). The guide's totem is passed to a higher-level character for each band: each band is its own quest, open to anyone in its levels who brings the glowing totem (tradeable), with no quest before it. Not on this server, left out of the rewards: the items \"Ring of Unity\" and \"Necklace of Unity\" (the guide's choice of one). The totemkeeper is in a dungeon whose floors this server's ground files lack: it is spawned beside the player at the den (a reach step there), and one also stands on the ground above."
   },
   {
@@ -6416,10 +6235,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Historian Ilena",
-    "Gnoll Totemkeeper"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 31-40 (github.com/Jadiction/EQOA-Data, MIT). The guide's totem is passed to a higher-level character for each band: each band is its own quest, open to anyone in its levels who brings the glowing totem (tradeable), with no quest before it. Not on this server, left out of the rewards: the items \"Ring of Concordance\" and \"Necklace of Concordance\" (the guide's choice of one). The totemkeeper is in a dungeon whose floors this server's ground files lack: it is spawned beside the player at the den (a reach step there), and one also stands on the ground above."
   },
   {
@@ -6544,10 +6360,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Historian Ilena",
-    "Spider Totemkeeper"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 41-50 (github.com/Jadiction/EQOA-Data, MIT). The guide's totem is passed to a higher-level character for each band: each band is its own quest, open to anyone in its levels who brings the glowing totem (tradeable), with no quest before it. Not on this server, left out of the rewards: the items \"Ring of Amity\" and \"Neck of Amity\" (the guide's choice of one). The totemkeeper is in a dungeon whose floors this server's ground files lack: it is spawned beside the player at the den (a reach step there), and one also stands on the ground above."
   },
   {
@@ -6780,11 +6593,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Historian Ilena",
-    "Ice Giant Tomekeeper",
-    "Guard Therean"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 51-60 (github.com/Jadiction/EQOA-Data, MIT). The guide's totem is passed to a higher-level character for each band: each band is its own quest, open to anyone in its levels who brings the glowing totem (tradeable), with no quest before it. The guide's reward is the choice of the Ring of Congeniality (STA, AGI, HP) and the Necklace of Congeniality (DEX, INT, POW), a step's choice here. The guide's trouble with evil and good pages (a level 1 of the right city) is left out."
   },
   {
@@ -6837,11 +6646,7 @@
      "says": "The Tyrant falls! Should you want him again, another totem costs a million tunar."
     }
    ],
-   "unresolved": [
-    "Historian Ilena",
-    "Etheneric Portal",
-    "Dynmath the Tyrant"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Dynmath the Tyrant (github.com/Jadiction/EQOA-Data, MIT). The Tyrant's drops are loot (the guide's Otherworldly items), not a quest reward. His minions are left out; the portal's respawn time (15 minutes to 2.5 hours) is the spawn's ten minutes."
   },
   {
@@ -6908,11 +6713,7 @@
     }
    ],
    "repeatable": true,
-   "unresolved": [
-    "Historian Ilena",
-    "Etheneric Portal",
-    "Dynmath the Tyrant"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Dynmath the Tyrant, another totem (github.com/Jadiction/EQOA-Data, MIT). The guide: after killing (or failing to kill) the Tyrant, the historian makes another totem for 1 million tunar."
   },
   {
@@ -6974,10 +6775,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Magifent the Unliving",
-    "Emeraldine Drake"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/undead-drake-lord.json, # Undead Drake Lord Quest, steps 1-2 (github.com/Jadiction/EQOA-Data, MIT). The quest's start is the popup at Magifent's Mausoleum in the guide: Magifent the Unliving gives it here."
   },
   {
@@ -7035,9 +6833,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Sandstone Drake"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/undead-drake-lord.json, # Undead Drake Lord Quest, step 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's torrid drakes are placeholders for the sandstone drakes: the sandstones stand there here."
   },
   {
@@ -7202,10 +6998,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Keeper Amani",
-    "Rubilent Drake"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/undead-drake-lord.json, # Undead Drake Lord Quest, step 5 (github.com/Jadiction/EQOA-Data, MIT). The guide's 32 rubilent gems, jewelcrafted four by four into one pristine gem, are four gems Keeper Amani makes into one here. The well's popup is a reach step (its place, behind Blackwater, is ours); the pristine gem is kept."
   },
   {
@@ -7420,13 +7213,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Magifent the Unliving",
-    "Bloodstone Drake",
-    "Bloodstone Drake Gem Keeper",
-    "Undead Drake Lord",
-    "Magifent"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/undead-drake-lord.json, # Undead Drake Lord Quest, steps 6-7 and the reward (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is a ring of your choice made in Klick'Anon (a guard tower east of the coach) from a gem the living Magifent drops and a no-trade ring: here Magifent himself offers the choice of the two this server has, the Blue (mystical ward of power) and the Green (mystical ward of resistance). Not on this server: the Crimson and Gold rings. The drake lord's Drakescale armor is loot. The bloodstone drakes that keep coming for an hour are two and one."
   },
   {
@@ -7609,10 +7396,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Goblin Prisoner",
-    "Lord Pickclaw"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/lord-pickclaw.json, # Lord Pickclaw Quest (github.com/Jadiction/EQOA-Data, MIT). The prisoner's popup is on a 24-hour timer in the guide: a reach step here. Lord Pickclaw, unattackable until talked to in the guide, stands attackable here. The guide's reward is a choice of a head or a waist item for your archetype: the waist one (the guide's pick) for tanks (pickclaw guard's sash), melees (Pickclaw Brawler's Sash) and casters and alchemists (pickclaw arcanist's sash); healers get the Pickclaw Visionsary's Headband (no healers' sash on this server). The pet and illusion rewards are not on this server."
   },
   {
@@ -7725,10 +7509,7 @@
      "says": "My crew is avenged. Thank you."
     }
    ],
-   "unresolved": [
-    "Julaech",
-    "Kratas"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/kratas.json, # Kratas Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's quest ends at the whale bones: the talk back to Julaech is ours. Kratas's drops (the Harpoon of Telinan for the Plane of Sky, shimmering seaweed, his tentacle) are loot, not a quest reward; he stands among the bones too (FrontiersForge saw him there). The bream is fished (the server's fishing has it)."
   },
   {
@@ -7881,9 +7662,7 @@
      "says": "Then I am truly free. Thank you."
     }
    ],
-   "unresolved": [
-    "Pomus Magemell"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/siliskor.json, # Siliskor Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's trigger system (one questor at a time, the flag lost on a crash) is left out. Siliskor stands by the elephant statue (the server's attackable Siliskor) and his followers spawn with the popup. His drop, the Shield of King Jorat for the Plane of Sky, is loot, not a quest reward; the closing talk is ours."
   },
   {
@@ -8008,9 +7787,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Warlord Kraven (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/snowgrin.json, # Snowgrin Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Karis McDonough and Grilmash Frostcackle are the game's Karis McDonogh and Grilmesh Frostcackle. Snowgrin's rares (Dragoneye, Crystalline Spear, Storm's Edge ...) are loot, not a quest reward; the quest gives none. Warlord Kraven stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy."
   },
   {
@@ -8235,13 +8012,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Yulil Ashebrooke",
-    "Death Weaver",
-    "Death Spitter",
-    "Terrorantula",
-    "Poisonweaver"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/terrorantula.json, # Terrorantula Quest (github.com/Jadiction/EQOA-Data, MIT). Yulil vanishing while one person holds the quest is left out. The parchments' popups are reach steps (the third, fourth and fifth give their parchment). The places are FrontiersForge's sightings and ours (Tak Xiz South's columns by the dam). There is no experience; the Terrorantula's drops (terrorbrood sandals, spider fur gloves, its hide, the dull rings, the staff and robe of the terrorbrood) are loot."
   },
   {
@@ -8365,13 +8136,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Spirit of Tellainain",
-    "Tal'thex Sorcerer",
-    "Tal'thex Knight",
-    "Tal'thex Soldier",
-    "Lord Valkanith"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/lord-valkanith.json, # Lord Valkanith Quest (github.com/Jadiction/EQOA-Data, MIT). The gems drop off the creatures the guide names: the city of Takish'Hiz's (its star knights here), Geomancer's Citadel's rallosian spectres and warlords (the spectral rallosians), Sycamore Joy's Rest's dark elves (its Teir'dal knights). The guide's half-hour of undead before Lord Valkanith is three sorcerers here. His 30-minute despawn and the advice to delete the quest before he dies are left out; his Bone Wing Sentinel rune is loot."
   },
   {
@@ -8478,9 +8243,7 @@
      "says": "The crypt seals behind you."
     }
    ],
-   "unresolved": [
-    "Jaeger Mansion Statue"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/jaeger-mansion.json, # Jaeger Mansion Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's giver is the statue itself. Its two passes through the crypt (a Paladin Lord or a named wizard the first time, the ruby hourglass then taken off Sept Elder Sesh's corpse left outside, then Magnus Jaeger) are one here: the hourglass key and the hourglass, then the hostile statue (a copy), the Paladin Lord and Magnus Jaeger, who stand in the crypt. The named wizard's path is left out. The crypt's drops (Halberd of Faith, Earring of Might, Scepter of Fury, Black Ruby Earring, Moonfang, Boots of Regalia) are loot."
   },
   {
@@ -8583,10 +8346,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Apprentice Yavim (attackable)",
-    "Radavex Planeswalker (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/radavex.json, # Radavex Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's semi-rare spawns (the orb, Ealesha and Yavim) stand here. Radavex's orb (a two-second group port to the top of the tower) is a crystal the orb gives, and Radavex is spawned beside the player. His and his guards' Planeswalker faction (-10 a kill) is the kill's faction here (one -10 at the kill step). The reward is his loot (Radavex's bracers, the nullfield earring, the starbladed staff). Apprentice Yavim and Radavex Planeswalker stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy."
   },
   {
@@ -8713,11 +8473,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Gil Swimmerbee",
-    "Sly Ice Giant",
-    "Ks'or"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Blue Gem] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here. Steely and Gil's back-and-forth after Ks'or is cut (the guide: you may go straight to Thoren). The breath potion is a quest item; this server's breathing is its own."
   },
   {
@@ -8790,11 +8546,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Creepyman",
-    "Baylor",
-    "Oppydna"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Green Gem] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here."
   },
   {
@@ -8976,12 +8728,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Leeanna",
-    "High Druid Postmanjim",
-    "High Shaman Bradue",
-    "High Sorcerer Coolade"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Red Gem] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here. The ledge's popup is a reach step at EQOA-Data's map point."
   },
   {
@@ -9105,10 +8852,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Sunshine Brightray",
-    "Beam Brightray"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Yellow Gem] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here. The starfish's places are EQOA-Data's map points (Odus, by a fit of its points)."
   },
   {
@@ -9213,10 +8957,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Blacksmith Kadeshi",
-    "Xalakharx"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Gem of Nykitas] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here. The fire goblins' key drops off their champions here; the named warlord (unnamed in the guide) is any spectral warlord at a quarter's chance."
   },
   {
@@ -9310,10 +9051,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Rainbow Magic Guardian",
-    "Tree of Life"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/acolyte-of-bristlebane.json, # [Handle] (github.com/Jadiction/EQOA-Data, MIT). The guide calls it a Fan Faire quest; it plays as an ordinary one here. The class item is given where this server has the guide's: the magician's Slippers of the Trickster, the warrior's Boots of Mischief, the ranger's Mischievous Boots (a level 60 item here). Not on this server, left out: the other classes' (Mischievous Pants, Leggings of the Trickster, Pants of the Trickster, Leggings of Trickery, Gloves of Mischief, Trickster's Gloves, Boots of Trickery, Gloves of Trickery; the bard's, druid's, monk's and shaman's are unnamed)."
   },
   {
@@ -9557,15 +9295,7 @@
      "says": "All four harbingers dead! Keep the gems: when Khalimet comes, you will need them."
     }
    ],
-   "unresolved": [
-    "Armis",
-    "Salin",
-    "Assassin of Khal",
-    "Lord Farex",
-    "Lord Wraymot",
-    "Lord Tallivar",
-    "Lord Vengal"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/harbingers-of-khalimet.json, # Harbingers of Khalimet, Part I (github.com/Jadiction/EQOA-Data, MIT). The scrolls' riddles (written backwards, the vowels shifted) are in the journal lines, decoded. The Assassins of Khal, who may attack at any time, are one spawned at Salin's. The guide's gem bag, and the luck-stone reward (a five-charge lucky stone, which itempattern lacks), are left out; the gems are kept, as the guide says. The harbingers' places are ours, from the zones the guide names. Part II (Khalimet's portal, the hounds, the waves and the Khal Viceroy) and Part IV (the Warrior, the city portals, the Desmosdus breeders of ZP, the Chiktar King) are not written."
   },
   {
@@ -9656,11 +9386,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Khal Zealot",
-    "Salin",
-    "Khal Reaver"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/harbingers-of-khalimet.json, # Harbingers of Khalimet, Part III (github.com/Jadiction/EQOA-Data, MIT). The guide calls this part a lore tie-in: no reward. The Khal spies' notes and the warlords' drops (robes, class weapons) are loot."
   },
   {
@@ -9857,18 +9583,7 @@
      "says": "All three! Khalimet's gems fit the warlords' weapons. For 10,000 tunar I will set one, for 2000 take it out."
     }
    ],
-   "unresolved": [
-    "The Keeper",
-    "Salin",
-    "Weary Adventurer",
-    "Gnadriin",
-    "Hogarth Bartholomew",
-    "Galoosh",
-    "Tobral Arnez",
-    "Jon Watersmith",
-    "Jingle",
-    "Arliss"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/harbingers-of-khalimet.json, # Harbingers of Khalimet, Part V (Gnadriin) (github.com/Jadiction/EQOA-Data, MIT). Part V follows Part IV in the guide; Part IV is not written, so it follows Part I here. Hogarth's augmentation (a gem set into a warlord's weapon for 10,000 tunar) is not something the engine does: the quest ends with him. Anibael's Gnadriin Blade, a drop the guide says is not needed, is left out. The weary adventurers' four (a dark elf, a dwarf, a barbarian and a human) are one spawned with a Gnadriin. The places are ours, from the guide's zones."
   },
   {
@@ -10273,10 +9988,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Altar of Cazic Thule",
-    "Altar of the Spirit Guardian"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/avatar-of-fear.json, # Avatar of Fear (github.com/Jadiction/EQOA-Data, MIT). The guide has no quest NPC: the altar in the centre room gives it here (an object of ours, the map's 'altar in center room'), and the altar beside the spirit guardian is another. Each party member's own symbol and talisman, the transport orb and the golem's port are left out (the golem is a reach step at the next temple's dead end, where the search's spider is left out too). The guide names no reward."
   },
   {
@@ -10412,9 +10124,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Circle of the Spider Queen"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/spider-queen-aszec.json, # Spider Queen Aszec Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's start is a popup at the room's centre: a circle there gives it here (an object of ours). Each loot step is one spider's shard, in the guide's order. The queen's drops (the Bleeding Harpoon of Aszec, Queen Aszec's robe) are loot; the quest itself gives none."
   },
   {
@@ -10478,9 +10188,7 @@
     }
    ],
    "repeatable": true,
-   "unresolved": [
-    "Frost Fairy"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/fairy-in-a-jug.json, # Fairy in a Jug Quest (github.com/Jadiction/EQOA-Data, MIT). The guide has no quest giver (the quest begins by buying the jug from Potter Nylai, Torug or Giles): Potter Torug gives it here. Its fairies (a plain fairy in Blakedown, ember fairies in the Great Waste, frost fairies by Anu Village and Fayspires Gate, an ice fairy by the gnome observatory) are the frost fairy here, which FrontiersForge saw by Anu Village; unconnable in the guide, it is talked to here (a popup's keep-or-free is its answer). Not on this server: the pristine fairy-filled jug's five charges (a fairy familiar's 1200 heal and a resist buff): the jug here is a keepsake."
   },
   {
@@ -10972,9 +10680,7 @@
     }
    ],
    "repeatable": true,
-   "unresolved": [
-    "Captain Rebohl"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/captain-scilond-anniversary.json, # Captain Scilond, Anniversary Quest (github.com/Jadiction/EQOA-Data, MIT). An anniversary event in the live game that plays as an ordinary quest: written as one. The guide's five levels of the quest (improved ... superior, rewards at 1, 16, 31, 41, 51) are the superior one here, level 51. The invaders' kinds are the server's nearest (Freeport's orc ransackers, the Highpass pickclaw warriors for Misty Thicket and Highpass, ice giants, hill giants, sand giants, deadly corrosions); two spawn at each popup (the corrosions stand in Rogue Clockworks). The popups' places are ours, from the guide's words. Rianba Oschba's four rewards a city are the four this server has, in any city (the Superior Orcblood Band is the guide's unnamed Freeport ring: 30 Dex, 125 HPMax). The guide's Niafi, who swaps old tokens, is left out."
   },
   {
@@ -11086,14 +10792,7 @@
      "says": "My baby! You brought him home. Thank you."
     }
    ],
-   "unresolved": [
-    "Businessman Lure",
-    "Headhunter Praar",
-    "Rhizele",
-    "Enchanter Nanyea",
-    "A Baby Dragon",
-    "Maryela Firetongue"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Misc/fan-fair-2006.json, # Fan Fair 2006 (github.com/Jadiction/EQOA-Data, MIT). A Fan Faire 2006 quest that plays as an ordinary one: written as one. Praar's 998 tunar is a payment; the head Rhizele wants is shown her and carried on to Praar. The baby dragon's offer to meet his mother is a teleport to Ant Colonies (NE). The guide's two endings (Maryela attackable, or to be talked to) are the friendly one here. Not on this server, left out of the rewards: her two pairs of level 34 plate boots (HP or POW) and the shiny stones. The places are ours, from the guide's words."
   }
  ],

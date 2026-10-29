@@ -262,9 +262,7 @@ func (w *World) visibilitySystem() {
 
 			stateData := w.serializeEntityForChannel(sess, id, objectID)
 			if stateData != nil {
-				if state := conn.GetServerObject(i + 1); state != nil {
-					state.SetData(stateData)
-				}
+				SetEntityState(conn.GetServerObject(i+1), stateData)
 				occupiedChannels = append(occupiedChannels, int(session.EntityChannel(i+1)))
 			}
 		}
@@ -278,8 +276,24 @@ func (w *World) visibilitySystem() {
 
 // serializeEntityForChannel builds a 162-byte state buffer for an entity, as
 // the session sess sees it: its target (bytes 59-62) is the id sess knows
-// that target by (putChannelTargetLocked). Must be called with the lock held.
+// that target by (putChannelTargetLocked), and a client of the live game's
+// look gets the live game's 201 bytes with the player's dyes (livelook.go).
+// Must be called with the lock held.
 func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, objectID uint32) []byte {
+	buf, p := w.serializeEntityDiscLocked(sess, id, objectID)
+	if buf == nil {
+		return nil
+	}
+	var dyes *Dyes
+	if p != nil {
+		dyes = &p.Dyes
+	}
+	return ForViewer(sess, buf, dyes)
+}
+
+// serializeEntityDiscLocked is serializeEntityForChannel's buffer in the
+// disc's look, and the player it is (nil for an NPC).
+func (w *World) serializeEntityDiscLocked(sess *session.Session, id EntityID, objectID uint32) ([]byte, *Player) {
 	// Check NPC first
 	if npc, ok := w.NPCs[id]; ok {
 		buf := SerializeNPCUpdate(objectID, npc)
@@ -296,7 +310,7 @@ func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, ob
 		}
 		w.duelViewPetLocked(sess, npc, buf) // a duel opponent's pet as a creature (duel.go)
 		w.putChannelTargetLocked(sess, npc, buf)
-		return buf
+		return buf, nil
 	}
 
 	// Check player (other players on visibility channels)
@@ -325,10 +339,10 @@ func (w *World) serializeEntityForChannel(sess *session.Session, id EntityID, ob
 		buf := SerializePlayerUpdate(objectID, p)
 		w.duelViewLocked(sess, p.ServerID, buf) // a duel opponent as a creature (duel.go)
 		w.putChannelTargetLocked(sess, p, buf)
-		return buf
+		return buf, p
 	}
 
-	return nil
+	return nil, nil
 }
 
 // putChannelTargetLocked writes an entity's target (bytes 59-62) as the id

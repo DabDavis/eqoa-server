@@ -69,6 +69,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "racesize" && row != nil {
 		return checkRaceSizeRow(row) // live_racesize.go
 	}
+	if table == "chardyes" && row != nil {
+		return checkDyeRow(row) // live_dyes.go
+	}
 	if table == "gmtriggers" && row != nil {
 		return checkTriggerRow(row) // ops_triggers.go
 	}

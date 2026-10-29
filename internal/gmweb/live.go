@@ -57,6 +57,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveSpellGates() // live_gates.go
 	case "racesize":
 		return s.liveRaceSizes() // live_racesize.go
+	case "chardyes":
+		return s.liveDyes(before, after) // live_dyes.go
 	case "gmtriggers":
 		return s.liveTriggers() // ops_triggers.go
 	case "charfactions":

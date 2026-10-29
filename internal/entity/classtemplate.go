@@ -900,8 +900,8 @@ var templateElements = []struct {
 // templateLineLocked says a templated NPC's template for #stats.
 func (w *World) templateLineLocked(npc *NPC) string {
 	t := npc.tmpl
-	parts := []string{fmt.Sprintf("Class template %s: a %s, hit points %d%% (%d of %d), melee taken %d%%, its melee %d%%",
-		t.Name, nameIn(classNames, npc.Class), t.HPPct, npc.MaxHP, npc.tbase.maxHP, t.TakenPct, t.MeleePct)}
+	parts := []string{fmt.Sprintf("Class template %s: a %s, hit points %d (%d%% of its %d), melee taken %d%%, its melee %d%%",
+		t.Name, nameIn(classNames, npc.Class), npc.MaxHP, t.HPPct, npc.tbase.maxHP, t.TakenPct, t.MeleePct)}
 	if t.SpecialChance > 0 && t.SpecialDamage > 0 {
 		parts = append(parts, fmt.Sprintf("%s in %d%% of its rounds for %d", specialName(t), t.SpecialChance,
 			max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1)))

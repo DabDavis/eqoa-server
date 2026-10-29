@@ -3091,5 +3091,14 @@
    "note": "the altar beside the spirit guardian, in the inner pyramid",
    "water": "land"
   }
+ ],
+ "attackable": [
+  "Nanie Gubbins",
+  "Necromancer Warpheus",
+  "Brunsgill",
+  "Aryee",
+  "Warlord Kraven",
+  "Apprentice Yavim",
+  "Radavex Planeswalker"
  ]
 }

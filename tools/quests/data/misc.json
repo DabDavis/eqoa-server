@@ -1360,7 +1360,7 @@
     "Gregor Pyrely",
     "Nanie Gubbins (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Nanie Gibbons and Debo Bibin in the guide are the live game's Nanie Gubbins and Debo Diblin (FrontiersForge's names; both spellings stand in Bobble-by-Water). The guide's 5000-tunar reset for a wrong judgment is left out: the innocent are not part of the quest. A guilty party who turns on you is a talker the step's start spawns hostile (a copy, attackable); check_quests.py wants an attackable row of the name, so Nanie Gubbins is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #1 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 1'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Nanie Gibbons and Debo Bibin in the guide are the live game's Nanie Gubbins and Debo Diblin (FrontiersForge's names; both spellings stand in Bobble-by-Water). The guide's 5000-tunar reset for a wrong judgment is left out: the innocent are not part of the quest. Nanie Gubbins stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy that attacks (the guide's turn on you)."
   },
   {
    "key": "Misc/stat-boost-quests/wis2",
@@ -1563,7 +1563,7 @@
     "Esmirique",
     "Necromancer Warpheus (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Warpheus's pet Rover joins the fight as a hostile copy. A guilty party who turns on you is a talker the step's start spawns hostile (a copy, attackable); check_quests.py wants an attackable row of the name, so Necromancer Warpheus is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). Warpheus's pet Rover joins the fight as a hostile copy. Necromancer Warpheus stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy that attacks (the guide's turn on you)."
   },
   {
    "key": "Misc/stat-boost-quests/wis4",
@@ -1644,7 +1644,7 @@
     "Zombie #22",
     "Brunsgill (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide does not name Zombie #22's drop: a jawbone here. A guilty party who turns on you is a talker the step's start spawns hostile (a copy, attackable); check_quests.py wants an attackable row of the name, so Brunsgill is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Wisdom CM Statistic Boost, Quest #4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Sages Wit mastery line opening for purchase (cmcatalog 'Sages Wit 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide does not name Zombie #22's drop: a jawbone here. Brunsgill stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy that attacks (the guide's turn on you)."
   },
   {
    "key": "Misc/stat-boost-quests/int1",
@@ -1862,6 +1862,28 @@
         }
        ]
       }
+     ],
+     "waiting": "So, stranger. What is it I carry?",
+     "choose": "What do I carry?",
+     "choices": [
+      {
+       "answer": "You have the ring."
+      },
+      {
+       "answer": "You have the note.",
+       "says": "Wrong. Go back to Inquiladius and work it out again.",
+       "stay": true
+      },
+      {
+       "answer": "You have the rune.",
+       "says": "Wrong. Go back to Inquiladius and work it out again.",
+       "stay": true
+      },
+      {
+       "answer": "You have the pouch.",
+       "says": "Wrong. Go back to Inquiladius and work it out again.",
+       "stay": true
+      }
      ]
     },
     {
@@ -1879,6 +1901,28 @@
          "count": 1
         }
        ]
+      }
+     ],
+     "waiting": "So, stranger. What is it I carry?",
+     "choose": "What do I carry?",
+     "choices": [
+      {
+       "answer": "You have the ring.",
+       "says": "Wrong. Go back to Inquiladius and work it out again.",
+       "stay": true
+      },
+      {
+       "answer": "You have the note.",
+       "says": "Wrong. Go back to Inquiladius and work it out again.",
+       "stay": true
+      },
+      {
+       "answer": "You have the rune.",
+       "says": "Wrong. Go back to Inquiladius and work it out again.",
+       "stay": true
+      },
+      {
+       "answer": "You have the pouch."
       }
      ]
     },
@@ -1898,6 +1942,28 @@
         }
        ]
       }
+     ],
+     "waiting": "So, stranger. What is it I carry?",
+     "choose": "What do I carry?",
+     "choices": [
+      {
+       "answer": "You have the ring.",
+       "says": "Wrong. Go back to Inquiladius and work it out again.",
+       "stay": true
+      },
+      {
+       "answer": "You have the note.",
+       "says": "Wrong. Go back to Inquiladius and work it out again.",
+       "stay": true
+      },
+      {
+       "answer": "You have the rune."
+      },
+      {
+       "answer": "You have the pouch.",
+       "says": "Wrong. Go back to Inquiladius and work it out again.",
+       "stay": true
+      }
      ]
     },
     {
@@ -1915,6 +1981,28 @@
          "count": 1
         }
        ]
+      }
+     ],
+     "waiting": "So, stranger. What is it I carry?",
+     "choose": "What do I carry?",
+     "choices": [
+      {
+       "answer": "You have the ring.",
+       "says": "Wrong. Go back to Inquiladius and work it out again.",
+       "stay": true
+      },
+      {
+       "answer": "You have the note."
+      },
+      {
+       "answer": "You have the rune.",
+       "says": "Wrong. Go back to Inquiladius and work it out again.",
+       "stay": true
+      },
+      {
+       "answer": "You have the pouch.",
+       "says": "Wrong. Go back to Inquiladius and work it out again.",
+       "stay": true
       }
      ]
     },
@@ -1950,7 +2038,7 @@
     "Kibenza",
     "Sawise"
    ],
-   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's solved puzzle is the steps; a wrong guess (which made you start again) cannot be made here."
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Intelligence CM Statistic Boost, Part 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Superior Intellect mastery line opening for purchase (cmcatalog 'Superior Intellect 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's solved puzzle is the steps' order; at each, what they hold is a choice, a wrong guess (the guide: back to the start) sending you to think again."
   },
   {
    "key": "Misc/stat-boost-quests/int4",
@@ -2272,7 +2360,22 @@
        ]
       }
      ],
-     "answer": "The Bartender took it."
+     "choose": "So who took my ring?",
+     "choices": [
+      {
+       "answer": "The Bartender took it."
+      },
+      {
+       "answer": "Waitress Jitzle took it.",
+       "says": "Jitzle? She never came near my table. Think again.",
+       "stay": true
+      },
+      {
+       "answer": "Roerx took it.",
+       "says": "Roerx was too drunk to find his own pocket. Think again.",
+       "stay": true
+      }
+     ]
     },
     {
      "kind": "give",
@@ -2290,7 +2393,7 @@
    "unresolved": [
     "Sylanthia De'Crevast"
    ],
-   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's crafted platinum sapphire ring for the bar tab is left out (the tab is the tunar); a wrong guess's 12,000 tunar cannot be made here. The guide's Waitress Jitzie is the game's Waitress Jitzle."
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 3 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 3'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's crafted platinum sapphire ring for the bar tab is left out (the tab is the tunar); the culprit is a choice, and a wrong guess (12,000 tunar in the guide) only sends you to think again. The guide's Waitress Jitzie is the game's Waitress Jitzle."
   },
   {
    "key": "Misc/stat-boost-quests/cha4",
@@ -2313,8 +2416,24 @@
      "kind": "talk",
      "target": "Agead",
      "journal": "Help Agead write his speech, out Freeport's back door at the north-east corner.",
-     "says": "Routine checks on the guards, mercenaries, a festival. They will love it!",
-     "answer": "Keep the taxes the same."
+     "says": "And routine checks on the guards, mercenaries, a festival. They will love it!",
+     "waiting": "My speech! Help me. First, the taxes.",
+     "choose": "What should I say about the taxes?",
+     "choices": [
+      {
+       "answer": "Keep the taxes the same."
+      },
+      {
+       "answer": "Raise the taxes.",
+       "says": "Raise them? They would riot in the streets!",
+       "stay": true
+      },
+      {
+       "answer": "Cut the taxes.",
+       "says": "Cut them? Then who pays the guards?",
+       "stay": true
+      }
+     ]
     },
     {
      "kind": "talk",
@@ -2367,7 +2486,7 @@
     "Sylanthia De'Crevast",
     "Aryee (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's three waves of a channeler, a sorcerer and a crusader before Aryee comes are left out (unnamed). A guilty party who turns on you is a talker the step's start spawns hostile (a copy, attackable); check_quests.py wants an attackable row of the name, so Aryee is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+   "notes": "From EQOA-Data Quests/Misc/stat-boost-quests.json, # Charisma CM Statistic Boost, Quest 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is the next rank of the Razzle Dazzle mastery line opening for purchase (cmcatalog 'Razzle Dazzle 4'); this server sells those ranks with no quest, and a quest step has no way to open one, so the trial gives no reward here (an open question for the engine). The guide's three waves of a channeler, a sorcerer and a crusader before Aryee comes are left out (unnamed). Aryee stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy that attacks (the guide's turn on you)."
   },
   {
    "key": "Misc/neriak-book/p1",
@@ -3301,7 +3420,28 @@
        ]
       }
      ],
-     "answer": "6642a"
+     "waiting": "Naris sent you? Then you know the code.",
+     "choose": "The code?",
+     "choices": [
+      {
+       "answer": "6642a"
+      },
+      {
+       "answer": "6624a",
+       "says": "Wrong. Think again, or go away.",
+       "stay": true
+      },
+      {
+       "answer": "2466a",
+       "says": "Wrong. Think again, or go away.",
+       "stay": true
+      },
+      {
+       "answer": "4662a",
+       "says": "Wrong. Think again, or go away.",
+       "stay": true
+      }
+     ]
     },
     {
      "kind": "give",
@@ -3366,7 +3506,7 @@
     "Kerran Escapee",
     "Arjinn Jais"
    ],
-   "notes": "From EQOA-Data Quests/Misc/paineel.json, # Paineel Quest (github.com/Jadiction/EQOA-Data, MIT). The guide gives no level or class: level 45 here (its recovery agents are red to a 60). Balidos's items (the guide's talk after his death) are his drop here; the popup needed to talk to Naris is left out. A wrong code (6642a is right) would have you kill Arjinn: left out. Not on this server, left out of the rewards: Setham's choice of nine items (Str/Dex ... HP/Pwr; the AC/HP one is the Acaesdin Choker): the engine cannot offer a choice, and none of the nine is in itempattern."
+   "notes": "From EQOA-Data Quests/Misc/paineel.json, # Paineel Quest (github.com/Jadiction/EQOA-Data, MIT). The guide gives no level or class: level 45 here (its recovery agents are red to a 60). Balidos's items (the guide's talk after his death) are his drop here; the popup needed to talk to Naris is left out. A wrong code (6642a is right) is a choice whose wrong answers send you away to think again (the guide's, killing Arjinn, is left out). Not on this server, left out of the rewards: Setham's choice of nine items (Str/Dex ... HP/Pwr; the AC/HP one is the Acaesdin Choker): none of the nine is in itempattern."
   },
   {
    "key": "Misc/the-temple-of-light/p1",
@@ -5559,8 +5699,24 @@
      "kind": "talk",
      "target": "Acelia",
      "journal": "Speak with Acelia, and answer as Macaellius told you.",
-     "says": "Knowing you are safe is enough? Such a humble hero.",
-     "answer": "It is my pleasure my lady"
+     "says": "Knowing I am safe is enough for you? Such a humble hero.",
+     "waiting": "You saved me! How can I ever thank you?",
+     "choose": "What do you say to the lady?",
+     "choices": [
+      {
+       "answer": "It is my pleasure my lady"
+      },
+      {
+       "answer": "A reward would be nice.",
+       "says": "Oh. Is that all I am to you? Start again.",
+       "stay": true
+      },
+      {
+       "answer": "Stand aside, I am busy.",
+       "says": "How rude! Start again.",
+       "stay": true
+      }
+     ]
     },
     {
      "kind": "talk",
@@ -5614,7 +5770,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/Misc/the-theatre.json, # The Theatre Quest, Act 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's five answers to Acelia are her answer and Macaellius's offer here. Not on this server, left out of the rewards: the item \"Fuzzlemop's necklace\" (HoT 10, PoT 10, AR 25)."
+   "notes": "From EQOA-Data Quests/Misc/the-theatre.json, # The Theatre Quest, Act 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's five answers to Acelia are Macaellius's offer and one choice at her (a wrong one: start again). Not on this server, left out of the rewards: the item \"Fuzzlemop's necklace\" (HoT 10, PoT 10, AR 25)."
   },
   {
    "key": "Misc/dawn-maiden/p1",
@@ -6568,85 +6724,6 @@
       }
      ],
      "says": "Whole again! It tells of Dynmath the Tyrant. Take this, and this totem: it calls him at the portal on Whale Hill, south of Wyndhaven.",
-     "rewards": {
-      "byclass": {
-       "0": {
-        "items": [
-         "ring of congeniality"
-        ]
-       },
-       "2": {
-        "items": [
-         "ring of congeniality"
-        ]
-       },
-       "3": {
-        "items": [
-         "ring of congeniality"
-        ]
-       },
-       "1": {
-        "items": [
-         "ring of congeniality"
-        ]
-       },
-       "4": {
-        "items": [
-         "ring of congeniality"
-        ]
-       },
-       "5": {
-        "items": [
-         "ring of congeniality"
-        ]
-       },
-       "6": {
-        "items": [
-         "ring of congeniality"
-        ]
-       },
-       "10": {
-        "items": [
-         "Necklace of Congeniality"
-        ]
-       },
-       "11": {
-        "items": [
-         "Necklace of Congeniality"
-        ]
-       },
-       "12": {
-        "items": [
-         "Necklace of Congeniality"
-        ]
-       },
-       "13": {
-        "items": [
-         "Necklace of Congeniality"
-        ]
-       },
-       "7": {
-        "items": [
-         "Necklace of Congeniality"
-        ]
-       },
-       "8": {
-        "items": [
-         "Necklace of Congeniality"
-        ]
-       },
-       "9": {
-        "items": [
-         "Necklace of Congeniality"
-        ]
-       },
-       "14": {
-        "items": [
-         "Necklace of Congeniality"
-        ]
-       }
-      }
-     },
      "events": [
       {
        "on": "done",
@@ -6658,6 +6735,25 @@
         }
        ]
       }
+     ],
+     "choose": "Which will you have, the ring or the necklace?",
+     "choices": [
+      {
+       "answer": "The Ring of Congeniality.",
+       "rewards": {
+        "items": [
+         "ring of congeniality"
+        ]
+       }
+      },
+      {
+       "answer": "The Necklace of Congeniality.",
+       "rewards": {
+        "items": [
+         "Necklace of Congeniality"
+        ]
+       }
+      }
      ]
     }
    ],
@@ -6666,7 +6762,7 @@
     "Ice Giant Tomekeeper",
     "Guard Therean"
    ],
-   "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 51-60 (github.com/Jadiction/EQOA-Data, MIT). The guide's totem is passed to a higher-level character for each band: each band is its own quest, open to anyone in its levels who brings the glowing totem (tradeable), with no quest before it. The guide's reward is a choice of the Ring of Congeniality (STA, AGI, HP) and the Necklace of Congeniality (DEX, INT, POW): the ring to tanks and melees, the necklace to casters, healers and alchemists here. The guide's trouble with evil and good pages (a level 1 of the right city) is left out."
+   "notes": "From EQOA-Data Quests/Misc/dynmath-the-tyrant.json, # Level 51-60 (github.com/Jadiction/EQOA-Data, MIT). The guide's totem is passed to a higher-level character for each band: each band is its own quest, open to anyone in its levels who brings the glowing totem (tradeable), with no quest before it. The guide's reward is the choice of the Ring of Congeniality (STA, AGI, HP) and the Necklace of Congeniality (DEX, INT, POW), a step's choice here. The guide's trouble with evil and good pages (a level 1 of the right city) is left out."
   },
   {
    "key": "Misc/dynmath-the-tyrant/t7",
@@ -7278,86 +7374,27 @@
      "kind": "talk",
      "target": "Magifent the Unliving",
      "journal": "Return to Magifent the Unliving in the tomb.",
-     "says": "Free of him, and of myself. Take a ring for it.",
-     "rewards": {
-      "byclass": {
-       "10": {
+     "says": "Free of him, and of myself. Wear it well.",
+     "waiting": "Free of him at last. Take a ring for it.",
+     "choose": "Which ring will you have?",
+     "choices": [
+      {
+       "answer": "The blue ring, for power.",
+       "rewards": {
         "items": [
          "mystical ward of power"
         ]
-       },
-       "11": {
-        "items": [
-         "mystical ward of power"
-        ]
-       },
-       "12": {
-        "items": [
-         "mystical ward of power"
-        ]
-       },
-       "13": {
-        "items": [
-         "mystical ward of power"
-        ]
-       },
-       "7": {
-        "items": [
-         "mystical ward of power"
-        ]
-       },
-       "8": {
-        "items": [
-         "mystical ward of power"
-        ]
-       },
-       "9": {
-        "items": [
-         "mystical ward of power"
-        ]
-       },
-       "14": {
-        "items": [
-         "mystical ward of power"
-        ]
-       },
-       "0": {
-        "items": [
-         "mystical ward of resistance"
-        ]
-       },
-       "2": {
-        "items": [
-         "mystical ward of resistance"
-        ]
-       },
-       "3": {
-        "items": [
-         "mystical ward of resistance"
-        ]
-       },
-       "1": {
-        "items": [
-         "mystical ward of resistance"
-        ]
-       },
-       "4": {
-        "items": [
-         "mystical ward of resistance"
-        ]
-       },
-       "5": {
-        "items": [
-         "mystical ward of resistance"
-        ]
-       },
-       "6": {
+       }
+      },
+      {
+       "answer": "The green ring, against the elements.",
+       "rewards": {
         "items": [
          "mystical ward of resistance"
         ]
        }
       }
-     }
+     ]
     }
    ],
    "unresolved": [
@@ -7367,7 +7404,7 @@
     "Undead Drake Lord",
     "Magifent"
    ],
-   "notes": "From EQOA-Data Quests/Misc/undead-drake-lord.json, # Undead Drake Lord Quest, steps 6-7 and the reward (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is a ring of your choice made in Klick'Anon (a guard tower east of the coach) from a gem the living Magifent drops and a no-trade ring: the engine has no choice, so the power ring (the guide's Blue, the server's mystical ward of power) goes to casters, healers and alchemists and the resistance ring (Green, mystical ward of resistance) to tanks and melees, from Magifent himself. Not on this server: the Crimson and Gold rings. The drake lord's Drakescale armor is loot. The bloodstone drakes that keep coming for an hour are two and one."
+   "notes": "From EQOA-Data Quests/Misc/undead-drake-lord.json, # Undead Drake Lord Quest, steps 6-7 and the reward (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is a ring of your choice made in Klick'Anon (a guard tower east of the coach) from a gem the living Magifent drops and a no-trade ring: here Magifent himself offers the choice of the two this server has, the Blue (mystical ward of power) and the Green (mystical ward of resistance). Not on this server: the Crimson and Gold rings. The drake lord's Drakescale armor is loot. The bloodstone drakes that keep coming for an hour are two and one."
   },
   {
    "key": "Misc/lord-pickclaw/p1",
@@ -7951,7 +7988,7 @@
    "unresolved": [
     "Warlord Kraven (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/Misc/snowgrin.json, # Snowgrin Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Karis McDonough and Grilmash Frostcackle are the game's Karis McDonogh and Grilmesh Frostcackle. Snowgrin's rares (Dragoneye, Crystalline Spear, Storm's Edge ...) are loot, not a quest reward; the quest gives none. Warlord Kraven stands as a townsperson in the database (npc_type 0x80): the step's start spawns a hostile copy, but check_quests.py wants an attackable row of the name, so it is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+   "notes": "From EQOA-Data Quests/Misc/snowgrin.json, # Snowgrin Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Karis McDonough and Grilmash Frostcackle are the game's Karis McDonogh and Grilmesh Frostcackle. Snowgrin's rares (Dragoneye, Crystalline Spear, Storm's Edge ...) are loot, not a quest reward; the quest gives none. Warlord Kraven stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy."
   },
   {
    "key": "Misc/terrorantula/p1",
@@ -8527,7 +8564,7 @@
     "Apprentice Yavim (attackable)",
     "Radavex Planeswalker (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/Misc/radavex.json, # Radavex Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's semi-rare spawns (the orb, Ealesha and Yavim) stand here. Radavex's orb (a two-second group port to the top of the tower) is a crystal the orb gives, and Radavex is spawned beside the player. His and his guards' Planeswalker faction (-10 a kill) is the kill's faction here (one -10 at the kill step). The reward is his loot (Radavex's bracers, the nullfield earring, the starbladed staff). Apprentice Yavim and Radavex Planeswalker stands as a townsperson in the database (npc_type 0x80): the step's start spawns a hostile copy, but check_quests.py wants an attackable row of the name, so it is listed as unresolved until one exists (a seed's ATTACKABLE entry) or the checker accepts a hostile spawn."
+   "notes": "From EQOA-Data Quests/Misc/radavex.json, # Radavex Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's semi-rare spawns (the orb, Ealesha and Yavim) stand here. Radavex's orb (a two-second group port to the top of the tower) is a crystal the orb gives, and Radavex is spawned beside the player. His and his guards' Planeswalker faction (-10 a kill) is the kill's faction here (one -10 at the kill step). The reward is his loot (Radavex's bracers, the nullfield earring, the starbladed staff). Apprentice Yavim and Radavex Planeswalker stands as a townsperson (npc_type 0x80): the set's attackable list makes them attackable, and the kill step's start spawns a hostile copy."
   },
   {
    "key": "Misc/acolyte-of-bristlebane/p1",

@@ -89,6 +89,8 @@ func enums() map[string][]EnumValue {
 		"craftskill": numbered("Weapon Crafting", "Armor Crafting", "Tailoring", "Jewel Crafting", "Carpentry", "Alchemy"),
 		// craftrecipes.rarity: the book's Rarity column (C, UC, R, UR)
 		"craftrarity": numbered("Common", "Uncommon", "Rare", "Ultra Rare"),
+		// classtemplates.class (entity/classtemplate.go): -1 the NPC's own
+		"templateclass": append([]EnumValue{{-1, "The NPC's own (NPC classes)"}}, numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist")...),
 	}
 }
 
@@ -657,6 +659,58 @@ var catalog = map[string]tableNote{
 			"water":  {Label: "Water", Help: "land, both, water, or empty: by where it spawned (in the water: water)"},
 			"note":   {Label: "Note", Help: "why"},
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_move.py's rows (its --undo deletes those)"},
+		},
+	},
+	"classtemplates": {
+		Label: "Class templates", Group: "World", Title: "name", Sort: "name",
+		Help: "NPC class templates (entity/classtemplate.go; jib's F3 20261029-025234): a template a row, given to the NPCs " +
+			"of a name by NPC class templates. An NPC of a template fights as its class (its melee swing, CLIENT's GetSwing, " +
+			"and the class whose spells it casts; -1 keeps its own), with hp_pct of its level's hit points, taken_pct of a " +
+			"player's or a pet's melee hit on it landing (85: 15% less), melee_pct of its own melee hits; it kicks (special) " +
+			"in special_chance of its rounds for special_damage a level, fixed and through any armour, as Sandstorm's " +
+			"creatures' specials hit (a level 34 crab's 251), with special_fx's visual (0: Sandstorm's creature special); " +
+			"and in its fights it casts its abilities from where it stands, its melee waiting while it casts. An ability " +
+			"casts the highest spell of its kind (nuke: a harmful hit of one target; aoe: one on an area, the spell's area " +
+			"and its Spell areas row; lifetap: a hit that heals its caster; heal: a heal on itself, below its share of hit " +
+			"points) its class has at or below the NPC's level (Class spells; a mastery's, an epic's or a master class's " +
+			"never), its own recast and cast time no longer than max_recast and max_cast, or the spell it names. Each " +
+			"lands as a player's cast does, 1.4 s after its cast time: its hit at damage_pct, less the share the player's " +
+			"resist to its element (by its name: fire, ice, lightning, poison, disease, else arcane) takes, told in a " +
+			"0x00DB and a line; a tap's share back on the NPC. A spell's lasting part (a damage tick, a stat, a hold) is " +
+			"not put on a player. abilities is " + classTemplateAbilitiesHelp + ". The five seed rows are jib's examples " +
+			"(tank, melee, wizard, necromancer, shadowknight); their numbers are ours, each note says which. A row the " +
+			"world cannot use is refused here, and named in the answer's line when it was written another way.",
+		Live:   "At once: every NPC of a name given it takes its numbers where it stands, and its next fight its abilities.",
+		Show:   []string{"name", "class", "hp_pct", "taken_pct", "melee_pct", "special", "special_chance", "abilities", "source"},
+		Search: []string{"name", "special", "abilities", "note", "source"},
+		Cols: map[string]colNote{
+			"name":           {Label: "Template (key)", Help: "lower case; NPC class templates names it"},
+			"class":          {Label: "Class", Enum: "templateclass", Help: "the class it fights as: its swing and its spells; -1 the NPC's own"},
+			"hp_pct":         {Label: "Hit points %", Help: "of its level's (10-1000)", Section: "Stat profile"},
+			"taken_pct":      {Label: "Melee taken %", Help: "of a player's or a pet's melee hit on it that lands (1-1000): its armour", Section: "Stat profile"},
+			"melee_pct":      {Label: "Its melee %", Help: "of its own melee hits (10-1000)", Section: "Stat profile"},
+			"special":        {Label: "Special", Help: "its special melee's name (Kick); empty none", Section: "Special melee"},
+			"special_chance": {Label: "Special %", Help: "of its rounds it comes in, a second after the round's last hit (0-100)", Section: "Special melee"},
+			"special_damage": {Label: "Special damage", Help: "a level (0-200), fixed and through any armour: Sandstorm's crab's 251 at 34 is 7.4", Section: "Special melee"},
+			"special_fx":     {Label: "Special visual", Format: hex32, Help: "0x00B1's visual; 0 Sandstorm's creature special (0x66CD778E)", Section: "Special melee"},
+			"abilities":      {Label: "Abilities", Format: "json", Help: classTemplateAbilitiesHelp},
+			"note":           {Label: "Note", Format: "multiline"},
+			"source":         {Label: "Source", Help: "gm, or seed for jib's five examples the table was made with"},
+		},
+	},
+	"npctemplate": {
+		Label: "NPC class templates", Group: "World", Title: "name", Sort: "name",
+		Help: "Which NPCs fight by a class template, by NPC NAME as NPC classes key it (lower case, no trailing space or $): " +
+			"every NPC of the name, a GM's #spawn copy too, fights by the Class templates row its template names (not a pet " +
+			"or a training dummy). Made empty: no NPC fights by a template until a row here gives one. A row naming no " +
+			"template gives nothing (the answer's line says so).",
+		Live:   "At once: the NPCs of the name take the template's numbers where they stand, and their next fight its abilities.",
+		Search: []string{"name", "template", "note", "source"},
+		Cols: map[string]colNote{
+			"name":     {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"template": {Label: "Template", Ref: "classtemplates", Help: "a Class templates name"},
+			"note":     {Label: "Note"},
+			"source":   {Label: "Source", Help: "gm"},
 		},
 	},
 	"cmcatalog": {

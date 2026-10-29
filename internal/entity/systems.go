@@ -40,6 +40,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 
 	w.aggroSystem(now) // a creature's first move (aggro.go)
 	w.aiSystem(now)
+	w.templateSystem(now) // templated NPCs' casts landing (classtemplate.go)
 	w.homeSystem(now)
 	w.attackSystem(now)
 	w.petSystem(now)
@@ -95,6 +96,7 @@ func (w *World) aiSystem(now time.Time) {
 			if !npc.RoundStart.IsZero() {
 				npc.endRound()
 			}
+			npc.endTemplateFight() // its next fight starts its template's clocks (classtemplate.go)
 			if npc.chase.on && !npc.Dead {
 				w.goHomeLocked(npc) // its fight is over: back where it began (chase.go)
 			}
@@ -154,10 +156,17 @@ func (w *World) aiSystem(now time.Time) {
 		if enemy.IsDead() || npc.CurrentEnemy != enemy.ServerID {
 			continue
 		}
+		if npc.tmpl != nil && w.templateTurnLocked(npc, enemy.ServerID, now) {
+			npc.loseDueHits(now) // casting: no swing meanwhile (classtemplate.go)
+			continue
+		}
 		w.npcRoundLocked(npc, enemy, now, func() bool {
 			w.npcAttackPlayer(npc, enemy.ServerID, now)
 			return enemy.IsDead() || npc.CurrentEnemy != enemy.ServerID
 		})
+		if npc.tmpl != nil && !enemy.IsDead() && npc.CurrentEnemy == enemy.ServerID {
+			w.templateSpecialLocked(npc, enemy.ServerID, now) // its kick (classtemplate.go)
+		}
 	}
 	for _, f := range petFights {
 		if npc, pet := f[0], f[1]; !npc.Dead && !pet.Dead && npc.CurrentEnemy == pet.ServerID {
@@ -186,8 +195,10 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 		return // across the water's edge (water.go)
 	}
 
-	// Sandstorm's roll on the player's AC, AGI and archetype (defence.go)
-	damage := w.npcHitLocked(npc, player.Level, npcMeleeRoll(npc).hitOn(player, meleeIntn)) // balance.go
+	// Sandstorm's roll on the player's AC, AGI and archetype (defence.go),
+	// as its class template makes it (classtemplate.go), then the balance's
+	// (balance.go)
+	damage := w.npcHitLocked(npc, player.Level, npc.meleeOut(npcMeleeRoll(npc).hitOn(player, meleeIntn)))
 	player.HP -= damage
 	if player.HP < 0 {
 		player.HP = 0

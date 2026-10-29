@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"sync"
 
 	"github.com/eqoa/pkg/pkg/buffer"
 	"github.com/eqoa/server/internal/database"
@@ -29,6 +30,13 @@ import (
 // 0x003C or 0x003B, a tunar move with 0x0052. The direction of 0x1255 is
 // the tunar window's (func_00C196B0): mode 1 deposits, bounded by the purse,
 // and sends 0; mode 2 withdraws, bounded by the bank, and sends 1.
+
+// bankMu serializes the bank: the session's copy of its list (invList), its
+// tunar as the game holds it (Player.BankTunar) and the rows of both, so a
+// move of the bank's (here), the auction house's (auction.go) and a
+// MemoryDump's reading of them (character.go) never interleave. Nothing takes
+// it with the World's lock held; the auction house takes its own first.
+var bankMu sync.Mutex
 
 // bankTookPayload is 0x1250: n off the bank record at index.
 func bankTookPayload(index, n int) []byte {
@@ -71,6 +79,10 @@ func (h *NPCWindowHandler) HandleBankOpen(sess *session.Session, msg *protocol.M
 	}
 	queueReliable(sess, protocol.OpcodeBankUI, build(protocol.OpcodeBankUI, 2, nil))
 	log.Printf("Bank: %s opened %q", player.Name, npc.Name)
+	// what the auction house holds for it, filed if there is room now
+	if h.auction != nil {
+		h.auction.bankOpened(sess, player)
+	}
 	return nil
 }
 
@@ -97,6 +109,8 @@ func (h *NPCWindowHandler) bankItem(sess *session.Session, id uint32, fromBank b
 	if !ok || h.inv == nil || inv == nil || bank == nil || n < 1 {
 		return false
 	}
+	bankMu.Lock()
+	defer bankMu.Unlock()
 	src, dst, dstLoc := inv, bank, 1
 	if fromBank {
 		src, dst, dstLoc = bank, inv, 0
@@ -168,10 +182,12 @@ func (h *NPCWindowHandler) HandleBankTunar(sess *session.Session, msg *protocol.
 		return nil
 	}
 	player, _, ok := h.windowNPC(sess, id, npcFlagBank, "BankTunar")
-	if !ok || amount < 1 || dir > 1 {
+	if !ok || amount < 1 || dir > 1 || (h.gameWorld != nil && !h.gameWorld.IsLivePlayer(player)) {
 		refuse(sess)
 		return nil
 	}
+	bankMu.Lock()
+	defer bankMu.Unlock()
 	a := int(amount)
 	if dir == 0 && a <= player.Tunar {
 		player.Tunar -= a
@@ -184,7 +200,13 @@ func (h *NPCWindowHandler) HandleBankTunar(sess *session.Session, msg *protocol.
 		refuse(sess)
 		return nil
 	}
-	h.saveTunar(player)
+	// the purse and the bank both moved: both kept (saveTunar keeps the
+	// purse alone; the bank's tunar is written only under bankMu)
+	if h.inv != nil {
+		if err := h.inv.SetTunar(player.CharServerID, player.Tunar, player.BankTunar); err != nil {
+			log.Printf("BankTunar: saving %s's %d / %d: %v", player.Name, player.Tunar, player.BankTunar, err)
+		}
+	}
 	queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(player.Tunar))
 	queueReliable(sess, protocol.OpcodeConfirmBankTunar, bankTunarPayload(player.BankTunar))
 	log.Printf("BankTunar: %s now %d carried, %d banked", player.Name, player.Tunar, player.BankTunar)

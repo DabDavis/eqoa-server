@@ -343,16 +343,24 @@ func (s *Server) registerWorldOps() {
 		Name: "reload_npcs", Title: "Reload every NPC", Scope: scopeWrite,
 		Description: "Put the whole npcs table into the running world again: NPCs whose rows changed outside the " +
 			"panel (an importer, SQL) are remade, new rows spawn, deleted rows leave; unchanged NPCs are left as they " +
-			"are. The GMs' temporary spawns stay.",
+			"are. The GMs' temporary spawns stay. The class templates (classtemplates, npctemplate) are read again first.",
 		Handler: func(c *opCtx) (any, error) {
 			if c.s.d.World == nil || c.s.d.NPCs == nil {
 				return nil, badRequest("no world is running")
+			}
+			templated := 0
+			if c.s.d.DB != nil {
+				n, err := c.s.d.World.LoadClassTemplates(c.s.d.DB) // entity/classtemplate.go
+				if err != nil {
+					return nil, err
+				}
+				templated = n
 			}
 			changed, removed, err := c.s.d.World.ReloadNPCs(c.s.d.NPCs)
 			if err != nil {
 				return nil, err
 			}
-			msg := fmt.Sprintf("NPCs reloaded: %d made anew, %d removed", changed, removed)
+			msg := fmt.Sprintf("NPCs reloaded: %d made anew, %d removed; %d fight by a class template", changed, removed, templated)
 			c.s.audit(c.a, "live", "npcs", nil, nil, nil, msg)
 			return map[string]any{"changed": changed, "removed": removed, "message": msg}, nil
 		},

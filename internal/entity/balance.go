@@ -201,6 +201,12 @@ func (w *World) applyBalanceLocked(npc *NPC) {
 		npc.MaxHP = pct(NPCMaxHP(npc.Level), w.balance.Level(w.balanceLevelOf(npc)).PetHPPct)
 	} else {
 		npc.MaxHP = w.balance.NPCMaxHP(npc.Level)
+		if t := npc.tmpl; t != nil {
+			// its class template's hit points on the balance's
+			// (classtemplate.go keeps its base in tbase)
+			npc.tbase.maxHP = npc.MaxHP
+			npc.MaxHP = max(1, int(math.Round(float64(npc.MaxHP)*float64(t.HPPct)/100)))
+		}
 	}
 	npc.HP = npc.MaxHP
 }

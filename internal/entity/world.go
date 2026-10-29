@@ -102,6 +102,11 @@ type World struct {
 	// The life taps a necromancer's pets cast, by level (pettap.go)
 	petTaps []PetTap
 
+	// The NPCs' class templates and the names that fight by them, and the
+	// templated NPCs' casts on their way to landing (classtemplate.go)
+	templates classTemplates
+	npcCasts  []*npcCast
+
 	// The factions' starting standings and what a kill does (faction.go)
 	factions factionTable
 

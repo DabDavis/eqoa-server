@@ -8,6 +8,7 @@ import { state, go } from './lib/nav.js';
 const NAV = [
   ['Overview', [
     ['dashboard', 'Dashboard', 'home'],
+    ['work', 'Work board', 'clipboard'],
     ['online', 'Players online', 'users'],
     ['map', 'World map', 'map'],
   ]],
@@ -45,6 +46,7 @@ const NAV = [
 
 const VIEWS = {
   dashboard: () => import('./views/dashboard.js'),
+  work: () => import('./views/work.js'),
   online: () => import('./views/online.js'),
   map: () => import('./views/map.js'),
   accounts: () => import('./views/accounts.js'),

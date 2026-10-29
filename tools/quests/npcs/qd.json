@@ -870,6 +870,85 @@
    "level": 40,
    "note": "Oggok Gate (NE), on a hillside among the ponds (the map's point, read as Tunaria: it lies in the sheet's Rathe inset)",
    "water": "land"
+  },
+  {
+   "name": "Bookshelf",
+   "role": "talker",
+   "body": [
+    "npc",
+    "Guild Board"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "in the casters' guild of Qeynos",
+   "water": "land"
+  },
+  {
+   "name": "Scholar Dafren",
+   "role": "talker",
+   "body": [
+    "race",
+    "erudite",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "note": "the third floor of Highbourne's library",
+   "water": "land"
+  },
+  {
+   "name": "Tiny Spiderbot",
+   "role": "foe",
+   "body": [
+    "kind",
+    "clockwork"
+   ],
+   "place": [
+    "at",
+    0,
+    25300.0,
+    6650.0
+   ],
+   "count": 5,
+   "level": 20,
+   "note": "randomly about the north-east of Rogue Clockworks (unconnable in the guide: caught, not fought)",
+   "water": "land"
+  },
+  {
+   "name": "Shiny Clockwork",
+   "role": "foe",
+   "body": [
+    "kind",
+    "clockwork"
+   ],
+   "place": [
+    "at",
+    0,
+    25250.0,
+    6300.0
+   ],
+   "count": 3,
+   "level": 48,
+   "note": "the hill with a huge signpost east of the north-east of Rogue Clockworks (the place is ours: the guide's 'a hill around the village')",
+   "water": "land"
+  },
+  {
+   "name": "Gust",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Whirlwind"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 3,
+   "note": "the ravine east of Wyndhaven's coach, with the enraged wolves (the Whirlwind's swirling look)",
+   "water": "land"
   }
  ]
 }

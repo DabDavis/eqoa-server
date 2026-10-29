@@ -249,9 +249,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Talya Montar"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/17/freeport.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's necromancers' Bracers of Shadow are their set's Bracer of the Shadow, its bards' Gloves the Gloves of Harmony; the ancient mummies are the server's mummies of Ro (FrontiersForge's Ancient Mummy stands where one of them does). The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the magician, alchemist, who get the experience alone. Bracers of Brilliance is made here (no item has the name), with the look and stats of Bracers of Radiance."
   },
   {
@@ -360,9 +358,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Froglok Questor"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/17/grobb.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). Offered to the classes the guide gives a reward (cleric, necromancer, rogue, shadowknight, shaman); its evil-only note is not a gate here (the server sets no race's standing apart). The liver and sauce are the guide's, by these names ours. The experience is Highpass's 263,426, the one figure the level 17 guides give. Boots of the Silent Strider is made here (no item has the name), with the look and stats of Boots of Nature's Ward."
   },
   {
@@ -508,9 +504,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Bloodmaw"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/17/halas.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Novak Mcgregor and Undin Kalenn are the game's Nuvak McGregor and Udin Kalenn; it does not say to go back to Olga before Udin, but she sends you on. The fang and the letter are the guide's; the bards' Boots are the Boots of Harmony. The guide's good-only and dark elf notes are not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the shadowknight, monk, magician, necromancer, alchemist, who get the experience alone."
   },
   {
@@ -628,10 +622,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Ulria Veshiue",
-    "Veldruin Foamstalker"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/17/highbourne.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Indoren Veshine, Ulira Veshine and Lwudras Belladuos are the game's Indoran Veshiue, Ulria Veshiue and Lwudras Belladuo. The locket is ours (the guide names no item). Its dark elf note is not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the shadowknight, monk, bard, magician, necromancer, wizard, alchemist, who get the experience alone."
   },
   {
@@ -779,9 +770,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Courier Svex"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/17/highpass.json, steps 2 to 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's Durin is Informant Durin, the NPC next to Holthis Juresi D'Worok; the four scrolls are one item. Its 263,426 experience is the guide's; the class-specific item is not named and is left out."
   },
   {
@@ -1143,9 +1132,7 @@
      "says": "Tanadril spoke of you. Go well."
     }
    ],
-   "unresolved": [
-    "Wandering Priestess"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/17/neriak-nektulos.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Adrassya N'Var is the game's Adrassya V'Kar. The faction is the guide's (+100 Citizens of Neriak, +10 Indigo Brotherhood). G`Efia's class-specific item is not named and is left out. The experience is Highpass's 263,426, the one figure the level 17 guides give."
   },
   {
@@ -1286,9 +1273,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Laressa Nevar"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/17/qeynos.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Drailis is Captain Drailis, its Nanigar Volsweath the server's Nanibar Volsweath; the receipt and blade are ours by name. The monks' Disciple's Sash is the Sash of the Disciple, the warriors' Ring the Soldier's Insignia. Its dark elf note is not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the shadowknight, bard, wizard, alchemist, who get the experience alone. Ring of the Silent Strider is made here (no item has the name), with the look and stats of Ring of Guarding."
   },
   {
@@ -1411,9 +1396,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Tesht'uzu"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/17/rivervale.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). The guide's Syrus Gilstride is the game's Syrus Galestride; the bards' Sword is the Blade of Harmony, the rangers' Sword of Nature's Ward the Blade of Nature's Ward. Its dark elf note is not a gate here. The experience is Highpass's 263,426, the one figure the level 17 guides give. Every class may take it (the guide's All/All); the guide lists no reward for the shadowknight, monk, shaman, magician, necromancer, alchemist, who get the experience alone. Crook of the Gladestrider is made here (no item has the name), with the look and stats of Gloomtwig Cudgel."
   }
  ],

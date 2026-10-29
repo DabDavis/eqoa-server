@@ -94,9 +94,7 @@
      "says": "Three hearts, cold as the grave. The mausoleum will open to you now."
     }
    ],
-   "unresolved": [
-    "Deathknight Endraval"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Its first half. The guide's zombie flesh suit is crafted or bought at auction in the live game; nothing sells one here, so Xeptip hands one over. The guide lets the hearts be taken before the quest is logged; here each drops on its step, in the guide's order (Endraval, Bileheart, Halik). Deathknight Endraval is FrontiersForge's sighting (tools/quests/npcs/qe.json); Bileheart is the game's Deathknight Blieheart, his heart Corin Bileheart's."
   },
   {
@@ -312,18 +310,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Mausoleum Portal",
-    "Fatima",
-    "Last House Orderly",
-    "Last House Healer",
-    "Rebo",
-    "Last House Pharmacist",
-    "Medelonia",
-    "Last House Physician",
-    "Watchful Orderly",
-    "Portal of the Last House"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Its second half; finishing it flags the player for Zizclank's trip to PoD (unlocks). The Last House is placed in PoD's small closed building in the south-west (no walk enters it): its halls at y -12, the far side of the wall the west wing at -1.3; every spot there is ours. The orderlies stand white-faced and turn hostile by spawn events (two each time, where the guide says two or three); the bathtub popup, the healer, the pharmacist and the physician stand in their rooms; the walk through the far side is cut to the portal by the landing. The guide's rule that the trip needs the flesh suit every time is not modelled (unlocks only). The guide names no reward but the flag."
   },
   {
@@ -440,10 +427,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Filth Squid",
-    "Sthlumchoxius"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Queen Qy'tha Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Steps 1-8; finishing it flags the player for the whirling portal's trip to the wasp hive (unlocks); the chitin is the guide's keepsake. The sacrifice swim (the popup's choice, deaths and rezzes), the ten minutes before Sthlumchoxius rises and the kill group's flag are simplified: the squids (four, the guide's) and Sthlumchoxius are spawned hostile beside the player at once. The 500 experience is the guide's; the faction with the puslings is ours (the guide's scepter needs a positive standing with them and names no other way to it)."
   },
   {
@@ -567,9 +551,7 @@
      "journal": "Kill Bertoxxulous the Plaguebringer."
     }
    ],
-   "unresolved": [
-    "Throne of Bertoxxulous"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Bertoxxulous the Plaguebringer (github.com/Jadiction/EQOA-Data, MIT). The scepter is the guide's, for the stinger, with a positive standing with the puslings (factions_required). Bertoxxulous stands always up here (the guide's every-three-days throne is not modelled), so the scepter only wakes him. The guide gives no quest reward: his loot is his."
   },
   {
@@ -662,11 +644,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "cillieane viturille",
-    "toxic pollutive slime",
-    "plague toxicologist"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Noroxus Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Steps 1-5; finishing it flags the player for the fuming portal's trip to Noroxus (unlocks). The guide's giver line names Honcho Oogurlgze, its steps Honcho Ulgurglch, the game's name. The slimes stand in the pools (the guide's connable slime that spawns them is not modelled); the skin is the guide's pass, its portal check is the flag; the goo that debuffs Noroxus, the portal's 10-15 minutes and 'Noroxus must be up' are left out."
   },
   {
@@ -1037,9 +1015,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Grum"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Spell Quest (github.com/Jadiction/EQOA-Data, MIT). Each piece is its giver's primary drop in the guide (Rotwood the Hollow's skull and the secondary drops aside), a sure drop on its step, in the guide's order but for the eyeball last; the rare spawns stand always up here. Each class's PoD ability is the spell the guide lists for it, as this server spells it (the rogue's 'Virulet Blade' is Virulent Blade Assassin, the same figures; the shaman's two spells both); the cleric's Purifying Winds of Nife has no spellpattern row, so a cleric gets Grum's robe alone. Grum's drop is the guide's item for the class as a reward on his kill: the shield (war, pal, sk) and the robe (casters, healers, monk); the helms, tunics and boots it lists for rangers, rogues and bards have no itempattern rows. Yarfsnoogle's pet's bag is left out."
   },
   {
@@ -1293,9 +1269,7 @@
      }
     }
    ],
-   "unresolved": [
-    "scuzz toad"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/plane-of-disease.json, ## Plane of Disease Spell Quest (github.com/Jadiction/EQOA-Data, MIT). Its note on Pluxklez: 251,000 experience and scuzz toad stew for four eyes (the guide's figures). The scuzz toads' spawn cycle from the jellies and piranhas is left out: they stand at the lake (tools/quests/npcs/qe.json); the stew takes the sondereel fish soup's effect, not the guide's 156 a tick; the drop chance is ours."
   },
   {
@@ -1458,13 +1432,7 @@
      "says": "Garthis, the hunter who fell to the beast. Return to Sektamoot: there is more."
     }
    ],
-   "unresolved": [
-    "Sektamoot",
-    "Alexandraphex",
-    "Fentharos",
-    "Kratas",
-    "Crocosaurus"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The first three riddles (the guide lets them be solved in any order; here Sektamoot's, Alexandraphex's, then Fentharos's). Each manticore asks its riddle as a choice (a wrong answer may be tried again), then wants the guide's item; the riddles' words and the wrong answers are ours, after the guide's. The three manticores stand on hillsides of the Sphinx Pyramid's NE ninth, ours (tools/quests/npcs/qe.json); Kratas and Crocosaurus are FrontiersForge's sightings, standing here (the Kratas quest that spawns him is Misc's). The harpoon is made from Lord Pickclaw's Scepter's look."
   },
   {
@@ -1656,11 +1624,7 @@
      "says": "Three tokens. Now find the way to the sky yourself: it waits atop the Endless Tower."
     }
    ],
-   "unresolved": [
-    "Sektamoot",
-    "Alexandraphex",
-    "Fentharos"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The last three riddles, each asked as a choice and then its item for a token. Skahyir, Lady Vox and Siliskor stand always up here (the guide's days-long camps are not modelled); the riddles' words and the wrong answers are ours, after the guide's."
   },
   {
@@ -1730,9 +1694,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Sektamoot"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The tower and Sarathet (the game's Sartheret); finishing it flags the player for the Sky Portal's trip to the Plane of Sky (unlocks). The guide's reward for a wizard or druid is a group portal spell to the Plane of Sky: no such spell is in spellpattern (nor a spellgates row), so every class gets the Eye of the Sphynx, the guide's reward for the others; its 'carried each time' is not checked. No experience, as the guide says."
   },
   {
@@ -2050,9 +2012,7 @@
      "says": "You have walked the whole chain of rain. Take my key: it brings you back any time."
     }
    ],
-   "unresolved": [
-    "Manifestation of Rain"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/plane-of-sky.json, ## Plane of Sky Rain Chain (github.com/Jadiction/EQOA-Data, MIT). Rain 3 to 5 and the Manifestation of Rain: finishing it flags the player for Rain 1 from the main island's essence of rain (unlocks: the guide's free key). Granavik the bugbeast and every shard (for the Constructs, not in) are left out; the necrologist's popup is a reach step by him; the wands' keys are the essences' teleports. The Manifestation of Rain is ours (tools/quests/npcs/qe.json). The guide gives no reward but the flag."
   },
   {
@@ -3497,12 +3457,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Orc Sapper",
-    "sand giant siegemaster",
-    "Superior Head Jailor",
-    "Lord Pickclaw"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Honor. The 40,000 tunar and 4.5 million experience are the guide's; the orc camp is one spec, Orc Sapper (the guide's sappers, siegemasters and commanders), the siegemaster, the jailor (the guide's superior jailors' cycle left out) and Lord Pickclaw are specs (Yalie Keylotta's own quest to him is Misc's). The Agent of Honor's rune has no itempattern row: made like the others."
   },
   {
@@ -3628,13 +3583,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Agent of War",
-    "Coach Rubgar",
-    "Rallosian Brawler",
-    "Rallosian Cleric",
-    "Rallosian Conjurer"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of War. The guide ports the player to Lake Rathe E and then into a bubble; here Coach Rubgar stands by the agents (the map's point) and each set is spawned hostile beside the player; the set's names are ours (the guide's brawler, cleric and casters), and the second set's brawler leaves when its cleric falls. The guide's 'minor tunar' is 500 here (ours); the Gem of Battle has no itempattern row: made like the Spitestone, the same 30% stone."
   },
   {
@@ -3732,12 +3681,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Agent of Growth",
-    "Gnomish Intern",
-    "Assistant of Growth",
-    "Rallosian Portal"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). Agent of Growth. The level 60 list's bitter roots (the game's name; the guide's golden iron ore and pickclaw orbs are left out); the 500,000 experience and 1,500 tunar are the guide's; the intern, the assistant and the portal are specs on the map's points, their names ours (the guide's 'her gnomish intern', 'her Assistant', 'the portal')."
   },
   {
@@ -3806,9 +3750,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "portal guardian"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Zaoran Plateau Entry Quest (github.com/Jadiction/EQOA-Data, MIT). The portal guardian: finishing it flags the player for his trip to Zaoran Plateau (unlocks; the route should take the guide's 1 tunar each time); the first trip is the hand-in's own, to the Secrets world's zone 5 by its port-in marker (ZP1). The runes are kept, as the guide's 'speak again with the Agent to get your rune' implies; the guide's old notes on picking a side are left out."
   },
   {
@@ -3945,9 +3887,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Subdued Magus"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/soluseks-eye.json, ## Lord Nagafen Portal Quest (github.com/Jadiction/EQOA-Data, MIT). A barbarian, an ogre or a troll alone (races), as the guide's shroud is theirs; finishing it flags the questor for the Subdued Magus's trip to Lord Nagafen (unlocks; land by Nagafen Teleport Arrive). One boss stands for each signet's list (King Grog, Reaver Thoran, Chief Growlnar), a sure drop; the shroud's chance is ours; the Magus respawning as Subdued is a Subdued Magus standing by him (tools/quests/npcs/qe.json). The guide's pouch of 50 charges is one port token here: its 49 more are not modelled (a stack would need a count the rewards do not take); the raid's tokens are the next quest's. Wearing the shroud is not checked."
   },
   {
@@ -3989,9 +3929,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Subdued Magus"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/soluseks-eye.json, ## Lord Nagafen Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The raid's passage: anyone with a port token (tradeable, the guide's handed-out gems) is sent to Lord Nagafen's island, by Nagafen Teleport Arrive."
   },
   {
@@ -4128,9 +4066,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Rudro Balenthorpe"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/sarek-the-betrayer-port.json, ## Sarek or Black Lotus Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's recipe is the player's own (use the smelter, the talisman, the lotus); here Dalius Toziuf (the game's Dalius) makes it, and the finished talisman's first use is the hand-in's teleport to Sarek the Betrayer's tower in the water. Its reuse is not modelled: no item teleports here, and no travel NPC goes to the tower (see the report). Rudro Balenthorpe is FrontiersForge's sighting by Qeynos's blacksmith (tools/quests/npcs/qe.json); Merchant Gilgash's two wares are a give of 260,000 tunar (the guide's prices) at his window."
   },
   {
@@ -4183,8 +4119,6 @@
     }
    ],
    "unresolved": [
-    "Fendren the Forgotten",
-    "Jal'Raeth Commoner",
     "Dead Hills Port"
    ],
    "notes": "From EQOA-Data Quests/Portal/fendren-the-forgotten.json, ## Dead Hills Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The reward is the guide's Dead Hills Port (a druid's and wizard's group port to Dead Hills SE): no spellpattern row has it, so the quest is a draft until the spell and its spellgates row are added. Fendren, his treants and the commoners are specs; the drop chance is ours."
@@ -4379,13 +4313,6 @@
     }
    ],
    "unresolved": [
-    "Northeast Altar of Envar",
-    "Grave Usher",
-    "Tal'Thir",
-    "Jal'Raeth Bishop",
-    "High Priest Vorin",
-    "Jal'Raeth Patriarch",
-    "Southwest Altar of Envar",
     "Envaric Ascension"
    ],
    "notes": "From EQOA-Data Quests/Portal/envaric-ascension-quest.json, ## Envaric Ascension Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Part 1. The reward is the guide's Envaric Ascension (a druid's, necromancer's and wizard's group port to the first chamber of the Prophet's tower): no spellpattern row has it, so the quest is a draft until the spell and its spellgates row are added. Both altars, the Grave Ushers, Tal'Thir, Vorin, the Bishop and the Patriarch are specs in Envar's towers (the Rathe's cell south of the Dead Hills: four towers with basements at y 44-51), their guards left out; the two diamonds and the symbol's death are the altar's words. Part 2, the climb of the Prophet's tower with its gems, begins with the spell's port and is left out."
@@ -4548,13 +4475,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Wailing Ghost",
-    "Bolash Daemon",
-    "Grizwald",
-    "Nelytu",
-    "Lenwe Nenharma"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## The Wailing Ghost Garlic Trinket Quest (github.com/Jadiction/EQOA-Data, MIT). The Wailing Ghost stands in Zaoran Plateau's cemetery north of the port-in (tools/quests/npcs/qe.json), so the quest follows the plateau's portal quest. The bolash daemons (both camps, one name), Grizwald, Nelytu and Lenwe are specs; the eidolon's kill group is the questor; the guide's 'some xp' has no figure. The Garlic Trinket (170 HP, 50 AC, 50 AR in the guide) has no itempattern row: it is made like the Etched Rubicite Necklace, whose figures it takes."
   },
   {
@@ -4661,9 +4582,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Wailing Ghost"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## The Wailing Ghost Broken Blade Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's answer is the accept. The broken blade is Graknar's drop in Solusek's Eye (the game's Cave Hydra; its chance ours), taken in the quest's first step where the guide has it already. The 25,000 experience and 25,000 tunar are the guide's; the resilan is made like Randerith's blood (the guide's vampire-blood vial)."
   },
   {
@@ -4845,9 +4764,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Infected Wolverine"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/soluseks-eye.json, ## Solusek's Eye Broken Balde Quest (github.com/Jadiction/EQOA-Data, MIT). Its steps 2 and 6 (1, 3 and 4 are the two Wailing Ghost quests before it). The guide's archetypal soul, crafted by a weapons master from the blade, Solusek's Eye, the twinkling amulet and one of Graknar's four rings, is the hand-in of the blade, the eye and the amulet to Mecei (the ring that picks the soul's archetype is the class's earring here); the Unnamed Champion's part (step 5) is left out; the wolverines' spawn cycle is left out (the infected one stands). The earrings are the guide's by archetype (the alchemist a caster)."
   },
   {
@@ -4952,13 +4869,7 @@
      "journal": "Go down the fortress's ramps past the golems, take Hallway C, and kill Tallon Zek."
     }
    ],
-   "unresolved": [
-    "Portal of Tallon",
-    "Zek Troop",
-    "Zek Sergeant",
-    "Zek Sentry",
-    "Tallon Zek"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Tallon Zek (github.com/Jadiction/EQOA-Data, MIT). A way onto the plateau without its flag (the guide's own words). The troops' spawn cycle is four kills before the sergeant; the portal's question is the guide's ('Yes, I am the last' passes and closes it); the guide's Tallon Rages, golems, assassins and archers are left out; Tallon's five-minute despawn is not kept. The Zek camp, its portal, the sentry and Tallon are specs (the camp's spot and the fortress's halls, read off the ground, are ours). The guide gives no reward but the fight."
   },
   {
@@ -5032,11 +4943,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Portal of Zek",
-    "Zek Scout",
-    "Vallon Zek"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/Portal/zaoran-plateau.json, ## Vallon Zek (github.com/Jadiction/EQOA-Data, MIT). The scouts' rune (its chance ours: the guide's one in ten or so), the portal and its 20 shards are a give and a teleport (the shards for the raid are not modelled); Vallon is spoken to and spawned hostile, his friends and the Rages of Zek left out, his 90 minutes not kept. The camp, the portal and Vallon are specs. The guide gives no reward but the fight (Sapphyra's Sword is his loot)."
   }
  ],

@@ -190,9 +190,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Archaeologist Duggan"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 55-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The table's Acheologist Duggan is EQOA-Data's map's Archaeologist Duggan, seeded at its point, among the spheres. The gasket stacks to four, the count here."
   },
   {
@@ -1536,9 +1534,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Red Ant Worker"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 29-32 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The workers are seeded at EQOA-Data's map points (the server has none)."
   },
   {
@@ -1730,9 +1726,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Bloodpaw"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 24-28 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The table's four. It gives no experience for this row; 177,600, the table's for 24-29, is ours. The Bloodpaws are seeded where FrontiersForge saw one (the server has none)."
   },
   {
@@ -1876,9 +1870,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Ingrid Adder"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 19-25 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four)."
   },
   {
@@ -2118,9 +2110,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Sunbeetle"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 6-8 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Zarzania is the server's Zaraznia. It gives no experience; 1,960, its other level 6-8 rows', is ours. The sunbeetles are seeded in the newbie yard east of Qeynos, with its firebeetles (FrontiersForge's sighting is unusable)."
   },
   {
@@ -2312,9 +2302,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Adept Pickclaw Warrior"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/HuntAndGather/pickclaw-hunt-and-gather.json, group 4 (Adept Pickclaw Warrior), with the table's row for 31-40 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Udrick Lazow is the server's Udrik Lazow. Each group is the level window the guide's caps give it, and the sash its weapons and totems also drop (a loot step takes one item); its casters are left out (one creature a quest)."
   },
   {
@@ -2610,9 +2598,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Agent of Growth"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/HuntAndGather/weak-herbs-and-roots.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The guide's turn-in goes through the Agent's intern and her Assistant, who hands you a Rallosian healing device to use on the portal; here the Agent takes the three and heals the portal herself (the intern and the Assistant are the Portal guide's, Quests/Portal/zaoran-plateau.json, another file's to place). The Agent of Growth is that guide's NPC too: no spec here, so this is a draft until she is seeded. The orcs are the orc pawns outside Freeport. The rewards are the guide's 1,000,000 and 1,500 for every three."
   },
   {
@@ -2668,9 +2654,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Agent of Growth"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/HuntAndGather/weak-herbs-and-roots.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The guide's turn-in goes through the Agent's intern and her Assistant, who hands you a Rallosian healing device to use on the portal; here the Agent takes the three and heals the portal herself (the intern and the Assistant are the Portal guide's, Quests/Portal/zaoran-plateau.json, another file's to place). The Agent of Growth is that guide's NPC too: no spec here, so this is a draft until she is seeded. The orcs are the orc pawns outside Freeport. The rewards are the guide's 1,000,000 and 1,500 for every three."
   },
   {
@@ -2769,9 +2753,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Crazy Larry"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/HuntAndGather/crazy-larry.json, Level 20 and under (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The experience is ours (the guide gives XP, a level and class item and a stack of XP gems, none named or counted); the item and the gems are left out. The guide's low-level gobs are the goblin novices; its pikes north of Freeport and Grobb's froglok villagers are the server's."
   },
   {
@@ -2870,9 +2852,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Crazy Larry"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/HuntAndGather/crazy-larry.json, Level 45+ (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The experience is ours (the guide gives XP, a level and class item and a stack of XP gems, none named or counted); the item and the gems are left out. The guide's lower frogs in Guk are the froglok vis knights, its sharks off Mariel the hammerhead sharks; it does not know where the sturdy tin drops (the ice goblin warriors of Lady Vox's castle are ours, as the level 60's gobs in Vox); its anacondas are the server's (level 13)."
   },
   {
@@ -2971,9 +2951,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Crazy Larry"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/HuntAndGather/crazy-larry.json, Level 60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The experience is ours (the guide gives XP, a level and class item and a stack of XP gems, none named or counted); the item and the gems are left out. The guide's gobs in Vox are the ice goblin guards, its large and ancient dragon eels the ancient eels, its channelers and foragers of Guk the froglok dar warriors, its young anacondas and cryptkeepers the server's anacondas (neither of the guide's is here)."
   }
  ],

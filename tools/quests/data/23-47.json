@@ -431,9 +431,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Ice Statue"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/23.json, PART THREE (github.com/Jadiction/EQOA-Data, MIT). The guide's choice at the ice statue (release it or not) is the step's choice; either way the statue gives the ice key, as the guide has it. The chaos rats round it are the server's own. The experience is ours; the items are the fourth of each class's list in the guide. Offered with the same standing with Feria Hurkert as part two, which it follows."
   },
   {
@@ -632,9 +630,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Ancient Stone Golem"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/25.json, Black Swan Inn Side Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Apprentice Buerma is the server's Apprentice Buema. The stone is ours (the guide names no item), and Ling's fee the guide's uncertain 1,200. The reward is ours: the guide only says Buerma rewards you. The guide's note that the apprentice must be friendly (raised by killing gnolls in Blackburrow, Jethro's Cast or the bandits of Bandit Hills) gives no standing, so it is not a gate here."
   },
   {
@@ -772,10 +768,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Enraged Wolf",
-    "Danur Ironbrow"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/25.json, Wyndhaven Side Quest (github.com/Jadiction/EQOA-Data, MIT). The guide says Mister Bail gives an item, XP and an ability without naming them: the ability here is the level's (as Temby's quest gives; a class that has it from one keeps it, a scribe never teaches one twice), the experience ours and the item left out. The pelt is ours. The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
   },
   {
@@ -962,9 +955,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Goblin Fanatic"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/27.json, Part One (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The antidote is ours by name. The guide's item is not named, so it is left out; the experience is the guide's. The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces). EQOA-Data's lists give no quest ability of this level for the necromancer, so that class gets none here."
   },
   {
@@ -1771,10 +1762,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Father Manstein",
-    "Lorx Wyrm"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/33.json, Quest 2: Bastable Village Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Connor Dunn is the server's Conner Dunn, its Father Manstien the game's Father Manstein, its Emberfly the golden emberfly, the chest beside Conner the Ornate Chest. The Key of Three is the three things placed in the fountain (no item of its own), and Lorx stands in the tomb here (the guide's popup spawn). The guide's three tasks for Manstein name two; both are in. Items but the guide's blood and spark are ours; the reward is ours (the guide only says the chest holds it)."
   },
   {
@@ -1902,10 +1890,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Johan Redsen",
-    "Keller"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/33.json, Quest 3: Blakedown Side Quest (github.com/Jadiction/EQOA-Data, MIT). The defiler prince is the server's slith tar defiler princ (its name cut short). The guide's golden mayfly idol is its; the other items are ours. The reward is ours (the guide only says Redsen rewards you)."
   },
   {
@@ -2161,10 +2146,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Tseralith",
-    "Zsetikaowa"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/35.json, Quest 1: Highpass Hold Ability Quest (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The guide's Dametrios is the game's Demetrios Velspane. Yjuri and Zsetikaowa stand where they are seen (the guide's popup spawns); the Pool of Tears is Zsetikaowa's place. The idols are the guide's, the essence ours; the guide's item is not named and is left out; the experience is the guide's. The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
   },
   {
@@ -2308,11 +2290,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Phoborium",
-    "Caelduiel the Sacred",
-    "Deiphobus"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/35.json, Quest 2: Ambrose Castor Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Phorriun is the game's Phoborium, its Lelalia Shavererll the game's Lelaia Shavrell. Phoborium, Caelduiel and Deiphobus stand where they are seen (the guide's triggered spawns), and the seal keeps for Dark Solace. The items are ours; the reward is ours (the guide only says Ambrose rewards you)."
   },
   {
@@ -2407,9 +2385,7 @@
      "says": "And this, from me."
     }
    ],
-   "unresolved": [
-    "Lich Maiden"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/35.json, Quest 3: Dunn McCabe Quest (github.com/Jadiction/EQOA-Data, MIT). The spectral guardian and the Lich Maiden stand where they are seen in the Tomb of Kings (the guide's chest spawn), and the chest is that place. The key is ours, the gown the guide's. The experience is ours (the guide only says Smithy Palin gives it); Tailor Portia's item is not named and is left out."
   },
   {
@@ -2555,12 +2531,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Lord Voriander",
-    "Adept Pickclaw Warrior",
-    "Jann Olos",
-    "Goblin Hijacker"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/35.json, Quest 4: Lord Voriander Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Captain Ravensite is the game's Captain Ravenhite. The road's goblins are the Adept Pickclaw Warriors (level 39, the guide's yellow to a 35). The guide's watching Jann Olos at the tower is Matfin's telling of it. Jann Olos stands by the Bastable inn, where EQOA-Data's map has him. The items are ours; the reward is ours (the guide only says Voriander rewards you)."
   },
   {
@@ -2645,9 +2616,7 @@
      "says": "This is for you."
     }
    ],
-   "unresolved": [
-    "Dumak Olivarn"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/35.json, Quest 5: Fender Crow Quest (github.com/Jadiction/EQOA-Data, MIT). Laen stands in the tomb here (the guide's triggered spawn). The items are ours; the experience is ours (the guide only says Smithy Palin rewards you), and Tailor Portia's item is not named and is left out."
   },
   {
@@ -2775,10 +2744,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Model LXI",
-    "Model LXIX"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/35.json, Quest 6: Rin Tintoggle Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Merchant Samwe is the server's Merchant Swame. The blue-pawed gnoll is the server's (its popup spawn standing). The items are ours, but the guide's black box; the reward is ours (the guide only says Rin rewards you)."
   },
   {
@@ -3011,12 +2977,7 @@
      ]
     }
    ],
-   "unresolved": [
-    "Rivard Gyrind",
-    "Slith Tar Reviver",
-    "Weary Treant",
-    "High Guard Ianant"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/37.json, Quest 1: Min Gyrind Quest (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The guide's Ralis in the Brog Fens is Tradesman Ralis in Blackwater. The dig is at the X-marks the spot FrontiersForge saw beside Min. The items are ours; the guide's item is not named and is left out; the experience is the guide's. The guide's note (better standing with the gypsies, from killing siloth or Nasehir) gives no standing, so it is not a gate here. The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
   },
   {
@@ -3156,10 +3117,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Gykard",
-    "Servant De'Varik"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/37.json, Quest 2: Rigo Dartar Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Rigo Dartar and Elmo Haggar are the game's Rigo Darter and Elmo Hagger; Luvincius' servant is the Servant De'Varik FrontiersForge saw behind the tower. The Blacktongue ravager is among the server's Blacktongue orcs, where FrontiersForge saw it, so any of them may drop the lantern (our chance). The items are ours; the reward is ours (the guide only says Rigo rewards you)."
   },
   {
@@ -3285,10 +3243,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Chief Graymoon",
-    "Mayssa Deathkiss"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/37.json, Quest 3: Svenle Dormio Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Svenle is the game's Svente Dormio, his brother the Verin Dormio beside him, Enrique Reynold the game's Enrique Revnold and Mayssa the Mayssa Deathkiss FrontiersForge saw. The guide has Graymoon and Mayssa reported together (step 4 returns once); so here. The items are ours; the reward is ours (the guide only says the brother rewards you)."
   },
   {
@@ -3475,9 +3430,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Growthor"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/43.json, Quest 1: Eternal Desert Ability Quest (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The items are ours; the guide's item is not named and is left out; the experience is ours (the guide gives none). The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
   },
   {
@@ -3587,9 +3540,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Frost Fur"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/43.json, Quest 2: Joyce Sandstalker Quest (github.com/Jadiction/EQOA-Data, MIT). The crazed mage stands in his place (the guide's triggered spawn). The guide's orb, fire rune and fur are its, by these names ours. The reward is ours (the guide only says Joyce rewards you)."
   },
   {
@@ -3699,9 +3650,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Aggravated Spirit"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/43.json, Quest 3: Broyce Sandstalker Quest (github.com/Jadiction/EQOA-Data, MIT). The aggravated spirit stands by the ruins (the guide's triggered spawn). The items are ours; the reward is ours (the guide only says Broyce rewards you)."
   },
   {
@@ -3948,12 +3897,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Old Man Antiok",
-    "Marrow Maw",
-    "Captain Soohn",
-    "Siz Coalburner"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/45.json, Quest 1: Castle Lightwolf Ability Quest (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The Black Gate's trip to Mila's Reef is a teleport to Old Man Antiok, and Antiok sends you back to the gate when his tasks are done (the guide does not say how you return). The lighthouse merchant is the Siz Coalburner FrontiersForge saw there, Akuion the server's Cultist Akuion (standing: the guide's triggered spawn); the guide's Kratas is another quest's. The insignia is the server's own Akuion's insignia, the other items ours; the guide's item is not named and is left out; the experience is the guide's. The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
   },
   {
@@ -4087,9 +4031,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Ambassador Vu'Malik (attackable)"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/45.json, Quest 2: Ambassador Kizden G`Lux Quest (github.com/Jadiction/EQOA-Data, MIT). Offered with 150 standing with the Citizens of Castle Lightwolf (the guide's, from killing the beasts in Lady Vox's castle in Permafrost; that needs factionhits rows this file cannot add). The seals and the set are the guide's; the reward is ours (the guide only says Kizden rewards you). Ambassador Vu'Malik stands as a townsman (npc_type 0x80): qa.json's attackable list makes him one to kill, so the quest is a draft until that seed is in."
   },
   {
@@ -4211,10 +4153,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Glacier",
-    "Olivia Mcfadden"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/45.json, Quest 3: Pandrig Fultin Quest (github.com/Jadiction/EQOA-Data, MIT). Offered with 150 standing with the Citizens of Castle Lightwolf, as the Kizden quest. The great worms are the server's; the pelt and meat are the guide's, the sword its; the reward is ours (the guide only says Pandrig rewards you)."
   },
   {
@@ -4460,10 +4399,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Quartermaster Malda",
-    "Khelmarak"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/47.json, Quest 1: Gramash Ruins (github.com/Jadiction/EQOA-Data, MIT). The digs are at EQOA-Data's map points (its pickaxe worn is not needed: buying it is), and Khelmarak stands at the back of the second cave (his popup spawn); the six minotaurs he leaves are not in. The minotaurs' faction and its amount are ours (the guide's huge faction with them; Gilthirn's herd are the Rustel minotaurs). The tunneler and excavator stand without their placeholders. The items are ours but the ores'; the guide's class reward is not named and is left out; the experience is the guide's."
   },
   {
@@ -4716,12 +4652,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Ice Goblin Melder",
-    "Margun Leafstrider",
-    "Tilmiraen",
-    "Twizzletwig"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/47.json, Quest 2: Gramash Ruins (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The trip to the fairy village is a teleport to Mugwort and back to Tilmiraen (the guide's tiny door); the fairy shape is not in, so dying there costs nothing. The branch Tilmiraen first gives is not in, nor the guide's placeholders for the Melder; Twizzletwig walks his road (his popup spawn). The guide's items are its; the class item is not named and is left out; the experience is ours (the guide gives none for this part: Quest 1's). The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces). EQOA-Data's lists give no quest ability of this level for the rogue, so that class gets none here. The rogue's level 47 ability is a mob drop in EQOA-Data's list."
   },
   {
@@ -4899,10 +4830,7 @@
      }
     }
    ],
-   "unresolved": [
-    "Golem Protector",
-    "Thulite Golem"
-   ],
+   "unresolved": [],
    "notes": "From EQOA-Data Quests/23-47/47.json, Quest 3: Gramash Ruins (github.com/Jadiction/EQOA-Data, MIT). Maerik's two scrolls drop together (the guide's hours of placeholders are not in), and the golem's four chunks are one item. The Thulite golem stands woken (the guide's activation is the reach step's popup). The items are ours; the guide's class item is not named and is left out; the experience is ours (the guide gives none)."
   }
  ],

@@ -625,8 +625,23 @@
      "kind": "talk",
      "target": "Pilgrim Disciple",
      "journal": "Find the pilgrim disciples at their camp on the edge of the valley in the south of the Green Rift, and turn them.",
-     "says": "Abandoned... yes. Take my stick. I will not need it now.",
-     "answer": "Your god has abandoned you.\nGive me your stick, or else.",
+     "choose": "The pilgrim leans on his stick and waits for you to speak.",
+     "choices": [
+      {
+       "answer": "Your god has abandoned you.",
+       "says": "Abandoned... yes. We have all felt it. Take our sticks; we will not need them now."
+      },
+      {
+       "answer": "Give me your stick, or else.",
+       "stay": true,
+       "says": "Brigand! You will have nothing of mine. Go away."
+      },
+      {
+       "answer": "Bertoxxulous waits for you.",
+       "stay": true,
+       "says": "The Plaguebringer? Never! Keep away from me!"
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -644,8 +659,23 @@
      "kind": "talk",
      "target": "Pilgrim Apostle",
      "journal": "Find the pilgrim apostles at the other camp on the valley's edge, and turn them.",
-     "says": "It is true. He never answered. Take them.",
-     "answer": "Your god hears none of your prayers.\nYour god is a fool.",
+     "choose": "The apostle looks up from his prayers.",
+     "choices": [
+      {
+       "answer": "Your god hears none of your prayers.",
+       "says": "It is true. He never answered, not once. Take our sticks."
+      },
+      {
+       "answer": "Your god is a fool.",
+       "stay": true,
+       "says": "You mock what you do not understand. Leave us."
+      },
+      {
+       "answer": "Join me, or die here.",
+       "stay": true,
+       "says": "We fear no threat. Begone!"
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -687,7 +717,7 @@
     "Pilgrim Disciple",
     "Pilgrim Apostle"
    ],
-   "notes": "From EQOA-Data Quests/TankExemplar/shadowknight.json, steps 1 to 5 (github.com/Jadiction/EQOA-Data, MIT). The corrupted souls a villager's death calls up, and talking to them, are not in: the soul energy drops off the villagers. Each camp's pilgrims give their sticks at the right answer (the first; the second changes nothing) and do not turn on you; the -2,000 with the Enraged of Karana that Miasma gives is not in (no such faction here). Urglauh, Miasma, the pilgrims and Sunnyvale's level 57 villagers are placed by the guide's words (none is seen anywhere; Urglauh at EQOA-Data's map point). The experience is the guide's 10.5 million. The guide's choice is two quests here, each gated on its faction."
+   "notes": "From EQOA-Data Quests/TankExemplar/shadowknight.json, steps 1 to 5 (github.com/Jadiction/EQOA-Data, MIT). The corrupted souls a villager's death calls up, and talking to them, are not in: the soul energy drops off the villagers. Each camp's pilgrims give their sticks at the right answer of the step's choice (a wrong one keeps the step to do, the guide's dialogue to choose carefully; the answers are ours) and do not turn on you; the -2,000 with the Enraged of Karana that Miasma gives is not in (no such faction here). Urglauh, Miasma, the pilgrims and Sunnyvale's level 57 villagers are placed by the guide's words (none is seen anywhere; Urglauh at EQOA-Data's map point). The experience is the guide's 10.5 million. The guide's choice is two quests here, each gated on its faction."
   },
   {
    "key": "TankExemplar/shadowknight/sorrow",

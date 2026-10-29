@@ -18,6 +18,7 @@ import contextlib
 import io
 import json
 import os
+import shutil
 import sqlite3
 import sys
 import tempfile
@@ -217,6 +218,7 @@ def build(dirname):
 class StockMerchantsTest(unittest.TestCase):
     def setUp(self):
         self.dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.dir, True)
         self.w = build(self.dir)
         self.ids = self.w.ids
         self.path = os.path.join(self.dir, "t.db")

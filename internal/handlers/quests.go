@@ -47,6 +47,16 @@ import (
 //
 // A quest that is not enabled is offered to no one; one a character has under
 // way goes on (a GM tries a draft by giving it to their own character).
+//
+// Three things the later guides need (tools/quests/FORMAT.md), all ours in
+// their words:
+//   - a quest's faction requirements (database.FactionReq): it is offered,
+//     marked on the map, and its steps at its giver are done, only while the
+//     player's standing with each faction (World.Standing) is in range; at a
+//     giver it will not deal with, a line says why;
+//   - a step's rewards by class (database.ClassReward), given with its own;
+//   - a quest's unlocks (database.QuestUnlock): a travel NPC's trip that only
+//     a player who has finished it is offered (waysender.go, TripBarred).
 
 // questJournalLines is CLIENT's room for quest lines (m_questTitle[8]).
 const questJournalLines = 8
@@ -73,6 +83,8 @@ const (
 	questNotYet   = "Come back when you have what I asked for."
 	questAskOffer = "Will you help?"
 	questAskStep  = "Yes?"
+	// a step's choice asked with no question of its own (ours)
+	questAskChoice = "Which do you choose?"
 )
 
 // questEngine is the running engine, for the GM panel and the MemoryDump.
@@ -129,6 +141,12 @@ type questCatalog struct {
 	byID   map[int]*database.Quest
 	givers map[string][]*database.Quest // by the giver's folded name, enabled ones, by id
 	all    []*database.Quest
+	// gates are the trips enabled quests unlock, by tripKey: the quests that
+	// unlock each, by id (a draft's unlock bars no one: no one can finish it);
+	// unlockers every quest that unlocks each, drafts too (one finished
+	// opens it)
+	gates     map[string][]*database.Quest
+	unlockers map[string][]*database.Quest
 }
 
 // questChar is one character's quests.
@@ -182,10 +200,11 @@ type questBox struct {
 
 // questChoice is one answer of a quest dialog.
 type questChoice struct {
-	kind  int
-	quest int
-	step  int
-	label string
+	kind   int
+	quest  int
+	step   int
+	option int // a step's choice: the option picked
+	label  string
 }
 
 const (
@@ -194,6 +213,7 @@ const (
 	choiceStep
 	choiceNotYet  // a show or give step's answer while its items lack: the reminder
 	choiceNothing // a dead end (Sandstorm's "Farewell")
+	choicePick    // an option of a step's choice (database.StepChoices)
 )
 
 // NewQuestEngine reads the quests out of db. Start sets it running.
@@ -222,13 +242,43 @@ func NewQuestEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manager
 }
 
 // Start hears the World's kills, looks at reach steps once a second, and makes
-// this the running engine.
+// this the running engine; the start log says what it read.
 func (q *QuestEngine) Start() {
 	if q.gw != nil {
 		q.gw.OnKill(q.heardKill)
 	}
 	go q.run()
 	questEngine.Store(q)
+	log.Print(q.Summary())
+}
+
+// Summary is the quests as read, in one line: how many, how many in the game,
+// and how many use the later guides' fields.
+func (q *QuestEngine) Summary() string {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	inGame, reqs, repeat, byClass, choices := 0, 0, 0, 0, 0
+	for _, qu := range q.cat.all {
+		if qu.Enabled {
+			inGame++
+		}
+		if len(qu.FactionReqs) > 0 {
+			reqs++
+		}
+		if qu.Repeatable {
+			repeat++
+		}
+		for _, st := range qu.Steps {
+			if len(st.ByClass) > 0 {
+				byClass++
+			}
+			if len(st.Choices.Options) > 0 {
+				choices++
+			}
+		}
+	}
+	return fmt.Sprintf("Quests: %d read, %d in the game; %d ask a standing, %d repeatable, %d trips unlocked (%d by quests in the game); "+
+		"%d steps reward by class, %d ask a choice", len(q.cat.all), inGame, reqs, repeat, len(q.cat.unlockers), len(q.cat.gates), byClass, choices)
 }
 
 // Stop ends the worker.
@@ -277,7 +327,8 @@ func (q *QuestEngine) Reload() error {
 	if err != nil {
 		return err
 	}
-	cat := questCatalog{byID: map[int]*database.Quest{}, givers: map[string][]*database.Quest{}}
+	cat := questCatalog{byID: map[int]*database.Quest{}, givers: map[string][]*database.Quest{}, gates: map[string][]*database.Quest{},
+		unlockers: map[string][]*database.Quest{}}
 	for i := range all {
 		qu := &all[i]
 		cat.byID[qu.ID] = qu
@@ -285,6 +336,13 @@ func (q *QuestEngine) Reload() error {
 		if qu.Enabled && strings.TrimSpace(qu.Giver) != "" {
 			k := foldName(qu.Giver)
 			cat.givers[k] = append(cat.givers[k], qu)
+		}
+		for _, u := range qu.Unlocks {
+			k := tripKey(u.NPC, u.Dest)
+			cat.unlockers[k] = append(cat.unlockers[k], qu)
+			if qu.Enabled {
+				cat.gates[k] = append(cat.gates[k], qu)
+			}
 		}
 	}
 	texts, names := q.questTexts(cat.all)
@@ -493,6 +551,8 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	defer q.mu.Unlock()
 	c := q.namedLocked(p.CharServerID, p.Name)
 	c.box = nil
+	look := q.lookAt(sess)
+	wontDeal := ""
 	for _, cq := range c.active() {
 		qu := q.cat.byID[cq.QuestID]
 		if qu == nil {
@@ -502,11 +562,24 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 		if st == nil || !database.AtNPC(st.Kind) || !stepNPC(st, npc.Name, npc.ServerID) {
 			continue
 		}
-		q.atNPCLocked(sess, p, c, qu, cq, st, false)
+		// a giver the player's standing keeps from its steps: another
+		// quest's step here first, else the line that says why
+		if line := giverWontDeal(look, qu, st); line != "" {
+			if wontDeal == "" {
+				wontDeal = line
+			}
+			continue
+		}
+		q.atNPCLocked(sess, p, c, qu, cq, st, false, -1)
+		return true
+	}
+	if wontDeal != "" {
+		q.tellLocked(c, sess, "", wontDeal)
+		log.Printf("Quests: %s: %s", p.Name, wontDeal)
 		return true
 	}
 	for _, qu := range q.cat.givers[foldName(npc.Name)] {
-		if q.mayTakeLocked(p, c, qu) == "" {
+		if q.mayTakeLocked(look, p, c, qu) == "" {
 			q.offerLocked(sess, p, c, qu)
 			return true
 		}
@@ -522,8 +595,77 @@ func stepNPC(st *database.QuestStep, name string, spawn entity.EntityID) bool {
 	return st.NPCID == 0 || entity.EntityID(st.NPCID) == spawn
 }
 
-// mayTakeLocked is "" when the player may take the quest, else why not.
-func (q *QuestEngine) mayTakeLocked(p *entity.Player, c *questChar, qu *database.Quest) string {
+// factionLook is a player's standings as the World has them (World.Standing,
+// which takes the World's lock), each faction asked once in one look at the
+// quests: a talk, an answer, a set of marks.
+type factionLook struct {
+	gw   *entity.World
+	sess *session.Session
+	got  map[string]int
+	none bool // the session has no player in the World: no standing is known
+}
+
+// lookAt is a look at the session's player's standings.
+func (q *QuestEngine) lookAt(sess *session.Session) *factionLook {
+	return &factionLook{gw: q.gw, sess: sess}
+}
+
+// standing is the player's standing with a faction, false when it is not
+// known (no World, no player in it).
+func (l *factionLook) standing(faction string) (int, bool) {
+	if l == nil || l.gw == nil || l.sess == nil || l.none {
+		return 0, false
+	}
+	if v, ok := l.got[faction]; ok {
+		return v, true
+	}
+	v, ok := l.gw.Standing(l.sess, faction)
+	if !ok {
+		l.none = true
+		return 0, false
+	}
+	if l.got == nil {
+		l.got = map[string]int{}
+	}
+	l.got[faction] = v
+	return v, true
+}
+
+// unmetFaction is the first of the quest's faction requirements the player
+// does not meet, its standing, and whether there is one (a standing not
+// known meets none).
+func unmetFaction(look *factionLook, qu *database.Quest) (database.FactionReq, int, bool) {
+	for _, r := range qu.FactionReqs {
+		v, ok := look.standing(r.Faction)
+		if !ok || !r.Met(v) {
+			return r, v, true
+		}
+	}
+	return database.FactionReq{}, 0, false
+}
+
+// giverWontDeal is the line said when a step at the quest's giver is not
+// done for the player's standing with a faction (no recording has one: ours),
+// or "" when the step may be done: it is not at the giver, or every
+// requirement is met.
+func giverWontDeal(look *factionLook, qu *database.Quest, st *database.QuestStep) string {
+	if len(qu.FactionReqs) == 0 || !database.AtNPC(st.Kind) || foldName(st.Target) != foldName(qu.Giver) {
+		return ""
+	}
+	r, v, unmet := unmetFaction(look, qu)
+	if !unmet {
+		return ""
+	}
+	how := "too low"
+	if r.HasMax && v > r.Max {
+		how = "too high"
+	}
+	return fmt.Sprintf("%s will not deal with you: your standing with %s is %s.", strings.TrimSpace(qu.Giver), r.Faction, how)
+}
+
+// mayTakeLocked is "" when the player may take the quest, else why not; its
+// faction requirements are asked of look (the player's session's).
+func (q *QuestEngine) mayTakeLocked(look *factionLook, p *entity.Player, c *questChar, qu *database.Quest) string {
 	switch {
 	case !qu.Enabled:
 		return "it is a draft"
@@ -550,6 +692,10 @@ func (q *QuestEngine) mayTakeLocked(p *entity.Player, c *questChar, qu *database
 		if cq.Done > 0 && !qu.Repeatable {
 			return "finished"
 		}
+	}
+	// last: the only test that asks the World
+	if r, v, unmet := unmetFaction(look, qu); unmet {
+		return fmt.Sprintf("its standing with %s is %d, not %s", r.Faction, v, database.FormatFactionReqs([]database.FactionReq{r}))
 	}
 	return ""
 }
@@ -663,15 +809,23 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 }
 
 // atNPCLocked is a talk, show or give step's NPC talked to (answered: its
-// answer picked). Show and give wait for what is to be held; give takes it.
-func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, answered bool) {
+// answer picked; pick: the option of its choice picked, -1 none). Show and
+// give wait for what is to be held; give takes it. A step with a choice asks
+// it last, and is done with the option's rewards besides its own (an option
+// that stays does not do it).
+func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, answered bool, pick int) {
+	// the standing may have moved since the question was asked
+	if line := giverWontDeal(q.lookAt(sess), qu, st); line != "" {
+		q.tellLocked(c, sess, "", line)
+		return
+	}
 	if st.Kind == database.StepGive || st.Kind == database.StepShow {
 		if lack := q.lackingLocked(p, st); lack != "" {
 			log.Printf("Quests: %s at %q step %d still lacks %s", p.Name, qu.Name, st.Step, lack)
 			// Sandstorm's Norgam asks his question with only the not-yet
 			// answer while the belts lack; the completing one comes once
 			// they are held
-			if notyet := sayLines(st.NotYet); len(notyet) > 0 && !answered {
+			if notyet := sayLines(st.NotYet); len(notyet) > 0 && !answered && pick < 0 {
 				var choices []questChoice
 				for _, l := range notyet {
 					choices = append(choices, questChoice{kind: choiceNotYet, quest: qu.ID, step: st.Step, label: l})
@@ -685,13 +839,36 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 	}
 	// the answer's first line does the step; any more are dead ends
 	// (Sandstorm's Zole: "Commander Nothard sent me", "Farewell")
-	if answers := sayLines(st.Answer); len(answers) > 0 && !answered {
+	answers := sayLines(st.Answer)
+	if len(answers) > 0 && !answered && pick < 0 {
 		choices := []questChoice{{kind: choiceStep, quest: qu.ID, step: st.Step, label: answers[0]}}
 		for _, l := range answers[1:] {
 			choices = append(choices, questChoice{kind: choiceNothing, label: l})
 		}
 		q.askLocked(sess, c, st.Target, st.Waiting, questAskStep, choices)
 		return
+	}
+	var opt *database.StepOption
+	if opts := st.Choices.Options; len(opts) > 0 {
+		if pick < 0 || pick >= len(opts) {
+			// the words before it unless an answer's question said them
+			words := orText(st.Choices.Ask, questAskChoice)
+			if len(answers) == 0 && strings.TrimSpace(st.Waiting) != "" {
+				words = st.Waiting + "\n" + words
+			}
+			choices := make([]questChoice, len(opts))
+			for i, o := range opts {
+				choices[i] = questChoice{kind: choicePick, quest: qu.ID, step: st.Step, option: i, label: o.Answer}
+			}
+			q.askLocked(sess, c, st.Target, words, questAskChoice, choices)
+			return
+		}
+		opt = &opts[pick]
+		if opt.Stay {
+			q.tellLocked(c, sess, st.Target, sayLines(opt.Says)...)
+			log.Printf("Quests: %s picked %q at %q step %d: the step stays", p.Name, opt.Answer, qu.Name, st.Step)
+			return
+		}
 	}
 	var given []string
 	if st.Kind == database.StepGive {
@@ -701,7 +878,13 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 			return
 		}
 	}
-	q.completeStepLocked(sess, p, c, qu, cq, st, given)
+	var extra *database.ClassReward
+	if opt != nil {
+		q.tellLocked(c, sess, st.Target, sayLines(opt.Says)...)
+		extra = &opt.Reward
+		log.Printf("Quests: %s picked %q at %q step %d", p.Name, opt.Answer, qu.Name, st.Step)
+	}
+	q.completeStepLocked(sess, p, c, qu, cq, st, given, extra)
 }
 
 // Answer is HandleDialogueOption's first question: an answer to a quest's box.
@@ -736,7 +919,7 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 	}
 	switch ch.kind {
 	case choiceAccept:
-		if why := q.mayTakeLocked(p, c, qu); why != "" {
+		if why := q.mayTakeLocked(q.lookAt(sess), p, c, qu); why != "" {
 			log.Printf("Quests: %s answered to take %q, but %s", p.Name, qu.Name, why)
 			return true
 		}
@@ -754,13 +937,17 @@ func (q *QuestEngine) Answer(sess *session.Session, p *entity.Player, box uint32
 		if st := qu.Step(ch.step); st != nil {
 			q.tellLocked(c, sess, st.Target, sayLines(orText(st.Reminder, questNotYet))...)
 		}
-	case choiceStep:
+	case choiceStep, choicePick:
 		cq := c.quests[qu.ID]
 		st := qu.Step(ch.step)
 		if cq == nil || cq.Step != ch.step || st == nil {
 			return true
 		}
-		q.atNPCLocked(sess, p, c, qu, cq, st, true)
+		pick := -1
+		if ch.kind == choicePick {
+			pick = ch.option
+		}
+		q.atNPCLocked(sess, p, c, qu, cq, st, true, pick)
 	}
 	return true
 }
@@ -847,7 +1034,7 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 				}
 				continue
 			}
-			q.completeStepLocked(kp.Session, p, c, qu, cq, st, nil)
+			q.completeStepLocked(kp.Session, p, c, qu, cq, st, nil, nil)
 		}
 	}
 }
@@ -883,7 +1070,7 @@ func (q *QuestEngine) checkReach() {
 				r = 15
 			}
 			if dx, dz := x-st.X, z-st.Z; dx*dx+dz*dz <= r*r {
-				q.completeStepLocked(sess, p, c, qu, cq, st, nil)
+				q.completeStepLocked(sess, p, c, qu, cq, st, nil, nil)
 			}
 		}
 	}
@@ -893,8 +1080,9 @@ func (q *QuestEngine) checkReach() {
 // quest, recorded): the NPC's words, the journal's line taken (and the next
 // step's added), "You have finished a quest!" after the last step, a line for
 // what was handed in and each item given, then the experience and the
-// faction lines.
-func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, given []string) {
+// faction lines. extra is the rewards of the option the player picked (nil
+// none), given besides the step's.
+func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, given []string, extra *database.ClassReward) {
 	idx := c.index(qu.ID)
 	next := qu.Next(st.Step)
 	speaker := ""
@@ -930,10 +1118,18 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 	for _, g := range given {
 		lines = append(lines, "You have given away "+g+".")
 	}
-	lines = append(lines, q.rewardLocked(sess, p, st)...)
+	// the step's rewards and its rewards for the player's class
+	var rw database.ClassReward
+	if p != nil {
+		rw = st.RewardFor(p.Class)
+	}
+	if extra != nil {
+		rw = rw.Plus(*extra)
+	}
+	lines = append(lines, q.rewardLocked(sess, p, rw)...)
 	q.tellLocked(c, sess, "", lines...)
-	if st.XP > 0 && sess != nil && p != nil {
-		q.gw.AwardXP(sess, p, st.XP)
+	if rw.XP > 0 && sess != nil && p != nil {
+		q.gw.AwardXP(sess, p, rw.XP)
 	}
 	if len(st.Factions) > 0 && p != nil {
 		hits := make([]entity.FactionHit, len(st.Factions))
@@ -942,10 +1138,16 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 		}
 		q.gw.ApplyFactionHits(sess, p, hits)
 	}
-	// the events (questevents.go): the step's on its doing, its spawns gone,
-	// then the quest's on its finish or the next step's on its start
-	q.stepEventsLocked(sess, p, c, qu, st, database.EventDone)
+	// the events (questevents.go): the step's spawns gone, then its own on its
+	// doing (a spawn among them the next step's, to live until that one is
+	// done: moradhim's rogue L10 mine goblins), then the quest's on its finish
+	// or the next step's on its start
 	q.clearSpawnsLocked(c.serverID, qu.ID, st.Step)
+	spawnStep := st.Step
+	if next != nil {
+		spawnStep = next.Step
+	}
+	q.stepEventsLocked(sess, p, c, qu, st, database.EventDone, spawnStep)
 	if next == nil {
 		q.questEventsLocked(sess, p, c, qu, database.EventFinish)
 		q.clearSpawnsLocked(c.serverID, qu.ID, 0)
@@ -954,22 +1156,23 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 	q.stepStartedLocked(sess, p, c, qu, cq, next)
 }
 
-// rewardLocked gives a step's tunar, items and spells (experience and
-// factions are the World's, after the lines) and returns the lines that say so.
-func (q *QuestEngine) rewardLocked(sess *session.Session, p *entity.Player, st *database.QuestStep) []string {
+// rewardLocked gives a step's tunar, items and spells for the player (its
+// RewardFor the player's class; experience and factions are the World's,
+// after the lines) and returns the lines that say so.
+func (q *QuestEngine) rewardLocked(sess *session.Session, p *entity.Player, rw database.ClassReward) []string {
 	if sess == nil || p == nil {
 		return nil
 	}
 	var lines []string
-	if st.RewardTunar > 0 && q.inv != nil {
-		p.Tunar += st.RewardTunar
+	if rw.Tunar > 0 && q.inv != nil {
+		p.Tunar += rw.Tunar
 		if err := q.inv.SetTunar(p.CharServerID, p.Tunar, p.BankTunar); err != nil {
 			log.Printf("Quests: %s's tunar: %v", p.Name, err)
 		}
 		queueReliable(sess, protocol.OpcodePlayerTunar, tunarPayload(p.Tunar))
-		lines = append(lines, fmt.Sprintf("You have received %d tunar.", st.RewardTunar))
+		lines = append(lines, fmt.Sprintf("You have received %d tunar.", rw.Tunar))
 	}
-	for _, it := range st.RewardItems {
+	for _, it := range rw.Items {
 		pat, err := q.items.GetItemPattern(it.PatternID)
 		if err != nil || pat == nil {
 			log.Printf("Quests: reward item %d: %v", it.PatternID, err)
@@ -986,7 +1189,7 @@ func (q *QuestEngine) rewardLocked(sess *session.Session, p *entity.Player, st *
 			lines = append(lines, fmt.Sprintf("Your inventory is full: %s could not be given.", countOf(it.Count-n, pat.ItemName)))
 		}
 	}
-	for _, id := range st.Spells {
+	for _, id := range rw.Spells {
 		if name, ok := q.teachLocked(sess, p, id); ok {
 			lines = append(lines, "You have learned "+name+".")
 		}

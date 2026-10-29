@@ -16,16 +16,31 @@ import (
 // other town's waysender, else its coachman, else (Lavastorm) the outpost a
 // level-53 guide walks to. Fees are the guides' where they give one (Neriak to
 // Freeport and back 100 tunar, Neriak to Grobb 225), else none. A waysender
-// with no route here answers nothing, as any NPC with nothing to say.
+// with no route here answers nothing, as any NPC with nothing to say. A trip a
+// quest in the game unlocks (questtrips.go, table questunlocks) is offered only
+// to a player who has finished it.
 
 // wayRoute is one of a waysender's trips.
 type wayRoute struct {
 	// To is the place, as the menu lists it.
 	To string
-	// Arrive is the NPC whose spot the player lands on.
+	// Arrive is the NPC whose spot the player lands in front of; At, when
+	// set, is the place itself instead (a point the guides give, no NPC's).
 	Arrive string
+	At     *wayPlace
 	// Fee is its tunar, MinLevel the level it needs (0: none).
 	Fee, MinLevel int
+	// QuestOnly is a trip only a quest opens (questtrips.go): with no quest
+	// in the game unlocking it, it is offered to no one who has not finished
+	// one that did. Every other trip is open until a quest in the game gates
+	// it.
+	QuestOnly bool
+}
+
+// wayPlace is where a trip lands: a world and a point in it.
+type wayPlace struct {
+	World   uint8
+	X, Y, Z float32
 }
 
 // wayRoutes are each waysender's trips, by name; the guides' words beside.
@@ -125,6 +140,47 @@ var wayRoutes = map[string][]wayRoute{
 	"Portal to the Cauldron": {
 		{To: "the cauldron", Arrive: "Fuming Portal"},
 	},
+
+	// The Portal guides' trips (tools/quests/data/portal.json; the places the
+	// Portal lane read off its guides and the ground: notes qe.md), each only a
+	// quest opens (QuestOnly: the quest that unlocks it). No guide gives a
+	// way back from any of them (Return Home, a gate or the bind do), so none
+	// is wired.
+	// "talk to the Sky Portal at the top of the Endless Tower": the Plane of
+	// Sky (world 4), beside Sartheret
+	"Sky Portal": {
+		{To: "the Plane of Sky", At: &wayPlace{World: 4, X: 4834.8, Y: 250.1, Z: 5524.7}, QuestOnly: true},
+	},
+	// "pay him the 10k (which you have to pay each and every time)"
+	// (isle-of-dread): the west edge of Graumord, the isle's town
+	"Norach": {
+		{To: "the Isle of Dread", At: &wayPlace{World: 0, X: 24500, Y: 54.1, Z: 3330}, Fee: 10000, QuestOnly: true},
+	},
+	// "return to Lake Rathe (c) and speak with the portal guardian. Bring 1
+	// tunar for passage each time!" (zaoran-plateau): the plateau, zone 5 of
+	// the Secrets world (5), at the ZP1 marker
+	"portal guardian": {
+		{To: "Zaoran Plateau", At: &wayPlace{World: 5, X: 4899, Y: 148, Z: 7049}, Fee: 1, QuestOnly: true},
+	},
+	// the Fire Giant Magus subdued sends raiders to Lord Nagafen's island
+	// (soluseks-eye), by the Nagafen Teleport Arrive marker in Lavastorm
+	"Subdued Magus": {
+		{To: "Lord Nagafen's lair", Arrive: "Nagafen Teleport Arrive", QuestOnly: true},
+	},
+	// the Plane of Sky's isles (plane-of-sky): each essence's key, or the
+	// Mark of the Majestic's, the passage to its isle
+	"essence of rain": {
+		{To: "Rain 1", At: &wayPlace{World: 4, X: 4228.2, Y: 233.8, Z: 5695.7}, QuestOnly: true},
+	},
+	"essence of sun": {
+		{To: "Sun 1", At: &wayPlace{World: 4, X: 5607, Y: 235.1, Z: 5360.3}, QuestOnly: true},
+	},
+	"essence of night": {
+		{To: "Night 1", At: &wayPlace{World: 4, X: 4161, Y: 612.4, Z: 6384}, QuestOnly: true},
+	},
+	"Mark of the Majestic": {
+		{To: "Snow 1", At: &wayPlace{World: 4, X: 5670.8, Y: 552.9, Z: 6358.8}, QuestOnly: true},
+	},
 }
 
 // The waysender's words. A trip is asked as Sandstorm's dockmasters ask one
@@ -154,31 +210,61 @@ func tooWeak(place string) string {
 	return fmt.Sprintf("You are too weak to travel to %s. Come back when you are stronger.", place)
 }
 
-// wayDests are the waysender's trips this session can take: each landing on
-// its NPC's spot, in a world the game loads; the ones its level allows, and
-// the first place a level kept it from (or "" if none did).
-func wayDests(gw *entity.World, sess *session.Session, waysender string, level int) (dests []entity.CoachDest, barred string) {
+// notUnlocked is a travel NPC's answer to a player its every other trip is
+// closed to and a quest keeps from this one (questtrips.go; no recording
+// has one: ours).
+func notUnlocked(place, quest string) string {
+	if quest == "" {
+		return fmt.Sprintf("You may not travel to %s yet.", place)
+	}
+	return fmt.Sprintf("You may not travel to %s until you have finished %s.", place, quest)
+}
+
+// lockedTrip is a trip a quest keeps the player from: the place and the
+// quest to finish.
+type lockedTrip struct{ place, quest string }
+
+// wayDests are the waysender's trips this session's player can take: each
+// landing on its NPC's spot, in a world the game loads; the ones its level
+// allows and no quest keeps it from (TripBarred); the first place a level
+// kept it from (or "" if none did) and the first a quest did.
+func wayDests(gw *entity.World, sess *session.Session, waysender string, player *entity.Player) (dests []entity.CoachDest, barred string, locked lockedTrip) {
 	for _, r := range wayRoutes[waysender] {
-		x, y, z, facing, world, ok := gw.SpawnOfNPC(r.Arrive)
-		if !ok {
-			log.Printf("Waysender: %s's trip to %s lands on %s, who is not here", waysender, r.To, r.Arrive)
-			continue
+		var x, y, z, facing float32
+		var world uint8
+		if r.At != nil {
+			x, y, z, world = r.At.X, r.At.Y, r.At.Z, r.At.World
+		} else {
+			var ok bool
+			if x, y, z, facing, world, ok = gw.SpawnOfNPC(r.Arrive); !ok {
+				log.Printf("Waysender: %s's trip to %s lands on %s, who is not here", waysender, r.To, r.Arrive)
+				continue
+			}
 		}
 		if !CanLoadWorld(sess, world) {
 			continue
 		}
-		if r.MinLevel > 0 && level < r.MinLevel {
+		if r.MinLevel > 0 && player.Level < r.MinLevel {
 			if barred == "" {
 				barred = r.To
 			}
 			continue
 		}
-		// in front of them, not inside them: a body is solid
-		fx, fz, face := inFrontOf(x, z, facing)
+		if quest, no := Quests().TripBarred(player, waysender, r.To); no {
+			if locked.place == "" {
+				locked = lockedTrip{place: r.To, quest: quest}
+			}
+			continue
+		}
+		// in front of them, not inside them: a body is solid (a place: on it)
+		fx, fz, face := x, z, facing
+		if r.At == nil {
+			fx, fz, face = inFrontOf(x, z, facing)
+		}
 		dests = append(dests, entity.CoachDest{Name: r.To, X: fx, Y: y, Z: fz, Facing: face,
 			World: world, Fee: r.Fee, MinLevel: r.MinLevel, Via: waysender})
 	}
-	return dests, barred
+	return dests, barred, locked
 }
 
 // destLabel is a trip as a menu of several lists it: the place, and its fee.
@@ -190,17 +276,25 @@ func destLabel(d entity.CoachDest) string {
 }
 
 // offerWay opens a waysender's trips, or says the player is too weak for
-// them; it reports whether the waysender had anything to say.
+// them or has a quest to finish first; it reports whether the waysender had
+// anything to say. A trip a quest keeps the player from is left off the list
+// of the others, as one its level does.
 func (h *InteractHandler) offerWay(sess *session.Session, player *entity.Player, npc *entity.NPC) bool {
-	dests, barred := wayDests(h.gameWorld, sess, npc.Name, player.Level)
-	switch {
-	case len(dests) == 0 && barred != "":
+	dests, barred, locked := wayDests(h.gameWorld, sess, npc.Name, player)
+	if len(dests) == 0 {
+		if barred == "" && locked.place == "" {
+			return false
+		}
 		forgetDialogs(player)
-		h.sendDialogueBox(sess, tooWeak(barred))
-		log.Printf("Waysender: %s is too weak (%d) for %s's trip to %s", player.Name, player.Level, npc.Name, barred)
+		if barred != "" {
+			h.sendDialogueBox(sess, tooWeak(barred))
+			log.Printf("Waysender: %s is too weak (%d) for %s's trip to %s", player.Name, player.Level, npc.Name, barred)
+		}
+		if locked.place != "" {
+			h.sendDialogueBox(sess, notUnlocked(locked.place, locked.quest))
+			log.Printf("Waysender: %s has not finished %q for %s's trip to %s", player.Name, locked.quest, npc.Name, locked.place)
+		}
 		return true
-	case len(dests) == 0:
-		return false
 	}
 	forgetDialogs(player)
 	player.PendingCoachDests = dests

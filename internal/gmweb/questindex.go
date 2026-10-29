@@ -6,8 +6,10 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"unicode"
 
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/handlers"
 )
 
 // The quests as a GM looks over hundreds of them (tools/import_quests.py makes
@@ -21,6 +23,11 @@ import (
 // out: every name it uses is here, every quest it requires in the game or
 // ready itself), or "draft" (with its reasons). An enabled quest with a
 // reason is still in the game, the reason a warning (it cannot be finished).
+// The later guides' fields count as their names do: a faction a standing is
+// asked with, a class's reward items and spells, a rewards-by-class column
+// that cannot be read (a class id there is not), a choice's options' items
+// and spells and a choice that cannot be asked, a trip it unlocks that no
+// route is or whose NPC is not here.
 
 // Quest statuses.
 const (
@@ -81,13 +88,47 @@ var reQuestKey = regexp.MustCompile(`^EQOA-Data (\S+) \(tools/import_quests\.py\
 // "the file's unresolved 'X'" (the content's own list).
 var reNoteName = regexp.MustCompile(`the file's unresolved (?:'([^']*)'|"([^"]*)")`)
 
-// questCity is the city of an import key ("1-20/freeport/warrior/L3"), or "".
+// questCity is the city of an import key ("1-20/freeport/warrior/L3" is
+// freeport's), or of a later guide's ("<EQOA-Data folder>/<guide>/<part>")
+// its category as its content file's city names it ("Misc/kratas/p1" misc,
+// "30,40,49/group-1-good/p1" 30-40-49, "TankExemplar/warrior/p1"
+// tank-exemplar), or "".
 func questCity(key string) string {
 	parts := strings.Split(key, "/")
-	if len(parts) >= 3 && parts[0] == "1-20" {
-		return parts[1]
+	switch {
+	case parts[0] == "1-20":
+		if len(parts) >= 3 {
+			return parts[1]
+		}
+	case len(parts) >= 2 && parts[0] != "":
+		return categorySlug(parts[0])
 	}
 	return ""
+}
+
+// categorySlug is an EQOA-Data folder's name as a slug: lower case, a hyphen
+// between words ("HuntAndGather" hunt-and-gather) and for a comma
+// ("30,40,49" 30-40-49).
+func categorySlug(folder string) string {
+	var b strings.Builder
+	lower := false
+	for _, r := range strings.TrimSpace(folder) {
+		switch {
+		case r == ',' || r == ' ' || r == '_':
+			b.WriteRune('-')
+			lower = false
+		case unicode.IsUpper(r):
+			if lower {
+				b.WriteRune('-')
+			}
+			b.WriteRune(unicode.ToLower(r))
+			lower = false
+		default:
+			b.WriteRune(r)
+			lower = unicode.IsLower(r)
+		}
+	}
+	return b.String()
 }
 
 // foldQuestName is a name as the import matched it: case, apostrophes and
@@ -108,12 +149,14 @@ func foldQuestName(s string) string {
 
 // questNames is what the database holds, read once.
 type questNames struct {
-	npcs     map[string]npcKind // by lower name
-	npcFold  map[string]npcKind // by folded name
-	items    map[int64]bool
-	itemFold map[string]bool
-	spells   map[int64]bool
-	factions map[string]bool
+	npcs        map[string]npcKind // by lower name
+	npcFold     map[string]npcKind // by folded name
+	items       map[int64]bool
+	itemFold    map[string]bool
+	spells      map[int64]bool
+	spellFold   map[string]bool
+	factions    map[string]bool
+	factionFold map[string]bool
 }
 
 type npcKind struct {
@@ -122,7 +165,8 @@ type npcKind struct {
 
 func (s *Server) loadQuestNames() (*questNames, error) {
 	n := &questNames{npcs: map[string]npcKind{}, npcFold: map[string]npcKind{}, items: map[int64]bool{},
-		itemFold: map[string]bool{}, spells: map[int64]bool{}, factions: map[string]bool{}}
+		itemFold: map[string]bool{}, spells: map[int64]bool{}, spellFold: map[string]bool{}, factions: map[string]bool{},
+		factionFold: map[string]bool{}}
 	scan := func(q string, each func(*sql.Rows) error) error {
 		rs, err := s.d.DB.Query(q)
 		if err != nil {
@@ -166,12 +210,16 @@ func (s *Server) loadQuestNames() (*questNames, error) {
 	}); err != nil {
 		return nil, err
 	}
-	if err := scan(`SELECT spellid FROM spellpattern`, func(rs *sql.Rows) error {
+	if err := scan(`SELECT spellid, spellname FROM spellpattern`, func(rs *sql.Rows) error {
 		var id int64
-		if err := rs.Scan(&id); err != nil {
+		var name sql.NullString
+		if err := rs.Scan(&id, &name); err != nil {
 			return err
 		}
 		n.spells[id] = true
+		if name.Valid {
+			n.spellFold[foldQuestName(name.String)] = true
+		}
 		return nil
 	}); err != nil {
 		return nil, err
@@ -182,7 +230,7 @@ func (s *Server) loadQuestNames() (*questNames, error) {
 		if err := rs.Scan(&name); err != nil {
 			return err
 		}
-		n.factions[name] = true
+		n.factions[name], n.factionFold[foldQuestName(name)] = true, true
 		return nil
 	})
 	return n, nil
@@ -201,11 +249,13 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 	if err != nil {
 		return nil, err
 	}
-	quests, err := s.everyRow(`SELECT questid, name, enabled, giver, minlevel, maxlevel, classes, races, requires, source, notes
-		FROM quests ORDER BY questid`)
+	quests, err := s.everyRow(`SELECT questid, name, enabled, giver, minlevel, maxlevel, classes, races, requires, source, notes,
+		factionreq FROM quests ORDER BY questid`)
 	if err != nil {
 		return nil, err
 	}
+	// the trips quests unlock (a database without the table has none)
+	trips, _ := s.everyRow(`SELECT questid, npc, dest FROM questunlocks ORDER BY questid, npc, dest`)
 	steps, err := s.everyRow(`SELECT * FROM queststeps ORDER BY questid, step`)
 	if err != nil {
 		return nil, err
@@ -260,9 +310,35 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 				if !isNPC {
 					r.lack("NPC", bare, "the content's note: no %q", bare)
 				}
-			case !isNPC && !names.itemFold[foldQuestName(bare)]:
+			case !isNPC && !names.itemFold[foldQuestName(bare)] && !names.spellFold[foldQuestName(bare)] &&
+				!names.factionFold[foldQuestName(bare)]:
 				r.lack("NPC", bare, "the content's note: no %q", bare)
 			}
+		}
+	}
+	// the standings asked for, and the trips unlocked
+	for _, q := range quests {
+		r := idx.byID[num(q, "questid")]
+		for _, p := range database.FactionReqProblems(text(q, "factionreq")) {
+			r.why("%s", p)
+		}
+		for _, f := range database.ParseFactionReqs(text(q, "factionreq")) {
+			if len(names.factions) > 0 && !names.factions[f.Faction] {
+				r.lack("faction", f.Faction, "no faction %q (a standing it asks for)", f.Faction)
+			}
+		}
+	}
+	for _, t := range trips {
+		r := idx.byID[num(t, "questid")]
+		if r == nil {
+			continue
+		}
+		npc, dest := text(t, "npc"), text(t, "dest")
+		if _, ok := names.npcs[strings.ToLower(npc)]; !ok {
+			r.lack("NPC", npc, "no NPC %q (whose trip to %s it unlocks)", npc, dest)
+		}
+		if _, ok := handlers.RouteOf(npc, dest); !ok {
+			r.why("it unlocks %s's trip to %s, which is no route", npc, dest)
 		}
 	}
 	for _, st := range steps {
@@ -312,6 +388,42 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 		for _, f := range database.ParseFactionDeltas(text(st, "factions")) {
 			if len(names.factions) > 0 && !names.factions[f.Faction] {
 				r.lack("faction", f.Faction, "no faction %q (step %d's reward)", f.Faction, n)
+			}
+		}
+		// the rewards by class: readable, real classes, items and spells here
+		for _, p := range database.ClassRewardProblems(text(st, "byclass")) {
+			r.why("step %d's %s", n, p)
+		}
+		for _, p := range database.ChoiceProblems(text(st, "choices"), kind) {
+			r.why("step %d: %s", n, p)
+		}
+		if ch, err := database.ParseStepChoices(text(st, "choices")); err == nil {
+			for k, o := range ch.Options {
+				for _, it := range o.Reward.Items {
+					if !names.items[int64(it.PatternID)] {
+						r.lack("item", fmt.Sprint(it.PatternID), "no item %d (step %d's option %d)", it.PatternID, n, k+1)
+					}
+				}
+				for _, sp := range o.Reward.Spells {
+					if !names.spells[int64(sp)] {
+						r.lack("spell", fmt.Sprint(sp), "no spell %d (step %d's option %d)", sp, n, k+1)
+					}
+				}
+			}
+		}
+		if byClass, err := database.ParseClassRewards(text(st, "byclass")); err == nil {
+			for _, class := range sortedKeys(byClass) {
+				cr := byClass[class]
+				for _, it := range cr.Items {
+					if !names.items[int64(it.PatternID)] {
+						r.lack("item", fmt.Sprint(it.PatternID), "no item %d (step %d's reward for class %d)", it.PatternID, n, class)
+					}
+				}
+				for _, sp := range cr.Spells {
+					if !names.spells[int64(sp)] {
+						r.lack("spell", fmt.Sprint(sp), "no spell %d (step %d's reward for class %d)", sp, n, class)
+					}
+				}
 			}
 		}
 		evs, _ := database.ParseQuestEvents(text(st, "events"))

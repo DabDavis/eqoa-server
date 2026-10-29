@@ -19,13 +19,22 @@ are made where no item has the name, as a copy of their "like" item with
 their name and description (trade 1 when notrade: CLIENT's NO TRADE). A quest
 whose required quest is a draft is one too.
 
+The later guides' fields (FORMAT.md): a quest's factions_required (factions
+by name: one this database lacks makes it a draft), repeatable and unlocks (a
+travel NPC's trip, its NPC by name and its place matched to a route of
+internal/handlers/waysender.go: one naming no route is said, and written all
+the same, to open the trip once the route is there), a step's rewards by
+class (byclass: items, the class's own spells, experience and tunar), a
+talk, show or give step's choice (choices, its question choose: each
+option's answer, words, rewards, and whether it stays).
+
 Quests are kept by their key: their ids are logged in quest_import_quests
 (from 100001, past every quest there is), so a run again rewrites what an
 earlier one wrote, unless a GM has changed it since (its rows' digest no
 longer the logged one: left as it is, and said). --undo deletes every quest,
 step and item an import wrote, the characters' progress in those quests and
 the items made in their inventories, and the log; the item counter is put
-back. A copy of the database is made first (--no-backup to skip). Stop the
+back; the trips they unlock go with them. A copy of the database is made first (--no-backup to skip). Stop the
 server to apply or undo, start it after: the quest engine reads the quests
 at its start.
 """
@@ -38,6 +47,9 @@ import os
 import re
 import sqlite3
 import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "quests"))
+import routes as travel  # noqa: E402  (tools/quests/routes.py)
 
 DEFAULT_DB = "eqoa.db"
 DEFAULT_DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "quests", "data")
@@ -63,7 +75,8 @@ CREATE TABLE IF NOT EXISTS quests (
 	classes TEXT NOT NULL DEFAULT '', races TEXT NOT NULL DEFAULT '', requires TEXT NOT NULL DEFAULT '',
 	repeatable INTEGER NOT NULL DEFAULT 0, offer TEXT NOT NULL DEFAULT '', accept TEXT NOT NULL DEFAULT '',
 	decline TEXT NOT NULL DEFAULT '', declined TEXT NOT NULL DEFAULT '', started TEXT NOT NULL DEFAULT '',
-	source TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', events TEXT NOT NULL DEFAULT '');
+	source TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', events TEXT NOT NULL DEFAULT '',
+	factionreq TEXT NOT NULL DEFAULT '');
 CREATE TABLE IF NOT EXISTS queststeps (
 	questid INTEGER NOT NULL, step INTEGER NOT NULL, kind TEXT NOT NULL DEFAULT 'talk',
 	target TEXT NOT NULL DEFAULT '', npcid INTEGER NOT NULL DEFAULT 0, items TEXT NOT NULL DEFAULT '',
@@ -73,7 +86,10 @@ CREATE TABLE IF NOT EXISTS queststeps (
 	waiting TEXT NOT NULL DEFAULT '', notyet TEXT NOT NULL DEFAULT '', reminder TEXT NOT NULL DEFAULT '',
 	xp INTEGER NOT NULL DEFAULT 0, rewardtunar INTEGER NOT NULL DEFAULT 0, rewarditems TEXT NOT NULL DEFAULT '',
 	factions TEXT NOT NULL DEFAULT '', spells TEXT NOT NULL DEFAULT '', chance REAL NOT NULL DEFAULT 0,
-	events TEXT NOT NULL DEFAULT '', PRIMARY KEY (questid, step));
+	events TEXT NOT NULL DEFAULT '', byclass TEXT NOT NULL DEFAULT '', choices TEXT NOT NULL DEFAULT '',
+	PRIMARY KEY (questid, step));
+CREATE TABLE IF NOT EXISTS questunlocks (
+	questid INTEGER NOT NULL, npc TEXT NOT NULL, dest TEXT NOT NULL, PRIMARY KEY (questid, npc, dest));
 CREATE TABLE IF NOT EXISTS charquests (
 	serverid INTEGER NOT NULL, questid INTEGER NOT NULL, step INTEGER NOT NULL DEFAULT 1,
 	count INTEGER NOT NULL DEFAULT 0, done INTEGER NOT NULL DEFAULT 0, slot INTEGER NOT NULL DEFAULT 0,
@@ -81,7 +97,9 @@ CREATE TABLE IF NOT EXISTS charquests (
 """
 ADDED_COLUMNS = [("quests", "declined", "TEXT NOT NULL DEFAULT ''"), ("queststeps", "notyet", "TEXT NOT NULL DEFAULT ''"),
                  ("queststeps", "reminder", "TEXT NOT NULL DEFAULT ''"), ("quests", "events", "TEXT NOT NULL DEFAULT ''"),
-                 ("queststeps", "events", "TEXT NOT NULL DEFAULT ''"), ("queststeps", "chance", "REAL NOT NULL DEFAULT 0")]
+                 ("queststeps", "events", "TEXT NOT NULL DEFAULT ''"), ("queststeps", "chance", "REAL NOT NULL DEFAULT 0"),
+                 ("quests", "factionreq", "TEXT NOT NULL DEFAULT ''"), ("queststeps", "byclass", "TEXT NOT NULL DEFAULT ''"),
+                 ("queststeps", "choices", "TEXT NOT NULL DEFAULT ''")]
 
 LOG_DDL = [
     "CREATE TABLE IF NOT EXISTS quest_import_quests (key TEXT PRIMARY KEY, questid INTEGER NOT NULL, file TEXT NOT NULL, "
@@ -91,10 +109,15 @@ LOG_DDL = [
 ]
 
 QUEST_COLS = ["questid", "name", "enabled", "giver", "minlevel", "maxlevel", "classes", "races", "requires", "repeatable",
-              "offer", "accept", "decline", "declined", "started", "source", "notes", "events"]
+              "offer", "accept", "decline", "declined", "started", "source", "notes", "events", "factionreq"]
 STEP_COLS = ["questid", "step", "kind", "target", "npcid", "items", "tunar", "count", "world", "x", "y", "z", "radius",
              "journal", "answer", "says", "waiting", "notyet", "reminder", "xp", "rewardtunar", "rewarditems", "factions",
-             "spells", "chance", "events"]
+             "spells", "chance", "events", "byclass", "choices"]
+# the columns added after imports had logged their digests: a quest that
+# leaves them empty digests as it did before them (digest), so a run again
+# still knows an earlier import's quest as its own
+LATER_COLS = {"factionreq", "byclass", "choices"}
+FACTION_MIN, FACTION_MAX = -2000, 2000   # entity/faction.go's FactionMin, FactionMax
 
 
 def fold(s):
@@ -221,12 +244,18 @@ def load_files(paths):
     return out
 
 
-def plan(db, files):
+def plan(db, files, routes=False):
     """What an import would write: each quest's rows, enabled or a draft and why,
-    the items to make, and warnings."""
+    the items to make, and warnings. routes are the travel NPCs' routes the
+    unlocks are matched to (tools/quests/routes.py; by default waysender.go's,
+    None: not checked)."""
     names = Names(db)
     made, made_by_fold = [], {}  # items to make
     warnings = []
+    if routes is False:
+        routes = travel.travel_routes()
+        if routes is None:
+            warnings.append(f"no {travel.WAYSENDER}: the unlocks' routes are not checked")
     for fname, d in files:
         for it in d.get("items") or []:
             name = (it.get("name") or "").strip()
@@ -261,6 +290,37 @@ def plan(db, files):
             giver = names.npc(q.get("giver"))
             if not giver:
                 miss.append(f"NPC {q.get('giver')!r}")
+            # the standings it asks for: a faction this database lacks keeps it out
+            reqs = []
+            for fr in q.get("factions_required") or []:
+                shaped = isinstance(fr, (list, tuple)) and len(fr) in (2, 3) and isinstance(fr[0], str) and \
+                    all(isinstance(v, int) and not isinstance(v, bool) for v in fr[1:])
+                if not shaped or (len(fr) == 3 and fr[2] < fr[1]):
+                    miss.append(f"faction requirement {fr!r} (not [faction, min] or [faction, min, max])")
+                    continue
+                fn = names.faction(fr[0])
+                if fn is None:
+                    miss.append(f"faction {fr[0]!r} (required)")
+                    continue
+                reqs.append(f"{fn}:{fr[1]}" + (f"..{fr[2]}" if len(fr) == 3 else ""))
+            # the trips it unlocks: said when the NPC or the route is not here, written all the same
+            unlocks = []
+            for u in q.get("unlocks") or []:
+                npc = (u.get("npc") or "").strip() if isinstance(u, dict) else ""
+                to = (u.get("to") or "").strip() if isinstance(u, dict) else ""
+                if not npc or not to:
+                    warnings.append(f"{key}: an unlock without its npc and to ({u!r}): left out")
+                    continue
+                n = names.npc(npc)
+                if not n:
+                    warnings.append(f"{key}: it unlocks {npc!r}'s trip to {to!r}, and no NPC is named {npc!r}")
+                r = travel.route_of(n or npc, to, routes) if routes is not None else None
+                if r is None and routes is not None:
+                    warnings.append(f"{key}: it unlocks {npc!r}'s trip to {to!r}, which is no route of waysender.go "
+                                    "yet (written: it opens the trip once the route is there)")
+                unlock = (r[0], r[1]) if r else (n or npc, to)
+                if unlock not in unlocks:
+                    unlocks.append(unlock)
 
             def events(evs, whens, where):
                 out = []
@@ -362,6 +422,54 @@ def plan(db, files):
                     elif int(n or 0):
                         facs.append(f"{fn}:{int(n):+d}")
                 row["factions"] = ", ".join(facs)
+                # the rewards for a player of one class, its spells that class's own
+                byclass = {}
+                for ck, cr in (rw.get("byclass") or {}).items():
+                    cids = class_ids([ck])
+                    if len(cids) != 1 or not 0 <= cids[0] <= max(CLASSES.values()) or not isinstance(cr, dict):
+                        miss.append(f"{where} rewards for class {ck!r} (no such class)")
+                        continue
+                    cid = cids[0]
+                    ent = dict(xp=int(cr.get("xp") or 0), tunar=int(cr.get("tunar") or 0), items=[], spells=[])
+                    for nm, n in item_list(cr.get("items")):
+                        r = item_ref(nm)
+                        if r is None:
+                            miss.append(f"item {nm!r} ({where} reward for class {cid})")
+                        else:
+                            ent["items"].append((r, n))
+                    for nm in cr.get("spells") or []:
+                        sid = names.spell(nm, [cid])
+                        if sid is None:
+                            miss.append(f"spell {nm!r} ({where} reward for class {cid})")
+                        else:
+                            ent["spells"].append(sid)
+                    byclass[cid] = ent
+                row["byclass"] = byclass
+                # a choice asked when the step is done at its NPC: each option's rewards resolved as the step's are
+                opts = []
+                for k, o in enumerate(st.get("choices") or [], 1):
+                    if not isinstance(o, dict) or not str(o.get("answer") or "").strip():
+                        miss.append(f"{where} option {k} (no answer)")
+                        continue
+                    orw = o.get("rewards") or {}
+                    ent = dict(answer=str(o["answer"]).strip(), says=o.get("says") or "", stay=bool(o.get("stay")),
+                               xp=int(orw.get("xp") or 0), tunar=int(orw.get("tunar") or 0), items=[], spells=[])
+                    for nm, n in item_list(orw.get("items")):
+                        r = item_ref(nm)
+                        if r is None:
+                            miss.append(f"item {nm!r} ({where} option {k})")
+                        else:
+                            ent["items"].append((r, n))
+                    for nm in orw.get("spells") or []:
+                        sid = names.spell(nm, classes)
+                        if sid is None:
+                            miss.append(f"spell {nm!r} ({where} option {k})")
+                        else:
+                            ent["spells"].append(sid)
+                    opts.append(ent)
+                if opts and kind not in NPC_KINDS:
+                    miss.append(f"{where}: a {kind} step asks no choice (talk, show and give steps do)")
+                row["choices"] = dict(ask=st.get("choose") or "", options=opts) if opts else None
                 row["events"] = events(st.get("events"), STEP_WHENS, where)
                 if len(row["journal"]) > JOURNAL_CHARS:
                     warnings.append(f"{key} {where}: the journal line is {len(row['journal'])} characters (the client shows {JOURNAL_CHARS})")
@@ -373,8 +481,8 @@ def plan(db, files):
                     warnings.append(f"{key}: an answer is {len(a)} characters (the client shows {ANSWER_CHARS})")
             told = [str(u) for u in (q.get("unresolved") or []) if str(u).strip()]
             quests.append(dict(key=key, file=fname, q=q, classes=classes, giver=giver or (q.get("giver") or ""),
-                               steps=steps, events=qev, miss=miss, told=told,
-                               requires=[r for r in (q.get("requires") or []) if str(r).strip()]))
+                               steps=steps, events=qev, miss=miss, told=told, factionreq=", ".join(reqs),
+                               unlocks=unlocks, requires=[r for r in (q.get("requires") or []) if str(r).strip()]))
     # a quest needing one that is missing or a draft is a draft too; a quest a
     # GM has changed since its import (left as it is) counts as the database has it
     by_key = {x["key"]: x for x in quests}
@@ -417,6 +525,9 @@ def report(p, verbose=False):
         f[0 if not x["draft"] else 1] += 1
     for fname, (whole, drafts) in sorted(by_file.items()):
         print(f"{fname}: {whole + drafts} quests, {whole} whole, {drafts} drafts")
+    trips = sum(len(x["unlocks"]) for x in p["quests"])
+    if trips:
+        print(f"trips unlocked: {trips} (by {sum(1 for x in p['quests'] if x['unlocks'])} quests)")
     if p["made"]:
         print(f"items to make: {len(p['made'])} ({', '.join(m['name'] for m in p['made'][:12])}{' ...' if len(p['made']) > 12 else ''})")
     for w in p["warnings"]:
@@ -427,12 +538,69 @@ def report(p, verbose=False):
 
 
 def digest(db, qid):
+    """A quest's rows as one value, to tell a GM's change by: its row, its
+    steps, and the trips it unlocks. The LATER_COLS and the trips count only
+    when the quest has them, so a quest an import logged before they were
+    there digests as it did."""
     h = hashlib.md5()
-    for r in db.execute(f"SELECT {', '.join(QUEST_COLS)} FROM quests WHERE questid = ?", (qid,)):
-        h.update(repr(tuple(r)).encode())
-    for r in db.execute(f"SELECT {', '.join(STEP_COLS)} FROM queststeps WHERE questid = ? ORDER BY step", (qid,)):
-        h.update(repr(tuple(r)).encode())
+    for table, cols, order in (("quests", QUEST_COLS, ""), ("queststeps", STEP_COLS, " ORDER BY step")):
+        have = set(columns(db, table))
+        early = [c for c in cols if c not in LATER_COLS]
+        later = [c for c in cols if c in LATER_COLS and c in have]
+        for r in db.execute(f"SELECT {', '.join(early + later)} FROM {table} WHERE questid = ?{order}", (qid,)):
+            h.update(repr(tuple(r[:len(early)])).encode())
+            if any(v not in ("", None, 0) for v in r[len(early):]):
+                h.update(repr(("later", tuple(r[len(early):]))).encode())
+    if has_table(db, "questunlocks"):
+        trips = db.execute("SELECT npc, dest FROM questunlocks WHERE questid = ? ORDER BY npc, dest", (qid,)).fetchall()
+        if trips:
+            h.update(repr(("unlocks", trips)).encode())
     return h.hexdigest()
+
+
+def step_choices(ch, pid):
+    """A step's choice as the choices column keeps it (database.
+    ParseStepChoices's form), "" for none."""
+    if not ch:
+        return ""
+    opts = []
+    for o in ch["options"]:
+        ent = dict(answer=o["answer"])
+        if o["says"]:
+            ent["says"] = o["says"]
+        if o["stay"]:
+            ent["stay"] = True
+        if o["xp"]:
+            ent["xp"] = o["xp"]
+        if o["tunar"]:
+            ent["tunar"] = o["tunar"]
+        if o["items"]:
+            ent["items"] = counts((pid(r), n) for r, n in o["items"])
+        if o["spells"]:
+            ent["spells"] = ", ".join(map(str, o["spells"]))
+        opts.append(ent)
+    out = dict(ask=ch["ask"], options=opts) if ch["ask"] else dict(options=opts)
+    return json.dumps(out, separators=(",", ":"))
+
+
+def class_rewards(byclass, pid):
+    """A step's rewards by class as the byclass column keeps them (database.
+    FormatClassRewards's form: class ids as keys, items and spells written as
+    the step's own columns have them), "" for none."""
+    out = {}
+    for cid in sorted(byclass, key=str):
+        e = byclass[cid]
+        ent = {}
+        if e["xp"]:
+            ent["xp"] = e["xp"]
+        if e["tunar"]:
+            ent["tunar"] = e["tunar"]
+        if e["items"]:
+            ent["items"] = counts((pid(r), n) for r, n in e["items"])
+        if e["spells"]:
+            ent["spells"] = ", ".join(map(str, e["spells"]))
+        out[str(cid)] = ent
+    return json.dumps(out, separators=(",", ":")) if out else ""
 
 
 def write(db, p):
@@ -498,6 +666,7 @@ def write(db, p):
                     continue
                 db.execute("DELETE FROM quests WHERE questid = ?", (qid,))
                 db.execute("DELETE FROM queststeps WHERE questid = ?", (qid,))
+                db.execute("DELETE FROM questunlocks WHERE questid = ?", (qid,))
             notes = q.get("notes") or ""
             if x["draft"]:
                 notes = (notes + "\n\n" if notes else "") + "A draft until these are here: " + "; ".join(x["why"]) + "."
@@ -508,14 +677,18 @@ def write(db, p):
                         requires=", ".join(map(str, requires)), repeatable=1 if q.get("repeatable") else 0,
                         offer=q.get("offer") or "", accept=q.get("accept") or "", decline=q.get("decline") or "",
                         declined=q.get("declined") or "", started=q.get("started") or "",
-                        source=f"EQOA-Data {x['key']} (tools/import_quests.py)", notes=notes, events=fix_events(x["events"]))
+                        source=f"EQOA-Data {x['key']} (tools/import_quests.py)", notes=notes, events=fix_events(x["events"]),
+                        factionreq=x["factionreq"])
             db.execute(f"INSERT INTO quests ({', '.join(QUEST_COLS)}) VALUES ({', '.join('?' * len(QUEST_COLS))})",
                        [vals[c] for c in QUEST_COLS])
             for st in x["steps"]:
                 row = dict(st, questid=qid, items=counts((pid(r), n) for r, n in st["items"]),
-                           rewarditems=counts((pid(r), n) for r, n in st["rewarditems"]), events=fix_events(st["events"]))
+                           rewarditems=counts((pid(r), n) for r, n in st["rewarditems"]), events=fix_events(st["events"]),
+                           byclass=class_rewards(st["byclass"], pid), choices=step_choices(st["choices"], pid))
                 db.execute(f"INSERT INTO queststeps ({', '.join(STEP_COLS)}) VALUES ({', '.join('?' * len(STEP_COLS))})",
                            [row[c] for c in STEP_COLS])
+            db.executemany("INSERT OR IGNORE INTO questunlocks (questid, npc, dest) VALUES (?, ?, ?)",
+                           [(qid, npc, to) for npc, to in x["unlocks"]])
             db.execute("INSERT OR REPLACE INTO quest_import_quests VALUES (?, ?, ?, ?, ?)",
                        (x["key"], qid, x["file"], digest(db, qid), 0 if x["draft"] else 1))
             written += 1
@@ -535,11 +708,14 @@ def undo(db):
     try:
         qids = [r[0] for r in db.execute("SELECT questid FROM quest_import_quests")]
         pids = [r[0] for r in db.execute("SELECT patternid FROM quest_import_items")]
-        n = dict(quests=0, steps=0, progress=0, items=0, held=0)
+        n = dict(quests=0, steps=0, progress=0, items=0, held=0, trips=0)
+        trips = has_table(db, "questunlocks")
         for qid in qids:
             n["quests"] += db.execute("DELETE FROM quests WHERE questid = ?", (qid,)).rowcount
             n["steps"] += db.execute("DELETE FROM queststeps WHERE questid = ?", (qid,)).rowcount
             n["progress"] += db.execute("DELETE FROM charquests WHERE questid = ?", (qid,)).rowcount
+            if trips:
+                n["trips"] += db.execute("DELETE FROM questunlocks WHERE questid = ?", (qid,)).rowcount
         for p in pids:
             for t in ("charinventory", "npcitem"):
                 if has_table(db, t):
@@ -578,19 +754,25 @@ def main():
     ap.add_argument("--undo", action="store_true", help="delete everything an import wrote")
     ap.add_argument("--no-backup", action="store_true", help="write without a copy first")
     ap.add_argument("--verbose", action="store_true", help="say why each draft is one")
+    ap.add_argument("--routes", default=travel.WAYSENDER,
+                    help="the server's waysender.go, whose routes the unlocks name (default: this tree's)")
     args = ap.parse_args()
     db = sqlite3.connect(args.db, isolation_level=None)
     if args.undo:
         if not args.no_backup:
             print("backup:", backup(db, args.db, "questundo"))
         n = undo(db)
-        print(f"deleted {n['quests']} quests ({n['steps']} steps, {n['progress']} characters' progress) and "
-              f"{n['items']} items made ({n['held']} of them held or sold); restart the server")
+        print(f"deleted {n['quests']} quests ({n['steps']} steps, {n['progress']} characters' progress, "
+              f"{n['trips']} trips they unlocked) and {n['items']} items made ({n['held']} of them held or sold); "
+              "restart the server")
         return
     paths = args.files or sorted(glob.glob(os.path.join(DEFAULT_DATA, "*.json")))
     if not paths:
         sys.exit("no content files")
-    p = plan(db, load_files(paths))
+    rs = travel.travel_routes(args.routes)
+    if rs is None:
+        print(f"warning: no routes in {args.routes}: the unlocks' routes are not checked")
+    p = plan(db, load_files(paths), routes=rs)
     report(p, args.verbose)
     if args.apply:
         if not args.no_backup:

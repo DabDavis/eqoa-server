@@ -48,7 +48,9 @@ def npc(db, name, x, z, model, level=10, ntype=0, world=0, torso=3):
                (name, x, wt.height(x, z), z, world, model, level, ntype, torso))
 
 
-class World(unittest.TestCase):
+class Fixture(unittest.TestCase):
+    """The made-up world: its database, ground, map and quest folder."""
+
     def setUp(self):
         self.dir = tempfile.mkdtemp(prefix="questnpcs-")
         self.ground = os.path.join(self.dir, "ground")
@@ -92,6 +94,8 @@ class World(unittest.TestCase):
     def plan(self, specs):
         return sq.plan(self.connect(ro=True), self.ground, self.data, self.quests, specs=specs)
 
+
+class World(Fixture):
     def test_a_sighting_places_a_named_npc_on_it(self):
         p = self.plan([sq.S("Sighted One", sq.FOE, ("kind", "bear"), ("ff",)),
                        sq.S("Suspect One", sq.FOE, ("kind", "bear"), ("ff",))])
@@ -216,6 +220,237 @@ class Specs(unittest.TestCase):
         for i, s in enumerate(sq.SPECS):
             if s["place"][0] == "near" and sq.fold(s["place"][1]) in order:
                 self.assertLess(order.index(sq.fold(s["place"][1])), i, s["name"])
+
+
+
+# the pre-sets tool's log (verbatim), as eqoaclassic's 1-20 seed made it
+OLD_LOG_DDL = [
+    "CREATE TABLE quest_npc_seed_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
+    "CREATE TABLE quest_npc_seed_rows (npc_row INTEGER PRIMARY KEY, name TEXT NOT NULL, "
+    "source TEXT NOT NULL, template_row INTEGER)",
+    "CREATE TABLE quest_npc_seed_types (npc_row INTEGER PRIMARY KEY, old_type INTEGER NOT NULL, "
+    "new_type INTEGER NOT NULL)",
+]
+
+
+class Sets(Fixture):
+    """Seed sets: a spec file read as S() writes one, sets in at once and taken
+    back each alone, a log from before the sets the set 1-20's, and the
+    command line's set rules."""
+
+    def spec_file(self, name, npcs, attackable=()):
+        path = os.path.join(self.dir, f"{name}.json")
+        with open(path, "w") as f:
+            json.dump(dict(set=name, npcs=npcs, attackable=list(attackable)), f)
+        return path
+
+    def old_seed(self, db, p):
+        """p written as the pre-sets tool wrote a seed: its rows and log."""
+        cols = [c for c in p["cols"] if c != "id"]
+        for stmt in OLD_LOG_DDL:
+            db.execute(stmt)
+        seq = sq.npc_seq(db)
+        for r in p["rows"]:
+            cur = db.execute(f"INSERT INTO npcs ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
+                             [r["row"].get(c) for c in cols])
+            db.execute("INSERT INTO quest_npc_seed_rows VALUES (?, ?, ?, ?)", (cur.lastrowid, r["name"], r["source"], r["template"]))
+        for t in p["types"]:
+            db.execute("UPDATE npcs SET npc_type = ? WHERE id = ?", (t["new"], t["id"]))
+            db.execute("INSERT INTO quest_npc_seed_types VALUES (?, ?, ?)", (t["id"], t["old"], t["new"]))
+        db.executemany("INSERT INTO quest_npc_seed_meta VALUES (?, ?)",
+                       [("rows", str(len(p["rows"]))), ("seq_before", "" if seq is None else str(seq)), ("when", "then")])
+
+    def test_a_spec_file_reads_as_S_writes_one(self):
+        good = dict(name="Moor Hermit", role="talker", body=["race", "human", 1], place=["near", "Mayor Alpha", 20, 0],
+                    level=30, note="by the mayor")
+        path = self.spec_file("qa", [good, dict(name="Bog Bear", role="foe", body=["kind", "bear"], place=["ff", "low"],
+                                                count=2, water="both")], attackable=["Guard Kept"])
+        sets, errs = sq.load_sets([path])
+        self.assertEqual(errs, [])
+        self.assertEqual(list(sets), [sq.BUILTIN, "qa"], "the built-in set first")
+        self.assertEqual(sets["qa"]["specs"][0],
+                         sq.S("Moor Hermit", sq.TALKER, ("race", "human", sq.FEMALE), ("near", "Mayor Alpha", 20, 0), level=30,
+                              note="by the mayor"))
+        self.assertEqual(sets["qa"]["specs"][1]["place"], ("ff", "low"))
+        self.assertEqual(sets["qa"]["attackable"], ["Guard Kept"])
+        bad = self.spec_file("qb", [dict(name="X", role="boss", body=["race", "orc", 0], place=["poi", "faydwer", "Y"],
+                                         count=0, water="lava"), dict(role="foe")])
+        _, errs = sq.load_sets([bad, self.spec_file("qa2", [])])
+        text = "\n".join(errs)
+        for want in ("role 'boss'", "body ['race', 'orc', 0]", "place ['poi', 'faydwer', 'Y']", "count 0", "water 'lava'", "no name"):
+            self.assertIn(want, text)
+        dup = os.path.join(self.dir, "again.json")
+        with open(dup, "w") as f:
+            json.dump(dict(set="qa", npcs=[]), f)
+        _, errs = sq.load_sets([path, dup])
+        self.assertTrue(any("set 'qa' is" in e for e in errs), errs)
+
+    def test_sets_are_in_together_and_taken_back_alone(self):
+        db = self.connect()
+        before = _digest(db)
+        a = sq.plan(db, self.ground, self.data, self.quests, specs=[sq.S("Sighted One", sq.FOE, ("kind", "bear"), ("ff",), count=2)],
+                    attackable=[])
+        sq.apply(db, a, "qa")
+        mid = _digest(db)
+        b = sq.plan(db, self.ground, self.data, self.quests,
+                    specs=[sq.S("Hut Keeper", sq.TALKER, ("race", "human", sq.MALE), ("near", "Sighted One", 15, 0))],
+                    attackable=["Guard Kept"])
+        sq.apply(db, b, "qb")
+        self.assertEqual(sq.sets_in(db), {"qa": 2, "qb": 1}, "a set applied while another is in")
+        with self.assertRaises(SystemExit):
+            sq.apply(db, b, "qb")   # a set once
+        self.assertEqual(db.execute("SELECT npc_type FROM npcs WHERE npc_name = 'Guard Kept'").fetchone()[0], 0)
+        self.assertEqual(sq.undo(db, "qb"), (1, []))
+        self.assertEqual(_digest(db), mid, "the later set out: the earlier one as it went in, the counter back")
+        sq.apply(db, b, "qb")
+        self.assertEqual(sq.undo(db, "qa"), (2, []), "the earlier set out first")
+        self.assertEqual(sq.sets_in(db), {"qb": 1})
+        sq.undo(db, "qb")
+        self.assertFalse(sq.seeded(db), "no set in: no logs")
+        self.assertEqual(_digest(db), before, "every row as it was, the counter too")
+
+    def test_a_log_from_before_the_sets_is_the_set_1_20s(self):
+        db = self.connect()
+        before = _digest(db)
+        old = sq.plan(db, self.ground, self.data, self.quests, specs=[sq.S("Sighted One", sq.FOE, ("kind", "bear"), ("ff",))],
+                      attackable=["Guard Kept"])
+        db.execute("BEGIN")
+        self.old_seed(db, old)
+        db.execute("COMMIT")
+        self.assertEqual(sq.sets_in(db), {sq.BUILTIN: 1}, "read as it is, before any change")
+        new = sq.plan(db, self.ground, self.data, self.quests, specs=[sq.S("Map Thing", sq.FOE, ("kind", "bear"),
+                                                                           ("poi", "tunaria", "Map Thing"))], attackable=[])
+        sq.apply(db, new, "qa")
+        self.assertEqual(sq.sets_in(db), {sq.BUILTIN: 1, "qa": 1})
+        self.assertEqual(sorted(sq.log_columns(db, "quest_npc_seed_meta")), ["key", "seedset", "value"], "migrated in place")
+        self.assertEqual(sq.undo(db, sq.BUILTIN), (1, []), "the old seed undone as its set")
+        self.assertEqual(db.execute("SELECT npc_type FROM npcs WHERE npc_name = 'Guard Kept'").fetchone()[0], 128)
+        sq.undo(db, "qa")
+        self.assertEqual(_digest(db), before, "the old seed and the set out: as before both, the counter too")
+
+    def test_a_sets_peaceful_creatures_get_npcaggro_rows_undone_with_it(self):
+        db = self.connect()
+        db.execute(sq.NPCAGGRO_DDL)
+        db.execute("INSERT INTO npcaggro VALUES ('Mayor Beta', 1, 40, 'a GM said so', 'gm')")
+        db.execute("INSERT INTO npcaggro VALUES ('Mayor Gamma', 0, 0, 'already', 'seed')")
+        before = [tuple(r) for r in db.execute("SELECT * FROM npcaggro ORDER BY npc_name")]
+        p = sq.plan(db, self.ground, self.data, self.quests, specs=[], attackable=[],
+                    peaceful=["BROWN BEAR", "Mayor Beta", "Mayor Gamma", "Nobody"])
+        self.assertEqual([a["name"] for a in p["aggro"]], ["brown bear", "Mayor Beta"],
+                         "as npcs spells it; one peaceful already is left as it is")
+        self.assertIn(("Nobody", "no NPC of the name to make peaceful"), p["left"])
+        sq.apply(db, p, "qa")
+        rows = {r[0]: r for r in db.execute("SELECT * FROM npcaggro")}
+        self.assertEqual(rows["brown bear"][1:3], (0, 0.0))
+        self.assertEqual((rows["Mayor Beta"][1], rows["Mayor Beta"][4]), (0, "questnpcs:qa"))
+        self.assertEqual(sq.undo(db, "qa"), (0, []))
+        self.assertEqual([tuple(r) for r in db.execute("SELECT * FROM npcaggro ORDER BY npc_name")], before,
+                         "the new row gone, the GM's row as it was")
+        # a GM's change since is left at the undo, and said
+        sq.apply(db, p, "qa")
+        db.execute("UPDATE npcaggro SET aggressive = 1 WHERE npc_name = 'brown bear'")
+        n, kept = sq.undo(db, "qa")
+        self.assertEqual(kept, ["npcaggro 'brown bear'"])
+        self.assertEqual(db.execute("SELECT aggressive FROM npcaggro WHERE npc_name = 'brown bear'").fetchone()[0], 1)
+        self.assertFalse(sq.seeded(db))
+        _, errs = sq.load_sets([self.spec_file("qb", [], attackable=[]) ])
+        self.assertEqual(errs, [])
+        bad = os.path.join(self.dir, "bad.json")
+        with open(bad, "w") as f:
+            json.dump(dict(set="qc", npcs=[], peaceful="Mayor Beta"), f)
+        _, errs = sq.load_sets([bad])
+        self.assertTrue(any("peaceful is not a list of names" in e for e in errs), errs)
+
+    def test_a_later_guides_key_finds_its_map_points(self):
+        self.assertEqual(sq.guide_of("1-20/freeport/warrior/L3"), "1-20/freeport/warrior")
+        self.assertEqual(sq.guide_of("Portal/zaoran-plateau/portal"), "portal/zaoran-plateau")
+        self.assertEqual(sq.guide_of("30,40,49/group-4-evil/p1"), "30-40-49/group-4-evil", "the map's ids: lower case, hyphens")
+        self.assertEqual(sq.guide_of("Misc/Fairy-In-A-Jug/p2"), "misc/fairy-in-a-jug", "case folded")
+        with open(os.path.join(self.quests, "portal.json"), "w") as f:
+            json.dump(dict(city="portal", quests=[dict(key="Portal/test-isle/p1", giver="Isle Keeper", steps=[])]), f)
+        self.assertEqual(sq.guides_of(self.quests)[sq.key("Isle Keeper")], {"portal/test-isle"})
+        # two map points of the name: the one of the guide's quest is picked
+        with open(os.path.join(self.data, "Map", "zones.json")) as f:
+            zones = json.load(f)
+        zones["pois"] += [dict(name="Isle Keeper", x=5200, y=1600, questGuideIds=["misc/elsewhere"]),
+                          dict(name="Isle Keeper", x=4600, y=1100, questGuideIds=["portal/test-isle"])]
+        with open(os.path.join(self.data, "Map", "zones.json"), "w") as f:
+            json.dump(zones, f)
+        p = self.plan([sq.S("Isle Keeper", sq.TALKER, ("race", "human", sq.MALE), ("poi", "tunaria", "Isle Keeper"))])
+        r = p["rows"][0]["row"]
+        self.assertEqual((round(r["x_coord"]), round(r["z_coord"])), (10200, 4200), "2 x 4600 + 1000, 2 x 1100 + 2000")
+
+    def test_south_tunaria_in_the_rathes_box_and_placeholder_sightings(self):
+        # the sheet draws the Rathe's inset beside south Tunaria: a point in the
+        # box is the Rathe's only when nearest one of the Rathe's places
+        with open(os.path.join(self.data, "Map", "zones.json")) as f:
+            zones = json.load(f)
+        zones["zones"] += [dict(name="Lake Rathe", x=6000, y=9900), dict(name="Kelinar", x=7900, y=9800)]
+        zones["pois"] += [dict(name="Rathe Thing", x=6100, y=9950), dict(name="Tunaria Thing", x=7800, y=9850)]
+        with open(os.path.join(self.data, "Map", "zones.json"), "w") as f:
+            json.dump(zones, f)
+        db = self.connect()
+        cols, npcs, bodies, pc, ff = sq.load(db)
+        sheet = sq.Map(zones, npcs, ff)
+        rathe = {p["name"]: sheet.rathe(p) for p in zones["pois"] + zones["zones"]}
+        self.assertEqual((rathe["Rathe Thing"], rathe["Tunaria Thing"], rathe["Kelinar"], rathe["Map Thing (12)"]),
+                         (True, False, False, False))
+        p = self.plan([sq.S("Lost One", sq.TALKER, ("race", "human", sq.MALE), ("poi", "rathe", "Tunaria Thing")),
+                       sq.S("Lost Two", sq.TALKER, ("race", "human", sq.MALE), ("poi", "tunaria", "Rathe Thing"))])
+        self.assertIn(("Lost One", "map point 'Tunaria Thing' is Tunaria's (asked: the Rathe's)"), p["left"])
+        self.assertIn(("Lost Two", "map point 'Rathe Thing' is the Rathe's inset's (asked: Tunaria's)"), p["left"])
+        # a spot eight names were seen at is FrontiersForge's placeholder; seven a place
+        rows = [(f"Placeholder {i}", 9, 0, 3001.0, 25.0, 18025.0, 0) for i in range(8)] + \
+            [(f"Prisoner {i}", 9, 0, 11100.0, wt.height(11100, 4400), 4400.0, 0) for i in range(7)]
+        db.executemany("INSERT INTO npcs_ff_import (npc_name, npc_level, world, x_coord, y_coord, z_coord, pos_suspect) "
+                       "VALUES (?, ?, ?, ?, ?, ?, ?)", rows)
+        p = self.plan([sq.S("Placeholder 3", sq.FOE, ("kind", "bear"), ("ff",)),
+                       sq.S("Prisoner 3", sq.FOE, ("kind", "bear"), ("ff",))])
+        self.assertEqual([r["name"] for r in p["rows"]], ["Prisoner 3"])
+        self.assertIn(("Placeholder 3", "no FrontiersForge sighting"), p["left"])
+
+    def test_odus_has_its_own_fit(self):
+        db = self.connect()
+        # three Odus townsfolk (world 2) and their points: x = 3 mx - 2000, z = 3 my - 9000
+        for name, mx, my in (("Odus Alpha", 1000, 4000), ("Odus Beta", 1300, 4400), ("Odus Gamma", 1150, 4800)):
+            npc(db, name, 3 * mx - 2000, 3 * my - 9000, HUMAN_M, ntype=128, world=2)
+        with open(os.path.join(self.data, "Map", "zones.json")) as f:
+            zones = json.load(f)
+        zones["towns"] += [dict(name="Odus Alpha", x=1000, y=4000), dict(name="Odus Beta", x=1300, y=4400),
+                           dict(name="Odus Gamma", x=1150, y=4800)]
+        zones["pois"] += [dict(name="Odus Thing (21)", x=1200, y=4500)]
+        with open(os.path.join(self.data, "Map", "zones.json"), "w") as f:
+            json.dump(zones, f)
+        p = self.plan([sq.S("Odus Thing", sq.FOE, ("kind", "bear"), ("poi", "odus", "Odus Thing"))])
+        (a, b, c, d), kept, _ = p["odus"]
+        self.assertEqual((round(a, 3), round(b), round(c, 3), round(d), kept), (3.0, -2000, 3.0, -9000, 3))
+        self.assertEqual(p["left"], [("Odus Thing", "no floor round (1600, 4500) in world 2")],
+                         "placed by Odus's fit, in world 2 (no ground file for it here)")
+        _, errs = sq.load_sets([self.spec_file("qd", [dict(name="X", role="foe", body=["kind", "bear"],
+                                                          place=["poi", "odus", "Odus Thing"])])])
+        self.assertEqual(errs, [], "an odus place is a spec file's too")
+
+    def run_cli(self, *args):
+        import subprocess
+        tool = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_quest_npcs.py")
+        return subprocess.run([sys.executable, "-I", tool, "--db", self.db_path, "--ground", self.ground, "--data", self.data,
+                               "--quests", self.quests, "--no-backup", *args], capture_output=True, text=True)
+
+    def test_the_command_line_names_its_sets(self):
+        path = self.spec_file("qa", [dict(name="Sighted One", role="foe", body=["kind", "bear"], place=["ff"])])
+        out = self.run_cli("--specs", path, "--apply")
+        self.assertNotEqual(out.returncode, 0, "an apply names its sets")
+        self.assertIn("name the sets to apply", out.stderr)
+        out = self.run_cli("--specs", path, "--apply", "--set", "qa")
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertIn("wrote 1 spawns", out.stdout)
+        out = self.run_cli("--specs", path)
+        self.assertIn("== set qa", out.stdout)
+        self.assertIn("in this database already (1 NPCs)", out.stdout, "a report of every set, the one in said")
+        self.assertIn("== set 1-20", out.stdout)
+        out = self.run_cli("--specs", path, "--undo")
+        self.assertEqual(out.returncode, 0, out.stderr)   # one set in: the old --undo undoes it
+        self.assertIn("set qa: deleted 1 seeded NPCs", out.stdout)
 
 
 if __name__ == "__main__":

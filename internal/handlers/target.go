@@ -140,8 +140,9 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 		info.race = 0
 		info.class = 0
 		// The face is the creature's to this player (entity/aggro.go): red
-		// for one that attacks it on sight or fights it, as Sandstorm's; a
-		// pet's the players' (entity/pet.go)
+		// for one that attacks it on sight or fights it, as Sandstorm's; for
+		// an NPC of a faction (npcfaction) the player's standing with it;
+		// a pet's the players' (entity/pet.go)
 		info.faceColor = h.gameWorld.TargetFace(player, t)
 	default:
 		info.name = "???"

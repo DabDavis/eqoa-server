@@ -31,7 +31,7 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveAccount(a, action, before, after)
 	case "characters":
 		return s.liveCharacter(a, action, before, after)
-	case "factions", "factionhits":
+	case "factions", "factionhits", "factionstart", "npcfaction":
 		return s.liveFactions(t.Name)
 	case "npcaggro":
 		return s.liveAggro()
@@ -86,8 +86,13 @@ func (s *Server) liveFactions(table string) string {
 	if err := s.d.World.LoadFactions(s.d.DB); err != nil {
 		return "not applied to the world: " + err.Error()
 	}
-	if table == "factions" {
-		return "at once: every faction window and the next kill read it"
+	switch table {
+	case "factions":
+		return "at once: every faction window, target box and the next kill read it"
+	case "factionstart":
+		return "at once: every faction window, target box and look round (half a second) after it use it, for every faction a character has not moved"
+	case "npcfaction":
+		return "at once: " + s.d.World.FactionMembersSummary() + "; the next look round (half a second) and the next target box use it"
 	}
 	return "at once: the next kill of that NPC uses it"
 }

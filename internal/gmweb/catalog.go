@@ -78,6 +78,12 @@ func enums() map[string][]EnumValue {
 		"roam": {{-1, "As its kind (wildlife wanders)"}, {1, "Wanders"}, {0, "Stands until pulled"}},
 		// spellarea.centre (entity/area.go)
 		"areacentre": {{0, "As its line reads"}, {1, "Round its target"}, {2, "Round its caster"}, {-1, "Not an area spell"}},
+		// factionstart (entity/faction.go): -1 any
+		"raceany":  append([]EnumValue{{-1, "Any race"}}, numbered("Human", "Elf", "Dark Elf", "Gnome", "Dwarf", "Troll", "Barbarian", "Halfling", "Erudite", "Ogre", "Froglok")...),
+		"classany": append([]EnumValue{{-1, "Any class"}}, numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist")...),
+		"humtype":  {{-1, "Any city"}, {0, "Not a human"}, {1, "East (Freeport)"}, {2, "West (Qeynos, Surefall Glade)"}},
+		// npcfaction.world (entity/faction.go)
+		"worldany": append([]EnumValue{{-1, "Any world"}}, w...),
 	}
 }
 
@@ -229,8 +235,8 @@ var catalog = map[string]tableNote{
 	},
 	"charfactions": {
 		Label: "Character factions", Group: "Players", Sort: "serverid",
-		Help: "A character's standing with each faction it has moved off the faction's starting one (-2000 to 2000); " +
-			"with no row it has the starting standing (Factions).",
+		Help: "A character's standing with each faction it has moved off its start (-2000 to 2000); with no row it has " +
+			"its start: its race, class and city's (Faction starts), else the faction's own (Factions).",
 		Live: "At once where the character stands, else at its next login.",
 		Cols: map[string]colNote{
 			"serverid": {Label: "Character", Ref: "characters"},
@@ -424,26 +430,73 @@ var catalog = map[string]tableNote{
 	},
 	"factions": {
 		Label: "Factions", Group: "World", Title: "name", Sort: "name",
-		Help: "Every faction and the standing a character starts with (-2000 to 2000). Filled from an eqoa.live capture's " +
-			"331 (one gnome's: Klick`Anon 300, Qeynos -2000) when empty; a character's own standings are Character factions.",
-		Live: "At once: every faction window and the next kill read it.",
+		Help: "Every faction and the standing a character starts with (-2000 to 2000) where its race, class and city have " +
+			"none of their own (Faction starts). Filled from an eqoa.live capture's 331 (one gnome's: Klick`Anon 300, " +
+			"Qeynos -2000) when empty; a character's own standings are Character factions.",
+		Live: "At once: every faction window, target box and the next kill read it.",
 		Cols: map[string]colNote{
 			"name":     {Label: "Faction"},
 			"standing": {Label: "Starting standing", Help: "-2000 to 2000"},
+		},
+	},
+	"factionstart": {
+		Label: "Faction starts", Group: "World", Title: "faction", Sort: "faction",
+		Help: "The standing the characters of a race, class and home city start with in a faction where it is not the " +
+			"faction's own (Factions): -1 in a column is any, and the row naming most of the three wins (then the one " +
+			"naming the race, then the class). A froglok starts as a human of the east. A character takes its start for " +
+			"every faction it has not moved (Character factions). Rows of source seed are tools/seed_faction_starts.py's, " +
+			"Sandstorm's starts measured per race, class and city; its --undo takes them out.",
+		Live:   "At once: every faction window, target box and look round (half a second) after it uses it.",
+		Search: []string{"faction", "note", "source"},
+		Cols: map[string]colNote{
+			"race":     {Label: "Race", Enum: "raceany"},
+			"class":    {Label: "Class", Enum: "classany"},
+			"humtype":  {Label: "Home city", Enum: "humtype", Help: "a human's city: 1 east, 2 west; 0 the other races"},
+			"faction":  {Label: "Faction", Ref: "factions"},
+			"standing": {Label: "Starting standing", Help: "-2000 to 2000"},
+			"note":     {Label: "Note"},
+			"source":   {Label: "Source", Help: "gm, or seed for tools/seed_faction_starts.py's rows (its --undo takes those out)"},
+		},
+	},
+	"npcfaction": {
+		Label: "NPC factions", Group: "World", Title: "name", Sort: "name",
+		Help: "Which faction an NPC is of, by NPC NAME as NPC classes key it (lower case, no trailing space or $). Its " +
+			"target box shows a player the player's standing with it (below -700 Aggressive, Dubious, Cautious, Neutral " +
+			"from -150, Friendly from 150, Warm, Allied from 700), and it attacks on sight a player whose standing is " +
+			"below -700, at any level, and no one else, whatever its body (entity/aggro.go); one with the NPC bit (0x80) " +
+			"never attacks, and a Creature aggro row for the name decides its aggro as before. world -1: every NPC of the " +
+			"name; a world with radius 0: those in it; a radius: those that spawned within it of (x, z) in that world, " +
+			"the smallest place first (a city's namesakes told from the wild's). An empty faction: of none. Rows of " +
+			"source seed are tools/seed_npc_factions.py's: a town's people under its Citizens faction (its guards its " +
+			"guard faction), the houses by name, the creatures among a town's people; its --undo takes them out. " +
+			"world.faction_aggro: false leaves factions out of aggro and faces.",
+		Live:   "At once: the next look round (half a second) and the next target box use it.",
+		Search: []string{"name", "faction", "note", "source"},
+		Cols: map[string]colNote{
+			"name":    {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"world":   {Label: "World", Enum: "worldany"},
+			"x":       {Label: "Place x", Help: "with radius: the middle of the place"},
+			"z":       {Label: "Place z"},
+			"radius":  {Label: "Radius", Help: "0: anywhere in the world; else only the NPCs that spawned this near (x, z)"},
+			"faction": {Label: "Faction", Ref: "factions", Help: "empty: of none"},
+			"note":    {Label: "Note"},
+			"source":  {Label: "Source", Help: "gm, or seed for tools/seed_npc_factions.py's rows (its --undo takes those out)"},
 		},
 	},
 	"factionhits": {
 		Label: "Faction hits", Group: "World", Title: "npc_name", Sort: "npc_name",
 		Help: "What killing an NPC does to its killer's standings: each row adds delta to the standing with one faction " +
 			"for a kill of any NPC of that NAME (a #spawn copy too). The killer alone, as the kill's XP. Town rows " +
-			"(source town-seed) are tools/seed_faction_hits.py's guesses, not measured: no capture holds a faction hit.",
+			"(source town-seed) are tools/seed_faction_hits.py's guesses, not measured: no capture holds a faction hit; " +
+			"quest-seed rows are tools/seed_quest_hits.py's, the kills EQOA-Data's guides say earn a quest's faction gate " +
+			"(+5 a kill, ours).",
 		Live:   "At once: the next kill of that NPC uses it.",
 		Search: []string{"npc_name", "faction", "source"},
 		Cols: map[string]colNote{
 			"npc_name": {Label: "NPC name", Help: "as in NPCs, exactly (a trailing space included)"},
 			"faction":  {Label: "Faction", Ref: "factions"},
 			"delta":    {Label: "Change", Help: "added to the killer's standing; below 0 lowers it"},
-			"source":   {Label: "Source", Help: "gm, or town-seed for the seeding tool's rows (its --undo deletes those)"},
+			"source":   {Label: "Source", Help: "gm; town-seed (tools/seed_faction_hits.py) or quest-seed (tools/seed_quest_hits.py), each tool's --undo deletes its own"},
 		},
 	},
 	"npcaggro": {

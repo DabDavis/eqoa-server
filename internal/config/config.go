@@ -181,6 +181,11 @@ type WorldConfig struct {
 	// Aggro is whether creatures attack a player on sight (entity/aggro.go):
 	// unset, they do; false, none attacks first.
 	Aggro *bool `yaml:"aggro"`
+
+	// FactionAggro is whether an NPC of a faction (table npcfaction) attacks
+	// and shows its face by a player's standing with it (entity/aggro.go):
+	// unset, it does; false, every NPC by the rules of no faction.
+	FactionAggro *bool `yaml:"faction_aggro"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

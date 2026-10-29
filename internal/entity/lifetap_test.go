@@ -416,3 +416,22 @@ func TestPetTapsOfTheNecromancersSpells(t *testing.T) {
 		t.Errorf("visuals %#x %#x: a tap's own, else a strike's stand-in", got[0].FX, got[1].FX)
 	}
 }
+
+// A life tap heals by what landed: on a creature five levels up that takes
+// half of what its caster deals (balance.go's con), the tap heals half. The
+// control: with no balance it heals the whole figure.
+func TestALifeTapHealsWhatLanded(t *testing.T) {
+	for _, c := range []struct {
+		b    *Balance
+		heal int
+	}{{testBalance(), 78}, {nil, 156}} {
+		k := newCaster(t)
+		k.w.balance = c.b
+		k.p.Level, k.p.HP = 25, 300
+		k.npc.HP, k.npc.MaxHP, k.npc.Level = 1000, 1000, 30
+		k.landSeen(t, spiritTap(), k.npcO)
+		if k.p.HP != 300+c.heal || k.npc.HP != 1000-c.heal {
+			t.Errorf("balance %v: caster %d HP, creature %d; want %d and %d", c.b != nil, k.p.HP, k.npc.HP, 300+c.heal, 1000-c.heal)
+		}
+	}
+}

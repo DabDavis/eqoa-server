@@ -227,13 +227,13 @@ func (db *SQLiteDB) WriteSnapshot(out, by string) (*SnapshotReport, error) {
 	if _, err := db.Exec(`VACUUM INTO ?`, raw); err != nil {
 		return nil, fmt.Errorf("copying the database: %w", err)
 	}
-	return SanitizeSnapshot(raw, out, by)
+	return sanitizeSnapshot(raw, out, by)
 }
 
-// SanitizeSnapshot makes a sanitised snapshot at out (which must not exist)
-// of the database file raw, a COPY, which it changes: never give it a live
-// database.
-func SanitizeSnapshot(raw, out, by string) (rep *SnapshotReport, err error) {
+// sanitizeSnapshot makes a sanitised snapshot at out (which must not exist)
+// of the database file raw, a COPY, which it changes in place: it is
+// WriteSnapshot's alone, so that nothing hands it a live database.
+func sanitizeSnapshot(raw, out, by string) (rep *SnapshotReport, err error) {
 	if err := createEmpty(out); err != nil {
 		return nil, err
 	}

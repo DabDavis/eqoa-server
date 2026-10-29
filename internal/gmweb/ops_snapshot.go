@@ -46,6 +46,15 @@ const (
 	snapshotTicket = "snap_"
 )
 
+func init() {
+	// in a snapshot only: a panel run on one (a GM's own machine) says what it is
+	catalog[database.SnapshotInfoTable] = tableNote{
+		Label: "Snapshot", Group: "Panel", Write: writeNone,
+		Help: "This database is a sanitised snapshot of a live server's (download_snapshot): the sanitiser's version, " +
+			"when it was made and by whom, and what it took out.",
+	}
+}
+
 // snapshotLink is a snapshot waiting to be fetched.
 type snapshotLink struct {
 	seq       int64
@@ -118,7 +127,6 @@ func (s *Server) makeSnapshot(c *opCtx) (any, error) {
 		return nil, err
 	}
 	os.Chmod(dir, 0o700)
-	made := time.Now().UTC()
 	base := filepath.Join(dir, "snap-"+randomHex(8))
 	start := time.Now()
 	rep, err := s.d.DB.WriteSnapshot(base+".db", c.a.Username)
@@ -130,7 +138,7 @@ func (s *Server) makeSnapshot(c *opCtx) (any, error) {
 		}
 		return nil, fmt.Errorf("the snapshot failed: %w", err)
 	}
-	file := "eqoa-snapshot-" + made.Format("20060102-150405") + ".db.gz"
+	file := "eqoa-snapshot-" + rep.Made.Format("20060102-150405") + ".db.gz"
 	gzBytes, sum, err := gzipFile(base+".db", base+".db.gz", strings.TrimSuffix(file, ".gz"))
 	os.Remove(base + ".db")
 	if err != nil {

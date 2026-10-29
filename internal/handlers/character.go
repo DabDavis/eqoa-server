@@ -743,6 +743,9 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Offer group voice (voice.go) when this server has it: a client whose
 	// player turned it on asks for it, a PS2 ignores it
 	SendVoiceOffer(sess)
+	// Offer the live game's duel messages (duel.go): a client with the live
+	// duel window asks for them, a PS2 ignores it and duels by boxes
+	SendDuelOffer(sess)
 
 	// The four weapon sets (gearsets.go): SOE's live client reads them, a PS2
 	// skips them

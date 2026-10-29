@@ -562,6 +562,10 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		w.sendChatToSession(sess, "Your pet backs off.")
 	case petCmdAttack:
 		ent, ok := w.findEntityByObjectIDLocked(sess, target)
+		if ok && w.duelPetCommandLocked(ps, ent) { // its owner's duel opponent (duelfight.go)
+			w.sendChatToSession(sess, "Your pet attacks "+entityNameLocked(ent)+".")
+			return
+		}
 		npc, isNPC := ent.(*NPC)
 		if !ok || !isNPC || !petMayFight(pet, npc) || distXZ(p.X, p.Z, npc.X, npc.Z) > petLeash {
 			w.sendChatToSession(sess, "Your pet cannot attack that.")
@@ -632,6 +636,12 @@ func (w *World) petSystem(now time.Time) {
 			w.SpatialIndex.Update(pet.ServerID, oldX, oldZ, pet.X, pet.Z)
 		}
 		w.petChooseTargetLocked(ps, now)
+		if w.duelPetLocked(ps, dt, now) { // its owner's duel (duelfight.go)
+			if sess != nil {
+				w.announcePetLocked(ps, sess)
+			}
+			continue
+		}
 		if t := w.NPCs[ps.target]; ps.target != 0 && t != nil {
 			w.petFightLocked(ps, t, dt, now)
 		} else {

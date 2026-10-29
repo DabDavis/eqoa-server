@@ -12,7 +12,7 @@ import (
 	"unicode/utf8"
 )
 
-// The signaling as both of its carriers frame it (0x7E09 on the game
+// The signaling as both of its carriers frame it (0x7E13 on the game
 // connection, {"signal"} on the demo's WebSocket): a message is cut into
 // parts of at most MaxChunk bytes, each part {seq, kind, part, parts, chunk},
 // and put back together by seq.

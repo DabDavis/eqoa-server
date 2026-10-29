@@ -21,7 +21,8 @@ func (s *Server) liveBalance() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return fmt.Sprintf("at once (%d level rows, %d con rows): every NPC's hit points are its level's now, "+
-		"each keeping its share of them, and the next hit of every fight uses it; a summoned pet's at its next summoning", levels, cons)
+		"each keeping its share of them, and the next hit of every fight uses it, the next combat art its cooldown; "+
+		"a summoned pet's at its next summoning", levels, cons)
 }
 
 // checkBalanceRow holds a balancelevel or balancecon row to its bounds
@@ -36,6 +37,15 @@ func checkBalanceRow(table string, row map[string]any) error {
 				return badRequest("%s: con_pct is a number", table)
 			}
 			if why := database.BalanceConPctProblem(p); why != "" {
+				return badRequest("%s: %s", table, why)
+			}
+		}
+		if v, present := row["art_cooldown_ms"]; present && v != nil {
+			ms, ok := asFloat(v)
+			if !ok {
+				return badRequest("%s: art_cooldown_ms is a number", table)
+			}
+			if why := database.BalanceMSProblem("art_cooldown_ms", ms); why != "" {
 				return badRequest("%s: %s", table, why)
 			}
 		}

@@ -25,9 +25,15 @@ import (
 // shields; a pet's too). Between two rows the line; past the last, the end
 // row's.
 //
+// balancelevel's art_cooldown_ms is by a PLAYER's level, the one column that
+// is: the global cooldown of the combat arts (an ability with no cast time
+// cast at a creature), the milliseconds from one's start before another may
+// start (entity/balance.go ArtCooldown).
+//
 // A table with no rows changes nothing. source: gm, or seed for the rows
 // this file gives a table it makes (the tuning of 2026-10-29,
-// claude-notes/balance-20261029.md).
+// claude-notes/balance-20261029.md). A column added to a table made before it
+// (balanceColumns) takes the seed's value on the rows still the seed's.
 const balanceSchema = `
 	CREATE TABLE IF NOT EXISTS balancelevel (
 		level          INTEGER PRIMARY KEY,
@@ -36,6 +42,7 @@ const balanceSchema = `
 		con_pct        REAL NOT NULL DEFAULT 100,
 		pet_hp_pct     REAL NOT NULL DEFAULT 100,
 		pet_damage_pct REAL NOT NULL DEFAULT 100,
+		art_cooldown_ms REAL NOT NULL DEFAULT 0,
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
 	);
@@ -53,7 +60,50 @@ type BalanceLevel struct {
 	Level                  int
 	HPPct, DamagePct       float64
 	PetHPPct, PetDamagePct float64
-	Note                   string
+	// ArtCooldownMS is by a player's level (the file's doc)
+	ArtCooldownMS float64
+	Note          string
+}
+
+// balanceColumn is a column added to a balance table after the table was
+// first made: its declaration, and the seed rows' value of it by key.
+type balanceColumn struct {
+	table, col, decl, key string
+	seed                  func() map[int]float64
+}
+
+// balanceColumns are the columns added since 2026-10-29's first tables.
+var balanceColumns = []balanceColumn{
+	{"balancelevel", "art_cooldown_ms", "REAL NOT NULL DEFAULT 0", "level", func() map[int]float64 {
+		m := map[int]float64{}
+		for _, r := range BalanceSeedLevels {
+			m[r.Level] = r.ArtCooldownMS
+		}
+		return m
+	}},
+}
+
+// ensureBalanceColumns adds the columns a table made before them lacks, each
+// with the seed's value on the rows still the seed's (source seed).
+func (db *SQLiteDB) ensureBalanceColumns() error {
+	for _, c := range balanceColumns {
+		has, err := hasColumn(db.DB, c.table, c.col)
+		if err != nil {
+			return fmt.Errorf("%s.%s: %w", c.table, c.col, err)
+		}
+		if has {
+			continue
+		}
+		if _, err := db.Exec(`ALTER TABLE ` + c.table + ` ADD COLUMN ` + c.col + ` ` + c.decl); err != nil {
+			return fmt.Errorf("%s.%s: %w", c.table, c.col, err)
+		}
+		for k, v := range c.seed() {
+			if _, err := db.Exec(`UPDATE `+c.table+` SET `+c.col+` = ? WHERE `+c.key+` = ? AND source = 'seed'`, v, k); err != nil {
+				return fmt.Errorf("%s.%s: %w", c.table, c.col, err)
+			}
+		}
+	}
+	return nil
 }
 
 // BalanceCon is one row of balancecon.
@@ -78,10 +128,14 @@ func (db *SQLiteDB) ensureBalance() error {
 	if _, err := db.Exec(balanceSchema); err != nil {
 		return fmt.Errorf("balance: %w", err)
 	}
+	if err := db.ensureBalanceColumns(); err != nil {
+		return err
+	}
 	if fresh["balancelevel"] {
 		for _, r := range BalanceSeedLevels {
-			if _, err := db.Exec(`INSERT OR IGNORE INTO balancelevel (level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct, note, source)
-				VALUES (?, ?, ?, ?, ?, ?, ?, 'seed')`, r.Level, r.HPPct, r.DamagePct, r.ConPct, r.PetHPPct, r.PetDamagePct, r.Note); err != nil {
+			if _, err := db.Exec(`INSERT OR IGNORE INTO balancelevel (level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct,
+				art_cooldown_ms, note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'seed')`, r.Level, r.HPPct, r.DamagePct, r.ConPct,
+				r.PetHPPct, r.PetDamagePct, r.ArtCooldownMS, r.Note); err != nil {
 				return fmt.Errorf("balancelevel: %w", err)
 			}
 		}
@@ -99,7 +153,8 @@ func (db *SQLiteDB) ensureBalance() error {
 
 // BalanceLevels is every row of balancelevel, by level.
 func (db *SQLiteDB) BalanceLevels() ([]BalanceLevel, error) {
-	rows, err := db.Query(`SELECT level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct, note FROM balancelevel ORDER BY level`)
+	rows, err := db.Query(`SELECT level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct, art_cooldown_ms, note
+		FROM balancelevel ORDER BY level`)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +162,7 @@ func (db *SQLiteDB) BalanceLevels() ([]BalanceLevel, error) {
 	var out []BalanceLevel
 	for rows.Next() {
 		var r BalanceLevel
-		if err := rows.Scan(&r.Level, &r.HPPct, &r.DamagePct, &r.ConPct, &r.PetHPPct, &r.PetDamagePct, &r.Note); err != nil {
+		if err := rows.Scan(&r.Level, &r.HPPct, &r.DamagePct, &r.ConPct, &r.PetHPPct, &r.PetDamagePct, &r.ArtCooldownMS, &r.Note); err != nil {
 			return nil, err
 		}
 		out = append(out, r)
@@ -155,6 +210,15 @@ func BalanceProblems(table string, level int, pcts ...float64) string {
 		}
 	}
 	return strings.Join(bad, "; ")
+}
+
+// BalanceMSProblem is what is wrong with a time in milliseconds, "" for
+// nothing: 0 (none) to a minute.
+func BalanceMSProblem(col string, ms float64) string {
+	if ms < 0 || ms > 60000 || ms != ms {
+		return fmt.Sprintf("%s %g is not 0-60000", col, ms)
+	}
+	return ""
 }
 
 // BalanceConPctProblem is what is wrong with a con_pct, "" for nothing: it is

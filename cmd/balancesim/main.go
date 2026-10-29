@@ -8,6 +8,7 @@
 //	    [-levels 1,10,20,30,40,50,60] [-diffs 0,1,2,3,4,5] [-fights 40]
 //	    [-tier 0.5] [-pets] [-limit 10m]
 //	    [-try-level 1:300:200:0,60:500:300:100] [-try-con 1:115:95,5:200:60]
+//	    [-try-art 1:0,30:1500,60:2000]
 //	balancesim -db eqoa.db -lines [-classes ...]
 //
 // -lines prints each class's buff lines instead: the spells of one line, of
@@ -15,7 +16,8 @@
 //
 // -try-level and -try-con try rows before they are written: level:hp_pct:
 // damage_pct[:con_pct[:pet_hp_pct:pet_damage_pct]] and diff:damage_pct:
-// taken_pct, in place of the tables' (balance db or seed) rows.
+// taken_pct, in place of the tables' (balance db or seed) rows; -try-art
+// the arts' cooldown by the player's level (level:ms), the line through them.
 //
 // The database is copied first and the copy opened (opening runs the schema
 // setup); the original is never written. Players are kitted from its own
@@ -71,6 +73,7 @@ func main() {
 	tryLevel := flag.String("try-level", "", "level rows to try: level:hp:damage[:pethp:petdamage],...")
 	tryCon := flag.String("try-con", "", "con rows to try: diff:damage:taken,...")
 	lines := flag.Bool("lines", false, "print each class's buff lines (only the best of a line counts) and stop")
+	tryArt := flag.String("try-art", "", "the arts' cooldown to try, by the player's level: level:ms,...")
 	flag.Parse()
 	if *dbPath == "" {
 		flag.Usage()
@@ -122,6 +125,9 @@ func main() {
 			}
 		}
 		b = entity.NewBalance(ls, cs)
+	}
+	if *tryArt != "" {
+		b = b.WithLevelColumn(points(*tryArt), func(r *database.BalanceLevel, v float64) { r.ArtCooldownMS = v })
 	}
 	ds := ints(*diffs)
 	fmt.Printf("%-4s %-6s %-3s %-4s", "", "", "lvl", "pet")
@@ -190,6 +196,15 @@ func printLines(db *database.SQLiteDB, classes []int) {
 			fmt.Printf("  %-40s %s\n", k, strings.Join(names, ", "))
 		}
 	}
+}
+
+// points reads "x:y,..." as points of a line.
+func points(s string) [][2]float64 {
+	var out [][2]float64
+	for _, r := range rows(s, 2) {
+		out = append(out, [2]float64{r[0], r[1]})
+	}
+	return out
 }
 
 // rows reads "a:b:c,..." rows of at least min numbers.

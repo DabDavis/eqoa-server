@@ -597,7 +597,9 @@ var catalog = map[string]tableNote{
 			"points and floor already climb a third in three levels); pet_hp_pct and pet_damage_pct a summoned pet's of that level (its hit points at its summoning, " +
 			"and every point of damage it deals: hits, taunts, taps, procs). A level between two rows takes the straight " +
 			"line between them, one below the first or past the last the end row's; no rows, 100 everywhere (the " +
-			"formulas alone). A charmed creature keeps its own (an NPC's) hit points and damage. Training dummies are " +
+			"formulas alone). art_cooldown_ms is the one column by a PLAYER's level: the combat arts' global cooldown " +
+			"(an art sent within it is not answered, as a cast sent during another). " +
+			"A charmed creature keeps its own (an NPC's) hit points and damage. Training dummies are " +
 			"never touched. Rows of source seed are the tuning of 2026-10-29 (claude-notes/balance-20261029.md), held to " +
 			"its targets by the fight simulator: run cmd/balancesim on a copy of the database to see what a change does " +
 			"before it goes in (its -try-level flag tries rows without writing them).",
@@ -610,8 +612,10 @@ var catalog = map[string]tableNote{
 			"con_pct":        {Label: "Con %", Help: "0-100: how much of Balance by con an NPC of this level takes"},
 			"pet_hp_pct":     {Label: "Pet hit points %", Help: "a summoned pet of this level's, of 60 a level"},
 			"pet_damage_pct": {Label: "Pet damage %", Help: "all a summoned pet of this level deals"},
-			"note":           {Label: "Note"},
-			"source":         {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
+			"art_cooldown_ms": {Label: "Arts' cooldown ms", Help: "by a PLAYER's level: after a combat art (no cast time, " +
+				"cast at a creature) starts, how long before another may; 0 none"},
+			"note":   {Label: "Note"},
+			"source": {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},
 	},
 	"balancecon": {

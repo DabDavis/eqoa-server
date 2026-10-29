@@ -60,3 +60,23 @@ func TestBalanceEditsAreLive(t *testing.T) {
 		t.Errorf("a diff of 40 was taken: %v", out)
 	}
 }
+
+// The arts' cooldown is a time: refused below 0 or past a minute, taken
+// within.
+func TestBalanceArtCooldownBounds(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	if code, out := c.op("insert_row", map[string]any{"table": "balancelevel",
+		"values": map[string]any{"level": 77, "art_cooldown_ms": -5}}); code == 200 {
+		t.Errorf("a cooldown of -5 ms was taken: %v", out)
+	}
+	if code, out := c.op("insert_row", map[string]any{"table": "balancelevel",
+		"values": map[string]any{"level": 77, "art_cooldown_ms": 70000}}); code == 200 {
+		t.Errorf("a cooldown of 70 s was taken: %v", out)
+	}
+	if code, out := c.op("insert_row", map[string]any{"table": "balancelevel",
+		"values": map[string]any{"level": 77, "art_cooldown_ms": 2000}}); code != 200 {
+		t.Errorf("a cooldown of 2 s was refused: %d %v", code, out)
+	}
+}

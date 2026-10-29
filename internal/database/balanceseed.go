@@ -18,20 +18,28 @@ package database
 // share of the NPC's defence, its floor at 50 and over, so its damage climbs
 // past the NPCs'. By con: each level up to two a fifth harder to beat, then
 // gentler, as a red is where a fight turns.
+//
+// The combat arts' cooldown (art_cooldown_ms, by the player's level): 1.5 s
+// at every level, the length a global cooldown commonly has, so no burst
+// lands five arts in a second (a level 60 warrior's landed 5,000 in four
+// seconds); the simulator found it changes a fight's end little (tanks and
+// bards within a few points of hit points left, a monk 3-10 fewer at 45-60,
+// a rogue's even fight at 60 13 fewer), and 3 s cost a rogue of 60 its even
+// fights' safety (96% won with 24% left).
 var (
 	BalanceSeedLevels = []BalanceLevel{
-		{Level: 1, HPPct: 300, DamagePct: 250, ConPct: 0, PetHPPct: 300, PetDamagePct: 250},
-		{Level: 5, HPPct: 215, DamagePct: 265, ConPct: 0, PetHPPct: 215, PetDamagePct: 265},
-		{Level: 8, HPPct: 225, DamagePct: 260, ConPct: 0, PetHPPct: 225, PetDamagePct: 260},
-		{Level: 10, HPPct: 220, DamagePct: 225, ConPct: 25, PetHPPct: 220, PetDamagePct: 225},
-		{Level: 15, HPPct: 230, DamagePct: 255, ConPct: 70, PetHPPct: 230, PetDamagePct: 280},
-		{Level: 18, HPPct: 230, DamagePct: 250, ConPct: 100, PetHPPct: 230, PetDamagePct: 300},
-		{Level: 25, HPPct: 250, DamagePct: 220, ConPct: 100, PetHPPct: 250, PetDamagePct: 285},
-		{Level: 30, HPPct: 300, DamagePct: 200, ConPct: 100, PetHPPct: 300, PetDamagePct: 300},
-		{Level: 35, HPPct: 300, DamagePct: 195, ConPct: 100, PetHPPct: 300, PetDamagePct: 340},
-		{Level: 45, HPPct: 330, DamagePct: 190, ConPct: 100, PetHPPct: 410, PetDamagePct: 430},
-		{Level: 50, HPPct: 340, DamagePct: 190, ConPct: 100, PetHPPct: 510, PetDamagePct: 475},
-		{Level: 60, HPPct: 400, DamagePct: 160, ConPct: 100, PetHPPct: 800, PetDamagePct: 560},
+		{Level: 1, HPPct: 300, DamagePct: 250, ConPct: 0, PetHPPct: 300, PetDamagePct: 250, ArtCooldownMS: 1500},
+		{Level: 5, HPPct: 215, DamagePct: 265, ConPct: 0, PetHPPct: 215, PetDamagePct: 265, ArtCooldownMS: 1500},
+		{Level: 8, HPPct: 225, DamagePct: 260, ConPct: 0, PetHPPct: 225, PetDamagePct: 260, ArtCooldownMS: 1500},
+		{Level: 10, HPPct: 220, DamagePct: 225, ConPct: 25, PetHPPct: 220, PetDamagePct: 225, ArtCooldownMS: 1500},
+		{Level: 15, HPPct: 230, DamagePct: 255, ConPct: 70, PetHPPct: 230, PetDamagePct: 280, ArtCooldownMS: 1500},
+		{Level: 18, HPPct: 230, DamagePct: 250, ConPct: 100, PetHPPct: 230, PetDamagePct: 300, ArtCooldownMS: 1500},
+		{Level: 25, HPPct: 250, DamagePct: 220, ConPct: 100, PetHPPct: 250, PetDamagePct: 285, ArtCooldownMS: 1500},
+		{Level: 30, HPPct: 300, DamagePct: 200, ConPct: 100, PetHPPct: 300, PetDamagePct: 300, ArtCooldownMS: 1500},
+		{Level: 35, HPPct: 300, DamagePct: 195, ConPct: 100, PetHPPct: 300, PetDamagePct: 340, ArtCooldownMS: 1500},
+		{Level: 45, HPPct: 330, DamagePct: 190, ConPct: 100, PetHPPct: 410, PetDamagePct: 430, ArtCooldownMS: 1500},
+		{Level: 50, HPPct: 340, DamagePct: 190, ConPct: 100, PetHPPct: 510, PetDamagePct: 475, ArtCooldownMS: 1500},
+		{Level: 60, HPPct: 400, DamagePct: 160, ConPct: 100, PetHPPct: 800, PetDamagePct: 560, ArtCooldownMS: 1500},
 	}
 	BalanceSeedCons = []BalanceCon{
 		{Diff: 0, DamagePct: 100, TakenPct: 100, Note: "even, and every blue and green below it"},

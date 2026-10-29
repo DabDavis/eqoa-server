@@ -39,6 +39,19 @@ Each route goes to this database's NPC of the same name (any case, no "$")
 in the city's world whose spawn is nearest the route, within 150; each NPC
 once. An NPC with a path a GM gave it is left and said.
 
+**Sandstorm's walkers are mostly its own NPCs** (Fayspires' Hunter Lyraeth,
+level 65, and Thalioren Vaerwyn, 60, walk between the guards at its bank;
+nothing of either name was in this database). With --add a walker of no NPC
+here is made one: the row of this database's NPC nearest its route, in its
+world, for every column Sandstorm's channel does not show (its zone and the
+rest), and from the track's `who` line its name, body, size, the items it
+holds, its armor, hair, face, robe, race, level and class and npc flags
+(npc_type: the class in the high byte, the flags' low byte in the low), its
+spawn its route's first point, its health the median of this database's NPCs
+of its level. It is of the faction of the nearest of its town's people (an
+npcfaction row at its spawn), so it is the town's, not a stranger to it.
+Sandstorm's armor tints are not kept: this server sends every NPC's as 0.
+
 Rows are logged in npcpaths_seed (the npc, the row before or none, the row
 written); --undo puts back each one still as written and drops the log; a
 second --apply is refused while the log is there. Report only by default.
@@ -71,7 +84,8 @@ LOG_SCHEMA = """CREATE TABLE npcpaths_seed (
     npcid  INTEGER PRIMARY KEY,
     before TEXT,             -- the npcpaths row before, JSON, or NULL for none
     after  TEXT NOT NULL,    -- the row written, JSON
-    source TEXT NOT NULL     -- the track file and the Sandstorm id
+    source TEXT NOT NULL,    -- the track file and the Sandstorm id
+    made   TEXT              -- with --add: {"npc": its npcs row as written, "faction": the npcfaction row id}
 )"""
 COLS = ("world", "mode", "pause", "speed", "points")
 
@@ -90,12 +104,15 @@ def has_table(db, name):
 def read_track(path):
     """{id: (name, [samples])}, the watcher's own name and the world, off a
     track file (a line cut off at its end skipped)."""
-    by, me = {}, None
+    by, who = {}, {}
     with open(path) as f:
         for line in f:
             try:
                 r = json.loads(line)
             except ValueError:
+                continue
+            if "who" in r:
+                who.setdefault(r["who"], r)
                 continue
             if "id" not in r:
                 continue
@@ -111,7 +128,7 @@ def read_track(path):
             world = d["player"].get("world")
     for i in by:
         by[i][1].sort(key=lambda r: r["t"])
-    return by, watcher, world
+    return by, watcher, world, who
 
 
 def updates(samples):
@@ -206,8 +223,48 @@ def ours(db):
     return out
 
 
-def plan(db, files):
-    """[(npcid, name, row, source, note)] and what was left [(name, why)]."""
+def town_factions(db):
+    """[(x, z, world, faction)]: where each NPC of a town's faction (a
+    Citizens of, or a guard faction) spawned."""
+    if not has_table(db, "npcfaction"):
+        return []
+    of = {}
+    for name, f in db.execute("SELECT name, faction FROM npcfaction"):
+        if f.startswith("Citizens of ") or f in ("The Freeport Militia", "The Qeynos Guard", "The Highpass Guard", "Klick`Anon Watch"):
+            of[key(name)] = f
+    return [(x, z, w, of[key(n)]) for n, x, z, w in db.execute("SELECT npc_name, x_coord, z_coord, world FROM npcs") if key(n) in of]
+
+
+def made_npc(db, cols, who, points, world, hp_by_level):
+    """A new npcs row for a walker of no NPC here (the module's comment), the
+    row of the NPC nearest its route its template."""
+    x, y, z = points[0][0], points[0][1], points[0][2]
+    q = "SELECT * FROM npcs WHERE world = ? ORDER BY (x_coord - ?) * (x_coord - ?) + (z_coord - ?) * (z_coord - ?) LIMIT 1"
+    t = db.execute(q, (world, x, x, z, z)).fetchone()
+    if t is None:
+        return None
+    row = dict(zip(cols, t))
+    row.pop("id", None)
+    items = (who.get("items") or [0, 0, 0]) + [0, 0, 0]
+    armor = (who.get("armor") or [0] * 6) + [0] * 6
+    hair = (who.get("hair") or [0, 0, 0]) + [0, 0, 0]
+    lvl = int(who.get("lvl") or row.get("npc_level") or 1)
+    row.update({
+        "npc_name": who["name"], "x_coord": x, "y_coord": y, "z_coord": z, "facing": 0.0, "world": world,
+        "modelid": int(who["model"]), "size": round(float(who.get("scale") or 1.0), 3),
+        "primary_weapon": items[0], "secondary_weapon": items[1], "shield": items[2],
+        "torso": armor[0], "forearm": armor[1], "gloves": armor[2], "legs": armor[3], "feet": armor[4], "head": armor[5],
+        "hair_color": hair[0], "hair_length": hair[1], "hair_style": hair[2], "face": int(who.get("face") or 0),
+        "robe_style": str(who.get("robe", 255)), "race": str(who.get("race", 0)), "npc_level": lvl,
+        "npc_type": (int(who.get("class") or 0) << 8) | (int(who.get("npc_flags") or 0) & 0xFF), "npc_id": 0,
+        "hp": hp_by_level.get(lvl, row.get("hp")), "hp_percent": 100,
+    })
+    return {c: row[c] for c in cols if c in row}
+
+
+def plan(db, files, add=False):
+    """[(npcid, name, row, source, note, made)] and what was left [(name,
+    why)]; made is a new NPC's row (with --add) and its faction, npcid None."""
     npcs = ours(db)
     gm = {}
     if has_table(db, "npcpaths"):
@@ -216,8 +273,16 @@ def plan(db, files):
             logged = {i for (i,) in db.execute("SELECT npcid FROM npcpaths_seed")}
         gm = {i: True for (i,) in db.execute("SELECT npcid FROM npcpaths") if i not in logged}
     used, out, left = set(), [], []
+    cols = [r[1] for r in db.execute("PRAGMA table_info(npcs)")]
+    hp_by_level = {}
+    if add:
+        levels = collections.defaultdict(list)
+        for lvl, hp in db.execute("SELECT npc_level, hp FROM npcs WHERE hp > 0"):
+            levels[lvl].append(hp)
+        hp_by_level = {lvl: int(statistics.median(v)) for lvl, v in levels.items()}
+    folk = town_factions(db) if add else []
     for path in files:
-        by, watcher, world = read_track(path)
+        by, watcher, world, who = read_track(path)
         for sid, (name, samples) in sorted(by.items()):
             if watcher and key(name) == key(watcher):
                 continue
@@ -236,6 +301,18 @@ def plan(db, files):
                 if d <= MATCH and (best is None or d < best[0]):
                     best = (d, c)
             if best is None:
+                w = world if world is not None else nearest_world(db, points)
+                if add and sid in who and w is not None:
+                    npc = made_npc(db, cols, who[sid], points, w, hp_by_level)
+                    if npc is not None:
+                        near = [f for f in folk if f[2] == w]
+                        fac = min(near, key=lambda f: math.hypot(f[0] - points[0][0], f[1] - points[0][2]))[3] if near else None
+                        row = {"world": w, "mode": mode, "pause": pause, "speed": f"{pace:g}",
+                               "points": json.dumps([{"x": x, "y": y, "z": z, **({"pause": p} if p is not None else {})} for x, y, z, p in points])}
+                        note = (f"NEW: {len(points)} points, {mode}, {pace:g}/s, pause {pause:g}s, level {npc['npc_level']}, "
+                                f"of {fac or 'no faction'}" + ("" if full else " (route not seen to repeat)"))
+                        out.append((None, name, row, f"{os.path.basename(path)} {sid}", note, {"npc": npc, "faction": fac}))
+                        continue
                 left.append((name, f"no NPC of the name within {MATCH:.0f} of its route ({len(cands)} of the name)"))
                 continue
             npc = best[1]
@@ -246,8 +323,17 @@ def plan(db, files):
             row = {"world": npc[3], "mode": mode, "pause": pause, "speed": f"{pace:g}",
                    "points": json.dumps([{"x": x, "y": y, "z": z, **({"pause": p} if p is not None else {})} for x, y, z, p in points])}
             note = f"{len(points)} points, {mode}, {pace:g}/s, pause {pause:g}s" + ("" if full else " (route not seen to repeat)")
-            out.append((npc[0], name, row, f"{os.path.basename(path)} {sid}", note))
+            out.append((npc[0], name, row, f"{os.path.basename(path)} {sid}", note, None))
     return out, left
+
+
+def nearest_world(db, points):
+    """The world of this database's NPC nearest a route (a track file whose
+    JSON says none)."""
+    x, z = points[0][0], points[0][2]
+    r = db.execute("SELECT world FROM npcs ORDER BY (x_coord - ?) * (x_coord - ?) + (z_coord - ?) * (z_coord - ?) LIMIT 1",
+                   (x, x, z, z)).fetchone()
+    return r[0] if r else None
 
 
 def track_files(paths):
@@ -261,6 +347,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--db", default=DEFAULT_DB)
     ap.add_argument("--tracks", nargs="*", default=[], help="the watch's track files, or folders of them")
+    ap.add_argument("--add", action="store_true", help="make a walker of no NPC here one (the module's comment)")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true", help="write the paths (logged)")
     g.add_argument("--undo", action="store_true", help="put back what --apply changed")
@@ -274,8 +361,9 @@ def main():
             print("nothing logged: nothing to undo")
             return
         db.execute("BEGIN IMMEDIATE")
-        back = kept = 0
-        for npcid, before, after in db.execute("SELECT npcid, before, after FROM npcpaths_seed").fetchall():
+        back = kept = gone = 0
+        cols = [r[1] for r in db.execute("PRAGMA table_info(npcs)")]
+        for npcid, before, after, made in db.execute("SELECT npcid, before, after, made FROM npcpaths_seed").fetchall():
             now = db.execute(f"SELECT {', '.join(COLS)} FROM npcpaths WHERE npcid = ?", (npcid,)).fetchone()
             if now is None or dict(zip(COLS, now)) != json.loads(after):
                 kept += 1
@@ -286,21 +374,30 @@ def main():
                 b = json.loads(before)
                 db.execute(f"UPDATE npcpaths SET {', '.join(c + ' = ?' for c in COLS)} WHERE npcid = ?", [b[c] for c in COLS] + [npcid])
             back += 1
+            if made:
+                m = json.loads(made)
+                row = db.execute("SELECT * FROM npcs WHERE id = ?", (npcid,)).fetchone()
+                if row is not None and {k: v for k, v in zip(cols, row) if k != "id"} == m["npc"]:
+                    db.execute("DELETE FROM npcs WHERE id = ?", (npcid,))
+                    gone += 1
+                if m.get("faction_row"):
+                    db.execute("DELETE FROM npcfaction WHERE id = ? AND source = 'patrol-seed'", (m["faction_row"],))
         db.execute("DROP TABLE npcpaths_seed")
         db.execute("COMMIT")
-        print(f"put back {back} paths, {kept} changed since left as they are; restart the server")
+        print(f"put back {back} paths and took away {gone} NPCs made, {kept} changed since left as they are; restart the server")
         return
     if a.apply and has_table(db, "npcpaths_seed"):
         sys.exit("npcpaths_seed is there: applied already (--undo first)")
     files = track_files(a.tracks)
     if not files:
         sys.exit("no track files: give --tracks")
-    changes, left = plan(db, files)
-    for npcid, name, row, source, note in changes:
-        print(f"{npcid:7d} {name}: {note}  [{source}]")
+    changes, left = plan(db, files, add=a.add)
+    for npcid, name, row, source, note, made in changes:
+        print(f"{npcid if npcid else 'new':>7} {name}: {note}  [{source}]")
     for name, why in left:
         print(f"left: {name} ({why})")
-    print(f"{len(changes)} patrols from {len(files)} track files, {len(left)} left")
+    made_n = sum(1 for c in changes if c[5])
+    print(f"{len(changes)} patrols ({made_n} NPCs to make) from {len(files)} track files, {len(left)} left")
     if not a.apply or not changes:
         if not a.apply:
             print("report only: --apply to write")
@@ -308,17 +405,29 @@ def main():
     db.execute("BEGIN IMMEDIATE")
     try:
         db.execute(LOG_SCHEMA)
-        for npcid, name, row, source, note in changes:
+        for npcid, name, row, source, note, made in changes:
+            log_made = None
+            if made:
+                npc = made["npc"]
+                cur = db.execute(f"INSERT INTO npcs ({', '.join(npc)}) VALUES ({', '.join('?' * len(npc))})", list(npc.values()))
+                npcid = cur.lastrowid
+                fac_row = None
+                if made["faction"] and has_table(db, "npcfaction"):
+                    c2 = db.execute("INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                                    (key(name), npc["world"], npc["x_coord"], npc["z_coord"], 10, made["faction"],
+                                     "a patrol made as Sandstorm's (tools/seed_npc_patrols.py)", "patrol-seed"))
+                    fac_row = c2.lastrowid
+                log_made = json.dumps({"npc": npc, "faction_row": fac_row})
             before = db.execute(f"SELECT {', '.join(COLS)} FROM npcpaths WHERE npcid = ?", (npcid,)).fetchone()
             db.execute(f"INSERT OR REPLACE INTO npcpaths (npcid, {', '.join(COLS)}) VALUES (?, {', '.join('?' * len(COLS))})",
                        [npcid] + [row[c] for c in COLS])
-            db.execute("INSERT INTO npcpaths_seed VALUES (?, ?, ?, ?)",
-                       (npcid, json.dumps(dict(zip(COLS, before))) if before else None, json.dumps(row), source))
+            db.execute("INSERT INTO npcpaths_seed VALUES (?, ?, ?, ?, ?)",
+                       (npcid, json.dumps(dict(zip(COLS, before))) if before else None, json.dumps(row), source, log_made))
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
         raise
-    print(f"wrote {len(changes)} paths; restart the server (paths are read at its start)")
+    print(f"wrote {len(changes)} paths ({made_n} NPCs made); restart the server (NPCs and paths are read at its start)")
 
 
 if __name__ == "__main__":

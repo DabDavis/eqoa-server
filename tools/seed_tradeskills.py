@@ -172,8 +172,9 @@ CRAFT_DDL = """CREATE TABLE IF NOT EXISTS craftrecipes (
     description TEXT NOT NULL DEFAULT '',
     source      TEXT NOT NULL DEFAULT 'gm'
 )"""
-LOG_DDL = """CREATE TABLE tradeskill_seed (
+LOG_DDL = """CREATE TABLE IF NOT EXISTS tradeskill_seed (
     seq    INTEGER PRIMARY KEY AUTOINCREMENT,
+    craft  TEXT NOT NULL,   -- armor | jewel
     tbl    TEXT NOT NULL,   -- itempattern | craftrecipes | npcitem | npcs | loottables | npcloot
     key    TEXT NOT NULL,   -- the row's key (npcloot: npc name and table name, JSON)
     action TEXT NOT NULL,   -- inserted | updated | deleted
@@ -449,13 +450,20 @@ def plan(db, folder, harvests):
                             maxhp=200 * level + BONUS_HP[lvl - 1], duration=50 + BONUS_DUR[lvl - 1])
             for c, v in stats.items():
                 row[c] = v
-            products.append((key, lvl, None if mod == MUNDANE else mod, name, row, rarity, mold, crafted_record(db, name, level, slot)))
+            ings = [(f"{metal} Ore", 1, False), (mold, 1, False)] + ([] if mod == MUNDANE else [(mod, 1, True)])
+            products.append({"name": name, "row": row, "have": crafted_record(db, name, level, slot), "comp": lvl - 1,
+                             "level": lvl, "rarity": rarity, "ings": ings, "sort": (lvl, rarity, name), "kind": kind,
+                             "magical": mod != MUNDANE})
     # the starter: crude iron, the chain bracers' mold and the emblem (eqoatrade's tutorial: level 1, AC 1)
     starter = base_item(STARTER_PRODUCT, product_icon(7, 3), 2, 1, 7, maxstack=1, craft=0, classes=ANY_CLASS,
                         desc="Bracers a smith's apprentice makes first.", model=3, color=TINT[0], maxhp=200 + BONUS_HP[0],
                         duration=50 + BONUS_DUR[0])
     starter["AC"] = 1
-    names = collections.Counter(p[3] for p in products)
+    products.append({"name": STARTER_PRODUCT, "row": starter, "have": None, "comp": 0, "level": 1, "rarity": 0,
+                     "ings": [(f"{METALS[0]} Ore", 1, False), (STARTER_MOLD, 1, False), (STARTER_EMBLEM, 1, False)],
+                     "sort": (99,), "kind": "starter", "magical": False, "scroll": STARTER_SCROLL, "discover": 0,
+                     "difficulty": 1, "xp": 10, "description": "The first piece of armor a smith's apprentice makes."})
+    names = collections.Counter(p["name"] for p in products)
     for n, k in names.items():
         if k > 1:
             problems.append(f"{k} products named {n!r}")
@@ -479,8 +487,10 @@ def plan(db, folder, harvests):
             if len(r) > 1:
                 left.append(f"{city}: {len(r)} NPCs named {name}: the first stocked")
             stock.append((city, role, name, r[0], wares))
-    return {"grids": grids, "vendors": vendors, "comps": comps, "items": items, "ids": ids, "products": products,
-            "starter": starter, "stock": stock, "left": left, "problems": problems}
+    loot = {"table": LOOT_TABLE, "mods": list(MODIFIERS.items()),
+            "note": "the armorsmiths' gems and alloys: any creature (eqoatrade: random)"}
+    return {"skill": ARMOR, "cells": sum(len(v) for v in grids.values()), "vendors": vendors, "comps": comps, "items": items,
+            "ids": ids, "products": products, "stock": stock, "left": left, "problems": problems, "loot": loot}
 
 
 def base_item(name, icon, price, level, slot, maxstack, craft, classes=ANY_CLASS, desc="", model=0, color=0,
@@ -491,9 +501,12 @@ def base_item(name, icon, price, level, slot, maxstack, craft, classes=ANY_CLASS
             "unk6": 0, "craft": craft, "itemname": name, "itemdesc": desc, "model": model, "color": color}
 
 
+CRAFT = {"name": "armor"}  # the craft being written: what log() files each change under
+
+
 def log(db, tbl, key, action, old=None, new=None):
-    db.execute("INSERT INTO tradeskill_seed (tbl, key, action, old, new) VALUES (?, ?, ?, ?, ?)",
-               (tbl, json.dumps(key) if isinstance(key, (list, tuple)) else str(key), action,
+    db.execute("INSERT INTO tradeskill_seed (craft, tbl, key, action, old, new) VALUES (?, ?, ?, ?, ?, ?)",
+               (CRAFT["name"], tbl, json.dumps(key) if isinstance(key, (list, tuple)) else str(key), action,
                 None if old is None else json.dumps(old, sort_keys=True), None if new is None else json.dumps(new, sort_keys=True)))
 
 
@@ -525,43 +538,38 @@ def apply(db, p):
         # Sandstorm's ids first: a new item takes the highest id + 1, which must not be one of theirs
         for pid, row in sorted(p["items"], key=lambda x: x[0] is None):
             ids[row["itemname"]] = insert(db, "itempattern", row, pid)
-        starter_id = insert(db, "itempattern", p["starter"])
-        # the recipes, in the book's order: by metal, then piece, then rarity and name
+        # the recipes, in the book's order: by metal, then rarity and name
         nxt = (db.execute("SELECT max(id) FROM craftrecipes").fetchone()[0] or 0) + 1
-        recipes = 0
-        for key, lvl, mod, name, row, rarity, mold, have in sorted(p["products"], key=lambda x: (x[1], x[5], x[3])):
-            pid = have if have is not None else insert(db, "itempattern", row)
-            metal = f"{METALS[lvl - 1]} Ore"
-            ing = [{"item": ids[metal], "count": 1, "keep": False}, {"item": ids[mold], "count": 1, "keep": False}]
-            if mod:
-                ing.append({"item": ids[mod], "count": 1, "keep": True})
+        recipes = made = 0
+        for pr in sorted(p["products"], key=lambda x: x["sort"]):
+            if pr["have"] is not None:
+                pid = pr["have"]
+            else:
+                pid = insert(db, "itempattern", pr["row"])
+                made += 1
+            lvl, rarity = pr["level"], pr["rarity"]
             insert(db, "craftrecipes", {
-                "skill": ARMOR, "comp": lvl - 1, "level": lvl, "rarity": rarity, "name": name, "product": pid, "yield": 1,
-                "ingredients": json.dumps(ing), "difficulty": 10 * lvl + 2 * rarity, "xp": 25 * lvl * (1 + rarity),
-                "discover": 1, "scroll": 0, "description": "", "source": SOURCE}, nxt)
+                "skill": p["skill"], "comp": pr["comp"], "level": lvl, "rarity": rarity, "name": pr["name"], "product": pid,
+                "yield": 1, "ingredients": json.dumps([{"item": ids[n], "count": c, "keep": k} for n, c, k in pr["ings"]]),
+                "difficulty": pr.get("difficulty", 10 * lvl + 2 * rarity), "xp": pr.get("xp", 25 * lvl * (1 + rarity)),
+                "discover": pr.get("discover", 1), "scroll": ids[pr["scroll"]] if pr.get("scroll") else 0,
+                "description": pr.get("description", ""), "source": SOURCE}, nxt)
             nxt += 1
             recipes += 1
-        ing = [{"item": ids[f"{METALS[0]} Ore"], "count": 1, "keep": False}, {"item": ids[STARTER_MOLD], "count": 1, "keep": False},
-               {"item": ids[STARTER_EMBLEM], "count": 1, "keep": False}]
-        insert(db, "craftrecipes", {
-            "skill": ARMOR, "comp": 0, "level": 1, "rarity": 0, "name": STARTER_PRODUCT, "product": starter_id, "yield": 1,
-            "ingredients": json.dumps(ing), "difficulty": 1, "xp": 10, "discover": 0, "scroll": ids[STARTER_SCROLL],
-            "description": "The first piece of armor a smith's apprentice makes.", "source": SOURCE}, nxt)
-        recipes += 1
         # the suppliers
         stand_in = set()
         if has_table(db, "merchant_stock"):
             stand_in = {k for (k,) in db.execute("SELECT key FROM merchant_stock WHERE what = 'catalog' AND note = 'general goods'")}
         wares_n = removed = 0
         for city, role, name, (npc, npc_id, typ), wares in p["stock"]:
-            if not (typ or 0) & 0x01:
-                old = row_of(db, "npcs", npc)
-                db.execute("UPDATE npcs SET npc_type = ? WHERE id = ?", ((typ or 0) | 0x01, npc))
-                log(db, "npcs", npc, "updated", old={"npc_type": old["npc_type"]}, new={"npc_type": (typ or 0) | 0x01})
-            if not npc_id:
+            now = row_of(db, "npcs", npc)
+            if not (now["npc_type"] or 0) & 0x01:
+                db.execute("UPDATE npcs SET npc_type = ? WHERE id = ?", ((now["npc_type"] or 0) | 0x01, npc))
+                log(db, "npcs", npc, "updated", old={"npc_type": now["npc_type"]}, new={"npc_type": (now["npc_type"] or 0) | 0x01})
+            if not now["npc_id"]:
                 db.execute("UPDATE npcs SET npc_id = ? WHERE id = ?", (npc, npc))
-                log(db, "npcs", npc, "updated", old={"npc_id": npc_id}, new={"npc_id": npc})
-            catalog = npc_id or npc
+                log(db, "npcs", npc, "updated", old={"npc_id": now["npc_id"]}, new={"npc_id": npc})
+            catalog = now["npc_id"] or npc
             for item_id, in db.execute("SELECT itemid FROM npcitem WHERE npcid = ? ORDER BY itemid", (catalog,)).fetchall():
                 if item_id in stand_in:
                     old = row_of(db, "npcitem", item_id)
@@ -575,36 +583,43 @@ def apply(db, p):
                     continue
                 insert(db, "npcitem", {"npcid": catalog, "stackleft": 1, "remainHP": 0, "remaincharge": 0, "patternid": ids[w],
                                        "equiploc": -1, "location": 1, "listnumber": n})
+                have.add(ids[w])
                 n += 1
                 wares_n += 1
         # the modifiers' drops, on every creature
         loot = 0
-        for mod, rarity in MODIFIERS.items():
+        lt = p["loot"]
+        for mod, rarity in lt["mods"]:
             lo, hi = LOOT_LEVELS[rarity]
-            insert(db, "loottables", {"tablename": LOOT_TABLE, "patternid": ids[mod], "weight": LOOT_WEIGHT[rarity],
+            insert(db, "loottables", {"tablename": lt["table"], "patternid": ids[mod], "weight": LOOT_WEIGHT[rarity],
                                       "minlevel": lo, "maxlevel": hi, "source": SOURCE})
             loot += 1
-        if db.execute("SELECT 1 FROM npcloot WHERE npc_name = '*' AND tablename = ?", (LOOT_TABLE,)).fetchone() is None:
+        if db.execute("SELECT 1 FROM npcloot WHERE npc_name = '*' AND tablename = ?", (lt["table"],)).fetchone() is None:
             db.execute("INSERT INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES ('*', ?, ?, 1, ?, ?)",
-                       (LOOT_TABLE, LOOT_CHANCE, "the armorsmiths' gems and alloys: any creature (eqoatrade: random)", SOURCE))
-            log(db, "npcloot", ["*", LOOT_TABLE], "inserted", new={"chance": LOOT_CHANCE, "rolls": 1})
+                       (lt["table"], LOOT_CHANCE, lt["note"], SOURCE))
+            log(db, "npcloot", ["*", lt["table"]], "inserted", new={"chance": LOOT_CHANCE, "rolls": 1})
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
         raise
-    return {"items": len(p["items"]) + 1 + sum(1 for x in p["products"] if x[7] is None), "recipes": recipes, "wares": wares_n, "stand-ins removed": removed,
+    return {"items": len(p["items"]) + made, "recipes": recipes, "wares": wares_n, "stand-ins removed": removed,
             "loot rows": loot}
 
 
-def undo(db):
-    if not has_table(db, "tradeskill_seed"):
-        print("nothing logged: nothing to undo")
+def logged(db, craft):
+    return has_table(db, "tradeskill_seed") and db.execute(
+        "SELECT count(*) FROM tradeskill_seed WHERE craft = ?", (craft,)).fetchone()[0] > 0
+
+
+def undo(db, craft):
+    if not logged(db, craft):
+        print(f"nothing of {craft} logged: nothing to undo")
         return
     db.execute("BEGIN IMMEDIATE")
     try:
         back = kept = 0
         for seq, tbl, key, action, old, new in db.execute(
-                "SELECT seq, tbl, key, action, old, new FROM tradeskill_seed ORDER BY seq DESC").fetchall():
+                "SELECT seq, tbl, key, action, old, new FROM tradeskill_seed WHERE craft = ? ORDER BY seq DESC", (craft,)).fetchall():
             old = json.loads(old) if old else None
             new = json.loads(new) if new else None
             if tbl == "npcloot":
@@ -637,12 +652,17 @@ def undo(db):
                     back += 1
                 else:
                     kept += 1
-        db.execute("DROP TABLE tradeskill_seed")
+        db.execute("DELETE FROM tradeskill_seed WHERE craft = ?", (craft,))
+        if db.execute("SELECT count(*) FROM tradeskill_seed").fetchone()[0] == 0:
+            db.execute("DROP TABLE tradeskill_seed")
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
         raise
     print(f"took back {back} changes; {kept} changed since left as they are")
+
+
+PLANS = {"armor": plan}
 
 
 def backup(path):
@@ -657,7 +677,7 @@ def main():
     ap.add_argument("--db", default=DEFAULT_DB)
     ap.add_argument("--sources", help="tools/fetch_tradeskill_sources.py's folder")
     ap.add_argument("--harvests", nargs="*", default=[], help="eqoa harvest JSON files, or folders of them")
-    ap.add_argument("--craft", default="armor", choices=["armor"])
+    ap.add_argument("--craft", default="armor", choices=sorted(PLANS))
     ap.add_argument("--no-backup", action="store_true", help="no copy of the database first (tests)")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true")
@@ -667,26 +687,26 @@ def main():
         sys.exit(f"{a.db}: no such database")
     db = sqlite3.connect(a.db, timeout=30, isolation_level=None)
     db.execute("PRAGMA busy_timeout = 30000")
+    CRAFT["name"] = a.craft
     if a.undo:
-        if not a.no_backup and has_table(db, "tradeskill_seed"):
+        if not a.no_backup and logged(db, a.craft):
             print(f"copy: {backup(a.db)}")
-        undo(db)
+        undo(db, a.craft)
         return
     if not a.sources or not a.harvests:
         sys.exit("give --sources and --harvests")
-    if a.apply and has_table(db, "tradeskill_seed"):
-        sys.exit("tradeskill_seed is there: applied already (--undo first)")
-    p = plan(db, a.sources, a.harvests)
-    per = collections.Counter((PIECES.get(k, (0, k.split(":")[-1]))[1]) for k, *_ in p["products"])
-    mods = collections.Counter("mundane" if m is None else "magical" for _, _, m, *_ in p["products"])
+    if a.apply and logged(db, a.craft):
+        sys.exit(f"tradeskill_seed holds {a.craft}: applied already (--undo --craft {a.craft} first)")
+    p = PLANS[a.craft](db, a.sources, a.harvests)
+    per = collections.Counter(x["kind"] for x in p["products"])
+    mods = collections.Counter("magical" if x["magical"] else "mundane" for x in p["products"])
     print(f"components from Sandstorm's records: {len(p['comps'])}; items to make: {len(p['items'])} "
           f"({sum(1 for pid, _ in p['items'] if pid)} under Sandstorm's ids)")
-    print(f"products and recipes: {len(p['products'])} + the starter ({dict(mods)}; by kind {dict(per)})")
+    print(f"products and recipes: {len(p['products'])} ({dict(mods)}; by kind {dict(per)})")
     for x in p["products"]:
-        if x[7] is not None:
-            print(f"  {x[3]!r} is here already ({x[7]}): its recipe makes that record")
-    grid_cells = sum(len(v) for v in p["grids"].values())
-    print(f"eqoatrade's grid cells read: {grid_cells} (Prima's count: 2,329)")
+        if x["have"] is not None:
+            print(f"  {x['name']!r} is here already ({x['have']}): its recipe makes that record")
+    print(f"cells read: {p['cells']}" + (" (Prima's count: 2,329)" if a.craft == "armor" else ""))
     for city, role, name, (npc, _, _), wares in p["stock"]:
         print(f"  {city}: {name} ({npc}) sells the {len(wares)} {role}")
     for ln in p["left"]:

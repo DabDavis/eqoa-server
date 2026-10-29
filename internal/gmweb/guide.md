@@ -88,7 +88,7 @@ with the row before and after, and `revert_change` undoes a row change.
   visual included.
 - **Class templates: at once.** An `npctemplate` or `classtemplates` row saved gives the NPCs of the name the
   template's hit points where they stand and its abilities from their next fight; a spell's row changed changes
-  what they cast.
+  what they cast; rows written outside the panel (`sql_execute`) with `reload_npcs`, which reads them first.
 - **NPC paths: at once.** The NPC walks its new path from the nearest leg; with its path taken away it walks
   back to its spawn point. A path survives the NPC's deaths and a restart.
 - **A character in the world**: `level`, `tunar`, `bankTunar` and its place (`x`, `y`, `z`, `world`) are

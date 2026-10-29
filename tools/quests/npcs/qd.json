@@ -1548,6 +1548,228 @@
    "level": 60,
    "note": "Castle Felstar (W), where Vhi'zan Kaah falls",
    "water": "land"
+  },
+  {
+   "name": "Grocer Fern",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Grocer Fern"
+   ],
+   "count": 1,
+   "level": 30,
+   "note": "Forkwatch",
+   "water": "land"
+  },
+  {
+   "name": "Rian Johns",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Rian Johns"
+   ],
+   "count": 1,
+   "level": 48,
+   "note": "his secret hiding place: east along the river to the bridge, on its left side, in Desert Hate",
+   "water": "land"
+  },
+  {
+   "name": "Captain Longley",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Dockmaster Bibbin",
+    10,
+    2
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "near the end of a pier on the docks of the Stone of Morthalis (C)",
+   "water": "land"
+  },
+  {
+   "name": "Cedric",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "at",
+    2,
+    11200.0,
+    10600.0
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "on one of the isles of Cape Dreg (E) (the place is ours: Cape Dreg off EQOA-Data's sheet, by a fit of its Odus points)",
+   "water": "land"
+  },
+  {
+   "name": "rare giant skuttlespike",
+   "role": "foe",
+   "body": [
+    "kind",
+    "crab"
+   ],
+   "place": [
+    "at",
+    2,
+    10600.0,
+    10800.0
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "an island in Cape Dreg's western region (the place is ours)",
+   "water": "both"
+  },
+  {
+   "name": "Fugi Bactor",
+   "role": "talker",
+   "body": [
+    "npc",
+    "funagl devout"
+   ],
+   "place": [
+    "at",
+    1,
+    8750.0,
+    7900.0
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "west and slightly south of Oggok's south gate (the place is ours)",
+   "water": "land"
+  },
+  {
+   "name": "Largemouth Bottlefish",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Fat Piranha"
+   ],
+   "place": [
+    "at",
+    1,
+    9300.0,
+    8300.0
+   ],
+   "count": 3,
+   "level": 19,
+   "note": "south, round the bridge with the lizardmen (light blue at 20)",
+   "water": "water"
+  },
+  {
+   "name": "Waterboy",
+   "role": "talker",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "near",
+    "Lizardman Outcast",
+    40,
+    1
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "south-west among the lizardmen near the church (here by the abandoned tower)",
+   "water": "land"
+  },
+  {
+   "name": "Fungusman Slave",
+   "role": "talker",
+   "body": [
+    "npc",
+    "funagl devout"
+   ],
+   "place": [
+    "at",
+    1,
+    8250.0,
+    7850.0
+   ],
+   "count": 1,
+   "level": 25,
+   "note": "the cave with ghouls to the west, surrounded by red undead casters",
+   "water": "land"
+  },
+  {
+   "name": "Lothaxae",
+   "role": "foe",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "near",
+    "Thenon the Wise",
+    25,
+    0
+   ],
+   "count": 1,
+   "level": 47,
+   "note": "the necromancer of the barrow cult, in the room past the moving statue at the bottom of the barrow",
+   "water": "land"
+  },
+  {
+   "name": "Cyrian Truearrow",
+   "role": "foe",
+   "body": [
+    "race",
+    "darkelf",
+    0
+   ],
+   "place": [
+    "near",
+    "Truearrow ranger",
+    20,
+    0
+   ],
+   "count": 1,
+   "level": 58,
+   "note": "the Tier'dal camp on a hill with a tower and three tents in Takish'Hiz, south-west of Oasis (he comes after the tents' mobs are farmed)",
+   "water": "land"
+  },
+  {
+   "name": "Gobzen",
+   "role": "foe",
+   "body": [
+    "race",
+    "ogre",
+    0
+   ],
+   "place": [
+    "near",
+    "Coachman Norial",
+    60,
+    0
+   ],
+   "count": 1,
+   "level": 55,
+   "note": "a rival mercenary in a backroom in Honjour",
+   "water": "land"
   }
  ]
 }

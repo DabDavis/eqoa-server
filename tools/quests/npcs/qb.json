@@ -181,6 +181,226 @@
    "level": 55,
    "note": "Parathior to fight by Oransan's broken tower in the north Snowblind Plains (the server's own Parathior is not attackable; Groups 1, 2 and 5, level 49)",
    "water": "land"
+  },
+  {
+   "name": "Sissy Hasper",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Sissy Hasper (30)"
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "the southernmost house of the village in the south of North Wilderlands (Group 2, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Freezeblood Majestic",
+   "role": "foe",
+   "body": [
+    "kind",
+    "freezeblood"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 32,
+   "note": "west of Halas in the north of Guardian Forest (Group 2, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Ebony Wolf",
+   "role": "foe",
+   "body": [
+    "kind",
+    "dog"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 32,
+   "note": "the south of Guardian Forest (Group 2, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Juno Inhop",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the inn south-east of Castle Lightwolf (Group 2, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Frosteye Scarecrow",
+   "role": "foe",
+   "body": [
+    "kind",
+    "frosteye"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 32,
+   "note": "the valley between two mountains south-west of Diren Hold (Group 2, level 30)",
+   "water": "land"
+  },
+  {
+   "name": "Forest Night Wolf",
+   "role": "foe",
+   "body": [
+    "kind",
+    "dog"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 41,
+   "note": "by the Great Tree in the south of Murnf (Group 2, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "werewolf",
+   "role": "foe",
+   "body": [
+    "npc",
+    "werewolf"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Werewolf (40)"
+   ],
+   "count": 1,
+   "level": 42,
+   "note": "the white-faced werewolf near the Great Tree in Murnf (Group 2, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Ghoul",
+   "role": "foe",
+   "body": [
+    "kind",
+    "ghoul"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 43,
+   "note": "north-west of the werewolves by the Great Tree in Murnf (Group 2, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Huntress Lilly",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 40,
+   "note": "north of the Murnf coach; sells the vampire testing kit (Group 2, level 40)",
+   "water": "land"
+  },
+  {
+   "name": "Old Red",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Giant Moray Eel"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 50,
+   "note": "the giant eel off the coast of Zentar's Keep (Group 2, level 49)",
+   "water": "water"
+  },
+  {
+   "name": "Ives Radain",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 20,
+   "note": "in Qeynos (Group 2, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Bribro Mino",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Rustel Minotaur Scout"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 52,
+   "note": "among the minotaurs of Gunter's Mine (Group 2, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Zebel Earblower",
+   "role": "talker",
+   "body": [
+    "race",
+    "halfling",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 35,
+   "note": "in Rivervale (Group 2, level 49)",
+   "water": "land"
+  },
+  {
+   "name": "Lord Tearis Thex",
+   "role": "talker",
+   "body": [
+    "race",
+    "elf",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": 65,
+   "note": "in Fayspires (Group 2, level 49)",
+   "water": "land"
   }
  ]
 }

@@ -82,6 +82,40 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/fayspire/cleric/L20, so a cleric of Fayspires is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
   },
   {
+   "key": "30,40,49/group-2-good/L30-fayspire-enchanter",
+   "name": "The Lightwolf Jewels",
+   "giver": "Casalandria Lyssia",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/fayspire/enchanter/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/fayspire/enchanter/L20, so a enchanter of Fayspires is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
    "key": "30,40,49/group-1-good/L30-fayspire-paladin",
    "name": "A New Trainer in Forkwatch",
    "giver": "Sir Lothwin Galiel",
@@ -204,6 +238,108 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/freeport/bard/L20, so a bard of Freeport is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
   },
   {
+   "key": "30,40,49/group-2-good/L30-halas-warrior",
+   "name": "The Lightwolf Jewels",
+   "giver": "Marik McPherson",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/warrior/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/halas/warrior/L20, so a warrior of Halas is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-halas-rogue",
+   "name": "The Lightwolf Jewels",
+   "giver": "Juno Felligan",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/rogue/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/halas/rogue/L20, so a rogue of Halas is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-halas-shaman",
+   "name": "The Lightwolf Jewels",
+   "giver": "Beril O'Leary",
+   "classes": [
+    8
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/halas/shaman/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/halas/shaman/L20, so a shaman of Halas is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
    "key": "30,40,49/group-1-good/L30-highbourne-alchemist",
    "name": "A New Trainer in Forkwatch",
    "giver": "Truborne Jaegir",
@@ -282,6 +418,40 @@
    ],
    "unresolved": [],
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/highbourne/cleric/L20, so a cleric of Highbourne is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-highbourne-enchanter",
+   "name": "The Lightwolf Jewels",
+   "giver": "Master Delar",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/highbourne/enchanter/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/highbourne/enchanter/L20, so a enchanter of Highbourne is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
   },
   {
    "key": "30,40,49/group-1-good/L30-highbourne-paladin",
@@ -444,6 +614,74 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/klick-anon/cleric/L20, so a cleric of Klick'Anon is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
   },
   {
+   "key": "30,40,49/group-2-good/L30-klick-anon-enchanter",
+   "name": "The Lightwolf Jewels",
+   "giver": "Prof. Temwiddle",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/klick-anon/enchanter/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/klick-anon/enchanter/L20, so a enchanter of Klick'Anon is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-klick-anon-warrior",
+   "name": "The Lightwolf Jewels",
+   "giver": "Captain Buntattle",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/klick-anon/warrior/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/klick-anon/warrior/L20, so a warrior of Klick'Anon is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
    "key": "30,40,49/group-1-good/L30-klick-anon-wizard",
    "name": "A New Trainer in Forkwatch",
    "giver": "Prof. Pansoof",
@@ -562,6 +800,108 @@
    ],
    "unresolved": [],
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/moradhim/paladin/L20, so a paladin of Moradhim is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-moradhim-rogue",
+   "name": "The Lightwolf Jewels",
+   "giver": "Foreman Druza",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/rogue/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/moradhim/rogue/L20, so a rogue of Moradhim is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-moradhim-warrior",
+   "name": "The Lightwolf Jewels",
+   "giver": "Lieutenant Adessa",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/moradhim/warrior/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/moradhim/warrior/L20, so a warrior of Moradhim is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-qeynos-warrior",
+   "name": "The Lightwolf Jewels",
+   "giver": "Lancet Carroll",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/qeynos/warrior/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/warrior/L20, so a warrior of Qeynos is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
   },
   {
    "key": "30,40,49/group-1-good/L30-qeynos-cleric",
@@ -684,6 +1024,40 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/paladin/L20, so a paladin of Qeynos is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
   },
   {
+   "key": "30,40,49/group-2-good/L30-qeynos-rogue",
+   "name": "The Lightwolf Jewels",
+   "giver": "Crow Darkstride",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/qeynos/rogue/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/rogue/L20, so a rogue of Qeynos is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
    "key": "30,40,49/group-1-good/L30-qeynos-bard",
    "name": "A New Trainer in Forkwatch",
    "giver": "Jenny Sweethy",
@@ -724,6 +1098,40 @@
     "Thumgrim Stoutshield"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/bard/L20, so a bard of Qeynos is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-qeynos-enchanter",
+   "name": "The Lightwolf Jewels",
+   "giver": "Shiassa Radian",
+   "classes": [
+    12
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/qeynos/enchanter/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/qeynos/enchanter/L20, so a enchanter of Qeynos is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
   },
   {
    "key": "30,40,49/group-1-good/L30-qeynos-alchemist",
@@ -806,6 +1214,74 @@
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/rivervale/cleric/L20, so a cleric of Rivervale is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
   },
   {
+   "key": "30,40,49/group-2-good/L30-rivervale-rogue",
+   "name": "The Lightwolf Jewels",
+   "giver": "Thom Gubbin",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/rogue/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/rivervale/rogue/L20, so a rogue of Rivervale is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-rivervale-warrior",
+   "name": "The Lightwolf Jewels",
+   "giver": "Marshall Drake",
+   "classes": [
+    0
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/rivervale/warrior/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/rivervale/warrior/L20, so a warrior of Rivervale is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
+  },
+  {
    "key": "30,40,49/group-1-good/L30-tethelin-bard",
    "name": "A New Trainer in Forkwatch",
    "giver": "Torenia Eaglesong",
@@ -846,6 +1322,40 @@
     "Thumgrim Stoutshield"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/tethelin/bard/L20, so a bard of Tethelin is sent on. The guide's level 20 path questgiver sends the player to a Forkwatch trainer; the guide names three (Thumgrim Stoutshield, Erilous Skypyre, Elowyn Dawnspring) with an \"or\" and Sir Arik Lightfire for paladins: here paladins go to Sir Arik, clerics to Elowyn, wizards and alchemists to Erilous, bards to Thumgrim (ours). Crikston's note opens Group 1's path quests (each checks it)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-tethelin-rogue",
+   "name": "The Lightwolf Jewels",
+   "giver": "Eterin Nitegazer",
+   "classes": [
+    6
+   ],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "1-20/tethelin/rogue/L20"
+   ],
+   "offer": "You have learned all I can teach you. Your path goes on at Castle Lightwolf: Dixxon Tristar, east of the coachman, has need of someone like you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and do not forget what you learned here.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Find Dixxon Tristar in Castle Lightwolf, east of the coachman.",
+     "says": "The castle's elemental jewels are stolen, and Deputy Sools filed a report about one of them. Take my writ to him; he waits outside, by the left tower.",
+     "rewards": {
+      "items": [
+       "Dixxon's writ"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Requirements (github.com/Jadiction/EQOA-Data, MIT). One of these a 1-20 class chain: it follows 1-20/tethelin/rogue/L20, so a rogue of Tethelin is sent on. Dixxon's writ opens Group 2's path quests (Deputy Sools asks to see it)."
   },
   {
    "key": "30,40,49/group-1-good/L30-a",
@@ -1330,17 +1840,14 @@
      "kind": "talk",
      "target": "Crikston Gundlefop",
      "journal": "Tell Crikston Gundlefop about the druidic symbol.",
-     "says": "A druid's symbol on an assassin? Shiol Anara in Surefall Glade will know it.",
-     "rewards": {
-      "xp": 1000000
-     }
+     "says": "A druid's symbol on an assassin? Shiol Anara in Surefall Glade will know it."
     }
    ],
    "unresolved": [
     "Rauntet",
     "Assassin"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40 (github.com/Jadiction/EQOA-Data, MIT). Rauntet stands where FrontiersForge saw him (the guide's is a triggered spawn). The 3,000 tunar is the haggled price (5,000 unhaggled). The assassin stands in Crikston's room, where FrontiersForge saw the one the guide has come when the rod is handed over. The 1,000,000 experience is ours: the guide gives the level's experience at the end."
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40 (github.com/Jadiction/EQOA-Data, MIT). Rauntet stands where FrontiersForge saw him (the guide's is a triggered spawn). The 3,000 tunar is the haggled price (5,000 unhaggled). The assassin stands in Crikston's room, where FrontiersForge saw the one the guide has come when the rod is handed over."
   },
   {
    "key": "30,40,49/group-1-good/L40-b",
@@ -1447,17 +1954,14 @@
      "kind": "talk",
      "target": "Crikston Gundlefop",
      "journal": "Tell Crikston Gundlefop who sent the assassin.",
-     "says": "The Night Callers. Then they will try again.",
-     "rewards": {
-      "xp": 1000000
-     }
+     "says": "The Night Callers. Then they will try again."
     }
    ],
    "unresolved": [
     "Trapper McGee",
     "Urisai"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40 (github.com/Jadiction/EQOA-Data, MIT). The guide has Shiol send the player back with the three items and Urisai appear after half a minute at the druid ring; here Urisai stands at the ring (FrontiersForge's place) and takes the offering. The 1,000,000 experience is ours."
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 40 (github.com/Jadiction/EQOA-Data, MIT). The guide has Shiol send the player back with the three items and Urisai appear after half a minute at the druid ring; here Urisai stands at the ring (FrontiersForge's place) and takes the offering."
   },
   {
    "key": "30,40,49/group-1-good/L40",
@@ -1644,14 +2148,11 @@
      "kind": "talk",
      "target": "Crikston Gundlefop",
      "journal": "Return to Crikston Gundlefop with the Amulet of Protection.",
-     "says": "Good. Now the seals.",
-     "rewards": {
-      "xp": 2000000
-     }
+     "says": "Good. Now the seals."
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49 (github.com/Jadiction/EQOA-Data, MIT). The 2,000,000 experience is ours (the guide gives the level's at the end)."
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49 (github.com/Jadiction/EQOA-Data, MIT)."
   },
   {
    "key": "30,40,49/group-1-good/L49-b",
@@ -1737,10 +2238,7 @@
      "kind": "talk",
      "target": "Crikston Gundlefop",
      "journal": "Tell Crikston Gundlefop you hold the first seal.",
-     "says": "One of four.",
-     "rewards": {
-      "xp": 2000000
-     }
+     "says": "One of four."
     }
    ],
    "unresolved": [
@@ -1748,7 +2246,7 @@
     "Eidolon of Malice",
     "The Caretaker"
    ],
-   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The First Seal (github.com/Jadiction/EQOA-Data, MIT). The guide's black orb portal, its 650 damage a tick without the amulet and the timed trial are not in: the Caretaker asks to see the amulet. The Caretaker and the Eidolon stand where FrontiersForge and EQOA-Data's map put them. The experience is ours."
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The First Seal (github.com/Jadiction/EQOA-Data, MIT). The guide's black orb portal, its 650 damage a tick without the amulet and the timed trial are not in: the Caretaker asks to see the amulet. The Caretaker and the Eidolon stand where FrontiersForge and EQOA-Data's map put them."
   },
   {
    "key": "30,40,49/group-1-good/L49-c",
@@ -1809,14 +2307,11 @@
       }
      ],
      "journal": "Show the Shield of Orthimius to Oransan.",
-     "says": "The second seal. Keep it safe.",
-     "rewards": {
-      "xp": 2000000
-     }
+     "says": "The second seal. Keep it safe."
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The Second Seal (github.com/Jadiction/EQOA-Data, MIT). The guide's Oransan is downstairs in the Highpass Inn; ours stands by Crikston (the Snowblind Plains' Oransan does too). The experience is ours."
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The Second Seal (github.com/Jadiction/EQOA-Data, MIT). The guide's Oransan is downstairs in the Highpass Inn; ours stands by Crikston (the Snowblind Plains' Oransan does too)."
   },
   {
    "key": "30,40,49/group-1-good/L49-d",
@@ -1894,14 +2389,11 @@
      "kind": "talk",
      "target": "Crikston Gundlefop",
      "journal": "Tell Crikston Gundlefop you hold the third seal.",
-     "says": "Three of four.",
-     "rewards": {
-      "xp": 2000000
-     }
+     "says": "Three of four."
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The Third Seal (github.com/Jadiction/EQOA-Data, MIT). Frostborn II stands in the throne room always (the guide's rises when the sword is driven in); the throne is a place to reach, beside him. The experience is ours."
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The Third Seal (github.com/Jadiction/EQOA-Data, MIT). Frostborn II stands in the throne room always (the guide's rises when the sword is driven in); the throne is a place to reach, beside him."
   },
   {
    "key": "30,40,49/group-1-good/L49-e",
@@ -1976,14 +2468,11 @@
      "kind": "talk",
      "target": "Crikston Gundlefop",
      "journal": "Tell Crikston Gundlefop you hold all four seals.",
-     "says": "Four of four. Now Oransan.",
-     "rewards": {
-      "xp": 2000000
-     }
+     "says": "Four of four. Now Oransan."
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The Fourth Seal (github.com/Jadiction/EQOA-Data, MIT). The Unnamed King stands in his castle always (the guide's is called up at a column with both gems). His crown is the database's Crown of the Unnamed. The experience is ours."
+   "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, The Fourth Seal (github.com/Jadiction/EQOA-Data, MIT). The Unnamed King stands in his castle always (the guide's is called up at a column with both gems). His crown is the database's Crown of the Unnamed."
   },
   {
    "key": "30,40,49/group-1-good/L49",
@@ -2126,6 +2615,1278 @@
     "Parathior (attackable)"
    ],
    "notes": "From EQOA-Data Quests/30,40,49/group-1-good.json, Group 1, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky). Crikston gives the final rewards; the guide's class NPC (bards Kaldesh Illinor in the Freeport tavern) and the approval visits to the givers of the level 20, 30 and 40 quests are not in. Epic weapons are epics_49.json's: the first that exists here (paladins Virtus Ferrum, no Judgement; clerics a Hammer of Absolution made like a hammer of the level)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-a",
+   "name": "The Red Elemental Necklace",
+   "giver": "Dixxon Tristar",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Deputy Sools, by the left tower outside, reported one of our elemental jewels. Show him my writ and help him get it back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Deputy Sools",
+     "items": [
+      {
+       "item": "Dixxon's writ",
+       "count": 1
+      }
+     ],
+     "journal": "Show Dixxon's writ to Deputy Sools, by the left tower outside Castle Lightwolf.",
+     "says": "Dixxon's agent, good. Sissy Hasper saw a dark drake wearing a red necklace. She lives in the southernmost house of the village south of the castle.",
+     "notyet": "I report to Dixxon Tristar, not to strangers."
+    },
+    {
+     "kind": "talk",
+     "target": "Sissy Hasper",
+     "journal": "Find Sissy Hasper in the southernmost house of the village in the south of North Wilderlands.",
+     "says": "A dark drake with a red necklace round its neck! It flew off to the south-west of Guardian Forest."
+    },
+    {
+     "kind": "loot",
+     "target": "Dark Drake",
+     "items": [
+      {
+       "item": "Red Elemental Necklace",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the dark drake in south-west Guardian Forest for the red elemental necklace."
+    },
+    {
+     "kind": "give",
+     "target": "Deputy Sools",
+     "items": [
+      {
+       "item": "Red Elemental Necklace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the red elemental necklace to Deputy Sools.",
+     "says": "One of four. Captain Benta, outside Halas, has word of a white bracelet."
+    }
+   ],
+   "unresolved": [
+    "Sissy Hasper"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Red Elemental Necklace (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-b",
+   "name": "The White Elemental Bracelet",
+   "giver": "Deputy Sools",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L30-a"
+   ],
+   "offer": "Captain Benta, outside Halas, saw a majestic Freezeblood wearing a white bracelet. Go to her.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Benta",
+     "journal": "Find Captain Benta outside Halas.",
+     "says": "A Freezeblood Majestic wears it, west of Halas in the north of Guardian Forest."
+    },
+    {
+     "kind": "loot",
+     "target": "Freezeblood Majestic",
+     "items": [
+      {
+       "item": "White Elemental Bracelet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Freezeblood Majestic in the north of Guardian Forest for the white bracelet."
+    },
+    {
+     "kind": "give",
+     "target": "Deputy Sools",
+     "items": [
+      {
+       "item": "White Elemental Bracelet",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the white elemental bracelet to Deputy Sools.",
+     "says": "Two of four. Captain Rulina has news of a blue ring."
+    }
+   ],
+   "unresolved": [
+    "Freezeblood Majestic"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, White Elemental Bracelet (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-c",
+   "name": "The Blue Elemental Ring",
+   "giver": "Deputy Sools",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L30-b"
+   ],
+   "offer": "Captain Rulina, in Halas, has word of the blue ring. Go to her.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Rulina",
+     "journal": "Find Captain Rulina in Halas.",
+     "says": "Mirea saw it. She lives in the faerie village of Salisearaneen, by a small well: take the path east off the southern road past the inn."
+    },
+    {
+     "kind": "talk",
+     "target": "Mirea",
+     "journal": "Find Mirea by the small well in the faerie village of Salisearaneen.",
+     "says": "An ebony wolf wears it, in the south of Guardian Forest."
+    },
+    {
+     "kind": "loot",
+     "target": "Ebony Wolf",
+     "items": [
+      {
+       "item": "Blue Elemental Ring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the ebony wolf in the south of Guardian Forest for the blue ring."
+    },
+    {
+     "kind": "give",
+     "target": "Deputy Sools",
+     "items": [
+      {
+       "item": "Blue Elemental Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the blue elemental ring to Deputy Sools.",
+     "says": "Three of four. Juno Inhop, at the inn south-east of the castle, knows of a green earring."
+    }
+   ],
+   "unresolved": [
+    "Ebony Wolf"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Blue Elemental Ring (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30-d",
+   "name": "The Green Elemental Earring",
+   "giver": "Deputy Sools",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L30-c"
+   ],
+   "offer": "Juno Inhop, at the inn south-east of the castle, knows of the green earring. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Juno Inhop",
+     "journal": "Find Juno Inhop at the inn south-east of Castle Lightwolf.",
+     "says": "A frosteye scarecrow has it: in the valley between two mountains south-west of Diren Hold, toward Mount Hatespike."
+    },
+    {
+     "kind": "loot",
+     "target": "Frosteye Scarecrow",
+     "items": [
+      {
+       "item": "Green Elemental Earring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the frosteye scarecrow in the valley south-west of Diren Hold for the green earring."
+    },
+    {
+     "kind": "give",
+     "target": "Deputy Sools",
+     "items": [
+      {
+       "item": "Green Elemental Earring",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the green elemental earring to Deputy Sools.",
+     "says": "All four. One thing more: Merchant Balboa in Halas keeps a lockbox for us."
+    }
+   ],
+   "unresolved": [
+    "Juno Inhop",
+    "Frosteye Scarecrow"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Green Elemental Earring (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L30",
+   "name": "The Lockbox",
+   "giver": "Deputy Sools",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L30-d"
+   ],
+   "offer": "Merchant Balboa, by the windmill in Halas, holds a lockbox for the castle. It will cost you 1,585 tunar. Bring it here.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Mind the purse: Balboa does not haggle.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Merchant Balboa",
+     "items": [],
+     "tunar": 1585,
+     "journal": "Pay Merchant Balboa, by the windmill in Halas, 1,585 tunar for the lockbox.",
+     "says": "Here it is, safe and sound.",
+     "rewards": {
+      "items": [
+       "Balboa's lockbox"
+      ]
+     }
+    },
+    {
+     "kind": "give",
+     "target": "Deputy Sools",
+     "items": [
+      {
+       "item": "Balboa's lockbox",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the lockbox to Deputy Sools.",
+     "says": "That is everything. Take this letter to Dixxon."
+    },
+    {
+     "kind": "talk",
+     "target": "Dixxon Tristar",
+     "journal": "Return to Dixxon Tristar in Castle Lightwolf.",
+     "says": "The jewels are home. Your guildmaster sends this, and so do I.",
+     "rewards": {
+      "xp": 7890859,
+      "byclass": {
+       "12": {
+        "spells": [
+         "Expansive Mind"
+        ],
+        "items": [
+         "Lycaon Beheader"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Evasion"
+        ],
+        "items": [
+         "Black Tainted Knife"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Sickening Wind"
+        ],
+        "items": [
+         "Skin Turned Kris"
+        ]
+       },
+       "0": {
+        "spells": [
+         "Roar"
+        ],
+        "items": [
+         "Lycaon Slasher"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 30, Lockbox and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Dixxon gives the final rewards (the guide: the class guildmaster in the castle's west wing, which one step cannot be for every class). The choices: the first ability on each class's line (EQOA-Data's spell lists; the shaman's Sickening Wind, the next of the level 20 Decaying Wind) and the first weapon, made here like a weapon of the kind and level where this database lacks it (all but the warrior's Lycaon Slasher)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L40-a",
+   "name": "The Green and White Talismans",
+   "giver": "Dixxon Tristar",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L30"
+   ],
+   "offer": "Now our talismans are gone too. Fali Rugger, in the Murnf inn, has been asking about them. Find him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Fali Rugger",
+     "journal": "Find Fali Rugger in the Murnf inn.",
+     "says": "Four talismans, and the beasts that took them. A forest night wolf by the Great Tree in the south of Murnf has the green; Delvar Rivers in the Wyndhaven inn knows of the white."
+    },
+    {
+     "kind": "loot",
+     "target": "Forest Night Wolf",
+     "items": [
+      {
+       "item": "Green Elemental Talisman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the forest night wolf by the Great Tree in the south of Murnf for the green talisman."
+    },
+    {
+     "kind": "talk",
+     "target": "Delvar Rivers",
+     "journal": "Find Delvar Rivers in the Wyndhaven inn.",
+     "says": "An air elemental took the white one, west of the Great Tree in Murnf."
+    },
+    {
+     "kind": "loot",
+     "target": "Air Elemental",
+     "items": [
+      {
+       "item": "White Elemental Talisman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the air elemental west of the Great Tree in Murnf for the white talisman."
+    },
+    {
+     "kind": "give",
+     "target": "Dixxon Tristar",
+     "items": [
+      {
+       "item": "Green Elemental Talisman",
+       "count": 1
+      },
+      {
+       "item": "White Elemental Talisman",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the green and white talismans to Dixxon Tristar.",
+     "says": "Two of them. Torgias Bullow and Keneto Barillo in Murnf know where the others went."
+    }
+   ],
+   "unresolved": [
+    "Forest Night Wolf"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 40, Green and White Elemental Talismans (github.com/Jadiction/EQOA-Data, MIT). The guide has each talisman brought to Dixxon as it is found; here two at a time. The forest night wolves see the invisible."
+  },
+  {
+   "key": "30,40,49/group-2-good/L40-b",
+   "name": "The Blue and Red Talismans",
+   "giver": "Dixxon Tristar",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L40-a"
+   ],
+   "offer": "Torgias Bullow, second house west of the Murnf coach, and Keneto Barillo, in the Murnf inn, know where the blue and red talismans went.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Torgias Bullow",
+     "journal": "Find Torgias Bullow, in the second house west of the Murnf coach.",
+     "says": "The white-faced werewolf by the Great Tree took the blue one."
+    },
+    {
+     "kind": "loot",
+     "target": "werewolf",
+     "items": [
+      {
+       "item": "Blue Elemental Talisman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the white-faced werewolf near the Great Tree in Murnf for the blue talisman."
+    },
+    {
+     "kind": "talk",
+     "target": "Keneto Barillo",
+     "journal": "Find Keneto Barillo in the Murnf inn.",
+     "says": "A ghoul has the red, north-west of where the werewolves run. It drains the power out of you: be ready."
+    },
+    {
+     "kind": "loot",
+     "target": "Ghoul",
+     "items": [
+      {
+       "item": "Red Elemental Talisman",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the ghoul north-west of the werewolves for the red talisman."
+    },
+    {
+     "kind": "give",
+     "target": "Dixxon Tristar",
+     "items": [
+      {
+       "item": "Blue Elemental Talisman",
+       "count": 1
+      },
+      {
+       "item": "Red Elemental Talisman",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the blue and red talismans to Dixxon Tristar.",
+     "says": "All four talismans. Now, Deputy Sools has gone after the lockbox, and has not come back."
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 40, Blue and Red Elemental Talismans (github.com/Jadiction/EQOA-Data, MIT). Any werewolf does (one stands by the Great Tree, EQOA-Data's map point)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L40",
+   "name": "The Vampire of Jaeger Mansion",
+   "giver": "Dixxon Tristar",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L40-b"
+   ],
+   "offer": "Deputy Sools went to Jaeger Mansion in the north of Twisted Tower after the lockbox. Buy a vampire testing kit from Huntress Lilly, north of the Murnf coach, and find him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Bring 2,760 tunar, and go in quietly.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Huntress Lilly",
+     "items": [],
+     "tunar": 2760,
+     "journal": "Buy a vampire testing kit from Huntress Lilly, north of the Murnf coach: 2,760 tunar.",
+     "says": "Use it well. The mansion's master is no man.",
+     "rewards": {
+      "items": [
+       "vampire testing kit"
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Deputy Sools",
+     "items": [
+      {
+       "item": "vampire testing kit",
+       "count": 1
+      }
+     ],
+     "journal": "Find Deputy Sools at Jaeger Mansion, in the north of Twisted Tower, and test him.",
+     "says": "I am no vampire, but he is: Garou Red Claws has the lockbox. Kill him."
+    },
+    {
+     "kind": "loot",
+     "target": "Garou Red Claws",
+     "items": [
+      {
+       "item": "Lightwolf lockbox",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Garou Red Claws in Jaeger Mansion for the lockbox."
+    },
+    {
+     "kind": "give",
+     "target": "Dixxon Tristar",
+     "items": [
+      {
+       "item": "Lightwolf lockbox",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the lockbox to Dixxon Tristar.",
+     "says": "The lockbox, and Sools alive. Take your reward.",
+     "rewards": {
+      "xp": 14919719,
+      "byclass": {
+       "12": {
+        "spells": [
+         "Limitless Mind"
+        ],
+        "items": [
+         "Hammer of Lightwolf"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Evade"
+        ],
+        "items": [
+         "Eagle Eye Sept"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Wilting Wind"
+        ],
+        "items": [
+         "Daywalkers' Demise"
+        ]
+       },
+       "0": {
+        "spells": [
+         "Howl"
+        ],
+        "items": [
+         "Blood Drainer"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Huntress Lilly"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 40, Deputy Sools and Quest completion (github.com/Jadiction/EQOA-Data, MIT). Deputy Sools is at the mansion at every hour (the guide's comes only at night, about :15 to :45). The choices: the first ability on the class's line and the first weapon, made like one of the kind and level where this database lacks it (the warrior's second, the Blood Drainer, is here: given instead of Daywalkers' Revenge)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L49-a",
+   "name": "Old Red",
+   "giver": "Dixxon Tristar",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L40"
+   ],
+   "offer": "Thurgrid McRaith in Halas has news of the seals that hold the north. Go to him, and keep everything you are given until the end.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Thurgrid McRaith",
+     "journal": "Find Thurgrid McRaith in Halas.",
+     "says": "Old Red, the great eel off the coast of Zentar's Keep, swallowed one of the four orbs. Swim out to him and cut it out."
+    },
+    {
+     "kind": "loot",
+     "target": "Old Red",
+     "items": [
+      {
+       "item": "Orb of Halas Aquamarine",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Swim out off the coast of Zentar's Keep and kill Old Red for the Orb of Halas Aquamarine.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "torn paper",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Thurgrid McRaith",
+     "items": [
+      {
+       "item": "Orb of Halas Aquamarine",
+       "count": 1
+      },
+      {
+       "item": "torn paper",
+       "count": 1
+      }
+     ],
+     "journal": "Show the orb and the torn paper to Thurgrid McRaith.",
+     "says": "The paper names the other three: Ives Radain in Qeynos, Zebel Earblower in Rivervale, and Lord Tearis Thex in Fayspires."
+    }
+   ],
+   "unresolved": [
+    "Old Red"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Old Red (github.com/Jadiction/EQOA-Data, MIT). Old Red is in the water where FrontiersForge saw him (the guide's comes only to one in the ocean)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L49-b",
+   "name": "The Orb of Qeynos Peridot",
+   "giver": "Ives Radain",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L49-a"
+   ],
+   "offer": "The paper Thurgrid read? Then you know: Bribro Mino, the minotaur in Gunter's Mine, has the peridot orb. Take it from him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Bribro Mino",
+     "items": [
+      {
+       "item": "Orb of Qeynos Peridot",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Bribro Mino among the minotaurs of Gunter's Mine for the Orb of Qeynos Peridot."
+    },
+    {
+     "kind": "show",
+     "target": "Ives Radain",
+     "items": [
+      {
+       "item": "Orb of Qeynos Peridot",
+       "count": 1
+      }
+     ],
+     "journal": "Show the peridot orb to Ives Radain in Qeynos.",
+     "says": "Keep it with the others."
+    }
+   ],
+   "unresolved": [
+    "Ives Radain",
+    "Bribro Mino",
+    "Ives Radain"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Orb and Seal Chain (github.com/Jadiction/EQOA-Data, MIT). The guide says Ives sends the player to Bribro Mino; Bribro stands among the minotaurs and is killed for the orb."
+  },
+  {
+   "key": "30,40,49/group-2-good/L49-c",
+   "name": "The Orb of Rivervale Citrine",
+   "giver": "Zebel Earblower",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L49-a"
+   ],
+   "offer": "Commander Romar, with the Razgut south-west of Fort Alliance, keeps the citrine orb. Bring it back to us.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Commander Romar",
+     "items": [
+      {
+       "item": "Orb of Rivervale Citrine",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Commander Romar among the Razgut south-west of Fort Alliance for the citrine orb."
+    },
+    {
+     "kind": "show",
+     "target": "Zebel Earblower",
+     "items": [
+      {
+       "item": "Orb of Rivervale Citrine",
+       "count": 1
+      }
+     ],
+     "journal": "Show the citrine orb to Zebel Earblower in Rivervale.",
+     "says": "Keep it with the others."
+    }
+   ],
+   "unresolved": [
+    "Zebel Earblower",
+    "Zebel Earblower"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Orb and Seal Chain (github.com/Jadiction/EQOA-Data, MIT). The guide says Zebel sends the player to Commander Romar; Romar commands the Razgut there and is killed for the orb."
+  },
+  {
+   "key": "30,40,49/group-2-good/L49-d",
+   "name": "The Orb of Fayspires Jade",
+   "giver": "Lord Tearis Thex",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L49-a"
+   ],
+   "offer": "The Tae Ew Keeper in Cazic Thule has the jade orb. Kill it, and bring the orb here.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tae Ew Keeper",
+     "items": [
+      {
+       "item": "Orb of Fayspires Jade",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Tae Ew Keeper in Cazic Thule for the jade orb."
+    },
+    {
+     "kind": "show",
+     "target": "Lord Tearis Thex",
+     "items": [
+      {
+       "item": "Orb of Fayspires Jade",
+       "count": 1
+      }
+     ],
+     "journal": "Show the jade orb to Lord Tearis Thex in Fayspires.",
+     "says": "Four orbs. Now the seals of the north."
+    }
+   ],
+   "unresolved": [
+    "Lord Tearis Thex",
+    "Lord Tearis Thex"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Orb and Seal Chain (github.com/Jadiction/EQOA-Data, MIT)."
+  },
+  {
+   "key": "30,40,49/group-2-good/L49-e",
+   "name": "The Third Seal",
+   "giver": "Lord Tearis Thex",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L49-b",
+    "30,40,49/group-2-good/L49-c",
+    "30,40,49/group-2-good/L49-d"
+   ],
+   "offer": "The third seal is Frostcleaver, in Permafrost. Kill Frostborn III where he roams by Vox's castle, drive his sword into the ice throne, and take the blade from Frostborn II.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Mind the Voxite wizards: they see the invisible.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Frostborn III",
+     "items": [
+      {
+       "item": "Frostborn's sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Frostborn III in the halls of Permafrost and take his sword."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 4861,
+     "y": 0,
+     "z": 4429,
+     "radius": 30,
+     "journal": "Drive Frostborn's sword into the ice throne in the throne room.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You drive the sword into the ice throne. The ice cracks, and Frostborn II comes to claim his kingdom."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Frostborn II",
+     "items": [
+      {
+       "item": "Frost Cleaver",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Frostborn II and take Frostcleaver."
+    },
+    {
+     "kind": "talk",
+     "target": "Lord Tearis Thex",
+     "journal": "Tell Lord Tearis Thex you hold the third seal.",
+     "says": "Three of four."
+    }
+   ],
+   "unresolved": [
+    "Lord Tearis Thex",
+    "Lord Tearis Thex"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, The Third Seal (github.com/Jadiction/EQOA-Data, MIT). Frostborn II stands in the throne room always (the guide's rises when the sword is driven in); the throne is a place to reach, beside him."
+  },
+  {
+   "key": "30,40,49/group-2-good/L49-f",
+   "name": "The Fourth Seal",
+   "giver": "Lord Tearis Thex",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L49-b",
+    "30,40,49/group-2-good/L49-c",
+    "30,40,49/group-2-good/L49-d"
+   ],
+   "offer": "The fourth seal is the Unnamed Crown. In the Unnamed King's castle in Anu Village, kill Tolo Grimsteel and Ganron Lorebane for their gems, then call up the king himself.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and come back to me when it is done.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Tolo Grimsteel",
+     "items": [
+      {
+       "item": "Tolo's gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Tolo Grimsteel in the Unnamed King's castle in Anu Village and take his gem."
+    },
+    {
+     "kind": "loot",
+     "target": "Ganron Lorebane",
+     "items": [
+      {
+       "item": "Ganron's gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Ganron Lorebane and take his gem."
+    },
+    {
+     "kind": "loot",
+     "target": "The Unnamed King",
+     "items": [
+      {
+       "item": "Crown of the Unnamed",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Call up the Unnamed King at the column, kill him and take his crown."
+    },
+    {
+     "kind": "talk",
+     "target": "Lord Tearis Thex",
+     "journal": "Tell Lord Tearis Thex you hold all four seals.",
+     "says": "Four of four. Now Oransan."
+    }
+   ],
+   "unresolved": [
+    "Lord Tearis Thex",
+    "Lord Tearis Thex"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, The Fourth Seal (github.com/Jadiction/EQOA-Data, MIT). The Unnamed King stands in his castle always (the guide's is called up at a column with both gems). His crown is the database's Crown of the Unnamed."
+  },
+  {
+   "key": "30,40,49/group-2-good/L49",
+   "name": "Parathior",
+   "giver": "Lord Tearis Thex",
+   "classes": [
+    0,
+    6,
+    8,
+    12
+   ],
+   "races": [
+    0,
+    1,
+    3,
+    4,
+    6,
+    7,
+    8
+   ],
+   "minlevel": 49,
+   "maxlevel": 60,
+   "requires": [
+    "30,40,49/group-2-good/L49-e",
+    "30,40,49/group-2-good/L49-f"
+   ],
+   "offer": "Take all four seals to Oransan at the broken tower in the north Snowblind Plains, west of the bear cave. He will call Parathior down. Bring me what is left of it.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then come back when you are ready.",
+   "started": "Go, and save everything.",
+   "steps": [
+    {
+     "kind": "show",
+     "target": "Oransan",
+     "items": [
+      {
+       "item": "Orb of Halas Aquamarine",
+       "count": 1
+      },
+      {
+       "item": "Orb of Qeynos Peridot",
+       "count": 1
+      },
+      {
+       "item": "Orb of Rivervale Citrine",
+       "count": 1
+      },
+      {
+       "item": "Orb of Fayspires Jade",
+       "count": 1
+      },
+      {
+       "item": "Frost Cleaver",
+       "count": 1
+      },
+      {
+       "item": "Crown of the Unnamed",
+       "count": 1
+      }
+     ],
+     "journal": "Show the four seals to Oransan at the broken tower in the north Snowblind Plains.",
+     "says": "All four. Speak with Orinas while I begin; then the ice will fall from the sky."
+    },
+    {
+     "kind": "talk",
+     "target": "Orinas",
+     "journal": "Speak with Orinas, the bear, beside Oransan.",
+     "says": "When it is done, the weapon you have earned will be yours. Now, look up!"
+    },
+    {
+     "kind": "loot",
+     "target": "Parathior",
+     "items": [
+      {
+       "item": "Ice Chunk",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Parathior and take a chunk of its ice."
+    },
+    {
+     "kind": "give",
+     "target": "Lord Tearis Thex",
+     "items": [
+      {
+       "item": "Ice Chunk",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ice chunk to Lord Tearis Thex.",
+     "says": "It is over. Take your reward, and when you have grown to the height of your power, the Recruiter will have work for you.",
+     "rewards": {
+      "xp": 45558313,
+      "byclass": {
+       "12": {
+        "spells": [
+         "Boundless Mind"
+        ],
+        "items": [
+         "Mithril Eagle Rod"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Elude"
+        ],
+        "items": [
+         "Heartsbane"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Withering Wind"
+        ],
+        "items": [
+         "Cudgel of the Spirit Guide"
+        ]
+       },
+       "0": {
+        "spells": [
+         "Battlecry"
+        ],
+        "items": [
+         "Steelwind"
+        ]
+       }
+      },
+      "items": [
+       "letter to the Klick`Anon Recruiter"
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Lord Tearis Thex",
+    "Lord Tearis Thex",
+    "Parathior (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/30,40,49/group-2-good.json, Group 2, Level 49, Parathior and Quest completion (github.com/Jadiction/EQOA-Data, MIT). The ritual's five minutes are not in; Parathior stands by the tower (the guide's comes down from the sky). Lord Tearis Thex gives the final rewards; the guide's class approval tasks are not in. The four orbs are this group's first and second seals (the guide lists them before the third). Epic weapons are epics_49.json's first that exists here."
   }
  ],
  "items": [
@@ -2284,6 +4045,144 @@
    "description": "A cleric's epic hammer, the reward of the level 49 path.",
    "notrade": true,
    "like": "Hammer of Spite"
+  },
+  {
+   "name": "Dixxon's writ",
+   "description": "Dixxon Tristar of Castle Lightwolf vouches for the bearer.",
+   "notrade": true,
+   "like": "Lanlin's Note"
+  },
+  {
+   "name": "Red Elemental Necklace",
+   "description": "One of the elemental jewels of Castle Lightwolf.",
+   "notrade": true,
+   "like": "gem of fury"
+  },
+  {
+   "name": "White Elemental Bracelet",
+   "description": "One of the elemental jewels of Castle Lightwolf.",
+   "notrade": true,
+   "like": "gem of wit"
+  },
+  {
+   "name": "Blue Elemental Ring",
+   "description": "One of the elemental jewels of Castle Lightwolf.",
+   "notrade": true,
+   "like": "gem of deception"
+  },
+  {
+   "name": "Green Elemental Earring",
+   "description": "One of the elemental jewels of Castle Lightwolf.",
+   "notrade": true,
+   "like": "gem of wit"
+  },
+  {
+   "name": "Balboa's lockbox",
+   "description": "The lockbox Merchant Balboa kept for the castle.",
+   "notrade": true,
+   "like": "Box of Coins"
+  },
+  {
+   "name": "Green Elemental Talisman",
+   "description": "One of Castle Lightwolf's elemental talismans.",
+   "notrade": true,
+   "like": "Goblin Talisman"
+  },
+  {
+   "name": "White Elemental Talisman",
+   "description": "One of Castle Lightwolf's elemental talismans.",
+   "notrade": true,
+   "like": "Goblin Talisman"
+  },
+  {
+   "name": "Blue Elemental Talisman",
+   "description": "One of Castle Lightwolf's elemental talismans.",
+   "notrade": true,
+   "like": "Goblin Talisman"
+  },
+  {
+   "name": "Red Elemental Talisman",
+   "description": "One of Castle Lightwolf's elemental talismans.",
+   "notrade": true,
+   "like": "Goblin Talisman"
+  },
+  {
+   "name": "vampire testing kit",
+   "description": "Huntress Lilly's kit for telling a vampire.",
+   "notrade": true,
+   "like": "Metal Testing Kit"
+  },
+  {
+   "name": "Lightwolf lockbox",
+   "description": "The lockbox Garou Red Claws took from Castle Lightwolf.",
+   "notrade": true,
+   "like": "Box of Coins"
+  },
+  {
+   "name": "Orb of Halas Aquamarine",
+   "description": "A seal orb, from Old Red.",
+   "notrade": true,
+   "like": "dull orb"
+  },
+  {
+   "name": "torn paper",
+   "description": "A torn paper from the belly of Old Red.",
+   "notrade": true,
+   "like": "Torn Page"
+  },
+  {
+   "name": "Orb of Qeynos Peridot",
+   "description": "A seal orb, from Bribro Mino.",
+   "notrade": true,
+   "like": "dull orb"
+  },
+  {
+   "name": "Orb of Rivervale Citrine",
+   "description": "A seal orb, from Commander Romar.",
+   "notrade": true,
+   "like": "dull orb"
+  },
+  {
+   "name": "Orb of Fayspires Jade",
+   "description": "A seal orb, from the Tae Ew Keeper.",
+   "notrade": true,
+   "like": "dull orb"
+  },
+  {
+   "name": "Lycaon Beheader",
+   "description": "An enchanter's weapon, the reward of the level 30 path.",
+   "notrade": true,
+   "like": "Hallowedmire Relic"
+  },
+  {
+   "name": "Black Tainted Knife",
+   "description": "A rogue's knife, the reward of the level 30 path.",
+   "notrade": true,
+   "like": "Urchin Spine Dagger"
+  },
+  {
+   "name": "Skin Turned Kris",
+   "description": "A shaman's weapon, the reward of the level 30 path.",
+   "notrade": true,
+   "like": "Bonesmith's Hammer"
+  },
+  {
+   "name": "Hammer of Lightwolf",
+   "description": "An enchanter's weapon, the reward of the level 40 path.",
+   "notrade": true,
+   "like": "Rod of Equilibrium"
+  },
+  {
+   "name": "Eagle Eye Sept",
+   "description": "A rogue's weapon, the reward of the level 40 path.",
+   "notrade": true,
+   "like": "Torkark's Edge"
+  },
+  {
+   "name": "Daywalkers' Demise",
+   "description": "A shaman's weapon, the reward of the level 40 path.",
+   "notrade": true,
+   "like": "forest crook"
   }
  ]
 }

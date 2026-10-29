@@ -35,6 +35,22 @@ journalctl -u eqoa-gameserver -f
 sqlite3 eqoa.db "SELECT id, server_id, name, model_id FROM characters"
 ```
 
+### Deploying without kicking players
+
+**A data fix needs no restart.** The server reads its tables as it goes (item records at each request,
+`startitems` at each creation, factions, shops and quests), so a tool's `--apply` against the live
+database while it runs is the whole deploy (the database waits 5 s for a lock). A client gets item
+records at its login, so a player sees a record's change at the next one.
+
+**A code change needs a restart, which ends every session.** Each session's DRDP state and the World
+live in the process. `tools/swap_when_empty.sh` (cron, every minute) swaps a staged binary in only once
+no one is connected: no UDP flow to the game port in the kernel's connection table, no Station login
+open, no packet in the log's last two minutes, for two minutes on end. Stage a binary as
+`$SWAP/pending/gameserver` with its `sha256` (written elsewhere and moved in), plus an optional
+`after.sh` for a data step that needs the new code; it backs up the binary and database, rolls back a
+binary that does not listen, and logs to `$SWAP/swap.log`. The user's choice of 2026-10-29: "swap when
+empty". An urgent fix (a crash, the game unplayable) still restarts at once.
+
 ## Package Map
 
 ```

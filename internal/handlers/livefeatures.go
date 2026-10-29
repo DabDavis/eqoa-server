@@ -12,7 +12,8 @@ import (
 // feature the Frontiers disc did not have is drawn or sent. Both retail save
 // states hold 0x1B. The disc has no case for 0x07F5 and ignores it; vanilla
 // follows the disc today and reads it as it gains the live windows
-// (~/.cache/f3pass24/livediff/report.md section 2).
+// (the live-client research's livediff/report.md section 2, outside this
+// repository).
 const (
 	// LiveFeatureAuctionMenu is the Start menu's Auction entry and the bank
 	// menu's Auction option (OpenStartMenu 0x0135BE80, VIWndBankMenu::

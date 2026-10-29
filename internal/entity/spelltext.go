@@ -66,6 +66,7 @@ const (
 	EffectCure                          // takes Amount harmful effects of the Cure kind off the bearer, 0 by its level (cure.go)
 	EffectHPCap                         // the bearer's maximum hit points at most Amount (1 or more) while it lasts; lasting no time, its hit points taken down to it (spiritform.go)
 	EffectInvuln                        // the bearer takes nothing of a creature's hit while it lasts (spiritform.go)
+	EffectLull                          // a creature notices a player only within LullRadius while it lasts, up to level Amount (0: the spell's own and LullLevelBand) (lull.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -385,7 +386,7 @@ func (d SpellDef) asProc() SpellDef {
 		switch e.Kind {
 		case EffectHP, EffectHPTick, EffectStat:
 			d.Harmful = d.Harmful || (e.Amount < 0 && !e.Self)
-		case EffectRoot, EffectSnare, EffectHate, EffectMark, EffectMarkHeal:
+		case EffectRoot, EffectSnare, EffectHate, EffectMark, EffectMarkHeal, EffectLull:
 			d.Harmful = true
 		}
 	}
@@ -481,7 +482,8 @@ func ParseSpellText(line string) SpellDef {
 	// works on hate, marks a creature (mark.go: the owner's ruling of
 	// 2026-10-29), or takes power (lifetap.go takesPower: a drain or
 	// decrease of the target's power, the owner's ruling of 2026-10-29; not
-	// Minor Healing's "Decrease Power by 1" beside its heal).
+	// Minor Healing's "Decrease Power by 1" beside its heal), and a lull
+	// (lull.go: cast at a creature, though its landing is no attack).
 	d.Harmful = d.takesPower()
 	for _, e := range d.Effects {
 		switch e.Kind {
@@ -489,7 +491,7 @@ func ParseSpellText(line string) SpellDef {
 			if e.Amount < 0 && !e.Self {
 				d.Harmful = true
 			}
-		case EffectRoot, EffectSnare, EffectHate, EffectCharm, EffectForget, EffectMark, EffectMarkHeal:
+		case EffectRoot, EffectSnare, EffectHate, EffectCharm, EffectForget, EffectMark, EffectMarkHeal, EffectLull:
 			d.Harmful = true
 		}
 	}
@@ -505,6 +507,7 @@ func ParseSpellText(line string) SpellDef {
 		}
 	}
 	d.lineDefaults() // spellnotes.go: what a line leaves out
+	d.lullDefaults() // lull.go: a lull's time when it names none
 	return d
 }
 
@@ -618,6 +621,13 @@ func (d *SpellDef) parsePart(part, verb string) string {
 	}
 	if e, ok := spiritformPart(part); ok { // spiritform.go
 		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if e, ok := lullPart(part); ok { // lull.go
+		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if d.lullLevelPart(part) { // lull.go: "up to level N" after a lull
 		return verb
 	}
 	scale, scalePct := StatNone, 0

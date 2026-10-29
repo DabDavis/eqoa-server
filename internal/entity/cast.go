@@ -301,6 +301,8 @@ type ActiveEffect struct {
 	HPCap        int
 	HPCapped     bool
 	Invulnerable bool
+	// Lull: its creature notices a player only within LullRadius (lull.go)
+	Lull bool
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -1001,6 +1003,8 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			}
 		case EffectInvuln:
 			ae.Invulnerable = true // spiritform.go
+		case EffectLull:
+			ae.Lull = true // lull.go
 		default:
 			continue
 		}
@@ -1213,6 +1217,10 @@ func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 // what lasts (a damage tick; a hold, a slow or a stat change is kept, though
 // no creature moves or uses its stats yet).
 func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *session.Session, npc *NPC, now time.Time) {
+	if cs.spell.Def.lullsOnly() {
+		w.lullLandLocked(cs, caster, npc, now) // lull.go: no attack
+		return
+	}
 	caster.LastCombatTime = now
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {

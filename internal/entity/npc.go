@@ -63,7 +63,8 @@ type NPC struct {
 	// by its name; it picks the NPC's melee swing (rounds.go).
 	Class int
 
-	// Effects is the spells on it (cast.go): damage ticks, holds, slows.
+	// Effects is the spells on it (cast.go): damage ticks, holds, slows,
+	// lulls (lull.go).
 	Effects []*ActiveEffect
 
 	// Combat — computed from level via SOE formulas

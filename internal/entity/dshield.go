@@ -281,7 +281,7 @@ func (d *SpellDef) harmfulAgain() {
 		switch e.Kind {
 		case EffectHP, EffectHPTick, EffectStat:
 			d.Harmful = d.Harmful || (e.Amount < 0 && !e.Self)
-		case EffectRoot, EffectSnare, EffectHate, EffectCharm, EffectMark, EffectMarkHeal:
+		case EffectRoot, EffectSnare, EffectHate, EffectCharm, EffectMark, EffectMarkHeal, EffectLull:
 			d.Harmful = true
 		}
 	}

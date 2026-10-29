@@ -202,5 +202,174 @@ class SeedTradeskills(unittest.TestCase):
         self.assertEqual(self.snapshot(), before)
 
 
+def prima_text(props, cells):
+    """Prima's two jewelry tables as pdftotext -layout lays them out: the
+    property labels rotated (a label a line, at its column's place), a row a
+    gem with its marks under them; the metals' header and a row a gem, a cell
+    that runs to several lines continued under its metal."""
+    xs = [40 + 7 * k for k in range(len(M.GEM_LABELS))]
+    out = ["Jewel Crafting", "   Gem Properties"]
+    for k in sorted(range(len(M.GEM_LABELS)), key=lambda k: -len(M.GEM_LABELS[k])):
+        lab = M.GEM_LABELS[k]
+        out.append(" " * int(xs[k] - len(lab) / 2) + lab)
+    out.append("Gem Name              Rarity")
+    word = {0: "Common", 1: "Uncommon", 2: "Rare", 3: "Ultra-Rare"}
+    for g, (rar, tl, labels) in props.items():
+        line = list(f"{g:<18}{word[rar]:<11}{tl:>3}".ljust(xs[-1] + 2))
+        for k, lab in enumerate(M.GEM_LABELS):
+            line[xs[k]] = "X" if lab in labels else "—"
+        out.append("".join(line))
+    out.append("")
+    mx = [24 + 13 * k for k in range(10)]
+    hdr = list("—".ljust(mx[-1] + 12))
+    for k, m in enumerate(M.JEWEL_METALS):
+        hdr[mx[k] - len(m) // 2:mx[k] - len(m) // 2 + len(m)] = m
+    out += ["   Gem & Metal Combinations", "".join(hdr)]
+    for g, rows in cells.items():
+        for n, parts in enumerate(rows):
+            line = list((g if n == 0 else "").ljust(mx[-1] + 12))
+            for k, t in enumerate(parts):
+                if t:
+                    line[mx[k] - len(t) // 2:mx[k] - len(t) // 2 + len(t)] = t
+            out.append("".join(line).rstrip())
+    out.append("Tailoring")
+    return "\n".join(out) + "\n"
+
+
+class SeedJewelry(unittest.TestCase):
+    """--craft jewel: Prima's two tables read by their columns (Clear Quartz
+    under Lightning, Turquoise under Cold: the trap), every cell four products
+    (one a mold), the eight gems changed in 2003 by the live records' figures
+    along Prima's curves (Ruby's anchor at adamantite, Emerald its twin, Blue
+    Diamond its three-line cells), a live record with the product's stats the
+    product (its name cut at 32), one of the name with other stats not; then
+    --undo gives every table back."""
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        d = self.dir.name
+        self.sources = os.path.join(d, "sources")
+        os.makedirs(os.path.join(self.sources, "prima"))
+        attr = ["+2", "+5", "+10", "+15", "+18", "+22", "+26", "+30", "+35", "+40"]
+        hp = ["+6", "+15", "+30", "+45", "+60", "+75", "+90", "+100", "+110", "+125"]
+        ac = ["+5", "+12", "+20", "+30", "+40", "+50", "+60", "+70", "+75", "+85"]
+        na = "N\\A"
+        props = {"Amber": (0, 1, ["Str"]), "Tourmaline": (0, 1, ["HP Max"]), "Pyrite": (0, 1, ["AC"]),
+                 "Clear Quartz": (0, 1, ["Lightening"]), "Turquoise": (0, 1, ["Cold"]),
+                 "Wolf's Eye Agate": (0, 1, ["Arcane"]), "Pearl": (1, 2, ["Poison", "Disease"]),
+                 "Ruby": (2, 5, ["HoT"]), "Emerald": (2, 5, ["PoT"]), "Sapphire": (2, 7, ["HoT", "PoT"]),
+                 "Star Ruby": (3, 5, ["HoT", "Poison", "Disease"]), "Fire Emerald": (3, 5, ["PoT", "Fire", "Cold"]),
+                 "Black Sapphire": (3, 7, ["HoT", "PoT", "Lightening", "Arcane"]), "Diamond": (2, 5, ["HP Max", "HoT", "AC"]),
+                 "Blue Diamond": (3, 7, ["HP Max", "PWR Max", "HoT", "PoT", "AC"])}
+        cells = {"Amber": [attr], "Tourmaline": [hp], "Pyrite": [ac], "Clear Quartz": [attr], "Turquoise": [attr],
+                 "Wolf's Eye Agate": [attr], "Pearl": [[na] + [f"+{v}/+{v}" for v in (4, 6, 8, 10, 12, 13, 15, 17, 19)]],
+                 "Ruby": [[na] * 4 + ["+5", "+10", "+12", "+14", "+16", "+17"]],
+                 "Emerald": [[na] * 4 + ["+5", "+10", "+12", "+14", "+16", "+17"]],
+                 "Sapphire": [[na] * 6 + ["+2/+2", "+4/+4", "+6/+6", "+7/+7"]],
+                 "Star Ruby": [[na] * 4 + ["+5HoT\\"] * 6, [""] * 4 + ["+4\\+4"] * 6],
+                 "Fire Emerald": [[na] * 4 + ["+5PoT\\"] * 6, [""] * 4 + ["+4\\+4"] * 6],
+                 "Black Sapphire": [[na] * 6 + ["+75HP\\"] * 4, [""] * 6 + ["+25Pwr\\"] * 4, [""] * 6 + ["+9\\+9"] * 4],
+                 "Diamond": [[na] * 4 + ["+1HoT\\"] * 6, [""] * 4 + ["+15HP\\"] * 6, [""] * 4 + ["+20AC"] * 6],
+                 "Blue Diamond": [[na] * 6 + ["+30HP\\", "+35HP\\", "+40HP\\", "+45HP\\"],
+                                  [""] * 6 + ["+75PM\\", "+80PM\\", "+85PM\\", "+90PM\\"],
+                                  [""] * 6 + ["+35AC", "+40AC", "+45AC", "+50AC"]]}
+        self.props = props
+        with open(os.path.join(self.sources, "prima", "prima-frontiers-layout.txt"), "w", encoding="utf-8") as f:
+            f.write(prima_text(props, cells))
+        vend = os.path.join(self.sources, "eqoatrade", "Vendors")
+        os.makedirs(vend)
+        with open(os.path.join(vend, "Jewelry.htm"), "w") as f:
+            f.write("<p>Testport - Outside of the gate<br>Tutorial - Jeweler Gem<br>Kits - Merchant Kit<br>"
+                    "Molds, Bars, Glass - Merchan Bar</p>")
+        wares = [ware(28517 + k, f"{t} Jewelers Kit", 100 * (k + 1), wear=25, level=1 + 5 * k, craft=0, stack=1)
+                 for k, t in enumerate(M.KITS)]
+        wares += [ware(27506 + k, m, 10) for k, m in enumerate(M.JEWEL_MOLDS)]
+        wares += [ware(27571 + k, f"{m} Bar", 14 + 80 * k) for k, m in enumerate(M.JEWEL_METALS)]
+        with open(os.path.join(d, "harvest.json"), "w") as f:
+            json.dump({"character": {"world": 0}, "merchants": [{"name": "Merchant Bar", "wares": wares}]}, f)
+        self.db = os.path.join(d, "t.db")
+        db = sqlite3.connect(self.db)
+        db.execute(f"CREATE TABLE itempattern ({ITEM_COLS})")
+        # a gem here already; a live crafted record cut at 32 letters with the product's stats; one of a product's
+        # name, level and slot with other stats (a found earring)
+        db.execute("INSERT INTO itempattern (patternid, itemname, craft, equipslot, maxstack, model, color, itemicon, itemcost, itemdesc) "
+                   "VALUES (25651, 'Tourmaline', 1, -1, 50, 0, 0, 140265582, 20, 'These gems are often sought after by jewelers for "
+                   "their seemingly magical ability to enhance vitality.')")
+        db.execute("INSERT INTO itempattern (patternid, itemname, levelreq, equipslot, maxhp, duration, AR, maxstack, model, color, "
+                   "itemicon, itemcost) VALUES (1249, 'mithril wolf''s eye agate bracele', 48, 6, 9600, 70, 40, 1, 0, 0, -1977361665, 0)")
+        db.execute("INSERT INTO itempattern (patternid, itemname, levelreq, equipslot, maxhp, duration, POWMAX, LR, maxstack, model, "
+                   "color, itemicon, itemcost) VALUES (3622, 'Silver Pearl Earring', 23, 3, 4600, 50, 20, 18, 1, 0, 0, 5, 0)")
+        db.execute("CREATE TABLE npcs (id INTEGER PRIMARY KEY, npc_name TEXT, npc_id INTEGER, npc_type INTEGER)")
+        db.executemany("INSERT INTO npcs VALUES (?, ?, ?, ?)", [(1, "Jeweler Gem", 1, 128), (2, "Merchant Kit", 2, 129),
+                                                                 (3, "Merchant Bar", 3, 129)])
+        db.execute("CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER, stackleft INTEGER, remainHP INTEGER, "
+                   "remaincharge INTEGER, patternid INTEGER, equiploc INTEGER, location INTEGER, listnumber INTEGER)")
+        db.execute("CREATE TABLE loottables (id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT, patternid INTEGER, weight INTEGER, "
+                   "minlevel INTEGER, maxlevel INTEGER, source TEXT)")
+        db.execute("CREATE TABLE npcloot (npc_name TEXT, tablename TEXT, chance INTEGER, rolls INTEGER, note TEXT, source TEXT, "
+                   "PRIMARY KEY (npc_name, tablename))")
+        db.commit()
+        db.close()
+
+    def tearDown(self):
+        self.dir.cleanup()
+
+    def tool(self, *args, ok=True):
+        r = subprocess.run([sys.executable, "-E", "-s", TOOL, "--db", self.db, "--no-backup", "--craft", "jewel",
+                            "--sources", self.sources, "--harvests", os.path.join(self.dir.name, "harvest.json"), *args],
+                           capture_output=True, text=True)
+        if ok and r.returncode != 0:
+            raise AssertionError(r.stdout + r.stderr)
+        return r
+
+    def q(self, sql):
+        c = sqlite3.connect(self.db)
+        try:
+            return c.execute(sql).fetchall()
+        finally:
+            c.close()
+
+    def snapshot(self):
+        return SeedTradeskills.snapshot(self)
+
+    def test_the_tables_read_by_their_columns(self):
+        props, cells, problems = M.read_prima_jewel(self.sources)
+        self.assertEqual(problems, [])
+        self.assertEqual(props["Clear Quartz"][2], ["LR"])
+        self.assertEqual(props["Turquoise"][2], ["CR"], "Cold stands right of Lightning")
+        self.assertEqual(props["Pearl"], (1, 2, ["PR", "DR"]))
+        self.assertEqual(cells["Blue Diamond"][9], "+45HP\\+90PM\\+50AC", "a cell's three lines joined")
+        stats = M.gem_stats(props, cells, problems)
+        self.assertEqual(stats["Pearl"][2], {"PR": 4, "DR": 4})
+        self.assertEqual(stats["Ruby"][9], {"HPMAX": 129}, "the live record's figure at its metal")
+        self.assertEqual(stats["Ruby"][10], {"HPMAX": int(129 * 125 / 110 + 0.5)}, "along Tourmaline's curve")
+        self.assertEqual(stats["Emerald"][10], {"POWMAX": stats["Ruby"][10]["HPMAX"]}, "Ruby's twin")
+        self.assertEqual(stats["Diamond"][10], {"cha": 24, "HPMAX": 84, "AC": 56})
+        self.assertEqual(stats["Blue Diamond"][7], {"HPMAX": 30, "POWMAX": 75, "AC": 35})
+        self.assertNotIn("HoT", stats["Star Ruby"][5], "no gem gives HoT since December 2003")
+
+    def test_apply_and_undo(self):
+        before = self.snapshot()
+        self.tool("--apply")
+        # every gem's cells, each four pieces, plus the two starters; the one live record reused
+        n_cells = sum(11 - tl for _, tl, _ in self.props.values())
+        self.assertEqual(self.q("SELECT count(*) FROM craftrecipes")[0][0], 4 * n_cells + 2)
+        made = dict(self.q("SELECT name, product FROM craftrecipes"))
+        self.assertEqual(made["mithril wolf's eye agate bracelet"], 1249)
+        self.assertNotEqual(made["silver pearl earring"], 3622, "a found earring of other stats is another item")
+        ring = self.q("SELECT levelreq, equipslot, maxhp, duration, LR FROM itempattern WHERE itemname = 'mithril clear quartz ring'")
+        self.assertEqual(ring, [(48, 8, 9600, 70, 40)])
+        ing = json.loads(self.q("SELECT ingredients FROM craftrecipes WHERE name = 'iron amber pendant'")[0][0])
+        self.assertEqual([(i["count"], i["keep"]) for i in ing], [(1, False), (1, False), (1, True)], "a failure keeps the gem")
+        self.assertEqual(self.q("SELECT comp, level FROM craftrecipes WHERE name = 'cracked glass earring'"), [(10, 1)])
+        self.assertEqual(self.q("SELECT chance FROM npcloot WHERE npc_name = '*' AND tablename = 'craft gems'"), [(3,)])
+        self.assertGreater(self.q("SELECT count(*) FROM npcitem WHERE npcid = 2")[0][0], 9, "the kits on their seller")
+        self.assertIn("applied already", self.tool("--apply", ok=False).stderr)
+        self.tool("--undo")
+        after = self.snapshot()
+        after.pop("craftrecipes")
+        self.assertEqual(after, before)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -88,9 +88,9 @@ func TestCMCatalogReadsBack(t *testing.T) {
 	}
 }
 
-// A catalog made before require_ranks gets the column at the next start, its
-// rows kept and reading none; the column then reads back as written. The
-// control: a new database has it from the start.
+// A catalog made before require_ranks and require_quests gets the columns at
+// the next start, its rows kept and reading none; each then reads back as
+// written. The control: a new database has both from the start.
 func TestCMCatalogGainsRequireRanks(t *testing.T) {
 	path := t.TempDir() + "/old.db"
 	raw, err := sql.Open("sqlite", path)
@@ -108,8 +108,10 @@ func TestCMCatalogGainsRequireRanks(t *testing.T) {
 		INSERT INTO cmcatalog (id, name, cost) VALUES (7, 'Old 1', 5)`); err != nil {
 		t.Fatal(err)
 	}
-	if has, _ := hasColumn(raw, "cmcatalog", "require_ranks"); has {
-		t.Fatal("the old table already has require_ranks")
+	for _, col := range []string{"require_ranks", "require_quests"} {
+		if has, _ := hasColumn(raw, "cmcatalog", col); has {
+			t.Fatalf("the old table already has %s", col)
+		}
 	}
 	raw.Close()
 
@@ -119,14 +121,15 @@ func TestCMCatalogGainsRequireRanks(t *testing.T) {
 	}
 	defer db.Close()
 	rows, err := db.CMCatalog()
-	if err != nil || len(rows) != 1 || rows[0].Name != "Old 1" || rows[0].RequireRanks != "" {
+	if err != nil || len(rows) != 1 || rows[0].Name != "Old 1" || rows[0].RequireRanks != "" || rows[0].RequireQuests != "" {
 		t.Fatalf("the old catalog after the start: %+v (%v)", rows, err)
 	}
-	if _, err := db.Exec(`UPDATE cmcatalog SET require_ranks = '6634, 6614' WHERE id = 7`); err != nil {
+	if _, err := db.Exec(`UPDATE cmcatalog SET require_ranks = '6634, 6614', require_quests = '101195' WHERE id = 7`); err != nil {
 		t.Fatal(err)
 	}
-	if rows, _ := db.CMCatalog(); len(rows) != 1 || !reflect.DeepEqual(SpellIDs(rows[0].RequireRanks), []int{6634, 6614}) {
-		t.Errorf("require_ranks read back as %+v", rows)
+	if rows, _ := db.CMCatalog(); len(rows) != 1 || !reflect.DeepEqual(SpellIDs(rows[0].RequireRanks), []int{6634, 6614}) ||
+		!reflect.DeepEqual(SpellIDs(rows[0].RequireQuests), []int{101195}) {
+		t.Errorf("require_ranks and require_quests read back as %+v", rows)
 	}
 
 	fresh, err := NewSQLite(t.TempDir() + "/new.db")
@@ -134,7 +137,9 @@ func TestCMCatalogGainsRequireRanks(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer fresh.Close()
-	if has, err := hasColumn(fresh.DB, "cmcatalog", "require_ranks"); err != nil || !has {
-		t.Errorf("the control: a new database's catalog lacks require_ranks (%v)", err)
+	for _, col := range []string{"require_ranks", "require_quests"} {
+		if has, err := hasColumn(fresh.DB, "cmcatalog", col); err != nil || !has {
+			t.Errorf("the control: a new database's catalog lacks %s (%v)", col, err)
+		}
 	}
 }

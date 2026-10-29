@@ -110,7 +110,13 @@ type CMRank struct {
 	Requires                     []CMAbility
 	// RequireRanks are other masteries' ranks owned first (require_ranks);
 	// one the catalog lacks is not checked
-	RequireRanks  []int
+	RequireRanks []int
+	// RequireQuests are the quests finished first (require_quests, their
+	// ids): the stat-boost quests open the stat-boost lines, a trial a rank
+	// (the user, 2026-10-29: "gate the stat boost masteries behind the
+	// quests"; EQOA-Data's guide: "Bulging Muscles 1 ... is now available
+	// for purchase")
+	RequireQuests []int
 	Effects       [CMSlots]int
 	Adds, Removes []CMAbility
 	Description   string
@@ -175,6 +181,7 @@ func ParseCMRank(r database.CMRankRow) *CMRank {
 	}
 	c.Requires = parseAbilities(r.Requires, r.RequireSpells)
 	c.RequireRanks = database.SpellIDs(r.RequireRanks) // a list of ids, as the spells' are
+	c.RequireQuests = database.SpellIDs(r.RequireQuests)
 	c.Adds = parseAbilities(r.Adds, r.AddSpells)
 	c.Removes = parseAbilities(r.Removes, r.RemoveSpells)
 	return c
@@ -269,13 +276,17 @@ func (w *World) CMSummary() string {
 		return "masteries: none in cmcatalog (none can be bought; tools/seed_masteries.py fills it)"
 	}
 	var n [5]int
+	quests := 0
 	for _, r := range w.cms.order {
 		if r.Enabled && r.Category >= 0 && r.Category < 5 {
 			n[r.Category]++
+			if len(r.RequireQuests) > 0 {
+				quests++
+			}
 		}
 	}
-	return fmt.Sprintf("masteries: %d ranks to buy (general %d, racial %d, archetype %d, class %d, master class %d)",
-		n[0]+n[1]+n[2]+n[3]+n[4], n[0], n[1], n[2], n[3], n[4])
+	return fmt.Sprintf("masteries: %d ranks to buy (general %d, racial %d, archetype %d, class %d, master class %d; %d need a quest finished)",
+		n[0]+n[1]+n[2]+n[3]+n[4], n[0], n[1], n[2], n[3], n[4], quests)
 }
 
 // offered is whether the rank is listed for the player: enabled, and for its
@@ -408,10 +419,19 @@ func (w *World) CMStateOf(sess *session.Session) (CMState, bool) {
 // CMStateOfPlayer is p's CMState (the MemoryDump writer holds the player).
 func CMStateOfPlayer(p *Player) CMState { return p.cmStateLocked() }
 
+// CMKnows is what a rank's prerequisites look at that the World does not
+// keep, each by id: the spells in the character's book, the quests it has
+// finished, and the names of the quests in the game (the mastery window's
+// handler reads them, the book off the database and the quests off the quest
+// engine, before it asks the World).
+type CMKnows struct {
+	Book, Quests map[int]bool
+	QuestNames   map[int]string
+}
+
 // cmBlockLocked is why the player cannot buy the rank now, "" when it can
-// (the points aside): what makes it "known" in the window. book is the
-// spells in its spell book, by id.
-func (w *World) cmBlockLocked(p *Player, r *CMRank, book map[int]bool) string {
+// (the points aside): what makes it "known" in the window.
+func (w *World) cmBlockLocked(p *Player, r *CMRank, k CMKnows) string {
 	if _, ok := p.CMs[r.ID]; ok {
 		return "You already have that mastery."
 	}
@@ -434,6 +454,14 @@ func (w *World) cmBlockLocked(p *Player, r *CMRank, book map[int]bool) string {
 	if p.Level < r.Level {
 		return fmt.Sprintf("You must be level %d to buy %s.", r.Level, r.Name)
 	}
+	for _, id := range r.RequireQuests {
+		// a quest not in the game (a draft, or none) bars no one, as a trip
+		// a draft unlocks does not (questtrips.go): no one can finish it, and
+		// a GM taking a quest out locks no rank for good
+		if name, ok := k.QuestNames[id]; ok && !k.Quests[id] {
+			return fmt.Sprintf("You must finish %s to buy %s.", name, r.Name)
+		}
+	}
 	if p.Mastery.Spent < r.Spent {
 		return fmt.Sprintf("You must have spent %d mastery points to buy %s.", r.Spent, r.Name)
 	}
@@ -444,7 +472,7 @@ func (w *World) cmBlockLocked(p *Player, r *CMRank, book map[int]bool) string {
 		}
 	}
 	for _, a := range r.Requires {
-		if a.SpellID > 0 && !book[a.SpellID] { // a name never found is not checked
+		if a.SpellID > 0 && !k.Book[a.SpellID] { // a name never found is not checked
 			return fmt.Sprintf("You must know %s to buy %s.", a.Name, r.Name)
 		}
 	}
@@ -459,9 +487,8 @@ func (w *World) cmBlockLocked(p *Player, r *CMRank, book map[int]bool) string {
 }
 
 // CMList is the window's list for the session's player: every rank its
-// class and race are offered, owned and known flags its own. book is the
-// spells in its spell book, by id.
-func (w *World) CMList(sess *session.Session, book map[int]bool) []CMEntry {
+// class and race are offered, owned and known flags its own.
+func (w *World) CMList(sess *session.Session, k CMKnows) []CMEntry {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	p := w.sessionPlayerLocked(sess)
@@ -475,9 +502,41 @@ func (w *World) CMList(sess *session.Session, book map[int]bool) []CMEntry {
 		}
 		_, owned := p.CMs[r.ID]
 		out = append(out, CMEntry{ID: r.ID, Parent: r.Parent, Category: r.Category, Cost: r.Cost,
-			Owned: owned, Known: !owned && w.cmBlockLocked(p, r, book) == "", Name: r.Name})
+			Owned: owned, Known: !owned && w.cmBlockLocked(p, r, k) == "", Name: r.Name})
 	}
 	w.cmListParentsLocked(out)
+	return out
+}
+
+// CMOpenedBy is the names of the ranks a quest just finished opens for the
+// session's player, in the catalog's order: those offered to it and not owned
+// that need the quest (RequireQuests) and now have every quest they need in
+// the game finished (k's), whatever else they still need.
+func (w *World) CMOpenedBy(sess *session.Session, questID int, k CMKnows) []string {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || w.cms == nil {
+		return nil
+	}
+	var out []string
+	for _, r := range w.cms.order {
+		if !r.offered(p) || !slices.Contains(r.RequireQuests, questID) {
+			continue
+		}
+		if _, owned := p.CMs[r.ID]; owned {
+			continue
+		}
+		open := true
+		for _, id := range r.RequireQuests {
+			if _, ok := k.QuestNames[id]; ok && !k.Quests[id] {
+				open = false
+			}
+		}
+		if open {
+			out = append(out, r.Name)
+		}
+	}
 	return out
 }
 
@@ -558,7 +617,7 @@ func (w *World) cmMasterClassOf(id int) int {
 
 // CMNodeOf is one rank opened for the session's player; false when it is
 // not offered to it.
-func (w *World) CMNodeOf(sess *session.Session, id int, book map[int]bool) (CMNode, bool) {
+func (w *World) CMNodeOf(sess *session.Session, id int, k CMKnows) (CMNode, bool) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	p := w.sessionPlayerLocked(sess)
@@ -570,7 +629,7 @@ func (w *World) CMNodeOf(sess *session.Session, id int, book map[int]bool) (CMNo
 		return CMNode{}, false
 	}
 	_, owned := p.CMs[r.ID]
-	block := w.cmBlockLocked(p, r, book)
+	block := w.cmBlockLocked(p, r, k)
 	n := CMNode{CMEntry: CMEntry{ID: r.ID, Parent: r.Parent, Category: r.Category, Cost: r.Cost,
 		Owned: owned, Known: !owned && block == "", Name: r.Name},
 		Level: r.Level, Spent: r.Spent, MinStats: r.MinStats, Rank: r.Rank, Title: r.Name}
@@ -631,7 +690,7 @@ type CMResult struct {
 
 // BuyCM buys a rank for the session's player: its points and ranks changed
 // and its stats again; the caller keeps it and grants the abilities.
-func (w *World) BuyCM(sess *session.Session, id int, book map[int]bool) CMResult {
+func (w *World) BuyCM(sess *session.Session, id int, k CMKnows) CMResult {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	p := w.sessionPlayerLocked(sess)
@@ -645,7 +704,7 @@ func (w *World) BuyCM(sess *session.Session, id int, book map[int]bool) CMResult
 	if r == nil || !r.offered(p) {
 		return CMResult{Refusal: "That mastery is not offered to you."}
 	}
-	if why := w.cmBlockLocked(p, r, book); why != "" {
+	if why := w.cmBlockLocked(p, r, k); why != "" {
 		return CMResult{Refusal: why, Rank: r}
 	}
 	if p.Mastery.Points < r.Cost {

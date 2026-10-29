@@ -465,7 +465,7 @@ func TestCMNeedsAnotherMasterysRank(t *testing.T) {
 		return rows
 	}
 	known := func(c *cmTest, id int) bool {
-		for _, e := range c.w.gw.CMList(c.sess, map[int]bool{500: true}) {
+		for _, e := range c.w.gw.CMList(c.sess, entity.CMKnows{Book: map[int]bool{500: true}}) {
 			if e.ID == id {
 				return e.Known
 			}
@@ -485,7 +485,7 @@ func TestCMNeedsAnotherMasterysRank(t *testing.T) {
 	if known(c, 20) {
 		t.Error("Destroyer 1 is known without Brawn 2")
 	}
-	if n, ok := c.w.gw.CMNodeOf(c.sess, 20, nil); !ok || !slices.Contains(n.Masteries, "Brawn 2") || !strings.Contains(n.Text, "Brawn 2") {
+	if n, ok := c.w.gw.CMNodeOf(c.sess, 20, entity.CMKnows{}); !ok || !slices.Contains(n.Masteries, "Brawn 2") || !strings.Contains(n.Text, "Brawn 2") {
 		t.Errorf("the window does not say Brawn 2 is needed: %v %+v", ok, n)
 	}
 	before := c.p.Mastery
@@ -500,7 +500,7 @@ func TestCMNeedsAnotherMasterysRank(t *testing.T) {
 	if rs, red := c.send(cmBuy, 20); len(red) != 0 || rs[0][0] != cmRespBought {
 		t.Fatalf("buying Destroyer 1 with Brawn 2: % x %v", rs, red)
 	}
-	if n, _ := c.w.gw.CMNodeOf(c.sess, 21, nil); slices.Contains(n.Masteries, "Brawn 2") {
+	if n, _ := c.w.gw.CMNodeOf(c.sess, 21, entity.CMKnows{}); slices.Contains(n.Masteries, "Brawn 2") {
 		t.Errorf("Defender 1 says a rank it does not need: %v", n.Masteries)
 	}
 	if _, red := c.send(cmRemove, 2); len(red) != 1 || !strings.Contains(red[0], "Remove Destroyer 1 before Brawn 2") {
@@ -515,6 +515,93 @@ func TestCMNeedsAnotherMasterysRank(t *testing.T) {
 	unknown.p.Mastery.Points = 600
 	if rs, red := unknown.send(cmBuy, 20); len(red) != 0 || rs[0][0] != cmRespBought {
 		t.Errorf("a rank needed that the catalog lacks blocked Destroyer 1: % x %v", rs, red)
+	}
+}
+
+// A rank may need a quest finished (require_quests: the stat-boost quests open
+// the stat-boost lines): until the character has finished it the rank is
+// refused, not known, and the window says which quest; once the quest is done
+// (played through, the engine's own count) the finish says the rank is open,
+// and it is known and bought. A quest not
+// in the game bars no one, as a trip a draft unlocks: one the database lacks,
+// and a draft until a GM puts it in the game, which counts at once.
+func TestCMNeedsAQuestFinished(t *testing.T) {
+	f := newQuestFixture(t)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (10020, 'A draft', 0, 'Malsis')`)
+	f.exec(`INSERT INTO cmcatalog (id, mastery, rank, name, parent, cost, level, effects, require_quests) VALUES
+		(11, 'Buldging Muscles', 1, 'Buldging Muscles 1', 0, 5, 1, 'STR:10', '10010'),
+		(12, 'Buldging Muscles', 2, 'Buldging Muscles 2', 11, 10, 1, 'STR:20', '999999'),
+		(31, 'Intestinal Fortitude', 1, 'Intestinal Fortitude 1', 0, 5, 1, 'STA:10', '10020'),
+		(32, 'Intestinal Fortitude', 2, 'Intestinal Fortitude 2', 31, 10, 1, 'STA:20', '10020')`)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.tw.w.LoadCMCatalog(f.db); err != nil {
+		t.Fatal(err)
+	}
+	h := NewClassMasteryHandler(f.tw.mgr)
+	h.SetGameWorld(f.tw.w)
+	kept := &keptMastery{}
+	h.SetStore(kept)
+	h.SetSpellbook(&fakeBook{spells: map[int]string{}})
+	c := &cmTest{t: t, h: h, sess: f.tw.s, p: f.tw.p, kept: kept}
+	c.p.Mastery.Points = 100
+	known := func(id int) bool {
+		for _, e := range f.tw.w.CMList(c.sess, h.cmKnowsOf(c.p)) {
+			if e.ID == id {
+				return e.Known
+			}
+		}
+		return false
+	}
+	const why = "You must finish The pincers to buy Buldging Muscles 1."
+
+	if known(11) {
+		t.Error("Buldging Muscles 1 is known with its quest not done")
+	}
+	if n, ok := f.tw.w.CMNodeOf(c.sess, 11, h.cmKnowsOf(c.p)); !ok || !strings.Contains(n.Text, why) {
+		t.Errorf("the window does not say the quest is needed: %v %q", ok, n.Text)
+	}
+	before := c.p.Mastery
+	if _, red := c.send(cmBuy, 11); len(red) != 1 || red[0] != why || c.p.Mastery != before {
+		t.Errorf("buying Buldging Muscles 1 with the quest not done: %v", red)
+	}
+
+	// the draft bars no one; put in the game, it bars the next rank at once
+	if rs, red := c.send(cmBuy, 31); len(red) != 0 || rs[0][0] != cmRespBought {
+		t.Errorf("a draft's quest blocked Intestinal Fortitude 1: % x %v", rs, red)
+	}
+	f.exec(`UPDATE quests SET enabled = 1 WHERE questid = 10020`)
+	if err := f.qe.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	if _, red := c.send(cmBuy, 32); len(red) != 1 || red[0] != "You must finish A draft to buy Intestinal Fortitude 2." {
+		t.Errorf("buying Intestinal Fortitude 2 once its quest is in the game: %v", red)
+	}
+
+	malsis := f.tw.add(1, &entity.NPC{ServerID: 701, Name: "Malsis", SpawnX: 25403.5, SpawnY: 54.1, SpawnZ: 15725.5})
+	kellina := f.tw.add(2, &entity.NPC{ServerID: 702, Name: "Kellina", SpawnX: 25404, SpawnY: 54.1, SpawnZ: 15726})
+	f.tw.talk(malsis)
+	f.tw.pick(boxID(f.msgs()), 0)
+	f.tw.talk(kellina)
+	f.own(f.pincer, 2)
+	f.tw.talk(kellina)
+	f.tw.pick(boxID(f.msgs()), 0)
+	m := f.msgs()
+	if _, done := f.progress(10010); done != 1 {
+		t.Fatalf("the quest was not finished (done %d)", done)
+	}
+	f.want(m, "box:"+questFinished, "box:Buldging Muscles 1 is now available for purchase.")
+	f.not(m, "box:Buldging Muscles 2*", "box:Intestinal Fortitude*")
+
+	if !known(11) {
+		t.Error("Buldging Muscles 1 is not known with its quest done")
+	}
+	if rs, red := c.send(cmBuy, 11); len(red) != 0 || rs[0][0] != cmRespBought {
+		t.Fatalf("buying Buldging Muscles 1 with the quest done: % x %v", rs, red)
+	}
+	if rs, red := c.send(cmBuy, 12); len(red) != 0 || rs[0][0] != cmRespBought {
+		t.Errorf("a quest the database lacks blocked Buldging Muscles 2: % x %v", rs, red)
 	}
 }
 

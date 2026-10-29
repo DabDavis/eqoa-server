@@ -147,6 +147,9 @@ type questCatalog struct {
 	// opens it)
 	gates     map[string][]*database.Quest
 	unlockers map[string][]*database.Quest
+	// inGame is the enabled quests' names, by id (what a mastery rank may
+	// need finished: InGame); never written once made
+	inGame map[int]string
 }
 
 // questChar is one character's quests.
@@ -328,11 +331,14 @@ func (q *QuestEngine) Reload() error {
 		return err
 	}
 	cat := questCatalog{byID: map[int]*database.Quest{}, givers: map[string][]*database.Quest{}, gates: map[string][]*database.Quest{},
-		unlockers: map[string][]*database.Quest{}}
+		unlockers: map[string][]*database.Quest{}, inGame: map[int]string{}}
 	for i := range all {
 		qu := &all[i]
 		cat.byID[qu.ID] = qu
 		cat.all = append(cat.all, qu)
+		if qu.Enabled {
+			cat.inGame[qu.ID] = qu.Name
+		}
 		if qu.Enabled && strings.TrimSpace(qu.Giver) != "" {
 			k := foldName(qu.Giver)
 			cat.givers[k] = append(cat.givers[k], qu)
@@ -442,6 +448,40 @@ func (q *QuestEngine) Journal(serverID uint32) (uint32, []string) {
 	lines := q.linesLocked(c)
 	c.shown = append([]string(nil), lines...)
 	return c.token, lines
+}
+
+// InGame is the names of the quests in the game, by id: a mastery rank needs
+// only those of its quests finished (cmcatalog.require_quests; a draft bars
+// no one). The map is shared: never write it.
+func (q *QuestEngine) InGame() map[int]string {
+	if q == nil {
+		return nil
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return q.cat.inGame
+}
+
+// FinishedBy is the quests a character has finished at least once, by id
+// (what a mastery rank may need: cmcatalog.require_quests).
+func (q *QuestEngine) FinishedBy(serverID uint32) map[int]bool {
+	if q == nil {
+		return map[int]bool{}
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return q.charLocked(serverID).finished()
+}
+
+// finished is the quests the character has finished at least once, by id.
+func (c *questChar) finished() map[int]bool {
+	out := map[int]bool{}
+	for id, cq := range c.quests {
+		if cq.Done > 0 {
+			out[id] = true
+		}
+	}
+	return out
 }
 
 // linesLocked is the character's journal lines (at most eight), in order.
@@ -1127,6 +1167,16 @@ func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player
 		rw = rw.Plus(*extra)
 	}
 	lines = append(lines, q.rewardLocked(sess, p, rw)...)
+	if next == nil && sess != nil {
+		// a mastery rank the quest opens (cmcatalog.require_quests: each
+		// stat-boost trial its line's next rank), in the guide's words:
+		// "Congratulations, Bulging Muscles 1 (5cm cost, 10str) is now
+		// available for purchase."
+		k := entity.CMKnows{Quests: c.finished(), QuestNames: q.cat.inGame}
+		for _, name := range q.gw.CMOpenedBy(sess, qu.ID, k) {
+			lines = append(lines, name+" is now available for purchase.")
+		}
+	}
 	q.tellLocked(c, sess, "", lines...)
 	if rw.XP > 0 && sess != nil && p != nil {
 		q.gw.AwardXP(sess, p, rw.XP)

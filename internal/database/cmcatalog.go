@@ -31,7 +31,10 @@ import (
 //     as, which the spell book must hold (a name not found is shown and not
 //     checked); require_ranks other masteries' ranks the character must own
 //     first, their ids ("6634"; the rank before it in its own line is
-//     parent).
+//     parent); require_quests the quests it must have finished first, their
+//     ids (quests.questid; a quest not in the game bars no one: the
+//     stat-boost quests open the stat-boost lines,
+//     tools/gate_stat_masteries.py).
 //   - effects is what it gives, by EQOA-Data's stat names ("STR:1,STRMax:15",
 //     "HP Factor:1", "Pow:500", "HoT:5", "MovRate:5", resists "FR".."DR");
 //     adds and removes the abilities it gives and takes ("Name@level; ...",
@@ -57,6 +60,7 @@ const cmCatalogSchema = `
 		requires      TEXT NOT NULL DEFAULT '',
 		require_spells TEXT NOT NULL DEFAULT '',
 		require_ranks TEXT NOT NULL DEFAULT '',
+		require_quests TEXT NOT NULL DEFAULT '',
 		effects       TEXT NOT NULL DEFAULT '',
 		adds          TEXT NOT NULL DEFAULT '',
 		add_spells    TEXT NOT NULL DEFAULT '',
@@ -75,18 +79,20 @@ const cmCatalogSchema = `
 	);`
 
 // ensureCMCatalog makes tables cmcatalog and charcms (initSchema), adding
-// require_ranks to a table made before it.
+// require_ranks and require_quests to a table made before them.
 func (db *SQLiteDB) ensureCMCatalog() error {
 	if _, err := db.Exec(cmCatalogSchema); err != nil {
 		return fmt.Errorf("cmcatalog: %w", err)
 	}
-	has, err := hasColumn(db.DB, "cmcatalog", "require_ranks")
-	if err != nil {
-		return fmt.Errorf("cmcatalog: %w", err)
-	}
-	if !has {
-		if _, err := db.Exec(`ALTER TABLE cmcatalog ADD COLUMN require_ranks TEXT NOT NULL DEFAULT ''`); err != nil {
+	for _, col := range []string{"require_ranks", "require_quests"} {
+		has, err := hasColumn(db.DB, "cmcatalog", col)
+		if err != nil {
 			return fmt.Errorf("cmcatalog: %w", err)
+		}
+		if !has {
+			if _, err := db.Exec(`ALTER TABLE cmcatalog ADD COLUMN ` + col + ` TEXT NOT NULL DEFAULT ''`); err != nil {
+				return fmt.Errorf("cmcatalog: %w", err)
+			}
 		}
 	}
 	return nil
@@ -101,7 +107,7 @@ type CMRankRow struct {
 	Parent, Cost, Level, Spent   int
 	MinStats, Effects            string
 	Requires, RequireSpells      string
-	RequireRanks                 string
+	RequireRanks, RequireQuests  string
 	Adds, AddSpells              string
 	Removes, RemoveSpells        string
 	Description                  string
@@ -112,8 +118,8 @@ type CMRankRow struct {
 // CMCatalog is every row of cmcatalog, by id order.
 func (db *SQLiteDB) CMCatalog() ([]CMRankRow, error) {
 	rows, err := db.Query(`SELECT id, category, classes, races, mastery, rank, name, parent, cost, level, spent,
-		minstats, requires, require_spells, require_ranks, effects, adds, add_spells, removes, remove_spells, description,
-		enabled, source FROM cmcatalog ORDER BY id`)
+		minstats, requires, require_spells, require_ranks, require_quests, effects, adds, add_spells, removes, remove_spells,
+		description, enabled, source FROM cmcatalog ORDER BY id`)
 	if err != nil {
 		return nil, err
 	}
@@ -123,8 +129,8 @@ func (db *SQLiteDB) CMCatalog() ([]CMRankRow, error) {
 		var r CMRankRow
 		var enabled int
 		if err := rows.Scan(&r.ID, &r.Category, &r.Classes, &r.Races, &r.Mastery, &r.Rank, &r.Name, &r.Parent,
-			&r.Cost, &r.Level, &r.Spent, &r.MinStats, &r.Requires, &r.RequireSpells, &r.RequireRanks, &r.Effects, &r.Adds, &r.AddSpells,
-			&r.Removes, &r.RemoveSpells, &r.Description, &enabled, &r.Source); err != nil {
+			&r.Cost, &r.Level, &r.Spent, &r.MinStats, &r.Requires, &r.RequireSpells, &r.RequireRanks, &r.RequireQuests, &r.Effects,
+			&r.Adds, &r.AddSpells, &r.Removes, &r.RemoveSpells, &r.Description, &enabled, &r.Source); err != nil {
 			return nil, err
 		}
 		r.Enabled = enabled != 0

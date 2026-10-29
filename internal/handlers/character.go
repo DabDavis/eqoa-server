@@ -1632,7 +1632,7 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 		craft = h.craftSlots(player.CharServerID)
 	}
 	writeMemoryDumpTailWith(writer, player, spells, craft, func(w *buffer.Writer) {
-		h.auction.WriteDumpLists(w, player.CharServerID)
+		h.auction.WriteDumpListsFor(w, sess, player.CharServerID)
 	})
 	log.Printf("SendMemoryDump: wrote %d abilities", len(spells))
 

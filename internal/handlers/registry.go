@@ -312,6 +312,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		house := NewAuctionHouse(charStore.DB(), npcWindowHandler)
 		house.isGM = chatHandler.isGM
 		charHandler.auction = house
+		// the live forms' answer (livefeatures.go offers them)
+		r.Register(protocol.OpcodeAuctionForm, house.HandleForm)
 		if gameWorld != nil {
 			house.SetGameWorld(gameWorld)
 			house.Start()

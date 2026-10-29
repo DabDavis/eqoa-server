@@ -74,7 +74,9 @@ const auctionSchema = `
 		holder      INTEGER NOT NULL DEFAULT 0,
 		delivered   INTEGER NOT NULL DEFAULT 0,
 		item_from   INTEGER NOT NULL DEFAULT 0,
-		item_to     INTEGER NOT NULL DEFAULT 0
+		item_to     INTEGER NOT NULL DEFAULT 0,
+		per_item    INTEGER NOT NULL DEFAULT 0,
+		demand      INTEGER NOT NULL DEFAULT 0
 	);
 	CREATE INDEX IF NOT EXISTS idx_auction_lots_state ON auction_lots(state, ends_at);
 	CREATE INDEX IF NOT EXISTS idx_auction_lots_seller ON auction_lots(seller);
@@ -86,6 +88,9 @@ const auctionSchema = `
 		max_bid     INTEGER NOT NULL,
 		escrow      INTEGER NOT NULL DEFAULT 0,
 		placed_at   INTEGER NOT NULL,
+		qty         INTEGER NOT NULL DEFAULT 1,
+		seq         INTEGER NOT NULL DEFAULT 0,
+		won         INTEGER NOT NULL DEFAULT 0,
 		PRIMARY KEY (lot, bidder)
 	);
 	CREATE INDEX IF NOT EXISTS idx_auction_bids_bidder ON auction_bids(bidder);
@@ -95,12 +100,46 @@ const auctionSchema = `
 		line     TEXT NOT NULL,
 		made_at  INTEGER NOT NULL
 	);
-	CREATE INDEX IF NOT EXISTS idx_auction_notices_char ON auction_notices(serverid);`
+	CREATE INDEX IF NOT EXISTS idx_auction_notices_char ON auction_notices(serverid);
+	CREATE TABLE IF NOT EXISTS auction_shares (
+		id          INTEGER PRIMARY KEY AUTOINCREMENT,
+		lot         INTEGER NOT NULL,
+		holder      INTEGER NOT NULL,
+		qty         INTEGER NOT NULL,
+		price       INTEGER NOT NULL DEFAULT 0,
+		delivered   INTEGER NOT NULL DEFAULT 0,
+		item_to     INTEGER NOT NULL DEFAULT 0
+	);
+	CREATE INDEX IF NOT EXISTS idx_auction_shares_holder ON auction_shares(holder, delivered);
+	CREATE INDEX IF NOT EXISTS idx_auction_shares_lot ON auction_shares(lot);`
 
-// ensureAuction makes the auction's tables (initSchema).
+// auctionColumns are the columns a house made before the stacks lacks
+// (2026-10-29: lots sold by the item, the live client's form).
+var auctionColumns = []struct{ table, col, decl string }{
+	{"auction_lots", "per_item", `INTEGER NOT NULL DEFAULT 0`},
+	{"auction_lots", "demand", `INTEGER NOT NULL DEFAULT 0`},
+	{"auction_bids", "qty", `INTEGER NOT NULL DEFAULT 1`},
+	{"auction_bids", "seq", `INTEGER NOT NULL DEFAULT 0`},
+	{"auction_bids", "won", `INTEGER NOT NULL DEFAULT 0`},
+}
+
+// ensureAuction makes the auction's tables (initSchema), adding to an older
+// house the columns it lacks: its lots stay whole (per_item 0) and its bids
+// one unit each, as they were made.
 func (db *SQLiteDB) ensureAuction() error {
 	if _, err := db.Exec(auctionSchema); err != nil {
 		return fmt.Errorf("auction: %w", err)
+	}
+	for _, c := range auctionColumns {
+		has, err := hasColumn(db.DB, c.table, c.col)
+		if err != nil {
+			return fmt.Errorf("auction: %w", err)
+		}
+		if !has {
+			if _, err := db.Exec(`ALTER TABLE ` + c.table + ` ADD COLUMN ` + c.col + ` ` + c.decl); err != nil {
+				return fmt.Errorf("auction: %w", err)
+			}
+		}
 	}
 	return nil
 }
@@ -163,7 +202,23 @@ type AuctionLot struct {
 	Holder    uint32 // once closed: whose bank the item goes to
 	Delivered bool
 	ItemTo    int // the charinventory row it became
+	// PerItem: put up by the item (the live client's form, a quantity and
+	// prices per item): with two or more it is a stack sold in units
+	// (Multi). Not: put up whole (the disc's form), one unit whatever its
+	// stack, its prices the whole lot's (a stack so is a Bundle).
+	PerItem bool
+	// Demand is how many items the bids that hold escrow ask for (Multi):
+	// with fewer than the stack a unit is still free at the starting bid.
+	Demand int
 }
+
+// Multi reports a lot sold by the item in more than one unit: the highest
+// bids per item take units until the stack runs out, at one price per item
+// (bidUnitsTx, settleUnitsTx).
+func (l *AuctionLot) Multi() bool { return l.PerItem && l.Item.StackLeft >= 2 }
+
+// Bundle reports a stack put up whole: one unit, priced as a whole.
+func (l *AuctionLot) Bundle() bool { return !l.PerItem && l.Item.StackLeft >= 2 }
 
 // Running reports a lot still taking bids: open and its time not up.
 func (l *AuctionLot) Running(now time.Time) bool {
@@ -180,9 +235,12 @@ func (l *AuctionLot) CurrentBid() int {
 }
 
 // MinNext is the least a new bid may be (the page's third column, word 1710
-// "Min. Bid"): the starting bid, or one over the current bid.
+// "Min. Bid"): the starting bid, or one over the current bid. A stack sold by
+// the item takes the starting bid while a unit is free (the bids ask for
+// fewer than the stack), else one over the price every winner pays now: the
+// live client's C, "the floor that currently wins a unit".
 func (l *AuctionLot) MinNext() int {
-	if l.High == 0 {
+	if l.High == 0 || (l.Multi() && l.Demand < l.Item.StackLeft) {
 		return l.MinBid
 	}
 	return l.Price + 1
@@ -193,9 +251,12 @@ type AuctionBid struct {
 	Lot      int
 	Bidder   uint32
 	Name     string
-	Max      int // its proxy ("Your Bid")
+	Max      int // its proxy ("Your Bid"), per item on a lot sold by the item
 	Escrow   int // held for it now ("In Escrow")
 	PlacedAt int64
+	Qty      int // the items it asks for (1: a lot put up whole is one unit)
+	Seq      int // the lot's bid count when placed: at one price, the earlier wins
+	Won      int // once a stack sold by the item closed: the items it won
 }
 
 // AuctionNotice is a line a character is to be told.
@@ -265,17 +326,18 @@ func execOneTx(tx sqlRunner, query string, args ...any) error {
 
 const auctionLotColumns = `l.lot, l.seller, l.seller_name, l.stack, l.remainhp, l.charges, l.item_from,
 	l.min_bid, l.buyout, l.fee, l.listed_at, l.ends_at, l.state, l.high_bidder, l.high_name,
-	l.high_max, l.price, l.bids, l.closed_at, l.holder, l.delivered, l.item_to, ` + itemPatternColumns
+	l.high_max, l.price, l.bids, l.closed_at, l.holder, l.delivered, l.item_to, l.per_item, l.demand, ` + itemPatternColumns
 
 func scanAuctionLot(scan func(...any) error) (AuctionLot, error) {
 	var l AuctionLot
-	var delivered int
+	var delivered, perItem int
 	err := scan(append([]any{
 		&l.ID, &l.Seller, &l.SellerName, &l.Item.StackLeft, &l.Item.RemainHP, &l.Item.Charges, &l.Item.ItemID,
 		&l.MinBid, &l.Buyout, &l.Fee, &l.ListedAt, &l.EndsAt, &l.State, &l.High, &l.HighName,
-		&l.HighMax, &l.Price, &l.Bids, &l.ClosedAt, &l.Holder, &delivered, &l.ItemTo,
+		&l.HighMax, &l.Price, &l.Bids, &l.ClosedAt, &l.Holder, &delivered, &l.ItemTo, &perItem, &l.Demand,
 	}, patternDest(&l.Item.Pattern)...)...)
 	l.Delivered = delivered != 0
+	l.PerItem = perItem != 0
 	l.Item.EquipLoc, l.Item.Location = -1, -1
 	return l, err
 }
@@ -309,8 +371,8 @@ func auctionLotTx(q sqlRunner, lot int) (AuctionLot, bool, error) {
 
 func auctionBidTx(q sqlRunner, lot int, bidder uint32) (AuctionBid, bool, error) {
 	b := AuctionBid{Lot: lot, Bidder: bidder}
-	err := q.QueryRow(`SELECT bidder_name, max_bid, escrow, placed_at FROM auction_bids WHERE lot = ? AND bidder = ?`,
-		lot, bidder).Scan(&b.Name, &b.Max, &b.Escrow, &b.PlacedAt)
+	err := q.QueryRow(`SELECT bidder_name, max_bid, escrow, placed_at, qty, seq, won FROM auction_bids WHERE lot = ? AND bidder = ?`,
+		lot, bidder).Scan(&b.Name, &b.Max, &b.Escrow, &b.PlacedAt, &b.Qty, &b.Seq, &b.Won)
 	if err == sql.ErrNoRows {
 		return b, false, nil
 	}
@@ -370,11 +432,19 @@ type AuctionListing struct {
 	Minutes   int
 	GM        bool // a GM's form counts minutes: 2 at least
 	Now       time.Time
+	// PerItem puts Count items of the record up by the item (the live
+	// client's form): MinBid and Buyout are each item's, the fee each
+	// item's times the count, and what is left of the stack stays in the
+	// bank. Not: the whole record goes as one lot at those prices (the
+	// disc's form, whose count is the constant 1).
+	PerItem bool
+	Count   int
 }
 
 // AuctionList puts a bank record up for auction: the listing fee out of the
-// seller's bank and the row out of it into the house, in one transaction. It
-// returns the lot and the seller's bank tunar after.
+// seller's bank and the row (or, by the item, that many of its stack) out of
+// it into the house, in one transaction. It returns the lot and the seller's
+// bank tunar after.
 func (db *SQLiteDB) AuctionList(req AuctionListing) (AuctionLot, int, error) {
 	least := AuctionMinMinutes
 	if req.GM {
@@ -423,8 +493,16 @@ func (db *SQLiteDB) AuctionList(req AuctionListing) (AuctionLot, int, error) {
 			// CLIENT's CanSell, word 1727
 			return refuseAuction("Item is not auctionable")
 		case req.MinBid < p.ItemCost:
-			// DrawSell clamps the starting bid up to the item's value
+			// DrawSell clamps the starting bid up to the item's value (each
+			// item's, by the item)
 			return refuseAuction("The starting bid for %s must be at least its value, %d tunar.", p.ItemName, p.ItemCost)
+		case req.PerItem && (req.Count < 1 || req.Count > e.StackLeft):
+			// the live form clamps its quantity to [1, the stack]
+			return refuseAuction("That stack of %s holds %d.", p.ItemName, e.StackLeft)
+		}
+		n := e.StackLeft // the items going up: the whole record, or Count of it
+		if req.PerItem {
+			n = req.Count
 		}
 		var open int
 		if err := tx.QueryRow(`SELECT COUNT(*) FROM auction_lots WHERE seller = ? AND state = ?`,
@@ -435,29 +513,42 @@ func (db *SQLiteDB) AuctionList(req AuctionListing) (AuctionLot, int, error) {
 			return refuseAuction("You have %d auctions open, the most you may.", open)
 		}
 		fee := AuctionFee(req.MinBid)
+		if req.PerItem {
+			fee *= n // DrawSell's "Listing fee", max(1, m_price / 100) x m_qty
+		}
 		res, err := tx.Exec(`UPDATE characters SET bankTunar = bankTunar - ? WHERE serverid = ? AND bankTunar >= ?`,
 			fee, req.Seller, fee)
 		if err != nil {
 			return err
 		}
-		if n, _ := res.RowsAffected(); n != 1 {
+		if k, _ := res.RowsAffected(); k != 1 {
 			have, _, _ := bankTunarTx(tx, req.Seller)
 			return refuseAuction("The listing fee is %d tunar, and your bank holds %d.", fee, have)
 		}
-		if err := execOneTx(tx, `DELETE FROM charinventory WHERE itemid = ? AND serverid = ? AND location = 1
-			AND equiploc = -1 AND stackleft = ? AND patternid = ?`,
-			e.ItemID, req.Seller, e.StackLeft, p.PatternID); err != nil {
+		if n == e.StackLeft {
+			if err := execOneTx(tx, `DELETE FROM charinventory WHERE itemid = ? AND serverid = ? AND location = 1
+				AND equiploc = -1 AND stackleft = ? AND patternid = ?`,
+				e.ItemID, req.Seller, e.StackLeft, p.PatternID); err != nil {
+				return err
+			}
+			if _, err := tx.Exec(`DELETE FROM quickslots WHERE serverid = ? AND itemid = ?`, req.Seller, e.ItemID); err != nil {
+				return err
+			}
+		} else if err := execOneTx(tx, `UPDATE charinventory SET stackleft = stackleft - ? WHERE itemid = ? AND serverid = ?
+			AND location = 1 AND equiploc = -1 AND stackleft = ? AND patternid = ?`,
+			n, e.ItemID, req.Seller, e.StackLeft, p.PatternID); err != nil {
 			return err
 		}
-		if _, err := tx.Exec(`DELETE FROM quickslots WHERE serverid = ? AND itemid = ?`, req.Seller, e.ItemID); err != nil {
-			return err
+		perItem := 0
+		if req.PerItem {
+			perItem = 1
 		}
 		now := req.Now.Unix()
 		ends := (now + int64(req.Minutes)*60 + 59) / 60 * 60
 		r, err := tx.Exec(`INSERT INTO auction_lots (seller, seller_name, patternid, stack, remainhp, charges,
-			min_bid, buyout, fee, listed_at, ends_at, item_from) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			req.Seller, req.SellerName, p.PatternID, e.StackLeft, e.RemainHP, e.Charges,
-			req.MinBid, req.Buyout, fee, now, ends, e.ItemID)
+			min_bid, buyout, fee, listed_at, ends_at, item_from, per_item) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			req.Seller, req.SellerName, p.PatternID, n, e.RemainHP, e.Charges,
+			req.MinBid, req.Buyout, fee, now, ends, e.ItemID, perItem)
 		if err != nil {
 			return err
 		}
@@ -476,13 +567,20 @@ func (db *SQLiteDB) AuctionList(req AuctionListing) (AuctionLot, int, error) {
 	return lot, bank, err
 }
 
-// AuctionBidRequest is a bid (Send06): a proxy, the most the bidder will pay.
+// AuctionBidRequest is a bid (Send06): a proxy, the most the bidder will pay
+// (each item's, on a lot sold by the item), for Qty items (0 counts as 1: the
+// disc's count is the constant 1).
 type AuctionBidRequest struct {
 	Bidder uint32
 	Name   string
 	Lot    int
 	Amount int
+	Qty    int
 	Now    time.Time
+	// LiveForm: the bidder's client prices by the item (handlers' 0x7E0A).
+	// A stack a disc client put up whole is shown to it at each item's share
+	// of the prices, and it bids for the whole stack: Amount x Qty.
+	LiveForm bool
 }
 
 // AuctionBidKind is what a bid did.
@@ -512,9 +610,14 @@ type AuctionBidResult struct {
 	Bid        AuctionBid // the bidder's record after
 	HadBid     bool       // the bidder had a record on the lot before
 	Taken      int        // the tunar taken from the bidder's bank
+	Returned   int        // a stack sold by the item: tunar its own changed bid gave back
 	BidderBank int
 	Refund     *AuctionRefund     // BidTookLead, BidBoughtOut: the old leader's escrow
 	Settled    *AuctionSettlement // BidBoughtOut
+	// A stack sold by the item: the bids this one pushed out of every unit
+	// (their escrow back), and the units this one wins now.
+	Refunds []AuctionRefund
+	Units   int
 }
 
 // AuctionBid places a bid, in one transaction: the escrow out of the
@@ -550,6 +653,21 @@ func (db *SQLiteDB) AuctionBid(req AuctionBidRequest) (AuctionBidResult, error) 
 			// own lot with another of them
 			return refuseAuction("You cannot bid on your own auctions.")
 		}
+		qty, amount := max(1, req.Qty), req.Amount
+		switch {
+		case l.Multi():
+			return bidUnitsTx(tx, req, l, qty, &res)
+		case l.Bundle() && req.LiveForm:
+			// a stack a disc client put up whole, to a client that bids by
+			// the item: only all of it, at its price per item times the stack
+			if qty != l.Item.StackLeft {
+				return refuseAuction("%s is sold only as the whole stack of %d: bid on all %d.",
+					l.Item.Pattern.ItemName, l.Item.StackLeft, l.Item.StackLeft)
+			}
+			amount = req.Amount * qty
+		case qty != 1:
+			return refuseAuction("That lot is sold as one: bid for one.")
+		}
 		prior, had, err := auctionBidTx(tx, l.ID, req.Bidder)
 		if err != nil {
 			return err
@@ -562,7 +680,7 @@ func (db *SQLiteDB) AuctionBid(req AuctionBidRequest) (AuctionBidResult, error) 
 			return fmt.Errorf("%w: lot %d holds %d for character %d, its leader's proxy says %d",
 				errAuctionChanged, l.ID, prior.Escrow, req.Bidder, held)
 		}
-		amount, kind := req.Amount, BidFirst
+		kind := BidFirst
 		var need int
 		switch {
 		case amount >= l.Buyout:
@@ -690,13 +808,20 @@ func refundLeaderTx(tx sqlRunner, l *AuctionLot, now time.Time) (*AuctionRefund,
 // AuctionSettlement is what closing a lot moved.
 type AuctionSettlement struct {
 	Lot        AuctionLot // after
-	Winner     uint32     // 0: unsold
+	Winner     uint32     // 0: unsold (and a stack sold by the item: Winners)
 	WinnerBank int
 	Refund     int // the winner's escrow over the price, back to its bank
 	WinnerBid  AuctionBid
 	SellerBank int
 	SellerGone bool
 	Delivery   *AuctionDelivery // the item reached its holder's bank
+	// A stack sold by the item (settleUnitsTx): each winner's take, every
+	// share filed now (the winners' units, the seller's unsold rest), and
+	// how many sold.
+	Multi      bool
+	Winners    []AuctionWinner
+	Deliveries []AuctionDelivery
+	Sold       int
 }
 
 // AuctionSettle closes one lot whose time is up (or any open lot, now
@@ -725,6 +850,9 @@ func (db *SQLiteDB) AuctionSettle(lot int, now time.Time) (AuctionSettlement, bo
 // both. The state's change is conditional on the lot still being open, so a
 // lot settles once.
 func settleTx(tx sqlRunner, l AuctionLot, now time.Time) (AuctionSettlement, error) {
+	if l.Multi() {
+		return settleUnitsTx(tx, l, now)
+	}
 	st := AuctionSettlement{}
 	winner := l.High
 	if winner != 0 {
@@ -857,10 +985,31 @@ func deliverTx(tx sqlRunner, l *AuctionLot, now time.Time) (*AuctionDelivery, er
 		l.Delivered = true
 		return nil, nil
 	}
-	rows, err := tx.Query(`SELECT itemid, patternid, stackleft FROM charinventory
-		WHERE serverid = ? AND location = 1 ORDER BY listnumber, itemid`, l.Holder)
-	if err != nil {
+	n := l.Item.StackLeft
+	itemID, merged, ok, err := fileItemTx(tx, l.Holder, &l.Item, n)
+	if err != nil || !ok {
 		return nil, err
+	}
+	d := &AuctionDelivery{Lot: l.ID, Holder: l.Holder, Item: l.Item, Merged: merged}
+	d.Item.StackLeft, d.Item.EquipLoc, d.Item.Location, d.Item.ItemID = n, -1, -1, itemID
+	if err := execOneTx(tx, `UPDATE auction_lots SET delivered = 1, item_to = ? WHERE lot = ? AND delivered = 0`,
+		d.Item.ItemID, l.ID); err != nil {
+		return nil, err
+	}
+	l.Delivered, l.ItemTo = true, d.Item.ItemID
+	return d, nil
+}
+
+// fileItemTx files n of an item (its pattern, condition and charges) into a
+// character's bank as CLIENT's AddItem(item, maxStack, 40) would keep them: a
+// stackable item onto the first record of the same item when all n fit there,
+// else a new record while the bank holds fewer than 40. ok false: no room, and
+// nothing was written.
+func fileItemTx(tx sqlRunner, holder uint32, item *CharInventoryEntry, n int) (itemID int, merged, ok bool, err error) {
+	rows, err := tx.Query(`SELECT itemid, patternid, stackleft FROM charinventory
+		WHERE serverid = ? AND location = 1 ORDER BY listnumber, itemid`, holder)
+	if err != nil {
+		return 0, false, false, err
 	}
 	type bankRow struct{ itemID, pattern, stack int }
 	var bank []bankRow
@@ -868,18 +1017,15 @@ func deliverTx(tx sqlRunner, l *AuctionLot, now time.Time) (*AuctionDelivery, er
 		var r bankRow
 		if err := rows.Scan(&r.itemID, &r.pattern, &r.stack); err != nil {
 			rows.Close()
-			return nil, err
+			return 0, false, false, err
 		}
 		bank = append(bank, r)
 	}
 	rows.Close()
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return 0, false, false, err
 	}
-	p := &l.Item.Pattern
-	n := l.Item.StackLeft
-	d := &AuctionDelivery{Lot: l.ID, Holder: l.Holder, Item: l.Item}
-	d.Item.StackLeft, d.Item.EquipLoc, d.Item.Location = n, -1, -1
+	p := &item.Pattern
 	onto := -1
 	if p.MaxStack >= 2 {
 		for i := range bank {
@@ -892,36 +1038,29 @@ func deliverTx(tx sqlRunner, l *AuctionLot, now time.Time) (*AuctionDelivery, er
 	switch {
 	case onto >= 0:
 		if bank[onto].stack+n > p.MaxStack {
-			return nil, nil
+			return 0, false, false, nil
 		}
 		if err := execOneTx(tx, `UPDATE charinventory SET stackleft = stackleft + ?
 			WHERE itemid = ? AND serverid = ? AND location = 1 AND stackleft = ?`,
-			n, bank[onto].itemID, l.Holder, bank[onto].stack); err != nil {
-			return nil, err
+			n, bank[onto].itemID, holder, bank[onto].stack); err != nil {
+			return 0, false, false, err
 		}
-		d.Item.ItemID, d.Merged = bank[onto].itemID, true
+		return bank[onto].itemID, true, true, nil
 	case len(bank) >= AuctionBankSlots:
-		return nil, nil
-	default:
-		r, err := tx.Exec(`INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
-			VALUES (?, ?, ?, ?, ?, -1, 1,
-				(SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = 1))`,
-			l.Holder, n, l.Item.RemainHP, l.Item.Charges, p.PatternID, l.Holder)
-		if err != nil {
-			return nil, err
-		}
-		id, err := r.LastInsertId()
-		if err != nil {
-			return nil, err
-		}
-		d.Item.ItemID = int(id)
+		return 0, false, false, nil
 	}
-	if err := execOneTx(tx, `UPDATE auction_lots SET delivered = 1, item_to = ? WHERE lot = ? AND delivered = 0`,
-		d.Item.ItemID, l.ID); err != nil {
-		return nil, err
+	r, err := tx.Exec(`INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, listnumber)
+		VALUES (?, ?, ?, ?, ?, -1, 1,
+			(SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory WHERE serverid = ? AND location = 1))`,
+		holder, n, item.RemainHP, item.Charges, p.PatternID, holder)
+	if err != nil {
+		return 0, false, false, err
 	}
-	l.Delivered, l.ItemTo = true, d.Item.ItemID
-	return d, nil
+	id, err := r.LastInsertId()
+	if err != nil {
+		return 0, false, false, err
+	}
+	return int(id), false, true, nil
 }
 
 // AuctionDeliverPending files every closed lot's item that waits for its
@@ -956,15 +1095,66 @@ func (db *SQLiteDB) AuctionDeliverPending(holder uint32, now time.Time) ([]Aucti
 			left++
 		}
 	}
+	// and the shares of stacks sold by the item (a winner's units, a
+	// seller's unsold rest)
+	type waitingShare struct{ id, lot, qty int }
+	var shares []waitingShare
+	rows, err := db.Query(`SELECT id, lot, qty FROM auction_shares WHERE holder = ? AND delivered = 0 ORDER BY id`, holder)
+	if err != nil {
+		return out, left, err
+	}
+	for rows.Next() {
+		var w waitingShare
+		if err := rows.Scan(&w.id, &w.lot, &w.qty); err != nil {
+			rows.Close()
+			return out, left, err
+		}
+		shares = append(shares, w)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return out, left, err
+	}
+	for _, w := range shares {
+		var d *AuctionDelivery
+		err := db.auctionTx(func(tx *sql.Tx) error {
+			var delivered int
+			if err := tx.QueryRow(`SELECT delivered FROM auction_shares WHERE id = ? AND holder = ?`, w.id, holder).Scan(&delivered); err != nil || delivered != 0 {
+				if err == sql.ErrNoRows {
+					return nil
+				}
+				return err
+			}
+			l, ok, err := auctionLotTx(tx, w.lot)
+			if err != nil || !ok {
+				return err
+			}
+			d, err = deliverShareTx(tx, w.id, holder, w.qty, &l)
+			if err == nil && d != nil {
+				err = noticeTx(tx, holder, now, "%s (%d) from the auction house is in your bank.", l.Item.Pattern.ItemName, w.qty)
+			}
+			return err
+		})
+		if err != nil {
+			return out, left, err
+		}
+		if d != nil {
+			out = append(out, *d)
+		} else {
+			left++
+		}
+	}
 	return out, left, nil
 }
 
-// AuctionWaiting is how many closed lots' items wait for room in a
-// character's bank.
+// AuctionWaiting is how many closed lots' items (and stacks' shares) wait
+// for room in a character's bank.
 func (db *SQLiteDB) AuctionWaiting(holder uint32) (int, error) {
 	var n int
-	err := db.QueryRow(`SELECT COUNT(*) FROM auction_lots WHERE holder = ? AND delivered = 0 AND state != ?`,
-		holder, AuctionOpen).Scan(&n)
+	err := db.QueryRow(`SELECT
+		(SELECT COUNT(*) FROM auction_lots WHERE holder = ? AND delivered = 0 AND state != ?) +
+		(SELECT COUNT(*) FROM auction_shares WHERE holder = ? AND delivered = 0)`,
+		holder, AuctionOpen, holder).Scan(&n)
 	return n, err
 }
 
@@ -990,13 +1180,27 @@ func (db *SQLiteDB) AuctionSettleDue(now time.Time) (AuctionSweep, error) {
 	}
 	for _, o := range orphans {
 		var rf *AuctionRefund
+		var rfs []AuctionRefund
 		var after AuctionLot
 		err := db.auctionTx(func(tx *sql.Tx) error {
 			l, ok, err := auctionLotTx(tx, o.ID)
 			if err != nil || !ok || l.State != AuctionOpen {
 				return err
 			}
-			if l.High != 0 {
+			if l.Multi() {
+				// a stack sold by the item: every bid holding escrow has it back
+				bids, err := auctionBids(tx, `WHERE b.lot = ? AND b.escrow > 0`, l.ID)
+				if err != nil {
+					return err
+				}
+				for _, b := range bids {
+					r, err := refundUnitBidTx(tx, &l, b, now, "The auction of %s was withdrawn; your %d tunar is back in your bank.")
+					if err != nil {
+						return err
+					}
+					rfs = append(rfs, r)
+				}
+			} else if l.High != 0 {
 				if rf, err = refundLeaderTx(tx, &l, now); err != nil {
 					return err
 				}
@@ -1021,6 +1225,7 @@ func (db *SQLiteDB) AuctionSettleDue(now time.Time) (AuctionSweep, error) {
 		if rf != nil {
 			sw.Refunds = append(sw.Refunds, *rf)
 		}
+		sw.Refunds = append(sw.Refunds, rfs...)
 	}
 	// a lead whose character is gone: the lot goes on as if it had no bids,
 	// and what was held for it went with the character (looked for first: a
@@ -1032,13 +1237,18 @@ func (db *SQLiteDB) AuctionSettleDue(now time.Time) (AuctionSweep, error) {
 		(SELECT COUNT(*) FROM auction_bids b WHERE b.escrow != 0 AND NOT EXISTS
 			(SELECT 1 FROM characters c WHERE c.serverid = b.bidder)) +
 		(SELECT COUNT(*) FROM auction_lots l WHERE l.state != ? AND l.delivered = 0 AND NOT EXISTS
-			(SELECT 1 FROM characters c WHERE c.serverid = l.holder))`, AuctionOpen, AuctionOpen).Scan(&gone); err != nil {
+			(SELECT 1 FROM characters c WHERE c.serverid = l.holder)) +
+		(SELECT COUNT(*) FROM auction_shares s WHERE s.delivered = 0 AND NOT EXISTS
+			(SELECT 1 FROM characters c WHERE c.serverid = s.holder))`, AuctionOpen, AuctionOpen).Scan(&gone); err != nil {
 		return sw, err
 	}
 	if gone > 0 {
+		var rfs []AuctionRefund
 		if err := db.auctionTx(func(tx *sql.Tx) error {
+			// a lot put up whole goes on as if it had no bids; a stack sold
+			// by the item is priced again without them, below
 			if _, err := tx.Exec(`UPDATE auction_lots SET high_bidder = 0, high_name = '', high_max = 0, price = 0
-				WHERE state = ? AND high_bidder != 0 AND NOT EXISTS
+				WHERE state = ? AND high_bidder != 0 AND NOT (per_item = 1 AND stack >= 2) AND NOT EXISTS
 				(SELECT 1 FROM characters c WHERE c.serverid = auction_lots.high_bidder)`, AuctionOpen); err != nil {
 				return err
 			}
@@ -1046,12 +1256,31 @@ func (db *SQLiteDB) AuctionSettleDue(now time.Time) (AuctionSweep, error) {
 				(SELECT 1 FROM characters c WHERE c.serverid = auction_bids.bidder)`); err != nil {
 				return err
 			}
-			_, err := tx.Exec(`UPDATE auction_lots SET delivered = 1 WHERE state != ? AND delivered = 0 AND NOT EXISTS
-				(SELECT 1 FROM characters c WHERE c.serverid = auction_lots.holder)`, AuctionOpen)
-			return err
+			if _, err := tx.Exec(`UPDATE auction_lots SET delivered = 1 WHERE state != ? AND delivered = 0 AND NOT EXISTS
+				(SELECT 1 FROM characters c WHERE c.serverid = auction_lots.holder)`, AuctionOpen); err != nil {
+				return err
+			}
+			if _, err := tx.Exec(`UPDATE auction_shares SET delivered = 1 WHERE delivered = 0 AND NOT EXISTS
+				(SELECT 1 FROM characters c WHERE c.serverid = auction_shares.holder)`); err != nil {
+				return err
+			}
+			stacks, err := auctionLots(tx, `WHERE l.state = ? AND l.per_item = 1 AND l.stack >= 2 AND l.high_max !=
+				(SELECT COALESCE(SUM(b.escrow), 0) FROM auction_bids b WHERE b.lot = l.lot) ORDER BY l.lot`, AuctionOpen)
+			if err != nil {
+				return err
+			}
+			for _, l := range stacks {
+				r, err := restandUnitsTx(tx, l, now)
+				if err != nil {
+					return err
+				}
+				rfs = append(rfs, r...)
+			}
+			return nil
 		}); err != nil {
 			return sw, err
 		}
+		sw.Refunds = append(sw.Refunds, rfs...)
 	}
 	due, err := auctionLots(db, `WHERE l.state = ? AND l.ends_at <= ? ORDER BY l.ends_at, l.lot`, AuctionOpen, now.Unix())
 	if err != nil {
@@ -1115,7 +1344,7 @@ func (db *SQLiteDB) AuctionBidders(lot int) ([]AuctionBid, error) {
 }
 
 func auctionBids(q sqlRunner, where string, args ...any) ([]AuctionBid, error) {
-	rows, err := q.Query(`SELECT b.lot, b.bidder, b.bidder_name, b.max_bid, b.escrow, b.placed_at
+	rows, err := q.Query(`SELECT b.lot, b.bidder, b.bidder_name, b.max_bid, b.escrow, b.placed_at, b.qty, b.seq, b.won
 		FROM auction_bids b `+where, args...)
 	if err != nil {
 		return nil, err
@@ -1124,7 +1353,7 @@ func auctionBids(q sqlRunner, where string, args ...any) ([]AuctionBid, error) {
 	var out []AuctionBid
 	for rows.Next() {
 		var b AuctionBid
-		if err := rows.Scan(&b.Lot, &b.Bidder, &b.Name, &b.Max, &b.Escrow, &b.PlacedAt); err != nil {
+		if err := rows.Scan(&b.Lot, &b.Bidder, &b.Name, &b.Max, &b.Escrow, &b.PlacedAt, &b.Qty, &b.Seq, &b.Won); err != nil {
 			return nil, err
 		}
 		out = append(out, b)
@@ -1162,24 +1391,32 @@ func (db *SQLiteDB) AuctionNoticesDone(ids []int) error {
 
 // AuctionAudit checks what the house holds against what its rows say: an
 // open lot holds exactly its leader's proxy, in the leader's record alone,
-// its price within the proxy and not under the starting bid; a closed lot
-// holds nothing. It returns every problem found (none: nil).
+// its price within the proxy and not under the starting bid; an open stack
+// sold by the item holds each winning bid's quantity times its price and the
+// sum its row says, the items they ask its demand, its price within the
+// starting bid and the lowest winner's; a closed lot holds nothing. It
+// returns every problem found (none: nil).
 func (db *SQLiteDB) AuctionAudit() ([]string, error) {
 	var problems []string
-	rows, err := db.Query(`SELECT l.lot, l.state, l.high_bidder, l.high_max, l.price, l.min_bid,
+	rows, err := db.Query(`SELECT l.lot, l.state, l.high_bidder, l.high_max, l.price, l.min_bid, l.per_item, l.stack, l.demand,
 		COALESCE(SUM(b.escrow), 0), COALESCE(SUM(CASE WHEN b.bidder = l.high_bidder THEN b.escrow ELSE 0 END), 0),
-		COALESCE(SUM(CASE WHEN b.escrow < 0 THEN 1 ELSE 0 END), 0)
+		COALESCE(SUM(CASE WHEN b.escrow < 0 THEN 1 ELSE 0 END), 0),
+		COALESCE(SUM(CASE WHEN b.escrow > 0 AND b.escrow != b.qty * b.max_bid THEN 1 ELSE 0 END), 0),
+		COALESCE(SUM(CASE WHEN b.escrow > 0 THEN b.qty ELSE 0 END), 0),
+		COALESCE(MIN(CASE WHEN b.escrow > 0 THEN b.max_bid END), 0)
 		FROM auction_lots l LEFT JOIN auction_bids b ON b.lot = l.lot GROUP BY l.lot ORDER BY l.lot`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var lot, high, highMax, price, minBid, held, leaderHeld, negative int
+		var lot, high, highMax, price, minBid, perItem, stack, demand, held, leaderHeld, negative, offQty, asked, lowest int
 		var state string
-		if err := rows.Scan(&lot, &state, &high, &highMax, &price, &minBid, &held, &leaderHeld, &negative); err != nil {
+		if err := rows.Scan(&lot, &state, &high, &highMax, &price, &minBid, &perItem, &stack, &demand,
+			&held, &leaderHeld, &negative, &offQty, &asked, &lowest); err != nil {
 			return nil, err
 		}
+		multi := perItem != 0 && stack >= 2
 		switch {
 		case negative > 0:
 			problems = append(problems, fmt.Sprintf("lot %d: a negative escrow", lot))
@@ -1187,11 +1424,33 @@ func (db *SQLiteDB) AuctionAudit() ([]string, error) {
 			problems = append(problems, fmt.Sprintf("lot %d is %s and still holds %d", lot, state, held))
 		case state == AuctionOpen && high == 0 && held != 0:
 			problems = append(problems, fmt.Sprintf("lot %d has no leader and holds %d", lot, held))
+		case state == AuctionOpen && multi && held != highMax:
+			problems = append(problems, fmt.Sprintf("stack lot %d holds %d, its row says %d", lot, held, highMax))
+		case state == AuctionOpen && multi && offQty > 0:
+			problems = append(problems, fmt.Sprintf("stack lot %d: %d bids hold other than their quantity times their price", lot, offQty))
+		case state == AuctionOpen && multi && asked != demand:
+			problems = append(problems, fmt.Sprintf("stack lot %d's bids ask %d, its row says %d", lot, asked, demand))
+		case state == AuctionOpen && multi && high != 0 && (price < minBid || price > lowest):
+			problems = append(problems, fmt.Sprintf("stack lot %d's price %d is outside %d..%d", lot, price, minBid, lowest))
+		case multi:
 		case state == AuctionOpen && high != 0 && (held != highMax || leaderHeld != highMax):
 			problems = append(problems, fmt.Sprintf("lot %d holds %d (%d its leader's), its leader's proxy is %d", lot, held, leaderHeld, highMax))
 		case state == AuctionOpen && high != 0 && (price > highMax || price < minBid):
 			problems = append(problems, fmt.Sprintf("lot %d's price %d is outside %d..%d", lot, price, minBid, highMax))
 		}
 	}
-	return problems, rows.Err()
+	if err := rows.Err(); err != nil {
+		return problems, err
+	}
+	// every share of a closed stack, and the units it carries, as sold
+	var off int
+	if err := db.QueryRow(`SELECT COUNT(*) FROM auction_lots l WHERE l.per_item = 1 AND l.stack >= 2 AND l.state IN (?, ?)
+		AND l.stack != COALESCE((SELECT SUM(s.qty) FROM auction_shares s WHERE s.lot = l.lot), 0)
+		AND EXISTS (SELECT 1 FROM characters c WHERE c.serverid = l.seller)`, AuctionSold, AuctionUnsold).Scan(&off); err != nil {
+		return problems, err
+	}
+	if off > 0 {
+		problems = append(problems, fmt.Sprintf("%d closed stack lots whose shares do not add up to their stack", off))
+	}
+	return problems, nil
 }

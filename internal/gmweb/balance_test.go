@@ -12,6 +12,8 @@ import (
 // hit's, and a row out of bounds is refused.
 func TestBalanceEditsAreLive(t *testing.T) {
 	f := newFixture(t)
+	f.exec(`DELETE FROM balancelevel`) // the seed rows out: the formula's hit points, then one row
+	f.exec(`DELETE FROM balancecon`)
 	c := f.browser()
 	c.login("gm")
 	st, ok := f.world.NPCStateOf(500)

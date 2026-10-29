@@ -90,7 +90,7 @@ func TestRealBalanceOneFight(t *testing.T) {
 	}
 	simLogTo = os.Stderr
 	defer func() { simLogTo = nil }()
-	r := SimulateFight(pl, SimNPC{Level: foe}, nil, 1, 10*time.Minute)
+	r := SimulateFight(pl, SimNPC{Level: foe}, SeedBalance(), 1, 10*time.Minute)
 	t.Logf("%+v", r)
 }
 
@@ -114,6 +114,36 @@ func TestRealBalanceGearCurve(t *testing.T) {
 			t.Logf("class %2d L%2d DMG %3d 2H %v AC %4d STR %3d STA %3d AGI %3d DEX %3d WIS %3d INT %3d HP %3d POW %3d HoT %v PoT %v worn %v type %d",
 				class, level, g.WeaponDamage, g.WeaponTwoHanded, g.AC, g.Str, g.Sta, g.Agi, g.Dex, g.Wis, g.Int, g.MaxHP, g.MaxPower, g.HoTItems, g.PoTItems,
 				[]bool{pl.Worn[14], pl.Worn[15], pl.Worn[16], pl.Worn[17], pl.Worn[20]}, pl.AttackType)
+		}
+	}
+}
+
+// On a server's own kits, books and pets (EQOA_REAL_DB): the seed rows make
+// the warrior and the paladin meet the targets at 30 and 50 (an even won, a +2
+// a tough fight, a +5 lost more than won), and the control, no balance, makes
+// a +5 a pushover for them. The monk is left out: its self heals and arts beat
+// its yellows at 30 with three quarters of its hit points (a gap the balance
+// notes name).
+func TestRealBalanceSeedOnRealKits(t *testing.T) {
+	db := simRealDB(t)
+	for _, class := range []int{classWarrior, 2} {
+		for _, level := range []int{30, 50} {
+			pl, err := SimKitFromDB(db, class, 0, level, 0.5)
+			if err != nil {
+				t.Fatal(err)
+			}
+			even := SimCellOf(pl, SimNPC{}, 0, SeedBalance(), 16, 1, 10*time.Minute)
+			yellow := SimCellOf(pl, SimNPC{}, 2, SeedBalance(), 16, 1, 10*time.Minute)
+			red := SimCellOf(pl, SimNPC{}, 5, SeedBalance(), 16, 1, 10*time.Minute)
+			if even.WinShare() < 0.95 || (yellow.Won > 0 && yellow.HPLeft > 0.75) || red.WinShare() > 0.7 {
+				t.Errorf("class %d L%d under the seed: even won %.0f%%, +2 %.0f%% HP left, +5 won %.0f%%",
+					class, level, 100*even.WinShare(), 100*yellow.HPLeft, 100*red.WinShare())
+			}
+			was := SimCellOf(pl, SimNPC{}, 5, nil, 8, 1, 10*time.Minute)
+			if was.WinShare() < 0.95 || was.HPLeft < 0.6 {
+				t.Errorf("class %d L%d with no balance: +5 won %.0f%% with %.0f%% HP left (the control)", class, level,
+					100*was.WinShare(), 100*was.HPLeft)
+			}
 		}
 	}
 }

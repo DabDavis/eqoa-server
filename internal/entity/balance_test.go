@@ -9,8 +9,8 @@ import (
 func testBalance() *Balance {
 	return NewBalance(
 		[]database.BalanceLevel{
-			{Level: 10, HPPct: 200, DamagePct: 100, PetHPPct: 100, PetDamagePct: 100},
-			{Level: 30, HPPct: 400, DamagePct: 150, PetHPPct: 300, PetDamagePct: 120},
+			{Level: 10, HPPct: 200, DamagePct: 100, ConPct: 100, PetHPPct: 100, PetDamagePct: 100},
+			{Level: 30, HPPct: 400, DamagePct: 150, ConPct: 100, PetHPPct: 300, PetDamagePct: 120},
 		},
 		[]database.BalanceCon{
 			{Diff: 0, DamagePct: 100, TakenPct: 100},
@@ -83,5 +83,22 @@ func TestBalanceActsOnNPCsButDummies(t *testing.T) {
 	}
 	if got := w.takenLocked(npc, 15, 1); got != 1 {
 		t.Errorf("a hit of 1 cut to %d", got)
+	}
+}
+
+// A level's con_pct takes that share of the con table's way from 100: none
+// at 0, half at 50.
+func TestBalanceConPctScalesTheCon(t *testing.T) {
+	b := NewBalance([]database.BalanceLevel{
+		{Level: 5, HPPct: 100, DamagePct: 100, ConPct: 0},
+		{Level: 15, HPPct: 100, DamagePct: 100, ConPct: 100},
+	}, []database.BalanceCon{{Diff: 0, DamagePct: 100, TakenPct: 100}, {Diff: 3, DamagePct: 160, TakenPct: 70}})
+	for _, c := range []struct {
+		level      int
+		dmg, taken float64
+	}{{5, 100, 100}, {10, 130, 85}, {15, 160, 70}, {40, 160, 70}} {
+		if r := b.ConAt(c.level, 3); r.DamagePct != c.dmg || r.TakenPct != c.taken {
+			t.Errorf("an NPC of level %d at +3: %+v, want %v/%v", c.level, r, c.dmg, c.taken)
+		}
 	}
 }

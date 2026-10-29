@@ -617,12 +617,24 @@ func (f *simFight) play(pet *NPC) {
 	}
 	for _, s := range f.nukes {
 		w.mu.RLock()
-		ok := f.ready(&s, f.reserve) && !f.onFoe(&s)
+		ok := f.ready(&s, f.reserve) && !f.onFoe(&s) && f.keepsHate(pet, &s)
 		w.mu.RUnlock()
 		if ok && cast(s, simFoeID) {
 			return
 		}
 	}
+}
+
+// keepsHate is whether a cast leaves its pet the NPC's foe, as a pet's owner
+// plays (its hate under four fifths of the pet's after the spell's damage):
+// a pet class lets its pet hold the NPC, and its spells wait for the pet's
+// hate to build. With no pet alive, any cast does.
+func (f *simFight) keepsHate(pet *NPC, s *CastSpell) bool {
+	if pet == nil || pet.Dead {
+		return true
+	}
+	mine := float64(f.npc.Threats[f.p.ServerID]) + simDamage(s, f.p)
+	return mine <= 0.8*float64(f.npc.Threats[pet.ServerID])
 }
 
 func (f *simFight) healAt() float64 {

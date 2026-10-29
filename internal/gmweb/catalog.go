@@ -591,7 +591,8 @@ var catalog = map[string]tableNote{
 		Label: "Balance by level", Group: "World", Title: "level", Sort: "level",
 		Help: "The game's balance by an NPC's level (entity/balance.go): hp_pct its hit points, a percent of the " +
 			"server's 60 a level; damage_pct its melee hits (Sandstorm's roll on the player's AC, AGI and archetype, " +
-			"then this); pet_hp_pct and pet_damage_pct a summoned pet's of that level (its hit points at its summoning, " +
+			"then this); con_pct how much of Balance by con its level takes (0 none, 100 all: a low level's own hit " +
+			"points and floor already climb a third in three levels); pet_hp_pct and pet_damage_pct a summoned pet's of that level (its hit points at its summoning, " +
 			"and every point of damage it deals: hits, taunts, taps, procs). A level between two rows takes the straight " +
 			"line between them, one below the first or past the last the end row's; no rows, 100 everywhere (the " +
 			"formulas alone). A charmed creature keeps its own (an NPC's) hit points and damage. Training dummies are " +
@@ -604,6 +605,7 @@ var catalog = map[string]tableNote{
 			"level":          {Label: "NPC level", Help: "1-100; the levels between two rows take the line between them"},
 			"hp_pct":         {Label: "Hit points %", Help: "of 60 a level: 100 is the formula's, 400 four times it"},
 			"damage_pct":     {Label: "Melee damage %", Help: "of each melee hit's roll (on a player or a pet)"},
+			"con_pct":        {Label: "Con %", Help: "0-100: how much of Balance by con an NPC of this level takes"},
 			"pet_hp_pct":     {Label: "Pet hit points %", Help: "a summoned pet of this level's, of 60 a level"},
 			"pet_damage_pct": {Label: "Pet damage %", Help: "all a summoned pet of this level deals"},
 			"note":           {Label: "Note"},

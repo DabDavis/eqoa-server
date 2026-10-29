@@ -27,6 +27,15 @@ package database
 // a rogue's even fight at 60 13 fewer), and 3 s cost a rogue of 60 its even
 // fights' safety (96% won with 24% left).
 //
+// A summoned pet's hit points (pet_hp_pct) from level 15 are seven tenths of
+// the first tuning's (230 ... 800): a pet heals a 50 of them every tick now
+// (npcregen.go), and with the first tuning's the pet classes of 45-60 won a
+// red three up nearly always (a magician 100% of the time, a necromancer
+// five up 58%); at seven tenths every pet class's wins by the con are within
+// a few points of the first tuning's without regeneration (24 fights a cell,
+// 15-60). BalanceSeedRevisions takes a table's rows still at the first
+// tuning's to these.
+//
 // A creature's heal out of a fight (regen_pct): 5% of its hit points a tick
 // from its third tick (the user: "Mobs regen slower"; jib's was 15%), so one
 // left empty is whole in about 2 min 10 s, one left at half in 1 min 12 s:
@@ -40,14 +49,14 @@ var (
 		{Level: 5, HPPct: 215, DamagePct: 265, ConPct: 0, PetHPPct: 215, PetDamagePct: 265, ArtCooldownMS: 1500, RegenPct: 5},
 		{Level: 8, HPPct: 225, DamagePct: 260, ConPct: 0, PetHPPct: 225, PetDamagePct: 260, ArtCooldownMS: 1500, RegenPct: 5},
 		{Level: 10, HPPct: 220, DamagePct: 225, ConPct: 25, PetHPPct: 220, PetDamagePct: 225, ArtCooldownMS: 1500, RegenPct: 5},
-		{Level: 15, HPPct: 230, DamagePct: 255, ConPct: 70, PetHPPct: 230, PetDamagePct: 280, ArtCooldownMS: 1500, RegenPct: 5},
-		{Level: 18, HPPct: 230, DamagePct: 250, ConPct: 100, PetHPPct: 230, PetDamagePct: 300, ArtCooldownMS: 1500, RegenPct: 5},
-		{Level: 25, HPPct: 250, DamagePct: 220, ConPct: 100, PetHPPct: 250, PetDamagePct: 285, ArtCooldownMS: 1500, RegenPct: 5},
-		{Level: 30, HPPct: 300, DamagePct: 200, ConPct: 100, PetHPPct: 300, PetDamagePct: 300, ArtCooldownMS: 1500, RegenPct: 5},
-		{Level: 35, HPPct: 300, DamagePct: 195, ConPct: 100, PetHPPct: 300, PetDamagePct: 340, ArtCooldownMS: 1500, RegenPct: 5},
-		{Level: 45, HPPct: 330, DamagePct: 190, ConPct: 100, PetHPPct: 410, PetDamagePct: 430, ArtCooldownMS: 1500, RegenPct: 5},
-		{Level: 50, HPPct: 340, DamagePct: 190, ConPct: 100, PetHPPct: 510, PetDamagePct: 475, ArtCooldownMS: 1500, RegenPct: 5},
-		{Level: 60, HPPct: 400, DamagePct: 160, ConPct: 100, PetHPPct: 800, PetDamagePct: 560, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 15, HPPct: 230, DamagePct: 255, ConPct: 70, PetHPPct: 161, PetDamagePct: 280, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 18, HPPct: 230, DamagePct: 250, ConPct: 100, PetHPPct: 161, PetDamagePct: 300, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 25, HPPct: 250, DamagePct: 220, ConPct: 100, PetHPPct: 175, PetDamagePct: 285, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 30, HPPct: 300, DamagePct: 200, ConPct: 100, PetHPPct: 210, PetDamagePct: 300, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 35, HPPct: 300, DamagePct: 195, ConPct: 100, PetHPPct: 210, PetDamagePct: 340, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 45, HPPct: 330, DamagePct: 190, ConPct: 100, PetHPPct: 287, PetDamagePct: 430, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 50, HPPct: 340, DamagePct: 190, ConPct: 100, PetHPPct: 357, PetDamagePct: 475, ArtCooldownMS: 1500, RegenPct: 5},
+		{Level: 60, HPPct: 400, DamagePct: 160, ConPct: 100, PetHPPct: 560, PetDamagePct: 560, ArtCooldownMS: 1500, RegenPct: 5},
 	}
 	// BalanceSeedClasses: every class's row, 100 but the ranger's, the
 	// bard's and the rogue's. With a melee class's 16 hit points a level and
@@ -80,6 +89,15 @@ var (
 	// two up than the design (5% and 15% resisted, not 10% and 20%: the
 	// wizard won two up 42% of the time), harder at three to five (a break
 	// of 25-35%, not 20-30%).
+	// BalanceSeedRevisions are seed values changed since a table could have
+	// been made with them: a row still the seed's (source seed) and still
+	// at the old value takes the new one at the next open; a GM's row, or a
+	// value a GM changed, is left.
+	BalanceSeedRevisions = []BalanceSeedRevision{
+		{Table: "balancelevel", Col: "pet_hp_pct", Key: "level",
+			Old: map[int]float64{15: 230, 18: 230, 25: 250, 30: 300, 35: 300, 45: 410, 50: 510, 60: 800},
+			New: map[int]float64{15: 161, 18: 161, 25: 175, 30: 210, 35: 210, 45: 287, 50: 357, 60: 560}},
+	}
 	BalanceSeedCons = []BalanceCon{
 		{Diff: 0, DamagePct: 100, TakenPct: 100, RootResistPct: 0, RootBreakPct: 5, Note: "even, and every blue and green below it"},
 		{Diff: 1, DamagePct: 112, TakenPct: 91, RootResistPct: 5, RootBreakPct: 10},

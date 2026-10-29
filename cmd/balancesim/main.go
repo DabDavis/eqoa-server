@@ -134,7 +134,9 @@ func main() {
 		if *tryLevel != "" {
 			ls = nil
 			for _, r := range rows(*tryLevel, 3) {
-				l := database.BalanceLevel{Level: int(r[0]), HPPct: r[1], DamagePct: r[2], ConPct: 100, PetHPPct: 100, PetDamagePct: 100}
+				// the columns not given are the balance's at that level
+				l := b.Level(int(r[0]))
+				l.HPPct, l.DamagePct, l.ConPct, l.PetHPPct, l.PetDamagePct = r[1], r[2], 100, 100, 100
 				if len(r) >= 4 {
 					l.ConPct = r[3]
 				}
@@ -147,7 +149,9 @@ func main() {
 		if *tryCon != "" {
 			cs = nil
 			for _, r := range rows(*tryCon, 3) {
-				cs = append(cs, database.BalanceCon{Diff: int(r[0]), DamagePct: r[1], TakenPct: r[2]})
+				c := b.Con(int(r[0])) // the root columns the balance's at that diff
+				c.DamagePct, c.TakenPct = r[1], r[2]
+				cs = append(cs, c)
 			}
 		}
 		b = entity.NewBalance(ls, cs).WithClasses(b.ClassRows())

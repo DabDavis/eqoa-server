@@ -48,7 +48,9 @@ import (
 // A table with no rows changes nothing. source: gm, or seed for the rows
 // this file gives a table it makes (the tuning of 2026-10-29,
 // claude-notes/balance-20261029.md). A column added to a table made before it
-// (balanceColumns) takes the seed's value on the rows still the seed's.
+// (balanceColumns) takes the seed's value on the rows still the seed's, and a
+// seed value changed since (BalanceSeedRevisions) is taken by the rows still
+// at the old one.
 const balanceSchema = `
 	CREATE TABLE IF NOT EXISTS balancelevel (
 		level          INTEGER PRIMARY KEY,
@@ -138,6 +140,31 @@ var balanceColumns = []balanceColumn{
 	}},
 }
 
+// BalanceSeedRevision is a seed column's values changed (balanceseed.go):
+// by key, the value a row of source seed had and the one it takes.
+type BalanceSeedRevision struct {
+	Table, Col, Key string
+	Old, New        map[int]float64
+}
+
+// reviseBalanceSeeds takes the rows still the seed's and still at a
+// revision's old value to its new one (BalanceSeedRevisions).
+func (db *SQLiteDB) reviseBalanceSeeds() error {
+	for _, r := range BalanceSeedRevisions {
+		for k, old := range r.Old {
+			nv, ok := r.New[k]
+			if !ok {
+				continue
+			}
+			if _, err := db.Exec(`UPDATE `+r.Table+` SET `+r.Col+` = ? WHERE `+r.Key+` = ? AND source = 'seed' AND `+r.Col+` = ?`,
+				nv, k, old); err != nil {
+				return fmt.Errorf("%s.%s: %w", r.Table, r.Col, err)
+			}
+		}
+	}
+	return nil
+}
+
 // ensureBalanceColumns adds the columns a table made before them lacks, each
 // with the seed's value on the rows still the seed's (source seed).
 func (db *SQLiteDB) ensureBalanceColumns() error {
@@ -187,6 +214,9 @@ func (db *SQLiteDB) ensureBalance() error {
 		return fmt.Errorf("balance: %w", err)
 	}
 	if err := db.ensureBalanceColumns(); err != nil {
+		return err
+	}
+	if err := db.reviseBalanceSeeds(); err != nil {
 		return err
 	}
 	if fresh["balancelevel"] {

@@ -54,6 +54,19 @@ import (
 //     a pact one, so it is cast at a friend, oneself included, and on oneself
 //     the price is paid first and the heal comes after.
 //
+// A power drain is a hostile act (the owner's ruling of 2026-10-29: "power
+// drains were hostile acts on enemy's, they drained their mana and did a
+// instant mana grant to the caster, or the caster and his group if
+// applicable. They'd fire off and restore the mana even if the monster had
+// none"): a line taking its target's power is harmful (takesPower), cast at a
+// creature and refused at a friend; at its landing the creature's hate for
+// the caster is the figure, as a hit's is its damage (ours), so a drain with
+// no hit starts the fight; and the caster, or the caster and its group in
+// range when the line says group ("Drain Power by 1000 to group", "... and
+// give to group"), is given the whole figure at once, a duration on the line
+// or not (no power over time). Until then "Power is not counted" made such a
+// line a help, refused at a creature ("Target is not friendly.").
+//
 // The resist's share below the cap is the server's own, not measured; so is healing the
 // whole figure of a tap that kills (EverQuest's taps do).
 
@@ -79,6 +92,7 @@ var (
 		{"gives self", DrainCaster}, {"give self", DrainCaster},
 		{"and gives to group", DrainGroup}, {"and give to group", DrainGroup},
 		{"gives to group", DrainGroup}, {"give to group", DrainGroup},
+		{"and transfer to group", DrainGroup}, {"transfer to group", DrainGroup},
 	}
 	// the words that put an effect on the caster instead of the target
 	selfWords = []string{"self only", "to self", "to caster"}
@@ -113,6 +127,11 @@ func splitTransfer(part string) (string, DrainTo, bool) {
 			part, to = rest, t.to
 			break
 		}
+	}
+	// a bare "to group" ending the clause: "Drain Power by 1000 to group"
+	// (the necromancer's epic, its note's "given to the group")
+	if to == DrainNone && strings.HasSuffix(part, " to group") {
+		part, to = strings.TrimSuffix(part, " to group"), DrainGroup
 	}
 	for _, w := range selfWords {
 		if rest, ok := cutWords(part, w); ok {
@@ -188,6 +207,39 @@ func (d *SpellDef) transferFrom(i int, verb string, to DrainTo, self bool) {
 		}
 		e.Drain, e.Self = resolveTransfer(verb, sign, to, self)
 	}
+}
+
+// takesPower reports whether the line takes power from its target, which
+// makes it harmful (the owner's ruling of 2026-10-29, the file's comment): a
+// drain of the target's power ("Drain Power by 39 to self", "Decrease Power
+// by 200 and transfer to caster", "... to group"), or a decrease of it with no
+// transfer ("Decrease Power by 150") on a line that raises nothing of its
+// target's. A decrease beside a raise is that spell's note, not a drain:
+// Minor Healing's "Decrease Power by 1" beside its heal stays a help (ours);
+// so is a Self line's lost power, its caster's own (ours). Only a figure at
+// once counts (EffectPower); a decrease each tick is left as it was.
+func (d *SpellDef) takesPower() bool {
+	if d.Target == TargetSelf {
+		return false
+	}
+	drain, decrease, raises := false, false, false
+	for _, e := range d.Effects {
+		if e.Self {
+			continue
+		}
+		switch {
+		case e.Kind == EffectPower && e.Amount < 0:
+			if e.Drain != DrainNone {
+				drain = true
+			} else {
+				decrease = true
+			}
+		case e.Amount > 0 && (e.Kind == EffectHP || e.Kind == EffectHPTick || e.Kind == EffectPower ||
+			e.Kind == EffectPowerTick || e.Kind == EffectStat):
+			raises = true
+		}
+	}
+	return drain || (decrease && !raises)
 }
 
 // landOnCasterLocked lands what the cast does to its caster (its effects
@@ -312,7 +364,11 @@ func (w *World) casterShareLocked(cs *castState, caster *Player, mods StatMods, 
 
 // drainLocked gives the caster (or its group) what one drained effect took
 // from its target: n hit points (a tap's figure, whole, though it killed),
-// n power, or n of the stat for the line's duration.
+// n power at once, or n of the stat for the line's duration. Creatures have
+// no power pool on this server: a drained creature loses nothing measurable,
+// and the figure is given as the line writes it (the owner's ruling of
+// 2026-10-29: "restore the mana even if the monster had none"; ours, there
+// being no pool to measure it against).
 func (w *World) drainLocked(cs *castState, caster *Player, sess *session.Session, e SpellEffect, n int, now time.Time) {
 	if e.Drain == DrainNone || n <= 0 || caster.IsDead() {
 		return

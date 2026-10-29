@@ -435,3 +435,113 @@ func TestALifeTapHealsWhatLanded(t *testing.T) {
 		}
 	}
 }
+
+// A power drain is a hostile act (the owner's ruling of 2026-10-29): a line
+// that drains or lowers its target's power is harmful, the take routed as a
+// tap's; a line that only raises power, a heal's "Decrease Power by 1" and a
+// Self line's lost power stay helps. The spells' figures are made up.
+func TestAPowerDrainIsHarmful(t *testing.T) {
+	for _, c := range []struct {
+		line    string
+		harmful bool
+		amount  int
+		drain   DrainTo
+		dur     time.Duration
+	}{
+		{"Target, Drain Power by 1000 to group", true, -1000, DrainGroup, 0},
+		{"Target, Drain Power by 400 and give to group", true, -400, DrainGroup, 0},
+		{"Target, Decrease Power by 200 and transfer to caster", true, -200, DrainCaster, 0},
+		{"Target, Drain Power by 75", true, -75, DrainCaster, 0},
+		{"Target, Decrease Power by 150", true, -150, DrainNone, 0},
+		{"Target, Drain Power by 250 to self, 30sec", true, -250, DrainCaster, 30 * time.Second},
+		// the controls
+		{"Target, Increase Power by 300", false, 300, DrainNone, 0},
+		{"Group, Increase Group Power by 300", false, 300, DrainNone, 0},
+		{"Self, Decrease Power by 100, Increase AC by 50, 1min", false, -100, DrainNone, time.Minute},
+	} {
+		d := ParseSpellText(c.line)
+		var pw *SpellEffect
+		for i := range d.Effects {
+			if d.Effects[i].Kind == EffectPower {
+				pw = &d.Effects[i]
+			}
+		}
+		if pw == nil || d.Harmful != c.harmful || pw.Amount != c.amount || pw.Drain != c.drain || d.Duration != c.dur || len(d.Unread) != 0 {
+			t.Errorf("%q: harmful %v, power %+v, %v, unread %q; want harmful %v, %d to %d", c.line, d.Harmful, pw, d.Duration, d.Unread,
+				c.harmful, c.amount, c.drain)
+		}
+	}
+	if d := minorHeal().Def; d.Harmful {
+		t.Errorf("a heal's Decrease Power by 1 made it harmful: %+v", d)
+	}
+}
+
+// powerSap is a made-up power drain cast at a target.
+func powerSap(line string) CastSpell {
+	return CastSpell{SpellID: 9601, DisplayIndex: 7, Level: 30, Scope: 1, Name: "Made-up Sap", Icon: 0x3C3D3E3F,
+		CastTime: 2 * time.Second, Recast: 3 * time.Second, PowerCost: 20, Range: 30, Def: ParseSpellText(line)}
+}
+
+// A power drain is cast at a creature and lands: the caster given the whole
+// figure at once though the creature has no power, the creature's hate for
+// the caster that figure and the 1 any landing gives (root.go), so its fight
+// begins with no hit. It is refused at a friend, and a raise of power is
+// still refused at a creature.
+func TestAPowerDrainLandsAtACreature(t *testing.T) {
+	c := newCaster(t)
+	c.p.Power = 100
+	c.landSeen(t, powerSap("Target, Decrease Power by 200 and transfer to caster"), c.npcO)
+	if c.p.Power != 100-20+200 || c.npc.HP != 30 {
+		t.Errorf("the drain: caster power %d, want %d; creature %d HP", c.p.Power, 100-20+200, c.npc.HP)
+	}
+	if c.npc.Threats[c.p.ServerID] != 200+1 || c.npc.CurrentEnemy != c.p.ServerID {
+		t.Errorf("the creature's hate %d, enemy %d: want 201 and the caster", c.npc.Threats[c.p.ServerID], c.npc.CurrentEnemy)
+	}
+
+	f, _, fo := pactRig(t)
+	if f.w.StartCast(f.sess, powerSap("Target, Drain Power by 200 to self"), fo, f.at(0)) || !hasLine(linesOf(f.sent()), castFriendly) {
+		t.Error("a power drain at a friend was not refused as friendly")
+	}
+	r := newCaster(t)
+	if r.w.StartCast(r.sess, powerSap("Target, Increase Power by 300"), r.npcO, r.at(0)) || !hasLine(linesOf(r.sent()), castNotFriendly) {
+		t.Error("a raise of power at a creature was not refused as not friendly")
+	}
+}
+
+// "to group": the caster and each of its group in range given the figure at
+// once, one out of range not.
+func TestAGroupPowerDrain(t *testing.T) {
+	g := newCaster(t)
+	g.p.Power = 100
+	near := &Player{ServerID: 1002, Name: "Near", HP: 50, MaxHP: 500, Power: 50, MaxPower: 500, X: 110, Y: 10, Z: 100}
+	far := &Player{ServerID: 1003, Name: "Far", HP: 50, MaxHP: 500, Power: 50, MaxPower: 500, X: 900, Y: 10, Z: 100}
+	g.w.Players[near.ServerID], g.w.Players[far.ServerID] = near, far
+	g.w.groups = map[uint32]*Group{7: {ID: 7, Members: []EntityID{g.p.ServerID, near.ServerID, far.ServerID}}}
+	g.p.GroupID, near.GroupID, far.GroupID = 7, 7, 7
+	g.landSeen(t, powerSap("Target, Drain Power by 300 to group"), g.npcO)
+	if g.p.Power != 100-20+300 || near.Power != 350 || far.Power != 50 {
+		t.Errorf("the group's drain: caster %d, near %d, far %d; want %d, 350, 50", g.p.Power, near.Power, far.Power, 100-20+300)
+	}
+}
+
+// A drain line with a duration gives its figure once, at the landing: no
+// power over time on the caster after it.
+func TestAPowerDrainWithATimeIsInstant(t *testing.T) {
+	c := newCaster(t)
+	c.p.Power = 100
+	c.landSeen(t, powerSap("Target, Drain Power by 250 to self, 30sec"), c.npcO)
+	if c.p.Power != 100-20+250 {
+		t.Fatalf("at the landing: power %d, want %d", c.p.Power, 100-20+250)
+	}
+	for s := 4; s <= 40; s++ {
+		c.tick(time.Duration(s) * time.Second)
+	}
+	if c.p.Power != 100-20+250 {
+		t.Errorf("over its 30 s: power %d, want %d still", c.p.Power, 100-20+250)
+	}
+	for _, e := range c.p.Effects {
+		if e.PowerTick != 0 {
+			t.Errorf("a power over time on the caster: %+v", e)
+		}
+	}
+}

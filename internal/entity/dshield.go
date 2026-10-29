@@ -277,7 +277,7 @@ func (d *SpellDef) hasShield() bool {
 // harmfulAgain works out whether the spell is cast at an enemy once one of
 // its effects changed, from its effects and target as ParseSpellText does.
 func (d *SpellDef) harmfulAgain() {
-	d.Harmful = d.Target == TargetUndead
+	d.Harmful = d.Target == TargetUndead || d.takesPower() // lifetap.go
 	for _, e := range d.Effects {
 		switch e.Kind {
 		case EffectHP, EffectHPTick, EffectStat:

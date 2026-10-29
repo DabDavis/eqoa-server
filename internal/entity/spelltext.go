@@ -60,6 +60,7 @@ const (
 	EffectDefProc                       // a creature's melee hit on the bearer may take Amount back (dshield.go)
 	EffectPowerCap                      // the bearer's maximum power at most Amount while it lasts; lasting no time, its power taken down to it (powercap.go)
 	EffectForget                        // the target forgets its hate for the caster (vampire.go: Vampiric Gaze)
+	EffectWard                          // a creature's melee hit on the bearer cut by Amount%, or to 1 when ToOne, Cap in all (ward.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -123,6 +124,9 @@ type SpellEffect struct {
 	// Masks: an end of looks that ends the rogue's masks alone, Remove
 	// Mask's (illusion.go)
 	Masks bool
+	// ToOne: a ward that makes each hit it cuts do 1 ("Reduce Damage Taken
+	// to 1"), its Cap the most it takes off in all (ward.go)
+	ToOne bool
 }
 
 // SpellDef is a spell's line, read: whom it lands on, what it does, how
@@ -362,7 +366,7 @@ func (d SpellDef) asProc() SpellDef {
 	effects[at] = SpellEffect{Kind: EffectProc, Amount: -hit.AmountMax, AmountMax: -hit.Amount, Scale: hit.Scale, ScalePct: hit.ScalePct,
 		ScaleBearer: hit.ScaleBearer, Cap: hit.Cap}
 	d.Effects = effects
-	d.Harmful = false
+	d.Harmful = d.takesPower() // lifetap.go
 	for _, e := range d.Effects {
 		switch e.Kind {
 		case EffectHP, EffectHPTick, EffectStat:
@@ -458,9 +462,11 @@ func ParseSpellText(line string) SpellDef {
 	}
 	// a resurrection's share of the latest death's debt (resurrect.go)
 	d.readResurrect()
-	// Cast at an enemy: what takes hit points or a stat, holds or slows, or
-	// works on hate. Power is not counted: "Decrease Power by 1" is in Minor
-	// Healing's line.
+	// Cast at an enemy: what takes hit points or a stat, holds or slows,
+	// works on hate, or takes power (lifetap.go takesPower: a drain or
+	// decrease of the target's power, the owner's ruling of 2026-10-29; not
+	// Minor Healing's "Decrease Power by 1" beside its heal).
+	d.Harmful = d.takesPower()
 	for _, e := range d.Effects {
 		switch e.Kind {
 		case EffectHP, EffectHPTick, EffectStat:
@@ -558,6 +564,10 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		return verb
 	}
 	if e, ok := shieldPart(part); ok { // dshield.go
+		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if e, ok := wardPart(part); ok { // ward.go
 		d.Effects = append(d.Effects, e)
 		return verb
 	}

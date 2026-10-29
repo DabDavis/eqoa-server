@@ -957,6 +957,7 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++
 		n := w.npcHitLocked(npc, w.balanceLevelOf(pet), npc.meleeOut(npcHitOnPet(npc, pet, meleeIntn))) // balance.go, then its class template
+		n = w.petWardLocked(pet, npc, n, now) // its ward: the hit as taken (ward.go)
 		pet.HP = max(pet.HP-n, 0)
 		pet.LastCombatTime = now
 		log.Printf("Pet: %s hit the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, n, pet.HP, pet.MaxHP)

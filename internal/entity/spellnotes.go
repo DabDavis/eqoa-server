@@ -55,13 +55,14 @@ func spellNote(part string) bool { return reNote.MatchString(part) }
 const buffDuration = 30 * time.Minute
 
 // lineDefaults fills in a buff's duration (buffDuration) for a line that
-// raises stats, names no time and does no harm.
+// raises stats or wards its bearer (ward.go: Eldritch Rune's note gives a
+// cap and no time; ours), names no time and does no harm.
 func (d *SpellDef) lineDefaults() {
 	if d.Harmful || d.Duration != 0 {
 		return
 	}
 	for _, e := range d.Effects {
-		if e.Kind == EffectStat && e.Amount > 0 {
+		if (e.Kind == EffectStat && e.Amount > 0) || e.Kind == EffectWard {
 			d.Duration = buffDuration
 			return
 		}

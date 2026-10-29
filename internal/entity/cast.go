@@ -284,6 +284,9 @@ type ActiveEffect struct {
 	// (buffline.go): only the best of a line counts; "" for none
 	Line string
 	Rank int
+	// Ward cuts the creatures' melee hits on its bearer (ward.go), nil for
+	// none
+	Ward *Ward
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -969,6 +972,8 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			if !ae.PowerCapped || e.Amount < ae.PowerCap {
 				ae.PowerCap, ae.PowerCapped = e.Amount, true
 			}
+		case EffectWard:
+			ae.Ward = ae.Ward.with(e) // ward.go
 		default:
 			continue
 		}
@@ -1189,8 +1194,16 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 			w.updateAggro(npc, caster.ServerID, spellAmount(e, caster))
 		case EffectForget:
 			w.forgetLocked(npc, caster) // vampire.go: Vampiric Gaze
+		case EffectPower:
+			// a power drain, a hostile act (lifetap.go, the owner's ruling of
+			// 2026-10-29): the creature's hate for the caster its figure, so
+			// a drain with no hit starts the fight, and the grant at once
+			if n := -spellAmount(e, caster); n > 0 {
+				w.updateAggro(npc, caster.ServerID, n)
+				w.drainLocked(cs, caster, casterSess, e, n, now)
+			}
 		default:
-			// a drained stat or power is the caster's (lifetap.go)
+			// a drained stat is the caster's (lifetap.go)
 			w.drainLocked(cs, caster, casterSess, e, -spellAmount(e, caster), now)
 		}
 	}

@@ -202,6 +202,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	// as its class template makes it (classtemplate.go), then the balance's
 	// (balance.go: its level's, its con's and the player's class's)
 	damage := w.npcHitPlayerLocked(npc, player, npc.meleeOut(npcMeleeRoll(npc).hitOn(player, meleeIntn)))
+	damage = w.playerWardLocked(player, npc, damage, now) // its ward: the hit as taken (ward.go)
 	player.HP -= damage
 	if player.HP < 0 {
 		player.HP = 0

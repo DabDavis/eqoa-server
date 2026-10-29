@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/binary"
 	"fmt"
 	"log"
 	"sort"
@@ -23,11 +24,26 @@ import (
 // No capture holds an auction session but searches (claude-notes/
 // sandstorm-s2-live-20261015.md §4): the formats are CLIENT's.
 //
-//	C>S 0x1205 5  u32 the banker, u32 the bank record's key, zz a count (the
-//	              constant 1: the whole record goes), zz starting bid, zz
-//	              buyout, zz minutes                                  Sell
+//	C>S 0x1205 5  u32 the banker, u32 the bank record's key, zz a count, zz
+//	              starting bid, zz buyout, zz minutes                 Sell
 //	C>S 0x1205 6  zz lot, zz amount (a proxy: the most the bidder will
-//	              pay; the buyout to buy outright), zz 1              Send06
+//	              pay; the buyout to buy outright), zz count          Send06
+//
+// The disc's count is the constant 1 in both (the whole bank record goes; a
+// bid is for the lot). SOE's live client (feature bit 0x08, the stacks;
+// livediff/specs/auction-stacks.md) sends its form's quantity in the same
+// place and prices by the item: Sell puts that many of the record up at
+// those prices each, a bid asks for that many at that most each (database/
+// auctionunits.go sells a stack in units). A count over 1 is a quantity from
+// any client; a count of 1 is one item only from a client that answered the
+// live form's offer (OpcodeAuctionForm, livefeatures.go), as the disc's 1
+// means the whole record. The arrays of a page are the live client's A (the
+// leader, unread there), B (the high bid per item: the price every winner
+// pays now) and C (the least next bid per item); a bid record's x0C is its
+// quantity and a bidder row's x28 its quantity, which the disc reads and
+// never shows. A stack a disc client put up whole is shown to a client of
+// the live form at each item's share of its prices, rounded up, and bid on
+// whole (lotView).
 //	C>S 0x1205 7  zz page, zz the lot it starts from (-1 a new search), u8
 //	              forward, the query (u8 flags, str seller, wide keywords,
 //	              u32 classes, u32 races, zz min/max level, zz min/max
@@ -114,6 +130,11 @@ type AuctionHouse struct {
 	mu      sync.Mutex // one request or sweep at a time
 	pageMin map[*session.Session]int64
 
+	// form: the sessions whose client answered the live form's offer
+	// (OpcodeAuctionForm); its own lock, read before a request takes mu
+	formMu sync.Mutex
+	form   map[*session.Session]bool
+
 	stopOnce sync.Once
 	stop     chan struct{}
 }
@@ -121,7 +142,7 @@ type AuctionHouse struct {
 // NewAuctionHouse makes the house over a database.
 func NewAuctionHouse(db *database.SQLiteDB, windows *NPCWindowHandler) *AuctionHouse {
 	a := &AuctionHouse{db: db, windows: windows, now: time.Now, pageMin: map[*session.Session]int64{},
-		stop: make(chan struct{})}
+		form: map[*session.Session]bool{}, stop: make(chan struct{})}
 	a.isGM = func(*session.Session) bool { return false }
 	a.live = a.liveSession
 	a.isLive = func(p *entity.Player) bool { return p != nil }
@@ -189,6 +210,64 @@ func (a *AuctionHouse) liveSession(serverID uint32) (*session.Session, *entity.P
 	return found, player
 }
 
+// HandleForm is OpcodeAuctionForm from the client: a u32, nonzero for the
+// live forms (a count of 1 is one item, a stack put up whole is shown by the
+// item), 0 for the disc's.
+func (a *AuctionHouse) HandleForm(sess *session.Session, msg *protocol.Message) error {
+	data := msg.Data()
+	if len(data) < 4 {
+		log.Printf("AuctionForm: short (%d bytes) from %s", len(data), sess.RemoteAddr())
+		return nil
+	}
+	on := binary.LittleEndian.Uint32(data[:4]) != 0
+	a.formMu.Lock()
+	if on {
+		a.form[sess] = true
+	} else {
+		delete(a.form, sess)
+	}
+	a.formMu.Unlock()
+	log.Printf("AuctionForm: %s %s", sess.RemoteAddr(), map[bool]string{true: "has the live forms", false: "has the disc's"}[on])
+	return nil
+}
+
+// liveForm reports the session's client has the live forms.
+func (a *AuctionHouse) liveForm(sess *session.Session) bool {
+	if a == nil || sess == nil {
+		return false
+	}
+	a.formMu.Lock()
+	defer a.formMu.Unlock()
+	return a.form[sess]
+}
+
+// lotView is how a client is shown lots: by the disc's form, or by the live
+// form, which reads every price as an item's.
+type lotView struct{ live bool }
+
+func (a *AuctionHouse) viewOf(sess *session.Session) lotView { return lotView{live: a.liveForm(sess)} }
+
+// each is an amount of a lot as the client reads it: a stack a disc client
+// put up whole is priced as a whole, which the live form shows as each
+// item's share, rounded up (it bids for all of them: database.AuctionBid);
+// anything else as it is.
+func (v lotView) each(l *database.AuctionLot, whole int) int {
+	if !v.live || !l.Bundle() || whole < 0 {
+		return whole
+	}
+	n := l.Item.StackLeft
+	return (whole + n - 1) / n
+}
+
+// qty is a bid's quantity as the client reads it: the live form bids on all
+// of a stack put up whole.
+func (v lotView) qty(l *database.AuctionLot, b *database.AuctionBid) int {
+	if l != nil && v.live && l.Bundle() {
+		return l.Item.StackLeft
+	}
+	return max(1, b.Qty)
+}
+
 // --- the messages ---
 
 func auctionMinutes(unix int64) int64 { return unix / 60 }
@@ -196,10 +275,10 @@ func auctionMinutes(unix int64) int64 { return unix / 60 }
 // writeLot is operator<<(VIMemStream &, const VIAuctionItem &). thin leaves
 // the item's text and stats out: the MemoryDump's m_lots serve only HasLot
 // and My Auctions' ids, and every page carries the whole lot.
-func writeLot(w *buffer.Writer, l *database.AuctionLot, thin bool) {
-	for _, v := range []int64{int64(l.ID), int64(l.Item.StackLeft), int64(l.Item.RemainHP), int64(l.Item.Charges),
-		int64(l.MinBid), int64(l.Buyout), auctionMinutes(l.EndsAt)} {
-		w.Write7BitEncodedInt64(v)
+func writeLot(w *buffer.Writer, l *database.AuctionLot, thin bool, v lotView) {
+	for _, n := range []int64{int64(l.ID), int64(l.Item.StackLeft), int64(l.Item.RemainHP), int64(l.Item.Charges),
+		int64(v.each(l, l.MinBid)), int64(v.each(l, l.Buyout)), auctionMinutes(l.EndsAt)} {
+		w.Write7BitEncodedInt64(n)
 	}
 	writeString8(w, l.SellerName, 24)
 	e := l.Item
@@ -218,93 +297,108 @@ func writeLot(w *buffer.Writer, l *database.AuctionLot, thin bool) {
 func lotBytes(n int) int { return 2048 + 1536*n }
 
 // resultsPayload is 0x1206 129: a page of lots and their three columns.
-func resultsPayload(page int, minutes int64, lots []database.AuctionLot) []byte {
+func resultsPayload(page int, minutes int64, lots []database.AuctionLot, v lotView) []byte {
 	return build(protocol.OpcodeAuctionStuff, lotBytes(len(lots)), func(w *buffer.Writer) {
 		w.WriteByte(129)
 		w.Write7BitEncodedInt64(int64(page))
 		w.Write7BitEncodedInt64(minutes)
 		w.Write7BitEncodedInt64(int64(len(lots)))
 		for i := range lots {
-			writeLot(w, &lots[i], false)
+			writeLot(w, &lots[i], false, v)
 		}
 		for col := 0; col < 3; col++ {
 			w.Write7BitEncodedInt64(int64(len(lots)))
 			for i := range lots {
-				w.Write7BitEncodedInt64(int64(lotColumn(&lots[i], col)))
+				w.Write7BitEncodedInt64(int64(lotColumn(&lots[i], col, v)))
 			}
 		}
 	})
 }
 
-// lotColumn is a page's column for a lot: 0 the leader, 1 the current bid,
-// 2 the least next bid.
-func lotColumn(l *database.AuctionLot, col int) int {
+// lotColumn is a page's column for a lot: 0 the leader (a stack's first
+// winner), 1 the current bid (a stack's price every winner pays now), 2 the
+// least next bid; per item on a lot sold by the item.
+func lotColumn(l *database.AuctionLot, col int, v lotView) int {
 	switch col {
 	case 0:
 		return int(l.High)
 	case 1:
-		return l.CurrentBid()
+		return v.each(l, l.CurrentBid())
 	}
-	return l.MinNext()
+	return v.each(l, l.MinNext())
 }
 
 // addLotPayload is 0x1206 130.
-func addLotPayload(l *database.AuctionLot) []byte {
+func addLotPayload(l *database.AuctionLot, v lotView) []byte {
 	return build(protocol.OpcodeAuctionStuff, lotBytes(1), func(w *buffer.Writer) {
 		w.WriteByte(130)
-		writeLot(w, l, false)
+		writeLot(w, l, false, v)
 	})
 }
 
 // updateLotPayload is 0x1206 137.
-func updateLotPayload(l *database.AuctionLot, minutes int64) []byte {
+func updateLotPayload(l *database.AuctionLot, minutes int64, v lotView) []byte {
 	return build(protocol.OpcodeAuctionStuff, lotBytes(1), func(w *buffer.Writer) {
 		w.WriteByte(137)
-		writeLot(w, l, false)
+		writeLot(w, l, false, v)
 		w.Write7BitEncodedInt64(minutes)
 		for col := 0; col < 3; col++ {
-			w.Write7BitEncodedInt64(int64(lotColumn(l, col)))
+			w.Write7BitEncodedInt64(int64(lotColumn(l, col, v)))
 		}
 	})
 }
 
 // writeBid is operator<<(VIMemStream &, const VIDbCharBid &): the key, the
-// proxy (FindBid's first, "Your Bid"), a word no reader shows, what is held
-// (FindBid's second, "In Escrow"), a byte.
-func writeBid(w *buffer.Writer, b *database.AuctionBid) {
-	for _, v := range []int{int(b.Bidder), b.Lot, b.Max, 0, b.Escrow} {
-		w.Write7BitEncodedInt64(int64(v))
+// proxy (FindBid's first, "Your Bid": per item, x08), its quantity (x0C,
+// the live form's "%d@%d"; the disc shows none), what is held (FindBid's
+// second, "In Escrow", x10), a byte. l is the lot it is on, when known (a
+// stack put up whole is shown to the live form by the item).
+func writeBid(w *buffer.Writer, b *database.AuctionBid, l *database.AuctionLot, v lotView) {
+	price := b.Max
+	if l != nil {
+		price = v.each(l, b.Max)
+	}
+	for _, n := range []int{int(b.Bidder), b.Lot, price, v.qty(l, b), b.Escrow} {
+		w.Write7BitEncodedInt64(int64(n))
 	}
 	w.WriteByte(0)
 }
 
 // bidPayload is 0x1206 132 (a new record) or 134 (over the record of the
 // same lot).
-func bidPayload(sub byte, b *database.AuctionBid) []byte {
+func bidPayload(sub byte, b *database.AuctionBid, l *database.AuctionLot, v lotView) []byte {
 	return build(protocol.OpcodeAuctionStuff, 64, func(w *buffer.Writer) {
 		w.WriteByte(sub)
-		writeBid(w, b)
+		writeBid(w, b, l, v)
 	})
 }
 
 // biddersPayload is 0x1206 135: a lot's bids, each its bidder's highest, the
-// leader's shown at the lot's current bid (its proxy is its own).
-func biddersPayload(l *database.AuctionLot, bids []database.AuctionBid) []byte {
+// leader's shown at the lot's current bid (its proxy is its own); on a stack
+// sold by the item every bid that wins units (or won them) at the price they
+// pay, the rest at their own, each with its quantity (x28, the live form's
+// Quantity column).
+func biddersPayload(l *database.AuctionLot, bids []database.AuctionBid, v lotView) []byte {
 	return build(protocol.OpcodeAuctionStuff, 64+48*len(bids), func(w *buffer.Writer) {
 		w.WriteByte(135)
 		w.Write7BitEncodedInt64(int64(l.ID))
 		w.Write7BitEncodedInt64(int64(len(bids)))
-		for _, b := range bids {
+		for i := range bids {
+			b := &bids[i]
 			shown := b.Max
-			if b.Bidder == l.High {
+			if l.Multi() {
+				if b.Escrow > 0 || b.Won > 0 {
+					shown = l.Price
+				}
+			} else if b.Bidder == l.High {
 				shown = l.Price
 			}
 			w.Write7BitEncodedInt64(int64(b.Bidder))
 			w.Write7BitEncodedInt64(int64(l.ID))
 			w.Write7BitEncodedInt64(0)
 			writeString8(w, b.Name, 24)
-			w.Write7BitEncodedInt64(int64(shown))
-			w.Write7BitEncodedInt64(0)
+			w.Write7BitEncodedInt64(int64(v.each(l, shown)))
+			w.Write7BitEncodedInt64(int64(v.qty(l, b)))
 		}
 	})
 }
@@ -344,14 +438,14 @@ func (a *AuctionHouse) Handle(sess *session.Session, msg *protocol.Message) erro
 			refuse(sess)
 			return nil
 		}
-		a.sell(sess, player, banker, key, int(price), int(buyout), int(minutes))
+		a.sell(sess, player, banker, key, int(count), int(price), int(buyout), int(minutes))
 	case 6:
-		lot, amount := r.signed(), r.signed()
-		if r.err {
+		lot, amount, count := r.signed(), r.signed(), r.signed()
+		if r.err || count < 1 {
 			refuse(sess)
 			return nil
 		}
-		a.bid(sess, player, int(lot), int(amount))
+		a.bid(sess, player, int(lot), int(amount), int(count))
 	case 7:
 		page, from := r.signed(), r.signed()
 		forward := r.u8() != 0
@@ -401,12 +495,16 @@ func (a *AuctionHouse) refused(sess *session.Session, player *entity.Player, wha
 }
 
 // sell is sub-op 5: the bank record with that key up for auction, at a
-// banker (Prima: "Go to the bank and speak to one of the bankers").
-func (a *AuctionHouse) sell(sess *session.Session, player *entity.Player, banker, key uint32, price, buyout, minutes int) {
+// banker (Prima: "Go to the bank and speak to one of the bankers"): the whole
+// record by the disc's form, count of it by the item by the live form (or a
+// count over one from any client).
+func (a *AuctionHouse) sell(sess *session.Session, player *entity.Player, banker, key uint32, count, price, buyout, minutes int) {
 	if _, _, ok := a.windows.windowNPC(sess, banker, npcFlagBank, "AuctionSell"); !ok || !a.isLive(player) {
 		refuse(sess)
 		return
 	}
+	v := a.viewOf(sess)
+	perItem := v.live || count > 1
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	bankMu.Lock()
@@ -426,77 +524,116 @@ func (a *AuctionHouse) sell(sess *session.Session, player *entity.Player, banker
 		Seller: player.CharServerID, SellerName: player.Name,
 		ItemID: rec.itemID, PatternID: rec.patternID, Stack: rec.qty,
 		MinBid: price, Buyout: buyout, Minutes: minutes, GM: a.isGM(sess), Now: a.now(),
+		PerItem: perItem, Count: count,
 	})
 	if err != nil {
 		a.refused(sess, player, "sale", err)
 		return
 	}
-	bank.took(i, rec.qty)
+	n := lot.Item.StackLeft // what left the record: all of it, or count
+	bank.took(i, n)
 	player.BankTunar = after
-	queueReliable(sess, protocol.OpcodeRemoveBankItem, bankTookPayload(i, rec.qty))
+	queueReliable(sess, protocol.OpcodeRemoveBankItem, bankTookPayload(i, n))
 	queueReliable(sess, protocol.OpcodeConfirmBankTunar, bankTunarPayload(after))
-	queueReliable(sess, protocol.OpcodeAuctionStuff, addLotPayload(&lot))
-	auctionLine(sess, fmt.Sprintf("%s is up for auction. The listing fee was %d tunar.", lot.Item.Pattern.ItemName, lot.Fee))
-	log.Printf("Auction: %s put up %d %q as lot %d (%d / %d, %d minutes, fee %d; bank %d)",
-		player.Name, lot.Item.StackLeft, lot.Item.Pattern.ItemName, lot.ID, price, buyout, minutes, lot.Fee, after)
+	queueReliable(sess, protocol.OpcodeAuctionStuff, addLotPayload(&lot, v))
+	if lot.Multi() {
+		auctionLine(sess, fmt.Sprintf("%d %s are up for auction, from %d tunar each. The listing fee was %d tunar.",
+			n, lot.Item.Pattern.ItemName, lot.MinBid, lot.Fee))
+	} else {
+		auctionLine(sess, fmt.Sprintf("%s is up for auction. The listing fee was %d tunar.", lot.Item.Pattern.ItemName, lot.Fee))
+	}
+	log.Printf("Auction: %s put up %d %q as lot %d (%d / %d%s, %d minutes, fee %d; bank %d)",
+		player.Name, n, lot.Item.Pattern.ItemName, lot.ID, price, buyout,
+		map[bool]string{true: " each", false: ""}[lot.PerItem], minutes, lot.Fee, after)
 }
 
-// bid is sub-op 6: a proxy bid, or the buyout.
-func (a *AuctionHouse) bid(sess *session.Session, player *entity.Player, lot, amount int) {
+// bid is sub-op 6: a proxy bid for count (the most per item on a lot sold
+// by the item), or the buyout.
+func (a *AuctionHouse) bid(sess *session.Session, player *entity.Player, lot, amount, count int) {
 	if !a.isLive(player) {
 		refuse(sess)
 		return
 	}
+	v := a.viewOf(sess)
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	bankMu.Lock()
 	defer bankMu.Unlock()
 	res, err := a.db.AuctionBid(database.AuctionBidRequest{
-		Bidder: player.CharServerID, Name: player.Name, Lot: lot, Amount: amount, Now: a.now(),
+		Bidder: player.CharServerID, Name: player.Name, Lot: lot, Amount: amount, Qty: count, Now: a.now(),
+		LiveForm: v.live,
 	})
 	if err != nil {
 		a.refused(sess, player, "bid", err)
 		return
 	}
-	name := res.Lot.Item.Pattern.ItemName
+	l := &res.Lot
+	name := l.Item.Pattern.ItemName
 	player.BankTunar = res.BidderBank
 	sub := byte(132)
 	if res.HadBid {
 		sub = 134
 	}
-	queueReliable(sess, protocol.OpcodeAuctionStuff, bidPayload(sub, &res.Bid))
+	queueReliable(sess, protocol.OpcodeAuctionStuff, bidPayload(sub, &res.Bid, l, v))
 	cleared := sub == 132
-	if res.Taken > 0 || (res.Settled != nil && res.Settled.Refund > 0) {
+	if res.Taken > 0 || res.Returned > 0 || (res.Settled != nil && res.Settled.Refund > 0) {
 		queueReliable(sess, protocol.OpcodeConfirmBankTunar, bankTunarPayload(res.BidderBank))
 		cleared = true
 	}
-	queueReliable(sess, protocol.OpcodeAuctionStuff, updateLotPayload(&res.Lot, a.pageMinutes(sess)))
-	switch res.Kind {
-	case database.BidFirst, database.BidTookLead:
-		auctionLine(sess, fmt.Sprintf("You are the high bidder on %s at %d tunar. Your proxy bid of %d is held in escrow.",
-			name, res.Lot.Price, res.Bid.Max))
-	case database.BidRaised:
-		auctionLine(sess, fmt.Sprintf("Your proxy bid on %s is now %d tunar, held in escrow.", name, res.Bid.Max))
-	case database.BidOutbid:
-		auctionLine(sess, fmt.Sprintf("Another bidder's proxy bid on %s is higher. The bid stands at %d tunar.", name, res.Lot.Price))
+	queueReliable(sess, protocol.OpcodeAuctionStuff, updateLotPayload(l, a.pageMinutes(sess), v))
+	if l.Multi() {
+		auctionLine(sess, unitBidLine(&res))
+	} else {
+		switch res.Kind {
+		case database.BidFirst, database.BidTookLead:
+			auctionLine(sess, fmt.Sprintf("You are the high bidder on %s at %d tunar. Your proxy bid of %d is held in escrow.",
+				name, l.Price, res.Bid.Max))
+		case database.BidRaised:
+			auctionLine(sess, fmt.Sprintf("Your proxy bid on %s is now %d tunar, held in escrow.", name, res.Bid.Max))
+		case database.BidOutbid:
+			auctionLine(sess, fmt.Sprintf("Another bidder's proxy bid on %s is higher. The bid stands at %d tunar.", name, l.Price))
+		}
 	}
 	if !cleared {
 		refuse(sess) // 134 alone leaves the wait: 0x00D7 ends it
 	}
-	log.Printf("Auction: %s bid %d on lot %d (%s): kind %d, price %d, leader %d, bank %d",
-		player.Name, amount, lot, name, res.Kind, res.Lot.Price, res.Lot.High, res.BidderBank)
+	log.Printf("Auction: %s bid %d x %d on lot %d (%s): kind %d, units %d, price %d, leader %d, bank %d",
+		player.Name, count, amount, lot, name, res.Kind, res.Units, l.Price, l.High, res.BidderBank)
 	told := map[uint32]bool{player.CharServerID: true}
 	if res.Refund != nil {
-		a.refundedLocked(*res.Refund, &res.Lot)
+		a.refundedLocked(*res.Refund, l)
 		told[res.Refund.Bidder] = true
+	}
+	for _, rf := range res.Refunds {
+		a.refundedLocked(rf, l)
+		told[rf.Bidder] = true
 	}
 	if res.Settled != nil {
 		a.settledLocked(*res.Settled)
 		told[res.Settled.Winner], told[res.Settled.Lot.Seller] = true, true
-	} else if !told[res.Lot.Seller] {
-		a.showLotLocked(res.Lot.Seller, &res.Lot)
+	} else if !told[l.Seller] {
+		a.showLotLocked(l.Seller, l)
 	}
 	a.tellLocked(sess, player.CharServerID)
+}
+
+// unitBidLine is what a bid on a stack sold by the item did, said to its
+// bidder (a buyout says nothing here: its settlement's line does).
+func unitBidLine(res *database.AuctionBidResult) string {
+	l, b := &res.Lot, &res.Bid
+	name := l.Item.Pattern.ItemName
+	switch {
+	case res.Kind == database.BidBoughtOut:
+		return fmt.Sprintf("You bought all %d %s at %d tunar each.", l.Item.StackLeft, name, l.Price)
+	case res.Units == 0:
+		return fmt.Sprintf("Higher bids take all %d %s: your bid of %d tunar each wins none and holds nothing. The price stands at %d tunar each.",
+			l.Item.StackLeft, name, b.Max, l.Price)
+	case res.Units < b.Qty:
+		return fmt.Sprintf("Your bid for %d %s, at most %d tunar each, wins %d of them now at %d tunar each. %d tunar is held in escrow.",
+			b.Qty, name, b.Max, res.Units, l.Price, b.Escrow)
+	}
+	return fmt.Sprintf("Your bid for %d %s, at most %d tunar each, wins them now at %d tunar each. %d tunar is held in escrow.",
+		b.Qty, name, b.Max, l.Price, b.Escrow)
 }
 
 // pageMinutes is the minutes of the page this session was last sent (137
@@ -511,10 +648,11 @@ func (a *AuctionHouse) pageMinutes(sess *session.Session) int64 {
 // sendPage sends 0x1206 129 and keeps its minutes for the session's 137s.
 func (a *AuctionHouse) sendPage(sess *session.Session, page int, lots []database.AuctionLot) {
 	m := auctionMinutes(a.now().Unix())
+	v := a.viewOf(sess)
 	a.mu.Lock()
 	a.pageMin[sess] = m
 	a.mu.Unlock()
-	queueReliable(sess, protocol.OpcodeAuctionStuff, resultsPayload(page, m, lots))
+	queueReliable(sess, protocol.OpcodeAuctionStuff, resultsPayload(page, m, lots, v))
 }
 
 // auctionQuery is VIAuctionQuery as Search (0x00C139B0) fills it.
@@ -670,7 +808,7 @@ func (a *AuctionHouse) history(sess *session.Session, player *entity.Player, lot
 		log.Printf("Auction: %s's history of %d: %v", player.Name, lot, err)
 	}
 	l.ID = lot
-	queueReliable(sess, protocol.OpcodeAuctionStuff, biddersPayload(&l, bids))
+	queueReliable(sess, protocol.OpcodeAuctionStuff, biddersPayload(&l, bids, a.viewOf(sess)))
 }
 
 // --- telling the others ---
@@ -682,13 +820,18 @@ func (a *AuctionHouse) refundedLocked(rf database.AuctionRefund, lot *database.A
 	if s == nil {
 		return
 	}
+	v := a.viewOf(s)
 	if !rf.Gone {
 		p.BankTunar = rf.Bank
 		queueReliable(s, protocol.OpcodeConfirmBankTunar, bankTunarPayload(rf.Bank))
 	}
-	queueReliable(s, protocol.OpcodeAuctionStuff, bidPayload(134, &rf.Bid))
+	var on *database.AuctionLot
 	if lot != nil && lot.ID == rf.Bid.Lot {
-		queueReliable(s, protocol.OpcodeAuctionStuff, updateLotPayload(lot, a.pageMinutes(s)))
+		on = lot
+	}
+	queueReliable(s, protocol.OpcodeAuctionStuff, bidPayload(134, &rf.Bid, on, v))
+	if on != nil {
+		queueReliable(s, protocol.OpcodeAuctionStuff, updateLotPayload(on, a.pageMinutes(s), v))
 	}
 	a.tellLocked(s, rf.Bidder)
 }
@@ -698,15 +841,20 @@ func (a *AuctionHouse) refundedLocked(rf database.AuctionRefund, lot *database.A
 // holding nothing now, the lot, the lines.
 func (a *AuctionHouse) settledLocked(st database.AuctionSettlement) {
 	l := &st.Lot
+	if st.Multi {
+		a.settledUnitsLocked(st)
+		return
+	}
 	if st.Winner != 0 {
 		if s, p := a.live(st.Winner); s != nil {
+			v := a.viewOf(s)
 			p.BankTunar = st.WinnerBank
 			queueReliable(s, protocol.OpcodeConfirmBankTunar, bankTunarPayload(st.WinnerBank))
-			queueReliable(s, protocol.OpcodeAuctionStuff, bidPayload(134, &st.WinnerBid))
+			queueReliable(s, protocol.OpcodeAuctionStuff, bidPayload(134, &st.WinnerBid, l, v))
 			if st.Delivery != nil && st.Delivery.Holder == st.Winner {
 				a.fileLocked(s, *st.Delivery)
 			}
-			queueReliable(s, protocol.OpcodeAuctionStuff, updateLotPayload(l, a.pageMinutes(s)))
+			queueReliable(s, protocol.OpcodeAuctionStuff, updateLotPayload(l, a.pageMinutes(s), v))
 			a.tellLocked(s, st.Winner)
 		}
 	}
@@ -716,17 +864,54 @@ func (a *AuctionHouse) settledLocked(st database.AuctionSettlement) {
 		if st.Delivery != nil && st.Delivery.Holder == l.Seller {
 			a.fileLocked(s, *st.Delivery)
 		}
-		queueReliable(s, protocol.OpcodeAuctionStuff, updateLotPayload(l, a.pageMinutes(s)))
+		queueReliable(s, protocol.OpcodeAuctionStuff, updateLotPayload(l, a.pageMinutes(s), a.viewOf(s)))
 		a.tellLocked(s, l.Seller)
 	}
 	log.Printf("Auction: lot %d (%s) closed %s: winner %d at %d, seller %d; item delivered %v",
 		l.ID, l.Item.Pattern.ItemName, l.State, st.Winner, l.Price, l.Seller, l.Delivered)
 }
 
+// settledUnitsLocked tells a closed stack's winners and seller in the world:
+// their banks' tunar, each winner's record holding nothing now, the shares
+// filed into the banks they reached, the lot, the lines.
+func (a *AuctionHouse) settledUnitsLocked(st database.AuctionSettlement) {
+	l := &st.Lot
+	file := func(s *session.Session, holder uint32) {
+		for _, d := range st.Deliveries {
+			if d.Holder == holder {
+				a.fileLocked(s, d)
+			}
+		}
+	}
+	for i := range st.Winners {
+		w := &st.Winners[i]
+		s, p := a.live(w.Bidder)
+		if s == nil {
+			continue
+		}
+		v := a.viewOf(s)
+		p.BankTunar = w.Bank
+		queueReliable(s, protocol.OpcodeConfirmBankTunar, bankTunarPayload(w.Bank))
+		queueReliable(s, protocol.OpcodeAuctionStuff, bidPayload(134, &w.Bid, l, v))
+		file(s, w.Bidder)
+		queueReliable(s, protocol.OpcodeAuctionStuff, updateLotPayload(l, a.pageMinutes(s), v))
+		a.tellLocked(s, w.Bidder)
+	}
+	if s, p := a.live(l.Seller); s != nil && !st.SellerGone {
+		p.BankTunar = st.SellerBank
+		queueReliable(s, protocol.OpcodeConfirmBankTunar, bankTunarPayload(st.SellerBank))
+		file(s, l.Seller)
+		queueReliable(s, protocol.OpcodeAuctionStuff, updateLotPayload(l, a.pageMinutes(s), a.viewOf(s)))
+		a.tellLocked(s, l.Seller)
+	}
+	log.Printf("Auction: stack lot %d (%d %s) closed %s: %d sold at %d each to %d bidders, seller %d; %d shares filed",
+		l.ID, l.Item.StackLeft, l.Item.Pattern.ItemName, l.State, st.Sold, l.Price, len(st.Winners), l.Seller, len(st.Deliveries))
+}
+
 // showLotLocked sends a lot's change to a character in the world.
 func (a *AuctionHouse) showLotLocked(serverID uint32, lot *database.AuctionLot) {
 	if s, _ := a.live(serverID); s != nil {
-		queueReliable(s, protocol.OpcodeAuctionStuff, updateLotPayload(lot, a.pageMinutes(s)))
+		queueReliable(s, protocol.OpcodeAuctionStuff, updateLotPayload(lot, a.pageMinutes(s), a.viewOf(s)))
 	}
 }
 
@@ -792,7 +977,10 @@ func (a *AuctionHouse) Sweep() {
 	for _, l := range sw.Cancelled {
 		log.Printf("Auction: lot %d (%s) withdrawn: seller %d is gone", l.ID, l.Item.Pattern.ItemName, l.Seller)
 	}
-	if len(a.pageMin) > 256 && a.world != nil && a.world.SessionManager != nil {
+	a.formMu.Lock()
+	forms := len(a.form)
+	a.formMu.Unlock()
+	if (len(a.pageMin) > 256 || forms > 256) && a.world != nil && a.world.SessionManager != nil {
 		alive := map[*session.Session]bool{}
 		a.world.SessionManager.ForEach(func(s *session.Session) bool {
 			alive[s] = true
@@ -803,6 +991,13 @@ func (a *AuctionHouse) Sweep() {
 				delete(a.pageMin, s)
 			}
 		}
+		a.formMu.Lock()
+		for s := range a.form {
+			if !alive[s] {
+				delete(a.form, s)
+			}
+		}
+		a.formMu.Unlock()
 	}
 }
 
@@ -886,8 +1081,19 @@ func (a *AuctionHouse) deliverLocked(sess *session.Session, p *entity.Player) {
 
 // WriteDumpLists writes the MemoryDump's m_lots and m_bids (VIBankControl::
 // Read, after the bank's list): the character's lots and bids open or closed
-// within AuctionHistory, newest first. Without a house, two empty lists.
+// within AuctionHistory, newest first. Without a house, two empty lists. The
+// dump keeps the disc's layout (livediff/specs/auction-stacks.md section 4:
+// its 24-byte bid record, and the flag after the lists), whatever the client.
 func (a *AuctionHouse) WriteDumpLists(w *buffer.Writer, serverID uint32) {
+	a.WriteDumpListsFor(w, nil, serverID)
+}
+
+// WriteDumpListsFor is WriteDumpLists for a session, its lots shown as that
+// session's client reads them: a dump at a login comes before the client
+// answers the live form's offer, and is the disc's; a later one (a respawn)
+// is its own.
+func (a *AuctionHouse) WriteDumpListsFor(w *buffer.Writer, sess *session.Session, serverID uint32) {
+	v := a.viewOf(sess)
 	var lots []database.AuctionLot
 	var bids []database.AuctionBid
 	if a != nil && a.db != nil {
@@ -902,11 +1108,25 @@ func (a *AuctionHouse) WriteDumpLists(w *buffer.Writer, serverID uint32) {
 	}
 	w.Write7BitEncodedInt64(int64(len(lots)))
 	for i := range lots {
-		writeLot(w, &lots[i], true)
+		writeLot(w, &lots[i], true, v)
 	}
 	sort.SliceStable(bids, func(i, j int) bool { return bids[i].Lot > bids[j].Lot })
+	// the lots the bids are on, for a client of the live form (a stack put
+	// up whole is shown to it by the item)
+	on := map[int]*database.AuctionLot{}
+	if v.live && len(bids) > 0 {
+		ids := make([]int, 0, len(bids))
+		for _, b := range bids {
+			ids = append(ids, b.Lot)
+		}
+		if found, err := a.db.AuctionLotsByID(ids); err == nil {
+			for i := range found {
+				on[found[i].ID] = &found[i]
+			}
+		}
+	}
 	w.Write7BitEncodedInt64(int64(len(bids)))
 	for i := range bids {
-		writeBid(w, &bids[i])
+		writeBid(w, &bids[i], on[bids[i].Lot], v)
 	}
 }

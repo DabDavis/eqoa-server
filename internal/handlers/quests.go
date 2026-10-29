@@ -61,11 +61,13 @@ import (
 // questJournalLines is CLIENT's room for quest lines (m_questTitle[8]).
 const questJournalLines = 8
 
-// Room CLIENT gives what a quest says: a 0x0046 shows 218 characters
-// (ShowDialog's expansion), a 0x0034's question 127 and an answer 63, a
+// Room CLIENT gives what a quest says: a 0x0046 shows 217 characters
+// (ShowDialog expands it into 218 units, VIClientText::Expand keeping the last
+// for the NUL: a 218th character is dropped, F3 2026-10-29, Captain Scilond's
+// offer losing its full stop), a 0x0034's question 127 and an answer 63, a
 // journal line 127.
 const (
-	questBoxChars    = 218
+	questBoxChars    = 217
 	questAskChars    = 127
 	questAnswerChars = 63
 	questLineChars   = 127

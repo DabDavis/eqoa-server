@@ -1,0 +1,3196 @@
+{
+ "city": "hunt-and-gather",
+ "quests": [
+  {
+   "key": "HuntAndGather/hajyd-patron-skins",
+   "name": "Zombie Patron Skins",
+   "giver": "Hajyd Golemon",
+   "classes": [],
+   "races": [],
+   "minlevel": 59,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "My golems want a hide that does not rot further. The patrons of Bertoxxulous in the Plane of Disease have such skins. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Patron of Bertoxxulous",
+     "items": [
+      {
+       "item": "Zombie Patron Skin",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill patrons of Bertoxxulous in the Plane of Disease for four zombie patron skins."
+    },
+    {
+     "kind": "give",
+     "target": "Hajyd Golemon",
+     "items": [
+      {
+       "item": "Zombie Patron Skin",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four zombie patron skins to Hajyd Golemon.",
+     "says": "Good skins. My golems thank you.",
+     "rewards": {
+      "xp": 332220
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 59-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Hajyd Golemcrafter is taken for the server's Hajyd Golemon, among the master craftsmen of Odus (our reading)."
+  },
+  {
+   "key": "HuntAndGather/derkev-ice-giant-shields",
+   "name": "Ice Giant Shields",
+   "giver": "Giant Slayer Derkev",
+   "classes": [],
+   "races": [],
+   "minlevel": 56,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The tenacious giants of the frozen north carry shields worth more broken than whole. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "tenacious frost giant",
+     "items": [
+      {
+       "item": "ice giant shield",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill tenacious frost giants for four ice giant shields."
+    },
+    {
+     "kind": "give",
+     "target": "Giant Slayer Derkev",
+     "items": [
+      {
+       "item": "ice giant shield",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four ice giant shields to Giant Slayer Derkev.",
+     "says": "Four more giants who will not trouble us.",
+     "rewards": {
+      "xp": 1500000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 56-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Tenacious Ice Giants are the server's tenacious frost giants."
+  },
+  {
+   "key": "HuntAndGather/corison-ice-glyphs",
+   "name": "Ice Giant Glyphs",
+   "giver": "Corison",
+   "classes": [],
+   "races": [],
+   "minlevel": 54,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The tenacious giants carve glyphs into the ice. I study them. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "tenacious frost giant",
+     "items": [
+      {
+       "item": "ice glyph",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill tenacious frost giants for four ice glyphs."
+    },
+    {
+     "kind": "give",
+     "target": "Corison",
+     "items": [
+      {
+       "item": "ice glyph",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four ice glyphs to Corison.",
+     "says": "Fascinating. Bring more when you can.",
+     "rewards": {
+      "xp": 1800000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 54-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Tenacious Ice Giants are the server's tenacious frost giants; its Ice Giant Glyphs the server's ice glyph."
+  },
+  {
+   "key": "HuntAndGather/derkev-noserings",
+   "name": "Cold Iron Noserings",
+   "giver": "Giant Slayer Derkev",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 55,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The elite of the ice giants wear cold iron in their noses. Bring me four noserings, and I will know four fewer stand.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Ice giant elite",
+     "items": [
+      {
+       "item": "Cold Iron Nosering",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill elite ice giants for four cold iron noserings."
+    },
+    {
+     "kind": "give",
+     "target": "Giant Slayer Derkev",
+     "items": [
+      {
+       "item": "Cold Iron Nosering",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four cold iron noserings to Giant Slayer Derkev.",
+     "says": "Good work, slayer.",
+     "rewards": {
+      "xp": 1142857
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 50-55 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's ice giant soldiers and mages are the server's elite ice giants."
+  },
+  {
+   "key": "HuntAndGather/taylor-rubies",
+   "name": "Small Chipped Rubies",
+   "giver": "Gypsy Taylor",
+   "classes": [],
+   "races": [],
+   "minlevel": 48,
+   "maxlevel": 53,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The Majorkahn giants carry little rubies, chipped, but pretty. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Majorkahn giant",
+     "items": [
+      {
+       "item": "Small Chipped Ruby",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Majorkahn giants for four small chipped rubies."
+    },
+    {
+     "kind": "give",
+     "target": "Gypsy Taylor",
+     "items": [
+      {
+       "item": "Small Chipped Ruby",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four small chipped rubies to Gypsy Taylor in the Oasis.",
+     "says": "Pretty things. Thank you.",
+     "rewards": {
+      "xp": 950000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 48-48 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's range is the one level 48; up to 53 is ours."
+  },
+  {
+   "key": "HuntAndGather/corison-pearl-rings",
+   "name": "Giant Blue Pearl Rings",
+   "giver": "Corison",
+   "classes": [],
+   "races": [],
+   "minlevel": 47,
+   "maxlevel": 53,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The ice giants wear rings with blue pearls the size of eggs. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "ice giant",
+     "items": [
+      {
+       "item": "Giant Blue Pearl Ring",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill ice giants for four giant blue pearl rings."
+    },
+    {
+     "kind": "give",
+     "target": "Corison",
+     "items": [
+      {
+       "item": "Giant Blue Pearl Ring",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four giant blue pearl rings to Corison.",
+     "says": "Beautiful. Thank you.",
+     "rewards": {
+      "xp": 1156531
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 47-53 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four)."
+  },
+  {
+   "key": "HuntAndGather/derkev-pearl-rings",
+   "name": "Pearl Rings of the Refugees",
+   "giver": "Giant Slayer Derkev",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 49,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Even the ice giants' refugees wear their pearl rings. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "ice giant refugee",
+     "items": [
+      {
+       "item": "Giant Blue Pearl Ring",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill ice giant refugees for four giant blue pearl rings."
+    },
+    {
+     "kind": "give",
+     "target": "Giant Slayer Derkev",
+     "items": [
+      {
+       "item": "Giant Blue Pearl Ring",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four giant blue pearl rings to Giant Slayer Derkev.",
+     "says": "Every ring a giant fewer.",
+     "rewards": {
+      "xp": 878400
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 40-49 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's ice giants and refugees: the refugees here (Corison takes the ice giants')."
+  },
+  {
+   "key": "HuntAndGather/corison-black-diamonds",
+   "name": "Flawed Black Diamonds",
+   "giver": "Corison",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 46,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Shadow wisps leave black diamonds when they fade, flawed but useful. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "shadow wisp",
+     "items": [
+      {
+       "item": "Flawed Black Diamond",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill shadow wisps for four flawed black diamonds."
+    },
+    {
+     "kind": "give",
+     "target": "Corison",
+     "items": [
+      {
+       "item": "Flawed Black Diamond",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four flawed black diamonds to Corison.",
+     "says": "Just what I needed.",
+     "rewards": {
+      "xp": 818726
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 40-46 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four)."
+  },
+  {
+   "key": "HuntAndGather/corison-ice-worm-chitlins",
+   "name": "Ice Worm Chitlins",
+   "giver": "Corison",
+   "classes": [],
+   "races": [],
+   "minlevel": 33,
+   "maxlevel": 39,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Ice worm chitlins: they keep forever in the cold, and I have a use for them. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "ice worm",
+     "items": [
+      {
+       "item": "Ice Worm Chitlin",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill ice worms for four ice worm chitlins."
+    },
+    {
+     "kind": "give",
+     "target": "Corison",
+     "items": [
+      {
+       "item": "Ice Worm Chitlin",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four ice worm chitlins to Corison.",
+     "says": "Ugh. Thank you.",
+     "rewards": {
+      "xp": 560000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 33-39 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four)."
+  },
+  {
+   "key": "HuntAndGather/corison-dark-ore",
+   "name": "Dark Ore",
+   "giver": "Corison",
+   "classes": [],
+   "races": [],
+   "minlevel": 26,
+   "maxlevel": 32,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The spiders swallow dark ore with the stones they eat. Bring me four lumps.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Rock Spider",
+     "items": [
+      {
+       "item": "Dark Ore",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill rock spiders for four lumps of dark ore."
+    },
+    {
+     "kind": "give",
+     "target": "Corison",
+     "items": [
+      {
+       "item": "Dark Ore",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four lumps of dark ore to Corison.",
+     "says": "Good ore.",
+     "rewards": {
+      "xp": 560000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 26-32 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Spiders are the server's rock spiders (levels 32-35)."
+  },
+  {
+   "key": "HuntAndGather/corison-leopard-claws",
+   "name": "Broken Leopard Claws",
+   "giver": "Corison",
+   "classes": [],
+   "races": [],
+   "minlevel": 19,
+   "maxlevel": 25,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Frost leopards break their claws on the ice. Bring me four broken claws.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "frost leopard",
+     "items": [
+      {
+       "item": "Broken Leopard Claw",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill frost leopards for four broken leopard claws."
+    },
+    {
+     "kind": "give",
+     "target": "Corison",
+     "items": [
+      {
+       "item": "Broken Leopard Claw",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four broken leopard claws to Corison.",
+     "says": "Thank you.",
+     "rewards": {
+      "xp": 226982
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 19-25 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four)."
+  },
+  {
+   "key": "HuntAndGather/corison-venom-sacs",
+   "name": "Heavy Venom Sacs",
+   "giver": "Corison",
+   "classes": [],
+   "races": [],
+   "minlevel": 15,
+   "maxlevel": 18,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Freezefang spiders carry heavy venom sacs. Careful with them. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "freezefang spider",
+     "items": [
+      {
+       "item": "Heavy Venom Sac",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill freezefang spiders for four heavy venom sacs."
+    },
+    {
+     "kind": "give",
+     "target": "Corison",
+     "items": [
+      {
+       "item": "Heavy Venom Sac",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four heavy venom sacs to Corison.",
+     "says": "Carefully, carefully. Thank you.",
+     "rewards": {
+      "xp": 105984
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 15-18 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four)."
+  },
+  {
+   "key": "HuntAndGather/lukkif-goblin-eyes",
+   "name": "Crusty Goblin Eyes",
+   "giver": "Chef Lukkif",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "My stew wants crusty goblin eyes. The fire goblins' champions have the crustiest. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "fire goblin champion",
+     "items": [
+      {
+       "item": "crusty goblin eye",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill fire goblin champions for four crusty goblin eyes."
+    },
+    {
+     "kind": "give",
+     "target": "Chef Lukkif",
+     "items": [
+      {
+       "item": "crusty goblin eye",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four crusty goblin eyes to Chef Lukkif.",
+     "says": "Perfect for the stew.",
+     "rewards": {
+      "xp": 4000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 50-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). Chef Lukkif is in Lavastorm; the creatures are where the server has them. The table's Goblins are the server's fire goblin champions."
+  },
+  {
+   "key": "HuntAndGather/lukkif-treant-roots",
+   "name": "Savory Treant Roots",
+   "giver": "Chef Lukkif",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Treant roots, savory and tender, for my soup. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Treant Defender",
+     "items": [
+      {
+       "item": "savory treant roots",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill treant defenders for four savory treant roots."
+    },
+    {
+     "kind": "give",
+     "target": "Chef Lukkif",
+     "items": [
+      {
+       "item": "savory treant roots",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four savory treant roots to Chef Lukkif.",
+     "says": "Mmm, savory.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 50-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). Chef Lukkif is in Lavastorm; the creatures are where the server has them. The table's Treants are the server's treant defenders."
+  },
+  {
+   "key": "HuntAndGather/lukkif-preservatives",
+   "name": "Ghoulish Preservatives",
+   "giver": "Chef Lukkif",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Ghouls keep themselves with a preservative that keeps my meats too. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Ghoul Servant",
+     "items": [
+      {
+       "item": "Ghoulish Preservative",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill ghoul servants for four ghoulish preservatives."
+    },
+    {
+     "kind": "give",
+     "target": "Chef Lukkif",
+     "items": [
+      {
+       "item": "Ghoulish Preservative",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four ghoulish preservatives to Chef Lukkif.",
+     "says": "My meats will keep for years.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 50-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). Chef Lukkif is in Lavastorm; the creatures are where the server has them. The table gives no experience for this row; Lukkif's lowest, 2,000,000, is ours. Its Ghouls are the server's ghoul servants."
+  },
+  {
+   "key": "HuntAndGather/lukkif-canteens",
+   "name": "Purified Water Canteens",
+   "giver": "Chef Lukkif",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The Taksehir miners carry the purest water there is. Bring me four canteens.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Taksehir Miner",
+     "items": [
+      {
+       "item": "Purified Water Canteen",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Taksehir miners for four purified water canteens."
+    },
+    {
+     "kind": "give",
+     "target": "Chef Lukkif",
+     "items": [
+      {
+       "item": "Purified Water Canteen",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four purified water canteens to Chef Lukkif.",
+     "says": "Pure as snow.",
+     "rewards": {
+      "xp": 4000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 50-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). Chef Lukkif is in Lavastorm; the creatures are where the server has them."
+  },
+  {
+   "key": "HuntAndGather/lukkif-froglok-stomachs",
+   "name": "Froglok Stomachs",
+   "giver": "Chef Lukkif",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Froglok stomachs, stuffed, are a delicacy. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "froglok dar warrior",
+     "items": [
+      {
+       "item": "Froglok Stomach",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill froglok dar warriors for four froglok stomachs."
+    },
+    {
+     "kind": "give",
+     "target": "Chef Lukkif",
+     "items": [
+      {
+       "item": "Froglok Stomach",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four froglok stomachs to Chef Lukkif.",
+     "says": "A delicacy!",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 50-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). Chef Lukkif is in Lavastorm; the creatures are where the server has them. The table gives no experience for this row; 2,000,000 is ours. Its Frogloks are the server's froglok dar warriors, the highest it has (level 40)."
+  },
+  {
+   "key": "HuntAndGather/lukkif-froglok-skins",
+   "name": "Tasty Froglok Skins",
+   "giver": "Chef Lukkif",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The froglok slayers have the tastiest skins. Crisp them in the fire... Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Froglok Slayer",
+     "items": [
+      {
+       "item": "tasty froglok skins",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill froglok slayers for four tasty froglok skins."
+    },
+    {
+     "kind": "give",
+     "target": "Chef Lukkif",
+     "items": [
+      {
+       "item": "tasty froglok skins",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four tasty froglok skins to Chef Lukkif.",
+     "says": "Crispy!",
+     "rewards": {
+      "xp": 3000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 50-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). Chef Lukkif is in Lavastorm; the creatures are where the server has them. The table's Froglok Slayers and Inquisitors: the slayers here (one quest a creature)."
+  },
+  {
+   "key": "HuntAndGather/lukkif-coarse-salt",
+   "name": "Coarse Salt",
+   "giver": "Chef Lukkif",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Gargoyles crust over with coarse salt. Scrape me four handfuls.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "mithril gargoyle",
+     "items": [
+      {
+       "item": "Coarse Salt",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill mithril gargoyles for four handfuls of coarse salt."
+    },
+    {
+     "kind": "give",
+     "target": "Chef Lukkif",
+     "items": [
+      {
+       "item": "Coarse Salt",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four handfuls of coarse salt to Chef Lukkif.",
+     "says": "Salt! Lovely.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 50-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). Chef Lukkif is in Lavastorm; the creatures are where the server has them. The table gives no experience for this row; 2,000,000 is ours. Its Gargs and Elements are the server's mithril gargoyles."
+  },
+  {
+   "key": "HuntAndGather/lukkif-hot-peppers",
+   "name": "Fiery Hot Peppers",
+   "giver": "Chef Lukkif",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Peppers grow in animated lava, the hottest in the world. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "animated lava",
+     "items": [
+      {
+       "item": "Fiery Hot Pepper",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill animated lava for four fiery hot peppers."
+    },
+    {
+     "kind": "give",
+     "target": "Chef Lukkif",
+     "items": [
+      {
+       "item": "Fiery Hot Pepper",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four fiery hot peppers to Chef Lukkif.",
+     "says": "Hot hot hot!",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 50-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). Chef Lukkif is in Lavastorm; the creatures are where the server has them."
+  },
+  {
+   "key": "HuntAndGather/lukkif-bandit-herbs",
+   "name": "Bandit Herbs",
+   "giver": "Chef Lukkif",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Bandits carry the best herbs; they steal them. Bring me four bundles.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Taksehir bandit",
+     "items": [
+      {
+       "item": "Bandit Herbs",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Taksehir bandits for four bundles of bandit herbs."
+    },
+    {
+     "kind": "give",
+     "target": "Chef Lukkif",
+     "items": [
+      {
+       "item": "Bandit Herbs",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four bundles of bandit herbs to Chef Lukkif.",
+     "says": "Stolen herbs taste sweeter.",
+     "rewards": {
+      "xp": 6337515
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 50-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). Chef Lukkif is in Lavastorm; the creatures are where the server has them. The table's Bandits are the server's Taksehir bandits (level 45, the highest bandits it has)."
+  },
+  {
+   "key": "HuntAndGather/lukkif-eye-corneas",
+   "name": "Evil Eye Corneas",
+   "giver": "Chef Lukkif",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The children of Xrag have corneas that make a fine jelly. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "child of Xrag",
+     "items": [
+      {
+       "item": "evil eye cornea",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill children of Xrag for four evil eye corneas."
+    },
+    {
+     "kind": "give",
+     "target": "Chef Lukkif",
+     "items": [
+      {
+       "item": "evil eye cornea",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four evil eye corneas to Chef Lukkif.",
+     "says": "A fine jelly!",
+     "rewards": {
+      "xp": 5499999
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 50-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). Chef Lukkif is in Lavastorm; the creatures are where the server has them."
+  },
+  {
+   "key": "HuntAndGather/lukkif-giant-toes",
+   "name": "Frost Giant Toes",
+   "giver": "Chef Lukkif",
+   "classes": [],
+   "races": [],
+   "minlevel": 45,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Frost giant toes, pickled, keep a winter. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "tenacious frost giant",
+     "items": [
+      {
+       "item": "frost giant toes",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill tenacious frost giants for four frost giant toes."
+    },
+    {
+     "kind": "give",
+     "target": "Chef Lukkif",
+     "items": [
+      {
+       "item": "frost giant toes",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four frost giant toes to Chef Lukkif.",
+     "says": "Pickled toes, my favourite.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 45-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). Chef Lukkif is in Lavastorm; the creatures are where the server has them. The table's Tenacious Ice Giants are the server's tenacious frost giants."
+  },
+  {
+   "key": "HuntAndGather/tonja-broken-totems",
+   "name": "Broken Totems",
+   "giver": "Vargilder Tonja",
+   "classes": [],
+   "races": [],
+   "minlevel": 44,
+   "maxlevel": 51,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The Frosteye shamans by the Frosteye miners carry totems; break them and bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Frosteye Shaman",
+     "items": [
+      {
+       "item": "Broken Totem",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Frosteye shamans by the Frosteye miners for four broken totems."
+    },
+    {
+     "kind": "give",
+     "target": "Vargilder Tonja",
+     "items": [
+      {
+       "item": "Broken Totem",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four broken totems to Vargilder Tonja.",
+     "says": "Their magic is broken with them.",
+     "rewards": {
+      "xp": 878400
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 44-51 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The server's one Frosteye Shaman is level 8, so three of level 47 are seeded by the Frosteye miner (the high-level Frosteyes FrontiersForge saw)."
+  },
+  {
+   "key": "HuntAndGather/stevenson-nixie-caps",
+   "name": "Nixie Caps",
+   "giver": "Farmer Stevenson",
+   "classes": [],
+   "races": [],
+   "minlevel": 43,
+   "maxlevel": 51,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Nixies trample my crops. Bring me four of their caps, and I will know they learned.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "nixie",
+     "items": [
+      {
+       "item": "Nixie Cap",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill nixies for four nixie caps."
+    },
+    {
+     "kind": "give",
+     "target": "Farmer Stevenson",
+     "items": [
+      {
+       "item": "Nixie Cap",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four nixie caps to Farmer Stevenson.",
+     "says": "That will teach them.",
+     "rewards": {
+      "xp": 136704
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 43-51 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Farmer Steveson is the server's Farmer Stevenson."
+  },
+  {
+   "key": "HuntAndGather/yolger-nixie-caps",
+   "name": "More Nixie Caps",
+   "giver": "Larn Yolger",
+   "classes": [],
+   "races": [],
+   "minlevel": 43,
+   "maxlevel": 56,
+   "requires": [],
+   "repeatable": true,
+   "offer": "I collect nixie caps. Do not ask why. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "nixie",
+     "items": [
+      {
+       "item": "Nixie Cap",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill nixies for four nixie caps."
+    },
+    {
+     "kind": "give",
+     "target": "Larn Yolger",
+     "items": [
+      {
+       "item": "Nixie Cap",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four nixie caps to Larn Yolger.",
+     "says": "Lovely. Do not ask why.",
+     "rewards": {
+      "xp": 730944
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 43-56 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Yarn Lolger is the server's Larn Yolger."
+  },
+  {
+   "key": "HuntAndGather/pearson-witchking-collars",
+   "name": "Witchking Collars",
+   "giver": "Commander Pearson",
+   "classes": [],
+   "races": [],
+   "minlevel": 43,
+   "maxlevel": 48,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The cultists of the Witchking wear collars. Bring me four, and their cult is four the smaller.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "witchking cultist",
+     "items": [
+      {
+       "item": "Witchking Collar",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill witchking cultists for four witchking collars."
+    },
+    {
+     "kind": "give",
+     "target": "Commander Pearson",
+     "items": [
+      {
+       "item": "Witchking Collar",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four witchking collars to Commander Pearson.",
+     "says": "Four fewer. Good.",
+     "rewards": {
+      "xp": 142200
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 43-43 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's range is the one level 43; up to 48 is ours. The table's collars stack to twenty."
+  },
+  {
+   "key": "HuntAndGather/molsen-skull-rings",
+   "name": "Dark Skull Rings",
+   "giver": "Yarn Molsen",
+   "classes": [],
+   "races": [],
+   "minlevel": 39,
+   "maxlevel": 40,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Green goo swallows rings, and the dark skull rings it swallows are mine. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "green goo",
+     "items": [
+      {
+       "item": "Dark Skull Ring",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill green goo for four dark skull rings."
+    },
+    {
+     "kind": "give",
+     "target": "Yarn Molsen",
+     "items": [
+      {
+       "item": "Dark Skull Ring",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four dark skull rings to Yarn Molsen.",
+     "says": "Mine again. Thank you.",
+     "rewards": {
+      "xp": 546816
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 39-40 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four)."
+  },
+  {
+   "key": "HuntAndGather/priceton-serpent-fang-rings",
+   "name": "Serpent Fang Rings",
+   "giver": "Barnaby Priceton",
+   "classes": [],
+   "races": [],
+   "minlevel": 36,
+   "maxlevel": 46,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The Blackscourge buccaneers wear serpent fang rings. Bring me four; they owe me more than that.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "blackscourge buccaneer",
+     "items": [
+      {
+       "item": "Serpent Fang Ring",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Blackscourge buccaneers for four serpent fang rings."
+    },
+    {
+     "kind": "give",
+     "target": "Barnaby Priceton",
+     "items": [
+      {
+       "item": "Serpent Fang Ring",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four serpent fang rings to Barnaby Priceton.",
+     "says": "That is a start on what they owe.",
+     "rewards": {
+      "xp": 263424
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 36-46 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Buccaneers and Fryars: the buccaneers here (one quest a creature)."
+  },
+  {
+   "key": "HuntAndGather/leigh-leafcutters",
+   "name": "Mutant Ant Carapaces: Leafcutters",
+   "giver": "Gypsy Leigh",
+   "classes": [],
+   "races": [],
+   "minlevel": 33,
+   "maxlevel": 35,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The red ants south of the Oasis are mutating. Bring me four carapaces of the leafcutters.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "red ant leafcutter",
+     "items": [
+      {
+       "item": "Mutant Ant Carapace",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill red ant leafcutters south of the Oasis for four mutant ant carapaces."
+    },
+    {
+     "kind": "give",
+     "target": "Gypsy Leigh",
+     "items": [
+      {
+       "item": "Mutant Ant Carapace",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four mutant ant carapaces to Gypsy Leigh.",
+     "says": "They grow stranger every day.",
+     "rewards": {
+      "xp": 300000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 33-35 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table gives no experience for this row; 300,000 is ours (her other rows' 273,024 and 276,000)."
+  },
+  {
+   "key": "HuntAndGather/leigh-workers",
+   "name": "Mutant Ant Carapaces: Workers",
+   "giver": "Gypsy Leigh",
+   "classes": [],
+   "races": [],
+   "minlevel": 29,
+   "maxlevel": 32,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The red ant workers south of the Oasis are changing. Bring me four of their carapaces.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Red Ant Worker",
+     "items": [
+      {
+       "item": "Mutant Ant Carapace",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill red ant workers south of the Oasis for four mutant ant carapaces."
+    },
+    {
+     "kind": "give",
+     "target": "Gypsy Leigh",
+     "items": [
+      {
+       "item": "Mutant Ant Carapace",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four mutant ant carapaces to Gypsy Leigh.",
+     "says": "Stranger and stranger.",
+     "rewards": {
+      "xp": 276000
+     }
+    }
+   ],
+   "unresolved": [
+    "Red Ant Worker"
+   ],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 29-32 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The workers are seeded at EQOA-Data's map points (the server has none)."
+  },
+  {
+   "key": "HuntAndGather/leigh-scouts",
+   "name": "Mutant Ant Carapaces: Scouts",
+   "giver": "Gypsy Leigh",
+   "classes": [],
+   "races": [],
+   "minlevel": 28,
+   "maxlevel": 33,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Even the red ant scouts are changing. Bring me four of their carapaces.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "red ant scout",
+     "items": [
+      {
+       "item": "Mutant Ant Carapace",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill red ant scouts south of the Oasis for four mutant ant carapaces."
+    },
+    {
+     "kind": "give",
+     "target": "Gypsy Leigh",
+     "items": [
+      {
+       "item": "Mutant Ant Carapace",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four mutant ant carapaces to Gypsy Leigh.",
+     "says": "I will study these.",
+     "rewards": {
+      "xp": 273024
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 28-28 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's range is the one level 28; up to 33 is ours."
+  },
+  {
+   "key": "HuntAndGather/ross-petrified-roses",
+   "name": "Petrified Roses",
+   "giver": "Gertrude Ross",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 35,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The desert gypsies carry petrified roses as charms. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "gypsy",
+     "items": [
+      {
+       "item": "Petrified Rose",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill desert gypsies for four petrified roses."
+    },
+    {
+     "kind": "give",
+     "target": "Gertrude Ross",
+     "items": [
+      {
+       "item": "Petrified Rose",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four petrified roses to Gertrude Ross.",
+     "says": "Stone roses. How lovely.",
+     "rewards": {
+      "xp": 250000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 30-30 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's range is the one level 30; up to 35 is ours. The table gives no experience for this row; 250,000 is ours. Its Desert Gypsies are the server's gypsies."
+  },
+  {
+   "key": "HuntAndGather/deryn-gnoll-pendants",
+   "name": "Platinum Gnoll Pendants",
+   "giver": "Recruiter Deryn",
+   "classes": [],
+   "races": [],
+   "minlevel": 29,
+   "maxlevel": 37,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The gnoll berserkers wear platinum pendants. Bring me four, and Qeynos will pay.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "gnoll berserker",
+     "items": [
+      {
+       "item": "Platinum Gnoll Pendant",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill gnoll berserkers for four platinum gnoll pendants."
+    },
+    {
+     "kind": "give",
+     "target": "Recruiter Deryn",
+     "items": [
+      {
+       "item": "Platinum Gnoll Pendant",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four platinum gnoll pendants to Recruiter Deryn.",
+     "says": "Qeynos pays its debts.",
+     "rewards": {
+      "xp": 395136
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 29-37 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The table's four."
+  },
+  {
+   "key": "HuntAndGather/deryn-blood-paw-collars",
+   "name": "Blood Paw Collars",
+   "giver": "Recruiter Deryn",
+   "classes": [],
+   "races": [],
+   "minlevel": 24,
+   "maxlevel": 28,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The Bloodpaw gnolls wear collars. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Bloodpaw",
+     "items": [
+      {
+       "item": "Blood Paw Collar",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Bloodpaw gnolls for four blood paw collars."
+    },
+    {
+     "kind": "give",
+     "target": "Recruiter Deryn",
+     "items": [
+      {
+       "item": "Blood Paw Collar",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four blood paw collars to Recruiter Deryn.",
+     "says": "Good. Qeynos thanks you.",
+     "rewards": {
+      "xp": 177600
+     }
+    }
+   ],
+   "unresolved": [
+    "Bloodpaw"
+   ],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 24-28 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The table's four. It gives no experience for this row; 177,600, the table's for 24-29, is ours. The Bloodpaws are seeded where FrontiersForge saw one (the server has none)."
+  },
+  {
+   "key": "HuntAndGather/deryn-black-gnoll-rings",
+   "name": "Black Gnoll Rings",
+   "giver": "Recruiter Deryn",
+   "classes": [],
+   "races": [],
+   "minlevel": 19,
+   "maxlevel": 23,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The gnoll strongfangs wear black rings. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "gnoll strongfang",
+     "items": [
+      {
+       "item": "Black Gnoll Ring",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill gnoll strongfangs for four black gnoll rings."
+    },
+    {
+     "kind": "give",
+     "target": "Recruiter Deryn",
+     "items": [
+      {
+       "item": "Black Gnoll Ring",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four black gnoll rings to Recruiter Deryn.",
+     "says": "Well done.",
+     "rewards": {
+      "xp": 105984
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 19-23 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The table's four."
+  },
+  {
+   "key": "HuntAndGather/deryn-ear-cuffs",
+   "name": "Gnoll Ear Cuffs",
+   "giver": "Recruiter Deryn",
+   "classes": [],
+   "races": [],
+   "minlevel": 14,
+   "maxlevel": 18,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The gnoll stalkers wear ear cuffs. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Gnoll Stalker",
+     "items": [
+      {
+       "item": "Gnoll Ear Cuff",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill gnoll stalkers for four gnoll ear cuffs."
+    },
+    {
+     "kind": "give",
+     "target": "Recruiter Deryn",
+     "items": [
+      {
+       "item": "Gnoll Ear Cuff",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four gnoll ear cuffs to Recruiter Deryn.",
+     "says": "Good hunting.",
+     "rewards": {
+      "xp": 56000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 14-18 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The table's four."
+  },
+  {
+   "key": "HuntAndGather/ingrid-bear-hides",
+   "name": "Matted Bear Hides",
+   "giver": "Ingrid Adder",
+   "classes": [],
+   "races": [],
+   "minlevel": 19,
+   "maxlevel": 25,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Young bears' hides, matted or not, keep a house warm. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "young bear",
+     "items": [
+      {
+       "item": "Matted Bear Hide",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill young bears for four matted bear hides."
+    },
+    {
+     "kind": "give",
+     "target": "Ingrid Adder",
+     "items": [
+      {
+       "item": "Matted Bear Hide",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four matted bear hides to Ingrid Adder.",
+     "says": "My house will be warm.",
+     "rewards": {
+      "xp": 105984
+     }
+    }
+   ],
+   "unresolved": [
+    "Ingrid Adder"
+   ],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 19-25 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four)."
+  },
+  {
+   "key": "HuntAndGather/sirnal-snake-scales",
+   "name": "Torn Snake Scales",
+   "giver": "Sirnal Baubbletink",
+   "classes": [],
+   "races": [],
+   "minlevel": 6,
+   "maxlevel": 8,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Moss snakes shed torn scales I can use. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Moss Snake",
+     "items": [
+      {
+       "item": "torn snake scales",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill moss snakes for four torn snake scales."
+    },
+    {
+     "kind": "give",
+     "target": "Sirnal Baubbletink",
+     "items": [
+      {
+       "item": "torn snake scales",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four torn snake scales to Sirnal Baubbletink.",
+     "says": "Splendid!",
+     "rewards": {
+      "xp": 1960
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 6-8 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Sirnal Baubletink is the server's Sirnal Baubbletink."
+  },
+  {
+   "key": "HuntAndGather/tugren-raven-feathers",
+   "name": "Pristine Raven Feathers",
+   "giver": "Tugren Fyrebrand",
+   "classes": [],
+   "races": [],
+   "minlevel": 6,
+   "maxlevel": 8,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Snow crows have pristine feathers, black as coal. Bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Snow Crow",
+     "items": [
+      {
+       "item": "pristine raven feathers",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill snow crows for four pristine raven feathers."
+    },
+    {
+     "kind": "give",
+     "target": "Tugren Fyrebrand",
+     "items": [
+      {
+       "item": "pristine raven feathers",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four pristine raven feathers to Tugren Fyrebrand.",
+     "says": "Pristine!",
+     "rewards": {
+      "xp": 1960
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 6-8 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Tungren Fyrebrunt is the server's Tugren Fyrebrand. The server's one snow crow is joined by three more."
+  },
+  {
+   "key": "HuntAndGather/tresca-pike-meat",
+   "name": "Pike Meat",
+   "giver": "Tresca Goodmorrow",
+   "classes": [],
+   "races": [],
+   "minlevel": 6,
+   "maxlevel": 8,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Pike meat for the pot. Bring me four pieces.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "pike",
+     "items": [
+      {
+       "item": "Pike Meat",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill pike for four pieces of pike meat."
+    },
+    {
+     "kind": "give",
+     "target": "Tresca Goodmorrow",
+     "items": [
+      {
+       "item": "Pike Meat",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four pieces of pike meat to Tresca Goodmorrow.",
+     "says": "Supper is served.",
+     "rewards": {
+      "xp": 1960
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 6-8 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four)."
+  },
+  {
+   "key": "HuntAndGather/neshki-ant-chitin",
+   "name": "Ant Chitin",
+   "giver": "Neshki Widdlewick",
+   "classes": [],
+   "races": [],
+   "minlevel": 6,
+   "maxlevel": 8,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Ant soldiers have the hardest chitin. Bring me four pieces.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "ant soldier",
+     "items": [
+      {
+       "item": "Ant Chitin",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill ant soldiers for four pieces of ant chitin."
+    },
+    {
+     "kind": "give",
+     "target": "Neshki Widdlewick",
+     "items": [
+      {
+       "item": "Ant Chitin",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four pieces of ant chitin to Neshki Widdlewick.",
+     "says": "Hard stuff! Thank you.",
+     "rewards": {
+      "xp": 1960
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 6-8 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four)."
+  },
+  {
+   "key": "HuntAndGather/zaraznia-sunbeetle-carapaces",
+   "name": "Sunbeetle Carapaces",
+   "giver": "Zaraznia",
+   "classes": [],
+   "races": [],
+   "minlevel": 6,
+   "maxlevel": 8,
+   "requires": [],
+   "repeatable": true,
+   "offer": "Sunbeetles shine like gold in the sun. Bring me four of their carapaces.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Sunbeetle",
+     "items": [
+      {
+       "item": "Sunbeetle Carapace",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill sunbeetles outside Qeynos for four sunbeetle carapaces."
+    },
+    {
+     "kind": "give",
+     "target": "Zaraznia",
+     "items": [
+      {
+       "item": "Sunbeetle Carapace",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four sunbeetle carapaces to Zaraznia.",
+     "says": "Shiny!",
+     "rewards": {
+      "xp": 1960
+     }
+    }
+   ],
+   "unresolved": [
+    "Sunbeetle"
+   ],
+   "notes": "From EQOA-Data Quests/HuntAndGather/hunt-and-gather.json, the table's row for levels 6-8 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Zarzania is the server's Zaraznia. It gives no experience; 1,960, its other level 6-8 rows', is ours. The sunbeetles are seeded in the newbie yard east of Qeynos, with its firebeetles (FrontiersForge's sighting is unusable)."
+  },
+  {
+   "key": "HuntAndGather/udrik-pickclaw-1",
+   "name": "Pickclaw Sashes (1-10)",
+   "giver": "Udrik Lazow",
+   "classes": [],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 10,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The Pickclaw goblins down the road from the east door raid us. Their brawlers are your match. Bring me four of their sashes.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Pickclaw Brawler",
+     "items": [
+      {
+       "item": "destroyed pickclaw sash",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Pickclaw brawlers down the road from Highpass's east door for four destroyed pickclaw sashes."
+    },
+    {
+     "kind": "give",
+     "target": "Udrik Lazow",
+     "items": [
+      {
+       "item": "destroyed pickclaw sash",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four destroyed pickclaw sashes to Udrik Lazow in Highpass.",
+     "says": "Good. Keep them coming.",
+     "rewards": {
+      "xp": 20000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/pickclaw-hunt-and-gather.json, group 1 (Pickclaw Brawler), with the table's row for 1-10 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Udrick Lazow is the server's Udrik Lazow. Each group is the level window the guide's caps give it, and the sash its weapons and totems also drop (a loot step takes one item); its casters are left out (one creature a quest). The table's row says 1-30; the guide's caps (completable to about 25, the next group from 20) and the five other groups' ten-level windows give 1-10, ours."
+  },
+  {
+   "key": "HuntAndGather/udrik-pickclaw-2",
+   "name": "Pickclaw Sashes (11-20)",
+   "giver": "Udrik Lazow",
+   "classes": [],
+   "races": [],
+   "minlevel": 11,
+   "maxlevel": 20,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The Pickclaw goblins down the road from the east door raid us. Their adept brawlers are your match. Bring me four of their sashes.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Adept Pickclaw Brawler",
+     "items": [
+      {
+       "item": "destroyed pickclaw sash",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Pickclaw adept brawlers down the road from Highpass's east door for four destroyed pickclaw sashes."
+    },
+    {
+     "kind": "give",
+     "target": "Udrik Lazow",
+     "items": [
+      {
+       "item": "destroyed pickclaw sash",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four destroyed pickclaw sashes to Udrik Lazow in Highpass.",
+     "says": "Good. Keep them coming.",
+     "rewards": {
+      "xp": 50000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/pickclaw-hunt-and-gather.json, group 2 (Adept Pickclaw Brawler), with the table's row for 11-20 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Udrick Lazow is the server's Udrik Lazow. Each group is the level window the guide's caps give it, and the sash its weapons and totems also drop (a loot step takes one item); its casters are left out (one creature a quest)."
+  },
+  {
+   "key": "HuntAndGather/udrik-pickclaw-3",
+   "name": "Pickclaw Sashes (21-30)",
+   "giver": "Udrik Lazow",
+   "classes": [],
+   "races": [],
+   "minlevel": 21,
+   "maxlevel": 30,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The Pickclaw goblins down the road from the east door raid us. Their warriors are your match. Bring me four of their sashes.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Pickclaw Warrior",
+     "items": [
+      {
+       "item": "destroyed pickclaw sash",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Pickclaw warriors down the road from Highpass's east door for four destroyed pickclaw sashes."
+    },
+    {
+     "kind": "give",
+     "target": "Udrik Lazow",
+     "items": [
+      {
+       "item": "destroyed pickclaw sash",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four destroyed pickclaw sashes to Udrik Lazow in Highpass.",
+     "says": "Good. Keep them coming.",
+     "rewards": {
+      "xp": 120000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/pickclaw-hunt-and-gather.json, group 3 (Pickclaw Warrior), with the table's row for 21-30 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Udrick Lazow is the server's Udrik Lazow. Each group is the level window the guide's caps give it, and the sash its weapons and totems also drop (a loot step takes one item); its casters are left out (one creature a quest)."
+  },
+  {
+   "key": "HuntAndGather/udrik-pickclaw-4",
+   "name": "Pickclaw Sashes (31-40)",
+   "giver": "Udrik Lazow",
+   "classes": [],
+   "races": [],
+   "minlevel": 31,
+   "maxlevel": 40,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The Pickclaw goblins down the road from the east door raid us. Their adept warriors are your match. Bring me four of their sashes.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Adept Pickclaw Warrior",
+     "items": [
+      {
+       "item": "destroyed pickclaw sash",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Pickclaw adept warriors down the road from Highpass's east door for four destroyed pickclaw sashes."
+    },
+    {
+     "kind": "give",
+     "target": "Udrik Lazow",
+     "items": [
+      {
+       "item": "destroyed pickclaw sash",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four destroyed pickclaw sashes to Udrik Lazow in Highpass.",
+     "says": "Good. Keep them coming.",
+     "rewards": {
+      "xp": 240000
+     }
+    }
+   ],
+   "unresolved": [
+    "Adept Pickclaw Warrior"
+   ],
+   "notes": "From EQOA-Data Quests/HuntAndGather/pickclaw-hunt-and-gather.json, group 4 (Adept Pickclaw Warrior), with the table's row for 31-40 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Udrick Lazow is the server's Udrik Lazow. Each group is the level window the guide's caps give it, and the sash its weapons and totems also drop (a loot step takes one item); its casters are left out (one creature a quest)."
+  },
+  {
+   "key": "HuntAndGather/udrik-pickclaw-5",
+   "name": "Pickclaw Sashes (41-50)",
+   "giver": "Udrik Lazow",
+   "classes": [],
+   "races": [],
+   "minlevel": 41,
+   "maxlevel": 50,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The Pickclaw goblins down the road from the east door raid us. Their soldiers are your match. Bring me four of their sashes.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Pickclaw Soldier",
+     "items": [
+      {
+       "item": "destroyed pickclaw sash",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Pickclaw soldiers down the road from Highpass's east door for four destroyed pickclaw sashes."
+    },
+    {
+     "kind": "give",
+     "target": "Udrik Lazow",
+     "items": [
+      {
+       "item": "destroyed pickclaw sash",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four destroyed pickclaw sashes to Udrik Lazow in Highpass.",
+     "says": "Good. Keep them coming.",
+     "rewards": {
+      "xp": 400000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/pickclaw-hunt-and-gather.json, group 5 (Pickclaw Soldier), with the table's row for 41-50 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Udrick Lazow is the server's Udrik Lazow. Each group is the level window the guide's caps give it, and the sash its weapons and totems also drop (a loot step takes one item); its casters are left out (one creature a quest)."
+  },
+  {
+   "key": "HuntAndGather/udrik-pickclaw-6",
+   "name": "Pickclaw Sashes (51-60)",
+   "giver": "Udrik Lazow",
+   "classes": [],
+   "races": [],
+   "minlevel": 51,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The Pickclaw goblins down the road from the east door raid us. Their adept soldiers are your match. Bring me four of their sashes.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Adept Pickclaw Soldier",
+     "items": [
+      {
+       "item": "destroyed pickclaw sash",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Pickclaw adept soldiers down the road from Highpass's east door for four destroyed pickclaw sashes."
+    },
+    {
+     "kind": "give",
+     "target": "Udrik Lazow",
+     "items": [
+      {
+       "item": "destroyed pickclaw sash",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four destroyed pickclaw sashes to Udrik Lazow in Highpass.",
+     "says": "Good. Keep them coming.",
+     "rewards": {
+      "xp": 700000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/pickclaw-hunt-and-gather.json, group 6 (Adept Pickclaw Soldier), with the table's row for 51-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The table's Udrick Lazow is the server's Udrik Lazow. Each group is the level window the guide's caps give it, and the sash its weapons and totems also drop (a loot step takes one item); its casters are left out (one creature a quest)."
+  },
+  {
+   "key": "HuntAndGather/strugol-siloth-rings",
+   "name": "Siloth Insignia Rings",
+   "giver": "Seargent Strugol",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 45,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The Siloth wear insignia rings. Every four you bring me, Forkwatch pays.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Siloth knight",
+     "items": [
+      {
+       "item": "Siloth Insignia Ring",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.5,
+     "journal": "Kill Siloth knights for four Siloth insignia rings."
+    },
+    {
+     "kind": "give",
+     "target": "Seargent Strugol",
+     "items": [
+      {
+       "item": "Siloth Insignia Ring",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four Siloth insignia rings to Seargent Strugol in the tower above Forkwatch's entrance.",
+     "says": "Four more. Forkwatch thanks you.",
+     "rewards": {
+      "xp": 395000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/siloth-ring.json, Sergeant Sturgol, with the table's row for 30-45 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The guide's Sergeant Sturgol is the server's Seargent Strugol, its four rings the count. Its Siloth humans (slavers, guards, knights, ritualists): the knights here (one creature a quest). The were form an evil character takes to be offered it is not needed (the server sets no race's standing apart)."
+  },
+  {
+   "key": "HuntAndGather/riloh-regal-siloth-bands",
+   "name": "Regal Siloth Bands",
+   "giver": "Captain Riloh",
+   "classes": [],
+   "races": [],
+   "minlevel": 46,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "You have outgrown Strugol's rings. The Siloth's regal bands are rarer; bring me four.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Siloth knight",
+     "items": [
+      {
+       "item": "Regal Siloth Band",
+       "count": 4
+      }
+     ],
+     "count": 4,
+     "chance": 0.25,
+     "journal": "Kill Siloth knights for four regal Siloth bands."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Riloh",
+     "items": [
+      {
+       "item": "Regal Siloth Band",
+       "count": 4
+      }
+     ],
+     "journal": "Bring four regal Siloth bands to Captain Riloh in the tower above Forkwatch's entrance.",
+     "says": "Rare work. Well done.",
+     "rewards": {
+      "xp": 730944
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/siloth-ring.json, Captain Riloh, with the table's row for 46-60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The count is ours: the table gives none for this row (where it does, four). The guide's bands drop less often (our quarter chance against the rings' half)."
+  },
+  {
+   "key": "HuntAndGather/elzilor-crethley-runes",
+   "name": "Runes of Crethley Manor",
+   "giver": "Elzilor Marbe",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 27,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The dead of Crethley Manor, north of the lake, carry runes. Bring me a full stack: ten.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Off you go. I will be here.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "skeleton",
+     "items": [
+      {
+       "item": "Rune of Crethley Manor",
+       "count": 10
+      }
+     ],
+     "count": 10,
+     "chance": 0.3,
+     "journal": "Kill the skeletons of Crethley Manor, north of the lake, for ten runes of Crethley Manor."
+    },
+    {
+     "kind": "give",
+     "target": "Elzilor Marbe",
+     "items": [
+      {
+       "item": "Rune of Crethley Manor",
+       "count": 10
+      }
+     ],
+     "journal": "Bring ten runes of Crethley Manor to Elzilor Marbe in the farmyard south of the lake.",
+     "says": "That is a full stack. Thank you.",
+     "rewards": {
+      "xp": 250000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/HuntAndGather/crethley-manor.json, the walkthrough, with the table's row for 20-27 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The guide's full stack is ten here (ours). Its zombies, skeletons and the Maid: the skeletons here (one creature a quest), so a skeleton anywhere counts."
+  },
+  {
+   "key": "HuntAndGather/agent-of-growth-weak-roots",
+   "name": "Weak Roots",
+   "giver": "Agent of Growth",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The portal sickens. Weak roots, even weak ones, heal it a little. The orcs outside Freeport carry them. Bring me three.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "The portal thanks you already.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Orc Pawn",
+     "items": [
+      {
+       "item": "weak roots",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Kill the orcs outside Freeport for three weak roots."
+    },
+    {
+     "kind": "give",
+     "target": "Agent of Growth",
+     "items": [
+      {
+       "item": "weak roots",
+       "count": 3
+      }
+     ],
+     "journal": "Bring three weak roots to the Agent of Growth on her island in Lake Rathe.",
+     "says": "The portal mends a little. Thank you.",
+     "rewards": {
+      "xp": 1000000,
+      "tunar": 1500
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The Agent of Growth works the herbs into a healing device and turns it on the portal beside her. The portal glows brighter."
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Agent of Growth"
+   ],
+   "notes": "From EQOA-Data Quests/HuntAndGather/weak-herbs-and-roots.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The guide's turn-in goes through the Agent's intern and her Assistant, who hands you a Rallosian healing device to use on the portal; here the Agent takes the three and heals the portal herself (the intern and the Assistant are the Portal guide's, Quests/Portal/zaoran-plateau.json, another file's to place). The Agent of Growth is that guide's NPC too: no spec here, so this is a draft until she is seeded. The orcs are the orc pawns outside Freeport. The rewards are the guide's 1,000,000 and 1,500 for every three."
+  },
+  {
+   "key": "HuntAndGather/agent-of-growth-weak-herbs",
+   "name": "Weak Herbs",
+   "giver": "Agent of Growth",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "The portal sickens. Weak herbs, even weak ones, heal it a little. The orcs outside Freeport carry them. Bring me three.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "The portal thanks you already.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Orc Pawn",
+     "items": [
+      {
+       "item": "weak herbs",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Kill the orcs outside Freeport for three weak herbs."
+    },
+    {
+     "kind": "give",
+     "target": "Agent of Growth",
+     "items": [
+      {
+       "item": "weak herbs",
+       "count": 3
+      }
+     ],
+     "journal": "Bring three weak herbs to the Agent of Growth on her island in Lake Rathe.",
+     "says": "The portal mends a little. Thank you.",
+     "rewards": {
+      "xp": 1000000,
+      "tunar": 1500
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The Agent of Growth works the herbs into a healing device and turns it on the portal beside her. The portal glows brighter."
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Agent of Growth"
+   ],
+   "notes": "From EQOA-Data Quests/HuntAndGather/weak-herbs-and-roots.json, the walkthrough (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The guide's turn-in goes through the Agent's intern and her Assistant, who hands you a Rallosian healing device to use on the portal; here the Agent takes the three and heals the portal herself (the intern and the Assistant are the Portal guide's, Quests/Portal/zaoran-plateau.json, another file's to place). The Agent of Growth is that guide's NPC too: no spec here, so this is a draft until she is seeded. The orcs are the orc pawns outside Freeport. The rewards are the guide's 1,000,000 and 1,500 for every three."
+  },
+  {
+   "key": "HuntAndGather/crazy-larry-20",
+   "name": "Crazy Larry's Supplies (1-20)",
+   "giver": "Crazy Larry",
+   "classes": [],
+   "races": [],
+   "minlevel": 1,
+   "maxlevel": 20,
+   "requires": [],
+   "repeatable": true,
+   "offer": "War is coming! Something in the air! I need supplies, and quickly. Hunt the ones you can beat; no use going into battle knowing you will lose.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Hurry! Before it is too late!",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "tree viper",
+     "items": [
+      {
+       "item": "Snake Booties",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill tree vipers for snake booties."
+    },
+    {
+     "kind": "loot",
+     "target": "Goblin Novice",
+     "items": [
+      {
+       "item": "Bar of Tin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill goblin novices for a bar of tin."
+    },
+    {
+     "kind": "loot",
+     "target": "pike",
+     "items": [
+      {
+       "item": "Fish Whistle",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill pike north of Freeport for a fish whistle."
+    },
+    {
+     "kind": "loot",
+     "target": "froglok villager",
+     "items": [
+      {
+       "item": "Frog Hair",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill froglok villagers in Grobb for frog hair."
+    },
+    {
+     "kind": "give",
+     "target": "Crazy Larry",
+     "items": [
+      {
+       "item": "Snake Booties",
+       "count": 1
+      },
+      {
+       "item": "Bar of Tin",
+       "count": 1
+      },
+      {
+       "item": "Fish Whistle",
+       "count": 1
+      },
+      {
+       "item": "Frog Hair",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the supplies to Crazy Larry on the road north-east of Kelinar Village.",
+     "says": "Yes! Yes! Now I am ready. They will not take me unprepared. Here, take these.",
+     "rewards": {
+      "xp": 50000
+     }
+    }
+   ],
+   "unresolved": [
+    "Crazy Larry"
+   ],
+   "notes": "From EQOA-Data Quests/HuntAndGather/crazy-larry.json, Level 20 and under (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The experience is ours (the guide gives XP, a level and class item and a stack of XP gems, none named or counted); the item and the gems are left out. The guide's low-level gobs are the goblin novices; its pikes north of Freeport and Grobb's froglok villagers are the server's."
+  },
+  {
+   "key": "HuntAndGather/crazy-larry-45",
+   "name": "Crazy Larry's Supplies (45-59)",
+   "giver": "Crazy Larry",
+   "classes": [],
+   "races": [],
+   "minlevel": 45,
+   "maxlevel": 59,
+   "requires": [],
+   "repeatable": true,
+   "offer": "War is coming! Something in the air! I need supplies, and quickly. Hunt the ones you can beat; no use going into battle knowing you will lose.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Hurry! Before it is too late!",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "froglok vis knight",
+     "items": [
+      {
+       "item": "Frog Hair Tufts",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill froglok vis knights in Guk for frog hair tufts."
+    },
+    {
+     "kind": "loot",
+     "target": "Ice goblin warrior",
+     "items": [
+      {
+       "item": "Sturdy Bar of Tin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill ice goblin warriors in Lady Vox's castle for a sturdy bar of tin."
+    },
+    {
+     "kind": "loot",
+     "target": "hammerhead shark",
+     "items": [
+      {
+       "item": "Shrill Fish Whistle",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill hammerhead sharks off the coast by Mariel for a shrill fish whistle."
+    },
+    {
+     "kind": "loot",
+     "target": "anaconda",
+     "items": [
+      {
+       "item": "Padded Snake Booties",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill anacondas for padded snake booties."
+    },
+    {
+     "kind": "give",
+     "target": "Crazy Larry",
+     "items": [
+      {
+       "item": "Frog Hair Tufts",
+       "count": 1
+      },
+      {
+       "item": "Sturdy Bar of Tin",
+       "count": 1
+      },
+      {
+       "item": "Shrill Fish Whistle",
+       "count": 1
+      },
+      {
+       "item": "Padded Snake Booties",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the supplies to Crazy Larry on the road north-east of Kelinar Village.",
+     "says": "Yes! Yes! Now I am ready. They will not take me unprepared. Here, take these.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [
+    "Crazy Larry"
+   ],
+   "notes": "From EQOA-Data Quests/HuntAndGather/crazy-larry.json, Level 45+ (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The experience is ours (the guide gives XP, a level and class item and a stack of XP gems, none named or counted); the item and the gems are left out. The guide's lower frogs in Guk are the froglok vis knights, its sharks off Mariel the hammerhead sharks; it does not know where the sturdy tin drops (the ice goblin warriors of Lady Vox's castle are ours, as the level 60's gobs in Vox); its anacondas are the server's (level 13)."
+  },
+  {
+   "key": "HuntAndGather/crazy-larry-60",
+   "name": "Crazy Larry's Supplies (60-60)",
+   "giver": "Crazy Larry",
+   "classes": [],
+   "races": [],
+   "minlevel": 60,
+   "maxlevel": 60,
+   "requires": [],
+   "repeatable": true,
+   "offer": "War is coming! Something in the air! I need supplies, and quickly. Hunt the ones you can beat; no use going into battle knowing you will lose.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Hurry! Before it is too late!",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "froglok dar warrior",
+     "items": [
+      {
+       "item": "Frog Hair Mats",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill froglok dar warriors deep in Guk for frog hair mats."
+    },
+    {
+     "kind": "loot",
+     "target": "Ice goblin guard",
+     "items": [
+      {
+       "item": "a reinforced bar of tin",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill ice goblin guards in Lady Vox's castle in Permafrost for a reinforced bar of tin."
+    },
+    {
+     "kind": "loot",
+     "target": "ancient eel",
+     "items": [
+      {
+       "item": "Piercing Fish Whistle",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill ancient eels for a piercing fish whistle."
+    },
+    {
+     "kind": "loot",
+     "target": "anaconda",
+     "items": [
+      {
+       "item": "Scaled Snake Booties",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill anacondas for scaled snake booties."
+    },
+    {
+     "kind": "give",
+     "target": "Crazy Larry",
+     "items": [
+      {
+       "item": "Frog Hair Mats",
+       "count": 1
+      },
+      {
+       "item": "a reinforced bar of tin",
+       "count": 1
+      },
+      {
+       "item": "Piercing Fish Whistle",
+       "count": 1
+      },
+      {
+       "item": "Scaled Snake Booties",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the supplies to Crazy Larry on the road north-east of Kelinar Village.",
+     "says": "Yes! Yes! Now I am ready. They will not take me unprepared. Here, take these.",
+     "rewards": {
+      "xp": 3000000
+     }
+    }
+   ],
+   "unresolved": [
+    "Crazy Larry"
+   ],
+   "notes": "From EQOA-Data Quests/HuntAndGather/crazy-larry.json, Level 60 (github.com/Jadiction/EQOA-Data, MIT). Repeatable, as every hunt and gather is (the guides': disabled on Sandstorm, in here). The experience is ours (the guide gives XP, a level and class item and a stack of XP gems, none named or counted); the item and the gems are left out. The guide's gobs in Vox are the ice goblin guards, its large and ancient dragon eels the ancient eels, its channelers and foragers of Guk the froglok dar warriors, its young anacondas and cryptkeepers the server's anacondas (neither of the guide's is here)."
+  }
+ ],
+ "items": [
+  {
+   "name": "Zombie Patron Skin",
+   "description": "A strip of skin from a patron of Bertoxxulous.",
+   "notrade": true,
+   "like": "Tanned Bear Hide"
+  },
+  {
+   "name": "Cold Iron Nosering",
+   "description": "A nosering of cold iron, worn by the elite ice giants.",
+   "notrade": true,
+   "like": "iron ring"
+  },
+  {
+   "name": "Small Chipped Ruby",
+   "description": "A small chipped ruby, carried by a Majorkahn giant.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Giant Blue Pearl Ring",
+   "description": "A ring set with a giant blue pearl, worn by an ice giant.",
+   "notrade": true,
+   "like": "iron ring"
+  },
+  {
+   "name": "Flawed Black Diamond",
+   "description": "A flawed black diamond, left by a shadow wisp.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Ice Worm Chitlin",
+   "description": "A chitlin from an ice worm.",
+   "notrade": true,
+   "like": "bat meat"
+  },
+  {
+   "name": "Dark Ore",
+   "description": "A lump of dark ore a spider had swallowed.",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Broken Leopard Claw",
+   "description": "A broken claw of a frost leopard.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Heavy Venom Sac",
+   "description": "A heavy venom sac from a freezefang spider.",
+   "notrade": true,
+   "like": "firespew gland"
+  },
+  {
+   "name": "Ghoulish Preservative",
+   "description": "A preservative from a ghoul.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "Purified Water Canteen",
+   "description": "A canteen of purified water, from a Taksehir miner.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "Froglok Stomach",
+   "description": "The stomach of a froglok.",
+   "notrade": true,
+   "like": "Fish Stomach"
+  },
+  {
+   "name": "Coarse Salt",
+   "description": "Coarse salt, crusted on a gargoyle.",
+   "notrade": true,
+   "like": "olive oil seeds"
+  },
+  {
+   "name": "Fiery Hot Pepper",
+   "description": "A pepper hot enough to grow in animated lava.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Bandit Herbs",
+   "description": "Herbs a bandit carried.",
+   "notrade": true,
+   "like": "sack of wild herbs"
+  },
+  {
+   "name": "Broken Totem",
+   "description": "A broken totem of a Frosteye shaman.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Nixie Cap",
+   "description": "The little cap of a nixie.",
+   "notrade": true,
+   "like": "Cloth Cap"
+  },
+  {
+   "name": "Witchking Collar",
+   "description": "A collar worn by a witchking cultist.",
+   "notrade": true,
+   "like": "Goblin Warden's Headband"
+  },
+  {
+   "name": "Dark Skull Ring",
+   "description": "A dark skull ring, found in green goo.",
+   "notrade": true,
+   "like": "iron ring"
+  },
+  {
+   "name": "Serpent Fang Ring",
+   "description": "A ring of serpent fangs, worn by a Blackscourge buccaneer.",
+   "notrade": true,
+   "like": "iron ring"
+  },
+  {
+   "name": "Mutant Ant Carapace",
+   "description": "The carapace of a red ant, mutated.",
+   "notrade": true,
+   "like": "beetle carapace fragment"
+  },
+  {
+   "name": "Petrified Rose",
+   "description": "A rose turned to stone, carried by a desert gypsy.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Platinum Gnoll Pendant",
+   "description": "A platinum pendant of a gnoll berserker.",
+   "notrade": true,
+   "like": "bone earring"
+  },
+  {
+   "name": "Blood Paw Collar",
+   "description": "A collar of a Bloodpaw gnoll.",
+   "notrade": true,
+   "like": "Goblin Warden's Headband"
+  },
+  {
+   "name": "Black Gnoll Ring",
+   "description": "A black ring of a gnoll strongfang.",
+   "notrade": true,
+   "like": "iron ring"
+  },
+  {
+   "name": "Gnoll Ear Cuff",
+   "description": "An ear cuff of a gnoll stalker.",
+   "notrade": true,
+   "like": "bone earring"
+  },
+  {
+   "name": "Matted Bear Hide",
+   "description": "The matted hide of a young bear.",
+   "notrade": true,
+   "like": "Tanned Bear Hide"
+  },
+  {
+   "name": "Pike Meat",
+   "description": "Meat from a pike.",
+   "notrade": true,
+   "like": "bat meat"
+  },
+  {
+   "name": "Ant Chitin",
+   "description": "Chitin from an ant soldier.",
+   "notrade": true,
+   "like": "beetle carapace fragment"
+  },
+  {
+   "name": "Sunbeetle Carapace",
+   "description": "The bright carapace of a sunbeetle.",
+   "notrade": true,
+   "like": "beetle carapace fragment"
+  },
+  {
+   "name": "Siloth Insignia Ring",
+   "description": "An insignia ring of the Siloth.",
+   "notrade": true,
+   "like": "iron ring"
+  },
+  {
+   "name": "Regal Siloth Band",
+   "description": "A regal band of the Siloth, rarer than their insignia rings.",
+   "notrade": true,
+   "like": "iron ring"
+  },
+  {
+   "name": "Rune of Crethley Manor",
+   "description": "A rune carried by the dead of Crethley Manor.",
+   "notrade": true,
+   "like": "cracked symbol of Tunare"
+  },
+  {
+   "name": "Snake Booties",
+   "description": "Little booties made of snakeskin.",
+   "notrade": true,
+   "like": "Battle Worn Boots"
+  },
+  {
+   "name": "Bar of Tin",
+   "description": "A bar of tin a goblin carried.",
+   "notrade": true,
+   "like": "block of ore"
+  },
+  {
+   "name": "Fish Whistle",
+   "description": "A whistle carved from a pike bone.",
+   "notrade": true,
+   "like": "bone earring"
+  },
+  {
+   "name": "Frog Hair",
+   "description": "Hair from a froglok, somehow.",
+   "notrade": true,
+   "like": "Strands of Rat Fur"
+  },
+  {
+   "name": "Frog Hair Tufts",
+   "description": "Tufts of froglok hair, from Guk.",
+   "notrade": true,
+   "like": "Strands of Rat Fur"
+  },
+  {
+   "name": "Sturdy Bar of Tin",
+   "description": "A sturdy bar of tin an ice goblin carried.",
+   "notrade": true,
+   "like": "block of ore"
+  },
+  {
+   "name": "Shrill Fish Whistle",
+   "description": "A shrill whistle carved from shark bone.",
+   "notrade": true,
+   "like": "bone earring"
+  },
+  {
+   "name": "Padded Snake Booties",
+   "description": "Padded booties of anaconda skin.",
+   "notrade": true,
+   "like": "Battle Worn Boots"
+  },
+  {
+   "name": "Frog Hair Mats",
+   "description": "Mats of froglok hair, from deep in Guk.",
+   "notrade": true,
+   "like": "Strands of Rat Fur"
+  },
+  {
+   "name": "Piercing Fish Whistle",
+   "description": "A piercing whistle carved from dragon eel bone.",
+   "notrade": true,
+   "like": "bone earring"
+  },
+  {
+   "name": "Scaled Snake Booties",
+   "description": "Booties of scaled snakeskin.",
+   "notrade": true,
+   "like": "Battle Worn Boots"
+  }
+ ]
+}

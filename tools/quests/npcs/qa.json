@@ -1234,6 +1234,127 @@
    "level": 58,
    "note": "the campfire north of Sunnyvale, at the foot of the mountain",
    "water": "land"
+  },
+  {
+   "name": "Crazy Larry",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    0
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "roaming the road north-east of Kelinar Village, Kelinar (S)",
+   "water": "land"
+  },
+  {
+   "name": "Ingrid Adder",
+   "role": "talker",
+   "body": [
+    "race",
+    "human",
+    1
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 1,
+   "level": null,
+   "note": "where FrontiersForge saw her",
+   "water": "land"
+  },
+  {
+   "name": "Bloodpaw",
+   "role": "foe",
+   "body": [
+    "kind",
+    "gnoll"
+   ],
+   "place": [
+    "ff"
+   ],
+   "count": 4,
+   "level": 26,
+   "note": "the Bloodpaw gnolls (the table's Gnoll Blood Paws), where FrontiersForge saw one",
+   "water": "land"
+  },
+  {
+   "name": "Frosteye Shaman",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Frosteye Shaman"
+   ],
+   "place": [
+    "near",
+    "Frosteye Miner",
+    40,
+    0
+   ],
+   "count": 3,
+   "level": 47,
+   "note": "by the Frosteye miner, with the high-level Frosteyes FrontiersForge saw (the server's one Frosteye Shaman is level 8)",
+   "water": "land"
+  },
+  {
+   "name": "Red Ant Worker",
+   "role": "foe",
+   "body": [
+    "npc",
+    "red ant scout"
+   ],
+   "place": [
+    "poi",
+    "tunaria",
+    "Red Ant Worker"
+   ],
+   "count": 4,
+   "level": 30,
+   "note": "the ant colonies south of the Oasis (EQOA-Data's map points)",
+   "water": "land"
+  },
+  {
+   "name": "Sunbeetle",
+   "role": "foe",
+   "body": [
+    "kind",
+    "insect"
+   ],
+   "place": [
+    "at",
+    0,
+    4560.0,
+    17240.0
+   ],
+   "count": 4,
+   "level": 7,
+   "note": "the newbie yard just east of Qeynos, with its firebeetles (FrontiersForge's sighting is marked suspect)",
+   "water": "land"
+  },
+  {
+   "name": "Snow Crow",
+   "role": "foe",
+   "body": [
+    "npc",
+    "Snow Crow"
+   ],
+   "place": [
+    "near",
+    "Snow Crow",
+    50,
+    0
+   ],
+   "count": 3,
+   "level": 9,
+   "note": "beside the server's one snow crow",
+   "water": "land"
   }
+ ],
+ "attackable": [
+  "Ambassador Vu'Malik"
  ]
 }

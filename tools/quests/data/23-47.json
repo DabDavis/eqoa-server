@@ -341,7 +341,17 @@
      "kind": "talk",
      "target": "Ice Statue",
      "journal": "Find the ice statue in Greyvax's cave and speak to it.",
-     "says": "Free... You have freed me. Take my key. What you seek is in the frozen chest.",
+     "choose": "A voice in the ice begs to be set free.",
+     "choices": [
+      {
+       "answer": "Release the spirit.",
+       "says": "Free... at last. Take my key. What you seek lies in the frozen chest beside me."
+      },
+      {
+       "answer": "Leave it in the ice.",
+       "says": "Then take the key, and leave me to the cold. What you seek lies in the frozen chest."
+      }
+     ],
      "events": [
       {
        "on": "done",
@@ -424,7 +434,7 @@
    "unresolved": [
     "Ice Statue"
    ],
-   "notes": "From EQOA-Data Quests/23-47/23.json, PART THREE (github.com/Jadiction/EQOA-Data, MIT). The guide's choice at the ice statue (release it or not) is one way here: the statue is freed and gives the ice key. The chaos rats round it are the server's own. The experience is ours; the items are the fourth of each class's list in the guide. Offered with the same standing with Feria Hurkert as part two, which it follows."
+   "notes": "From EQOA-Data Quests/23-47/23.json, PART THREE (github.com/Jadiction/EQOA-Data, MIT). The guide's choice at the ice statue (release it or not) is the step's choice; either way the statue gives the ice key, as the guide has it. The chaos rats round it are the server's own. The experience is ours; the items are the fourth of each class's list in the guide. Offered with the same standing with Feria Hurkert as part two, which it follows."
   },
   {
    "key": "23-47/25/temby",
@@ -4080,7 +4090,7 @@
    "unresolved": [
     "Ambassador Vu'Malik (attackable)"
    ],
-   "notes": "From EQOA-Data Quests/23-47/45.json, Quest 2: Ambassador Kizden G`Lux Quest (github.com/Jadiction/EQOA-Data, MIT). Offered with 150 standing with the Citizens of Castle Lightwolf (the guide's, from killing the beasts in Lady Vox's castle in Permafrost; that needs factionhits rows this file cannot add). The seals and the set are the guide's; the reward is ours (the guide only says Kizden rewards you)."
+   "notes": "From EQOA-Data Quests/23-47/45.json, Quest 2: Ambassador Kizden G`Lux Quest (github.com/Jadiction/EQOA-Data, MIT). Offered with 150 standing with the Citizens of Castle Lightwolf (the guide's, from killing the beasts in Lady Vox's castle in Permafrost; that needs factionhits rows this file cannot add). The seals and the set are the guide's; the reward is ours (the guide only says Kizden rewards you). Ambassador Vu'Malik stands as a townsman (npc_type 0x80): qa.json's attackable list makes him one to kill, so the quest is a draft until that seed is in."
   },
   {
    "key": "23-47/45/pandrig",

@@ -301,6 +301,7 @@ func (q *QuestEngine) AtWindow(sess *session.Session, p *entity.Player, npc *ent
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	c := q.namedLocked(p.CharServerID, p.Name)
+	look := q.lookAt(sess)
 	for _, cq := range c.active() {
 		qu := q.cat.byID[cq.QuestID]
 		if qu == nil {
@@ -313,13 +314,18 @@ func (q *QuestEngine) AtWindow(sess *session.Session, p *entity.Player, npc *ent
 		if (st.Kind == database.StepGive || st.Kind == database.StepShow) && q.lackingLocked(p, st) != "" {
 			continue
 		}
+		// a giver the player's standing keeps from its steps: as items that
+		// lack, the window opens as ever
+		if giverWontDeal(look, qu, st) != "" {
+			continue
+		}
 		c.box = nil
 		q.atNPCLocked(sess, p, c, qu, cq, st, false)
 		log.Printf("Quests: %s's window answered for %q step %d", npc.Name, qu.Name, st.Step)
 		return true
 	}
 	for _, qu := range q.cat.givers[foldName(npc.Name)] {
-		if c.windowOffered[qu.ID] || q.mayTakeLocked(p, c, qu) != "" {
+		if c.windowOffered[qu.ID] || q.mayTakeLocked(look, p, c, qu) != "" {
 			continue
 		}
 		if c.windowOffered == nil {

@@ -98,8 +98,9 @@ func TestQuestProgressIsTheJournalCounted(t *testing.T) {
 	if got, _ := sentProgress(t, f.tw.s); show(got) != "The pincers: Speak with Kellina" {
 		t.Fatalf("taken: %q", show(got))
 	}
+	// no drain between: the worker may have sent it already (the step's
+	// save nudges it), and sentProgress takes the last one queued
 	f.tw.talk(kellina)
-	f.msgs()
 	f.qe.syncProgress()
 	if got, _ := sentProgress(t, f.tw.s); show(got) != "The pincers: cracked ant pincer 0/2, Give to Kellina" {
 		t.Fatalf("the give step: %q", show(got))

@@ -119,12 +119,12 @@ func (w *World) SetRaceModels(models map[[2]int]uint32) {
 }
 
 // illusionBodyLocked is the body an illusion of form shows bearer in: a
-// race's for the bearer's sex, at the bearer's own scale (size 0), or a
-// creature's at its size. ok is false when this server has none.
+// race's for the bearer's sex, at that race's players' size (racesize.go), or
+// a creature's at its size. ok is false when this server has none.
 func (w *World) illusionBodyLocked(form string, bearer *Player) (model uint32, size float32, ok bool) {
 	if race, isRace := illusionRaces[form]; isRace {
 		m := w.raceModels[raceSex{race, bearer.Sex}]
-		return m, 0, m != 0
+		return m, w.raceSizeLocked(race), m != 0
 	}
 	words := strings.Fields(form)
 	last := ""

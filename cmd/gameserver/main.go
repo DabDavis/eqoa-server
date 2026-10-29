@@ -87,6 +87,12 @@ func main() {
 	} else {
 		gameWorld.SetRaceModels(models)
 	}
+	// and each race's players' body size, on every client (entity/racesize.go,
+	// table racesize: gnomes 0.9)
+	if _, err := gameWorld.LoadRaceSizes(db); err != nil {
+		log.Printf("Entity world: %v (every player at its race's own size)", err)
+	}
+	log.Printf("Entity world: player sizes: %s", gameWorld.RaceSizeSummary())
 	// each body's sex, whom a town's line for a husband or a wife fits (entity/dialog.go)
 	if sexes, err := npcStore.ModelSexes(); err != nil {
 		log.Printf("Entity world: the bodies' sexes: %v (no line of town dialog asks for one)", err)

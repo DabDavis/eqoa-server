@@ -615,6 +615,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCMove(); err != nil {
 		return err
 	}
+	if err := db.ensureBalance(); err != nil {
+		return err
+	}
 	if err := db.ensureLootTables(); err != nil {
 		return err
 	}

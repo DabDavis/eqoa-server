@@ -65,6 +65,7 @@ func (w *World) OnCorpseGone(fn CorpseGoneFunc) {
 func (w *World) applyNPCSettingsLocked(npc *NPC) {
 	npc.RespawnTime = w.respawnAfter
 	npc.RoamRadius = w.roamRadius
+	w.applyBalanceLocked(npc)  // its hit points (balance.go)
 	w.applyTemplateLocked(npc) // its name's class template (classtemplate.go)
 }
 

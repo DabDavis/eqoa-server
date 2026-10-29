@@ -3,7 +3,6 @@ package entity
 import (
 	"log"
 	"math"
-	"math/rand"
 	"time"
 
 	"github.com/eqoa/pkg/pkg/buffer"
@@ -806,7 +805,7 @@ func spellAmount(e SpellEffect, caster *Player) int {
 func rollAmount(e SpellEffect) int {
 	n := e.Amount
 	if e.AmountMax > e.Amount {
-		n += rand.Intn(e.AmountMax - e.Amount + 1)
+		n += spellIntn(e.AmountMax - e.Amount + 1)
 	}
 	return n
 }
@@ -1095,6 +1094,7 @@ func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc 
 		w.dummyEngagedLocked(npc, caster, time.Now())
 		return false
 	}
+	n = w.takenLocked(npc, caster.Level, n) // balance.go
 	npc.HP = max(npc.HP-n, 0)
 	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n)
 	w.updateAggro(npc, caster.ServerID, n)

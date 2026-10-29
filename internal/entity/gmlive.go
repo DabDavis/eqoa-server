@@ -238,7 +238,7 @@ func (w *World) ReloadNPCs(store *database.NPCStore) (loaded, removed int, err e
 	keep := make(map[EntityID]bool, len(recs))
 	for _, rec := range recs {
 		fresh := NPCFromRecord(rec, classes[database.NPCClassKey(rec.NPCName)], w.rangedModels)
-		w.applyTemplateLocked(fresh) // its name's class template (classtemplate.go)
+		w.applyNPCSettingsLocked(fresh) // as LoadNPCs makes it: its balanced hit points, then its class template
 		if _, taken := w.Players[fresh.ServerID]; taken {
 			continue
 		}

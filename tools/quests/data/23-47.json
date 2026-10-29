@@ -1,0 +1,5489 @@
+{
+ "city": "23-47",
+ "quests": [
+  {
+   "key": "23-47/23/p1",
+   "name": "The Redheaded Bandit",
+   "giver": "Feria Hurkert",
+   "classes": [],
+   "races": [],
+   "minlevel": 23,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Bram D'Lizo owes me a favour. He camps with the gypsies on the north shore past the Fayspires lake, west of the fort. Go to him and do what he asks.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Bram is a hard man, but fair. Go.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Bram D'Lizo",
+     "tunar": 1200,
+     "journal": "Find Bram D'Lizo at the gypsy camp west of the fort north of the Fayspires lake, and pay him 1,200 tunar.",
+     "says": "Coin first, always. Now: a red-haired bandit rides with the arctic bandits east of here. Kill him, take his bandana to Feria.",
+     "notyet": "Twelve hundred tunar first. Then we talk."
+    },
+    {
+     "kind": "loot",
+     "target": "arctic bandit",
+     "items": [
+      {
+       "item": "Redheaded Bandit's Bandana",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25,
+     "journal": "Kill the red-haired arctic bandit near the bandit fort and take his bandana."
+    },
+    {
+     "kind": "give",
+     "target": "Feria Hurkert",
+     "items": [
+      {
+       "item": "Redheaded Bandit's Bandana",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the red bandana to Feria Hurkert in Hodstock.",
+     "says": "So he is dead at last. Speak with my daughter Drew. She has something for you."
+    },
+    {
+     "kind": "talk",
+     "target": "Drew Hurkert",
+     "journal": "Speak with Drew Hurkert.",
+     "says": "Mother told me what you did. Take these, with our thanks.",
+     "rewards": {
+      "xp": 1200000,
+      "byclass": {
+       "0": {
+        "spells": [
+         "Reckless Force"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Nimble Grace"
+        ],
+        "items": [
+         "Seradwyn's Leggings"
+        ]
+       },
+       "2": {
+        "spells": [
+         "Pious Might"
+        ],
+        "items": [
+         "Hopemorrow Shield"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Scream of Torment"
+        ],
+        "items": [
+         "Plaguereaver's Coif"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Focus Strength"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Hymn of Health"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Performer's Finesse"
+        ],
+        "items": [
+         "Shadow Dancer's Foil"
+        ]
+       },
+       "7": {
+        "spells": [
+         "Ward Elements"
+        ],
+        "items": [
+         "Mithril Vine Leggings"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Tribal Strength"
+        ],
+        "items": [
+         "Featherweave Coif"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Weaken Death"
+        ],
+        "items": [
+         "Goldlight Coif"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Arcane Bonds"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Flesh Mastery +"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Power Flow"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Nerius Portal"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Fortifying Agent"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/23-47/23.json, PART ONE (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The guide's Redheaded Bandit is one of the arctic bandits (EQOA-Data's map: Arctic Bandit with red hair), so any arctic bandit may drop his bandana; the bandana is ours, the guide names no item. The experience is ours (the guide gives none for this part). The item is the first of the class's reward list, the ability the second (the guide lists each class's items and ability together, part one's first); the guide lists no item for the other classes. The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
+  },
+  {
+   "key": "23-47/23/p2",
+   "name": "The Glowing Shield",
+   "giver": "Feria Hurkert",
+   "classes": [],
+   "races": [],
+   "minlevel": 23,
+   "maxlevel": 60,
+   "requires": [
+    "23-47/23/p1"
+   ],
+   "factions_required": [
+    [
+     "Feria Hurkert",
+     150
+    ]
+   ],
+   "offer": "You have been a friend to us. Merchant Yulia in Freeport, through the second west door of the main hall, sells a runic recording. Buy it and show it to Bram D'Lizo. He will know where it leads.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Merchant Yulia",
+     "tunar": 1200,
+     "journal": "Buy a runic recording from Merchant Yulia in Freeport (1,200 tunar).",
+     "says": "One runic recording. Mind it does not get wet.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Runic Recording",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Bram D'Lizo",
+     "items": [
+      {
+       "item": "Runic Recording",
+       "count": 1
+      }
+     ],
+     "journal": "Show the runic recording to Bram D'Lizo.",
+     "says": "So that is what it says. North of the bandit fort stands a statue with a glowing shield. Go to it."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 17844,
+     "y": 54,
+     "z": 4868,
+     "radius": 25,
+     "journal": "Find the statue with the glowing shield north of the bandit fort.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The statue's shield glows as you come near. A voice speaks of Greyvax's caves to the north-west, and of the frozen dead that walk there."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "iceflesh zombie",
+     "items": [
+      {
+       "item": "Tribal Pendant",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill iceflesh zombies in Greyvax's caves until one gives up a tribal pendant."
+    },
+    {
+     "kind": "give",
+     "target": "Feria Hurkert",
+     "items": [
+      {
+       "item": "Tribal Pendant",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the tribal pendant to Feria Hurkert.",
+     "says": "The pendant of my people. You have done more than I asked of you.",
+     "rewards": {
+      "xp": 600000,
+      "byclass": {
+       "1": {
+        "items": [
+         "Seradwyn's Axe"
+        ]
+       },
+       "2": {
+        "items": [
+         "Hopemorrow Boots"
+        ]
+       },
+       "3": {
+        "items": [
+         "Plaguereaver's Boots"
+        ]
+       },
+       "6": {
+        "items": [
+         "Shadow Dancer's Boots"
+        ]
+       },
+       "8": {
+        "items": [
+         "Featherweave Tunic"
+        ]
+       },
+       "9": {
+        "items": [
+         "Goldlight Shield"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/23-47/23.json, PART TWO (github.com/Jadiction/EQOA-Data, MIT). Offered with 150 standing with Feria Hurkert (the guide's good faction with her, raised by killing the Cracktooth orcs near Bobble-by-the-Water: that needs a factionhits row for them, which this file cannot add). The statue's place is EQOA-Data's map's, and the voice that sends you to Greyvax's caves is ours (the guide only says the statue directs you). The pendant drops with our chance. The experience is ours; the items are the third of each class's list in the guide (no ability in this part)."
+  },
+  {
+   "key": "23-47/23/p3",
+   "name": "The Remains of Manger MacGray",
+   "giver": "Feria Hurkert",
+   "classes": [],
+   "races": [],
+   "minlevel": 23,
+   "maxlevel": 60,
+   "requires": [
+    "23-47/23/p2"
+   ],
+   "factions_required": [
+    [
+     "Feria Hurkert",
+     150
+    ]
+   ],
+   "offer": "An old friend of ours, Manger MacGray, went into the north and did not come back. Guard Smitty in Freeport, who keeps the door of a building there, knows something. Ask him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Guard Smitty",
+     "tunar": 1200,
+     "journal": "Find Guard Smitty at his door in Freeport and pay him 1,200 tunar.",
+     "says": "For that: ask Bison, in the Freezeblood village of Everfrost. South-west of Halas, in the caves in the mountains.",
+     "notyet": "Twelve hundred tunar loosens my tongue. Nothing less."
+    },
+    {
+     "kind": "talk",
+     "target": "Bison",
+     "journal": "Find Bison in Everfrost, south-west of Halas, and ask about Manger MacGray.",
+     "says": "MacGray? Greyvax took him, and what is left of him is still in that cave. Tell Feria."
+    },
+    {
+     "kind": "talk",
+     "target": "Feria Hurkert",
+     "journal": "Tell Feria Hurkert what Bison said.",
+     "says": "Then bring him home to us. Find the room with the ice statue in Greyvax's cave. Mind the rats there."
+    },
+    {
+     "kind": "talk",
+     "target": "Ice Statue",
+     "journal": "Find the ice statue in Greyvax's cave and speak to it.",
+     "says": "Free... You have freed me. Take my key. What you seek is in the frozen chest.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Ice Key",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Frosty Chest",
+     "items": [
+      {
+       "item": "Ice Key",
+       "count": 1
+      }
+     ],
+     "journal": "Open the frosty chest beside the ice statue with the ice key.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The ice key turns in the lock. Inside lie the frozen remains of Manger MacGray."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Remains of Manger MacGray",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Feria Hurkert",
+     "items": [
+      {
+       "item": "Remains of Manger MacGray",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the remains of Manger MacGray to Feria Hurkert.",
+     "says": "He is home. Thank you, friend. Take these.",
+     "rewards": {
+      "xp": 600000,
+      "byclass": {
+       "1": {
+        "items": [
+         "Seradwyn's Gauntlets"
+        ]
+       },
+       "2": {
+        "items": [
+         "Hopemorrow Bracers"
+        ]
+       },
+       "6": {
+        "items": [
+         "Shadow Dancer's Gauntlets"
+        ]
+       },
+       "8": {
+        "items": [
+         "Featherweave Gloves"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Ice Statue"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/23.json, PART THREE (github.com/Jadiction/EQOA-Data, MIT). The guide's choice at the ice statue (release it or not) is one way here: the statue is freed and gives the ice key. The chaos rats round it are the server's own. The experience is ours; the items are the fourth of each class's list in the guide. Offered with the same standing with Feria Hurkert as part two, which it follows."
+  },
+  {
+   "key": "23-47/25/temby",
+   "name": "The Temby Debt",
+   "giver": "Dristan Blane",
+   "classes": [],
+   "races": [],
+   "minlevel": 25,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Nascien Vladya drinks at the Smiling Serpent in Freeport, the bar, not the inn. He has work that needs doing, and I want it done. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Nascien Vladya",
+     "tunar": 790,
+     "journal": "Find Nascien Vladya at the Smiling Serpent bar in Freeport; he wants 790 tunar.",
+     "says": "Razuam Marus, in Wyndhaven: upstairs at the inn by the coach. Kill him and take his signet to Dristan.",
+     "notyet": "Seven hundred and ninety tunar. Then I talk."
+    },
+    {
+     "kind": "loot",
+     "target": "Razuam Marus",
+     "items": [
+      {
+       "item": "Razuam's Signet",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Razuam Marus upstairs at the inn in Wyndhaven and take his signet."
+    },
+    {
+     "kind": "give",
+     "target": "Dristan Blane",
+     "items": [
+      {
+       "item": "Razuam's Signet",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the signet of Razuam Marus to Dristan Blane.",
+     "says": "Razuam will trouble no one again. Temby will remember this.",
+     "rewards": {
+      "xp": 1500000,
+      "factions": [
+       [
+        "Smugglers of Temby",
+        50
+       ]
+      ],
+      "byclass": {
+       "0": {
+        "spells": [
+         "Iron Skin"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Forage Grub"
+        ]
+       },
+       "2": {
+        "spells": [
+         "Divine Favor"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Pain Touch"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Compress"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Clamor"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Envenomed Night"
+        ]
+       },
+       "7": {
+        "spells": [
+         "Pack Spirit"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Pack Spirit"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Ward Affliction"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Hail Storm"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Maliceweave"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Calming Visage"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Baga Portal"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Poisoned Infusion",
+         "Refinement"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Razuam Marus"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/25.json, Temby Quest (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The signet is ours (the guide names no item). The experience and the faction are ours: the guide gives XP, an ability and faction, no figures; the faction is Temby's smugglers'. The guide's note that low standing with Temby is raised by killing Nasehir is not a gate here (it gives no standing). The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
+  },
+  {
+   "key": "23-47/25/blackswan",
+   "name": "The Ancient Stone Golem",
+   "giver": "Apprentice Buerma",
+   "classes": [],
+   "races": [],
+   "minlevel": 25,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "My master needs a stone from the heart of the ancient stone golem. It roams by a small bridge north of the river in Mayfly Glade, west of Forkwatch, near a guard tower. Bring me one.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Ancient Stone Golem",
+     "items": [
+      {
+       "item": "Ancient Golem Stone",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the ancient stone golem by the small bridge in Mayfly Glade."
+    },
+    {
+     "kind": "give",
+     "target": "Apprentice Buerma",
+     "items": [
+      {
+       "item": "Ancient Golem Stone",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ancient golem stone to Apprentice Buerma in Darvar Manor.",
+     "says": "Good, good. Now Ling, nearby, wants paying for her part. See her."
+    },
+    {
+     "kind": "give",
+     "target": "Ling",
+     "tunar": 1200,
+     "journal": "Pay Ling, near the blacksmith by the inn, 1,200 tunar.",
+     "says": "That settles it. Tell Buerma."
+    },
+    {
+     "kind": "talk",
+     "target": "Apprentice Buerma",
+     "journal": "Return to Apprentice Buerma.",
+     "says": "My master will be pleased. Here, for your trouble.",
+     "rewards": {
+      "xp": 750000
+     }
+    }
+   ],
+   "unresolved": [
+    "Apprentice Buerma",
+    "Ancient Stone Golem"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/25.json, Black Swan Inn Side Quest (github.com/Jadiction/EQOA-Data, MIT). The stone is ours (the guide names no item), and Ling's fee the guide's uncertain 1,200. The reward is ours: the guide only says Buerma rewards you. The guide's note that Buerma must be friendly (raised by killing gnolls in Blackburrow, Jethro's Cast or the bandits of Bandit Hills) gives no standing, so it is not a gate here."
+  },
+  {
+   "key": "23-47/25/wyndhaven",
+   "name": "The Enraged Wolf",
+   "giver": "Mister Bail",
+   "classes": [],
+   "races": [],
+   "minlevel": 25,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "An enraged wolf runs east of town and nothing is safe from it. Kill it and bring me its pelt, and I will see you right.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Enraged Wolf",
+     "items": [
+      {
+       "item": "Enraged Wolf Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the enraged wolf east of Wyndhaven."
+    },
+    {
+     "kind": "give",
+     "target": "Mister Bail",
+     "items": [
+      {
+       "item": "Enraged Wolf Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the enraged wolf pelt to Mister Bail.",
+     "says": "Good riddance. Now: Danur Ironbrow, on the farm by Bethany's south of the Bear Caves, has something for me. Pay him."
+    },
+    {
+     "kind": "give",
+     "target": "Danur Ironbrow",
+     "tunar": 782,
+     "journal": "Find Danur Ironbrow on the farm in the Hagley farmlands and pay him 782 tunar.",
+     "says": "Bail's money, is it? Tell him we are square."
+    },
+    {
+     "kind": "talk",
+     "target": "Mister Bail",
+     "journal": "Return to Mister Bail in Wyndhaven.",
+     "says": "Square, is it? Good. This is yours.",
+     "rewards": {
+      "xp": 1500000,
+      "byclass": {
+       "0": {
+        "spells": [
+         "Iron Skin"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Forage Grub"
+        ]
+       },
+       "2": {
+        "spells": [
+         "Divine Favor"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Pain Touch"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Compress"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Clamor"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Envenomed Night"
+        ]
+       },
+       "7": {
+        "spells": [
+         "Pack Spirit"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Pack Spirit"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Ward Affliction"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Hail Storm"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Maliceweave"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Calming Visage"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Baga Portal"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Poisoned Infusion",
+         "Refinement"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Enraged Wolf",
+    "Danur Ironbrow"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/25.json, Wyndhaven Side Quest (github.com/Jadiction/EQOA-Data, MIT). The guide says Mister Bail gives an item, XP and an ability without naming them: the ability here is the level's (as Temby's quest gives; a class that has it from one keeps it, a scribe never teaches one twice), the experience ours and the item left out. The pelt is ours. The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
+  },
+  {
+   "key": "23-47/27/p1",
+   "name": "The Goblin Poison",
+   "giver": "Commander Dursley",
+   "classes": [],
+   "races": [],
+   "minlevel": 27,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Goblins creep into this tower. One of their fanatics is inside the walls now. Kill it and bring me whatever it carries.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Goblin Fanatic",
+     "items": [
+      {
+       "item": "Scrawled Note",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the goblin fanatic inside the tower's walls and take what it carries."
+    },
+    {
+     "kind": "give",
+     "target": "Commander Dursley",
+     "items": [
+      {
+       "item": "Scrawled Note",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the scrawled note to Commander Dursley.",
+     "says": "Poison! Skulpik means to poison us. He lairs deep in Runnyeye Citadel. Kill him and bring me his recipe."
+    },
+    {
+     "kind": "loot",
+     "target": "Skulpik",
+     "items": [
+      {
+       "item": "Anti-Poysin Recipe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Skulpik deep in Runnyeye Citadel and take his recipe."
+    },
+    {
+     "kind": "give",
+     "target": "Commander Dursley",
+     "items": [
+      {
+       "item": "Anti-Poysin Recipe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the recipe to Commander Dursley.",
+     "says": "Take it to Quando Faircoin in Highpass, the white church past the old bank. He can make the antidote."
+    },
+    {
+     "kind": "give",
+     "target": "Quando Faircoin",
+     "items": [
+      {
+       "item": "Anti-Poysin Recipe",
+       "count": 1
+      }
+     ],
+     "tunar": 1450,
+     "journal": "Have Quando Faircoin in Highpass make the antidote; he wants the recipe and 1,450 tunar.",
+     "says": "An odd recipe, but it will serve. Here is your antidote.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Faircoin's Antidote",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Commander Dursley",
+     "items": [
+      {
+       "item": "Faircoin's Antidote",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the antidote to Commander Dursley.",
+     "says": "We are safe. Saerk has your reward. Go down, into the other tower, touch the orb and go up."
+    },
+    {
+     "kind": "talk",
+     "target": "Saerk",
+     "journal": "Go into the other tower, touch the orb of light and go up to Saerk.",
+     "says": "Dursley speaks well of you. Learn this.",
+     "rewards": {
+      "xp": 1785000,
+      "byclass": {
+       "0": {
+        "spells": [
+         "Frenzied Defense"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Tangling Vines"
+        ]
+       },
+       "2": {
+        "spells": [
+         "Bash"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Shriek of Hate"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Spirit & Being"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Dirge of Refuge"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Deceiver's Mask"
+        ]
+       },
+       "7": {
+        "spells": [
+         "Jaggedpine Circle"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Malady"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Resuscitate"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Phase Mallet"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Haunting Visage"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Freeport Evacuation"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Sublimation"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Goblin Fanatic"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/27.json, Part One (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The antidote is ours by name. The guide's item is not named, so it is left out; the experience is the guide's. The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces). EQOA-Data's lists give no quest ability of this level for the necromancer, so that class gets none here."
+  },
+  {
+   "key": "23-47/27/p2",
+   "name": "Saerk's Ring",
+   "giver": "Saerk",
+   "classes": [],
+   "races": [],
+   "minlevel": 27,
+   "maxlevel": 60,
+   "requires": [
+    "23-47/27/p1"
+   ],
+   "offer": "Bring me the Elemental Lexicon and Darkhart's Medallion from the old tower east of Melton, and a red diamond, and I will make you a ring.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 7547,
+     "y": 78,
+     "z": 19289,
+     "radius": 20,
+     "journal": "Climb the old tower east of Melton, past its ghost, and take the Elemental Lexicon.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "At the top of the tower, under dust and cobwebs, lies the Elemental Lexicon."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Elemental Lexicon",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Darkhart",
+     "items": [
+      {
+       "item": "Darkhart's Medallion",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Follow the dirt tunnel under the tower to Darkhart's lair and kill him for his medallion."
+    },
+    {
+     "kind": "give",
+     "target": "Grithmil Darkstone",
+     "tunar": 1450,
+     "journal": "Buy a red diamond from Grithmil Darkstone in Moradhim (1,450 tunar).",
+     "says": "A red diamond, the best in the mountain.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Red Diamond",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Saerk",
+     "items": [
+      {
+       "item": "Elemental Lexicon",
+       "count": 1
+      },
+      {
+       "item": "Darkhart's Medallion",
+       "count": 1
+      },
+      {
+       "item": "Red Diamond",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Elemental Lexicon, Darkhart's Medallion and the red diamond to Saerk.",
+     "says": "All three. Wear this well.",
+     "rewards": {
+      "xp": 1785000,
+      "byclass": {
+       "0": {
+        "items": [
+         "Tactican's Ring"
+        ]
+       },
+       "1": {
+        "items": [
+         "Falcon Ring"
+        ]
+       },
+       "2": {
+        "items": [
+         "Tactican's Ring"
+        ]
+       },
+       "3": {
+        "items": [
+         "Tactican's Ring"
+        ]
+       },
+       "4": {
+        "items": [
+         "Tactican's Ring"
+        ]
+       },
+       "5": {
+        "items": [
+         "Falcon Ring"
+        ]
+       },
+       "6": {
+        "items": [
+         "Falcon Ring"
+        ]
+       },
+       "7": {
+        "items": [
+         "Bishop's Ring"
+        ]
+       },
+       "8": {
+        "items": [
+         "Bishop's Ring"
+        ]
+       },
+       "9": {
+        "items": [
+         "Bishop's Ring"
+        ]
+       },
+       "10": {
+        "items": [
+         "Burnished Gold Ring"
+        ]
+       },
+       "11": {
+        "items": [
+         "Burnished Gold Ring"
+        ]
+       },
+       "12": {
+        "items": [
+         "Burnished Gold Ring"
+        ]
+       },
+       "13": {
+        "items": [
+         "Burnished Gold Ring"
+        ]
+       },
+       "14": {
+        "items": [
+         "Burnished Gold Ring"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/23-47/27.json, Part Two (github.com/Jadiction/EQOA-Data, MIT). The lexicon is at the tower's place on EQOA-Data's map, taken there (the ghost that guards it is not in); the guide says to loot nothing on the way. The red diamond's price is ours (the guide gives none), and only Grithmil Darkstone sells it here (the guide's Tsekar in the Green Rift is the other seller). The guide's class-specific ring is not named: the four level-27 rings of one pattern no other source gives (Tactican's STR, Falcon DEX, Bishop's WIS, Burnished Gold INT, each with 50 health or power and 9 armour) are given by archetype, our reading. The experience is the guide's."
+  },
+  {
+   "key": "23-47/30/trailsend",
+   "name": "Max's Journal",
+   "giver": "Two-Eyed Jack",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A wolf killed Max, and his journal went with him. The alpha hunts from the first cave east of the road, north of here. Kill it and bring me Max's journal.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "silvermist wolf alpha",
+     "items": [
+      {
+       "item": "Max's Journal",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the alpha wolf in the first cave east of the road north of Trail's End."
+    },
+    {
+     "kind": "give",
+     "target": "Two-Eyed Jack",
+     "items": [
+      {
+       "item": "Max's Journal",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Max's journal to Two-Eyed Jack in Trail's End.",
+     "says": "Max's words, safe. Thank you.",
+     "rewards": {
+      "xp": 70000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/23-47/30.json, Quest 1: Trails End Side Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Alpha-male Wolf is the silvermist wolf alpha the server has where EQOA-Data's map puts it (the guide's triggered spawn is always there here). Jack's belt of his own design is not named in the guide, so it is left out; the experience is the guide's."
+  },
+  {
+   "key": "23-47/30/freeport",
+   "name": "The Sacred Monarch",
+   "giver": "Twindle Fizzmop",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "I need the wing of a sacred monarch. They flutter in the lit glade by the mayfly statue in Mayfly Glade, west of Forkwatch. Bring me one, and coin for my trouble.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "sacred monarch",
+     "items": [
+      {
+       "item": "Sacred Monarch Wing",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill sacred monarchs in the lit glade of Mayfly Glade for a wing."
+    },
+    {
+     "kind": "give",
+     "target": "Twindle Fizzmop",
+     "items": [
+      {
+       "item": "Sacred Monarch Wing",
+       "count": 1
+      }
+     ],
+     "tunar": 1600,
+     "journal": "Bring the sacred monarch wing and 1,600 tunar to Twindle Fizzmop in Freeport.",
+     "says": "Lovely. And this circlet is yours.",
+     "rewards": {
+      "xp": 70000,
+      "items": [
+       "Thulian Circlet"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/23-47/30.json, Quest 2: Freeport Side Quest (github.com/Jadiction/EQOA-Data, MIT). The wing is ours (the guide names no item). The experience is ours (the guide gives only the circlet). The guide's groups (this one the evil races' at 30) are not a gate here."
+  },
+  {
+   "key": "23-47/30/blackswan",
+   "name": "Skarr",
+   "giver": "Finnus Sodwin",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Skarr leads the gnolls of Blackburrow. In the main chamber, past the great hole, a passage south-west leads to him. Kill him and bring me proof. Their shamans see through invisibility.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Skarr",
+     "items": [
+      {
+       "item": "Skarr's Paw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Skarr, down the south-west passage off the great chamber of Blackburrow."
+    },
+    {
+     "kind": "give",
+     "target": "Finnus Sodwin",
+     "items": [
+      {
+       "item": "Skarr's Paw",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Skarr's paw to Finnus Sodwin at the Black Swan Inn.",
+     "says": "Skarr is dead! Here, you have earned every coin.",
+     "rewards": {
+      "xp": 1084993,
+      "tunar": 3000
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/23-47/30.json, Quest 3: Black Swan Inn Side Quest (github.com/Jadiction/EQOA-Data, MIT). The paw is ours (the guide names no item); the rewards are the guide's."
+  },
+  {
+   "key": "23-47/30/blakedown",
+   "name": "The Al'Karad Tablet",
+   "giver": "Argot Bittersteel",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "North of town, past where the road fades, lie the Al'Karad Ruins. Read the tablet deep in the dungeon there, then kill the savage bear that prowls the ruins and bring me its pelt.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 10586,
+     "y": 40,
+     "z": 14938,
+     "radius": 20,
+     "journal": "Find the tablet straight back in the dungeon of the Al'Karad Ruins.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The tablet tells of the beast that guards the ruins. Somewhere above, a savage bear roars."
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Savage Bear",
+     "items": [
+      {
+       "item": "Savage Bear Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the savage bear at the Al'Karad Ruins and take its pelt."
+    },
+    {
+     "kind": "give",
+     "target": "Argot Bittersteel",
+     "items": [
+      {
+       "item": "Savage Bear Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the savage bear pelt to Argot Bittersteel in Blakedown.",
+     "says": "That is the beast, sure enough. Wear this.",
+     "rewards": {
+      "xp": 789086,
+      "items": [
+       "Medallion of Fortitude"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/23-47/30.json, Quest 4: Blakedown Side Quest (github.com/Jadiction/EQOA-Data, MIT). The tablet's place is EQOA-Data's map's; what it says is ours. The bear stands at the ruins (the map's point; the server's other savage bears are level 43, far north, and count too). The pelt is ours; the rewards are the guide's."
+  },
+  {
+   "key": "23-47/30/fortseriak",
+   "name": "The U`Dedne Gem",
+   "giver": "J'Lisa U`Dedne",
+   "classes": [],
+   "races": [],
+   "minlevel": 30,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Jongo Quicktoe stole a gem of my house. He hides in Runnyeye: from the citadel bridge drop down, past the ichor worms, and take the west passage. Kill him and bring it back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Quicktoe",
+     "items": [
+      {
+       "item": "U`Dedne Gem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Jongo Quicktoe down the west passage under Runnyeye's bridge and take the gem."
+    },
+    {
+     "kind": "give",
+     "target": "J'Lisa U`Dedne",
+     "items": [
+      {
+       "item": "U`Dedne Gem",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the U`Dedne gem to J'Lisa U`Dedne in Fort Seriak.",
+     "says": "The gem of my house! You have my thanks, and my house's.",
+     "rewards": {
+      "xp": 70000,
+      "items": [
+       "Hatesplint Jerkin"
+      ],
+      "factions": [
+       [
+        "House U`Dedne",
+        50
+       ],
+       [
+        "The Indigo Brotherhood",
+        10
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/23-47/30.json, Quest 5: Fort Seriak Side Quest (github.com/Jadiction/EQOA-Data, MIT). Jongo Quicktoe is the server's Quicktoe; the goblin he fights is not in. The rewards are the guide's (its +50 House of U'Dedne and +10 Indigo Brotherhood). The guide believes it is for the evil races only; that is not a gate here."
+  },
+  {
+   "key": "23-47/33/teagarden",
+   "name": "Yismay's Tea",
+   "giver": "Teamaster Yismay",
+   "classes": [],
+   "races": [],
+   "minlevel": 33,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "I am brewing a tea of rare power, and I need help. Killian Helnes at the Twin Tails Inn in Blackwater knows where the recipe went. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Killian Helnes",
+     "journal": "Find Killian Helnes at the Twin Tails Inn in Blackwater.",
+     "says": "Yismay's recipe? Tobul has it. He roams the ruins with the zintec zombies in Widow's Peak, west and a little south of here. Take it from him."
+    },
+    {
+     "kind": "loot",
+     "target": "Tobul",
+     "items": [
+      {
+       "item": "Tobul's Tea Recipe",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Tobul at the ruins in Widow's Peak and take the recipe."
+    },
+    {
+     "kind": "give",
+     "target": "Teamaster Yismay",
+     "items": [
+      {
+       "item": "Tobul's Tea Recipe",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the recipe to Teamaster Yismay.",
+     "says": "Now tinsy tea leaves and brackish rocks. Captain Hogofa in north-western Ro can get the leaves. Take him 1,625 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Hogofa",
+     "tunar": 1625,
+     "journal": "Take 1,625 tunar to Captain Hogofa in north-western Ro.",
+     "says": "Skorn, in the next tent, has the leaves. Tell him I sent you."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Skorn",
+     "journal": "Get the tinsy tea leaves from Captain Skorn in the next tent.",
+     "says": "Tinsy tea leaves. Do not steep them too long.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Tinsy Tea Leaves",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Deathfist rider",
+     "items": [
+      {
+       "item": "Brackish Rocks",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.3,
+     "journal": "Kill Deathfist riders at the Deathfist Citadel's tower for brackish rocks."
+    },
+    {
+     "kind": "give",
+     "target": "Teamaster Yismay",
+     "items": [
+      {
+       "item": "Tinsy Tea Leaves",
+       "count": 1
+      },
+      {
+       "item": "Brackish Rocks",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the tea leaves and the brackish rocks to Teamaster Yismay.",
+     "says": "One thing more: Niktuu's antique teapot, in the Tomb of Kings. Kill him and bring it to me."
+    },
+    {
+     "kind": "loot",
+     "target": "Niktuu",
+     "items": [
+      {
+       "item": "Antique Teapot",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Niktuu at the end of the second dug tunnel in the Tomb of Kings and take his teapot."
+    },
+    {
+     "kind": "give",
+     "target": "Teamaster Yismay",
+     "items": [
+      {
+       "item": "Antique Teapot",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the antique teapot to Teamaster Yismay.",
+     "says": "Perfect. Sit, drink, and learn.",
+     "rewards": {
+      "xp": 2679818,
+      "byclass": {
+       "0": {
+        "spells": [
+         "Reckless Anger"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Spirit of the Wolf"
+        ]
+       },
+       "2": {
+        "spells": [
+         "Holy Might"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Gather Shadows"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Spinning Kick"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Jarring Verses"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Aerialist's Form"
+        ]
+       },
+       "7": {
+        "spells": [
+         "Resist Elements"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Tribal Force"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Enervate Death"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Improved Invisibility"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Decay Mastery +"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Power Tide"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Improved Invisibilty"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Quickening"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/23-47/33.json, Quest 1: Muniel's Tea Garden Quest (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The guide's Captain Ogofa is Captain Hogofa. The recipe and teapot are named by the guide, the rest ours; the rocks drop with our chance. The guide's item is not named and is left out; the experience is the guide's. The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
+  },
+  {
+   "key": "23-47/33/bastable",
+   "name": "The Eye of the Wyrm",
+   "giver": "Connor Dunn",
+   "classes": [],
+   "races": [],
+   "minlevel": 33,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "There is a map, cut in two, that leads to the Eye of the Wyrm. Cambrick Scott in Muniel's Tea Garden sells one half. Buy it and bring it to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Cambrick Scott",
+     "tunar": 1625,
+     "journal": "Buy the map from Cambrick Scott in Muniel's Tea Garden (1,625 tunar).",
+     "says": "Half a map, and worth every coin.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Half of a Map",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "show",
+     "target": "Connor Dunn",
+     "items": [
+      {
+       "item": "Half of a Map",
+       "count": 1
+      }
+     ],
+     "journal": "Show the half of a map to Connor Dunn in Bastable.",
+     "says": "Father Manstein in southern Blakedown can read the other half. Take it to him."
+    },
+    {
+     "kind": "talk",
+     "target": "Father Manstein",
+     "journal": "Take the map to Father Manstein in southern Blakedown.",
+     "says": "To read it I need the blood of a vampire from Melissa's Tomb, and the spark of an emberfly from the island in the Spider Mine's lake."
+    },
+    {
+     "kind": "loot",
+     "target": "fledgling vampire",
+     "items": [
+      {
+       "item": "Blood of a Vampire",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the fledgling vampire on the main floor of Melissa's Tomb, north of Blakedown."
+    },
+    {
+     "kind": "loot",
+     "target": "golden emberfly",
+     "items": [
+      {
+       "item": "Spark of an Emberfly",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill emberflies on the island in the Spider Mine's lake for a spark."
+    },
+    {
+     "kind": "give",
+     "target": "Father Manstein",
+     "items": [
+      {
+       "item": "Blood of a Vampire",
+       "count": 1
+      },
+      {
+       "item": "Spark of an Emberfly",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the blood of a vampire and the spark of an emberfly to Father Manstein.",
+     "says": "It reads: those that seek the Eye of the Wyrm must go to Melissa's Tomb, place the Key of Three, and defeat Lorx, or meet their doom."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 11416,
+     "y": 53,
+     "z": 16374,
+     "radius": 20,
+     "journal": "Go to the fountain in the main room of Melissa's Tomb.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You place the blood, the spark and the map in the fountain: the Key of Three. The water boils, and Lorx the wyrm rises!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Lorx Wyrm",
+     "items": [
+      {
+       "item": "Eye of the Wyrm",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Lorx Wyrm and take the Eye of the Wyrm."
+    },
+    {
+     "kind": "give",
+     "target": "Connor Dunn",
+     "items": [
+      {
+       "item": "Eye of the Wyrm",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Eye of the Wyrm to Connor Dunn.",
+     "says": "The Eye! Open the chest beside me: what is in it is yours."
+    },
+    {
+     "kind": "talk",
+     "target": "Ornate Chest",
+     "journal": "Open the chest beside Connor Dunn.",
+     "rewards": {
+      "xp": 1300000
+     }
+    }
+   ],
+   "unresolved": [
+    "Connor Dunn",
+    "Father Manstein",
+    "Lorx Wyrm"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/33.json, Quest 2: Bastable Village Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Father Manstien is the game's Father Manstein, its Emberfly the golden emberfly, the chest beside Connor the Ornate Chest. The Key of Three is the three things placed in the fountain (no item of its own), and Lorx stands in the tomb here (the guide's popup spawn). The guide's three tasks for Manstein name two; both are in. Items but the guide's blood and spark are ours; the reward is ours (the guide only says the chest holds it)."
+  },
+  {
+   "key": "23-47/33/blakedown",
+   "name": "Redsen's Errands",
+   "giver": "Johan Redsen",
+   "classes": [],
+   "races": [],
+   "minlevel": 33,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A man called Keller roams Mayfly Glade with a letter of mine he had no right to. Kill him and bring it back.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Keller",
+     "items": [
+      {
+       "item": "Redsen's Letter",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Keller, who roams Mayfly Glade, and take back the letter."
+    },
+    {
+     "kind": "give",
+     "target": "Johan Redsen",
+     "items": [
+      {
+       "item": "Redsen's Letter",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the letter to Johan Redsen in Blakedown.",
+     "says": "Good. Dominic Sorelli by the north gate of Highpass sells rare herbs I need. Buy them for me."
+    },
+    {
+     "kind": "give",
+     "target": "Dominic Sorelli",
+     "tunar": 1625,
+     "journal": "Buy rare herbs from Dominic Sorelli by the north gate of Highpass (1,625 tunar).",
+     "says": "Rare indeed. Here you are.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Rare Herbs",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Johan Redsen",
+     "items": [
+      {
+       "item": "Rare Herbs",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the rare herbs to Johan Redsen.",
+     "says": "Hawkblade mercenaries in Ferran's Hope, south-west of Highpass, have a golden mayfly idol of mine. Get it back."
+    },
+    {
+     "kind": "loot",
+     "target": "Hawkblade mercenary",
+     "items": [
+      {
+       "item": "Golden Mayfly Idol",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill Hawkblade mercenaries in Ferran's Hope for the golden mayfly idol."
+    },
+    {
+     "kind": "give",
+     "target": "Johan Redsen",
+     "items": [
+      {
+       "item": "Golden Mayfly Idol",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the golden mayfly idol to Johan Redsen.",
+     "says": "Last: the defiler prince in the great slith tar hive west of Hazinak. Bring me his stinger."
+    },
+    {
+     "kind": "loot",
+     "target": "slith tar defiler princ",
+     "items": [
+      {
+       "item": "Defiler Prince's Stinger",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the slith tar defiler prince in the largest hive west of Hazinak."
+    },
+    {
+     "kind": "give",
+     "target": "Johan Redsen",
+     "items": [
+      {
+       "item": "Defiler Prince's Stinger",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the defiler prince's stinger to Johan Redsen.",
+     "says": "All of it. You have my thanks.",
+     "rewards": {
+      "xp": 1300000
+     }
+    }
+   ],
+   "unresolved": [
+    "Johan Redsen",
+    "Keller"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/33.json, Quest 3: Blakedown Side Quest (github.com/Jadiction/EQOA-Data, MIT). The defiler prince is the server's slith tar defiler princ (its name cut short). The guide's golden mayfly idol is its; the other items are ours. The reward is ours (the guide only says Redsen rewards you)."
+  },
+  {
+   "key": "23-47/35/highpass",
+   "name": "The Idols of Zsetikaowa",
+   "giver": "Demetrios Velspane",
+   "classes": [],
+   "races": [],
+   "minlevel": 35,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Priestess Nadya of the white church has a task for the faithful, and the faithful are few just now. Go to her.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Priestess Nadya",
+     "journal": "Speak with Priestess Nadya in Highpass's white church.",
+     "says": "Madam Thlae in Wyndhaven, the southernmost hut on the coast, keeps blessed ivory. Buy some and bring it to me."
+    },
+    {
+     "kind": "give",
+     "target": "Madam Thlae",
+     "tunar": 2325,
+     "journal": "Buy blessed ivory from Madam Thlae in Wyndhaven (2,325 tunar).",
+     "says": "Blessed ivory. Carry it carefully.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Blessed Ivory",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Priestess Nadya",
+     "items": [
+      {
+       "item": "Blessed Ivory",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the blessed ivory to Priestess Nadya.",
+     "says": "Good. Tell Demetrios it is done; he will know what comes next."
+    },
+    {
+     "kind": "talk",
+     "target": "Demetrios Velspane",
+     "journal": "Return to Demetrios Velspane on the second floor of the keep.",
+     "says": "Lusciar Mekara, at the inn by Freeport's southern entrance, knows of two idols we must have. Go to him."
+    },
+    {
+     "kind": "talk",
+     "target": "Lusciar Mekara",
+     "journal": "Find Lusciar Mekara at the inn by Freeport's southern entrance.",
+     "says": "The Idol of Malice: Yjuri the Vicious keeps it in Blackburrow. The Idol of Lust: Tseralith, at the tower of Noctix in Mu Lin's Reach. Bring me both."
+    },
+    {
+     "kind": "loot",
+     "target": "Yjuri the Vicious",
+     "items": [
+      {
+       "item": "Idol of Malice",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Yjuri the Vicious in Blackburrow's bottom left-hand tunnel for the Idol of Malice."
+    },
+    {
+     "kind": "loot",
+     "target": "Tseralith",
+     "items": [
+      {
+       "item": "Idol of Lust",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Tseralith by the tower of Noctix in Mu Lin's Reach for the Idol of Lust."
+    },
+    {
+     "kind": "give",
+     "target": "Lusciar Mekara",
+     "items": [
+      {
+       "item": "Idol of Malice",
+       "count": 1
+      },
+      {
+       "item": "Idol of Lust",
+       "count": 1
+      }
+     ],
+     "journal": "Bring both idols to Lusciar Mekara.",
+     "says": "Together they make the Idol of Zsetikaowa. Take it to the Pool of Tears in Hazinak, and be ready.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Idol of Zsetikaowa",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 24823,
+     "y": 69,
+     "z": 27593,
+     "radius": 40,
+     "journal": "Take the Idol of Zsetikaowa to the Pool of Tears in Hazinak.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The idol grows cold in your hands. Something stirs in the Pool of Tears!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Zsetikaowa",
+     "items": [
+      {
+       "item": "Essence of Zsetikaowa",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Zsetikaowa at the Pool of Tears."
+    },
+    {
+     "kind": "give",
+     "target": "Lusciar Mekara",
+     "items": [
+      {
+       "item": "Essence of Zsetikaowa",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the essence of Zsetikaowa to Lusciar Mekara.",
+     "says": "It is ended. Go back to Priestess Nadya."
+    },
+    {
+     "kind": "talk",
+     "target": "Priestess Nadya",
+     "journal": "Return to Priestess Nadya.",
+     "says": "Demetrios is waiting for you."
+    },
+    {
+     "kind": "talk",
+     "target": "Demetrios Velspane",
+     "journal": "Return to Demetrios Velspane.",
+     "says": "You have done Highpass a great service. Learn this.",
+     "rewards": {
+      "xp": 3768632,
+      "byclass": {
+       "0": {
+        "spells": [
+         "Call to Battle"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Forage Fruit"
+        ]
+       },
+       "2": {
+        "spells": [
+         "Forced March"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Scream of Despair"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Salve"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Selo's Accelerando"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Enshrouding Breath"
+        ]
+       },
+       "7": {
+        "spells": [
+         "Greater Camouflage"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Improved Invisibilty"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Resist Affliction"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Magma Storm"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Spiteweave"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Improved Invisibility"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Melton Portal"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Greater Refinement",
+         "Venomous Infusion"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Tseralith",
+    "Zsetikaowa"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/35.json, Quest 1: Highpass Hold Ability Quest (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The guide's Dametrios is the game's Demetrios Velspane. Yjuri and Zsetikaowa stand where they are seen (the guide's popup spawns); the Pool of Tears is Zsetikaowa's place. The idols are the guide's, the essence ours; the guide's item is not named and is left out; the experience is the guide's. The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
+  },
+  {
+   "key": "23-47/35/ambrose",
+   "name": "The Seal of Deiphobus",
+   "giver": "Ambrose Castor",
+   "classes": [],
+   "races": [],
+   "minlevel": 35,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A creature called Phoborium haunts the hill west of the river by Bastable. Kill it and bring me its horn. Then we will talk about the rest.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Phoborium",
+     "items": [
+      {
+       "item": "Phoborium's Horn",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Phoborium on the hill west of the river by Bastable."
+    },
+    {
+     "kind": "give",
+     "target": "Ambrose Castor",
+     "items": [
+      {
+       "item": "Phoborium's Horn",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Phoborium's horn to Ambrose Castor in Highpass.",
+     "says": "Good. Iulias Maphesti in Freeport needs a hand. Help him, and come back."
+    },
+    {
+     "kind": "talk",
+     "target": "Iulias Maphesti",
+     "journal": "Find Iulias Maphesti in Freeport.",
+     "says": "Kill Caelduiel the Sacred at the Al'Farek ruins, south of the great Nasehir village, west to the blue stones. And pay Lelaia Shavrell in Temby for her seal."
+    },
+    {
+     "kind": "loot",
+     "target": "Caelduiel the Sacred",
+     "items": [
+      {
+       "item": "Caelduiel's Charm",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Caelduiel the Sacred at the blue stones of the Al'Farek ruins."
+    },
+    {
+     "kind": "give",
+     "target": "Lelaia Shavrell",
+     "tunar": 2325,
+     "journal": "Pay Lelaia Shavrell in Temby 2,325 tunar for her seal.",
+     "says": "The seal is yours. Do not lose it.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Lelaia's Seal",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Iulias Maphesti",
+     "items": [
+      {
+       "item": "Caelduiel's Charm",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Caelduiel's charm to Iulias Maphesti.",
+     "says": "Good. Keep Lelaia's seal: Ambrose will want it. Go back to him."
+    },
+    {
+     "kind": "talk",
+     "target": "Ambrose Castor",
+     "journal": "Return to Ambrose Castor.",
+     "says": "Place the seal at the south crossroads of Dark Solace. Deiphobus will answer it. Kill him."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 12574,
+     "y": 90,
+     "z": 21206,
+     "radius": 30,
+     "journal": "Place the seal at the south crossroads of Dark Solace.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You set down the seal. The air turns foul: Deiphobus answers its call!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Deiphobus",
+     "items": [
+      {
+       "item": "Deiphobus's Skull",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Deiphobus at the crossroads of Dark Solace."
+    },
+    {
+     "kind": "give",
+     "target": "Ambrose Castor",
+     "items": [
+      {
+       "item": "Deiphobus's Skull",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Deiphobus's skull to Ambrose Castor.",
+     "says": "You have done well. Take this.",
+     "rewards": {
+      "xp": 1800000
+     }
+    }
+   ],
+   "unresolved": [
+    "Phoborium",
+    "Caelduiel the Sacred",
+    "Deiphobus"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/35.json, Quest 2: Ambrose Castor Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Phorriun is the game's Phoborium, its Lelalia Shavererll the game's Lelaia Shavrell. Phoborium, Caelduiel and Deiphobus stand where they are seen (the guide's triggered spawns), and the seal keeps for Dark Solace. The items are ours; the reward is ours (the guide only says Ambrose rewards you)."
+  },
+  {
+   "key": "23-47/35/mccabe",
+   "name": "The Faded Silk Gown",
+   "giver": "Dunn McCabe",
+   "classes": [],
+   "races": [],
+   "minlevel": 35,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Duminven in Saerk's Tower has work for us both. Take him 2,325 tunar: he will tell you the rest.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Duminven",
+     "tunar": 2325,
+     "journal": "Take 2,325 tunar to Duminven in Saerk's Tower.",
+     "says": "McCabe's coin, good. A spectral guardian in the Tomb of Kings keeps a key. Kill it and use the key on the chest it guards."
+    },
+    {
+     "kind": "loot",
+     "target": "Spectral Guardian",
+     "items": [
+      {
+       "item": "Spectral Key",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the spectral guardian in its hallway of the Tomb of Kings for its key."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 20905,
+     "y": 44,
+     "z": 14109,
+     "radius": 20,
+     "journal": "Open the chest the spectral guardian kept with its key.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The key turns. The chest lid falls back, and the Lich Maiden rises from it!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Lich Maiden",
+     "items": [
+      {
+       "item": "Faded Silk Gown",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Lich Maiden and take her faded silk gown."
+    },
+    {
+     "kind": "give",
+     "target": "Dunn McCabe",
+     "items": [
+      {
+       "item": "Faded Silk Gown",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the faded silk gown to Dunn McCabe by the coach wall in Highpass.",
+     "says": "That is the one. Smithy Palin and Tailor Portia in the keep will see you paid."
+    },
+    {
+     "kind": "talk",
+     "target": "Smithy Palin",
+     "journal": "See Smithy Palin in the keep.",
+     "says": "McCabe sent you? Here.",
+     "rewards": {
+      "xp": 1800000
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Tailor Portia",
+     "journal": "See Tailor Portia in the keep.",
+     "says": "And this, from me."
+    }
+   ],
+   "unresolved": [
+    "Lich Maiden"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/35.json, Quest 3: Dunn McCabe Quest (github.com/Jadiction/EQOA-Data, MIT). The spectral guardian and the Lich Maiden stand where they are seen in the Tomb of Kings (the guide's chest spawn), and the chest is that place. The key is ours, the gown the guide's. The experience is ours (the guide only says Smithy Palin gives it); Tailor Portia's item is not named and is left out."
+  },
+  {
+   "key": "23-47/35/voriander",
+   "name": "The Highpass Road",
+   "giver": "Lord Voriander",
+   "classes": [],
+   "races": [],
+   "minlevel": 35,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Something is wrong on our eastern road. Captain Ravenhite in the barracks will tell you what we know. Go to him.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Captain Ravenhite",
+     "journal": "Find Captain Ravenhite in the barracks of Highpass.",
+     "says": "Go to Guard Matfin on the eastern tower road. He has seen what goes on."
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Matfin",
+     "journal": "Find Guard Matfin at the tower on the eastern road.",
+     "says": "Goblins on this road, attacking anyone who passes. Kill them and bring the captain one of their kamas."
+    },
+    {
+     "kind": "loot",
+     "target": "Adept Pickclaw Warrior",
+     "items": [
+      {
+       "item": "Goblin Kama",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill the goblins on the eastern road for a kama."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Ravenhite",
+     "items": [
+      {
+       "item": "Goblin Kama",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the goblin kama to Captain Ravenhite.",
+     "says": "Pickclaw work. Go back to Matfin's tower and keep your eyes open."
+    },
+    {
+     "kind": "talk",
+     "target": "Guard Matfin",
+     "journal": "Return to Guard Matfin's tower.",
+     "says": "Jann Olos was just here, all smiles. He left this for someone. Take it to the captain.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Jann Olos's Letter",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Captain Ravenhite",
+     "items": [
+      {
+       "item": "Jann Olos's Letter",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Jann Olos's letter to Captain Ravenhite.",
+     "says": "Olos is selling us to the goblins! He stays near the Bastable inn. Kill him and bring me what he carries."
+    },
+    {
+     "kind": "loot",
+     "target": "Jann Olos",
+     "items": [
+      {
+       "item": "Jann Olos's Orders",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Jann Olos near the inn at Bastable."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Ravenhite",
+     "items": [
+      {
+       "item": "Jann Olos's Orders",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Jann Olos's orders to Captain Ravenhite.",
+     "says": "The goblin hijacker in the Moss Mouth cave by the river has a crate of ours. Get it back."
+    },
+    {
+     "kind": "loot",
+     "target": "Goblin Hijacker",
+     "items": [
+      {
+       "item": "Stolen Crate",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the goblin hijacker in the Moss Mouth cave by the Bastable river."
+    },
+    {
+     "kind": "give",
+     "target": "Captain Ravenhite",
+     "items": [
+      {
+       "item": "Stolen Crate",
+       "count": 1
+      }
+     ],
+     "tunar": 2325,
+     "journal": "Bring the stolen crate and 2,325 tunar to Captain Ravenhite.",
+     "says": "That covers the losses. Lord Voriander will want to thank you."
+    },
+    {
+     "kind": "talk",
+     "target": "Lord Voriander",
+     "journal": "Return to Lord Voriander.",
+     "says": "Highpass owes you. Take this.",
+     "rewards": {
+      "xp": 1800000
+     }
+    }
+   ],
+   "unresolved": [
+    "Lord Voriander",
+    "Adept Pickclaw Warrior",
+    "Jann Olos",
+    "Goblin Hijacker"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/35.json, Quest 4: Lord Voriander Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Captain Ravensite is the game's Captain Ravenhite. The road's goblins are the Adept Pickclaw Warriors (level 39, the guide's yellow to a 35). The guide's watching Jann Olos at the tower is Matfin's telling of it. Jann Olos stands by the Bastable inn, where EQOA-Data's map has him. The items are ours; the reward is ours (the guide only says Voriander rewards you)."
+  },
+  {
+   "key": "23-47/35/fender",
+   "name": "Fender's Stone",
+   "giver": "Fender Crow",
+   "classes": [],
+   "races": [],
+   "minlevel": 35,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Dumak Olivarn, in Bastable, knows where my stone went. He will not say it to me. Kill him and bring me what he carries.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Dumak Olivarn",
+     "items": [
+      {
+       "item": "Dumak's Paper",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Dumak Olivarn in Bastable and take his paper."
+    },
+    {
+     "kind": "give",
+     "target": "Fender Crow",
+     "items": [
+      {
+       "item": "Dumak's Paper",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Dumak's paper to Fender Crow in Highpass.",
+     "says": "The Tomb of Kings! Grave Robber Laen has it. Kill him and bring back my stone. He sees through invisibility, mind."
+    },
+    {
+     "kind": "loot",
+     "target": "Grave Robber Laen",
+     "items": [
+      {
+       "item": "Fender's Stone",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Grave Robber Laen in the Tomb of Kings and take the stone."
+    },
+    {
+     "kind": "give",
+     "target": "Fender Crow",
+     "items": [
+      {
+       "item": "Fender's Stone",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the stone to Fender Crow.",
+     "says": "My stone! Go and see Smithy Palin in the keep; he has something for you."
+    },
+    {
+     "kind": "give",
+     "target": "Smithy Palin",
+     "tunar": 2250,
+     "journal": "See Smithy Palin in the keep, and pay him 2,250 tunar.",
+     "says": "Fender's friend, are you? Now see Tailor Portia.",
+     "rewards": {
+      "xp": 1800000
+     }
+    },
+    {
+     "kind": "talk",
+     "target": "Tailor Portia",
+     "journal": "See Tailor Portia in the keep.",
+     "says": "This is for you."
+    }
+   ],
+   "unresolved": [
+    "Dumak Olivarn"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/35.json, Quest 5: Fender Crow Quest (github.com/Jadiction/EQOA-Data, MIT). Laen stands in the tomb here (the guide's triggered spawn). The items are ours; the experience is ours (the guide only says Smithy Palin rewards you), and Tailor Portia's item is not named and is left out."
+  },
+  {
+   "key": "23-47/35/tintoggle",
+   "name": "Rin's Clockworks",
+   "giver": "Rin Tintoggle",
+   "classes": [],
+   "races": [],
+   "minlevel": 35,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "My clockworks have run away! Model LXI went toward Moradhim, to the hill with the marker stone. Bring me back a gear of it, and we will see about the rest.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Model LXI",
+     "items": [
+      {
+       "item": "Model LXI's Gear",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Model LXI by the marker stone on the hill near Moradhim."
+    },
+    {
+     "kind": "give",
+     "target": "Rin Tintoggle",
+     "items": [
+      {
+       "item": "Model LXI's Gear",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Model LXI's gear to Rin Tintoggle in Highpass.",
+     "says": "As I feared. Now I need a battery: Merchant Samwe in Klick`Anon sells them."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Samwe",
+     "tunar": 2325,
+     "journal": "Buy a battery from Merchant Samwe in Klick`Anon (2,325 tunar).",
+     "says": "One battery, charged.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Clockwork Battery",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Rin Tintoggle",
+     "items": [
+      {
+       "item": "Clockwork Battery",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the battery to Rin Tintoggle.",
+     "says": "A gnoll in Blackburrow chewed my plans: the blue-pawed one, above the dwarf temple. Bring me its paw."
+    },
+    {
+     "kind": "loot",
+     "target": "blue pawed gnoll",
+     "items": [
+      {
+       "item": "Blue Paw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the blue-pawed gnoll in Blackburrow's bottom left-hand tunnels."
+    },
+    {
+     "kind": "give",
+     "target": "Rin Tintoggle",
+     "items": [
+      {
+       "item": "Blue Paw",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the blue paw to Rin Tintoggle.",
+     "says": "Last, Model LXIX, outside Trail's End south of the south gate. Bring me its black box."
+    },
+    {
+     "kind": "loot",
+     "target": "Model LXIX",
+     "items": [
+      {
+       "item": "Black Box",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Model LXIX outside Trail's End and take its black box."
+    },
+    {
+     "kind": "give",
+     "target": "Rin Tintoggle",
+     "items": [
+      {
+       "item": "Black Box",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the black box to Rin Tintoggle.",
+     "says": "Now I can see what went wrong. Thank you!",
+     "rewards": {
+      "xp": 1800000
+     }
+    }
+   ],
+   "unresolved": [
+    "Model LXI",
+    "Merchant Samwe",
+    "Model LXIX"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/35.json, Quest 6: Rin Tintoggle Quest (github.com/Jadiction/EQOA-Data, MIT). The blue-pawed gnoll is the server's (its popup spawn standing). The items are ours, but the guide's black box; the reward is ours (the guide only says Rin rewards you)."
+  },
+  {
+   "key": "23-47/37/mingyrind",
+   "name": "Min's Treasure",
+   "giver": "Min Gyrind",
+   "classes": [],
+   "races": [],
+   "minlevel": 37,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "My brother Rivard, at the west wall, has been gathering things for me. Help him, and I will show you where I buried something for you.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Rivard Gyrind",
+     "journal": "Find Rivard Gyrind at the Oasis's west wall.",
+     "says": "Tradesman Ralis in Blackwater has a vial I need. Take him 2,556 tunar."
+    },
+    {
+     "kind": "give",
+     "target": "Tradesman Ralis",
+     "tunar": 2556,
+     "journal": "Buy the vial from Tradesman Ralis in Blackwater (2,556 tunar).",
+     "says": "Rivard's vial. Here.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Ralis's Vial",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Rivard Gyrind",
+     "items": [
+      {
+       "item": "Ralis's Vial",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the vial to Rivard Gyrind.",
+     "says": "Now nectar, from the slith tar reviver in the hives to the north."
+    },
+    {
+     "kind": "loot",
+     "target": "Slith Tar Reviver",
+     "items": [
+      {
+       "item": "Reviver Nectar",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the slith tar reviver in the northern hives for its nectar."
+    },
+    {
+     "kind": "give",
+     "target": "Rivard Gyrind",
+     "items": [
+      {
+       "item": "Reviver Nectar",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the nectar to Rivard Gyrind.",
+     "says": "Sap next, from the weary treant at Sycamore Joy's Rest."
+    },
+    {
+     "kind": "loot",
+     "target": "Weary Treant",
+     "items": [
+      {
+       "item": "Weary Treant Sap",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the weary treant at Sycamore Joy's Rest for its sap."
+    },
+    {
+     "kind": "give",
+     "target": "Rivard Gyrind",
+     "items": [
+      {
+       "item": "Weary Treant Sap",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the sap to Rivard Gyrind.",
+     "says": "Last, the chalice of High Guard Ianant in the southern ant colonies. Go unseen if you can."
+    },
+    {
+     "kind": "loot",
+     "target": "High Guard Ianant",
+     "items": [
+      {
+       "item": "Ianant's Chalice",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill High Guard Ianant in the southern ant colonies for the chalice."
+    },
+    {
+     "kind": "give",
+     "target": "Rivard Gyrind",
+     "items": [
+      {
+       "item": "Ianant's Chalice",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Ianant's chalice to Rivard Gyrind.",
+     "says": "That is everything. Go back to Min; she will show you where to dig."
+    },
+    {
+     "kind": "talk",
+     "target": "Min Gyrind",
+     "journal": "Return to Min Gyrind at the east wall.",
+     "says": "Dig where the ground is marked, just there."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 21149,
+     "y": 54,
+     "z": 25265,
+     "radius": 8,
+     "journal": "Dig where Min Gyrind marked the ground.",
+     "rewards": {
+      "xp": 4140484,
+      "byclass": {
+       "0": {
+        "spells": [
+         "Desperate Defense"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Cat's Grace"
+        ]
+       },
+       "2": {
+        "spells": [
+         "Divine Fervor"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Deadly Grasp"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Peace & Harmony"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Dirge of Fastness"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Scholar's Mask"
+        ]
+       },
+       "7": {
+        "spells": [
+         "Kithicor Circle"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Greater Malady"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Resurrection"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Phase Gladius"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Funeral Pyre"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Feeble Arms"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Melton Evacuation"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Frosty Mixture"
+        ]
+       }
+      }
+     },
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You dig where the ground is marked, and find what Min buried for you."
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Rivard Gyrind",
+    "Slith Tar Reviver",
+    "Weary Treant",
+    "High Guard Ianant"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/37.json, Quest 1: Min Gyrind Quest (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The guide's Ralis in the Brog Fens is Tradesman Ralis in Blackwater. The dig is at the X-marks the spot FrontiersForge saw beside Min. The items are ours; the guide's item is not named and is left out; the experience is the guide's. The guide's note (better standing with the gypsies, from killing siloth or Nasehir) gives no standing, so it is not a gate here. The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
+  },
+  {
+   "key": "23-47/37/rigo",
+   "name": "Poisontongue",
+   "giver": "Rigo Darter",
+   "classes": [],
+   "races": [],
+   "minlevel": 37,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Gykard, by the tree outside the Taksehir stronghold, needs help with a poison. Take him 2,556 tunar and do what he asks.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Gykard",
+     "tunar": 2556,
+     "journal": "Take 2,556 tunar to Gykard by the tree outside the Taksehir stronghold.",
+     "says": "Good. The Nasehir poisonkeeper in the tunnels under the Sea of Lions has what I need. Kill him and bring it."
+    },
+    {
+     "kind": "loot",
+     "target": "Nasehir poisonkeeper",
+     "items": [
+      {
+       "item": "Nasehir Poison",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Nasehir poisonkeeper in the tunnels under the Sea of Lions."
+    },
+    {
+     "kind": "give",
+     "target": "Gykard",
+     "items": [
+      {
+       "item": "Nasehir Poison",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Nasehir poison to Gykard.",
+     "says": "Mardtirn Poisontongue, by Freeport, will know what to make of it. Go to him."
+    },
+    {
+     "kind": "talk",
+     "target": "Mardtirn Poisontongue",
+     "journal": "Find Mardtirn Poisontongue by Freeport.",
+     "says": "I need paste from the Deathfist trader in the Deathfist Citadel. Bring it to me."
+    },
+    {
+     "kind": "loot",
+     "target": "Deathfist trader",
+     "items": [
+      {
+       "item": "Deathfist Paste",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Deathfist trader in the Deathfist Citadel for his paste."
+    },
+    {
+     "kind": "give",
+     "target": "Mardtirn Poisontongue",
+     "items": [
+      {
+       "item": "Deathfist Paste",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Deathfist paste to Mardtirn Poisontongue.",
+     "says": "Now see Elmo Hagger in Bastable."
+    },
+    {
+     "kind": "talk",
+     "target": "Elmo Hagger",
+     "journal": "Find Elmo Hagger in Bastable.",
+     "says": "The Blacktongue orc ravager in Ferran's Hope carries a lantern Mardtirn wants. Bring it to me."
+    },
+    {
+     "kind": "loot",
+     "target": "Blacktongue Orc Ravager",
+     "items": [
+      {
+       "item": "Ravager's Lantern",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Blacktongue orc ravager in Ferran's Hope for his lantern."
+    },
+    {
+     "kind": "give",
+     "target": "Elmo Hagger",
+     "items": [
+      {
+       "item": "Ravager's Lantern",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ravager's lantern to Elmo Hagger.",
+     "says": "Good. Back to Mardtirn with you."
+    },
+    {
+     "kind": "talk",
+     "target": "Mardtirn Poisontongue",
+     "journal": "Return to Mardtirn Poisontongue.",
+     "says": "It is done. Tell Rigo."
+    },
+    {
+     "kind": "talk",
+     "target": "Rigo Darter",
+     "journal": "Return to Rigo Darter in the Oasis.",
+     "says": "One thing more: speak with Count Luvincius's servant, behind the tower."
+    },
+    {
+     "kind": "talk",
+     "target": "Servant De'Varik",
+     "journal": "Find Count Luvincius's servant behind the tower.",
+     "says": "My master thanks you. Go back to Rigo."
+    },
+    {
+     "kind": "talk",
+     "target": "Rigo Darter",
+     "journal": "Return to Rigo Darter.",
+     "says": "You have been a great help.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [
+    "Gykard",
+    "Blacktongue Orc Ravager",
+    "Servant De'Varik"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/37.json, Quest 2: Rigo Dartar Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Rigo Dartar and Elmo Haggar are the game's Rigo Darter and Elmo Hagger; Luvincius' servant is the Servant De'Varik FrontiersForge saw behind the tower. The items are ours; the reward is ours (the guide only says Rigo rewards you)."
+  },
+  {
+   "key": "23-47/37/svenle",
+   "name": "Svenle's Debts",
+   "giver": "Svente Dormio",
+   "classes": [],
+   "races": [],
+   "minlevel": 37,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Enrique Revnold at the gypsy camp north of Forkwatch sells a necklace I need. Buy it and bring it to me, and I will tell you who else has wronged us.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Enrique Revnold",
+     "tunar": 2550,
+     "journal": "Buy the necklace from Enrique Revnold north of Forkwatch (2,550 tunar).",
+     "says": "A fine necklace. Here.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Gypsy Necklace",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Svente Dormio",
+     "items": [
+      {
+       "item": "Gypsy Necklace",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the necklace to Svente Dormio in the Oasis.",
+     "says": "Chief Graymoon in the Burial Mounds: south to the river, west, left at the dam. Then Mayssa, the necromancer by Magifent's Mausoleum. Kill them both."
+    },
+    {
+     "kind": "loot",
+     "target": "Chief Graymoon",
+     "items": [
+      {
+       "item": "Graymoon's Totem",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Chief Graymoon in the Burial Mounds."
+    },
+    {
+     "kind": "loot",
+     "target": "Mayssa Deathkiss",
+     "items": [
+      {
+       "item": "Mayssa's Ring",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Mayssa Deathkiss by Magifent's Mausoleum in the Stone Watchers."
+    },
+    {
+     "kind": "give",
+     "target": "Svente Dormio",
+     "items": [
+      {
+       "item": "Graymoon's Totem",
+       "count": 1
+      },
+      {
+       "item": "Mayssa's Ring",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Graymoon's totem and Mayssa's ring to Svente Dormio.",
+     "says": "Last, Troi Respin, in the tombs of Widow's Peak. Go unseen if you can."
+    },
+    {
+     "kind": "loot",
+     "target": "Troi Respin",
+     "items": [
+      {
+       "item": "Troi Respin's Dagger",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Troi Respin in the tombs of Widow's Peak."
+    },
+    {
+     "kind": "give",
+     "target": "Svente Dormio",
+     "items": [
+      {
+       "item": "Troi Respin's Dagger",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Troi Respin's dagger to Svente Dormio.",
+     "says": "It is done. My brother Verin has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Verin Dormio",
+     "journal": "See Svente's brother, Verin Dormio.",
+     "says": "Svente told me. This is for you.",
+     "rewards": {
+      "xp": 2000000
+     }
+    }
+   ],
+   "unresolved": [
+    "Chief Graymoon",
+    "Mayssa Deathkiss"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/37.json, Quest 3: Svenle Dormio Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's Svenle is the game's Svente Dormio, his brother the Verin Dormio beside him, Enrique Reynold the game's Enrique Revnold and Mayssa the Mayssa Deathkiss FrontiersForge saw. The guide has Graymoon and Mayssa reported together (step 4 returns once); so here. The items are ours; the reward is ours (the guide only says the brother rewards you)."
+  },
+  {
+   "key": "23-47/43/royce",
+   "name": "The Monk Tower",
+   "giver": "Royce Sandstalker",
+   "classes": [],
+   "races": [],
+   "minlevel": 43,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Growthor, an evil treant, rots the dead forest south-west of the Eternal Tower, in Tak`Xiz South. Kill it and bring me its bark.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Growthor",
+     "items": [
+      {
+       "item": "Growthor's Bark",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Growthor in the dead forest south-west of the Eternal Tower."
+    },
+    {
+     "kind": "give",
+     "target": "Royce Sandstalker",
+     "items": [
+      {
+       "item": "Growthor's Bark",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Growthor's bark to Royce Sandstalker.",
+     "says": "Next, an undead tomb keeper in the barrow of Thenon the Wise, on the river between Forkwatch and Darvar Manor. Bring me its sinew. Its cultists see the unseen."
+    },
+    {
+     "kind": "loot",
+     "target": "Tomb Keeper",
+     "items": [
+      {
+       "item": "Tomb Keeper's Sinew",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the tomb keeper in the cultists' barrow of Thenon the Wise for its sinew."
+    },
+    {
+     "kind": "give",
+     "target": "Royce Sandstalker",
+     "items": [
+      {
+       "item": "Tomb Keeper's Sinew",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the tomb keeper's sinew to Royce Sandstalker.",
+     "says": "Now the Tae Ew scavenger in the Tae Ew camp of Tak`Xiz South. Its neighbours bite."
+    },
+    {
+     "kind": "loot",
+     "target": "Tae Ew Scavenger",
+     "items": [
+      {
+       "item": "Scavenger's Claw",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Tae Ew scavenger in its camp in Tak`Xiz South."
+    },
+    {
+     "kind": "give",
+     "target": "Royce Sandstalker",
+     "items": [
+      {
+       "item": "Scavenger's Claw",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the scavenger's claw to Royce Sandstalker.",
+     "says": "Last, take 2,652 tunar to Ravarld by the north gate of Highpass."
+    },
+    {
+     "kind": "give",
+     "target": "Ravarld",
+     "tunar": 2652,
+     "journal": "Take 2,652 tunar to Ravarld by the north gate of Highpass.",
+     "says": "Royce's coin. Tell him it is paid."
+    },
+    {
+     "kind": "talk",
+     "target": "Royce Sandstalker",
+     "journal": "Return to Royce Sandstalker.",
+     "says": "You have the patience of the tower. Learn this.",
+     "rewards": {
+      "xp": 5900000,
+      "byclass": {
+       "0": {
+        "spells": [
+         "Reckless Frenzy"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Tangling Wild"
+        ]
+       },
+       "2": {
+        "spells": [
+         "Divine Might"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Shriek of Horror"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Harness Strength"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Cacophonic Verses"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Trapezist's Poise"
+        ]
+       },
+       "7": {
+        "spells": [
+         "Absorb Elements"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Tribal Might"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Rebuke Death"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Glacial Torrent"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Death Mastery +"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Boundless Thought"
+        ]
+       },
+       "13": {
+        "spells": [
+         "North Ro Portal"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Petrifying Agent"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Growthor"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/43.json, Quest 1: Eternal Desert Ability Quest (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The items are ours; the guide's item is not named and is left out; the experience is ours (the guide gives none). The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
+  },
+  {
+   "key": "23-47/43/joyce",
+   "name": "The Three Trials",
+   "giver": "Joyce Sandstalker",
+   "classes": [],
+   "races": [],
+   "minlevel": 43,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A crazed mage hides in the west of Darvar Manor, in the place called the Crazed Experiments. Kill him and bring me his orb.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Crazed Mage",
+     "items": [
+      {
+       "item": "Crazed Mage's Orb",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the crazed mage in the Crazed Experiments, west of Darvar Manor."
+    },
+    {
+     "kind": "give",
+     "target": "Joyce Sandstalker",
+     "items": [
+      {
+       "item": "Crazed Mage's Orb",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the crazed mage's orb to Joyce Sandstalker.",
+     "says": "Now the fire rune of the Tae Ew flamekeeper, in Cazic Thule's northern temple."
+    },
+    {
+     "kind": "loot",
+     "target": "Tae Ew Flamekeeper",
+     "items": [
+      {
+       "item": "Fire Rune",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Tae Ew flamekeeper in Cazic Thule's northern temple."
+    },
+    {
+     "kind": "give",
+     "target": "Joyce Sandstalker",
+     "items": [
+      {
+       "item": "Fire Rune",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the fire rune to Joyce Sandstalker.",
+     "says": "Frost Fur, a bear in the caves far north of the Snowblind Plains, marked with blue stones. Bring me its fur."
+    },
+    {
+     "kind": "loot",
+     "target": "Frost Fur",
+     "items": [
+      {
+       "item": "Frost Fur's Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Frost Fur in its cave of blue stones, far north of the Snowblind Plains."
+    },
+    {
+     "kind": "give",
+     "target": "Joyce Sandstalker",
+     "items": [
+      {
+       "item": "Frost Fur's Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Frost Fur's pelt to Joyce Sandstalker.",
+     "says": "Last, take 2,652 tunar to Ravarld in the north of Highpass."
+    },
+    {
+     "kind": "give",
+     "target": "Ravarld",
+     "tunar": 2652,
+     "journal": "Take 2,652 tunar to Ravarld in the north of Highpass.",
+     "says": "Joyce's coin. Tell her it is paid."
+    },
+    {
+     "kind": "talk",
+     "target": "Joyce Sandstalker",
+     "journal": "Return to Joyce Sandstalker.",
+     "says": "Well done. Take this.",
+     "rewards": {
+      "xp": 2900000
+     }
+    }
+   ],
+   "unresolved": [
+    "Frost Fur"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/43.json, Quest 2: Joyce Sandstalker Quest (github.com/Jadiction/EQOA-Data, MIT). The crazed mage stands in his place (the guide's triggered spawn). The guide's orb, fire rune and fur are its, by these names ours. The reward is ours (the guide only says Joyce rewards you)."
+  },
+  {
+   "key": "23-47/43/broyce",
+   "name": "The Restless",
+   "giver": "Broyce Sandstalker",
+   "classes": [],
+   "races": [],
+   "minlevel": 43,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "A Taksehir craftsman works in the middle of the Burial Mounds. Kill him and bring me his tools.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Taksehir Craftsman",
+     "items": [
+      {
+       "item": "Taksehir Tools",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Taksehir craftsman in the Burial Mounds."
+    },
+    {
+     "kind": "give",
+     "target": "Broyce Sandstalker",
+     "items": [
+      {
+       "item": "Taksehir Tools",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the Taksehir tools to Broyce Sandstalker.",
+     "says": "Now the lost froglok, in the dungeons of Guk."
+    },
+    {
+     "kind": "loot",
+     "target": "the lost froglok",
+     "items": [
+      {
+       "item": "Lost Froglok's Charm",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the lost froglok in the dungeons of Guk."
+    },
+    {
+     "kind": "give",
+     "target": "Broyce Sandstalker",
+     "items": [
+      {
+       "item": "Lost Froglok's Charm",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the lost froglok's charm to Broyce Sandstalker.",
+     "says": "The aggravated spirit, by the ruins in Widow's Peak where Tobul roams."
+    },
+    {
+     "kind": "loot",
+     "target": "Aggravated Spirit",
+     "items": [
+      {
+       "item": "Aggravated Essence",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the aggravated spirit by the ruins in Widow's Peak."
+    },
+    {
+     "kind": "give",
+     "target": "Broyce Sandstalker",
+     "items": [
+      {
+       "item": "Aggravated Essence",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the aggravated essence to Broyce Sandstalker.",
+     "says": "Last, take 2,652 tunar to Ravarld in the north of Highpass."
+    },
+    {
+     "kind": "give",
+     "target": "Ravarld",
+     "tunar": 2652,
+     "journal": "Take 2,652 tunar to Ravarld in the north of Highpass.",
+     "says": "Broyce's coin. Tell him it is paid."
+    },
+    {
+     "kind": "talk",
+     "target": "Broyce Sandstalker",
+     "journal": "Return to Broyce Sandstalker.",
+     "says": "Good work. Take this.",
+     "rewards": {
+      "xp": 2900000
+     }
+    }
+   ],
+   "unresolved": [
+    "Aggravated Spirit"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/43.json, Quest 3: Broyce Sandstalker Quest (github.com/Jadiction/EQOA-Data, MIT). The aggravated spirit stands by the ruins (the guide's triggered spawn). The items are ours; the reward is ours (the guide only says Broyce rewards you)."
+  },
+  {
+   "key": "23-47/45/parilin",
+   "name": "Old Man Antiok",
+   "giver": "Gate Guard Parilin",
+   "classes": [],
+   "races": [],
+   "minlevel": 45,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The Black Gate of Muan`Diel, here in the south-west tower, opens onto Mila's Reef. An old man there, Antiok, has asked for help. Speak to the gate.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Black Gate of Muan`Diel",
+     "journal": "Speak with the Black Gate of Muan`Diel in the south-west tower.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The Black Gate swings open onto salt wind and surf: Mila's Reef."
+      },
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 13470,
+       "y": 57,
+       "z": 31585
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Old Man Antiok",
+     "journal": "Climb the nearest rib on Mila's Reef and speak with Old Man Antiok.",
+     "says": "Three things, if you would. The squid Marrow Maw, just below us. Captain Soohn, the pirate on the island to the north. And coals for the lighthouse. The squid first; it has poison."
+    },
+    {
+     "kind": "loot",
+     "target": "Marrow Maw",
+     "items": [
+      {
+       "item": "Marrow Maw Ink",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Marrow Maw, the squid below Old Man Antiok."
+    },
+    {
+     "kind": "give",
+     "target": "Old Man Antiok",
+     "items": [
+      {
+       "item": "Marrow Maw Ink",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ink of Marrow Maw to Old Man Antiok.",
+     "says": "Now Captain Soohn, on the island north of here. His crew will not like it."
+    },
+    {
+     "kind": "loot",
+     "target": "Captain Soohn",
+     "items": [
+      {
+       "item": "Soohn's Spyglass",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Captain Soohn on the island north of Old Man Antiok."
+    },
+    {
+     "kind": "give",
+     "target": "Old Man Antiok",
+     "items": [
+      {
+       "item": "Soohn's Spyglass",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Captain Soohn's spyglass to Old Man Antiok.",
+     "says": "Last, coals, from Siz Coalburner at the lighthouse to the north."
+    },
+    {
+     "kind": "give",
+     "target": "Siz Coalburner",
+     "tunar": 2900,
+     "journal": "Buy coals from Siz Coalburner at the lighthouse (2,900 tunar).",
+     "says": "Coals for the old man. Heavy, mind.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Lighthouse Coals",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Old Man Antiok",
+     "items": [
+      {
+       "item": "Lighthouse Coals",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the coals to Old Man Antiok.",
+     "says": "Bless you. Tell the gate guard: Akuion of the cultists' barrow is behind all this. I will send you back.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 9180,
+       "y": 61,
+       "z": 6550
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Cultist Akuion",
+     "items": [
+      {
+       "item": "Akuion's insignia",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Akuion in the cultists' barrow on the river between Forkwatch and Darvar Manor."
+    },
+    {
+     "kind": "give",
+     "target": "Gate Guard Parilin",
+     "items": [
+      {
+       "item": "Akuion's insignia",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Akuion's insignia to Gate Guard Parilin.",
+     "says": "So it was Akuion. Gate Guard Chastis has your reward."
+    },
+    {
+     "kind": "talk",
+     "target": "Gate Guard Chastis",
+     "journal": "See Gate Guard Chastis.",
+     "says": "Parilin told me. You have earned this.",
+     "rewards": {
+      "xp": 6722242,
+      "byclass": {
+       "0": {
+        "spells": [
+         "Steel Skin"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Forage Herb"
+        ]
+       },
+       "2": {
+        "spells": [
+         "Slam"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Scream of Agony"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Knit"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Hymn of Vitae"
+        ]
+       },
+       "6": {
+        "spells": [
+         "Enshrouding Night"
+        ]
+       },
+       "7": {
+        "spells": [
+         "Nature Walk"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Spirit Walk"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Absorb Affliction"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Air Elemental"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Hateweave"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Power Wave"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Arcane Shackles"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Superior Refinement"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Old Man Antiok",
+    "Marrow Maw",
+    "Captain Soohn",
+    "Siz Coalburner"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/45.json, Quest 1: Castle Lightwolf Ability Quest (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The Black Gate's trip to Mila's Reef is a teleport to Old Man Antiok, and Antiok sends you back to the gate when his tasks are done (the guide does not say how you return). The lighthouse merchant is the Siz Coalburner FrontiersForge saw there, Akuion the server's Cultist Akuion (standing: the guide's triggered spawn); the guide's Kratas is another quest's. The insignia is the server's own Akuion's insignia, the other items ours; the guide's item is not named and is left out; the experience is the guide's. The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces)."
+  },
+  {
+   "key": "23-47/45/kizden",
+   "name": "Three Ambassadors",
+   "giver": "Ambassador Kizden G'Lux",
+   "classes": [],
+   "races": [],
+   "minlevel": 45,
+   "maxlevel": 60,
+   "requires": [],
+   "factions_required": [
+    [
+     "Citizens of Castle Lightwolf",
+     150
+    ]
+   ],
+   "offer": "Three rivals stand between me and my office. Ambassador Do'Nerua, in Darvar Manor by the coachman. Kill him first and bring me his seal; then we speak of the others.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Ambassador Do'Nerua",
+     "items": [
+      {
+       "item": "Do'Nerua's Seal",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Ambassador Do'Nerua in the front room by the coachman in Darvar Manor."
+    },
+    {
+     "kind": "give",
+     "target": "Ambassador Kizden G'Lux",
+     "items": [
+      {
+       "item": "Do'Nerua's Seal",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Do'Nerua's seal to Ambassador Kizden G'Lux.",
+     "says": "Good. Now Vu'Malik, in Freeport by the docks, north of the waysender."
+    },
+    {
+     "kind": "loot",
+     "target": "Ambassador Vu'Malik",
+     "items": [
+      {
+       "item": "Vu'Malik's Seal",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Ambassador Vu'Malik by the docks in Freeport."
+    },
+    {
+     "kind": "give",
+     "target": "Ambassador Kizden G'Lux",
+     "items": [
+      {
+       "item": "Vu'Malik's Seal",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Vu'Malik's seal to Ambassador Kizden G'Lux.",
+     "says": "And Ma'Dalik, deep in Guk, past the lost froglok, over the fungal bridge, with the froglok wizards."
+    },
+    {
+     "kind": "loot",
+     "target": "Ambassador Ma'Dalik",
+     "items": [
+      {
+       "item": "Ma'Dalik's Seal",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Ambassador Ma'Dalik deep in Guk, over the fungal bridge."
+    },
+    {
+     "kind": "give",
+     "target": "Ambassador Kizden G'Lux",
+     "items": [
+      {
+       "item": "Ma'Dalik's Seal",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Ma'Dalik's seal to Ambassador Kizden G'Lux.",
+     "says": "Last, a calligraphy set from Merchant Urlant, across the room. I have letters to write."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Urlant",
+     "tunar": 2923,
+     "journal": "Buy a calligraphy set from Merchant Urlant (2,923 tunar).",
+     "says": "A fine set, for a fine hand.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Calligraphy Set",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Ambassador Kizden G'Lux",
+     "items": [
+      {
+       "item": "Calligraphy Set",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the calligraphy set to Ambassador Kizden G'Lux.",
+     "says": "My office is secure. You will not find me ungrateful.",
+     "rewards": {
+      "xp": 3300000
+     }
+    }
+   ],
+   "unresolved": [
+    "Ambassador Vu'Malik (attackable)"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/45.json, Quest 2: Ambassador Kizden G`Lux Quest (github.com/Jadiction/EQOA-Data, MIT). Offered with 150 standing with the Citizens of Castle Lightwolf (the guide's, from killing the beasts in Lady Vox's castle in Permafrost; that needs factionhits rows this file cannot add). The seals and the set are the guide's; the reward is ours (the guide only says Kizden rewards you)."
+  },
+  {
+   "key": "23-47/45/pandrig",
+   "name": "The Sword of Olivia McFadden",
+   "giver": "Pandrig Fultin",
+   "classes": [],
+   "races": [],
+   "minlevel": 45,
+   "maxlevel": 60,
+   "requires": [],
+   "factions_required": [
+    [
+     "Citizens of Castle Lightwolf",
+     150
+    ]
+   ],
+   "offer": "Quinton, at the inn at the crossroads west of the castle, has news for me. Take him 2,875 tunar and hear him out.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "give",
+     "target": "Quinton",
+     "tunar": 2875,
+     "journal": "Take 2,875 tunar to Quinton at the inn west of Castle Lightwolf.",
+     "says": "Pandrig's coin. Snow Guardian Clouwe, outside the west guard tower of Halas, knows the way. Go to her."
+    },
+    {
+     "kind": "talk",
+     "target": "Snow Guardian Clouwe",
+     "journal": "Find Snow Guardian Clouwe outside the west guard tower of Halas.",
+     "says": "Glacier, the great polar bear north-east of Zentar's Keep, stands in the way. Bring me its pelt. It sees the unseen."
+    },
+    {
+     "kind": "loot",
+     "target": "Glacier",
+     "items": [
+      {
+       "item": "Glacier's Pelt",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Glacier, the great polar bear north-east of Zentar's Keep."
+    },
+    {
+     "kind": "give",
+     "target": "Snow Guardian Clouwe",
+     "items": [
+      {
+       "item": "Glacier's Pelt",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Glacier's pelt to Snow Guardian Clouwe.",
+     "says": "Now Chef Tallik at the inn in Wyndhaven."
+    },
+    {
+     "kind": "talk",
+     "target": "Chef Tallik",
+     "journal": "Find Chef Tallik at the inn in Wyndhaven.",
+     "says": "Three chunks of ice worm meat, from the great worms round Zentar's Keep, and I will tell you where the sword is."
+    },
+    {
+     "kind": "loot",
+     "target": "great worm",
+     "items": [
+      {
+       "item": "Chunk of Ice Worm Meat",
+       "count": 3
+      }
+     ],
+     "count": 3,
+     "chance": 0.5,
+     "journal": "Kill great worms round Zentar's Keep for three chunks of ice worm meat."
+    },
+    {
+     "kind": "give",
+     "target": "Chef Tallik",
+     "items": [
+      {
+       "item": "Chunk of Ice Worm Meat",
+       "count": 3
+      }
+     ],
+     "journal": "Bring three chunks of ice worm meat to Chef Tallik.",
+     "says": "Olivia McFadden walks the ice tomb at Anu Village, by the lake and the broken bridge. The sword is hers."
+    },
+    {
+     "kind": "loot",
+     "target": "Olivia Mcfadden",
+     "items": [
+      {
+       "item": "Olivia McFadden's Sword",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Olivia McFadden in the ice tomb at Anu Village and take her sword."
+    },
+    {
+     "kind": "give",
+     "target": "Pandrig Fultin",
+     "items": [
+      {
+       "item": "Olivia McFadden's Sword",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Olivia McFadden's sword to Pandrig Fultin.",
+     "says": "At last. You have my thanks, and this.",
+     "rewards": {
+      "xp": 3300000
+     }
+    }
+   ],
+   "unresolved": [
+    "Glacier",
+    "Olivia Mcfadden"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/45.json, Quest 3: Pandrig Fultin Quest (github.com/Jadiction/EQOA-Data, MIT). Offered with 150 standing with the Citizens of Castle Lightwolf, as the Kizden quest. The great worms are the server's; the pelt and meat are the guide's, the sword its; the reward is ours (the guide only says Pandrig rewards you)."
+  },
+  {
+   "key": "23-47/47/p1",
+   "name": "Ore for the Forge",
+   "giver": "Grimm Brellhand",
+   "classes": [],
+   "races": [],
+   "minlevel": 47,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "My forge wants ore, and the best ore lies in Gerntar's Mine, where the minotaurs are. Head Foreman Zeke will tell you how to get it.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Head Foreman Zeke",
+     "journal": "Find Head Foreman Zeke in Gerntar's Mine.",
+     "says": "Ore? The minotaurs have the caves. Buy a pickaxe from Quartermaster Malda, and dig."
+    },
+    {
+     "kind": "give",
+     "target": "Quartermaster Malda",
+     "tunar": 3000,
+     "journal": "Buy a pickaxe from Quartermaster Malda (3,000 tunar).",
+     "says": "A good pick. Dig at the back of the first cave.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Miner's Pickaxe",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 12979,
+     "y": 56,
+     "z": 26844,
+     "radius": 12,
+     "journal": "Dig at the back of the first minotaur cave.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You swing the pickaxe at the back wall, and a lump of ore breaks loose."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Gramash Ore",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 12934,
+     "y": 56,
+     "z": 26299,
+     "radius": 12,
+     "journal": "Dig at the end of the first tunnel of the third cave.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "At the end of the tunnel the rock gives up another lump of ore."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Gramash Ore",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 12932,
+     "y": 56,
+     "z": 26326,
+     "radius": 12,
+     "journal": "Dig at the end of the other tunnel of the third cave.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The last lump of ore comes free."
+      },
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Gramash Ore",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Gilthirn Ironhoof",
+     "journal": "Speak with Gilthirn Ironhoof in the third cave.",
+     "says": "You dig in our caves. Then help us: Khelmarak, at the back of the second cave, shames our herd. Bring me his horn."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 13047,
+     "y": 55,
+     "z": 26505,
+     "radius": 15,
+     "journal": "Go to the back of the second cave.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "A bellow shakes the cave: Khelmarak!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Khelmarak",
+     "items": [
+      {
+       "item": "Khelmarak's Horn",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Khelmarak at the back of the second cave and take his horn."
+    },
+    {
+     "kind": "give",
+     "target": "Gilthirn Ironhoof",
+     "items": [
+      {
+       "item": "Khelmarak's Horn",
+       "count": 1
+      }
+     ],
+     "journal": "Give Khelmarak's horn to Gilthirn Ironhoof.",
+     "says": "The herd is in your debt.",
+     "rewards": {
+      "factions": [
+       [
+        "Rustel Minotaurs",
+        500
+       ]
+      ]
+     }
+    },
+    {
+     "kind": "show",
+     "target": "Head Foreman Zeke",
+     "items": [
+      {
+       "item": "Gramash Ore",
+       "count": 3
+      }
+     ],
+     "journal": "Show the ore to Head Foreman Zeke.",
+     "says": "Good ore, all of it. Take it to Grimm."
+    },
+    {
+     "kind": "give",
+     "target": "Grimm Brellhand",
+     "items": [
+      {
+       "item": "Gramash Ore",
+       "count": 3
+      }
+     ],
+     "journal": "Bring the three lumps of ore to Grimm Brellhand.",
+     "says": "Fine ore. One more thing: the Tae Ew tunneler and excavator in Cazic Thule's pyramid carry ore I need."
+    },
+    {
+     "kind": "loot",
+     "target": "Tae Ew Tunneler",
+     "items": [
+      {
+       "item": "Tunneler's Ore",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Tae Ew tunneler in the dead-end hall of Cazic Thule's pyramid."
+    },
+    {
+     "kind": "loot",
+     "target": "Tae Ew Excavator",
+     "items": [
+      {
+       "item": "Excavator's Ore",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Tae Ew excavator in the sunken room of Cazic Thule's pyramid."
+    },
+    {
+     "kind": "give",
+     "target": "Grimm Brellhand",
+     "items": [
+      {
+       "item": "Tunneler's Ore",
+       "count": 1
+      },
+      {
+       "item": "Excavator's Ore",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the tunneler's and the excavator's ore to Grimm Brellhand.",
+     "says": "With these I can forge again. This is for you.",
+     "rewards": {
+      "xp": 7083126
+     }
+    }
+   ],
+   "unresolved": [
+    "Quartermaster Malda",
+    "Khelmarak"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/47.json, Quest 1: Gramash Ruins (github.com/Jadiction/EQOA-Data, MIT). The digs are at EQOA-Data's map points (its pickaxe worn is not needed: buying it is), and Khelmarak stands at the back of the second cave (his popup spawn); the six minotaurs he leaves are not in. The minotaurs' faction and its amount are ours (the guide's huge faction with them; Gilthirn's herd are the Rustel minotaurs). The tunneler and excavator stand without their placeholders. The items are ours but the ores'; the guide's class reward is not named and is left out; the experience is the guide's."
+  },
+  {
+   "key": "23-47/47/p2",
+   "name": "Margun Leafstrider",
+   "giver": "Grimm Brellhand",
+   "classes": [],
+   "races": [],
+   "minlevel": 47,
+   "maxlevel": 60,
+   "requires": [
+    "23-47/47/p1"
+   ],
+   "offer": "To summon Margun Leafstrider I need a ball of Everfrost, from the Ice Goblin Melder in Lady Vox's castle in Permafrost, and an ancient bottle of elven wine from Merchant Gilgash in Freeport. Bring both.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Ice Goblin Melder",
+     "items": [
+      {
+       "item": "Ball of Everfrost",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Ice Goblin Melder in Lady Vox's castle in Permafrost."
+    },
+    {
+     "kind": "give",
+     "target": "Merchant Gilgash",
+     "tunar": 3000,
+     "journal": "Buy an ancient bottle of elven wine from Merchant Gilgash in Freeport (3,000 tunar).",
+     "says": "The oldest bottle I have.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Ancient Bottle of Elven Wine",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Grimm Brellhand",
+     "items": [
+      {
+       "item": "Ball of Everfrost",
+       "count": 1
+      },
+      {
+       "item": "Ancient Bottle of Elven Wine",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the ball of Everfrost and the elven wine to Grimm Brellhand.",
+     "says": "Now go to the hollow tree north of here and call Margun Leafstrider."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 10736,
+     "y": 43,
+     "z": 8762,
+     "radius": 15,
+     "journal": "Go to the hollow tree north of Grimm Brellhand.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "You set the ball of Everfrost in the hollow tree and pour out the wine. Margun Leafstrider steps out of the bark."
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Margun Leafstrider",
+     "journal": "Speak with Margun Leafstrider.",
+     "says": "You called me. Tilmiraen, in the small bowl valley north of the first hill in the Deathfist Forge, can give what Grimm needs."
+    },
+    {
+     "kind": "talk",
+     "target": "Tilmiraen",
+     "journal": "Find Tilmiraen in the small bowl valley north of the first hill of the Deathfist Forge.",
+     "says": "I will help, if you help me. Mugwort, in the fairy village of the Twisted Towers, knows what I need. I will send you, in a fairy's shape.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 7390,
+       "y": 111,
+       "z": 11605
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Mugwort",
+     "journal": "Find Mugwort in the mushroom house at the far east of the fairy village.",
+     "says": "Tilmiraen sent you? Tell him: Twizzletwig, in Takish`Hiz. Back through the tiny door with you.",
+     "events": [
+      {
+       "on": "done",
+       "do": "teleport",
+       "world": 0,
+       "x": 20395,
+       "y": 58,
+       "z": 16501
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Tilmiraen",
+     "journal": "Return to Tilmiraen.",
+     "says": "Twizzletwig, then. He walks the road south of the blue lake in Takish`Hiz. Kill him and bring me his potion of ever-rot."
+    },
+    {
+     "kind": "loot",
+     "target": "Twizzletwig",
+     "items": [
+      {
+       "item": "Potion of Ever-Rot",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Twizzletwig on the road south of the blue lake in Takish`Hiz."
+    },
+    {
+     "kind": "give",
+     "target": "Tilmiraen",
+     "items": [
+      {
+       "item": "Potion of Ever-Rot",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the potion of ever-rot to Tilmiraen.",
+     "says": "As promised, a root of my tree. Take it to Grimm.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Tilmiraen's Root",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Grimm Brellhand",
+     "items": [
+      {
+       "item": "Tilmiraen's Root",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Tilmiraen's root to Grimm Brellhand.",
+     "says": "With this the work is done. Learn what I teach.",
+     "rewards": {
+      "xp": 7083126,
+      "byclass": {
+       "0": {
+        "spells": [
+         "Frantic Defense"
+        ]
+       },
+       "1": {
+        "spells": [
+         "Serpent's Grace"
+        ]
+       },
+       "2": {
+        "spells": [
+         "Divine Blessing"
+        ]
+       },
+       "3": {
+        "spells": [
+         "Death's Embrace"
+        ]
+       },
+       "4": {
+        "spells": [
+         "Unity & Enlightenment"
+        ]
+       },
+       "5": {
+        "spells": [
+         "Dirge of Redoubt"
+        ]
+       },
+       "7": {
+        "spells": [
+         "Sycamor Circle"
+        ]
+       },
+       "8": {
+        "spells": [
+         "Ancient Malady"
+        ]
+       },
+       "9": {
+        "spells": [
+         "Reviviscence"
+        ]
+       },
+       "10": {
+        "spells": [
+         "Summon Ghilan"
+        ]
+       },
+       "11": {
+        "spells": [
+         "Drain Fortitude"
+        ]
+       },
+       "12": {
+        "spells": [
+         "Ghastly Visage"
+        ]
+       },
+       "13": {
+        "spells": [
+         "Highpass Evacuation"
+        ]
+       },
+       "14": {
+        "spells": [
+         "Volatile Sublimation"
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "unresolved": [
+    "Ice Goblin Melder",
+    "Margun Leafstrider",
+    "Tilmiraen",
+    "Twizzletwig"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/47.json, Quest 2: Gramash Ruins (ABILITY) (github.com/Jadiction/EQOA-Data, MIT). The trip to the fairy village is a teleport to Mugwort and back to Tilmiraen (the guide's tiny door); the fairy shape is not in, so dying there costs nothing. The branch Tilmiraen first gives is not in, nor the guide's placeholders for the Melder; Twizzletwig walks his road (his popup spawn). The guide's items are its; the class item is not named and is left out; the experience is ours (the guide gives none for this part: Quest 1's). The ability is each class's of this level that EQOA-Data's spell lists mark Quest (Information/databases/spells; of a pair, the one a class mastery replaces). EQOA-Data's lists give no quest ability of this level for the rogue, so that class gets none here. The rogue's level 47 ability is a mob drop in EQOA-Data's list."
+  },
+  {
+   "key": "23-47/47/p3",
+   "name": "The Thulite Anvil",
+   "giver": "Grimm Brellhand",
+   "classes": [],
+   "races": [],
+   "minlevel": 47,
+   "maxlevel": 60,
+   "requires": [
+    "23-47/47/p1"
+   ],
+   "offer": "My hammer broke my anvil. A new one wants thulite. The dark elf miner in Cazic Thule's pyramid keeps a mining log that says where. Bring it to me.",
+   "accept": "I will do it.",
+   "decline": "Not now.",
+   "declined": "Then go. Come back when you are ready.",
+   "started": "Go, then, and do not keep me waiting.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Dark Elf Miner",
+     "items": [
+      {
+       "item": "Mining Log",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the dark elf miner on the right side of Cazic Thule's pyramid for his log."
+    },
+    {
+     "kind": "give",
+     "target": "Grimm Brellhand",
+     "items": [
+      {
+       "item": "Mining Log",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the mining log to Grimm Brellhand.",
+     "says": "Maerik N'Toxis, in the castle at the bottom of Guk, has two scrolls the log speaks of. Bring them."
+    },
+    {
+     "kind": "loot",
+     "target": "Maerik N'Toxis",
+     "items": [
+      {
+       "item": "Maerik's Scrolls",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill Maerik N'Toxis in the castle at the bottom of Guk for his scrolls."
+    },
+    {
+     "kind": "give",
+     "target": "Grimm Brellhand",
+     "items": [
+      {
+       "item": "Maerik's Scrolls",
+       "count": 1
+      }
+     ],
+     "journal": "Bring Maerik's scrolls to Grimm Brellhand.",
+     "says": "I cannot read these. Feldink Shortquill in Highpass can: second floor of Lord Voriander's tower."
+    },
+    {
+     "kind": "give",
+     "target": "Feldink Shortquill",
+     "items": [
+      {
+       "item": "Maerik's Scrolls",
+       "count": 1
+      }
+     ],
+     "tunar": 3000,
+     "journal": "Have Feldink Shortquill in Highpass translate the scrolls (3,000 tunar).",
+     "says": "Here, in plain words.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Translated Scrolls",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Grimm Brellhand",
+     "items": [
+      {
+       "item": "Translated Scrolls",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the translated scrolls to Grimm Brellhand.",
+     "says": "We wake the Thulite golem in Tak`Xiv. The golem protectors in the hut on the walkway carry its parts. Bring both."
+    },
+    {
+     "kind": "loot",
+     "target": "Golem Protector",
+     "items": [
+      {
+       "item": "Golem Part A",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill golem protectors in the hut on the walkway in Tak`Xiv for the first part."
+    },
+    {
+     "kind": "loot",
+     "target": "Golem Protector",
+     "items": [
+      {
+       "item": "Golem Part B",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5,
+     "journal": "Kill golem protectors for the second part."
+    },
+    {
+     "kind": "reach",
+     "world": 0,
+     "x": 18468,
+     "y": 70,
+     "z": 25427,
+     "radius": 12,
+     "journal": "Fit the two parts into the Thulite golem.",
+     "events": [
+      {
+       "on": "done",
+       "do": "popup",
+       "text": "The parts lock into place. The Thulite golem's eyes kindle, and it rises to fight!"
+      }
+     ]
+    },
+    {
+     "kind": "loot",
+     "target": "Thulite Golem",
+     "items": [
+      {
+       "item": "Huge Chunks of Thulite",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "journal": "Kill the Thulite golem and take its huge chunks of thulite."
+    },
+    {
+     "kind": "give",
+     "target": "Grimm Brellhand",
+     "items": [
+      {
+       "item": "Huge Chunks of Thulite",
+       "count": 1
+      }
+     ],
+     "journal": "Bring the huge chunks of thulite to Grimm Brellhand.",
+     "says": "A new anvil! Thank you, friend.",
+     "rewards": {
+      "xp": 3500000
+     }
+    }
+   ],
+   "unresolved": [
+    "Golem Protector",
+    "Thulite Golem"
+   ],
+   "notes": "From EQOA-Data Quests/23-47/47.json, Quest 3: Gramash Ruins (github.com/Jadiction/EQOA-Data, MIT). Maerik's two scrolls drop together (the guide's hours of placeholders are not in), and the golem's four chunks are one item. The Thulite golem stands woken (the guide's activation is the reach step's popup). The items are ours; the guide's class item is not named and is left out; the experience is ours (the guide gives none)."
+  }
+ ],
+ "items": [
+  {
+   "name": "Redheaded Bandit's Bandana",
+   "description": "A red bandana, taken from the red-haired arctic bandit.",
+   "notrade": true,
+   "like": "Red Slashers Scarf"
+  },
+  {
+   "name": "Runic Recording",
+   "description": "A recording in runes, bought from Merchant Yulia for Feria Hurkert.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Tribal Pendant",
+   "description": "A pendant of Feria Hurkert's people, taken from Greyvax's dead.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Ice Key",
+   "description": "A key of ice that does not melt, from the ice statue in Greyvax's cave.",
+   "notrade": true,
+   "like": "shoddy pickclaw key"
+  },
+  {
+   "name": "Remains of Manger MacGray",
+   "description": "The frozen remains of Manger MacGray.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "Razuam's Signet",
+   "description": "The signet ring of Razuam Marus.",
+   "notrade": true,
+   "like": "iron ring"
+  },
+  {
+   "name": "Ancient Golem Stone",
+   "description": "A heavy stone from the heart of the ancient stone golem.",
+   "notrade": true,
+   "like": "block of ore"
+  },
+  {
+   "name": "Enraged Wolf Pelt",
+   "description": "The matted pelt of the enraged wolf east of Wyndhaven.",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "Scrawled Note",
+   "description": "A note scrawled in goblin hand, taken from a goblin fanatic.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "Anti-Poysin Recipe",
+   "description": "Skulpik's recipe, misspelled, for the antidote to his poison.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Faircoin's Antidote",
+   "description": "An antidote Quando Faircoin made from the recipe.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "Elemental Lexicon",
+   "description": "A lexicon of the elements, from the old tower east of Melton.",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "Darkhart's Medallion",
+   "description": "The medallion of Darkhart, from his lair under the old tower.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Red Diamond",
+   "description": "A red diamond, bought for Saerk.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Max's Journal",
+   "description": "The journal of Max, whom the alpha wolf killed.",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "Sacred Monarch Wing",
+   "description": "A wing of the sacred monarch of Mayfly Glade.",
+   "notrade": true,
+   "like": "damaged bug wings"
+  },
+  {
+   "name": "Skarr's Paw",
+   "description": "The paw of Skarr, from the depths of Blackburrow.",
+   "notrade": true,
+   "like": "bat meat"
+  },
+  {
+   "name": "Savage Bear Pelt",
+   "description": "The pelt of the savage bear of the Al'Karad ruins.",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "U`Dedne Gem",
+   "description": "A gem of the House of U`Dedne, stolen by Jongo Quicktoe.",
+   "notrade": true,
+   "like": "sparkling green gem"
+  },
+  {
+   "name": "Tobul's Tea Recipe",
+   "description": "A recipe for Teamaster Yismay's tea, taken from Tobul.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Tinsy Tea Leaves",
+   "description": "Tiny tea leaves from Captain Skorn.",
+   "notrade": true,
+   "like": "sack of wild herbs"
+  },
+  {
+   "name": "Brackish Rocks",
+   "description": "Salty rocks the Deathfist riders carry.",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Antique Teapot",
+   "description": "An antique teapot from the Tomb of Kings.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "Half of a Map",
+   "description": "Half of a map that leads to the Eye of the Wyrm.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Blood of a Vampire",
+   "description": "Blood taken from a fledgling vampire.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "Spark of an Emberfly",
+   "description": "A spark that still glows, from an emberfly.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Eye of the Wyrm",
+   "description": "The eye of Lorx the wyrm.",
+   "notrade": true,
+   "like": "raven eye"
+  },
+  {
+   "name": "Redsen's Letter",
+   "description": "A letter of Johan Redsen, taken from Keller.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "Rare Herbs",
+   "description": "Rare herbs from Dominic Sorelli of Highpass.",
+   "notrade": true,
+   "like": "sack of wild herbs"
+  },
+  {
+   "name": "Golden Mayfly Idol",
+   "description": "A golden idol of a mayfly.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Defiler Prince's Stinger",
+   "description": "The stinger of the slith tar defiler prince.",
+   "notrade": true,
+   "like": "firespew gland"
+  },
+  {
+   "name": "Blessed Ivory",
+   "description": "Ivory blessed by Madam Thlae of Wyndhaven.",
+   "notrade": true,
+   "like": "bone earring"
+  },
+  {
+   "name": "Idol of Malice",
+   "description": "An idol of malice, taken from Yjuri the Vicious.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Idol of Lust",
+   "description": "An idol of lust, taken from Tseralith.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Idol of Zsetikaowa",
+   "description": "An idol made from the idols of malice and lust.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Essence of Zsetikaowa",
+   "description": "What is left of Zsetikaowa of the Pool of Tears.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Phoborium's Horn",
+   "description": "A horn from Phoborium, on the hill west of the river by Bastable.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Caelduiel's Charm",
+   "description": "A charm worn by Caelduiel the Sacred.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Lelaia's Seal",
+   "description": "A seal Lelaia Shavrell of Temby sold for Iulias Maphesti.",
+   "notrade": true,
+   "like": "Goblin Warden's Headband"
+  },
+  {
+   "name": "Deiphobus's Skull",
+   "description": "The skull of Deiphobus.",
+   "notrade": true,
+   "like": "ice goblin skull"
+  },
+  {
+   "name": "Spectral Key",
+   "description": "A key dropped by the spectral guardian of the Tomb of Kings.",
+   "notrade": true,
+   "like": "shoddy pickclaw key"
+  },
+  {
+   "name": "Faded Silk Gown",
+   "description": "A faded silk gown, worn by the Lich Maiden.",
+   "notrade": true,
+   "like": "Cloth Tunic"
+  },
+  {
+   "name": "Goblin Kama",
+   "description": "A kama the goblins of the Highpass road carry.",
+   "notrade": true,
+   "like": "rusted blade"
+  },
+  {
+   "name": "Jann Olos's Letter",
+   "description": "A letter Jann Olos left with Guard Matfin.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "Jann Olos's Orders",
+   "description": "Orders carried by Jann Olos.",
+   "notrade": true,
+   "like": "note from wilkinson"
+  },
+  {
+   "name": "Stolen Crate",
+   "description": "A crate the goblin hijacker stole from Highpass.",
+   "notrade": true,
+   "like": "chest of gnoll goods"
+  },
+  {
+   "name": "Dumak's Paper",
+   "description": "A paper that says the stone lies in the Tomb of Kings.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Fender's Stone",
+   "description": "A stone Grave Robber Laen took from the Tomb of Kings.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Model LXI's Gear",
+   "description": "A gear from the clockwork Model LXI.",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Clockwork Battery",
+   "description": "A battery bought from Merchant Samwe in Klick`Anon.",
+   "notrade": true,
+   "like": "Drained Clockwork Battery"
+  },
+  {
+   "name": "Blue Paw",
+   "description": "The paw of the blue-pawed gnoll.",
+   "notrade": true,
+   "like": "bat meat"
+  },
+  {
+   "name": "Black Box",
+   "description": "The black box from Model LXIX.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "Ralis's Vial",
+   "description": "A vial from Tradesman Ralis of Blackwater.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "Reviver Nectar",
+   "description": "Nectar from the slith tar reviver.",
+   "notrade": true,
+   "like": "fish liver oil"
+  },
+  {
+   "name": "Weary Treant Sap",
+   "description": "Sap from the weary treant.",
+   "notrade": true,
+   "like": "weak roots"
+  },
+  {
+   "name": "Ianant's Chalice",
+   "description": "The chalice of High Guard Ianant.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Nasehir Poison",
+   "description": "Poison taken from the Nasehir poisonkeeper.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "Deathfist Paste",
+   "description": "Paste the Deathfist trader carries.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "Ravager's Lantern",
+   "description": "A lantern carried by the Blacktongue orc ravager.",
+   "notrade": true,
+   "like": "lantern oil"
+  },
+  {
+   "name": "Gypsy Necklace",
+   "description": "A necklace bought from Enrique Revnold.",
+   "notrade": true,
+   "like": "Goblin Warden's Headband"
+  },
+  {
+   "name": "Graymoon's Totem",
+   "description": "A totem carried by Chief Graymoon.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Mayssa's Ring",
+   "description": "A ring worn by Mayssa Deathkiss.",
+   "notrade": true,
+   "like": "iron ring"
+  },
+  {
+   "name": "Troi Respin's Dagger",
+   "description": "The dagger of Troi Respin.",
+   "notrade": true,
+   "like": "rusted blade"
+  },
+  {
+   "name": "Growthor's Bark",
+   "description": "Bark from Growthor, the evil treant.",
+   "notrade": true,
+   "like": "weak roots"
+  },
+  {
+   "name": "Tomb Keeper's Sinew",
+   "description": "Sinew from the tomb keeper of the cultists' barrow.",
+   "notrade": true,
+   "like": "bat meat"
+  },
+  {
+   "name": "Scavenger's Claw",
+   "description": "A claw of the Tae Ew scavenger.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Crazed Mage's Orb",
+   "description": "An orb carried by the crazed mage.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Fire Rune",
+   "description": "A rune of fire from the Tae Ew flamekeeper.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Frost Fur's Pelt",
+   "description": "The pelt of Frost Fur, the great white bear.",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "Taksehir Tools",
+   "description": "Tools carried by the Taksehir craftsman.",
+   "notrade": true,
+   "like": "The Foreman's Pick"
+  },
+  {
+   "name": "Lost Froglok's Charm",
+   "description": "A charm the lost froglok of Guk carried.",
+   "notrade": true,
+   "like": "totem of dreams"
+  },
+  {
+   "name": "Aggravated Essence",
+   "description": "What is left of the aggravated spirit.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Marrow Maw Ink",
+   "description": "Ink from the squid Marrow Maw.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "Soohn's Spyglass",
+   "description": "The spyglass of the pirate Captain Soohn.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "Lighthouse Coals",
+   "description": "Coals for the lighthouse, bought from Siz Coalburner.",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Do'Nerua's Seal",
+   "description": "The seal of Ambassador Do'Nerua.",
+   "notrade": true,
+   "like": "Goblin Warden's Headband"
+  },
+  {
+   "name": "Vu'Malik's Seal",
+   "description": "The seal of Ambassador Vu'Malik.",
+   "notrade": true,
+   "like": "Goblin Warden's Headband"
+  },
+  {
+   "name": "Ma'Dalik's Seal",
+   "description": "The seal of Ambassador Ma'Dalik.",
+   "notrade": true,
+   "like": "Goblin Warden's Headband"
+  },
+  {
+   "name": "Calligraphy Set",
+   "description": "A calligraphy set from Merchant Urlant.",
+   "notrade": true,
+   "like": "stolen goods"
+  },
+  {
+   "name": "Glacier's Pelt",
+   "description": "The pelt of Glacier, the great polar bear.",
+   "notrade": true,
+   "like": "clump of rat fur"
+  },
+  {
+   "name": "Chunk of Ice Worm Meat",
+   "description": "A chunk of meat from a great worm.",
+   "notrade": true,
+   "like": "bat meat"
+  },
+  {
+   "name": "Olivia McFadden's Sword",
+   "description": "The sword of Olivia McFadden.",
+   "notrade": true,
+   "like": "rusted blade"
+  },
+  {
+   "name": "Miner's Pickaxe",
+   "description": "A pickaxe from Quartermaster Malda.",
+   "notrade": true,
+   "like": "The Foreman's Pick"
+  },
+  {
+   "name": "Gramash Ore",
+   "description": "Ore dug from the minotaur caves.",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Khelmarak's Horn",
+   "description": "The horn of Khelmarak.",
+   "notrade": true,
+   "like": "bat fang"
+  },
+  {
+   "name": "Tunneler's Ore",
+   "description": "Ore carried by the Tae Ew tunneler.",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Excavator's Ore",
+   "description": "Ore carried by the Tae Ew excavator.",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Ball of Everfrost",
+   "description": "A ball of ice that never melts, from the Ice Goblin Melder.",
+   "notrade": true,
+   "like": "cracked red crystal"
+  },
+  {
+   "name": "Ancient Bottle of Elven Wine",
+   "description": "An ancient bottle of elven wine.",
+   "notrade": true,
+   "like": "bottle of blessed water"
+  },
+  {
+   "name": "Potion of Ever-Rot",
+   "description": "A potion of ever-rot, from Twizzletwig.",
+   "notrade": true,
+   "like": "mixture of snake venom"
+  },
+  {
+   "name": "Tilmiraen's Root",
+   "description": "A root of the tree of Tilmiraen.",
+   "notrade": true,
+   "like": "weak roots"
+  },
+  {
+   "name": "Mining Log",
+   "description": "The log of the dark elf miner.",
+   "notrade": true,
+   "like": "book of records"
+  },
+  {
+   "name": "Maerik's Scrolls",
+   "description": "Two scrolls carried by Maerik N'Toxis.",
+   "notrade": true,
+   "like": "scroll of dark bindings"
+  },
+  {
+   "name": "Translated Scrolls",
+   "description": "Maerik's scrolls, translated by Feldink Shortquill.",
+   "notrade": true,
+   "like": "mystical parchment"
+  },
+  {
+   "name": "Golem Part A",
+   "description": "A part of the Thulite golem.",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Golem Part B",
+   "description": "Another part of the Thulite golem.",
+   "notrade": true,
+   "like": "iron ore"
+  },
+  {
+   "name": "Huge Chunks of Thulite",
+   "description": "Four huge chunks of thulite, from the Thulite golem.",
+   "notrade": true,
+   "like": "block of ore"
+  }
+ ]
+}

@@ -186,6 +186,15 @@ type WorldConfig struct {
 	// and shows its face by a player's standing with it (entity/aggro.go):
 	// unset, it does; false, every NPC by the rules of no faction.
 	FactionAggro *bool `yaml:"faction_aggro"`
+
+	// RestartNotice is the line every player in the world is sent when the
+	// server stops (SIGINT or SIGTERM, or the GM panel's restart), in a GM
+	// broadcast's colour, RestartNoticeWait (unset or 0: 5s) before the game
+	// is told the server is going (0x07C0) and goes back to its login, so it
+	// can be read. Unset: no line and no wait. Neither waits with nobody in
+	// the world.
+	RestartNotice     string        `yaml:"restart_notice"`
+	RestartNoticeWait time.Duration `yaml:"restart_notice_wait"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

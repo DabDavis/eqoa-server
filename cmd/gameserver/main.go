@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/eqoa/server/internal/auth"
 	"github.com/eqoa/server/internal/bootelf"
@@ -499,9 +500,14 @@ func main() {
 			AutoRegister:    authHandler.AllowAutoRegister,
 			Limiter:         loginLimiter,
 			Restart: func() error {
-				// Everyone saved as at a shutdown, then this process becomes
-				// the binary on disk again (a new build, if one was copied in):
-				// every socket closes on exec and the new image opens them.
+				// Everyone told and saved as at a shutdown (the restart notice,
+				// then 0x07C0: without it each game sat in a world that no
+				// longer answered until its own timeout), then this process
+				// becomes the binary on disk again (a new build, if one was
+				// copied in): every socket closes on exec and the new image
+				// opens them.
+				noticeRestart(cfg.World, sessionMgr)
+				udpListener.NoticeShutdown()
 				udpListener.SaveAll()
 				exe, err := os.Executable()
 				if err != nil {
@@ -593,8 +599,29 @@ func main() {
 	if voiceSrv != nil {
 		voiceSrv.Close()
 	}
+	noticeRestart(cfg.World, sessionMgr)
 	udpListener.NoticeShutdown()
 	udpListener.SaveAll()
 
 	log.Println("Server stopped")
+}
+
+// noticeRestart sends world.restart_notice to everyone in the world, then
+// waits world.restart_notice_wait while the server runs on (the line goes
+// out with the next flush) so it can be read before NoticeShutdown takes
+// each game back to its login. Nothing with no notice set or nobody there.
+func noticeRestart(w config.WorldConfig, sm *session.Manager) {
+	text := strings.TrimSpace(w.RestartNotice)
+	if text == "" {
+		return
+	}
+	if handlers.RestartNotice(sm, text) == 0 {
+		return
+	}
+	wait := w.RestartNoticeWait
+	if wait <= 0 {
+		wait = 5 * time.Second
+	}
+	log.Printf("Restart notice: waiting %v before the shutdown notice", wait)
+	time.Sleep(wait)
 }

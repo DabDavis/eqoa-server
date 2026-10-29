@@ -24,7 +24,8 @@ func queued(sess *session.Session, op protocol.GameOpcode) [][]byte {
 }
 
 // The first 0x0014 offers the live duel window's messages (0x7E09, a u32 1)
-// and the live client's feature word with the duel bit (0x07F5, 0x10), once.
+// and the live client's feature word with the duel bit among the rest (0x07F5,
+// 0x1B: livefeatures.go), once.
 func TestDuelOfferedAtWorldEntry(t *testing.T) {
 	h := &CharacterHandler{}
 	in := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCharacterInWorld)
@@ -37,7 +38,7 @@ func TestDuelOfferedAtWorldEntry(t *testing.T) {
 	if got, want := queued(sess, protocol.OpcodeDuelWindow), []byte{0x09, 0x7E, 1, 0, 0, 0}; len(got) != 1 || !bytes.Equal(got[0], want) {
 		t.Fatalf("the duel offer %x, want one %x", got, want)
 	}
-	if got, want := queued(sess, protocol.OpcodeLiveFeatures), []byte{0xF5, 0x07, 0x10, 0, 0, 0}; len(got) != 1 || !bytes.Equal(got[0], want) {
+	if got, want := queued(sess, protocol.OpcodeLiveFeatures), []byte{0xF5, 0x07, 0x1B, 0, 0, 0}; len(got) != 1 || !bytes.Equal(got[0], want) {
 		t.Fatalf("the feature word %x, want one %x", got, want)
 	}
 }

@@ -66,6 +66,12 @@ func checkRow(table string, row map[string]any) error {
 	if table == "gmtriggers" && row != nil {
 		return checkTriggerRow(row) // ops_triggers.go
 	}
+	if table == "craftrecipes" && row != nil {
+		return checkCraftRecipeRow(row) // live_craft.go
+	}
+	if table == "charcraftskills" && row != nil {
+		return checkCraftSkillRow(row) // live_craft.go
+	}
 	if table != "npcpaths" || row == nil {
 		return nil
 	}

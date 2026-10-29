@@ -42,6 +42,11 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 	case "npcdialog":
 		database.InvalidateNPCDialog()
 		return "at once: the next talk to a town's person or a guard"
+	case "craftrecipes":
+		database.InvalidateCraftRecipes()
+		return t.Live
+	case "charcraftskills":
+		return s.liveCraftSkills(before, after) // live_craft.go
 	case "npcmove":
 		return s.liveMove()
 	case "spellgates":

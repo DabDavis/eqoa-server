@@ -84,6 +84,11 @@ func enums() map[string][]EnumValue {
 		"humtype":  {{-1, "Any city"}, {0, "Not a human"}, {1, "East (Freeport)"}, {2, "West (Qeynos, Surefall Glade)"}},
 		// npcfaction.world (entity/faction.go)
 		"worldany": append([]EnumValue{{-1, "Any world"}}, w...),
+		// craftrecipes.skill, charcraftskills.skill (handlers/craftrules.go):
+		// CLIENT's six slots
+		"craftskill": numbered("Weapon Crafting", "Armor Crafting", "Tailoring", "Jewel Crafting", "Carpentry", "Alchemy"),
+		// craftrecipes.rarity: the book's Rarity column (C, UC, R, UR)
+		"craftrarity": numbered("Common", "Uncommon", "Rare", "Ultra Rare"),
 	}
 }
 
@@ -835,6 +840,73 @@ var catalog = map[string]tableNote{
 			"months":   {Label: "Months", Help: "a bit a month: January 1 ... December 2048; 0 the whole year"},
 			"note":     {Label: "Note", Help: "why"},
 			"source":   {Label: "Source", Help: "gm, or seed for tools/seed_fishing.py's rows (its --undo deletes those)"},
+		},
+	},
+	"craftrecipes": {
+		Label: "Tradeskill recipes", Group: "Items & spells", Title: "name", Sort: "id",
+		Help: "Every recipe (handlers/craft.go): id is the number the client echoes; skill the craft; comp the Recipe " +
+			"Book's material tab, an index into the skill's list (Weapon and Armor, 11: Crude Iron, Iron, Bronze, Brass, " +
+			"Steel, Combine Steel, Adamantite, Mithril, Brellium, Seralite, Special; Tailoring, 19: Fur, Cotton, Wool, " +
+			"Tattered Hide, Hemp, Hide, Ramie, Suede, Canvas, Leather, Linen, Analine, Silk, Nubuck, Elven Twill, Vale " +
+			"Leather, Mithril Silk, Stone Hide, Special; Jewel, 11: Iron, Bronze, Steel, Copper, Silver, Electrum, Gold, " +
+			"Platinum, Adamantite, Mithril, Special; Carpentry, 11: Birch ... Ironwood, Special; Alchemy, 13: Salt Water ... " +
+			"Liquified Mana, Special); level the trade level 1-10 the skill must reach, and the tier the held tool must " +
+			"have (its level / 5 + 1: a level 1 tool tier 1, level 46 tier 10); rarity the book's column; name the book's " +
+			"(63 characters at most); product and yield what a success makes; ingredients a JSON list " +
+			"[{\"item\": itempattern id, \"count\": n, \"keep\": false}], keep true when a failure keeps it (a gem, an " +
+			"alloy), false when a failure loses it (the metal, the mold: such an item is lost in an Experiment that makes " +
+			"nothing too); difficulty the skill points the roll opposes (a skill's points are 10 a level and 1 a rank: " +
+			"0.60 at the difficulty, 0.05 a point either side, plus the craft's two stats over 120 at 1/2000 a point, " +
+			"5% to 95%); xp what a success gives at the recipe's own level (half one level below the skill's, none two " +
+			"below, ten times for a discovery); discover 1 when an Experiment of exactly its ingredients finds it (a " +
+			"recipe in the book is made by one either way); scroll the item whose use from the inventory puts it in the " +
+			"book (0 none). Carpentry and Alchemy have no Recipe Book on the disc: an Experiment alone reaches them, and " +
+			"only for a character a GM gave the skill (#craftskill). The numbers are ours, not SOE's.",
+		Live:   "At once: the next book, inspect, create or experiment reads it.",
+		Show:   []string{"id", "name", "skill", "comp", "level", "rarity", "product", "yield", "difficulty", "xp", "discover", "scroll", "source"},
+		Search: []string{"name", "description", "ingredients", "source"},
+		Cols: map[string]colNote{
+			"id":          {Label: "Recipe", Help: "the number the client sends back"},
+			"skill":       {Label: "Skill", Enum: "craftskill"},
+			"comp":        {Label: "Book tab", Help: "the index in the skill's component list (the Help lists them); outside it the book never shows the recipe"},
+			"level":       {Label: "Trade level", Help: "1-10: the skill's level it needs, and the held tool's tier"},
+			"rarity":      {Label: "Rarity", Enum: "craftrarity"},
+			"name":        {Label: "Name", Help: "the book's, 63 characters at most"},
+			"product":     {Label: "Makes", Ref: "itempattern"},
+			"yield":       {Label: "How many", Help: "of the product a success makes; a stacking one within its stack"},
+			"ingredients": {Label: "Ingredients", Format: "json", Help: "[{\"item\": id, \"count\": n, \"keep\": false}]: keep true survives a failure"},
+			"difficulty":  {Label: "Difficulty", Help: "the skill points the roll opposes (10 a level, 1 a rank)"},
+			"xp":          {Label: "XP", Help: "a success at the recipe's own level; half one level below, none two; a discovery ten times"},
+			"discover":    {Label: "An Experiment finds it", Enum: "bool"},
+			"scroll":      {Label: "Taught by", Ref: "itempattern", Help: "the scroll item that puts it in the book when used; 0 none"},
+			"description": {Label: "Description", Help: "shown on Inspect when the product has none of its own (255 characters at most)"},
+			"source":      {Label: "Source", Help: "gm, or the tool that wrote it"},
+		},
+	},
+	"charcraftskills": {
+		Label: "Character tradeskills", Group: "Players", Sort: "charid",
+		Help: "A character's tradeskill: level 1-10, rank 0-9 and the XP into the rank (100 x the level makes a rank, ten " +
+			"ranks the next level; level 10 rank 9 is the top). With no row: Weapon, Armor, Tailoring and Jewel Crafting " +
+			"at level 1 rank 0, Carpentry and Alchemy not live (sent as Sandstorm sends them, 99 and 99, and refusing " +
+			"every craft) until a row gives them.",
+		Live: "At once: a character in the world is sent its six skills (its Recipe Book's title); else at its next login.",
+		Cols: map[string]colNote{
+			"charid": {Label: "Character", Ref: "characters"},
+			"skill":  {Label: "Skill", Enum: "craftskill"},
+			"level":  {Label: "Level", Help: "1-10"},
+			"rank":   {Label: "Rank", Help: "0-9"},
+			"xp":     {Label: "XP into the rank", Help: "100 x the level makes the next rank"},
+		},
+	},
+	"charrecipes": {
+		Label: "Character recipe books", Group: "Players", Sort: "charid",
+		Help: "The recipes in a character's Recipe Book (learned by an Experiment's discovery, a scroll or a GM's " +
+			"#craftlearn); ord is the book's order, which the client's Arrange changes.",
+		Live: "At once: the next time the character opens a Recipe Book.",
+		Cols: map[string]colNote{
+			"charid": {Label: "Character", Ref: "characters"},
+			"recipe": {Label: "Recipe", Ref: "craftrecipes"},
+			"ord":    {Label: "Order", Help: "the book's order, lowest first"},
 		},
 	},
 	"gmtriggers": {

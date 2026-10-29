@@ -685,7 +685,7 @@ func ownerColumn(t *Table) string {
 	for _, c := range t.Columns {
 		if c.Ref == "characters" {
 			switch strings.ToLower(c.Name) {
-			case "serverid", "player_id":
+			case "serverid", "player_id", "charid":
 				return c.Name
 			}
 		}

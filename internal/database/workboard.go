@@ -16,8 +16,9 @@ import (
 // The work board: who is working on what on this server, so that two of its
 // workers do not change the same thing at once. They are the GMs, on the GM
 // panel's Work board page or through their AI agents over its MCP and OpenAPI
-// (work_board, post_work, update_work_overview), and dab's sessions on the
-// server's code and data, by ssh on the box (cmd/workboard). The board is an
+// (work_board, post_work, update_work_overview), and dab's sessions (Claude
+// Code on dab's own machine) on the server's code and data, reaching the box
+// by ssh (cmd/workboard runs there). The board is an
 // overview everyone edits (markdown: what it is for, conventions, what not to
 // touch, who is around) and entries: a title, the area, the tables or files it
 // touches, a status, an owner, details and notes in markdown, a result once

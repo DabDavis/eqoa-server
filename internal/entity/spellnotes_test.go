@@ -53,7 +53,7 @@ func TestSpellNotesAndDefaults(t *testing.T) {
 				{Kind: EffectHP, Amount: -16, AmountMax: -16, Scale: StatStr, ScalePct: 20}}}},
 		{"Form of the Great Bear", "Self, Form, Increase STR by 120, Increase MHP by 425, Increase Hp by 425, 30sec",
 			SpellDef{Target: TargetSelf, Duration: 30 * time.Second, Effects: []SpellEffect{
-				stat(StatStr, 120), stat(StatMaxHP, 425), hp(425)}, Unread: []string{"form"}}},
+				stat(StatStr, 120), stat(StatMaxHP, 425), hp(425)}, Appearance: true}}, // "Form": a look True Form ends (illusion.go)
 		// an epic's numbers are the record's, not effects
 		{"Mega's Clutch Ward", "Level 60 Epic Ward path. Power cost: 500, Cast: 3, Recast: 4. 60 epic: 85+10%wis to all resists (target)",
 			SpellDef{Target: TargetSingle, Ignored: []string{"level 60 epic ward path. power cost: 500", "cast: 3",

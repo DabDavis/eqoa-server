@@ -892,12 +892,7 @@
      "hp +150"
     ]
    },
-   "unread": [
-    {
-     "part": "form",
-     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
-    }
-   ]
+   "unread": []
   },
   {
    "classes": [
@@ -1192,12 +1187,7 @@
      "hp +225"
     ]
    },
-   "unread": [
-    {
-     "part": "form",
-     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
-    }
-   ]
+   "unread": []
   },
   {
    "classes": [
@@ -1740,12 +1730,7 @@
      "hp +275"
     ]
    },
-   "unread": [
-    {
-     "part": "form",
-     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
-    }
-   ]
+   "unread": []
   },
   {
    "classes": [
@@ -2102,12 +2087,7 @@
      "speed"
     ]
    },
-   "unread": [
-    {
-     "part": "form",
-     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
-    }
-   ],
+   "unread": [],
    "ours": "its Increase SoW by 0 read as Spirit of the Wolf's run speed, the way the same import prints Spirit of the Wolf's own (eqoaspell=150)"
   },
   {
@@ -2297,12 +2277,7 @@
      "hp +350"
     ]
    },
-   "unread": [
-    {
-     "part": "form",
-     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
-    }
-   ]
+   "unread": []
   },
   {
    "classes": [
@@ -2625,10 +2600,6 @@
     {
      "part": "invulnerable",
      "why": "the server has no invulnerability"
-    },
-    {
-     "part": "form",
-     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
     }
    ]
   },

@@ -260,6 +260,9 @@ type ActiveEffect struct {
 	// none; FormSize its scale, 0 for the bearer's own.
 	Form     uint32
 	FormSize float32
+	// Appearance: it changes how its bearer looks, with or without a body
+	// (SpellDef.Appearance); Remove Illusion and True Form end it
+	Appearance bool
 	// Ticks is how many ticks a heal over time on a player has left
 	// (hot.go); 0 for an effect that ticks until it ends (a creature's, a
 	// pet's, one kept from before ticks were counted).
@@ -923,7 +926,7 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		return nil
 	}
 	ae := &ActiveEffect{SpellID: cs.spell.SpellID, Name: cs.spell.Name, Icon: cs.spell.Icon, Caster: caster.ServerID,
-		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks}
+		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks, Appearance: d.Appearance}
 	any := false
 	for _, e := range d.Effects {
 		switch e.Kind {
@@ -1008,7 +1011,7 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 				t.StatsDirty = true
 			}
 		case EffectEndIllusion:
-			w.endIllusionsLocked(t, 0) // illusion.go
+			w.endAppearancesLocked(t) // illusion.go
 		case EffectIllusion:
 			illusion = true
 		}

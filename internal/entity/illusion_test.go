@@ -232,3 +232,83 @@ func TestGlamourIsTheCastersOrTheGroups(t *testing.T) {
 		t.Errorf("at no one: the caster is model %d, want the elf man's", m)
 	}
 }
+
+// The user's ruling of 2026-10-29 (the test lanes' report: True Form ended no
+// druid or shaman form): Remove Illusion and True Form end every illusion,
+// glamour and form that changes how its bearer looks, and the stats each gave
+// with it: a form with no body here, a glamour, a mask, an illusion whose
+// body this server lacks. A buff that is no form stays. The marks are kept
+// over a logout.
+func TestTrueFormEndsEveryLook(t *testing.T) {
+	c := illusionRig(t)
+	// (a new illusion replaces one with a body, so the glamour comes after the
+	// illusion that has none)
+	looks := []CastSpell{
+		illusionSpell(9301, "Wolf Form", "Self, Worf form, Increase AGI by 9, MaxHP by 90, 30min", ""),
+		illusionSpell(9304, "Illusion: Stone Golem", "Self, Form, 10min", "Illusion only"), // no Stone Golem in the rig
+		illusionSpell(9302, "Glamour: Elf", "Elf form, Faction Change, Increase DEX by 10, DR by 10, 10min", "CM: Illusion and faction change."),
+		illusionSpell(9303, "Grim Mask", "Self, Troll Mask, 5min", ""),
+	}
+	plain := illusionSpell(9305, "Stoneskin", "Self, Increase AC by 15, 30min", "")
+	for i, sp := range append(looks, plain) {
+		c.land(t, sp, c.me, time.Duration(i)*10*time.Second)
+	}
+	if len(c.p.Effects) != 5 || c.p.Mods.Agi != 9 || c.p.Mods.Dex != 10 || c.p.Mods.AC != 15 {
+		t.Fatalf("before: %d effects, mods %+v", len(c.p.Effects), c.p.Mods)
+	}
+	rows, _ := c.w.SavedEffects(c.p.ServerID, c.at(50*time.Second))
+	saved := c.p.Effects
+	c.p.Effects, c.p.Buffs = nil, nil
+	if n := c.w.RestoreEffects(c.sess, rows, c.at(50*time.Second)); n != 5 {
+		t.Fatalf("restored %d", n)
+	}
+	for i, e := range c.p.Effects {
+		if e.Appearance != saved[i].Appearance || e.Appearance != (e.SpellID != plain.SpellID) {
+			t.Errorf("%q kept over a logout: appearance %v", e.Name, e.Appearance)
+		}
+	}
+	c.land(t, illusionSpell(454, "True Form", "Reverts caster to natural form", "Returns Caster to Natural Self."), c.me, 50*time.Second)
+	if len(c.p.Effects) != 1 || c.p.Effects[0].SpellID != plain.SpellID {
+		t.Fatalf("after True Form: %+v", c.p.Effects)
+	}
+	if m := c.p.Mods; m.Agi != 0 || m.MaxHP != 0 || m.Dex != 0 || m.DR != 0 || m.AC != 15 {
+		t.Errorf("after True Form the forms' stats remain: %+v", m)
+	}
+	if model, _ := channelBody(c.p); model != gnomeMale {
+		t.Errorf("body %#x, want the gnome's own", model)
+	}
+}
+
+// What is a look and what is not: the forms', Lich's, a mask's and a
+// transformation's words are read; a form that "does not change your form",
+// one whose description says so, and a spell that removes one are no looks.
+func TestAppearanceIsReadOffTheLine(t *testing.T) {
+	for _, c := range []struct {
+		name, line, desc string
+		look             bool
+	}{
+		{"Bear Form", "Self, Form, Increase STR by 7, 30min", "", true},
+		{"Wolf Form", "Group, Wolf Form, Increase STR by 3, SoW, 15min", "", true},
+		{"Lich", "Self, Sprite Change, Increase Power per tic by 10, 30min", "", true},
+		{"Grim Mask", "Self, Troll Mask, 5min", "", true},
+		{"Otter Shape", "SELF Transform into Otter Form, 15min", "", true},
+		{"Illusion: Troll", "Self, Troll form, Faction Change, 10min", "Illusion only", true},
+		{"Feral Lion Form", "", "This spell grants the power of the beast without changing your form.", false},
+		{"Disguise", "does not change your form, it alters your faction", "", false},
+		{"Revert Bat", "Self, Removes Bat form", "", false},
+		{"True Form", "Reverts caster to natural form", "Returns Caster to Natural Self.", false},
+		{"Stoneskin", "Self, Increase AC by 15, 30min", "", false},
+	} {
+		d := ParseSpellNamed(c.name, c.line, c.desc)
+		if d.Appearance != c.look {
+			t.Errorf("%q: appearance %v, want %v", c.name, d.Appearance, c.look)
+		}
+		if c.look {
+			for _, u := range d.Unread {
+				if u != "faction change" {
+					t.Errorf("%q: %q still unread", c.name, u)
+				}
+			}
+		}
+	}
+}

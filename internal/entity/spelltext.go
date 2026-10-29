@@ -148,6 +148,11 @@ type SpellDef struct {
 	// (illusion.go); "" and FormNone for every other spell.
 	Form     string
 	FormKind FormKind
+	// Appearance: what lasts changes how its bearer looks, with or without a
+	// body this server shows (illusion.go readAppearance): an illusion, a
+	// glamour, a druid's or shaman's form, a mask, Lich. Remove Illusion and
+	// True Form end it.
+	Appearance bool
 	// UndeadOnly: the spell works on undead alone (undead.go), a "Target
 	// undead" line or a charm its name or description says is for undead.
 	UndeadOnly bool
@@ -304,6 +309,7 @@ func ParseSpellNamed(name, line, desc string) SpellDef {
 	}
 	d := ParseSpell(line, desc)
 	d.readIllusion(name, desc)
+	d.readAppearance(desc)    // illusion.go
 	d.readUndead(name, desc)  // undead.go
 	d.readEnchanterProc(name) // enchanter.go
 	d.healWithMaxHP(name)     // spellnotes.go

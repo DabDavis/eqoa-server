@@ -103,6 +103,68 @@ func (d *SpellDef) readIllusion(name, desc string) {
 	}
 }
 
+// readAppearance marks a spell whose lasting part changes how its bearer
+// looks, for Remove Illusion and True Form to end (the user's ruling of
+// 2026-10-29, after the test lanes' report found True Form ended no druid or
+// shaman form: it "should remove all illusions, glamours, any form changing
+// appearance", and the stats that came with them). Every illusion and glamour
+// is one, whether or not this server has its body; so is a line with a
+// "Form" or "<x> form" clause (the forms: "Self, Worf form, Increase AGI by
+// 29, ..."), "Sprite Change" (Lich, Mortal Mask), "<x> Mask" (the rogue's
+// masks) or "Transform into ...". A clause that ends one ("Removes Lich
+// form") or says it changes nothing ("does not change your form"), or a
+// description that says so ("without changing your form"), is none. Such
+// clauses are read now, no longer unread.
+func (d *SpellDef) readAppearance(desc string) {
+	if d.FormKind == FormEnd {
+		return
+	}
+	if d.FormKind == FormSelf || d.FormKind == FormGroup {
+		d.Appearance = true
+	}
+	if ds := strings.ToLower(desc); strings.Contains(ds, "without chang") || strings.Contains(ds, "not change") {
+		return
+	}
+	var unread []string
+	for _, u := range d.Unread {
+		if appearanceClause(u) {
+			d.Appearance = true
+			continue
+		}
+		unread = append(unread, u)
+	}
+	d.Unread = unread
+}
+
+// appearanceClause reports whether an unread clause is one of readAppearance's.
+func appearanceClause(u string) bool {
+	if strings.Contains(u, "not change") || strings.Contains(u, "without chang") {
+		return false
+	}
+	for _, w := range []string{"remove", "revert", "dispel", "cure"} {
+		if strings.HasPrefix(u, w) {
+			return false
+		}
+	}
+	return u == "form" || strings.HasSuffix(u, " form") || strings.HasPrefix(u, "sprite change") ||
+		strings.HasSuffix(u, " mask") || strings.HasPrefix(u, "transform into")
+}
+
+// endAppearancesLocked is Remove Illusion's and True Form's landing: every
+// effect that changes how t looks comes off, an illusion's body and what it
+// gave with it, reporting whether one went.
+func (w *World) endAppearancesLocked(t *Player) bool {
+	gone := false
+	for _, e := range append([]*ActiveEffect(nil), t.Effects...) {
+		if e.Form != 0 || e.Appearance {
+			w.removeEffectLocked(t, e.SpellID)
+			log.Printf("Cast: %q ends on %s: its look is gone", e.Name, t.Name)
+			gone = true
+		}
+	}
+	return gone
+}
+
 // raceSex keys a players' race body: the race on the network enum, the sex
 // (0 male, 1 female), as charactermodel does.
 type raceSex struct{ race, sex int }

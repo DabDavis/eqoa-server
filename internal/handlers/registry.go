@@ -395,8 +395,13 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	// Register the tell-gram mail (0x0D01 in, 0x0D41 out; mail.go)
 	NewMailHandler(gameWorld, charStore).RegisterHandlers(r)
 
-	// Register customer service (0x0AA1 in, 0x07B0 out; support.go)
-	NewSupportHandler(gameWorld).RegisterHandlers(r)
+	// Register customer service (0x0AA1 in, 0x07B0 out; support.go): the
+	// petitions table, which the GM panel's Petitions page answers
+	var petitions petitionStore
+	if charStore != nil {
+		petitions = charStore.DB()
+	}
+	NewSupportHandler(gameWorld, petitions).RegisterHandlers(r)
 
 	// Register the spell book's requests (0x0033, 0x003A, 0x00FE)
 	NewSpellbookHandler(gameWorld, spellStore).RegisterHandlers(r)

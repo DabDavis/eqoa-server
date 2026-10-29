@@ -263,9 +263,16 @@ def read_grids(folder):
     return grids, bonus, problems
 
 
-def read_vendors(folder):
-    """eqoatrade's vendor page: {city: {"trainer", "hammers", "molds", "metal": name}}."""
-    path = os.path.join(folder, "eqoatrade", "Vendors", "Armor.htm")
+VENDOR_PAGES = {
+    "armor": ("Armor.htm", {"tutorial": "trainer", "hammers": "hammers", "molds and patterns": "molds", "metal blocks": "metal"}),
+    "jewel": ("Jewelry.htm", {"tutorial": "trainer", "kits": "hammers", "molds, bars, glass": "molds"}),
+}
+
+
+def read_vendors(folder, craft="armor"):
+    """eqoatrade's vendor page: {city: {"trainer", "hammers" (the tools), "molds", "metal": name}}."""
+    page, want = VENDOR_PAGES[craft]
+    path = os.path.join(folder, "eqoatrade", "Vendors", page)
     with open(path, "rb") as f:
         t = f.read().decode("latin-1")
     t = re.sub(r"(?is)<(script|style).*?</\1>", " ", t)
@@ -273,15 +280,17 @@ def read_vendors(folder):
     t = html.unescape(re.sub(r"<[^>]+>", " ", t))
     lines = [re.sub(r"\s+", " ", ln).strip() for ln in t.splitlines()]
     out, city = {}, None
-    want = {"tutorial": "trainer", "hammers": "hammers", "molds and patterns": "molds", "metal blocks": "metal"}
+    roles = "|".join(re.escape(k) for k in sorted(want, key=len, reverse=True))
     for ln in lines:
-        m = re.match(r"^([A-Z][A-Za-z' ]+?) - (Near|By) ", ln)
-        if m:
-            city = m.group(1).strip()
-            out[city] = {}
+        m = re.match(rf"^({roles}) - (.+)$", ln, flags=re.I)
+        if not m:
+            # a city's line: "<city> - <where in it>" (Armor's "Near ..."/"By ...", Jewelry's "Outside of ...")
+            c = re.match(r"^([A-Z][A-Za-z' ]+?) - \S", ln)
+            if c:
+                city = c.group(1).strip()
+                out[city] = {}
             continue
-        m = re.match(r"^(Tutorial|Hammers|Molds and Patterns|Metal Blocks) - (.+)$", ln)
-        if m and city:
+        if city:
             name = re.sub(r"\(.*", "", m.group(2)).strip()
             name = re.sub(r"^Mecha?n?t?\b|^Merchan\b", "Merchant", name)
             if "?" in name or name.lower().startswith("couldn"):

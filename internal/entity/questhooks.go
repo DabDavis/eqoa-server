@@ -88,7 +88,7 @@ func (w *World) AwardXP(sess *session.Session, p *Player, xp int) {
 }
 
 // ApplyFactionHits moves a player's standings as a kill's hits do, each told in
-// EverQuest's words unless Faction Messages are off.
+// Sandstorm's line (factionLine) unless Faction Messages are off.
 func (w *World) ApplyFactionHits(sess *session.Session, p *Player, hits []FactionHit) {
 	if p == nil || len(hits) == 0 {
 		return
@@ -110,7 +110,7 @@ func (w *World) ApplyFactionHits(sess *session.Session, p *Player, hits []Factio
 		}
 		log.Printf("Factions: %s %s %d -> %d (a quest)", p.Name, h.Faction, old, now)
 		if !quiet {
-			w.sendChatToSession(sess, factionLine(h.Faction, h.Delta, now != old))
+			w.sendChatToSession(sess, factionLine(h.Faction, h.Delta, now))
 		}
 	}
 }

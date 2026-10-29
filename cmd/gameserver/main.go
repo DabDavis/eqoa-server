@@ -94,6 +94,11 @@ func main() {
 		gameWorld.SetModelSexes(sexes)
 	}
 	gameWorld.LoadNPCs(npcStore)
+	// The game's balance (entity/balance.go, tables balancelevel and
+	// balancecon): the NPCs' hit points and what a fight's hits do
+	if _, _, err := gameWorld.LoadBalance(db); err != nil {
+		log.Printf("WARNING: the balance: %v; every NPC as the formulas alone make it", err)
+	}
 	// The ground creatures stand on (internal/ground), baked from the game's
 	// disc into <worlds>/ground by cmd/groundbake; without it they keep the
 	// heights they have.

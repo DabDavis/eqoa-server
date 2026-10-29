@@ -65,6 +65,7 @@ func (w *World) OnCorpseGone(fn CorpseGoneFunc) {
 func (w *World) applyNPCSettingsLocked(npc *NPC) {
 	npc.RespawnTime = w.respawnAfter
 	npc.RoamRadius = w.roamRadius
+	w.applyBalanceLocked(npc) // its hit points (balance.go)
 }
 
 // corpseLies reports a dead NPC whose corpse is still where it fell at now:

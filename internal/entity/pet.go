@@ -3,7 +3,6 @@ package entity
 import (
 	"log"
 	"math"
-	"math/rand"
 	"sort"
 	"strings"
 	"time"
@@ -365,6 +364,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 		level = petLevel(spell.Def.PetLevel, caster.Level) // its line's "level N"
 	}
 	pet := newPet(t, w.allocFreeIDLocked(), caster, name, level)
+	w.applyBalanceLocked(pet) // a pet's hit points of its level (balance.go)
 	pet.SwingFixed, pet.SwingKind = petSwing(caster.Class, name)
 	w.NPCs[pet.ServerID] = pet
 	w.SpatialIndex.Insert(pet.ServerID, pet.X, pet.Z)
@@ -775,7 +775,7 @@ func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 		}
 		t.CurrentEnemy = pet.ServerID
 	}
-	n := petMeleeHit(pet, t, rand.Intn)
+	n := petMeleeHit(pet, t, meleeIntn)
 	if petName(pet.Name) == grandAnimation {
 		n = grandAnimationTaunt
 	}
@@ -788,7 +788,7 @@ func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 // (proc.go). It reports a kill.
 func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	ps.npc.LastCombatTime = now
-	if w.petDamageLocked(ps, t, petMeleeHit(ps.npc, t, rand.Intn), now) {
+	if w.petDamageLocked(ps, t, petMeleeHit(ps.npc, t, meleeIntn), now) {
 		return true
 	}
 	return w.petProcsLocked(ps, t, now)
@@ -814,6 +814,7 @@ func (w *World) petDamageLocked(ps *petState, t *NPC, n int, now time.Time) bool
 		w.dummyEngagedLocked(t, owner, now)
 		return false
 	}
+	n = w.petDealtLocked(pet, t, n) // balance.go
 	t.HP = max(t.HP-n, 0)
 	tell()
 	w.updateAggro(t, pet.ServerID, n)
@@ -889,7 +890,7 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 	}
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++
-		n := npcHitOnPet(npc, pet, rand.Intn)
+		n := w.npcHitLocked(npc, pet.Level, npcHitOnPet(npc, pet, meleeIntn)) // balance.go
 		pet.HP = max(pet.HP-n, 0)
 		pet.LastCombatTime = now
 		log.Printf("Pet: %s hit the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, n, pet.HP, pet.MaxHP)

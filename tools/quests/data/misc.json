@@ -4577,6 +4577,657 @@
     "Ghost of Madrias"
    ],
    "notes": "From EQOA-Data Quests/Misc/highbourne-for-the-ring.json, # HIGHBOURNE QUEST, the level 60 ring (github.com/Jadiction/EQOA-Data, MIT). The tanks' ring, The Stoneheart, is given to warriors, paladins and shadowknights. Not on this server, left out of the rewards: The Nexus (casters), The Soulstone (healers) and The Wildheart (melees); the guide's 'little xp' has no figure. The whole quest's 240 Storyteller faction is given at its end. Laknar's '?' that gives the sulfursits is a reach step with a popup. Douglas Aren's questions (trick him into selling) are a payment here; he stands by Paineel's banker (the guide's tent by the main house). Madrias's summoning in Castle Felstar is a reach step; Vhi'zan Kaah comes with two of his five minions."
+  },
+  {
+   "key": "Misc/heather-johns/p1",
+   "name": "The History of Sheythorpe",
+   "giver": "Heather Johns",
+   "classes": [],
+   "races": [],
+   "minlevel": 48,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The History of Sheythorpe, both volumes, was taken from us. The dogs that roam here, Rex and Fido, carried them off. Bring them back to me, please.",
+   "accept": "I will find them.",
+   "decline": "Not now.",
+   "declined": "Then they stay lost.",
+   "started": "The dogs roam nearby.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Rex",
+     "journal": "Take the first volume of the History of Sheythorpe from Rex.",
+     "items": [
+      {
+       "item": "History of Sheythorpe, Volume 1",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Fido",
+     "journal": "Take the second volume of the History of Sheythorpe from Fido.",
+     "items": [
+      {
+       "item": "History of Sheythorpe, Volume 2",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Heather Johns",
+     "journal": "Bring both volumes to Heather Johns.",
+     "items": [
+      {
+       "item": "History of Sheythorpe, Volume 1",
+       "count": 1
+      },
+      {
+       "item": "History of Sheythorpe, Volume 2",
+       "count": 1
+      }
+     ],
+     "says": "Both! Ken Black will want to know they are safe. Go to him."
+    },
+    {
+     "kind": "talk",
+     "target": "Ken Black",
+     "journal": "Speak with Ken Black.",
+     "says": "Rian was asking after Grocer Fern in Forkwatch. Ask her what he wanted."
+    },
+    {
+     "kind": "talk",
+     "target": "Grocer Fern",
+     "journal": "Ask Grocer Fern in Forkwatch about Rian.",
+     "says": "Rian? He bought supplies for a long stay and went east."
+    },
+    {
+     "kind": "talk",
+     "target": "Ken Black",
+     "journal": "Return to Ken Black.",
+     "says": "A long stay... Karne Johns may know where. Ask him."
+    },
+    {
+     "kind": "talk",
+     "target": "Karne Johns",
+     "journal": "Speak with Karne Johns.",
+     "says": "My brother has a secret hiding place: east along the river to the bridge in Desert Hate."
+    },
+    {
+     "kind": "talk",
+     "target": "Rian Johns",
+     "journal": "Find Rian's hiding place by the bridge in Desert Hate (keep to the river's left side).",
+     "says": "Found me, have you? Take my journal to Heather. She will understand.",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Rian's Journal",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Heather Johns",
+     "journal": "Bring Rian's journal to Heather Johns.",
+     "items": [
+      {
+       "item": "Rian's Journal",
+       "count": 1
+      }
+     ],
+     "says": "He is alive. Thank you, truly."
+    }
+   ],
+   "unresolved": [
+    "Grocer Fern",
+    "Rian Johns"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/heather-johns.json, # Heather Johns Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's dogs are Rex and Fido here, the two named dogs of Dshinn's Redoubt, a volume each. Not on this server, left out of the rewards: the item \"Ring of Knowledge\" (Wis+15 Str+30, level 48)."
+  },
+  {
+   "key": "Misc/sea-of-lions/p1",
+   "name": "Sea of Lions",
+   "giver": "Kithrin",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "The lion guards of the tunnels at the zone's heart serve a master who would see me dead. One of them, one who carries no weapon, wears a medallion I need. Bring it to me.",
+   "accept": "I will get it.",
+   "decline": "Not now.",
+   "declined": "Then keep your head down.",
+   "started": "The tunnels, at the centre.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Lionguard Cultist",
+     "journal": "Take the medallion from a lion guard without a weapon in the tunnels at the centre of the Sea of Lions.",
+     "items": [
+      {
+       "item": "Lionguard Medallion",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.25
+    },
+    {
+     "kind": "give",
+     "target": "Kithrin",
+     "journal": "Bring the medallion to Kithrin in his mountain cave in the north-west.",
+     "items": [
+      {
+       "item": "Lionguard Medallion",
+       "count": 1
+      }
+     ],
+     "says": "Good. Now four things of the antlions: a fur, a talon, a poison sac and a scale. Their caves are all over."
+    },
+    {
+     "kind": "loot",
+     "target": "antlion",
+     "journal": "Take an antlion's fur.",
+     "items": [
+      {
+       "item": "Antlion Fur",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "loot",
+     "target": "antlion",
+     "journal": "Take an antlion's talon.",
+     "items": [
+      {
+       "item": "Antlion Talon",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "loot",
+     "target": "antlion",
+     "journal": "Take an antlion's poison sac.",
+     "items": [
+      {
+       "item": "Antlion Poison Sac",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "loot",
+     "target": "antlion",
+     "journal": "Take an antlion's scale.",
+     "items": [
+      {
+       "item": "Antlion Scale",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 0.5
+    },
+    {
+     "kind": "give",
+     "target": "Kithrin",
+     "journal": "Bring the four antlion parts to Kithrin.",
+     "items": [
+      {
+       "item": "Antlion Fur",
+       "count": 1
+      },
+      {
+       "item": "Antlion Talon",
+       "count": 1
+      },
+      {
+       "item": "Antlion Poison Sac",
+       "count": 1
+      },
+      {
+       "item": "Antlion Scale",
+       "count": 1
+      }
+     ],
+     "says": "Now go to their overseer, where the lion guards are. Talk to him, and then end him."
+    },
+    {
+     "kind": "talk",
+     "target": "Overseer Gennan",
+     "journal": "Speak with the overseer where the lion guards are.",
+     "says": "Kithrin's errand runner? Die!"
+    },
+    {
+     "kind": "kill",
+     "target": "Overseer Gennan",
+     "journal": "Kill the overseer.",
+     "count": 1
+    },
+    {
+     "kind": "kill",
+     "target": "antlion queen",
+     "journal": "Kill the antlion queen that comes at his death.",
+     "count": 1,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "antlion queen",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "talk",
+     "target": "Kithrin",
+     "journal": "Return to Kithrin.",
+     "says": "Their master's plans are ruined. Wear this, and remember me.",
+     "rewards": {
+      "items": [
+       "Kithrins Charm"
+      ]
+     }
+    }
+   ],
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Misc/sea-of-lions.json, # Sea of Lions Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's lion guards are the Lionguard brigands and cultists here (the medallion off the unarmed cultists), its Overseer Geesah the game's Overseer Gennan. The antlions' caves are wherever they stand. The quest gives no experience (the guide)."
+  },
+  {
+   "key": "Misc/stone-of-morthalis/p1",
+   "name": "The Lost Fisherman",
+   "giver": "Captain Longley",
+   "classes": [],
+   "races": [],
+   "minlevel": 50,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "My man Cedric never came back from Cape Dreg. Find him, on the isles to the east there. Find out what happened, and bring me word.",
+   "accept": "I will find him.",
+   "decline": "Not now.",
+   "declined": "Then he is lost.",
+   "started": "Cape Dreg, the eastern isles.",
+   "steps": [
+    {
+     "kind": "talk",
+     "target": "Cedric",
+     "journal": "Find Cedric on one of the isles of Cape Dreg (E).",
+     "says": "You came for my head? No? Then help me: a rare giant skuttlespike swallowed my strongbox.",
+     "answer": "I will help you."
+    },
+    {
+     "kind": "loot",
+     "target": "rare giant skuttlespike",
+     "journal": "Find the rare giant skuttlespike on the islands of Cape Dreg and take the strongbox.",
+     "items": [
+      {
+       "item": "Salt Encrusted Strongbox",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Cedric",
+     "journal": "Bring the strongbox to Cedric.",
+     "items": [
+      {
+       "item": "Salt Encrusted Strongbox",
+       "count": 1
+      }
+     ],
+     "says": "My strongbox! Here, the captain's reward is mine to give. Tell him I am well."
+    },
+    {
+     "kind": "talk",
+     "target": "Captain Longley",
+     "journal": "Return to Captain Longley on the docks of the Stone of Morthalis.",
+     "says": "Cedric lives! Then all is well."
+    }
+   ],
+   "unresolved": [
+    "Captain Longley",
+    "Cedric",
+    "rare giant skuttlespike",
+    "Cedric",
+    "Captain Longley"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/stone-of-morthalis.json, # Stone of Morthalis Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's choice (slay Cedric for his head, or help him; the same reward either way) is the helping branch here. Not on this server, left out of the rewards: the item \"Vordan Ring\" (STA 40, HPMax 50, POW 50, level 54)."
+  },
+  {
+   "key": "Misc/west-feerot/p1",
+   "name": "Fugi's Friend",
+   "giver": "Fugi Bactor",
+   "classes": [],
+   "races": [],
+   "minlevel": 20,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "CQNN AKE THUU MA THQULV? The ogre keeps him below the ground. But first: FRU NYHSUMKEFR XKFFNUTQGR GCYNNKCUV FRU TUHFQNQZUH. (Fungusmen speak in code: y is a, x is b, w is c... z is z.)",
+   "accept": "Q CQNN.",
+   "decline": "Q WYLLKF.",
+   "declined": "Q VK LKF ELVUHGFYLV.",
+   "started": "CQNN AKE THUU MA THQULV?",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Largemouth Bottlefish",
+     "journal": "Fugi says the largemouth bottlefish swallowed the fertilizer: they swim round the bridge with the lizardmen to the south.",
+     "items": [
+      {
+       "item": "Fertilizer",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Fugi Bactor",
+     "journal": "Bring the fertilizer to Fugi Bactor.",
+     "items": [
+      {
+       "item": "Fertilizer",
+       "count": 1
+      }
+     ],
+     "says": "XHQLS TESQ Y XKFFNU KT CYFUH THKM FRU CYFUHXKA. (Bring Fugi a bottle of water from the waterboy.)"
+    },
+    {
+     "kind": "give",
+     "target": "Waterboy",
+     "journal": "Buy a bottle of water from the waterboy among the lizardmen south-west, for 1050 tunar.",
+     "tunar": 1050,
+     "says": "One bottle. Fresh!",
+     "events": [
+      {
+       "on": "done",
+       "do": "give",
+       "items": [
+        {
+         "item": "Bottle of Water",
+         "count": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Fugi Bactor",
+     "journal": "Bring the bottle of water to Fugi Bactor.",
+     "items": [
+      {
+       "item": "Bottle of Water",
+       "count": 1
+      }
+     ],
+     "says": "He has been a slave for many years. Go to the cave with ghouls, west. Tell him you are there to free him."
+    },
+    {
+     "kind": "talk",
+     "target": "Fungusman Slave",
+     "journal": "Find the fungusman slave in the cave with ghouls to the west and tell him you are there to free him.",
+     "says": "Free? After so long? Thank you! Tell Fugi I am coming.",
+     "answer": "I am here to free you."
+    },
+    {
+     "kind": "talk",
+     "target": "Fugi Bactor",
+     "journal": "Return to Fugi Bactor.",
+     "says": "Q CQNN LUDUH TKHSUF. (I will never forget.)"
+    }
+   ],
+   "unresolved": [
+    "Fugi Bactor",
+    "Largemouth Bottlefish",
+    "Fugi Bactor",
+    "Waterboy",
+    "Fugi Bactor",
+    "Fungusman Slave",
+    "Fugi Bactor"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/west-feerot.json, # West Feerot Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's coded dialogue (its key: y=a, x=b, w=c ... a=y, z=z) is kept in Fugi's lines, the answer \"Q CQNN.\" ('I will.') too. The places are ours, from the guide's directions out of Oggok's south gate (the Rathe). The guide names no reward (Fugi promises 'great wisdom')."
+  },
+  {
+   "key": "Misc/thenon-the-wise/p1",
+   "name": "Thenon the Wise",
+   "giver": "Thenon the Wise",
+   "classes": [],
+   "races": [],
+   "minlevel": 40,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "I was a king. Lothaxae and his cult took my remains and trapped my soul in a gem. Take this staff. Find the essence gems Amandon and the Ghoul Reaver carry, pass the statue below, and destroy Lothaxae. Free me.",
+   "accept": "I will free you.",
+   "decline": "Not now.",
+   "declined": "Then I wait, as I have waited.",
+   "started": "Go. Lothaxae is below.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Amandon",
+     "journal": "Take the essence emerald from Amandon, in the barrow's halls to the left.",
+     "items": [
+      {
+       "item": "Essence Emerald",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "loot",
+     "target": "Ghoul Reaver",
+     "journal": "Take the essence ruby from the Ghoul Reaver.",
+     "items": [
+      {
+       "item": "Essence Ruby",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Golem Statue",
+     "journal": "Give the statue at the bottom of the barrow the two gems and the staff.",
+     "items": [
+      {
+       "item": "Essence Emerald",
+       "count": 1
+      },
+      {
+       "item": "Essence Ruby",
+       "count": 1
+      },
+      {
+       "item": "Thenon's Staff",
+       "count": 1
+      }
+     ],
+     "says": "The statue grinds aside."
+    },
+    {
+     "kind": "loot",
+     "target": "Lothaxae",
+     "journal": "Kill Lothaxae in the room past the statue and take the soul gem.",
+     "items": [
+      {
+       "item": "Soul Gem of Thenon",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0
+    },
+    {
+     "kind": "give",
+     "target": "Thenon the Wise",
+     "journal": "Bring the soul gem to Thenon the Wise.",
+     "items": [
+      {
+       "item": "Soul Gem of Thenon",
+       "count": 1
+      }
+     ],
+     "says": "Free! At last I can rest. Take this, and my thanks.",
+     "rewards": {
+      "xp": 2500000
+     }
+    }
+   ],
+   "events": [
+    {
+     "on": "accept",
+     "do": "give",
+     "items": [
+      {
+       "item": "Thenon's Staff",
+       "count": 1
+      }
+     ]
+    }
+   ],
+   "unresolved": [
+    "Lothaxae"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/thenon-the-wise.json, # Thenon the Wise Quest (github.com/Jadiction/EQOA-Data, MIT). The guide's unnamed 45+ necromancer past the statue is Lothaxae here (the cult leader Thenon names). The statue is the barrow's Golem Statue. Not on this server, left out of the rewards: the crown (20-30 WIS)."
+  },
+  {
+   "key": "Misc/the-truearrow/p1",
+   "name": "The Truearrow Brooch",
+   "giver": "Taszin K'Ven",
+   "classes": [],
+   "races": [],
+   "minlevel": 45,
+   "maxlevel": 60,
+   "requires": [],
+   "offer": "Any business to discuss? So you are the mercenary I sent for. Good. I need a killer: the leader of the Tier'dal camp near the ruins of Oasis, in Takish'Hiz. Bring me his brooch as proof.",
+   "accept": "I am the mercenary you sent for.",
+   "decline": "I don't know, do we?",
+   "declined": "Then go away. I am busy.",
+   "started": "Takish'Hiz, south-west of Oasis.",
+   "steps": [
+    {
+     "kind": "loot",
+     "target": "Cyrian Truearrow",
+     "journal": "Kill the Truearrows in the tents on the hill in Takish'Hiz until Cyrian Truearrow comes, and take his brooch.",
+     "items": [
+      {
+       "item": "Cyrian Truearrow's Elven Family Brooch",
+       "count": 1
+      }
+     ],
+     "count": 1,
+     "chance": 1.0,
+     "events": [
+      {
+       "on": "start",
+       "do": "spawn",
+       "npc": "Cyrian Truearrow",
+       "hostile": true
+      }
+     ]
+    },
+    {
+     "kind": "give",
+     "target": "Taszin K'Ven",
+     "journal": "Bring the brooch to Taszin K'Ven on the inn's second floor in Hazinak.",
+     "items": [
+      {
+       "item": "Cyrian Truearrow's Elven Family Brooch",
+       "count": 1
+      }
+     ],
+     "says": "Well done, mercenary. Your pay, and something pretty.",
+     "rewards": {
+      "xp": 4700000,
+      "items": [
+       "An Ivory and Gold Statue"
+      ],
+      "factions": [
+       [
+        "Raiders of Takish`Hiz",
+        25
+       ],
+       [
+        "The Indigo Brotherhood",
+        1
+       ],
+       [
+        "Citizens of Neriak",
+        1
+       ]
+      ]
+     }
+    }
+   ],
+   "unresolved": [
+    "Cyrian Truearrow",
+    "Cyrian Truearrow"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/the-truearrow.json, # The Truearrow Quest, steps 1-4 (github.com/Jadiction/EQOA-Data, MIT). Taszin's dialogue ('I don't know, do we?', 'I am the mercenary you sent for') is the offer and its answer. Cyrian Truearrow spawns when the step starts (the guide: after the tents are farmed a while; one also stands there). The guide's -500 faction with Pulanga is left out: no such faction on this server. The statue is a made item (it has no stats in the guide)."
+  },
+  {
+   "key": "Misc/the-truearrow/p2",
+   "name": "Pulanga's Deal",
+   "giver": "Pulanga",
+   "classes": [],
+   "races": [],
+   "minlevel": 45,
+   "maxlevel": 60,
+   "requires": [
+    "Misc/the-truearrow/p1"
+   ],
+   "offer": "You killed the Truearrow? Then you owe me 25,000 tunar, or your life. Or... we work out a deal. A rival of mine, Gobzen, hides in a backroom in Honjour. Kill him, and we are square.",
+   "accept": "Let us work out a deal.",
+   "decline": "I will not pay.",
+   "declined": "Then watch your back.",
+   "started": "Honjour. Go.",
+   "steps": [
+    {
+     "kind": "kill",
+     "target": "Gobzen",
+     "journal": "Kill Gobzen in a backroom in Honjour.",
+     "count": 1
+    },
+    {
+     "kind": "talk",
+     "target": "Pulanga",
+     "journal": "Return to Pulanga on the ground floor of Hazinak's inn.",
+     "says": "Gobzen is dead? Then we are square."
+    }
+   ],
+   "unresolved": [
+    "Gobzen"
+   ],
+   "notes": "From EQOA-Data Quests/Misc/the-truearrow.json, # The Truearrow Quest, option 3 (work out a deal) (github.com/Jadiction/EQOA-Data, MIT). The guide's proximity popup with Pulanga's three options (pay 25,000 tunar, refuse and kill her, or work out a deal) is the deal here: the engine has no choice of outcomes (killing her, an attackable level 60, drops her blade Widowspite). Not on this server, left out of the rewards: the item \"Happy Love Bracers\" and +250 faction with Pulanga (no such faction)."
   }
  ],
  "items": [
@@ -5011,6 +5662,108 @@
    "description": "The essence of Vhi'zan Kaah, the Dark Lord.",
    "notrade": true,
    "like": "gem of fury"
+  },
+  {
+   "name": "History of Sheythorpe, Volume 1",
+   "description": "The first volume of the History of Sheythorpe.",
+   "notrade": true,
+   "like": "Maryan's Book"
+  },
+  {
+   "name": "History of Sheythorpe, Volume 2",
+   "description": "The second volume of the History of Sheythorpe.",
+   "notrade": true,
+   "like": "Maryan's Book"
+  },
+  {
+   "name": "Rian's Journal",
+   "description": "Rian Johns's journal, from his hiding place.",
+   "notrade": true,
+   "like": "Dark Journal"
+  },
+  {
+   "name": "Lionguard Medallion",
+   "description": "A medallion a lion guard wore.",
+   "notrade": true,
+   "like": "Orcish War Medallion"
+  },
+  {
+   "name": "Antlion Fur",
+   "description": "Fur from an antlion.",
+   "notrade": true,
+   "like": "Diseased Fur"
+  },
+  {
+   "name": "Antlion Talon",
+   "description": "A talon from an antlion.",
+   "notrade": true,
+   "like": "Oversized Claw"
+  },
+  {
+   "name": "Antlion Poison Sac",
+   "description": "An antlion's poison sac.",
+   "notrade": true,
+   "like": "blood sack"
+  },
+  {
+   "name": "Antlion Scale",
+   "description": "A scale from an antlion.",
+   "notrade": true,
+   "like": "Mine Spring"
+  },
+  {
+   "name": "Salt Encrusted Strongbox",
+   "description": "A strongbox crusted with salt, from a rare giant skuttlespike.",
+   "notrade": true,
+   "like": "Locking Book Safe"
+  },
+  {
+   "name": "Fertilizer",
+   "description": "Fugi's fertilizer, out of a largemouth bottlefish.",
+   "notrade": true,
+   "like": "Potion Ingredients"
+  },
+  {
+   "name": "Bottle of Water",
+   "description": "A bottle of water from the waterboy.",
+   "notrade": true,
+   "like": "Dwindel's Potion"
+  },
+  {
+   "name": "Thenon's Staff",
+   "description": "The staff Thenon the Wise gave you, to free his soul.",
+   "notrade": true,
+   "like": "Goblin Foreman's Mallet"
+  },
+  {
+   "name": "Essence Emerald",
+   "description": "An emerald holding an essence, from Amandon.",
+   "notrade": true,
+   "like": "gem of wit"
+  },
+  {
+   "name": "Essence Ruby",
+   "description": "A ruby holding an essence, from the Ghoul Reaver.",
+   "notrade": true,
+   "like": "gem of fury"
+  },
+  {
+   "name": "Soul Gem of Thenon",
+   "description": "The gem Lothaxae trapped Thenon's soul in.",
+   "notrade": true,
+   "like": "Final Thought Gem"
+  },
+  {
+   "name": "Cyrian Truearrow's Elven Family Brooch",
+   "description": "The family brooch of Cyrian Truearrow, leader of the Tier'dal camp.",
+   "notrade": true,
+   "like": "Fredly's Gold Ring"
+  },
+  {
+   "name": "An Ivory and Gold Statue",
+   "description": "An ivory and gold statue of an elven noblewoman.",
+   "notrade": true,
+   "like": "Orb of Parathior"
   }
  ]
 }

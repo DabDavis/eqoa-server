@@ -25,7 +25,7 @@ func (s *Server) registerDiscoveryOps() {
 			"characters, NPCs, items, spells, merchants), its conventions (ids, worlds, flags, model DictIDs) and how to " +
 			"make common changes safely. Returns markdown.",
 		Handler: func(c *opCtx) (any, error) {
-			return map[string]any{"guide": guideText}, nil
+			return map[string]any{"guide": c.s.guideFor(c.r)}, nil
 		},
 	})
 	s.addOp(&Op{

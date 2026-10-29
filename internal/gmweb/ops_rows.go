@@ -46,7 +46,7 @@ func (s *Server) registerRowOps() {
 		},
 	})
 	s.addOp(&Op{
-		Name: "count_rows", Title: "Count rows", Scope: scopeRead, Core: true,
+		Name: "count_rows", Title: "Count rows", Scope: scopeRead,
 		Description: "Count a table's rows that match, overall or grouped by up to three columns (\"how many NPCs per " +
 			"world\", \"items by wear slot\"). The 200 largest groups come back.",
 		Input: obj(map[string]any{

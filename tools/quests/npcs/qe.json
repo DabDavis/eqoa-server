@@ -521,34 +521,6 @@
    "water": "land"
   },
   {
-   "name": "Kratas",
-   "role": "foe",
-   "body": [
-    "npc",
-    "Giant Moray Eel"
-   ],
-   "place": [
-    "ff"
-   ],
-   "count": 1,
-   "note": "the sea beast of the deep blue water south of Tunaria (FrontiersForge's sighting); the Kratas quest (Misc/kratas) spawns him in the live game",
-   "water": "both"
-  },
-  {
-   "name": "Crocosaurus",
-   "role": "foe",
-   "body": [
-    "kind",
-    "alligator"
-   ],
-   "place": [
-    "ff"
-   ],
-   "count": 1,
-   "note": "Lake Noregard's temple island, the crocodile rock formation, among the ghariels",
-   "water": "both"
-  },
-  {
    "name": "Manifestation of Rain",
    "role": "talker",
    "body": [
@@ -632,23 +604,6 @@
    "count": 1,
    "level": 55,
    "note": "Runnyeye, with the superior pickclaw guards",
-   "water": "land"
-  },
-  {
-   "name": "Lord Pickclaw",
-   "role": "foe",
-   "body": [
-    "npc",
-    "Adept Pickclaw Elder"
-   ],
-   "place": [
-    "poi",
-    "tunaria",
-    "Lord Pickclaw"
-   ],
-   "count": 1,
-   "level": 60,
-   "note": "Highpass Hold, the pickclaws' lord (Yalie Keylotta's quest, Misc/lord-pickclaw)",
    "water": "land"
   },
   {
@@ -1527,5 +1482,18 @@
    "note": "the far side of the island, Zaoran Plateau (W): white-faced until spoken to (the quest spawns him hostile)",
    "water": "land"
   }
+ ],
+ "peaceful": [
+  "Sartheret",
+  "Mark of the Majestic",
+  "Aviak Elder",
+  "Kithgrin",
+  "Graumord citizen",
+  "Fire Giant Magus",
+  "essence of day",
+  "essence of desolation",
+  "essence of night",
+  "essence of rain",
+  "essence of snow"
  ]
 }

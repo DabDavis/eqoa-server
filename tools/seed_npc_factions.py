@@ -51,6 +51,11 @@ Rows, each said by town:
   faction's name ("Lord Nagafen"), listed. Off by default: an NPC of a
   faction attacks only a player whose standing with it is below -700.
 
+- the NPCs quests talk to that no town takes in, by name and world (NAMED):
+  the Plane of Sky's quest NPCs and essences to Denizens of the Plane of Sky,
+  Graumord's citizens to Citizens of Graumord, the Fire Giant Magus to Lord
+  Nagafen (never on sight, still attackable); Kithgrin left (UNPLACED).
+
 A name's row is for every NPC of the name (world -1) when all its spawns are
 the one town's and of the one faction; else for those of the town, as a place
 (world, the middle of their spawns, the radius round them + 5), when no other
@@ -125,6 +130,29 @@ NOT_TOWNS = {"prisoner", "prisoners", "captive", "captives", "spy", "spies", "sl
 OBJECTS = {"chest", "chests", "announcement", "announcements", "signpost", "signposts", "sign", "portal", "statue",
            "crate", "barrel", "fire", "campfire"}  # a fire: Moradhim's "RE PC Fire 1" to 3
 DUMMY = re.compile(r"^(?:training|regular|sparring) dummy")
+
+# NPCs quests talk to that no town takes in, by name and world, with the
+# faction whose measured start leaves a new character Friendly, or short of
+# Aggressive (the coordinator, 2026-10-29: "the Portal quests must TALK to
+# them"; until then creatures' bodies attacking on sight). Measured on
+# Sandstorm, every combo alike so far: Denizens of the Plane of Sky +200,
+# Citizens of Graumord -150, Lord Nagafen -500.
+NAMED = [
+    # the Plane of Sky's quest NPCs and its essences (EQOA-Data's Plane of Sky
+    # chains: "Approach the Essence of Night"); each essence's other rows carry
+    # the NPC bit; not its guardians, villagers or the Quintessence, fought
+    ("the Plane of Sky", 4, "Denizens of the Plane of Sky",
+     ["sartheret", "mark of the majestic", "aviak elder", "essence of day", "essence of desolation",
+      "essence of night", "essence of rain", "essence of snow", "essence of sun"]),
+    # the Isle of Dread's town ("speak to the graumord citizen in the Inn")
+    ("Graumord", 0, "Citizens of Graumord", ["graumord citizen"]),
+    # the way to Nagafen's lair (EQOA-Data's Lord Nagafen Portal Quest): never
+    # on sight, still attackable; Fire Giants' -1000 would set him on everyone
+    ("Solusek's Eye", 3, "Lord Nagafen", ["fire giant magus"]),
+]
+# and those left, said: no faction their place names
+UNPLACED = {"kithgrin": "the Cazic Thule temple's trial giver, among its trial creatures: its place names no faction "
+                        "(an npcaggro row of 0, or the NPC bit, would keep it from attacking on sight)"}
 # the words of a faction's name that name no one in particular, and the kinds
 GENERIC = {"the", "of", "a", "an", "and", "tunaria", "tunarian", "clan", "tribe", "hordes", "horde", "mtns", "ro",
            "karanas", "plains"}
@@ -477,6 +505,25 @@ def plan(db, eqoa_data, link=60, reach=400, near=40, hull_r=150, height=30, crea
                 left["namesakes inside its place"].append(f"{k} ({t}: {len(others)} more)")
                 continue
             rows.append((k, w, cx, cz, r, f, t, ms))
+    # the named, over any town's rows for their names
+    known = set(factions)
+    for place, w, f, keys in NAMED:
+        for k in keys:
+            ms = [n for n in spawns.get(k, []) if n["world"] == w]
+            if f not in known:
+                left["named, but no such faction"].append(f"{k} ({f})")
+                continue
+            if not ms:
+                left["named, but not in the database"].append(f"{k} (world {w})")
+                continue
+            if k in gm:
+                left["a GM's npcfaction row"].append(k)
+                continue
+            rows = [r for r in rows if r[0] != k]
+            rows.append((k, w, 0.0, 0.0, 0.0, f, place, ms))
+    for k, why in UNPLACED.items():
+        if spawns.get(k):
+            left["left to a GM"].append(f"{k}: {why}")
     combos = sorted({c for c in (a.get("combo") for a in places) if c})
     spots = [a for a in places if a["kind"] == "start"]
     return dict(rows=rows, left=left, towns=tfac, town_world=town_world, people=town_of, npcs=npcs, rules=rules,
@@ -588,7 +635,7 @@ def apply(db, p):
     db.execute(SCHEMA)
     db.execute(LOG_SCHEMA)
     for k, w, x, z, r, f, t, ms in p["rows"]:
-        where = "" if w < 0 else f", spawned within {r:g} of ({x:g}, {z:g})"
+        where = "" if r <= 0 else f", spawned within {r:g} of ({x:g}, {z:g})"
         note = f"{t}'s ({len(ms)} NPCs{where})" if not t.startswith("(") else f"a {f} by its name"
         cur = db.execute("""INSERT INTO npcfaction (name, world, x, z, radius, faction, note, source)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", (k, w, x, z, r, f, note, SOURCE))
@@ -636,6 +683,11 @@ def report(p, starts, quiet):
                 where = "" if w < 0 else f"  [spawned within {r:g} of ({x:g}, {z:g})]"
                 kind = "" if ms[0]["folk"] else "  (creature)"
                 print(f"      {k!r:34} {f}{kind}{where}")
+    named = [r for r in rows if r[6] in {p for p, *_ in NAMED}]
+    if named:
+        print(f"  named (quests talk to them): {len(named)} names, {sum(len(r[7]) for r in named)} NPCs")
+        for k, w, x, z, r, f, t, ms in sorted(named, key=lambda r: (r[6], r[0])):
+            print(f"      {k!r:34} {f} (world {w}, {len(ms)}: {t})")
     other = [r for r in rows if r[6].startswith("(")]
     if other:
         print(f"  --creature-factions: {len(other)} names of a kind's own faction")

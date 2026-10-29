@@ -137,6 +137,38 @@ func TestFactionsOverARealWorld(t *testing.T) {
 	}
 	w.mu.Unlock()
 
+	// the NPCs quests talk to that no town takes in (tools/seed_npc_factions.py's
+	// NAMED): none attacks a new character of any combo on sight, and the Fire
+	// Giant Magus stays attackable (a quest kills him)
+	w.mu.Lock()
+	named := map[string]bool{"sartheret": true, "mark of the majestic": true, "aviak elder": true,
+		"essence of day": true, "essence of desolation": true, "essence of night": true, "essence of rain": true,
+		"essence of snow": true, "graumord citizen": true, "fire giant magus": true}
+	seen := 0
+	for _, npc := range w.NPCs {
+		if !named[database.NPCClassKey(npc.Name)] {
+			continue
+		}
+		seen++
+		if w.npcFactionLocked(npc) == "" {
+			t.Errorf("%q (world %d) is of no faction", npc.Name, npc.World)
+		}
+		if database.NPCClassKey(npc.Name) == "fire giant magus" && npc.NPCType&0x80 != 0 {
+			t.Errorf("the Fire Giant Magus has the NPC bit: no quest can kill him")
+		}
+		for _, s := range spots {
+			p := &Player{Name: "a new character", Level: 1, Race: s.Race, Class: s.Class, HumType: s.HumType}
+			if w.threatensLocked(npc, p) {
+				f, _ := w.factionAggroLocked(npc)
+				t.Errorf("%q (world %d) attacks a new %s %s on sight (%s %d)", npc.Name, npc.World,
+					nameIn(raceNames, s.Race), nameIn(classNames, s.Class), f, w.standingLocked(p, f))
+				break
+			}
+		}
+	}
+	w.mu.Unlock()
+	t.Logf("%d NPCs quests talk to checked", seen)
+
 	// every start spot, strictly with EQOA_STARTS_MEASURED set: once every
 	// combo's measured starts are in (tools/seed_faction_starts.py)
 	threats := w.StartThreats(spots)

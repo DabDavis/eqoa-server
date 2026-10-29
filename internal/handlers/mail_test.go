@@ -365,3 +365,62 @@ func TestGramOpenByForm(t *testing.T) {
 		t.Fatalf("disc open\n got % X\nwant % X", got, want("Body text"))
 	}
 }
+
+// The first 0x0014 offers the live mail forms (0x7E0A, a u32 1), once.
+func TestMailFormOfferedAtWorldEntry(t *testing.T) {
+	h := &CharacterHandler{}
+	in := protocol.NewMessage(protocol.MessageTypeReliable, protocol.OpcodeCharacterInWorld)
+	sess := entitySlotsSession()
+	for range 2 {
+		if err := h.HandleCharacterInWorld(sess, in); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got, want := queued(sess, protocol.OpcodeMailForm), []byte{0x0A, 0x7E, 1, 0, 0, 0}; len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("the mail offer %x, want one %x", got, want)
+	}
+}
+
+// The offer's answer is kept on the session (1 the live forms, 0 the disc's
+// again, a short one nothing), and the mail handler takes it through the
+// registry. It changes no answer: a client that answered 1 sends the live
+// forms and is answered in them; the control, a client that never answered
+// (a PS2) sends the disc's and is answered in the disc's, its session never
+// marked; and each request is answered by its own form whatever was said.
+func TestMailFormAnswer(t *testing.T) {
+	m, as, bs, _ := mailWorld(t)
+	r := NewRegistry()
+	m.RegisterHandlers(r)
+	if err := r.Handle(as, incoming(protocol.OpcodeMailForm, []byte{1, 0, 0, 0})); err != nil || !as.MailLiveForms() {
+		t.Fatalf("answered 1: %v, err %v", as.MailLiveForms(), err)
+	}
+	m.HandleMailForm(as, incoming(protocol.OpcodeMailForm, []byte{0, 0}))
+	if !as.MailLiveForms() {
+		t.Fatal("a short answer changed it")
+	}
+	m.handleRequest(as, incoming(opcodeGramRequest, liveSend([]string{"Bob", "Zed"}, "Hi", "x")))
+	want := append([]byte{1, gramUnknown, 2, 3, 0, 0, 0}, "Zed"...)
+	if got := gramReplies(as); len(got) != 1 || !bytes.Equal(got[0], want) {
+		t.Fatalf("the live client's send\n got % X\nwant % X", got, want)
+	}
+	discTo := func(name string) []byte {
+		return gramRequestBytes(1, true, func(w *buffer.Writer) {
+			writeString8(w, name, 24)
+			writeWideString(w, "Disc", 1024)
+			writeWideString(w, "One name", 1024)
+		})
+	}
+	m.handleRequest(bs, incoming(opcodeGramRequest, discTo("Cid")))
+	if got := gramReplies(bs); len(got) != 1 || !bytes.Equal(got[0], []byte{1, gramSent}) || bs.MailLiveForms() {
+		t.Fatalf("the control, a client that never answered: % X, live %v", got, bs.MailLiveForms())
+	}
+	// the disc's form from the client that answered 1 is still the disc's
+	m.handleRequest(as, incoming(opcodeGramRequest, discTo("Cid")))
+	if got := gramReplies(as); len(got) != 1 || !bytes.Equal(got[0], []byte{1, gramSent}) {
+		t.Fatalf("the disc's form after answering 1: % X", got)
+	}
+	m.HandleMailForm(as, incoming(protocol.OpcodeMailForm, []byte{0, 0, 0, 0}))
+	if as.MailLiveForms() {
+		t.Fatal("answered 0: still the live forms")
+	}
+}

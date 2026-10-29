@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/binary"
 	"log"
 	"strings"
 	"sync"
@@ -112,10 +113,47 @@ func NewMailHandler(gw *entity.World, cs *database.SQLiteCharacterStore) *MailHa
 
 func (h *MailHandler) RegisterHandlers(r *Registry) {
 	r.Register(opcodeGramRequest, h.handleRequest)
+	r.Register(protocol.OpcodeMailForm, h.HandleMailForm)
 	if h.gameWorld != nil {
 		h.gameWorld.OnPlayerEntered(h.announceUnread)
 	}
 	log.Printf("Mail: registered handlers")
+}
+
+// The mail form offer (protocol.OpcodeMailForm, not retail): a u32, both
+// ways. The server offers it (1) with the other offers at the world entry; a
+// client that sends the live forms (vanilla, once it has them) answers 1 and
+// from then sends them, 0 to go back to the disc's. Every request is still
+// answered by its own form (gramEnvelope), so the answer is kept on the
+// session (MailLiveForms) only to tell a form the client did not announce in
+// the log; a client that never answers (a PS2, a Sandstorm-era client) is
+// answered as ever.
+
+// buildMailFormOffer is OpcodeMailForm from the server: a u32, 1.
+func buildMailFormOffer() []byte {
+	return build(protocol.OpcodeMailForm, 6, func(w *buffer.Writer) {
+		w.WriteUint32(1)
+	})
+}
+
+// SendMailOffer offers the session's client the live mail forms. A PS2
+// ignores it.
+func SendMailOffer(sess *session.Session) {
+	queueReliable(sess, protocol.OpcodeMailForm, buildMailFormOffer())
+}
+
+// HandleMailForm keeps the client's answer to the offer on its session: a
+// u32, nonzero for the live forms.
+func (h *MailHandler) HandleMailForm(sess *session.Session, msg *protocol.Message) error {
+	data := msg.Data()
+	if len(data) < 4 {
+		log.Printf("MailForm: short (%d bytes) from %s", len(data), sess.RemoteAddr())
+		return nil
+	}
+	on := binary.LittleEndian.Uint32(data[:4]) != 0
+	sess.SetMailLiveForms(on)
+	log.Printf("MailForm: %s %s", sess.RemoteAddr(), map[bool]string{true: "sends the live mail forms", false: "sends the disc's"}[on])
+	return nil
 }
 
 // newMailText is WORDS.TXT's word 1192. CLIENT shows nothing for 0x0D41's
@@ -273,6 +311,11 @@ func (h *MailHandler) handleRequest(sess *session.Session, msg *protocol.Message
 	me := h.gameWorld.SessionPlayer(sess)
 	if me == nil {
 		return nil
+	}
+	if (sub == 1 || sub == 3) && disc == sess.MailLiveForms() {
+		// answered by its own form all the same
+		log.Printf("Mail: %s sent sub-op %d in the %s form, having answered the offer %v",
+			me.Name, sub, map[bool]string{true: "disc's", false: "live"}[disc], sess.MailLiveForms())
 	}
 	mine := strings.ToLower(me.Name)
 	switch sub {

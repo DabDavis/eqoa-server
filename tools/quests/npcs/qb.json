@@ -20,23 +20,6 @@
    "water": "land"
   },
   {
-   "name": "savage bear",
-   "role": "foe",
-   "body": [
-    "npc",
-    "savage bear"
-   ],
-   "place": [
-    "poi",
-    "tunaria",
-    "Savage Bear"
-   ],
-   "count": 1,
-   "level": 30,
-   "note": "the savage bear that roams outside Al-Karad's Ruin (Group 1, level 30; the server's others are 8,500 off)",
-   "water": "land"
-  },
-  {
    "name": "Silvermist Alpha",
    "role": "foe",
    "body": [

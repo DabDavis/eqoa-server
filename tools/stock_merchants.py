@@ -67,6 +67,8 @@ changed: Sandstorm's, a GM's, or another tool's):
       difference of log(1 + AC), log(1 + damage) and log(1 + stat points)
       over 0.35 each, plus 0.5 for another wear slot.
   A new harvest refits it: --prices with the harvest's files, after --undo.
+  The report also names the catalog items that keep a price of their own
+  (not Sandstorm's) ODD times or more off the rule's, for a GM to look at.
 
 Every change is logged in merchant_stock (what it was and what it became) and
 --undo puts it all back but a row changed since (a GM's edit: left alone and
@@ -109,6 +111,7 @@ REGION_DEFAULT = 20      # a merchant with no creature within the radius
 LEVEL_STEP = 5           # levels this close fit alike
 TIER_REACH = 25          # a catalog this near the region's level is one of the town's tiers
 KNN = 3
+ODD = 4                  # a price kept that is this many times off the rule's is named
 STOPWORDS = {"of", "the", "and"}
 JEWELS_PER_SLOT = 3
 JEWELS_AT_LEAST = 8
@@ -764,9 +767,15 @@ def plan(db, prh, measured, patterns):
     rule = Rule(measured)
     p.rule = rule
     wanted = {x for items in catalogs.values() for x in items} | {x for items, _ in p.stock.values() for x in items}
+    p.odd = []
     for x in sorted(wanted):
         pat = patterns[x]
         if pat["cost"] > 0:
+            # kept, but named when it is far from what the rule would say
+            if norm(pat["name"]) not in measured.by_name:
+                est, _ = rule.price(pat)
+                if est and (pat["cost"] * ODD < est or pat["cost"] > est * ODD):
+                    p.odd.append((x, est))
             continue
         if x in gm_patterns:
             p.gm_priced.append(x)
@@ -868,6 +877,9 @@ def report(db, p, patterns, measured, files):
         if none:
             print(f"{len(none)} sell nothing on Sandstorm either (opened by a harvest): "
                   f"{', '.join(sorted(by_id[i]['name'] for i in none))}")
+    if not files:
+        print("warning: no --prices: only what the Sandstorm import wrote is measured, and the rule fits on that "
+              "alone (the harvest's raw files price far more)")
     print(f"measured prices: {len(measured.by_name)} names {dict(measured.sources)}"
           f"{' from ' + str(len(files)) + ' files' if files else ''}")
     if measured.conflicts:
@@ -894,6 +906,10 @@ def report(db, p, patterns, measured, files):
         print(f"  a GM's pattern, its 0 left alone: {', '.join(patterns[x]['name'] for x in p.gm_priced)}")
     if p.free:
         print(f"  Sandstorm's 0 kept: {', '.join(sorted(patterns[x]['name'] for x in p.free))}")
+    if p.odd:
+        odd = [f"{patterns[x]['name']} {patterns[x]['cost']} (the rule {e})" for x, e in sorted(p.odd)]
+        print(f"{len(odd)} catalog items keep a price of theirs (not Sandstorm's) {ODD} times or more off the rule's: "
+              f"{', '.join(odd[:15])}{' ...' if len(odd) > 15 else ''}")
     costs = collections.defaultdict(set)
     for pat in patterns.values():
         if pat["cost"] > 0:

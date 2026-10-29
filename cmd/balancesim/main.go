@@ -10,6 +10,7 @@
 //	    [-try-level 1:300:200:0,60:500:300:100] [-try-con 1:115:95,5:200:60]
 //	    [-try-art 1:0,30:1500,60:2000] [-try-class 1:80,5:80,6:80]
 //	    [-root] [-try-root 0:0:5,3:35:20,5:65:30] [-try-regen 1:5,60:5]
+//	    [-charm -6,-3,0] [-only false|true|root|charm]
 //	balancesim -db eqoa.db -lines [-classes ...]
 //	balancesim -db eqoa.db -reset 20s [-try-regen 1:5] [-classes ...]
 //
@@ -28,7 +29,10 @@
 // -try-root a root's resist and break chances by the con (diff:resist:break).
 // With -root the classes that have a root also fight as a rooting caster
 // does (entity.SimPlay.Root): the root first, then their spells from range,
-// the root again whenever it is off; the column "pet" reads "root".
+// the root again whenever it is off; the column "pet" reads "root". With
+// -charm the classes with a charm that takes a creature that many levels
+// from their own also fight with one charmed (entity.SimPlay.Charm), the
+// column reading c-3 and so on.
 //
 // The database is copied first and the copy opened (opening runs the schema
 // setup); the original is never written. Players are kitted from its own
@@ -91,6 +95,7 @@ func main() {
 	rootPlay := flag.Bool("root", false, "classes with a root also fight rooting and casting from range, no pet")
 	only := flag.String("only", "", "only this play's rows: false (hand to hand), true (the pet) or root")
 	reset := flag.Duration("reset", 0, "instead: fight this long, then run off for good and rest; how long the NPC takes to be whole")
+	charms := flag.String("charm", "", "classes with a charm also fight with a charmed creature this many levels from their own: -6,-3,0,...")
 	flag.Parse()
 	if *dbPath == "" {
 		flag.Usage()
@@ -192,8 +197,15 @@ func main() {
 			if *rootPlay && entity.SimHasRoot(pl) {
 				modes = append(modes, "root")
 			}
+			if *charms != "" {
+				for _, c := range ints(*charms) {
+					if entity.SimCharmable(pl, c) {
+						modes = append(modes, fmt.Sprintf("c%+d", c))
+					}
+				}
+			}
 			for _, mode := range modes {
-				if *only != "" && mode != *only {
+				if *only != "" && mode != *only && !(*only == "charm" && strings.HasPrefix(mode, "c")) {
 					continue
 				}
 				k := pl
@@ -205,6 +217,11 @@ func main() {
 					}
 				case "root":
 					k.Play.Root, k.Play.Melee = true, false
+				default:
+					if strings.HasPrefix(mode, "c") {
+						c, _ := strconv.Atoi(mode[1:])
+						k.Play.Charm, k.Play.CharmDiff, k.Play.Melee = true, c, false
+					}
 				}
 				fmt.Printf("%-4s %-6s %3d %-4v", classNames[class], entity.ArchetypeName(class), level, mode)
 				for _, d := range ds {

@@ -425,6 +425,15 @@ const (
 	// ignores the offer and duels by boxes.
 	OpcodeDuelWindow GameOpcode = 0x7E09
 
+	// OpcodeMailForm is not retail: whether a client sends SOE's live mail
+	// forms (several recipients, the To line read back; handlers/mail.go), a
+	// u32 after the opcode, both ways. The server offers it (1) once the
+	// player is in the world; a client that sends the live forms answers 1
+	// and from then sends them (0 goes back to the disc's). Each request is
+	// answered by its own form whatever the answer, which is kept on the
+	// session for the log. A PS2 ignores the offer; the server never offers 0.
+	OpcodeMailForm GameOpcode = 0x7E0A
+
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length
 	// and UTF-8.
@@ -679,6 +688,8 @@ func (op GameOpcode) String() string {
 		return "Duel"
 	case OpcodeDuelWindow:
 		return "DuelWindow"
+	case OpcodeMailForm:
+		return "MailForm"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:

@@ -49,7 +49,7 @@ Rows, each said by town:
   or its kind's word when it has no other. --creature-factions gives each
   such name its faction where only one matches, and the creatures named a
   faction's name ("Lord Nagafen"), listed. Off by default: an NPC of a
-  faction attacks only a player whose standing with it is below -700.
+  faction attacks only a player whose standing with it is below -350.
 
 - the NPCs quests talk to that no town takes in, by name and world (NAMED):
   the Plane of Sky's quest NPCs and essences to Denizens of the Plane of Sky,
@@ -65,7 +65,7 @@ The impact, before anything is written: per town, how many of its
 attackable members (no NPC bit, no npcaggro row) would attack a new
 character of each race (humans by city; a range over the race's classes) on
 sight: its starting standing (factionstart, else the factions table; with
---measured, Sandstorm's measured TSV wherever it holds the combo) below -700.
+--measured, Sandstorm's measured TSV wherever it holds the combo) below -350.
 And the start check: a new character of each combo at its start spot must not
 be attacked on sight by a member within 60 of it; --apply is refused where it
 would be (--force writes anyway): seed the measured starts first
@@ -102,7 +102,7 @@ import seed_npc_social as soc  # noqa: E402  a guard's words, the guard factions
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
 SOURCE = "seed"
 LOG = "npcfaction_seed"
-KOS_BELOW = -700  # entity.FactionKOSBelow
+KOS_BELOW = -350  # entity.FactionKOSBelow: the red faces
 START_REACH = 60  # entity.startThreatReach
 MAP_REACH = 1000  # a start spot takes the name of a map town this near
 
@@ -700,7 +700,7 @@ def report(p, starts, quiet):
 
 
 def print_impact(table, groups, unsafe, whose):
-    print(f"attackable members who attack a new character on sight (standing below -700), by town and race "
+    print(f"attackable members who attack a new character on sight (standing below -350), by town and race "
           f"(a range over the race's classes; {whose}):")
     w = max([len(t) for t in table] + [10])
     print("  " + " " * w + " " + " ".join(f"{g[:10]:>10}" for g in groups))

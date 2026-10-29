@@ -200,8 +200,9 @@ func TestTheGhoulServantLeavesADarkElfAlone(t *testing.T) {
 }
 
 // A guard of a faction attacks on sight a player whose standing with it is
-// Aggressive, at any level (a level 60 by a level 10 guard), and no one
-// else; the face is the standing's, Dubious just short of it. With
+// in a red band (below -350: Aggressive, then Dubious), at any level (a
+// level 60 by a level 10 guard), showing it the red face, and no one else;
+// the face is the standing's from -350 up. With
 // world.faction_aggro false a guard with a players' race's body attacks no
 // one and shows the old white.
 func TestAGuardAttacksAKOSPlayerOnSight(t *testing.T) {
@@ -215,9 +216,9 @@ func TestAGuardAttacksAKOSPlayerOnSight(t *testing.T) {
 		attacks  bool
 		face     byte
 	}{
-		{-2000, true, DispAggressive}, {-701, true, DispAggressive}, {-700, false, DispDubious},
-		{-500, false, DispDubious}, {-350, false, DispCautious}, {1, false, DispNeutral}, {500, false, DispWarm},
-		{2000, false, DispAllied},
+		{-2000, true, DispAggressive}, {-701, true, DispAggressive}, {-700, true, DispAggressive},
+		{-500, true, DispAggressive}, {-351, true, DispAggressive}, {-350, false, DispCautious},
+		{1, false, DispNeutral}, {500, false, DispWarm}, {2000, false, DispAllied},
 	} {
 		f.p.Factions = map[string]int{"The Freeport Militia": c.standing}
 		f.look()

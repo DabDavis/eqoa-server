@@ -165,6 +165,13 @@ func (w *World) npcStatsLocked(npc *NPC, viewer *Player, now time.Time) []string
 	extra := npcReachExtra(npc)
 	out = append(out, fmt.Sprintf("Reach %.1f%+.0f; attacks on sight: %s (within %.0f); leash %.0f, roams within %.0f",
 		meleeReach, extra, yesNo(w.hostileLocked(npc)), npc.AggroRadius, npc.LeashRadius, npc.RoamRadius))
+	if f, ok := w.factionAggroLocked(npc); ok && viewer != nil {
+		// of a faction, its body counts for nothing: the viewer's standing
+		// decides (aggro.go), and the line above is what it would do without
+		s := w.standingLocked(viewer, f)
+		out = append(out, fmt.Sprintf("Of %s: %s's standing %d, %s; attacks %s on sight: %s (below %d)",
+			f, viewer.Name, s, DispositionWords[StandingDisposition(s)], viewer.Name, yesNo(w.threatensLocked(npc, viewer)), FactionKOSBelow))
+	}
 	helps := "no one"
 	if rule, ok := w.npcSocial.rules[npc.Name]; ok && rule.Social {
 		radius := rule.Radius

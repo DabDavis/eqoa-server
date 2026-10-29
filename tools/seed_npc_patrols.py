@@ -13,23 +13,39 @@ every creature in view twice a second (`track on`: --tracks, the
 
 **What Sandstorm sends of a walker.** A walker's place on its channel changes
 only now and then, its velocity saying where it goes between (the game
-extrapolates). So a route is its stops (the velocity falls to 0 there; the
-pause lasts until it moves off again) and its turns (a leg's direction
-changes with no stop).
+extrapolates). So its walk is the places it was sent, in order: its stops
+(the velocity falls to 0 there; the pause lasts until it moves off again) and
+the starts of its legs (a turn, or the same leg sent again).
 
-**How a route is read.**
-- The stops and turns, near ones (3 apart) taken for one waypoint, make a
-  sequence.
-- Its shortest repeat makes the route: a loop, or back and forth
-  (`pingpong`) when the repeat reads the same both ways. A Freeport piker
-  pacing 12 units east and back is two points back and forth.
-- A route never seen to repeat (followed out of view, or not long enough) is
-  walked back and forth over what was seen. So it never takes a shortcut
-  through a wall nobody saw it take.
+**How a route is read.** This server walks a straight line between two
+points, so a route joins only places the walker was seen walking between.
+- A walker is seen in runs: sampled twice a second while in view, a silence
+  of GAP s is time out of view, and where it went then is unknown, so no
+  leg crosses it.
+- A run's walk is cut to its waypoints: its stops, its ends and every corner
+  more than TOL off the line between its neighbours (Douglas-Peucker), in the
+  order walked, a waypoint visited twice kept twice.
+- It came round where it is back at a waypoint (within 3) and sets off along
+  the leg it took from there before: the route is the loop between, or back
+  and forth (`pingpong`)
+  when the loop reads the same both ways. A Freeport piker pacing 12 units
+  east and back is two points back and forth.
+- A route never seen to come round (followed out of view, or not long
+  enough) is its longest run walked back and forth. So it never takes a
+  shortcut through a wall nobody saw it take: Freeport's Rea Nekchev, walked
+  round once and seen again from the middle, was a diagonal through the
+  houses until 2026-10-29 (the old reader dropped a waypoint she visits twice).
+- Every leg is held to the walk it was read from (ON_WALK); a route with one
+  off it is left out and said.
 - The pace is the median of its legs' speeds (database PathSpeed: a number
   of units a second; Sandstorm's pikers 3.12, under the walk's 5).
-- The pause is the median of its stops; a point's own where its stops differ
-  by 2 s or more.
+- Every point's pause is its own: a stop's as seen (one whose start or end was
+  not seen at least the median of those seen whole), a turn's 0 (a point with
+  none takes the path's pause, and Sandstorm's walkers do not stop at their
+  corners), an end where it was lost from view the median. The path's pause is
+  the median of the stops seen whole.
+- The same walker seen in two watches is read from its best sight: one that
+  came round first, then the longest walk.
 
 **A wanderer is no patrol.** Sandstorm's creatures that roam (Highbourne's
 Lost Souls, Moradhim's Frosteye goblins and quarry workers) walk at its
@@ -37,7 +53,8 @@ wander's pace, 4.87-4.98 (roam.go's 5 is it), in legs that never come round,
 with rests of 3 to 30 seconds between; a patrol walks slower (2.62-3.12, Halas'
 guards 3.94, Oggok's ogre bouncers and impalers 4.32-4.43) and stops 0.5 or 3
 seconds at its points, now and then 30. A walker at
-WANDER_PACE never seen to repeat is a wanderer: its name gets an npcmove row
+WANDER_PACE is a wanderer, whatever its walk (a Lost Soul's came round once by
+chance; no patrol was measured at that pace): its name gets an npcmove row
 (roam 1: it wanders, as roam.go wanders wildlife; radius the farthest it was
 seen from the middle of its walk, 15 to 75), never a path, and no NPC is
 made for one; a name with an npcmove row already is left.
@@ -92,11 +109,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from seed_npc_move import wildlife_word  # noqa: E402
 
 DEFAULT_DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "eqoa.db")
-SAME_POINT = 3.0      # stops and turns this near are one waypoint
+SAME_POINT = 3.0      # a walk back this near a waypoint is at it again
 MOVING = 0.3          # a speed above this is a leg
-TURN = math.radians(15)
+GAP = 1.6             # s: a walker in view is sampled twice a second; a longer silence is time out of view
+SAME_PLACE = 0.25     # two updates this near are one place (a stop and its walking off, a turn on the spot)
+TOL = 0.5             # a corner of a walk this far off the line between its neighbours is a waypoint
+CLOSE_TURN = math.radians(20)  # back at a waypoint and off within this of the leg it took there before: it came round
+ON_WALK = SAME_POINT + TOL     # every leg of a route lies this near the walk it was read from
+SAME_WALKER = 30.0    # two sights of one name in one world this near each other are one walker
 MATCH = 150.0         # a route to an NPC of its name whose spawn is this near it
-OWN_PAUSE = 2.0       # a point's own pause when its stops differ by this
 PLAYER_IDS = 100_000_000  # an id this or more is a player's, never an NPC's
 RUN_PACE = 7.0           # a walker this fast runs: a chase or a pet after its owner, no route
 WANDER_PACE = (4.8, 5.2)  # Sandstorm's wander (4.87-4.98 measured; roam.go's 5); patrols 2.62-3.94, an ogre's 4.32-4.43
@@ -173,76 +194,178 @@ def speed(r):
     return math.hypot(r["v"][0], r["v"][2])
 
 
+def runs(samples):
+    """The samples in runs, each in view throughout: a silence of GAP s is
+    time out of view, and nothing is known of where it went then."""
+    out = []
+    for r in samples:
+        if not out or (r["t"] - out[-1][-1]["t"]) / 1000 > GAP:
+            out.append([])
+        out[-1].append(r)
+    return out
+
+
+def walked(run):
+    """A run's walk as Sandstorm sent it: its places in order, each [x, y, z,
+    stop, pause, whole] (a stop's pause the time until it walked off, None
+    when it still stood at the run's end, whole when both ends of it were
+    seen; a turn's 0), and where its last leg had taken it by the run's last
+    sample when it still walked."""
+    ups = updates(run)
+    pts = []
+    for i, u in enumerate(ups):
+        stop = speed(u) <= MOVING
+        pause, whole = 0.0, True
+        if stop:
+            nxt = next((v for v in ups[i + 1:] if speed(v) > MOVING), None)
+            pause = (nxt["t"] - u["t"]) / 1000 if nxt else None
+            whole = nxt is not None and i > 0
+        if pts and math.hypot(pts[-1][0] - u["x"], pts[-1][2] - u["z"]) < (1.0 if stop and pts[-1][3] else SAME_PLACE):
+            if stop and not pts[-1][3]:
+                pts[-1] = [u["x"], u["y"], u["z"], True, pause, whole]  # it stopped where it was sent last
+            continue  # the same place again: walking off from a stop, a turn on the spot, a stop sent again
+        pts.append([u["x"], u["y"], u["z"], stop, pause, whole])
+    last = ups[-1]
+    if speed(last) > MOVING:
+        dt = (run[-1]["t"] - last["t"]) / 1000
+        if dt > 0:
+            pts.append([last["x"] + last["v"][0] * dt, last["y"], last["z"] + last["v"][2] * dt, False, 0.0, True])
+    return pts
+
+
+def length(pts):
+    return sum(math.hypot(b[0] - a[0], b[2] - a[2]) for a, b in zip(pts, pts[1:]))
+
+
+def off_line(p, a, b):
+    """How far p is off the segment a-b, on the flat."""
+    dx, dz = b[0] - a[0], b[2] - a[2]
+    l2 = dx * dx + dz * dz
+    t = 0.0 if l2 == 0 else max(0.0, min(1.0, ((p[0] - a[0]) * dx + (p[2] - a[2]) * dz) / l2))
+    return math.hypot(p[0] - a[0] - t * dx, p[2] - a[2] - t * dz)
+
+
+def corners(pts):
+    """A walk's waypoints, in the order walked: its stops and ends, and each
+    corner more than TOL off the straight line between the waypoints either
+    side (Douglas-Peucker)."""
+    keep = {0, len(pts) - 1} | {i for i, p in enumerate(pts) if p[3]}
+
+    def split(lo, hi):
+        while hi - lo >= 2:
+            d, i = max((off_line(pts[i], pts[lo], pts[hi]), i) for i in range(lo + 1, hi))
+            if d <= TOL:
+                return
+            keep.add(i)
+            split(lo, i)
+            lo = i
+
+    ks = sorted(keep)
+    for lo, hi in zip(ks, ks[1:]):
+        split(lo, hi)
+    return [pts[i] for i in sorted(keep)]
+
+
+def heading(a, b):
+    dx, dz = b[0] - a[0], b[2] - a[2]
+    return math.atan2(dz, dx) if math.hypot(dx, dz) >= 1.0 else None
+
+
+def near(a, b):
+    return math.hypot(a[0] - b[0], a[2] - b[2]) < SAME_POINT
+
+
+def came_round(v):
+    """(i, j): at v[j] the walk was back at v[i] and set off along the leg it
+    took from there before; the earliest such, or None."""
+    for i in range(len(v) - 1):
+        a = heading(v[i], v[i + 1])
+        if a is None:
+            continue
+        for j in range(i + 2, len(v) - 1):
+            if not near(v[i], v[j]):
+                continue
+            b = heading(v[j], v[j + 1])
+            if b is None or abs((b - a + math.pi) % (2 * math.pi) - math.pi) >= CLOSE_TURN:
+                continue
+            return i, j
+    return None
+
+
+def both_ways(v):
+    """The one way of a walk that reads the same both ways round (a back and
+    forth: [A, B, C, B] round, or [A, B, C, B, A] seen once), else None."""
+    n = len(v)
+    if n == 2:
+        return v
+    if n >= 3 and all(near(v[k], v[n - 1 - k]) for k in range(n // 2)):
+        return v[: n // 2 + 1]  # seen there and back
+    return None
+
+
+def off_walk(points, mode, walk):
+    """How far a route's legs go off the walk it was read from, at the most."""
+    legs = list(zip(points, points[1:])) + ([(points[-1], points[0])] if mode == "loop" else [])
+    worst = 0.0
+    for a, b in legs:
+        n = max(1, int(math.hypot(b[0] - a[0], b[2] - a[2])))
+        for k in range(n + 1):
+            p = (a[0] + (b[0] - a[0]) * k / n, 0.0, a[2] + (b[2] - a[2]) * k / n)
+            worst = max(worst, min(off_line(p, w0, w1) for w0, w1 in zip(walk, walk[1:])))
+    return worst
+
+
+Route = collections.namedtuple("Route", "points mode pace pause full spread walked off")
+
+
 def route(samples):
-    """A walker's route off its samples: (points [(x, y, z, pause or None)],
-    mode, pace, pause, full), or None when it never walked."""
+    """A walker's route off its samples (Route: points [(x, y, z, pause)],
+    mode, pace, pause, full, spread, walked (the length of the walk it was
+    read from) and off (how far its legs go off that walk)), or None when it
+    never walked."""
     ups = updates(samples)
     legs = [u for u in ups if speed(u) > MOVING]
     if not legs:
         return None
-    span = math.hypot(max(u["x"] for u in ups) - min(u["x"] for u in ups), max(u["z"] for u in ups) - min(u["z"] for u in ups))
-    if span < 4:
+    walks = [w for w in (walked(r) for r in runs(samples)) if len(w) >= 2]
+    every = [p for wk in walks for p in wk]
+    if not every or math.hypot(max(p[0] for p in every) - min(p[0] for p in every), max(p[2] for p in every) - min(p[2] for p in every)) < 4:
         return None
-    # the stops (where it stood, how long) and the turns, in order
-    core = []  # (x, y, z, pause or None)
-    for i, u in enumerate(ups):
-        if speed(u) <= MOVING:
-            nxt = next((v for v in ups[i + 1:] if speed(v) > MOVING), None)
-            pause = (nxt["t"] - u["t"]) / 1000 if nxt else None
-            core.append((u["x"], u["y"], u["z"], pause))
-        elif i > 0 and speed(ups[i - 1]) > MOVING:
-            a = math.atan2(ups[i - 1]["v"][2], ups[i - 1]["v"][0])
-            b = math.atan2(u["v"][2], u["v"][0])
-            if abs((b - a + math.pi) % (2 * math.pi) - math.pi) > TURN:
-                core.append((u["x"], u["y"], u["z"], None))  # a turn: no pause of its own
-    wps = []  # [x, y, z, [pauses]]
-
-    def waypoint(x, y, z, p):
-        for j, w in enumerate(wps):
-            if math.hypot(w[0] - x, w[2] - z) < SAME_POINT:
-                if p is not None:
-                    w[3].append(p)
-                return j
-        wps.append([x, y, z, [p] if p is not None else []])
-        return len(wps) - 1
-
-    seq = [waypoint(*m) for m in core]
-    dedup = [s for i, s in enumerate(seq) if i == 0 or s != seq[i - 1]]
-    mode, order, full = "pingpong", [], False
-    # the route is its stops' and turns' shortest repeat: seen once whole and
-    # then again for three of its waypoints (both of a pacer's two)
-    for p in range(2, len(dedup)):
-        if len(dedup) - p >= min(3, p) and all(dedup[i] == dedup[i + p] for i in range(len(dedup) - p)):
-            cycle, full = dedup[:p], True
-            mode, order = "loop", cycle
-            # back and forth when the cycle reads the same both ways round
-            for r in range(p):
-                rot = cycle[r:] + cycle[:r]
-                half = rot[: p // 2 + 1]
-                if p == 2 or (p % 2 == 0 and rot == half + half[-2:0:-1]):
-                    mode, order = "pingpong", half
-                    break
-            break
-    if not full:
-        # seen in part: where it was first and last seen are ends too, and it
-        # walks back and forth over what was seen
-        first = waypoint(ups[0]["x"], ups[0]["y"], ups[0]["z"], None)
-        last = waypoint(ups[-1]["x"], ups[-1]["y"], ups[-1]["z"], None)
-        order = list(dict.fromkeys([first] + dedup + [last]))
-    if len(order) < 2:
-        return None  # it shuffled on the spot
-    pauses = [q for w in wps for q in w[3] if q is not None]
-    pause = round(statistics.median(pauses), 1) if pauses else 0.0
-    points = []
-    for j in order:
-        x, y, z, ps = wps[j]
-        own = round(statistics.median(ps), 1) if ps else None
-        points.append((round(x, 1), round(y, 2), round(z, 1), own if own is not None and abs(own - pause) >= OWN_PAUSE else None))
     pace = round(statistics.median(speed(u) for u in legs), 2)
+    seen = [w[4] for wk in walks for w in wk if w[3] and w[5] and w[4] is not None]
+    pause = round(statistics.median(seen), 1) if seen else 0.0
+    best = None  # (full, walked, points, mode, walk)
+    for wk in walks:
+        v = corners(wk)
+        c = came_round(v)
+        if c is not None:
+            i, j = c
+            cycle = v[i:j]
+            half = both_ways(cycle + [v[j]])
+            pts, mode, full = (half, "pingpong", True) if half is not None and len(half) >= 2 else (cycle, "loop", True)
+        else:
+            half = both_ways(v)
+            pts, mode, full = (half, "pingpong", len(v) >= 3) if half is not None else (v, "pingpong", False)
+        cand = (full, length(wk), pts, mode, wk)
+        if best is None or cand[:2] > best[:2]:
+            best = cand
+    full, walk_len, pts, mode, wk = best
+    if len(pts) < 2 or max(math.hypot(a[0] - b[0], a[2] - b[2]) for a in pts for b in pts) < 4:
+        return None  # it shuffled on the spot
+    end_pause = pause if pause > 0 else 0.5
+    points = []
+    for k, (x, y, z, stop, p, whole) in enumerate(pts):
+        if stop:
+            q = p if whole and p is not None else max(p or 0.0, pause)
+        elif mode == "pingpong" and (pts[k] is wk[0] or pts[k] is wk[-1]):
+            q = end_pause  # an end where it came into view or was lost from it
+        else:
+            q = 0.0  # a corner, or a turn on the spot: Sandstorm's walkers do not stop there
+        points.append((round(x, 1), round(y, 2), round(z, 1), round(min(q, 600.0), 1)))
     mx = statistics.median(u["x"] for u in ups)
     mz = statistics.median(u["z"] for u in ups)
     spread = max(math.hypot(u["x"] - mx, u["z"] - mz) for u in ups)
-    return points, mode, pace, pause, full, spread
+    return Route(points, mode, pace, pause, full, spread, walk_len, off_walk(points, mode, wk))
 
 
 def ours(db):
@@ -312,6 +435,7 @@ def plan(db, files, add=False):
             levels[lvl].append(hp)
         hp_by_level = {lvl: int(statistics.median(v)) for lvl, v in levels.items()}
     folk = town_factions(db) if add else []
+    sights = []
     for path in files:
         by, watcher, world, who = read_track(path)
         for sid, (name, samples) in sorted(by.items()):
@@ -322,45 +446,60 @@ def plan(db, files, add=False):
             r = route(samples)
             if r is None:
                 continue
-            points, mode, pace, pause, full, spread = r
-            if pace >= RUN_PACE:
-                left.append((name, f"runs ({pace:g}/s): a chase or a pet after its owner, no patrol"))
+            if r.pace >= RUN_PACE:
+                left.append((name, f"runs ({r.pace:g}/s): a chase or a pet after its owner, no patrol"))
                 continue
-            if WANDER_PACE[0] <= pace <= WANDER_PACE[1] and not full:
-                wanders.setdefault(key(name), (name, spread, f"{os.path.basename(path)} {sid}"))
+            if WANDER_PACE[0] <= r.pace <= WANDER_PACE[1]:
+                wanders.setdefault(key(name), (name, r.spread, f"{os.path.basename(path)} {sid}"))
                 continue
-            cands = [c for c in npcs.get(key(name), []) if world is None or c[3] == world]
-            best = None
-            for c in cands:
-                if c[0] in used:
+            if r.off > ON_WALK:
+                left.append((name, f"a leg {r.off:.1f} off the walk it was read from ({os.path.basename(path)} {sid})"))
+                continue
+            sights.append((r, name, sid, path, world, who))
+    # the same walker seen in two watches (one name, one world, routes that
+    # meet) is read from its best sight: one that came round, then the longest
+    sights.sort(key=lambda g: (not g[0].full, -g[0].walked))
+    kept = []
+    for g in sights:
+        r, name, _, _, world, _ = g
+        if any(key(k[1]) == key(name) and k[4] == world
+               and min(math.hypot(a[0] - b[0], a[2] - b[2]) for a in k[0].points for b in r.points) < SAME_WALKER for k in kept):
+            continue
+        kept.append(g)
+    for r, name, sid, path, world, who in kept:
+        points, mode, pace, pause, full = r.points, r.mode, r.pace, r.pause, r.full
+        cands = [c for c in npcs.get(key(name), []) if world is None or c[3] == world]
+        best = None
+        for c in cands:
+            if c[0] in used:
+                continue
+            d = min(math.hypot(c[1] - p[0], c[2] - p[2]) for p in points)
+            if d <= MATCH and (best is None or d < best[0]):
+                best = (d, c)
+        if best is None:
+            w = world if world is not None else nearest_world(db, points)
+            if add and sid in who and w is not None:
+                npc = made_npc(db, cols, who[sid], points, w, hp_by_level)
+                if npc is not None:
+                    near = [f for f in folk if f[2] == w]
+                    fac = min(near, key=lambda f: math.hypot(f[0] - points[0][0], f[1] - points[0][2]))[3] if near else None
+                    row = {"world": w, "mode": mode, "pause": pause, "speed": f"{pace:g}",
+                           "points": json.dumps([{"x": x, "y": y, "z": z, **({"pause": p} if p is not None else {})} for x, y, z, p in points])}
+                    note = (f"NEW: {len(points)} points, {mode}, {pace:g}/s, pause {pause:g}s, level {npc['npc_level']}, "
+                            f"of {fac or 'no faction'}, {r.walked:.0f} walked" + ("" if full else " (route not seen to come round)"))
+                    out.append((None, name, row, f"{os.path.basename(path)} {sid}", note, {"npc": npc, "faction": fac}))
                     continue
-                d = min(math.hypot(c[1] - p[0], c[2] - p[2]) for p in points)
-                if d <= MATCH and (best is None or d < best[0]):
-                    best = (d, c)
-            if best is None:
-                w = world if world is not None else nearest_world(db, points)
-                if add and sid in who and w is not None:
-                    npc = made_npc(db, cols, who[sid], points, w, hp_by_level)
-                    if npc is not None:
-                        near = [f for f in folk if f[2] == w]
-                        fac = min(near, key=lambda f: math.hypot(f[0] - points[0][0], f[1] - points[0][2]))[3] if near else None
-                        row = {"world": w, "mode": mode, "pause": pause, "speed": f"{pace:g}",
-                               "points": json.dumps([{"x": x, "y": y, "z": z, **({"pause": p} if p is not None else {})} for x, y, z, p in points])}
-                        note = (f"NEW: {len(points)} points, {mode}, {pace:g}/s, pause {pause:g}s, level {npc['npc_level']}, "
-                                f"of {fac or 'no faction'}" + ("" if full else " (route not seen to repeat)"))
-                        out.append((None, name, row, f"{os.path.basename(path)} {sid}", note, {"npc": npc, "faction": fac}))
-                        continue
-                left.append((name, f"no NPC of the name within {MATCH:.0f} of its route ({len(cands)} of the name)"))
-                continue
-            npc = best[1]
-            if npc[0] in gm:
-                left.append((name, "a GM gave it a path"))
-                continue
-            used.add(npc[0])
-            row = {"world": npc[3], "mode": mode, "pause": pause, "speed": f"{pace:g}",
-                   "points": json.dumps([{"x": x, "y": y, "z": z, **({"pause": p} if p is not None else {})} for x, y, z, p in points])}
-            note = f"{len(points)} points, {mode}, {pace:g}/s, pause {pause:g}s" + ("" if full else " (route not seen to repeat)")
-            out.append((npc[0], name, row, f"{os.path.basename(path)} {sid}", note, None))
+            left.append((name, f"no NPC of the name within {MATCH:.0f} of its route ({len(cands)} of the name)"))
+            continue
+        npc = best[1]
+        if npc[0] in gm:
+            left.append((name, "a GM gave it a path"))
+            continue
+        used.add(npc[0])
+        row = {"world": npc[3], "mode": mode, "pause": pause, "speed": f"{pace:g}",
+               "points": json.dumps([{"x": x, "y": y, "z": z, **({"pause": p} if p is not None else {})} for x, y, z, p in points])}
+        note = f"{len(points)} points, {mode}, {pace:g}/s, pause {pause:g}s, {r.walked:.0f} walked" + ("" if full else " (route not seen to come round)")
+        out.append((npc[0], name, row, f"{os.path.basename(path)} {sid}", note, None))
     moves = []
     have = {key(n) for (n,) in db.execute("SELECT name FROM npcmove")} if has_table(db, "npcmove") else set()
     for k, (name, spread, source) in sorted(wanders.items()):

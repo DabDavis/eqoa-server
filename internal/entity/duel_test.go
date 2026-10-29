@@ -839,3 +839,36 @@ func TestDuelWagerWindowCalledOff(t *testing.T) {
 		t.Fatal("the wager window outlived its time")
 	}
 }
+
+// A duel opponent's hold stops a player and its slow halves the run, both
+// told by 0x00F8 as they land and as the duel's end takes them off; the
+// control: the same flags on an effect that is not a duel's change nothing
+// (no other harm lands on a player).
+func TestDuelHoldAndSlow(t *testing.T) {
+	d := newDuelists(t)
+	d.start(t)
+	run := d.a.SpeedNow()
+	d.w.mu.Lock()
+	d.w.addEffectLocked(d.a, &ActiveEffect{SpellID: 801, Name: "Snare", Until: d.at(time.Minute), Snare: true, duelFoe: d.b.ServerID}, d.at(2*time.Second))
+	slowed := d.a.SpeedNow()
+	d.w.addEffectLocked(d.a, &ActiveEffect{SpellID: 802, Name: "Root", Until: d.at(time.Minute), Root: true, duelFoe: d.b.ServerID}, d.at(2*time.Second))
+	held := d.a.SpeedNow()
+	d.w.addEffectLocked(d.c, &ActiveEffect{SpellID: 803, Name: "Odd", Until: d.at(time.Minute), Root: true}, d.at(2*time.Second))
+	d.w.mu.Unlock()
+	if slowed != run*duelSnare || held != 0 {
+		t.Fatalf("run %v, slowed %v, held %v", run, slowed, held)
+	}
+	if d.c.SpeedNow() != d.c.Speed {
+		t.Fatalf("a hold that is not a duel's: %v", d.c.SpeedNow())
+	}
+	if got := ofOp(duelDrain(d.sa), protocol.OpcodePlayerSpeed); len(got) != 2 {
+		t.Fatalf("%d speeds sent as the hold and the slow landed, want 2", len(got))
+	}
+	d.w.DuelCancel(d.sb, d.at(3*time.Second))
+	if d.a.SpeedNow() != run {
+		t.Fatalf("after the duel: %v, want %v", d.a.SpeedNow(), run)
+	}
+	if got := ofOp(duelDrain(d.sa), protocol.OpcodePlayerSpeed); len(got) == 0 {
+		t.Fatal("no speed sent as the duel's hold came off")
+	}
+}

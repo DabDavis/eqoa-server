@@ -147,3 +147,43 @@ func TestFactionHitsAreRead(t *testing.T) {
 		t.Errorf("hits %v, want %v", got, want)
 	}
 }
+
+// factionstart and npcfaction are made with the database and read back as
+// written, npcfaction's names keyed as npcclass keys them; the start spots
+// are defaultcharacter's places.
+func TestFactionStartAndNPCFactionTables(t *testing.T) {
+	db, err := NewSQLite(t.TempDir() + "/f.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, q := range []string{
+		`INSERT INTO factionstart (race, class, humtype, faction, standing, source) VALUES (2, -1, -1, 'Citizens of Neriak', 900, 'seed')`,
+		`INSERT INTO factionstart (faction, standing) VALUES ('Citizens of Qeynos', -100)`,
+		`INSERT INTO npcfaction (name, faction) VALUES ('Ghoul Servant ', 'Citizens of Neriak')`,
+		`INSERT INTO npcfaction (name, world, x, z, radius, faction) VALUES ('cave minnow$', 0, 24750, 8820, 30.5, '')`,
+		`INSERT INTO defaultcharacter (tclass, race, humType, level, tunar, bankTunar, unusedTP, totalTP, x, y, z, facing, world)
+			VALUES (3, 2, 0, 1, 0, 0, 0, 0, 24659.8, 5.77, 8836.5, 0, 0)`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	if _, err := db.Exec(`INSERT INTO factionstart (race, class, humtype, faction, standing) VALUES (2, -1, -1, 'Citizens of Neriak', 1)`); err == nil {
+		t.Error("a second row for the same race, class, city and faction was taken")
+	}
+	starts, err := db.FactionStarts()
+	want := []FactionStartRow{{2, -1, -1, "Citizens of Neriak", 900}, {-1, -1, -1, "Citizens of Qeynos", -100}}
+	if err != nil || !reflect.DeepEqual(starts, want) {
+		t.Errorf("starts %+v (%v), want %+v", starts, err, want)
+	}
+	npcs, err := db.NPCFactions()
+	wantN := []NPCFactionRow{{"ghoul servant", -1, 0, 0, 0, "Citizens of Neriak"}, {"cave minnow", 0, 24750, 8820, 30.5, ""}}
+	if err != nil || !reflect.DeepEqual(npcs, wantN) {
+		t.Errorf("npcfaction %+v (%v), want %+v", npcs, err, wantN)
+	}
+	spots, err := db.StartSpots()
+	if err != nil || len(spots) != 1 || spots[0].Race != 2 || spots[0].Class != 3 || spots[0].X != float32(24659.8) || spots[0].Z != float32(8836.5) {
+		t.Errorf("start spots %+v (%v)", spots, err)
+	}
+}

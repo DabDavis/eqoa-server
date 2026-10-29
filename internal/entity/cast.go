@@ -443,7 +443,13 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 			return false
 		}
 	}
-	targets, refusal := w.castTargetsLocked(sess, p, &spell, targetObjectID)
+	// a charm while a pet is out is refused before anything is looked at,
+	// whatever is targeted (charm.go)
+	refusal := w.charmPetRefusalLocked(p, &spell)
+	var targets []EntityID
+	if refusal == "" {
+		targets, refusal = w.castTargetsLocked(sess, p, &spell, targetObjectID)
+	}
 	fizzle := false
 	if refusal == "" && spell.Def.Harmful {
 		refusal = w.waterRefusalLocked(p, targets) // water.go
@@ -452,7 +458,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 		refusal, fizzle = w.undeadStartLocked(targets) // undead.go
 	}
 	if refusal == "" && spell.Def.Charms() {
-		refusal, fizzle = w.charmStartLocked(p, &spell, targets) // charm.go
+		refusal = w.charmStartLocked(&spell, targets) // charm.go
 	}
 	if refusal == "" && spell.Def.Resurrects() > 0 {
 		refusal, fizzle = w.rezStartLocked(targets, &spell.Def, now) // resurrect.go

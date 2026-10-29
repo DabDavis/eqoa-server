@@ -28,12 +28,20 @@ import (
 // undead: "Attempt resisted!" in red, and the creature came at the caster.
 //
 // Here:
-//   - refused at its start, no power taken: with a pet already, "You already
-//     have a pet." and a brief cast (the fizzle); a creature above the
-//     charm's level, "Your target is too high a level to charm." The level a
-//     charm takes is what its words say ("Charms up to level 54 mobs", the
-//     bard's "Charm up to level 54"), else the spell's own level (jib: "If the
-//     mob is at or below the charm level, it should cast").
+//   - refused at its start, no power taken, no lockout: with a pet out
+//     (summoned or charmed), before its target is looked at, "You already
+//     have a pet." in red and nothing else, as Sandstorm refuses any cast
+//     (one red line: claude-notes/casting-sandstorm-20261021.md), the words
+//     the game's own "You do not have a pet." (WORDS.TXT 1021) turned round.
+//     Until F3 20261029-082049 (jib: "Charm line should not be castable
+//     while you currently have a pet") it also showed a brief cast, the
+//     fizzle he had asked for: a 600 ms 0x00B1 at the target with the
+//     spell's visual, every charm's being the stand-in strike's (no charm has
+//     one recorded), to all who saw the caster, which looked cast. A creature
+//     above the charm's level: "Your target is too high a level to charm."
+//     The level a charm takes is what its words say ("Charms up to level 54
+//     mobs", the bard's "Charm up to level 54"), else the spell's own level
+//     (jib: "If the mob is at or below the charm level, it should cast").
 //   - at its landing a resist: undead (undead.go's tag, by name: no record
 //     says) and training dummies always, else 10% less the line's CHA share
 //     ("Increase 25% based on CHA": 25% of CHA, in tenths of a percent),
@@ -67,7 +75,9 @@ const (
 	// charmNPCType is a charmed creature's npc flags: Sandstorm's charmed
 	// ant's 0x80 (0x8000 on the wire, statesync's swap).
 	charmNPCType = 0x80
-	// charmFizzle is the brief cast a refused charm makes.
+	// charmFizzle is the brief cast a refusal that fizzles shows: an
+	// undead-only spell at the living (undead.go), a rez with nothing to give
+	// back (resurrect.go). A charm refused shows none.
 	charmFizzle      = 600 * time.Millisecond
 	charmResistBase  = 10
 	charmResistFloor = 2
@@ -111,19 +121,27 @@ func charmResistPct(e SpellEffect, cha int) int {
 	return max(charmResistBase-share, charmResistFloor)
 }
 
-// charmStartLocked checks a charm as it begins: the refusal's line, and
-// whether it fizzles (a brief cast is shown). Must be called with the lock
-// held.
-func (w *World) charmStartLocked(p *Player, spell *CastSpell, targets []EntityID) (refusal string, fizzle bool) {
-	if w.petOfLocked(p) != nil {
-		return charmHavePet, true
+// charmPetRefusalLocked is the line refusing a charm its caster casts with a
+// pet out, summoned or charmed ("" for any other spell, or no pet): the first
+// of a cast's checks, so whatever is targeted the charm is not cast (F3
+// 20261029-082049). Must be called with the lock held.
+func (w *World) charmPetRefusalLocked(p *Player, spell *CastSpell) string {
+	if spell.Def.Charms() && w.petOfLocked(p) != nil {
+		return charmHavePet
 	}
+	return ""
+}
+
+// charmStartLocked checks a charm as it begins, its target found (the pet
+// is charmPetRefusalLocked's): the refusal's line, "" for none; no charm's
+// refusal fizzles. Must be called with the lock held.
+func (w *World) charmStartLocked(spell *CastSpell, targets []EntityID) string {
 	for _, id := range targets {
 		if npc := w.NPCs[id]; npc != nil && npc.Level > charmMaxLevel(spell) {
-			return charmTooHigh, false
+			return charmTooHigh
 		}
 	}
-	return "", false
+	return ""
 }
 
 // charmLandLocked is a charm landing on its target: resisted (the line, and

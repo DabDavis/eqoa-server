@@ -1,29 +1,29 @@
 #!/usr/bin/env python3
-"""Loot tiers: how often an item drops, a kill, by what kind of item it is
-(the user, 2026-10-30, relaying jib, a GM who played SOE's live game:
-"uncommon drops 1/100, rares 1/1000, some things like aura of karana, orb of
-primordial were so rare only 5 on server after 10 years").
+"""Loot categories: which tier of the loot rolls an item is drawn in
+(tools/seed_loot_categories.py; handlers/lootcategory.go rolls each category
+on its own, at its own rate a kill).
 
-Every item is common, uncommon, rare or legendary, by the first rule that
-holds:
+Gear is sorted by the first rule that holds:
 
   1. legendary by name (LEGENDARY_ITEMS): jib's two, Aura of Karana and Orb of
-     Primordial Intellect (with the orb's second record, Primordial Orb of
-     Intellect), the orb's twin orb of spiritual fortitude (the same slot,
-     level and amounts, wisdom for intelligence), and the two items
-     Allakhazam's players of 2004 called one of a kind on their server;
+     Primordial Intellect (the orb's second record, Primordial Orb of
+     Intellect, is never placed), the orb's twin orb of spiritual fortitude
+     (the same slot, level and amounts, wisdom for intelligence), and the two
+     items Allakhazam's players of 2004 called one of a kind on their server;
   2. by Allakhazam's players' word (ARCHIVE: its item pages' comments,
-     2003-2005, as tools/fetch_item_pages.py keeps them);
-     a jeweler's gem or a crafting modifier by its rarity as Prima prints it,
-     the weight tools/seed_tradeskills.py gives it in the craft tables (30
-     common, 9 uncommon, 3 rare, 1 ultra rare: rare here);
-  3. not worn (a material, a trophy, food, a potion), or of no level: common;
-  4. sold by a merchant here (an npcitem row): common;
-  5. worn with no stats (plain gear: its armor class or damage alone, at most
-     its slot's usual for its level): common;
-  6. stats at least RARE_RATIO times the median of the items of its level
-     (within LEVEL_SPAN, every slot): rare;
-  7. else (magic): uncommon.
+     2003-2005, as tools/fetch_item_pages.py keeps them): "very rare" ultra
+     rare, "a rare drop" super rare (jib's rare, 1 in 1,000 and so);
+  3. by its stats against its level's (score / the median score of the items
+     of its level within LEVEL_SPAN, every slot): ULTRA_RATIO times or more
+     ultra rare, SUPER_RATIO super rare, RARE_RATIO rare (on the 02:05 data of
+     the 3,279 items of the pooled tables: 20, 97 and 340, the top 0.6%, 3.6%
+     and 14%), anything else uncommon (plain gear, a ware, an item of no wear
+     slot that a table holds).
+
+A sale price is not a rule: of the pooled tables' items only those merchants
+sell carry one, and most of those prices are ours (tools/stock_merchants.py).
+The jewelers' gems and the modifiers keep their rarity as Prima prints it (the
+craft tables' weights: 30 common, 9 uncommon, 3 rare, 1 ultra rare).
 
 An item's stats are scored in one currency, an attribute point, by the
 jewelers' metals (tools/seed_tradeskills.py, Prima's tables): at mithril a
@@ -35,24 +35,14 @@ slot's plain median at their level, weapons only the damage above 1.25 times
 their kind's (40 points for the median's worth more at level 48, in
 proportion to level: ours): plain gear varies by about that much.
 
-Rates a kill, an item at its creature: common 1 in 10 (ours: the next step of
-jib's ladder), uncommon 1 in 100 and rare 1 in 1,000 (jib's); a legendary
-item's its own, LEGENDARY_COUNT over the kills its creatures will take in
-YEARS on this server (legendary_rate), so that about five exist after ten
-years, as on a live server.
+This server's kills, for the legendary weights: DAILY_PLAYERS (18 accounts
+logged in during the last day of the live data of 2026-10-30 01:30 UTC; 33 in
+its last week) x HOURS_A_DAY (2, ours) x KILLS_AN_HOUR (20: tools/drop_rates.py's
+minute and a half a kill while hunting, and half of a session hunting: ours)
+x 365 x YEARS: 2,628,000 kills in ten years. A GM should lower the legendary
+weights if the server grows.
 
-This server's kills: DAILY_PLAYERS (18 accounts logged in during the last day
-of the live data of 2026-10-30 01:30 UTC; 33 in its last week) x HOURS_A_DAY
-(2, ours) x KILLS_AN_HOUR (20: tools/drop_rates.py's minute and a half a kill
-while hunting, and half of a session hunting: ours) x 365 x YEARS: 2,628,000
-kills in ten years. A legendary's creatures take the share of those its
-spawns are of every spawn that can be attacked (every spawn as often killed
-as another: ours). On SOE's server (about 1,000 daily players over its ten
-years, 3 hours each: an estimate) the same item came out about 80 times
-rarer a kill; it is the server's few players that make five need a higher
-rate here, and a GM should lower it if the server grows.
-
-    python3 -E -s tools/loot_tiers.py --db eqoa.db [--tsv tiers.tsv]   # every item's tier and why
+    python3 -E -s tools/loot_tiers.py --db eqoa.db [--tsv categories.tsv]   # every item's category and why
 """
 import argparse
 import collections
@@ -61,10 +51,9 @@ import statistics
 import sqlite3
 import sys
 
-COMMON, UNCOMMON, RARE, LEGENDARY = "common", "uncommon", "rare", "legendary"
-TIERS = (COMMON, UNCOMMON, RARE, LEGENDARY)
-TIER_RATE = {COMMON: 0.1, UNCOMMON: 0.01, RARE: 0.001}
-RARE_RATIO = 2.0   # stats this many times its level's median: rare (the top 11% of the items with stats)
+UNCOMMON, RARE, SUPER, ULTRA, LEGENDARY = "uncommon", "rare", "super rare", "ultra rare", "legendary"
+GEAR = (UNCOMMON, RARE, SUPER, ULTRA, LEGENDARY)
+RARE_RATIO, SUPER_RATIO, ULTRA_RATIO = 2.0, 3.0, 4.0  # stats this many times its level's median
 LEVEL_SPAN = 3     # levels either side an item's peers are of
 
 LEGENDARY_COUNT, YEARS = 5, 10
@@ -81,16 +70,16 @@ LEGENDARY_ITEMS = {
 }
 SECOND_RECORDS = {"primordial orb of intellect"}  # a second record of an item (stats alike, "Add a real description."): never placed
 ARCHIVE = {  # Allakhazam's item pages, its players' comments of 2003-2005
-    "grimsplitter": (RARE, "Allakhazam's page: called very rare, wanted by many"),
-    "blackened iron choppa": (RARE, "Allakhazam's page: called a rare drop"),
-    "huntlord's bracers": (RARE, "Allakhazam's page (Storm's Edge): listed among the melee rares"),
-    "minstrel's edge": (RARE, "Allakhazam's page (Storm's Edge): listed among the melee rares"),
-    "icescale boots": (RARE, "Allakhazam's page (Storm's Edge): Icescale listed among the melee rares"),
-    "icescale bracers": (RARE, "Allakhazam's page (Storm's Edge): Icescale listed among the melee rares"),
-    "icescale gloves": (RARE, "Allakhazam's page (Storm's Edge): Icescale listed among the melee rares"),
-    "icescale helm": (RARE, "Allakhazam's page (Storm's Edge): Icescale listed among the melee rares"),
-    "icescale leggings": (RARE, "Allakhazam's page (Storm's Edge): Icescale listed among the melee rares"),
-    "icescale tunic": (RARE, "Allakhazam's page (Storm's Edge): Icescale listed among the melee rares"),
+    "grimsplitter": (ULTRA, "Allakhazam's page: called very rare, wanted by many"),
+    "blackened iron choppa": (SUPER, "Allakhazam's page: called a rare drop"),
+    "huntlord's bracers": (SUPER, "Allakhazam's page (Storm's Edge): listed among the melee rares"),
+    "minstrel's edge": (SUPER, "Allakhazam's page (Storm's Edge): listed among the melee rares"),
+    "icescale boots": (SUPER, "Allakhazam's page (Storm's Edge): Icescale listed among the melee rares"),
+    "icescale bracers": (SUPER, "Allakhazam's page (Storm's Edge): Icescale listed among the melee rares"),
+    "icescale gloves": (SUPER, "Allakhazam's page (Storm's Edge): Icescale listed among the melee rares"),
+    "icescale helm": (SUPER, "Allakhazam's page (Storm's Edge): Icescale listed among the melee rares"),
+    "icescale leggings": (SUPER, "Allakhazam's page (Storm's Edge): Icescale listed among the melee rares"),
+    "icescale tunic": (SUPER, "Allakhazam's page (Storm's Edge): Icescale listed among the melee rares"),
 }
 
 ATTRS = ("str", "sta", "agi", "dex", "wis", "intelligence", "cha")
@@ -202,30 +191,24 @@ def score(every):
 
 
 CRAFT_TABLES = ("craft gems", "craft modifiers")  # tools/seed_tradeskills.py's, rolled by every creature
-CRAFT_WEIGHT = {30: (COMMON, "common"), 9: (UNCOMMON, "uncommon"), 3: (RARE, "rare"), 1: (RARE, "ultra rare")}
+CRAFT_RARITY = {30: "common", 9: "uncommon", 3: "rare", 1: "ultra rare"}  # tools/seed_tradeskills.py's LOOT_WEIGHT
 
 
 def crafted(db):
-    """The craft tables' items: {patternid: (tier, why)} by their weight there."""
+    """The craft tables' items: {patternid: (table, Prima's rarity)} by their weight there."""
     if not db.execute("SELECT count(*) FROM sqlite_master WHERE name = 'loottables'").fetchone()[0]:
         return {}
     out = {}
     for t, pid, w in db.execute(f"SELECT tablename, patternid, weight FROM loottables WHERE tablename IN "
                                 f"({', '.join('?' * len(CRAFT_TABLES))})", CRAFT_TABLES):
-        if w in CRAFT_WEIGHT:
-            tier, word = CRAFT_WEIGHT[w]
-            out[pid] = (tier, f"{'a gem' if t == 'craft gems' else 'a crafting modifier'}: {word} in Prima's tables")
+        out[pid] = (t, CRAFT_RARITY.get(w, "common"))
     return out
 
 
-def tiers(db):
-    """Every item's tier and why: {patternid: (tier, why)}."""
+def categories(db):
+    """Every item's gear category and why: {patternid: (category, why)}."""
     every = items(db)
     scores = score(every)
-    craft = crafted(db)
-    sold = set()
-    if db.execute("SELECT count(*) FROM sqlite_master WHERE name = 'npcitem'").fetchone()[0]:
-        sold = {pid for (pid,) in db.execute("SELECT DISTINCT patternid FROM npcitem")}
     out = {}
     for pid, it in every.items():
         name = " ".join((it["itemname"] or "").split()).lower()
@@ -233,22 +216,21 @@ def tiers(db):
             out[pid] = (LEGENDARY, LEGENDARY_ITEMS[name])
         elif name in ARCHIVE:
             out[pid] = ARCHIVE[name]
-        elif pid in craft:
-            out[pid] = craft[pid]
-        elif pid not in scores and not group(it["equipslot"]):
-            out[pid] = (COMMON, "no wear slot: a material, a trophy, food or a potion")
         elif pid not in scores:
-            out[pid] = (COMMON, "no level to weigh its stats against")
-        elif pid in sold:
-            out[pid] = (COMMON, "sold by a merchant here")
+            out[pid] = (UNCOMMON, "no stats to weigh: no wear slot or no level")
         else:
             s, med = scores[pid]
-            if s <= 0:
-                out[pid] = (COMMON, "no stats: plain gear")
-            elif med > 0 and s >= RARE_RATIO * med:
-                out[pid] = (RARE, f"stats {s / med:.1f} times its level's median")
+            q = s / med if med > 0 else 0
+            if q >= ULTRA_RATIO:
+                out[pid] = (ULTRA, f"stats {q:.1f} times its level's median")
+            elif q >= SUPER_RATIO:
+                out[pid] = (SUPER, f"stats {q:.1f} times its level's median")
+            elif q >= RARE_RATIO:
+                out[pid] = (RARE, f"stats {q:.1f} times its level's median")
+            elif s <= 0:
+                out[pid] = (UNCOMMON, "no stats: plain gear")
             else:
-                out[pid] = (UNCOMMON, f"stats ({s / med:.1f} times its level's median)" if med else "stats")
+                out[pid] = (UNCOMMON, f"stats {q:.1f} times its level's median")
     return out
 
 
@@ -257,39 +239,26 @@ def kills_in(years=YEARS, daily=DAILY_PLAYERS, hours=HOURS_A_DAY, an_hour=KILLS_
     return daily * hours * an_hour * 365 * years
 
 
-def legendary_rate(carrier_spawns, all_spawns, kills=None):
-    """The chance a kill that gives LEGENDARY_COUNT in the kills (default the
-    server's in YEARS) when its creatures are carrier_spawns of all_spawns."""
-    kills = kills_in() if kills is None else kills
-    if carrier_spawns <= 0 or all_spawns <= 0 or kills <= 0:
-        return 0.0
-    return min(TIER_RATE[RARE], LEGENDARY_COUNT / (kills * carrier_spawns / all_spawns))
-
-
-def rate(tier, legendary=0.0):
-    return legendary if tier == LEGENDARY else TIER_RATE[tier]
-
-
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--db", required=True)
-    ap.add_argument("--tsv", help="write every item's tier and why here")
+    ap.add_argument("--tsv", help="write every item's category and why here")
     a = ap.parse_args()
     if not os.path.exists(a.db):
         sys.exit(f"{a.db}: no such database")
     db = sqlite3.connect(a.db)
-    t = tiers(db)
+    c = categories(db)
     names = {pid: n for pid, n in db.execute("SELECT patternid, itemname FROM itempattern")}
-    print("items by tier: " + ", ".join(f"{k} {v}" for k, v in collections.Counter(x for x, _ in t.values()).most_common()))
-    for pid, (tier, why) in sorted(t.items()):
-        if tier == LEGENDARY:
+    print("items by category: " + ", ".join(f"{k} {v}" for k, v in collections.Counter(x for x, _ in c.values()).most_common()))
+    for pid, (cat, why) in sorted(c.items()):
+        if cat == LEGENDARY:
             print(f"  legendary: {names[pid]} ({pid}): {why}")
     print(f"this server's kills in {YEARS} years: {kills_in():,}")
     if a.tsv:
         with open(a.tsv, "w") as f:
-            f.write("patternid\titem\ttier\twhy\n")
-            for pid, (tier, why) in sorted(t.items()):
-                f.write(f"{pid}\t{' '.join((names[pid] or '').split())}\t{tier}\t{why}\n")
+            f.write("patternid\titem\tcategory\twhy\n")
+            for pid, (cat, why) in sorted(c.items()):
+                f.write(f"{pid}\t{' '.join((names[pid] or '').split())}\t{cat}\t{why}\n")
 
 
 if __name__ == "__main__":

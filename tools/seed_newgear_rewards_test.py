@@ -36,6 +36,8 @@ class NewGear(unittest.TestCase):
         bases = {b for _, _, _, b, _, _ in ng.ITEMS} | {l for *_, l, _ in ng.ITEMS if l}
         for b in bases:
             db.execute("INSERT INTO itempattern VALUES (?, ?, '', 5, 12, 50, 8, ?, ?, 300, 1, 0)", (b, f"base {b}", b * 10, b * 100))
+        db.execute("ALTER TABLE itempattern ADD COLUMN duration INTEGER NOT NULL DEFAULT 50")
+        db.execute("UPDATE itempattern SET maxhp = 0, duration = 0 WHERE patternid = 5703")  # a blank record of the old dump
         for q, *_ in ng.ITEMS:
             db.execute("INSERT INTO queststeps VALUES (?, 1, 'talk', '')", (q,))
             db.execute("INSERT INTO queststeps VALUES (?, 3, 'give', '')", (q,))
@@ -66,10 +68,14 @@ class NewGear(unittest.TestCase):
         self.assertEqual((model, icon), (58590, 585900), "the Stone Sword's look")
         self.assertIn("Sythonis U`Dedne", desc)
         self.assertEqual(db.execute("SELECT model FROM itempattern WHERE patternid = 706008").fetchone()[0], 57030, "its own base's look")
+        self.assertEqual(db.execute("SELECT maxhp, duration FROM itempattern WHERE patternid = 706004").fetchone(), (800, 50),
+                         "a blank base's copy gets hit points and durability")
+        self.assertEqual(db.execute("SELECT maxhp, duration FROM itempattern WHERE patternid = 706003").fetchone(), (300, 50),
+                         "the control: a base with its own keeps them")
         self.assertEqual(db.execute("SELECT rewarditems FROM queststeps WHERE questid = 100480 AND step = 3").fetchone()[0], "706004")
         self.assertEqual(db.execute("SELECT rewarditems FROM queststeps WHERE questid = 100480 AND step = 1").fetchone()[0], "", "the last step only")
         self.assertEqual(db.execute("SELECT remainHP, location, listnumber FROM charinventory WHERE serverid = 103 AND patternid = 706004").fetchone(),
-                         (300, 0, 14), "given as a quest gives: the record's maxhp, the next place")
+                         (800, 0, 14), "given as a quest gives: the record's maxhp, the next place")
         self.assertEqual(db.execute("SELECT count(*) FROM charinventory WHERE serverid = 104").fetchone()[0], 0, "a quest under way owes nothing")
         db.close()
         self.assertIn("wrote 0 items, 0 rewards, 0 given", self.run_tool("--apply"), "the control: a second apply adds nothing")

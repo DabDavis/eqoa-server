@@ -31,6 +31,9 @@ import sys
 
 FIRST_ID = 706000
 
+# a weapon copied from a record with no hit points and no durability is given these
+BLANK_HP, BLANK_DUR = 800, 50
+
 # questid, the new item's id, its name, the record it copies, the record whose model and icon it
 # takes (None: its own), and its line
 ITEMS = [
@@ -100,6 +103,11 @@ def plan(db):
             continue
         item = dict(b)
         item.update(patternid=pid, itemname=name, itemdesc=desc)
+        if not item.get("maxhp") and not item.get("duration"):
+            # a blank record of the old dump (no hit points, no durability: the item window's
+            # "HP 0/0, DUR 0"): what Sandstorm's own level 4-5 weapons carry, 5 of 6 (the user,
+            # 2026-10-30: "the weapons you added are HP 0/0, DUR 0")
+            item.update(maxhp=BLANK_HP, duration=BLANK_DUR)
         if look is not None:
             lk = row(db, "SELECT model, itemicon FROM itempattern WHERE patternid = ?", (look,))
             if lk is None:

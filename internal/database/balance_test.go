@@ -190,7 +190,54 @@ func TestBalanceClassLevelPetColumnAddedToAnOlderTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(rows) != 1 || rows[0].MeleeTakenPct != 55 || rows[0].PetHPPct != 100 {
-		t.Errorf("after the open: %+v (want the GM's 55 kept and the pet column 100)", rows)
+	if len(rows) != 1 || rows[0].MeleeTakenPct != 55 || rows[0].PetHPPct != 100 || rows[0].DealtPct != 100 {
+		t.Errorf("after the open: %+v (want the GM's 55 kept and the pet and dealt columns 100)", rows)
+	}
+}
+
+// A balanceclasslevel made with its pet column but before its dealt column
+// (eqoaclassic's of 2026-10-30 00:27) gets it at the next open, every row
+// 100 (all of a player's damage); the control: the rows' other columns kept.
+// A new database's seed rows carry theirs (balanceseed.go; 100 where unset).
+func TestBalanceClassLevelDealtColumnAddedToAnOlderTable(t *testing.T) {
+	path := t.TempDir() + "/old.db"
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := raw.Exec(`CREATE TABLE balanceclasslevel (class INTEGER NOT NULL, level INTEGER NOT NULL,
+		melee_taken_pct REAL NOT NULL DEFAULT 100, pet_hp_pct REAL NOT NULL DEFAULT 100, note TEXT NOT NULL DEFAULT '',
+		source TEXT NOT NULL DEFAULT 'gm', PRIMARY KEY (class, level));
+		INSERT INTO balanceclasslevel (class, level, melee_taken_pct, pet_hp_pct, source) VALUES (13, 10, 44, 100, 'seed'),
+		(11, 30, 90, 160, 'seed');`); err != nil {
+		t.Fatal(err)
+	}
+	raw.Close()
+	db, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	rows, err := db.BalanceClassLevels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 2 || rows[0].MeleeTakenPct != 90 || rows[0].PetHPPct != 160 || rows[0].DealtPct != 100 ||
+		rows[1].MeleeTakenPct != 44 || rows[1].DealtPct != 100 {
+		t.Errorf("after the open: %+v (want both rows kept, dealt 100)", rows)
+	}
+	fresh, err := NewSQLite(t.TempDir() + "/new.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fresh.Close()
+	seeded, err := fresh.BalanceClassLevels()
+	if err != nil || len(seeded) != len(BalanceSeedClassLevels) {
+		t.Fatalf("a new database: %d rows, %v", len(seeded), err)
+	}
+	for i, r := range seeded {
+		if want := BalanceSeedClassLevels[i].Dealt(); r.DealtPct != want {
+			t.Errorf("seed row %d %d: dealt %g, want %g", r.Class, r.Level, r.DealtPct, want)
+		}
 	}
 }

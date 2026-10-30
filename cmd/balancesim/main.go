@@ -41,6 +41,8 @@
 // taken_pct, in place of the tables' (balance db or seed) rows; -try-art
 // the arts' cooldown by the player's level (level:ms), the line through them;
 // -try-class class:melee_taken_pct rows in place of the class table's;
+// -try-classlevel class:level:melee_taken_pct[:pet_hp_pct[:dealt_pct]]
+// rows in place of the class and level table's;
 // -try-root a root's resist and break chances by the con (diff:resist:break).
 // With -root the classes that have a root also fight as a rooting caster
 // does (entity.SimPlay.Root): the root first, then their spells from range,
@@ -108,7 +110,7 @@ func main() {
 	tryRoot := flag.String("try-root", "", "a root's resist and break chances to try, by the con: diff:resist:break,...")
 	tryRegen := flag.String("try-regen", "", "a creature's heal out of a fight to try, by its level: level:pct,...")
 	tryConPct := flag.String("try-conpct", "", "con_pct to try, by the NPC's level: level:pct,... (the line through them)")
-	tryClassLevel := flag.String("try-classlevel", "", "class and level rows to try: class:level:melee_taken_pct[:pet_hp_pct],... (in place of the table's)")
+	tryClassLevel := flag.String("try-classlevel", "", "class and level rows to try: class:level:melee_taken_pct[:pet_hp_pct[:dealt_pct]],... (in place of the table's)")
 	tryPetHP := flag.String("try-pethp", "", "a summoned pet's hit points to try, by its owner's level: level:pct,...")
 	rootPlay := flag.Bool("root", false, "classes with a root also fight rooting and casting from range, no pet")
 	only := flag.String("only", "", "only this play's rows: false (hand to hand), true (the pet) or root")
@@ -210,9 +212,12 @@ func main() {
 	if *tryClassLevel != "" {
 		var cll []database.BalanceClassLevel
 		for _, r := range rows(*tryClassLevel, 3) {
-			row := database.BalanceClassLevel{Class: int(r[0]), Level: int(r[1]), MeleeTakenPct: r[2], PetHPPct: 100}
+			row := database.BalanceClassLevel{Class: int(r[0]), Level: int(r[1]), MeleeTakenPct: r[2], PetHPPct: 100, DealtPct: 100}
 			if len(r) > 3 {
 				row.PetHPPct = r[3]
+			}
+			if len(r) > 4 {
+				row.DealtPct = r[4]
 			}
 			cll = append(cll, row)
 		}

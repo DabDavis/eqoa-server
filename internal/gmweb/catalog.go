@@ -758,9 +758,11 @@ var catalog = map[string]tableNote{
 		Help: "The game's balance by a player's class and level (entity/balance.go): melee_taken_pct, a percent of " +
 			"the class's share in Balance by class at that level, so an NPC's melee hit on the player is Balance by " +
 			"class's figure times this; pet_hp_pct, a summoned pet's hit points by its owner's class and level, a " +
-			"percent of Balance by level's pet_hp_pct (taken when the pet is summoned). A class's rows make a line by " +
+			"percent of Balance by level's pet_hp_pct (taken when the pet is summoned); dealt_pct, the share of the " +
+			"player's own damage (melee, spells and their ticks, procs, damage shields) that lands on an NPC, after " +
+			"Balance by con's taken_pct: a fight's length by class where melee_taken_pct is its danger. A class's rows make a line by " +
 			"level (between two rows the straight line, below the first and past the last the end row's); a class with " +
-			"no rows takes Balance by class's figure and the whole of Balance by level's pet column at every level. Rows " +
+			"no rows takes Balance by class's figure, the whole of Balance by level's pet column and all of its damage at every level. Rows " +
 			"of source seed are the tuning of 2026-10-30 (claude-notes/balance-20261029.md); cmd/balancesim's " +
 			"-try-classlevel tries rows before they are written.",
 		Live:   "At once: the next hit of every fight uses it.",
@@ -771,6 +773,8 @@ var catalog = map[string]tableNote{
 			"melee_taken_pct": {Label: "Share of the class's %", Help: "of Balance by class's figure, at this level"},
 			"pet_hp_pct": {Label: "Pet's hit points %", Help: "a summoned pet's of an owner of this class and level, " +
 				"a percent of Balance by level's pet_hp_pct (each class's pets lag their owner their own way)"},
+			"dealt_pct": {Label: "Damage dealt %", Help: "of a player's own damage on an NPC that lands, after the con's " +
+				"(its pet's not: Balance by level's pet_damage_pct)"},
 			"note":   {Label: "Note"},
 			"source": {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},

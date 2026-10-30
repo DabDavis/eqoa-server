@@ -125,6 +125,9 @@ type NPCState struct {
 	Movement string `json:"movement"`
 	// Template is the class template it fights by (classtemplate.go)
 	Template string `json:"template,omitempty"`
+	// SpawnOnly: it stands out of the world, there for its spawns alone
+	// (spawnonly.go, table npcspawnonly)
+	SpawnOnly bool `json:"spawnOnly,omitempty"`
 }
 
 func (w *World) npcStateLocked(npc *NPC) NPCState {
@@ -135,7 +138,7 @@ func (w *World) npcStateLocked(npc *NPC) NPCState {
 		Level: npc.Level, HP: npc.HP, MaxHP: npc.MaxHP, Dead: npc.Dead,
 		Class: npc.Class, Faction: npc.Faction, Temporary: npc.Temporary,
 		ModelID: npc.ModelID, NPCType: npc.NPCType,
-		RespawnSec: npc.RespawnTime.Seconds(),
+		RespawnSec: npc.RespawnTime.Seconds(), SpawnOnly: npc.SpawnOnly,
 	}
 	_, why, word := w.movementLocked(npc)
 	s.Movement = MoveWhyText(why, word)

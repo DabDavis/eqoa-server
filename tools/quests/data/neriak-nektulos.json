@@ -2934,13 +2934,14 @@
       {
        "on": "done",
        "do": "spawn",
-       "npc": "fungus cockroach"
+       "npc": "Jarek's Creation",
+       "hostile": true
       }
      ]
     },
     {
      "kind": "loot",
-     "target": "fungus cockroach",
+     "target": "Jarek's Creation",
      "items": [
       {
        "item": "mutated shell",
@@ -2971,7 +2972,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation has no name; it is a fungus cockroach made beside the player. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: sturdy staff, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation is Jarek's Creation, as Klick`Anon's rogue guide names it (\"Jarek uses the items to create a giant insect, which kills him and attacks you\"): once Jarek has the parts it is made beside the player and attacks at once (it leaves Jarek alive here, for the next player); it stands nowhere else (npcspawnonly, tools/fix_quest_spawns.py). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: sturdy staff, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/magician/L13",
@@ -3813,13 +3814,14 @@
       {
        "on": "done",
        "do": "spawn",
-       "npc": "fungus cockroach"
+       "npc": "Jarek's Creation",
+       "hostile": true
       }
      ]
     },
     {
      "kind": "loot",
-     "target": "fungus cockroach",
+     "target": "Jarek's Creation",
      "items": [
       {
        "item": "mutated shell",
@@ -3850,7 +3852,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation has no name; it is a fungus cockroach made beside the player. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: dagger of essence, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation is Jarek's Creation, as Klick`Anon's rogue guide names it (\"Jarek uses the items to create a giant insect, which kills him and attacks you\"): once Jarek has the parts it is made beside the player and attacks at once (it leaves Jarek alive here, for the next player); it stands nowhere else (npcspawnonly, tools/fix_quest_spawns.py). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: dagger of essence, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/necromancer/L13",
@@ -5441,13 +5443,14 @@
       {
        "on": "done",
        "do": "spawn",
-       "npc": "fungus cockroach"
+       "npc": "Jarek's Creation",
+       "hostile": true
       }
      ]
     },
     {
      "kind": "loot",
-     "target": "fungus cockroach",
+     "target": "Jarek's Creation",
      "items": [
       {
        "item": "mutated shell",
@@ -5478,7 +5481,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation has no name; it is a fungus cockroach made beside the player. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Blade of the Nanchael, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation is Jarek's Creation, as Klick`Anon's rogue guide names it (\"Jarek uses the items to create a giant insect, which kills him and attacks you\"): once Jarek has the parts it is made beside the player and attacks at once (it leaves Jarek alive here, for the next player); it stands nowhere else (npcspawnonly, tools/fix_quest_spawns.py). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Blade of the Nanchael, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/shadowknight/L13",
@@ -7155,13 +7158,14 @@
       {
        "on": "done",
        "do": "spawn",
-       "npc": "fungus cockroach"
+       "npc": "Jarek's Creation",
+       "hostile": true
       }
      ]
     },
     {
      "kind": "loot",
-     "target": "fungus cockroach",
+     "target": "Jarek's Creation",
      "items": [
       {
        "item": "mutated shell",
@@ -7192,7 +7196,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation has no name; it is a fungus cockroach made beside the player. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Staff of Malconius, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation is Jarek's Creation, as Klick`Anon's rogue guide names it (\"Jarek uses the items to create a giant insect, which kills him and attacks you\"): once Jarek has the parts it is made beside the player and attacks at once (it leaves Jarek alive here, for the next player); it stands nowhere else (npcspawnonly, tools/fix_quest_spawns.py). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Staff of Malconius, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/wizard/L13",

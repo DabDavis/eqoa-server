@@ -128,7 +128,9 @@ func (w *World) visibilitySystem() {
 				if npc.World != player.World {
 					continue
 				}
-				if !npc.HiddenUntil.IsZero() && time.Now().Before(npc.HiddenUntil) {
+				// out of every view: the panel remaking it, or spawn-only
+				// (spawnonly.go)
+				if npc.hiddenAt(time.Now()) {
 					continue
 				}
 				// A corpse is in view while it lies (corpse.go): emptied

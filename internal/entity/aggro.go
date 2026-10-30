@@ -352,7 +352,7 @@ func (w *World) aggroSystem(now time.Time) {
 		}
 		for _, id := range w.SpatialIndex.QueryRadius(p.X, p.Z, reach) {
 			npc, ok := w.NPCs[id]
-			if !ok || npc.World != p.World || npc.CurrentEnemy != 0 || npc.chase.returning || now.Before(npc.HiddenUntil) {
+			if !ok || npc.World != p.World || npc.CurrentEnemy != 0 || npc.chase.returning || npc.hiddenAt(now) {
 				continue
 			}
 			if !w.threatensLocked(npc, p) {

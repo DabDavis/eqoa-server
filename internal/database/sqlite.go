@@ -603,6 +603,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCSocial(); err != nil {
 		return err
 	}
+	if err := db.ensureNPCSpawnOnly(); err != nil { // npcspawnonly.go
+		return err
+	}
 	if err := db.ensureItemEffects(); err != nil {
 		return err
 	}

@@ -46,6 +46,7 @@ CASES = [
     rec(105, "Danlon's Iron Wall", 40, 13, ac=210, agi=210),           # copied: agi out
     rec(106, "Plain Shield", 40, 13, ac=200, agi=15),                   # left: right already
     rec(107, "Odd Tunic", 40, 5, intelligence=900),                     # undecided: no armor class is that size
+    rec(108, "Null Shield", 40, 13, ac=None, dex=205),                  # moved, its NULL armor class put back by --undo
 ]
 
 
@@ -73,7 +74,7 @@ class FixArmorClass(unittest.TestCase):
         db = sqlite3.connect(self.path)
         moved, copied, undecided = fac.plan(db)
         db.close()
-        self.assertEqual({(r[0], r[4], r[5]) for r in moved}, {(100, "agi", 210), (101, "agi", 250)})
+        self.assertEqual({(r[0], r[4], r[5]) for r in moved}, {(100, "agi", 210), (101, "agi", 250), (108, "dex", 205)})
         self.assertEqual({(r[0], r[4]) for r in copied}, {(105, "agi")})
         self.assertEqual({r[0] for r in undecided}, {102, 103, 107})
         self.assertIn("robe", [r for r in undecided if r[0] == 103][0][7])
@@ -98,7 +99,7 @@ class FixArmorClass(unittest.TestCase):
         db.commit()
         db.close()
         r = run("--undo")
-        self.assertIn("put back 2 items; 1 changed since", r.stdout)
+        self.assertIn("put back 3 items; 1 changed since", r.stdout)
         got = self.rows()
         self.assertEqual(got[101][i("AC")], 222)
         got[101] = before[101]

@@ -69,7 +69,7 @@ LOG_DDL = """CREATE TABLE IF NOT EXISTS armor_class_fix_log (
     kind      TEXT NOT NULL,     -- moved | copied
     field     TEXT NOT NULL,     -- the stat the number sat in
     number    INTEGER NOT NULL,  -- the number
-    ac_before INTEGER NOT NULL,
+    ac_before INTEGER,           -- the armor class before, as it was (NULL kept)
     applied   TEXT NOT NULL
 )"""
 
@@ -152,12 +152,14 @@ def apply(db, moved, copied):
     db.execute("BEGIN IMMEDIATE")
     try:
         db.execute(LOG_DDL)
-        for pid, name, lv, slot, k, n, ac, why in moved:
-            db.execute(f"UPDATE itempattern SET AC = ?, {k} = 0 WHERE patternid = ?", (n, pid))
-            db.execute("INSERT INTO armor_class_fix_log VALUES (?, ?, 'moved', ?, ?, ?, ?)", (pid, name, k, n, ac, when))
-        for pid, name, lv, slot, k, n, ac, why in copied:
-            db.execute(f"UPDATE itempattern SET {k} = 0 WHERE patternid = ?", (pid,))
-            db.execute("INSERT INTO armor_class_fix_log VALUES (?, ?, 'copied', ?, ?, ?, ?)", (pid, name, k, n, ac, when))
+        for kind, rows in (("moved", moved), ("copied", copied)):
+            for pid, name, lv, slot, k, n, ac, why in rows:
+                (raw_ac,) = db.execute("SELECT AC FROM itempattern WHERE patternid = ?", (pid,)).fetchone()
+                if kind == "moved":
+                    db.execute(f"UPDATE itempattern SET AC = ?, {k} = 0 WHERE patternid = ?", (n, pid))
+                else:
+                    db.execute(f"UPDATE itempattern SET {k} = 0 WHERE patternid = ?", (pid,))
+                db.execute("INSERT INTO armor_class_fix_log VALUES (?, ?, ?, ?, ?, ?, ?)", (pid, name, kind, k, n, raw_ac, when))
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
@@ -176,7 +178,7 @@ def undo(db):
             if k not in STATS:
                 continue
             cur = db.execute(f"SELECT AC, {k} FROM itempattern WHERE patternid = ?", (pid,)).fetchone()
-            want_ac = n if kind == "moved" else ac
+            want_ac = n if kind == "moved" else (ac or 0)
             if cur is not None and (cur[0] or 0) == want_ac and (cur[1] or 0) == 0:
                 db.execute(f"UPDATE itempattern SET AC = ?, {k} = ? WHERE patternid = ?", (ac, n, pid))
                 back += 1

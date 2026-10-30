@@ -122,6 +122,7 @@ beside it):
 | `queststeps` | a quest's steps in order: `kind` talk / show / give / kill / loot / reach, `target` (an NPC's or creature's name), `items` (`patternid*count, ...`), `chance` (a loot step's), the `journal` line, the NPC's words, the rewards, `events` | `questid`+`step` |
 | `queststeptargets` | a kill or loot step's other creatures, a row a name: a kill of any counts, a loot step's item drops off any (the Quests page and `quest_save`'s `also` edit them) | `questid`+`step`+`target` |
 | `charquests` | how far a character has come in a quest: `step` (0 finished), `count` (kills so far), `done` (times finished) | `serverid`+`questid` |
+| `signtext` | what a sign post or an announcement board says when talked to, a row a sign by its `npcs` row (`npcid`): `text` its lines (at most 1000); `npcid` 0 (`kind` news) is the news every board says after its own words, one edit for every town's board; `kind` building / place / city / road / board / news / gm; a sign with no row says the NPC text Settings gives its name, else nothing | `npcid` |
 | `questnotyet` | what a quest giver says to a player who meets all its next quest asks but the level, when it has nothing else for the player: a `line` of the giver's `city` at random (the quest's import key's starting city, Weres for the were quests, else the giver's town; empty: a city with no line of its own); `%p` the player's name | `id` |
 
 ## Conventions

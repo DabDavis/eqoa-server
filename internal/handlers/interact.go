@@ -40,6 +40,10 @@ type InteractHandler struct {
 	// the guards say (entity/dialog.go). Nil: they say nothing.
 	dialogLines func() ([]database.NPCDialogLine, error)
 
+	// signTexts is signtext (database.SignTexts): what the signs and boards
+	// say (signs.go). Nil: a sign says world.npc_text's words for its name.
+	signTexts func() (map[int]database.SignText, error)
+
 	// lastLine is the npcdialog line each speaker said to each listener last
 	// (by lineKey), so a second talk hears another.
 	lastMu   sync.Mutex
@@ -145,10 +149,11 @@ func (h *InteractHandler) RegisterHandlers(r *Registry) {
 
 // HandleInteract handles NPC interaction requests (opcode 0x0004).
 // Client sends: uint32 targetObjectID
-// A corpse opens its loot, the hard-disk technician his menu, a travel NPC
-// its routes, a greeter its words, a quest giver the player is too low for
-// its city's "not yet" and a town's person or a guard a line of npcdialog;
-// anything else answers nothing.
+// A corpse opens its loot, a sign or a board its words (and nothing else),
+// the hard-disk technician his menu, a travel NPC its routes, a greeter its
+// words, a quest giver the player is too low for its city's "not yet" and a
+// town's person or a guard a line of npcdialog; anything else answers
+// nothing.
 func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {
@@ -193,6 +198,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 
 	// A corpse: its loot (loot.go).
 	if npc, ok := targetEntity.(*entity.NPC); ok && npc.Dead && h.corpse != nil && h.corpse(sess, npc) {
+		return nil
+	}
+
+	// A sign post or an announcement board (signs.go): its words, and never a
+	// quest, the town dialog, a shop or a route.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.signSay(sess, player, npc) {
 		return nil
 	}
 
@@ -299,8 +310,8 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		}
 	}
 
-	// A sign post or a greeter: its words (world.npc_text) instead of the
-	// debug box.
+	// A greeter: its words (world.npc_text) instead of the debug box (a sign
+	// with no row of signtext says them above).
 	if npc, ok := targetEntity.(*entity.NPC); ok {
 		if text, ok := npcTextFor(npc.Name); ok {
 			forgetDialogs(player)

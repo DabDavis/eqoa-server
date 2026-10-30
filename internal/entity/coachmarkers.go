@@ -4,9 +4,11 @@ import "sort"
 
 // CoachMarker is a coach stop for a map (the GM panel's; F3 pass 18, the
 // user: "add the camps and coaches to the GM panel map too"): a coachman, the
-// town it serves, where it stands, the towns this server's coach menu offers
-// from it (GetCoachDestinations: every other coach town of its world) and the
-// towns the live game's coach ran to (liveCoachRoutes, EQOA-Data's map).
+// town it serves, where it stands, the towns this server's coach menu may
+// offer from it (CoachMenu: the other coach towns of its world its coach runs
+// to, a player being offered those whose ledger it signed; every other coach
+// town of its world for a coachman off the network) and the towns the live
+// game's coach ran to (liveCoachRoutes, EQOA-Data's map).
 type CoachMarker struct {
 	ID      EntityID
 	Name    string // the coachman's
@@ -14,7 +16,8 @@ type CoachMarker struct {
 	Named   bool   // Town is a town's, not the coachman's name
 	World   uint8
 	X, Y, Z float32  // its spawn
-	Routes  []string // what its coach menu lists, as GetCoachDestinations names them
+	Routes  []string // what its coach menu may list, as GetCoachDestinations names them
+	Routed  bool     // its town is on the network: a player is offered the Routes it signed
 	Live    []string // the live game's from this town (EQOA-Data), none when it has none
 }
 
@@ -40,9 +43,14 @@ func (w *World) CoachMarkers(world int) []CoachMarker {
 		_, named := coachLabel(npc)
 		m := CoachMarker{ID: npc.ServerID, Name: npc.Name, Town: label, Named: named, World: npc.World,
 			X: npc.SpawnX, Y: npc.SpawnY, Z: npc.SpawnZ}
+		routed := named && OnCoachNetwork(label) // CoachMenu's rule
+		m.Routed = routed
 		seen := map[string]bool{}
 		for id, other := range labels {
 			if o := w.NPCs[id]; o == nil || id == npc.ServerID || o.World != npc.World || seen[other] {
+				continue
+			}
+			if routed && !CoachRunsTo(label, other) {
 				continue
 			}
 			seen[other] = true

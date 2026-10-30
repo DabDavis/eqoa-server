@@ -27,8 +27,11 @@ func (s *Server) registerMapLayerOps() {
 			"EQOA-Data's note on it, x/y/z: its anchor creature's spawn, fallback: the anchor is not loaded and " +
 			"the place is as written, creatures: the names that make it, rare: EQOA-Data's rare mobs near it with " +
 			"their level here (0: none of the name) and the drops EQOA-Data names). coaches: each coachman (id: " +
-			"its NPC's, name, town, x/y/z: its spawn, routes: the towns its coach menu here offers, every other " +
-			"coach town of the world; live: the towns the live game's coach ran to, EQOA-Data's coach map). towns: " +
+			"its NPC's, name, town, x/y/z: its spawn, routes: the towns its coach menu here may offer, the other " +
+			"coach towns of the world its coach runs to (the live game's network read both ways; a player is offered " +
+			"those whose ledger it signed, charcoaches, a GM all of the world's), every other coach town of the " +
+			"world for a coachman of no town on the network (routed false); live: the towns the live game's coach ran to, " +
+			"EQOA-Data's coach map). towns: " +
 			"the world's towns to name (Tunaria's coach towns, the others by EQOA-Data's map). you: " +
 			"the GM's own character in the game (serverid, name, world), or null: what a camp's Teleport moves. " +
 			"map_camp has a camp's loot tables.",
@@ -48,7 +51,7 @@ func (s *Server) registerMapLayerOps() {
 					coaches = append(coaches, map[string]any{
 						"id": m.ID, "name": m.Name, "town": m.Town, "named": m.Named, "world": m.World,
 						"x": round1(m.X), "y": round1(m.Y), "z": round1(m.Z),
-						"routes": orEmpty(m.Routes), "live": orEmpty(m.Live),
+						"routes": orEmpty(m.Routes), "routed": m.Routed, "live": orEmpty(m.Live),
 					})
 				}
 			}

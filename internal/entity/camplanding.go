@@ -24,7 +24,7 @@ const (
 var campSteps = [...]float32{45, 60, 75, 90, 110, 130, 150}
 
 // CampLanding is where a #tele to a camp lands: its anchor, the NPC of that
-// name in the world whose spawn is nearest (x, z) within reach, and, when the
+// name (sameNPCName) in the world whose spawn is nearest (x, z) within reach, and, when the
 // anchor stands on the world's ground, a spot beside the camp: 45 to 150 off
 // the anchor, no creature (an NPC without the NPC bit, alive, not a dummy)
 // within campClear of it, on the terrain within campRise of the terrain at
@@ -43,7 +43,7 @@ func (w *World) CampLanding(name string, world uint8, x, z, reach float32) (lx, 
 	var a *NPC
 	best := reach * reach
 	for _, npc := range w.NPCs {
-		if npc.Name != name || npc.World != world || npc.Temporary {
+		if !sameNPCName(npc.Name, name) || npc.World != world || npc.Temporary {
 			continue
 		}
 		dx, dz := npc.SpawnX-x, npc.SpawnZ-z

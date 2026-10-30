@@ -117,3 +117,21 @@ func TestCampLandingOnTheAnchorOtherwise(t *testing.T) {
 		t.Error("an anchor further than reach landed")
 	}
 }
+
+// A camp's creature is named in camps.go as the database spelled it when the
+// file was made; the name finds its NPCs in any case and with its ends' spaces
+// (tools/fix_npc_name_case.py lowercases a generic name, "Gharial " is
+// "gharial" now), never a namesake out of reach.
+func TestCampAnchorTakesTheNameInAnyCase(t *testing.T) {
+	w := campWorld(flatGround{y: 50})
+	if _, _, _, ok := w.CampLanding(" ORC ", 0, 1020, 1000, 300); !ok {
+		t.Error("CampLanding did not find the camp's creatures by another case")
+	}
+	x, _, z, _, _, ok := w.SpawnOfNPCNear("Orc", 0, 1020, 1000, 300)
+	if !ok || x != 1020 || z != 1000 {
+		t.Errorf("SpawnOfNPCNear in another case: (%.0f, %.0f) %v, want the anchor (1020, 1000)", x, z, ok)
+	}
+	if _, _, _, _, _, ok := w.SpawnOfNPCNear("Orc", 0, 1600, 1000, 300); ok {
+		t.Error("SpawnOfNPCNear found a namesake out of reach")
+	}
+}

@@ -113,7 +113,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Magpie",
+     "target": "magpie",
      "items": [
       {
        "item": "broken raven feathers",
@@ -189,7 +189,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fireflies",
+     "target": "fireflies",
      "items": [
       {
        "item": "damaged firefly wings",
@@ -202,7 +202,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Cracked Rat Claw",
@@ -265,7 +265,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Pickclaw Shaman",
+     "target": "pickclaw shaman",
      "items": [
       {
        "item": "Raiders Cap",
@@ -472,7 +472,7 @@
     },
     {
      "kind": "kill",
-     "target": "Goblin Hurler",
+     "target": "goblin hurler",
      "count": 1,
      "journal": "Kill the goblins on the tower."
     },
@@ -510,7 +510,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Suspicious Goblin",
+     "target": "suspicious goblin",
      "items": [
       {
        "item": "Suspicious Looking Stone",
@@ -1001,7 +1001,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "bat meat",
@@ -1077,7 +1077,7 @@
     },
     {
      "kind": "loot",
-     "target": "Crow",
+     "target": "crow",
      "items": [
       {
        "item": "chipped raven beak",
@@ -1090,7 +1090,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Strands of Rat Fur",
@@ -1153,7 +1153,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Pickclaw Shaman",
+     "target": "pickclaw shaman",
      "items": [
       {
        "item": "Raiders Cap",
@@ -1345,7 +1345,7 @@
     },
     {
      "kind": "loot",
-     "target": "Goblin Thief",
+     "target": "goblin thief",
      "items": [
       {
        "item": "stolen goods",
@@ -1433,7 +1433,7 @@
     },
     {
      "kind": "loot",
-     "target": "Goblin Foreman",
+     "target": "goblin foreman",
      "items": [
       {
        "item": "Goblin Foreman's Mallet",
@@ -1899,7 +1899,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Strands of Rat Fur",
@@ -1965,7 +1965,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fireflies",
+     "target": "fireflies",
      "items": [
       {
        "item": "damaged firefly wings",
@@ -2024,7 +2024,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Pickclaw Shaman",
+     "target": "pickclaw shaman",
      "items": [
       {
        "item": "Raiders Cap",
@@ -3014,7 +3014,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Strands of Rat Fur",
@@ -3080,7 +3080,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fireflies",
+     "target": "fireflies",
      "items": [
       {
        "item": "damaged firefly wings",
@@ -3139,7 +3139,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Pickclaw Shaman",
+     "target": "pickclaw shaman",
      "items": [
       {
        "item": "Raiders Cap",

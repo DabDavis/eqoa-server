@@ -2,6 +2,8 @@ package entity
 
 import (
 	"testing"
+
+	"github.com/eqoa/server/internal/database"
 )
 
 // The social pull (socialaggro.go): a hit on an NPC calls the social NPCs of
@@ -15,13 +17,13 @@ func newSocialFix(t *testing.T) *aggroFix {
 	t.Helper()
 	f := newAggroFix(t, 40)
 	f.w.SetFactionHits(nil)
-	f.w.factions.hits = map[string][]FactionHit{
+	f.w.factions.hits = keyedHits(map[string][]FactionHit{
 		"Guard Alinon":  {{"Citizens of Freeport", -25}, {"The Freeport Militia", -50}},
 		"Guard Brenna":  {{"Citizens of Freeport", -25}, {"The Freeport Militia", -50}},
 		"Guard Cadwell": {{"Citizens of Freeport", -25}, {"The Freeport Militia", -50}},
 		"Baker Dunn":    {{"Citizens of Freeport", -25}},
 		"Guard Ely":     {{"Citizens of Highpass", -25}, {"The Highpass Guard", -50}},
-	}
+	})
 	f.w.SetSocialRules(map[string]SocialRule{
 		"Guard Alinon":  {Social: true, Faction: "The Freeport Militia"},
 		"Guard Brenna":  {Social: true, Faction: "The Freeport Militia"},
@@ -29,6 +31,15 @@ func newSocialFix(t *testing.T) *aggroFix {
 		"Guard Ely":     {Social: true, Faction: "The Highpass Guard"},
 	})
 	return f
+}
+
+// keyedHits keys factionhits' rows as SetFactionHits does (NPCClassKey).
+func keyedHits(m map[string][]FactionHit) map[string][]FactionHit {
+	out := make(map[string][]FactionHit, len(m))
+	for name, h := range m {
+		out[database.NPCClassKey(name)] = h
+	}
+	return out
 }
 
 // hit is a player's hit on n through the threat's entry every hit takes.
@@ -81,7 +92,7 @@ func TestATownspersonHitCallsNoGuard(t *testing.T) {
 // a guard the seed left out still has the militia's help.
 func TestAnNPCWithNoRowIsOfTheFactionsItsKillLowers(t *testing.T) {
 	f := newSocialFix(t)
-	f.w.factions.hits["Guard Gorm"] = []FactionHit{{"Citizens of Freeport", -25}, {"The Freeport Militia", -50}}
+	f.w.factions.hits[database.NPCClassKey("Guard Gorm")] = []FactionHit{{"Citizens of Freeport", -25}, {"The Freeport Militia", -50}}
 	victim := f.npc(106, "Guard Gorm", 30, humanBody, 1000, 1000)
 	helper := f.npc(101, "Guard Brenna", 30, humanBody, 1015, 1000)
 	f.hit(victim, 5)
@@ -274,5 +285,30 @@ func TestAMeleeHitCallsTheHelpers(t *testing.T) {
 	f.w.mu.Unlock()
 	if !f.attacks(helper) {
 		t.Errorf("a melee hit on a guard called its friend: enemy %d", helper.CurrentEnemy)
+	}
+}
+
+// A rule is for its name in any case, as npcaggro's is: a row the seed wrote
+// as "Deathfist Pawn" covers the camp's "Deathfist pawn" (the imports spelled
+// one creature both ways), and of two spellings' rules the one that never
+// helps wins.
+func TestSocialRulesTakeTheNameInAnyCase(t *testing.T) {
+	f := newSocialFix(t)
+	f.w.SetSocialRules(map[string]SocialRule{"Deathfist Pawn": {Social: true, Faction: "Deathfist Orcs"}})
+	victim := f.npc(300, "Deathfist pawn", 20, bearBody, 1000, 1000)
+	helper := f.npc(301, "deathfist pawn", 20, bearBody, 1015, 1000)
+	f.hit(victim, 5)
+	if !f.attacks(helper) {
+		t.Errorf("a pawn spelled otherwise did not come to its kind's help (enemy %d)", helper.CurrentEnemy)
+	}
+	if r, ok := f.w.SocialRuleFor(" DEATHFIST PAWN "); !ok || r.Faction != "Deathfist Orcs" {
+		t.Errorf("SocialRuleFor in another case: %v %v", r, ok)
+	}
+	f.w.SetSocialRules(map[string]SocialRule{
+		"Deathfist Pawn": {Social: true, Faction: "Deathfist Orcs"},
+		"deathfist pawn": {Social: false},
+	})
+	if r, _ := f.w.SocialRuleFor("Deathfist pawn"); r.Social {
+		t.Error("of two spellings' rules the helping one won")
 	}
 }

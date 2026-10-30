@@ -305,3 +305,25 @@ func TestQuestFactionRewardsSaySandstormsLines(t *testing.T) {
 		t.Errorf("Faction Messages off: lines %q, standing %d", got, g.p.Factions["Citizens of Freeport"])
 	}
 }
+
+// A row is for its name in any case (NPCClassKey), as npcfaction's is: the
+// imports spelled one creature "Grass Viper" and "grass viper", and the kill of
+// either moves the standing. Two spellings' rows on one faction count once.
+func TestFactionHitsTakeTheNameInAnyCase(t *testing.T) {
+	f := newFight(t)
+	f.npc.Name = "guard dahvel "
+	f.npc.HP = 1
+	rows := append(guardHits, database.FactionHitRow{NPCName: "GUARD DAHVEL", Faction: "Citizens of Freeport", Delta: -25})
+	if kept, unknown := f.w.SetFactionHits(rows); kept != 2 || unknown != 0 {
+		t.Fatalf("kept %d, unknown %d: another spelling's row on one faction was kept", kept, unknown)
+	}
+	if got := f.w.FactionHitsFor("Guard dahvel"); len(got) != 2 {
+		t.Errorf("FactionHitsFor in another case: %v", got)
+	}
+	f.w.mu.Lock()
+	f.w.playerHitLocked(f.sess, f.p, f.npc, f.npcID)
+	f.w.mu.Unlock()
+	if got := f.p.Factions; got["Citizens of Freeport"] != -24 || got["The Freeport Militia"] != -49 {
+		t.Errorf("standings %v, want Citizens of Freeport -24 (once) and The Freeport Militia -49", got)
+	}
+}

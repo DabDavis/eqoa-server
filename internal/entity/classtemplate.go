@@ -185,11 +185,14 @@ func (n *NPC) meleeTaken(hit int) int {
 }
 
 // classTemplates is the world's templates by name (database.TemplateKey) and
-// the NPC names (database.NPCClassKey) that fight by them; problems what of
-// the tables the world could not use.
+// the NPC names (database.NPCClassKey) that fight by them; the pets'
+// templates by summoning (pettemplate.go) and the summoning spells that are
+// a weapon version; problems what of the tables the world could not use.
 type classTemplates struct {
 	byName   map[string]*ClassTemplate
 	use      map[string]string
+	pets     map[database.PetTemplateKey]*petTemplate
+	weapon   map[int]bool
 	problems []string
 }
 
@@ -277,6 +280,11 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 	}
 	area := s.Area.Centre != AreaNone
 	single := s.Scope == 1 && d.Target == TargetSingle && !area
+	if kind == database.AbilityBuff {
+		// a buff a pet casts on its owner: lasting, on one target, a stat
+		// raised (the ability's stat: templateCandidates)
+		return !d.Harmful && single && d.lasts() && !price && !hits
+	}
 	switch kind {
 	case database.AbilityNuke:
 		return d.Harmful && single && hits && !drains
@@ -285,7 +293,9 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 	case database.AbilityLifetap:
 		return d.Harmful && single && drains
 	case database.AbilityHeal:
-		return !d.Harmful && heals && !price && !area
+		// a heal is at once: a lasting spell that raises hit points is a
+		// buff (the cleric's Courage line), a heal over time a tick's
+		return !d.Harmful && heals && !price && !area && !d.lasts()
 	}
 	return false
 }
@@ -295,9 +305,13 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 // time within its bounds.
 func templateCandidates(a database.TemplateAbility, spells []*CastSpell) []*CastSpell {
 	words := strings.Fields(strings.ToLower(a.Line))
+	element, stat := abilityElement(a.Element), abilityStat(a.Stat)
 	var out []*CastSpell
 	for _, s := range spells {
 		if !templateKindTakes(a.Kind, s) {
+			continue
+		}
+		if element != StatNone && s.resist != element || stat != StatNone && !spellRaises(s, stat) {
 			continue
 		}
 		if a.MaxRecast > 0 && s.Recast.Seconds() > a.MaxRecast || a.MaxCast > 0 && s.CastTime.Seconds() > a.MaxCast {
@@ -378,6 +392,14 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 		for i, ra := range row.Abilities {
 			a := templateAbility{TemplateAbility: ra,
 				every: time.Duration(ra.Every * float64(time.Second)), first: time.Duration(ra.First * float64(time.Second))}
+			from := classes
+			if ra.SpellsOf != nil {
+				from = []int{*ra.SpellsOf} // a pet's from another class's lines (pettemplate.go)
+			}
+			if ra.Spell == "" && (ra.Kind == database.AbilityTaunt || ra.Kind == database.AbilityHeal && ra.HealPct > 0) {
+				t.abilities = append(t.abilities, a) // a taunt and a heal of its share cast no spell
+				continue
+			}
 			if ra.Spell != "" {
 				ts, ok, err := db.TemplateSpellNamed(ra.Spell)
 				if err != nil {
@@ -390,7 +412,7 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 				}
 			} else {
 				found := false
-				for _, c := range classes {
+				for _, c := range from {
 					spells, err := spellsOf(c)
 					if err != nil {
 						return 0, err
@@ -419,10 +441,43 @@ func (w *World) LoadClassTemplates(db *database.SQLiteDB) (int, error) {
 			problems = append(problems, fmt.Sprintf("npctemplate %q names no template %q (its NPCs fight as before)", k, use[k]))
 		}
 	}
+	// the pets' (pettemplate.go): each row and its template, and the
+	// summonings that are a weapon version
+	petRows, badPets, err := db.PetTemplates()
+	if err != nil {
+		return 0, fmt.Errorf("pettemplate: %w", err)
+	}
+	weapon, err := db.PetWeaponSpells()
+	if err != nil {
+		return 0, fmt.Errorf("the pets' weapon versions: %w", err)
+	}
+	for _, b := range badPets {
+		problems = append(problems, "pettemplate "+b+" (not used)")
+	}
+	pets := make(map[database.PetTemplateKey]*petTemplate, len(petRows))
+	petKeys := make([]database.PetTemplateKey, 0, len(petRows))
+	for k := range petRows {
+		petKeys = append(petKeys, k)
+	}
+	sort.Slice(petKeys, func(i, j int) bool {
+		if petKeys[i].Spell != petKeys[j].Spell {
+			return petKeys[i].Spell < petKeys[j].Spell
+		}
+		return !petKeys[i].Weapon && petKeys[j].Weapon
+	})
+	for _, k := range petKeys {
+		row := petRows[k]
+		pt := &petTemplate{PetTemplate: row, tmpl: byName[row.Template]}
+		if pt.tmpl == nil {
+			problems = append(problems, fmt.Sprintf("pettemplate %q (weapon %v) names no template %q (its pets fight as before)",
+				k.Spell, k.Weapon, row.Template))
+		}
+		pets[k] = pt
+	}
 
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	w.templates = classTemplates{byName: byName, use: use, problems: problems}
+	w.templates = classTemplates{byName: byName, use: use, pets: pets, weapon: weapon, problems: problems}
 	n := 0
 	for _, npc := range w.NPCs {
 		w.applyTemplateLocked(npc)
@@ -510,7 +565,7 @@ func (w *World) templateTurnLocked(npc *NPC, target EntityID, now time.Time) boo
 	}
 	for i := range t.abilities {
 		a := &t.abilities[i]
-		if a.Chain || now.Before(f.next[i]) || npc.Level < a.From {
+		if a.Chain || now.Before(f.next[i]) || npc.Level < a.From || petOnly(a) {
 			continue
 		}
 		if a.Kind == database.AbilityHeal && npc.HP*100 >= npc.MaxHP*a.BelowOr() {

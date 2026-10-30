@@ -96,6 +96,9 @@ func checkRow(table string, row map[string]any) error {
 	if table == "npctemplate" && row != nil {
 		return checkNPCTemplateRow(row) // live_templates.go
 	}
+	if table == "pettemplate" && row != nil {
+		return checkPetTemplateRow(row) // live_templates.go
+	}
 	if table != "npcpaths" || row == nil {
 		return nil
 	}

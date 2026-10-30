@@ -311,8 +311,13 @@ func TestNoAssignmentChangesNothing(t *testing.T) {
 		}
 	}
 	sum := r.w.ClassTemplateSummary()
-	if !strings.HasPrefix(sum[0], "no NPC fights by a class template") || !strings.Contains(sum[0], "melee, necromancer, shadowknight, tank, wizard") {
+	if !strings.HasPrefix(sum[0], "no NPC fights by a class template") {
 		t.Errorf("the summary: %q", sum)
+	}
+	for _, name := range []string{"melee", "necromancer", "shadowknight", "tank", "wizard", "pet animation"} {
+		if !strings.Contains(sum[0], name) { // jib's five, and the pets' (pettemplate.go)
+			t.Errorf("the summary lacks %q: %q", name, sum[0])
+		}
 	}
 	p, sess := r.player("Hero", 1001.5, 100)
 	mage := r.npc("Gnoll Mage")

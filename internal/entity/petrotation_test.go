@@ -58,14 +58,14 @@ var (
 	diceHigh = func(n int) int { return n - 1 }
 )
 
-// petCast is one 0x00B1 the pet sent: when (ms of the rig's clock), its
+// petSeen is one 0x00B1 the pet sent: when (ms of the rig's clock), its
 // place among that tick's messages, its target, cast time and visual.
-type petCast struct {
+type petSeen struct {
 	at, order      int
 	target, ms, fx uint32
 }
 
-func (c petCast) String() string {
+func (c petSeen) String() string {
 	return fmt.Sprintf("%d:%d %#x->%#x %dms", c.at, c.order, c.fx, c.target, c.ms)
 }
 
@@ -73,7 +73,7 @@ type petFight struct {
 	r      *petRig
 	pet    *NPC
 	petID  uint32
-	casts  []petCast
+	casts  []petSeen
 	told   int // 0x00DB naming the crab
 	startH int // the pet's hit points when sent in
 }
@@ -106,7 +106,7 @@ func necroFight(t *testing.T, class int, spell CastSpell, d time.Duration, dice 
 			switch opOfMsg(m) {
 			case protocol.OpcodeCastingCombat:
 				if binary.LittleEndian.Uint32(m[2:]) == f.petID {
-					f.casts = append(f.casts, petCast{at: ms, order: i, target: binary.LittleEndian.Uint32(m[6:]),
+					f.casts = append(f.casts, petSeen{at: ms, order: i, target: binary.LittleEndian.Uint32(m[6:]),
 						ms: binary.LittleEndian.Uint32(m[11:]), fx: binary.LittleEndian.Uint32(m[15:])})
 				}
 			case protocol.OpcodeDamageIndication:
@@ -122,7 +122,7 @@ func necroFight(t *testing.T, class int, spell CastSpell, d time.Duration, dice 
 }
 
 // swings are the pet's swings with that visual; the rest are its spells.
-func (f *petFight) split(swingFX uint32) (swings, spells []petCast) {
+func (f *petFight) split(swingFX uint32) (swings, spells []petSeen) {
 	for _, c := range f.casts {
 		if c.fx == swingFX {
 			swings = append(swings, c)
@@ -135,7 +135,7 @@ func (f *petFight) split(swingFX uint32) (swings, spells []petCast) {
 
 // checkSwings: every swing its visual and cast time, each the round after
 // the last, at least n of them.
-func checkSwings(t *testing.T, swings []petCast, ms uint32, round, n int) {
+func checkSwings(t *testing.T, swings []petSeen, ms uint32, round, n int) {
 	t.Helper()
 	if len(swings) < n {
 		t.Fatalf("%d swings, want %d or more: %v", len(swings), n, swings)
@@ -151,7 +151,7 @@ func checkSwings(t *testing.T, swings []petCast, ms uint32, round, n int) {
 }
 
 // spellAt is the spell sent in swing i's tick, before it, or nil.
-func spellAt(swings, spells []petCast, i int) *petCast {
+func spellAt(swings, spells []petSeen, i int) *petSeen {
 	for j := range spells {
 		if spells[j].at == swings[i].at {
 			if spells[j].order > swings[i].order {
@@ -165,7 +165,7 @@ func spellAt(swings, spells []petCast, i int) *petCast {
 
 // tapsAt checks the taps fall on exactly those swings (each in its tick,
 // before it) with the visual and cast time given.
-func tapsAt(t *testing.T, swings, spells []petCast, at []int, fx, ms uint32) {
+func tapsAt(t *testing.T, swings, spells []petSeen, at []int, fx, ms uint32) {
 	t.Helper()
 	want := map[int]bool{}
 	for _, i := range at {
@@ -296,7 +296,7 @@ func TestTheMummyFightsAsSandstorms(t *testing.T) {
 			if o := spellAt(swings, spells, 0); o == nil || o.fx != fxPetStaDrain || o.ms != petOpenerMs || o.target != crabObject {
 				t.Fatalf("the opener %v, want the stamina drain at the crab, 1000 ms, before the first swing", o)
 			}
-			var taps []petCast
+			var taps []petSeen
 			for _, s := range spells[1:] {
 				taps = append(taps, s)
 			}
@@ -337,7 +337,7 @@ func TestTheSpectreFightsAsSandstorms(t *testing.T) {
 			}
 			swings, rest := f.split(fxAttack3)
 			checkSwings(t, swings, 5000, 5200, 22)
-			var spells, specials []petCast
+			var spells, specials []petSeen
 			for _, s := range rest {
 				if s.fx == fxPetSpecial {
 					specials = append(specials, s)

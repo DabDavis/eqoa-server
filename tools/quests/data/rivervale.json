@@ -1811,11 +1811,32 @@
      "says": "You are a true druid of Rivervale.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Enkindle",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Enkindle"
+        ]
+       }
+      },
+      {
+       "answer": "Creeping Health",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Creeping Health"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 20; github.com/Jadiction/EQOA-Data). Phil Wiggins (Merry-by-Water) is not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 20; github.com/Jadiction/EQOA-Data). Phil Wiggins (Merry-by-Water) is not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Enkindle or the Creeping Health scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/rivervale/rogue/L1",

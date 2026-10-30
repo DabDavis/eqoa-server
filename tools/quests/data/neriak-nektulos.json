@@ -3981,12 +3981,15 @@
      "journal": "Return to Necromancer D'Unarr.",
      "says": "Lady Furess is pleased with you.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Ward Death (NEC)"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Ward Death scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/necromancer/L15",
@@ -4381,12 +4384,15 @@
      ],
      "says": "Well done.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Sneak (RGE)"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Sneak scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/rogue/L4",
@@ -4581,12 +4587,15 @@
      ],
      "says": "Biljoe paid? Good work.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Acrobatics"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Acrobatics scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/rogue/L10",
@@ -6141,12 +6150,15 @@
      ],
      "says": "A torn fire bat wing. Not bad.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Taunt"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The guide's Scornblade Vo'Dleth is Scornblade D'Eleth, who stands with the Scornmaster."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The guide's Scornblade Vo'Dleth is Scornblade D'Eleth, who stands with the Scornmaster. The reward is ours: the Taunt scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/warrior/L7",
@@ -6837,12 +6849,15 @@
      ],
      "says": "Well done.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Arcane Bindings"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Arcane Bindings scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/wizard/L4",

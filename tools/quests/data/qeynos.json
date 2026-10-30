@@ -220,12 +220,15 @@
      "journal": "Bring the coin, the ore and the strip to Lancet Carroll.",
      "says": "You have earned it.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Guard's Sword"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Reward left out (not in the database): item Guard's Sword."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Reward left out (not in the database): item Guard's Sword. The reward is ours: Guard's Sword, the item the guide names, made for this server (Forged by Lancet Carroll from iron ore and a leather strip, for a defaced coin won back) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/warrior/L5",
@@ -1384,12 +1387,15 @@
      "journal": "Bring the small idol to Vedilion Brithstar.",
      "says": "Peace between our temples. Thank you.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Battered Defender's Club"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/cleric.json, Level 10; github.com/Jadiction/EQOA-Data). Defender Morlon is the database's Defender Morion. Reward left out (not in the database): item Battered Defender's Club."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/cleric.json, Level 10; github.com/Jadiction/EQOA-Data). Defender Morlon is the database's Defender Morion. Reward left out (not in the database): item Battered Defender's Club. The reward is ours: Battered Defender's Club, the item the guide names, made for this server (Given by Vedilion Brithstar for the small idol) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/cleric/L13",
@@ -2297,12 +2303,15 @@
      "journal": "Bring the fangs to Gadenon Flamefist.",
      "says": "Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Small Stilletto"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/wizard.json, Level 10; github.com/Jadiction/EQOA-Data). Reward left out (not in the database): item Small Stiletto."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/wizard.json, Level 10; github.com/Jadiction/EQOA-Data). Reward left out (not in the database): item Small Stiletto. The reward is ours: Small Stilletto, the guide's Small Stiletto (the database's Small Stilletto, the wizard's level-10 dagger) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/wizard/L13",
@@ -3544,11 +3553,32 @@
      "says": "Qeynos owes you much.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Fortify",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Fortify"
+        ]
+       }
+      },
+      {
+       "answer": "Shining Bastion",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Shining Bastion"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/paladin.json, Level 20; github.com/Jadiction/EQOA-Data). Advisor Amichevole is the database's Advisor Amchevole. The portal sends you to the gypsy camp by Delin Duamher, as the guide has it. The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/paladin.json, Level 20; github.com/Jadiction/EQOA-Data). Advisor Amichevole is the database's Advisor Amchevole. The portal sends you to the gypsy camp by Delin Duamher, as the guide has it. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Fortify or the Shining Bastion scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/monk/L1",
@@ -4342,11 +4372,32 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Stone Stance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Stone Stance"
+        ]
+       }
+      },
+      {
+       "answer": "Stasis Strike",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Stasis Strike"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/monk.json, Level 20; github.com/Jadiction/EQOA-Data). The guide's final choice of reward is not in: the quest gives its experience only. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/monk.json, Level 20; github.com/Jadiction/EQOA-Data). The guide's final choice of reward is not in: the quest gives its experience only. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable. The reward is ours: the choice of the Stone Stance or the Stasis Strike scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/rogue/L1",
@@ -4567,12 +4618,15 @@
      "journal": "Bring the ore, the ivory and the sac to Crow Darkstride.",
      "says": "Here's your dirk.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Ivory Dirk"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/rogue.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Reward left out (not in the database): item Ivory Dirk."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/rogue.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Reward left out (not in the database): item Ivory Dirk. The reward is ours: Ivory Dirk, the item the guide names, made for this server (Forged by Crow Darkstride from iron ore, ivory and a poison sac) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/rogue/L5",
@@ -4828,12 +4882,15 @@
      "journal": "Bring the hilt to Crow Darkstride.",
      "says": "Blade and hilt. Here's your dagger.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Crow's Parrying Dagger"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The chests are the database's Sand Covered Chest and Treasure Chest, and Naerlik its Nearlik. Reward left out (not in the database): item Crow's Parrying Dagger."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The chests are the database's Sand Covered Chest and Treasure Chest, and Naerlik its Nearlik. Reward left out (not in the database): item Crow's Parrying Dagger. The reward is ours: Crow's Parrying Dagger, the item the guide names, made for this server (Made by Crow Darkstride from an etched dagger's blade and hilt) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/rogue/L13",
@@ -5755,12 +5812,15 @@
      "journal": "Bring Vithara's boots to Jenny Sweethy.",
      "says": "Here's your blade.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Messenger's Blade"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/bard.json, Level 10; github.com/Jadiction/EQOA-Data). Reward left out (not in the database): item Messenger's Blade."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/bard.json, Level 10; github.com/Jadiction/EQOA-Data). Reward left out (not in the database): item Messenger's Blade. The reward is ours: Messenger's Blade, the item the guide names, made for this server (Given by Jenny Sweethy for Vithara Swiftpaw's boots) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/bard/L13",
@@ -6158,14 +6218,34 @@
      "rewards": {
       "xp": 2814929,
       "items": [
-       "Power Dance",
        "magic foil"
       ]
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Power Dance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Power Dance"
+        ]
+       }
+      },
+      {
+       "answer": "Sweeping Combat",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Sweeping Combat"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/bard.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. The abomination's shackles are the database's abomination's hide. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the Power Dance scroll, as Freeport's quest of this level teaches it, and magic foil, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/bard.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. The abomination's shackles are the database's abomination's hide. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the Power Dance scroll, as Freeport's quest of this level teaches it, and magic foil, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30). The reward is ours: the choice of the Power Dance or the Sweeping Combat scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out); the Power Dance scroll it gave is one of them (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/enchanter/L1",
@@ -7492,12 +7572,15 @@
      "journal": "Bring the fangs to Ammathor Lithkin.",
      "says": "Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Knotted Pine Staff"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/magician.json, Level 10; github.com/Jadiction/EQOA-Data). Sir Paerin Lyvrien is the database's Sir Paerin. Reward left out (not in the database): item Knotted Pine Staff."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/magician.json, Level 10; github.com/Jadiction/EQOA-Data). Sir Paerin Lyvrien is the database's Sir Paerin. Reward left out (not in the database): item Knotted Pine Staff. The reward is ours: Knotted Pine Staff, the item the guide names, made for this server (Given by Ammathor Lithkin for the darkpaw brutes' fangs) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/magician/L13",
@@ -8114,12 +8197,15 @@
      "journal": "Bring the gloves and the rat claw to Kelin.",
      "says": "Here are your gloves.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Alchemist's Gloves"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/alchemist.json, Level 4; github.com/Jadiction/EQOA-Data). Reward left out (not in the database): item Alchemist's Gloves."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/alchemist.json, Level 4; github.com/Jadiction/EQOA-Data). Reward left out (not in the database): item Alchemist's Gloves. The reward is ours: Alchemist's Gloves, the item the guide names, made for this server (Treated by Kelin from tailored gloves and a cracked rat claw) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/alchemist/L5",
@@ -8324,12 +8410,15 @@
      "journal": "Return to Jergish Anaebraum.",
      "says": "Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Small Dagger"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/alchemist.json, Level 10; github.com/Jadiction/EQOA-Data). Mechanic Dweezle is the database's Mechanic Dwazzle. The jar is not used from the inventory here: the ooze's kill fills it. Reward left out (not in the database): item Small Dagger."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/alchemist.json, Level 10; github.com/Jadiction/EQOA-Data). Mechanic Dweezle is the database's Mechanic Dwazzle. The jar is not used from the inventory here: the ooze's kill fills it. Reward left out (not in the database): item Small Dagger. The reward is ours: Small Dagger, the item the guide names, made for this server (Given by Jergish Anaebraum for the jar of ooze) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/alchemist/L13",

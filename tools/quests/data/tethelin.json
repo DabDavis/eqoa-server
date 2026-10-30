@@ -591,13 +591,16 @@
      "journal": "Bring Fish Stomach to Dolby.",
      "says": "Everything. Well done.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Anthem of Light"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The reward is ours: the Anthem of Light scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/bard/L15",
@@ -832,15 +835,35 @@
      "rewards": {
       "xp": 2814929,
       "items": [
-       "Power Dance",
        "magic foil"
       ]
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Power Dance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Power Dance"
+        ]
+       }
+      },
+      {
+       "answer": "Sweeping Combat",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Sweeping Combat"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of Power Dance with the Melodies Dagger, or Sweeping Combat with Harmony's Sword; a quest here gives no choice, so neither is given. The reward is ours: the Power Dance scroll, as Freeport's quest of this level teaches it, and magic foil, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of Power Dance with the Melodies Dagger, or Sweeping Combat with Harmony's Sword; a quest here gives no choice, so neither is given. The reward is ours: the Power Dance scroll, as Freeport's quest of this level teaches it, and magic foil, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30). The reward is ours: the choice of the Power Dance or the Sweeping Combat scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out); the Power Dance scroll it gave is one of them (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/druid/L1",
@@ -985,13 +1008,16 @@
      "journal": "Bring 2 snake scales to Lirinia Starfire.",
      "says": "Thank you.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Fiery Burst"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. The reward is ours: the Fiery Burst scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/druid/L4",
@@ -1122,13 +1148,16 @@
      "journal": "Bring elddar seeds to Dawnseer Mistwelder.",
      "says": "Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Snare"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Snare scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/druid/L7",
@@ -1174,13 +1203,16 @@
      "journal": "Bring Tree Eater's Leg to Dawnseer Mistwelder.",
      "says": "The forest thanks you.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Nature's Blessing"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: the Nature's Blessing scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/druid/L10",
@@ -1395,13 +1427,16 @@
      "journal": "Bring Skull of Vitsh to Siltha.",
      "says": "My collection is complete.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Regenerative Aura"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The reward is ours: the Regenerative Aura scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/druid/L15",
@@ -1686,12 +1721,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Enkindle",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Enkindle"
+        ]
+       }
+      },
+      {
+       "answer": "Creeping Health",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Creeping Health"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The reward is ours: the choice of the Enkindle or the Creeping Health scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/ranger/L1",
@@ -1836,13 +1892,16 @@
      "journal": "Bring 3 sliver of bat meats to Arelon Evergreen.",
      "says": "Good.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Swift Blade"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. The reward is ours: the Swift Blade scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/ranger/L4",
@@ -1960,13 +2019,16 @@
      "journal": "Bring elddar seeds to Lythen Trueshot.",
      "says": "Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Forage Berries"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Forage Berries scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/ranger/L7",
@@ -2014,14 +2076,15 @@
      "rewards": {
       "xp": 157474,
       "items": [
-       "bracers of the glade"
+       "bracers of the glade",
+       "Tangling Weeds"
       ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: bracers of the glade, as Surefall Glade's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: bracers of the glade, as Surefall Glade's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30). The reward is ours: the Tangling Weeds scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/ranger/L10",
@@ -2239,13 +2302,16 @@
      "journal": "Bring Skull of Vitsh to Siltha.",
      "says": "My collection is complete.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Flametongue"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The reward is ours: the Flametongue scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/ranger/L15",
@@ -2378,14 +2444,15 @@
      "rewards": {
       "xp": 883791,
       "items": [
-       "tunic of the glade"
+       "tunic of the glade",
+       "Tangling Roots"
       ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot. The reward is ours: tunic of the glade, as Surefall Glade's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot. The reward is ours: tunic of the glade, as Surefall Glade's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30). The reward is ours: the Tangling Roots scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/ranger/L20",
@@ -2530,12 +2597,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Sparrow Eye",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Sparrow Eye"
+        ]
+       }
+      },
+      {
+       "answer": "Strikeblade",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Strikeblade"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of the Frozen Dawn Scimitar with Hawk Eye, or the Frozen Dawn Longsword with a sword ability; a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of the Frozen Dawn Scimitar with Hawk Eye, or the Frozen Dawn Longsword with a sword ability; a quest here gives no choice, so neither is given. The reward is ours: the choice of the Sparrow Eye or the Strikeblade scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/rogue/L1",
@@ -2674,13 +2762,16 @@
      "journal": "Bring 2 tarantula leg tips to Teleni Treestrider.",
      "says": "Good.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Sneak (RGE)"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. The reward is ours: the Sneak scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/rogue/L4",
@@ -2875,13 +2966,16 @@
      "journal": "Bring Locked Chest to Eterin Nitegazer.",
      "says": "Well done.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Acrobatics"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The gnomish astronomer at the observatory hands over the book."
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The gnomish astronomer at the observatory hands over the book. The reward is ours: the Acrobatics scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/rogue/L10",

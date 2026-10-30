@@ -384,6 +384,8 @@ func TestPetTemplateChecks(t *testing.T) {
 	for _, text := range []string{
 		`[{"kind": "taunt", "every": 9, "hits": [[1, 84, 88]]}]`,
 		`[{"kind": "buff", "stat": "ac", "spells_of": 7, "every": 20}]`,
+		`[{"kind": "buff", "stat": "ac", "target": "self", "every": 20}]`,   // on itself, the default said
+		`[{"kind": "buff", "stat": "str", "target": "owner", "every": 20}]`, // on its owner
 		`[{"kind": "heal", "target": "owner", "below": 60, "every": 12}]`,
 		`[{"kind": "heal", "heal_pct": 45, "every": 38}]`,
 		`[{"kind": "nuke", "element": "fire", "spells_of": 10, "every": 12}]`,
@@ -395,7 +397,6 @@ func TestPetTemplateChecks(t *testing.T) {
 	for _, text := range []string{
 		`[{"kind": "buff", "every": 20}]`,                                    // no stat
 		`[{"kind": "buff", "stat": "luck", "every": 20}]`,                    // no such stat
-		`[{"kind": "buff", "stat": "ac", "target": "self", "every": 20}]`,    // a buff on itself
 		`[{"kind": "nuke", "target": "owner", "every": 20}]`,                 // a target on a nuke
 		`[{"kind": "nuke", "element": "wind", "every": 20}]`,                 // no such element
 		`[{"kind": "heal", "heal_pct": 120, "every": 20}]`,                   // past 100
@@ -407,6 +408,21 @@ func TestPetTemplateChecks(t *testing.T) {
 	} {
 		if _, err := ParseTemplateAbilities(text); err == nil {
 			t.Errorf("%s was taken", text)
+		}
+	}
+	// a pet's heal and buff land on itself unless the row says its owner
+	// (the user, 2026-10-30: the earth pet's AC buff on itself)
+	for _, c := range []struct {
+		a    TemplateAbility
+		want string
+	}{
+		{TemplateAbility{Kind: AbilityBuff, Stat: "ac"}, AbilityOnSelf},
+		{TemplateAbility{Kind: AbilityHeal}, AbilityOnSelf},
+		{TemplateAbility{Kind: AbilityBuff, Stat: "ac", Target: AbilityOnOwner}, AbilityOnOwner},
+		{TemplateAbility{Kind: AbilityHeal, Target: AbilityOnOwner}, AbilityOnOwner},
+	} {
+		if got := c.a.TargetOr(); got != c.want {
+			t.Errorf("%s with target %q lands on %q, want %q", c.a.Kind, c.a.Target, got, c.want)
 		}
 	}
 }

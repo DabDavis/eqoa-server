@@ -45,8 +45,9 @@ import (
 // strongest tick), the clarity line (enchanter.go), illusions (illusion.go),
 // potions and food (potion.go, consumable.go): a line is only read off the
 // stat changes, shields, procs, speed, invisibility and power ceilings, so a
-// spell that only ticks has none. Pets and creatures keep theirs as they
-// were. An effect kept over a logout keeps its line (buffsave.go); one kept
+// spell that only ticks has none. A pet keeps only the best of a line too
+// (pet.go's putOnPetLocked, since 2026-10-30: its AC, AGI, STR and DEX count
+// in its fights), untold when it is its own cast; a creature keeps every one. An effect kept over a logout keeps its line (buffsave.go); one kept
 // before 2026-10-29 has none and stacks until it ends. `balancesim -lines`
 // prints every class's lines off a database.
 

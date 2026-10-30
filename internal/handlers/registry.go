@@ -437,9 +437,9 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		}
 	}
 
-	// The rehabilitators (rehab.go): a character's masteries, stat points and
-	// paths undone, the Rose of Rehabilitation sold, on tables rehabsettings
-	// and charresets
+	// The rehabilitators (rehab.go): a character's masteries and stat points
+	// reset and paths chosen again, the Rose of Rehabilitation sold, on tables
+	// rehabsettings and charresets
 	if charStore != nil && gameWorld != nil {
 		interactHandler.rehab = NewRehab(charStore.DB(), gameWorld, invStore, spellStore, classMasteryHandler, charStore)
 	}

@@ -27,12 +27,16 @@ import (
 //     rank then 3, word 1885); its stat (training) points, as #rst_both's
 //     training half (gmresets.go: 0x001D, the stats channel, word 1886); or
 //     both;
-//   - a path undone (rehabpaths.go: a quest's pick of abilities, its spells
-//     out of the book and its items taken back), which of the paths it took;
+//   - a path chosen again (rehabpaths.go): which of its picks, then which of
+//     that step's other options, changed on the spot: the old option's spells
+//     out of the book and its items taken back, the new one's spells taught
+//     and its items given, the pick kept, no quest done again (the user,
+//     2026-10-30: "choose again on the spot");
 //   - a Rose of Rehabilitation bought.
 //
 // Each is asked again before it is done, and refused when the character has
-// nothing of it, cannot pay, or (a path) wears what the path gave. A
+// nothing of it, cannot pay, or (a path) wears what the path gave or has no
+// room for what the new pick gives (the quests' rule, questroom.go). A
 // character's first resets are free (database.RehabSettings: 1 mastery
 // reset, 1 stat point reset, 2 path respecs); then a reset costs tunar
 // ("1mil for cms, 2mil for both") and a path a Rose of Rehabilitation ("Roses
@@ -56,30 +60,34 @@ func IsRehabilitator(name string) bool {
 
 // What a rehabilitator says (ours).
 const (
-	rehabGreeting   = "Be welcome, %s. What a soul has learned it may set down, and I help it do so, that it may learn anew."
-	rehabAskMenu    = "What would you have me undo?"
-	rehabAskResets  = "Which shall I reset?"
-	rehabAsYouWish  = "As you wish."
-	rehabAskBegin   = "Shall I begin?"
-	rehabYes        = "Yes, begin."
-	rehabNotNow     = "Not now."
-	rehabMasteryIs  = "I will draw every Combat Mastery out of you, and the points you spent on them come back to be spent again."
-	rehabTrainingIs = "Every training point you have spent comes back to you, and your stats return to what your birth and calling gave you."
-	rehabBothIs     = "Every mastery and every training point comes back to you, to be spent as you choose."
-	rehabNoMastery  = "You hold no Combat Mastery for me to draw out."
-	rehabNoTraining = "You have spent no training points for me to give back."
-	rehabNothing    = "You hold no mastery and have spent no training points: there is nothing for me to undo."
-	rehabNoPath     = "You have chosen no path that I can undo."
-	rehabAskPath    = "Which path shall I undo?"
-	rehabUndoYes    = "Yes, undo it."
-	rehabRoseIs     = "A Rose of Rehabilitation lets me undo one more of your paths once your free path respecs are spent. It is yours alone: it cannot be traded."
-	rehabRoseYes    = "Yes, buy a rose."
-	rehabRoseKeep   = "Keep it close. When you would undo a path, bring it to me."
-	rehabNoRoses    = "I have no roses to give just now."
-	rehabTrouble    = "Forgive me, my thoughts are elsewhere. Come back in a little while."
-	rehabPackFull   = "Your pack is full. Make room for the rose, then come back."
-	rehabWorn       = "Take off %s first: what a path gave goes back with it."
-	rehabDone       = "It is done."
+	rehabGreeting    = "Be welcome, %s. What a soul has learned it may set down, and I help it do so, that it may learn anew."
+	rehabAskMenu     = "What would you have me undo?"
+	rehabAskResets   = "Which shall I reset?"
+	rehabAsYouWish   = "As you wish."
+	rehabAskBegin    = "Shall I begin?"
+	rehabYes         = "Yes, begin."
+	rehabNotNow      = "Not now."
+	rehabMasteryIs   = "I will draw every Combat Mastery out of you, and the points you spent on them come back to be spent again."
+	rehabTrainingIs  = "Every training point you have spent comes back to you, and your stats return to what your birth and calling gave you."
+	rehabBothIs      = "Every mastery and every training point comes back to you, to be spent as you choose."
+	rehabNoMastery   = "You hold no Combat Mastery for me to draw out."
+	rehabNoTraining  = "You have spent no training points for me to give back."
+	rehabNothing     = "You hold no mastery and have spent no training points: there is nothing for me to undo."
+	rehabNoPath      = "You have chosen no path that I can change."
+	rehabAskPath     = "Which path will you choose again?"
+	rehabAskInstead  = "What will you take instead of %s?"
+	rehabNothingElse = "There is nothing else to choose there."
+	rehabChangeYes   = "Yes, change it."
+	rehabBookFull    = "Your spell book has no room for %s."
+	rehabKnowsAll    = "You know every ability this path offers already: none leaves your book."
+	rehabRoseIs      = "A Rose of Rehabilitation lets me change one more of your paths once your free path respecs are spent. It is yours alone: it cannot be traded."
+	rehabRoseYes     = "Yes, buy a rose."
+	rehabRoseKeep    = "Keep it close. When you would choose a path again, bring it to me."
+	rehabNoRoses     = "I have no roses to give just now."
+	rehabTrouble     = "Forgive me, my thoughts are elsewhere. Come back in a little while."
+	rehabPackFull    = "Your pack is full. Make room for the rose, then come back."
+	rehabWorn        = "Take off %s first: what a path gave goes back with it."
+	rehabDone        = "It is done."
 )
 
 // The menus' answers, and what a confirmation does.
@@ -96,6 +104,7 @@ const (
 const (
 	rehabStageMenu    = iota + 1 // the menu, or which reset
 	rehabStagePaths              // which path
+	rehabStageNewPick            // which other option of its step
 	rehabStageConfirm            // yes or no to what ask says
 )
 
@@ -113,12 +122,13 @@ type rehabBox struct {
 	id      uint32
 	speaker string
 	stage   int
-	options []int       // the menu: what each answer is
-	paths   []pathQuest // the paths offered, in order
-	what    int         // a confirmation: what it does
-	terms   rehabTerms  // and on what terms it was asked
-	path    *pathUndo   // a path's undoing, as it was asked
-	then    int         // a rose bought for a path: the paths asked next
+	options []int      // the menu: what each answer is; a pick's other options
+	picks   []pathPick // the picks offered, in order
+	pick    *pathPick  // the pick whose other options are offered
+	what    int        // a confirmation: what it does
+	terms   rehabTerms // and on what terms it was asked
+	swap    *pathSwap  // a path's change, as it was asked
+	then    int        // a rose bought for a path: the paths asked next
 }
 
 // rehabRows is what a rehabilitator keeps: the settings and each character's
@@ -210,8 +220,12 @@ func (r *Rehab) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 			r.picked(sess, p, b.speaker, b.options[i])
 		}
 	case rehabStagePaths:
-		if i < len(b.paths) {
-			r.askPath(sess, p, b.speaker, b.paths[i])
+		if i < len(b.picks) {
+			r.askNewPick(sess, p, b.speaker, b.picks[i])
+		}
+	case rehabStageNewPick:
+		if i < len(b.options) && b.pick != nil {
+			r.askSwap(sess, p, b.speaker, *b.pick, b.options[i])
 		}
 	case rehabStageConfirm:
 		if i == 0 {
@@ -244,7 +258,7 @@ func (r *Rehab) confirmed(sess *session.Session, p *entity.Player, b *rehabBox) 
 	case rehabMastery, rehabTraining, rehabBoth:
 		r.doReset(sess, p, b)
 	case rehabPath:
-		r.doPath(sess, p, b)
+		r.doSwap(sess, p, b)
 	case rehabRose:
 		if r.doRose(sess, p, b.speaker, b.terms) && b.then == rehabPath {
 			r.askPaths(sess, p, b.speaker)
@@ -306,7 +320,7 @@ func (r *Rehab) menu(sess *session.Session, p *entity.Player, speaker string, se
 	}
 	labels := []string{
 		"Reset my masteries or stat points",
-		"Undo a path (" + path + ")",
+		"Choose a path again (" + path + ")",
 		"Buy a Rose of Rehabilitation (" + tunarText(set.PriceRose) + ")",
 	}
 	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageMenu,
@@ -527,91 +541,168 @@ func (r *Rehab) doReset(sess *session.Session, p *entity.Player, b *rehabBox) {
 
 // --- paths ---
 
-// pathUndo is a path's undoing: the quests forgotten, the spells that leave
-// the book, the items taken back, and what stops it or goes missing.
-type pathUndo struct {
-	level   int
-	chosen  pathQuest // the path named
-	quests  []pathQuest
-	spells  []entity.CMAbility   // in the book now
-	items   []database.ItemCount // held now (not worn)
-	names   map[int]string       // the items' names
-	scrolls map[int]bool         // the items that are scrolls
-	missing []string             // given, held nowhere now (sold, destroyed)
-	worn    []string             // given and worn: taken off first
-	givers  []string             // who asks the picks again
+// pathPick is a character's pick at a path's step: the quest and its row, the
+// step, and the option it has, its kept pick or, from before picks were
+// kept, the one the book and the pack name (inferred).
+type pathPick struct {
+	pq       pathQuest
+	step     int
+	option   int
+	inferred bool
+}
+
+// options is the pick's step's options.
+func (pk pathPick) options() []database.StepOption {
+	if st := pk.pq.quest.Step(pk.step); st != nil {
+		return st.Choices.Options
+	}
+	return nil
+}
+
+// label is the pick as the paths' question offers it: its level and answer.
+func (pk pathPick) label() string {
+	return clipRunes(fmt.Sprintf("Level %d: %s", pk.pq.level, pk.options()[pk.option].Answer), questAnswerChars)
+}
+
+// pathSwap is a pick changed for another option of its step on the spot: what
+// leaves the book and what enters it, the items taken back and given (an item
+// both options give stays), what stops it (worn, no room) or went missing, and
+// its terms.
+type pathSwap struct {
+	pick    pathPick
+	to      int
+	out, in []entity.CMAbility
+	back    []database.ItemCount // held now, not worn
+	give    []database.ItemCount
+	missing []string // the old option's, held nowhere now (sold, destroyed)
+	worn    []string // the old option's, worn: taken off first
+	short   string   // the new items the pack has no room for
+	granted bool     // the book holds two options' spells nothing else explains: none leaves it
 	terms   rehabTerms
 }
 
-// ids is the quests' ids.
-func (u *pathUndo) ids() []int {
-	out := make([]int, len(u.quests))
-	for i, pq := range u.quests {
-		out[i] = pq.quest.ID
+// optionSpells is the spells an option teaches, by id and by name (spellKey):
+// its spells, and its scrolls' (a level 20 path's), which it taught when
+// scribed.
+func (r *Rehab) optionSpells(o database.StepOption, names []database.SpellName) (map[int]bool, map[string]bool) {
+	ids, keys := map[int]bool{}, map[string]bool{}
+	for _, sp := range o.Reward.Spells {
+		ids[sp] = true
+	}
+	for _, it := range o.Reward.Items {
+		pat, ok, err := r.inv.ItemPatternByID(it.PatternID)
+		if err != nil || !ok || !isScroll(&pat) {
+			continue
+		}
+		if sp, ok := scrollSpell(names, pat.ItemName, pat.LevelReq); ok {
+			ids[sp.SpellID] = true
+			keys[spellKey(sp.Name)] = true
+		}
+	}
+	return ids, keys
+}
+
+// spellNames is every spell's name, for the scrolls (nil without a spell
+// book).
+func (r *Rehab) spellNames() []database.SpellName {
+	if r.spells == nil {
+		return nil
+	}
+	names, err := r.spells.SpellNames()
+	if err != nil {
+		log.Printf("Rehab: the spells' names: %v", err)
+	}
+	return names
+}
+
+// pickedPaths is the character's picks at its paths' steps, by level, then
+// step: each kept pick, and each from before picks were kept that the book
+// and the pack name (inferPick); a step they name none or several options of
+// is left out.
+func (r *Rehab) pickedPaths(p *entity.Player) []pathPick {
+	qe := r.quests()
+	var out []pathPick
+	var book map[int]string
+	var owned map[int]int
+	var names []database.SpellName
+	for _, pq := range qe.pathQuests(p.CharServerID) {
+		picks := database.ParsePicks(pq.row.Picks)
+		for i := range pq.quest.Steps {
+			st := &pq.quest.Steps[i]
+			opts := st.Choices.Options
+			if len(opts) == 0 || !passed(pq.row, st.Step) {
+				continue
+			}
+			if k, ok := picks[st.Step]; ok && k < len(opts) {
+				out = append(out, pathPick{pq: pq, step: st.Step, option: k})
+				continue
+			}
+			if book == nil {
+				book, owned = r.bookAndOwned(p)
+				names = r.spellNames()
+			}
+			kept := qe.spellsKeptBut(p.CharServerID, p.Class, pq.quest.ID, st.Step)
+			if k := r.inferPick(opts, book, owned, kept, names); k >= 0 {
+				out = append(out, pathPick{pq: pq, step: st.Step, option: k, inferred: true})
+			}
+		}
 	}
 	return out
 }
 
-// pathLabel is a path as the menu offers it: its level and what was picked
-// (the kept picks' answers, else what the book and the pack hold of its
-// options, else the quest's name).
-func (r *Rehab) pathLabel(p *entity.Player, pq pathQuest, book map[int]string, held map[int]int) string {
-	what := pickedAnswers(pq.quest, pq.row)
-	if len(what) == 0 {
-		seen := map[string]bool{}
-		for _, o := range pickedOptions(pq.quest, pq.row) {
-			for _, sp := range o.Reward.Spells {
-				if n, ok := book[sp]; ok && !seen[n] {
-					seen[n] = true
-					what = append(what, n)
-				}
-			}
-			for _, it := range o.Reward.Items {
-				pat, ok, _ := r.inv.ItemPatternByID(it.PatternID)
-				if !ok {
-					continue
-				}
-				name := pat.ItemName
-				if isScroll(&pat) {
-					// a level 20 path's scroll: its spell, once it is used
-					name = ""
-					for _, n := range book {
-						if spellKey(n) == spellKey(pat.ItemName) {
-							name = n
-						}
-					}
-					if name == "" && held[it.PatternID] > 0 {
-						name = pat.ItemName
-					}
-				} else if held[it.PatternID] == 0 {
-					name = ""
-				}
-				if name != "" && !seen[name] {
-					seen[name] = true
-					what = append(what, name)
-				}
-			}
+// inferPick is the option of a step from before picks were kept that the
+// character holds something of: its spells in the book (not one another quest
+// it keeps gives), its scrolls' spells, its items anywhere, worn too; the one
+// that holds the most, -1 when none holds anything or two hold as much.
+func (r *Rehab) inferPick(opts []database.StepOption, book map[int]string, owned map[int]int, kept map[int]bool,
+	names []database.SpellName) int {
+	bookKeys := map[string]bool{}
+	for id, n := range book {
+		if !kept[id] {
+			bookKeys[spellKey(n)] = true
 		}
 	}
-	if len(what) == 0 {
-		what = []string{pq.quest.Name}
+	best, at, tie := 0, -1, false
+	for i, o := range opts {
+		if o.Stay {
+			continue
+		}
+		score := 0
+		ids, keys := r.optionSpells(o, names)
+		for id := range ids {
+			if _, ok := book[id]; ok && !kept[id] {
+				score++
+			}
+		}
+		for k := range keys {
+			if bookKeys[k] {
+				score++
+			}
+		}
+		for _, it := range o.Reward.Items {
+			if owned[it.PatternID] > 0 {
+				score++
+			}
+		}
+		switch {
+		case score > best:
+			best, at, tie = score, i, false
+		case score == best && score > 0:
+			tie = true
+		}
 	}
-	return clipRunes(fmt.Sprintf("Level %d: %s", pq.level, strings.Join(what, "; ")), questAnswerChars)
+	if tie {
+		return -1
+	}
+	return at
 }
 
-// askPaths asks which path to undo: the paths the character took (CLIENT
-// pages them three at a time; its Close is "none"), when it has a free
-// respec or a rose; else the rose offered.
+// askPaths asks which path to choose again: the character's picks, a step
+// each (CLIENT pages them three at a time; its Close is "none"), when it has
+// a free respec or a rose; else the rose offered.
 func (r *Rehab) askPaths(sess *session.Session, p *entity.Player, speaker string) {
-	qe := r.quests()
-	paths := qe.pathQuests(p.CharServerID)
-	var taken []pathQuest
-	for _, pq := range paths {
-		if pq.row.Done > 0 || pq.row.Picks != "" {
-			taken = append(taken, pq)
-		}
-	}
-	if len(taken) == 0 {
+	picks := r.pickedPaths(p)
+	if len(picks) == 0 {
 		r.say(sess, speaker, rehabNoPath)
 		return
 	}
@@ -624,15 +715,14 @@ func (r *Rehab) askPaths(sess *session.Session, p *entity.Player, speaker string
 		r.offerRose(sess, p, speaker, set)
 		return
 	}
-	book, held := r.bookAndHeld(p)
-	if len(taken) > maxDialogOptions {
-		taken = taken[len(taken)-maxDialogOptions:] // the latest
+	if len(picks) > maxDialogOptions {
+		picks = picks[len(picks)-maxDialogOptions:] // the latest
 	}
-	labels := make([]string, 0, len(taken))
-	for _, pq := range taken {
-		labels = append(labels, r.pathLabel(p, pq, book, held))
+	labels := make([]string, len(picks))
+	for i, pk := range picks {
+		labels[i] = pk.label()
 	}
-	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStagePaths, paths: taken}, rehabAskPath, labels)
+	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStagePaths, picks: picks}, rehabAskPath, labels)
 }
 
 // offerRose is a path asked for with no free respec and no rose: a rose
@@ -649,104 +739,160 @@ func (r *Rehab) offerRose(sess *session.Session, p *entity.Player, speaker strin
 		then: rehabPath}, "Will you buy one?", []string{rehabRoseYes, rehabNotNow})
 }
 
-// planPath is the undoing of the path a quest asked: that quest and, at 30
-// and 40, the later levels' of its group; their picks' spells the book holds
-// (not one another quest the character keeps gives, nor one a merchant sells
-// as a scroll) and items, each where the character holds it; and its terms
-// (a free respec, else a rose). Why it cannot be done, when it cannot.
-func (r *Rehab) planPath(sess *session.Session, p *entity.Player, chosen pathQuest) (*pathUndo, string) {
-	qe := r.quests()
-	u := &pathUndo{level: chosen.level, chosen: chosen, names: map[int]string{}, scrolls: map[int]bool{}}
-	var found bool
-	for _, pq := range qe.pathQuests(p.CharServerID) {
-		switch {
-		case pq.quest.ID == chosen.quest.ID:
-			found = true
-		case chosen.level == 20 || pq.level == 20 || pq.group != chosen.group || pq.level < chosen.level:
+// askNewPick asks what to take instead of a pick: its step's other options.
+func (r *Rehab) askNewPick(sess *session.Session, p *entity.Player, speaker string, pk pathPick) {
+	opts := pk.options()
+	var idx []int
+	var labels []string
+	for i, o := range opts {
+		if i == pk.option || o.Stay {
 			continue
 		}
-		u.quests = append(u.quests, pq)
+		idx = append(idx, i)
+		labels = append(labels, o.Answer)
 	}
-	if !found {
+	if len(idx) == 0 {
+		r.say(sess, speaker, rehabNothingElse)
+		return
+	}
+	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageNewPick, pick: &pk, options: idx},
+		fmt.Sprintf(rehabAskInstead, opts[pk.option].Answer), labels)
+}
+
+// planSwap is a pick changed for option to of its step, as the character
+// stands now: the pick read again (a GM's change counts), the old option's
+// spells out of the book (not one another quest it keeps gives, nor one
+// merchants sell as a scroll, nor one the new option teaches too) and its
+// items back, the new option's spells into the book and its items given (an
+// item both give stays where it is), the pack tried for the new items once the
+// old ones and a rose are taken (the quests' rule: questroom.go), and the terms
+// (a free respec, else a rose). Why it cannot be planned, when it cannot.
+func (r *Rehab) planSwap(sess *session.Session, p *entity.Player, pk pathPick, to int) (*pathSwap, string) {
+	var cur *pathPick
+	for _, x := range r.pickedPaths(p) {
+		if x.pq.quest.ID == pk.pq.quest.ID && x.step == pk.step {
+			x := x
+			cur = &x
+			break
+		}
+	}
+	if cur == nil {
 		return nil, rehabNoPath
 	}
-	except := map[int]bool{}
-	seenGiver := map[string]bool{}
-	for _, pq := range u.quests {
-		except[pq.quest.ID] = true
-		if g := strings.TrimSpace(pq.quest.Giver); g != "" && !seenGiver[g] {
-			seenGiver[g] = true
-			u.givers = append(u.givers, g)
-		}
+	opts := cur.options()
+	if to < 0 || to >= len(opts) || to == cur.option || opts[to].Stay {
+		return nil, rehabNothingElse
 	}
-	keep := qe.spellsKept(p.CharServerID, p.Class, except)
+	old, nw := opts[cur.option], opts[to]
+	u := &pathSwap{pick: *cur, to: to}
+	names := r.spellNames()
+	oldIDs, oldKeys := r.optionSpells(old, names)
+	newIDs, newKeys := r.optionSpells(nw, names)
+	kept := r.quests().spellsKeptBut(p.CharServerID, p.Class, cur.pq.quest.ID, cur.step)
 	sold := r.soldScrolls()
 
-	// what the picks gave
-	spellIDs := map[int]bool{}
-	scrollKeys := map[string]bool{}
-	need := map[int]int{}
-	sure := map[int]bool{} // given by a kept pick: missed when not held
-	var order []int
-	var names []database.SpellName
-	for _, pq := range u.quests {
-		for _, o := range pickedOptions(pq.quest, pq.row) {
-			for _, sp := range o.Reward.Spells {
-				spellIDs[sp] = true
-			}
-			for _, it := range o.Reward.Items {
-				pat, ok, err := r.inv.ItemPatternByID(it.PatternID)
-				if err != nil || !ok {
-					continue
-				}
-				if isScroll(&pat) {
-					// a scroll taught its spell when it was used: the spell
-					// goes, and the scroll if it is still held
-					u.scrolls[it.PatternID] = true
-					if names == nil && r.spells != nil {
-						names, _ = r.spells.SpellNames()
-					}
-					if sp, ok := scrollSpell(names, pat.ItemName, pat.LevelReq); ok {
-						spellIDs[sp.SpellID] = true
-						scrollKeys[spellKey(sp.Name)] = true
-					}
-				}
-				if need[it.PatternID] == 0 {
-					order = append(order, it.PatternID)
-				}
-				need[it.PatternID] += it.Count
-				sure[it.PatternID] = sure[it.PatternID] || o.kept
-				u.names[it.PatternID] = pat.ItemName
-			}
-		}
-	}
-
-	// the spells the book holds of them
+	// the book: the old option's spells out, the new one's in. A pick teaches
+	// one option's spells, so a book holding two options' that nothing else
+	// explains (another quest the character keeps, a merchant's scroll) had
+	// them from a class grant (#template, a GM's grant_spell "all",
+	// world.start_all_spells while it was on), and keeps them all
+	known, keyOf, knownKeys := map[int]bool{}, map[int]string{}, map[string]bool{}
+	var book []database.CharSpellEntry
 	if r.spells != nil {
-		if book, err := r.spells.GetCharacterSpells(p.CharServerID); err == nil {
-			for _, e := range book {
-				id, key := e.Pattern.SpellID, spellKey(e.Pattern.SpellName)
-				if !spellIDs[id] && !scrollKeys[key] {
-					continue
-				}
-				if keep[id] || sold[key] {
-					continue
-				}
-				u.spells = append(u.spells, entity.CMAbility{Name: e.Pattern.SpellName, SpellID: id})
-			}
+		if b, err := r.spells.GetCharacterSpells(p.CharServerID); err == nil {
+			book = b
 		}
 	}
+	for _, e := range book {
+		known[e.Pattern.SpellID] = true
+		keyOf[e.Pattern.SpellID] = spellKey(e.Pattern.SpellName)
+		knownKeys[spellKey(e.Pattern.SpellName)] = true
+	}
+	unexplained := 0
+	for _, o := range opts {
+		if o.Stay {
+			continue
+		}
+		ids, keys := r.optionSpells(o, names)
+		if len(ids)+len(keys) == 0 {
+			continue
+		}
+		all, explained := true, false
+		for id := range ids {
+			all = all && known[id]
+			explained = explained || kept[id] || sold[keyOf[id]]
+		}
+		for k := range keys {
+			all = all && knownKeys[k]
+			explained = explained || sold[k]
+		}
+		if all && !explained {
+			unexplained++
+		}
+	}
+	u.granted = unexplained > 1
+	var stays []database.CharSpellEntry
+	for _, e := range book {
+		id, key := e.Pattern.SpellID, spellKey(e.Pattern.SpellName)
+		if !u.granted && (oldIDs[id] || oldKeys[key]) && !newIDs[id] && !newKeys[key] && !kept[id] && !sold[key] {
+			u.out = append(u.out, entity.CMAbility{Name: e.Pattern.SpellName, SpellID: id})
+			continue
+		}
+		stays = append(stays, e)
+	}
+	for _, sp := range nw.Reward.Spells {
+		if known[sp] {
+			continue
+		}
+		name := fmt.Sprintf("spell %d", sp)
+		if pat, err := r.spells.SpellPattern(sp); err == nil && pat != nil {
+			name = pat.SpellName
+		}
+		u.in = append(u.in, entity.CMAbility{Name: name, SpellID: sp})
+	}
+	if len(u.in) > 0 && nextDisplayIndex(stays)+len(u.in) > 252 { // the book's display indices end at 252
+		return nil, fmt.Sprintf(rehabBookFull, joinAnd(spellNames(u.in)))
+	}
 
-	// the items, where they are held
+	// the items: an item both options give stays
+	both := map[int]int{}
+	for _, it := range nw.Reward.Items {
+		both[it.PatternID] += it.Count
+	}
 	rows, err := r.inv.GetCharacterItems(p.CharServerID)
 	if err != nil {
 		log.Printf("Rehab: %s's items: %v", p.Name, err)
 		return nil, rehabTrouble
 	}
-	for _, id := range order {
-		have, worn := 0, 0
+	var takes []invTake
+	takeFromPack := func(patternID, n int) {
 		for _, row := range rows {
-			if row.Pattern.PatternID != id {
+			if n == 0 {
+				return
+			}
+			if row.Pattern.PatternID == patternID && row.Location == 0 && row.EquipLoc < 0 && row.StackLeft > 0 {
+				k := min(n, row.StackLeft)
+				takes = append(takes, invTake{itemID: row.ItemID, n: k})
+				n -= k
+			}
+		}
+	}
+	for _, it := range old.Reward.Items {
+		n := it.Count
+		if shared := min(n, both[it.PatternID]); shared > 0 {
+			n -= shared
+			both[it.PatternID] -= shared
+		}
+		if n == 0 {
+			continue
+		}
+		have, worn, name := 0, 0, fmt.Sprintf("item %d", it.PatternID)
+		scroll := false
+		if pat, ok, _ := r.inv.ItemPatternByID(it.PatternID); ok {
+			name, scroll = pat.ItemName, isScroll(&pat)
+		}
+		for _, row := range rows {
+			if row.Pattern.PatternID != it.PatternID {
 				continue
 			}
 			if row.Location == 0 && row.EquipLoc >= 0 {
@@ -755,19 +901,23 @@ func (r *Rehab) planPath(sess *session.Session, p *entity.Player, chosen pathQue
 				have += row.StackLeft
 			}
 		}
-		n := min(have, need[id])
-		if n > 0 {
-			u.items = append(u.items, database.ItemCount{PatternID: id, Count: n})
+		if k := min(have, n); k > 0 {
+			u.back = append(u.back, database.ItemCount{PatternID: it.PatternID, Count: k})
+			takeFromPack(it.PatternID, k)
 		}
-		if n < need[id] {
+		if have < n {
 			switch {
-			case worn > 0 && (sure[id] || have == 0):
-				u.worn = append(u.worn, "the "+u.names[id])
-			case sure[id] && !u.scrolls[id]:
-				// a scroll used is its spell learned, which goes above; an
-				// option of a pick not kept may never have been given
-				u.missing = append(u.missing, u.names[id])
+			case worn > 0:
+				u.worn = append(u.worn, "the "+name)
+			case !scroll: // a scroll used is its spell learned, which goes above
+				u.missing = append(u.missing, name)
 			}
+		}
+	}
+	for _, it := range nw.Reward.Items {
+		if n := min(it.Count, both[it.PatternID]); n > 0 {
+			u.give = append(u.give, database.ItemCount{PatternID: it.PatternID, Count: n})
+			both[it.PatternID] -= n
 		}
 	}
 
@@ -781,133 +931,158 @@ func (r *Rehab) planPath(sess *session.Session, p *entity.Player, chosen pathQue
 		u.terms = rehabTerms{freePath: true}
 	case r.rosesHeld(p) > 0:
 		u.terms = rehabTerms{rose: true}
+		takeFromPack(database.RoseOfRehabilitation, 1)
 	default:
 		return nil, fmt.Sprintf("Your free path respecs are spent. For each path more I need a Rose of Rehabilitation, "+
 			"and I sell them for %s.", tunarText(set.PriceRose))
 	}
+
+	// the pack, for the new items once the old ones and the rose are taken
+	if l := sessionInvList(sess); l != nil && len(u.give) > 0 {
+		u.short = packShort(l, takes, u.give, func(id int) (database.ItemPatternRecord, bool) {
+			pat, ok, err := r.inv.ItemPatternByID(id)
+			return pat, ok && err == nil
+		})
+	}
 	return u, ""
 }
 
-// askPath asks to undo a path: what goes (its quests, spells and items) and
-// on what terms, or why it cannot.
-func (r *Rehab) askPath(sess *session.Session, p *entity.Player, speaker string, chosen pathQuest) {
-	u, no := r.planPath(sess, p, chosen)
-	if no != "" {
-		r.say(sess, speaker, no)
-		return
-	}
-	if len(u.worn) > 0 {
-		r.say(sess, speaker, fmt.Sprintf(rehabWorn, joinAnd(u.worn)))
-		return
-	}
-	var lines []string
-	if later := laterLevels(u); len(later) > 0 {
-		lines = append(lines, fmt.Sprintf("Your level %d path will be undone, and your level %s %s with it.",
-			u.level, joinAnd(later), plural(len(later), "path", "paths")))
-	} else {
-		lines = append(lines, fmt.Sprintf("Your level %d path will be undone.", u.level))
-	}
+// swapLines says what a change does: what leaves the book and enters it, what
+// is taken back and given.
+func (r *Rehab) swapLines(u *pathSwap) []string {
+	opts := u.pick.options()
+	lines := []string{fmt.Sprintf("Your level %d path will be %s, not %s.", u.pick.pq.level, opts[u.to].Answer, opts[u.pick.option].Answer)}
 	var goes []string
-	if len(u.spells) > 0 {
-		goes = append(goes, joinAnd(spellNames(u.spells))+" "+plural(len(u.spells), "leaves", "leave")+" your book")
+	if len(u.out) > 0 {
+		goes = append(goes, joinAnd(spellNames(u.out))+" "+plural(len(u.out), "leaves", "leave")+" your book")
 	}
-	if len(u.items) > 0 {
-		goes = append(goes, "I take back "+joinAnd(r.itemNames(u.items, "the ")))
+	if len(u.in) > 0 {
+		goes = append(goes, joinAnd(spellNames(u.in))+" "+plural(len(u.in), "enters", "enter")+" it")
+	}
+	if len(u.back) > 0 {
+		goes = append(goes, "I take back "+joinAnd(r.itemNames(u.back, "the ")))
+	}
+	if len(u.give) > 0 {
+		goes = append(goes, "I give you "+joinAnd(r.itemNames(u.give, "the ")))
 	}
 	if len(goes) > 0 {
-		lines = append(lines, capitalize(strings.Join(goes, ", and "))+".")
+		lines = append(lines, capitalize(joinAnd(goes))+".")
 	}
-	lines = append(lines, "Then choose again with "+joinAnd(u.givers)+".")
-	r.say(sess, speaker, lines...)
-	question := "Shall I undo it, for a Rose of Rehabilitation?"
+	if u.granted {
+		lines = append(lines, rehabKnowsAll)
+	}
+	return lines
+}
+
+// askSwap asks to change a pick for option to: what changes and on what
+// terms, or why it cannot.
+func (r *Rehab) askSwap(sess *session.Session, p *entity.Player, speaker string, pk pathPick, to int) {
+	u, no := r.planSwap(sess, p, pk, to)
+	switch {
+	case no != "":
+		r.say(sess, speaker, no)
+		return
+	case len(u.worn) > 0:
+		r.say(sess, speaker, fmt.Sprintf(rehabWorn, joinAnd(u.worn)))
+		return
+	case u.short != "":
+		r.say(sess, speaker, fmt.Sprintf(questPackFull, u.short))
+		return
+	}
+	r.say(sess, speaker, r.swapLines(u)...)
+	question := "Shall I make the change, for a Rose of Rehabilitation?"
 	if u.terms.freePath {
 		if _, left, ok := r.standing(p); ok {
-			question = fmt.Sprintf("Shall I undo it? This is a free path respec (%d left after).", left[database.ResetPath]-1)
+			question = fmt.Sprintf("Shall I make the change? This is a free path respec (%d left after).", left[database.ResetPath]-1)
 		}
 	}
-	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageConfirm, what: rehabPath, terms: u.terms, path: u},
-		question, []string{rehabUndoYes, rehabNotNow})
+	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageConfirm, what: rehabPath, terms: u.terms, swap: u},
+		question, []string{rehabChangeYes, rehabNotNow})
 }
 
-// laterLevels is the levels a path's undoing takes besides its own.
-func laterLevels(u *pathUndo) []string {
-	var out []string
-	for _, pq := range u.quests {
-		if pq.level != u.level {
-			out = append(out, strconv.Itoa(pq.level))
-		}
-	}
-	return out
-}
-
-// doPath carries out a path's undoing asked and agreed: the plan made again
-// (asked again when its quests or terms moved), the rose taken or the free
-// respec counted, the quests forgotten, the spells out of the book and the
-// items taken back; a line says what was undone.
-func (r *Rehab) doPath(sess *session.Session, p *entity.Player, b *rehabBox) {
-	if b.path == nil {
+// doSwap carries out a change asked and agreed, on the spot: planned again
+// (asked again when the pick or the terms moved), refused before anything
+// moves when an old item is worn or the pack has no room, then the rose taken
+// (a free respec is counted at the end), the old spells out of the book
+// (0x00B8) and its items back, the new spells in (0x00B3) and its items given,
+// the pick kept with the quest's row. The quest rows stay as they are: nothing
+// is done again and no experience is given. A line says what changed.
+func (r *Rehab) doSwap(sess *session.Session, p *entity.Player, b *rehabBox) {
+	if b.swap == nil {
 		return
 	}
-	chosen := b.path.chosen
-	u, no := r.planPath(sess, p, chosen)
-	if no != "" {
+	u, no := r.planSwap(sess, p, b.swap.pick, b.swap.to)
+	switch {
+	case no != "":
 		r.say(sess, b.speaker, no)
 		return
-	}
-	if len(u.worn) > 0 {
+	case len(u.worn) > 0:
 		r.say(sess, b.speaker, fmt.Sprintf(rehabWorn, joinAnd(u.worn)))
 		return
-	}
-	if u.terms != b.terms || !sameInts(u.ids(), b.path.ids()) {
-		r.askPath(sess, p, b.speaker, chosen)
+	case u.short != "":
+		r.say(sess, b.speaker, fmt.Sprintf(questPackFull, u.short))
+		return
+	case u.terms != b.terms || u.pick.option != b.swap.pick.option:
+		r.askSwap(sess, p, b.speaker, u.pick, u.to) // the pick or the terms moved: asked again
 		return
 	}
 	if u.terms.rose && r.takeItems(sess, p, database.RoseOfRehabilitation, 1) == 0 {
 		r.say(sess, b.speaker, "Bring me a Rose of Rehabilitation first.")
 		return
 	}
-	if err := r.quests().forgetQuests(p.CharServerID, u.ids()); err != nil {
-		log.Printf("Rehab: %s's path quests not forgotten: %v", p.Name, err)
-		if u.terms.rose {
-			r.giveRose(sess, p)
-		}
-		r.say(sess, b.speaker, "Something went wrong: tell a GM.")
-		return
-	}
 	var gone []string
-	if r.cm != nil && len(u.spells) > 0 {
-		gone = r.cm.takeAbilitiesFrom(sess, p.CharServerID, u.spells)
+	if r.cm != nil && len(u.out) > 0 {
+		gone = r.cm.takeAbilitiesFrom(sess, p.CharServerID, u.out)
 	}
 	var back []database.ItemCount
-	for _, it := range u.items {
+	for _, it := range u.back {
 		if n := r.takeItems(sess, p, it.PatternID, it.Count); n > 0 {
 			back = append(back, database.ItemCount{PatternID: it.PatternID, Count: n})
 		}
 	}
+	if r.cm != nil && len(u.in) > 0 {
+		r.cm.giveAbilitiesTo(sess, p.CharServerID, p.Name, u.in)
+	}
+	var given []database.ItemCount
+	for _, it := range u.give {
+		pat, ok, err := r.inv.ItemPatternByID(it.PatternID)
+		if err != nil || !ok {
+			continue
+		}
+		n, err := GiveItemNow(sess, r.gw, r.inv, pat, it.Count)
+		if err != nil {
+			log.Printf("Rehab: giving %s %q: %v", p.Name, pat.ItemName, err)
+		}
+		if n > 0 {
+			given = append(given, database.ItemCount{PatternID: it.PatternID, Count: n})
+		}
+	}
+	r.quests().setPick(p.CharServerID, u.pick.pq.quest.ID, u.pick.step, u.to)
 	r.count(p, database.ResetPath, u.terms.freePath)
 
-	what := fmt.Sprintf("Undone: your level %d path", u.level)
-	if later := laterLevels(u); len(later) > 0 {
-		what += " and your level " + joinAnd(later) + " " + plural(len(later), "path", "paths")
+	opts := u.pick.options()
+	var what []string
+	for _, part := range []struct {
+		head  string
+		names []string
+	}{{"Out of your book", gone}, {"Into it", spellNames(u.in)}, {"Taken back", r.itemNames(back, "")},
+		{"Given", r.itemNames(given, "")}, {"No longer yours to take back", u.missing}} {
+		if len(part.names) > 0 {
+			what = append(what, part.head+": "+strings.Join(part.names, ", ")+".")
+		}
 	}
-	if len(gone) > 0 {
-		what += "; out of your book: " + strings.Join(gone, ", ")
+	r.say(sess, b.speaker, rehabDone+fmt.Sprintf(" Your level %d path is %s now.", u.pick.pq.level, opts[u.to].Answer))
+	if len(what) > 0 {
+		r.say(sess, "", strings.Join(what, " "))
 	}
-	if len(back) > 0 {
-		what += "; taken back: " + strings.Join(r.itemNames(back, ""), ", ")
-	}
-	if len(u.missing) > 0 {
-		what += "; no longer yours to take back: " + strings.Join(u.missing, ", ")
-	}
-	r.say(sess, b.speaker, rehabDone+" Speak with "+joinAnd(u.givers)+" to choose again.")
-	r.say(sess, "", what+".")
 	if u.terms.rose {
 		r.say(sess, "", "You gave up a Rose of Rehabilitation.")
 	} else if _, left, ok := r.standing(p); ok {
 		r.say(sess, "", fmt.Sprintf("That was a free path respec: %d left.", left[database.ResetPath]))
 	}
-	log.Printf("Rehab: %s undid the level %d path (quests %v; spells %v; items %v; missing %v; rose %v)",
-		p.Name, u.level, u.ids(), gone, back, u.missing, u.terms.rose)
+	log.Printf("Rehab: %s changed %q step %d from %q to %q (out %v, in %v, back %v, given %v, missing %v, rose %v, inferred %v)",
+		p.Name, u.pick.pq.quest.Name, u.pick.step, opts[u.pick.option].Answer, opts[u.to].Answer, gone, spellNames(u.in),
+		back, given, u.missing, u.terms.rose, u.pick.inferred)
 }
 
 // --- the rose ---
@@ -1090,10 +1265,10 @@ func (r *Rehab) takeItems(sess *session.Session, p *entity.Player, patternID, n 
 	return took
 }
 
-// bookAndHeld is the character's book (spell names by id) and the items it
-// holds unworn, by patternid.
-func (r *Rehab) bookAndHeld(p *entity.Player) (map[int]string, map[int]int) {
-	book, held := map[int]string{}, map[int]int{}
+// bookAndOwned is the character's book (spell names by id) and every item it
+// owns, pack, worn and bank, by patternid.
+func (r *Rehab) bookAndOwned(p *entity.Player) (map[int]string, map[int]int) {
+	book, owned := map[int]string{}, map[int]int{}
 	if r.spells != nil {
 		if b, err := r.spells.GetCharacterSpells(p.CharServerID); err == nil {
 			for _, e := range b {
@@ -1103,12 +1278,10 @@ func (r *Rehab) bookAndHeld(p *entity.Player) (map[int]string, map[int]int) {
 	}
 	if rows, err := r.inv.GetCharacterItems(p.CharServerID); err == nil {
 		for _, row := range rows {
-			if !(row.Location == 0 && row.EquipLoc >= 0) {
-				held[row.Pattern.PatternID] += row.StackLeft
-			}
+			owned[row.Pattern.PatternID] += row.StackLeft
 		}
 	}
-	return book, held
+	return book, owned
 }
 
 // soldScrolls is the spells merchants sell as scrolls, by spellKey: one a
@@ -1231,17 +1404,4 @@ func capitalize(s string) string {
 		return s
 	}
 	return strings.ToUpper(s[:1]) + s[1:]
-}
-
-// sameInts is whether two lists hold the same numbers in the same order.
-func sameInts(a, b []int) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }

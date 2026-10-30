@@ -395,32 +395,50 @@ the quest boxes a PS2 reads (0x0046 lines, 0x0034 questions under box mark **0x5
 triggers' 0x52, the duels' 0x53): what the character has left, then three answers, a page of CLIENT's answer box
 (VIWndResponse shows three, then More, Back and its own Close, which answers 255): a reset, then which (its Combat
 Masteries, `#rst_mastr`'s work, `resetMasteries`; its stat points, `#rst_both`'s training half, `trainingBack`; both), a
-path undone, a Rose of Rehabilitation bought. Each is asked again with its terms and done only on them; nothing to undo
-or too little tunar is refused, nothing taken. Walked end to end in the headless vanilla client (a rose bought, a path
-undone from a two-page list).
+path chosen again, a Rose of Rehabilitation bought. Each is asked again with its terms and done only on them; nothing to
+undo or too little tunar is refused, nothing taken. Walked end to end in the headless vanilla client.
 
 - **Prices and free counts**: table `rehabsettings` (GM panel "Rehabilitators' prices", a row a setting, read at each
   talk): free_mastery 1, free_training 1, free_path 2, price_mastery 1,000,000, price_training 1,000,000 (the user priced
   only masteries and both: to confirm), price_both 2,000,000 (both when neither has a free reset left; with one free, the
   other's price), price_rose 10,000,000. Each character's counts: `charresets` (GM panel "Character resets": used, paid,
   bonus; free left = free + bonus - used).
-- **A path** (`rehabpaths.go`, by import key): a city's level 20 class quest whose last step asks the two path scrolls
-  (`1-20/<city>/<class>/L20`; one that kept a single path asks nothing) or a 30/40/49 group's class reward
-  (`30,40,49/<group>/L<30|40|49>-<class>`). Undoing one forgets that quest's row and, at 30 and 40, the later levels' of
-  its group (QuestReset: their givers offer them again), takes the spells its picks taught out of the book (0x00B8) and
-  their items back from the pack (0x003C) or the bank (0x1250); a worn one must come off first, one sold or destroyed is
-  named and not refused. **A pick is kept** with its quest's row (`charquests.picks`, "step:option"), so exactly it goes;
-  one from before counts every option of its step. A spell another quest the character keeps gives (the 60 epics offer
-  the 49 paths' other abilities) or merchants sell as a scroll stays. Past the free respecs a path costs a rose (pack or
-  bank; offered for sale when none is held, the paths asked right after).
+- **A path, chosen again on the spot** (`rehabpaths.go`, by import key; the user's "choose again on the spot"): a pick
+  of a city's level 20 class quest (`1-20/<city>/<class>/L20`, its two path scrolls; one that kept a single path asks
+  nothing) or of a 30/40/49 group's class reward (`30,40,49/<group>/L<30|40|49>-<class>`, an ability, a weapon or both).
+  The character's picks are listed a step each ("Level 30: Roar"), then that step's other options; on the yes the old
+  option's spells leave the book (0x00B8) and its items come back from the pack (0x003C) or the bank (0x1250), the new
+  one's spells are taught (0x00B3) and its items given (a level 20 pick: its scroll, to scribe), and the pick is kept
+  (`charquests.picks`, "step:option"). The quest rows stay: nothing is done again, no experience given. Refused before
+  anything moves: an old item worn (take it off first), no room in the pack for the new items (the quests' rule, next
+  section), no room in the book. An item both options give stays; one sold or destroyed is named, not refused. A spell
+  another quest the character keeps gives (the 60 epics offer the 49 paths' other abilities) or merchants sell as a
+  scroll stays, and so does every spell of a book holding two options' that nothing else explains (a class grant:
+  `#template`, grant_spell "all"). A pick from before picks were kept is read off the book and the pack (the option
+  holding the most; a tie is not offered). The free respec or the rose is used only when the change is done. **No pick
+  decides another level's options** in the quests: each level is changed by itself. `TestRealPathsChosenAgain` changes
+  every real path step (138 on 2026-10-30's data).
 - **The Rose of Rehabilitation**: item 709300 (`database.RoseOfRehabilitation`), "rose of renewal"'s art (icon 759960290,
   a rose; Oceanic Rose's 1342617881 is a coil of rope), worth 10,000,000, NO TRADE, which merchants refuse (an epic's
   would be ten million tunar). Each class's 60 epic reward quest (`60/<archetype>/reward-<class>`, 23) gives one at its
-  last step: not repeatable, and no path undoing touches it, so one a character an epic.
+  last step: not repeatable, and no path change touches its row, so one a character an epic.
 - `tools/seed_rehabilitation.py [--apply|--undo] [--write-data tools/quests/data]` writes the rose, Frejo's NPC bit (his
   npc_type was 0: a creature), the epics' rewards, and a rose for each epic a character finished before, less the roses
   it holds, has used (charresets) or the tool gave it (logged in `rehab_seed`, exact undo; no run gives one twice). Apply
   it before the restart that brings the code: NPCs and quests are read at the start.
+
+### A quest's items wait for room in the pack (`handlers/questroom.go`, every quest)
+
+The user, 2026-10-30: "giver waits for room" (until then `GiveItemNow` gave what fitted and said the rest was lost: an
+epic's weapon and rose too). Before a step is done, everything doing it puts in the pack (its rewards and its class's,
+the picked option's, its done events' items, then the next step's start events' or the quest's finish events') is tried
+on the session's copy of CLIENT's list (`invList.roomFor`: 40 records with worn items among them; a stackable joins the
+first record of its item up to its stack, as `VIItemList::AddItem` files it), after what a give step takes. When it does
+not all fit, nothing happens (no hand-in taken, no experience, tunar, faction, spell or item) and the giver says "Your
+pack is too full for ... Make room and come back to me."; the step stays to do. Taking a quest whose acceptance or first
+step hands over items waits the same way (a GM's give does not). A kill, loot or reach step's last kill, loot or arrival
+waits at its count, the player told at most every two minutes, and is done at the first look round (each second) that
+finds the room. A rehabilitator's path change keeps the same rule.
 
 ### SOE's live client's other features: the feature word, the group search, auction stacks
 

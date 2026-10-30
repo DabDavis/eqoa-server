@@ -927,3 +927,49 @@ func TestDuelHoldAndSlow(t *testing.T) {
 		t.Fatal("no speed sent as the duel's hold came off")
 	}
 }
+
+// A Self or Group line the parser reads as harmful (a defense's lowered
+// stat beside its raised one) lands on its caster's side as ever, with no
+// duel and in one: no duel aimed it. The lines and names are made up.
+func TestSelfAndGroupLinesAreNoDuels(t *testing.T) {
+	stance := func(id int, line string) CastSpell {
+		return CastSpell{SpellID: id, DisplayIndex: 5, Scope: 0, Name: "Made-up Stance", Icon: 0x12345678,
+			CastTime: time.Second, Range: 30, Def: ParseSpellText(line)}
+	}
+	self := stance(9801, "Self, Decrease AGI by 10, Increase STR by 40, 30sec")
+	group := stance(9802, "Group, Decrease AGI by 5, Increase STR by 20, 30sec")
+	group.Scope = 2
+	if !self.Def.Harmful || !group.Def.Harmful {
+		t.Fatalf("the test's lines read as harmless: %v %v", self.Def.Harmful, group.Def.Harmful)
+	}
+
+	c := newCaster(t)
+	str := c.p.StatNow(StatStr)
+	c.land(t, self, c.me, 0)
+	if c.p.StatNow(StatStr) != str+40 || len(c.p.Effects) != 1 {
+		t.Errorf("no duel: STR %d, effects %d; want %d and 1", c.p.StatNow(StatStr), len(c.p.Effects), str+40)
+	}
+
+	g := newCaster(t)
+	mate := &Player{ServerID: 1002, Name: "Mate", HP: 50, MaxHP: 500, Str: 50, X: 104, Y: 10, Z: 100}
+	g.w.Players[mate.ServerID] = mate
+	g.w.groups = map[uint32]*Group{7: {ID: 7, Members: []EntityID{g.p.ServerID, mate.ServerID}}}
+	g.p.GroupID, mate.GroupID = 7, 7
+	g.land(t, group, g.me, 0)
+	if mate.StatNow(StatStr) != 70 {
+		t.Errorf("a group line's member: STR %d, want 70", mate.StatNow(StatStr))
+	}
+
+	d := newDuelists(t)
+	d.start(t)
+	astr := d.a.StatNow(StatStr)
+	if !d.w.StartCast(d.sa, self, d.aSeesB, d.at(2*time.Second)) {
+		t.Fatalf("a self line in a duel was refused: %q", duelLines(duelDrain(d.sa)))
+	}
+	d.w.mu.Lock()
+	d.w.castSystem(d.at(2*time.Second + self.CastTime + castLand))
+	d.w.mu.Unlock()
+	if d.a.StatNow(StatStr) != astr+40 || len(d.a.Effects) != 1 || d.a.Effects[0].duelFoe != 0 || len(d.b.Effects) != 0 {
+		t.Errorf("in a duel: A's STR %d (want %d), A's effects %+v, B's %+v", d.a.StatNow(StatStr), astr+40, d.a.Effects, d.b.Effects)
+	}
+}

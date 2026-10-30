@@ -270,6 +270,22 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm"},
 		},
 	},
+	"charcoaches": {
+		Label: "Character coach ledgers", Group: "Players", Sort: "serverid",
+		Help: "The stables' ledgers each character has signed, a town a row (handlers/coachledger.go): talking to a " +
+			"town's coachman signs his. A coachman's menu offers only the towns his coach ran to in the live game " +
+			"(EQOA-Data's coach map, read both ways) whose ledgers the character has signed; with none he says so. " +
+			"A GM's account is offered every coach town, and so is anyone at a coachman of no town on the network " +
+			"(the Rathe's Coachman Dilga). A row here grants a town, deleting it takes the town away.",
+		Live: "At once: the character's next talk to a coachman reads it.",
+		Show: []string{"serverid", "town", "source", "signed"},
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"town":     {Label: "Town", Help: coachTownHelp()},
+			"source":   {Label: "Source", Help: "talk: signed in the game; gm: granted here"},
+			"signed":   {Label: "Signed", Format: "stamp", Help: "when, RFC 3339 in UTC (2026-10-30T01:30:00Z); empty for a grant"},
+		},
+	},
 	"charbuffs": {
 		Label: "Character effects", Group: "Players",
 		Help: "Spell effects kept over a logout, what is left of each (entity/buffsave.go).",

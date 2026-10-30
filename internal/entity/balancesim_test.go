@@ -226,3 +226,30 @@ func TestSimLowPointIsTheFightsLeast(t *testing.T) {
 		t.Errorf("the healer won %d and ended above its low point in %d; without the heal %d won", ended, healed, plainWon)
 	}
 }
+
+// A fitting group (SimGroupFor): a duo is the class and the role it lacks,
+// a cleric for a tank or a melee class, a warrior for a priest or a caster;
+// a trio a warrior, the class and a cleric; the control: a warrior's or a
+// cleric's trio takes a wizard for the class's own place.
+func TestAFittingGroupFillsTheRoleItLacks(t *testing.T) {
+	kit := func(c int) (SimPlayer, error) { return SimPlayer{Class: c}, nil }
+	for _, c := range []struct {
+		class, size int
+		want        []int
+	}{
+		{6, 2, []int{6, 9}}, {2, 2, []int{2, 9}}, {13, 2, []int{0, 13}}, {10, 2, []int{0, 10}}, {7, 2, []int{0, 7}},
+		{9, 2, []int{0, 9}}, {6, 3, []int{0, 6, 9}}, {13, 3, []int{0, 13, 9}}, {0, 3, []int{0, 13, 9}}, {9, 3, []int{0, 13, 9}},
+	} {
+		g, err := SimGroupFor(c.class, 20, c.size, kit)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var got []int
+		for _, pl := range g {
+			got = append(got, pl.Class)
+		}
+		if fmt.Sprint(got) != fmt.Sprint(c.want) {
+			t.Errorf("class %d, %d: %v, want %v", c.class, c.size, got, c.want)
+		}
+	}
+}

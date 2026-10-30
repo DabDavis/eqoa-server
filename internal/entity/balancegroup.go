@@ -281,16 +281,19 @@ func SimGroupCellOf(pls []SimPlayer, foe SimNPC, diff int, b *Balance, fights in
 
 // SimGroupFor is a fitting group for a class at a level (the user's "a
 // fitting group (2-3 of the level)"), its members' kits made by kit: of two,
-// the class and a cleric (a warrior with a cleric); of three, a warrior, the
-// class and a cleric (a wizard for the class's own place when it is one of
-// them). The warrior pulls; a pet class fights with its pet, a caster off
-// the NPC, a cleric heals the group at 60%.
+// the class and the role it lacks, a healer (a cleric) for a tank or a melee
+// class, a tank (a warrior) for a priest or a caster (a pet class too: with a
+// cleric, a magician of 10 won a red three up 12% of the time where with a
+// warrior 100%); of three, a warrior, the class and a cleric (a wizard for
+// the class's own place when it is one of them). The first member pulls; a
+// pet class fights with its pet, a caster off the NPC, a cleric heals the
+// group at 60%.
 func SimGroupFor(class, level, size int, kit func(class int) (SimPlayer, error)) ([]SimPlayer, error) {
 	const warrior, cleric, wizard = 0, 9, 13
 	var classes []int
 	switch {
-	case size <= 2 && class == cleric:
-		classes = []int{warrior, cleric}
+	case size <= 2 && (archetypeOf(class) == archPriest || archetypeOf(class) == archCaster):
+		classes = []int{warrior, class}
 	case size <= 2:
 		classes = []int{class, cleric}
 	case class == warrior || class == cleric:

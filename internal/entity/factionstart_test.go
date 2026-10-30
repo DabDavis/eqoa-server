@@ -200,15 +200,17 @@ func TestTheGhoulServantLeavesADarkElfAlone(t *testing.T) {
 }
 
 // A guard of a faction attacks on sight a player whose standing with it is
-// in a red band (below -350: Aggressive, then Dubious), at any level (a
-// level 60 by a level 10 guard), showing it the red face, and no one else;
-// the face is the standing's from -350 up. With
+// in a red band (below -350: Aggressive, then Dubious), at any level it is
+// not green to (a level 60 by a level 50 guard), showing it the red face, and
+// no one else; the face is the standing's from -350 up. A level 10 guard,
+// green to the level 60, shows it the red face and leaves it alone on sight
+// (the user, 2026-10-30). With
 // world.faction_aggro false a guard with a players' race's body attacks no
 // one and shows the old white.
 func TestAGuardAttacksAKOSPlayerOnSight(t *testing.T) {
 	f := newAggroFix(t, 60)
 	f.town(1000, 1200)
-	guard := f.npc(2001, "Guard Dahvel", 10, humanBody, 1100, 1210)
+	guard := f.npc(2001, "Guard Dahvel", 50, humanBody, 1100, 1210)
 	f.w.SetNPCFactions([]database.NPCFactionRow{{Name: "guard dahvel", World: -1, Faction: "The Freeport Militia"}})
 	f.moveTo(1100, 1225)
 	for _, c := range []struct {
@@ -227,6 +229,16 @@ func TestAGuardAttacksAKOSPlayerOnSight(t *testing.T) {
 		}
 		forget(guard)
 	}
+	// a guard green to the player: the red face, no attack on sight
+	green := f.npc(2002, "Guard Dahvel", 10, humanBody, 1100, 1215)
+	f.p.Factions = map[string]int{"The Freeport Militia": -2000}
+	f.look()
+	if f.attacks(green) || f.face(green) != DispAggressive {
+		t.Errorf("a level 10 guard, green to a level 60 KOS to it: attacked %v face %d, want the red face and no attack", f.attacks(green), f.face(green))
+	}
+	forget(guard)
+	f.w.SpatialIndex.Remove(green.ServerID, green.X, green.Z)
+	delete(f.w.NPCs, green.ServerID)
 	// the start counts as the standing does: a dark elf starting KOS to it
 	f.p.Factions = nil
 	f.p.Race = 2
@@ -288,8 +300,8 @@ func TestTheNPCBitAndAGMRuleOverFactions(t *testing.T) {
 // What the player sees is what attacks, with factions in: over standings,
 // bodies, the NPC bit, a GM's rule and the player's level, a creature
 // attacks a noticeable player within its radius exactly when it shows it the
-// Aggressive face, and one of a faction attacks exactly when the standing is
-// below -700.
+// Aggressive face and is not green to it (the user, 2026-10-30), and one of a
+// faction attacks exactly when the standing is below -700 and it is not green.
 func TestTheFaceAndTheAttackAgreeWithFactions(t *testing.T) {
 	type kind struct {
 		name    string
@@ -330,10 +342,13 @@ func TestTheFaceAndTheAttackAgreeWithFactions(t *testing.T) {
 					n.NPCType = k.npcType
 					f.look()
 					face := f.face(n)
-					if (face == DispAggressive) != f.attacks(n) {
-						t.Fatalf("player %d, %s level %d, standing %d: face %d, attacked %v", pl, k.name, lvl, standing, face, f.attacks(n))
+					// green to the player: the red face, and no attack on
+					// sight (the user, 2026-10-30)
+					green := ConColor(pl, lvl) == ConGreen
+					if (face == DispAggressive && !green) != f.attacks(n) {
+						t.Fatalf("player %d, %s level %d, standing %d: face %d, green %v, attacked %v", pl, k.name, lvl, standing, face, green, f.attacks(n))
 					}
-					if k.faction && k.npcType == 0 && k.rule == nil && f.attacks(n) != (standing < FactionKOSBelow) {
+					if k.faction && k.npcType == 0 && k.rule == nil && f.attacks(n) != (standing < FactionKOSBelow && !green) {
 						t.Errorf("player %d, %s level %d, standing %d: attacked %v", pl, k.name, lvl, standing, f.attacks(n))
 					}
 					f.w.SpatialIndex.Remove(n.ServerID, n.X, n.Z)

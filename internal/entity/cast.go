@@ -1033,6 +1033,9 @@ func (w *World) healLocked(caster *Player, casterSess *session.Session, t *Playe
 	t.HP = min(t.HP+n, top)
 	t.StatsDirty = true
 	w.tellAmountLocked(caster, casterSess, t.ServerID, n)
+	if t.ServerID == caster.ServerID {
+		w.healAggroLocked(caster) // a creature it is green to comes now (aggro.go)
+	}
 }
 
 // tellAmountLocked sends 0x00DB (caster, amount, target) to the caster and,

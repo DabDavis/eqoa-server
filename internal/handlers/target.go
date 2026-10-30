@@ -165,32 +165,11 @@ func (h *TargetHandler) HandleTarget(sess *session.Session, msg *protocol.Messag
 	return nil
 }
 
-// calcConColor calculates the "consider" color based on level difference.
-// Matches C# Entity.Interaction.cs GenerateConColor().
-// 0=red, 1=yellow, 2=white, 3=dark blue, 4=light blue, 5=green
+// calcConColor is the "consider" colour a player of observerLevel sees a
+// target of targetLevel as (entity.ConColor, which aggro also reads):
+// 0=red, 1=yellow, 2=white, 3=dark blue, 4=light blue, 5=green.
 func calcConColor(observerLevel, targetLevel int) byte {
-	diff := observerLevel - targetLevel // positive = observer is higher
-	switch {
-	case diff <= -3:
-		return 0 // red — target much higher
-	case diff <= -1:
-		return 1 // yellow — target slightly higher
-	case diff == 0:
-		return 2 // white — same level
-	case diff <= 2:
-		return 3 // dark blue — target slightly lower
-	default:
-		if observerLevel <= 15 {
-			if diff > 3 {
-				return 5 // green
-			}
-			return 4 // light blue
-		}
-		if diff > observerLevel/4 {
-			return 5 // green
-		}
-		return 4 // light blue
-	}
+	return entity.ConColor(observerLevel, targetLevel)
 }
 
 // sendTargetInfo answers a 0x0010 request (buildClassicTargetInfo): face,

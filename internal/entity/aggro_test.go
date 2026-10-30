@@ -74,13 +74,63 @@ func (f *aggroFix) face(n *NPC) byte { return f.w.TargetFace(f.p, n) }
 
 func (f *aggroFix) attacks(n *NPC) bool { return n.CurrentEnemy == f.p.ServerID }
 
-// A bear 20 off a player half its level again attacks it, as a hit would
-// (its threat on the player), and shows it the red face; one 35 off shows the
-// red face too but has not noticed it.
+// selfHeal is the player's heal of n on itself (healLocked).
+func (f *aggroFix) selfHeal(n int) {
+	f.w.mu.Lock()
+	defer f.w.mu.Unlock()
+	f.w.healLocked(f.p, f.sess, f.p, n)
+}
+
+// The user, 2026-10-30: "if a mob is green to a player it should not aggro
+// even if red face", and "it will aggro if you heal yourself near it though".
+// A level 30 player 10 off a level 20 bear (green: ten below, more than a
+// quarter of 30) sees the red face and is left alone; it heals itself and the
+// bear comes. The controls: a level 25 bear (light blue) attacks on sight; a
+// heal that restores nothing (at full health) draws none; a green bear 40 off
+// is not drawn (its radius is 30); a GM trigger's green spawn attacks on sight.
+func TestAGreenCreatureComesWhenYouHealYourself(t *testing.T) {
+	f := newAggroFix(t, 30)
+	green := f.npc(2001, "Brown Bear", 20, bearBody, 1010, 1000)
+	blue := f.npc(2002, "Brown Bear", 25, bearBody, 990, 1000)
+	far := f.npc(2003, "Brown Bear", 20, bearBody, 1040, 1000)
+	f.look()
+	if got := f.face(green); got != FaceHostile {
+		t.Errorf("the green bear's face %d, want the red %d", got, FaceHostile)
+	}
+	if f.attacks(green) {
+		t.Error("the green bear attacked on sight")
+	}
+	if !f.attacks(blue) {
+		t.Error("the light blue bear did not attack on sight")
+	}
+	f.p.HP = f.p.MaxHP
+	f.selfHeal(50)
+	if f.attacks(green) {
+		t.Error("a heal that restored nothing drew the green bear")
+	}
+	f.p.HP = 500
+	f.selfHeal(50)
+	if !f.attacks(green) {
+		t.Error("the green bear 10 off did not come to the self-heal")
+	}
+	if f.attacks(far) {
+		t.Error("the green bear 40 off came to the self-heal: its radius is 30")
+	}
+	ev := f.npc(2004, "Brown Bear", 20, bearBody, 1000, 1010)
+	ev.EventAggro = true
+	f.look()
+	if !f.attacks(ev) {
+		t.Error("a GM trigger's green spawn did not attack on sight")
+	}
+}
+
+// A bear 20 off a player ten levels above it (light blue, not green) attacks
+// it, as a hit would (its threat on the player), and shows it the red face;
+// one 35 off shows the red face too but has not noticed it.
 func TestAHostileCreatureAttacksAPlayerWhoComesNear(t *testing.T) {
 	f := newAggroFix(t, 40)
-	near := f.npc(2001, "Brown Bear", 20, bearBody, 1020, 1000)
-	far := f.npc(2002, "Brown Bear", 20, bearBody, 1035, 1000)
+	near := f.npc(2001, "Brown Bear", 30, bearBody, 1020, 1000)
+	far := f.npc(2002, "Brown Bear", 30, bearBody, 1035, 1000)
 	f.look()
 	if !f.attacks(near) || near.Threats[f.p.ServerID] <= 0 {
 		t.Errorf("the bear 20 off did not attack: enemy %d, threats %v", near.CurrentEnemy, near.Threats)
@@ -98,8 +148,10 @@ func TestAHostileCreatureAttacksAPlayerWhoComesNear(t *testing.T) {
 // Sandstorm's level-51 player (pcaps/ps2_sandstorm_1min10secs.pcap): level
 // 18 and 19 creatures showed the red face and level 17 ones the white, all of
 // them green to it; the white Black Bear Cub came within 7.1 and did not
-// attack. The control is the same creatures under a planted rule of "any
-// hostile creature" (every one attacks).
+// attack. Green, none attacks it on sight (the user, 2026-10-30); healing
+// itself 7.1 off each, the red ones come and the white ones still do not. The
+// control is the same creatures under a planted rule of "any hostile
+// creature" (every one attacks).
 func TestTheLevelCutSandstormShowed(t *testing.T) {
 	rows := []struct {
 		name  string
@@ -123,10 +175,16 @@ func TestTheLevelCutSandstormShowed(t *testing.T) {
 		if got := f.face(n); got != want {
 			t.Errorf("%s level %d: face %d, want %d", r.name, r.level, got, want)
 		}
-		if f.attacks(n) != r.red {
-			t.Errorf("%s level %d, 7.1 off a level 51: attacked %v, want %v", r.name, r.level, f.attacks(n), r.red)
+		if f.attacks(n) {
+			t.Errorf("%s level %d, green to a level 51 7.1 off: attacked on sight", r.name, r.level)
 		}
-		n.Threats, n.CurrentEnemy = nil, 0
+		f.p.HP = 500
+		f.selfHeal(100)
+		if f.attacks(n) != r.red {
+			t.Errorf("%s level %d: the level 51 healed itself 7.1 off, attacked %v, want %v", r.name, r.level, f.attacks(n), r.red)
+		}
+		f.w.SpatialIndex.Remove(n.ServerID, n.X, n.Z)
+		delete(f.w.NPCs, n.ServerID)
 	}
 	// the control: a level-17 creature attacks anyone at all within reach
 	if !inAggroLevels(17, 50) || inAggroLevels(17, 51) || !inAggroLevels(18, 51) {
@@ -377,7 +435,7 @@ func TestTheFightAggroStartsIsTheChases(t *testing.T) {
 
 // What the player sees is what attacks: over levels, bodies, the town and
 // distance, a noticeable player within the radius is attacked exactly when its
-// face is red.
+// face is red and the creature is not green to it (the user, 2026-10-30).
 func TestTheFaceAndTheAttackAgree(t *testing.T) {
 	for _, pl := range []int{1, 5, 10, 30, 51, 60} {
 		f := newAggroFix(t, pl)
@@ -397,8 +455,8 @@ func TestTheFaceAndTheAttackAgree(t *testing.T) {
 				f.p.X, f.p.Z = at.x-10, at.z
 				f.look()
 				red := f.face(n) == FaceHostile
-				if red != f.attacks(n) {
-					t.Fatalf("player %d, level %d, body %#x, in town %v: red %v, attacked %v", pl, lvl, at.body, at.inTown, red, f.attacks(n))
+				if want := red && ConColor(pl, lvl) != ConGreen; want != f.attacks(n) {
+					t.Fatalf("player %d, level %d, body %#x, in town %v: red %v, con %d, attacked %v", pl, lvl, at.body, at.inTown, red, ConColor(pl, lvl), f.attacks(n))
 				}
 				wantRed := at.body == bearBody && !at.inTown && lvl*3 > pl
 				if red != wantRed {

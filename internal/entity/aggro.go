@@ -17,15 +17,23 @@ import (
 //
 // What the player sees is what attacks: the target box's face (0x0010's
 // disposition, handlers/target.go) is TargetFace, and a creature attacks on
-// sight exactly the players it shows the red face to (threatensLocked): the
+// sight the players it shows the red face to (threatensLocked): the
 // Aggressive (0), which is also what a creature that attacks shows, whatever
 // its standing band (CLIENT's VIWndGame::DrawTarget draws the Dubious, 1,
-// alike, so no NPC shows it: a red face is one that attacks).
+// alike, so no NPC shows it: a red face is one that attacks). All but those it
+// is green to (ConColor; the user, 2026-10-30: "if a mob is green to a player
+// it should not aggro even if red face"): it shows a green player the red face
+// and leaves it alone on sight, until that player heals itself within its
+// radius ("it will aggro if you heal yourself near it though":
+// healAggroLocked, from healLocked, any heal that restores some of the
+// player's own hit points, a tap's drain and a heal over time's tick
+// included). A GM trigger's spawn attacks green players too (gmtriggers.go).
 //
 // An NPC of a faction (npcfaction, faction.go) attacks a player on sight when
 // the player's standing with it is in a red band (below -350, FactionKOSBelow:
 // Aggressive below -700, Dubious from there),
-// at any level (a city's guards defend it whatever comes: ours), and never on
+// at any level it is not green to (a city's guards defend it whatever comes
+// that is not far below them: ours, and the user's of 2026-10-30), and never on
 // sight otherwise, whatever its body: Neriak's ghoul servant, a creature's
 // body 52 from the nearest dark elf, killed a new dark elf by the coach
 // (2026-10-29) until it was of Citizens of Neriak. Its face is the standing's
@@ -345,31 +353,52 @@ func (w *World) aggroSystem(now time.Time) {
 	if w.aggro.off || w.TickCount%aggroScanTicks != 0 || w.SpatialIndex == nil {
 		return
 	}
-	reach := max(w.aggro.reach, DefaultAggroRadius)
 	for _, p := range w.Players {
-		if !w.noticeableLocked(p) {
+		if w.noticeableLocked(p) {
+			w.drawNearLocked(p, now, true)
+		}
+	}
+}
+
+// healAggroLocked: p healed itself (healLocked), so every free creature near
+// it that shows it the red face sets on it, the green ones too, which leave it
+// alone on sight (the file's doc). Must be called with the lock held.
+func (w *World) healAggroLocked(p *Player) {
+	if w.aggro.off || w.SpatialIndex == nil || !w.noticeableLocked(p) {
+		return
+	}
+	w.drawNearLocked(p, time.Now(), false)
+}
+
+// drawNearLocked sets on p the free creatures within their aggro radius of it
+// that show it the red face: on sight (onSight), all but those green to it (a
+// GM trigger's spawn whatever its colour); as it heals itself, every one.
+// Must be called with the lock held.
+func (w *World) drawNearLocked(p *Player, now time.Time, onSight bool) {
+	reach := max(w.aggro.reach, DefaultAggroRadius)
+	for _, id := range w.SpatialIndex.QueryRadius(p.X, p.Z, reach) {
+		npc, ok := w.NPCs[id]
+		if !ok || npc.World != p.World || npc.CurrentEnemy != 0 || npc.chase.returning || now.Before(npc.HiddenUntil) {
 			continue
 		}
-		for _, id := range w.SpatialIndex.QueryRadius(p.X, p.Z, reach) {
-			npc, ok := w.NPCs[id]
-			if !ok || npc.World != p.World || npc.CurrentEnemy != 0 || npc.chase.returning || now.Before(npc.HiddenUntil) {
-				continue
-			}
-			if !w.threatensLocked(npc, p) {
-				continue
-			}
-			r := w.aggroRadiusLocked(npc)
-			dx, dy, dz := p.X-npc.X, p.Y-npc.Y, p.Z-npc.Z
-			d2 := dx*dx + dy*dy + dz*dz
-			if d2 > r*r {
-				continue
-			}
-			// a hit's own entry, but no one else told: the NPCs of its
-			// own come only to a player's attack (socialaggro.go)
-			w.addThreatLocked(npc, p.ServerID, 1)
-			log.Printf("Aggro: %s (level %d) attacks %s (level %d) from %.1f away",
-				npc.Name, npc.Level, p.Name, p.Level, math.Sqrt(float64(d2)))
+		if !w.threatensLocked(npc, p) || onSight && !npc.EventAggro && greenTo(npc, p) {
+			continue
 		}
+		r := w.aggroRadiusLocked(npc)
+		dx, dy, dz := p.X-npc.X, p.Y-npc.Y, p.Z-npc.Z
+		d2 := dx*dx + dy*dy + dz*dz
+		if d2 > r*r {
+			continue
+		}
+		// a hit's own entry, but no one else told: the NPCs of its own come
+		// only to a player's attack (socialaggro.go)
+		w.addThreatLocked(npc, p.ServerID, 1)
+		why := "attacks"
+		if !onSight {
+			why = "is drawn by the self-heal of"
+		}
+		log.Printf("Aggro: %s (level %d) %s %s (level %d) from %.1f away",
+			npc.Name, npc.Level, why, p.Name, p.Level, math.Sqrt(float64(d2)))
 	}
 }
 

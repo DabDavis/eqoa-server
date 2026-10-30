@@ -311,13 +311,44 @@ func TestRealDustAndTheFireBat(t *testing.T) {
 	}
 }
 
+// simRealBalance is the balance a real database fights under: its own tables
+// once the tuning is written into them (balanceclasslevel has rows: tools/
+// tune_balance.py and tools/retune_balance.py applied), else the seed rows
+// (the same tuning, for a database it is not written into yet).
+func simRealBalance(t *testing.T, db *database.SQLiteDB) *Balance {
+	t.Helper()
+	cll, err := db.BalanceClassLevels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cll) == 0 {
+		t.Log("the seed rows (the database's balance is not the tuning's)")
+		return SeedBalance()
+	}
+	ls, err := db.BalanceLevels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cs, err := db.BalanceCons()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cls, err := db.BalanceClasses()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("the database's own tables (%d class and level rows)", len(cll))
+	return NewBalance(ls, cs).WithClasses(cls).WithClassLevels(cll)
+}
+
 // The user's targets of 2026-10-30 on the real kits (EQOA_REAL_DB): both
 // yellows won as a rule (one up four times in five, two up half the time)
 // and taking a player down below about a third of its hit points (its low
 // point, averaged over the fights won one and two up: the tuning's fit aims
 // at a quarter), a red three up a lone player's loss, two of the level a
-// red three up's winners and three a red five up's; the control: under the
-// 01:30 tables most yellows left a player above a third.
+// red three up's winners and three a red five up's, under the database's
+// own tables once the tuning is written into them (simRealBalance); the
+// control: under the 01:30 tables most yellows left a player above a third.
 func TestRealBalanceYellowsAndReds(t *testing.T) {
 	db := simRealDB(t)
 	kit := func(c, l int) SimPlayer {
@@ -327,7 +358,7 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 		}
 		return pl
 	}
-	seed, old := SeedBalance(), balanceAt0130()
+	seed, old := simRealBalance(t, db), balanceAt0130()
 	yellow := func(pl SimPlayer, b *Balance, fights int) (SimCell, SimCell, float64) {
 		y1 := SimCellOf(pl, SimNPC{}, 1, b, fights, 1, 10*time.Minute)
 		y2 := SimCellOf(pl, SimNPC{}, 2, b, fights, 1, 10*time.Minute)

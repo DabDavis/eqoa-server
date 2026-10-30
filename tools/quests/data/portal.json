@@ -3898,7 +3898,9 @@
    "races": [],
    "minlevel": 55,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    "Portal/soluseks-eye/nagafen-1"
+   ],
    "repeatable": true,
    "offer": "You carry one of my tokens? Give it to me and I will send you to Nagafen's island. Unequip your weapons first, or he will not wait for you to be ready.",
    "accept": "Send me.",
@@ -3907,7 +3909,7 @@
    "started": "Hand it over.",
    "steps": [
     {
-     "kind": "give",
+     "kind": "show",
      "target": "Subdued Magus",
      "items": [
       {

@@ -825,7 +825,7 @@
      "journal": "Kill Skulpik deep in Runnyeye Citadel and take his recipe."
     },
     {
-     "kind": "give",
+     "kind": "show",
      "target": "Commander Dursley",
      "items": [
       {
@@ -4711,7 +4711,7 @@
      "journal": "Kill Maerik N'Toxis in the castle at the bottom of Guk for his scrolls."
     },
     {
-     "kind": "give",
+     "kind": "show",
      "target": "Grimm Brellhand",
      "items": [
       {

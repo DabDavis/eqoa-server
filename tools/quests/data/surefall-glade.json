@@ -8,7 +8,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 1,
    "maxlevel": 60,
    "requires": [],
@@ -55,7 +57,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 2,
    "maxlevel": 60,
    "requires": [
@@ -99,7 +103,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 3,
    "maxlevel": 60,
    "requires": [
@@ -153,7 +159,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 4,
    "maxlevel": 60,
    "requires": [
@@ -254,7 +262,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 5,
    "maxlevel": 60,
    "requires": [
@@ -308,7 +318,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 7,
    "maxlevel": 60,
    "requires": [
@@ -405,7 +417,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
@@ -431,7 +445,7 @@
      "journal": "Kill the gnoll shaman forager in the valley near the guard tower west of the glade."
     },
     {
-     "kind": "give",
+     "kind": "show",
      "target": "Shiol Anara",
      "items": [
       {
@@ -516,7 +530,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
@@ -626,7 +642,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 15,
    "maxlevel": 60,
    "requires": [
@@ -751,7 +769,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 20,
    "maxlevel": 60,
    "requires": [
@@ -935,7 +955,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 1,
    "maxlevel": 60,
    "requires": [],
@@ -982,7 +1004,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 2,
    "maxlevel": 60,
    "requires": [
@@ -1026,7 +1050,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 3,
    "maxlevel": 60,
    "requires": [
@@ -1080,7 +1106,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 4,
    "maxlevel": 60,
    "requires": [
@@ -1184,7 +1212,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 5,
    "maxlevel": 60,
    "requires": [
@@ -1238,7 +1268,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 7,
    "maxlevel": 60,
    "requires": [
@@ -1314,7 +1346,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
@@ -1451,7 +1485,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
@@ -1578,7 +1614,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 15,
    "maxlevel": 60,
    "requires": [
@@ -1703,7 +1741,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    0
+   ],
    "minlevel": 20,
    "maxlevel": 60,
    "requires": [

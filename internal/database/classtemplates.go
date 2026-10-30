@@ -64,16 +64,33 @@ const npcTemplateSchema = `
 
 // The kinds of ability a template's NPC casts, each picked from its class's
 // spells (entity/classtemplate.go): a hit on one target, a hit on an area, a
-// hit that heals its caster, a heal on itself.
+// hit that heals its caster, a heal on itself. A pet of a template
+// (pettemplate, entity/pettemplate.go) casts them too, and two kinds of its
+// own: a damaging taunt at what it fights, and a buff on its owner.
 const (
 	AbilityNuke    = "nuke"
 	AbilityAoE     = "aoe"
 	AbilityLifetap = "lifetap"
 	AbilityHeal    = "heal"
+	AbilityTaunt   = "taunt"
+	AbilityBuff    = "buff"
 )
 
 // AbilityKinds are the kinds, in the order the help lists them.
-var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal}
+var AbilityKinds = []string{AbilityNuke, AbilityAoE, AbilityLifetap, AbilityHeal, AbilityTaunt, AbilityBuff}
+
+// Who a pet's heal or buff lands on (TemplateAbility.Target).
+const (
+	AbilityOnOwner = "owner"
+	AbilityOnSelf  = "self"
+)
+
+// AbilityStats are the stats a buff may be picked by (TemplateAbility.Stat).
+var AbilityStats = []string{"ac", "str", "sta", "agi", "dex", "wis", "int", "cha", "hp", "power"}
+
+// AbilityElements are the elements a harmful spell may be picked by
+// (TemplateAbility.Element), as its resist names it.
+var AbilityElements = []string{"fire", "cold", "lightning", "poison", "disease", "arcane"}
 
 // MaxTemplateAbilities is the most abilities a template has.
 const MaxTemplateAbilities = 8
@@ -114,6 +131,46 @@ type TemplateAbility struct {
 	Below int `json:"below,omitempty"`
 	// From is the NPC level from which it casts it at all (0: any).
 	From int `json:"from,omitempty"`
+
+	// The fields below are a pet's (pettemplate); an NPC of a template
+	// casts no taunt or buff, and its heals are on itself.
+
+	// Target is who a pet's heal or buff lands on: "owner" (a buff's
+	// default) or "self" (a heal's).
+	Target string `json:"target,omitempty"`
+	// SpellsOf is the class (0-14) whose spells it picks from in place of
+	// the template's: a pet's buff from a druid's or a shaman's line.
+	SpellsOf *int `json:"spells_of,omitempty"`
+	// Stat is the stat a buff's spell must raise (AbilityStats).
+	Stat string `json:"stat,omitempty"`
+	// Element is the element a harmful spell must be of (AbilityElements,
+	// as its resist goes: entity/classtemplate.go templateResist); empty,
+	// any.
+	Element string `json:"element,omitempty"`
+	// HealPct is a heal of this percent of its target's most hit points in
+	// place of a spell's figure: the enchanter's animations' four. A pet's
+	// heals of its own share are cast by size: the biggest due whose share
+	// it is missing, no overheal (entity/pettemplate.go).
+	HealPct int `json:"heal_pct,omitempty"`
+	// Hits is a taunt's damage by the pet's level: points [level, least,
+	// most], a level between two the straight line between them, one below
+	// the first the first's and one past the last the last's (one point: the
+	// same at every level); it lands as it is, as a creature's special does
+	// (the balance's pet damage not taken), at least 1. Empty: one of its
+	// melee hits at damage_pct.
+	Hits [][3]float64 `json:"hits,omitempty"`
+}
+
+// TargetOr is who a pet's heal or buff lands on: its own, else its kind's
+// (a buff its owner, anything else itself).
+func (a TemplateAbility) TargetOr() string {
+	if a.Target != "" {
+		return a.Target
+	}
+	if a.Kind == AbilityBuff {
+		return AbilityOnOwner
+	}
+	return AbilityOnSelf
 }
 
 // ChanceOr is the ability's chance, its default (100) for none.
@@ -183,6 +240,9 @@ func ParseTemplateAbilities(text string) ([]TemplateAbility, error) {
 		list[i].Kind = strings.ToLower(strings.TrimSpace(list[i].Kind))
 		list[i].Spell = strings.TrimSpace(list[i].Spell)
 		list[i].Line = strings.TrimSpace(list[i].Line)
+		list[i].Target = strings.ToLower(strings.TrimSpace(list[i].Target))
+		list[i].Stat = strings.ToLower(strings.TrimSpace(list[i].Stat))
+		list[i].Element = strings.ToLower(strings.TrimSpace(list[i].Element))
 	}
 	if err := CheckTemplateAbilities(list); err != nil {
 		return nil, err
@@ -241,8 +301,66 @@ func CheckTemplateAbilities(list []TemplateAbility) error {
 		case len(a.Spell) > 64 || len(a.Line) > 64:
 			return fmt.Errorf("ability %d: a spell or line of more than 64 characters", n)
 		}
+		if err := checkPetAbility(n, a); err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+// checkPetAbility holds a pet's fields of an ability to what its kind takes.
+func checkPetAbility(n int, a TemplateAbility) error {
+	switch {
+	case a.Target != "" && a.Target != AbilityOnOwner && a.Target != AbilityOnSelf:
+		return fmt.Errorf("ability %d: target %q: owner or self", n, a.Target)
+	case a.Target != "" && a.Kind != AbilityHeal && a.Kind != AbilityBuff:
+		return fmt.Errorf("ability %d: a target is a heal's or a buff's", n)
+	case a.Kind == AbilityBuff && a.Target == AbilityOnSelf:
+		return fmt.Errorf("ability %d: a buff lands on its owner (a pet uses no stat of its own)", n)
+	case a.SpellsOf != nil && (*a.SpellsOf < 0 || *a.SpellsOf > 14):
+		return fmt.Errorf("ability %d: spells_of %d: 0 (Warrior) to 14 (Alchemist)", n, *a.SpellsOf)
+	case a.Stat != "" && !oneOf(a.Stat, AbilityStats):
+		return fmt.Errorf("ability %d: stat %q: one of %s", n, a.Stat, strings.Join(AbilityStats, ", "))
+	case a.Stat != "" && a.Kind != AbilityBuff:
+		return fmt.Errorf("ability %d: a stat is a buff's", n)
+	case a.Kind == AbilityBuff && a.Stat == "" && a.Spell == "":
+		return fmt.Errorf("ability %d: a buff needs the stat its spell raises (or a spell)", n)
+	case a.Element != "" && !oneOf(a.Element, AbilityElements):
+		return fmt.Errorf("ability %d: element %q: one of %s", n, a.Element, strings.Join(AbilityElements, ", "))
+	case a.Element != "" && a.Kind != AbilityNuke && a.Kind != AbilityAoE && a.Kind != AbilityLifetap:
+		return fmt.Errorf("ability %d: an element is a harmful spell's", n)
+	case a.HealPct < 0 || a.HealPct > 100:
+		return fmt.Errorf("ability %d: heal_pct %d: 0 (its spell's figure) to 100 percent", n, a.HealPct)
+	case a.HealPct > 0 && a.Kind != AbilityHeal:
+		return fmt.Errorf("ability %d: heal_pct is a heal's", n)
+	case len(a.Hits) > 0 && a.Kind != AbilityTaunt:
+		return fmt.Errorf("ability %d: hits are a taunt's", n)
+	case len(a.Hits) > 8:
+		return fmt.Errorf("ability %d: %d hits points, at most 8", n, len(a.Hits))
+	}
+	for i, h := range a.Hits {
+		lvl, least, most := h[0], h[1], h[2]
+		switch {
+		case math.IsNaN(lvl) || math.IsNaN(least) || math.IsNaN(most):
+			return fmt.Errorf("ability %d: hits point %d: a number that is not one", n, i+1)
+		case lvl < 0 || lvl > 100 || lvl != math.Trunc(lvl):
+			return fmt.Errorf("ability %d: hits point %d: level %g: a whole level, 0 to 100", n, i+1, lvl)
+		case i > 0 && lvl <= a.Hits[i-1][0]:
+			return fmt.Errorf("ability %d: hits point %d: the levels must climb", n, i+1)
+		case least < 0 || most < least || most > 100000:
+			return fmt.Errorf("ability %d: hits point %d: least %g, most %g: 0 <= least <= most <= 100000", n, i+1, least, most)
+		}
+	}
+	return nil
+}
+
+func oneOf(s string, set []string) bool {
+	for _, x := range set {
+		if s == x {
+			return true
+		}
+	}
+	return false
 }
 
 func knownKind(k string) bool {

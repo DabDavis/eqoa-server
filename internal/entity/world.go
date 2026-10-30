@@ -112,6 +112,8 @@ type World struct {
 	// templated NPCs' casts on their way to landing (classtemplate.go)
 	templates classTemplates
 	npcCasts  []*npcCast
+	// the templated pets' casts on their way to landing (pettemplate.go)
+	petCasts []*petCast
 
 	// The factions' starting standings and what a kill does (faction.go)
 	factions factionTable

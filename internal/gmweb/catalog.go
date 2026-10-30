@@ -885,6 +885,35 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm"},
 		},
 	},
+	"pettemplate": {
+		Label: "Pet class templates", Group: "World", Title: "spell", Sort: "spell",
+		Help: "Which class template a summoned pet fights by, by its SUMMONING SPELL's name (lower case) and weapon (1: its " +
+			"'with weapons' or 'with a weapon' version, a spell whose description says so: the necromancer's Death " +
+			"Sacrament pets; a weapon version with no row of its own takes its name's base row). The pet takes the " +
+			"Class templates row's class (its spells and its swing), hp_pct of its hit points (after Balance by level's and " +
+			"Balance by class and level's), taken_pct of a creature's melee hit on it, melee_pct of its own, and casts its " +
+			"abilities: harmful spells at what it fights (through the balance as its hits are), heals on its owner " +
+			"(target owner, below its share) or itself (a spell's below its share, or heal_pct of its own most: the biggest " +
+			"due it is missing, never an overheal, each on its every), buffs on its owner (stat, from spells_of's lines; " +
+			"not over one of a higher rank), taunts (the top of the hate, and hits' figure by level as it is, else a " +
+			"melee hit). swing_class swings another class's round by level (a necromancer's pet, a shadow knight, swings " +
+			"a warrior's: four hits from 35); swing a CLIENT swing kind whatever its level (0 Attack1 3 s, 4 Attack2 4 s, " +
+			"5 Attack4 6 s, 7 Attack3 5 s ...) and round_ms its round, its hits then scaled to keep its class round's " +
+			"damage a second: Sandstorm's recorded rounds for the Death Sacrament pets. With no row a pet fights as " +
+			"before (a warrior of its level). Seed rows: every necromancer, magician and enchanter pet (pettemplates.go).",
+		Live:   "From the next summoning: a pet out now keeps the template it was summoned with.",
+		Search: []string{"spell", "template", "note", "source"},
+		Cols: map[string]colNote{
+			"spell":       {Label: "Summoning spell (key)", Help: "the spell's name, lower case"},
+			"weapon":      {Label: "Weapon version", Help: "1: its 'with weapons' / 'with a weapon' version (Death Sacrament)"},
+			"template":    {Label: "Template", Ref: "classtemplates", Help: "a Class templates name"},
+			"swing_class": {Label: "Swing class", Enum: "templateclass", Help: "the class whose round it swings by level; -1 the template's"},
+			"swing":       {Label: "Fixed swing", Help: "a CLIENT swing kind (0-11) whatever its level; -1 none"},
+			"round_ms":    {Label: "Round ms", Help: "its round's length with a fixed swing (1000-20000); 0 the swing's delay"},
+			"note":        {Label: "Note"},
+			"source":      {Label: "Source", Help: "gm, or seed for the rows the table was made with"},
+		},
+	},
 	"cmcatalog": {
 		Label: "Class masteries", Group: "Items & spells", Title: "name", Sort: "id",
 		Help: "Every class mastery a character may buy in the Class Mastery window, a row a rank (entity/cmbuy.go). " +

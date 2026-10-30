@@ -68,8 +68,9 @@ still as written (a name's case aside: tools that lower NPC names may have run
 since). Report only by default. The server's quest engine reads the quests at
 its start and when the GM panel saves one: apply it before a (re)start, or
 save a quest in the panel after (a running server waits out its one short
-transaction). Run it again after tools/import_quests.py rewrites quests
-(--undo first).
+transaction). tools/import_quests.py keeps a quest this changed (its rows here
+are a change to it, as a GM's are); on a database imported afresh, run this
+after the import.
 
     tools/fix_quest_targets.py [--db eqoa.db] [--tsv audit.tsv] [--apply | --undo]
 """

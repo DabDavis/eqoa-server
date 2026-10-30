@@ -328,7 +328,9 @@ func TestTheWaterPetHealsItsOwnerThenItselfAndNukes(t *testing.T) {
 
 // The earth pet: a warrior's round (two hits at 34, four from 35: Summon
 // Badi's at 45), 30% more hit points, 20% less of a creature's melee hit
-// landing; a taunt that takes the top of the crab's hate and a melee hit;
+// landing (Summon Badi, a mastery pet, the earth pet's template but for its
+// own 81% hit points: the balance's pet fit of 2026-10-30); a taunt that
+// takes the top of the crab's hate and a melee hit;
 // and its owner kept in the druid's AC line and the ranger's AGI line of its
 // level, not cast again while on. The control: a fire pet's hits on the same
 // dice land 125/90 of the earth pet's, and a crab's hit on an air pet 115%.
@@ -364,8 +366,13 @@ func TestTheEarthPetTauntsTanksAndBuffsItsOwner(t *testing.T) {
 	if npcSwingKind(b.pet) != 5 {
 		t.Errorf("Summon Badi's at %d: swing %d, want a warrior's four hits (Attack4)", b.pet.Level, npcSwingKind(b.pet))
 	}
-	if want := int(math.Round(float64(b.pet.MaxHP) / 1.3)); math.Abs(float64(want-badi.w.balance.PetMaxHP(b.pet.Level))) > 2 {
-		t.Errorf("hit points %d: want 130%% of the balance's %d", b.pet.MaxHP, badi.w.balance.PetMaxHP(b.pet.Level))
+	if want := int(math.Round(float64(b.pet.MaxHP) / 0.81)); math.Abs(float64(want-badi.w.balance.PetMaxHP(b.pet.Level))) > 2 {
+		t.Errorf("hit points %d: want 81%% of the balance's %d (its own template)", b.pet.MaxHP, badi.w.balance.PetMaxHP(b.pet.Level))
+	}
+	er, _ := newPetTemplateRig(t)
+	if e := petTemplateFight(t, er, earthElemental, 10, time.Second, false); e.pet.MaxHP != int(math.Round(1.3*float64(er.w.balance.PetMaxHP(e.pet.Level)))) {
+		t.Errorf("the Earth Elemental's hit points %d: want 130%% of the balance's %d (its kind's template)", e.pet.MaxHP,
+			er.w.balance.PetMaxHP(e.pet.Level))
 	}
 	badi.w.mu.Lock()
 	taken := badi.w.petTakenLocked(b.pet, 100)

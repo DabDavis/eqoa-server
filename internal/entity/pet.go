@@ -130,6 +130,10 @@ type petState struct {
 	specialIn  int
 	specialAt  time.Time
 	fightStart time.Time
+	// hitScale is what each melee hit of its is multiplied by (0 or 1:
+	// nothing): a recorded kind's, so that Sandstorm's slower round deals
+	// the damage a second its own round did (petrotation.go)
+	hitScale float64
 }
 
 // petOfLocked is the player's pet, alive, or nil.
@@ -380,21 +384,25 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	petPowerLocked(pet)       // and its power (npcregen.go)
 	pet.SwingFixed, pet.SwingKind = petSwing(caster.Class, name)
 	kind := petKindOf(caster.Class, spell.Name)
+	hitScale := 1.0
 	if k, round, ok := petKindSwing(kind); ok {
+		was := petHitRate(pet)
 		pet.SwingFixed, pet.SwingKind, pet.SwingRound = true, k, round // Sandstorm's (petrotation.go)
+		hitScale = was / petHitRate(pet)                               // its damage a second kept
 	}
 	w.NPCs[pet.ServerID] = pet
 	w.SpatialIndex.Insert(pet.ServerID, pet.X, pet.Z)
 	if w.pets == nil {
 		w.pets = make(map[EntityID]*petState)
 	}
-	ps := &petState{owner: caster, npc: pet, stance: petDefensive, last: now, taunts: caster.Class == classEnchanter, kind: kind}
+	ps := &petState{owner: caster, npc: pet, stance: petDefensive, last: now, taunts: caster.Class == classEnchanter, kind: kind,
+		hitScale: hitScale}
 	w.pets[caster.ServerID] = ps
 	if sess != nil {
 		w.announcePetLocked(ps, sess)
 	}
-	log.Printf("Pet: %s summons %q (%s's body, model %#x, size %.2f), level %d, %d HP, fights as %s",
-		caster.Name, pet.Name, t.Name, uint32(pet.ModelID), pet.Size, pet.Level, pet.MaxHP, kind)
+	log.Printf("Pet: %s summons %q (%s's body, model %#x, size %.2f), level %d, %d HP, fights as %s (hits x%.2f)",
+		caster.Name, pet.Name, t.Name, uint32(pet.ModelID), pet.Size, pet.Level, pet.MaxHP, kind, hitScale)
 }
 
 // announcePetLocked tells the owner its pet's id (0x007E) when it has not
@@ -823,7 +831,11 @@ func (w *World) petTauntLocked(ps *petState, t *NPC, now time.Time) bool {
 // (proc.go). It reports a kill.
 func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	ps.npc.LastCombatTime = now
-	if w.petDamageLocked(ps, t, petMeleeHit(ps.npc, t, meleeIntn), now) {
+	n := petMeleeHit(ps.npc, t, meleeIntn)
+	if ps.hitScale > 0 && ps.hitScale != 1 {
+		n = int(math.Round(float64(n) * ps.hitScale)) // a recorded kind's (petrotation.go)
+	}
+	if w.petDamageLocked(ps, t, n, now) {
 		return true
 	}
 	return w.petProcsLocked(ps, t, now)

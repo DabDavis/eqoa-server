@@ -31,7 +31,14 @@ import (
 // Here the taps do what ours did (pettap.go: the necromancer's own tap of
 // the pet's level, its figure off the target and as much back on the pet),
 // on Sandstorm's cadence and visual and untold; the openers and the
-// instants are their visuals alone (nothing recorded what they did). A pet
+// instants are their visuals alone (nothing recorded what they did). The
+// melee keeps the damage a second our round gave the pet (petHitRate): no
+// hit of these pets was ever shown on Sandstorm, so only the cadence is
+// recorded, and our warrior's round from level 35 (Attack4, four hits in 6
+// s) out-hits Sandstorm's mummy (two in 4 s) by a third and its spectre (two
+// in 5.2 s) by three quarters, which the balance's pets were tuned on
+// (balancesim: a necromancer of 50 with its spectre won every +2 fight
+// before, none at Sandstorm's round with our hits). A pet
 // of any other kind (the necromancer's skeletons and Swarming pets, every
 // other class's, a charmed creature) is ours: pet.go's rounds, pettap.go's
 // 30 s tap, its hits told to its owner.
@@ -111,6 +118,12 @@ func petKindSwing(k petKind) (kind int, round time.Duration, ok bool) {
 		return 3, spectreRound, true
 	}
 	return 0, 0, false
+}
+
+// petHitRate is a pet's melee hits a second as its round makes them.
+func petHitRate(pet *NPC) float64 {
+	length, _, _, hits := npcRound(pet)
+	return float64(len(hits)) / length.Seconds()
 }
 
 // petNextTapIn is how many swings until the next tap: 2 to 5.

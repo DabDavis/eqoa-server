@@ -184,6 +184,10 @@ type simFight struct {
 	casts                  int
 	moveUntil              time.Time // a rooting caster stepping back: no cast till then
 	rootLands              time.Time // a rooting caster's root in flight lands then
+	// mates is the group a member fights in (balancegroup.go), itself
+	// included, in the group's order; nil for a player alone
+	mates []*simFight
+	index int
 }
 
 func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
@@ -786,12 +790,19 @@ func (f *simFight) play(pet *NPC) {
 		}
 		return false
 	}
+	healOn := uint32(simMe)
+	if f.mates != nil {
+		// in a group: the member lowest on hit points (balancegroup.go)
+		w.mu.RLock()
+		healOn, low = f.lowestMate()
+		w.mu.RUnlock()
+	}
 	if low {
 		for _, s := range f.heals {
 			w.mu.RLock()
 			ok := f.ready(&s, 0)
 			w.mu.RUnlock()
-			if ok && cast(s, simMe) {
+			if ok && cast(s, healOn) {
 				return
 			}
 		}
@@ -920,8 +931,10 @@ type SimCell struct {
 	Pet                bool
 	Fights, Won, Died  int
 	// HPLeft is the mean share of hit points left in the fights won, Secs
-	// the mean length of those fights
+	// the mean length of those fights; PetHPLeft the pet's share in them (a
+	// pet that died 0): with a pet out the pet takes the fight's blows
 	HPLeft, Secs float64
+	PetHPLeft    float64
 	PetDied      int
 }
 
@@ -944,6 +957,9 @@ func SimCellOf(pl SimPlayer, foe SimNPC, diff int, b *Balance, fights int, seed 
 			c.Won++
 			c.HPLeft += r.HPShare()
 			c.Secs += r.Time.Seconds()
+			if r.HadPet && !r.PetDied && r.PetMaxHP > 0 {
+				c.PetHPLeft += float64(r.PetHP) / float64(r.PetMaxHP)
+			}
 		}
 		if r.Died {
 			c.Died++
@@ -955,6 +971,7 @@ func SimCellOf(pl SimPlayer, foe SimNPC, diff int, b *Balance, fights int, seed 
 	if c.Won > 0 {
 		c.HPLeft /= float64(c.Won)
 		c.Secs /= float64(c.Won)
+		c.PetHPLeft /= float64(c.Won)
 	}
 	return c
 }

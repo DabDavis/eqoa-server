@@ -194,13 +194,16 @@
      "journal": "Bring Cracked Beetle Horn and 100 tunar to Truborne Jaegir.",
      "says": "Here is your log.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Alchemist's Log"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The spike beetle by the gate stands in for \"beetles\". Not on this server, left out of the rewards: the item \"Alchemist's Log\"."
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The spike beetle by the gate stands in for \"beetles\". Not on this server, left out of the rewards: the item \"Alchemist's Log\". The reward is ours: Alchemist's Log, the item the guide names, made for this server (Given by Truborne Jaegir for a cracked beetle horn and a hundred tunar) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/alchemist/L5",
@@ -903,13 +906,16 @@
      "journal": "Bring leather strip, iron ore and Cracked Rat Tooth to Bishop Felkahn.",
      "says": "Your mace.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Ironsun Mace"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The strip and ore are bought in the guide; here Shudan hands them over. Not on this server, left out of the rewards: the item \"Ironsun Mace\"."
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The strip and ore are bought in the guide; here Shudan hands them over. Not on this server, left out of the rewards: the item \"Ironsun Mace\". The reward is ours: Ironsun Mace, the item the guide names, made for this server (Forged by Bishop Felkahn from a leather strip, iron ore and a cracked rat tooth) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/cleric/L5",
@@ -1092,13 +1098,16 @@
      "journal": "Speak with Bishop Felkahn.",
      "says": "Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Ironsun Morningstar"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Ironsun Morningstar\"."
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Ironsun Morningstar\". The reward is ours: Ironsun Morningstar, the item the guide names, made for this server (Given by Bishop Felkahn for Rory Redface's ring) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/cleric/L13",
@@ -1717,13 +1726,16 @@
      "journal": "Bring Ganron's Head to Master Delar.",
      "says": "The traitor is dead. This staff is yours.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Keeper's Staff"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). The guide's count of skeletal dogs is ours (3). Not on this server, left out of the rewards: the item \"Keeper's Staff\"."
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). The guide's count of skeletal dogs is ours (3). Not on this server, left out of the rewards: the item \"Keeper's Staff\". The reward is ours: Keeper's Staff, the item the guide names, made for this server (Given by Master Delar for the traitor Ganron's head) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/enchanter/L13",
@@ -3039,13 +3051,16 @@
      "journal": "Bring leather strip, wooden shaft and Cracked Rat Claw to Retainer Alishal.",
      "says": "Your staff.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Staff of Necromancy"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The strap and shaft are bought in the guide; here Shudan hands them over. Not on this server, left out of the rewards: the item \"Staff of Necromancy\"."
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The strap and shaft are bought in the guide; here Shudan hands them over. Not on this server, left out of the rewards: the item \"Staff of Necromancy\". The reward is ours: Staff of Necromancy, the item the guide names, made for this server (Carved by Retainer Alishal from a leather strip, a wooden shaft and a cracked rat claw) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/necromancer/L5",
@@ -3232,13 +3247,16 @@
      "journal": "Speak with Ammathor Lithkin.",
      "says": "Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Whitebone Dagger"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Whitebone Dagger\"."
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Whitebone Dagger\". The reward is ours: Whitebone Dagger, the item the guide names, made for this server (Given by Ammathor Lithkin for the Stoneclaw necromancer's necklace) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/necromancer/L13",
@@ -4454,12 +4472,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Fortify",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Fortify"
+        ]
+       }
+      },
+      {
+       "answer": "Shining Bastion",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Shining Bastion"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Fortify or Shining Bastion; a quest here gives no choice, so neither is given. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable."
+   "notes": "EQOA-Data Quests/1-20/highbourne/paladin.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Fortify or Shining Bastion; a quest here gives no choice, so neither is given. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable. The reward is ours: the choice of the Fortify or the Shining Bastion scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/shadowknight/L1",
@@ -4673,13 +4712,16 @@
      "journal": "Bring iron ore, leather strip and flattened tarantula eye to Desh the Harvester.",
      "says": "Your sword.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Wicked Longsword"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The ore and strip are bought in the guide; here Shudan hands them over. Not on this server, left out of the rewards: the item \"Wicked Longsword\"."
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The ore and strip are bought in the guide; here Shudan hands them over. Not on this server, left out of the rewards: the item \"Wicked Longsword\". The reward is ours: Wicked Longsword, the item the guide names, made for this server (Forged by Desh the Harvester from iron ore, a leather strip and a flattened tarantula eye) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/shadowknight/L5",
@@ -5667,13 +5709,16 @@
      "journal": "Speak with Ammathor Lithkin.",
      "says": "Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Crimson Staff"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). The necromancer is Ganron Blackart, the traitor of the other classes' quests; he is not on this server. Not on this server, left out of the rewards: the item \"Crimson Staff\"."
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). The necromancer is Ganron Blackart, the traitor of the other classes' quests; he is not on this server. Not on this server, left out of the rewards: the item \"Crimson Staff\". The reward is ours: Crimson Staff, the item the guide names, made for this server (Given by Ammathor Lithkin for the Stoneclaw necromancer's pendant) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/wizard/L13",

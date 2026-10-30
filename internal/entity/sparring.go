@@ -110,6 +110,7 @@ func (w *World) sparRoundLocked(sess *session.Session, npc *NPC, p *Player, star
 	el := SparElements[npc.SparElement]
 	share, how := RollResist(p.StatNow(el.Resist))
 	damage := sparStrikeDamage(npc.Level, share, rand.Float64())
+	damage = w.playerInvulnerableLocked(p, npc, damage, now) // a creature's spell: nothing taken of it (spiritform.go)
 	w.broadcastNPCSwingLocked(npc, p.ServerID, 0, sparFX)
 	line := fmt.Sprintf("%s strikes you with %s for %d (%s).", npc.Name, el.Name, damage, resistWords(share, how))
 	w.sparHitLocked(sess, npc, p, damage, line, now)
@@ -118,6 +119,9 @@ func (w *World) sparRoundLocked(sess *session.Session, npc *NPC, p *Player, star
 // sparHitLocked lands a sparring dummy's hit or strike: its 0x00DB in full,
 // the hit points it takes but the last one, which ends the fight instead
 // (said). line, when not empty, is said first. It reports the fight's end.
+// A hit comes already cut by the player's ward (dummyHitLocked); a strike,
+// a spell, is not cut (ward.go). Both come to nothing on an invulnerable
+// player (spiritform.go).
 func (w *World) sparHitLocked(sess *session.Session, npc *NPC, p *Player, damage int, line string, now time.Time) bool {
 	p.LastCombatTime = now
 	npcObjectID := w.objectIDForEntityLocked(sess, npc.ServerID)

@@ -36,7 +36,7 @@ const (
 	FormNone  FormKind = iota
 	FormSelf           // "Illusion: X", "X Form": the caster, whatever is targeted
 	FormGroup          // "Glamour: X": the caster or a member of its group
-	FormEnd            // "Remove Illusion", "True Form": the caster's own body back
+	FormEnd            // "Remove Illusion", "True Form", "Revert Lich": the caster's own look back
 )
 
 // illusionDuration is how long an illusion lasts when its line gives no
@@ -61,23 +61,39 @@ var illusionRaces = map[string]int{
 // "Assume the form of a mouse.", "CM: Illusion"; "grants the power of the
 // beast without changing your form" does not), and the ends, "Remove
 // Illusion" and "True Form". The lines' "Troll form" and "Form" clauses say
-// the same and are no longer counted unread.
+// the same and are no longer counted unread. A rogue's mask is an illusion
+// of the race its line names ("Self, dark elf Mask, 10min": the user's
+// ruling of 2026-10-29, "Rogue masks were illusions"), and Remove Mask ends
+// the masks alone (Allakhazam's April 2004 record: it dispels the four
+// masks); a mask naming no race (Mortal Mask's "Sprite Change Race") stays a
+// look with no body.
 func (d *SpellDef) readIllusion(name, desc string) {
 	n := strings.ToLower(strings.TrimSpace(name))
 	n = strings.TrimSpace(strings.TrimSuffix(n, "+"))
 	ds := strings.ToLower(desc)
+	masks := false
 	switch {
 	case strings.HasPrefix(n, "illusion:"):
 		d.Form, d.FormKind = strings.TrimSpace(strings.TrimPrefix(n, "illusion:")), FormSelf
 	case strings.HasPrefix(n, "glamour:"):
 		d.Form, d.FormKind = strings.TrimSpace(strings.TrimPrefix(n, "glamour:")), FormGroup
-	case n == "remove illusion" || n == "true form":
+	case n == "remove illusion" || n == "true form" || n == "revert lich":
+		// Revert Lich is the necromancer's own way out of Lich ("Self, Removes
+		// Lich form"): no necromancer has Remove Illusion
 		d.FormKind = FormEnd
 	case strings.HasSuffix(n, " form") && !strings.Contains(ds, "without changing") &&
 		(strings.Contains(ds, "assume the form") || strings.Contains(ds, "illusion")):
 		d.Form, d.FormKind = strings.TrimSpace(strings.TrimSuffix(n, " form")), FormSelf
+	case n == "remove mask":
+		// its line lists the masks it ends ("Dispel Mask Effects; Mortal,
+		// Deceiver's, ..."): the name says it all
+		d.FormKind, masks, d.Unread = FormEnd, true, nil
 	default:
-		return
+		race := maskRace(d.Unread)
+		if race == "" {
+			return
+		}
+		d.Form, d.FormKind = race, FormSelf
 	}
 	d.Target = TargetSelf
 	d.Harmful = false
@@ -89,7 +105,7 @@ func (d *SpellDef) readIllusion(name, desc string) {
 	}
 	d.Unread = unread
 	if d.FormKind == FormEnd {
-		d.Effects = append(d.Effects, SpellEffect{Kind: EffectEndIllusion})
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectEndIllusion, Masks: masks})
 		d.Duration = 0
 		return
 	}
@@ -101,6 +117,96 @@ func (d *SpellDef) readIllusion(name, desc string) {
 	if d.Duration <= 0 {
 		d.Duration = illusionDuration
 	}
+}
+
+// readAppearance marks a spell whose lasting part changes how its bearer
+// looks, for Remove Illusion and True Form to end (the user's ruling of
+// 2026-10-29, after the test lanes' report found True Form ended no druid or
+// shaman form: it "should remove all illusions, glamours, any form changing
+// appearance", and the stats that came with them). Every illusion and glamour
+// is one, whether or not this server has its body; so is a line with a
+// "Form" or "<x> form" clause (the forms: "Self, Worf form, Increase AGI by
+// 29, ..."), "Sprite Change" (Lich, Mortal Mask), "<x> Mask" (the rogue's
+// masks) or "Transform into ...". A clause that ends one ("Removes Lich
+// form") or says it changes nothing ("does not change your form"), or a
+// description that says so ("without changing your form"), is none. Such
+// clauses are read now, no longer unread.
+func (d *SpellDef) readAppearance(desc string) {
+	if d.FormKind == FormEnd {
+		return
+	}
+	if d.FormKind == FormSelf || d.FormKind == FormGroup {
+		d.Appearance = true
+	}
+	if ds := strings.ToLower(desc); strings.Contains(ds, "without chang") || strings.Contains(ds, "not change") {
+		return
+	}
+	var unread []string
+	for _, u := range d.Unread {
+		if appearanceClause(u) {
+			d.Appearance = true
+			continue
+		}
+		unread = append(unread, u)
+	}
+	d.Unread = unread
+}
+
+// appearanceClause reports whether an unread clause is one of readAppearance's.
+func appearanceClause(u string) bool {
+	if strings.Contains(u, "not change") || strings.Contains(u, "without chang") {
+		return false
+	}
+	for _, w := range []string{"remove", "revert", "dispel", "cure"} {
+		if strings.HasPrefix(u, w) {
+			return false
+		}
+	}
+	return u == "form" || strings.HasSuffix(u, " form") || strings.HasPrefix(u, "sprite change") ||
+		strings.HasSuffix(u, " mask") || strings.HasPrefix(u, "transform into")
+}
+
+// maskRace is the player race a line's "<race> mask" clause names ("dark
+// elf mask", "erudite mask"), "" when none does.
+func maskRace(unread []string) string {
+	for _, u := range unread {
+		if r, ok := strings.CutSuffix(u, " mask"); ok {
+			if _, isRace := illusionRaces[strings.TrimSpace(r)]; isRace {
+				return strings.TrimSpace(r)
+			}
+		}
+	}
+	return ""
+}
+
+// endMasksLocked is Remove Mask's landing: every mask on t comes off (an
+// effect of a spell named "<x> Mask"), its body with it, reporting whether
+// one went.
+func (w *World) endMasksLocked(t *Player) bool {
+	gone := false
+	for _, e := range append([]*ActiveEffect(nil), t.Effects...) {
+		if strings.HasSuffix(strings.ToLower(strings.TrimSpace(e.Name)), " mask") {
+			w.removeEffectLocked(t, e.SpellID)
+			log.Printf("Cast: %q ends on %s: its mask is gone", e.Name, t.Name)
+			gone = true
+		}
+	}
+	return gone
+}
+
+// endAppearancesLocked is Remove Illusion's and True Form's landing: every
+// effect that changes how t looks comes off, an illusion's body and what it
+// gave with it, reporting whether one went.
+func (w *World) endAppearancesLocked(t *Player) bool {
+	gone := false
+	for _, e := range append([]*ActiveEffect(nil), t.Effects...) {
+		if e.Form != 0 || e.Appearance {
+			w.removeEffectLocked(t, e.SpellID)
+			log.Printf("Cast: %q ends on %s: its look is gone", e.Name, t.Name)
+			gone = true
+		}
+	}
+	return gone
 }
 
 // raceSex keys a players' race body: the race on the network enum, the sex

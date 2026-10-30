@@ -14,9 +14,10 @@ func infusion(line string) CastSpell {
 
 // An infusion worded as a pact's price (tools/fix_balance_spells.py) costs
 // its caster its hit points at the landing and gives its power every tick
-// for 18 seconds; the control: as the importer worded it ("SELF Decrease HP
-// by N", and Virulent's "Buff HP by 1000"), the price was never paid (a heal
-// of a negative amount heals nothing) and Virulent healed 1,000.
+// for 18 seconds; the control: as the importer worded it, "SELF Decrease HP
+// by N" is a self line's own price, paid once and in full since jib's ruling
+// (selfCostLocked; it was never paid before, a heal of a negative amount
+// healing nothing), and Virulent's "Buff HP by 1000" heals 1,000.
 func TestAnInfusionPaysItsPrice(t *testing.T) {
 	c := newCaster(t)
 	c.p.HP, c.p.MaxHP, c.p.Power, c.p.MaxPower = 2000, 3000, 100, 9000
@@ -40,7 +41,7 @@ func TestAnInfusionPaysItsPrice(t *testing.T) {
 		line   string
 		wantHP int
 	}{
-		{"SELF Decrease HP by 1000 and Increase Power per tic by 600 for 18 seconds", 2000},
+		{"SELF Decrease HP by 1000 and Increase Power per tic by 600 for 18 seconds", 1000},
 		{"SELF Buff HP by 1000 and Power per tic by 600 for 18 seconds", 3000},
 	} {
 		c := newCaster(t)

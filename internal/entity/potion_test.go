@@ -351,3 +351,36 @@ func TestPotionEffectKeptOverALogout(t *testing.T) {
 		t.Error("restored, the quickening no longer ends on an attack")
 	}
 }
+
+// A potion whose effect is named as an illusion ("Illusion: Troll") shows its
+// drinker in that body for its time, with the rest of its line: the
+// Transmuter's ogre pill (the owner's ruling of 2026-10-29). An item's own
+// name is no illusion. The items and figures are made up.
+func TestAPotionNamedAnIllusionShowsTheBody(t *testing.T) {
+	c := illusionRig(t)
+	pill := NewPotionEffect(59001, "Made-up Troll Pill", "Self, Increase MaxHP by 100, Increase Hitpoints by 100, 10min",
+		"Illusion: Troll", 0x12345678, "", 0, 0)
+	if pill.Def.FormKind != FormSelf || pill.Def.Form != "troll" || len(pill.Def.Unread) != 0 {
+		t.Fatalf("the pill read as %+v", pill.Def)
+	}
+	c.p.HP = 300
+	max := c.p.MaxHPNow()
+	if r := c.use(t, pill, 0, 0); r != "" {
+		t.Fatalf("refused: %q", r)
+	}
+	if m, _ := channelBody(c.p); m != trollMale {
+		t.Errorf("the drinker's body: model %d, want the troll's %d", m, trollMale)
+	}
+	if c.p.MaxHPNow() != max+100 || c.p.HP != 400 {
+		t.Errorf("max HP %d (want %d), HP %d (want 400)", c.p.MaxHPNow(), max+100, c.p.HP)
+	}
+	c.potionTick(10*time.Minute + 6*time.Second)
+	if m, _ := channelBody(c.p); m != gnomeMale || c.p.MaxHPNow() != max {
+		t.Errorf("after its ten minutes: model %d, max HP %d; want the gnome's and %d", m, c.p.MaxHPNow(), max)
+	}
+
+	plain := NewPotionEffect(59002, "Illusion: Troll", "Self, Increase AC by 5, 10min", "", 0, "", 0, 0)
+	if plain.Def.FormKind != FormNone {
+		t.Errorf("an item named like an illusion read as one: %+v", plain.Def)
+	}
+}

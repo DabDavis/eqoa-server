@@ -318,16 +318,20 @@ func (w *World) targetFaceLocked(p *Player, npc *NPC) byte {
 }
 
 // aggroRadiusLocked is how near a player must come for npc to notice it: a
-// GM's radius for its name, else its own, else DefaultAggroRadius. Must be
-// called with the lock held.
-func (w *World) aggroRadiusLocked(npc *NPC) float32 {
-	if r, ok := w.aggro.ruleFor(npc.Name); ok && r.Radius > 0 {
-		return r.Radius
+// GM's radius for its name, else its own, else DefaultAggroRadius; at most
+// LullRadius while a lull calms it (lull.go). Must be called with the lock
+// held.
+func (w *World) aggroRadiusLocked(npc *NPC, now time.Time) float32 {
+	r := DefaultAggroRadius
+	if rule, ok := w.aggro.ruleFor(npc.Name); ok && rule.Radius > 0 {
+		r = rule.Radius
+	} else if npc.AggroRadius > 0 {
+		r = npc.AggroRadius
 	}
-	if npc.AggroRadius > 0 {
-		return npc.AggroRadius
+	if npc.lulled(now) {
+		r = min(r, LullRadius)
 	}
-	return DefaultAggroRadius
+	return r
 }
 
 // noticeableLocked reports a player a creature may notice: alive, in the
@@ -384,7 +388,7 @@ func (w *World) drawNearLocked(p *Player, now time.Time, onSight bool) {
 		if !w.threatensLocked(npc, p) || onSight && !npc.EventAggro && greenTo(npc, p) {
 			continue
 		}
-		r := w.aggroRadiusLocked(npc)
+		r := w.aggroRadiusLocked(npc, now)
 		dx, dy, dz := p.X-npc.X, p.Y-npc.Y, p.Z-npc.Z
 		d2 := dx*dx + dy*dy + dz*dz
 		if d2 > r*r {

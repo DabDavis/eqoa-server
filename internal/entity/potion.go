@@ -29,8 +29,9 @@ import (
 //     taken at once, refused when that would kill), a speed potion is Spirit
 //     of the Wolf and an invisibility potion invisibility, each on the effects
 //     list by its own name and icon, a tonic a resist, a corrective or a
-//     restorative takes harmful effects off ("Dispel Effect xN"), a returning
-//     potion sends the drinker home.
+//     restorative takes harmful effects off ("Dispel Effect xN": a spell's
+//     cure, cure.go, of any level), a returning potion sends the drinker
+//     home.
 //   - Thrown ("Target, ..."): its hit and what lasts of it land on the
 //     creature targeted, as a spell's would (landOnNPCLocked), within the
 //     potion's throwing range, and on every creature within its splash
@@ -85,17 +86,20 @@ type PotionEffect struct {
 	BreaksOnAttack bool
 	BreaksOnDamage bool
 	WearPct        int
-	Cures          int // harmful effects a drink takes off
+	Cures          int      // harmful effects a drink takes off
+	CureKind       CureKind // of what kind ("Dispel Effect": CureAny; cure.go)
 }
-
-// reDispel is a cure's words in a line ("Dispel Effect x3"): spelltext.go
-// leaves them unread.
-var reDispel = regexp.MustCompile(`^(?:dispel|cure|remove)\s+(?:harmful\s+)?effects?(?:\s+x\s*(\d+))?$`)
 
 // NewPotionEffect reads an itemeffect row.
 func NewPotionEffect(patternID int, itemName, line, name string, icon uint32, breaks string, wear int, area float64) PotionEffect {
 	pe := PotionEffect{PatternID: patternID, ItemName: itemName, Name: name, Icon: icon,
 		Def: ParseSpellText(line), Area: float32(area), WearPct: wear}
+	// an illusion goes by the effect's own name, as a spell's by the spell's
+	// ("Illusion: Ogre": the Transmuter's ogre pill, the owner's ruling of
+	// 2026-10-29); an item's own name is not read so
+	if n := strings.TrimSpace(name); n != "" {
+		pe.Def.readIllusion(n, "")
+	}
 	if strings.TrimSpace(pe.Name) == "" {
 		pe.Name = itemName
 	}
@@ -107,12 +111,10 @@ func NewPotionEffect(patternID int, itemName, line, name string, icon uint32, br
 			pe.BreaksOnDamage = true
 		}
 	}
-	for _, u := range pe.Def.Unread {
-		if m := reDispel.FindStringSubmatch(strings.TrimSpace(u)); m != nil {
-			pe.Cures = 1
-			if m[1] != "" {
-				pe.Cures, _ = strconv.Atoi(m[1])
-			}
+	// a cure ("Dispel Effect x3", cure.go): xN of them, else one
+	for _, e := range pe.Def.Effects {
+		if e.Kind == EffectCure {
+			pe.Cures, pe.CureKind = max(e.Amount, 1), pe.CureKind|e.Cure
 		}
 	}
 	return pe
@@ -271,9 +273,21 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 		w.tellAmountLocked(p, sess, p.ServerID, -cost)
 	}
 	if pe.Cures > 0 {
-		w.curePlayerLocked(p, pe.Cures)
+		// a spell's cure, but an itemeffect row names no level: it reaches
+		// effects of any (cure.go)
+		w.curePlayerLocked(p, cure{kind: pe.CureKind, count: pe.Cures, anyLevel: true}, pe.ItemName)
 	}
-	cs := &castState{spell: spell, caster: p.ServerID, targets: []EntityID{p.ServerID}}
+	// the health is paid above, refused where it would kill, and the cure
+	// done: the landing (a self line's price, cast.go) takes neither a second
+	// time
+	drunk := spell
+	drunk.Def.Effects = nil
+	for _, e := range spell.Def.Effects {
+		if (e.Kind != EffectHP || e.Amount >= 0) && e.Kind != EffectCure {
+			drunk.Def.Effects = append(drunk.Def.Effects, e)
+		}
+	}
+	cs := &castState{spell: drunk, caster: p.ServerID, targets: []EntityID{p.ServerID}}
 	w.landOnPlayerLocked(cs, p, sess, p, now)
 	log.Printf("Potion: %s drinks %q (%d health)", p.Name, pe.ItemName, cost)
 	if gate {
@@ -360,21 +374,6 @@ func (w *World) summonItemsLocked(cs *castState, caster *Player, sess *session.S
 		}
 	}
 	return found
-}
-
-// curePlayerLocked takes up to n harmful effects off a player (a corrective's
-// or a restorative's), the oldest first.
-func (w *World) curePlayerLocked(p *Player, n int) {
-	for _, ae := range append([]*ActiveEffect(nil), p.Effects...) {
-		if n <= 0 {
-			return
-		}
-		if ae.HPTick < 0 || ae.Root || ae.Snare || ae.Mods.harmful() {
-			w.removeEffectLocked(p, ae.SpellID)
-			log.Printf("Potion: %q cured off %s", ae.Name, p.Name)
-			n--
-		}
-	}
 }
 
 // harmful is whether the changes take anything off.

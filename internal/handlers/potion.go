@@ -140,7 +140,10 @@ func thrownPotion(gw *entity.World, inv *database.InventoryStore, p *database.It
 // spell's own name (a database seeded before 2026-10-27 has Neriak Cocktail's
 // "Grobb Cocktail", as its words and the game's own record name it, under the
 // spell's name: tools/fix_archived_spells.py renames it); count the words'
-// xN, else summonCount's.
+// xN, else summonCount's. A lore item (itempattern.lore 1) is held once (the
+// owner's ruling of 2026-10-29: the alchemist's ogre pill "is lore"): one
+// at most, and none to a character that holds one already, worn, in the
+// inventory or in the bank, who is told so in red (the words ours).
 func (h *EquipHandler) summonItem(sess *session.Session, charServerID uint32, item string, count int, spell string) {
 	if h.inventoryStore == nil || h.gameWorld == nil {
 		return
@@ -165,12 +168,30 @@ func (h *EquipHandler) summonItem(sess *session.Session, charServerID uint32, it
 	if p == nil || p.CharServerID != charServerID {
 		return // gone, or another character on the session now
 	}
+	if pattern.Lore != 0 {
+		held, err := h.inventoryStore.HoldsPattern(charServerID, pattern.PatternID)
+		if err != nil {
+			log.Printf("Potion: %q summons lore %q for %s: %v", spell, pattern.ItemName, p.Name, err)
+			return
+		}
+		if held {
+			SendErrorMessage(sess, loreHeldLine(pattern.ItemName))
+			log.Printf("Potion: %q summons lore %q for %s, who holds one: none given", spell, pattern.ItemName, p.Name)
+			return
+		}
+		count = 1
+	}
 	n, err := GiveItemNow(sess, h.gameWorld, h.inventoryStore, pattern, count)
 	if err != nil {
 		log.Printf("Potion: %q summons %d %q for %s: %v", spell, count, pattern.ItemName, p.Name, err)
 		return
 	}
 	log.Printf("Potion: %q summons %d of %d %q for %s", spell, n, count, pattern.ItemName, p.Name)
+}
+
+// loreHeldLine is what a summoning of a lore item its caster holds says.
+func loreHeldLine(item string) string {
+	return "You already have " + item + ", a lore item: you may hold only one."
 }
 
 // summonCount is how many of an item a spell summons when its words say no

@@ -55,12 +55,11 @@ import (
 //
 // Not read here, and why:
 //   - the cleric's Marks and Brands ("damages target when it hits", "Add
-//     Offensive Proc, Damage Target when they hit", 10; Inquisitor Brand
-//     "Doubles Mark damage"), the druid's Storm Caller's Curse ("Inflicts
-//     Damage on mob when it hits") and the cleric's Mark of Faith ("25-27
-//     Heal when Mob hits"): put on the creature, they answer ITS hits on
-//     anyone, the creature the bearer, and none but Mark of Faith names a
-//     number;
+//     Offensive Proc, Damage Target when they hit", 10) and Mark of Faith
+//     ("25-27 Heal when Mob hits"): put on the creature, they answer the
+//     players' hits on IT (mark.go, the owner's ruling of 2026-10-29); the
+//     druid's Storm Caller's Curse ("Inflicts Damage on mob when it hits")
+//     is read nowhere;
 //   - Crusader's Aura ("Increase Hitpoints by 5 when Crusader is hit") and
 //     Tribal Ward ("waits to work till target is hit, Increase HP per tic by
 //     550"): heals set off by a hit, not a shield;
@@ -277,12 +276,12 @@ func (d *SpellDef) hasShield() bool {
 // harmfulAgain works out whether the spell is cast at an enemy once one of
 // its effects changed, from its effects and target as ParseSpellText does.
 func (d *SpellDef) harmfulAgain() {
-	d.Harmful = d.Target == TargetUndead
+	d.Harmful = d.Target == TargetUndead || d.takesPower() // lifetap.go
 	for _, e := range d.Effects {
 		switch e.Kind {
 		case EffectHP, EffectHPTick, EffectStat:
 			d.Harmful = d.Harmful || (e.Amount < 0 && !e.Self)
-		case EffectRoot, EffectSnare, EffectHate, EffectCharm:
+		case EffectRoot, EffectSnare, EffectHate, EffectCharm, EffectMark, EffectMarkHeal, EffectLull:
 			d.Harmful = true
 		}
 	}

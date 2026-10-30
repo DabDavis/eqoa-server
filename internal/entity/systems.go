@@ -26,7 +26,8 @@ func (w *World) Tick(now time.Time) {
 	w.runDuelPurse() // a duel's wager held or paid (duelpurse.go)
 	w.runRespawns(due)
 	w.runGates(gates)
-	w.runTravels() // the spells that send players to a named place (gates.go)
+	w.runTravels()   // the spells that send players to a named place (gates.go)
+	w.runHeroCalls() // Call of the Hero's questions (callhero.go)
 	w.runCorpsesGone(gone)
 }
 
@@ -202,6 +203,8 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	// as its class template makes it (classtemplate.go), then the balance's
 	// (balance.go: its level's, its con's and the player's class's)
 	damage := w.npcHitPlayerLocked(npc, player, npc.meleeOut(npcMeleeRoll(npc).hitOn(player, meleeIntn)))
+	damage = w.playerInvulnerableLocked(player, npc, damage, now) // invulnerable: nothing taken (spiritform.go)
+	damage = w.playerWardLocked(player, npc, damage, now)         // its ward: the hit as taken (ward.go)
 	player.HP -= damage
 	if player.HP < 0 {
 		player.HP = 0

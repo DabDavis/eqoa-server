@@ -597,6 +597,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharRez(); err != nil { // resurrect.go
 		return err
 	}
+	if err := db.ensureCharLogout(); err != nil { // norent.go
+		return err
+	}
 	if err := db.ensureNPCUndead(); err != nil {
 		return err
 	}

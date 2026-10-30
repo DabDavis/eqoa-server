@@ -180,6 +180,8 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		gameWorld.OnGate(charHandler.gatePlayer)
 		// the gates, portals, circles and evacuations (gates.go)
 		gameWorld.OnTravel(charHandler.travelPlayer)
+		// Call of the Hero's question to the members it calls (callhero.go)
+		gameWorld.OnHeroCall(askHeroCall)
 		gameWorld.SetLoadableWorlds(LoadableWorlds)
 	}
 	authHandler := NewAuthHandlerFull(serverHandler, charHandler, accountStore)

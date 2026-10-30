@@ -892,12 +892,7 @@
      "hp +150"
     ]
    },
-   "unread": [
-    {
-     "part": "form",
-     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
-    }
-   ]
+   "unread": []
   },
   {
    "classes": [
@@ -1192,12 +1187,7 @@
      "hp +225"
     ]
    },
-   "unread": [
-    {
-     "part": "form",
-     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
-    }
-   ]
+   "unread": []
   },
   {
    "classes": [
@@ -1740,12 +1730,7 @@
      "hp +275"
     ]
    },
-   "unread": [
-    {
-     "part": "form",
-     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
-    }
-   ]
+   "unread": []
   },
   {
    "classes": [
@@ -2102,12 +2087,7 @@
      "speed"
     ]
    },
-   "unread": [
-    {
-     "part": "form",
-     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
-    }
-   ],
+   "unread": [],
    "ours": "its Increase SoW by 0 read as Spirit of the Wolf's run speed, the way the same import prints Spirit of the Wolf's own (eqoaspell=150)"
   },
   {
@@ -2297,12 +2277,7 @@
      "hp +350"
     ]
    },
-   "unread": [
-    {
-     "part": "form",
-     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
-    }
-   ]
+   "unread": []
   },
   {
    "classes": [
@@ -2355,15 +2330,11 @@
     "ticks": 0,
     "pet": "",
     "effects": [
-     "hptick +250"
+     "hptick +250",
+     "cure any"
     ]
    },
-   "unread": [
-    {
-     "part": "dispel effect",
-     "why": "the server takes no effect off its bearer by a spell"
-    }
-   ],
+   "unread": [],
    "hold": "an effect, not a spell cast: its page has no cast time and no power, as Tribal Healing's (what Tribal Ward fires), and as a class spell the line would be a castable self heal at its record's cost"
   },
   {
@@ -2470,7 +2441,7 @@
    "unread": [
     {
      "part": "dispel effect tribal ward",
-     "why": "the server takes no effect off its bearer by a spell"
+     "why": "the cure and Tribal Ward in one clause, which the reader takes for neither (\"Dispel Effect, Tribal Ward\" reads the cure: entity/cure.go)"
     }
    ],
    "hold": "what Tribal Ward fires when its bearer is hit (Tribal Ward's page, eqoaspell=4037: \"Add Defensive Proc: Tribal Healing\"), not a spell cast: its page has no cast time and no power, and as a class spell the line would be a castable self heal at its record's cost"
@@ -2615,22 +2586,12 @@
     "seconds": 20.0,
     "ticks": 0,
     "pet": "",
-    "effects": []
+    "effects": [
+     "hpcap +1",
+     "invulnerable"
+    ]
    },
-   "unread": [
-    {
-     "part": "set maximum hp to 0",
-     "why": "a maximum set, not raised or lowered: the reader has no such clause"
-    },
-    {
-     "part": "invulnerable",
-     "why": "the server has no invulnerability"
-    },
-    {
-     "part": "form",
-     "why": "the body is not changed: the server shows a form by the spell's name and its record's description (illusion.go: \"X Form\" whose description says it assumes a form), and these records' descriptions are empty"
-    }
-   ]
+   "unread": []
   },
   {
    "classes": [

@@ -66,6 +66,8 @@ type World struct {
 	// The spells that send players to a named place, table spellgates, and
 	// those on their way (gates.go)
 	gates gateState
+	// Call of the Hero's calls waiting for their answers (callhero.go)
+	calls heroCallState
 	// regenAt is when the last regen tick fell (regenSystem): the regular
 	// tick a heal over time's ticks after its first keep to (hot.go)
 	regenAt time.Time

@@ -450,6 +450,11 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 		h.gameWorld.DuelBoxAnswer(sess, targetObjectID, selectedOption, time.Now())
 		return nil
 	}
+	// A Call of the Hero's question (callhero.go)
+	if entity.IsHeroCallBox(targetObjectID) {
+		h.answerHeroCall(sess, targetObjectID, selectedOption)
+		return nil
+	}
 
 	// The technician's menu, before the travel list is consulted. A pick is
 	// just a number; only the menu the player has open says what it means, and

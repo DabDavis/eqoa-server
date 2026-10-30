@@ -554,6 +554,10 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	// over above): it is built from its row, which its last session's end, or
 	// the takeover that last had it (saveTakenOver), saved.
 
+	// Its No Rent items are gone after more than NoRentAway out of the world
+	// (norent.go), before its inventory is read for the world.
+	h.takeNoRent(record, time.Now())
+
 	// Where the session starts (loginSpawn): where the character logged out,
 	// or beside Archivist Vaal. Decided here, before CreatePlayer reads it.
 	loginSpawn(h.gameWorld, record)

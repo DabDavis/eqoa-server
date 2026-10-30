@@ -260,6 +260,9 @@ type ActiveEffect struct {
 	// none; FormSize its scale, 0 for the bearer's own.
 	Form     uint32
 	FormSize float32
+	// Appearance: it changes how its bearer looks, with or without a body
+	// (SpellDef.Appearance); Remove Illusion and True Form end it
+	Appearance bool
 	// Ticks is how many ticks a heal over time on a player has left
 	// (hot.go); 0 for an effect that ticks until it ends (a creature's, a
 	// pet's, one kept from before ticks were counted).
@@ -281,6 +284,25 @@ type ActiveEffect struct {
 	// (buffline.go): only the best of a line counts; "" for none
 	Line string
 	Rank int
+	// Ward cuts the creatures' melee hits on its bearer (ward.go), nil for
+	// none
+	Ward *Ward
+	// Mark is a curse on a creature that answers the players' and pets' hits
+	// on it (mark.go), nil for none
+	Mark *Mark
+	// Level is its spell's level, Afflicts its kind of harm and NoCure that
+	// no cure takes it off: what a cure looks at (cure.go)
+	Level    int
+	Afflicts CureKind
+	NoCure   bool
+	// HPCap is the most the bearer's maximum hit points are while it lasts,
+	// when HPCapped; Invulnerable: its bearer takes nothing of a creature's
+	// hit (spiritform.go: Spiritform's "Set Maximum HP to 0, Invulnerable")
+	HPCap        int
+	HPCapped     bool
+	Invulnerable bool
+	// Lull: its creature notices a player only within LullRadius (lull.go)
+	Lull bool
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -415,11 +437,15 @@ func (p *Player) StatNow(st Stat) int {
 }
 
 // MaxHPNow is the maximum hit points with effects: what they add, and what
-// their stamina adds through the class's formula.
+// their stamina adds through the class's formula, and at most the lowest
+// ceiling an effect puts on it (spiritform.go).
 func (p *Player) MaxHPNow() int {
 	n := p.MaxHP + p.Mods.MaxHP
 	if sta := p.StatNow(StatSta); sta != p.Sta {
 		n += p.maxHPFor(sta) - p.maxHPFor(p.Sta)
+	}
+	if top, ok := p.hpCap(); ok {
+		n = min(n, top)
 	}
 	return max(n, 1)
 }
@@ -631,6 +657,11 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 	if d.Target == TargetSelf && d.Resurrects() > 0 {
 		return []EntityID{p.ServerID}, ""
 	}
+	// a call goes by its caster's group, whatever its record's scope
+	// (callhero.go): cast on its caster
+	if d.callsHero() {
+		return []EntityID{p.ServerID}, ""
+	}
 	switch spell.Scope {
 	case 0:
 		return []EntityID{p.ServerID}, ""
@@ -832,6 +863,11 @@ func (w *World) landLocked(cs *castState, caster *Player, now time.Time) (gate b
 	if w.gateLandLocked(cs, caster, casterSess) && (len(d.Effects) == 0 || d.onlyPowerCaps()) { // gates.go
 		return gate
 	}
+	// a call asks its caster's group far from it (callhero.go); the rest of
+	// its line, if any, lands as any spell's
+	if w.heroCallLandLocked(cs, caster, casterSess, now) && len(d.Effects) == 1 {
+		return gate
+	}
 	if len(d.Effects) == 0 {
 		log.Printf("Cast: %s's %q lands: nothing read in its line %v", caster.Name, cs.spell.Name, d.Unread)
 	}
@@ -923,7 +959,8 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		return nil
 	}
 	ae := &ActiveEffect{SpellID: cs.spell.SpellID, Name: cs.spell.Name, Icon: cs.spell.Icon, Caster: caster.ServerID,
-		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks}
+		Until: now.Add(dur), NextTick: now, Ticks: d.Ticks, Appearance: d.Appearance,
+		Level: cs.spell.Level, Afflicts: d.Afflicts, NoCure: d.NoCure}
 	any := false
 	for _, e := range d.Effects {
 		switch e.Kind {
@@ -966,6 +1003,18 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 			if !ae.PowerCapped || e.Amount < ae.PowerCap {
 				ae.PowerCap, ae.PowerCapped = e.Amount, true
 			}
+		case EffectWard:
+			ae.Ward = ae.Ward.with(e) // ward.go
+		case EffectMark, EffectMarkHeal:
+			ae.Mark = ae.Mark.with(e, cs) // mark.go
+		case EffectHPCap:
+			if !ae.HPCapped || e.Amount < ae.HPCap { // spiritform.go
+				ae.HPCap, ae.HPCapped = max(e.Amount, 1), true
+			}
+		case EffectInvuln:
+			ae.Invulnerable = true // spiritform.go
+		case EffectLull:
+			ae.Lull = true // lull.go
 		default:
 			continue
 		}
@@ -986,15 +1035,25 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 	// a spell that raises the maximum heals after the raise (spellnotes.go),
 	// or a target at full health would get none of it
 	raises := cs.spell.Def.RaisesMaxHP()
+	// a self line's lost hit points are its caster's price, paid in full
+	// (lifetap.go selfCostLocked): a price that kills lands nothing more
+	ownLine := cs.spell.Def.Target == TargetSelf && t == caster
 	var heals []int
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
 		case EffectHP:
-			if raises {
-				heals = append(heals, spellAmount(e, caster))
+			n := spellAmount(e, caster)
+			if n < 0 && ownLine {
+				if w.selfCostLocked(cs.spell.Name, caster, casterSess, -n, true, now) {
+					return
+				}
 				continue
 			}
-			w.healLocked(caster, casterSess, t, spellAmount(e, caster))
+			if raises {
+				heals = append(heals, n)
+				continue
+			}
+			w.healLocked(caster, casterSess, t, n)
 		case EffectPower:
 			if n := spellAmount(e, caster); n > 0 {
 				t.Power = min(t.Power+n, t.MaxPowerNow())
@@ -1007,10 +1066,23 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 				t.Power = max(e.Amount, 0)
 				t.StatsDirty = true
 			}
+		case EffectHPCap:
+			// so too a ceiling on the hit points (spiritform.go), never
+			// under 1: it kills no one
+			if !cs.spell.Def.lasts() && t.HP > e.Amount {
+				t.HP = max(e.Amount, 1)
+				t.StatsDirty = true
+			}
 		case EffectEndIllusion:
-			w.endIllusionsLocked(t, 0) // illusion.go
+			if e.Masks {
+				w.endMasksLocked(t) // illusion.go
+			} else {
+				w.endAppearancesLocked(t) // illusion.go
+			}
 		case EffectIllusion:
 			illusion = true
+		case EffectCure:
+			w.curePlayerLocked(t, cureOf(e, cs.spell.Level), cs.spell.Name) // cure.go
 		}
 	}
 	if ae := lasting(cs, caster, now); ae != nil && w.lineTakesLocked(caster, casterSess, t, &cs.spell, ae) && // buffline.go
@@ -1137,6 +1209,14 @@ func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 		}
 		w.healLocked(caster, w.findSessionByEntityIDLocked(caster.ServerID), t, ae.HPTick)
 	}
+	// the bearer's own line losing hit points each tick (Lich, Cursed Flesh):
+	// its price, until it wears off, its bearer dies or a Remove Illusion,
+	// True Form or Revert Lich ends the form (illusion.go)
+	if ae.HPTick < 0 && ae.Caster == t.ServerID && !t.IsDead() {
+		if w.selfCostLocked(ae.Name, t, w.findSessionByEntityIDLocked(t.ServerID), -ae.HPTick, false, now) {
+			return
+		}
+	}
 	if ae.PowerTick > 0 && t.Power < t.MaxPowerNow() {
 		t.Power = min(t.Power+ae.PowerTick, t.MaxPowerNow())
 		t.StatsDirty = true
@@ -1147,6 +1227,10 @@ func (w *World) tickEffectLocked(t *Player, ae *ActiveEffect, now time.Time) {
 // what lasts (a damage tick; a hold, a slow or a stat change is kept, though
 // no creature moves or uses its stats yet).
 func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *session.Session, npc *NPC, now time.Time) {
+	if cs.spell.Def.lullsOnly() {
+		w.lullLandLocked(cs, caster, npc, now) // lull.go: no attack
+		return
+	}
 	caster.LastCombatTime = now
 	for _, e := range cs.spell.Def.Effects {
 		switch e.Kind {
@@ -1164,8 +1248,16 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 			w.updateAggro(npc, caster.ServerID, spellAmount(e, caster))
 		case EffectForget:
 			w.forgetLocked(npc, caster) // vampire.go: Vampiric Gaze
+		case EffectPower:
+			// a power drain, a hostile act (lifetap.go, the owner's ruling of
+			// 2026-10-29): the creature's hate for the caster its figure, so
+			// a drain with no hit starts the fight, and the grant at once
+			if n := -spellAmount(e, caster); n > 0 {
+				w.updateAggro(npc, caster.ServerID, n)
+				w.drainLocked(cs, caster, casterSess, e, n, now)
+			}
 		default:
-			// a drained stat or power is the caster's (lifetap.go)
+			// a drained stat is the caster's (lifetap.go)
 			w.drainLocked(cs, caster, casterSess, e, -spellAmount(e, caster), now)
 		}
 	}

@@ -58,6 +58,9 @@ type savedMods struct {
 	// illusions reads as none
 	Form     uint32  `json:",omitempty"`
 	FormSize float32 `json:",omitempty"`
+	// a look that Remove Illusion ends (illusion.go readAppearance); a row
+	// kept before reads as none
+	Appearance bool `json:",omitempty"`
 	// a heal over time's ticks left (hot.go); a row kept before reads as
 	// none, an effect that ticks until it ends
 	Ticks int `json:",omitempty"`
@@ -71,6 +74,18 @@ type savedMods struct {
 	// reads as none
 	Line string `json:",omitempty"`
 	Rank int    `json:",omitempty"`
+	// a ward and what it has taken (ward.go); a row kept before reads as
+	// none
+	Ward *Ward `json:",omitempty"`
+	// its spell's level, kind of harm and whether no cure takes it off
+	// (cure.go); a row kept before reads as level 0, no kind, curable
+	Level    int      `json:",omitempty"`
+	Afflicts CureKind `json:",omitempty"`
+	NoCure   bool     `json:",omitempty"`
+	// a ceiling on the maximum hit points, and invulnerability
+	// (spiritform.go); a row kept before reads as none
+	HPCap        *int `json:",omitempty"`
+	Invulnerable bool `json:",omitempty"`
 }
 
 func savedEffects(p *Player, now time.Time) []database.BuffRow {
@@ -85,10 +100,15 @@ func savedEffects(p *Player, now time.Time) []database.BuffRow {
 			tick = max(0, e.NextTick.Sub(now).Milliseconds())
 		}
 		sm := savedMods{StatMods: e.Mods, Proc: e.Proc, ProcMax: e.ProcMax, ProcScale: e.ProcScale, ProcScalePct: e.ProcScalePct,
-			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Ticks: e.Ticks, Shield: e.Shield, Line: e.Line, Rank: e.Rank}
+			ProcCap: e.ProcCap, Form: e.Form, FormSize: e.FormSize, Appearance: e.Appearance, Ticks: e.Ticks, Shield: e.Shield, Line: e.Line, Rank: e.Rank,
+			Ward: e.Ward, Level: e.Level, Afflicts: e.Afflicts, NoCure: e.NoCure, Invulnerable: e.Invulnerable}
 		if e.PowerCapped {
 			top := e.PowerCap
 			sm.PowerCap = &top
+		}
+		if e.HPCapped {
+			top := e.HPCap
+			sm.HPCap = &top
 		}
 		mods, _ := json.Marshal(sm)
 		flags := 0
@@ -133,12 +153,18 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 			_ = json.Unmarshal([]byte(r.Mods), &sm)
 			ae.Mods, ae.Proc, ae.ProcMax = sm.StatMods, sm.Proc, sm.ProcMax
 			ae.ProcScale, ae.ProcScalePct, ae.ProcCap = sm.ProcScale, sm.ProcScalePct, sm.ProcCap
-			ae.Form, ae.FormSize = sm.Form, sm.FormSize
+			ae.Form, ae.FormSize, ae.Appearance = sm.Form, sm.FormSize, sm.Appearance
 			ae.Ticks = sm.Ticks
 			ae.Shield = sm.Shield
 			ae.Line, ae.Rank = sm.Line, sm.Rank
+			ae.Ward = sm.Ward
+			ae.Level, ae.Afflicts, ae.NoCure = sm.Level, sm.Afflicts, sm.NoCure
 			if sm.PowerCap != nil {
 				ae.PowerCap, ae.PowerCapped = *sm.PowerCap, true
+			}
+			ae.Invulnerable = sm.Invulnerable
+			if sm.HPCap != nil {
+				ae.HPCap, ae.HPCapped = max(*sm.HPCap, 1), true
 			}
 		}
 		p.Effects = append(p.Effects, ae)
@@ -154,6 +180,9 @@ func (w *World) RestoreEffects(sess *session.Session, rows []database.BuffRow, n
 	p.Mods = m
 	if top, ok := p.powerCap(); ok && p.Power > top { // powercap.go
 		p.Power = max(top, 0)
+	}
+	if _, ok := p.hpCap(); ok { // spiritform.go
+		p.HP = min(p.HP, p.MaxHPNow())
 	}
 	p.StatsDirty = true
 	return n

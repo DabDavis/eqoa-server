@@ -60,6 +60,14 @@ const (
 	EffectDefProc                       // a creature's melee hit on the bearer may take Amount back (dshield.go)
 	EffectPowerCap                      // the bearer's maximum power at most Amount while it lasts; lasting no time, its power taken down to it (powercap.go)
 	EffectForget                        // the target forgets its hate for the caster (vampire.go: Vampiric Gaze)
+	EffectWard                          // a creature's melee hit on the bearer cut by Amount%, or to 1 when ToOne, Cap in all (ward.go)
+	EffectMark                          // on a creature: each player's or pet's hit on it does Amount to AmountMax more, 0 its default (mark.go)
+	EffectMarkHeal                      // on a creature: each player's or pet's hit on it heals the attacker Amount to AmountMax (mark.go)
+	EffectCure                          // takes Amount harmful effects of the Cure kind off the bearer, 0 by its level (cure.go)
+	EffectHPCap                         // the bearer's maximum hit points at most Amount (1 or more) while it lasts; lasting no time, its hit points taken down to it (spiritform.go)
+	EffectInvuln                        // the bearer takes nothing of a creature's hit while it lasts (spiritform.go)
+	EffectLull                          // a creature notices a player only within LullRadius while it lasts, up to level Amount (0: the spell's own and LullLevelBand) (lull.go)
+	EffectCallHero                      // the caster's group far from it asked to come to its side (callhero.go)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -120,6 +128,15 @@ type SpellEffect struct {
 	// the difference from the bearer's own stat as the spell lands
 	// (vampire.go's setStatsLocked)
 	Set bool
+	// Masks: an end of looks that ends the rogue's masks alone, Remove
+	// Mask's (illusion.go)
+	Masks bool
+	// ToOne: a ward that makes each hit it cuts do 1 ("Reduce Damage Taken
+	// to 1"), its Cap the most it takes off in all (ward.go)
+	ToOne bool
+	// Cure is what a cure takes off: poison, disease, both, or CureAny
+	// (cure.go)
+	Cure CureKind
 }
 
 // SpellDef is a spell's line, read: whom it lands on, what it does, how
@@ -148,6 +165,11 @@ type SpellDef struct {
 	// (illusion.go); "" and FormNone for every other spell.
 	Form     string
 	FormKind FormKind
+	// Appearance: what lasts changes how its bearer looks, with or without a
+	// body this server shows (illusion.go readAppearance): an illusion, a
+	// glamour, a druid's or shaman's form, a mask, Lich. Remove Illusion and
+	// True Form end it.
+	Appearance bool
 	// UndeadOnly: the spell works on undead alone (undead.go), a "Target
 	// undead" line or a charm its name or description says is for undead.
 	UndeadOnly bool
@@ -163,6 +185,11 @@ type SpellDef struct {
 	// x2": the vampires' abilities, vampire.go); "" for none.
 	Reagent      string
 	ReagentCount int
+	// Afflicts is what kind of harm the spell does, poison or disease or
+	// both, by its name's and line's words, and NoCure that its line says no
+	// cure takes it off ("cannot be cured"): what a cure looks at (cure.go).
+	Afflicts CureKind
+	NoCure   bool
 }
 
 // Charms reports whether the spell makes its target the caster's pet.
@@ -304,10 +331,12 @@ func ParseSpellNamed(name, line, desc string) SpellDef {
 	}
 	d := ParseSpell(line, desc)
 	d.readIllusion(name, desc)
-	d.readUndead(name, desc)  // undead.go
-	d.readEnchanterProc(name) // enchanter.go
-	d.healWithMaxHP(name)     // spellnotes.go
-	d.readShield(name, desc)  // dshield.go
+	d.readAppearance(desc)       // illusion.go
+	d.readUndead(name, desc)     // undead.go
+	d.readEnchanterProc(name)    // enchanter.go
+	d.healWithMaxHP(name)        // spellnotes.go
+	d.readShield(name, desc)     // dshield.go
+	d.readAffliction(name, line) // cure.go
 	return d
 }
 
@@ -353,12 +382,12 @@ func (d SpellDef) asProc() SpellDef {
 	effects[at] = SpellEffect{Kind: EffectProc, Amount: -hit.AmountMax, AmountMax: -hit.Amount, Scale: hit.Scale, ScalePct: hit.ScalePct,
 		ScaleBearer: hit.ScaleBearer, Cap: hit.Cap}
 	d.Effects = effects
-	d.Harmful = false
+	d.Harmful = d.takesPower() // lifetap.go
 	for _, e := range d.Effects {
 		switch e.Kind {
 		case EffectHP, EffectHPTick, EffectStat:
 			d.Harmful = d.Harmful || (e.Amount < 0 && !e.Self)
-		case EffectRoot, EffectSnare, EffectHate:
+		case EffectRoot, EffectSnare, EffectHate, EffectMark, EffectMarkHeal, EffectLull:
 			d.Harmful = true
 		}
 	}
@@ -390,10 +419,14 @@ func ParseSpellText(line string) SpellDef {
 	}
 	text = joinStatLists(text) // spellnotes.go
 	text = shieldWords(text)   // dshield.go
+	text = markWords(text)     // mark.go
 	// The verb a clause without one goes on with ("Increase AC by 12,
-	// Maximum Power by 5"), and the effect a scale clause belongs to.
+	// Maximum Power by 5"), and the effects a scale clause belongs to: the
+	// last one, or every stat of the list it ends ("PR/DR by 15 ; Increase
+	// 15% based on WIS" scales both; until the test lanes' report of
+	// 2026-10-29 only DR was).
 	verb := ""
-	last := -1
+	first, last := -1, -1
 	for i, clause := range strings.Split(text, ",") {
 		for j, part := range strings.Split(clause, ";") {
 			part = strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(part), "."))
@@ -414,9 +447,10 @@ func ParseSpellText(line string) SpellDef {
 			}
 			if m := reScale.FindStringSubmatch(part); m != nil {
 				if st, ok := statWord(m[3]); ok && last >= 0 {
-					d.Effects[last].Scale = st
-					d.Effects[last].ScalePct, _ = strconv.Atoi(m[1])
-					d.Effects[last].ScaleBearer = m[2] != ""
+					pct, _ := strconv.Atoi(m[1])
+					for k := first; k <= last; k++ {
+						d.Effects[k].Scale, d.Effects[k].ScalePct, d.Effects[k].ScaleBearer = st, pct, m[2] != ""
+					}
 					continue
 				}
 			}
@@ -439,22 +473,26 @@ func ParseSpellText(line string) SpellDef {
 			n := len(d.Effects)
 			verb = d.parsePart(part, verb)
 			if len(d.Effects) > n {
-				last = len(d.Effects) - 1
+				first, last = statList(d.Effects, n), len(d.Effects)-1
 			}
 		}
 	}
 	// a resurrection's share of the latest death's debt (resurrect.go)
 	d.readResurrect()
-	// Cast at an enemy: what takes hit points or a stat, holds or slows, or
-	// works on hate. Power is not counted: "Decrease Power by 1" is in Minor
-	// Healing's line.
+	// Cast at an enemy: what takes hit points or a stat, holds or slows,
+	// works on hate, marks a creature (mark.go: the owner's ruling of
+	// 2026-10-29), or takes power (lifetap.go takesPower: a drain or
+	// decrease of the target's power, the owner's ruling of 2026-10-29; not
+	// Minor Healing's "Decrease Power by 1" beside its heal), and a lull
+	// (lull.go: cast at a creature, though its landing is no attack).
+	d.Harmful = d.takesPower()
 	for _, e := range d.Effects {
 		switch e.Kind {
 		case EffectHP, EffectHPTick, EffectStat:
 			if e.Amount < 0 && !e.Self {
 				d.Harmful = true
 			}
-		case EffectRoot, EffectSnare, EffectHate, EffectCharm, EffectForget:
+		case EffectRoot, EffectSnare, EffectHate, EffectCharm, EffectForget, EffectMark, EffectMarkHeal, EffectLull:
 			d.Harmful = true
 		}
 	}
@@ -470,7 +508,24 @@ func ParseSpellText(line string) SpellDef {
 		}
 	}
 	d.lineDefaults() // spellnotes.go: what a line leaves out
+	d.lullDefaults() // lull.go: a lull's time when it names none
 	return d
+}
+
+// statList is where the effects one part added from n begin when they are a
+// list of stats by one number ("AGI/STA by 20", "STR & DEX by 9", "buff DR,
+// PR, FR, CR by 100"): n, so a scale after them is all of theirs. Anything
+// else is its last effect alone, as before.
+func statList(effects []SpellEffect, n int) int {
+	last := len(effects) - 1
+	for k := n; k < last; k++ {
+		e, l := effects[k], effects[last]
+		if e.Kind != EffectStat || l.Kind != EffectStat || e.Amount != l.Amount || e.AmountMax != l.AmountMax ||
+			e.Drain != l.Drain || e.Self != l.Self {
+			return last
+		}
+	}
+	return n
 }
 
 // spellTarget reads a line's first clause: the target word, and what
@@ -532,6 +587,22 @@ func (d *SpellDef) parsePart(part, verb string) string {
 		d.Effects = append(d.Effects, e)
 		return verb
 	}
+	if e, ok := wardPart(part); ok { // ward.go
+		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if e, ok := markPart(part); ok { // mark.go
+		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if e, ok := curePart(part); ok { // cure.go
+		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if reNoCure.MatchString(part) { // cure.go: a debuff no cure takes off
+		d.NoCure = true
+		return verb
+	}
 	if n, ok := powerCapPart(part); ok { // powercap.go
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectPowerCap, Amount: n, AmountMax: n})
 		return verb
@@ -548,6 +619,21 @@ func (d *SpellDef) parsePart(part, verb string) string {
 			d.Effects = append(d.Effects, SpellEffect{Kind: EffectStat, Stat: st, Amount: n, AmountMax: n, Set: true})
 			return verb
 		}
+	}
+	if e, ok := spiritformPart(part); ok { // spiritform.go
+		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if e, ok := lullPart(part); ok { // lull.go
+		d.Effects = append(d.Effects, e)
+		return verb
+	}
+	if d.lullLevelPart(part) { // lull.go: "up to level N" after a lull
+		return verb
+	}
+	if e, ok := callHeroPart(part); ok { // callhero.go
+		d.Effects = append(d.Effects, e)
+		return verb
 	}
 	scale, scalePct := StatNone, 0
 	if m := reScaleIn.FindStringSubmatch(part); m != nil {

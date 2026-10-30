@@ -14,6 +14,9 @@ holds:
      Allakhazam's players of 2004 called one of a kind on their server;
   2. by Allakhazam's players' word (ARCHIVE: its item pages' comments,
      2003-2005, as tools/fetch_item_pages.py keeps them);
+     a jeweler's gem or a crafting modifier by its rarity as Prima prints it,
+     the weight tools/seed_tradeskills.py gives it in the craft tables (30
+     common, 9 uncommon, 3 rare, 1 ultra rare: rare here);
   3. not worn (a material, a trophy, food, a potion), or of no level: common;
   4. sold by a merchant here (an npcitem row): common;
   5. worn with no stats (plain gear: its armor class or damage alone, at most
@@ -198,10 +201,28 @@ def score(every):
     return {pid: (s, med.get(worn[pid]["levelreq"], 0)) for pid, s in out.items()}
 
 
+CRAFT_TABLES = ("craft gems", "craft modifiers")  # tools/seed_tradeskills.py's, rolled by every creature
+CRAFT_WEIGHT = {30: (COMMON, "common"), 9: (UNCOMMON, "uncommon"), 3: (RARE, "rare"), 1: (RARE, "ultra rare")}
+
+
+def crafted(db):
+    """The craft tables' items: {patternid: (tier, why)} by their weight there."""
+    if not db.execute("SELECT count(*) FROM sqlite_master WHERE name = 'loottables'").fetchone()[0]:
+        return {}
+    out = {}
+    for t, pid, w in db.execute(f"SELECT tablename, patternid, weight FROM loottables WHERE tablename IN "
+                                f"({', '.join('?' * len(CRAFT_TABLES))})", CRAFT_TABLES):
+        if w in CRAFT_WEIGHT:
+            tier, word = CRAFT_WEIGHT[w]
+            out[pid] = (tier, f"{'a gem' if t == 'craft gems' else 'a crafting modifier'}: {word} in Prima's tables")
+    return out
+
+
 def tiers(db):
     """Every item's tier and why: {patternid: (tier, why)}."""
     every = items(db)
     scores = score(every)
+    craft = crafted(db)
     sold = set()
     if db.execute("SELECT count(*) FROM sqlite_master WHERE name = 'npcitem'").fetchone()[0]:
         sold = {pid for (pid,) in db.execute("SELECT DISTINCT patternid FROM npcitem")}
@@ -212,6 +233,8 @@ def tiers(db):
             out[pid] = (LEGENDARY, LEGENDARY_ITEMS[name])
         elif name in ARCHIVE:
             out[pid] = ARCHIVE[name]
+        elif pid in craft:
+            out[pid] = craft[pid]
         elif pid not in scores and not group(it["equipslot"]):
             out[pid] = (COMMON, "no wear slot: a material, a trophy, food or a potion")
         elif pid not in scores:

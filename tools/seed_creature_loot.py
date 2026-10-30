@@ -7,7 +7,8 @@ GM jib gave the live game's rates: "uncommon drops 1/100, rares 1/1000").
 Each creature name gets, for each band of BAND levels it spawns in, a table of
 its own, "<name> <lo>-<hi>", holding COMPOSITION (2 common items, 3 uncommon,
 1 rare: tools/loot_tiers.py) and every legendary its region holds at its
-levels, drawn from what already drops or sells where it lives:
+levels, drawn from what already drops or sells where it lives (but what every
+creature rolls already, npcloot's "*": the gems and modifiers):
 
   - its region's loot tables and the generic table (EQOA-Data's tables, as
     tools/seed_camp_loot.py wrote them and tools/seed_region_loot.py bound
@@ -246,6 +247,8 @@ def candidates(w, name, lo, hi):
     out = {}
 
     def take(pid, prio, tier=None):
+        if pid in w.everyones:
+            return
         t = tier or w.tiers.get(pid, (lt.COMMON, ""))[0]
         if pid not in out or out[pid][1] > prio:
             out[pid] = (t, prio)
@@ -282,6 +285,8 @@ def plan(w, retier=False, fill=None):
     fill = retier if fill is None else fill
     w.equip = {pid: slot for pid, slot in w.db.execute("SELECT patternid, equipslot FROM itempattern")}
     in_tables = {p for rows in w.tables.values() for _, p, _, _ in rows}
+    # what every creature rolls already (npcloot's "*": the gems and modifiers) is no creature's own
+    w.everyones = {p for t, *_ in w.binds.get("*", []) for _, p, _, _ in w.tables.get(t, ())}
     second = {pid for pid, (n, _, _) in w.items.items() if " ".join((n or "").split()).lower() in lt.SECOND_RECORDS}
     w.orbs = [(pid, t) for pid, (t, why) in w.tiers.items()
               if t == lt.LEGENDARY and pid not in in_tables and pid not in second and w.items[pid][1] >= 50]

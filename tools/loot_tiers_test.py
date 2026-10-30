@@ -49,6 +49,11 @@ class LootTiers(unittest.TestCase):
         self.db.executemany(f"INSERT INTO itempattern VALUES ({', '.join('?' * len(COLS))})",
                             [tuple(r[c] for c in COLS) for r in ITEMS])
         self.db.execute("CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY, npcid INTEGER, patternid INTEGER)")
+        self.db.execute("CREATE TABLE loottables (id INTEGER PRIMARY KEY, tablename TEXT, patternid INTEGER, weight INTEGER)")
+        self.db.executemany("INSERT INTO loottables (tablename, patternid, weight) VALUES (?, ?, ?)",
+                            [("craft gems", 50, 30), ("craft gems", 51, 1), ("generic", 50, 1)])
+        self.db.executemany(f"INSERT INTO itempattern (patternid, itemname, levelreq, equipslot) VALUES (?, ?, 0, -1)",
+                            [(50, "Aquamarine"), (51, "Blue Diamond")])
         self.db.execute("INSERT INTO npcitem (npcid, patternid) VALUES (1, 6)")
 
     def test_each_rule(self):
@@ -65,6 +70,8 @@ class LootTiers(unittest.TestCase):
         self.assertEqual(t[10][0], lt.UNCOMMON, "at its level's median")
         self.assertEqual(t[20][0], lt.RARE, "three times its level's median")
         self.assertEqual(t[8][0], lt.RARE, "plain armor class and 30 strength: three times the median")
+        self.assertEqual(t[50], (lt.COMMON, "a gem: common in Prima's tables"), "in the generic table too")
+        self.assertEqual(t[51], (lt.RARE, "a gem: ultra rare in Prima's tables"))
 
     def test_a_shifted_label_is_read_as_armor_class(self):
         every = lt.items(self.db)

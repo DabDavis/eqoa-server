@@ -2086,13 +2086,16 @@
      "journal": "Bring Empty Bottle, Small Metal Rod, snake scales and Cracked Rat Claw to Prof. Valespin.",
      "says": "All here. Your staff will be ready.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Valespin's Staff"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The bottle and rod are bought in the guide; here the merchants hand them over. The guide names no staff."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The bottle and rod are bought in the guide; here the merchants hand them over. The guide names no staff. The reward is ours: Valespin's Staff, the wizard's level-4 staff of evocation, for the enchanter (no enchanter's staff of level 3-6 is) (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/klick-anon/enchanter/L5",
@@ -2369,13 +2372,16 @@
      "journal": "Speak with Prof. Temwiddle.",
      "says": "Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "rod of eyes"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. Savi's ink is left out of her price."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. Savi's ink is left out of her price. The reward is ours: rod of eyes, Freeport's rod of eyes (Qeynos's Manawood Staff is the other) (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/klick-anon/enchanter/L13",
@@ -3078,13 +3084,16 @@
      "journal": "Bring Copper Spring, Empty Bottle, cracked snake fang and shattered ant chitin to Prof. Dandersoft.",
      "says": "Everything. Your staff will be ready.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Staff of Conjuring"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The spring and bottle are bought in the guide; here the merchants hand them over."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The spring and bottle are bought in the guide; here the merchants hand them over. The reward is ours: Staff of Conjuring, the same (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/klick-anon/magician/L5",
@@ -4019,13 +4028,16 @@
      "journal": "Bring Small Gear Wheel, Meat Chunk, sliver of snake meat and fractured firefly thorax to Bal Noonlittle.",
      "says": "Everything. Your staff will be ready.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Bal's Staff"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The wheel and meat are bought in the guide; here the merchants hand them over."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The wheel and meat are bought in the guide; here the merchants hand them over. The reward is ours: Bal's Staff, the Staff of Necromancy's numbers (the necromancer's level-4 staff made for Highbourne), under its own quest's name (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/klick-anon/necromancer/L5",

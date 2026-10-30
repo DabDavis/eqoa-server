@@ -1765,13 +1765,16 @@
      "journal": "Bring Bough of Wood, leather strip and 2 ruined bat wings to Salithal Grassweave.",
      "says": "Your staff will be ready.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Salithal's Staff"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The bough and strip are bought in the guide; here they are handed over."
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The bough and strip are bought in the guide; here they are handed over. The reward is ours: Salithal's Staff, the wizard's level-4 staff of evocation, for the enchanter (no enchanter's staff of level 3-6 is) (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/fayspire/enchanter/L5",
@@ -1973,13 +1976,16 @@
      "journal": "Bring Powder to Dolby.",
      "says": "Just what I needed. Thank you.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "rod of eyes"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The reward is ours: rod of eyes, the title is a mallet: Freeport's rod of eyes (a one-handed blunt weapon) (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/fayspire/enchanter/L13",
@@ -2616,13 +2622,16 @@
      "journal": "Bring leather strip, Bough of Wood and 2 fractured firefly thoraxes to Ghelwin Lightweaver.",
      "says": "Your staff will be ready.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Staff of Conjuring"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and bough are bought in the guide; here they are handed over."
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and bough are bought in the guide; here they are handed over. The reward is ours: Staff of Conjuring, the title is a staff: Staff of Conjuring, the magician's level-5 staff (the others give robes) (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/fayspire/magician/L5",
@@ -4300,13 +4309,16 @@
      "journal": "Bring leather strip, Bough of Wood and 2 cracked snake fangs to Ghelwin Lightweaver.",
      "says": "Your staff will be ready.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "staff of evocation"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and bough are bought in the guide; here they are handed over."
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and bough are bought in the guide; here they are handed over. The reward is ours: staff of evocation, the title is a staff: Highbourne's staff of evocation (level 4) (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/fayspire/wizard/L5",
@@ -4427,14 +4439,15 @@
      "rewards": {
       "xp": 157474,
       "items": [
-       "Burning Flare"
+       "Burning Flare",
+       "fancy slippers"
       ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: the Burning Flare scroll, as Freeport's, Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: the Burning Flare scroll, as Freeport's, Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30). The reward is ours: fancy slippers, Freeport's fancy slippers (Qeynos's Arcane Apprentice's Boots carry no class mask) (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/fayspire/wizard/L10",

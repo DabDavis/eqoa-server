@@ -241,12 +241,15 @@
      ],
      "says": "Everything. Here is your weapon.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Iron Hatchet"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide's random frogloks are the froglok foragers here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide's random frogloks are the froglok foragers here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Iron Hatchet, Freeport's Iron Hatchet (Neriak's Black Raven Sword and Oggok's Centipede Hatchet copy it); or a copy named for the quest (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/grobb/shadowknight/L5",
@@ -1046,12 +1049,15 @@
      ],
      "says": "Everything. Here is your weapon.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Corse Spiked Club"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Corse Spiked Club, Corse Spiked Club, the shaman's level-5 club Oggok's Eagle Talon Club copies (its line names Oggok's smith) (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/grobb/shaman/L5",
@@ -1842,12 +1848,15 @@
      "journal": "Return to Underlord Krullik.",
      "says": "Good.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "militia short sword"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's fractured thorax is the server's fractured dragonfly thorax. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's fractured thorax is the server's fractured dragonfly thorax. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: militia short sword, Freeport's militia short sword (Neriak's and Oggok's New Gear blades are copies of it); or a copy named for the quest, as New Gear's (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/grobb/warrior/L5",
@@ -2130,12 +2139,15 @@
      "journal": "Return to Warlord Jurglash.",
      "says": "Good.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Sturdy Two-Handed Sword"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's Swillmaster is Swillmaster Sturg here; its Crazed Troll's slap is left out. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's Swillmaster is Swillmaster Sturg here; its Crazed Troll's slap is left out. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Sturdy Two-Handed Sword, Freeport's Sturdy Two-Handed Sword (the other cities' level-10 fills are Freeport's). All three candidates carry no class mask (the old dump's: the server lets any class wear them, the client marks them unusable): Freeport's, Klick'Anon's and Qeynos's own rewards included (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/grobb/warrior/L13",

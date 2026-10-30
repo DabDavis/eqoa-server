@@ -107,6 +107,36 @@ var itemSlotToEquipSlot = map[int][]int{
 	27: {19},
 }
 
+// The wear of a one-handed weapon either hand may hold (all 262 of this
+// server's are weapons: slashing, crushing and piercing), and the hands.
+const (
+	wearEitherHand = 14
+	equipPrimary   = 14
+	equipSecondary = 15
+)
+
+// offHandWeaponBarred is whether a class holds a weapon in its primary hand
+// alone, its secondary hand a shield's (the user, 2026-10-30: "for player
+// Shadowknights they should not be able to equip a weapon in their
+// secondary hand. they can only wear it in their primary, but secondary can
+// be used in either hand. Same for paladins. they are the Knight type tanks,
+// they can wear shields in their secondary hand of course"): the paladin and
+// the shadow knight. Ours: CLIENT's fit check and its UI take any class's.
+// Held items and bait are no weapons and go in as before.
+func offHandWeaponBarred(class int) bool {
+	return class == int(ClassPaladin) || class == int(ClassShadowKnight)
+}
+
+// equipSlotsFor is the equip slots an item of wear w may go in on a character
+// of the class: itemSlotToEquipSlot's, a knight's weapon (offHandWeaponBarred)
+// the primary hand's alone, so it takes the place of what is there.
+func equipSlotsFor(w, class int) []int {
+	if w == wearEitherHand && offHandWeaponBarred(class) {
+		return []int{equipPrimary}
+	}
+	return itemSlotToEquipSlot[w]
+}
+
 // fitsEquip is CLIENT's func_00CC61A8, which Msg003F (0x00BCB2F0) asks before
 // it equips anything: whether an item of wear slot w may go in equip slot e. A
 // 0x003F that fails it is ignored by the client, so the server must never
@@ -252,8 +282,8 @@ func invItemByKey(items []database.CharInventoryEntry, list *invList, key uint32
 }
 
 // planInteractItem decides one toggle, for the record the key names
-// (invItemByKey).
-func planInteractItem(items []database.CharInventoryEntry, list *invList, key uint32) (equipPlan, error) {
+// (invItemByKey), on a character of the class (equipSlotsFor).
+func planInteractItem(items []database.CharInventoryEntry, list *invList, key uint32, class int) (equipPlan, error) {
 	plan := equipPlan{key: key, unequip: -1}
 	inv := inventoryRows(items)
 
@@ -264,8 +294,8 @@ func planInteractItem(items []database.CharInventoryEntry, list *invList, key ui
 	plan.name = found.Pattern.ItemName
 
 	wear := found.Pattern.EquipSlot
-	slots, equippable := itemSlotToEquipSlot[wear]
-	if !equippable {
+	slots := equipSlotsFor(wear, class)
+	if len(slots) == 0 {
 		return plan, errNotEquippable
 	}
 
@@ -406,7 +436,7 @@ func (h *EquipHandler) HandleInteractItem(sess *session.Session, msg *protocol.M
 		}
 	}
 
-	plan, err := planInteractItem(items, sessionInvList(sess), key)
+	plan, err := planInteractItem(items, sessionInvList(sess), key, player.Class)
 	if err != nil {
 		log.Printf("InteractItem: serverID=%d key=%d %q: %v", serverID, key, plan.name, err)
 		return nil

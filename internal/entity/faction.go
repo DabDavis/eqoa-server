@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -199,7 +200,7 @@ type factionTable struct {
 	set    bool
 	list   []FactionStanding // standing high to low, then name
 	byName map[string]int
-	hits   map[string][]FactionHit
+	hits   map[string][]FactionHit    // by NPCClassKey
 	starts map[string][]startRow      // by faction, the most specific first
 	npcs   map[string][]npcFactionRow // by NPCClassKey, the most specific first
 	nStart int                        // starts kept
@@ -307,8 +308,11 @@ func (w *World) SetFactionDefaults(d []database.FactionDefault) {
 }
 
 // SetFactionHits sets what killing an NPC of each name does (the factionhits
-// table): at the start, and when a GM edits it. It reports the rows kept and
-// those naming no faction, which change nothing.
+// table): at the start, and when a GM edits it. A row is for its name in any
+// case (database.NPCClassKey, as npcfaction's and npcaggro's are: the imports
+// spelled one creature "Grass Viper" and "grass viper"); of two spellings'
+// rows on one faction the first counts, so a kill moves it once. It reports
+// the rows kept and those naming no faction, which change nothing.
 func (w *World) SetFactionHits(rows []database.FactionHitRow) (kept, unknown int) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -320,11 +324,22 @@ func (w *World) SetFactionHits(rows []database.FactionHitRow) (kept, unknown int
 			log.Printf("Factions: a hit for killing %q names %q, which is no faction: it changes nothing", r.NPCName, r.Faction)
 			continue
 		}
-		hits[r.NPCName] = append(hits[r.NPCName], FactionHit{r.Faction, r.Delta})
+		k := database.NPCClassKey(r.NPCName)
+		if slices.ContainsFunc(hits[k], func(h FactionHit) bool { return h.Faction == r.Faction }) {
+			log.Printf("Factions: a hit for killing %q on %q is another spelling's too: the first counts", r.NPCName, r.Faction)
+			continue
+		}
+		hits[k] = append(hits[k], FactionHit{r.Faction, r.Delta})
 		kept++
 	}
 	w.factions.hits = hits
 	return kept, unknown
+}
+
+// hitsFor is what killing an NPC of this name does (factionhits, by
+// NPCClassKey). Must be called with the World's lock held.
+func (t *factionTable) hitsFor(name string) []FactionHit {
+	return t.hits[database.NPCClassKey(name)]
 }
 
 // SetFactionStarts sets the standings the characters of a race, class and
@@ -420,7 +435,7 @@ func (w *World) factionHitNames() int {
 func (w *World) FactionHitsFor(npcName string) []FactionHit {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	return append([]FactionHit(nil), w.factions.hits[npcName]...)
+	return append([]FactionHit(nil), w.factions.hitsFor(npcName)...)
 }
 
 // startLocked is the standing p starts with in a faction: its combo's most
@@ -518,7 +533,7 @@ func (w *World) factionKillLocked(sess *session.Session, p *Player, npc *NPC) {
 	// pet, a GM's #kill): the quests hear it (questhooks.go)
 	w.creditKillLocked(sess, p, npc)
 	w.factions.ensure()
-	hits := w.factions.hits[npc.Name]
+	hits := w.factions.hitsFor(npc.Name)
 	if len(hits) == 0 {
 		return
 	}

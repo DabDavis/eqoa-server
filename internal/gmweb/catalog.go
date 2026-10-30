@@ -741,6 +741,29 @@ var catalog = map[string]tableNote{
 			"source": {Label: "Source", Help: "gm, or ours for tools/seed_town_dialog.py's rows"},
 		},
 	},
+	"signtext": {
+		Label: "Sign words", Group: "World", Title: "text", Sort: "npcid",
+		Help: "What a sign post or an announcement board says when talked to (handlers/signs.go), in dialogue boxes: " +
+			"one row a sign, by its npcs row. Every sign and board stands on one body (0x6A82352C); any NPC given a row " +
+			"says it as a sign. The row of npcid 0 (kind news) is the news every board says after its own words, empty " +
+			"none: one edit for every town's board. kind is what the words are: building (the building the sign stands " +
+			"at), place (the place its name gives), city (its city's places each way), road (the towns each way), board, " +
+			"news or gm; only board and news change what is said. A sign with no row says Settings' NPC text for its " +
+			"name, else nothing; nothing else ever answers a sign: no quest, no town dialog, no shop, no route. No record " +
+			"of what EQOA's signs said is known: rows of source ours are tools/seed_signs.py's, made from where each " +
+			"stands (Prima's Frontiers guide's city maps for a building's title, the coach towns and CLIENT's zone grid " +
+			"for a road's directions; note says how each was made), and its --apply adds a row for a sign that has none.",
+		Live:   "At once: the next talk to the sign.",
+		Show:   []string{"npcid", "kind", "text", "source"},
+		Search: []string{"text", "kind", "note", "source"},
+		Cols: map[string]colNote{
+			"npcid":  {Label: "Sign", Ref: "npcs", Help: "the sign's npcs row; 0 is the news row"},
+			"kind":   {Label: "Kind", Help: "building, place, city, road, board, news (the npcid 0 row alone) or gm"},
+			"text":   {Label: "Words", Format: "multiline", Help: "as many lines as it says; a box shows 217 characters (a longer text goes in several), at most 1000; a | starts one of CLIENT's colour codes"},
+			"source": {Label: "Source", Help: "gm, or ours for tools/seed_signs.py's rows (its --undo deletes those no GM changed)"},
+			"note":   {Label: "How it was made"},
+		},
+	},
 	"npcsocial": {
 		Label: "Social NPCs", Group: "World", Title: "npc_name", Sort: "npc_name",
 		Help: "Which NPCs come to the help of their own, by NPC name (entity/socialaggro.go): when a player (or a player's " +

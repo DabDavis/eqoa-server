@@ -1005,8 +1005,9 @@ var catalog = map[string]tableNote{
 			"Balance by class and level's), taken_pct of a creature's melee hit on it, melee_pct of its own, and casts its " +
 			"abilities: harmful spells at what it fights (through the balance as its hits are), heals on its owner " +
 			"(target owner, below its share) or itself (a spell's below its share, or heal_pct of its own most: the biggest " +
-			"due it is missing, never an overheal, each on its every), buffs on its owner (stat, from spells_of's lines; " +
-			"not over one of a higher rank), taunts (the top of the hate, and hits' figure by level as it is, else a " +
+			"due it is missing, never an overheal, each on its every), buffs on itself (or its owner, target owner; stat, " +
+			"from spells_of's lines; not over one of a higher rank; a pet's AC and AGI take off a creature's hits on it and " +
+			"its STR and DEX raise its own), taunts (the top of the hate, and hits' figure by level as it is, else a " +
 			"melee hit). swing_class swings another class's round by level (a necromancer's pet, a shadow knight, swings " +
 			"a warrior's: four hits from 35); swing a CLIENT swing kind whatever its level (0 Attack1 3 s, 4 Attack2 4 s, " +
 			"5 Attack4 6 s, 7 Attack3 5 s ...) and round_ms its round, its hits then scaled to keep its class round's " +

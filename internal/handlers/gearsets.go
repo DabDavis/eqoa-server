@@ -176,6 +176,10 @@ func findSetItem(inv []*database.CharInventoryEntry, itemID, patternID int, skip
 	return nil
 }
 
+// offHandRefusal is what a knight is told when a weapon set would put a
+// weapon in its off hand (ours: Sandstorm's lines have none).
+const offHandRefusal = "You can only wield that weapon in your primary hand."
+
 // mainSlotFor is the equip slot a set's main hand goes into: a one-handed
 // weapon the primary, anything else the first slot its wear takes.
 func mainSlotFor(e *database.CharInventoryEntry) int {
@@ -334,7 +338,14 @@ func (h *EquipHandler) HandleUseWeaponSet(sess *session.Session, msg *protocol.M
 	if g.OffItem < 0 {
 		h.takeOff(sess, serverID, items, offHandSlots)
 	} else if off := findSetItem(inventoryRows(items), g.OffItem, g.OffPattern, main.ItemID); off != nil {
-		h.equipInto(sess, serverID, items, off, offSlotFor(off))
+		if off.Pattern.EquipSlot == wearEitherHand && offHandWeaponBarred(player.Class) {
+			// a knight's off hand holds no weapon (equip.go): a set made before
+			log.Printf("UseWeaponSet: serverID=%d set %d %q: its off hand %q is a weapon, which a class %d holds in its primary hand alone",
+				serverID, set, g.Name, off.Pattern.ItemName, player.Class)
+			SendColoredChat(sess, offHandRefusal, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])
+		} else {
+			h.equipInto(sess, serverID, items, off, offSlotFor(off))
+		}
 	} else {
 		log.Printf("UseWeaponSet: serverID=%d set %d %q: its off hand (item %d) is not in the inventory", serverID, set, g.Name, g.OffItem)
 	}

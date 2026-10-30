@@ -40,7 +40,7 @@ func TestTheTemplateWearsTheBestOfEachSlot(t *testing.T) {
 		head1, head2, head3, ear, lore, ear2,
 		item(20, 20, 999, 999, 999), // a fishing pole
 		item(21, 0, 999, 999, 999),  // no wear slot
-	}))
+	}, int(ClassWarrior)))
 	want := map[int][]int{0: {2}, 2: {10}, 3: {10}, 9: {11}, 10: {12}}
 	for slot, ids := range want {
 		if !slices.Equal(got[slot], ids) {
@@ -64,7 +64,7 @@ func TestTheTemplateTakesBracersOrTwoBracelets(t *testing.T) {
 		{60, map[int][]int{8: {2}}},
 		{61, map[int][]int{8: {2}}},
 	} {
-		got := wornBySlot(templateGear([]database.ItemPatternRecord{bracelet, item(2, 7, c.bracers, 0, 0)}))
+		got := wornBySlot(templateGear([]database.ItemPatternRecord{bracelet, item(2, 7, c.bracers, 0, 0)}, int(ClassWarrior)))
 		if len(got) != len(c.want) || !slices.Equal(got[6], c.want[6]) || !slices.Equal(got[7], c.want[7]) || !slices.Equal(got[8], c.want[8]) {
 			t.Errorf("bracers of %d: %v, want %v", c.bracers, got, c.want)
 		}
@@ -93,7 +93,7 @@ func TestTheTemplateArmsTheHandsByTheirDamage(t *testing.T) {
 		{"a second sword, the shield worth less", []database.ItemPatternRecord{sword, item(6, 13, 10, 0, 0)}, map[int][]int{14: {1}, 15: {1}}},
 		{"a bow in the bag", []database.ItemPatternRecord{sword, shield, bow}, map[int][]int{14: {1}, 17: {2}, -1: {4}}},
 	} {
-		got := wornBySlot(templateGear(c.items))
+		got := wornBySlot(templateGear(c.items, int(ClassWarrior)))
 		ok := len(got) == len(c.want)
 		for s, ids := range c.want {
 			ok = ok && slices.Equal(got[s], ids)
@@ -105,7 +105,7 @@ func TestTheTemplateArmsTheHandsByTheirDamage(t *testing.T) {
 	// a LORE sword is held once: the shield goes beside it
 	lore := sword
 	lore.Lore = 1
-	if got := wornBySlot(templateGear([]database.ItemPatternRecord{lore, item(6, 13, 10, 0, 0)})); !slices.Equal(got[14], []int{1}) || !slices.Equal(got[17], []int{6}) || got[15] != nil {
+	if got := wornBySlot(templateGear([]database.ItemPatternRecord{lore, item(6, 13, 10, 0, 0)}, int(ClassWarrior))); !slices.Equal(got[14], []int{1}) || !slices.Equal(got[17], []int{6}) || got[15] != nil {
 		t.Errorf("a LORE sword: %v", got)
 	}
 }

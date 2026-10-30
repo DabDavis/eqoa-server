@@ -119,17 +119,19 @@ var petKindTemplates = []ClassTemplate{
 			{Kind: AbilityBuff, Stat: "agi", SpellsOf: intp(1), Every: 20, First: 4},
 		},
 		Note: "The magician's earth pet: a tank (a warrior's round, four hits from 35; 30% more hit points, 20% less of a melee " +
-			"hit lands, its own 10% lighter) that taunts every 9 s (a melee hit's damage, the top of the hate) and keeps its " +
-			"owner in the druid's skin line (AC) and the ranger's AGI line of its level (ours)"},
-	{Name: "pet fire", Class: 0, HPPct: 100, TakenPct: 100, MeleePct: 125,
+			"hit lands, its own 10% lighter) that taunts every 9 s (a melee hit's damage, the top of the hate) and keeps " +
+			"itself in the druid's skin line (AC) and the ranger's AGI line of its level, which take off a creature's hits " +
+			"on it as a player's AC and AGI do (ours; on its owner until 2026-10-30)"},
+	{Name: "pet fire", Class: 0, HPPct: 91, TakenPct: 100, MeleePct: 125,
 		Abilities: []TemplateAbility{
 			{Kind: AbilityNuke, Element: "fire", SpellsOf: intp(10), Every: 12, First: 4, MaxRecast: 10, MaxCast: 5, DamagePct: 25},
 			{Kind: AbilityBuff, Stat: "str", SpellsOf: intp(8), Every: 20, First: 2, MaxRecast: 60},
 			{Kind: AbilityBuff, Stat: "dex", SpellsOf: intp(8), Every: 20, First: 4, MaxRecast: 60},
 		},
-		Note: "The magician's fire pet: the hardest melee (a warrior's round, 25% harder), a magician's fire spell of its level " +
-			"(Lava Burst ... Inferno) every 12 s at 25%, and its owner kept in the shaman's STR (Tribal) and DEX (Finesse) " +
-			"lines (ours)"},
+		Note: "The magician's fire pet: the hardest melee (a warrior's round, 25% harder; 9% fewer hit points since its " +
+			"buffs are its own: the pets' fit again, tools/fit_pet_selfbuffs.py), a magician's fire spell of its level " +
+			"(Lava Burst ... Inferno) every 12 s at 25%, and itself kept in the shaman's STR (Tribal) and DEX (Finesse) " +
+			"lines, which raise its own hits as a tank's STR and DEX do (ours; on its owner until 2026-10-30)"},
 	{Name: "pet air", Class: 13, HPPct: 80, TakenPct: 115, MeleePct: 100,
 		Abilities: []TemplateAbility{
 			{Kind: AbilityNuke, Element: "lightning", Every: 9, First: 2, MaxRecast: 10, MaxCast: 5, DamagePct: 12},
@@ -167,7 +169,11 @@ var petKindTemplates = []ClassTemplate{
 // reds).
 // The pet hit points by level (balanceclasslevel's pet_hp_pct) are fitted on
 // the pet the book gives, Summon Ghilan from 47; these keep the mastery pets
-// near a third of theirs at 49-60.
+// near a third of theirs at 49-60. Fitted again when the pets' buffs became
+// their own (tools/fit_pet_selfbuffs.py, 2026-10-30): with Natureskin's 625
+// AC on it a Badi of 81% kept 80% of its hit points through a yellow and won
+// every red alone; the Efreet's and the Efreeti Lord's STR and DEX lines
+// moved them less.
 func petMasteryTemplates() []ClassTemplate {
 	kind := map[string]ClassTemplate{}
 	for _, t := range petKindTemplates {
@@ -178,11 +184,11 @@ func petMasteryTemplates() []ClassTemplate {
 		name, of, spell string
 		hp              int
 	}{
-		{"pet badi", "pet earth", "Summon Badi (49)", 81},
-		{"pet efreet", "pet fire", "Summon Efreet (49)", 65},
+		{"pet badi", "pet earth", "Summon Badi (49)", 36},
+		{"pet efreet", "pet fire", "Summon Efreet (49)", 58},
 		{"pet djinn", "pet air", "Summon Djinn (49)", 67},
-		{"pet badi elder", "pet earth", "Summon Badi Elder (55)", 61},
-		{"pet efreeti lord", "pet fire", "Summon Efreeti Lord (55)", 47},
+		{"pet badi elder", "pet earth", "Summon Badi Elder (55)", 32},
+		{"pet efreeti lord", "pet fire", "Summon Efreeti Lord (55)", 42},
 		{"pet ghilan noble", "pet water", "Summon Ghilan Noble (55)", 64},
 		{"pet gymon's animation", "pet animation", "Gymon's Animation (20)", 70},
 		{"pet earthen golem", "pet animation", "Earthen Golem (29)", 72},

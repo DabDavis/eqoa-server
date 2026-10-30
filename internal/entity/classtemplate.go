@@ -301,8 +301,8 @@ func templateKindTakes(kind string, s *CastSpell) bool {
 	area := s.Area.Centre != AreaNone
 	single := s.Scope == 1 && d.Target == TargetSingle && !area
 	if kind == database.AbilityBuff {
-		// a buff a pet casts on its owner: lasting, on one target, a stat
-		// raised (the ability's stat: templateCandidates)
+		// a buff a pet casts on itself or its owner: lasting, on one target,
+		// a stat raised (the ability's stat: templateCandidates)
 		return !d.Harmful && single && d.lasts() && !price && !hits
 	}
 	switch kind {

@@ -37,10 +37,14 @@ import (
 //     heal on its owner (below its share of hit points) or on itself (a
 //     spell's figure below its share, or a share of its own most: of those
 //     due, the biggest it is missing, never an overheal, each on its own
-//     clock); a buff on its owner when the owner lacks it (the spell's line:
-//     one of a higher rank on the owner keeps it off); a taunt on what it
-//     fights, the top of its hate and a hit (a melee hit of its own, or the
-//     row's figure by level, landing as it is).
+//     clock); a buff on itself when it lacks it (the user, 2026-10-30: "the
+//     earth pet ... is casting the ac buff on the player instead of itself,
+//     if fire does the same should also be on itself"), or on its owner when
+//     its row's target says so and the owner lacks it (the spell's line: one
+//     of a higher rank on keeps it off), its AC and AGI then counting
+//     against a creature's hits on it and its STR and DEX in its own
+//     (pet.go); a taunt on what it fights, the top of its hate and a hit (a
+//     melee hit of its own, or the row's figure by level, landing as it is).
 //
 // A template's area spells and special are an NPC's alone. A pet with no
 // row (a shaman's, a wizard's, the Grand Animation, a charmed creature)
@@ -287,8 +291,8 @@ func (w *World) tellPetHealLocked(ps *petState, n int) {
 }
 
 // petWantsLocked is whether a due ability is wanted now: a heal on its
-// owner or a spell's on itself below its share, a buff its owner lacks;
-// anything at a foe, yes.
+// owner or a spell's on itself below its share, a buff its target (itself,
+// or its owner) lacks; anything at a foe, yes.
 func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) bool {
 	switch a.Kind {
 	case database.AbilityHeal:
@@ -300,16 +304,22 @@ func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) 
 		return ps.npc.HP*100 < ps.npc.MaxHP*a.BelowOr()
 	case database.AbilityBuff:
 		s := a.spellFor(petSpellClass(a, ps.npc), ps.npc.Level)
-		return s != nil && !petBuffOn(ps.owner, s)
+		if s == nil {
+			return false
+		}
+		if a.TargetOr() == database.AbilityOnOwner {
+			return !buffOn(ps.owner.Effects, s)
+		}
+		return !buffOn(ps.npc.Effects, s)
 	}
 	return true
 }
 
-// petBuffOn is whether the owner has the buff's effect, or one of its line
-// of a higher rank (which would keep it off: buffline.go).
-func petBuffOn(o *Player, s *CastSpell) bool {
+// buffOn is whether effects hold the buff's effect, or one of its line of a
+// higher rank (which would keep it off: buffline.go, putOnPetLocked).
+func buffOn(effects []*ActiveEffect, s *CastSpell) bool {
 	line := BuffLine(s)
-	for _, e := range o.Effects {
+	for _, e := range effects {
 		if e.SpellID == s.SpellID || line != "" && e.Line == line && e.Rank >= s.Level {
 			return true
 		}
@@ -403,8 +413,9 @@ func (w *World) petCastSystemLocked(now time.Time) {
 // petLandLocked lands a pet's cast: a harmful spell's figure (its hits
 // rolled, no stat: a pet has none, at the ability's percent) on the
 // creature as one of the pet's hits (petDamageLocked), a tap's drained
-// share back on the pet; a heal's figure on its owner or itself; a buff's
-// lasting effect on its owner, as the owner's own cast on itself.
+// share back on the pet; a heal's figure on its owner or itself; a buff on
+// itself (petBuffItselfLocked), or its lasting effect on its owner, as the
+// owner's own cast on itself.
 func (w *World) petLandLocked(c *petCast, now time.Time) {
 	ps, pet, a := c.ps, c.ps.npc, c.a
 	switch a.Kind {
@@ -455,14 +466,42 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 			log.Printf("Pet: %s's %q heals itself with %q for %d (HP %d/%d)", ps.owner.Name, pet.Name, c.spell.Name, n, pet.HP, pet.MaxHP)
 		}
 	case database.AbilityBuff:
+		if c.target == pet.ServerID {
+			w.petBuffItselfLocked(ps, c.spell, now)
+			return
+		}
 		o := ps.owner
-		if o.IsDead() || petBuffOn(o, c.spell) {
+		if o.IsDead() || buffOn(o.Effects, c.spell) {
 			return
 		}
 		cs := &castState{spell: *c.spell, caster: o.ServerID, targets: []EntityID{o.ServerID}}
 		w.landOnPlayerLocked(cs, o, w.findSessionByEntityIDLocked(o.ServerID), o, now)
 		log.Printf("Pet: %s's %q buffs its owner with %q", o.Name, pet.Name, c.spell.Name)
 	}
+}
+
+// petBuffItselfLocked lands a pet's buff on itself: what it heals now, and
+// what lasts kept on it as the best of its line (putOnPetLocked: not under
+// a higher rank of it), its figures rolled as its owner's cast's (a pet has
+// no stat to scale them).
+func (w *World) petBuffItselfLocked(ps *petState, s *CastSpell, now time.Time) {
+	pet, o := ps.npc, ps.owner
+	cs := &castState{spell: *s, caster: o.ServerID, targets: []EntityID{pet.ServerID}}
+	ae := lasting(cs, o, now)
+	if ae == nil || buffOn(pet.Effects, s) {
+		return
+	}
+	for _, e := range s.Def.Effects {
+		if e.Kind == EffectHP && !e.Self {
+			if n := spellAmount(e, o); n > 0 && pet.HP < pet.MaxHP {
+				n = min(n, pet.MaxHP-pet.HP)
+				pet.HP += n
+				w.tellPetHealLocked(ps, n)
+			}
+		}
+	}
+	putOnPetLocked(pet, s, ae)
+	log.Printf("Pet: %s's %q buffs itself with %q (%d effects on it)", o.Name, pet.Name, s.Name, len(pet.Effects))
 }
 
 // petHealFigure is a heal spell's figure from a pet at the ability's

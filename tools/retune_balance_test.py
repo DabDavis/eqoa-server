@@ -144,10 +144,12 @@ class RetuneBalance(unittest.TestCase):
 
     def test_the_seeds_are_the_tunings(self):
         """internal/database/balanceseed.go's class and level rows are what the tools make of the 01:30 table: the
-        first tuning, this re-fit and the pets' fit after it (tools/tune_pets.py)."""
+        first tuning, this re-fit, the pets' fit after it (tools/tune_pets.py) and the pets' fit again for their buffs
+        on themselves (tools/fit_pet_selfbuffs.py)."""
         self.run_tool(FIRST, "--apply")
         self.run_tool(TOOL, "--apply")
         self.run_tool(os.path.join(HERE, "tune_pets.py"), "--apply")
+        self.run_tool(os.path.join(HERE, "fit_pet_selfbuffs.py"), "--apply")
         with open(os.path.join(HERE, "..", "internal", "database", "balanceseed.go")) as f:
             go = f.read()
         cl = {}

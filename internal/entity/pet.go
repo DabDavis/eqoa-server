@@ -345,6 +345,7 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	pet.CorpseDecay = petCorpseTime
 	pet.Dummy, pet.DummyTarget = NotDummy, 0
 	pet.HiddenUntil = time.Time{}
+	pet.SpawnOnly = false // a body out of the world (spawnonly.go) is a pet in it
 	pet.Owner = owner.ServerID
 	pet.endRound()
 	pet.RoundTarget = 0

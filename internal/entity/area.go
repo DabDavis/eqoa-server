@@ -451,7 +451,7 @@ func (w *World) areaCreaturesLocked(p *Player, cs *castState, cx, cy, cz, r floa
 	for _, id := range w.SpatialIndex.QueryRadius(cx, cz, r) {
 		npc := w.NPCs[id]
 		if npc == nil || areaHas(cs.targets, id) || npc.Dead || npc.Owner != 0 || npc.NPCType&0x80 != 0 ||
-			npc.World != p.World || now.Before(npc.HiddenUntil) {
+			npc.World != p.World || npc.hiddenAt(now) {
 			continue
 		}
 		if w.apartLocked(p, npc) || undead && !w.undeadLocked(npc) { // water.go, undead.go

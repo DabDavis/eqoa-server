@@ -291,7 +291,7 @@ func (w *World) throwLocked(sess *session.Session, p *Player, pe *PotionEffect, 
 	if pe.Area > 0 {
 		for _, id := range w.SpatialIndex.QueryRadius(npc.X, npc.Z, pe.Area) {
 			o := w.NPCs[id]
-			if o == nil || o == npc || o.Dead || o.World != npc.World || o.Owner != 0 || o.NPCType&0x80 != 0 {
+			if o == nil || o == npc || o.Dead || o.World != npc.World || o.Owner != 0 || o.NPCType&0x80 != 0 || o.hiddenAt(now) {
 				continue
 			}
 			if dist3(o.X, o.Y, o.Z, npc.X, npc.Y, npc.Z) > pe.Area {

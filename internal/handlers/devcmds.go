@@ -413,7 +413,11 @@ func (h *ChatHandler) nearbyCommand(sess *session.Session, player *entity.Player
 		dx := npc.X - player.X
 		dz := npc.Z - player.Z
 		dist := float32(math.Sqrt(float64(dx*dx + dz*dz)))
-		h.gmReply(sess, fmt.Sprintf("  %s Lv%d HP=%d (%.0fm)", npc.Name, npc.Level, npc.HP, dist))
+		out := ""
+		if npc.SpawnOnly {
+			out = ", spawn only: out of the world" // entity/spawnonly.go
+		}
+		h.gmReply(sess, fmt.Sprintf("  %s Lv%d HP=%d (%.0fm%s)", npc.Name, npc.Level, npc.HP, dist, out))
 	}
 }
 

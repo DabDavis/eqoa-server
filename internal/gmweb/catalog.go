@@ -678,6 +678,26 @@ var catalog = map[string]tableNote{
 			"source": {Label: "Source", Help: "gm, or seed for tools/seed_npc_undead.py's rows (its --undo deletes those)"},
 		},
 	},
+	"npcspawnonly": {
+		Label: "NPC spawn only", Group: "World", Title: "name", Sort: "name",
+		Help: "NPCs that stand in no one's world, by NPC NAME (any case; entity/spawnonly.go): every NPC of the name is " +
+			"loaded but kept out of the world, in no view (no one sees, targets, fights or talks to it), attacking and " +
+			"helping no one and standing on its spawn, there only as the original that a quest step's spawn event, a GM " +
+			"trigger's spawn or a GM's #spawn copies; the copies are in the world as before, attackable, fighting, " +
+			"with loot. For a creature a quest makes beside the player (the user's \"should spawn after I complete " +
+			"the steps\": Jarek's creation stood by his hut before Jarek made it). Where it stands still counts: the " +
+			"quest marks point there, and a player on a kill or loot step who lost its spawn (the copy's ten minutes up, " +
+			"its corpse gone unlooted, a logout) gets the step's spawns again on coming within 30 of it. Never one a " +
+			"quest talks to or a step kills without spawning it: that step could not be done. tools/fix_quest_spawns.py's " +
+			"rows are source questspawn (its --undo deletes those no GM changed).",
+		Live:   "At once: every NPC of the name leaves every view (one fighting is put back on its spawn first), or comes back into them.",
+		Search: []string{"name", "note", "source"},
+		Cols: map[string]colNote{
+			"name":   {Label: "NPC name (key)", Help: "as in NPCs, any case"},
+			"note":   {Label: "Note", Help: "why: the quest whose spawn copies it"},
+			"source": {Label: "Source", Help: "gm, or questspawn for tools/fix_quest_spawns.py's rows (its --undo deletes those)"},
+		},
+	},
 	"npcdialog": {
 		Label: "NPC dialog", Group: "World", Title: "line", Sort: "town",
 		Help: "What a town's people and the guards of Norrath say when talked to and nothing else answers (no quest, " +

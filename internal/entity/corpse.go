@@ -61,12 +61,15 @@ func (w *World) OnCorpseGone(fn CorpseGoneFunc) {
 }
 
 // applyNPCSettingsLocked gives an NPC just made from its row the world's
-// respawn time and wander radius. Must be called with the lock held.
+// respawn time and wander radius, its balance, its class template and
+// whether it stands out of the world. Must be called with the lock held.
 func (w *World) applyNPCSettingsLocked(npc *NPC) {
 	npc.RespawnTime = w.respawnAfter
 	npc.RoamRadius = w.roamRadius
 	w.applyBalanceLocked(npc)  // its hit points (balance.go)
 	w.applyTemplateLocked(npc) // its name's class template (classtemplate.go)
+	// out of the world, there for the spawns that copy it alone (spawnonly.go)
+	npc.SpawnOnly = w.spawnOnlyLocked(npc.Name)
 }
 
 // corpseLies reports a dead NPC whose corpse is still where it fell at now:

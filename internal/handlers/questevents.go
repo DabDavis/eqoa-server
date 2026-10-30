@@ -30,7 +30,12 @@ import (
 //     quest given up or reset, the player away, or after questSpawnLife. A
 //     spawn on a step's done is the NEXT step's (moradhim's rogue L10: each
 //     mine disabled sends a goblin at the player, to be fought on the way to
-//     the next): it goes when that step is done, or with the quest.
+//     the next): it goes when that step is done, or with the quest. Of an
+//     NPC that stands out of the world (entity/spawnonly.go: there only to be
+//     copied, no other to fight), a kill or loot step's spawns lost (gone
+//     with their life or the player's leaving, a corpse gone unlooted) are
+//     made again as the step first made them when the player comes within
+//     questRespawnReach of where that NPC stands (respawnLost).
 //   - visual: a spell visual (a SPELLFX.CSF DictID) played from the player on
 //     itself, as a cast's 0x00B1 begins one for everyone who sees it.
 //   - teleport: the player warped as a travel NPC warps it (a world its
@@ -46,6 +51,11 @@ import (
 
 // questSpawnLife is how long a quest's spawn stays at most.
 const questSpawnLife = 10 * time.Minute
+
+// questRespawnReach is how near where a spawn-only creature stands a player on
+// a step must come for the step's lost spawns of it to be made again
+// (respawnLost): an aggressive creature's own radius.
+const questRespawnReach = entity.DefaultAggroRadius
 
 // questPopupAnswer is a popup's answer when its event names none.
 const questPopupAnswer = "OK"
@@ -201,6 +211,114 @@ func (q *QuestEngine) expireSpawns() {
 			delete(q.spawns, id)
 		} else {
 			q.spawns[id] = keep
+		}
+	}
+}
+
+// stepSpawns is what brings a kill or loot step's creatures: the spawn events
+// of its start and of the step before's done (a done's spawn is the next
+// step's), all of them, when one names one of the step's creatures; and the
+// creatures they name. Nothing for a step no spawn brings.
+func stepSpawns(qu *database.Quest, st *database.QuestStep) (evs []database.QuestEvent, names []string) {
+	if !database.Hunts(st.Kind) {
+		return nil, nil
+	}
+	for _, e := range database.EventsOn(st.Events, database.EventStart) {
+		if e.Do == database.EventSpawn {
+			evs = append(evs, e)
+		}
+	}
+	var prev *database.QuestStep
+	for i := range qu.Steps {
+		if s := &qu.Steps[i]; s.Step < st.Step && (prev == nil || s.Step > prev.Step) {
+			prev = s
+		}
+	}
+	if prev != nil {
+		for _, e := range database.EventsOn(prev.Events, database.EventDone) {
+			if e.Do == database.EventSpawn {
+				evs = append(evs, e)
+			}
+		}
+	}
+	for _, t := range st.Targets() {
+		for _, e := range evs {
+			if strings.EqualFold(strings.TrimSpace(e.NPC), t) {
+				names = append(names, t)
+				break
+			}
+		}
+	}
+	if len(names) == 0 {
+		return nil, nil
+	}
+	return evs, names
+}
+
+// spawnStandsLocked reports a spawn of the character's step still in the
+// world, alive or its corpse lying. Must be called with q.mu held.
+func (q *QuestEngine) spawnStandsLocked(serverID uint32, quest, step int) bool {
+	for _, s := range q.spawns[serverID] {
+		if s.quest != quest || s.step != step {
+			continue
+		}
+		if q.gw.NPCAlive(s.id) {
+			return true
+		}
+		if _, lies := q.gw.CorpseLies(s.id); lies {
+			return true
+		}
+	}
+	return false
+}
+
+// respawnLost makes a kill or loot step's spawns again for a player who lost
+// them (once a second): when the creature a spawn of the step brings stands
+// out of the world (entity/spawnonly.go: there is no other to kill), none of
+// the step's spawns for the player is alive or lies dead any more (their life
+// up, the player away and back, a corpse gone unlooted), and the player, alive
+// in the world, comes within questRespawnReach of where that creature stands
+// (the quest marks lead there), the step's spawns are made before the player
+// as the step first made them. Until then a lost spawn of such a step left it
+// undoable.
+func (q *QuestEngine) respawnLost() {
+	if q.sessionOf == nil || q.playerOf == nil || q.gw == nil {
+		return
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	for id, c := range q.chars {
+		var p *entity.Player
+		for _, cq := range c.active() {
+			qu := q.cat.byID[cq.QuestID]
+			if qu == nil {
+				continue
+			}
+			st := qu.Step(cq.Step)
+			if st == nil {
+				continue
+			}
+			evs, names := stepSpawns(qu, st)
+			if len(evs) == 0 || q.spawnStandsLocked(id, qu.ID, st.Step) {
+				continue
+			}
+			if p == nil {
+				sess := q.sessionOf(id)
+				if sess == nil {
+					break
+				}
+				if p = q.playerOf(sess); p == nil {
+					break
+				}
+			}
+			world, x, _, z, ok := q.gw.PlayerPlace(p)
+			if !ok || !q.gw.SpawnOnlyNear(world, x, z, questRespawnReach, names) {
+				continue
+			}
+			log.Printf("Quests: %q step %d: %s came back for %s", qu.Name, st.Step, p.Name, strings.Join(names, ", "))
+			for _, e := range evs {
+				q.spawnLocked(p, c, qu, st.Step, e)
+			}
 		}
 	}
 }

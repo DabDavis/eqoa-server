@@ -286,6 +286,26 @@ var catalog = map[string]tableNote{
 			"signed":   {Label: "Signed", Format: "stamp", Help: "when, RFC 3339 in UTC (2026-10-30T01:30:00Z); empty for a grant"},
 		},
 	},
+	"charresets": {
+		Label: "Character resets", Group: "Players", Sort: "serverid",
+		Help: "Each character's resets at a rehabilitator (handlers/rehab.go: Rehabilitator Anja in Muniel's Tea Garden, " +
+			"Rehabilitator Frejo near Freeport), a row a kind: mastery (its Combat Masteries unlearned, their points back), " +
+			"training (its stat points back) and path (a level 20, 30, 40 or 49 path's pick undone). used is the free ones it " +
+			"used, paid those it paid for (tunar for masteries and stat points, a Rose of Rehabilitation for a path), bonus free " +
+			"ones a GM gave it besides everyone's (Rehabilitators' prices: free_mastery, free_training, free_path). It has " +
+			"free + bonus - used left. A kind with no row has every free one: delete the row, lower used or raise bonus to " +
+			"give a character a free reset back.",
+		Live: "At once: the character's next talk to a rehabilitator reads it.",
+		Show: []string{"serverid", "kind", "used", "paid", "bonus", "updated"},
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"kind":     {Label: "Kind", Help: "mastery, training or path"},
+			"used":     {Label: "Free used", Help: "the free resets of this kind it has used"},
+			"paid":     {Label: "Paid for", Help: "the resets of this kind it paid for: tunar, or a rose for a path"},
+			"bonus":    {Label: "Free given", Help: "free resets of this kind a GM gave it, besides everyone's"},
+			"updated":  {Label: "Updated", Format: "stamp", ReadOnly: true, Help: "its last reset at a rehabilitator, RFC 3339 in UTC"},
+		},
+	},
 	"charbuffs": {
 		Label: "Character effects", Group: "Players",
 		Help: "Spell effects kept over a logout, what is left of each (entity/buffsave.go).",
@@ -345,6 +365,8 @@ var catalog = map[string]tableNote{
 			"done":     {Label: "Times finished"},
 			"slot":     {Label: "Journal order"},
 			"updated":  {Label: "Updated", Format: "stamp", ReadOnly: true},
+			"picks": {Label: "Picks", Help: "the options picked at its choices, step:option from 0 (2:1 the second " +
+				"option at step 2): what a rehabilitator undoing a path takes back"},
 		},
 	},
 	"npcs": {
@@ -734,6 +756,22 @@ var catalog = map[string]tableNote{
 				"from its third tick, of its most hit points (15 with no rows)"},
 			"note":   {Label: "Note"},
 			"source": {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
+		},
+	},
+	"rehabsettings": {
+		Label: "Rehabilitators' prices", Group: "World", Title: "setting", Sort: "setting",
+		Help: "What the rehabilitators ask (handlers/rehab.go; the user, 2026-10-30): the free resets every character has " +
+			"(free_mastery, free_training, free_path) and then the prices in tunar (price_mastery, price_training, price_both: " +
+			"masteries and stat points together when neither has a free one left), and the Rose of Rehabilitation's " +
+			"(price_rose): past the free path respecs a path costs a rose, which the rehabilitators sell and a class's level " +
+			"60 epic gives. Each character's counts are Character resets. A setting deleted is its default until the next " +
+			"start puts its row back.",
+		Live:   "At once: the next talk to a rehabilitator reads it.",
+		Search: []string{"setting", "note"},
+		Cols: map[string]colNote{
+			"setting": {Label: "Setting", Help: rehabSettingHelp()},
+			"value":   {Label: "Value", Help: "free resets a character has, or tunar; 0 to 2147483647"},
+			"note":    {Label: "Note"},
 		},
 	},
 	"balanceclass": {

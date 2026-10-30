@@ -78,6 +78,12 @@ func checkRow(table string, row map[string]any) error {
 	if table == "charcoaches" && row != nil {
 		return checkCoachRow(row) // live_coaches.go
 	}
+	if table == "charresets" && row != nil {
+		return checkCharResetRow(row) // live_rehab.go
+	}
+	if table == "rehabsettings" && row != nil {
+		return checkRehabSettingRow(row) // live_rehab.go
+	}
 	if table == "gmtriggers" && row != nil {
 		return checkTriggerRow(row) // ops_triggers.go
 	}

@@ -550,12 +550,14 @@ func TestDuelLiveWindowMessages(t *testing.T) {
 		t.Fatalf("a live window was sent a box or a line too: %x", gotB)
 	}
 	d.w.DuelAnswer(d.sb, id, true, d.at(time.Second))
-	// accepted between two live windows: the wager window opens (sub 13), the
-	// challenger's queue declined first (sub 6)
-	if got := ofOp(duelDrain(d.sa), protocol.OpcodeDuel); len(got) != 2 || !bytes.Equal(got[0], op(6)) || !bytes.Equal(got[1], op(13)) {
+	// accepted between two live windows: the wager window opens (sub 13) and
+	// is zeroed (sub 12: the live 13 keeps the last wager's tunar and
+	// accepts), the challenger's queue declined first (sub 6)
+	zero := append(op(12), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+	if got := ofOp(duelDrain(d.sa), protocol.OpcodeDuel); len(got) != 3 || !bytes.Equal(got[0], op(6)) || !bytes.Equal(got[1], op(13)) || !bytes.Equal(got[2], zero) {
 		t.Fatalf("the challenger at the accept % X", got)
 	}
-	if got := ofOp(duelDrain(d.sb), protocol.OpcodeDuel); len(got) != 1 || !bytes.Equal(got[0], op(13)) {
+	if got := ofOp(duelDrain(d.sb), protocol.OpcodeDuel); len(got) != 2 || !bytes.Equal(got[0], op(13)) || !bytes.Equal(got[1], zero) {
 		t.Fatalf("the challenged at the accept % X", got)
 	}
 	var held []DuelPurseOp
@@ -800,6 +802,34 @@ func TestDuelWagerByChallenge(t *testing.T) {
 	}
 }
 
+// The live client's sub 13 leaves the last wager's tunar and accepts, so a
+// wager window opens with a sub 12 of zeroes after it, on both sides (the
+// second duel of a login opened with both accepts on: lane-duelwnd24's rig).
+func TestDuelWagerOpensZeroed(t *testing.T) {
+	d := newDuelists(t)
+	d.a.DuelWindow, d.b.DuelWindow = true, true
+	d.w.DuelChallenge(d.sa, d.aSeesB, "", 0, d.at(0))
+	id := d.w.duels.of[d.a.ServerID].ID
+	duelDrain(d.sa)
+	duelDrain(d.sb)
+	d.w.DuelAnswer(d.sb, id, true, d.at(time.Second))
+	open13 := append([]byte{0x02, 0x15, 13}, binary.LittleEndian.AppendUint32(nil, id)...)
+	zero12 := append(append([]byte{0x02, 0x15, 12}, binary.LittleEndian.AppendUint32(nil, id)...),
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+	for _, s := range []*session.Session{d.sa, d.sb} {
+		m := ofOp(duelDrain(s), protocol.OpcodeDuel)
+		at := -1
+		for i, b := range m {
+			if bytes.Equal(b, open13) {
+				at = i
+			}
+		}
+		if at < 0 || at+1 >= len(m) || !bytes.Equal(m[at+1], zero12) {
+			t.Fatalf("the wager's opening % X", m)
+		}
+	}
+}
+
 // Two live windows: a duel called off in its wager window closes both (sub
 // 14), says why, and holds nothing; the wager window lasts DuelWagerTime.
 func TestDuelWagerWindowCalledOff(t *testing.T) {
@@ -814,9 +844,12 @@ func TestDuelWagerWindowCalledOff(t *testing.T) {
 	duelDrain(d.sb)
 	d.w.DuelCancel(d.sa, d.at(2*time.Second))
 	close14 := append([]byte{0x02, 0x15, 14}, binary.LittleEndian.AppendUint32(nil, id)...)
+	// then the duel's state ended, so the live client's Quit surrenders nothing
+	end7 := append(append([]byte{0x02, 0x15, 7}, binary.LittleEndian.AppendUint32(nil, id)...),
+		0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF)
 	for _, s := range []*session.Session{d.sa, d.sb} {
 		got := duelDrain(s)
-		if m := ofOp(got, protocol.OpcodeDuel); len(m) != 1 || !bytes.Equal(m[0], close14) {
+		if m := ofOp(got, protocol.OpcodeDuel); len(m) != 2 || !bytes.Equal(m[0], close14) || !bytes.Equal(m[1], end7) {
 			t.Fatalf("the window's close % X", m)
 		}
 		if l := duelLines(got); len(l) != 1 || l[0] != "Alpha has called off the duel." {

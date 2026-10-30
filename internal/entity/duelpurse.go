@@ -173,7 +173,11 @@ func (w *World) settleStakesLocked(d *Duel, loser EntityID) {
 }
 
 // openWagerLocked opens the live wager window for two clients that have it:
-// each side's tunar 0, nothing accepted.
+// each side's tunar 0, nothing accepted. The live client's sub 13 clears the
+// offers and its inventory copy but not the tunar or the accepts (+0x40..0x49
+// of its duel part), so a sub 12 of zeroes follows it: without one a second
+// wager in a login opens with the last one's accepts on, and its Accept sends
+// nothing (lane-duelwnd24, on the rig).
 func (w *World) openWagerLocked(d *Duel, a, b *Player, now time.Time) {
 	d.Phase = duelWager
 	d.windowed = true
@@ -189,10 +193,13 @@ func (w *World) openWagerLocked(d *Duel, a, b *Player, now time.Time) {
 			queueDuel(sess, BuildDuel(duelSubWagerOpen, d.ID, nil))
 		}
 	}
+	w.sendWagerLocked(d)
 }
 
 // closeWagerLocked calls a duel in its wager window off: both windows closed
-// (sub 14), both told line.
+// (sub 14), the duel's state ended (sub 7 {0, 0, -1, -1}, as a fight over:
+// the live client keeps the last sub 15's "set" through a 14, and its Quit
+// would then surrender a duel that is not there), both told line.
 func (w *World) closeWagerLocked(d *Duel, line string) {
 	w.duels.remove(d)
 	log.Printf("Duel %d: off in its wager (%s)", d.ID, line)
@@ -203,6 +210,7 @@ func (w *World) closeWagerLocked(d *Duel, line string) {
 		}
 		if sess := w.findSessionByEntityIDLocked(p.ServerID); sess != nil {
 			queueDuel(sess, BuildDuel(duelSubWagerClose, d.ID, nil))
+			w.sendDuelEndLocked(sess, d)
 			w.sendColoredLocked(sess, line, duelOrange)
 		}
 	}

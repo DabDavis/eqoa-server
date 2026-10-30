@@ -1063,12 +1063,15 @@
      ],
      "says": "Everything I need. Here.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Batwing Hammer"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide names no item; ours (the user, 2026-10-30), Freeport's counterpart's record under this quest's name: tools/seed_newgear_rewards.py makes it."
   },
   {
    "key": "1-20/neriak-nektulos/cleric/L5",
@@ -2644,12 +2647,15 @@
      ],
      "says": "Everything I need. Here.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Blue Raven Robe"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide names no item; ours (the user, 2026-10-30), Freeport's counterpart's record under this quest's name: tools/seed_newgear_rewards.py makes it."
   },
   {
    "key": "1-20/neriak-nektulos/magician/L5",
@@ -3481,12 +3487,15 @@
      ],
      "says": "Everything I need. Here.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Black Tarantula Robe"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide names no item; ours (the user, 2026-10-30), Freeport's counterpart's record under this quest's name: tools/seed_newgear_rewards.py makes it."
   },
   {
    "key": "1-20/neriak-nektulos/necromancer/L5",
@@ -4321,12 +4330,15 @@
      ],
      "says": "Everything I need. Here.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Tarantula Dirk"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide names no item; ours (the user, 2026-10-30), Freeport's counterpart's record under this quest's name: tools/seed_newgear_rewards.py makes it."
   },
   {
    "key": "1-20/neriak-nektulos/rogue/L5",
@@ -5067,12 +5079,15 @@
      ],
      "says": "Everything I need. Here.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Black Raven Sword"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide's bar of iron ore is the server's iron ore."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide's bar of iron ore is the server's iron ore. The guide names no item; ours (the user, 2026-10-30), Freeport's counterpart's record under this quest's name: tools/seed_newgear_rewards.py makes it."
   },
   {
    "key": "1-20/neriak-nektulos/shadowknight/L5",
@@ -5907,12 +5922,15 @@
      ],
      "says": "Everything I need. Here.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Firefly Blade"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide's Scornblade Vo'Dleth is Scornblade D'Eleth, who stands with the Scornmaster."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide's Scornblade Vo'Dleth is Scornblade D'Eleth, who stands with the Scornmaster. The guide names no item; ours (the user, 2026-10-30), Freeport's counterpart's record under this quest's name: tools/seed_newgear_rewards.py makes it."
   },
   {
    "key": "1-20/neriak-nektulos/warrior/L5",
@@ -6711,12 +6729,15 @@
      ],
      "says": "Everything I need. Here.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Red Serpent Robe"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide names no item; ours (the user, 2026-10-30), Freeport's counterpart's record under this quest's name: tools/seed_newgear_rewards.py makes it."
   },
   {
    "key": "1-20/neriak-nektulos/wizard/L5",

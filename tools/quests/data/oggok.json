@@ -224,12 +224,15 @@
      ],
      "says": "Everything. Here.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Raven Beak Shank"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide names no item; ours (the user, 2026-10-30), Freeport's counterpart's record under this quest's name: tools/seed_newgear_rewards.py makes it."
   },
   {
    "key": "1-20/oggok/necromancer/L5",
@@ -904,12 +907,15 @@
      ],
      "says": "Everything. Here.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Centipede Hatchet"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide names no item; ours (the user, 2026-10-30), Freeport's counterpart's record under this quest's name: tools/seed_newgear_rewards.py makes it."
   },
   {
    "key": "1-20/oggok/shadowknight/L5",
@@ -1696,12 +1702,15 @@
      ],
      "says": "Everything. Here.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Eagle Talon Club"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The guide names no item; ours (the user, 2026-10-30), Freeport's counterpart's record under this quest's name: tools/seed_newgear_rewards.py makes it."
   },
   {
    "key": "1-20/oggok/shaman/L5",
@@ -2387,12 +2396,15 @@
      ],
      "says": "Everything. Here.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Eagle Feather Blade"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The guide names no item; ours (the user, 2026-10-30), Freeport's counterpart's record under this quest's name: tools/seed_newgear_rewards.py makes it."
   },
   {
    "key": "1-20/oggok/warrior/L5",

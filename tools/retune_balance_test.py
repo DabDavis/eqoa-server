@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """tools/retune_balance.py against a made-up database at the 01:30 state with tools/tune_balance.py applied: the class
-and level rows move to the re-fit's (rows changed, added and taken out), a GM's row is left (and said), a second
---apply changes nothing, --undo gives back the first tuning's tables exactly and drops the log, nothing is done
-before the first tuning, the log's columns pass the snapshot's name rules, and the Go seeds (a table made new) are
-what the two tools make of the 01:30 table. No game data.
+and level rows move to the re-fit's (rows changed, added and taken out, dealt_pct among them: the column added when
+the table lacks it, as the server adds it), a GM's row is left (and said), a second --apply changes nothing, --undo
+gives back the first tuning's tables exactly (the added column kept at 100) and drops the log, the same with the
+column there first (a server of 2026-10-30 started first), nothing is done before the first tuning, the log's
+columns pass the snapshot's name rules, and the Go seeds (a table made new) are what the two tools make of the 01:30
+table. No game data.
 
     python3 tools/retune_balance_test.py
 """
@@ -61,25 +63,36 @@ class RetuneBalance(unittest.TestCase):
     def class_levels(self):
         c = sqlite3.connect(self.db)
         try:
+            dealt = "dealt_pct" if "dealt_pct" in [r[1] for r in c.execute("PRAGMA table_info(balanceclasslevel)")] else "100.0"
             out = {}
-            for cls, l, m, p in c.execute("SELECT class, level, melee_taken_pct, pet_hp_pct FROM balanceclasslevel"):
-                out.setdefault(cls, {})[l] = (m, p)
+            for cls, l, m, p, d in c.execute(f"SELECT class, level, melee_taken_pct, pet_hp_pct, {dealt} FROM balanceclasslevel"):
+                out.setdefault(cls, {})[l] = (m, p, d)
             return out
         finally:
             c.close()
+
+    @staticmethod
+    def first_row(c, l):
+        """the first tuning's row, all of its damage dealt"""
+        v = tb.CLASSLEVELS.get(c, {}).get(l)
+        return None if v is None else tuple(map(float, v)) + (100.0,)
 
     def test_nothing_before_the_first_tuning(self):
         out = self.run_tool(TOOL, "--apply")
         self.assertIn("0 rows to change, 1 left", out)
         self.assertNotIn("balanceclasslevel", self.tables())
 
+    def want_changes(self):
+        return sum(1 for c in set(tb.CLASSLEVELS) | set(rb.RETUNED)
+                   for l in set(tb.CLASSLEVELS.get(c, {})) | set(rb.RETUNED.get(c, {}))
+                   if self.first_row(c, l) != (tuple(map(float, rb.RETUNED[c][l])) if l in rb.RETUNED.get(c, {}) else None))
+
     def test_apply_and_undo(self):
         self.run_tool(FIRST, "--apply")
         first_state = self.tables()
-        want = sum(1 for c in set(tb.CLASSLEVELS) | set(rb.RETUNED)
-                   for l in set(tb.CLASSLEVELS.get(c, {})) | set(rb.RETUNED.get(c, {}))
-                   if tuple(tb.CLASSLEVELS.get(c, {}).get(l, ())) != tuple(rb.RETUNED.get(c, {}).get(l, ())))
+        want = self.want_changes()
         self.assertGreater(want, 0, "the re-fit changes nothing")
+        self.assertTrue(any(v[2] != 100 for by in rb.RETUNED.values() for v in by.values()), "no row deals other than all")
         out = self.run_tool(TOOL)
         self.assertIn(f"{want} rows to change, 0 left", out)
         self.assertEqual(self.tables(), first_state)  # report only
@@ -93,12 +106,34 @@ class RetuneBalance(unittest.TestCase):
             self.assertFalse(secret(col), f"{col} is named like a secret: every database snapshot would be refused")
         self.assertIn("0 rows to change, 0 left", self.run_tool(TOOL, "--apply"))
         self.run_tool(TOOL, "--undo")
+        after = self.tables()
+        # the column the apply added stays, last, at 100 on every row (as the server adds it); the rest as before
+        self.assertEqual(after.keys(), first_state.keys())
+        for t in first_state:
+            if t == "balanceclasslevel":
+                self.assertEqual([r[:-1] for r in after[t]], first_state[t])
+                self.assertEqual({r[-1] for r in after[t]}, {100.0})
+            else:
+                self.assertEqual(after[t], first_state[t], t)
+
+    def test_apply_and_undo_with_the_column_there(self):
+        """a server of 2026-10-30 started on the first tuning before the tool: the column is there, every row 100;
+        the round trip is exact"""
+        self.run_tool(FIRST, "--apply")
+        c = sqlite3.connect(self.db)
+        c.execute("ALTER TABLE balanceclasslevel ADD COLUMN dealt_pct REAL NOT NULL DEFAULT 100")
+        c.commit()
+        c.close()
+        first_state = self.tables()
+        self.assertIn(f"{self.want_changes()} rows to change, 0 left", self.run_tool(TOOL, "--apply"))
+        self.assertEqual(self.class_levels(), {c: {l: tuple(map(float, v)) for l, v in by.items()} for c, by in rb.RETUNED.items()})
+        self.run_tool(TOOL, "--undo")
         self.assertEqual(self.tables(), first_state)
 
     def test_a_gms_row_is_left(self):
         self.run_tool(FIRST, "--apply")
         cls, level = next((c, l) for c, by in rb.RETUNED.items() for l, v in by.items()
-                          if l in tb.CLASSLEVELS.get(c, {}) and tuple(tb.CLASSLEVELS[c][l]) != tuple(v))
+                          if l in tb.CLASSLEVELS.get(c, {}) and self.first_row(c, l) != tuple(map(float, v)))
         c = sqlite3.connect(self.db)
         c.execute("UPDATE balanceclasslevel SET melee_taken_pct = 333 WHERE class = ? AND level = ?", (cls, level))
         c.commit()
@@ -114,8 +149,9 @@ class RetuneBalance(unittest.TestCase):
         with open(os.path.join(HERE, "..", "internal", "database", "balanceseed.go")) as f:
             go = f.read()
         cl = {}
-        for cls, l, v, pv in re.findall(r"\{Class: (\d+), Level: (\d+), MeleeTakenPct: ([\d.]+), PetHPPct: ([\d.]+)\}", go):
-            cl.setdefault(int(cls), {})[int(l)] = (float(v), float(pv))
+        for cls, l, v, pv, dv in re.findall(r"\{Class: (\d+), Level: (\d+), MeleeTakenPct: ([\d.]+), PetHPPct: ([\d.]+)"
+                                            r"(?:, DealtPct: ([\d.]+))?\}", go):
+            cl.setdefault(int(cls), {})[int(l)] = (float(v), float(pv), float(dv) if dv else 100.0)
         self.assertEqual(cl, self.class_levels())
 
 

@@ -515,11 +515,16 @@ under the 01:30 tables, as the live log); `balancesim_test.go` holds the stand-i
 `balance_tune_log`, `--undo` exact); the server reads it at its next start or at once at a save of
 any Balance page in the panel. `balanceclasslevel` is read only by a server of 2026-10-30 or later,
 so apply it with that server (under an older one the ranger's, bard's and rogue's shares are gone:
-they would take all of an NPC's melee). **Then `tools/retune_balance.py`** (same flags, log
-`balance_retune_log`) moves `balanceclasslevel` from the first tuning's rows to the re-fit on the
-data of 04:20 (the armour classes and the rewards' class masks put right after 01:30 moved the
-kits: a monk of 5 won a yellow two up 31% of the time), only rows still as the first tuning left
-them; data alone, read at the next start. The seeds hold the two tunings' result. Kits move with
+they would take all of an NPC's melee). **Then `tools/seed_roamers.py` and `tools/retune_balance.py`** (same flags; logs
+`npc_template_seed_log`, `balance_retune_log`): the first gives the creatures SOE's roamer (and
+wisps the wizard), the second moves `balanceclasslevel` from the first tuning's rows to the re-fit
+on the data of 04:20 WITH the roamers (the armour classes and the rewards' class masks put right
+after 01:30 moved the kits: a monk of 5 won a yellow two up 31% of the time; from level 8 the crit
+takes the shares to 0.3-0.9 of what they were, and 16 cells no share could reach get `dealt_pct`
+115-130%), only rows still as the first tuning left them, the `dealt_pct` column added if missing.
+Apply both, or neither: the shares from 8 assume the crits. Read at the next start (or a save of
+any Balance page / a template edit in the panel); a server older than `dealt_pct` and the timed
+special ignores both. The seeds hold the two tunings' result. Kits move with
 the items, so a data change that reaches what classes wear can move a class off its targets again:
 `balancesim_real_test.go` with `EQOA_REAL_DB` on a copy is the check.
 

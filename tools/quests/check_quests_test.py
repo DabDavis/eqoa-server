@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """tools/quests/check_quests.py's checks of the later guides' fields
-(factions_required, repeatable, unlocks, rewards.byclass) against a made-up
+(factions_required, repeatable, unlocks, rewards.byclass, a requires group) against a made-up
 quest and a made-up database. No game data.
 
     python3 tools/quests/check_quests_test.py
@@ -116,6 +116,19 @@ class Later(unittest.TestCase):
         self.assertIn("'the Isle', which is no route of waysender.go yet (it has no routes)", warned)
         self.assertEqual((ck.errors, ck.misses[q["key"]]), ([], []), "an unlock is no name the quest needs to be played")
         self.assertIn("no route", "\n".join(self.check(q, names=False).warnings), "routes checked without a database too")
+
+
+    def test_a_requires_group_is_its_quests(self):
+        q = copy.deepcopy(GOOD)
+        q["requires"] = ["Misc/a", ["Misc/b", "Misc/c"]]
+        ck = cq.Check(self.names, ROUTES)
+        self.assertEqual(ck.quest("t.json", q, set()), ["Misc/a", "Misc/b", "Misc/c"], "every quest it names, the chain's edges")
+        self.assertEqual(ck.errors, [])
+        # the controls: an empty group and a number are errors
+        q["requires"] = [[], ["Misc/b", 7]]
+        errs = "\n".join(self.check(q).errors)
+        self.assertIn("requires []: a key, or a list of keys", errs)
+        self.assertIn("requires ['Misc/b', 7]", errs)
 
 
 if __name__ == "__main__":

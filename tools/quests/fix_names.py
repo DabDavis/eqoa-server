@@ -252,7 +252,10 @@ def fix(files, db_path, renames=(), drops=(), case=False):
         q = keys.get(k)
         if q is None or k in seen:
             return True
-        drafts[k] = bool(q.get("unresolved")) or any(draft(r, seen + (k,)) for r in q.get("requires", []))
+        # a group (a list: any one of them will do) is a draft's cause only when all of it is
+        drafts[k] = bool(q.get("unresolved")) or any(
+            all(draft(g, seen + (k,)) for g in r) if isinstance(r, list) else draft(r, seen + (k,))
+            for r in q.get("requires", []))
         return drafts[k]
     for path, raw, d in docs:
         fname = os.path.basename(path)

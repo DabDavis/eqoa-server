@@ -1451,6 +1451,10 @@ func (h *CharacterHandler) SendMemoryDump(sess *session.Session) {
 		h.auction.BeforeDump(sess, player)
 	}
 
+	// a new session: what the shops' windows offered in the last one is
+	// forgotten (quests' AtWindow), which a respawn's dump does not do
+	Quests().LoggedIn(player.CharServerID)
+
 	h.queueMemoryDump(sess, player)
 
 	// Send ignore list and buddy list after memory dump (matches eqoa.live)

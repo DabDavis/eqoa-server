@@ -28,6 +28,10 @@ class (byclass: items, the class's own spells, experience and tunar), a
 talk, show or give step's choice (choices, its question choose: each
 option's answer, words, rewards, and whether it stays).
 
+A quest's requires are keys, each finished first; a list among them is a
+group any one of which will do (a token each class gets from its own quest),
+written "a, b|c" in the requires column (the engine's database.ParseRequires).
+
 Quests are kept by their key: their ids are logged in quest_import_quests
 (from 100001, past every quest there is), so a run again rewrites what an
 earlier one wrote, unless a GM has changed it since (its rows' digest no
@@ -216,6 +220,22 @@ def item_list(v):
             out.append((it, 1))
         elif isinstance(it, dict):
             out.append((it.get("item") or it.get("name") or "", max(int(it.get("count") or 1), 1)))
+    return out
+
+
+def requires_of(q):
+    """A quest's requires: each a key, or a group of keys any one of which
+    will do (a list), as the requires column writes them ("a, b|c")."""
+    out = []
+    for r in q.get("requires") or []:
+        if isinstance(r, list):
+            g = [str(k).strip() for k in r if str(k).strip()]
+            if len(g) > 1:
+                out.append(g)
+            elif g:
+                out.append(g[0])
+        elif str(r).strip():
+            out.append(str(r).strip())
     return out
 
 
@@ -482,7 +502,7 @@ def plan(db, files, routes=False):
             told = [str(u) for u in (q.get("unresolved") or []) if str(u).strip()]
             quests.append(dict(key=key, file=fname, q=q, classes=classes, giver=giver or (q.get("giver") or ""),
                                steps=steps, events=qev, miss=miss, told=told, factionreq=", ".join(reqs),
-                               unlocks=unlocks, requires=[r for r in (q.get("requires") or []) if str(r).strip()]))
+                               unlocks=unlocks, requires=requires_of(q)))
     # a quest needing one that is missing or a draft is a draft too; a quest a
     # GM has changed since its import (left as it is) counts as the database has it
     by_key = {x["key"]: x for x in quests}
@@ -493,6 +513,18 @@ def plan(db, files, routes=False):
             row = db.execute("SELECT enabled FROM quests WHERE questid = ?", (qid,)).fetchone()
             if row is not None and digest(db, qid) != dg:
                 gm_kept[k] = bool(row[0])
+
+    def lacks(r):
+        """Why the quest of key r keeps one that requires it out, or None."""
+        dep = by_key.get(r)
+        if r in gm_kept:
+            return None if gm_kept[r] else f"the quest {r!r} it requires, a draft (a GM's)"
+        if dep is None and r not in logged:
+            return f"the quest {r!r} it requires, which no file has"
+        if dep is not None and dep.get("draft"):
+            return f"the quest {r!r} it requires, a draft"
+        return None
+
     changed = True
     while changed:
         changed = False
@@ -501,14 +533,11 @@ def plan(db, files, routes=False):
                 continue
             why = list(x["miss"]) + [f"the file's unresolved {u!r}" for u in x["told"]]
             for r in x["requires"]:
-                dep = by_key.get(r)
-                if r in gm_kept:
-                    if not gm_kept[r]:
-                        why.append(f"the quest {r!r} it requires, a draft (a GM's)")
-                elif dep is None and r not in logged:
-                    why.append(f"the quest {r!r} it requires, which no file has")
-                elif dep is not None and dep.get("draft"):
-                    why.append(f"the quest {r!r} it requires, a draft")
+                # a group keeps it out only when every one of the group does
+                group = r if isinstance(r, list) else [r]
+                ws = [lacks(k) for k in group]
+                if all(ws):
+                    why.append(ws[0] if len(ws) == 1 else "every quest of a group it requires (one would do): " + "; ".join(ws))
             if why:
                 x["draft"], x["why"] = True, why
                 changed = True
@@ -678,11 +707,15 @@ def write(db, p):
             notes = q.get("notes") or ""
             if x["draft"]:
                 notes = (notes + "\n\n" if notes else "") + "A draft until these are here: " + "; ".join(x["why"]) + "."
-            requires = [ids[r] if r in ids else logged[r][0] for r in x["requires"] if r in ids or r in logged]
+            requires = []
+            for r in x["requires"]:
+                group = [ids[k] if k in ids else logged[k][0] for k in (r if isinstance(r, list) else [r]) if k in ids or k in logged]
+                if group:
+                    requires.append("|".join(map(str, group)))
             vals = dict(questid=qid, name=q.get("name") or x["key"], enabled=0 if x["draft"] else 1, giver=x["giver"],
                         minlevel=int(q.get("minlevel") or 1), maxlevel=int(q.get("maxlevel") or 60),
                         classes=", ".join(map(str, x["classes"])), races=", ".join(map(str, class_ids(q.get("races")))),
-                        requires=", ".join(map(str, requires)), repeatable=1 if q.get("repeatable") else 0,
+                        requires=", ".join(requires), repeatable=1 if q.get("repeatable") else 0,
                         offer=q.get("offer") or "", accept=q.get("accept") or "", decline=q.get("decline") or "",
                         declined=q.get("declined") or "", started=q.get("started") or "",
                         source=f"EQOA-Data {x['key']} (tools/import_quests.py)", notes=notes, events=fix_events(x["events"]),

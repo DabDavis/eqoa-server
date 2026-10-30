@@ -51,7 +51,7 @@ func (s *Server) registerQuestOps() {
 		"maxlevel":   integer("the highest (0: any)"),
 		"classes":    str("class ids that may take it, comma separated; empty: any (0 Warrior ... 14 Alchemist)"),
 		"races":      str("race ids, comma separated; empty: any"),
-		"requires":   str("quest ids finished first, comma separated"),
+		"requires":   str("quest ids finished first, comma separated; ids joined by | are one requirement any of them meets (\"10, 11|12\": 10, and 11 or 12)"),
 		"repeatable": integer("1: may be taken again once finished"),
 		"offer":      str("the giver's words offering it: a paragraph (lines between blank lines) a question, a line a box, each paragraph's last line the question"),
 		"accept":     str("the player's answers that take it, a line a question (the last one gives the quest); empty: taken as soon as the giver is talked to"),
@@ -390,12 +390,24 @@ func (s *Server) questSetEnabled(a *actor, ids []int64, f *questFilter, on, dry,
 		}
 	}
 	if on {
-		// the drafts a chosen quest requires go in with it
+		// the drafts a chosen quest requires go in with it: of a group of
+		// alternatives, none when one of them is in the game or going in
 		for i := 0; i < len(order); i++ {
-			for _, req := range order[i].Requires {
-				if q := idx.byID[req]; q != nil && !q.Enabled && !chosen[req] && (q.Status == questReady || force) {
-					required[req] = true
-					add(q)
+			for _, g := range order[i].groups {
+				met := false
+				for _, req := range g {
+					if q := idx.byID[req]; q != nil && (q.Enabled || chosen[req]) {
+						met = true
+					}
+				}
+				if met && len(g) > 1 {
+					continue
+				}
+				for _, req := range g {
+					if q := idx.byID[req]; q != nil && !q.Enabled && !chosen[req] && (q.Status == questReady || force) {
+						required[req] = true
+						add(q)
+					}
 				}
 			}
 		}

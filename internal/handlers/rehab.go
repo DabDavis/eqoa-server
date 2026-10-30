@@ -19,13 +19,14 @@ import (
 // tea garden and another near freeport NPC, talk to them". Talked to, one
 // opens a menu of the quest boxes a PS2 reads (a 0x0046 box a line, a 0x0034
 // question with its answers; rehabBoxMark marks their ids) that says what the
-// character has left and offers:
+// character has left and offers, three answers as CLIENT's VIWndResponse
+// shows a page (its own Close answers 255, nothing):
 //
-//   - its Combat Masteries reset, as #rst_mastr (classmastery.go: every rank
-//     taken, its points back, 0x1402 sub-op 6 a rank then 3, word 1885);
-//   - its stat (training) points reset, as #rst_both's training half
-//     (gmresets.go: 0x001D, the stats channel, word 1886);
-//   - both;
+//   - a reset, then which: its Combat Masteries, as #rst_mastr
+//     (classmastery.go: every rank taken, its points back, 0x1402 sub-op 6 a
+//     rank then 3, word 1885); its stat (training) points, as #rst_both's
+//     training half (gmresets.go: 0x001D, the stats channel, word 1886); or
+//     both;
 //   - a path undone (rehabpaths.go: a quest's pick of abilities, its spells
 //     out of the book and its items taken back), which of the paths it took;
 //   - a Rose of Rehabilitation bought.
@@ -57,7 +58,7 @@ func IsRehabilitator(name string) bool {
 const (
 	rehabGreeting   = "Be welcome, %s. What a soul has learned it may set down, and I help it do so, that it may learn anew."
 	rehabAskMenu    = "What would you have me undo?"
-	rehabFarewell   = "Come back whenever you would start over."
+	rehabAskResets  = "Which shall I reset?"
 	rehabAsYouWish  = "As you wish."
 	rehabAskBegin   = "Shall I begin?"
 	rehabYes        = "Yes, begin."
@@ -70,7 +71,6 @@ const (
 	rehabNothing    = "You hold no mastery and have spent no training points: there is nothing for me to undo."
 	rehabNoPath     = "You have chosen no path that I can undo."
 	rehabAskPath    = "Which path shall I undo?"
-	rehabNoneOfThem = "None of them."
 	rehabUndoYes    = "Yes, undo it."
 	rehabRoseIs     = "A Rose of Rehabilitation lets me undo one more of your paths once your free path respecs are spent. It is yours alone: it cannot be traded."
 	rehabRoseYes    = "Yes, buy a rose."
@@ -82,19 +82,19 @@ const (
 	rehabDone       = "It is done."
 )
 
-// The menu's answers, and what a confirmation does.
+// The menus' answers, and what a confirmation does.
 const (
 	rehabMastery = iota + 1
 	rehabTraining
 	rehabBoth
 	rehabPath
 	rehabRose
-	rehabLeave
+	rehabResets // the menu's reset: which is asked
 )
 
 // The questions a box asks.
 const (
-	rehabStageMenu    = iota + 1 // the menu
+	rehabStageMenu    = iota + 1 // the menu, or which reset
 	rehabStagePaths              // which path
 	rehabStageConfirm            // yes or no to what ask says
 )
@@ -212,8 +212,6 @@ func (r *Rehab) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 	case rehabStagePaths:
 		if i < len(b.paths) {
 			r.askPath(sess, p, b.speaker, b.paths[i])
-		} else {
-			r.say(sess, b.speaker, rehabAsYouWish)
 		}
 	case rehabStageConfirm:
 		if i == 0 {
@@ -228,14 +226,14 @@ func (r *Rehab) Answer(sess *session.Session, p *entity.Player, box uint32, opti
 // picked is an answer of the menu.
 func (r *Rehab) picked(sess *session.Session, p *entity.Player, speaker string, what int) {
 	switch what {
+	case rehabResets:
+		r.resetMenu(sess, p, speaker)
 	case rehabMastery, rehabTraining, rehabBoth:
 		r.askReset(sess, p, speaker, what)
 	case rehabPath:
 		r.askPaths(sess, p, speaker)
 	case rehabRose:
 		r.askRose(sess, p, speaker)
-	default:
-		r.say(sess, speaker, rehabFarewell)
 	}
 }
 
@@ -299,26 +297,37 @@ func (r *Rehab) leftLine(p *entity.Player, set database.RehabSettings, left map[
 	return fmt.Sprintf("You have %s left, and hold %s.", have, roses)
 }
 
-// menu asks what to undo: each reset with its price or "free", a path, a
-// rose, nothing (six answers, as many as CLIENT shows).
+// menu asks what to undo: a reset, a path (free while one is left, else a
+// rose), a rose bought: three answers, a page of CLIENT's.
 func (r *Rehab) menu(sess *session.Session, p *entity.Player, speaker string, set database.RehabSettings, left map[string]int) {
-	m := resetTerms(set, left, true, false)
-	t := resetTerms(set, left, false, true)
-	both := resetTerms(set, left, true, true)
 	path := "a Rose of Rehabilitation"
 	if left[database.ResetPath] > 0 {
 		path = "free"
 	}
 	labels := []string{
-		"Reset my Combat Masteries (" + priceWord(m.tunar) + ")",
-		"Reset my stat points (" + priceWord(t.tunar) + ")",
-		"Reset masteries and stat points (" + priceWord(both.tunar) + ")",
+		"Reset my masteries or stat points",
 		"Undo a path (" + path + ")",
 		"Buy a Rose of Rehabilitation (" + tunarText(set.PriceRose) + ")",
-		"Nothing today.",
 	}
 	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageMenu,
-		options: []int{rehabMastery, rehabTraining, rehabBoth, rehabPath, rehabRose, rehabLeave}}, rehabAskMenu, labels)
+		options: []int{rehabResets, rehabPath, rehabRose}}, rehabAskMenu, labels)
+}
+
+// resetMenu asks which reset: the masteries, the stat points or both, each
+// with its price or "free".
+func (r *Rehab) resetMenu(sess *session.Session, p *entity.Player, speaker string) {
+	set, left, ok := r.standing(p)
+	if !ok {
+		r.say(sess, speaker, rehabTrouble)
+		return
+	}
+	labels := []string{
+		"My Combat Masteries (" + priceWord(resetTerms(set, left, true, false).tunar) + ")",
+		"My stat points (" + priceWord(resetTerms(set, left, false, true).tunar) + ")",
+		"Both (" + priceWord(resetTerms(set, left, true, true).tunar) + ")",
+	}
+	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStageMenu,
+		options: []int{rehabMastery, rehabTraining, rehabBoth}}, rehabAskResets, labels)
 }
 
 // resetTerms is what a reset of the parts named costs now: each part's free
@@ -590,9 +599,9 @@ func (r *Rehab) pathLabel(p *entity.Player, pq pathQuest, book map[int]string, h
 	return clipRunes(fmt.Sprintf("Level %d: %s", pq.level, strings.Join(what, "; ")), questAnswerChars)
 }
 
-// askPaths asks which path to undo: the paths the character took (as many
-// as fit beside "None of them."), when it has a free respec or a rose; else
-// the rose offered.
+// askPaths asks which path to undo: the paths the character took (CLIENT
+// pages them three at a time; its Close is "none"), when it has a free
+// respec or a rose; else the rose offered.
 func (r *Rehab) askPaths(sess *session.Session, p *entity.Player, speaker string) {
 	qe := r.quests()
 	paths := qe.pathQuests(p.CharServerID)
@@ -616,14 +625,13 @@ func (r *Rehab) askPaths(sess *session.Session, p *entity.Player, speaker string
 		return
 	}
 	book, held := r.bookAndHeld(p)
-	if len(taken) > maxDialogOptions-1 {
-		taken = taken[len(taken)-(maxDialogOptions-1):] // the latest
+	if len(taken) > maxDialogOptions {
+		taken = taken[len(taken)-maxDialogOptions:] // the latest
 	}
-	labels := make([]string, 0, len(taken)+1)
+	labels := make([]string, 0, len(taken))
 	for _, pq := range taken {
 		labels = append(labels, r.pathLabel(p, pq, book, held))
 	}
-	labels = append(labels, rehabNoneOfThem)
 	r.ask(sess, p, &rehabBox{speaker: speaker, stage: rehabStagePaths, paths: taken}, rehabAskPath, labels)
 }
 

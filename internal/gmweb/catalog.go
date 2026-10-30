@@ -1314,7 +1314,7 @@ var catalog = map[string]tableNote{
 		Help: "A quest's steps in order (step 1, 2, ...). kind talk: talk to the NPC named target (answering it when answer " +
 			"is set); show: talk to it holding items, which are kept; give: hand that NPC items (patternid*count, comma " +
 			"separated) and tunar, which are taken; kill: kill count creatures " +
-			"named target; loot: kill creatures named target until count of the item in items are taken off their corpses " +
+			"named target (or one of the step's other creatures, queststeptargets); loot: kill creatures named target (or one of its others) until count of the item in items are taken off their corpses " +
 			"during the step, each kill dropping one on the corpse with chance for a player on the step; reach: come within radius of x, y, z in world. journal is " +
 			"the journal's line while it is the step to do; says is the NPC's words when it is done; the rewards are given " +
 			"then; events are what happens when it becomes the step to do (start) and when it is done (done).",
@@ -1325,8 +1325,8 @@ var catalog = map[string]tableNote{
 			"questid":     {Label: "Quest", Ref: "quests"},
 			"step":        {Label: "Step"},
 			"kind":        {Label: "Kind", Help: "talk, show, give, kill, loot or reach"},
-			"target":      {Label: "NPC or creature", Help: "its name as the game shows it"},
-			"npcid":       {Label: "Only spawn", Ref: "npcs", Help: "0: any of the name"},
+			"target":      {Label: "NPC or creature", Help: "its name as the game shows it; a kill or loot step's others are queststeptargets"},
+			"npcid":       {Label: "Only spawn", Ref: "npcs", Help: "0: any of the name (the target's: a kill or loot step's others count at any spawn)"},
 			"items":       {Label: "Items held or handed in", Help: "show: held and kept; give: taken. patternid*count, comma separated"},
 			"tunar":       {Label: "Tunar held or handed in"},
 			"count":       {Label: "How many", Help: "a kill step's creatures, a loot step's items"},
@@ -1347,6 +1347,21 @@ var catalog = map[string]tableNote{
 			"events":      {Label: "Events", Format: "multiline", Help: "a JSON list: on start or done, do popup, say, give, spawn, visual or teleport (the Quests page edits them)"},
 			"byclass":     {Label: "Reward: by class", Format: "multiline", Help: `a JSON object by class id, each {"xp", "tunar", "items": "patternid*count, ...", "spells": "spell ids"}, given besides the above to a player of that class`},
 			"choices":     {Label: "Choice", Format: "multiline", Help: `talk/show/give: {"ask", "options": [{"answer", "says", "stay", "xp", "tunar", "items", "spells"}]}, asked when the step is done; the pick's rewards given besides the step's, one with stay does not do it`},
+		},
+	},
+	"queststeptargets": {
+		Label: "Quest step creatures", Group: "Guilds & quests", Sort: "questid",
+		Help: "The other creatures a kill or loot step counts besides its own target (queststeps.target), a row a name as " +
+			"the game shows it (any case, spaces round it aside): a kill of any of them counts on a kill step, and a loot " +
+			"step's item drops off any of them (a journal's \"from the ravens and magpies\" is the target raven and a row " +
+			"magpie). A talk, show or give step's rows count for nothing. The Quests page edits a step's with it.",
+		Live:   "At once: the next kill uses it.",
+		Show:   []string{"questid", "step", "target"},
+		Search: []string{"target"},
+		Cols: map[string]colNote{
+			"questid": {Label: "Quest", Ref: "quests"},
+			"step":    {Label: "Step"},
+			"target":  {Label: "Creature", Help: "its name as the game shows it"},
 		},
 	},
 	"npc_models_observed": {Label: "Observed NPC models", Group: "Imports", Write: writeAdmin,

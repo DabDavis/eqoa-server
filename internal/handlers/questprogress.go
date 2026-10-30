@@ -24,8 +24,8 @@ import (
 //   - a show or give step: each item held of those it wants (the session's
 //     own copy of the client's list, never the database) and the tunar, then
 //     the NPC to bring them to;
-//   - a kill step: the kills done of those needed; a loot step: the drops
-//     taken of those needed;
+//   - a kill step: the kills done of those needed (its creatures named, "raven
+//     or magpie"); a loot step: the drops taken of those needed;
 //   - a talk step: the NPC to speak with; a reach step: the journal's line.
 //
 // Worked out from the engine's state each second for the clients that asked,
@@ -193,7 +193,7 @@ func (q *QuestEngine) progressLocked(l *invList, p *entity.Player, c *questChar)
 			}
 			qp.goals = append(qp.goals, progressGoal{text: verb + target})
 		case st.Kind == database.StepKill:
-			qp.goals = append(qp.goals, progressGoal{text: target, have: cq.Count, need: max(st.Count, 1)})
+			qp.goals = append(qp.goals, progressGoal{text: strings.TrimSpace(c.say(st.TargetWords())), have: cq.Count, need: max(st.Count, 1)})
 		case st.Kind == database.StepLoot:
 			if id, need, ok := st.LootItem(); ok {
 				qp.goals = append(qp.goals, progressGoal{text: name(id), have: cq.Count, need: need})

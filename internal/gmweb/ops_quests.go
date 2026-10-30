@@ -13,8 +13,9 @@ import (
 
 // The quests (handlers/quests.go; tables quests, queststeps, charquests): the
 // Quests page's operations, an AI agent's too. A quest and its steps are saved
-// together, as row changes (each logged and revertible); a character's quest
-// is set through the engine, so its journal follows, and logged as the
+// together, as row changes (each logged and revertible); a kill or loot step's
+// other creatures (its also, table queststeptargets) with it; a character's
+// quest is set through the engine, so its journal follows, and logged as the
 // charquests row before and after.
 
 // questCols are a quest row's columns the editor sends, in the table's order.
@@ -63,10 +64,14 @@ func (s *Server) registerQuestOps() {
 		"factionreq": str("the standings it asks for: Faction Name:min or Faction Name:min..max, comma separated (as the " +
 			"factions table spells them; -2000 to 2000): offered, marked and its steps at its giver done only while each is met; empty: none"),
 	})
+	alsoHelp := "kill/loot: the other creatures that count besides target (a journal's \"from the ravens and magpies\": " +
+		"target raven, also [\"magpie\"]): a kill of any counts, the item drops off any; left as they are when not given, " +
+		"an empty list: none"
 	stepSchema := obj(map[string]any{
-		"kind":        strEnum("talk: talk to target; show: talk to target holding items (kept); give: hand target items and tunar (taken); kill: kill count of target; loot: kill target until count of the item in items have been taken off their corpses during the step, each kill dropping one on the corpse with chance; reach: come within radius of x, z in world", database.StepKinds...),
-		"target":      str("talk/give: the NPC's name; kill/loot: the creature's name"),
-		"npcid":       integer("only that spawn (npcs.id); 0: any of the name"),
+		"kind":        strEnum("talk: talk to target; show: talk to target holding items (kept); give: hand target items and tunar (taken); kill: kill count of target (or of also's); loot: kill target (or also's) until count of the item in items have been taken off their corpses during the step, each kill dropping one on the corpse with chance; reach: come within radius of x, z in world", database.StepKinds...),
+		"target":      str("talk/give: the NPC's name; kill/loot: the creature's name (its others in also)"),
+		"also":        arr(str("a creature's name as the game shows it"), alsoHelp),
+		"npcid":       integer("only that spawn (npcs.id) of target; 0: any of the name (also's creatures count at any spawn)"),
 		"items":       str("show/give: items held (show) or handed in (give), patternid*count, comma separated; loot: the item that drops"),
 		"tunar":       integer("show/give: tunar held or handed in"),
 		"count":       integer("kill: how many; loot: how many of the item are to be taken off corpses during the step"),
@@ -170,9 +175,10 @@ func (s *Server) registerQuestOps() {
 	})
 	s.addOp(&Op{
 		Name: "quest_get", Title: "Get a quest", Scope: scopeRead, Core: true,
-		Description: "One quest with its steps in order, the trips it unlocks, what is wrong with it (problems: unknown " +
-			"NPCs, items, spells or factions, a bad class id, a trip no route is, a step no one can do), who has it, and " +
-			"routes: every travel NPC's trips an unlock may name.",
+		Description: "One quest with its steps in order (each with also: the other creatures a kill or loot step " +
+			"counts), the trips it unlocks, what is wrong with it (problems: unknown NPCs, items, spells or factions, a " +
+			"bad class id, a trip no route is, a step no one can do), who has it, and routes: every travel NPC's trips an " +
+			"unlock may name.",
 		Input: obj(map[string]any{"quest": integer("the quest's id")}, "quest"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct{ Quest int64 }
@@ -185,9 +191,10 @@ func (s *Server) registerQuestOps() {
 	s.addOp(&Op{
 		Name: "quest_save", Title: "Save a quest", Scope: scopeWrite, Core: true,
 		Description: "Make or change a quest and its steps in one go: quest is its row (no questid: a new one), steps " +
-			"its steps in order (numbered 1, 2, ... as given; steps past the last are deleted), unlocks (when given) the " +
-			"travel NPCs' trips it opens, offered only to a player who has finished it (quest_get's routes lists them). " +
-			"Each row changed is logged and revertible. The game uses it at once. The answer lists its problems.",
+			"its steps in order (numbered 1, 2, ... as given; steps past the last are deleted, with their other " +
+			"creatures), a step's also (when given) the other creatures a kill or loot step counts, unlocks (when given) " +
+			"the travel NPCs' trips it opens, offered only to a player who has finished it (quest_get's routes lists " +
+			"them). Each row changed is logged and revertible. The game uses it at once. The answer lists its problems.",
 		Input: obj(map[string]any{
 			"quest":   questSchema,
 			"steps":   arr(stepSchema, "the steps in order"),
@@ -207,8 +214,8 @@ func (s *Server) registerQuestOps() {
 	})
 	s.addOp(&Op{
 		Name: "quest_delete", Title: "Delete a quest", Scope: scopeWrite, Destructive: true,
-		Description: "Delete a quest, its steps and every character's progress in it (each row logged and revertible). " +
-			"dryRun says what would go.",
+		Description: "Delete a quest, its steps (and their other creatures) and every character's progress in it (each " +
+			"row logged and revertible). dryRun says what would go.",
 		Input: obj(map[string]any{"quest": integer("the quest's id"), "dryRun": boolean("only say what would go")}, "quest"),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
@@ -445,6 +452,11 @@ func (s *Server) questGet(id int64) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	others := s.stepTargets(id)
+	for _, st := range steps {
+		n, _ := asFloat(st["step"])
+		st["also"] = orEmpty(others[int64(n)])
+	}
 	unlocks := s.questUnlocks(id)
 	out := map[string]any{"quest": quest[0], "steps": steps, "unlocks": unlocks,
 		"problems": s.questProblems(quest[0], steps, unlocks), "characters": who, "routes": handlers.TravelRoutes()}
@@ -476,6 +488,101 @@ func (s *Server) questGet(id int64) (any, error) {
 		}
 	}
 	return out, nil
+}
+
+// stepTargets is a quest's steps' other creatures (queststeptargets), by
+// step, in the order written.
+func (s *Server) stepTargets(id int64) map[int64][]string {
+	out := map[int64][]string{}
+	rs, err := s.d.DB.Query(`SELECT step, target FROM queststeptargets WHERE questid = ? ORDER BY step, rowid`, id)
+	if err != nil {
+		return out // a database without the table has none
+	}
+	defer rs.Close()
+	for rs.Next() {
+		var n int64
+		var t string
+		if rs.Scan(&n, &t) == nil {
+			out[n] = append(out[n], t)
+		}
+	}
+	return out
+}
+
+// namesOf reads a step's also: a JSON list of names, or names in one string
+// separated by commas; each trimmed, empty ones and a second spelling of one
+// (any case) left out. ok false when it is neither.
+func namesOf(v any) ([]string, bool) {
+	var raw []string
+	switch x := v.(type) {
+	case nil:
+		return nil, true
+	case string:
+		raw = strings.Split(x, ",")
+	case []any:
+		for _, e := range x {
+			t, isText := e.(string)
+			if !isText {
+				return nil, false
+			}
+			raw = append(raw, t)
+		}
+	case []string:
+		raw = x
+	default:
+		return nil, false
+	}
+	var out []string
+	seen := map[string]bool{}
+	for _, n := range raw {
+		n = strings.TrimSpace(n)
+		if n == "" || seen[strings.ToLower(n)] {
+			continue
+		}
+		seen[strings.ToLower(n)] = true
+		out = append(out, n)
+	}
+	return out, true
+}
+
+// saveStepTargets makes a step's queststeptargets rows these names: the ones
+// not given deleted (a name kept as spelled when only its case differs), the
+// new ones inserted, each a row change (logged, revertible).
+func (s *Server) saveStepTargets(a *actor, id, step int64, want []string) ([]*change, error) {
+	tt, err := s.table("queststeptargets")
+	if err != nil {
+		return nil, err
+	}
+	keep := map[string]bool{}
+	for _, n := range want {
+		keep[strings.ToLower(n)] = true
+	}
+	var changes []*change
+	have := map[string]bool{}
+	for _, t := range s.stepTargets(id)[step] {
+		k := strings.ToLower(strings.TrimSpace(t))
+		if keep[k] && !have[k] {
+			have[k] = true
+			continue
+		}
+		ch, err := s.deleteRow(a, tt, map[string]any{"questid": id, "step": step, "target": t}, writeOpts{NoLive: true})
+		if err != nil {
+			return nil, fmt.Errorf("step %d's creature %q: %w", step, t, err)
+		}
+		changes = append(changes, ch)
+	}
+	for _, n := range want {
+		if have[strings.ToLower(n)] {
+			continue
+		}
+		have[strings.ToLower(n)] = true
+		ch, err := s.insertRow(a, tt, map[string]any{"questid": id, "step": step, "target": n}, writeOpts{NoLive: true})
+		if err != nil {
+			return nil, fmt.Errorf("step %d's creature %q: %w", step, n, err)
+		}
+		changes = append(changes, ch)
+	}
+	return changes, nil
 }
 
 // questUnlocks is the trips a quest unlocks, by NPC and place.
@@ -571,26 +678,16 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any, unlocks
 		case database.StepKill:
 			if t := text(st, "target"); t == "" {
 				add("%s names no creature", where)
-			} else {
-				var n int
-				s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(TRIM(npc_name)) = LOWER(TRIM(?))`, t).Scan(&n)
-				if n == 0 {
-					add("%s: no creature named %q spawns here, so it cannot be done", where, t)
-				}
 			}
+			s.creatureProblems(st, where, "it cannot be done", add)
 			if num(st, "count") < 1 {
 				add("%s kills fewer than one", where)
 			}
 		case database.StepLoot:
 			if t := text(st, "target"); t == "" {
 				add("%s names no creature", where)
-			} else {
-				var n int
-				s.d.DB.QueryRow(`SELECT COUNT(*) FROM npcs WHERE LOWER(TRIM(npc_name)) = LOWER(TRIM(?))`, t).Scan(&n)
-				if n == 0 {
-					add("%s: no creature named %q spawns here, so nothing drops its item", where, t)
-				}
 			}
+			s.creatureProblems(st, where, "nothing drops its item", add)
 			items := database.ParseItemCounts(text(st, "items"))
 			if len(items) == 0 {
 				add("%s names no item to drop", where)
@@ -605,6 +702,9 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any, unlocks
 			}
 		default:
 			add("%s: no kind %q (talk, show, give, kill, loot or reach)", where, kind)
+		}
+		if also, _ := namesOf(st["also"]); len(also) > 0 && !database.Hunts(kind) {
+			add("%s is a %s step: its other creatures (%s) count for nothing (a kill or loot step's do)", where, kind, strings.Join(also, ", "))
 		}
 		s.eventProblems(text(st, "events"), true, where+"'s", add)
 		if text(st, "journal") == "" {
@@ -646,6 +746,38 @@ func (s *Server) questProblems(q map[string]any, steps []map[string]any, unlocks
 		}
 	}
 	return out
+}
+
+// creatureProblems says what is wrong with the creatures a kill or loot step
+// counts (its target and its also): a name no creature has, a name every one
+// of which carries the NPC bit (none can be attacked but a spawn event's
+// hostile copy); and, when no name has a spawn, that the step cannot be done
+// (what says why).
+func (s *Server) creatureProblems(st map[string]any, where, what string, add func(string, ...any)) {
+	t, _ := st["target"].(string)
+	also, _ := namesOf(st["also"])
+	names, _ := namesOf(append([]string{t}, also...))
+	if len(names) == 0 {
+		return
+	}
+	found := 0
+	for _, n := range names {
+		var spawns, attackable int
+		s.d.DB.QueryRow(`SELECT COUNT(*), COALESCE(SUM(CASE WHEN COALESCE(npc_type, 0) & 128 = 0 THEN 1 ELSE 0 END), 0)
+			FROM npcs WHERE LOWER(TRIM(npc_name)) = LOWER(TRIM(?))`, n).Scan(&spawns, &attackable)
+		switch {
+		case spawns == 0:
+			add("%s: no creature named %q spawns here", where, n)
+		case attackable == 0:
+			found++
+			add("%s: every %q carries the NPC bit, so none can be attacked (a spawn event's hostile copy can)", where, n)
+		default:
+			found++
+		}
+	}
+	if found == 0 {
+		add("%s: none of its creatures spawns here, so %s", where, what)
+	}
 }
 
 // hasFaction is whether this server has a faction of that name, spelled so
@@ -798,6 +930,9 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 		if !containsStr(database.StepKinds, strings.ToLower(strings.TrimSpace(k))) {
 			return nil, badRequest("step %d: kind is talk, show, give, kill, loot or reach", i+1)
 		}
+		if _, ok := namesOf(step["also"]); !ok {
+			return nil, badRequest("step %d: also is a list of creatures' names", i+1)
+		}
 	}
 	id, _ := asFloat(quest["questid"])
 	var changes []*change
@@ -873,6 +1008,28 @@ func (s *Server) questSave(a *actor, quest map[string]any, steps []map[string]an
 				return nil, fmt.Errorf("step %d: %w", n, err)
 			}
 			changes = append(changes, ch)
+		}
+	}
+	// each step's other creatures where given; a step deleted takes its own
+	for i, step := range steps {
+		v, given := step["also"]
+		if !given {
+			continue
+		}
+		names, _ := namesOf(v)
+		chs, err := s.saveStepTargets(a, int64(id), int64(i+1), names)
+		if err != nil {
+			return nil, err
+		}
+		changes = append(changes, chs...)
+	}
+	for n := range s.stepTargets(int64(id)) {
+		if n > int64(len(steps)) || n < 1 {
+			chs, err := s.saveStepTargets(a, int64(id), n, nil)
+			if err != nil {
+				return nil, err
+			}
+			changes = append(changes, chs...)
 		}
 	}
 	if unlocks != nil {
@@ -975,6 +1132,15 @@ func (s *Server) questDelete(a *actor, id int64, dry bool) (any, error) {
 		for _, u := range s.questUnlocks(id) {
 			if _, err := s.deleteRow(a, ut, map[string]any{"questid": id, "npc": u.NPC, "dest": u.Dest}, writeOpts{}); err != nil {
 				return nil, err
+			}
+		}
+	}
+	if tt, err := s.table("queststeptargets"); err == nil {
+		for n, names := range s.stepTargets(id) {
+			for _, t := range names {
+				if _, err := s.deleteRow(a, tt, map[string]any{"questid": id, "step": n, "target": t}, writeOpts{}); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}

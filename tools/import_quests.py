@@ -539,8 +539,10 @@ def report(p, verbose=False):
 
 def digest(db, qid):
     """A quest's rows as one value, to tell a GM's change by: its row, its
-    steps, and the trips it unlocks. The LATER_COLS and the trips count only
-    when the quest has them, so a quest an import logged before they were
+    steps, the trips it unlocks and its kill and loot steps' other creatures
+    (queststeptargets: a GM's or tools/fix_quest_targets.py's, which this
+    import never writes). The LATER_COLS, the trips and the creatures count
+    only when the quest has them, so a quest an import logged before they were
     there digests as it did."""
     h = hashlib.md5()
     for table, cols, order in (("quests", QUEST_COLS, ""), ("queststeps", STEP_COLS, " ORDER BY step")):
@@ -555,6 +557,10 @@ def digest(db, qid):
         trips = db.execute("SELECT npc, dest FROM questunlocks WHERE questid = ? ORDER BY npc, dest", (qid,)).fetchall()
         if trips:
             h.update(repr(("unlocks", trips)).encode())
+    if has_table(db, "queststeptargets"):
+        others = db.execute("SELECT step, target FROM queststeptargets WHERE questid = ? ORDER BY step, target", (qid,)).fetchall()
+        if others:
+            h.update(repr(("targets", others)).encode())
     return h.hexdigest()
 
 
@@ -667,6 +673,8 @@ def write(db, p):
                 db.execute("DELETE FROM quests WHERE questid = ?", (qid,))
                 db.execute("DELETE FROM queststeps WHERE questid = ?", (qid,))
                 db.execute("DELETE FROM questunlocks WHERE questid = ?", (qid,))
+                if has_table(db, "queststeptargets"):
+                    db.execute("DELETE FROM queststeptargets WHERE questid = ?", (qid,))
             notes = q.get("notes") or ""
             if x["draft"]:
                 notes = (notes + "\n\n" if notes else "") + "A draft until these are here: " + "; ".join(x["why"]) + "."
@@ -708,14 +716,17 @@ def undo(db):
     try:
         qids = [r[0] for r in db.execute("SELECT questid FROM quest_import_quests")]
         pids = [r[0] for r in db.execute("SELECT patternid FROM quest_import_items")]
-        n = dict(quests=0, steps=0, progress=0, items=0, held=0, trips=0)
+        n = dict(quests=0, steps=0, progress=0, items=0, held=0, trips=0, creatures=0)
         trips = has_table(db, "questunlocks")
+        others = has_table(db, "queststeptargets")
         for qid in qids:
             n["quests"] += db.execute("DELETE FROM quests WHERE questid = ?", (qid,)).rowcount
             n["steps"] += db.execute("DELETE FROM queststeps WHERE questid = ?", (qid,)).rowcount
             n["progress"] += db.execute("DELETE FROM charquests WHERE questid = ?", (qid,)).rowcount
             if trips:
                 n["trips"] += db.execute("DELETE FROM questunlocks WHERE questid = ?", (qid,)).rowcount
+            if others:
+                n["creatures"] += db.execute("DELETE FROM queststeptargets WHERE questid = ?", (qid,)).rowcount
         for p in pids:
             for t in ("charinventory", "npcitem"):
                 if has_table(db, t):
@@ -762,8 +773,9 @@ def main():
         if not args.no_backup:
             print("backup:", backup(db, args.db, "questundo"))
         n = undo(db)
-        print(f"deleted {n['quests']} quests ({n['steps']} steps, {n['progress']} characters' progress, "
-              f"{n['trips']} trips they unlocked) and {n['items']} items made ({n['held']} of them held or sold); "
+        print(f"deleted {n['quests']} quests ({n['steps']} steps, {n['creatures']} other creatures of their steps, "
+              f"{n['progress']} characters' progress, {n['trips']} trips they unlocked) and {n['items']} items made "
+              f"({n['held']} of them held or sold); "
               "restart the server")
         return
     paths = args.files or sorted(glob.glob(os.path.join(DEFAULT_DATA, "*.json")))

@@ -25,10 +25,13 @@ type QuestState struct {
 	Steps   int    `json:"steps"`           // how many steps the quest has
 	Count   int    `json:"count,omitempty"` // creatures killed so far on a kill step, items taken on a loot step
 	Need    int    `json:"need,omitempty"`  // how many the kill or loot step wants
-	Done    int    `json:"done"`            // times finished
-	Journal string `json:"journal,omitempty"`
-	Line    int    `json:"line"` // its place in the journal, -1 for none
-	Updated string `json:"updated,omitempty"`
+	// Targets is the creatures a kill or loot step counts: its target and its
+	// others (queststeptargets)
+	Targets []string `json:"targets,omitempty"`
+	Done    int      `json:"done"` // times finished
+	Journal string   `json:"journal,omitempty"`
+	Line    int      `json:"line"` // its place in the journal, -1 for none
+	Updated string   `json:"updated,omitempty"`
 }
 
 // CharacterQuests is a character's quests, under way first in journal order,
@@ -70,6 +73,9 @@ func (q *QuestEngine) stateLocked(cq *database.CharQuest, line int) QuestState {
 			}
 			if _, need, ok := st.LootItem(); ok && st.Kind == database.StepLoot {
 				s.Need = need
+			}
+			if database.Hunts(st.Kind) {
+				s.Targets = st.Targets()
 			}
 		}
 	} else {

@@ -67,7 +67,7 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveCMCatalog()
 	case "charcms":
 		return s.liveCharCMs(before, after)
-	case "quests", "queststeps", "questunlocks":
+	case "quests", "queststeps", "questunlocks", "queststeptargets":
 		return s.liveQuests()
 	case "spellpattern", "spelleffect", "classspells":
 		// the community spell page's list too (internal/spellfx)

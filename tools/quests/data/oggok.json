@@ -143,12 +143,15 @@
      ],
      "says": "Good.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Life Tap"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Life Tap scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/necromancer/L4",
@@ -278,12 +281,15 @@
      ],
      "says": "The outcast is dead. Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Rabid Infection"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Rabid Infection scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/necromancer/L7",
@@ -328,12 +334,15 @@
      "journal": "Return to Si Pwen Noora.",
      "says": "Gred the Boko. We will remember.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Strengthen Bone"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the shallow grave at the Craknek camp is Lork's second word here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the shallow grave at the Craknek camp is Lork's second word here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Strengthen Bone + scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/necromancer/L10",
@@ -404,12 +413,15 @@
      ],
      "says": "Charred. Korpus is dead. Take this staff.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "dagger of essence"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The sapphire charred at Korpus's death is the charred sapphire he drops here. The guide's Charred Sapphire Staff is not on this server."
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The sapphire charred at Korpus's death is the charred sapphire he drops here. The guide's Charred Sapphire Staff is not on this server. The reward is ours: dagger of essence, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/necromancer/L13",
@@ -559,12 +571,15 @@
      ],
      "says": "Good. We will see what the ruby shows.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Endure Disease"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). Simplified: anointing and burying Frada's remains on the island topped with mushrooms are left out. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/necromancer.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). Simplified: anointing and burying Frada's remains on the island topped with mushrooms are left out. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Endure Disease scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/necromancer/L20",
@@ -961,12 +976,15 @@
      ],
      "says": "The outcast is dead. Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Harm Touch"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Harm Touch scroll, as Highbourne's and Neriak's quests of this level teach it (the most of the cities; others teach heavy arms (freeport, not a spell of the class's)) (the user's word) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/shadowknight/L7",
@@ -1012,12 +1030,15 @@
      ],
      "says": "Three. Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Shadow Tunic"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Shadow Tunic scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/shadowknight/L10",
@@ -1111,12 +1132,15 @@
      "journal": "Return to Greenblood Yurgat.",
      "says": "Elder Thorg speaks well of you.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Blade of the Nanchael"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the potion thrown into the fire is the hand-over to Elder Thorg; the undead alchemist is fought where it stands. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the potion thrown into the fire is the hand-over to Elder Thorg; the undead alchemist is fought where it stands. The guide's purchase is a hand-over here: the merchant gives the item when spoken to. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Blade of the Nanchael, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/shadowknight/L13",
@@ -1216,12 +1240,15 @@
      "journal": "Return to Elder Thorg.",
      "says": "Gamor has what he wanted.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Scream of Pain"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide's Poisonous Kingsnake is spelled posionous kingsnake on this server. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide's Poisonous Kingsnake is spelled posionous kingsnake on this server. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Scream of Pain scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/shadowknight/L15",
@@ -1359,12 +1386,15 @@
      "journal": "Return to Elder Thorg.",
      "says": "You live. Good. The meals go to Gunthak, Yurgat and Brogar.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Punish Death"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the tree sap and the three meals' deliveries are left out; Lokar's three ogres are made beside the player (the server's ogre thugs). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/shadowknight.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the tree sap and the three meals' deliveries are left out; Lokar's three ogres are made beside the player (the server's ogre thugs). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Punish Death scroll, as Highbourne's quest of this level teaches it (the most of the cities; others teach alarming visage (freeport, not a spell of the class's)) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/shadowknight/L20",
@@ -1621,12 +1651,15 @@
      ],
      "says": "Three. Good.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Tribal Toughness"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Tribal Toughness scroll, as Halas's quest of this level teaches it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/shaman/L4",
@@ -1756,12 +1789,15 @@
      ],
      "says": "The outcast is dead. Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Blighting Mist"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Blighting Mist scroll, as Halas's quest of this level teaches it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/shaman/L7",
@@ -1801,12 +1837,15 @@
      "journal": "Return to Gunthak.",
      "says": "Now you know where we came from.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Minor Malady"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide's meditation is a popup at a stone; here it pops up when Guard Fraug sends you there (the stone has no place in the database). The story's words are ours. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide's meditation is a popup at a stone; here it pops up when Guard Fraug sends you there (the stone has no place in the database). The story's words are ours. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Minor Malady scroll, as Halas's quest of this level teaches it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/shaman/L10",
@@ -1970,12 +2009,15 @@
      ],
      "says": "The stone is ours again.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Tribal Brawn"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Tribal Brawn scroll, as Halas's quest of this level teaches it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/shaman/L15",
@@ -2314,12 +2356,15 @@
      ],
      "says": "Good.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Kick"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Kick scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/warrior/L4",
@@ -2501,12 +2546,15 @@
      ],
      "says": "Three. Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Furious Defense"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Furious Defense scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/warrior/L10",
@@ -2740,12 +2788,15 @@
      "journal": "Return to Warlord Brogar.",
      "says": "Well done.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Rapid Strike"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Simplified: enchanting the totem at the altar in Mogguk's Gate (the words GYTHGOR OGG) is left out. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Simplified: enchanting the totem at the altar in Mogguk's Gate (the words GYTHGOR OGG) is left out. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Rapid Strike scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/warrior/L15",
@@ -2877,12 +2928,15 @@
      "journal": "Return to Warlord Brogar.",
      "says": "Good work.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Stomp"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Provisioner Oomgig is spelled Provivisioner Oomgig on this server. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Provisioner Oomgig is spelled Provivisioner Oomgig on this server. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Stomp scroll, as Freeport's, Halas's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/warrior/L20",

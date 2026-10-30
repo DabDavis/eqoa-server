@@ -143,12 +143,15 @@
      ],
      "says": "Two nets. Good.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Malice"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Malice scroll, as Freeport's, Highbourne's and Oggok's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/shadowknight/L4",
@@ -289,12 +292,15 @@
      ],
      "says": "A casting stone. Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Harm Touch"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Harm Touch scroll, as Highbourne's and Neriak's quests of this level teach it (the most of the cities; others teach heavy arms (freeport, not a spell of the class's)) (the user's word) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/shadowknight/L7",
@@ -365,12 +371,15 @@
      ],
      "says": "Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Shadow Tunic"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Shadow Tunic scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/shadowknight/L10",
@@ -453,12 +462,15 @@
      ],
      "says": "The traitor is dead.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Blade of the Nanchael"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the shoreline's popup (random places in the guide) is Grumgra's words here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). Simplified: the shoreline's popup (random places in the guide) is Grumgra's words here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Blade of the Nanchael, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/shadowknight/L13",
@@ -553,12 +565,15 @@
      "journal": "Return to Underlord Bugrish.",
      "says": "Good work.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Scream of Pain"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's Underlord Burgish is Underlord Bugrish here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's Underlord Burgish is Underlord Bugrish here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Scream of Pain scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/shadowknight/L15",
@@ -659,12 +674,15 @@
      "journal": "Return to Smithy Cragis.",
      "says": "Good. Here is a tunic for your trouble.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Punish Death"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Underlord Burgrish is Underlord Bugrish here, and its Turgot is Torgot. The guide's tunic and Torgot's scroll are unnamed. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shadowknight.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Underlord Burgrish is Underlord Bugrish here, and its Turgot is Torgot. The guide's tunic and Torgot's scroll are unnamed. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Punish Death scroll, as Highbourne's quest of this level teaches it (the most of the cities; others teach alarming visage (freeport, not a spell of the class's)) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/shadowknight/L20",
@@ -930,12 +948,15 @@
      ],
      "says": "Three. Good.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Tribal Toughness"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Tribal Toughness scroll, as Halas's quest of this level teaches it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/shaman/L4",
@@ -1076,12 +1097,15 @@
      ],
      "says": "A casting stone. Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Blighting Mist"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Blighting Mist scroll, as Halas's quest of this level teaches it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/shaman/L7",
@@ -1152,12 +1176,15 @@
      ],
      "says": "Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Minor Malady"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide's bloated mosquitoes are the giant mosquitos here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide's bloated mosquitoes are the giant mosquitos here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Minor Malady scroll, as Halas's quest of this level teaches it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/shaman/L10",
@@ -1328,12 +1355,15 @@
      "journal": "Return to Underlord Bugrish.",
      "says": "Good work.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Tribal Brawn"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's Underlord Burgish is Underlord Bugrish here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's Underlord Burgish is Underlord Bugrish here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Tribal Brawn scroll, as Halas's quest of this level teaches it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/shaman/L15",
@@ -1705,12 +1735,15 @@
      ],
      "says": "Three. Good.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Kick"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Kick scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/warrior/L4",
@@ -1933,12 +1966,15 @@
      ],
      "says": "Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Furious Defense"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Furious Defense scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/warrior/L10",
@@ -2188,12 +2224,15 @@
      "journal": "Return to Underlord Bugrish.",
      "says": "Good work.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Rapid Strike"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's Underlord Burgish is Underlord Bugrish here. The guide names no reward but the experience; the experience is the one every city gives for this level. The arena troll is unnamed in the guide."
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). Waysender Zapgit's trips are the player's own (his usual menu); the steps are the people at either end. The guide's Underlord Burgish is Underlord Bugrish here. The guide names no reward but the experience; the experience is the one every city gives for this level. The arena troll is unnamed in the guide. The reward is ours: the Rapid Strike scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/warrior/L15",
@@ -2294,12 +2333,15 @@
      "journal": "Return to Smithy Cragis.",
      "says": "Good. Here is a tunic for your trouble.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Stomp"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Underlord Burgrish is Underlord Bugrish here, and its Turgot is Torgot. The guide's tunic and Torgot's scroll are unnamed. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Underlord Burgrish is Underlord Bugrish here, and its Turgot is Torgot. The guide's tunic and Torgot's scroll are unnamed. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Stomp scroll, as Freeport's, Halas's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/warrior/L20",

@@ -166,12 +166,15 @@
      ],
      "says": "Good. These will do.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Hardening Agent"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Hardening Agent scroll, as Fayspire's, Freeport's, Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/alchemist/L4",
@@ -240,12 +243,15 @@
      ],
      "says": "Good.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "burnt gloves"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 4 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: burnt gloves, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/alchemist/L5",
@@ -291,12 +297,15 @@
      ],
      "says": "A fine feather.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Crude Refinement"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Crude Refinement scroll, as Fayspire's, Freeport's, Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/alchemist/L7",
@@ -329,12 +338,15 @@
      "journal": "Return to Unsayra N'Voriss.",
      "says": "She will not reach Klick'Anon. Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Crude Sublimation"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Crude Sublimation scroll, as Fayspire's, Freeport's, Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/alchemist/L10",
@@ -547,12 +559,15 @@
      ],
      "says": "His hair. The house of U'Dedne will not forgive you, but I will reward you.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Crude Quickening"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide's Guard Dran is Guard Drand here; the wine comes from Metilosh himself. The kill costs faction with the house of U'Dedne in the live game (the server's own faction rows decide here). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide's Guard Dran is Guard Drand here; the wine comes from Metilosh himself. The kill costs faction with the house of U'Dedne in the live game (the server's own faction rows decide here). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Crude Quickening scroll, as Fayspire's, Freeport's, Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/alchemist/L15",
@@ -697,12 +712,15 @@
      ],
      "says": "Dwarven mineral salts. Excellent.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Faulty Refinement"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide does not name what the giant widow and the leafcutter ant give; the names here are ours. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide does not name what the giant widow and the leafcutter ant give; the names here are ours. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Faulty Refinement scroll, as Fayspire's, Freeport's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/alchemist/L20",
@@ -834,11 +852,32 @@
      "says": "Now choose which one we use.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Student's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Student's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Klik'Anon Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Klik'Anon Cocktail"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is a choice: a mace and a mana potion, or a tome and an explosive potion; none of them is on this server, so only the experience is given."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide's reward is a choice: a mace and a mana potion, or a tome and an explosive potion; none of them is on this server, so only the experience is given. The reward is ours: the choice of the Student's Knack or the Klik'Anon Cocktail scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/cleric/L1",
@@ -982,12 +1021,15 @@
      ],
      "says": "Well done.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Minor Blessing"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Minor Blessing scroll, as Freeport's, Highbourne's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/cleric/L4",
@@ -1117,12 +1159,15 @@
      ],
      "says": "A torn fire bat wing. Not bad.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Holy Shock"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Holy Shock scroll, as Freeport's, Highbourne's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/cleric/L7",
@@ -1173,12 +1218,15 @@
      ],
      "says": "The report. Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Endure Ailment"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Endure Ailment scroll, as Freeport's, Highbourne's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/cleric/L10",
@@ -1292,12 +1340,15 @@
      ],
      "says": "The traitor is dead. You have served the house well.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Sturdy Mace"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Sturdy Mace, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/cleric/L13",
@@ -1422,12 +1473,15 @@
      "journal": "Return to Denouncer V`Thoth.",
      "says": "Durinex speaks well of you.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Ward Death"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The guide gives no price for the chalice; it is the 226 tunar of the other cities' bracelet here."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The guide gives no price for the chalice; it is the 226 tunar of the other cities' bracelet here. The reward is ours: the Ward Death scroll, as Freeport's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (the most of the cities; others teach disrupt undead (highbourne, not a spell of the class's)) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/cleric/L15",
@@ -1503,12 +1557,15 @@
      "journal": "Return to Denouncer V`Thoth.",
      "says": "Zelthil is pleased. So am I.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Endure Affliction"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's pay for the trolls is not given; Underlord Bugrish is only spoken to here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's pay for the trolls is not given; Underlord Bugrish is only spoken to here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Endure Affliction scroll, as Freeport's, Highbourne's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/cleric/L20",
@@ -1617,11 +1674,32 @@
      "says": "It is done. Choose your path.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Disease Ward",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Disease Ward"
+        ]
+       }
+      },
+      {
+       "answer": "Field Dress",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Field Dress"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT).  The Hodstock elder is unnamed in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/cleric.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT).  The Hodstock elder is unnamed in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the choice of the Disease Ward or the Field Dress scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/enchanter/L1",
@@ -2566,12 +2644,15 @@
      ],
      "says": "Well done.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Smoldering Aura"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Smoldering Aura scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/magician/L4",
@@ -2701,12 +2782,15 @@
      ],
      "says": "A torn fire bat wing. Not bad.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Motivate"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Motivate scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/magician/L7",
@@ -2764,12 +2848,15 @@
      "journal": "Return to Elementalist R`Virr.",
      "says": "About time. Well done.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Infusion"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide's weak crabs are the Grobb crabs here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide's weak crabs are the Grobb crabs here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Infusion scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/magician/L10",
@@ -2870,12 +2957,15 @@
      ],
      "says": "So that is what he was making. Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "sturdy staff"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation has no name; it is a fungus cockroach made beside the player. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation has no name; it is a fungus cockroach made beside the player. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: sturdy staff, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/magician/L13",
@@ -3012,12 +3102,15 @@
      "journal": "Return to Elementalist R`Virr.",
      "says": "Lady Furess is pleased with you.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Lava Wind"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Lava Wind scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/magician/L15",
@@ -3145,12 +3238,15 @@
      "journal": "Return to Elementalist R`Virr.",
      "says": "You have done well.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Endure Fire"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. Zelthil and Zethil are one man in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. Zelthil and Zethil are one man in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Endure Fire scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/magician/L20",
@@ -3258,11 +3354,32 @@
      "says": "It is done. Choose your path.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Frozen Mark",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Frozen Mark"
+        ]
+       }
+      },
+      {
+       "answer": "Lava Stone",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Lava Stone"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT).  The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/magician.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT).  The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the choice of the Frozen Mark or the Lava Stone scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/necromancer/L1",
@@ -3406,12 +3523,15 @@
      ],
      "says": "Well done.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Life Tap"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Life Tap scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/necromancer/L4",
@@ -3541,12 +3661,15 @@
      ],
      "says": "A torn fire bat wing. Not bad.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Rabid Infection"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Rabid Infection scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/necromancer/L7",
@@ -3604,12 +3727,15 @@
      "journal": "Return to Grand Defiler J`Narus.",
      "says": "About time. Well done.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Strengthen Bone"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide's weak crabs are the Grobb crabs here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide's weak crabs are the Grobb crabs here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Strengthen Bone + scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/necromancer/L10",
@@ -3710,12 +3836,15 @@
      ],
      "says": "So that is what he was making. Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "dagger of essence"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation has no name; it is a fungus cockroach made beside the player. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation has no name; it is a fungus cockroach made beside the player. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: dagger of essence, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/necromancer/L13",
@@ -3985,12 +4114,15 @@
      "journal": "Return to Grand Defiler J`Narus.",
      "says": "You have done well.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Endure Disease"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. Zelthil and Zethil are one man in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/necromancer.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. Zelthil and Zethil are one man in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Endure Disease scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/necromancer/L20",
@@ -4384,12 +4516,15 @@
      ],
      "says": "A torn fire bat wing. Not bad.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Quick Blade"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Quick Blade scroll, as Freeport's, Halas's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/rogue/L7",
@@ -4497,12 +4632,15 @@
      ],
      "says": "Good work. A new dagger for you.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "sturdy dagger"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide names no one; it is Domnik Novandear here, the one of the Novandear gang no other class's quest takes. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide names no one; it is Domnik Novandear here, the one of the Novandear gang no other class's quest takes. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: sturdy dagger, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/rogue/L13",
@@ -4571,12 +4709,15 @@
      ],
      "says": "Duminven speaks well of you.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Night Breath"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Night Breath scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/rogue/L15",
@@ -4709,12 +4850,15 @@
      ],
      "says": "Let me finish them for you.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Vaulter's Balance"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Tailor Weylian is Tailor Weynia. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/rogue.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Tailor Weylian is Tailor Weynia. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Vaulter's Balance scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/rogue/L20",
@@ -4998,12 +5142,15 @@
      ],
      "says": "Well done.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Malice"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Malice scroll, as Freeport's, Highbourne's and Oggok's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/shadowknight/L4",
@@ -5199,12 +5346,15 @@
      "journal": "Return to Sythonis U`Dedne.",
      "says": "About time. Well done.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Shadow Tunic"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide's weak crabs are the Grobb crabs here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide's weak crabs are the Grobb crabs here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Shadow Tunic scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/shadowknight/L10",
@@ -5305,12 +5455,15 @@
      ],
      "says": "So that is what he was making. Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Blade of the Nanchael"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation has no name; it is a fungus cockroach made beside the player. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation has no name; it is a fungus cockroach made beside the player. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Blade of the Nanchael, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/shadowknight/L13",
@@ -5447,12 +5600,15 @@
      "journal": "Return to Sythonis U`Dedne.",
      "says": "Lady Furess is pleased with you.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Scream of Pain"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Scream of Pain scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/shadowknight/L15",
@@ -5580,12 +5736,15 @@
      "journal": "Return to Zethril Do`Vexis.",
      "says": "You have done well.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Punish Death"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. Zelthil and Zethil are one man in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. Zelthil and Zethil are one man in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Punish Death scroll, as Highbourne's quest of this level teaches it (the most of the cities; others teach alarming visage (freeport, not a spell of the class's)) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/shadowknight/L20",
@@ -5844,12 +6003,15 @@
      ],
      "says": "Well done.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Kick"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The guide's Scornblade Vo'Dleth is Scornblade D'Eleth, who stands with the Scornmaster."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 3 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The guide's Scornblade Vo'Dleth is Scornblade D'Eleth, who stands with the Scornmaster. The reward is ours: the Kick scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/warrior/L4",
@@ -6041,7 +6203,10 @@
      ],
      "says": "Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Furious Defense"
+      ]
      }
     }
    ],
@@ -6058,7 +6223,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Furious Defense scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/warrior/L10",
@@ -6296,12 +6461,15 @@
      ],
      "says": "The house of U'Dedne thanks you.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Rapid Strike"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Rapid Strike scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/warrior/L15",
@@ -6377,12 +6545,15 @@
      "journal": "Return to Scornblade D`Eleth.",
      "says": "Zelthil is pleased. So am I.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Stomp"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's pay for the trolls is not given; Underlord Bugrish is only spoken to here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's pay for the trolls is not given; Underlord Bugrish is only spoken to here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Stomp scroll, as Freeport's, Halas's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/warrior/L20",
@@ -6491,11 +6662,32 @@
      "says": "It is done. Choose your path.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Bellow",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Bellow"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Might",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Pillar of Might"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide's Elder Willam is Elder William here. The Hodstock elder is unnamed in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT). The guide's Elder Willam is Elder William here. The Hodstock elder is unnamed in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the choice of the Bellow or the Pillar of Might scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/wizard/L1",
@@ -6792,12 +6984,15 @@
      ],
      "says": "A torn fire bat wing. Not bad.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Shock of Frost"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Shock of Frost scroll, as Freeport's, Highbourne's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/wizard/L7",
@@ -6855,12 +7050,15 @@
      "journal": "Return to Sorceress X`Lottl.",
      "says": "About time. Well done.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Burning Flare"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide's weak crabs are the Grobb crabs here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide's weak crabs are the Grobb crabs here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Burning Flare scroll, as Freeport's, Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/wizard/L10",
@@ -6961,12 +7159,15 @@
      ],
      "says": "So that is what he was making. Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Staff of Malconius"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation has no name; it is a fungus cockroach made beside the player. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's creation has no name; it is a fungus cockroach made beside the player. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Staff of Malconius, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/wizard/L13",
@@ -7103,12 +7304,15 @@
      "journal": "Return to Sorceress X`Lottl.",
      "says": "Lady Furess is pleased with you.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Element Guard"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 13 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Element Guard scroll, as Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (the most of the cities; others teach elemental guard (freeport, not a spell of the class's)) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/wizard/L15",
@@ -7236,12 +7440,15 @@
      "journal": "Return to Sorceress X`Lottl.",
      "says": "You have done well.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Shocking Gaze"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. Zelthil and Zethil are one man in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. Zelthil and Zethil are one man in the guides. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Shocking Gaze scroll, as Freeport's, Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/neriak-nektulos/wizard/L20",
@@ -7349,11 +7556,32 @@
      "says": "It is done. Choose your path.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Blazing Clash",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Blazing Clash"
+        ]
+       }
+      },
+      {
+       "answer": "Mental Focus",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Mental Focus"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT).  The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 20 (github.com/Jadiction/EQOA-Data, MIT).  The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the choice of the Blazing Clash or the Mental Focus scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   }
  ],
  "items": [

@@ -230,13 +230,16 @@
      "journal": "Bring iron ore, leather strip, bat meat and Cracked Rat Claw to Torenia Eaglesong.",
      "says": "Your weapon will be ready.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Traveler's Rapier"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The ore and strip are bought in the guide; here Efreya hands them over."
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The ore and strip are bought in the guide; here Efreya hands them over. The reward is ours: Traveler's Rapier, Traveler's Rapier: a rapier, as the bard's L20 path weapons (Troupe Foil is a blunt weapon) (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/tethelin/bard/L5",
@@ -2837,13 +2840,16 @@
      "journal": "Bring leather strip, block of ore and cracked snake fang to Angelith Silvosin.",
      "says": "Your weapon will be ready.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "tiger dirk"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and ore are bought in the guide; here Efreya hands them over."
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and ore are bought in the guide; here Efreya hands them over. The reward is ours: tiger dirk, the same (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/tethelin/rogue/L5",

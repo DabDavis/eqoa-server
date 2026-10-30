@@ -2047,12 +2047,15 @@
      "journal": "Bring the iron ore, the charcoal and the wing to Thom Gubbin.",
      "says": "Here's your weapon.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "tiger dirk"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon. The reward is ours: tiger dirk, the same (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/rivervale/rogue/L5",
@@ -3186,12 +3189,15 @@
      "journal": "Bring the iron ore, the charcoal and the wing to Thom Gubbin.",
      "says": "Here's your weapon.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "militia short sword"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon. The reward is ours: militia short sword, the same (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/rivervale/warrior/L5",
@@ -3673,12 +3679,15 @@
      "journal": "Return to Walt Deeppockets.",
      "says": "Nicely done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Sturdy Two-Handed Sword"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The windmills', the locker's places are EQOA-Data's map's. Mrs. Ghobber is Sophie Ghobber, Old Lady Gubbin is Grandma Gubbin, Mrs. Earblower is Zarene Earblower. The plans stay with you after the locker (a reach step takes no items)."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). EQOA-Data's Rivervale warrior guide repeats its rogue guide word for word up to level 15 (Walt Deeppockets of the rogue guild, the Six Pocket Shirt): it is kept as written. The windmills', the locker's places are EQOA-Data's map's. Mrs. Ghobber is Sophie Ghobber, Old Lady Gubbin is Grandma Gubbin, Mrs. Earblower is Zarene Earblower. The plans stay with you after the locker (a reach step takes no items). The reward is ours: Sturdy Two-Handed Sword, the same (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/rivervale/warrior/L13",

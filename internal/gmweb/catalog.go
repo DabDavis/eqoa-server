@@ -461,6 +461,86 @@ var catalog = map[string]tableNote{
 			"source":    {Label: "Source", Help: "gm, or camp-seed for tools/seed_camp_loot.py's rows (its --undo deletes those no GM changed)"},
 		},
 	},
+	"lootpreset": {
+		Label: "Loot presets", Group: "World", Title: "name", Sort: "name",
+		Help: "Named sets of loot rates (Loot rates): the one with active 1 is the one every corpse rolls by. Rows of " +
+			"source category-seed are tools/seed_loot_categories.py's: jib (the rates of jib, a GM of SOE's game: " +
+			"uncommon 1 in 30, rare 1 in 240, super rare 1 in 1,200, a global roll 1 in 10,000 from one server-wide " +
+			"list, gems 20%, his trash counts) and user (the user's: rare 3%, uncommon 15%, super rare 1 in 1,000, " +
+			"ultra rare 1 in 10,000, legendary five on the server in ten years).",
+		Live:   "At once: the next corpse rolls by the active preset.",
+		Search: []string{"name", "note", "source"},
+		Cols: map[string]colNote{
+			"name":   {Label: "Preset"},
+			"active": {Label: "Active", Help: "1 the preset every corpse rolls by (one at a time: the first by name if several)"},
+			"note":   {Label: "Note"},
+			"source": {Label: "Source", Help: "gm, or category-seed for tools/seed_loot_categories.py's rows"},
+		},
+	},
+	"lootrate": {
+		Label: "Loot rates", Group: "World", Title: "category", Sort: "preset",
+		Help: "A preset's loot rates by profile and category (handlers/lootcategory.go): each category makes its own " +
+			"rolls at every corpse, independent of the others. rate is a chance a kill (0-1: 0.0333 is 1 in 30), a " +
+			"landing roll taking one item of the creature's pool for the category (Loot pools), a stackable one " +
+			"minstack to maxstack at a time; counts, when set, are the chances of 0, 1, 2, ... items (any scale: " +
+			"25,31,25,12,5,1.5,0.5 is jib's trash), each drawn on its own, and rate is not read. A profile is a kind " +
+			"of creature (Loot creatures): xp the default, named, boss, trash; a profile a preset has no rows for " +
+			"rolls the preset's xp rows. How big a pool is never changes how often its category drops.",
+		Live:   "At once: the next corpse rolls with it.",
+		Search: []string{"preset", "profile", "category", "note", "source"},
+		Cols: map[string]colNote{
+			"preset":   {Label: "Preset", Help: "a Loot presets name"},
+			"profile":  {Label: "Profile", Help: "xp (the default), named, boss, trash, or one of your own"},
+			"category": {Label: "Category", Help: "a Loot pools category: trash, gems, modifiers, uncommon, rare, super rare, ultra rare, legendary, global"},
+			"rate":     {Label: "Chance a kill", Help: "0-1: 0.0333 is 1 in 30, 0.0001 is 1 in 10,000"},
+			"counts":   {Label: "Counts", Help: "the chances of 0, 1, 2, ... items, comma separated; empty: one roll at the rate"},
+			"minstack": {Label: "Stack from", Help: "a stackable item's least a roll gives"},
+			"maxstack": {Label: "Stack to", Help: "and most (its own stack size at most)"},
+			"position": {Label: "Order", Help: "the order the categories roll and list in"},
+			"note":     {Label: "Note"},
+			"source":   {Label: "Source", Help: "gm, or category-seed for tools/seed_loot_categories.py's rows"},
+		},
+	},
+	"lootpool": {
+		Label: "Loot pools", Group: "World", Title: "category", Sort: "category",
+		Help: "The items a loot category's roll draws from, a row an item, by weight (2 twice as likely as 1; 0 never), " +
+			"for the creature levels from-to: a creature's own rows (NPC name set) when it has any for the category, " +
+			"else its region's (Loot creatures) and every region's (*). Rows of source category-seed are " +
+			"tools/seed_loot_categories.py's: EQOA-Data's tables' gear sorted into uncommon, rare, super rare and ultra " +
+			"rare by its stats against its level's, the legendary and global lists, the jewelers' gems and the " +
+			"modifiers, and each creature's own trash.",
+		Live:   "At once: the next corpse draws from it.",
+		Search: []string{"category", "region", "npc_name", "source"},
+		Show:   []string{"id", "category", "region", "npc_name", "patternid", "weight", "minlevel", "maxlevel", "source"},
+		Cols: map[string]colNote{
+			"id":        {Label: "Row", ReadOnly: true},
+			"category":  {Label: "Category"},
+			"region":    {Label: "Region", Help: "a Loot creatures region, or * for every creature"},
+			"npc_name":  {Label: "NPC name (key)", Help: "empty: the region's; a name: that creature's own (lower case, as NPC classes key it)"},
+			"patternid": {Label: "Item", Ref: "itempattern"},
+			"weight":    {Label: "Weight", Help: "its share of the pool's draws: 2 twice as likely as 1, 0 never"},
+			"minlevel":  {Label: "From level"},
+			"maxlevel":  {Label: "To level"},
+			"source":    {Label: "Source", Help: "gm, or category-seed for tools/seed_loot_categories.py's rows"},
+		},
+	},
+	"lootcreature": {
+		Label: "Loot creatures", Group: "World", Title: "npc_name", Sort: "npc_name",
+		Help: "A creature's loot region (whose Loot pools it draws from, beside every region's) and profile (whose Loot " +
+			"rates it rolls), by NPC NAME as NPC classes key it. Region - rolls no category (players' pets recorded " +
+			"off the live game); a creature with no row, or no profile, is profile xp and draws every region's rows " +
+			"alone. Rows of source category-seed are tools/seed_loot_categories.py's: the region of most of the " +
+			"creature's spawns (a Tunaria quadrant's biome from EQOA-Data's map, Tunaria's waters marine, the Rathe, " +
+			"Odus, Lavastorm, the Plane of Sky, the Secrets) and the boss and named profiles.",
+		Live:   "At once: its next corpse rolls by it.",
+		Search: []string{"npc_name", "region", "profile", "source"},
+		Cols: map[string]colNote{
+			"npc_name": {Label: "NPC name (key)", Help: "lower case, as in NPCs without a trailing space or $"},
+			"region":   {Label: "Region", Help: "a Loot pools region; - rolls no category"},
+			"profile":  {Label: "Profile", Help: "a Loot rates profile; empty: xp"},
+			"source":   {Label: "Source", Help: "gm, or category-seed for tools/seed_loot_categories.py's rows"},
+		},
+	},
 	"npcclass": {
 		Label: "NPC classes", Group: "World", Title: "name", Sort: "name",
 		Help: "Each NPC NAME's class (lower case, no trailing $), which picks its melee swing; a name not here is a warrior.",

@@ -110,6 +110,33 @@ export async function grantSpell(ch, all = false) {
   return run('grant_spell', { character: ch.serverid, spell }, (o) => o.message);
 }
 
+// signLedger signs a stable's ledger for a character (charcoaches,
+// handlers/coachledger.go): a coachman whose coach runs to the town offers it
+// from their next talk. The towns are this world's coachmen's (map_layers).
+export async function signLedger(ch) {
+  let towns = [];
+  try {
+    const out = await op('map_layers', { world: 0 });
+    towns = [...new Set(out.coaches.filter((c) => c.named).map((c) => c.town))].sort();
+  } catch (e) {
+    toast(e.message, 'error');
+    return null;
+  }
+  if (!towns.length) {
+    toast('No coachman of Tunaria serves a town', 'warn');
+    return null;
+  }
+  const v = await formBox({
+    title: 'Sign a ledger for ' + ch.name, submitLabel: 'Sign',
+    intro: 'A coachman whose coach runs to the town offers it to them from their next talk. Delete the row to take it back.',
+    fields: [{ name: 'town', label: 'Town', type: 'select', options: towns.map((t) => ({ value: t, label: t })) }],
+  });
+  if (!v) return null;
+  const signed = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+  return run('insert_row', { table: 'charcoaches', values: { serverid: ch.serverid, town: v.town, source: 'gm', signed } },
+    () => ch.name + ' signed ' + v.town + "'s ledger");
+}
+
 export async function kick(ch) {
   const v = await formBox({
     title: 'Kick ' + ch.name, submitLabel: 'Kick',

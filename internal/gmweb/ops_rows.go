@@ -448,9 +448,9 @@ func (s *Server) lookupNames(t *Table, keys []any) (map[string]string, error) {
 }
 
 // deleteCharacter deletes a character with everything that is its: items,
-// spells, effects, standings, hotkeys, weapon sets, quests and guild membership, each
-// row audited (so revert_change can put any back), the character last. One
-// in the world is ejected first.
+// spells, effects, standings, hotkeys, weapon sets, quests, coach ledgers and
+// guild membership, each row audited (so revert_change can put any back), the
+// character last. One in the world is ejected first.
 func (s *Server) deleteCharacter(a *actor, id int64, dry bool) (any, error) {
 	if !a.may(scopeWrite) {
 		return nil, forbidden("this credential is read-only")
@@ -470,7 +470,7 @@ func (s *Server) deleteCharacter(a *actor, id int64, dry bool) (any, error) {
 	deps := []struct{ table, col string }{
 		{"charinventory", "serverid"}, {"spells", "serverid"}, {"charbuffs", "serverid"}, {"charfactions", "serverid"}, {"hotkeys", "serverid"},
 		{"weaponhotbar", "serverid"}, {"quickslots", "serverid"}, {"gearsets", "serverid"},
-		{"charquests", "serverid"}, {"guild_members", "player_id"},
+		{"charquests", "serverid"}, {"charcoaches", "serverid"}, {"guild_members", "player_id"},
 	}
 	plan := map[string]int64{}
 	for _, d := range deps {

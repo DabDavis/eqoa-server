@@ -666,6 +666,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharDyes(); err != nil { // chardyes.go
 		return err
 	}
+	if err := db.ensureCharCoaches(); err != nil { // charcoaches.go: the stables' ledgers
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil
@@ -938,8 +941,12 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 	if rows == 0 {
 		return ErrCharacterNotFound
 	}
-	// its bind point with it: a server id made again must not inherit one
+	// its bind point and the ledgers it signed with it: a server id made
+	// again must not inherit them
 	if _, err := s.db.Exec(`DELETE FROM charbind WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`DELETE FROM charcoaches WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
 	// and its tradeskills and recipe book (craft.go), for the same reason

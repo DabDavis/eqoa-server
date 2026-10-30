@@ -1,7 +1,7 @@
 import { h, mount, card, button, toast, empty, confirmBox } from '../lib/dom.js';
 import { op } from '../lib/api.js';
 import { listPage, recordPage, relatedGrid } from './tablepage.js';
-import { playerActions, grantSpell, giveItem, teleport, setLevelMoney } from './actions.js';
+import { playerActions, grantSpell, giveItem, teleport, setLevelMoney, signLedger } from './actions.js';
 
 export async function render(box, [id]) {
   if (id === undefined) {
@@ -70,7 +70,13 @@ export async function render(box, [id]) {
         table: 'charbuffs', filters: [{ column: 'serverid', op: '=', value: row.serverid }], base: 'tables/charbuffs',
         columns: ['seq', 'spellid', 'name', 'left_ms'], emptyText: 'No effects kept.',
       });
-      return [h('h2', null, 'Items'), items.el, h('h2', null, 'Spell book'), spells.el, h('h2', null, 'Effects kept over a logout'), effects.el];
+      const ledgers = await relatedGrid({
+        table: 'charcoaches', filters: [{ column: 'serverid', op: '=', value: row.serverid }], base: 'tables/charcoaches',
+        columns: ['town', 'source', 'signed'], emptyText: 'No stable ledger signed: coachmen offer them no town.',
+        tools: [button('Sign a ledger', { class: 'small primary', icon: 'plus', onclick: async () => { if (await signLedger({ serverid: row.serverid, name: row.charName })) ledgers.load(); } })],
+      });
+      return [h('h2', null, 'Items'), items.el, h('h2', null, 'Spell book'), spells.el, h('h2', null, 'Effects kept over a logout'), effects.el,
+        h('h2', null, 'Coach ledgers signed'), ledgers.el];
     },
   });
 }

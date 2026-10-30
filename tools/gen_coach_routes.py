@@ -2,10 +2,11 @@
 """EQOA-Data's coach network: writes internal/entity/coachroutes.go.
 
 EQOA-Data (github.com/Jadiction/EQOA-Data, MIT) maps the live game's coaches
-in Map/coach_map.json: each coach town and the towns its coach ran to. The GM
-panel's map shows them beside each coachman (World.CoachMarkers); this
-server's own coach menus offer every coach town of the world
-(GetCoachDestinations), so the two are told apart there.
+in Map/coach_map.json: each coach town and the towns its coach ran to. The
+coach menus run on it, read both ways (entity/coachnetwork.go: a coachman
+offers the towns his coach runs to whose ledgers the player has signed,
+handlers/coachledger.go), and the GM panel's map draws it beside each
+coachman (World.CoachMarkers).
 
 The towns are written as coachtowns.go names them (its coachLocationNames):
 "Neriak, Nektulos" is Neriak, Castle Felstar Fort Seriak, Klick'Anon Klik'Anon,

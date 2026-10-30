@@ -9,18 +9,19 @@ import (
 
 // The World map's layers (ops_maplayers.go): the XP camps where their anchors
 // stand, a camp's loot tables by its creatures, the coach stops with the
-// towns their coach menu offers and the live game's, and the towns to name;
-// another world's coachman or town is not on this world's map, and a camp
-// nobody named is not found.
+// towns their coach menu may offer (those of the world its coach runs to) and
+// the live game's, and the towns to name; another world's coachman or town is
+// not on this world's map, and a camp nobody named is not found.
 func TestTheMapLayersAreCampsAndCoaches(t *testing.T) {
 	f := newFixture(t)
-	// dfc's anchor where camps.go writes it (21080.5, 19078.3), two coachmen
-	// of Tunaria and the Rathe's
+	// dfc's anchor where camps.go writes it (21080.5, 19078.3), three
+	// coachmen of Tunaria and the Rathe's
 	mustExec(t, f.db, `INSERT INTO npcs (id, npc_name, world, x_coord, y_coord, z_coord, facing, modelid, size, npc_level, npc_type, race)
 		VALUES (600, 'Deathfist champion', 0, 21080.5, 54.1, 19078.3, 0, 1893243078, 1.0, 36, 0, '0'),
 		       (601, 'Coachman Ronks', 0, 25274, 54.1, 15719, 0, 1893243078, 1.0, 20, 128, '0'),
 		       (602, 'Coachman Billfer', 0, 4813, 54, 17144, 0, 1893243078, 1.0, 20, 128, '0'),
-		       (603, 'Coachman Dilga', 1, 8962, 90, 7214, 0, 1893243078, 1.0, 20, 128, '0')`)
+		       (603, 'Coachman Dilga', 1, 8962, 90, 7214, 0, 1893243078, 1.0, 20, 128, '0'),
+		       (604, 'Coachman Quicksteed', 0, 16781, 188, 15356, 0, 1893243078, 1.0, 20, 128, '0')`)
 	mustExec(t, f.db, `INSERT INTO loottables (tablename, patternid, weight, minlevel, maxlevel, source) VALUES
 		('plains', 10, 1, 30, 40, 'camp-seed'), ('plains', 11, 1, 50, 60, 'camp-seed')`)
 	mustExec(t, f.db, `INSERT INTO npcloot (npc_name, tablename, chance, rolls, source) VALUES ('deathfist champion', 'plains', 25, 1, 'camp-seed')`)
@@ -48,15 +49,18 @@ func TestTheMapLayersAreCampsAndCoaches(t *testing.T) {
 		t.Fatalf("dfc %v, want at its anchor with EQOA-Data's note", dfc)
 	}
 	coaches := out["coaches"].([]any)
-	if len(coaches) != 2 {
-		t.Fatalf("%d coaches in Tunaria, want Ronks and Billfer (not the Rathe's Dilga): %v", len(coaches), coaches)
+	if len(coaches) != 3 {
+		t.Fatalf("%d coaches in Tunaria, want Ronks, Quicksteed and Billfer (not the Rathe's Dilga): %v", len(coaches), coaches)
 	}
 	ronks := coaches[0].(map[string]any)
 	if ronks["town"] != "Freeport" || ronks["id"] != float64(601) || ronks["x"] != 25274.0 {
 		t.Fatalf("first coach %v, want Freeport's Coachman Ronks at his spawn", ronks)
 	}
-	if routes := ronks["routes"].([]any); len(routes) != 1 || routes[0] != "Qeynos" {
-		t.Errorf("Ronks's menu %v, want Qeynos", routes)
+	if routes := ronks["routes"].([]any); len(routes) != 1 || routes[0] != "Highpass Hold" || ronks["routed"] != true {
+		t.Errorf("Ronks's menu %v (routed %v), want Highpass Hold: Freeport's coach never ran to Qeynos", routes, ronks["routed"])
+	}
+	if billfer := coaches[2].(map[string]any); billfer["town"] != "Qeynos" || len(billfer["routes"].([]any)) != 0 {
+		t.Errorf("third coach %v, want Qeynos with no stop here its coach runs to", billfer)
 	}
 	if live := ronks["live"].([]any); !slices.Contains(live, any("Muniel's Tea Garden")) {
 		t.Errorf("Freeport's live routes %v", live)
@@ -104,8 +108,9 @@ func TestTheMapLayersAreCampsAndCoaches(t *testing.T) {
 	if code, _ := c.op("map_camp", map[string]any{"camp": "freeport"}); code != 404 {
 		t.Errorf("map_camp freeport: %d, want 404 (a place, not a camp)", code)
 	}
-	if code, out = c.op("map_layers", map[string]any{"world": 1}); code != 200 || len(out["coaches"].([]any)) != 1 {
-		t.Errorf("the Rathe's coaches %v, want Dilga alone", out["coaches"])
+	if code, out = c.op("map_layers", map[string]any{"world": 1}); code != 200 || len(out["coaches"].([]any)) != 1 ||
+		out["coaches"].([]any)[0].(map[string]any)["routed"] != false {
+		t.Errorf("the Rathe's coaches %v, want Dilga alone, off the network", out["coaches"])
 	}
 	if len(out["towns"].([]any)) != 0 {
 		t.Errorf("the Rathe's towns %v, want none (EQOA-Data's map has none there)", out["towns"])

@@ -631,11 +631,14 @@ export async function render(box, [worldSeg, focusSeg, modeSeg]) {
   // coaches: what a hover says, and the info box
   function coachTip(c) {
     return [h('strong', null, 'Coach: ' + c.town), h('div', null, c.name),
-      h('div', { class: 'muted' }, `its menu: ${c.routes.length} towns` + (c.live.length ? ` · the live game's: ${c.live.join(', ')}` : ''))];
+      h('div', { class: 'muted' }, `runs to ${c.routes.length} towns` + (c.live.length ? ` · the live game's: ${c.live.join(', ')}` : ''))];
   }
   function coachInfo(c) {
     mount(info, h('strong', null, 'Coach: ' + c.town), h('div', null, c.name + (c.named ? '' : ' (no town of its own)')),
-      h('div', { class: 'small' }, 'Its coach menu here: ' + (c.routes.join(', ') || 'none (no other coach in this world)')),
+      h('div', { class: 'small' }, 'Its coach runs to: ' + (c.routes.join(', ') || 'none (no coach of this world it runs to)')),
+      h('div', { class: 'small muted' }, c.routed
+        ? 'A player is offered the ones whose stable ledger it has signed; a GM every coach town of the world.'
+        : 'Its town is not on the coach network: it offers every coach town of the world, ledgers or not.'),
       c.live.length ? h('div', { class: 'small muted' }, "The live game's coach ran to: " + c.live.join(', ')) : null,
       h('div', { class: 'mono small' }, `${c.x}, ${c.z}`),
       h('div', { class: 'row' }, button('Open', { class: 'small', onclick: () => go('npcs/' + c.id) }),

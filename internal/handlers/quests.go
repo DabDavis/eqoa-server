@@ -864,7 +864,8 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 		cq = &database.CharQuest{ServerID: c.serverID, QuestID: qu.ID}
 		c.quests[qu.ID] = cq
 	}
-	cq.Step, cq.Count, cq.Slot = st.Step, 0, c.nextSlot()
+	// a run of its own: a finished run's picks are not this one's
+	cq.Step, cq.Count, cq.Slot, cq.Picks = st.Step, 0, c.nextSlot(), ""
 	q.saveLocked(cq)
 	// Sandstorm's order: the journal's line, "You have received a quest!",
 	// then the giver's words
@@ -956,6 +957,9 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 	if opt != nil {
 		q.tellLocked(c, sess, st.Target, sayLines(opt.Says)...)
 		extra = &opt.Reward
+		// kept in the quest's row (completeStepLocked saves it): what a
+		// rehabilitator undoing a path takes back (rehab.go)
+		cq.Picks = database.WithPick(cq.Picks, st.Step, pick)
 		log.Printf("Quests: %s picked %q at %q step %d", p.Name, opt.Answer, qu.Name, st.Step)
 	}
 	q.completeStepLocked(sess, p, c, qu, cq, st, given, extra)

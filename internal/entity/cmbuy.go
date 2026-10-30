@@ -841,6 +841,19 @@ func (w *World) cmChangedLocked(p *Player) {
 	}
 }
 
+// CMCount is how many mastery ranks the session's player holds (a
+// rehabilitator says when there is nothing to reset), -1 when it is not in
+// the world.
+func (w *World) CMCount(sess *session.Session) int {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil {
+		return -1
+	}
+	return len(p.CMs)
+}
+
 // ResetCMs takes every rank from the session's player and gives back what
 // they cost (#cmreset): the ranks taken.
 func (w *World) ResetCMs(sess *session.Session) CMResult {

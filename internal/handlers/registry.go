@@ -437,6 +437,13 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 		}
 	}
 
+	// The rehabilitators (rehab.go): a character's masteries, stat points and
+	// paths undone, the Rose of Rehabilitation sold, on tables rehabsettings
+	// and charresets
+	if charStore != nil && gameWorld != nil {
+		interactHandler.rehab = NewRehab(charStore.DB(), gameWorld, invStore, spellStore, classMasteryHandler, charStore)
+	}
+
 	// The GMs' triggers (gmtriggers.go): scripted events the TEST menu's
 	// TRIGGER lines, #trigger and the GM panel fire
 	if charStore != nil && gameWorld != nil {

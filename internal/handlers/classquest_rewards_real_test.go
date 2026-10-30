@@ -12,8 +12,9 @@ import (
 )
 
 // The city class quests' rewards on a real server (EQOA_REAL_DB names its
-// database, a copy of which is read), after tools/fill_class_quest_rewards.py
-// and tools/seed_class_quest_rewards.py: every scroll they put on a quest's
+// database, a copy of which is read), after tools/fill_class_quest_rewards.py,
+// tools/seed_class_quest_rewards.py and tools/fill_class_quest_picks.py: every
+// scroll they put on a quest's
 // last step, as its own reward or a level-20 choice's, is one scribe.go
 // scribes (isScroll; scrollSpell over every spell, in its own order) into a
 // spell of the quest's class (a classspells record of that name at that
@@ -48,10 +49,10 @@ func TestRealClassQuestRewardsScribe(t *testing.T) {
 	}
 	defer db.Close()
 
-	// the tools' logs: tools/fill_class_quest_rewards.py's, and tools/seed_class_quest_rewards.py's
-	// (which also makes scrolls and items)
+	// the tools' logs: tools/fill_class_quest_rewards.py's, tools/seed_class_quest_rewards.py's (which
+	// also makes scrolls and items) and tools/fill_class_quest_picks.py's (the user's item picks)
 	var logs []string
-	for _, l := range []string{"class_quest_fill_log", "class_quest_seed_log"} {
+	for _, l := range []string{"class_quest_fill_log", "class_quest_seed_log", "class_quest_pick_log"} {
 		var n int
 		if err := db.QueryRow(`SELECT count(*) FROM sqlite_master WHERE name = ?`, l).Scan(&n); err == nil && n > 0 {
 			logs = append(logs, l)

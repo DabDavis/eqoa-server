@@ -11,6 +11,7 @@
 //	    [-try-art 1:0,30:1500,60:2000] [-try-class 1:80,5:80,6:80]
 //	    [-root] [-try-root 0:0:5,3:35:20,5:65:30] [-try-regen 1:5,60:5] [-try-conpct 1:100]
 //	    [-charm -6,-3,0] [-only false|true|root|charm] [-try-classlevel 3:45:125[:pet]] [-try-pethp 15:161] [-low]
+//	    [-template roamer]
 //	balancesim -db eqoa.db -lines [-classes ...]
 //	balancesim -db eqoa.db -reset 20s [-try-regen 1:5] [-classes ...]
 //	balancesim -db eqoa.db -groups 2,3 [-classes ...] [-diffs 3,4,5]
@@ -115,6 +116,7 @@ func main() {
 	charms := flag.String("charm", "", "classes with a charm also fight with a charmed creature this many levels from their own: -6,-3,0,...")
 	groups := flag.String("groups", "", "instead: each class's fitting groups of these sizes (2,3) against each diff")
 	lowPoint := flag.Bool("low", false, "the HP column is the least the player had in each fight won (its low point), not what it ended with")
+	template := flag.String("template", "", "the foe fights by this class template of the database's (roamer, wizard, ...)")
 	flag.Parse()
 	if *dbPath == "" {
 		flag.Usage()
@@ -125,6 +127,16 @@ func main() {
 	if *lines {
 		printLines(db, ints(*classes))
 		return
+	}
+	foe := entity.SimNPC{}
+	if *template != "" {
+		all, err := entity.SimTemplatesFromDB(db)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if foe.Template = all[strings.ToLower(strings.TrimSpace(*template))]; foe.Template == nil {
+			log.Fatalf("no class template %q in the database", *template)
+		}
 	}
 	var b *entity.Balance
 	switch *which {
@@ -220,11 +232,11 @@ func main() {
 	}
 	ds := ints(*diffs)
 	if *groups != "" {
-		printGroups(db, b, ints(*classes), ints(*levels), ds, ints(*groups), *fights, *tier, *limit)
+		printGroups(db, b, foe, ints(*classes), ints(*levels), ds, ints(*groups), *fights, *tier, *limit)
 		return
 	}
 	if *reset > 0 {
-		printResets(db, b, ints(*classes), ints(*levels), ds, *fights, *tier, *reset)
+		printResets(db, b, foe, ints(*classes), ints(*levels), ds, *fights, *tier, *reset)
 		return
 	}
 	fmt.Printf("%-4s %-6s %-3s %-4s", "", "", "lvl", "pet")
@@ -273,7 +285,7 @@ func main() {
 				}
 				fmt.Printf("%-4s %-6s %3d %-4v", classNames[class], entity.ArchetypeName(class), level, mode)
 				for _, d := range ds {
-					c := entity.SimCellOf(k, entity.SimNPC{}, d, b, *fights, 1, *limit)
+					c := entity.SimCellOf(k, foe, d, b, *fights, 1, *limit)
 					hp := c.HPLeft
 					if *lowPoint {
 						hp = c.LowLeft
@@ -293,7 +305,7 @@ func main() {
 // (entity.SimulateReset) and prints the NPC's hit points left at the break,
 // the seconds it took to be whole again, and the player's hit points then
 // (a fight that ended before the break is left out).
-func printResets(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds []int, fights int, tier float64, after time.Duration) {
+func printResets(db *database.SQLiteDB, b *entity.Balance, foe entity.SimNPC, classes, levels, ds []int, fights int, tier float64, after time.Duration) {
 	fmt.Printf("broken off after %v: the NPC's HP left at the break, seconds to whole, the player's HP at the break -> when the NPC is whole\n", after)
 	for _, class := range classes {
 		for _, level := range levels {
@@ -306,7 +318,9 @@ func printResets(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds [
 				var npc, whole, hp0, hp1 float64
 				n := 0
 				for i := range fights {
-					r := entity.SimulateReset(pl, entity.SimNPC{Level: max(level+d, 1)}, b, int64(1+i), after, 10*time.Minute)
+					f := foe
+					f.Level = max(level+d, 1)
+					r := entity.SimulateReset(pl, f, b, int64(1+i), after, 10*time.Minute)
 					if r.Ended || r.Whole == 0 {
 						continue
 					}
@@ -331,7 +345,7 @@ func printResets(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds [
 // printGroups fights each class's fitting group (entity.SimGroupFor) of each
 // size against each diff: won, wiped, deaths a fight, the members' hit points
 // left in the fights won and their length.
-func printGroups(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds, sizes []int, fights int, tier float64, limit time.Duration) {
+func printGroups(db *database.SQLiteDB, b *entity.Balance, foe entity.SimNPC, classes, levels, ds, sizes []int, fights int, tier float64, limit time.Duration) {
 	fmt.Printf("%-4s %-3s %-5s", "", "lvl", "group")
 	for _, d := range ds {
 		fmt.Printf(" | %+d won wipe died  hp secs", d)
@@ -348,7 +362,7 @@ func printGroups(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds, 
 				}
 				fmt.Printf("%-4s %3d %-5s", classNames[class], level, fmt.Sprintf("g%d", size))
 				for _, d := range ds {
-					c := entity.SimGroupCellOf(pls, entity.SimNPC{}, d, b, fights, 1, limit)
+					c := entity.SimGroupCellOf(pls, foe, d, b, fights, 1, limit)
 					fmt.Printf(" | %3.0f%% %3.0f%% %4.1f %3.0f%% %4.0f", 100*c.WinShare(), 100*float64(c.Wiped)/float64(max(c.Fights, 1)),
 						c.Deaths, 100*c.HPLeft, c.Sec)
 				}

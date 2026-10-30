@@ -17,7 +17,9 @@ import (
 // every quest with its city, classes and levels, and why a draft is one,
 // worked out from the database as it is NOW, not from what the import said,
 // so a draft a GM has since mended (the NPC placed, the item made) shows as
-// ready to go in. One read of each table, not a query a name.
+// ready to go in. One read of each table, not a query a name. A kill or loot
+// step's names are its target and its other creatures (queststeptargets),
+// each looked for.
 //
 // A quest's status: "in the game" (enabled), "ready" (a draft nothing keeps
 // out: every name it uses is here, every quest it requires in the game or
@@ -260,6 +262,22 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 	if err != nil {
 		return nil, err
 	}
+	// the kill and loot steps' other creatures (a database without the table has none)
+	others := map[[2]int64][]string{}
+	if rows, err := s.everyRow(`SELECT questid, step, target FROM queststeptargets ORDER BY questid, step, rowid`); err == nil {
+		for _, o := range rows {
+			k := [2]int64{0, 0}
+			if v, ok := asFloat(o["questid"]); ok {
+				k[0] = int64(v)
+			}
+			if v, ok := asFloat(o["step"]); ok {
+				k[1] = int64(v)
+			}
+			if t, _ := o["target"].(string); strings.TrimSpace(t) != "" {
+				others[k] = append(others[k], strings.TrimSpace(t))
+			}
+		}
+	}
 	progress, err := s.everyRow(`SELECT questid, SUM(CASE WHEN step > 0 THEN 1 ELSE 0 END) AS underway,
 		SUM(CASE WHEN done > 0 THEN 1 ELSE 0 END) AS finished FROM charquests GROUP BY questid`)
 	if err != nil {
@@ -361,10 +379,12 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 				r.targets = append(r.targets, target)
 			}
 		case database.StepKill, database.StepLoot:
-			if k, ok := names.npcs[strings.ToLower(target)]; !ok {
-				r.lack("creature", target, "no creature %q (step %d)", target, n)
-			} else if !k.attackable {
-				r.lack("creature", target, "every %q carries the NPC bit, so none can be attacked (step %d)", target, n)
+			for _, c := range append([]string{target}, others[[2]int64{r.ID, n}]...) {
+				if k, ok := names.npcs[strings.ToLower(c)]; !ok {
+					r.lack("creature", c, "no creature %q (step %d)", c, n)
+				} else if !k.attackable {
+					r.lack("creature", c, "every %q carries the NPC bit, so none can be attacked (step %d)", c, n)
+				}
 			}
 		case database.StepReach:
 		default:

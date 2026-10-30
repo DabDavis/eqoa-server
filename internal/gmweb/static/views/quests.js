@@ -301,6 +301,23 @@ export function npcInput(obj, key, what) {
   return h('div', { class: 'with' }, i, pickB, mapB);
 }
 
+// namesInput is a list of NPCs' names (obj[key], an array) typed comma
+// separated, with a picker that adds one.
+function namesInput(obj, key, what) {
+  if (!Array.isArray(obj[key])) obj[key] = [];
+  const i = h('input', { type: 'text', value: obj[key].join(', '), placeholder: 'names as the game shows them, comma separated' });
+  const read = () => { obj[key] = i.value.split(',').map((n) => n.trim()).filter(Boolean); };
+  i.addEventListener('input', read);
+  const add = button('Add', { title: 'Pick ' + what, onclick: async () => {
+    const r = await pick('npc', 'Add ' + what);
+    if (!r) return;
+    read();
+    if (!obj[key].some((n) => n.toLowerCase() === r.title.trim().toLowerCase())) obj[key].push(r.title.trim());
+    i.value = obj[key].join(', ');
+  } });
+  return h('div', { class: 'with' }, i, add);
+}
+
 // itemsInput is "patternid*count, ..." with a picker that adds one.
 export function itemsInput(obj, key) {
   const i = text(obj, key, { placeholder: 'patternid*count, ...', class: 'mono' });
@@ -602,7 +619,7 @@ async function editor(box, id) {
     button('Add a step', { icon: 'plus', onclick: () => {
       steps.push({ kind: 'talk', target: q.giver || '', npcid: 0, items: '', tunar: 0, count: 1, world: 0, x: 0, y: 0, z: 0, radius: 15,
         journal: '', answer: '', says: '', waiting: '', notyet: '', reminder: '', xp: 0, rewardtunar: 0, rewarditems: '', factions: '', spells: '',
-        chance: 0, events: '', byclass: '', choices: '' });
+        chance: 0, events: '', byclass: '', choices: '', also: [] });
       drawSteps();
     } }));
 
@@ -614,14 +631,16 @@ async function editor(box, id) {
       fields.push(field('NPC', npcInput(s, 'target', "the step's NPC"), 'a merchant, banker or blacksmith never talks', true));
     } else if (s.kind === 'kill') {
       fields.push(field('Creature', npcInput(s, 'target', 'the creature'), 'every one of the name counts', true),
+        field('Other creatures', namesInput(s, 'also', 'a creature'), 'each counts as well ("ravens and magpies")', true),
         field('How many', num(s, 'count', { min: 1 })));
     } else if (s.kind === 'loot') {
       fields.push(field('Creature', npcInput(s, 'target', 'the creature'), 'its kills drop the item', true),
+        field('Other creatures', namesInput(s, 'also', 'a creature'), 'their kills drop it as well ("ravens and magpies")', true),
         field('The item that drops', itemsInput(s, 'items'), "onto the player's own view of the corpse", true),
         field('How many to take', num(s, 'count', { min: 1 }), 'taken off corpses during the step'),
         field('Drop chance', num(s, 'chance', { min: 0, max: 1, step: 0.05 }), '0 to 1 a kill; 0: every kill'));
     }
-    if (s.kind !== 'reach') fields.push(field('Only spawn', num(s, 'npcid', { min: 0 }), '0: any of the name'));
+    if (s.kind !== 'reach') fields.push(field('Only spawn', num(s, 'npcid', { min: 0 }), "0: any of the name (the creature's: the others count at any)"));
     if (s.kind === 'show' || s.kind === 'give') {
       fields.push(field(s.kind === 'give' ? 'Items handed in' : 'Items to hold', itemsInput(s, 'items'), s.kind === 'give' ? 'taken' : 'kept', true),
         field(s.kind === 'give' ? 'Tunar handed in' : 'Tunar to hold', num(s, 'tunar', { min: 0 })));

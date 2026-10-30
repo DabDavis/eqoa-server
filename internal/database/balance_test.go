@@ -122,3 +122,33 @@ func TestBalanceSeedRevisionsReachAnOlderTable(t *testing.T) {
 		t.Errorf("pet_hp_pct after the open: %v (want 50's seed revised to 357, a GM's 777 and a gm row's 410 left)", got)
 	}
 }
+
+// A balanceclasslevel made before its pet column gets it at the next open,
+// every row 100 (the whole of balancelevel's pet hit points); the control:
+// its melee column is kept as it was.
+func TestBalanceClassLevelPetColumnAddedToAnOlderTable(t *testing.T) {
+	path := t.TempDir() + "/old.db"
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := raw.Exec(`CREATE TABLE balanceclasslevel (class INTEGER NOT NULL, level INTEGER NOT NULL,
+		melee_taken_pct REAL NOT NULL DEFAULT 100, note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm',
+		PRIMARY KEY (class, level));
+		INSERT INTO balanceclasslevel (class, level, melee_taken_pct, source) VALUES (6, 30, 55, 'gm');`); err != nil {
+		t.Fatal(err)
+	}
+	raw.Close()
+	db, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	rows, err := db.BalanceClassLevels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 1 || rows[0].MeleeTakenPct != 55 || rows[0].PetHPPct != 100 {
+		t.Errorf("after the open: %+v (want the GM's 55 kept and the pet column 100)", rows)
+	}
+}

@@ -113,10 +113,10 @@ func (b *Balance) ClassLevelRows() []database.BalanceClassLevel {
 	return out
 }
 
-// classLevelPct is balanceclasslevel's percent for the class at the level:
-// its row's, the line between its rows, the end row's past them; 100 for a
-// class with none.
-func (b *Balance) classLevelPct(class, level int) float64 {
+// classLevelPct is a column of balanceclasslevel for the class at the
+// level: its row's, the line between its rows, the end row's past them; 100
+// for a class with none.
+func (b *Balance) classLevelPct(class, level int, col func(database.BalanceClassLevel) float64) float64 {
 	if b == nil {
 		return 100
 	}
@@ -127,19 +127,25 @@ func (b *Balance) classLevelPct(class, level int) float64 {
 	i := sort.Search(len(rs), func(i int) bool { return rs[i].Level >= level })
 	switch {
 	case i == len(rs):
-		return rs[len(rs)-1].MeleeTakenPct
+		return col(rs[len(rs)-1])
 	case rs[i].Level == level || i == 0:
-		return rs[i].MeleeTakenPct
+		return col(rs[i])
 	}
 	a, c := rs[i-1], rs[i]
-	return between(level, a.Level, c.Level, a.MeleeTakenPct, c.MeleeTakenPct)
+	return between(level, a.Level, c.Level, col(a), col(c))
 }
 
 // MeleeTakenPctAt is the share of an NPC's melee hit a player of the class
 // and level takes: balanceclass's figure times balanceclasslevel's at the
 // level.
 func (b *Balance) MeleeTakenPctAt(class, level int) float64 {
-	return b.MeleeTakenPct(class) * b.classLevelPct(class, level) / 100
+	return b.MeleeTakenPct(class) * b.classLevelPct(class, level, func(r database.BalanceClassLevel) float64 { return r.MeleeTakenPct }) / 100
+}
+
+// PetHPPctAt is the share of balancelevel's pet hit points a summoned pet of
+// an owner of the class and level has (balanceclasslevel's pet_hp_pct).
+func (b *Balance) PetHPPctAt(class, level int) float64 {
+	return b.classLevelPct(class, level, func(r database.BalanceClassLevel) float64 { return r.PetHPPct })
 }
 
 // Rows is the balance's rows, by level and by diff (none for a nil balance).
@@ -410,6 +416,10 @@ func (w *World) applyBalanceLocked(npc *NPC) {
 	}
 	if summoned(npc) {
 		npc.MaxHP = pct(NPCMaxHP(npc.Level), w.balance.Level(w.balanceLevelOf(npc)).PetHPPct)
+		if o := w.Players[npc.Owner]; o != nil {
+			// its owner's class and level's share of it (balanceclasslevel)
+			npc.MaxHP = pct(npc.MaxHP, w.balance.PetHPPctAt(o.Class, o.Level))
+		}
 	} else {
 		npc.MaxHP = w.balance.NPCMaxHP(npc.Level)
 		if t := npc.tmpl; t != nil {

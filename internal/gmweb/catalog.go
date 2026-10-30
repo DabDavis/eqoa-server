@@ -661,9 +661,11 @@ var catalog = map[string]tableNote{
 		Label: "Balance by class and level", Group: "World", Title: "class",
 		Help: "The game's balance by a player's class and level (entity/balance.go): melee_taken_pct, a percent of " +
 			"the class's share in Balance by class at that level, so an NPC's melee hit on the player is Balance by " +
-			"class's figure times this. A class's rows make a line by level (between two rows the straight line, below " +
-			"the first and past the last the end row's); a class with no rows takes Balance by class's figure at every " +
-			"level. Rows of source seed are the tuning of 2026-10-30 (claude-notes/balance-20261029.md); cmd/balancesim's " +
+			"class's figure times this; pet_hp_pct, a summoned pet's hit points by its owner's class and level, a " +
+			"percent of Balance by level's pet_hp_pct (taken when the pet is summoned). A class's rows make a line by " +
+			"level (between two rows the straight line, below the first and past the last the end row's); a class with " +
+			"no rows takes Balance by class's figure and the whole of Balance by level's pet column at every level. Rows " +
+			"of source seed are the tuning of 2026-10-30 (claude-notes/balance-20261029.md); cmd/balancesim's " +
 			"-try-classlevel tries rows before they are written.",
 		Live:   "At once: the next hit of every fight uses it.",
 		Search: []string{"note", "source"},
@@ -671,8 +673,10 @@ var catalog = map[string]tableNote{
 			"class":           {Label: "Class", Enum: "class"},
 			"level":           {Label: "Player level", Help: "1-100; a class's levels between two rows take the line between them"},
 			"melee_taken_pct": {Label: "Share of the class's %", Help: "of Balance by class's figure, at this level"},
-			"note":            {Label: "Note"},
-			"source":          {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
+			"pet_hp_pct": {Label: "Pet's hit points %", Help: "a summoned pet's of an owner of this class and level, " +
+				"a percent of Balance by level's pet_hp_pct (each class's pets lag their owner their own way)"},
+			"note":   {Label: "Note"},
+			"source": {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},
 	},
 	"balancecon": {

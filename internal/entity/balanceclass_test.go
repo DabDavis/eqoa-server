@@ -76,3 +76,40 @@ func TestAClassShareByLevel(t *testing.T) {
 		t.Errorf("a rogue of 50 took %d of %d, want 40%%", got, full)
 	}
 }
+
+// A summoned pet's hit points take its owner's class and level share
+// (balanceclasslevel's pet_hp_pct) on Balance by level's pet column: a level
+// 50 magician's pet with a row of 150 at 40 and 200 at 60 has 175% of what
+// the table alone gives it, a necromancer's (no rows) the table's; the
+// control: a charmed creature (not summoned) keeps a creature's.
+func TestAPetsHitPointsTakeItsOwnersClassShare(t *testing.T) {
+	w := NewWorld()
+	const classMagician = 10
+	mag := &Player{ServerID: 1001, Class: classMagician, Level: 50, HP: 900, MaxHP: 900}
+	nec := &Player{ServerID: 1002, Class: classNecromancer, Level: 50, HP: 900, MaxHP: 900}
+	w.Players[mag.ServerID], w.Players[nec.ServerID] = mag, nec
+	pet := &NPC{ServerID: 3000, Name: "Air Elemental", Level: 45, Owner: mag.ServerID}
+	other := &NPC{ServerID: 3001, Name: "Ancient Death", Level: 45, Owner: nec.ServerID}
+	charmed := &NPC{ServerID: 3002, Name: "a skeleton", Level: 45, Owner: nec.ServerID, Charm: &charmHold{}}
+	for _, n := range []*NPC{pet, other, charmed} {
+		n.HP, n.MaxHP = 1, 1 // whole: the balance keeps a share
+		w.NPCs[n.ServerID] = n
+	}
+	b := testBalance().WithClassLevels([]database.BalanceClassLevel{
+		{Class: classMagician, Level: 40, MeleeTakenPct: 100, PetHPPct: 150},
+		{Class: classMagician, Level: 60, MeleeTakenPct: 100, PetHPPct: 200}})
+	w.SetBalance(b)
+	plain := pct(NPCMaxHP(45), b.Level(50).PetHPPct)
+	if want := pct(plain, 175); pet.MaxHP != want || pet.HP != want {
+		t.Errorf("the magician's pet: %d/%d hit points, want %d (175%% of %d)", pet.HP, pet.MaxHP, want, plain)
+	}
+	if other.MaxHP != plain {
+		t.Errorf("the necromancer's pet: %d hit points, want the table's %d", other.MaxHP, plain)
+	}
+	if charmed.MaxHP != b.NPCMaxHP(45) {
+		t.Errorf("the charmed creature: %d hit points, want a creature's %d", charmed.MaxHP, b.NPCMaxHP(45))
+	}
+	if got := b.PetHPPctAt(classNecromancer, 50); got != 100 {
+		t.Errorf("a class with no rows: %g%%, want 100", got)
+	}
+}

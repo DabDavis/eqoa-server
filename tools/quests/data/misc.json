@@ -5871,7 +5871,9 @@
    "races": [],
    "minlevel": 11,
    "maxlevel": 20,
-   "requires": [],
+   "requires": [
+    "Misc/dynmath-the-tyrant/t1"
+   ],
    "offer": "You carry a glowing totem of the plains? Let me see it. Old things wake for a reason, and I would know what wakes this one.",
    "accept": "I will look into it.",
    "decline": "Not now.",
@@ -5996,7 +5998,9 @@
    "races": [],
    "minlevel": 21,
    "maxlevel": 30,
-   "requires": [],
+   "requires": [
+    "Misc/dynmath-the-tyrant/t2"
+   ],
    "offer": "You carry a glowing totem of the north? Let me see it. Old things wake for a reason, and I would know what wakes this one.",
    "accept": "I will look into it.",
    "decline": "Not now.",
@@ -6121,7 +6125,9 @@
    "races": [],
    "minlevel": 31,
    "maxlevel": 40,
-   "requires": [],
+   "requires": [
+    "Misc/dynmath-the-tyrant/t3"
+   ],
    "offer": "You carry a glowing totem of verdance? Let me see it. Old things wake for a reason, and I would know what wakes this one.",
    "accept": "I will look into it.",
    "decline": "Not now.",
@@ -6246,7 +6252,9 @@
    "races": [],
    "minlevel": 41,
    "maxlevel": 50,
-   "requires": [],
+   "requires": [
+    "Misc/dynmath-the-tyrant/t4"
+   ],
    "offer": "You carry a glowing totem of the swamp? Let me see it. Old things wake for a reason, and I would know what wakes this one.",
    "accept": "I will look into it.",
    "decline": "Not now.",
@@ -6371,7 +6379,9 @@
    "races": [],
    "minlevel": 51,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    "Misc/dynmath-the-tyrant/t5"
+   ],
    "offer": "The glowing totem of raining ashes. One last mystery: what in Permafrost woke it? Vox's Castle holds the answer. Go and find out.",
    "accept": "I will find out.",
    "decline": "Not now.",

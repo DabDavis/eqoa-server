@@ -2698,7 +2698,31 @@
    ],
    "minlevel": 30,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "30,40,49/group-1-good/L30-fayspire-alchemist",
+     "30,40,49/group-1-good/L30-fayspire-cleric",
+     "30,40,49/group-1-good/L30-fayspire-paladin",
+     "30,40,49/group-1-good/L30-fayspire-wizard",
+     "30,40,49/group-1-good/L30-freeport-bard",
+     "30,40,49/group-1-good/L30-highbourne-alchemist",
+     "30,40,49/group-1-good/L30-highbourne-cleric",
+     "30,40,49/group-1-good/L30-highbourne-paladin",
+     "30,40,49/group-1-good/L30-highbourne-wizard",
+     "30,40,49/group-1-good/L30-klick-anon-alchemist",
+     "30,40,49/group-1-good/L30-klick-anon-cleric",
+     "30,40,49/group-1-good/L30-klick-anon-wizard",
+     "30,40,49/group-1-good/L30-moradhim-cleric",
+     "30,40,49/group-1-good/L30-moradhim-paladin",
+     "30,40,49/group-1-good/L30-qeynos-cleric",
+     "30,40,49/group-1-good/L30-qeynos-wizard",
+     "30,40,49/group-1-good/L30-qeynos-paladin",
+     "30,40,49/group-1-good/L30-qeynos-bard",
+     "30,40,49/group-1-good/L30-qeynos-alchemist",
+     "30,40,49/group-1-good/L30-rivervale-cleric",
+     "30,40,49/group-1-good/L30-tethelin-bard"
+    ]
+   ],
    "offer": "Argot Bittersteel in Blakedown, west and south of the Dagnor's Cauldron coach, lost goods in Al-Karad's Ruin, and a savage bear there carries the clay tablet. Show him my note.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -2800,7 +2824,31 @@
    ],
    "minlevel": 30,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "30,40,49/group-1-good/L30-fayspire-alchemist",
+     "30,40,49/group-1-good/L30-fayspire-cleric",
+     "30,40,49/group-1-good/L30-fayspire-paladin",
+     "30,40,49/group-1-good/L30-fayspire-wizard",
+     "30,40,49/group-1-good/L30-freeport-bard",
+     "30,40,49/group-1-good/L30-highbourne-alchemist",
+     "30,40,49/group-1-good/L30-highbourne-cleric",
+     "30,40,49/group-1-good/L30-highbourne-paladin",
+     "30,40,49/group-1-good/L30-highbourne-wizard",
+     "30,40,49/group-1-good/L30-klick-anon-alchemist",
+     "30,40,49/group-1-good/L30-klick-anon-cleric",
+     "30,40,49/group-1-good/L30-klick-anon-wizard",
+     "30,40,49/group-1-good/L30-moradhim-cleric",
+     "30,40,49/group-1-good/L30-moradhim-paladin",
+     "30,40,49/group-1-good/L30-qeynos-cleric",
+     "30,40,49/group-1-good/L30-qeynos-wizard",
+     "30,40,49/group-1-good/L30-qeynos-paladin",
+     "30,40,49/group-1-good/L30-qeynos-bard",
+     "30,40,49/group-1-good/L30-qeynos-alchemist",
+     "30,40,49/group-1-good/L30-rivervale-cleric",
+     "30,40,49/group-1-good/L30-tethelin-bard"
+    ]
+   ],
    "offer": "Two-Eyed Jack in Trail's End, down the long road south of Highpass, knows where the stone tablet went. Show him my note.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -2888,7 +2936,31 @@
    ],
    "minlevel": 30,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "30,40,49/group-1-good/L30-fayspire-alchemist",
+     "30,40,49/group-1-good/L30-fayspire-cleric",
+     "30,40,49/group-1-good/L30-fayspire-paladin",
+     "30,40,49/group-1-good/L30-fayspire-wizard",
+     "30,40,49/group-1-good/L30-freeport-bard",
+     "30,40,49/group-1-good/L30-highbourne-alchemist",
+     "30,40,49/group-1-good/L30-highbourne-cleric",
+     "30,40,49/group-1-good/L30-highbourne-paladin",
+     "30,40,49/group-1-good/L30-highbourne-wizard",
+     "30,40,49/group-1-good/L30-klick-anon-alchemist",
+     "30,40,49/group-1-good/L30-klick-anon-cleric",
+     "30,40,49/group-1-good/L30-klick-anon-wizard",
+     "30,40,49/group-1-good/L30-moradhim-cleric",
+     "30,40,49/group-1-good/L30-moradhim-paladin",
+     "30,40,49/group-1-good/L30-qeynos-cleric",
+     "30,40,49/group-1-good/L30-qeynos-wizard",
+     "30,40,49/group-1-good/L30-qeynos-paladin",
+     "30,40,49/group-1-good/L30-qeynos-bard",
+     "30,40,49/group-1-good/L30-qeynos-alchemist",
+     "30,40,49/group-1-good/L30-rivervale-cleric",
+     "30,40,49/group-1-good/L30-tethelin-bard"
+    ]
+   ],
    "offer": "Finnus Sodwin, second floor of the Black Swan Inn south of the Dagnor's Cauldron coach, knows who has the bronze tablet. Show him my note.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -3820,7 +3892,25 @@
    ],
    "minlevel": 30,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "30,40,49/group-2-good/L30-fayspire-enchanter",
+     "30,40,49/group-2-good/L30-halas-warrior",
+     "30,40,49/group-2-good/L30-halas-rogue",
+     "30,40,49/group-2-good/L30-halas-shaman",
+     "30,40,49/group-2-good/L30-highbourne-enchanter",
+     "30,40,49/group-2-good/L30-klick-anon-enchanter",
+     "30,40,49/group-2-good/L30-klick-anon-warrior",
+     "30,40,49/group-2-good/L30-moradhim-rogue",
+     "30,40,49/group-2-good/L30-moradhim-warrior",
+     "30,40,49/group-2-good/L30-qeynos-warrior",
+     "30,40,49/group-2-good/L30-qeynos-rogue",
+     "30,40,49/group-2-good/L30-qeynos-enchanter",
+     "30,40,49/group-2-good/L30-rivervale-rogue",
+     "30,40,49/group-2-good/L30-rivervale-warrior",
+     "30,40,49/group-2-good/L30-tethelin-rogue"
+    ]
+   ],
    "offer": "Deputy Sools, by the left tower outside, reported one of our elemental jewels. Show him my writ and help him get it back.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -4950,7 +5040,20 @@
    ],
    "minlevel": 30,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "30,40,49/group-3-good/L30-fayspire-magician",
+     "30,40,49/group-3-good/L30-highbourne-magician",
+     "30,40,49/group-3-good/L30-klick-anon-magician",
+     "30,40,49/group-3-good/L30-qeynos-monk",
+     "30,40,49/group-3-good/L30-qeynos-magician",
+     "30,40,49/group-3-good/L30-rivervale-druid",
+     "30,40,49/group-3-good/L30-surefall-glade-druid",
+     "30,40,49/group-3-good/L30-surefall-glade-ranger",
+     "30,40,49/group-3-good/L30-tethelin-druid",
+     "30,40,49/group-3-good/L30-tethelin-ranger"
+    ]
+   ],
    "offer": "Find Bardif's butler, Mergmar, in Qeynos: from the main gate go west, west again, south through the long hall, then the first door east. Show him my token.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -6206,7 +6309,17 @@
    ],
    "minlevel": 30,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "30,40,49/group-4-evil/L30-freeport-cleric",
+     "30,40,49/group-4-evil/L30-freeport-rogue",
+     "30,40,49/group-4-evil/L30-freeport-enchanter",
+     "30,40,49/group-4-evil/L30-klick-anon-rogue",
+     "30,40,49/group-4-evil/L30-neriak-nektulos-cleric",
+     "30,40,49/group-4-evil/L30-neriak-nektulos-enchanter",
+     "30,40,49/group-4-evil/L30-neriak-nektulos-rogue"
+    ]
+   ],
    "factions_required": [
     [
      "Citizens of Dark Solace",
@@ -7281,7 +7394,20 @@
    ],
    "minlevel": 30,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "30,40,49/group-5-evil/L30-freeport-warrior",
+     "30,40,49/group-5-evil/L30-freeport-alchemist",
+     "30,40,49/group-5-evil/L30-freeport-wizard",
+     "30,40,49/group-5-evil/L30-grobb-shaman",
+     "30,40,49/group-5-evil/L30-grobb-warrior",
+     "30,40,49/group-5-evil/L30-neriak-nektulos-alchemist",
+     "30,40,49/group-5-evil/L30-neriak-nektulos-warrior",
+     "30,40,49/group-5-evil/L30-neriak-nektulos-wizard",
+     "30,40,49/group-5-evil/L30-oggok-shaman",
+     "30,40,49/group-5-evil/L30-oggok-warrior"
+    ]
+   ],
    "offer": "The circlet? The gnome merchant Twindle Fizzmop in Freeport has it, and he admits it. He will sell, for a price. Show him Holman's writ.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -7355,7 +7481,20 @@
    ],
    "minlevel": 30,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "30,40,49/group-5-evil/L30-freeport-warrior",
+     "30,40,49/group-5-evil/L30-freeport-alchemist",
+     "30,40,49/group-5-evil/L30-freeport-wizard",
+     "30,40,49/group-5-evil/L30-grobb-shaman",
+     "30,40,49/group-5-evil/L30-grobb-warrior",
+     "30,40,49/group-5-evil/L30-neriak-nektulos-alchemist",
+     "30,40,49/group-5-evil/L30-neriak-nektulos-warrior",
+     "30,40,49/group-5-evil/L30-neriak-nektulos-wizard",
+     "30,40,49/group-5-evil/L30-oggok-shaman",
+     "30,40,49/group-5-evil/L30-oggok-warrior"
+    ]
+   ],
    "offer": "The wraps? Slavemaster Hern has them, in the castle on the hill in the west of the Salt Mines. He is short of hands. Show him Holman's writ, if he will talk to you.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -7434,7 +7573,20 @@
    ],
    "minlevel": 30,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "30,40,49/group-5-evil/L30-freeport-warrior",
+     "30,40,49/group-5-evil/L30-freeport-alchemist",
+     "30,40,49/group-5-evil/L30-freeport-wizard",
+     "30,40,49/group-5-evil/L30-grobb-shaman",
+     "30,40,49/group-5-evil/L30-grobb-warrior",
+     "30,40,49/group-5-evil/L30-neriak-nektulos-alchemist",
+     "30,40,49/group-5-evil/L30-neriak-nektulos-warrior",
+     "30,40,49/group-5-evil/L30-neriak-nektulos-wizard",
+     "30,40,49/group-5-evil/L30-oggok-shaman",
+     "30,40,49/group-5-evil/L30-oggok-warrior"
+    ]
+   ],
    "offer": "The tunic? J'Lisa U'Dedne in Fort Seriak, west of the coach, wants a gem back from the halfling Quicktoe. Show her Holman's writ.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -8252,7 +8404,22 @@
    ],
    "minlevel": 30,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "30,40,49/group-6-evil/L30-freeport-magician",
+     "30,40,49/group-6-evil/L30-freeport-necromancer",
+     "30,40,49/group-6-evil/L30-freeport-shadowknight",
+     "30,40,49/group-6-evil/L30-grobb-shadowknight",
+     "30,40,49/group-6-evil/L30-highbourne-necromancer",
+     "30,40,49/group-6-evil/L30-highbourne-shadowknight",
+     "30,40,49/group-6-evil/L30-klick-anon-necromancer",
+     "30,40,49/group-6-evil/L30-neriak-nektulos-magician",
+     "30,40,49/group-6-evil/L30-neriak-nektulos-necromancer",
+     "30,40,49/group-6-evil/L30-neriak-nektulos-shadowknight",
+     "30,40,49/group-6-evil/L30-oggok-necromancer",
+     "30,40,49/group-6-evil/L30-oggok-shadowknight"
+    ]
+   ],
    "offer": "Quatzi, on the shore by the dark tower below, sells blood. Buy three vials of gypsy blood from him, 1,584 tunar, and show him my seal.",
    "accept": "I will do it.",
    "decline": "Not now.",

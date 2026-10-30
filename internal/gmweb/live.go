@@ -42,6 +42,9 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 	case "npcdialog":
 		database.InvalidateNPCDialog()
 		return "at once: the next talk to a town's person or a guard"
+	case "questnotyet":
+		database.InvalidateQuestNotYet()
+		return "at once: the next talk to a quest giver the player is too low for"
 	case "craftrecipes":
 		database.InvalidateCraftRecipes()
 		return t.Live

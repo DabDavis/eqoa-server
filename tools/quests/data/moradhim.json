@@ -237,12 +237,15 @@
      "journal": "Bring the ore, the handle, the leg and the beak to Spellsmith Doldanaf.",
      "says": "Here is your weapon.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Acolyte's Hammer"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The spiderling leg is the database's small spider leg. The guide does not name the weapon."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The spiderling leg is the database's small spider leg. The guide does not name the weapon. The reward is ours: Acolyte's Hammer, as Freeport's and Qeynos's quests of this level give (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/moradhim/cleric/L5",
@@ -454,12 +457,15 @@
      "journal": "Return to Jarvan Tember.",
      "says": "Amber is free. Thank you.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Sturdy Mace"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 10; github.com/Jadiction/EQOA-Data). Bren Raven is Brenn Raven, Jargon is Jarvan Tember. The goblin alchemist is EQOA-Data's map's Freezeblood Alchemist."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 10; github.com/Jadiction/EQOA-Data). Bren Raven is Brenn Raven, Jargon is Jarvan Tember. The goblin alchemist is EQOA-Data's map's Freezeblood Alchemist. The reward is ours: Sturdy Mace, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/moradhim/cleric/L13",
@@ -853,11 +859,32 @@
      "says": "You have earned this.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Disease Ward",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Disease Ward"
+        ]
+       }
+      },
+      {
+       "answer": "Field Dress",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Field Dress"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). King Ickcil's chest is the database's Parathoir Chest. The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). King Ickcil's chest is the database's Parathoir Chest. The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Disease Ward or the Field Dress scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/moradhim/paladin/L1",
@@ -2251,12 +2278,15 @@
      "journal": "Return to Jarvan Tember.",
      "says": "Amber is free. Thank you.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "sturdy dagger"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The mines' places are EQOA-Data's map's; the guide's 30 seconds at each is not in, and the goblin that attacks there is a Freezeblood brawler of the Hold's (the guide says a level 10 goblin)."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The mines' places are EQOA-Data's map's; the guide's 30 seconds at each is not in, and the goblin that attacks there is a Freezeblood brawler of the Hold's (the guide says a level 10 goblin). The reward is ours: sturdy dagger, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/moradhim/rogue/L13",
@@ -2650,11 +2680,32 @@
      "says": "You have earned this.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Avoidance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Avoidance"
+        ]
+       }
+      },
+      {
+       "answer": "Minor Wound",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Minor Wound"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). King Ickcil's chest is the database's Parathoir Chest. The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). King Ickcil's chest is the database's Parathoir Chest. The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Avoidance or the Minor Wound scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/moradhim/warrior/L1",
@@ -3503,11 +3554,32 @@
      "says": "You have earned this.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Bellow",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Bellow"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Might",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Pillar of Might"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). King Ickcil's chest is the database's Parathoir Chest. The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). King Ickcil's chest is the database's Parathoir Chest. The lava tubes' place is EQOA-Data's map's: Elder Joram's gem sends you there and back. The orb and the feather are not taken at the lava tubes (a reach step takes no items). The orcs' pages: an acolyte the first, a prophet the second (the guide has either drop them). The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Bellow or the Pillar of Might scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   }
  ],
  "items": [

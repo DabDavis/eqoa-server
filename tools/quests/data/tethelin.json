@@ -138,13 +138,16 @@
      "journal": "Bring 2 damaged firefly wings to Torenia Eaglesong.",
      "says": "Thank you.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Chant of Battle"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. The reward is ours: the Chant of Battle scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/bard/L4",
@@ -279,13 +282,16 @@
      "journal": "Bring elddar seeds to Torenia Eaglesong.",
      "says": "Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Funeral March"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Funeral March scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/bard/L7",
@@ -331,13 +337,16 @@
      "journal": "Bring Bank Key to Torenia Eaglesong.",
      "says": "Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Artful Strike"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: the Artful Strike scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/bard/L10",
@@ -429,13 +438,16 @@
      "journal": "Bring Powder to Dolby.",
      "says": "Just what I needed. Thank you.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Sturdy Short Sword"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The reward is ours: Sturdy Short Sword, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/bard/L13",
@@ -703,13 +715,16 @@
      "journal": "Speak with Dolby.",
      "says": "Well done.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Crashing Verses"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. The reward is ours: the Crashing Verses scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/bard/L20",
@@ -815,13 +830,17 @@
      "journal": "Speak with Torenia Eaglesong.",
      "says": "Well done.",
      "rewards": {
-      "xp": 2814929
+      "xp": 2814929,
+      "items": [
+       "Power Dance",
+       "magic foil"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of Power Dance with the Melodies Dagger, or Sweeping Combat with Harmony's Sword; a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/tethelin/bard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of Power Dance with the Melodies Dagger, or Sweeping Combat with Harmony's Sword; a quest here gives no choice, so neither is given. The reward is ours: the Power Dance scroll, as Freeport's quest of this level teaches it, and magic foil, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/druid/L1",
@@ -1048,13 +1067,16 @@
      "journal": "Bring Bough of Wood, leather strip and ruined bat wing to Salithal Grassweave.",
      "says": "Your weapon will be ready.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "crafted glade staff"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The bough and strip are bought in the guide; here they are handed over."
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The bough and strip are bought in the guide; here they are handed over. The reward is ours: crafted glade staff, as Surefall Glade's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/druid/L5",
@@ -1510,13 +1532,16 @@
      "journal": "Bring Stonemason's Chisel to Overseer Evief.",
      "says": "The barges will run again.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "endure elements"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot."
+   "notes": "EQOA-Data Quests/1-20/tethelin/druid.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot. The reward is ours: the Endure Elements scroll, as Rivervale's and Surefall Glade's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/druid/L20",
@@ -1987,13 +2012,16 @@
      "journal": "Bring Tree Eater's Leg to Arelon Evergreen.",
      "says": "Tethelin is safe.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "bracers of the glade"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: bracers of the glade, as Surefall Glade's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/ranger/L10",
@@ -2100,13 +2128,16 @@
      "journal": "Speak with Arelon Evergreen.",
      "says": "Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "shortsword of the glade"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The orc witchdoctor stands in for the hatebone witchdoctor."
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The orc witchdoctor stands in for the hatebone witchdoctor. The reward is ours: shortsword of the glade, as Surefall Glade's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/ranger/L13",
@@ -2345,13 +2376,16 @@
      "journal": "Bring Stonemason's Chisel to Overseer Evief.",
      "says": "The barges will run again.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "tunic of the glade"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot."
+   "notes": "EQOA-Data Quests/1-20/tethelin/ranger.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot. The reward is ours: tunic of the glade, as Surefall Glade's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/ranger/L20",
@@ -2764,13 +2798,16 @@
      "journal": "Bring elddar seeds to Eterin Nitegazer.",
      "says": "Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Quick Blade"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Quick Blade scroll, as Freeport's, Halas's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/rogue/L7",
@@ -2951,13 +2988,16 @@
      "journal": "Speak with Eterin Nitegazer.",
      "says": "Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "sturdy dagger"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The orc witchdoctor stands in for the hatebone witchdoctor."
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The orc witchdoctor stands in for the hatebone witchdoctor. The reward is ours: sturdy dagger, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/rogue/L13",
@@ -3059,13 +3099,16 @@
      "journal": "Bring Skull of Vitsh to Siltha.",
      "says": "My collection is complete.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Night Breath"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The reward is ours: the Night Breath scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/rogue/L15",
@@ -3196,13 +3239,16 @@
      "journal": "Bring Stonemason's Chisel to Overseer Evief.",
      "says": "The barges will run again.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Vaulter's Balance"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot."
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot. The reward is ours: the Vaulter's Balance scroll, as Freeport's, Halas's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/tethelin/rogue/L20",
@@ -3347,12 +3393,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Avoidance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Avoidance"
+        ]
+       }
+      },
+      {
+       "answer": "Minor Wound",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Minor Wound"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/tethelin/rogue.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The reward is ours: the choice of the Avoidance or the Minor Wound scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   }
  ],
  "items": [

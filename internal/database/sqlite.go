@@ -651,6 +651,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureNPCDialog(); err != nil { // npcdialog.go
 		return err
 	}
+	if err := db.ensureSignText(); err != nil { // signtext.go
+		return err
+	}
 	if err := db.ensureQuestNotYet(); err != nil { // questnotyet.go
 		return err
 	}

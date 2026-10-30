@@ -565,3 +565,49 @@ func TestRealLowLevelsEvenAndBelow(t *testing.T) {
 		t.Errorf("the control: an alchemist of 2 by hand with no dealt won %.0f%% of its even fights: the check tells nothing", 100*c.WinShare())
 	}
 }
+
+// A wisp is a yellow like any other (the user's "28%" of 2026-10-30): a
+// crag wisp fights by the template the database gives it (tools/
+// seed_roamers.py: the wisp, jib's wizard at 28% of a player's figures), and
+// a warrior, a rogue and a cleric by hand and a wizard and an alchemist
+// rooting win one up at least 70% of the time and two up half of it, at 25,
+// 35 and 45. The control: under jib's wizard as he made it (35%) a rogue of
+// 35 loses its one up more often than not.
+func TestRealWispsAreYellows(t *testing.T) {
+	db := simRealDB(t)
+	b := simRealBalance(t, db)
+	foe := simRealFoe(t, db, "crag wisp")
+	if foe.Template == nil || foe.Template.Name != "wisp" {
+		t.Skip("npctemplate gives a crag wisp no wisp template: tools/seed_roamers.py first")
+	}
+	kit := func(c, l int) SimPlayer {
+		pl, err := SimKitFromDB(db, c, 0, l, 0.5)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if c == 13 || c == 14 {
+			pl.Play.Root, pl.Play.Melee = true, false
+		}
+		return pl
+	}
+	for _, class := range []int{0, 6, 9, 13, 14} {
+		for _, level := range []int{25, 35, 45} {
+			pl := kit(class, level)
+			y1 := SimCellOf(pl, foe, 1, b, 16, 1, 10*time.Minute)
+			y2 := SimCellOf(pl, foe, 2, b, 16, 1, 10*time.Minute)
+			if y1.WinShare() < 0.7 || y2.WinShare() < 0.5 {
+				t.Errorf("class %d L%d against a wisp: +1 won %.0f%%, +2 won %.0f%%", class, level, 100*y1.WinShare(), 100*y2.WinShare())
+			}
+		}
+	}
+	all, err := SimTemplatesFromDB(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if all["wizard"] == nil {
+		t.Fatal("no wizard template to fight the control by")
+	}
+	if c := SimCellOf(kit(6, 35), SimNPC{Template: all["wizard"]}, 1, b, 16, 1, 10*time.Minute); c.WinShare() >= 0.5 {
+		t.Errorf("the control: a rogue of 35 won %.0f%% of its one up against jib's wizard (35%%): the check tells nothing", 100*c.WinShare())
+	}
+}

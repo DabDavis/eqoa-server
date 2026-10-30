@@ -19,17 +19,21 @@ Writes a class template and the npctemplate rows that give it (entity/classtempl
             Named creatures and bosses alike: the template changes no hit points and no melee, and adds nothing a
             boss's loot table (npcloot) reads; a boss in a player race's body (Bertoxxulous the Plaguebringer) is
             left out with the townsfolk, and said.
-  wizard    in npctemplate for every wisp (the user's word over Sandstorm's crag wisp of class 10): a name whose
-            last word is lower case and ends in "wisp" (crag wisp, malign wisp, darkwisp, will o'wisp, ...; not
-            Thal Twisp or Overseer Golwisp), hostile by the same test. jib's wizard template: an area spell of the
-            wizard's every 15 s and a single target's after it, at 35% of a player's figures, 85% hit points.
+  wisp      classtemplates' row (if none is there): a copy of jib's wizard as the table has it (class 13, 85% hit
+            points, an area spell of the wizard's every 15 s and a single target's after it) with both abilities'
+            figures at 28% of a player's where his are 35%: the user's "28%" of 2026-10-30, after the simulator
+            found a rogue of 35-45 and a cleric of 35 lost every wisp yellow at 35% and every class won them at 28%
+            (a rogue of 35 taken down to 12%). The wizard row itself is left as he made it.
+  wisp      in npctemplate for every wisp (the user's word, "other than wisps were wizards", over Sandstorm's crag
+            wisp of class 10): a name whose last word is lower case and ends in "wisp" (crag wisp, malign wisp,
+            darkwisp, will o'wisp, ...; not Thal Twisp or Overseer Golwisp), hostile by the same test.
 
 Never a training dummy (a name with "dummy": they fight their own way), never a name npctemplate already gives a
 template (a GM's, or a row this wrote before: said, left as it is); a pet or a charmed creature never fights by a
 template whatever its name (templateForLocked). Every row it writes (source roamer-seed) is logged in
 npc_template_seed_log (the table, the row's key, the row before and after: NULL for one added, why); --undo
-deletes each still as written (one a GM changed since is kept, and said) and the roamer row with them once no
-npctemplate row names it any more, and drops the log; a second --apply only adds what is still to do. Both copy
+deletes each still as written (one a GM changed since is kept, and said) and the roamer and wisp rows with them
+once no npctemplate row names them any more, and drops the log; a second --apply only adds what is still to do. Both copy
 the database first (<db>.bak-<when>-pre-roamers) unless --no-backup. Report only by default: the names by kind
 (boss, named, generic, wisp) and by level band (the highest level of a name's spawns).
 
@@ -70,6 +74,8 @@ ROAMER = {
     "source": SOURCE,
 }
 WIZARD = "wizard"
+WISP = "wisp"
+WISP_PCT = 28  # the user's "28%" (2026-10-30): both of the wizard's abilities' damage_pct, his 35
 WHY = "SOE's roamers and wisps (the user, 2026-10-30; tools/seed_roamers.py)"
 PODBOSSES = ("noroxus", "bertoxxulous the plaguebringer", "poxathixius", "uzrathixius", "patron of bertoxxulous")
 BANDS = [(1, 10), (11, 20), (21, 30), (31, 40), (41, 50), (51, 60), (61, 999)]
@@ -139,7 +145,7 @@ def classify(db):
         elif not e["hostile"]:
             why = "no hostile spawn (the NPC bit on all, or no body)"
         elif kind == "wisp":
-            tmpl = WIZARD
+            tmpl = WISP
         elif cls in (None, 0):
             tmpl = ROAMER["name"]
         else:
@@ -157,6 +163,19 @@ def row_of(db, tbl, name):
     return None if r is None else dict(zip([d[0] for d in cur.description], r))
 
 
+def wisp_row(wizard):
+    """the wisp template: the wizard row as the table has it, each of its abilities' damage_pct WISP_PCT"""
+    row = {c: v for c, v in wizard.items() if c in ROAMER}
+    abilities = json.loads(row.get("abilities") or "[]")
+    for a in abilities:
+        a["damage_pct"] = WISP_PCT
+    row.update(name=WISP, abilities=json.dumps(abilities, separators=(",", ":")), source=SOURCE,
+               note=f"the user's wisp (2026-10-30, \"28%\"): jib's wizard with its abilities at {WISP_PCT}% of a player's "
+                    "figures where his are 35% (at 35% a rogue of 35-45 and a cleric of 35 lost every wisp yellow); "
+                    "tools/seed_roamers.py")
+    return row
+
+
 def plan(db):
     """The rows to add [(table, row)] and the verdicts."""
     for t in ("npcs", "classtemplates", "npctemplate"):
@@ -166,8 +185,11 @@ def plan(db):
     adds = []
     if row_of(db, "classtemplates", ROAMER["name"]) is None:
         adds.append(("classtemplates", dict(ROAMER)))
-    if row_of(db, "classtemplates", WIZARD) is None and any(v[3] == WIZARD for v in verdicts):
-        sys.exit("classtemplates has no wizard row (jib's seed): a GM took it out; put one back first")
+    if row_of(db, "classtemplates", WISP) is None and any(v[3] == WISP for v in verdicts):
+        wizard = row_of(db, "classtemplates", WIZARD)
+        if wizard is None:
+            sys.exit("classtemplates has no wizard row (jib's seed) to copy the wisp from: a GM took it out; put one back first")
+        adds.append(("classtemplates", wisp_row(wizard)))
     for k, name, kind, tmpl, why, top, npcbit in verdicts:
         if tmpl:
             adds.append(("npctemplate", {"name": k, "template": tmpl, "note": f"{kind}, level {top}", "source": SOURCE}))
@@ -270,6 +292,9 @@ def report(verdicts, adds, show):
         for v in verdicts:
             if v[3]:
                 print(f"  {v[3]:8s} {v[2]:8s} L{v[5]:3d} {v[1]}")
+    for tbl, row in adds:
+        if tbl == "classtemplates":
+            print(f"classtemplates {row['name']!r}: class {row['class']}, hit points {row['hp_pct']}%, abilities {row['abilities']}")
     print(f"{len(adds)} rows to add")
 
 

@@ -311,8 +311,8 @@ func CheckClassTemplate(t ClassTemplate) error {
 	return CheckTemplateAbilities(t.Abilities)
 }
 
-// SeedClassTemplates are jib's five examples and the user's roamer, the rows
-// classtemplates is made with (source seed). Their numbers are ours: no recording has a creature
+// SeedClassTemplates are jib's five examples and the user's wisp (his wizard
+// at 28%) and roamer, the rows classtemplates is made with (source seed). Their numbers are ours: no recording has a creature
 // casting, and Sandstorm's creatures' specials are the one measured thing
 // (the melee's kick: 251 from a level 34 Desert Crab, 252 from a level 35
 // Gharial, fixed and through 1,763 AC alike, in about one round of five:
@@ -337,6 +337,14 @@ var SeedClassTemplates = []ClassTemplate{
 		Abilities: []TemplateAbility{{Kind: AbilityLifetap, Every: 15, First: 3, MaxRecast: 90, DamagePct: 50}},
 		Note: "jib's shadow knight: tankier (20% more hit points, 10% less of a melee hit lands), a shadow knight life tap of " +
 			"its level every 15 s (the 300 s Blood line left out: max_recast 90); the figure half a player's (ours)"},
+	{Name: "wisp", Class: 13, HPPct: 85, TakenPct: 100, MeleePct: 100,
+		Abilities: []TemplateAbility{
+			{Kind: AbilityAoE, Every: 15, First: 2, MaxRecast: 10, MaxCast: 5, DamagePct: 28},
+			{Kind: AbilityNuke, Chain: true, MaxRecast: 10, MaxCast: 5, DamagePct: 28},
+		},
+		Note: "the user's wisp (2026-10-30, \"28%\"): jib's wizard with its abilities at 28% of a player's figures where " +
+			"his are 35% (at 35% a rogue of 35-45 and a cleric of 35 lost every wisp yellow); tools/seed_roamers.py gives " +
+			"it to the wisps"},
 	{Name: "roamer", Class: 0, HPPct: 100, TakenPct: 100, MeleePct: 100, Special: "Critical Hit", SpecialDamage: 7.4,
 		SpecialEvery: 30, SpecialFirst: 15, SpecialJitter: 5, SpecialFrom: 10,
 		Note: "SOE's basic roamer (the user, 2026-10-30): a warrior \"stripped down to just a 'crit' attack once every 30 " +

@@ -714,12 +714,15 @@ var catalog = map[string]tableNote{
 			"line between them, one below the first or past the last the end row's; no rows, 100 everywhere (the " +
 			"formulas alone). art_cooldown_ms is the one column by a PLAYER's level: the combat arts' global cooldown " +
 			"(an art sent within it is not answered, as a cast sent during another). regen_pct is a creature's heal out of " +
-			"a fight, every 6 s from its third tick (a pet heals as a player does, whatever this says). " +
+			"a fight, every 6 s from its third tick (a pet heals as a player does, whatever this says). pet_special_hits, " +
+			"by a summoned pet's owner's level as the pet columns are, is how many of its own melee hits a necromancer's " +
+			"spectre (Howling and Ancient Death) lands with its instant, the shake it gives its target 1-6 swings apart " +
+			"from 20 s into a fight (3, the default; 0 the visual alone). " +
 			"A charmed creature keeps its own (an NPC's) hit points and damage. Training dummies are " +
 			"never touched. Rows of source seed are the tuning of 2026-10-29 (claude-notes/balance-20261029.md), held to " +
 			"its targets by the fight simulator: run cmd/balancesim on a copy of the database to see what a change does " +
 			"before it goes in (its -try-level flag tries rows without writing them).",
-		Live:   "At once: every NPC's hit points become its level's (each keeping its share of them); a summoned pet's at its next summoning.",
+		Live:   "At once: every NPC's hit points become its level's (each keeping its share of them); a summoned pet's at its next summoning; a spectre's instant at its next one.",
 		Search: []string{"note", "source"},
 		Cols: map[string]colNote{
 			"level":          {Label: "NPC level", Help: "1-100; the levels between two rows take the line between them"},
@@ -732,6 +735,8 @@ var catalog = map[string]tableNote{
 				"cast at a creature) starts, how long before another may; 0 none"},
 			"regen_pct": {Label: "Regen % a tick", Help: "0-100: what a creature of this level heals each 6 s out of a fight, " +
 				"from its third tick, of its most hit points (15 with no rows)"},
+			"pet_special_hits": {Label: "Spectre's instant, hits", Help: "0-20, by its owner's level: how many of a " +
+				"necromancer's spectre's own melee hits its instant lands in one blow (3; 0 the visual alone)"},
 			"note":   {Label: "Note"},
 			"source": {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},

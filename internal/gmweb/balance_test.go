@@ -171,3 +171,26 @@ func TestBalanceClassLevelEdits(t *testing.T) {
 		}
 	}
 }
+
+// The spectre's instant, in its own melee hits, is 0-20: refused below 0,
+// past 20 and when not a number, taken within and said to be live at its
+// next instant.
+func TestBalancePetSpecialHitsBounds(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	for _, bad := range []any{-1, 25, "three"} {
+		if code, out := c.op("update_row", map[string]any{"table": "balancelevel", "key": map[string]any{"level": 30},
+			"values": map[string]any{"pet_special_hits": bad}}); code == 200 {
+			t.Errorf("%v hits was taken: %v", bad, out)
+		}
+	}
+	code, out := c.op("update_row", map[string]any{"table": "balancelevel", "key": map[string]any{"level": 30},
+		"values": map[string]any{"pet_special_hits": 5}})
+	if code != 200 {
+		t.Fatalf("5 hits was refused: %d %v", code, out)
+	}
+	if live, _ := out["live"].(string); !strings.Contains(live, "instant") {
+		t.Errorf("live: %v", out["live"])
+	}
+}

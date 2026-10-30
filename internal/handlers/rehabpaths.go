@@ -9,29 +9,28 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// A character's paths, as a rehabilitator undoes them (rehab.go). The user,
-// 2026-10-30: a path respec undoes "the level 20 pick (the class quest's
-// choice of two scrolls)" and "the 30/40/49 path quests". In the quests (the
-// import's keys, tools/quests/data/) those picks are:
+// A character's paths, as a rehabilitator changes them (rehab.go). The user,
+// 2026-10-30: a path respec is "the level 20 pick (the class quest's choice of
+// two scrolls)" and "the 30/40/49 path quests", chosen again "on the spot".
+// In the quests (the import's keys, tools/quests/data/) those picks are:
 //
 //   - level 20: a city's level 20 class quest (1-20/<city>/<class>/L20),
 //     whose last step asks the guide's choice of two paths, a scroll each
 //     (tools/fill_class_quest_rewards.py). One that kept a single path asks
-//     nothing, so there is no pick of it to undo;
+//     nothing, so there is no pick of it to change;
 //   - levels 30, 40 and 49: a 30/40/49 group's class reward
 //     (30,40,49/<group>/L<30|40|49>-<class>): a talk step or two asking for
 //     an ability, a weapon, or both.
 //
-// Undoing a level's path undoes its quest and, at 30 and 40, the later
-// levels' of the same group ("the 30/40/49 branch quest and the ones after
-// it in that branch"). Their rows are forgotten (QuestReset), so their givers
-// offer them again and the player picks again, the same or the other. What
-// they gave goes back: the spells out of the book (0x00B8), the items taken
-// where the character holds them. A step's kept pick (charquests.picks) says
-// what it gave; a step done before picks were kept counts all its options,
-// so what the book and the pack hold of them goes. A spell another quest the
-// character keeps gives too (the 60 epics offer the 49 paths' other
-// abilities), or that a merchant sells as a scroll, stays.
+// A pick is changed for another option of its step on the spot: what the old
+// option gave goes back (its spells out of the book, its items taken where the
+// character holds them), the new one's is given, and the pick is kept in the
+// quest's row (charquests.picks); the rows stay, no quest is done again. A
+// step done before picks were kept is read off what the book and the pack hold
+// (inferPick). A spell another quest the character keeps gives (the 60 epics
+// offer the 49 paths' other abilities), or that a merchant sells as a scroll,
+// stays. No pick here decides another level's options: each reward quest
+// offers every option, and the 30/40/49 group is the character's city's.
 
 // The import keys of the quests that ask a path's pick.
 var (
@@ -130,16 +129,17 @@ type optionPick struct {
 	kept bool
 }
 
-// pickedOptions is what a quest's row was given at its choices: at each step
-// passed, the option it kept the pick of, else every option (a pick from
-// before picks were kept). An option that stays did nothing.
-func pickedOptions(qu *database.Quest, row database.CharQuest) []optionPick {
+// pickedOptions is what a quest's row was given at its choices but at step
+// skip (0 none): at each step passed, the option it kept the pick of, else
+// every option (a pick from before picks were kept). An option that stays did
+// nothing.
+func pickedOptions(qu *database.Quest, row database.CharQuest, skip int) []optionPick {
 	picks := database.ParsePicks(row.Picks)
 	var out []optionPick
 	for i := range qu.Steps {
 		st := &qu.Steps[i]
 		opts := st.Choices.Options
-		if len(opts) == 0 || !passed(row, st.Step) {
+		if len(opts) == 0 || !passed(row, st.Step) || st.Step == skip {
 			continue
 		}
 		if k, ok := picks[st.Step]; ok && k < len(opts) {
@@ -157,24 +157,11 @@ func pickedOptions(qu *database.Quest, row database.CharQuest) []optionPick {
 	return out
 }
 
-// pickedAnswers is the answers a quest's row kept the picks of, by step;
-// none when it kept none.
-func pickedAnswers(qu *database.Quest, row database.CharQuest) []string {
-	picks := database.ParsePicks(row.Picks)
-	var out []string
-	for i := range qu.Steps {
-		st := &qu.Steps[i]
-		if k, ok := picks[st.Step]; ok && k < len(st.Choices.Options) && passed(row, st.Step) {
-			out = append(out, st.Choices.Options[k].Answer)
-		}
-	}
-	return out
-}
-
-// spellsKept is the spells the character's quests give but those in except:
-// for each quest it has a row of, at each step passed, the step's own spells
-// for its class and its choice's (the kept pick's, else every option's).
-func (q *QuestEngine) spellsKept(serverID uint32, class int, except map[int]bool) map[int]bool {
+// spellsKeptBut is the spells the character's quests give but at one quest's
+// step (the pick being changed): for each quest it has a row of, at each step
+// passed, the step's own spells for its class and its choice's (the kept
+// pick's, else every option's).
+func (q *QuestEngine) spellsKeptBut(serverID uint32, class int, questID, step int) map[int]bool {
 	out := map[int]bool{}
 	if q == nil {
 		return out
@@ -184,7 +171,7 @@ func (q *QuestEngine) spellsKept(serverID uint32, class int, except map[int]bool
 	c := q.charLocked(serverID)
 	for id, cq := range c.quests {
 		qu := q.cat.byID[id]
-		if qu == nil || except[id] {
+		if qu == nil {
 			continue
 		}
 		for i := range qu.Steps {
@@ -194,7 +181,11 @@ func (q *QuestEngine) spellsKept(serverID uint32, class int, except map[int]bool
 				}
 			}
 		}
-		for _, o := range pickedOptions(qu, *cq) {
+		skip := 0
+		if id == questID {
+			skip = step
+		}
+		for _, o := range pickedOptions(qu, *cq, skip) {
 			for _, sp := range o.Reward.Spells {
 				out[sp] = true
 			}
@@ -203,13 +194,20 @@ func (q *QuestEngine) spellsKept(serverID uint32, class int, except map[int]bool
 	return out
 }
 
-// forgetQuests forgets a character's rows of the quests (QuestReset): each
-// may be taken again, and a quest under way leaves its journal.
-func (q *QuestEngine) forgetQuests(serverID uint32, ids []int) error {
-	for _, id := range ids {
-		if _, err := q.SetCharacterQuest(serverID, id, QuestReset, 0); err != nil {
-			return err
-		}
+// setPick keeps a character's pick at a quest's step (a rehabilitator's
+// change, rehab.go): its row's picks, the row otherwise as it was. False when
+// the character has no row of the quest.
+func (q *QuestEngine) setPick(serverID uint32, questID, step, option int) bool {
+	if q == nil {
+		return false
 	}
-	return nil
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	cq := q.charLocked(serverID).quests[questID]
+	if cq == nil {
+		return false
+	}
+	cq.Picks = database.WithPick(cq.Picks, step, option)
+	q.saveLocked(cq)
+	return true
 }

@@ -290,7 +290,7 @@ var catalog = map[string]tableNote{
 		Label: "Character resets", Group: "Players", Sort: "serverid",
 		Help: "Each character's resets at a rehabilitator (handlers/rehab.go: Rehabilitator Anja in Muniel's Tea Garden, " +
 			"Rehabilitator Frejo near Freeport), a row a kind: mastery (its Combat Masteries unlearned, their points back), " +
-			"training (its stat points back) and path (a level 20, 30, 40 or 49 path's pick undone). used is the free ones it " +
+			"training (its stat points back) and path (a level 20, 30, 40 or 49 path's pick chosen again). used is the free ones it " +
 			"used, paid those it paid for (tunar for masteries and stat points, a Rose of Rehabilitation for a path), bonus free " +
 			"ones a GM gave it besides everyone's (Rehabilitators' prices: free_mastery, free_training, free_path). It has " +
 			"free + bonus - used left. A kind with no row has every free one: delete the row, lower used or raise bonus to " +

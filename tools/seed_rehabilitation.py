@@ -3,8 +3,8 @@
 garden and another near freeport NPC, talk to them", "the rehab person sells it for 10 million tunar. Rose of
 Rehabilitation", "Roses for paths", and "1 free path respec w/ 60 epic. Or rose as reward".
 
-  - The Rose of Rehabilitation, item 709300 (ROSE_ID; Go's database.RoseOfRehabilitation): what undoes a path at a
-    rehabilitator once a character's free path respecs are used. It takes "rose of renewal"'s look (1001: its icon
+  - The Rose of Rehabilitation, item 709300 (ROSE_ID; Go's database.RoseOfRehabilitation): what pays a rehabilitator
+    for a path chosen again once a character's free path respecs are used. It takes "rose of renewal"'s look (1001: its icon
     759960290 is a pink rose on the disc's ITEMICON.ESF, where Oceanic Rose's 1342617881 is a coil of rope, the
     quest import's art for 163 items), is worth 10,000,000 (a merchant will not buy it: handlers/merchant.go),
     NO TRADE (trade 1) and one a record.
@@ -40,7 +40,7 @@ ROSE_LOOK = 1001  # rose of renewal
 ROSE_ICON = 759960290
 ROSE_VALUE = 10_000_000
 ROSE_DESC = ("Bring this rose to Rehabilitator Anja in Muniel's Tea Garden or Rehabilitator Frejo near Freeport "
-             "to undo a path once your free path respecs are spent.")
+             "to choose a path again once your free path respecs are spent.")
 NPC_BIT = 0x80
 EPIC_KEY = re.compile(r"^EQOA-Data (60/[^/ ]+/reward-[a-z]+) \(tools/import_quests\.py\)$")
 EPIC_FILE_KEY = re.compile(r"^60/[^/]+/reward-[a-z]+$")

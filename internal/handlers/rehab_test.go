@@ -261,7 +261,7 @@ func TestRehabilitatorsMenu(t *testing.T) {
 		t.Fatalf("the greeting: %q", m)
 	}
 	q, answers := asked(m)
-	want := []string{"Reset my masteries or stat points", "Undo a path (free)", "Buy a Rose of Rehabilitation (10,000,000 tunar)"}
+	want := []string{"Reset my masteries or stat points", "Choose a path again (free)", "Buy a Rose of Rehabilitation (10,000,000 tunar)"}
 	if q != rehabAskMenu || strings.Join(answers, "|") != strings.Join(want, "|") {
 		t.Fatalf("the menu: %q %q", q, answers)
 	}
@@ -540,7 +540,8 @@ func (f *rehabFixture) warriorPaths() {
 	f.qe.ReloadCharacter(f.sid)
 }
 
-// pathsAsked talks to Anja, picks Undo a path, and returns the paths offered.
+// pathsAsked talks to Anja, answers Choose a path again, and returns the
+// picks offered.
 func (f *rehabFixture) pathsAsked() []string {
 	f.t.Helper()
 	f.talk()
@@ -552,32 +553,84 @@ func (f *rehabFixture) pathsAsked() []string {
 	return a
 }
 
-// Undoing the level 30 path undoes it and the later levels of its branch,
-// and nothing else: those quests' rows go (their givers offer them again),
-// their picks' spells leave the book (0x00B8) and their items come back from
-// the pack and the bank; the level 20 path, the epic's Warcry (also an
-// option at 49) and a quest of no path stay. The free respec is counted. The
-// control: "Not now." changes nothing.
-func TestRehabPathUndoesItsPathOnly(t *testing.T) {
+// picks is the character's kept picks of a quest.
+func (f *rehabFixture) picks(quest int) string {
+	var picks string
+	f.db.QueryRow(`SELECT picks FROM charquests WHERE serverid = ? AND questid = ?`, f.sid, quest).Scan(&picks)
+	return picks
+}
+
+// rowsAsTheyWere is whether every quest row of warriorPaths is still there,
+// finished once, at no step: nothing was done again.
+func (f *rehabFixture) rowsAsTheyWere() bool {
+	for _, id := range []int{qL20, qL30, qL40, qL49, qEpic, qOther} {
+		var step, done int
+		if err := f.db.QueryRow(`SELECT step, done FROM charquests WHERE serverid = ? AND questid = ?`, f.sid, id).Scan(&step, &done); err != nil ||
+			step != 0 || done != 1 {
+			return false
+		}
+	}
+	return true
+}
+
+// fillPack fills the pack with records of an item that does not stack until
+// it holds n records.
+func (f *rehabFixture) fillPack(n int) int {
+	f.t.Helper()
+	f.item(4999, "cracked shell", 5, -1, 1)
+	for {
+		var have int
+		f.db.QueryRow(`SELECT COUNT(*) FROM charinventory WHERE serverid = ? AND location = 0`, f.sid).Scan(&have)
+		if have >= n {
+			return 4999
+		}
+		f.own(4999, 1, -1, 0)
+	}
+}
+
+// count is how many messages of an opcode are in msgs.
+func countOp(msgs []string, op uint16) int {
+	n := 0
+	for _, m := range msgs {
+		if m == fmt.Sprintf("op:%04X", op) {
+			n++
+		}
+	}
+	return n
+}
+
+// A pick chosen again on the spot: the level 30 Roar for Pillar of Strength.
+// The picks are offered a step each (the 49's two, read off the book and the
+// bank as picks from before were not kept; the epic's Warcry is not the 49's),
+// then the step's other options; on the yes Roar leaves the book (0x00B8),
+// Pillar of Strength enters it (0x00B3), the pick is kept, every quest row stays
+// as it was, no experience comes, the 40 and 49 picks stay, and the free respec
+// is counted. The control: "Not now." changes nothing.
+func TestRehabPathChosenAgainOnTheSpot(t *testing.T) {
 	f := newRehabFixture(t)
 	f.warriorPaths()
 	paths := f.pathsAsked()
-	if len(paths) != 4 || paths[0] != "Level 20: Bellow" || paths[1] != "Level 30: Roar" ||
-		paths[2] != "Level 40: Howl and the Calamitous Falchion" || !strings.HasPrefix(paths[3], "Level 49: Battlecry") {
+	want := []string{"Level 20: Bellow", "Level 30: Roar", "Level 40: Howl and the Calamitous Falchion", "Level 49: Battlecry",
+		"Level 49: The Steelwind"}
+	if strings.Join(paths, "|") != strings.Join(want, "|") {
 		t.Fatalf("the paths: %q", paths)
 	}
 	m := f.pick(1)
-	if !rehabSays(m, "Your level 30 path will be undone, and your level 40 and 49 paths with it.") ||
-		!rehabSays(m, "Battlecry, Howl and Roar leave your book, and I take back the Calamitous Falchion and the Steelwind.") ||
-		!rehabSays(m, "Then choose again with Warlord Honan and Zentar Reese.") {
+	if q, a := asked(m); q != "What will you take instead of Roar?" || strings.Join(a, "|") != "Pillar of Strength" {
+		t.Fatalf("the other options: %q %q", q, a)
+	}
+	m = f.pick(0)
+	if !rehabSays(m, "Your level 30 path will be Pillar of Strength, not Roar.") ||
+		!rehabSays(m, "Roar leaves your book and Pillar of Strength enters it.") {
 		t.Fatalf("the question's words: %q", m)
 	}
-	if q, _ := asked(m); q != "Shall I undo it? This is a free path respec (1 left after)." {
-		t.Fatalf("the question: %q", q)
+	if q, a := asked(m); q != "Shall I make the change? This is a free path respec (1 left after)." ||
+		strings.Join(a, "|") != "Yes, change it.|Not now." {
+		t.Fatalf("the question: %q %q", q, a)
 	}
 	f.pick(1) // not now
-	if !f.row(qL30) || !f.knows(spRoar) || f.held(itFalchion) != 1 {
-		t.Fatal("the control: Not now. undid something")
+	if !f.knows(spRoar) || f.knows(spStrength) || f.picks(qL30) != "1:0" {
+		t.Fatal("the control: Not now. changed something")
 	}
 	if u, _ := f.counts(database.ResetPath); u != 0 {
 		t.Fatalf("Not now. counted a respec: %d", u)
@@ -585,141 +638,287 @@ func TestRehabPathUndoesItsPathOnly(t *testing.T) {
 
 	f.pathsAsked()
 	f.pick(1)
+	f.pick(0)
 	m = f.pick(0)
-	for _, id := range []int{qL30, qL40, qL49} {
-		if f.row(id) {
-			t.Errorf("quest %d still has the character's row", id)
-		}
+	if f.knows(spRoar) || !f.knows(spStrength) || f.picks(qL30) != "1:1" {
+		t.Fatalf("after: Roar %v, Pillar of Strength %v, picks %q", f.knows(spRoar), f.knows(spStrength), f.picks(qL30))
 	}
-	for _, id := range []int{qL20, qEpic, qOther} {
-		if !f.row(id) {
-			t.Errorf("quest %d lost the character's row", id)
-		}
+	if !f.rowsAsTheyWere() || !f.knows(spHowl) || !f.knows(spBattlecry) || f.held(itFalchion) != 1 || f.held(itSteelwind) != 1 {
+		t.Errorf("more changed than the 30's pick: rows %v Howl %v Battlecry %v falchion %d steelwind %d", f.rowsAsTheyWere(),
+			f.knows(spHowl), f.knows(spBattlecry), f.held(itFalchion), f.held(itSteelwind))
 	}
-	for _, id := range []int{spRoar, spHowl, spBattlecry} {
-		if f.knows(id) {
-			t.Errorf("spell %d is still in the book", id)
-		}
+	if countOp(m, uint16(protocol.OpcodeAbilityRemove)) != 1 || countOp(m, 0x00B3) != 1 || hasMsg(m, "xp") ||
+		hasMsg(m, "box:"+questFinished) {
+		t.Errorf("the client was told: %q", m)
 	}
-	for _, id := range []int{spWarcry, spMend, spBellow} {
-		if !f.knows(id) {
-			t.Errorf("spell %d left the book", id)
-		}
-	}
-	if f.held(itFalchion) != 0 || f.held(itSteelwind) != 0 {
-		t.Errorf("the falchion %d and the steelwind %d still held", f.held(itFalchion), f.held(itSteelwind))
-	}
-	removed, took, banked := 0, 0, 0
-	for _, x := range m {
-		switch {
-		case x == fmt.Sprintf("op:%04X", uint16(protocol.OpcodeAbilityRemove)):
-			removed++
-		case strings.HasPrefix(x, "take:"):
-			took++
-		case x == fmt.Sprintf("op:%04X", uint16(protocol.OpcodeRemoveBankItem)):
-			banked++
-		}
-	}
-	if removed != 3 || took != 1 || banked != 1 {
-		t.Errorf("the client was told %d spells, %d pack items, %d bank items out: want 3 1 1 (%q)", removed, took, banked, m)
-	}
-	if !rehabSays(m, "Undone: your level 30 path and your level 40 and 49 paths; out of your book: Roar, Howl, Battlecry; "+
-		"taken back: Calamitous Falchion, Steelwind.") || !rehabSays(m, "That was a free path respec: 1 left.") {
+	if !rehabSays(m, "It is done. Your level 30 path is Pillar of Strength now.") ||
+		!rehabSays(m, "Out of your book: Roar. Into it: Pillar of Strength.") ||
+		!rehabSays(m, "That was a free path respec: 1 left.") {
 		t.Errorf("the lines: %q", m)
 	}
 	if u, p := f.counts(database.ResetPath); u != 1 || p != 0 {
 		t.Errorf("path used %d paid %d", u, p)
 	}
-	// the giver offers the level 30 reward again
-	honan := f.tw.add(3, &entity.NPC{ServerID: 3001, Name: "Warlord Honan", NPCType: 0x80, SpawnX: 23431.5, SpawnY: 54, SpawnZ: 19601.5})
-	f.tw.talk(honan)
-	if m := questMsgs(f.tw.s); !hasMsg(m, "add:Talk.") {
-		t.Errorf("Honan does not give the level 30 path again: %q", m)
+}
+
+// A pick's items change with it: the 40's Howl and the Calamitous Falchion for
+// Pillar of Force and the Calamitous Poleaxe, the falchion taken back and the
+// poleaxe given.
+func TestRehabPathChangeTradesItsItems(t *testing.T) {
+	f := newRehabFixture(t)
+	f.warriorPaths()
+	f.pathsAsked()
+	m := f.pick(2)
+	if _, a := asked(m); strings.Join(a, "|") != "Pillar of Force and the Calamitous Poleaxe" {
+		t.Fatalf("the other options: %q", a)
+	}
+	m = f.pick(0)
+	if !rehabSays(m, "Howl leaves your book, Pillar of Force enters it, I take back the Calamitous Falchion and I give you the Calamitous Poleaxe.") {
+		t.Fatalf("the question's words: %q", m)
+	}
+	m = f.pick(0)
+	if f.knows(spHowl) || !f.knows(spForce) || f.held(itFalchion) != 0 || f.held(itPoleaxe) != 1 || f.picks(qL40) != "1:1" {
+		t.Fatalf("after: Howl %v Force %v falchion %d poleaxe %d picks %q", f.knows(spHowl), f.knows(spForce), f.held(itFalchion),
+			f.held(itPoleaxe), f.picks(qL40))
+	}
+	if !hasMsg(m, "take:0*1") || !hasMsg(m, "item") || !f.rowsAsTheyWere() {
+		t.Errorf("the client was told %q; rows as they were %v", m, f.rowsAsTheyWere())
 	}
 }
 
-// The level 49 path alone: the earlier levels' stay; the level 20 path
-// alone: its scroll's spell leaves the book, the 30/40/49 paths stay.
-func TestRehabPathLaterAndLevel20(t *testing.T) {
+// An item both options give stays where it is (neither taken nor given),
+// and one the old pick gave that is held nowhere now (sold) is named as no
+// longer the character's to take back, the new pick given all the same.
+func TestRehabPathChangeItemsSharedAndLost(t *testing.T) {
+	t.Run("shared", func(t *testing.T) {
+		f := newRehabFixture(t)
+		f.warriorPaths()
+		f.exec(`UPDATE queststeps SET choices = ? WHERE questid = ?`, choice(fmt.Sprintf("Howl and the Calamitous Falchion=%d:%d", spHowl, itFalchion),
+			fmt.Sprintf("Pillar of Force and the Calamitous Falchion=%d:%d", spForce, itFalchion)), qL40)
+		f.qe.ReloadQuests()
+		f.pathsAsked()
+		f.pick(2)
+		m := f.pick(0)
+		if !rehabSays(m, "Howl leaves your book and Pillar of Force enters it.") {
+			t.Fatalf("the question's words: %q", m)
+		}
+		m = f.pick(0)
+		if f.held(itFalchion) != 1 || hasMsg(m, "item") || strings.Contains(strings.Join(m, "\n"), "take:") || !f.knows(spForce) {
+			t.Errorf("the falchion %d, Force %v (%q)", f.held(itFalchion), f.knows(spForce), m)
+		}
+	})
+	t.Run("lost", func(t *testing.T) {
+		f := newRehabFixture(t)
+		f.warriorPaths()
+		f.exec(`DELETE FROM charinventory WHERE serverid = ? AND patternid = ?`, f.sid, itFalchion)
+		f.lists()
+		f.pathsAsked()
+		f.pick(2)
+		m := f.pick(0)
+		if !rehabSays(m, "Howl leaves your book, Pillar of Force enters it and I give you the Calamitous Poleaxe.") {
+			t.Fatalf("the question's words: %q", m)
+		}
+		m = f.pick(0)
+		if f.held(itPoleaxe) != 1 || !rehabSays(m, "Out of your book: Howl. Into it: Pillar of Force. Given: Calamitous Poleaxe. No longer yours to take back: Calamitous Falchion.") {
+			t.Errorf("the poleaxe %d (%q)", f.held(itPoleaxe), m)
+		}
+	})
+}
+
+// What else gives a spell keeps it in the book: Warcry, which the epic gave
+// as well, stays when the 49's Warcry is changed back for Battlecry; Roar,
+// which a merchant sells as a scroll, stays when the 30's Roar is changed for
+// Pillar of Strength. The control is TestRehabPathChosenAgainOnTheSpot, where
+// no merchant sells Roar and it leaves.
+func TestRehabPathChangeKeepsWhatElseGives(t *testing.T) {
+	f := newRehabFixture(t)
+	f.warriorPaths()
+	f.exec(`UPDATE charquests SET picks = '1:1' WHERE serverid = ? AND questid = ?`, f.sid, qL49) // Warcry
+	f.exec(`DELETE FROM spells WHERE serverid = ? AND spellid = ?`, f.sid, spBattlecry)
+	f.qe.ReloadCharacter(f.sid)
+	if paths := f.pathsAsked(); paths[3] != "Level 49: Warcry" {
+		t.Fatalf("the paths: %q", paths)
+	}
+	f.pick(3)
+	m := f.pick(0)
+	if !rehabSays(m, "Battlecry enters it.") || rehabSays(m, "leaves your book") {
+		t.Fatalf("the question's words: %q", m)
+	}
+	f.pick(0)
+	if !f.knows(spWarcry) || !f.knows(spBattlecry) || f.picks(qL49) != "1:0" {
+		t.Errorf("after: Warcry %v Battlecry %v picks %q", f.knows(spWarcry), f.knows(spBattlecry), f.picks(qL49))
+	}
+
+	f.item(4100, "Roar", scrollIcon, -1, 1)
+	f.exec(`INSERT INTO npcitem (npcid, stackleft, remainHP, patternid, listnumber) VALUES (3100, 1, 0, 4100, 0)`)
+	f.pathsAsked()
+	f.pick(1)
+	m = f.pick(0)
+	if !rehabSays(m, "Pillar of Strength enters it.") || rehabSays(m, "Roar leaves") {
+		t.Fatalf("the question's words: %q", m)
+	}
+	f.pick(0)
+	if !f.knows(spRoar) || !f.knows(spStrength) {
+		t.Errorf("after: Roar %v Pillar of Strength %v", f.knows(spRoar), f.knows(spStrength))
+	}
+}
+
+// A book that holds two options' spells nothing else explains had them from a
+// class grant (a GM's grant_spell "all", #template): the change keeps them all
+// and says so, the pick changed. The controls: TestRehabPathChosenAgainOnTheSpot's
+// book, which holds only Roar, and Roar leaves; TestRehabInferredPickChanged's,
+// whose 49 Warcry the epic explains, and Battlecry leaves.
+func TestRehabPathChangeLeavesAGrantedBook(t *testing.T) {
+	f := newRehabFixture(t)
+	f.warriorPaths()
+	f.know(spStrength)
+	f.pathsAsked()
+	f.pick(1)
+	m := f.pick(0)
+	if !rehabSays(m, "You know every ability this path offers already: none leaves your book.") || rehabSays(m, "leaves your book and") {
+		t.Fatalf("the question's words: %q", m)
+	}
+	m = f.pick(0)
+	if !f.knows(spRoar) || !f.knows(spStrength) || f.picks(qL30) != "1:1" || countOp(m, uint16(protocol.OpcodeAbilityRemove)) != 0 {
+		t.Errorf("after: Roar %v Pillar of Strength %v picks %q (%q)", f.knows(spRoar), f.knows(spStrength), f.picks(qL30), m)
+	}
+}
+
+// A book with no room for the new pick's spells refuses before anything
+// moves (the book's display indices end at 252). The control is
+// TestRehabPathChosenAgainOnTheSpot's book.
+func TestRehabPathChangeNeedsRoomInTheBook(t *testing.T) {
+	f := newRehabFixture(t)
+	f.warriorPaths()
+	for id := 20000; id < 20246; id++ {
+		f.spell(id, fmt.Sprintf("Filler %d", id))
+		f.know(id)
+	}
+	f.pathsAsked()
+	f.pick(1)
+	m := f.pick(0)
+	if !rehabSays(m, "Your spell book has no room for Pillar of Strength.") || boxID(m) != 0 {
+		t.Fatalf("a full book: %q", m)
+	}
+	if !f.knows(spRoar) || f.knows(spStrength) || f.picks(qL30) != "1:0" {
+		t.Error("refused, yet changed")
+	}
+}
+
+// A level 20 pick is a scroll: Bellow (scribed) for Pillar of Might, Bellow
+// out of the book and Pillar of Might's scroll given to scribe.
+func TestRehabLevel20PickChangesItsScroll(t *testing.T) {
+	f := newRehabFixture(t)
+	f.warriorPaths()
+	f.pathsAsked()
+	f.pick(0)
+	m := f.pick(0)
+	if !rehabSays(m, "Bellow leaves your book and I give you the Pillar of Might.") {
+		t.Fatalf("the question's words: %q", m)
+	}
+	f.pick(0)
+	if f.knows(spBellow) || f.held(itMight) != 1 || f.picks(qL20) != "1:1" || !f.rowsAsTheyWere() {
+		t.Errorf("after: Bellow %v, the Pillar of Might scroll %d, picks %q, rows %v", f.knows(spBellow), f.held(itMight),
+			f.picks(qL20), f.rowsAsTheyWere())
+	}
+}
+
+// A pick from before picks were kept is read off the book: the 49's
+// Battlecry (Warcry is the epic's), changed for Warcry, which the book holds
+// already through the epic: Battlecry leaves, nothing is taught twice, and the
+// pick is kept from then on.
+func TestRehabInferredPickChanged(t *testing.T) {
 	f := newRehabFixture(t)
 	f.warriorPaths()
 	f.pathsAsked()
 	m := f.pick(3)
-	if !rehabSays(m, "Your level 49 path will be undone.") {
-		t.Fatalf("the question's words: %q", m)
-	}
-	f.pick(0)
-	if f.row(qL49) || !f.row(qL30) || !f.row(qL40) || f.knows(spBattlecry) || !f.knows(spRoar) || !f.knows(spHowl) ||
-		f.held(itFalchion) != 1 || f.held(itSteelwind) != 0 {
-		t.Fatalf("after the 49: rows %v %v %v, spells %v %v %v, falchion %d steelwind %d", f.row(qL30), f.row(qL40), f.row(qL49),
-			f.knows(spRoar), f.knows(spHowl), f.knows(spBattlecry), f.held(itFalchion), f.held(itSteelwind))
-	}
-	paths := f.pathsAsked()
-	if paths[0] != "Level 20: Bellow" {
-		t.Fatalf("the paths: %q", paths)
+	if q, a := asked(m); q != "What will you take instead of Battlecry?" || strings.Join(a, "|") != "Warcry" {
+		t.Fatalf("the other options: %q %q", q, a)
 	}
 	m = f.pick(0)
-	if !rehabSays(m, "Bellow leaves your book.") || !rehabSays(m, "Then choose again with Captain Norgam.") {
-		t.Fatalf("the level 20 question: %q", m)
+	if !rehabSays(m, "Battlecry leaves your book.") || rehabSays(m, "enters it") {
+		t.Fatalf("the question's words: %q", m)
 	}
-	f.pick(0)
-	if f.row(qL20) || f.knows(spBellow) || !f.row(qL30) || !f.knows(spRoar) {
-		t.Errorf("after the 20: its row %v Bellow %v; the 30's row %v Roar %v", f.row(qL20), f.knows(spBellow), f.row(qL30), f.knows(spRoar))
-	}
-	if u, _ := f.counts(database.ResetPath); u != 2 {
-		t.Errorf("two free respecs, counted %d", u)
+	m = f.pick(0)
+	if f.knows(spBattlecry) || !f.knows(spWarcry) || f.picks(qL49) != "1:1" || f.picks(qEpic) != "1:1" ||
+		countOp(m, 0x00B3) != 0 {
+		t.Errorf("after: Battlecry %v Warcry %v picks %q/%q (%q)", f.knows(spBattlecry), f.knows(spWarcry), f.picks(qL49), f.picks(qEpic), m)
 	}
 }
 
-// A pick made through the quests is kept with the quest's row, and the
-// rehabilitator takes back exactly it: Pillar of Strength, picked at Warlord
-// Honan, is the path offered and the spell that goes; Honan offers the
-// quest again after.
-func TestRehabPathPickedThroughTheQuests(t *testing.T) {
+// A path's item worn is taken off first, and a pack with no room for the new
+// item refuses: both before anything moves, the rose kept (it is used only
+// when the change is done). The controls: taken off, and with the falchion in
+// the pack (its record freed for the poleaxe), the change goes through for
+// the rose.
+func TestRehabPathChangeRefusedBeforeAnythingMoves(t *testing.T) {
 	f := newRehabFixture(t)
-	f.spell(spRoar, "Roar")
-	f.spell(spStrength, "Pillar of Strength")
-	f.quest(qL30, "30,40,49/group-5-evil/L30-warrior", "Warlord Honan", choice(fmt.Sprintf("Roar=%d:", spRoar), fmt.Sprintf("Pillar of Strength=%d:", spStrength)))
-	f.qe.ReloadQuests()
-	honan := f.tw.add(3, &entity.NPC{ServerID: 3001, Name: "Warlord Honan", NPCType: 0x80, SpawnX: 23431.5, SpawnY: 54, SpawnZ: 19601.5})
-	f.tw.talk(honan) // given at once: no answer to take it
-	questMsgs(f.tw.s)
-	f.tw.talk(honan)
-	m := questMsgs(f.tw.s)
-	if q, a := asked(m); q != "Which do you take?" || len(a) != 2 {
-		t.Fatalf("the pick: %q", m)
+	f.warriorPaths()
+	f.exec(`INSERT INTO charresets (serverid, kind, used) VALUES (?, 'path', 2)`, f.sid)
+	f.own(database.RoseOfRehabilitation, 1, -1, 1)
+	unchanged := func(what string) {
+		t.Helper()
+		if !f.knows(spHowl) || f.knows(spForce) || f.held(itFalchion) != 1 || f.held(itPoleaxe) != 0 ||
+			f.held(database.RoseOfRehabilitation) != 1 || f.picks(qL40) != "1:0" {
+			t.Fatalf("%s, yet changed: Howl %v Force %v falchion %d poleaxe %d roses %d picks %q", what, f.knows(spHowl),
+				f.knows(spForce), f.held(itFalchion), f.held(itPoleaxe), f.held(database.RoseOfRehabilitation), f.picks(qL40))
+		}
+		if _, p := f.counts(database.ResetPath); p != 0 {
+			t.Fatalf("%s, yet a rose counted", what)
+		}
 	}
-	f.tw.pick(boxID(m), 1)
-	questMsgs(f.tw.s)
-	var picks string
-	f.db.QueryRow(`SELECT picks FROM charquests WHERE serverid = ? AND questid = ?`, f.sid, qL30).Scan(&picks)
-	if picks != "1:1" || !f.knows(spStrength) {
-		t.Fatalf("the pick kept: %q, Pillar of Strength known %v", picks, f.knows(spStrength))
+
+	f.exec(`UPDATE charinventory SET equiploc = 14 WHERE serverid = ? AND patternid = ?`, f.sid, itFalchion)
+	f.lists()
+	f.pathsAsked()
+	f.pick(2)
+	m := f.pick(0)
+	if !rehabSays(m, "Take off the Calamitous Falchion first: what a path gave goes back with it.") || boxID(m) != 0 {
+		t.Fatalf("worn: %q", m)
 	}
-	if paths := f.pathsAsked(); paths[0] != "Level 30: Pillar of Strength" {
-		t.Fatalf("the paths: %q", paths)
+	unchanged("worn")
+
+	// banked, the falchion frees no record in a full pack
+	f.exec(`UPDATE charinventory SET equiploc = -1, location = 1 WHERE serverid = ? AND patternid = ?`, f.sid, itFalchion)
+	filler := f.fillPack(40)
+	f.pathsAsked()
+	f.pick(2)
+	m = f.pick(0)
+	if !rehabSays(m, "Your pack is too full for the Calamitous Poleaxe. Make room and come back to me.") || boxID(m) != 0 {
+		t.Fatalf("a full pack: %q", m)
+	}
+	unchanged("a full pack")
+
+	// in the pack, taking it back frees the record the poleaxe needs
+	f.exec(`DELETE FROM charinventory WHERE itemid = (SELECT MIN(itemid) FROM charinventory WHERE serverid = ? AND patternid = ?)`, f.sid, filler)
+	f.exec(`UPDATE charinventory SET location = 0 WHERE serverid = ? AND patternid = ?`, f.sid, itFalchion)
+	f.lists()
+	f.pathsAsked()
+	f.pick(2)
+	m = f.pick(0)
+	if q, _ := asked(m); q != "Shall I make the change, for a Rose of Rehabilitation?" {
+		t.Fatalf("the control's question: %q", m)
 	}
 	f.pick(0)
-	f.pick(0)
-	if f.knows(spStrength) || f.row(qL30) {
-		t.Fatalf("after: Pillar of Strength %v, the row %v", f.knows(spStrength), f.row(qL30))
+	if f.knows(spHowl) || f.held(itFalchion) != 0 || f.held(itPoleaxe) != 1 || f.held(database.RoseOfRehabilitation) != 0 {
+		t.Errorf("the control: Howl %v falchion %d poleaxe %d roses %d", f.knows(spHowl), f.held(itFalchion), f.held(itPoleaxe),
+			f.held(database.RoseOfRehabilitation))
 	}
-	f.tw.talk(honan)
-	if m := questMsgs(f.tw.s); !hasMsg(m, "add:Talk.") {
-		t.Errorf("Honan does not give it again: %q", m)
+	if u, p := f.counts(database.ResetPath); u != 2 || p != 1 {
+		t.Errorf("path used %d paid %d: want 2 1", u, p)
 	}
 }
 
 // Past the free path respecs a path needs a rose: offered for sale, refused
 // with too little tunar (nothing taken), bought for exactly 10,000,000 and
-// given, then the paths asked and one undone for it, the rose gone; the menu
+// given, then the paths asked and one changed for it, the rose gone; the menu
 // sells one too, at the GMs' price.
 func TestRehabRoseForAPath(t *testing.T) {
 	f := newRehabFixture(t)
 	f.warriorPaths()
 	f.exec(`INSERT INTO charresets (serverid, kind, used) VALUES (?, 'path', 2)`, f.sid)
 	m := f.talk()
-	if _, a := asked(m); a[1] != "Undo a path (a Rose of Rehabilitation)" {
+	if _, a := asked(m); a[1] != "Choose a path again (a Rose of Rehabilitation)" {
 		t.Fatalf("the menu: %q", a)
 	}
 	f.purse(9_999_999)
@@ -743,13 +942,15 @@ func TestRehabRoseForAPath(t *testing.T) {
 	if q, _ := asked(m); q != rehabAskPath {
 		t.Fatalf("the paths not asked after the rose: %q", m)
 	}
-	m = f.pick(1)
-	if q, _ := asked(m); q != "Shall I undo it, for a Rose of Rehabilitation?" {
+	f.pick(1)
+	m = f.pick(0)
+	if q, _ := asked(m); q != "Shall I make the change, for a Rose of Rehabilitation?" {
 		t.Fatalf("the question: %q", m)
 	}
 	m = f.pick(0)
-	if f.held(database.RoseOfRehabilitation) != 0 || f.row(qL30) || f.knows(spRoar) || !rehabSays(m, "You gave up a Rose of Rehabilitation.") {
-		t.Fatalf("undone for the rose: roses %d, row %v, Roar %v (%q)", f.held(database.RoseOfRehabilitation), f.row(qL30), f.knows(spRoar), m)
+	if f.held(database.RoseOfRehabilitation) != 0 || f.knows(spRoar) || !f.knows(spStrength) || !rehabSays(m, "You gave up a Rose of Rehabilitation.") {
+		t.Fatalf("changed for the rose: roses %d, Roar %v, Pillar of Strength %v (%q)", f.held(database.RoseOfRehabilitation),
+			f.knows(spRoar), f.knows(spStrength), m)
 	}
 	if u, p := f.counts(database.ResetPath); u != 2 || p != 1 {
 		t.Errorf("path used %d paid %d: want 2 1", u, p)
@@ -770,8 +971,7 @@ func TestRehabRoseForAPath(t *testing.T) {
 }
 
 // A rose is for paths alone: a mastery reset past the free one asks tunar
-// and leaves the rose; the rose is offered for no reset. The control: the
-// next path undoing takes it.
+// and leaves the rose; the control: the next path change takes it.
 func TestRehabRoseIsForPathsOnly(t *testing.T) {
 	f := newRehabFixture(t)
 	f.warriorPaths()
@@ -791,36 +991,42 @@ func TestRehabRoseIsForPathsOnly(t *testing.T) {
 	f.pathsAsked()
 	f.pick(1)
 	f.pick(0)
-	if f.held(database.RoseOfRehabilitation) != 0 || f.row(qL30) {
-		t.Errorf("the path: roses %d, row %v", f.held(database.RoseOfRehabilitation), f.row(qL30))
+	f.pick(0)
+	if f.held(database.RoseOfRehabilitation) != 0 || f.knows(spRoar) {
+		t.Errorf("the path: roses %d, Roar %v", f.held(database.RoseOfRehabilitation), f.knows(spRoar))
 	}
 }
 
-// A path's item worn is taken off first: the undoing refused, nothing
-// changed; taken off, it goes.
-func TestRehabWornPathItemRefused(t *testing.T) {
+// A pick made through the quests is kept with the quest's row, and the
+// rehabilitator changes exactly it: Pillar of Strength, picked at Warlord
+// Honan, is the path offered and the spell that goes for Roar.
+func TestRehabPathPickedThroughTheQuests(t *testing.T) {
 	f := newRehabFixture(t)
-	f.warriorPaths()
-	f.exec(`UPDATE charinventory SET equiploc = 14 WHERE serverid = ? AND patternid = ?`, f.sid, itFalchion)
-	f.lists()
-	f.pathsAsked()
-	m := f.pick(2)
-	if !rehabSays(m, "Take off the Calamitous Falchion first: what a path gave goes back with it.") || boxID(m) != 0 {
-		t.Fatalf("worn: %q", m)
+	f.spell(spRoar, "Roar")
+	f.spell(spStrength, "Pillar of Strength")
+	f.quest(qL30, "30,40,49/group-5-evil/L30-warrior", "Warlord Honan", choice(fmt.Sprintf("Roar=%d:", spRoar), fmt.Sprintf("Pillar of Strength=%d:", spStrength)))
+	f.qe.ReloadQuests()
+	honan := f.tw.add(3, &entity.NPC{ServerID: 3001, Name: "Warlord Honan", NPCType: 0x80, SpawnX: 23431.5, SpawnY: 54, SpawnZ: 19601.5})
+	f.tw.talk(honan) // given at once: no answer to take it
+	questMsgs(f.tw.s)
+	f.tw.talk(honan)
+	m := questMsgs(f.tw.s)
+	if q, a := asked(m); q != "Which do you take?" || len(a) != 2 {
+		t.Fatalf("the pick: %q", m)
 	}
-	if !f.row(qL40) || !f.knows(spHowl) || f.held(itFalchion) != 1 {
-		t.Fatal("refused, yet changed")
+	f.tw.pick(boxID(m), 1)
+	questMsgs(f.tw.s)
+	if f.picks(qL30) != "1:1" || !f.knows(spStrength) {
+		t.Fatalf("the pick kept: %q, Pillar of Strength known %v", f.picks(qL30), f.knows(spStrength))
 	}
-	if u, _ := f.counts(database.ResetPath); u != 0 {
-		t.Fatalf("refused, yet counted: %d", u)
+	if paths := f.pathsAsked(); strings.Join(paths, "|") != "Level 30: Pillar of Strength" {
+		t.Fatalf("the paths: %q", paths)
 	}
-	f.exec(`UPDATE charinventory SET equiploc = -1 WHERE serverid = ? AND patternid = ?`, f.sid, itFalchion)
-	f.lists()
-	f.pathsAsked()
-	f.pick(2)
 	f.pick(0)
-	if f.row(qL40) || f.knows(spHowl) || f.held(itFalchion) != 0 {
-		t.Errorf("taken off, the 40 undone: row %v Howl %v falchion %d", f.row(qL40), f.knows(spHowl), f.held(itFalchion))
+	f.pick(0)
+	f.pick(0)
+	if f.knows(spStrength) || !f.knows(spRoar) || f.picks(qL30) != "1:0" || !f.row(qL30) {
+		t.Fatalf("after: Pillar of Strength %v, Roar %v, picks %q, row %v", f.knows(spStrength), f.knows(spRoar), f.picks(qL30), f.row(qL30))
 	}
 }
 

@@ -429,7 +429,7 @@ func (h *NPCWindowHandler) sell(sess *session.Session, id, key uint32, n int) bo
 		return false
 	}
 	if row.Pattern.PatternID == database.RoseOfRehabilitation {
-		// its worth is a path undone at a rehabilitator (rehab.go), not
+		// its worth is a path chosen again at a rehabilitator (rehab.go), not
 		// tunar: a merchant paying its value would make each epic's rose
 		// ten million tunar
 		SendColoredChat(sess, roseNotSold, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])

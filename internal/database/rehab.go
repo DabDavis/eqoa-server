@@ -23,8 +23,8 @@ import (
 // GM gave it.
 
 // RoseOfRehabilitation is the Rose of Rehabilitation's item (itempattern),
-// made by tools/seed_rehabilitation.py (ROSE_ID there): it undoes a path once
-// the free path respecs are used.
+// made by tools/seed_rehabilitation.py (ROSE_ID there): it pays for a path
+// chosen again once the free path respecs are used.
 const RoseOfRehabilitation = 709300
 
 // RoseOfRehabilitationName is its name, as the tool writes it.
@@ -34,7 +34,7 @@ const RoseOfRehabilitationName = "Rose of Rehabilitation"
 const (
 	ResetMastery  = "mastery"  // every Combat Mastery unlearned, its points back
 	ResetTraining = "training" // every training point back, the stats as born
-	ResetPath     = "path"     // a path undone: a quest's pick of abilities
+	ResetPath     = "path"     // a path chosen again: a quest's pick changed for another of its options
 )
 
 // ResetKinds is every kind, in the menu's order.
@@ -228,7 +228,7 @@ func (db *SQLiteDB) deleteCharResets(serverID uint32) error {
 
 // MerchantScrollNames is the names of the spell scrolls the merchants sell:
 // npcitem's items with the scroll art (icon, stored signed or not). A spell
-// a path taught that is sold so stays in the book when the path is undone
+// a path taught that is sold so stays in the book when the path is changed
 // (handlers/rehab.go): it may have been bought.
 func (db *SQLiteDB) MerchantScrollNames(icon int) ([]string, error) {
 	signed := int64(int32(icon))

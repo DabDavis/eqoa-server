@@ -102,12 +102,23 @@ func checkClassTemplateRow(row map[string]any) error {
 		}
 		*dst = int(f)
 	}
-	if v, ok := row["special_damage"]; ok && v != nil {
-		f, fok := asFloat(v)
-		if !fok || math.IsNaN(f) || math.IsInf(f, 0) {
-			return badRequest("special_damage is a number: the special's damage a level")
+	floats := []struct {
+		col, what string
+		dst       *float64
+	}{
+		{"special_damage", "the special's damage a level", &t.SpecialDamage},
+		{"special_every", "seconds from one timed special to the next (0 none)", &t.SpecialEvery},
+		{"special_first", "seconds into a fight for the first timed special", &t.SpecialFirst},
+		{"special_jitter", "seconds either way on each timed special", &t.SpecialJitter},
+	}
+	for _, c := range floats {
+		if v, ok := row[c.col]; ok && v != nil {
+			f, fok := asFloat(v)
+			if !fok || math.IsNaN(f) || math.IsInf(f, 0) {
+				return badRequest("%s is a number: %s", c.col, c.what)
+			}
+			*c.dst = f
 		}
-		t.SpecialDamage = f
 	}
 	if v, ok := row["special"]; ok && v != nil {
 		t.Special = strings.TrimSpace(fmt.Sprint(v))

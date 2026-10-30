@@ -155,7 +155,7 @@ MOD_WORTH = [50, 200, 600, 2000]
 LOOT_TABLE = "craft modifiers"
 LOOT_WEIGHT = [30, 9, 3, 1]          # ours: by rarity
 LOOT_LEVELS = [(1, 60), (10, 60), (20, 60), (30, 60)]
-LOOT_CHANCE = 3                      # ours: percent of every creature's corpses
+LOOT_CHANCE = 3                      # ours: percent of every creature's corpses (the modifiers)
 
 # the starter (eqoatrade's tutorial: the trainer's kit; the recipe "under Crude Iron")
 HAMMERS = ["Novice", "Initiate", "Assistant", "Apprentice", "Adept", "Journeyman", "Craftsman", "Artisan", "Master",
@@ -509,7 +509,7 @@ def plan(db, folder, harvests):
             if len(r) > 1:
                 left.append(f"{city}: {len(r)} NPCs named {name}: the first stocked")
             stock.append((city, role, name, r[0], wares))
-    loot = {"table": LOOT_TABLE, "mods": list(MODIFIERS.items()),
+    loot = {"table": LOOT_TABLE, "chance": LOOT_CHANCE, "mods": list(MODIFIERS.items()),
             "note": "the armorsmiths' gems and alloys: any creature (eqoatrade: random)"}
     return {"skill": ARMOR, "cells": sum(len(v) for v in grids.values()), "vendors": vendors, "comps": comps, "items": items,
             "ids": ids, "products": products, "stock": stock, "left": left, "problems": problems, "loot": loot}
@@ -620,8 +620,8 @@ def apply(db, p):
             loot += 1
         if db.execute("SELECT 1 FROM npcloot WHERE npc_name = '*' AND tablename = ?", (lt["table"],)).fetchone() is None:
             db.execute("INSERT INTO npcloot (npc_name, tablename, chance, rolls, note, source) VALUES ('*', ?, ?, 1, ?, ?)",
-                       (lt["table"], LOOT_CHANCE, lt["note"], SOURCE))
-            log(db, "npcloot", ["*", lt["table"]], "inserted", new={"chance": LOOT_CHANCE, "rolls": 1})
+                       (lt["table"], lt["chance"], lt["note"], SOURCE))
+            log(db, "npcloot", ["*", lt["table"]], "inserted", new={"chance": lt["chance"], "rolls": 1})
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
@@ -732,6 +732,7 @@ GEM_TWINS = {"Emerald": ("Ruby", {"HPMAX": "POWMAX"}),
 CHANGED_GEMS = ("Ruby", "Emerald", "Sapphire", "Star Ruby", "Fire Emerald", "Black Sapphire", "Diamond", "Blue Diamond")
 GEM_PRICE = [20, 60, 270, 800]       # the gems Sandstorm prices (20, 60, 270); the ultra rare ours
 JEWEL_LOOT_TABLE = "craft gems"
+JEWEL_LOOT_CHANCE = 5                # ours: percent of every creature's corpses (the user, 2026-10-30: the gems' 3 to 5)
 # the starter (eqoatrade's tutorial: the jeweler's kit, "a glass trinket recipe, 1 piece of glass, 1 piece of cracked
 # glass, an earring mold, a pendant mold, and 1 iron bar"; the trinket by the recipe, the cracked glass earring by
 # experiment, both under Special; their stats ours)
@@ -1014,7 +1015,7 @@ def plan_jewel(db, folder, harvests):
             if len(r) > 1:
                 left.append(f"{city}: {len(r)} NPCs named {name}: the first stocked")
             stock.append((city, role, name, r[0], wares))
-    loot = {"table": JEWEL_LOOT_TABLE, "mods": [(GEM_ITEM.get(g, g), props[g][0]) for g in props],
+    loot = {"table": JEWEL_LOOT_TABLE, "chance": JEWEL_LOOT_CHANCE, "mods": [(GEM_ITEM.get(g, g), props[g][0]) for g in props],
             "note": "the jewelers' gems: any creature (eqoatrade: random)"}
     return {"skill": JEWEL, "cells": cells_n, "vendors": vendors, "comps": comps, "items": items, "ids": ids,
             "products": products, "stock": stock, "left": left, "problems": problems, "loot": loot}

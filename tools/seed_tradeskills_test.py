@@ -368,7 +368,10 @@ class SeedJewelry(unittest.TestCase):
         ing = json.loads(self.q("SELECT ingredients FROM craftrecipes WHERE name = 'iron amber pendant'")[0][0])
         self.assertEqual([(i["count"], i["keep"]) for i in ing], [(1, False), (1, False), (1, True)], "a failure keeps the gem")
         self.assertEqual(self.q("SELECT comp, level FROM craftrecipes WHERE name = 'cracked glass earring'"), [(10, 1)])
-        self.assertEqual(self.q("SELECT chance FROM npcloot WHERE npc_name = '*' AND tablename = 'craft gems'"), [(3,)])
+        # the gems' roll is their own (the armor test's modifiers keep LOOT_CHANCE, 3)
+        self.assertEqual(self.q("SELECT chance FROM npcloot WHERE npc_name = '*' AND tablename = 'craft gems'"),
+                         [(M.JEWEL_LOOT_CHANCE,)])
+        self.assertEqual(M.JEWEL_LOOT_CHANCE, 5)
         self.assertGreater(self.q("SELECT count(*) FROM npcitem WHERE npcid = 2")[0][0], 9, "the kits on their seller")
         self.assertIn("applied already", self.tool("--apply", ok=False).stderr)
         self.tool("--undo")

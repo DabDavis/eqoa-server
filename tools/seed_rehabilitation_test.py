@@ -21,13 +21,20 @@ ITEM_COLS = ("patternid INTEGER PRIMARY KEY AUTOINCREMENT, itemcost INTEGER NOT 
              "str INTEGER, AC INTEGER")
 
 
-def dump(path):
-    """The database as SQL, but for sqlite_sequence: AUTOINCREMENT's high-water mark is never lowered by a
-    delete, and an undo must not lower it while the server may be making items."""
+def dump(path, sequences=False):
+    """The database as SQL, but for sqlite_sequence (AUTOINCREMENT's high-water marks: charinventory's rises with
+    the roses given and stays, as any item given in play) unless sequences."""
     db = sqlite3.connect(path)
-    out = "\n".join(l for l in db.iterdump() if "sqlite_sequence" not in l)
+    out = "\n".join(l for l in db.iterdump() if sequences or "sqlite_sequence" not in l)
     db.close()
     return out
+
+
+def mark(path, table):
+    db = sqlite3.connect(path)
+    r = db.execute("SELECT seq FROM sqlite_sequence WHERE name = ?", (table,)).fetchone()
+    db.close()
+    return None if r is None else r[0]
 
 
 class Rehabilitation(unittest.TestCase):
@@ -111,6 +118,42 @@ class Rehabilitation(unittest.TestCase):
         self.assertIn("wrote 0 items, 0 npcs, 0 rewards, 0 given", out, "a second run finds it done")
         self.run_tool("--undo")
         self.assertEqual(dump(self.path), self.before, "the undo puts back exactly what was there")
+
+    def test_the_item_mark_goes_back(self):
+        """The rose's id raises itempattern's AUTOINCREMENT mark (1081 here) to 709300; an undo puts it back, so the
+        round trip is the file as it was, marks and all. The control: an item made after the apply keeps the mark
+        it raised, and the next item made takes a new id."""
+        before = dump(self.path, sequences=True)
+        self.run_tool("--apply")
+        self.assertEqual(mark(self.path, "itempattern"), rh.ROSE_ID)
+        self.run_tool("--undo")
+        self.assertEqual(mark(self.path, "itempattern"), 1081)
+        self.assertEqual(dump(self.path, sequences=True).replace(
+            "INSERT INTO \"sqlite_sequence\" VALUES('charinventory',3);",
+            "INSERT INTO \"sqlite_sequence\" VALUES('charinventory',2);"), before, "the round trip, marks and all")
+
+        self.run_tool("--apply")
+        db = sqlite3.connect(self.path)
+        db.execute("INSERT INTO itempattern (itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, "
+                   "attacktype, weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, "
+                   "lore, unk6, craft, itemname, itemdesc, model, color) VALUES (0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 1, "
+                   "1, 0, 0, 32767, 1023, 0, 0, 0, 0, 'a GM''s new item', '', 0, 0)")
+        made = db.execute("SELECT max(patternid) FROM itempattern").fetchone()[0]
+        db.commit()
+        db.close()
+        self.assertEqual(made, rh.ROSE_ID + 1)
+        self.run_tool("--undo")
+        self.assertEqual(mark(self.path, "itempattern"), rh.ROSE_ID + 1, "an item made since keeps its mark")
+
+    def test_a_rose_kept_keeps_the_mark(self):
+        """A rose a GM changed since stays at an undo, and so does the mark above it."""
+        self.run_tool("--apply")
+        db = sqlite3.connect(self.path)
+        db.execute("UPDATE itempattern SET itemcost = 5000000 WHERE patternid = ?", (rh.ROSE_ID,))
+        db.commit()
+        db.close()
+        self.run_tool("--undo")
+        self.assertEqual(mark(self.path, "itempattern"), rh.ROSE_ID)
 
     def test_no_second_rose_after_one_is_used(self):
         self.run_tool("--apply")

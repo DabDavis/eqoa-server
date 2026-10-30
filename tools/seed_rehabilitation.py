@@ -18,7 +18,8 @@ Rehabilitation", "Roses for paths", and "1 free path respec w/ 60 epic. Or rose 
     epic's reward quest is not repeatable, so it is finished once), the way a quest gives an item (the inventory's
     next place).
 
-Every row written or changed is logged in rehab_seed; --undo puts back only what is still as this left it. One
+Every row written or changed is logged in rehab_seed (the rose's id raising itempattern's AUTOINCREMENT mark too);
+--undo puts back only what is still as this left it, the mark only when no item stands above where it was. One
 transaction. A report by default. --write-data DIR names the rose in the epics' quest file there (60.json, written
 in its own layout: json.dump with indent 1), so a re-import writes what --apply does. The server reads the npcs and
 the quests at its start: apply this before the restart that brings the rehabilitators' code (an item record is read
@@ -147,6 +148,14 @@ def plan(db):
     return p
 
 
+def sequence(db, table):
+    """AUTOINCREMENT's high-water mark for a table (sqlite_sequence), None without one."""
+    if not has_table(db, "sqlite_sequence"):
+        return None
+    r = db.execute("SELECT seq FROM sqlite_sequence WHERE name = ?", (table,)).fetchone()
+    return None if r is None else r[0]
+
+
 def log(db, tbl, rid, col, old, new):
     db.execute("INSERT INTO rehab_seed (tbl, rid, col, old, new) VALUES (?, ?, ?, ?, ?)",
                (tbl, str(rid), col, None if old is None else json.dumps(old), None if new is None else json.dumps(new)))
@@ -158,7 +167,11 @@ def apply(db, p):
     if p["rose"] is not None:
         rose = p["rose"]
         cols = list(rose)
+        seq = sequence(db, "itempattern")
         db.execute(f"INSERT INTO itempattern ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})", [rose[c] for c in cols])
+        if sequence(db, "itempattern") != seq:
+            # an id above the high-water mark raises it: logged first, so an undo puts it back after the rose goes
+            log(db, "sqlite_sequence", "itempattern", "seq", seq, sequence(db, "itempattern"))
         log(db, "itempattern", ROSE_ID, "*", None, rose)
         n["items"] += 1
     for nid, _, t in p["npcs"]:
@@ -203,6 +216,15 @@ def undo(db):
         elif tbl == "charinventory":
             ok = db.execute("DELETE FROM charinventory WHERE itemid = ? AND serverid = ? AND patternid = ?",
                             (int(rid), new["serverid"], new["patternid"])).rowcount > 0
+        elif tbl == "sqlite_sequence" and rid == "itempattern":
+            # lowered only while still where this left it and no item stands above the old mark: an item made
+            # since keeps the mark it raised, so no id is ever given twice
+            if db.execute("SELECT count(*) FROM itempattern WHERE patternid > ?", (old or 0,)).fetchone()[0] == 0:
+                if old is None:
+                    ok = db.execute("DELETE FROM sqlite_sequence WHERE name = ? AND seq = ?", (rid, new)).rowcount > 0
+                else:
+                    ok = db.execute("UPDATE sqlite_sequence SET seq = ? WHERE name = ? AND seq = ?",
+                                    (old, rid, new)).rowcount > 0
         back, kept = (back + 1, kept) if ok else (back, kept + 1)
     db.execute("DROP TABLE rehab_seed")
     print(f"put back {back}; left {kept} changed since")

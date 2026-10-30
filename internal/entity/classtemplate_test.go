@@ -311,7 +311,7 @@ func TestNoAssignmentChangesNothing(t *testing.T) {
 		}
 	}
 	sum := r.w.ClassTemplateSummary()
-	if !strings.HasPrefix(sum[0], "no NPC fights by a class template") || !strings.Contains(sum[0], "melee, necromancer, shadowknight, tank, wizard") {
+	if !strings.HasPrefix(sum[0], "no NPC fights by a class template") || !strings.Contains(sum[0], "melee, necromancer, roamer, shadowknight, tank, wizard") {
 		t.Errorf("the summary: %q", sum)
 	}
 	p, sess := r.player("Hero", 1001.5, 100)
@@ -640,8 +640,9 @@ func TestATimedSpecialComesOnItsClock(t *testing.T) {
 			t.Fatalf("%s: %v", q, err)
 		}
 	}
+	// the seeded roamer (database.SeedClassTemplates), and a control of no clock
 	exec(`INSERT INTO classtemplates (name, class, special, special_damage, special_every, special_first, special_jitter)
-		VALUES ('roamer', 0, 'a critical hit', 7.4, 30, 15, 5), ('plainwar', 0, '', 7.4, 0, 0, 0)`)
+		VALUES ('plainwar', 0, '', 7.4, 0, 0, 0)`)
 	r.assign("gnoll brute", "roamer")
 	r.assign("gnoll guard", "plainwar")
 	brute, guard := r.npc("Gnoll Brute"), r.npc("Gnoll Guard")
@@ -739,5 +740,47 @@ func TestATimedSpecialWaitsForACast(t *testing.T) {
 				t.Errorf("a timed special at %v inside the cast from %v to %v", s, c, castEnds[i])
 			}
 		}
+	}
+}
+
+// A special from a level on (special_from, the roamer's 10: the user's "they
+// get it around level 10 starting, but before only auto attack"), read off
+// the creature's own level at each fight, not its name: the same creature at
+// level 9 fights a minute with its melee alone, at level 10 it crits on its
+// clock (7.4 x 10 = 74).
+func TestARoamerCritsFromLevelTen(t *testing.T) {
+	r := newTemplateRig(t)
+	r.assign("gnoll brute", "roamer")
+	defer func(f func(int) int) { templateIntn = f }(templateIntn)
+	templateIntn = func(int) int { return 0 }
+	brute := r.npc("Gnoll Brute")
+	for _, c := range []struct {
+		level, want int
+	}{{9, 0}, {10, 2}} {
+		brute.Level = c.level
+		brute.endTemplateFight()
+		p, sess := r.player("Hero", 2001.5, 100)
+		r.fight(brute, p.ServerID)
+		crits := 0
+		for d := time.Duration(0); d <= 40*time.Second; d += 100 * time.Millisecond {
+			r.tick(d)
+			msgs := drain(sess)
+			for _, cc := range castsIn(msgs) {
+				if cc.caster == r.objectID(brute.ServerID) && cc.fx == templateSpecialFX {
+					crits++
+					found := false
+					for _, f := range damageIndications(msgs) {
+						found = found || f[1] == -int64(math.Round(7.4*float64(c.level)))
+					}
+					if !found {
+						t.Errorf("level %d: no 0x00DB of %d: %v", c.level, int(7.4*float64(c.level)+0.5), damageIndications(msgs))
+					}
+				}
+			}
+		}
+		if crits != c.want {
+			t.Errorf("a level %d roamer: %d crits in 40 s, want %d", c.level, crits, c.want)
+		}
+		delete(r.w.Players, p.ServerID)
 	}
 }

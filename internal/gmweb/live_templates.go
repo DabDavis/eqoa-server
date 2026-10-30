@@ -90,7 +90,7 @@ func checkClassTemplateRow(row map[string]any) error {
 	}
 	t := database.ClassTemplate{Name: fmt.Sprint(name), Class: -1, HPPct: 100, TakenPct: 100, MeleePct: 100}
 	ints := map[string]*int{"class": &t.Class, "hp_pct": &t.HPPct, "taken_pct": &t.TakenPct, "melee_pct": &t.MeleePct,
-		"special_chance": &t.SpecialChance}
+		"special_chance": &t.SpecialChance, "special_from": &t.SpecialFrom}
 	for col, dst := range ints {
 		v, ok := row[col]
 		if !ok || v == nil {

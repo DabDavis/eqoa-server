@@ -2025,12 +2025,15 @@
      "journal": "Bring the ore, the handle, the fang and the eye to Miner Tarnin.",
      "says": "Here is your weapon.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "tiger dirk"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/rogue.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon. The reward is ours: tiger dirk, Freeport's tiger dirk (Neriak's Tarantula Dirk copies it) (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/moradhim/rogue/L5",
@@ -2964,12 +2967,15 @@
      "journal": "Bring the ore, the strip, the wing and the eye to Sergeant Gordison.",
      "says": "Here is your weapon.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "militia short sword"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The bats are the database's rabid bats outside the city (its plain bats are some 3,500 away). The guide does not name the weapon."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The bats are the database's rabid bats outside the city (its plain bats are some 3,500 away). The guide does not name the weapon. The reward is ours: militia short sword, the same (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/moradhim/warrior/L5",
@@ -3176,12 +3182,15 @@
      "journal": "Return to Jarvan Tember.",
      "says": "Amber is free. Thank you.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Sturdy Two-Handed Sword"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). The goblin sappers are EQOA-Data's map's Freezeblood Sappers."
+   "notes": "From EQOA-Data's guide (Quests/1-20/moradhim/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). The goblin sappers are EQOA-Data's map's Freezeblood Sappers. The reward is ours: Sturdy Two-Handed Sword, the same (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/moradhim/warrior/L13",

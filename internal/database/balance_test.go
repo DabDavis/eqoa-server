@@ -194,3 +194,78 @@ func TestBalanceClassLevelPetColumnAddedToAnOlderTable(t *testing.T) {
 		t.Errorf("after the open: %+v (want the GM's 55 kept and the pet column 100)", rows)
 	}
 }
+
+// pet_special_hits (the spectre's instant, 2026-10-30) reaches a balancelevel
+// made before it with the column's default, 3, on every row, the seed's and a
+// GM's alike; a new table's seed rows carry it; a GM's value of it is kept
+// over the next open (the control: the column is added once, not reset).
+func TestBalancePetSpecialHitsColumn(t *testing.T) {
+	for _, r := range BalanceSeedLevels {
+		if r.PetSpecialHits != BalancePetSpecialHitsDefault {
+			t.Fatalf("seed row %d: pet_special_hits %g, want %d", r.Level, r.PetSpecialHits, BalancePetSpecialHitsDefault)
+		}
+	}
+	path := t.TempDir() + "/old.db"
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := raw.Exec(`CREATE TABLE balancelevel (level INTEGER PRIMARY KEY, hp_pct REAL NOT NULL DEFAULT 100,
+		damage_pct REAL NOT NULL DEFAULT 100, con_pct REAL NOT NULL DEFAULT 100, pet_hp_pct REAL NOT NULL DEFAULT 100,
+		pet_damage_pct REAL NOT NULL DEFAULT 100, art_cooldown_ms REAL NOT NULL DEFAULT 0, regen_pct REAL NOT NULL DEFAULT 15,
+		note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm');
+		INSERT INTO balancelevel (level, hp_pct, source) VALUES (30, 300, 'seed'), (33, 310, 'gm');`); err != nil {
+		t.Fatal(err)
+	}
+	raw.Close()
+	open := func() map[int]float64 {
+		t.Helper()
+		db, err := NewSQLite(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer db.Close()
+		rows, err := db.BalanceLevels()
+		if err != nil {
+			t.Fatal(err)
+		}
+		got := map[int]float64{}
+		for _, r := range rows {
+			got[r.Level] = r.PetSpecialHits
+		}
+		return got
+	}
+	if got := open(); len(got) != 2 || got[30] != 3 || got[33] != 3 {
+		t.Errorf("an older table: %v, want 3 on both rows", got)
+	}
+	raw, err = sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := raw.Exec(`UPDATE balancelevel SET pet_special_hits = 5 WHERE level = 33`); err != nil {
+		t.Fatal(err)
+	}
+	raw.Close()
+	if got := open(); got[30] != 3 || got[33] != 5 {
+		t.Errorf("a GM's 5 over the next open: %v", got)
+	}
+
+	fresh, err := NewSQLite(t.TempDir() + "/new.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fresh.Close()
+	rows, err := fresh.BalanceLevels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, r := range rows {
+		if r.PetSpecialHits != 3 {
+			t.Fatalf("a new table's row %d: %g", r.Level, r.PetSpecialHits)
+		}
+	}
+	if BalancePetSpecialHitsProblem(3) != "" || BalancePetSpecialHitsProblem(0) != "" || BalancePetSpecialHitsProblem(-1) == "" ||
+		BalancePetSpecialHitsProblem(21) == "" {
+		t.Error("bounds: want 0-20")
+	}
+}

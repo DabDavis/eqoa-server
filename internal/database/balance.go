@@ -57,6 +57,12 @@ import (
 // cast at a creature), the milliseconds from one's start before another may
 // start (entity/balance.go ArtCooldown).
 //
+// balancelevel's pet_special_hits is by a summoned pet's balance level (its
+// owner's, as pet_damage_pct): how many of its own melee hits a
+// necromancer's spectre's instant lands in one blow (entity/petrotation.go),
+// read when it lands; 3 is the column's default and the seed's
+// (BalancePetSpecialHitsDefault), 0 the instant's visual alone.
+//
 // A table with no rows changes nothing. source: gm, or seed for the rows
 // this file gives a table it makes (the tuning of 2026-10-29,
 // claude-notes/balance-20261029.md). A column added to a table made before it
@@ -73,6 +79,7 @@ const balanceSchema = `
 		pet_damage_pct REAL NOT NULL DEFAULT 100,
 		art_cooldown_ms REAL NOT NULL DEFAULT 0,
 		regen_pct      REAL NOT NULL DEFAULT 15,
+		pet_special_hits REAL NOT NULL DEFAULT 3,
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
 	);
@@ -112,7 +119,10 @@ type BalanceLevel struct {
 	// RegenPct is what a creature of the level heals each tick out of a
 	// fight (entity/npcregen.go), a percent of its maximum
 	RegenPct float64
-	Note     string
+	// PetSpecialHits is how many of a spectre's own melee hits its instant
+	// lands, by the pet's balance level (the file's doc)
+	PetSpecialHits float64
+	Note           string
 }
 
 // BalanceClass is one row of balanceclass.
@@ -172,6 +182,23 @@ var balanceColumns = []balanceColumn{
 	// a balanceclasslevel made before its pet column (no seed rows of it
 	// anywhere live: the table and the column are of 2026-10-30)
 	{"balanceclasslevel", "pet_hp_pct", "REAL NOT NULL DEFAULT 100", "class", func() map[int]float64 { return nil }},
+	// the spectre's instant (2026-10-30): every row the column's default,
+	// which is the seed's (BalancePetSpecialHitsDefault)
+	{"balancelevel", "pet_special_hits", "REAL NOT NULL DEFAULT 3", "level", func() map[int]float64 { return nil }},
+}
+
+// BalancePetSpecialHitsDefault is pet_special_hits' default and every seed
+// row's: a spectre's instant is three of its melee hits in one blow.
+const BalancePetSpecialHitsDefault = 3
+
+// The seed rows take pet_special_hits' default where they name none, so that
+// balanceseed.go's rows stay as the tuning wrote them.
+func init() {
+	for i := range BalanceSeedLevels {
+		if BalanceSeedLevels[i].PetSpecialHits == 0 {
+			BalanceSeedLevels[i].PetSpecialHits = BalancePetSpecialHitsDefault
+		}
+	}
 }
 
 // BalanceSeedRevision is a seed column's values changed (balanceseed.go):
@@ -256,8 +283,8 @@ func (db *SQLiteDB) ensureBalance() error {
 	if fresh["balancelevel"] {
 		for _, r := range BalanceSeedLevels {
 			if _, err := db.Exec(`INSERT OR IGNORE INTO balancelevel (level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct,
-				art_cooldown_ms, regen_pct, note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'seed')`, r.Level, r.HPPct, r.DamagePct,
-				r.ConPct, r.PetHPPct, r.PetDamagePct, r.ArtCooldownMS, r.RegenPct, r.Note); err != nil {
+				art_cooldown_ms, regen_pct, pet_special_hits, note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'seed')`, r.Level, r.HPPct,
+				r.DamagePct, r.ConPct, r.PetHPPct, r.PetDamagePct, r.ArtCooldownMS, r.RegenPct, r.PetSpecialHits, r.Note); err != nil {
 				return fmt.Errorf("balancelevel: %w", err)
 			}
 		}
@@ -334,8 +361,8 @@ func (db *SQLiteDB) BalanceClasses() ([]BalanceClass, error) {
 
 // BalanceLevels is every row of balancelevel, by level.
 func (db *SQLiteDB) BalanceLevels() ([]BalanceLevel, error) {
-	rows, err := db.Query(`SELECT level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct, art_cooldown_ms, regen_pct, note
-		FROM balancelevel ORDER BY level`)
+	rows, err := db.Query(`SELECT level, hp_pct, damage_pct, con_pct, pet_hp_pct, pet_damage_pct, art_cooldown_ms, regen_pct,
+		pet_special_hits, note FROM balancelevel ORDER BY level`)
 	if err != nil {
 		return nil, err
 	}
@@ -344,7 +371,7 @@ func (db *SQLiteDB) BalanceLevels() ([]BalanceLevel, error) {
 	for rows.Next() {
 		var r BalanceLevel
 		if err := rows.Scan(&r.Level, &r.HPPct, &r.DamagePct, &r.ConPct, &r.PetHPPct, &r.PetDamagePct, &r.ArtCooldownMS,
-			&r.RegenPct, &r.Note); err != nil {
+			&r.RegenPct, &r.PetSpecialHits, &r.Note); err != nil {
 			return nil, err
 		}
 		out = append(out, r)
@@ -412,6 +439,15 @@ func BalanceMSProblem(col string, ms float64) string {
 func BalanceChanceProblem(col string, p float64) string {
 	if p < 0 || p > 100 || p != p {
 		return fmt.Sprintf("%s %g is not 0-100", col, p)
+	}
+	return ""
+}
+
+// BalancePetSpecialHitsProblem is what is wrong with a pet_special_hits, ""
+// for nothing: 0 (the visual alone) to 20 of a spectre's hits.
+func BalancePetSpecialHitsProblem(v float64) string {
+	if v < 0 || v > 20 || v != v {
+		return fmt.Sprintf("pet_special_hits %g is not 0-20", v)
 	}
 	return ""
 }

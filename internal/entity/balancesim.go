@@ -21,9 +21,10 @@ import (
 // A player of a class, level and kit meets an NPC made as the server makes
 // one (NPCFromRecord: its hit points, class and swing), and the fight runs
 // tick by tick through aiSystem, attackSystem, petSystem, castSystem,
-// effectSystem and regenSystem: the rounds (rounds.go), Sandstorm's rolls
-// (offence.go, defence.go), the spells as their lines read (cast.go), the
-// pets (pet.go), the regeneration (regen.go) and the balance's scaling,
+// effectSystem, regenSystem and npcRegenSystem: the rounds (rounds.go),
+// Sandstorm's rolls (offence.go, defence.go), the spells as their lines
+// read (cast.go), the pets (pet.go), the regeneration (regen.go,
+// npcregen.go) and the balance's scaling,
 // with the dice seeded. What is the simulator's own is only the player's
 // hands (simPlay): the attack button held, which spell it casts and when.
 //
@@ -66,6 +67,20 @@ type SimPlay struct {
 	// takes the NPC on first; its owner stands off and casts (Melee is then
 	// the owner's too)
 	Pet bool
+	// Root: it fights as a rooting caster does (root.go's reason): from
+	// simRootRange off it opens with its highest root, and whenever the NPC
+	// is free (resisted, broken, worn off) it roots it again before anything
+	// else; once the NPC is held it steps back to simRootRange (the walk's
+	// time spent casting nothing) and casts its spells from there, none of
+	// more than simRootLongCast
+	Root bool
+	// Charm: before the fight it charms a creature CharmDiff levels from its
+	// own with the best charm of its book that takes that level (a
+	// necromancer's undead charm a skeleton; a resisted one is let be and
+	// another tried), which then fights for it as a summoned pet does (Pet's
+	// play): the creature's own numbers, as charm.go keeps them
+	Charm     bool
+	CharmDiff int
 }
 
 // SimNPC is the NPC: a row as the server spawns it.
@@ -100,13 +115,18 @@ func (r SimResult) HPShare() float64 {
 }
 
 const (
-	simTick    = 100 * time.Millisecond
-	simMe      = 0x00AA0001 // the player's object id
-	simFoeID   = 0x00BB0001 // the NPC's on the player's channel 0
-	simPlayer  = EntityID(1001)
-	simFoe     = EntityID(5001)
-	simApart   = 2.0 // how far apart a melee fight starts
-	simOwnerAt = 7.0 // how far off its NPC a pet's owner stands
+	simTick      = 100 * time.Millisecond
+	simMe        = 0x00AA0001 // the player's object id
+	simFoeID     = 0x00BB0001 // the NPC's on the player's channel 0
+	simCharmID   = 0x00CC0001 // a creature to charm, on the player's channel 1
+	simPlayer    = EntityID(1001)
+	simFoe       = EntityID(5001)
+	simApart     = 2.0  // how far apart a melee fight starts
+	simOwnerAt   = 7.0  // how far off its NPC a pet's owner stands
+	simRootRange = 18.0 // how far off its NPC a rooting caster stands
+	// simRootLongCast is the longest cast a rooting caster starts: one longer
+	// (a wizard's Phoenix Glory, 15 s) would hold its hands through a break
+	simRootLongCast = 5 * time.Second
 )
 
 // simLogTo is where a simulated fight's log goes (a test's, to read one
@@ -141,10 +161,10 @@ func SimulateFight(pl SimPlayer, foe SimNPC, b *Balance, seed int64, limit time.
 // simDice puts the simulator's seeded dice in every roll a fight makes, and
 // gives back what puts the package's own back.
 func simDice(rng *rand.Rand) func() {
-	melee, spell, proc, tap, charm, resist := meleeIntn, spellIntn, procIntn, petTapIntn, charmIntn, resistRand
-	meleeIntn, spellIntn, procIntn, petTapIntn, charmIntn, resistRand = rng.Intn, rng.Intn, rng.Intn, rng.Intn, rng.Intn, rng.Float64
+	melee, spell, proc, tap, charm, resist, root := meleeIntn, spellIntn, procIntn, petTapIntn, charmIntn, resistRand, rootIntn
+	meleeIntn, spellIntn, procIntn, petTapIntn, charmIntn, resistRand, rootIntn = rng.Intn, rng.Intn, rng.Intn, rng.Intn, rng.Intn, rng.Float64, rng.Intn
 	return func() {
-		meleeIntn, spellIntn, procIntn, petTapIntn, charmIntn, resistRand = melee, spell, proc, tap, charm, resist
+		meleeIntn, spellIntn, procIntn, petTapIntn, charmIntn, resistRand, rootIntn = melee, spell, proc, tap, charm, resist, root
 	}
 }
 
@@ -159,8 +179,11 @@ type simFight struct {
 	t0   time.Time
 
 	nukes, heals, petHeals []CastSpell
-	reserve                int // power kept for a heal
+	roots                  []CastSpell // the book's roots, the highest first (SimPlay.Root)
+	reserve                int         // power kept for a heal
 	casts                  int
+	moveUntil              time.Time // a rooting caster stepping back: no cast till then
+	rootLands              time.Time // a rooting caster's root in flight lands then
 }
 
 func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
@@ -186,8 +209,12 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 	if name == "" {
 		name = "a sim creature"
 	}
+	apart := float32(simApart)
+	if pl.Play.Root {
+		apart = simRootRange
+	}
 	rec := &database.NPCRecord{ID: int(simFoe), NPCName: name, NPCLevel: foe.Level, NPCType: 0x0100,
-		XCoord: p.X + simApart, YCoord: p.Y, ZCoord: p.Z, Size: 1}
+		XCoord: p.X + apart, YCoord: p.Y, ZCoord: p.Z, Size: 1}
 	if foe.Weapon {
 		rec.PrimaryWeapon = 1
 	}
@@ -221,6 +248,7 @@ func (f *simFight) tick() {
 	w.castSystem(f.now)
 	w.effectSystem(f.now)
 	w.regenSystem(f.now)
+	w.npcRegenSystem(f.now) // pets', and a creature's out of its fight (npcregen.go)
 	w.mu.Unlock()
 	f.sess.Queue().GetPending() // what was sent: no one reads it
 }
@@ -234,7 +262,10 @@ func (f *simFight) run(limit time.Duration) SimResult {
 		f.castBuffs()
 	}
 	var pet *NPC
-	if f.pl.Play.Pet {
+	switch {
+	case f.pl.Play.Charm:
+		pet = f.charm()
+	case f.pl.Play.Pet:
 		pet = f.summon()
 	}
 	for f.now.Before(f.t0) {
@@ -257,15 +288,18 @@ func (f *simFight) run(limit time.Duration) SimResult {
 	}
 	w.mu.Unlock()
 
-	// the pull: the NPC fights whoever opens
+	// the pull: the NPC fights whoever opens (a rooting caster's root is
+	// its pull)
 	opener := p.ServerID
 	if pet != nil {
 		opener = pet.ServerID
 		w.PetCommand(f.sess, petCmdAttack, simFoeID, f.now)
 	}
-	w.mu.Lock()
-	w.addThreatLocked(npc, opener, 1)
-	w.mu.Unlock()
+	if !f.pl.Play.Root {
+		w.mu.Lock()
+		w.addThreatLocked(npc, opener, 1)
+		w.mu.Unlock()
+	}
 	if f.pl.Play.Melee {
 		f.engage()
 	}
@@ -290,6 +324,66 @@ func (f *simFight) run(limit time.Duration) SimResult {
 	return r
 }
 
+// SimReset is a fight broken off (SimulateReset): the NPC's and the
+// player's shares of their hit points then, how long the NPC took to be
+// whole again (0: never in the time given), and the player's share then.
+type SimReset struct {
+	Ended                bool // the fight ended (a death) before the break
+	NPCShare, HPShare    float64
+	Whole                time.Duration
+	HPShareWhenNPCWhole  float64
+	PowerShareWhenWhole  float64
+	PowerShareAtTheBreak float64
+}
+
+// SimulateReset fights as SimulateFight for after, then the player runs
+// out of the NPC's reach for good (past npcGiveUp: it gives up, goes home
+// and heals out of its fight, npcregen.go) and rests; it reports how long
+// the NPC took to be whole again, at most limit.
+func SimulateReset(pl SimPlayer, foe SimNPC, b *Balance, seed int64, after, limit time.Duration) SimReset {
+	simMu.Lock()
+	defer simMu.Unlock()
+	rng := rand.New(rand.NewSource(seed))
+	restore := simDice(rng)
+	defer restore()
+	out := log.Writer()
+	log.SetOutput(io.Discard)
+	defer log.SetOutput(out)
+
+	f := newSimFight(pl, foe, b)
+	f.run(after)
+	w, p, npc := f.w, f.p, f.npc
+	w.mu.Lock()
+	r := SimReset{Ended: npc.Dead || p.IsDead(), NPCShare: float64(npc.HP) / float64(max(npc.MaxHP, 1)),
+		HPShare: float64(p.HP) / float64(max(p.MaxHPNow(), 1)), PowerShareAtTheBreak: float64(p.Power) / float64(max(p.MaxPowerNow(), 1))}
+	if r.Ended {
+		w.mu.Unlock()
+		return r
+	}
+	p.disengage()
+	p.AutoAttack = false
+	ox, oz := p.X, p.Z
+	p.X += 2 * npcGiveUp
+	w.SpatialIndex.Update(p.ServerID, ox, oz, p.X, p.Z)
+	w.mu.Unlock()
+	start := f.now
+	for f.now.Sub(start) < limit {
+		f.tick()
+		w.mu.RLock()
+		whole := npc.HP >= npc.MaxHP
+		w.mu.RUnlock()
+		if whole {
+			r.Whole = f.now.Sub(start)
+			break
+		}
+	}
+	w.mu.RLock()
+	r.HPShareWhenNPCWhole = float64(p.HP) / float64(max(p.MaxHPNow(), 1))
+	r.PowerShareWhenWhole = float64(p.Power) / float64(max(p.MaxPowerNow(), 1))
+	w.mu.RUnlock()
+	return r
+}
+
 // prepTime is how long the buffs and the pet take to cast before the fight.
 func (f *simFight) prepTime() time.Duration {
 	var d time.Duration
@@ -307,7 +401,85 @@ func (f *simFight) prepTime() time.Duration {
 		}
 		d += pet
 	}
+	if f.pl.Play.Charm {
+		if s := f.charmSpell(); s != nil {
+			d += s.CastTime + castLand + castBusy + simTick
+		}
+	}
 	return d
+}
+
+// charmSpell is the book's best charm for a creature of CharmDiff levels from
+// the player: the highest whose cap takes it, nil for none.
+func (f *simFight) charmSpell() *CastSpell {
+	level := max(f.p.Level+f.pl.Play.CharmDiff, 1)
+	var best *CastSpell
+	for i := range f.pl.Spells {
+		s := &f.pl.Spells[i]
+		if s.Def.Charms() && s.Level <= f.p.Level && charmMaxLevel(s) >= level && (best == nil || s.Level > best.Level) {
+			best = s
+		}
+	}
+	return best
+}
+
+// SimCharmable is whether the kit's book has a charm that takes a creature
+// diff levels from its own.
+func SimCharmable(pl SimPlayer, diff int) bool {
+	f := &simFight{p: &Player{Level: pl.Level}, pl: pl}
+	f.pl.Play.CharmDiff = diff
+	return f.charmSpell() != nil
+}
+
+// charm charms a creature of CharmDiff levels from the player beside it
+// (SimPlay.Charm) and gives back the pet it makes: nil when no charm takes
+// it or eight in a row are resisted.
+func (f *simFight) charm() *NPC {
+	best := f.charmSpell()
+	if best == nil {
+		return nil
+	}
+	w, p := f.w, f.p
+	name := "a sim beast"
+	if best.Def.undeadOnly() {
+		name = "a sim skeleton" // undead by its name (undead.go)
+	}
+	level := max(p.Level+f.pl.Play.CharmDiff, 1)
+	vs := GetOrCreateVisibility(f.sess)
+	for try := range 8 {
+		id := EntityID(6001 + try)
+		rec := &database.NPCRecord{ID: int(id), NPCName: name, NPCLevel: level, NPCType: 0x0100,
+			XCoord: p.X - 3, YCoord: p.Y, ZCoord: p.Z, Size: 1}
+		w.mu.Lock()
+		c := NPCFromRecord(rec, 0, nil)
+		w.applyNPCSettingsLocked(c)
+		w.NPCs[c.ServerID] = c
+		w.SpatialIndex.Insert(c.ServerID, c.X, c.Z)
+		vs.ChannelEntity[1], vs.ChannelObjectID[1] = c.ServerID, simCharmID+uint32(try)
+		p.Power = p.MaxPowerNow()
+		w.mu.Unlock()
+		if !w.StartCast(f.sess, *best, simCharmID+uint32(try), f.now) {
+			return nil
+		}
+		for range int((best.CastTime + castLand + castBusy) / simTick) {
+			f.tick()
+		}
+		w.mu.Lock()
+		pet := w.petOfLocked(p)
+		if pet == nil {
+			// resisted: it comes at its caster; let it be (gone) and try
+			// another, the charm's lockout waited out (time not counted)
+			w.dropAggroLocked(c.ServerID)
+			w.removeNPCLocked(c)
+			p.HP = p.MaxHPNow()
+			p.Lockouts = nil
+		}
+		w.mu.Unlock()
+		if pet != nil {
+			return pet
+		}
+	}
+	return nil
 }
 
 // engage presses the attack button at the NPC, and holds it.
@@ -450,6 +622,12 @@ func (f *simFight) sortBook() {
 			f.petHeals = append(f.petHeals, s)
 		}
 	}
+	for _, s := range f.pl.Spells {
+		if simRoots(&s) {
+			f.roots = append(f.roots, s)
+		}
+	}
+	sort.SliceStable(f.roots, func(i, j int) bool { return f.roots[i].Level > f.roots[j].Level })
 	rate := func(s *CastSpell) float64 { return simDamage(s, p) / lockoutOf(s).Seconds() }
 	sort.SliceStable(f.nukes, func(i, j int) bool { return rate(&f.nukes[i]) > rate(&f.nukes[j]) })
 	sort.SliceStable(f.heals, func(i, j int) bool { return simHeal(&f.heals[i], p) > simHeal(&f.heals[j], p) })
@@ -459,17 +637,33 @@ func (f *simFight) sortBook() {
 	}
 }
 
-// simBuffLine is what a buff changes (its effects' kinds and stats): the
-// buffs of one line, a spell and its higher ranks, change the same, and a
-// player keeps the highest of a line on (a line's ranks stack on this
-// server, as distinct spells: the simulator does not stack them).
+// simBuffLine is a buff's line as the server takes it (buffline.go: only
+// the best of a line counts), else what its effects change.
 func simBuffLine(s *CastSpell) string {
+	if l := BuffLine(s); l != "" {
+		return l
+	}
 	var keys []string
 	for _, e := range s.Def.Effects {
 		keys = append(keys, fmt.Sprintf("%d.%d", e.Kind, e.Stat))
 	}
 	sort.Strings(keys)
 	return fmt.Sprint(s.Scope == 3, keys)
+}
+
+// SimBuffLines is a book's buff lines (BuffLine) and the spells of each, by
+// level: what only the best of counts.
+func SimBuffLines(book []CastSpell) map[string][]CastSpell {
+	out := map[string][]CastSpell{}
+	for _, s := range book {
+		if l := BuffLine(&s); l != "" {
+			out[l] = append(out[l], s)
+		}
+	}
+	for _, ss := range out {
+		sort.SliceStable(ss, func(i, j int) bool { return ss[i].Level < ss[j].Level })
+	}
+	return out
 }
 
 // buffs is the book's buffs, the highest of each line.
@@ -615,7 +809,13 @@ func (f *simFight) play(pet *NPC) {
 	if pet != nil && f.now.Sub(f.t0) < 3*time.Second {
 		return // the pet's hate first
 	}
+	if f.pl.Play.Root && f.rootPlay(cast) {
+		return
+	}
 	for _, s := range f.nukes {
+		if f.pl.Play.Root && s.CastTime > simRootLongCast {
+			continue // a rooting caster keeps its hands free for the next root
+		}
 		w.mu.RLock()
 		ok := f.ready(&s, f.reserve) && !f.onFoe(&s) && f.keepsHate(pet, &s)
 		w.mu.RUnlock()
@@ -623,6 +823,76 @@ func (f *simFight) play(pet *NPC) {
 			return
 		}
 	}
+}
+
+// simRoots is whether a spell roots its target: cast at one, its line's
+// root.
+func simRoots(s *CastSpell) bool {
+	if !s.Def.Harmful || s.Scope != 1 {
+		return false
+	}
+	for _, e := range s.Def.Effects {
+		if e.Kind == EffectRoot {
+			return true
+		}
+	}
+	return false
+}
+
+// SimHasRoot is whether the kit's book has a root.
+func SimHasRoot(pl SimPlayer) bool {
+	for i := range pl.Spells {
+		if simRoots(&pl.Spells[i]) {
+			return true
+		}
+	}
+	return false
+}
+
+// rootPlay is a rooting caster's hands for a tick (SimPlay.Root): it waits
+// out its step back, roots a free NPC, and steps back from a held one that
+// is near. It reports whether its hands were busy.
+func (f *simFight) rootPlay(cast func(CastSpell, uint32) bool) bool {
+	w, p, npc := f.w, f.p, f.npc
+	if f.now.Before(f.moveUntil) {
+		return true
+	}
+	w.mu.RLock()
+	rooted := npc.rooted(f.now)
+	d := distXZ(p.X, p.Z, npc.X, npc.Z)
+	w.mu.RUnlock()
+	if !rooted {
+		if f.now.Before(f.rootLands) {
+			return false // one on its way
+		}
+		for _, s := range f.roots {
+			w.mu.RLock()
+			ok := f.ready(&s, 0)
+			w.mu.RUnlock()
+			if ok && cast(s, simFoeID) {
+				f.rootLands = f.now.Add(s.CastTime + castLand)
+				return true
+			}
+		}
+		return false // no root up: its spells, the NPC on its way
+	}
+	if d >= simRootRange-1 {
+		return false
+	}
+	// held and near: back to simRootRange off it, at its run
+	w.mu.Lock()
+	ox, oz := p.X, p.Z
+	if d < 0.01 {
+		p.X = npc.X + simRootRange
+	} else {
+		p.X = npc.X + (p.X-npc.X)/d*simRootRange
+		p.Z = npc.Z + (p.Z-npc.Z)/d*simRootRange
+	}
+	w.SpatialIndex.Update(p.ServerID, ox, oz, p.X, p.Z)
+	speed := float64(p.SpeedNow())
+	w.mu.Unlock()
+	f.moveUntil = f.now.Add(time.Duration(float64(simRootRange-d) / max(speed, 1) * float64(time.Second)))
+	return true
 }
 
 // keepsHate is whether a cast leaves its pet the NPC's foe, as a pet's owner

@@ -181,7 +181,7 @@ func main() {
 	if _, err := gameWorld.LoadSocialRules(db); err != nil {
 		log.Printf("WARNING: %v; no NPC comes to another's help", err)
 	}
-	log.Printf("Creatures: %s; %s", gameWorld.SocialSummary(), entity.NPCRegenSummary())
+	log.Printf("Creatures: %s; %s", gameWorld.SocialSummary(), gameWorld.NPCRegenSummary())
 	// How the creatures of a name move (entity/movement.go, table npcmove):
 	// standing until pulled, their own radius, and the water they keep to
 	if _, err := gameWorld.LoadMoveRules(db); err != nil {

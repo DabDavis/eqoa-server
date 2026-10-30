@@ -49,6 +49,9 @@ type NPC struct {
 	// Health
 	HP, MaxHP      int
 	LastCombatTime time.Time
+	// Power is a pet's (summoned or charmed), regenerated as a player's
+	// (npcregen.go); a creature that is nobody's pet keeps none
+	Power, MaxPower int
 
 	// Core stats
 	Level   int

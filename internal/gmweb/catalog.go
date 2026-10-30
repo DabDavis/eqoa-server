@@ -597,7 +597,10 @@ var catalog = map[string]tableNote{
 			"points and floor already climb a third in three levels); pet_hp_pct and pet_damage_pct a summoned pet's of that level (its hit points at its summoning, " +
 			"and every point of damage it deals: hits, taunts, taps, procs). A level between two rows takes the straight " +
 			"line between them, one below the first or past the last the end row's; no rows, 100 everywhere (the " +
-			"formulas alone). A charmed creature keeps its own (an NPC's) hit points and damage. Training dummies are " +
+			"formulas alone). art_cooldown_ms is the one column by a PLAYER's level: the combat arts' global cooldown " +
+			"(an art sent within it is not answered, as a cast sent during another). regen_pct is a creature's heal out of " +
+			"a fight, every 6 s from its third tick (a pet heals as a player does, whatever this says). " +
+			"A charmed creature keeps its own (an NPC's) hit points and damage. Training dummies are " +
 			"never touched. Rows of source seed are the tuning of 2026-10-29 (claude-notes/balance-20261029.md), held to " +
 			"its targets by the fight simulator: run cmd/balancesim on a copy of the database to see what a change does " +
 			"before it goes in (its -try-level flag tries rows without writing them).",
@@ -610,8 +613,29 @@ var catalog = map[string]tableNote{
 			"con_pct":        {Label: "Con %", Help: "0-100: how much of Balance by con an NPC of this level takes"},
 			"pet_hp_pct":     {Label: "Pet hit points %", Help: "a summoned pet of this level's, of 60 a level"},
 			"pet_damage_pct": {Label: "Pet damage %", Help: "all a summoned pet of this level deals"},
-			"note":           {Label: "Note"},
-			"source":         {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
+			"art_cooldown_ms": {Label: "Arts' cooldown ms", Help: "by a PLAYER's level: after a combat art (no cast time, " +
+				"cast at a creature) starts, how long before another may; 0 none"},
+			"regen_pct": {Label: "Regen % a tick", Help: "0-100: what a creature of this level heals each 6 s out of a fight, " +
+				"from its third tick, of its most hit points (15 with no rows)"},
+			"note":   {Label: "Note"},
+			"source": {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
+		},
+	},
+	"balanceclass": {
+		Label: "Balance by class", Group: "World", Title: "class", Sort: "class",
+		Help: "The game's balance by a player's class (entity/balance.go): melee_taken_pct the share of an NPC's melee " +
+			"hit a player of the class takes, after Balance by level's and Balance by con's (its spells, a template's " +
+			"kick and a dummy's hits are not touched). A class with no row takes all of it. Rows of source seed are " +
+			"the tuning of 2026-10-29 (claude-notes/balance-20261029.md): the ranger, bard and rogue take less, their " +
+			"hit points and defence a melee class's against a tank's; cmd/balancesim's -try-class tries rows before " +
+			"they are written.",
+		Live:   "At once: the next hit of every fight uses it.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"class":           {Label: "Class", Enum: "class"},
+			"melee_taken_pct": {Label: "NPC melee taken %", Help: "of each NPC melee hit on a player of the class"},
+			"note":            {Label: "Note"},
+			"source":          {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},
 	},
 	"balancecon": {
@@ -619,7 +643,10 @@ var catalog = map[string]tableNote{
 		Help: "The game's balance by the con, an NPC's level less its foe's (entity/balance.go; the target box's colours: " +
 			"1-2 yellow, 3 and more red, 0 white, below blue and green): damage_pct the NPC's melee hits on that foe, a " +
 			"player or a pet (by the pet's own level); taken_pct the damage that foe deals it (melee, spells and their " +
-			"ticks, procs, damage shields, a pet's hits), so a red NPC takes less from the one it cons red to. A diff " +
+			"ticks, procs, damage shields, a pet's hits), so a red NPC takes less from the one it cons red to; " +
+			"root_resist_pct the chance a root (a snare too) that foe casts on it does not take when it lands, and " +
+			"root_break_pct the chance each hit by that foe frees it from every root on it (entity/root.go; neither " +
+			"scaled by the level's con_pct). A diff " +
 			"between two rows takes the line between them, one past the ends the end row's; no rows, 100 everywhere. " +
 			"Rows of source seed are the tuning of 2026-10-29 (claude-notes/balance-20261029.md); cmd/balancesim's " +
 			"-try-con tries rows before they are written.",
@@ -629,8 +656,11 @@ var catalog = map[string]tableNote{
 			"diff":       {Label: "NPC level less its foe's", Help: "-20 to 20: 2 a yellow, 4 a red"},
 			"damage_pct": {Label: "Its melee damage %", Help: "of each of its hits on that foe"},
 			"taken_pct":  {Label: "Damage taken %", Help: "of what that foe deals it"},
-			"note":       {Label: "Note"},
-			"source":     {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
+			"root_resist_pct": {Label: "Root resist %", Help: "0-100: the chance a root (or a snare) cast by that foe " +
+				"does not take when it lands"},
+			"root_break_pct": {Label: "Root break %", Help: "0-100: the chance each hit by that foe frees it from its roots"},
+			"note":           {Label: "Note"},
+			"source":         {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},
 	},
 	"npcmove": {

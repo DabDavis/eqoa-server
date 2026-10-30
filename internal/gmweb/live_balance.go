@@ -6,9 +6,9 @@ import (
 	"github.com/eqoa/server/internal/database"
 )
 
-// The game's balance (entity/balance.go): tables balancelevel and balancecon,
-// read again whole after a change, every NPC's hit points made those of its
-// level at once (each keeping its share of them).
+// The game's balance (entity/balance.go): tables balancelevel, balancecon and
+// balanceclass, read again whole after a change, every NPC's hit points made
+// those of its level at once (each keeping its share of them).
 
 // liveBalance reads both tables into the world (the change is committed: the
 // database is free).
@@ -21,10 +21,12 @@ func (s *Server) liveBalance() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return fmt.Sprintf("at once (%d level rows, %d con rows): every NPC's hit points are its level's now, "+
-		"each keeping its share of them, and the next hit of every fight uses it; a summoned pet's at its next summoning", levels, cons)
+		"each keeping its share of them, and the next hit of every fight uses it (a root's next landing and the next "+
+		"hit on a rooted NPC too), the next combat art its cooldown, the next regen tick its rate; "+
+		"a summoned pet's at its next summoning", levels, cons)
 }
 
-// checkBalanceRow holds a balancelevel or balancecon row to its bounds
+// checkBalanceRow holds a balance table's row to its bounds
 // (database.BalanceProblems).
 func checkBalanceRow(table string, row map[string]any) error {
 	key := "level"
@@ -39,9 +41,41 @@ func checkBalanceRow(table string, row map[string]any) error {
 				return badRequest("%s: %s", table, why)
 			}
 		}
+		if v, present := row["regen_pct"]; present && v != nil {
+			r, ok := asFloat(v)
+			if !ok {
+				return badRequest("%s: regen_pct is a number", table)
+			}
+			if why := database.BalanceChanceProblem("regen_pct", r); why != "" {
+				return badRequest("%s: %s", table, why)
+			}
+		}
+		if v, present := row["art_cooldown_ms"]; present && v != nil {
+			ms, ok := asFloat(v)
+			if !ok {
+				return badRequest("%s: art_cooldown_ms is a number", table)
+			}
+			if why := database.BalanceMSProblem("art_cooldown_ms", ms); why != "" {
+				return badRequest("%s: %s", table, why)
+			}
+		}
 	}
-	if table == "balancecon" {
+	switch table {
+	case "balancecon":
 		key, cols = "diff", []string{"damage_pct", "taken_pct"}
+		for _, c := range []string{"root_resist_pct", "root_break_pct"} {
+			if v, present := row[c]; present && v != nil {
+				p, ok := asFloat(v)
+				if !ok {
+					return badRequest("%s: %s is a number", table, c)
+				}
+				if why := database.BalanceChanceProblem(c, p); why != "" {
+					return badRequest("%s: %s", table, why)
+				}
+			}
+		}
+	case "balanceclass":
+		key, cols = "class", []string{"melee_taken_pct"}
 	}
 	k, ok := asFloat(row[key])
 	if !ok {

@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"sort"
+	"time"
 
 	"github.com/eqoa/server/internal/database"
 )
@@ -18,7 +19,8 @@ import (
 //   - an NPC's hit points, by its level (applyBalanceLocked, at its spawn
 //     and whenever the table changes);
 //   - an NPC's melee hits, by its level and by its con on the one it hits
-//     (a player or a pet): npcHitLocked;
+//     (a player or a pet): npcHitLocked; on a player, then the share its
+//     class takes (balanceclass): npcHitPlayerLocked;
 //   - what a player or a pet does to an NPC (melee, spells and their ticks,
 //     procs, damage shields, a pet's hits, taunts and taps), by the NPC's
 //     con on the attacker: takenLocked;
@@ -27,6 +29,13 @@ import (
 //     pets lag their owners by up to thirteen levels at 60 (a magician's
 //     last pet of its levels is Ghilan, 47), and a pet is its owner's
 //     weapon. A charmed creature is still a creature: its own level's.
+//   - a creature's heal out of a fight, by its level (RegenPct, npcregen.go);
+//   - a root on an NPC, by its con on the root's caster: resisted at its
+//     landing, freed by a hit (root.go);
+//   - the combat arts' global cooldown, by the player's level (ArtCooldown):
+//     an art (an ability with no cast time cast at a creature) started keeps
+//     every other art from starting for that long; one sent in it is not
+//     answered, as a cast sent while another is on (StartCast).
 //
 // The con is the NPC's level less its foe's (calcConColor's: 1-2 yellow, 3
 // and more red). Training dummies are left as measured. Why the seed rows
@@ -41,10 +50,11 @@ var meleeIntn = rand.Intn
 // spellIntn is the dice of a spell's amount in its range (spellAmount).
 var spellIntn = rand.Intn
 
-// Balance is the two tables, read.
+// Balance is the tables, read.
 type Balance struct {
-	levels []database.BalanceLevel // by level
-	cons   []database.BalanceCon   // by diff
+	levels  []database.BalanceLevel // by level
+	cons    []database.BalanceCon   // by diff
+	classes map[int]database.BalanceClass
 }
 
 // NewBalance is a balance of these rows (any order); none changes nothing.
@@ -55,6 +65,18 @@ func NewBalance(levels []database.BalanceLevel, cons []database.BalanceCon) *Bal
 	return b
 }
 
+// WithClasses is the balance with these class rows (balanceclass) in place
+// of its own.
+func (b *Balance) WithClasses(rows []database.BalanceClass) *Balance {
+	ls, cs := b.Rows()
+	out := NewBalance(ls, cs)
+	out.classes = map[int]database.BalanceClass{}
+	for _, r := range rows {
+		out.classes[r.Class] = r
+	}
+	return out
+}
+
 // Rows is the balance's rows, by level and by diff (none for a nil balance).
 func (b *Balance) Rows() ([]database.BalanceLevel, []database.BalanceCon) {
 	if b == nil {
@@ -63,10 +85,98 @@ func (b *Balance) Rows() ([]database.BalanceLevel, []database.BalanceCon) {
 	return append([]database.BalanceLevel(nil), b.levels...), append([]database.BalanceCon(nil), b.cons...)
 }
 
+// ClassRows is the balance's class rows, by class.
+func (b *Balance) ClassRows() []database.BalanceClass {
+	if b == nil {
+		return nil
+	}
+	var out []database.BalanceClass
+	for _, r := range b.classes {
+		out = append(out, r)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Class < out[j].Class })
+	return out
+}
+
+// MeleeTakenPct is the share of an NPC's melee hit a player of the class
+// takes (balanceclass), 100 with no row.
+func (b *Balance) MeleeTakenPct(class int) float64 {
+	if b == nil {
+		return 100
+	}
+	if r, ok := b.classes[class]; ok {
+		return r.MeleeTakenPct
+	}
+	return 100
+}
+
+// curve is the line through points (x, y) at x: between two points the
+// straight line, past the ends the end's (as the tables read).
+func curve(points [][2]float64, x float64) float64 {
+	if len(points) == 0 {
+		return 0
+	}
+	sort.Slice(points, func(i, j int) bool { return points[i][0] < points[j][0] })
+	if x <= points[0][0] {
+		return points[0][1]
+	}
+	for i := 1; i < len(points); i++ {
+		if a, c := points[i-1], points[i]; x <= c[0] {
+			if c[0] == a[0] {
+				return c[1]
+			}
+			return a[1] + (c[1]-a[1])*(x-a[0])/(c[0]-a[0])
+		}
+	}
+	return points[len(points)-1][1]
+}
+
+// WithLevelColumn is the balance with one column of its level table made the
+// line through points (level, value): rows are added at the points' levels
+// (their other columns the table's there), and every row's column is set
+// (cmd/balancesim's -try flags: rows tried before they are written).
+func (b *Balance) WithLevelColumn(points [][2]float64, set func(*database.BalanceLevel, float64)) *Balance {
+	ls, cs := b.Rows()
+	have := map[int]bool{}
+	for _, r := range ls {
+		have[r.Level] = true
+	}
+	for _, p := range points {
+		if l := int(p[0]); !have[l] {
+			have[l] = true
+			ls = append(ls, b.Level(l))
+		}
+	}
+	for i := range ls {
+		set(&ls[i], curve(points, float64(ls[i].Level)))
+	}
+	return NewBalance(ls, cs).WithClasses(b.ClassRows())
+}
+
+// WithConColumn is WithLevelColumn for the con table: one column of it made
+// the line through points (diff, value).
+func (b *Balance) WithConColumn(points [][2]float64, set func(*database.BalanceCon, float64)) *Balance {
+	ls, cs := b.Rows()
+	have := map[int]bool{}
+	for _, r := range cs {
+		have[r.Diff] = true
+	}
+	for _, p := range points {
+		if d := int(p[0]); !have[d] {
+			have[d] = true
+			cs = append(cs, b.Con(d))
+		}
+	}
+	for i := range cs {
+		set(&cs[i], curve(points, float64(cs[i].Diff)))
+	}
+	return NewBalance(ls, cs).WithClasses(b.ClassRows())
+}
+
 // SeedBalance is the seed rows' balance (database.BalanceSeedLevels and
 // BalanceSeedCons): what a database made today starts with.
 func SeedBalance() *Balance {
-	return NewBalance(database.BalanceSeedLevels, database.BalanceSeedCons)
+	return NewBalance(database.BalanceSeedLevels, database.BalanceSeedCons).WithClasses(database.BalanceSeedClasses)
 }
 
 // between is the line through (x0, y0) and (x1, y1) at x.
@@ -81,7 +191,8 @@ func between(x, x0, x1 int, y0, y1 float64) float64 {
 // between the rows on either side, or the nearest end's; every percent 100
 // with no rows.
 func (b *Balance) Level(level int) database.BalanceLevel {
-	out := database.BalanceLevel{Level: level, HPPct: 100, DamagePct: 100, ConPct: 100, PetHPPct: 100, PetDamagePct: 100}
+	out := database.BalanceLevel{Level: level, HPPct: 100, DamagePct: 100, ConPct: 100, PetHPPct: 100, PetDamagePct: 100,
+		RegenPct: npcCalmHealPct}
 	if b == nil || len(b.levels) == 0 {
 		return out
 	}
@@ -99,9 +210,33 @@ func (b *Balance) Level(level int) database.BalanceLevel {
 		out.ConPct = between(level, a.Level, c.Level, a.ConPct, c.ConPct)
 		out.PetHPPct = between(level, a.Level, c.Level, a.PetHPPct, c.PetHPPct)
 		out.PetDamagePct = between(level, a.Level, c.Level, a.PetDamagePct, c.PetDamagePct)
+		out.ArtCooldownMS = between(level, a.Level, c.Level, a.ArtCooldownMS, c.ArtCooldownMS)
+		out.RegenPct = between(level, a.Level, c.Level, a.RegenPct, c.RegenPct)
 	}
 	out.Level = level
 	return out
+}
+
+// ArtCooldown is the combat arts' global cooldown for a player of the level
+// (balancelevel's art_cooldown_ms, by the player's level): how long after
+// one art starts before another may (isArt). None with no rows.
+func (b *Balance) ArtCooldown(level int) time.Duration {
+	if b == nil || len(b.levels) == 0 {
+		return 0
+	}
+	return time.Duration(math.Round(b.Level(level).ArtCooldownMS)) * time.Millisecond
+}
+
+// RegenPct is what a creature of the level heals each tick out of a fight
+// (npcregen.go), a percent of its maximum: jib's 15 with no rows.
+func (b *Balance) RegenPct(level int) float64 {
+	return b.Level(level).RegenPct
+}
+
+// isArt is whether a spell is a combat art for the global cooldown: an
+// ability with no cast time cast at a creature (a Kick, a Bash, a strike).
+func isArt(s *CastSpell) bool {
+	return s.CastTime <= 0 && s.Def.Harmful
 }
 
 // Con is the con table at a level difference (the NPC's less its foe's), as
@@ -122,6 +257,8 @@ func (b *Balance) Con(diff int) database.BalanceCon {
 		a, c := rows[i-1], rows[i]
 		out.DamagePct = between(diff, a.Diff, c.Diff, a.DamagePct, c.DamagePct)
 		out.TakenPct = between(diff, a.Diff, c.Diff, a.TakenPct, c.TakenPct)
+		out.RootResistPct = between(diff, a.Diff, c.Diff, a.RootResistPct, c.RootResistPct)
+		out.RootBreakPct = between(diff, a.Diff, c.Diff, a.RootBreakPct, c.RootBreakPct)
 	}
 	out.Diff = diff
 	return out
@@ -156,8 +293,8 @@ func (w *World) SetBalance(b *Balance) {
 	}
 }
 
-// LoadBalance reads the two tables into the world (SetBalance): how many
-// rows each has.
+// LoadBalance reads the tables into the world (SetBalance): how many rows
+// the level and con tables have.
 func (w *World) LoadBalance(db *database.SQLiteDB) (levels, cons int, err error) {
 	ls, err := db.BalanceLevels()
 	if err != nil {
@@ -167,8 +304,12 @@ func (w *World) LoadBalance(db *database.SQLiteDB) (levels, cons int, err error)
 	if err != nil {
 		return 0, 0, err
 	}
-	w.SetBalance(NewBalance(ls, cs))
-	log.Printf("Balance: %d level rows, %d con rows", len(ls), len(cs))
+	cls, err := db.BalanceClasses()
+	if err != nil {
+		return 0, 0, err
+	}
+	w.SetBalance(NewBalance(ls, cs).WithClasses(cls))
+	log.Printf("Balance: %d level rows, %d con rows, %d class rows", len(ls), len(cs), len(cls))
 	return len(ls), len(cs), nil
 }
 
@@ -244,6 +385,16 @@ func (w *World) npcHitLocked(npc *NPC, foeLevel, n int) int {
 	}
 	b := w.balance
 	return pct(pct(n, b.Level(npc.Level).DamagePct), b.ConAt(npc.Level, npc.Level-foeLevel).DamagePct)
+}
+
+// npcHitPlayerLocked is an NPC's melee hit of n on a player: npcHitLocked's,
+// then the share the player's class takes (balanceclass).
+func (w *World) npcHitPlayerLocked(npc *NPC, p *Player, n int) int {
+	n = w.npcHitLocked(npc, p.Level, n)
+	if !balanced(npc) {
+		return n
+	}
+	return pct(n, w.balance.MeleeTakenPct(p.Class))
 }
 
 // takenLocked is n of damage on an NPC from an attacker of the level: times

@@ -237,6 +237,10 @@ type ActiveEffect struct {
 	// player (SpeedNow), comes off at the duel's end and is never kept over
 	// a logout (buffsave.go)
 	duelFoe EntityID
+	// Line and Rank are a beneficial spell's line and its level on a player
+	// (buffline.go): only the best of a line counts; "" for none
+	Line string
+	Rank int
 }
 
 // StatMods is what effects add to a player's stats (kept over a logout as
@@ -489,6 +493,10 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 			return false
 		}
 	}
+	if isArt(&spell) && now.Before(p.artReady) { // the arts' global cooldown (balance.go)
+		log.Printf("Cast: %s uses %q %v before the arts' cooldown ends: not answered", p.Name, spell.Name, p.artReady.Sub(now).Round(time.Millisecond))
+		return false
+	}
 	// a charm while a pet is out is refused before anything is looked at,
 	// whatever is targeted (charm.go)
 	refusal := w.charmPetRefusalLocked(p, &spell)
@@ -530,6 +538,9 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 
 	p.Power -= spell.PowerCost
 	p.StatsDirty = true
+	if isArt(&spell) {
+		p.artReady = now.Add(w.balance.ArtCooldown(p.Level))
+	}
 	w.breakInvisLocked(p, "a spell cast") // invis.go
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
 	p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
@@ -948,8 +959,10 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 			illusion = true
 		}
 	}
-	if ae := lasting(cs, caster, now); ae != nil && (ae.HPTick <= 0 || w.placeHoTLocked(t, ae, now)) && // hot.go
+	if ae := lasting(cs, caster, now); ae != nil && w.lineTakesLocked(caster, casterSess, t, &cs.spell, ae) && // buffline.go
+		(ae.HPTick <= 0 || w.placeHoTLocked(t, ae, now)) && // hot.go
 		w.placeClarityLocked(caster, casterSess, t, ae, now) { // enchanter.go
+		w.dropLineLocked(t, ae) // its line's lower ranks off (buffline.go)
 		if illusion {
 			w.landIllusionLocked(cs, t, ae) // illusion.go
 		}
@@ -1096,7 +1109,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 			w.drainLocked(cs, caster, casterSess, e, -spellAmount(e, caster), now)
 		}
 	}
-	if ae := lasting(cs, caster, now); ae != nil {
+	if ae := lasting(cs, caster, now); ae != nil && w.rootResistLocked(caster, casterSess, npc, ae, now) { // root.go
 		for i, old := range npc.Effects {
 			if old.SpellID == ae.SpellID {
 				npc.Effects = append(npc.Effects[:i], npc.Effects[i+1:]...)
@@ -1110,8 +1123,10 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		w.affected[npc.ServerID] = npc
 		w.tickNPCEffectLocked(npc, ae, now)
 	}
-	// a spell that only holds or slows still angers it
-	w.updateAggro(npc, caster.ServerID, 0)
+	// a spell that only holds or slows still angers it, a resisted root too
+	// (root.go): hate of 1, as a resisted charm's, since a hate of none makes
+	// no enemy (addThreatLocked takes the highest above 0)
+	w.updateAggro(npc, caster.ServerID, 1)
 }
 
 // spellHitLocked is a spell's damage on a creature: the figure to the
@@ -1128,6 +1143,7 @@ func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc 
 	npc.HP = max(npc.HP-n, 0)
 	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n)
 	w.updateAggro(npc, caster.ServerID, n)
+	w.rootBreakLocked(npc, caster.Level) // root.go
 	log.Printf("Cast: %s's spell hit %s for %d (HP %d/%d)", caster.Name, npc.Name, n, npc.HP, npc.MaxHP)
 	if npc.HP > 0 {
 		return false

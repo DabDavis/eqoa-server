@@ -69,8 +69,14 @@ var simTargets = map[int]simTarget{
 }
 
 // simMisses is every cell of the archetypes' fights under b that misses its
-// target, as lines.
+// target, as lines. The stand-ins are the archetypes, not their classes:
+// Balance by class's share (a rogue's 65%) is left out, the level and con
+// tables alone held to the targets (the classes' rows are tuned on the real
+// kits, balancesim_real_test.go).
 func simMisses(b *Balance, fights int) []string {
+	if b != nil {
+		b = b.WithClasses(nil)
+	}
 	var miss []string
 	for _, class := range []int{classWarrior, 6} {
 		for _, level := range []int{10, 20, 30, 40, 50, 60} {
@@ -142,5 +148,22 @@ func TestSimulatedFightsRepeat(t *testing.T) {
 	}
 	if !a.Won && !a.Died {
 		t.Errorf("a fight that ended neither way: %+v", a)
+	}
+}
+
+// The simulator's charm play (SimPlay.Charm): an enchanter's charm takes a
+// creature of its level less one and the fight is the charmed creature's;
+// the control: a creature past the charm's cap is no one's to charm.
+func TestSimulatedCharmFightsWithTheCreature(t *testing.T) {
+	pl := SimPlayer{Class: classEnchanter, Race: 0, Level: 20, Base: SimBaseStats(classEnchanter, 0, 20),
+		Play: SimPlay{Spells: true, Charm: true, CharmDiff: -1}}
+	pl.Spells = []CastSpell{{SpellID: 700173, DisplayIndex: 1, Level: 20, Scope: 1, Name: "Cajole", CastTime: 5 * time.Second,
+		Recast: 30 * time.Second, PowerCost: 175, Range: 30, Def: ParseSpellText("Target, Charm ; Increase 25% based on CHA, 2.5min")}}
+	if !SimCharmable(pl, -1) || SimCharmable(pl, 1) {
+		t.Fatalf("charmable: -1 %v, +1 %v (the charm takes level 20 and below)", SimCharmable(pl, -1), SimCharmable(pl, 1))
+	}
+	r := SimulateFight(pl, SimNPC{Level: 18}, SeedBalance(), 3, 10*time.Minute)
+	if !r.HadPet || r.PetLevel != 19 {
+		t.Errorf("no charmed creature fought: %+v", r)
 	}
 }

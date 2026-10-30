@@ -60,3 +60,79 @@ func TestBalanceEditsAreLive(t *testing.T) {
 		t.Errorf("a diff of 40 was taken: %v", out)
 	}
 }
+
+// The arts' cooldown is a time: refused below 0 or past a minute, taken
+// within.
+func TestBalanceArtCooldownBounds(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	if code, out := c.op("insert_row", map[string]any{"table": "balancelevel",
+		"values": map[string]any{"level": 77, "art_cooldown_ms": -5}}); code == 200 {
+		t.Errorf("a cooldown of -5 ms was taken: %v", out)
+	}
+	if code, out := c.op("insert_row", map[string]any{"table": "balancelevel",
+		"values": map[string]any{"level": 77, "art_cooldown_ms": 70000}}); code == 200 {
+		t.Errorf("a cooldown of 70 s was taken: %v", out)
+	}
+	if code, out := c.op("insert_row", map[string]any{"table": "balancelevel",
+		"values": map[string]any{"level": 77, "art_cooldown_ms": 2000}}); code != 200 {
+		t.Errorf("a cooldown of 2 s was refused: %d %v", code, out)
+	}
+}
+
+// Balance by class is the GM's like the others: a row changed is taken and
+// said to be live, a class past 14 and a share of 0 are refused.
+func TestBalanceClassEdits(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	code, out := c.op("update_row", map[string]any{"table": "balanceclass",
+		"key": map[string]any{"class": 6}, "values": map[string]any{"melee_taken_pct": 50}})
+	if code != 200 {
+		t.Fatalf("update: %d %v", code, out)
+	}
+	if !strings.Contains(out["live"].(string), "next hit") {
+		t.Errorf("live: %v", out["live"])
+	}
+	if code, out := c.op("insert_row", map[string]any{"table": "balanceclass",
+		"values": map[string]any{"class": 20, "melee_taken_pct": 80}}); code == 200 {
+		t.Errorf("class 20 was taken: %v", out)
+	}
+	if code, out := c.op("update_row", map[string]any{"table": "balanceclass",
+		"key": map[string]any{"class": 6}, "values": map[string]any{"melee_taken_pct": 0}}); code == 200 {
+		t.Errorf("a share of 0 was taken: %v", out)
+	}
+}
+
+// A root's chances are percents of 0-100.
+func TestBalanceRootChanceBounds(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	for _, bad := range []map[string]any{{"root_resist_pct": 120}, {"root_break_pct": -1}} {
+		if code, out := c.op("update_row", map[string]any{"table": "balancecon", "key": map[string]any{"diff": 3},
+			"values": bad}); code == 200 {
+			t.Errorf("%v was taken: %v", bad, out)
+		}
+	}
+	if code, out := c.op("update_row", map[string]any{"table": "balancecon", "key": map[string]any{"diff": 3},
+		"values": map[string]any{"root_resist_pct": 40, "root_break_pct": 30}}); code != 200 {
+		t.Errorf("40/30 was refused: %d %v", code, out)
+	}
+}
+
+// A creature's heal out of a fight is a percent of 0-100.
+func TestBalanceRegenBounds(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	if code, out := c.op("update_row", map[string]any{"table": "balancelevel", "key": map[string]any{"level": 30},
+		"values": map[string]any{"regen_pct": 150}}); code == 200 {
+		t.Errorf("a regen of 150%% was taken: %v", out)
+	}
+	if code, out := c.op("update_row", map[string]any{"table": "balancelevel", "key": map[string]any{"level": 30},
+		"values": map[string]any{"regen_pct": 8}}); code != 200 {
+		t.Errorf("a regen of 8%% was refused: %d %v", code, out)
+	}
+}

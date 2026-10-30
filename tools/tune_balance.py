@@ -31,7 +31,7 @@ What it writes (every value is a GM's to change later in the panel's World group
   balanceclass    every class 100 (the ranger's 70, bard's 80 and rogue's 65 move into the next table).
   balanceclasslevel  (the table this branch adds) by a player's class and level: melee_taken_pct, the share
                   of an NPC's melee the class takes (one figure a class cannot hold a class whose strength
-                  turns with its level: a monk takes 75-90% at 1-12 and 260% at 60), and pet_hp_pct, its
+                  turns with its level: a monk takes 66-104% at 1-12 and 326% at 60), and pet_hp_pct, its
                   summoned pet's hit points as a share of balancelevel's (each class's pets lag their owner
                   their own way: a magician's last is level 47's Ghilan, an enchanter's come every eight to
                   ten levels, and an NPC's hits on a pet take the con on the PET's level, so a pet three or
@@ -43,8 +43,10 @@ What it writes (every value is a GM's to change later in the panel's World group
                   takes it from the one to the other) and two up 65%; level 1 to one up alone (two up is a
                   level 3 NPC, a wall at any share); a level at which no share meets both takes the nearest
                   level's that does; a healer's shares eased 8% to stay off that cliff. Each curve is then
-                  the median of five levels, smoothed over its neighbours, and its fewest rows within five
-                  points. The druid's melee on its hand-to-hand play (its root play wins a yellow at 20-40 with
+                  cut to its fewest rows within 7% of every level's fit (not smoothed: a melee class's swings
+                  double at 20 and its yellows' NPCs' at 19-20, so a warrior of 20 needs a share of 111 and one
+                  of 21 86, and a pet class's share is a saw that drops at each new summoning). The druid's melee
+                  on its hand-to-hand play (its root play wins a yellow at 20-40 with
                   nearly all its hit points in 13-16 minutes), the wizard's and the alchemist's on their root
                   play (a root holds or breaks, so their low point in a yellow won stays high: two up's 65% won
                   is what bounds them).

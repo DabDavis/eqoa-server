@@ -256,10 +256,13 @@ func TestAReachStepWaitsForRoom(t *testing.T) {
 	f.exec(`INSERT INTO queststeps (questid, step, kind, world, x, z, radius, journal, rewarditems)
 		VALUES (86, 1, 'reach', 0, 25403, 15725, 12, 'Find the mine.', ?)`, fmt.Sprint(f.aura))
 	f.qe.Reload()
+	// the pack full before the quest is given: the engine's own once-a-second
+	// look (Start) may run between the two, and with room it would finish the
+	// step at once (the quest gives nothing at its accept)
+	filler := f.fill(40)
 	if _, err := f.qe.SetCharacterQuest(f.sid, 86, QuestGive, 0); err != nil {
 		t.Fatal(err)
 	}
-	filler := f.fill(40)
 	f.msgs()
 	f.qe.checkReach() // standing at the mine
 	f.want(f.msgs(), `box:Your pack is too full for the Smoldering Aura. Make room to finish "The Mine".`)

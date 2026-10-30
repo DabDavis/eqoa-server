@@ -386,6 +386,40 @@ Frontiers disc keeps working. Addresses below are Corsten's live CLIENT; word id
   end. Other statuses (`csFailed` and the rest) are ours; CLIENT shows any as "System is temporarily
   unavailable. (Code: -n)".
 
+### Rehabilitators: a character's resets, for every client (`handlers/rehab.go`, `rehabpaths.go`, `database/rehab.go`)
+
+The user, 2026-10-30: "1 free CM [reset] and stat points [reset] per char. 2 free path respects per char", "1mil for
+cms, 2mil for both", "Roses for paths", "1 free path respec w/ 60 epic. Or rose as reward". Talking to **Rehabilitator
+Anja** (Muniel's Tea Garden) or **Rehabilitator Frejo** (near Freeport; any NPC named "Rehabilitator ...") opens a menu of
+the quest boxes a PS2 reads (0x0046 lines, 0x0034 questions under box mark **0x54000000**, beside the quests' 0x51, the
+triggers' 0x52, the duels' 0x53): what the character has left, then its Combat Masteries reset (`#rst_mastr`'s work,
+`resetMasteries`), its stat points reset (`#rst_both`'s training half, `trainingBack`), both, a path undone, a Rose of
+Rehabilitation bought. Each is asked again with its terms and done only on them; nothing to undo or too little tunar is
+refused, nothing taken.
+
+- **Prices and free counts**: table `rehabsettings` (GM panel "Rehabilitators' prices", a row a setting, read at each
+  talk): free_mastery 1, free_training 1, free_path 2, price_mastery 1,000,000, price_training 1,000,000 (the user priced
+  only masteries and both: to confirm), price_both 2,000,000 (both when neither has a free reset left; with one free, the
+  other's price), price_rose 10,000,000. Each character's counts: `charresets` (GM panel "Character resets": used, paid,
+  bonus; free left = free + bonus - used).
+- **A path** (`rehabpaths.go`, by import key): a city's level 20 class quest whose last step asks the two path scrolls
+  (`1-20/<city>/<class>/L20`; one that kept a single path asks nothing) or a 30/40/49 group's class reward
+  (`30,40,49/<group>/L<30|40|49>-<class>`). Undoing one forgets that quest's row and, at 30 and 40, the later levels' of
+  its group (QuestReset: their givers offer them again), takes the spells its picks taught out of the book (0x00B8) and
+  their items back from the pack (0x003C) or the bank (0x1250); a worn one must come off first, one sold or destroyed is
+  named and not refused. **A pick is kept** with its quest's row (`charquests.picks`, "step:option"), so exactly it goes;
+  one from before counts every option of its step. A spell another quest the character keeps gives (the 60 epics offer
+  the 49 paths' other abilities) or merchants sell as a scroll stays. Past the free respecs a path costs a rose (pack or
+  bank; offered for sale when none is held, the paths asked right after).
+- **The Rose of Rehabilitation**: item 707000 (`database.RoseOfRehabilitation`), "rose of renewal"'s art (icon 759960290,
+  a rose; Oceanic Rose's 1342617881 is a coil of rope), worth 10,000,000, NO TRADE, which merchants refuse (an epic's
+  would be ten million tunar). Each class's 60 epic reward quest (`60/<archetype>/reward-<class>`, 23) gives one at its
+  last step: not repeatable, and no path undoing touches it, so one a character an epic.
+- `tools/seed_rehabilitation.py [--apply|--undo] [--write-data tools/quests/data]` writes the rose, Frejo's NPC bit (his
+  npc_type was 0: a creature), the epics' rewards, and a rose for each epic a character finished before, less the roses
+  it holds, has used (charresets) or the tool gave it (logged in `rehab_seed`, exact undo; no run gives one twice). Apply
+  it before the restart that brings the code: NPCs and quests are read at the start.
+
 ### SOE's live client's other features: the feature word, the group search, auction stacks
 
 The user, 2026-10-29: two more of SOE's later features read out of its live CLIENT (`eqoa-live-1500`, in

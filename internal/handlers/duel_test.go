@@ -170,7 +170,9 @@ func TestHandleDuelRequest(t *testing.T) {
 		t.Fatal("a wager sub-op began it")
 	}
 	up(sb, 3, id) // accepted: two live windows set their wagers first
-	if got := queued(sa, protocol.OpcodeDuel); len(got) < 3 || got[len(got)-1][2] != 13 {
+	// the window opened (13), then zeroed (12: the live 13 keeps the last
+	// wager's tunar and accepts)
+	if got := queued(sa, protocol.OpcodeDuel); len(got) < 4 || got[len(got)-2][2] != 13 || got[len(got)-1][2] != 12 {
 		t.Fatalf("the wager window did not open: % X", got)
 	}
 	pa.Tunar, pb.Tunar = 100, 100

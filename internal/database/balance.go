@@ -274,7 +274,8 @@ func (db *SQLiteDB) ensureBalance() error {
 	// balanceclasslevel's seed rows go with the con and level seeds of the
 	// same tuning (2026-10-30): a database whose balance tables were made
 	// before gets the table empty, as tools/tune_balance.py fills it with
-	// the rest of that tuning; seeded on its own, its shares would multiply
+	// the rest of that tuning (and tools/retune_balance.py moves it to the
+	// re-fit the seeds hold); seeded on its own, its shares would multiply
 	// balanceclass's older ones (a rogue's 65% times its 40-70%) under the
 	// older con rows
 	if fresh["balanceclasslevel"] && fresh["balancelevel"] {

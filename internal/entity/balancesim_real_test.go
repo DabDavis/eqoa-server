@@ -154,27 +154,41 @@ func TestRealBalanceSeedOnRealKits(t *testing.T) {
 	}
 }
 
-// On a server's own kits (EQOA_REAL_DB): a rooting druid and wizard of 50
-// (root, then their spells from range) lose a red five up under the seed's
-// root chances, and win it nearly always with the chances at 0 (the
-// control: the game before them, every root held to its end).
+// On a server's own kits (EQOA_REAL_DB): a rooting druid of 50 (root, then
+// its spells from range) loses a red five up under the seed's root chances
+// and, with the chances at 0 (the game before them, every root held to its
+// end), wins it nearly always given the time (15-20 minutes under the con
+// rows of 2026-10-30, so the control's fights may last 30); a rooting wizard
+// of 50 pays for a yellow two up under the chances, and with none wins it
+// untouched (the control). A wizard's roots do not take a red at all.
 func TestRealRootPlayHeldToTheCon(t *testing.T) {
 	db := simRealDB(t)
 	none := SeedBalance().WithConColumn([][2]float64{{0, 0}}, func(r *database.BalanceCon, v float64) {
 		r.RootResistPct, r.RootBreakPct = v, v
 	})
-	for _, class := range []int{7, 13} {
+	kit := func(class int) SimPlayer {
 		pl, err := SimKitFromDB(db, class, 0, 50, 0.5)
 		if err != nil {
 			t.Fatal(err)
 		}
 		pl.Play.Root, pl.Play.Melee = true, false
-		if red := SimCellOf(pl, SimNPC{}, 5, SeedBalance(), 16, 1, 10*time.Minute); red.WinShare() > 0.4 {
-			t.Errorf("class %d rooting under the seed: +5 won %.0f%%", class, 100*red.WinShare())
-		}
-		if was := SimCellOf(pl, SimNPC{}, 5, none, 8, 1, 10*time.Minute); was.WinShare() < 0.85 {
-			t.Errorf("class %d rooting with no root chances: +5 won only %.0f%% (the control)", class, 100*was.WinShare())
-		}
+		return pl
+	}
+	druid := kit(7)
+	if red := SimCellOf(druid, SimNPC{}, 5, SeedBalance(), 16, 1, 10*time.Minute); red.WinShare() > 0.4 {
+		t.Errorf("a druid rooting under the seed: +5 won %.0f%%", 100*red.WinShare())
+	}
+	if was := SimCellOf(druid, SimNPC{}, 5, none, 8, 1, 30*time.Minute); was.WinShare() < 0.85 {
+		t.Errorf("a druid rooting with no root chances: +5 won only %.0f%% (the control)", 100*was.WinShare())
+	}
+	wizard := kit(13)
+	paid := SimCellOf(wizard, SimNPC{}, 2, SeedBalance(), 16, 1, 10*time.Minute)
+	free := SimCellOf(wizard, SimNPC{}, 2, none, 16, 1, 10*time.Minute)
+	if free.WinShare() < 0.95 || free.HPLeft < 0.9 {
+		t.Errorf("a wizard rooting with no root chances: +2 won %.0f%% with %.0f%% left (the control)", 100*free.WinShare(), 100*free.HPLeft)
+	}
+	if paid.WinShare() > 0.9 && paid.HPLeft > 0.75 {
+		t.Errorf("a wizard rooting under the seed: +2 won %.0f%% with %.0f%% left, as if its roots held", 100*paid.WinShare(), 100*paid.HPLeft)
 	}
 }
 
@@ -222,6 +236,139 @@ func TestRealCharmProbe(t *testing.T) {
 				}
 				t.Log(line)
 			}
+		}
+	}
+}
+
+// balanceAt0130 is the balance as eqoaclassic had it at 01:30 UTC on
+// 2026-10-30 (the tuning of 2026-10-29 with pets' hit points at seven
+// tenths), which the user played and called too easy.
+func balanceAt0130() *Balance {
+	lv := func(l int, hp, dmg, con, php, pdm float64) database.BalanceLevel {
+		return database.BalanceLevel{Level: l, HPPct: hp, DamagePct: dmg, ConPct: con, PetHPPct: php, PetDamagePct: pdm,
+			ArtCooldownMS: 1500, RegenPct: 5}
+	}
+	cn := func(d int, dmg, tk, rr, rb float64) database.BalanceCon {
+		return database.BalanceCon{Diff: d, DamagePct: dmg, TakenPct: tk, RootResistPct: rr, RootBreakPct: rb}
+	}
+	return NewBalance([]database.BalanceLevel{
+		lv(1, 300, 250, 0, 300, 250), lv(5, 215, 265, 0, 215, 265), lv(8, 225, 260, 0, 225, 260), lv(10, 220, 225, 25, 220, 225),
+		lv(15, 230, 255, 70, 161, 280), lv(18, 230, 250, 100, 161, 300), lv(25, 250, 220, 100, 175, 285), lv(30, 300, 200, 100, 210, 300),
+		lv(35, 300, 195, 100, 210, 340), lv(45, 330, 190, 100, 287, 430), lv(50, 340, 190, 100, 357, 475), lv(60, 400, 160, 100, 560, 560),
+	}, []database.BalanceCon{cn(0, 100, 100, 0, 5), cn(1, 112, 91, 5, 10), cn(2, 125, 83, 15, 15), cn(3, 135, 79, 35, 25),
+		cn(4, 142, 76, 50, 30), cn(5, 150, 72, 65, 35)}).
+		WithClasses([]database.BalanceClass{{Class: 1, MeleeTakenPct: 70}, {Class: 5, MeleeTakenPct: 80}, {Class: 6, MeleeTakenPct: 65}})
+}
+
+// The calibration (EQOA_REAL_DB): the live log the user called "too easy",
+// Dust, a level 5 shadow knight of 170 hit points, against a level 6 fire
+// bat (786 hit points, hits of 8 every 3 s): he killed it in 24 s and kept
+// 65%. The simulator's level 5 shadow knight, its book only Chilling Aura
+// (Dust cast no nuke: 786 in 24 s of ~85 a swing), under the 01:30 tables
+// fights the same fight (the bat's 786, its 8 a hit) to the same end; under
+// the seed of 2026-10-30 the yellow ends under 40% of its hit points, and is
+// still won as a rule.
+func TestRealDustAndTheFireBat(t *testing.T) {
+	db := simRealDB(t)
+	pl, err := SimKitFromDB(db, 3, 0, 5, 0.5)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var book []CastSpell
+	for _, s := range pl.Spells {
+		if simRole(&s) == roleBuff {
+			book = append(book, s)
+		}
+	}
+	pl.Spells = book
+	bat := SimNPC{Name: "fire bat", Level: 6}
+	fight := func(b *Balance) (won, hp, secs float64, npcHP int) {
+		n := 40
+		for i := range n {
+			r := SimulateFight(pl, bat, b, int64(i+1), 10*time.Minute)
+			npcHP = r.NPCMaxHP
+			if r.Won {
+				won++
+				hp += r.HPShare()
+				secs += r.Time.Seconds()
+			}
+		}
+		if won > 0 {
+			hp /= won
+			secs /= won
+		}
+		return won / float64(n), hp, secs, npcHP
+	}
+	won, hp, secs, batHP := fight(balanceAt0130())
+	t.Logf("01:30 tables: won %.0f%%, %.0f%% HP left, %.0f s, the bat %d HP (Dust: 24 s, 65%%, 786)", 100*won, 100*hp, secs, batHP)
+	if batHP != 786 || won < 0.95 || hp < 0.55 || hp > 0.75 || secs < 18 || secs > 40 {
+		t.Errorf("the calibration fight is not Dust's")
+	}
+	won, hp, secs, batHP = fight(SeedBalance())
+	t.Logf("2026-10-30 seed: won %.0f%%, %.0f%% HP left, %.0f s, the bat %d HP", 100*won, 100*hp, secs, batHP)
+	if won < 0.6 || hp > 0.40 {
+		t.Errorf("under the new seed the fire bat is still easy: won %.0f%% with %.0f%% left", 100*won, 100*hp)
+	}
+}
+
+// The user's targets of 2026-10-30 on the real kits (EQOA_REAL_DB): both
+// yellows won as a rule (one up four times in five, two up half the time)
+// and taking a player down below about a third of its hit points (its low
+// point, averaged over the fights won one and two up: the tuning's fit aims
+// at a quarter), a red three up a lone player's loss, two of the level a
+// red three up's winners and three a red five up's; the control: under the
+// 01:30 tables most yellows left a player above a third.
+func TestRealBalanceYellowsAndReds(t *testing.T) {
+	db := simRealDB(t)
+	kit := func(c, l int) SimPlayer {
+		pl, err := SimKitFromDB(db, c, 0, l, 0.5)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return pl
+	}
+	seed, old := SeedBalance(), balanceAt0130()
+	yellow := func(pl SimPlayer, b *Balance, fights int) (SimCell, SimCell, float64) {
+		y1 := SimCellOf(pl, SimNPC{}, 1, b, fights, 1, 10*time.Minute)
+		y2 := SimCellOf(pl, SimNPC{}, 2, b, fights, 1, 10*time.Minute)
+		w1, w2 := float64(y1.Won), float64(y2.Won)
+		return y1, y2, (w1*y1.LowLeft + w2*y2.LowLeft) / max(w1+w2, 1)
+	}
+	easy, cells := 0, 0
+	for _, class := range []int{0, 2, 4, 6} {
+		for _, level := range []int{5, 20, 40, 55} {
+			pl := kit(class, level)
+			y1, y2, low := yellow(pl, seed, 16)
+			if y1.WinShare() < 0.7 || y2.WinShare() < 0.5 || low > 0.36 {
+				t.Errorf("class %d L%d: +1 won %.0f%%, +2 won %.0f%%, taken down to %.0f%% on average",
+					class, level, 100*y1.WinShare(), 100*y2.WinShare(), 100*low)
+			}
+			if r := SimCellOf(pl, SimNPC{}, 3, seed, 16, 1, 10*time.Minute); r.WinShare() > 0.4 {
+				t.Errorf("class %d L%d +3 alone: won %.0f%%", class, level, 100*r.WinShare())
+			}
+			cells++
+			if _, _, l := yellow(pl, old, 8); l > 0.36 {
+				easy++
+			}
+		}
+	}
+	if easy*2 < cells {
+		t.Errorf("the control: under the 01:30 tables only %d of %d yellows left a player above a third", easy, cells)
+	}
+	for _, level := range []int{10, 30, 50} {
+		duo, err := SimGroupFor(6, level, 2, func(c int) (SimPlayer, error) { return kit(c, level), nil })
+		if err != nil {
+			t.Fatal(err)
+		}
+		if g := SimGroupCellOf(duo, SimNPC{}, 3, seed, 12, 1, 10*time.Minute); g.WinShare() < 0.6 {
+			t.Errorf("L%d +3, a rogue and a cleric: won %.0f%%", level, 100*g.WinShare())
+		}
+		trio, err := SimGroupFor(6, level, 3, func(c int) (SimPlayer, error) { return kit(c, level), nil })
+		if err != nil {
+			t.Fatal(err)
+		}
+		if g := SimGroupCellOf(trio, SimNPC{}, 5, seed, 12, 1, 10*time.Minute); g.WinShare() < 0.5 {
+			t.Errorf("L%d +5, a warrior, a rogue and a cleric: won %.0f%%", level, 100*g.WinShare())
 		}
 	}
 }

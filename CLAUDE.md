@@ -506,15 +506,17 @@ Sandstorm's measured formulas stay as they are (`offence.go`, `defence.go`, `sta
 balance tables scale what goes into a fight and what comes out of it, GM-editable in the panel's
 World group and **live** (a change is read whole at once; every NPC's hit points become its
 level's, each keeping its share). A table with no rows is the formulas alone. Rows of source
-`seed` are the tuning of 2026-10-29 (`claude-notes/balance-20261029.md`; a table gets them when
+`seed` are the tuning of 2026-10-30 (`claude-notes/balance-20261029.md`; a table gets them when
 it is made, and a column added later takes the seed's value on the rows still the seed's,
-`ensureBalanceColumns`). Training dummies are never touched.
+`ensureBalanceColumns`; a table made before takes them from `tools/tune_balance.py`, below).
+Training dummies are never touched.
 
 | Table (panel) | Key | Columns |
 |---|---|---|
-| `balancelevel` (Balance by level) | an NPC's level (the line between rows) | `hp_pct` (of 60 a level), `damage_pct` (its melee hits), `con_pct` (how much of the con table its level takes), `pet_hp_pct`/`pet_damage_pct` (a SUMMONED pet's, by its owner's level; `pet_hp_pct` from 15 seven tenths of the first tuning's, as pets now regenerate; a table's untouched seed rows take it, `BalanceSeedRevisions`), `regen_pct` (its heal out of a fight a tick, seed 5), and **by a PLAYER's level** `art_cooldown_ms` (the combat arts' global cooldown, seed 1500) |
-| `balancecon` (Balance by con) | the NPC's level less its foe's (1-2 yellow, 3+ red) | `damage_pct` (its melee on that foe), `taken_pct` (what that foe deals it), `root_resist_pct` and `root_break_pct` (`root.go`: a root's, and a snare's resist, at its landing; each hit on a rooted NPC; seed 0/5, 5/10, 15/15, 35/25, 50/30, 65/35 for 0..5; not scaled by `con_pct`) |
-| `balanceclass` (Balance by class) | a player's class | `melee_taken_pct`: the share of an NPC's melee hit it takes (seed ranger 70, bard 80, rogue 65, the rest 100: their melee class's hit points and defence against a tank's) |
+| `balancelevel` (Balance by level) | an NPC's level (the line between rows) | `hp_pct` (of 60 a level), `damage_pct` (its melee hits; **a row at every level 1-14 evens out the floor's step**: an NPC's least hit is `(level+1)/2` (`defence.go`), a step at each odd level, and there most of its hits on a tank are that floor, so the seed is the line's times `(2L+1)/(4*ceil(L/2))`), `con_pct` (how much of the con table its level takes; seed 100 at every level), `pet_hp_pct`/`pet_damage_pct` (a SUMMONED pet's, by its owner's level; `pet_hp_pct` seed 100 at 1-8 to 540 at 60; a table's untouched rows of the first tuning take 2026-10-29's seven tenths, `BalanceSeedRevisions`), `regen_pct` (its heal out of a fight a tick, seed 5), and **by a PLAYER's level** `art_cooldown_ms` (the combat arts' global cooldown, seed 1500) |
+| `balancecon` (Balance by con) | the NPC's level less its foe's (1-2 yellow, 3+ red) | `damage_pct` (its melee on that foe), `taken_pct` (what that foe deals it; seed 147/68 one up, 140/70 two, 190/53 three, 220/45 four, 230/45 five), `root_resist_pct` and `root_break_pct` (`root.go`: a root's, and a snare's resist, at its landing; each hit on a rooted NPC; seed 0/5 even and one up, 10/10, 30/20, 45/25, 60/30 for 2..5; not scaled by `con_pct`) |
+| `balanceclass` (Balance by class) | a player's class | `melee_taken_pct`: the share of an NPC's melee hit it takes (seed 100 for every class since 2026-10-30: 2026-10-29's ranger 70, bard 80 and rogue 65 moved into the next table) |
+| `balanceclasslevel` (Balance by class and level) | a player's class and level (the line between that class's rows) | `melee_taken_pct`: times Balance by class's share, by the player's level (a class whose strength turns with its level: a monk takes 66-104% at 1-12 and 326% at 60); `pet_hp_pct`: its summoned pet's hit points, a share of Balance by level's pet column (each class's pets lag their owner their own way, and an NPC's hits on a pet take the con on the PET's level). Seed: both fitted by the simulator at every level 1-60 to both yellows at once (the player's low point, the least hit points in a fight won, or the pet's hit points left, averaged over one and two up near 25%; one up won 80% of the time, a healer's 90% and eased 8% off its cliff, two up 65%), cut to the fewest rows within 7% of every level's fit; the druid's melee on its hand-to-hand play, the wizard's and the alchemist's on their root play. Seeded only with a fresh balance: an older database gets it empty, for the tool |
 
 Besides the tables, the same day: **only the best of a buff line counts** on a player
 (`buffline.go`: a line is a lasting spell's kinds and stats with the way each moves, and whether a
@@ -531,13 +533,25 @@ restart.
 **Tuning** is done on a copy with the fight simulator, which fights on the server's own systems with
 seeded dice (`balancesim.go`, kits off the database by `balancekit.go`): `go build -o balancesim
 ./cmd/balancesim && ./balancesim -db copy.db -balance db -pets -root -classes 0,6,9,13 -levels
-10,30,50 [-try-level ...] [-try-con ...] [-try-class 1:70] [-try-root 3:35:25] [-try-art 1:1500]
-[-try-regen 1:5]` (the `-try` flags try rows without writing them); `-root` adds each rooting
-class's root-and-nuke play, `-charm -3,0` a charmed creature's, `-reset 20s` breaks fights off and
-times the creature's heal, `-lines` the buff lines. The targets (`balancesim_test.go`, the real
-kits' `balancesim_real_test.go` with `EQOA_REAL_DB`): an even fight won 95% with 45-80% of the
-hit points left, two up won half the time with at most 50-65% left, three up never trivial, five
-up won at most 35-40%.
+10,30,50 [-try-level ...] [-try-con ...] [-try-class 1:70] [-try-classlevel 3:45:125[:pet]]
+[-try-root 3:35:25] [-try-art 1:1500] [-try-regen 1:5] [-try-conpct 1:100] [-try-pethp 15:155]`
+(the `-try` flags try rows without writing them); `-root` adds each rooting class's root-and-nuke
+play, `-charm -3,0` a charmed creature's, `-groups 2,3` each class's fitting groups (`balancegroup.go`:
+two, the class and the role it lacks; three, a warrior, the class and a cleric), `-low` the HP
+column as the fight's low point (a healer ends higher than it was taken down to), `-reset 20s`
+breaks fights off and times the creature's heal, `-lines` the buff lines. **The targets are the
+user's of 2026-10-30**: a yellow (one or two up) a scary fight a player of the level usually wins,
+taken down below a third of its hit points; a red (three up and over) a lone player's loss and a
+fitting group's (two or three of the level) win; an even fight left as it was (the median class
+70-80% left). `balancesim_real_test.go` (`EQOA_REAL_DB`) holds the real kits to them and replays
+the fight the user called "too easy" (a level 5 shadow knight against a level 6 fire bat: 65% left
+under the 01:30 tables, as the live log); `balancesim_test.go` holds the stand-ins to the shape.
+`tools/tune_balance.py --db <db> [--apply|--undo]` writes the tuning into a table made before
+(report by default; only rows still as eqoaclassic had them at 01:30 UTC 2026-10-30; logged in
+`balance_tune_log`, `--undo` exact); the server reads it at its next start or at once at a save of
+any Balance page in the panel. `balanceclasslevel` is read only by a server of 2026-10-30 or later,
+so apply it with that server (under an older one the ranger's, bard's and rogue's shares are gone:
+they would take all of an NPC's melee).
 
 ## The GM panel (`internal/gmweb`)
 

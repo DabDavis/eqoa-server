@@ -62,26 +62,25 @@ type simTarget struct {
 
 var simTargets = map[int]simTarget{
 	0: {minWon: 0.95, maxWon: 1, maxHP: 0.92}, // even: won, comfortably
-	1: {minWon: 0.85, maxWon: 1, maxHP: 0.80}, // yellow
-	2: {minWon: 0.50, maxWon: 1, maxHP: 0.65}, // yellow: a tough fight
-	3: {minWon: 0, maxWon: 1, maxHP: 0.45},    // red: never trivial
-	5: {minWon: 0, maxWon: 0.40, maxHP: 1},    // a deep red: rarely
+	3: {minWon: 0, maxWon: 0.35, maxHP: 1},    // red: a lone player mostly loses
+	5: {minWon: 0, maxWon: 0.10, maxHP: 1},    // a deep red: a group's
 }
 
 // simMisses is every cell of the archetypes' fights under b that misses its
-// target, as lines. The stand-ins are the archetypes, not their classes:
-// Balance by class's share (a rogue's 65%) is left out, the level and con
-// tables alone held to the targets (the classes' rows are tuned on the real
-// kits, balancesim_real_test.go).
+// target, as lines. The stand-ins are archetypes, not classes: the class
+// rows are left out (the classes' shares are fitted on the real kits, which
+// balancesim_real_test.go holds to the user's yellow and red targets of
+// 2026-10-30); here the level and con tables are held to the shape: an even
+// fight won, a red three or five up a lone player's loss.
 func simMisses(b *Balance, fights int) []string {
 	if b != nil {
-		b = b.WithClasses(nil)
+		b = b.WithClasses(nil).WithClassLevels(nil)
 	}
 	var miss []string
 	for _, class := range []int{classWarrior, 6} {
 		for _, level := range []int{10, 20, 30, 40, 50, 60} {
 			pl := simKit(class, level)
-			for _, diff := range []int{0, 1, 2, 3, 5} {
+			for _, diff := range []int{0, 3, 5} {
 				c := SimCellOf(pl, SimNPC{}, diff, b, fights, int64(100*level+diff), 10*time.Minute)
 				t := simTargets[diff]
 				won := c.WinShare()
@@ -95,19 +94,9 @@ func simMisses(b *Balance, fights int) []string {
 	return miss
 }
 
-// simKnownGaps are the cells the seed rows miss and NPC-side numbers cannot
-// mend, each with its cause (claude-notes/balance-20261029.md): the spread
-// between the archetypes at 60 is wider than the targets (a tank's 24 hit
-// points a level and sword and board against a melee class's 16, its +15 a
-// hit and its weaker AGI), and the stand-in kit is stronger at 10 than the
-// real warrior's (whose arts are a Kick's 16).
-var simKnownGaps = map[string]string{
-	"tank L10 +2":  "the stand-in kit outdoes a real level 10 warrior",
-	"tank L10 +3":  "the stand-in kit outdoes a real level 10 warrior",
-	"tank L10 +5":  "the stand-in kit outdoes a real level 10 warrior",
-	"tank L60 +5":  "a tank's hit points and AC: the reds a melee class cannot near, a tank beats",
-	"melee L60 +2": "a melee class's 16 hit points a level and +15 a hit: its yellows at 60 too hard",
-}
+// simKnownGaps are the cells the seed rows miss, each with its cause
+// (claude-notes/balance-20261029.md): none under the shape of 2026-10-30.
+var simKnownGaps = map[string]string{}
 
 // The seed rows meet the targets, archetype by archetype, but for the gaps
 // named.
@@ -165,5 +154,91 @@ func TestSimulatedCharmFightsWithTheCreature(t *testing.T) {
 	r := SimulateFight(pl, SimNPC{Level: 18}, SeedBalance(), 3, 10*time.Minute)
 	if !r.HadPet || r.PetLevel != 19 {
 		t.Errorf("no charmed creature fought: %+v", r)
+	}
+}
+
+// A group's fight (balancegroup.go): three of the synthetic warrior beat an
+// NPC five levels up that one alone mostly loses to, and the control: one
+// "group" of a single member fights as a lone player does (the same share
+// won over the same seeds).
+func TestAGroupBeatsWhatOneCannot(t *testing.T) {
+	if testing.Short() {
+		t.Skip("fights a few hundred fights")
+	}
+	b := SeedBalance()
+	pl := simKit(classWarrior, 30)
+	alone := SimCellOf(pl, SimNPC{}, 5, b, 16, 7, 10*time.Minute)
+	trio := SimGroupCellOf([]SimPlayer{pl, pl, pl}, SimNPC{}, 5, b, 16, 7, 10*time.Minute)
+	if trio.WinShare() <= alone.WinShare() || trio.WinShare() < 0.75 {
+		t.Errorf("+5: alone won %.0f%%, three won %.0f%%", 100*alone.WinShare(), 100*trio.WinShare())
+	}
+	one := SimGroupCellOf([]SimPlayer{pl}, SimNPC{}, 2, b, 12, 3, 10*time.Minute)
+	solo := SimCellOf(pl, SimNPC{}, 2, b, 12, 3, 10*time.Minute)
+	if d := one.WinShare() - solo.WinShare(); d > 0.2 || d < -0.2 {
+		t.Errorf("a group of one won %.0f%%, the lone player %.0f%%", 100*one.WinShare(), 100*solo.WinShare())
+	}
+}
+
+// The low point (SimResult.LowHP, the user's "take you down to"): a fight
+// is never ended below it; a stand-in that heals itself (a heal of a third
+// of its hit points, cast below half) ends its fights above the low point
+// it was taken down to; the control: the same stand-in without the heal
+// ends each fight it wins at its low point or within a tick's blow of it.
+func TestSimLowPointIsTheFightsLeast(t *testing.T) {
+	b := SeedBalance().WithClasses(nil).WithClassLevels(nil)
+	plain := simKit(classWarrior, 20)
+	healer := simKit(classWarrior, 20)
+	heal := ParseSpellText("Self, Increase Hitpoints by 200")
+	healer.Spells = append(healer.Spells, CastSpell{SpellID: 9103, DisplayIndex: 3, Level: 20, Scope: 0, Name: "a heal",
+		CastTime: time.Second, Recast: 12 * time.Second, PowerCost: 20, Def: heal})
+	var healed, ended, plainWon int
+	for seed := int64(1); seed <= 12; seed++ {
+		r := SimulateFight(healer, SimNPC{Level: 21}, b, seed, 10*time.Minute)
+		if r.LowHP > r.HP || r.LowShare() > r.HPShare() {
+			t.Fatalf("seed %d: ended at %d below its low point %d", seed, r.HP, r.LowHP)
+		}
+		if r.Won {
+			ended++
+			if r.HP > r.LowHP {
+				healed++
+			}
+		}
+		p := SimulateFight(plain, SimNPC{Level: 21}, b, seed, 10*time.Minute)
+		if p.Won {
+			plainWon++
+			if p.HP-p.LowHP > p.MaxHP/10 {
+				t.Errorf("seed %d, no heal: ended at %d, low point %d of %d", seed, p.HP, p.LowHP, p.MaxHP)
+			}
+		}
+	}
+	if ended == 0 || plainWon == 0 || healed*2 < ended {
+		t.Errorf("the healer won %d and ended above its low point in %d; without the heal %d won", ended, healed, plainWon)
+	}
+}
+
+// A fitting group (SimGroupFor): a duo is the class and the role it lacks,
+// a cleric for a tank or a melee class, a warrior for a priest or a caster;
+// a trio a warrior, the class and a cleric; the control: a warrior's or a
+// cleric's trio takes a wizard for the class's own place.
+func TestAFittingGroupFillsTheRoleItLacks(t *testing.T) {
+	kit := func(c int) (SimPlayer, error) { return SimPlayer{Class: c}, nil }
+	for _, c := range []struct {
+		class, size int
+		want        []int
+	}{
+		{6, 2, []int{6, 9}}, {2, 2, []int{2, 9}}, {13, 2, []int{0, 13}}, {10, 2, []int{0, 10}}, {7, 2, []int{0, 7}},
+		{9, 2, []int{0, 9}}, {6, 3, []int{0, 6, 9}}, {13, 3, []int{0, 13, 9}}, {0, 3, []int{0, 13, 9}}, {9, 3, []int{0, 13, 9}},
+	} {
+		g, err := SimGroupFor(c.class, 20, c.size, kit)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var got []int
+		for _, pl := range g {
+			got = append(got, pl.Class)
+		}
+		if fmt.Sprint(got) != fmt.Sprint(c.want) {
+			t.Errorf("class %d, %d: %v, want %v", c.class, c.size, got, c.want)
+		}
 	}
 }

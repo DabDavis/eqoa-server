@@ -660,6 +660,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureClassTemplates(); err != nil { // classtemplates.go
 		return err
 	}
+	if err := db.ensurePetTemplates(); err != nil { // pettemplates.go
+		return err
+	}
 	if err := db.ensureAuction(); err != nil { // auction.go
 		return err
 	}

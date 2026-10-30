@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"sort"
@@ -134,6 +135,10 @@ type petState struct {
 	// nothing): a recorded kind's, so that Sandstorm's slower round deals
 	// the damage a second its own round did (petrotation.go)
 	hitScale float64
+	// tmpl is the pettemplate row it fights by, nil for none; foe what its
+	// abilities' clocks were last started on (pettemplate.go)
+	tmpl *petTemplate
+	foe  EntityID
 }
 
 // petOfLocked is the player's pet, alive, or nil.
@@ -388,7 +393,11 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	pet.SwingFixed, pet.SwingKind = petSwing(caster.Class, name)
 	kind := petKindOf(caster.Class, spell.Name)
 	hitScale := 1.0
-	if k, round, ok := petKindSwing(kind); ok {
+	pt := w.petTemplateForLocked(spell)
+	switch k, round, ok := petKindSwing(kind); {
+	case pt != nil:
+		hitScale = w.applyPetTemplateLocked(pet, pt) // its class (pettemplate.go)
+	case ok:
 		was := petHitRate(pet)
 		pet.SwingFixed, pet.SwingKind, pet.SwingRound = true, k, round // Sandstorm's (petrotation.go)
 		hitScale = was / petHitRate(pet)                               // its damage a second kept
@@ -398,14 +407,18 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	if w.pets == nil {
 		w.pets = make(map[EntityID]*petState)
 	}
-	ps := &petState{owner: caster, npc: pet, stance: petDefensive, last: now, taunts: caster.Class == classEnchanter, kind: kind,
-		hitScale: hitScale}
+	ps := &petState{owner: caster, npc: pet, stance: petDefensive, last: now, taunts: caster.Class == classEnchanter && pt == nil,
+		kind: kind, hitScale: hitScale, tmpl: pt}
 	w.pets[caster.ServerID] = ps
 	if sess != nil {
 		w.announcePetLocked(ps, sess)
 	}
-	log.Printf("Pet: %s summons %q (%s's body, model %#x, size %.2f), level %d, %d HP, fights as %s (hits x%.2f)",
-		caster.Name, pet.Name, t.Name, uint32(pet.ModelID), pet.Size, pet.Level, pet.MaxHP, kind, hitScale)
+	tmplName := "no template"
+	if pt != nil {
+		tmplName = fmt.Sprintf("template %q (class %d, swing %d)", pt.tmpl.Name, pet.Class, npcSwingKind(pet))
+	}
+	log.Printf("Pet: %s summons %q (%s's body, model %#x, size %.2f), level %d, %d HP, fights as %s (hits x%.2f), %s",
+		caster.Name, pet.Name, t.Name, uint32(pet.ModelID), pet.Size, pet.Level, pet.MaxHP, kind, hitScale, tmplName)
 }
 
 // announcePetLocked tells the owner its pet's id (0x007E) when it has not
@@ -625,6 +638,7 @@ func distXZ(ax, az, bx, bz float32) float32 {
 // gone or dead, or which died. Every tick; must be called with the lock
 // held.
 func (w *World) petSystem(now time.Time) {
+	w.petCastSystemLocked(now) // the templated pets' casts landing (pettemplate.go)
 	for id, ps := range w.pets {
 		owner, pet := ps.owner, ps.npc
 		if w.Players[id] != owner {
@@ -671,7 +685,11 @@ func (w *World) petSystem(now time.Time) {
 			w.petFightLocked(ps, t, dt, now)
 		} else {
 			ps.target = 0
-			w.petFollowLocked(ps, dt)
+			if !w.petTemplateTurnLocked(ps, nil, now) { // its heals and buffs while it follows (pettemplate.go)
+				w.petFollowLocked(ps, dt)
+			} else {
+				pet.stopMoving()
+			}
 		}
 		if sess != nil {
 			w.announcePetLocked(ps, sess)
@@ -763,6 +781,12 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 	}
 	pet.stopMoving()
 	pet.Facing = headingTo(t.X-pet.X, t.Z-pet.Z)
+	if w.petTemplateTurnLocked(ps, t, now) { // its template's abilities: casting, no melee (pettemplate.go)
+		return
+	}
+	if t.Dead || w.NPCs[t.ServerID] != t || ps.target != t.ServerID {
+		return // its taunt killed it
+	}
 	if ps.kind == petKindOurs && w.petTapLocked(ps, t, now) { // a necromancer's pet's life tap (pettap.go)
 		return
 	}
@@ -840,6 +864,7 @@ func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 	if ps.hitScale > 0 && ps.hitScale != 1 {
 		n = int(math.Round(float64(n) * ps.hitScale)) // a recorded kind's (petrotation.go)
 	}
+	n = ps.meleeOut(n) // its template's melee_pct (pettemplate.go)
 	if w.petDamageLocked(ps, t, n, now) {
 		return true
 	}
@@ -850,6 +875,12 @@ func (w *World) petHitLocked(ps *petState, t *NPC, now time.Time) bool {
 // figure to the owner as the owner's (0x00DB), the target's hate for the
 // pet, and on a kill the owner's XP and faction hits. It reports a kill.
 func (w *World) petDamageLocked(ps *petState, t *NPC, n int, now time.Time) bool {
+	return w.petLandHitLocked(ps, t, n, now, true)
+}
+
+// petLandHitLocked is petDamageLocked, balanced or landing as it is (a
+// templated pet's taunt of a fixed figure: pettemplate.go).
+func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, balanced bool) bool {
 	owner, pet := ps.owner, ps.npc
 	sess := w.findSessionByEntityIDLocked(owner.ServerID)
 	tell := func() {
@@ -868,7 +899,9 @@ func (w *World) petDamageLocked(ps *petState, t *NPC, n int, now time.Time) bool
 		w.dummyEngagedLocked(t, owner, now)
 		return false
 	}
-	n = w.petDealtLocked(pet, t, n) // balance.go
+	if balanced {
+		n = w.petDealtLocked(pet, t, n) // balance.go
+	}
 	t.HP = max(t.HP-n, 0)
 	tell()
 	w.updateAggro(t, pet.ServerID, n)
@@ -957,6 +990,7 @@ func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
 	for npc.RoundHits < len(hits) && !now.Before(npc.RoundStart.Add(hits[npc.RoundHits])) {
 		npc.RoundHits++
 		n := w.npcHitLocked(npc, w.balanceLevelOf(pet), npc.meleeOut(npcHitOnPet(npc, pet, meleeIntn))) // balance.go, then its class template
+		n = w.petTakenLocked(pet, n)                                                                    // the pet's template's taken_pct (pettemplate.go)
 		pet.HP = max(pet.HP-n, 0)
 		pet.LastCombatTime = now
 		log.Printf("Pet: %s hit the pet %q for %d (HP %d/%d)", npc.Name, pet.Name, n, pet.HP, pet.MaxHP)

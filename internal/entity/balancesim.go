@@ -48,7 +48,35 @@ type SimPlayer struct {
 	// Spells is its book: what it may cast
 	Spells []CastSpell
 	Play   SimPlay
+	// Pets is the server's pet templates and necromancer's taps, its pet's
+	// as the server's are (pettemplate.go; SimKitFromDB's); nil, a pet as
+	// pet.go has one with no template, and no tap
+	Pets *SimPets
 }
+
+// SimPets is what a simulated pet fights by: the server's pet templates by
+// summoning, the weapon versions, and the necromancer's taps.
+type SimPets struct {
+	pets   map[database.PetTemplateKey]*petTemplate
+	weapon map[int]bool
+	taps   []PetTap
+}
+
+// SimPetsFromDB reads the pet templates and the taps out of a database, as
+// LoadClassTemplates and LoadPetTaps give them to the server's world.
+func SimPetsFromDB(db *database.SQLiteDB) (*SimPets, error) {
+	w := NewWorld()
+	if _, err := w.LoadClassTemplates(db); err != nil {
+		return nil, err
+	}
+	if _, err := w.LoadPetTaps(db); err != nil {
+		return nil, err
+	}
+	return &SimPets{pets: w.templates.pets, weapon: w.templates.weapon, taps: w.petTaps}, nil
+}
+
+// simPetsCache is SimPetsFromDB once a database (SimKitFromDB).
+var simPetsCache sync.Map // *database.SQLiteDB -> *SimPets
 
 // SimPlay is how the simulated player fights.
 type SimPlay struct {
@@ -63,10 +91,11 @@ type SimPlay struct {
 	// below HealAt of its hit points (0: half)
 	Spells bool
 	HealAt float64
-	// Pet: before the fight it summons the highest pet of its book, which
-	// takes the NPC on first; its owner stands off and casts (Melee is then
-	// the owner's too)
-	Pet bool
+	// Pet: before the fight it summons the highest pet of its book (or the
+	// summoning PetSpell names, by its id), which takes the NPC on first;
+	// its owner stands off and casts (Melee is then the owner's too)
+	Pet      bool
+	PetSpell int
 	// Root: it fights as a rooting caster does (root.go's reason): from
 	// simRootRange off it opens with its highest root, and whenever the NPC
 	// is free (resisted, broken, worn off) it roots it again before anything
@@ -223,6 +252,9 @@ type simFight struct {
 func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 	w := NewWorld()
 	w.balance = b
+	if pl.Pets != nil { // the server's pets (pettemplate.go, pettap.go)
+		w.templates.pets, w.templates.weapon, w.petTaps = pl.Pets.pets, pl.Pets.weapon, pl.Pets.taps
+	}
 	mgr := session.NewManager()
 	w.SessionManager = mgr
 	sess := mgr.CreateSession(&net.UDPAddr{IP: net.IPv4(10, 9, 9, 9), Port: 7000}, 1, 1, 1, 2, true)
@@ -753,6 +785,12 @@ func (f *simFight) summon() *NPC {
 	var best *CastSpell
 	for i := range f.pl.Spells {
 		s := &f.pl.Spells[i]
+		if f.pl.Play.PetSpell != 0 {
+			if s.SpellID == f.pl.Play.PetSpell {
+				best = s
+			}
+			continue
+		}
 		if simRole(s) == roleSummon && s.Level <= f.p.Level && (best == nil || s.Level > best.Level) {
 			best = s
 		}

@@ -101,6 +101,7 @@ func main() {
 	tier := flag.Float64("tier", 0.5, "the gear's place among the last ten levels' items (0 worst, 1 best)")
 	pets := flag.Bool("pets", false, "classes with a summoning also fight with their pet")
 	petAlone := flag.Bool("petalone", false, "with -pets, the pet fights alone (its owner casts nothing): won is the pet's")
+	petSpell := flag.Int("petspell", 0, "with -pets, the summoning to cast, by its spell id (0: the highest of the book)")
 	limit := flag.Duration("limit", 10*time.Minute, "longest fight")
 	tryLevel := flag.String("try-level", "", "level rows to try: level:hp:damage[:pethp:petdamage],...")
 	tryCon := flag.String("try-con", "", "con rows to try: diff:damage:taken,...")
@@ -281,6 +282,13 @@ func main() {
 				switch mode {
 				case "true":
 					k.Play.Pet, k.Play.Melee = true, false
+					k.Play.PetSpell = *petSpell
+					if *petSpell != 0 {
+						var err error
+						if k, err = entity.SimWithSpell(db, k, *petSpell); err != nil { // a mastery's pet too
+							log.Fatal(err)
+						}
+					}
 					if *petAlone {
 						k.Play.Spells = false
 					}

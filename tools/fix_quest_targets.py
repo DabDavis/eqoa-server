@@ -217,7 +217,8 @@ class Mention:
         # ("blood flies", "elite ice giants", "the red-eyed rat"): a kind of its
         # own, not every creature of the name
         self.qualified = False
-        self.place = []  # the words after it to the clause's end ("of the unkempt village")
+        self.place = []  # the words of an "of the ..." after it ("of the unkempt village")
+        self.negated = False  # said after "not" ("not the odd farmers"): left out of the step
 
 
 def mentions(text, names, kinds, skip=()):
@@ -279,7 +280,8 @@ def mentions(text, names, kinds, skip=()):
         # a name that is a plural itself ("sparkflies") is said as one
         if not hit.plural and re.search(r"[^s]s$", hit.key) and hit.said == hit.key:
             hit.plural = True
-        if nxt in AFTER or (hit.start > 0 and low[hit.start - 1] == "not") or (hit.start > 1 and low[hit.start - 2] == "not"):
+        hit.negated = (hit.start > 0 and low[hit.start - 1] == "not") or (hit.start > 1 and low[hit.start - 2] == "not")
+        if nxt in AFTER or hit.negated:
             hit.source = False
         prev = low[hit.start - 1] if hit.start > 0 else ""
         hit.qualified = bool(prev) and prev not in DETERMINERS | NUMBERS | CUES | STOPS | {"and", "or", ","} \
@@ -288,9 +290,18 @@ def mentions(text, names, kinds, skip=()):
             hit.generic = True
         elif not hit.proper and (det in GENERIC or det is None):
             hit.generic = True
+        # "of the Unkempt village" after it (or after the list it heads) qualifies it; "north-west of Grobb"
+        # says where, and qualifies nothing
         k = hit.end
+        directions = {"north", "south", "east", "west", "north-east", "north-west", "south-east", "south-west",
+                      "northeast", "northwest", "southeast", "southwest", "outside", "inside", "near"}
         while k < len(low) and low[k] not in ".;:!?()":
-            hit.place.append(low[k])
+            if low[k] == "of" and low[k - 1] not in directions:
+                j = k + 1
+                while j < len(low) and low[j] not in ".;:!?(),":
+                    hit.place.append(low[j])
+                    j += 1
+                break
             k += 1
         # two creatures' words side by side are one thing ("a lion guard"): neither is meant alone
         if out and out[-1].end == hit.start:
@@ -343,16 +354,20 @@ class World:
         self.items = {pid: name for pid, name in db.execute("SELECT patternid, itemname FROM itempattern")}
 
     def creatures(self, m, after=()):
-        """The creatures (folded names) a mention means: its name, or every
-        creature of its kind; of those, the ones a word the line says after it
-        names when some do ("the druids and rangers of the Unkempt village":
-        the unkempt druids)."""
-        if not m.kind:
-            return [m.key]
-        out = sorted(self.of_kind.get(m.key, ()))
-        words = set(after) - set(m.key.split())
+        """The creatures (folded names) a mention means, each with whether it
+        is one of the kind the line names rather than the name it says: a
+        name said once, its name; a kind, or a name said as many ("the crabs":
+        "crab" and every "... crab"), every creature of the kind too. Of the
+        kind's, the ones a word the line says after it names, when some do
+        ("the druids and rangers of the Unkempt village": the unkempt
+        druids)."""
+        if not m.kind and not (m.plural and m.generic):
+            return [(m.key, False)]
+        kind = m.key if m.kind else re.sub(r"^(the|a|an) ", "", m.key)
+        out = sorted(k for k in self.of_kind.get(kind, ()) if k != m.key)
+        words = set(after) - set(kind.split())
         named = [k for k in out if words & set(k.split())]
-        return named or out
+        return ([] if m.kind else [(m.key, False)]) + [(k, True) for k in (named or out)]
 
     def spell(self, k):
         """A folded name as npcs spells it, trimmed: its commonest spelling (a
@@ -534,13 +549,22 @@ def audit(w, quests):
             # the step's own creatures' spawns: a creature beside them stands where the step is done
             around = [(s[1], s[2], s[3]) for k in names for s in w.spawns.get(k, []) if s[5]]
             sources = []
+            # what the line says is not where the item drops ("not the odd farmers"), with its kind's
+            nots = {k for m in ms if m.negated for k, _ in w.creatures(m)}
             for m in ms:
                 if not (m.source and m.generic) or m.qualified:
                     continue
-                for k in w.creatures(m, after=m.place):
+                cands = w.creatures(m, after=m.place)
+                if not m.kind and (m.key in names or fitting(w, m.key, q, where + around)):
+                    # the name said stands where the step is done (or is the step's own): it is the one meant,
+                    # not every creature of its kind ("the ravens" are the ravens, not the Bloodfeather Ravens)
+                    cands = [(m.key, False)]
+                for k, member in cands:
+                    if k in nots:
+                        continue
                     # a name said is looked for near the quest or the step's own creatures; a kind's other creatures
                     # beside the step's own only (the line's "snakes" are those where its snakes are)
-                    near = (around or where) if m.kind else where + around
+                    near = (around or where) if member else where + around
                     if k not in names and k not in sources and k not in folks and fitting(w, k, q, near):
                         sources.append(k)
             flags = []
@@ -558,7 +582,10 @@ def audit(w, quests):
                         flags.append("high")
                 if sources:
                     flags.append("journal")
-            one = (sum(d["spawns"] for d in descs) == 1 and not any(m.plural and m.key in names for m in ms)) or \
+            # one known creature: a single spawn the line does not name as one of many (its own name in the
+            # plural, or a kind it is of: "the crabs" of a lone "grobb crab"), or the line's "the X" of it
+            many = any(m.plural and m.source and {k for k, _ in w.creatures(m)} & set(names) for m in ms)
+            one = (sum(d["spawns"] for d in descs) == 1 and not many) or \
                 any(m.key in names and not m.kind and not m.generic for m in ms)
             rows.append({"q": q, "st": st, "names": names, "descs": descs, "mentions": ms, "sources": sources,
                          "events": evs, "by_event": by_event, "flags": flags, "where": where, "around": around,

@@ -192,3 +192,56 @@ func TestStepChoices(t *testing.T) {
 		t.Errorf("a list is no choice: %q", ps)
 	}
 }
+
+// A kill or loot step's other creatures (queststeptargets) are read with it,
+// in the order written: Targets is its target and then each of them once
+// (a spelling of a name already said, any case or spaces, left out), and
+// TargetWords says them as one. A database made before the table gains it
+// (the old database above opens with it: hasColumn). The controls: a talk
+// step's rows are kept and named by neither, and a row for no step is left
+// out.
+func TestAStepsOtherCreatures(t *testing.T) {
+	db, err := NewSQLite(filepath.Join(t.TempDir(), "targets.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if has, err := hasColumn(db.DB, "queststeptargets", "target"); err != nil || !has {
+		t.Fatalf("queststeptargets.target missing (%v)", err)
+	}
+	for _, q := range []string{
+		`INSERT INTO quests (questid, name, enabled, giver) VALUES (7, 'New Gear', 1, 'Sythonis')`,
+		`INSERT INTO queststeps (questid, step, kind, target) VALUES (7, 1, 'talk', 'Merchant Rokar'), (7, 2, 'loot', 'raven'),
+			(7, 3, 'kill', ' Crow ')`,
+		`INSERT INTO queststeptargets (questid, step, target) VALUES (7, 2, 'Magpie '), (7, 2, 'RAVEN'), (7, 2, 'crow'),
+			(7, 1, 'Merchant Kertal'), (7, 9, 'nobody')`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	qs, err := NewQuestStore(db).LoadQuests()
+	if err != nil || len(qs) != 1 {
+		t.Fatalf("read %d quests: %v", len(qs), err)
+	}
+	q := qs[0]
+	if got := q.Step(2).Targets(); !reflect.DeepEqual(got, []string{"raven", "Magpie", "crow"}) {
+		t.Errorf("the loot step's creatures %q", got)
+	}
+	if got := q.Step(2).TargetWords(); got != "raven, Magpie or crow" {
+		t.Errorf("said as %q", got)
+	}
+	if got := q.Step(3).Targets(); !reflect.DeepEqual(got, []string{"Crow"}) || q.Step(3).TargetWords() != "Crow" {
+		t.Errorf("a step of one creature: %q, %q", got, q.Step(3).TargetWords())
+	}
+	talk := q.Step(1)
+	if !reflect.DeepEqual(talk.Also, []string{"Merchant Kertal"}) {
+		t.Errorf("the talk step's row was not kept: %q", talk.Also)
+	}
+	if got := talk.Targets(); !reflect.DeepEqual(got, []string{"Merchant Rokar"}) {
+		t.Errorf("a talk step names %q, want its NPC alone", got)
+	}
+	if !Hunts(StepKill) || !Hunts(StepLoot) || Hunts(StepTalk) || Hunts(StepReach) {
+		t.Errorf("Hunts: kill and loot only")
+	}
+}

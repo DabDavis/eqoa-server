@@ -872,14 +872,12 @@ func (w *World) duelEngageLocked(p *Player, ent Entity, objectID uint32, swing S
 	id := ent.GetEntityID()
 	p.Swing = swing
 	if p.AttackTarget == id && p.AttackObjectID == objectID {
+		p.pressed(now) // a press with the client's timer run out (attack.go)
 		return true
 	}
 	p.AttackTarget = id
 	p.AttackObjectID = objectID
-	p.RoundStart, p.RoundHits = time.Time{}, 0
-	p.NextSwing = now
-	p.ButtonReadAt = now.Add(firstRound)
-	p.roundWaits = false
+	p.pressed(now)
 	w.breakInvisLocked(p, "an attack")
 	log.Printf("Duel: %s engages %s (swing %d, %v, reach %.1f)", p.Name, entityNameLocked(ent), swing.Kind, swing.Delay, swing.Reach)
 	return true
@@ -935,36 +933,30 @@ func (w *World) duelRoundLocked(p *Player, now time.Time) bool {
 		return p.AttackTarget == 0
 	}
 	hits := swingHits(p.Swing.Kind)
-	if !p.RoundStart.IsZero() {
+	land := func() bool {
 		for p.RoundHits < len(hits) && !now.Before(p.RoundStart.Add(hits[p.RoundHits])) {
 			p.RoundHits++
+			if p.RoundHits == 1 {
+				w.breakInvisLocked(p, "a swing")
+			}
 			if hit() {
 				p.disengage()
 				return true
 			}
 		}
+		return false
 	}
-	if now.Before(p.NextSwing) || now.Before(p.ButtonReadAt) {
+	if !p.RoundStart.IsZero() && land() {
 		return true
 	}
-	if !p.AutoAttack || !reach() {
-		p.roundWaits = true
+	// on the client's beat, as on a creature (attack.go roundStart)
+	start, ok := p.roundStart(now)
+	if !ok {
 		return true
-	}
-	start := p.NextSwing
-	if p.roundWaits {
-		start, p.roundWaits = now, false
 	}
 	p.RoundStart, p.RoundHits = start, 0
 	p.NextSwing = p.RoundStart.Add(p.Swing.Delay)
-	w.breakInvisLocked(p, "a swing")
-	for p.RoundHits < len(hits) && !now.Before(p.RoundStart.Add(hits[p.RoundHits])) {
-		p.RoundHits++
-		if hit() {
-			p.disengage()
-			return true
-		}
-	}
+	land()
 	return true
 }
 

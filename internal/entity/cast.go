@@ -116,6 +116,10 @@ type CastSpell struct {
 	// resist is the resist that cuts a templated NPC's spell's hit on a
 	// player, by its element (classtemplate.go); a player's spell has none
 	resist Stat
+	// duel is set when a duel aimed the cast at its caster's opponent or the
+	// opponent's pet (duelSpellTargetLocked): its landing is the duel's
+	// alone (duelLandLocked)
+	duel bool
 }
 
 // SpellOf is an ability record as the World casts it: handlers' castSpell

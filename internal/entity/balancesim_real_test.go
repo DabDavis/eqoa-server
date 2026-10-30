@@ -388,10 +388,13 @@ func simRealBalance(t *testing.T, db *database.SQLiteDB) *Balance {
 // yellows won as a rule (one up four times in five, two up half the time)
 // and taking a player down below about a third of its hit points (its low
 // point, averaged over the fights won one and two up: the tuning's fit aims
-// at a quarter), a red three up a lone player's loss, two of the level a
-// red three up's winners and three a red five up's, under the database's
-// own tables once the tuning is written into them (simRealBalance); the
-// control: under the 01:30 tables most yellows left a player above a third.
+// at a quarter), a red three up a lone player's loss (a healer's too), even
+// fights won (a priest's at levels 1-3 97%), two of the level a red three
+// up's winners and three a red five up's, under the database's own tables
+// once the tuning is written into them (simRealBalance), against the
+// creature the database gives (simRealFoe: a roamer); the controls: under
+// the 01:30 tables most yellows left a player above a third, and the rows
+// each check was added for miss it.
 func TestRealBalanceYellowsAndReds(t *testing.T) {
 	db := simRealDB(t)
 	kit := func(c, l int) SimPlayer {
@@ -440,6 +443,27 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 				t.Errorf("class %d L%d even: won %.0f%%, low %.0f%%", class, level, 100*e.WinShare(), 100*e.LowLeft)
 			}
 		}
+	}
+	// a red three up a healer's loss alone too: a priest out-heals a low enough
+	// share in a long fight (under the share fit alone a druid of 14 won 100%
+	// of its reds in about three minutes, a cleric of 25 too, a shaman of 40);
+	// the control is the druid of 14 at the share fit's 26
+	for _, class := range []int{7, 8, 9} {
+		for _, level := range []int{14, 18, 25, 40, 45} {
+			if r := SimCellOf(kit(class, level), foe, 3, seed, 16, 1, 10*time.Minute); r.WinShare() > 0.4 {
+				t.Errorf("class %d L%d +3 alone: won %.0f%% (%.0f s)", class, level, 100*r.WinShare(), r.Secs)
+			}
+		}
+	}
+	var fitted []database.BalanceClassLevel
+	for _, r := range seed.ClassLevelRows() {
+		if r.Class == 7 && r.Level == 14 {
+			r.MeleeTakenPct = 26
+		}
+		fitted = append(fitted, r)
+	}
+	if r := SimCellOf(kit(7, 14), foe, 3, seed.WithClassLevels(fitted), 16, 1, 10*time.Minute); r.WinShare() < 0.6 {
+		t.Errorf("the control: a druid of 14 at the share fit's 26 won %.0f%% of its reds alone: the check tells nothing", 100*r.WinShare())
 	}
 	var first []database.BalanceClassLevel
 	for _, r := range seed.ClassLevelRows() {

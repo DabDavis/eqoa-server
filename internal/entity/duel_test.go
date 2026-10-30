@@ -379,6 +379,28 @@ func TestDuelMeleeRounds(t *testing.T) {
 	}
 }
 
+// A self stance with a price (Reckless Force's -AGI) cast in a duel is its
+// caster's own, as out of one: only a cast the duel aimed at the opponent is
+// the duel's (jib's #14).
+func TestDuelSelfStanceIsTheCastersOwn(t *testing.T) {
+	d := newDuelists(t)
+	d.start(t)
+	d.a.Power, d.a.MaxPower = 1000, 1000
+	if !d.w.StartCast(d.sa, recklessF, 0, d.at(2*time.Second)) {
+		t.Fatalf("the stance was refused: %q", duelLines(duelDrain(d.sa)))
+	}
+	d.w.mu.Lock()
+	d.w.castSystem(d.at(2*time.Second + recklessF.CastTime + castLand))
+	d.w.mu.Unlock()
+	on := false
+	for _, e := range d.a.Effects {
+		on = on || e.Name == "Reckless Force"
+	}
+	if !on || len(d.b.Effects) != 0 {
+		t.Fatalf("the stance: the caster's effects %+v, the opponent's %+v", d.a.Effects, d.b.Effects)
+	}
+}
+
 // A harmful spell at the opponent is cast and lands at half (out of a duel it
 // is refused as before); what lasts of it, a damage over time, ticks at half,
 // comes off at the duel's end and is never kept over a logout.

@@ -29,6 +29,7 @@ func (w *World) duelSpellTargetLocked(p *Player, spell *CastSpell, target Entity
 	if outOfRange(p, x, y, z, spell.Range+extra) {
 		return nil, castOutOfRange, true
 	}
+	spell.duel = true
 	return []EntityID{target.GetEntityID()}, "", true
 }
 
@@ -41,12 +42,11 @@ func (w *World) duelSpellTargetLocked(p *Player, spell *CastSpell, target Entity
 // player whose duel is over (a cast that outlived it) lands on nothing. It
 // reports whether the spell was a harmful one, handled here.
 func (w *World) duelLandLocked(cs *castState, caster *Player, casterSess *session.Session, t *Player, now time.Time) bool {
-	// a self or a group spell lands where its scope puts it: one that lowers
-	// something of its own side (Reckless Force's -AGI, an infusion's hit
-	// points) is a buff with a price, never a duel's. Only a spell cast at a
-	// target reaches another player as harm, and castTargetsLocked lets one
-	// at a player only for a duel (duelSpellTargetLocked).
-	if !cs.spell.Def.Harmful || cs.spell.Scope == 0 || cs.spell.Scope == 2 {
+	// only a cast the duel aimed (duelSpellTargetLocked) is the duel's: a
+	// self or a group line the parser reads as harmful (a stat lowered beside
+	// one raised, a hit-point price, a taunt proc) lands as it did before the
+	// duels (jib's #14, 2026-10-29)
+	if !cs.spell.duel {
 		return false
 	}
 	d := w.duelOnLocked(caster.ServerID)
@@ -95,7 +95,7 @@ func (w *World) duelLandLocked(cs *castState, caster *Player, casterSess *sessio
 // last on it does not (a pet's effects are its owner's spells). It reports
 // whether the spell was the duel's, handled here.
 func (w *World) duelLandPetLocked(cs *castState, caster *Player, pet *NPC, now time.Time) bool {
-	if !cs.spell.Def.Harmful {
+	if !cs.spell.duel {
 		return false
 	}
 	d := w.duelOnLocked(caster.ServerID)

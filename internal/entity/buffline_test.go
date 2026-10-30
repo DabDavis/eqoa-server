@@ -134,3 +134,31 @@ func TestABuffLineIsKeptOverALogout(t *testing.T) {
 		t.Errorf("after a relog a lower rank took: %v", got)
 	}
 }
+
+// A self or a group spell with a price on its own side (a stat lowered: a
+// buff, not a debuff) lands where its scope puts it with no duel at all, a
+// groupmate included: only a spell cast at a target can be a duel's
+// (duelLandLocked). Before, the duel code took both for harm on a player and
+// landed them on nothing.
+func TestASelfOrGroupBuffWithAPriceLandsOutsideADuel(t *testing.T) {
+	c := newCaster(t)
+	mate := &Player{ServerID: 1002, Name: "Mate", Class: 0, Level: 23, HP: 500, MaxHP: 500, Str: 60, Agi: 60, X: 101, Y: 10, Z: 100}
+	c.w.Players[mate.ServerID] = mate
+	if c.w.groups == nil {
+		c.w.groups = map[uint32]*Group{}
+	}
+	c.w.groups[9] = &Group{ID: 9, Members: []EntityID{c.p.ServerID, mate.ServerID}}
+	c.p.GroupID, mate.GroupID = 9, 9
+	grim := buffOf(1600, 20, 2, "Grim Resolve", "Group, Decrease DEX by 5, Increase WIS by 20, 5min") // not Reckless Force's line
+	if !recklessF.Def.Harmful || !grim.Def.Harmful {
+		t.Fatal("the test's spells are not the harmful-flagged buffs it is about")
+	}
+	c.castOn(t, recklessF, 0)
+	c.castOn(t, grim, 10*time.Second)
+	if got := c.effectNames(); len(got) != 2 {
+		t.Fatalf("the caster's effects %v: want Reckless Force and Grim Resolve", got)
+	}
+	if len(mate.Effects) != 1 || mate.Effects[0].Name != "Grim Resolve" {
+		t.Fatalf("the groupmate's effects %+v: want Grim Resolve", mate.Effects)
+	}
+}

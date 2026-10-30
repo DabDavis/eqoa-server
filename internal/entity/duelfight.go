@@ -41,7 +41,12 @@ func (w *World) duelSpellTargetLocked(p *Player, spell *CastSpell, target Entity
 // player whose duel is over (a cast that outlived it) lands on nothing. It
 // reports whether the spell was a harmful one, handled here.
 func (w *World) duelLandLocked(cs *castState, caster *Player, casterSess *session.Session, t *Player, now time.Time) bool {
-	if !cs.spell.Def.Harmful {
+	// a self or a group spell lands where its scope puts it: one that lowers
+	// something of its own side (Reckless Force's -AGI, an infusion's hit
+	// points) is a buff with a price, never a duel's. Only a spell cast at a
+	// target reaches another player as harm, and castTargetsLocked lets one
+	// at a player only for a duel (duelSpellTargetLocked).
+	if !cs.spell.Def.Harmful || cs.spell.Scope == 0 || cs.spell.Scope == 2 {
 		return false
 	}
 	d := w.duelOnLocked(caster.ServerID)

@@ -218,3 +218,58 @@ func TestTakingAQuestThatGivesNeedsRoom(t *testing.T) {
 		t.Errorf("room made: step %d aura %d", s, f.held(f.aura))
 	}
 }
+
+// A loot step's last item taken with no room for its reward: the step waits
+// at its count; room made, the next look round does it. The control is
+// TestALootStepCountsWhatIsTakenOnIt, whose last item does the step at once.
+func TestALootStepWaitsForRoom(t *testing.T) {
+	f := newQuestFixture(t)
+	belt := f.pattern("slashed belt", 20)
+	lootQuest(f, belt)
+	f.exec(`UPDATE queststeps SET rewarditems = ? WHERE questid = 60 AND step = 1`, fmt.Sprint(f.aura))
+	f.qe.Reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 60, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	filler := f.fill(40)
+	f.msgs()
+	f.qe.Looted(f.tw.s, f.tw.p, belt, 2)
+	f.want(f.msgs(), `box:Your pack is too full for the Smoldering Aura. Make room to finish "Belts".`)
+	if s, _ := f.progress(60); s != 1 || f.held(f.aura) != 0 {
+		t.Fatalf("no room, yet step %d aura %d", s, f.held(f.aura))
+	}
+	f.drop(filler)
+	f.qe.checkWaiting()
+	if s, _ := f.progress(60); s != 2 || f.held(f.aura) != 1 {
+		t.Errorf("room made: step %d aura %d, want 2 1", s, f.held(f.aura))
+	}
+}
+
+// A reach step's arrival with no room for its reward: the step waits while
+// the player stands there, told once (not again within two minutes); room
+// made, the next look round does it. The control: the look round with no
+// room leaves it.
+func TestAReachStepWaitsForRoom(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.HP, f.tw.p.MaxHP = 100, 100 // a dead player stands nowhere
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (86, 'The Mine', 1, 'Malsis')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, world, x, z, radius, journal, rewarditems)
+		VALUES (86, 1, 'reach', 0, 25403, 15725, 12, 'Find the mine.', ?)`, fmt.Sprint(f.aura))
+	f.qe.Reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 86, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	filler := f.fill(40)
+	f.msgs()
+	f.qe.checkReach() // standing at the mine
+	f.want(f.msgs(), `box:Your pack is too full for the Smoldering Aura. Make room to finish "The Mine".`)
+	f.qe.checkReach()
+	if s, _ := f.progress(86); s != 1 || len(f.msgs()) != 0 {
+		t.Fatalf("no room: step %d, or it was said again", s)
+	}
+	f.drop(filler)
+	f.qe.checkReach()
+	if s, d := f.progress(86); s != 0 || d != 1 || f.held(f.aura) != 1 {
+		t.Errorf("room made: step %d done %d aura %d", s, d, f.held(f.aura))
+	}
+}

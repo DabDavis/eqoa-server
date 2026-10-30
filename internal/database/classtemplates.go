@@ -41,7 +41,7 @@ import (
 //     level 10 starting, but before only auto attack"), the creature's own
 //     at each fight;
 //   - abilities, a JSON list of TemplateAbility: what it casts in a fight;
-//   - note; source gm, or seed for the five rows the table is made with.
+//   - note; source gm, or seed for the rows the table is made with.
 //
 // npctemplate gives the NPCs of a NAME a template: name as npcclass keys one
 // (NPCClassKey), template a classtemplates name. With no row there, no NPC
@@ -356,7 +356,7 @@ var classTemplateColumns = []struct{ col, decl string }{
 }
 
 // ensureClassTemplates makes tables classtemplates and npctemplate
-// (initSchema). A classtemplates made now is given the five seeds; one made
+// (initSchema). A classtemplates made now is given the seeds; one made
 // before keeps what GMs left in it, so a seed a GM deleted stays deleted, and
 // gets the columns added since (classTemplateColumns).
 func (db *SQLiteDB) ensureClassTemplates() error {

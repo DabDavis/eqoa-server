@@ -621,11 +621,32 @@
      "says": "You have earned your place among the warriors of Halas.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Bellow",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Bellow"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Might",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Pillar of Might"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Life Path: Blade of War and Pillar of Might; Strength Path: Bellow and a Sword of Rage.) Eldar Joram is Elder Joram."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Life Path: Blade of War and Pillar of Might; Strength Path: Bellow and a Sword of Rage.) Eldar Joram is Elder Joram. The reward is ours: the choice of the Bellow or the Pillar of Might scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/halas/rogue/L1",
@@ -1263,11 +1284,32 @@
      "says": "You have served Halas well.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Avoidance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Avoidance"
+        ]
+       }
+      },
+      {
+       "answer": "Minor Wound",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Minor Wound"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Defensive or offensive, the offensive a backstab.) Bren Raven is Brenn Raven."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (Defensive or offensive, the offensive a backstab.) Bren Raven is Brenn Raven. The reward is ours: the choice of the Avoidance or the Minor Wound scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/halas/shaman/L1",
@@ -1848,11 +1890,32 @@
      "says": "The spirits of Halas walk with you.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Decaying Wind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Decaying Wind"
+        ]
+       }
+      },
+      {
+       "answer": "Spiritual Guide",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Spiritual Guide"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (A one-handed weapon and a pet buff, or a two-handed spear and Decaying Wind.) The guide says 2 million XP; the other cities' level 20 guides give 2,814,929."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 20; github.com/Jadiction/EQOA-Data). Deltor Cyclor, the fisherman who points the way to Yarn Icefrost, is not in the database: that step is left out. The guide's final choice of path (two rewards) is not in: the quest gives its experience only. (A one-handed weapon and a pet buff, or a two-handed spear and Decaying Wind.) The guide says 2 million XP; the other cities' level 20 guides give 2,814,929. The reward is ours: the choice of the Decaying Wind or the Spiritual Guide scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   }
  ],
  "items": [

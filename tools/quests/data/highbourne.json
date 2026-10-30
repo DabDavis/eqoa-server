@@ -577,13 +577,16 @@
      "journal": "Speak with Truborne Jaegir.",
      "says": "Well done.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Faulty Refinement"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). A male and a female feather are two feathers here."
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). A male and a female feather are two feathers here. The reward is ours: the Faulty Refinement scroll, as Fayspire's, Freeport's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/alchemist/L20",
@@ -660,12 +663,33 @@
      "says": "You have come far.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Student's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Student's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Klik'Anon Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Klik'Anon Cocktail"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Most of this guide's people are unnamed and not on this server; the popups at Arcadia's dock, the shiny metal on the sea floor and the charge to the Plane of Sky are left out. The guide offers a choice of Student's Knack or Klick'Anon Cocktail; a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/highbourne/alchemist.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). Most of this guide's people are unnamed and not on this server; the popups at Arcadia's dock, the shiny metal on the sea floor and the charge to the Plane of Sky are left out. The guide offers a choice of Student's Knack or Klick'Anon Cocktail; a quest here gives no choice, so neither is given. The reward is ours: the choice of the Student's Knack or the Klik'Anon Cocktail scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/cleric/L1",
@@ -1461,12 +1485,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Disease Ward",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Disease Ward"
+        ]
+       }
+      },
+      {
+       "answer": "Field Dress",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Field Dress"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Disease Ward or Field Dress; a quest here gives no choice, so neither is given. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable."
+   "notes": "EQOA-Data Quests/1-20/highbourne/cleric.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Disease Ward or Field Dress; a quest here gives no choice, so neither is given. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable. The reward is ours: the choice of the Disease Ward or the Field Dress scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/enchanter/L1",
@@ -2034,12 +2079,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Spacious Mind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Spacious Mind"
+        ]
+       }
+      },
+      {
+       "answer": "Power Boon",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Power Boon"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Glimmering Arcanum (Spacious Mind) or Glimmering Wand (Power Boon); a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/highbourne/enchanter.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Glimmering Arcanum (Spacious Mind) or Glimmering Wand (Power Boon); a quest here gives no choice, so neither is given. The reward is ours: the choice of the Spacious Mind or the Power Boon scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/magician/L1",
@@ -2178,13 +2244,16 @@
      "journal": "Bring 2 Strands of Rat Furs to Caller Arkhad.",
      "says": "Thank you.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Smoldering Aura"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. The reward is ours: the Smoldering Aura scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/magician/L5",
@@ -2230,13 +2299,16 @@
      "journal": "Bring Kingsnake Poison Sack to Master Veljhan.",
      "says": "Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Motivate"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The guide has no level 4 quest for this class."
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The guide has no level 4 quest for this class. The reward is ours: the Motivate scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/magician/L7",
@@ -2282,13 +2354,16 @@
      "journal": "Bring Lion Tail to Master Veljhan.",
      "says": "Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Infusion"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: the Infusion scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/magician/L10",
@@ -2359,13 +2434,16 @@
      "journal": "Bring Ganron's Head to Master Veljhan.",
      "says": "The traitor is dead.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "sturdy staff"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The reward is ours: sturdy staff, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/magician/L13",
@@ -2465,13 +2543,16 @@
      "journal": "Bring Loftlin's Uniform to Caller Toshei.",
      "says": "Well done.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Lava Wind"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The greyweed popup at Druids Watch is left out (no place is known). Keeper Toshel is Caller Toshei here."
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The greyweed popup at Druids Watch is left out (no place is known). Keeper Toshel is Caller Toshei here. The reward is ours: the Lava Wind scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/magician/L15",
@@ -2571,13 +2652,16 @@
      "journal": "Speak with Caller Toshei.",
      "says": "Well done.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Endure Fire"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Toshel is Caller Toshei here and Nalej is Nalai Belzia."
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Toshel is Caller Toshei here and Nalej is Nalai Belzia. The reward is ours: the Endure Fire scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/magician/L20",
@@ -2715,12 +2799,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Frozen Mark",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Frozen Mark"
+        ]
+       }
+      },
+      {
+       "answer": "Lava Stone",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Lava Stone"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Frozen Mark or Lava Stone; a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/highbourne/magician.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Frozen Mark or Lava Stone; a quest here gives no choice, so neither is given. The reward is ours: the choice of the Frozen Mark or the Lava Stone scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/necromancer/L1",
@@ -3527,12 +3632,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Blood Gale",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Blood Gale"
+        ]
+       }
+      },
+      {
+       "answer": "Power Gale",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Power Gale"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Power Gate (with a decayed wand) or Blood Gale (with a scythe); a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/highbourne/necromancer.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Power Gate (with a decayed wand) or Blood Gale (with a scythe); a quest here gives no choice, so neither is given. The reward is ours: the choice of the Blood Gale or the Power Gale scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/paladin/L1",
@@ -4734,13 +4860,16 @@
      "journal": "Bring Ganron's Earring to Duke Morthalis.",
      "says": "Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Blade of the Nanchael"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT)."
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). The reward is ours: Blade of the Nanchael, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/shadowknight/L13",
@@ -5102,12 +5231,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Bloodwasp",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Bloodwasp"
+        ]
+       }
+      },
+      {
+       "answer": "Shadow Tower",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Shadow Tower"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Bloodwasp (with a spetum) or Shadow Tower (with a beheader); a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/highbourne/shadowknight.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Bloodwasp (with a spetum) or Shadow Tower (with a beheader); a quest here gives no choice, so neither is given. The reward is ours: the choice of the Bloodwasp or the Shadow Tower scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/highbourne/wizard/L1",
@@ -5874,12 +6024,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Blazing Clash",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Blazing Clash"
+        ]
+       }
+      },
+      {
+       "answer": "Mental Focus",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Mental Focus"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Blazing Clash or Mental Focus; a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/highbourne/wizard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Blazing Clash or Mental Focus; a quest here gives no choice, so neither is given. The reward is ours: the choice of the Blazing Clash or the Mental Focus scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   }
  ],
  "items": [

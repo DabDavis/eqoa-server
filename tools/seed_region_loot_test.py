@@ -4,8 +4,8 @@ a kind gets the rathe mountains table, Odus's the four Odus tables at
 chances by their sizes, a creature of the water the marine table, and a
 creature of a swamp quadrant the swamp table at the level its bound
 creatures never reached; the controls get nothing: a named creature, a
-town's person, a training dummy, a creature of another quadrant, one on dry
-land, a level no item of the table holds. A dead item's window is stretched to
+town's person, a player's pet, a training dummy, a creature of another
+quadrant, one on dry land, a level no item of the table holds. A dead item's window is stretched to
 the nearest bound level within reach, one with none near is left; --apply then
 --undo leaves npcloot and loottables as they were, and a second --apply is
 refused. No game data.
@@ -34,6 +34,8 @@ CREATE TABLE npcfaction (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NUL
 CREATE TABLE loottables (id INTEGER PRIMARY KEY AUTOINCREMENT, tablename TEXT NOT NULL, patternid INTEGER NOT NULL,
     weight INTEGER NOT NULL DEFAULT 1, minlevel INTEGER NOT NULL DEFAULT 1, maxlevel INTEGER NOT NULL DEFAULT 60,
     source TEXT NOT NULL DEFAULT 'gm');
+CREATE TABLE npcaggro (npc_name TEXT PRIMARY KEY, aggressive INTEGER NOT NULL DEFAULT 1, radius REAL NOT NULL DEFAULT 0,
+    note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm');
 CREATE TABLE npcloot (npc_name TEXT NOT NULL, tablename TEXT NOT NULL, chance INTEGER NOT NULL DEFAULT 25,
     rolls INTEGER NOT NULL DEFAULT 1, note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm',
     PRIMARY KEY (npc_name, tablename));
@@ -52,6 +54,7 @@ NPCS = [  # name, world, x, z, level, npc_type
     ("Anchor Three", 2, 100, 8000, 1, 128), ("Anchor Four", 2, 500, 9000, 1, 128),
     ("hill troll", 1, 500, 500, 20, 0), ("Old Red", 1, 520, 500, 20, 0), ("training dummy", 1, 530, 500, 20, 0),
     ("sentry", 1, 540, 500, 20, 0),  # a town's person (a name-wide npcfaction row)
+    ("primal spirit", 1, 550, 500, 20, 0),  # a player's pet recorded off the live game (an npcaggro seed row)
     ("goblin", 1, 560, 500, 28, 0), ("goblin", 1, 570, 500, 43, 0),
     ("kerran warrior", 2, 500, 500, 45, 0),
     ("bog beast", 0, 900, 1000, 10, 0), ("swamp rat", 0, 950, 1000, 40, 0), ("forest rat", 0, 3050, 1000, 40, 0),
@@ -93,6 +96,8 @@ class SeedRegionLoot(unittest.TestCase):
         db.executemany("INSERT INTO npcs (npc_name, world, x_coord, y_coord, z_coord, npc_level, npc_type) "
                        "VALUES (?, ?, ?, 0, ?, ?, ?)", NPCS)
         db.execute("INSERT INTO npcfaction (name, faction) VALUES ('sentry', 'Citizens of the Rathe')")
+        db.execute("INSERT INTO npcaggro (npc_name, aggressive, note, source) VALUES ('Primal Spirit', 0, "
+                   "'a summoned pet''s name (spellpattern: Primal Spirit): a player''s pet recorded beside its owner', 'seed')")
         db.executemany("INSERT INTO loottables (tablename, patternid, minlevel, maxlevel) VALUES (?, ?, ?, ?)", LOOT)
         # the swamp table already bound to a level 10 creature: its level 40 item is dead
         db.execute("INSERT INTO npcloot (npc_name, tablename, chance, rolls, source) VALUES ('bog beast', 'swamp', 25, 1, 'camp-seed')")
@@ -115,7 +120,7 @@ class SeedRegionLoot(unittest.TestCase):
     def test_each_region_and_the_controls(self):
         got, wins, still, left = self.plan()
         self.assertEqual(got.get(("hill troll", "rathe mountains")), 25)
-        for name in ("old red", "training dummy", "sentry"):
+        for name in ("old red", "training dummy", "sentry", "primal spirit"):
             self.assertFalse(any(n == name for n, _ in got), f"{name} was bound: {got}")
         # Odus's four tables share 25 by their sizes (2, 1, 1, 1 items: 10, 5, 5, 5)
         self.assertEqual({t: c for (n, t), c in got.items() if n == "kerran warrior"},

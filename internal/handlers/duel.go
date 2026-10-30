@@ -37,20 +37,12 @@ func buildDuelWindowOffer() []byte {
 	})
 }
 
-// buildLiveFeatures is 0x07F5 with the duel bit (entity.DuelFeatures): the
-// live client's feature word, without which its duel part sends nothing. The
-// disc has no case for it.
-func buildLiveFeatures() []byte {
-	return build(protocol.OpcodeLiveFeatures, 6, func(w *buffer.Writer) {
-		w.WriteUint32(entity.DuelFeatures)
-	})
-}
-
 // SendDuelOffer offers the session's client the live duel window's
-// messages, and tells a live client duels are on (0x07F5). A PS2 ignores both.
+// messages. A PS2 ignores it. The feature word's duel bit, without which the
+// live duel part sends nothing, goes with every other feature's
+// (SendLiveFeatures, livefeatures.go).
 func SendDuelOffer(sess *session.Session) {
 	queueReliable(sess, protocol.OpcodeDuelWindow, buildDuelWindowOffer())
-	queueReliable(sess, protocol.OpcodeLiveFeatures, buildLiveFeatures())
 }
 
 // DuelHandler takes the duel's messages: the live window's 0x1501 and the

@@ -717,6 +717,10 @@ func (h *CharacterHandler) HandleCharacterInWorld(sess *session.Session, msg *pr
 	// Offer group voice (voice.go) when this server has it: a client whose
 	// player turned it on asks for it, a PS2 ignores it
 	SendVoiceOffer(sess)
+	// SOE's live client's feature word, every feature this server has
+	// (0x07F5, livefeatures.go), and the live auction forms' offer: a PS2
+	// ignores both
+	SendLiveFeatures(sess)
 	// Offer the live game's duel messages (duel.go): a client with the live
 	// duel window asks for them, a PS2 ignores it and duels by boxes
 	SendDuelOffer(sess)
@@ -1632,7 +1636,7 @@ func (h *CharacterHandler) queueMemoryDump(sess *session.Session, player *entity
 		craft = h.craftSlots(player.CharServerID)
 	}
 	writeMemoryDumpTailWith(writer, player, spells, craft, func(w *buffer.Writer) {
-		h.auction.WriteDumpLists(w, player.CharServerID)
+		h.auction.WriteDumpListsFor(w, sess, player.CharServerID)
 	})
 	log.Printf("SendMemoryDump: wrote %d abilities", len(spells))
 

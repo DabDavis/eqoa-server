@@ -224,6 +224,13 @@ type Player struct {
 
 	// Group (group.go): the group's id, 0 for none
 	GroupID uint32
+	// LFG: registered in the live group search (lfg.go: 0x0801 sub 2, /lfg
+	// on), as a character looking for a group or, leading one, as a group
+	// looking for members; it lasts until unregistered or the logout.
+	LFG bool
+	// GroupChatHidden: the Group menu's Hide Chat (lfg.go: the disc's
+	// 0x0B01, the live 0x0801 sub 1); its group's chat is not sent to it.
+	GroupChatHidden bool
 
 	// Guild
 	GuildID       uint32

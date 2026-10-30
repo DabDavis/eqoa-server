@@ -128,6 +128,9 @@ type World struct {
 
 	// The GMs' undead tags by NPC name, table npcundead (undead.go)
 	undead map[string]bool
+	// The NPC names that stand out of the world, there only for the quests'
+	// and triggers' spawns that copy them, table npcspawnonly (spawnonly.go)
+	spawnOnly map[string]bool
 	// The masteries a character may buy, table cmcatalog (cmbuy.go)
 	cms *cmCatalog
 	// NPCs coming to the help of their own (socialaggro.go)

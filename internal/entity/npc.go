@@ -150,6 +150,11 @@ type NPC struct {
 	// a new entity, made from its new record.
 	HiddenUntil time.Time
 
+	// SpawnOnly keeps it out of the world for good (spawnonly.go, table
+	// npcspawnonly): the original a quest's spawn event copies, in no view,
+	// fighting no one, standing on its spawn. Its copies are not.
+	SpawnOnly bool
+
 	// Owner is the player whose pet it is (pet.go), 0 for any other NPC.
 	Owner EntityID
 

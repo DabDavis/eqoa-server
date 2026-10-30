@@ -337,6 +337,7 @@ func (q *QuestEngine) run() {
 			q.checkReach()
 			q.checkWaiting() // questroom.go: steps that waited for room
 			q.expireSpawns()
+			q.respawnLost() // questevents.go: a spawn-only creature's lost spawns
 			q.syncMarks(time.Now())
 			q.syncProgress()
 		}

@@ -80,9 +80,10 @@ func (w *World) npcByNameLocked(name string) *NPC {
 
 // SpawnNPCCopy places a copy of the NPC named name (as NPCByName picks it)
 // at (x, y, z) in world, facing facing: its model, size, gear, level and
-// faction, full health, no fight. The copy is Temporary: no database row,
-// gone after its corpse time once killed. It returns the copy's id and the
-// name as the template spells it.
+// faction, full health, no fight, in view (an original that stands out of
+// the world, spawnonly.go, is copied as any other: the copy is in it). The
+// copy is Temporary: no database row, gone after its corpse time once
+// killed. It returns the copy's id and the name as the template spells it.
 func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) (EntityID, string, bool) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -106,6 +107,7 @@ func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) 
 	c.LastCombat = time.Time{}
 	c.LastCombatTime = time.Time{}
 	c.Temporary = true
+	c.SpawnOnly, c.HiddenUntil = false, time.Time{} // in every view near it
 	c.endDummyFight()
 	c.tfight = nil // its template's fight is its own (classtemplate.go)
 	w.NPCs[c.ServerID] = &c

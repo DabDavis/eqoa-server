@@ -748,7 +748,7 @@ func (w *World) StartThreats(spots []database.StartSpot) []StartThreat {
 		p := &Player{Name: "a new character", Level: 1, Race: s.Race, Class: s.Class, HumType: s.HumType,
 			X: s.X, Y: s.Y, Z: s.Z, World: uint8(s.World)}
 		for _, npc := range w.NPCs {
-			if int(npc.World) != s.World || npc.Temporary {
+			if int(npc.World) != s.World || npc.Temporary || npc.SpawnOnly { // out of the world: it attacks no one (spawnonly.go)
 				continue
 			}
 			d := dist3(npc.SpawnX, npc.SpawnY, npc.SpawnZ, s.X, s.Y, s.Z)

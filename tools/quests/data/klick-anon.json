@@ -5025,7 +5025,8 @@
       {
        "on": "done",
        "do": "spawn",
-       "npc": "Jarek's Creation"
+       "npc": "Jarek's Creation",
+       "hostile": true
       }
      ]
     },

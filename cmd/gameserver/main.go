@@ -198,6 +198,13 @@ func main() {
 		log.Printf("WARNING: %v; every creature wanders and keeps to where it spawned", err)
 	}
 	log.Printf("Creatures: %s", gameWorld.MoveSummary())
+	// The NPCs that stand out of the world, there only as the originals the
+	// quests' and triggers' spawns copy (entity/spawnonly.go, table
+	// npcspawnonly)
+	if _, _, err := gameWorld.LoadSpawnOnly(db); err != nil {
+		log.Printf("WARNING: %v; every NPC stands in the world", err)
+	}
+	log.Printf("Creatures: %s", gameWorld.SpawnOnlySummary())
 	// The necromancer's life taps its pets cast (entity/pettap.go)
 	if _, err := gameWorld.LoadPetTaps(db); err != nil {
 		log.Printf("WARNING: %v; no pet taps", err)

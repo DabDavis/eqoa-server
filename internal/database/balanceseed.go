@@ -98,7 +98,10 @@ var (
 			Old: map[int]float64{15: 230, 18: 230, 25: 250, 30: 300, 35: 300, 45: 410, 50: 510, 60: 800},
 			New: map[int]float64{15: 161, 18: 161, 25: 175, 30: 210, 35: 210, 45: 287, 50: 357, 60: 560}},
 	}
-	BalanceSeedCons = []BalanceCon{
+	// BalanceSeedClassLevels: none yet (every class's share its one figure
+	// of BalanceSeedClasses at every level).
+	BalanceSeedClassLevels []BalanceClassLevel
+	BalanceSeedCons        = []BalanceCon{
 		{Diff: 0, DamagePct: 100, TakenPct: 100, RootResistPct: 0, RootBreakPct: 5, Note: "even, and every blue and green below it"},
 		{Diff: 1, DamagePct: 112, TakenPct: 91, RootResistPct: 5, RootBreakPct: 10},
 		{Diff: 2, DamagePct: 125, TakenPct: 83, RootResistPct: 15, RootBreakPct: 15},

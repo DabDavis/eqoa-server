@@ -29,6 +29,13 @@ import (
 // hit by anyone, at the attacker's con); neither is scaled by the level's
 // con_pct.
 //
+// balanceclasslevel, by a player's class and level: melee_taken_pct the
+// class's share of balanceclass taken further at the level, a percent (the
+// line between a class's rows by level; below its first and past its last,
+// the end row's; a class with no rows 100): a class's strength that changes
+// with its level (a shadow knight's taps from 20, a melee class's hit points
+// at 45-60) is shaped here where the one figure of balanceclass cannot.
+//
 // balanceclass, by a player's class (0 warrior ... 14 alchemist):
 // melee_taken_pct the share of an NPC's melee hit the class takes (after
 // balancelevel's and balancecon's): what holds the classes' spread at a fight's
@@ -78,6 +85,14 @@ const balanceSchema = `
 		melee_taken_pct REAL NOT NULL DEFAULT 100,
 		note            TEXT NOT NULL DEFAULT '',
 		source          TEXT NOT NULL DEFAULT 'gm'
+	);
+	CREATE TABLE IF NOT EXISTS balanceclasslevel (
+		class           INTEGER NOT NULL,
+		level           INTEGER NOT NULL,
+		melee_taken_pct REAL NOT NULL DEFAULT 100,
+		note            TEXT NOT NULL DEFAULT '',
+		source          TEXT NOT NULL DEFAULT 'gm',
+		PRIMARY KEY (class, level)
 	);`
 
 // BalanceLevel is one row of balancelevel.
@@ -97,6 +112,13 @@ type BalanceLevel struct {
 // BalanceClass is one row of balanceclass.
 type BalanceClass struct {
 	Class         int
+	MeleeTakenPct float64
+	Note          string
+}
+
+// BalanceClassLevel is one row of balanceclasslevel.
+type BalanceClassLevel struct {
+	Class, Level  int
 	MeleeTakenPct float64
 	Note          string
 }
@@ -203,7 +225,7 @@ type BalanceCon struct {
 // what is in them, rows a GM took out included.
 func (db *SQLiteDB) ensureBalance() error {
 	fresh := map[string]bool{}
-	for _, t := range []string{"balancelevel", "balancecon", "balanceclass"} {
+	for _, t := range []string{"balancelevel", "balancecon", "balanceclass", "balanceclasslevel"} {
 		var n int
 		if err := db.QueryRow(`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?`, t).Scan(&n); err != nil {
 			return fmt.Errorf("%s: %w", t, err)
@@ -237,6 +259,14 @@ func (db *SQLiteDB) ensureBalance() error {
 			}
 		}
 	}
+	if fresh["balanceclasslevel"] {
+		for _, r := range BalanceSeedClassLevels {
+			if _, err := db.Exec(`INSERT OR IGNORE INTO balanceclasslevel (class, level, melee_taken_pct, note, source)
+				VALUES (?, ?, ?, ?, 'seed')`, r.Class, r.Level, r.MeleeTakenPct, r.Note); err != nil {
+				return fmt.Errorf("balanceclasslevel: %w", err)
+			}
+		}
+	}
 	if fresh["balanceclass"] {
 		for _, r := range BalanceSeedClasses {
 			if _, err := db.Exec(`INSERT OR IGNORE INTO balanceclass (class, melee_taken_pct, note, source)
@@ -246,6 +276,24 @@ func (db *SQLiteDB) ensureBalance() error {
 		}
 	}
 	return nil
+}
+
+// BalanceClassLevels is every row of balanceclasslevel, by class and level.
+func (db *SQLiteDB) BalanceClassLevels() ([]BalanceClassLevel, error) {
+	rows, err := db.Query(`SELECT class, level, melee_taken_pct, note FROM balanceclasslevel ORDER BY class, level`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []BalanceClassLevel
+	for rows.Next() {
+		var r BalanceClassLevel
+		if err := rows.Scan(&r.Class, &r.Level, &r.MeleeTakenPct, &r.Note); err != nil {
+			return nil, err
+		}
+		out = append(out, r)
+	}
+	return out, rows.Err()
 }
 
 // BalanceClasses is every row of balanceclass, by class.
@@ -319,7 +367,7 @@ func BalanceProblems(table string, level int, pcts ...float64) string {
 		if level < -20 || level > 20 {
 			bad = append(bad, fmt.Sprintf("diff %d is not -20 to 20", level))
 		}
-	case "balanceclass":
+	case "balanceclass", "balanceclasslevel":
 		if level < 0 || level > 14 {
 			bad = append(bad, fmt.Sprintf("class %d is not 0-14", level))
 		}

@@ -76,6 +76,15 @@ func checkBalanceRow(table string, row map[string]any) error {
 		}
 	case "balanceclass":
 		key, cols = "class", []string{"melee_taken_pct"}
+	case "balanceclasslevel":
+		key, cols = "class", []string{"melee_taken_pct"}
+		lv, ok := asFloat(row["level"])
+		if !ok {
+			return badRequest("%s: level is a whole number", table)
+		}
+		if why := database.BalanceProblems("balancelevel", int(lv)); why != "" {
+			return badRequest("%s: %s", table, why)
+		}
 	}
 	k, ok := asFloat(row[key])
 	if !ok {

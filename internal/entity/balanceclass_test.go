@@ -50,3 +50,29 @@ func TestAClassTakesItsShareOfNPCMelee(t *testing.T) {
 		t.Errorf("a 50%% row: %d of %d", got, full)
 	}
 }
+
+// Balance by class and level shapes a class's share by its level: the line
+// between its rows, the end rows' past them, times Balance by class's
+// figure; a class with no rows keeps its figure at every level (the
+// control), and so does every class with no rows at all.
+func TestAClassShareByLevel(t *testing.T) {
+	b := SeedBalance().WithClasses([]database.BalanceClass{{Class: 6, MeleeTakenPct: 80}}).
+		WithClassLevels([]database.BalanceClassLevel{{Class: 6, Level: 10, MeleeTakenPct: 100}, {Class: 6, Level: 50, MeleeTakenPct: 50}})
+	for _, tc := range []struct {
+		class, level int
+		want         float64
+	}{{6, 1, 80}, {6, 10, 80}, {6, 30, 60}, {6, 50, 40}, {6, 60, 40}, {0, 30, 100}} {
+		if got := b.MeleeTakenPctAt(tc.class, tc.level); got != tc.want {
+			t.Errorf("class %d level %d: %g%%, want %g%%", tc.class, tc.level, got, tc.want)
+		}
+	}
+	if got := SeedBalance().WithClassLevels(nil).MeleeTakenPctAt(6, 30); got != SeedBalance().MeleeTakenPct(6) {
+		t.Errorf("no class and level rows: %g%%, want Balance by class's %g%%", got, SeedBalance().MeleeTakenPct(6))
+	}
+	// a hit lands at the share: a rogue of 50 takes 40% of the whole
+	whole := SeedBalance().WithClasses(nil)
+	full := classHit(t, whole, 6)
+	if got := classHit(t, b, 6); got != pct(full, 40) {
+		t.Errorf("a rogue of 50 took %d of %d, want 40%%", got, full)
+	}
+}

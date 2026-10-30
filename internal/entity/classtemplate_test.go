@@ -698,10 +698,11 @@ func TestATimedSpecialComesOnItsClock(t *testing.T) {
 	}
 }
 
-// A timed special due while its NPC casts waits for the cast: the wizard
-// template with a clock every 5 s from 2 s in chain-casts its area spell at
-// 2 s and its single target's after it, and the special due at 2 s comes
-// once the casts are over (6.8 s), never inside one.
+// A timed special's clock counts no time its NPC casts: the wizard template
+// with a clock every 5 s from 2 s in melees from 0 to 1.9 s, chain-casts its
+// area spell at 2 s and its single target's after it, and the special, a
+// tenth of a second of melee short when the casts began, comes a tick after
+// they are over (6.8 s: 6.9 s), never inside one.
 func TestATimedSpecialWaitsForACast(t *testing.T) {
 	r := newTemplateRig(t)
 	if _, err := r.db.Exec(`UPDATE classtemplates SET special = 'a critical hit', special_damage = 7.4, special_every = 5,
@@ -731,8 +732,8 @@ func TestATimedSpecialWaitsForACast(t *testing.T) {
 			}
 		}
 	}
-	if len(specials) == 0 || len(casts) == 0 || specials[0] != 6800*time.Millisecond {
-		t.Fatalf("specials at %v (want the first at 6.8 s, after the casts), casts at %v", specials, casts)
+	if len(specials) == 0 || len(casts) == 0 || specials[0] != 6900*time.Millisecond {
+		t.Fatalf("specials at %v (want the first at 6.9 s, after the casts), casts at %v", specials, casts)
 	}
 	for _, s := range specials {
 		for i, c := range casts {
@@ -780,6 +781,51 @@ func TestARoamerCritsFromLevelTen(t *testing.T) {
 		}
 		if crits != c.want {
 			t.Errorf("a level %d roamer: %d crits in 40 s, want %d", c.level, crits, c.want)
+		}
+		delete(r.w.Players, p.ServerID)
+	}
+}
+
+// A timed special's clock counts only its creature's time AT its enemy, as
+// Sandstorm's specials come with its rounds: a level 34 roamer fights a
+// player 5 s (of its first 10: its turns from 0 to 4.9 s count 4.9), is
+// rooted with the player stepped 15 off for 30 s, and crits 5.1 s after it is
+// back at the player (40.1 s: the turn it is back on starts its clock again),
+// not on its return (35 s); the control fights on in reach and crits at 10 s
+// and 35 s.
+func TestATimedSpecialCountsTimeAtItsEnemy(t *testing.T) {
+	r := newTemplateRig(t)
+	r.assign("gnoll brute", "roamer")
+	defer func(f func(int) int) { templateIntn = f }(templateIntn)
+	templateIntn = func(int) int { return 0 } // first 10 s, every 25 s
+	brute := r.npc("Gnoll Brute")
+	for _, held := range []bool{false, true} {
+		brute.endTemplateFight()
+		brute.Effects = nil
+		p, sess := r.player("Hero", 2001.5, 100)
+		r.fight(brute, p.ServerID)
+		var crits []time.Duration
+		for d := time.Duration(0); d <= 45*time.Second; d += 100 * time.Millisecond {
+			if held && d == 5*time.Second {
+				brute.Effects = append(brute.Effects, &ActiveEffect{Name: "Root", Root: true, Until: r.at(35 * time.Second)})
+				p.X = brute.X + 15
+			}
+			if held && d == 35*time.Second {
+				p.X = brute.X + 1.5
+			}
+			r.tick(d)
+			for _, c := range castsIn(drain(sess)) {
+				if c.caster == r.objectID(brute.ServerID) && c.fx == templateSpecialFX {
+					crits = append(crits, d)
+				}
+			}
+		}
+		want := []time.Duration{10 * time.Second, 35 * time.Second}
+		if held {
+			want = []time.Duration{40100 * time.Millisecond}
+		}
+		if fmt.Sprint(crits) != fmt.Sprint(want) {
+			t.Errorf("held off %v: crits at %v, want %v", held, crits, want)
 		}
 		delete(r.w.Players, p.ServerID)
 	}

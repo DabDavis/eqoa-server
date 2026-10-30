@@ -35,7 +35,8 @@ import (
 //     roamers were warriors "stripped down to just a 'crit' attack once
 //     every 30 secs or so"): special_every seconds from one to the next (0
 //     none), the first special_first seconds into the fight, each of them
-//     special_jitter seconds either way; and either only from special_from
+//     special_jitter seconds either way, counting its time at its enemy
+//     only (not closing in, rooted away or casting); and either only from special_from
 //     on, a level (0 any: the roamer's 10, the user's "they get it around
 //     level 10 starting, but before only auto attack"), the creature's own
 //     at each fight;

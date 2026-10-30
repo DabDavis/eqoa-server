@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """The jewelers' gems rolled on 5% of every creature's corpses, not 3% (the
-user, 2026-10-30, of tools/drop_rates.py's report: the four rare gems of level
-58 took 13,123 kills for a one-in-two chance). The roll is data: npcloot's row
+user, 2026-10-30, of tools/drop_rates.py's report: the four rarest gems took
+13,123 kills for a one-in-two chance). The roll is data: npcloot's row
 binding "*" (every creature, handlers/loot.go) to the table "craft gems",
 written by tools/seed_tradeskills.py, whose JEWEL_LOOT_CHANCE a new seed
 writes as 5. The modifiers' roll ("craft modifiers", 3%) is left.
 
 Measured by tools/drop_rates.py on the live data of 2026-10-30: the gems'
-median from 0.118% a kill (586 kills for a one-in-two chance) to 0.197% (352);
-the rare level 58 gems from 0.005% (13,123) to 0.008% (7,874).
+median from 0.118% a kill (586 kills for a one-in-two chance) to 0.197% (351);
+the four rarest (Black Sapphire, Blue Diamond, Fire Emerald and Star Ruby,
+weight 1 on creatures of levels 30-60) from 0.0053% (13,123) to 0.0088%
+(7,874).
 
 The change is logged in gem_roll_log; --undo puts the roll back while it is
 still as this left it. Report only by default. The server reads npcloot at

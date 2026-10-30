@@ -102,13 +102,13 @@ func TestAHigherConResistsARoot(t *testing.T) {
 }
 
 // The seed's chances climb with the con: none resisted and 5% broken at
-// even, 65% and 35% five up and past it.
+// even and one up, 60% and 30% five up and past it.
 func TestTheSeedsRootChances(t *testing.T) {
 	b := SeedBalance()
 	for _, tc := range []struct {
 		diff        int
 		resist, brk float64
-	}{{-3, 0, 5}, {0, 0, 5}, {1, 5, 10}, {2, 15, 15}, {3, 35, 25}, {5, 65, 35}, {9, 65, 35}} {
+	}{{-3, 0, 5}, {0, 0, 5}, {1, 0, 5}, {2, 10, 10}, {3, 30, 20}, {5, 60, 30}, {9, 60, 30}} {
 		if r := b.Con(tc.diff); r.RootResistPct != tc.resist || r.RootBreakPct != tc.brk {
 			t.Errorf("con %+d: resist %g break %g, want %g %g", tc.diff, r.RootResistPct, r.RootBreakPct, tc.resist, tc.brk)
 		}

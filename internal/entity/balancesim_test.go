@@ -62,26 +62,25 @@ type simTarget struct {
 
 var simTargets = map[int]simTarget{
 	0: {minWon: 0.95, maxWon: 1, maxHP: 0.92}, // even: won, comfortably
-	1: {minWon: 0.85, maxWon: 1, maxHP: 0.80}, // yellow
-	2: {minWon: 0.50, maxWon: 1, maxHP: 0.65}, // yellow: a tough fight
-	3: {minWon: 0, maxWon: 1, maxHP: 0.45},    // red: never trivial
-	5: {minWon: 0, maxWon: 0.40, maxHP: 1},    // a deep red: rarely
+	3: {minWon: 0, maxWon: 0.35, maxHP: 1},    // red: a lone player mostly loses
+	5: {minWon: 0, maxWon: 0.10, maxHP: 1},    // a deep red: a group's
 }
 
 // simMisses is every cell of the archetypes' fights under b that misses its
-// target, as lines. The stand-ins are the archetypes, not their classes:
-// Balance by class's share (a rogue's 65%) is left out, the level and con
-// tables alone held to the targets (the classes' rows are tuned on the real
-// kits, balancesim_real_test.go).
+// target, as lines. The stand-ins are archetypes, not classes: the class
+// rows are left out (the classes' shares are fitted on the real kits, which
+// balancesim_real_test.go holds to the user's yellow and red targets of
+// 2026-10-30); here the level and con tables are held to the shape: an even
+// fight won, a red three or five up a lone player's loss.
 func simMisses(b *Balance, fights int) []string {
 	if b != nil {
-		b = b.WithClasses(nil)
+		b = b.WithClasses(nil).WithClassLevels(nil)
 	}
 	var miss []string
 	for _, class := range []int{classWarrior, 6} {
 		for _, level := range []int{10, 20, 30, 40, 50, 60} {
 			pl := simKit(class, level)
-			for _, diff := range []int{0, 1, 2, 3, 5} {
+			for _, diff := range []int{0, 3, 5} {
 				c := SimCellOf(pl, SimNPC{}, diff, b, fights, int64(100*level+diff), 10*time.Minute)
 				t := simTargets[diff]
 				won := c.WinShare()
@@ -95,19 +94,9 @@ func simMisses(b *Balance, fights int) []string {
 	return miss
 }
 
-// simKnownGaps are the cells the seed rows miss and NPC-side numbers cannot
-// mend, each with its cause (claude-notes/balance-20261029.md): the spread
-// between the archetypes at 60 is wider than the targets (a tank's 24 hit
-// points a level and sword and board against a melee class's 16, its +15 a
-// hit and its weaker AGI), and the stand-in kit is stronger at 10 than the
-// real warrior's (whose arts are a Kick's 16).
-var simKnownGaps = map[string]string{
-	"tank L10 +2":  "the stand-in kit outdoes a real level 10 warrior",
-	"tank L10 +3":  "the stand-in kit outdoes a real level 10 warrior",
-	"tank L10 +5":  "the stand-in kit outdoes a real level 10 warrior",
-	"tank L60 +5":  "a tank's hit points and AC: the reds a melee class cannot near, a tank beats",
-	"melee L60 +2": "a melee class's 16 hit points a level and +15 a hit: its yellows at 60 too hard",
-}
+// simKnownGaps are the cells the seed rows miss, each with its cause
+// (claude-notes/balance-20261029.md): none under the shape of 2026-10-30.
+var simKnownGaps = map[string]string{}
 
 // The seed rows meet the targets, archetype by archetype, but for the gaps
 // named.

@@ -497,17 +497,20 @@ restart.
 **Tuning** is done on a copy with the fight simulator, which fights on the server's own systems with
 seeded dice (`balancesim.go`, kits off the database by `balancekit.go`): `go build -o balancesim
 ./cmd/balancesim && ./balancesim -db copy.db -balance db -pets -root -classes 0,6,9,13 -levels
-10,30,50 [-try-level ...] [-try-con ...] [-try-class 1:70] [-try-classlevel 3:45:125[:pet]]
+10,30,50 [-try-level ...] [-try-con ...] [-try-class 1:70] [-try-classlevel 3:45:125[:pet[:dealt]]]
 [-try-root 3:35:25] [-try-art 1:1500] [-try-regen 1:5] [-try-conpct 1:100] [-try-pethp 15:155]`
 (the `-try` flags try rows without writing them); `-root` adds each rooting class's root-and-nuke
 play, `-charm -3,0` a charmed creature's, `-groups 2,3` each class's fitting groups (`balancegroup.go`:
 two, the class and the role it lacks; three, a warrior, the class and a cleric), `-low` the HP
 column as the fight's low point (a healer ends higher than it was taken down to), `-reset 20s`
-breaks fights off and times the creature's heal, `-lines` the buff lines. **The targets are the
+breaks fights off and times the creature's heal, `-lines` the buff lines, `-template roamer` the foe
+by a class template of the database's (its crit, a wizard's casts), `-start 5` levels 5 and under in
+a new character's starting gear (its start weapon, no armour). **The targets are the
 user's of 2026-10-30**: a yellow (one or two up) a scary fight a player of the level usually wins,
 taken down below a third of its hit points; a red (three up and over) a lone player's loss and a
 fitting group's (two or three of the level) win; an even fight left as it was (the median class
-70-80% left). `balancesim_real_test.go` (`EQOA_REAL_DB`) holds the real kits to them and replays
+70-80% left), and at levels 1-10 even fights won about 95% and blue and green about all, by hand and
+in a class's own play, in starting gear at 1-5 (the coordinator's check after jib's level 3 alchemist). `balancesim_real_test.go` (`EQOA_REAL_DB`) holds the real kits to them and replays
 the fight the user called "too easy" (a level 5 shadow knight against a level 6 fire bat: 65% left
 under the 01:30 tables, as the live log); `balancesim_test.go` holds the stand-ins to the shape.
 `tools/tune_balance.py --db <db> [--apply|--undo]` writes the tuning into a table made before
@@ -521,7 +524,11 @@ wisps the wizard), the second moves `balanceclasslevel` from the first tuning's 
 on the data of 04:20 WITH the roamers (the armour classes and the rewards' class masks put right
 after 01:30 moved the kits: a monk of 5 won a yellow two up 31% of the time; from level 8 the crit
 takes the shares to 0.3-0.9 of what they were, and 16 cells no share could reach get `dealt_pct`
-115-130%), only rows still as the first tuning left them, the `dealt_pct` column added if missing.
+115-130%; 14 healer and ranger shares raised so a red stays a lone loss; at levels 1-10 every class
+wins its even, blue and green fights by hand and in its own play in a new character's starting gear,
+casters and pet classes by `dealt_pct` 108-400% tapering over 1-5: `balancesim -start 5`,
+`TestRealLowLevelsEvenAndBelow`), only rows still as the first tuning left them, the `dealt_pct`
+column added if missing.
 Apply both, or neither: the shares from 8 assume the crits. Read at the next start (or a save of
 any Balance page / a template edit in the panel); a server older than `dealt_pct` and the timed
 special ignores both. The seeds hold the two tunings' result. Kits move with

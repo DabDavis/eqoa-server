@@ -27,7 +27,7 @@ func TestClassTemplatesAreSeededAndNoneApplied(t *testing.T) {
 			t.Errorf("seed %q not in the table", s.Name)
 		}
 	}
-	if strings.Join(names, ",") != "tank,melee,wizard,necromancer,shadowknight,roamer" || len(got) != 6 {
+	if strings.Join(names, ",") != "tank,melee,wizard,necromancer,shadowknight,wisp,roamer" || len(got) != 7 {
 		t.Errorf("the seeds: %v (%d rows)", names, len(got))
 	}
 	w := got["wizard"]
@@ -46,6 +46,22 @@ func TestClassTemplatesAreSeededAndNoneApplied(t *testing.T) {
 	}
 	if tk := got["tank"]; tk.HPPct <= 100 || tk.TakenPct >= 100 || len(tk.Abilities) != 0 {
 		t.Errorf("the tank: %+v", tk)
+	}
+	// the wisp is jib's wizard but for its abilities' figures, 28% where his are 35% (the user's "28%")
+	wz, ws := got["wizard"], got["wisp"]
+	if len(ws.Abilities) != len(wz.Abilities) || ws.Class != wz.Class || ws.HPPct != wz.HPPct || ws.TakenPct != wz.TakenPct ||
+		ws.MeleePct != wz.MeleePct || ws.Special != wz.Special || ws.SpecialEvery != wz.SpecialEvery {
+		t.Errorf("the wisp %+v is not the wizard %+v", ws, wz)
+	}
+	for i := range ws.Abilities {
+		a, b := ws.Abilities[i], wz.Abilities[i]
+		if a.DamagePct != 28 || b.DamagePct != 35 {
+			t.Errorf("ability %d: the wisp's %d%%, the wizard's %d%% (want 28 and 35)", i, a.DamagePct, b.DamagePct)
+		}
+		a.DamagePct = b.DamagePct
+		if a != b {
+			t.Errorf("ability %d: the wisp's %+v is not the wizard's %+v but for its figure", i, ws.Abilities[i], b)
+		}
 	}
 	if r := got["roamer"]; r.Class != 0 || r.HPPct != 100 || r.SpecialChance != 0 || r.SpecialDamage != 7.4 ||
 		r.SpecialEvery != 30 || r.SpecialFirst != 15 || r.SpecialJitter != 5 || r.SpecialFrom != 10 || len(r.Abilities) != 0 {
@@ -71,7 +87,7 @@ func TestClassTemplatesAreSeededAndNoneApplied(t *testing.T) {
 	}
 	defer db.Close()
 	got, _, _ = db.ClassTemplates()
-	if _, ok := got["tank"]; ok || len(got) != 5 {
+	if _, ok := got["tank"]; ok || len(got) != 6 {
 		t.Errorf("after a GM's delete and a restart: %d templates, tank back %v", len(got), ok)
 	}
 

@@ -858,8 +858,9 @@ var catalog = map[string]tableNote{
 			"resist to its element (by its name: fire, ice, lightning, poison, disease, else arcane) takes, told in a " +
 			"0x00DB and a line; a tap's share back on the NPC. A spell's lasting part (a damage tick, a stat, a hold) is " +
 			"not put on a player. abilities is " + classTemplateAbilitiesHelp + ". The seed rows are jib's five examples " +
-			"(tank, melee, wizard, necromancer, shadowknight) and the user's roamer (SOE's basic creature: a crit every " +
-			"30 s or so from level 10, tools/seed_roamers.py); their numbers are ours, each note says which. A row the " +
+			"(tank, melee, wizard, necromancer, shadowknight), the user's wisp (his wizard at 28%) and roamer (SOE's basic " +
+			"creature: a crit every 30 s or so from level 10), both given out by tools/seed_roamers.py; their numbers " +
+			"are ours, each note says which. A row the " +
 			"world cannot use is refused here, and named in the answer's line when it was written another way.",
 		Live:   "At once: every NPC of a name given it takes its numbers where it stands, and its next fight its abilities.",
 		Show:   []string{"name", "class", "hp_pct", "taken_pct", "melee_pct", "special", "special_chance", "special_every", "abilities", "source"},
@@ -880,7 +881,7 @@ var catalog = map[string]tableNote{
 			"special_from":   {Label: "Special from level", Help: "a creature below this level (its own, at each fight) has no special, timed or by chance (0 any; the roamer's 10)", Section: "Special melee"},
 			"abilities":      {Label: "Abilities", Format: "json", Help: classTemplateAbilitiesHelp},
 			"note":           {Label: "Note", Format: "multiline"},
-			"source":         {Label: "Source", Help: "gm, or seed for the rows the table was made with (jib's five examples and the roamer)"},
+			"source":         {Label: "Source", Help: "gm, or seed for the rows the table was made with (jib's five examples, the wisp and the roamer)"},
 		},
 	},
 	"npctemplate": {

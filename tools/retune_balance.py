@@ -10,7 +10,7 @@ classes, and the trash items, the class quest scrolls and items and Sandstorm's 
 And the creatures: the user's "SOE had most mobs as warrior class, but stripped down to just a 'crit' attack once
 every 30 secs or so ... they get it around level 10 starting": every hostile warrior or classless creature fights by
 the roamer template (a Critical Hit of 7.4 a level, fixed and through any armour, every 25-35 s of its time at its
-enemy from 10-20 s in, from level 10), and wisps by jib's wizard.
+enemy from 10-20 s in, from level 10), and wisps by the wisp template (jib's wizard at 28% of a player's figures).
 
 The fit is the first tuning's (cmd/balancesim on that data, the foe a roamer: each class's share of an NPC's melee at
 every level 1-60, to both yellows at once: the player's low point averaged over the fights won one and two up near

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """tools/seed_roamers.py against a made-up database: a hostile warrior creature and one of no class take the roamer
-template (a generic one, a named one, a boss), a wisp the wizard, and the townsperson in a player race's body, the
-NPC-bit merchant, the caster of class 13, the training dummy and the name a GM gave a template are left (and said);
-the roamer row is written with its clock, the timed columns added when the table lacks them; a second --apply adds
-nothing; --undo gives every table back and drops the log; the log's columns pass the snapshot's name rules. No game
-data.
+template (a generic one, a named one, a boss), a wisp the wisp template, and the townsperson in a player race's body,
+the NPC-bit merchant, the caster of class 13, the training dummy and the name a GM gave a template are left (and
+said); the roamer row is written with its clock, the wisp row as a copy of the wizard's with both abilities at 28%
+(the wizard's left at 35%), a wisp row a GM made kept, the timed columns added when the table lacks them; a second
+--apply adds nothing; --undo gives every table back and drops the log; the log's columns pass the snapshot's name
+rules. No game data.
 
     python3 tools/seed_roamers_test.py
 """
@@ -23,6 +24,9 @@ import seed_roamers as sr  # noqa: E402
 from tune_balance_test import secret_like  # noqa: E402
 
 HUMAN = 0x70D898C6
+# jib's wizard's abilities as the server writes them (database.TemplateAbilitiesJSON of the seed)
+WIZARD_ABILITIES = ('[{"kind":"aoe","every":15,"first":2,"damage_pct":35,"max_recast":10,"max_cast":5},'
+                    '{"kind":"nuke","chain":true,"damage_pct":35,"max_recast":10,"max_cast":5}]')
 CREATURE = 0x55432169
 SCHEMA = f"""
 CREATE TABLE npcs (id INTEGER PRIMARY KEY, npc_name TEXT, npc_level INTEGER, npc_type INTEGER, modelid INTEGER);
@@ -37,7 +41,8 @@ CREATE TABLE classtemplates (name TEXT PRIMARY KEY, class INTEGER NOT NULL DEFAU
 CREATE TABLE npctemplate (name TEXT PRIMARY KEY, template TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '',
     source TEXT NOT NULL DEFAULT 'gm');
 INSERT INTO charactermodel VALUES (0, {HUMAN}, 0);
-INSERT INTO classtemplates (name, class, hp_pct, abilities, source) VALUES ('wizard', 13, 85, '[]', 'seed');
+INSERT INTO classtemplates (name, class, hp_pct, abilities, note, source) VALUES ('wizard', 13, 85, '{WIZARD_ABILITIES}',
+    'jib''s wizard', 'seed');
 INSERT INTO npcs (npc_name, npc_level, npc_type, modelid) VALUES
     ('moss snake', 4, 0, {CREATURE}), ('moss snake', 6, 0, {CREATURE}),
     ('Deathfist reaver', 12, 0, {CREATURE}),
@@ -91,16 +96,20 @@ class SeedRoamers(unittest.TestCase):
     def test_who_gets_what(self):
         before = self.tables()
         out = self.run_tool("--list")
-        self.assertIn("5 rows to add", out)  # the roamer row and four npctemplate rows
+        self.assertIn("6 rows to add", out)  # the roamer and wisp rows and four npctemplate rows
         self.assertEqual(self.tables(), before)  # report only
         self.assertIn("timed special columns are added", out)
         self.run_tool("--apply")
         self.assertEqual(self.templates(), {"moss snake": "roamer", "deathfist reaver": "roamer", "lady vox": "roamer",
-                                            "crag wisp": "wizard", "fire giant": "tank"})
+                                            "crag wisp": "wisp", "fire giant": "tank"})
         c = sqlite3.connect(self.db)
         row = c.execute("SELECT class, hp_pct, taken_pct, melee_pct, special, special_chance, special_damage, special_every, "
                         "special_first, special_jitter, special_from FROM classtemplates WHERE name = 'roamer'").fetchone()
         self.assertEqual(row, (0, 100, 100, 100, "Critical Hit", 0, 7.4, 30.0, 15.0, 5.0, 10))
+        wisp = c.execute("SELECT class, hp_pct, taken_pct, melee_pct, abilities, source FROM classtemplates WHERE name = 'wisp'").fetchone()
+        self.assertEqual(wisp, (13, 85, 100, 100, WIZARD_ABILITIES.replace('"damage_pct":35', '"damage_pct":28'), sr.SOURCE))
+        self.assertEqual(c.execute("SELECT abilities, source FROM classtemplates WHERE name = 'wizard'").fetchone(),
+                         (WIZARD_ABILITIES, "seed"))  # jib's left as he made it
         notes = dict(c.execute("SELECT name, note FROM npctemplate WHERE source = ?", (sr.SOURCE,)))
         cols = [r[1] for r in c.execute(f"PRAGMA table_info({sr.LOG})")]
         c.close()
@@ -131,6 +140,28 @@ class SeedRoamers(unittest.TestCase):
         self.assertEqual(verdicts["thal twisp"][3], None)  # a proper name, the NPC bit
         self.assertEqual(verdicts["deathfist reaver"][2], "generic")
         self.assertEqual(verdicts["lady vox"][2], "boss")
+
+    def test_a_gms_wisp_row_is_kept(self):
+        c = sqlite3.connect(self.db)
+        c.execute("INSERT INTO classtemplates (name, class, hp_pct, abilities, source) VALUES ('wisp', 13, 70, '[]', 'gm')")
+        c.commit()
+        c.close()
+        self.assertIn("5 rows to add", self.run_tool("--apply"))  # the roamer row and four names, no wisp row
+        c = sqlite3.connect(self.db)
+        self.assertEqual(c.execute("SELECT hp_pct, source FROM classtemplates WHERE name = 'wisp'").fetchone(), (70, "gm"))
+        c.close()
+        self.assertEqual(self.templates()["crag wisp"], "wisp")
+        self.run_tool("--undo")
+        self.assertNotIn("crag wisp", self.templates())
+
+    def test_no_wizard_no_wisp(self):
+        c = sqlite3.connect(self.db)
+        c.execute("DELETE FROM classtemplates WHERE name = 'wizard'")
+        c.commit()
+        c.close()
+        r = subprocess.run([sys.executable, "-E", "-s", TOOL, "--db", self.db, "--no-backup"], capture_output=True, text=True)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("no wizard row", r.stderr + r.stdout)
 
     def test_a_changed_row_is_kept_by_the_undo(self):
         self.run_tool("--apply")

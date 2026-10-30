@@ -959,13 +959,16 @@ func (w *World) templateLineLocked(npc *NPC) string {
 	t := npc.tmpl
 	parts := []string{fmt.Sprintf("Class template %s: a %s, hit points %d (%d%% of its %d), melee taken %d%%, its melee %d%%",
 		t.Name, nameIn(classNames, npc.Class), npc.MaxHP, t.HPPct, npc.tbase.maxHP, t.TakenPct, t.MeleePct)}
-	if t.SpecialChance > 0 && t.SpecialDamage > 0 {
+	specials := t.SpecialDamage > 0 && (t.SpecialChance > 0 || t.SpecialEvery > 0)
+	if specials && t.SpecialFrom > npc.Level {
+		parts = append(parts, fmt.Sprintf("no %s below level %d", specialName(t), t.SpecialFrom))
+		specials = false
+	}
+	if specials && t.SpecialChance > 0 {
 		parts = append(parts, fmt.Sprintf("%s in %d%% of its rounds for %d", specialName(t), t.SpecialChance,
 			max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1)))
 	}
-	if t.SpecialFrom > npc.Level {
-		parts = append(parts, fmt.Sprintf("no %s below level %d", specialName(t), t.SpecialFrom))
-	} else if t.SpecialEvery > 0 && t.SpecialDamage > 0 {
+	if specials && t.SpecialEvery > 0 {
 		parts = append(parts, fmt.Sprintf("%s every %g-%g s at its enemy for %d, the first %g-%g s in", specialName(t),
 			t.SpecialEvery-t.SpecialJitter, t.SpecialEvery+t.SpecialJitter, max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1),
 			math.Max(t.SpecialFirst-t.SpecialJitter, 0), t.SpecialFirst+t.SpecialJitter))

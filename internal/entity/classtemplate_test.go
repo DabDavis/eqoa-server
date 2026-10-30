@@ -782,6 +782,15 @@ func TestARoamerCritsFromLevelTen(t *testing.T) {
 		if crits != c.want {
 			t.Errorf("a level %d roamer: %d crits in 40 s, want %d", c.level, crits, c.want)
 		}
+		// #stats says so
+		lines := strings.Join(r.w.StatsReport(sess, r.objectID(brute.ServerID), r.at(0)), "\n")
+		want := "no Critical Hit below level 10"
+		if c.level >= 10 {
+			want = "Critical Hit every 25-35 s at its enemy for 74, the first 10-20 s in"
+		}
+		if !strings.Contains(lines, want) {
+			t.Errorf("a level %d roamer's #stats has no %q:\n%s", c.level, want, lines)
+		}
 		delete(r.w.Players, p.ServerID)
 	}
 }

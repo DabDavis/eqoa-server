@@ -9,8 +9,10 @@ here with both: maxhp is 200 times the level (1: 200, 4: 800, 10: 2000, 20: 4000
 7400), duration 50 nearly always, level 5 the one level whose records say otherwise (800, six of
 them). So a blank weapon is given its level's most common maxhp where at least three weapons of that
 level carry one, else 200 times its level (at least 200), and duration 50; a held copy at 0 hit
-points is made whole. Every change is logged in weapon_durability_fix_log; --undo puts back each row
-still as this left it. Report only by default. The server reads item records as it goes: no restart
+points is made whole. Ten weapons carry a duration and no hit points ("HP 0/0, DUR 50": the small
+dirk, a class quest's reward, and the glade weapons); they are given their hit points the same way
+and keep their duration. Every change is logged in weapon_durability_fix_log with the values it
+replaced; --undo puts back each row still as this left it. Report only by default. The server reads item records as it goes: no restart
 (a player sees new numbers at the next login).
 
     tools/fill_weapon_durability.py [--db eqoa.db] [--apply | --undo]
@@ -56,22 +58,24 @@ def hp_for(level, table):
 
 
 def plan(db):
+    """(patternid, level, maxhp to give, duration now, duration to give) for each weapon of no hit
+    points: a duration of its own is kept."""
     table = level_hp(db)
     slots = ",".join(map(str, WEAPON_SLOTS))
-    rows = db.execute(f"SELECT patternid, levelreq FROM itempattern WHERE equipslot IN ({slots}) "
-                      "AND weapondamage > 0 AND maxhp = 0 AND duration = 0 ORDER BY patternid").fetchall()
-    return [(pid, lv, hp_for(lv, table)) for pid, lv in rows], table
+    rows = db.execute(f"SELECT patternid, levelreq, duration FROM itempattern WHERE equipslot IN ({slots}) "
+                      "AND weapondamage > 0 AND maxhp = 0 ORDER BY patternid").fetchall()
+    return [(pid, lv, hp_for(lv, table), du, du or DURATION) for pid, lv, du in rows], table
 
 
 def apply(db, todo):
     db.execute(LOG_DDL)
     records = held = 0
-    for pid, _, hp in todo:
-        cur = db.execute("UPDATE itempattern SET maxhp = ?, duration = ? WHERE patternid = ? AND maxhp = 0 AND duration = 0",
-                         (hp, DURATION, pid))
+    for pid, _, hp, old_du, du in todo:
+        cur = db.execute("UPDATE itempattern SET maxhp = ?, duration = ? WHERE patternid = ? AND maxhp = 0 AND duration IS ?",
+                         (hp, du, pid, old_du))
         if cur.rowcount:
             db.execute("INSERT INTO weapon_durability_fix_log (tbl, rid, old_maxhp, old_duration, new_maxhp, new_duration) "
-                       "VALUES ('itempattern', ?, 0, 0, ?, ?)", (pid, hp, DURATION))
+                       "VALUES ('itempattern', ?, 0, ?, ?, ?)", (pid, old_du, hp, du))
             records += 1
         for (itemid,) in db.execute("SELECT itemid FROM charinventory WHERE patternid = ? AND remainHP = 0", (pid,)).fetchall():
             db.execute("UPDATE charinventory SET remainHP = ? WHERE itemid = ?", (hp, itemid))
@@ -86,13 +90,14 @@ def undo(db):
         print("nothing logged: nothing to undo")
         return
     back = kept = 0
-    for tbl, rid, new_hp, new_du in db.execute(
-            "SELECT tbl, rid, new_maxhp, new_duration FROM weapon_durability_fix_log ORDER BY seq DESC").fetchall():
+    for tbl, rid, old_hp, old_du, new_hp, new_du in db.execute(
+            "SELECT tbl, rid, old_maxhp, old_duration, new_maxhp, new_duration FROM weapon_durability_fix_log "
+            "ORDER BY seq DESC").fetchall():
         if tbl == "itempattern":
-            cur = db.execute("UPDATE itempattern SET maxhp = 0, duration = 0 WHERE patternid = ? AND maxhp = ? AND duration = ?",
-                             (rid, new_hp, new_du))
+            cur = db.execute("UPDATE itempattern SET maxhp = ?, duration = ? WHERE patternid = ? AND maxhp = ? AND duration = ?",
+                             (old_hp or 0, old_du, rid, new_hp, new_du))
         else:
-            cur = db.execute("UPDATE charinventory SET remainHP = 0 WHERE itemid = ? AND remainHP = ?", (rid, new_hp))
+            cur = db.execute("UPDATE charinventory SET remainHP = ? WHERE itemid = ? AND remainHP = ?", (old_hp or 0, rid, new_hp))
         back, kept = (back + 1, kept) if cur.rowcount else (back, kept + 1)
     db.execute("DROP TABLE weapon_durability_fix_log")
     print(f"put back {back}; left {kept} changed since")
@@ -113,8 +118,9 @@ def main():
         db.execute("COMMIT")
         return
     todo, table = plan(db)
-    by_hp = collections.Counter(hp for _, _, hp in todo)
-    print(f"{len(todo)} weapons with no hit points and no durability; the levels' own values: "
+    by_hp = collections.Counter(hp for _, _, hp, _, _ in todo)
+    kept = sum(1 for t in todo if t[3])
+    print(f"{len(todo)} weapons with no hit points ({kept} with a duration of their own, kept); the levels' own values: "
           + ", ".join(f"{lv}: {hp}" for lv, hp in sorted(table.items())))
     print("to be given: " + ", ".join(f"{hp} x{n}" for hp, n in sorted(by_hp.items())))
     if not a.apply:

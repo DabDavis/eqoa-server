@@ -19,11 +19,19 @@ own target first).
 - the spawns its names match, anywhere, and near the quest: within NEAR of
   any of its places (its giver, the NPCs its talk, show and give steps send
   players to, its reach steps' places), in the same world;
-- their levels against the quest's lowest (FIT_ABOVE levels above it, at most,
-  fit a player taking the quest);
-- the creatures its journal line names: every creature's name (an npcs name
-  without the NPC bit, as the line says it, plural or not), the step's items'
-  names and the quest's people's taken out first;
+- their levels against the quest's (from FIT_BELOW below its lowest to
+  FIT_ABOVE above it, or to its highest when it has one below 60, fit a
+  player taking it);
+- the creatures its journal line names as where its item drops (mentions):
+  every creature's name and every kind (a name's last words: "wolf spiders")
+  as the line says it, plural or not, after the step's items' names and the
+  quest's people; read back from each, a verb of killing or "from" must come
+  before any word of place or company ("from the ravens and magpies outside
+  the city", "Kill crows or ravens", but not "near the bandit fort", "with the
+  gnoll champions", "among the tavern rats"); one said with a word of its own
+  before it is a kind of its own ("blood flies", "elite ice giants"), and a
+  creature's word before a place's or a part's ("the poacher camp", "the
+  poacher boss") is neither;
 - a step whose creature a spawn event of the quest brings (the step's start,
   the step before's done) is the event's: nothing about where its kind stands
   matters.
@@ -31,28 +39,37 @@ Flags: nomatch (no spawn of its names anywhere), npcbit (every one carries the
 NPC bit: none can be attacked), far (none within REGION of the quest: another
 region or world), high (every one more than HIGH_ABOVE levels above the
 quest's lowest, and above its highest when it has one), journal (the line
-names, as where its item drops, creatures near the quest at fitting levels the
-step does not count).
+names, as where its item drops, creatures the step does not count that stand
+near the quest or its creatures at fitting levels).
 
-**The fix** (a flagged step only): the step's creatures become those its
-journal names that stand near the quest at fitting levels, its own target
-among them when it does; else (none near and fitting) the nearest fitting
-creatures of the same kind as its target or the journal's (the last word of
-the name: "Bloodfeather Raven" for "raven"), within FAR_KIND. The step's own
-target stays when any of its spawns is anywhere (another place's still count);
-one with none is replaced by the first of the new names. Each name is written
-as npcs spells it, trimmed. A step it cannot decide is said, for the user.
+**The fix** (a flagged step only): the step takes the creatures its journal
+names as where its item drops that stand near the quest (a kind's: near the
+step's own creatures) at fitting levels; else, for a quest up to LOW_QUEST
+whose journal does not name the step's own creature, the nearest fitting
+creatures of the kind its names are (their last word) within FAR_KIND. The
+step's own target stays when any of its spawns is anywhere (another place's
+still count); one with none is replaced by the first of the new names. A step
+whose creature is one known one (a single spawn, or the line's "the X") or
+comes only when others are killed ("until the fire imp protector comes") is
+left: the line's others are its company or its place. Each name is written as
+npcs spells it (its commonest spelling, trimmed). What it leaves of a quest up
+to LOW_QUEST, or of a step that can never be done, is said, for the user.
 
-**Also reported** (no fix): give and show steps wanting an item nothing
-provides: no step of the quest before it drops, gives or rewards it, no
-merchant sells it, no creature's corpse or loot table carries it, no quest,
-recipe, catch or starting kit gives it.
+**Items**: give and show steps wanting an item nothing provides are reported
+(no step of the quest before it drops, gives or rewards it, taking the quest
+does not give it, no merchant sells it, no loot table bound to a creature
+carries it, no other quest, recipe, catch or starting kit gives it), and the
+ones ITEM_FIXES knows are given as their guides give them: on taking the quest
+(an accept event), or by a loot step before the hand-in (the steps after it,
+and the characters at them, moved down one).
 
-Every row written is logged in quest_targets_fix_log; --undo takes back each
-one still as written (a name's case aside: tools that lower NPC names may have
-run since). Report only by default. The server reads quests as it goes: no
-restart (a running engine reads them at its next Reload: the GM panel's quest
-save, or a restart).
+Every change is logged in quest_targets_fix_log; --undo takes back each one
+still as written (a name's case aside: tools that lower NPC names may have run
+since). Report only by default. The server's quest engine reads the quests at
+its start and when the GM panel saves one: apply it before a (re)start, or
+save a quest in the panel after (a running server waits out its one short
+transaction). Run it again after tools/import_quests.py rewrites quests
+(--undo first).
 
     tools/fix_quest_targets.py [--db eqoa.db] [--tsv audit.tsv] [--apply | --undo]
 """
@@ -926,7 +943,6 @@ def main():
     ap.add_argument("--db", default=DEFAULT_DB)
     ap.add_argument("--tsv", help="write the audit, a row a kill or loot step, here")
     ap.add_argument("--no-backup", action="store_true", help="no copy of the database first (tests)")
-    ap.add_argument("--verbose", action="store_true", help="every flagged step, fixed or not")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true", help="write the fixes (logged)")
     g.add_argument("--undo", action="store_true", help="take back what --apply wrote")

@@ -5015,7 +5015,13 @@
      "kind": "kill",
      "target": "Desmodus bat",
      "count": 5,
-     "journal": "Hunt desmodus bats, wherever their camps have sprung up across Tunaria."
+     "journal": "Hunt desmodus bats, wherever their camps have sprung up across Tunaria.",
+     "events": [
+      {
+       "on": "done",
+       "do": "vampire"
+      }
+     ]
     },
     {
      "kind": "talk",
@@ -5027,9 +5033,9 @@
        "on": "done",
        "do": "teleport",
        "world": 5,
-       "x": 4310.0,
-       "y": 254.5,
-       "z": 6125.0
+       "x": 4322.19,
+       "y": 273.62,
+       "z": 6179.78
       }
      ]
     },
@@ -5052,11 +5058,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Feed",
-    "Sanctuary"
-   ],
-   "notes": "From EQOA-Data Quests/Weres/vampire.json, 1-3 (Logging the Quest, Infection, Level 30) (github.com/Jadiction/EQOA-Data, MIT). The bats' chance of infection is five kills here. Grindal's port to the Sanctuary is a teleport to the Secrets world (Sandstorm's vampires' Sanctuary is in its Zaoran Plateau; claude-notes/sanctuary-memcard-patch-20261025.md), on the open ground north of the building there. This server has no vampire ability yet (Feed, Sanctuary and the rest), so the vampire quests stay drafts until it does; the units of blood, the daylight DoT and the coffin ports are not modelled. Greddy refuses a lycan or a werehunter (Werehunters of Tunaria -1000 or +1000, ours), as the guide does; Dr. Killian's cure is left out."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/vampire.json, 1-3 (Logging the Quest, Infection, Level 30) (github.com/Jadiction/EQOA-Data, MIT). The bats' chance of infection is five kills here, and the fifth infects: the kill step's vampire event (charvampire; from then on the sun burns the character by day, entity/vampire.go). Grindal's port to the Sanctuary lands where Sandstorm's Sanctuary spell lands (its S2's world 7 at 4322, 274, 6180, the Frontiers disc's world 5 file: claude-notes/sanctuary-memcard-patch-20261025.md), a chamber in the rock of the Zaoran Plateau (the guide's \"hidden room in ZP\", a \"large underground area with NPCs and coffins\"). Hinder teaches Feed and Sanctuary, Sandstorm's own records of them (tools/seed_vampires.py, with the other vampire abilities, the Units of Blood they cost and the coffins). Greddy refuses a lycan or a werehunter (Werehunters of Tunaria -1000 or +1000, ours), as the guide does; Dr. Killian's cure is left out."
   },
   {
    "key": "Weres/vampire/L40",
@@ -5088,11 +5091,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Vampiric Strike",
-    "Vampire Form"
-   ],
-   "notes": "From EQOA-Data Quests/Weres/vampire.json, 4. Level 40 (github.com/Jadiction/EQOA-Data, MIT). This server has no vampire ability yet (Vampiric Strike, Vampire Form), so it stays a draft until it does."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/vampire.json, 4. Level 40 (github.com/Jadiction/EQOA-Data, MIT). Its abilities are tools/seed_vampires.py's, made from the guide's figures (entity/vampire.go)."
   },
   {
    "key": "Weres/vampire/L50",
@@ -5124,11 +5124,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Bat Form",
-    "Vitality"
-   ],
-   "notes": "From EQOA-Data Quests/Weres/vampire.json, 5. Level 50 (github.com/Jadiction/EQOA-Data, MIT). This server has no vampire ability yet (Bat Form, Vitality), so it stays a draft until it does."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/vampire.json, 5. Level 50 (github.com/Jadiction/EQOA-Data, MIT). Its abilities are tools/seed_vampires.py's, made from the guide's figures (entity/vampire.go)."
   },
   {
    "key": "Weres/vampire/L60",
@@ -5161,12 +5158,8 @@
      }
     }
    ],
-   "unresolved": [
-    "Frenzy",
-    "Mist Form",
-    "Vampiric Gaze"
-   ],
-   "notes": "From EQOA-Data Quests/Weres/vampire.json, 6. Level 60 (github.com/Jadiction/EQOA-Data, MIT). This server has no vampire ability yet (Frenzy, Mist Form, Vampiric Gaze), so it stays a draft until it does."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Weres/vampire.json, 6. Level 60 (github.com/Jadiction/EQOA-Data, MIT). Its abilities are tools/seed_vampires.py's, made from the guide's figures (entity/vampire.go)."
   }
  ],
  "items": [

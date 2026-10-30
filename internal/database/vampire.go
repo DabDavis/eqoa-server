@@ -6,16 +6,14 @@ import (
 )
 
 // charvampire: the characters who are vampires, a row each (entity/vampire.go:
-// the sun burns them by day). Nothing else on this server makes one: the
-// vampire quests (EQOA-Data's Weres/vampire, tools/quests/data/weres.json)
-// are drafts until the vampires' abilities are here (Feed, Sanctuary and the
-// rest; Sandstorm's records of the first two are spell ids 1807 and 1823),
-// and no class, race, faction or buff marks one. In the live game the bats'
-// infection made one, before Hinder taught it to feed ("If infected, you may
-// notice a DoT (-50) during daylight", EQOA-Data's vampire guide), so when the
-// quests go in, their infection is a row here. Set by #vampire in the game
-// (a GM's) and the GM panel's "Vampires" table; since is when (UTC, RFC
-// 3339), note why, source gm.
+// the sun burns them by day). In the live game the bats' infection made one,
+// before Hinder taught it to feed ("If infected, you may notice a DoT (-50)
+// during daylight", EQOA-Data's vampire guide), and so here: the vampire
+// quest's kill step of desmodus bats (EQOA-Data's Weres/vampire,
+// tools/quests/data/weres.json) ends with a vampire event, a row of source
+// quest. #vampire in the game (a GM's) and the GM panel's "Vampires" table
+// set one too, source gm. No class, race, faction or buff marks one. since
+// is when (UTC, RFC 3339), note why.
 const charVampireSchema = `
 	CREATE TABLE IF NOT EXISTS charvampire (
 		serverid INTEGER PRIMARY KEY,
@@ -44,6 +42,22 @@ func (db *SQLiteDB) Vampires() (int, error) {
 	var n int
 	err := db.QueryRow(`SELECT COUNT(*) FROM charvampire`).Scan(&n)
 	return n, err
+}
+
+// MarkVampire makes the character a vampire, as a quest's infection does
+// (source quest, note why): no GM's change, so no audit line. It reports
+// whether the character was not one before.
+func (db *SQLiteDB) MarkVampire(serverID uint32, source, note string) (bool, error) {
+	if err := db.ensureCharVampire(); err != nil {
+		return false, err
+	}
+	res, err := db.Exec(`INSERT OR IGNORE INTO charvampire (serverid, since, note, source) VALUES (?, ?, ?, ?)`,
+		serverID, time.Now().UTC().Format(time.RFC3339), note, source)
+	if err != nil {
+		return false, err
+	}
+	n, err := res.RowsAffected()
+	return n > 0, err
 }
 
 // SetVampire makes the character a vampire (on) or not, writing the change

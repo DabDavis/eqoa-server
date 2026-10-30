@@ -35,6 +35,9 @@ type wayRoute struct {
 	// one that did. Every other trip is open until a quest in the game gates
 	// it.
 	QuestOnly bool
+	// Vampire is a trip only a vampire is offered (a coffin's: entity/
+	// vampire.go); to anyone else the coffin is a coffin and says nothing.
+	Vampire bool
 }
 
 // wayPlace is where a trip lands: a world and a point in it.
@@ -181,7 +184,34 @@ var wayRoutes = map[string][]wayRoute{
 	"Mark of the Majestic": {
 		{To: "Snow 1", At: &wayPlace{World: 4, X: 5670.8, Y: 552.9, Z: 6358.8}, QuestOnly: true},
 	},
+	// The vampires' coffins (entity/vampire.go): EQOA-Data's vampire guide's
+	// Sanctuary "allows porting between connected coffin locations", nine of
+	// them: Freeport (SE), Guardian Forest (C), Vastly Deep (C), Solusek's Eye
+	// (SE), Sslathis (S), Spider Mines (E), Collinridge Cemetery (C), West
+	// Feerrott (C), Zaoran Plateau (NW). Three stand in this server's data
+	// as Return Home placed them: the coffin in Freeport's south-east, the one
+	// in the middle of Collonridge Cemetery and the Lavastorm's Coffin1 (its
+	// south-east, by Solusek's Eye); each takes a vampire to the Sanctuary,
+	// and the Sanctuary's own (tools/seed_vampires.py) to each of them. A
+	// trip lands three steps off its coffin, on the floor, clear of walls.
+	"coffin": {
+		{To: "The Sanctuary", At: &sanctuaryLanding, Vampire: true},
+	},
+	"Coffin1": {
+		{To: "The Sanctuary", At: &sanctuaryLanding, Vampire: true},
+	},
+	"Sanctuary coffin": {
+		{To: "Freeport", At: &wayPlace{World: 0, X: 25519.8, Y: 54.09, Z: 15529.8}, Vampire: true},
+		{To: "Collonridge Cemetery", At: &wayPlace{World: 0, X: 22841.9, Y: 54.09, Z: 8844.9}, Vampire: true},
+		{To: "Solusek's Eye", At: &wayPlace{World: 3, X: 5704.62, Y: 75.25, Z: 5932.4}, Vampire: true},
+	},
 }
+
+// sanctuaryLanding is where the vampires' Sanctuary is reached: Sandstorm's
+// landing for its Sanctuary spell (claude-notes/sanctuary-memcard-patch-
+// 20261025.md: S2's world 7 at (4322.19, 274.134, 6179.78), the Frontiers
+// disc's world 5 file), on the floor there, under 48 of rock (ground.Roof).
+var sanctuaryLanding = wayPlace{World: 5, X: 4322.19, Y: 273.62, Z: 6179.78}
 
 // The waysender's words. A trip is asked as Sandstorm's dockmasters ask one
 // (pcaps/sandstorm-warp.pcap: "Where do you wish to go?", then "Very
@@ -243,6 +273,9 @@ func wayDests(gw *entity.World, sess *session.Session, waysender string, player 
 		}
 		if !CanLoadWorld(sess, world) {
 			continue
+		}
+		if r.Vampire && !gw.VampireOf(sess) {
+			continue // a coffin opens for vampires alone
 		}
 		if r.MinLevel > 0 && player.Level < r.MinLevel {
 			if barred == "" {

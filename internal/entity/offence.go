@@ -96,9 +96,10 @@ func playerMeleeRoll(p *Player, npc *NPC) (floor, low, high int) {
 }
 
 // playerMeleeHit is one of the player's hits on the NPC, intn the random
-// source (rand.Intn).
+// source (rand.Intn), with what the player's effects add to every hit
+// (Frenzy's "Increase Damage per Hit by 500": vampire.go).
 func playerMeleeHit(p *Player, npc *NPC, intn func(int) int) int {
 	floor, low, high := playerMeleeRoll(p, npc)
 	hit := low + intn(high-low+1)
-	return npc.meleeTaken(max(hit, floor)) // as its class template takes it (classtemplate.go)
+	return npc.meleeTaken(max(hit, floor) + max(p.Mods.Melee, 0)) // as its class template takes it (classtemplate.go)
 }

@@ -35,6 +35,11 @@ import (
 //     itself, as a cast's 0x00B1 begins one for everyone who sees it.
 //   - teleport: the player warped as a travel NPC warps it (a world its
 //     client cannot load is refused).
+//   - vampire: the player made a vampire (database.QuestStore.MarkVampire, a
+//     charvampire row of source quest, and in force where it stands:
+//     entity/vampire.go): the vampire quest's bats, whose blood changes
+//     whoever kills enough of them. Nothing is said: the guide's player
+//     learns of it from the sun, or from Grindal.
 //
 // A loot step (kind loot) is a kill step whose kills drop its item: each kill
 // of its creature credited to a player on the step, while the player has
@@ -94,9 +99,29 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 			q.gw.PlayVisualOn(sess, fx, time.Duration(e.Seconds*float64(time.Second)))
 		case database.EventTeleport:
 			q.teleportLocked(sess, p, qu, e)
+		case database.EventVampire:
+			q.vampireLocked(p, qu)
 		default:
 			log.Printf("Quests: %q step %d: no event %q", qu.Name, step, e.Do)
 		}
+	}
+}
+
+// vampireLocked is a vampire event: the player's character made a vampire,
+// kept and in force where it stands.
+func (q *QuestEngine) vampireLocked(p *entity.Player, qu *database.Quest) {
+	if q.store == nil {
+		return
+	}
+	newly, err := q.store.MarkVampire(p.CharServerID, qu.Name)
+	if err != nil {
+		log.Printf("Quests: %q made %s a vampire, not kept: %v", qu.Name, p.Name, err)
+	}
+	if q.gw != nil {
+		q.gw.SetVampire(p.CharServerID, true)
+	}
+	if newly {
+		log.Printf("Quests: %q made %s a vampire", qu.Name, p.Name)
 	}
 }
 

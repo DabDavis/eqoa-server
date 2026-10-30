@@ -324,8 +324,12 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	interactHandler.corpse = npcWindowHandler.OpenCorpse
 	// a waysender's fee, and the bind points spiritmasters give
 	interactHandler.spend = npcWindowHandler.spendTunar
+	// the coachmen's GMs, offered every coach town (coachledger.go)
+	interactHandler.isGM = chatHandler.isGM
 	if charStore != nil {
 		interactHandler.binds = charStore
+		// the stables' ledgers (coachledger.go)
+		interactHandler.ledger = charStore
 		// what a town's people and the guards say (entity/dialog.go)
 		interactHandler.SetDialogLines(charStore.DB().NPCDialog)
 	}

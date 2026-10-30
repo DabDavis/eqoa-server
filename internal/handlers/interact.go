@@ -26,6 +26,12 @@ type InteractHandler struct {
 	// binds keeps the bind points spiritmasters give (spiritmaster.go).
 	binds bindStore
 
+	// ledger keeps the stables' ledgers the coachmen sign (coachledger.go);
+	// isGM is whether a session's account is a GM's (ChatHandler.isGM), who
+	// is offered every coach town. Nil: the coach menus as before.
+	ledger coachLedger
+	isGM   func(*session.Session) bool
+
 	// spend takes a waysender's fee from the player, kept and shown
 	// (NPCWindowHandler.spendTunar); false when it cannot pay. Nil: free.
 	spend func(*session.Session, *entity.Player, int) bool
@@ -228,6 +234,12 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		}
 	}
 
+	// A coachman signs his ledger for whoever talks to him (coachledger.go),
+	// before his quest's step, which is that signing.
+	if npc, ok := targetEntity.(*entity.NPC); ok && entity.IsCoachman(npc.Name) {
+		h.signLedger(sess, player, npc)
+	}
+
 	// A quest's step at this NPC, or a quest it offers (quests.go), before
 	// the NPC's own business.
 	if npc, ok := targetEntity.(*entity.NPC); ok && Quests().Talk(sess, player, npc) {
@@ -257,7 +269,16 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 			// only the worlds this client's table has (LoadableWorlds)
 			routes = h.gameWorld.GetWarpDestinations(npc.Name, LoadableWorlds(sess))
 		case entity.IsCoachman(npc.Name):
-			routes = h.gameWorld.GetCoachDestinations(npc.Name, npc.World)
+			// the towns his coach runs to whose ledgers the player signed
+			// (coachledger.go), else why not
+			var none string
+			if routes, none = h.coachDests(sess, player, npc); len(routes) == 0 && none != "" {
+				forgetDialogs(player)
+				for _, part := range splitSay(none, questBoxChars) {
+					h.sendDialogueBox(sess, part)
+				}
+				return nil
+			}
 		}
 		if len(routes) > 0 {
 			forgetDialogs(player)

@@ -40,6 +40,12 @@ import (
 //     fixed and through any armour, as Sandstorm's creatures' specials hit
 //     (the training dummies' note: a level 34 crab's 251 on a tank of 1,763
 //     AC and an enchanter of 167 alike); a damage shield answers it as melee;
+//     and the same special on a clock (special_every, the user's SOE roamer:
+//     a warrior "stripped down to just a 'crit' attack once every 30 secs or
+//     so"): the first special_first into the fight (from its first turn in
+//     reach), then one every special_every, each special_jitter either way;
+//     one coming due while it casts or closes in lands at its next turn in
+//     reach;
 //   - casts its abilities in its fights, from where it stands in reach of its
 //     enemy (a player, or a player's pet), one at a time, its melee waiting
 //     while it casts. Each ability is on a clock of its own (every, first into
@@ -131,8 +137,8 @@ type templateBase struct {
 // templateFight is a templated NPC's fight by its template: whether its
 // clocks are set, when each of its abilities next comes, its cast's time (no
 // melee, no other cast until then), the chained ability owed after it (its
-// index + 1; 0 none), and the round its special was rolled for and when it
-// lands.
+// index + 1; 0 none), the round its special was rolled for and when it
+// lands, and when its timed special next comes (zero: not yet set).
 type templateFight struct {
 	on      bool
 	next    [database.MaxTemplateAbilities]time.Time
@@ -140,6 +146,7 @@ type templateFight struct {
 	chain   int
 	round   time.Time
 	special time.Time
+	timed   time.Time
 }
 
 // fight is the NPC's fight by its template, begun if it had none.
@@ -797,10 +804,22 @@ func (w *World) tellNPCHealLocked(sess *session.Session, npc *NPC, n int) {
 // lock held.
 func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) {
 	t := npc.tmpl
-	if t == nil || t.SpecialChance <= 0 || t.SpecialDamage <= 0 || npc.RoundStart.IsZero() {
+	if t == nil || t.SpecialDamage <= 0 {
 		return
 	}
 	f := npc.fight()
+	if t.SpecialEvery > 0 {
+		switch {
+		case f.timed.IsZero():
+			f.timed = now.Add(templateJitter(t.SpecialFirst, t.SpecialJitter))
+		case !now.Before(f.timed) && !now.Before(f.busy):
+			f.timed = now.Add(templateJitter(t.SpecialEvery, t.SpecialJitter))
+			w.templateSpecialHitLocked(npc, target, now)
+		}
+	}
+	if t.SpecialChance <= 0 || npc.RoundStart.IsZero() {
+		return
+	}
 	if !npc.RoundStart.Equal(f.round) {
 		f.round, f.special = npc.RoundStart, time.Time{}
 		if templateIntn(100) < t.SpecialChance {
@@ -816,6 +835,26 @@ func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) 
 	if late > templateSpecialAfter {
 		return // its round went by out of reach or casting: the kick with it
 	}
+	w.templateSpecialHitLocked(npc, target, now)
+}
+
+// templateJitter is base seconds, jitter seconds either way (the templates'
+// dice), as a duration; never below 0.
+func templateJitter(base, jitter float64) time.Duration {
+	d := base
+	if jitter > 0 {
+		d += float64(templateIntn(int(2*jitter*1000)+1))/1000 - jitter
+	}
+	return time.Duration(math.Max(d, 0) * float64(time.Second))
+}
+
+// templateSpecialHitLocked lands a templated NPC's special on target (a
+// player, or a player's pet): its 0x00B1 of cast 0 with its visual, the level
+// times special_damage, fixed and through any armour, a death, and the
+// target's damage shields' answer as to a melee hit. Must be called with the
+// lock held.
+func (w *World) templateSpecialHitLocked(npc *NPC, target EntityID, now time.Time) {
+	t := npc.tmpl
 	damage := max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1)
 	fx := t.SpecialFX
 	if fx == 0 {
@@ -905,6 +944,11 @@ func (w *World) templateLineLocked(npc *NPC) string {
 	if t.SpecialChance > 0 && t.SpecialDamage > 0 {
 		parts = append(parts, fmt.Sprintf("%s in %d%% of its rounds for %d", specialName(t), t.SpecialChance,
 			max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1)))
+	}
+	if t.SpecialEvery > 0 && t.SpecialDamage > 0 {
+		parts = append(parts, fmt.Sprintf("%s every %g-%g s for %d, the first %g-%g s into a fight", specialName(t),
+			t.SpecialEvery-t.SpecialJitter, t.SpecialEvery+t.SpecialJitter, max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1),
+			math.Max(t.SpecialFirst-t.SpecialJitter, 0), t.SpecialFirst+t.SpecialJitter))
 	}
 	for i := range t.abilities {
 		a := &t.abilities[i]

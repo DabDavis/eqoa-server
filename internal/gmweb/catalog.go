@@ -835,7 +835,9 @@ var catalog = map[string]tableNote{
 			"and the class whose spells it casts; -1 keeps its own), with hp_pct of its level's hit points, taken_pct of a " +
 			"player's or a pet's melee hit on it landing (85: 15% less), melee_pct of its own melee hits; it kicks (special) " +
 			"in special_chance of its rounds for special_damage a level, fixed and through any armour, as Sandstorm's " +
-			"creatures' specials hit (a level 34 crab's 251), with special_fx's visual (0: Sandstorm's creature special); " +
+			"creatures' specials hit (a level 34 crab's 251), with special_fx's visual (0: Sandstorm's creature special), " +
+			"and on a clock as well: every special_every seconds (0 none), the first special_first seconds into the fight, " +
+			"each special_jitter seconds either way (the user's SOE roamer: a crit every 30 s or so); " +
 			"and in its fights it casts its abilities from where it stands, its melee waiting while it casts. An ability " +
 			"casts the highest spell of its kind (nuke: a harmful hit of one target; aoe: one on an area, the spell's area " +
 			"and its Spell areas row; lifetap: a hit that heals its caster; heal: a heal on itself, below its share of hit " +
@@ -848,7 +850,7 @@ var catalog = map[string]tableNote{
 			"(tank, melee, wizard, necromancer, shadowknight); their numbers are ours, each note says which. A row the " +
 			"world cannot use is refused here, and named in the answer's line when it was written another way.",
 		Live:   "At once: every NPC of a name given it takes its numbers where it stands, and its next fight its abilities.",
-		Show:   []string{"name", "class", "hp_pct", "taken_pct", "melee_pct", "special", "special_chance", "abilities", "source"},
+		Show:   []string{"name", "class", "hp_pct", "taken_pct", "melee_pct", "special", "special_chance", "special_every", "abilities", "source"},
 		Search: []string{"name", "special", "abilities", "note", "source"},
 		Cols: map[string]colNote{
 			"name":           {Label: "Template (key)", Help: "lower case; NPC class templates names it"},
@@ -860,6 +862,9 @@ var catalog = map[string]tableNote{
 			"special_chance": {Label: "Special %", Help: "of its rounds it comes in, a second after the round's last hit (0-100)", Section: "Special melee"},
 			"special_damage": {Label: "Special damage", Help: "a level (0-200), fixed and through any armour: Sandstorm's crab's 251 at 34 is 7.4", Section: "Special melee"},
 			"special_fx":     {Label: "Special visual", Format: hex32, Help: "0x00B1's visual; 0 Sandstorm's creature special (0x66CD778E)", Section: "Special melee"},
+			"special_every":  {Label: "Special every s", Help: "seconds from one timed special to the next (5-3600; 0 none), as well as special_chance's", Section: "Special melee"},
+			"special_first":  {Label: "First special at s", Help: "seconds into a fight (its first turn in reach) for the first timed one", Section: "Special melee"},
+			"special_jitter": {Label: "Special jitter s", Help: "seconds either way on each timed special, the first too (under half of special_every)", Section: "Special melee"},
 			"abilities":      {Label: "Abilities", Format: "json", Help: classTemplateAbilitiesHelp},
 			"note":           {Label: "Note", Format: "multiline"},
 			"source":         {Label: "Source", Help: "gm, or seed for jib's five examples the table was made with"},

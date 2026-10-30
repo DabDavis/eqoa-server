@@ -3,7 +3,7 @@
 as the database spells it, and its `unresolved` what still does not resolve.
 
     python3 tools/quests/fix_names.py --db eqoa.db [--rename [KEY:]OLD=NEW ...]
-        [--drop-note REGEX ...] [--write] [file.json ...]
+        [--drop-note REGEX ...] [--case] [--write] [file.json ...]
 
 With no files it takes every tools/quests/data/*.json. A name a quest uses
 (its giver, a step's target, a say or spawn event's NPC, the travel NPC of a
@@ -12,7 +12,10 @@ that agrees with it but for case,
 apostrophes and backticks, hyphens, a leading "the" and plurals ("Counselor
 Du'Klot" -> "Counselor Du`Klot", "thick coat wolf" -> "Thick Coat Wolves");
 --rename gives any other ("OLD=NEW" in every quest, "KEY:OLD=NEW" in the
-quests whose key starts with KEY), found or not. A faction a quest asks a
+quests whose key starts with KEY), found or not; --case respells a name found
+but for its case as npcs spells it, when npcs spells it one way
+(tools/fix_npc_name_case.py's "Tae Ew crusader" for a quest's "Tae Ew
+Crusader"). A faction a quest asks a
 standing with or moves is respelled the same way, as the factions table
 spells it. Then each quest's
 `unresolved` is what check_quests.py finds missing (the entries it keeps in
@@ -167,7 +170,7 @@ def mentions(text, name):
     return bool(n) and re.search(r"(?<![a-z0-9'])" + re.escape(n) + r"(?![a-z0-9'])", words(text)) is not None
 
 
-def fix(files, db_path, renames=(), drops=()):
+def fix(files, db_path, renames=(), drops=(), case=False):
     names = cq.Names(db_path)
     by_key = spellings(db_path)
     factions_by_key = faction_spellings(db_path)
@@ -195,10 +198,15 @@ def fix(files, db_path, renames=(), drops=()):
                         new = to
                         break
                 else:
+                    sp = by_key.get(key(n))
                     if fold(n) not in names.npc:
-                        sp = by_key.get(key(n))
                         if sp and len({fold(s) for s in sp}) == 1:
                             new = sp.most_common(1)[0][0]
+                    elif case and sp:
+                        # found but for case: npcs' one spelling of this very name
+                        same = {s for s in sp if fold(s) == fold(n)}
+                        if len(same) == 1:
+                            new = same.pop()
                 if new != n:
                     holder[field] = new
                     renamed[fold(n)] = new
@@ -302,11 +310,13 @@ def main():
     ap.add_argument("--rename", action="append", default=[], metavar="[KEY:]OLD=NEW")
     ap.add_argument("--drop-note", action="append", default=[], metavar="REGEX",
                     help="also drop the notes' sentences this matches")
+    ap.add_argument("--case", action="store_true",
+                    help="also respell a name npcs spells only otherwise in case (tools/fix_npc_name_case.py's)")
     ap.add_argument("--write", action="store_true", help="write the files (report only without)")
     ap.add_argument("files", nargs="*")
     a = ap.parse_args()
     files = a.files or sorted(glob.glob(os.path.join(HERE, "data", "*.json")))
-    report, changed = fix(files, a.db, parse_renames(a.rename), a.drop_note)
+    report, changed = fix(files, a.db, parse_renames(a.rename), a.drop_note, a.case)
     for line in report:
         print(line)
     for path, out in changed.items():

@@ -6,10 +6,10 @@ have. some spells are a line and have the same spell fx throughout. we can use t
 correct our spell fx on our server").
 
 The recordings are tools/sandstorm_spell_visuals.tsv: each spell Sandstorm's characters
-cast (eqoa-rust-headless's harvester, `castlist`), by Sandstorm's ability id and name, with
-the visual every cast of it carried (one a spell: a spell seen with two is left out). The
-server picks the visual, not the ability record (claude-notes/casting-sandstorm-20261021.md),
-so only a cast shows it.
+cast (a headless client's harvester casting each ability in turn), by Sandstorm's ability id
+and name, with the visual every cast of it carried (one a spell: a spell seen with two is
+left out). The server picks the visual, not the ability record
+(claude-notes/casting-sandstorm-20261021.md), so only a cast shows it.
 
   1. A recorded spell is ours by its id and name, else tools/import_sandstorm_harvest.py's
      ID_OFFSET (300000 + its id: an id ours held for another spell), else the one spell of

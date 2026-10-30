@@ -1,0 +1,220 @@
+# Spell visuals Sandstorm (eqoa.live) played for its characters' own casts: 0x00B1's last field,
+# by Sandstorm's ability id and name; tools/fix_spell_visuals_sandstorm.py reads it. Recorded with
+# a headless client's harvester (each character's abilities cast in turn) on 2026-10-30, plus
+# 2026-10-21's druid casts and bard captures (claude-notes/casting-sandstorm-20261021.md). A
+# spell seen with two visuals is listed with both and the tool leaves it.
+ssid	name	class	level	scope	visual	cast_ms	casts	note
+4	Unstable Mixture	14	1	0	0xA8C2C199	1000	1	harvest 2026-10-30
+6	Hardening Agent	14	3	0	0xBA9DF316	3000	1	harvest 2026-10-30
+13	Crude Refinement	14	5	0	0xA8C2C199	2000	1	harvest 2026-10-30
+14	Crude Sublimation	14	7	0	0xA8C2C199	2000	1	harvest 2026-10-30
+25	Crude Quickening	14	13	0	0xA8C2C199	2000	1	harvest 2026-10-30
+26	Faulty Refinement	14	15	0	0xA8C2C199	2000	1	harvest 2026-10-30
+42	Fortifying Agent	14	23	0	0xBA9DF316	3000	1	harvest 2026-10-30
+50	Refinement	14	25	0	0xA8C2C199	2000	1	harvest 2026-10-30
+51	Sublimation	14	27	0	0xA8C2C199	2000	1	harvest 2026-10-30
+143	Chant of Battle	5	3	2	0x1DAEB5B6	1000	1	harvest 2026-10-30
+144	Celebration of Vigor	5	4	2	0x0290C733	2000	1	harvest 2026-10-30
+145	Clashing Verses	5	4	1	0x2261AEBB		1	pcap 2026-10-21
+153	Elemental Rhythms	5	12	2	0xFACE7D43	2000	1	harvest 2026-10-30
+156	Accelerando	5	16	2	0xA9AB5C0D	1000	1	harvest 2026-10-30
+159	Anthem of Hope +	5	20	2	0xF3C0920A	2000	1	harvest 2026-10-30
+160	Anthem of Light +	5	13	2	0xF3C0920A	2000	1	harvest 2026-10-30
+162	Melodic Blades	5	20	1	0xD92D4042		1	pcap 2026-10-21
+164	Power Dance	5	20	2	0xCC789A46	2000	1	harvest 2026-10-30
+166	Celebration of Health	5	23	2	0x0290C733	2000	1	harvest 2026-10-30
+171	Symphony	5	24	2	0xCC789A46	1000	1	harvest 2026-10-30
+173	Dirge of Refuge	5	27	2	0x1DAEB5B8	2000	1	harvest 2026-10-30
+175	Anthem of Drive +	5	29	2	0xF3C0920A	2000	1	harvest 2026-10-30
+179	Power Twist	5	30	2	0xCC789A46	2000	2	harvest 2026-10-30; pcap 2026-10-21
+181	Celebration of Life	5	34	2	0x0290C733	3000	1	harvest 2026-10-30
+184	Selo's Accelerando	5	35	2	0xA9AB5C0D	1000	2	harvest 2026-10-30; pcap 2026-10-21
+185	Dirge of Fastness	5	37	2	0x1DAEB5B8	2000	1	harvest 2026-10-30
+187	Anthem of Deeds +	5	39	2	0xF3C0920A	2000	1	harvest 2026-10-30
+192	Power Jig	5	40	2	0xCC789A46	2000	2	harvest 2026-10-30; pcap 2026-10-21
+196	Rhapsody	5	44	2	0xCC789A46	1000	1	harvest 2026-10-30
+197	Celebration of Vitae	5	45	2	0x0290C733	3000	2	harvest 2026-10-30; pcap 2026-10-21
+199	Lila's Refrain	5	46	2	0xCC789A46	1000	1	harvest 2026-10-30
+200	Dirge of Redoubt	5	47	2	0x1DAEB5B8	2000	2	harvest 2026-10-30; pcap 2026-10-21
+202	Anthem of Triumph +	5	49	2	0xF3C0920A	2000	1	harvest 2026-10-30
+233	Divine Protection	9	1	0	0x1DAEB5B6	4000	1	harvest 2026-10-30
+234	Divine Wisdom	9	1	0	0xD17B032D	4000	1	harvest 2026-10-30
+236	Minor Blessing	9	3	0	0xD17B032D	3000	1	harvest 2026-10-30
+237	Courage	9	4	1	0x1DAEB5B6	5000	1	harvest 2026-10-30
+241	Wave of Health	9	4	2	0x0290C733	5000	1	harvest 2026-10-30
+333	Ward Death	11	13	1	0x0B67DB23	2000	1	harvest 2026-10-30
+334	Smite Death	11	16	1	0x0B67DB23	2000	1	harvest 2026-10-30
+335	Disrupt Death	11	24	1	0x0B67DB23	2000	1	harvest 2026-10-30
+336	Torment Death	11	34	1	0x0B67DB23	2000	1	harvest 2026-10-30
+337	Persecute Death	11	44	1	0x0B67DB23	2000	1	harvest 2026-10-30
+341	Nature's Wisdom	7	1	0	0xD17B032D	4000	3	harvest 2026-10-21; harvest 2026-10-30
+342	Woodskin	7	1	1	0x1DAEB5B6	4000	1	harvest 2026-10-30
+343	Fiery Burst	7	3	1	0xE78024D9	2000	2	harvest 2026-10-21; harvest 2026-10-30
+345	Elemental Shell	7	4	1	0xFACE7D43	4000	1	harvest 2026-10-30
+347	Nature's Blessing	7	7	0	0xBA9DF316	2000	1	harvest 2026-10-30
+348	Camouflage	7	8	1	0x6408F650	2000	3	harvest 2026-10-21; harvest 2026-10-30
+353	Rockskin	7	12	1	0x1DAEB5B6	4000	4	harvest 2026-10-21; harvest 2026-10-30
+354	Regenerative Aura	7	13	1	0x64BE409A	2000	1	harvest 2026-10-30
+355	Endure Elements	7	15	1	0xFACE7D43	3000	1	harvest 2026-10-30
+357	Barbshield	7	16	1	0x725CFDB8	2000	1	harvest 2026-10-30
+362	Enkindle	7	20	1	0xE78024D9	2000	1	harvest 2026-10-30
+363	Ensnare	7	20	1	0x09F65B37	1000	1	harvest 2026-10-30
+366	Lupine Guise	7	20	0	0x0E030048	3000	1	harvest 2026-10-30
+369	Ward Elements	7	23	1	0xFACE7D43	3000	1	harvest 2026-10-30
+452	Spirit of the Wolf	7	12	1	0xA9AB5C0D	2000	3	harvest 2026-10-21; harvest 2026-10-30
+454	True Form	7	20	0	0x0E030048	2000	1	harvest 2026-10-30
+457	Minor Healing	7,9	1	1	0xC2B700FA	2000	7	harvest 2026-10-21; harvest 2026-10-30
+458	Minor Curative	7,9	4	1	0x2ECD9E1E	2000	2	harvest 2026-10-30
+459	Minor Antidote	7	8	1	0x51D254F2	1000	1	harvest 2026-10-30
+460	Root	7	4	1	0xCF6B18E7	3000	1	harvest 2026-10-30
+461	Light Healing	7	12	1	0xC2B700FA	2000	1	harvest 2026-10-30
+462	Lesser Antidote	7	16	1	0x51D254F2	1000	1	harvest 2026-10-30
+463	Lesser Curative	7	16	1	0x2ECD9E1E	2000	1	harvest 2026-10-30
+464	Healing	7	20	1	0xC2B700FA	3000	8	harvest 2026-10-21; harvest 2026-10-30
+470	Superior Healing	9	39	1	0xC2B700FB	5000	1	harvest 2026-10-30
+498	Pendril's Animation	12	1	0	0xA8C2C199	3000	1	harvest 2026-10-30
+506	Endure Arcane	12	7	1	0x1979CB28	3000	1	harvest 2026-10-30
+509	Invisibility	12	8	1	0x1A2B8058	2000	1	harvest 2026-10-30
+510	Mircyl's Animation	12	8	0	0xA8C2C199	5000	1	harvest 2026-10-30
+512	Breeze	12	12	1	0xD17B032D	2000	1	harvest 2026-10-30
+520	Arcane Beckon	12	15	0	0xF588B741	1000	1	harvest 2026-10-30
+522	Chaotic Flux	12	16	1	0xF3C09209	1000	1	harvest 2026-10-30
+526	Shalee's Animation	12	16	0	0xA8C2C199	5000	1	harvest 2026-10-30
+534	Intuition	12	20	1	0xD17B032D	2000	1	harvest 2026-10-30
+541	Chaotic Mark	12	24	1	0xF3C09209	1000	1	harvest 2026-10-30
+542	Clay Golem	12	24	0	0xA8C2C199	5000	1	harvest 2026-10-30
+545	Illusion: Barbarian	12	24	1	0x78763EC5	5000	1	harvest 2026-10-30
+554	Illusion: Dark Elf	12	29	1	0x78763EC5	5000	1	harvest 2026-10-30
+561	Clarity	12	34	1	0xD17B032D	2000	1	harvest 2026-10-30
+565	Illusion: Troll	12	34	1	0x78763EC5	5000	1	harvest 2026-10-30
+566	Stone Golem	12	34	0	0xA8C2C199	5000	1	harvest 2026-10-30
+571	Chaotic Glyph	12	39	1	0xF3C09209	1000	1	harvest 2026-10-30
+575	Illusion: Clay Golem	12	39	1	0x78763EC5	5000	1	harvest 2026-10-30
+584	Illusion: Iron Golem	12	44	1	0x78763EC5	5000	1	harvest 2026-10-30
+585	Illusion: Stone Golem	12	44	1	0x78763EC5	5000	1	harvest 2026-10-30
+586	Iron Golem	12	44	0	0xA8C2C199	5000	1	harvest 2026-10-30
+591	Blade Swarm	12	49	0	0xA8C2C199	5000	1	harvest 2026-10-30
+596	Lucidity	12	49	1	0xD17B032E	2000	1	harvest 2026-10-30
+632	Earth Elementaling	10	1	0	0x12E9E0F8	3000	1	harvest 2026-10-30
+633	Enduring Excite	10	1	3	0xF3C09208	2000	1	harvest 2026-10-30
+634	Excite	10	1	3	0xF3C09208	2000	1	harvest 2026-10-30
+635	Summon: Unfiltered Water	10	1	0	0xA8C2C199	4000	1	harvest 2026-10-30
+637	Smoldering Aura	10	3	1	0x23D248B4	2000	1	harvest 2026-10-30
+638	Infuse	10	4	3	0xC2B700FA	2000	1	harvest 2026-10-30
+640	Water Elementaling	10	4	0	0x1D2A66F9	4000	1	harvest 2026-10-30
+641	Enduring Motivate	10	5	3	0xF3C09208	2000	1	harvest 2026-10-30
+643	Infusion	10	7	3	0xA8C2C199	2000	1	harvest 2026-10-30
+644	Elemental Veil	10	8	1	0x1A2B8058	3000	1	harvest 2026-10-30
+645	Fire Elementaling	10	8	0	0xA40F4AA4	5000	1	harvest 2026-10-30
+647	Summon: Weak Ale	10	8	0	0xA8C2C199	4000	1	harvest 2026-10-30
+648	Air Elementaling	10	12	0	0x8FE75B68	5000	1	harvest 2026-10-30
+649	Enduring Vitalize	10	12	3	0xF3C09208	2000	1	harvest 2026-10-30
+653	Smoking Aura	10	12	1	0x23D248B4	2000	1	harvest 2026-10-30
+656	Endure Fire	10	15	1	0x725CFDB8	3000	1	harvest 2026-10-30
+657	Earth Elementalkin	10	16	0	0x12E9E0F8	6000	1	harvest 2026-10-30
+659	Summon: Citrus Mixture	10	16	0	0xA8C2C199	4000	1	harvest 2026-10-30
+660	Transfuse	10	16	3	0xC2B700FA	2000	1	harvest 2026-10-30
+661	Burning Aura	10	20	1	0x23D248B4	2000	1	harvest 2026-10-30
+662	Enduring Velocity	10	20	3	0xA9AB5C0D	2000	1	harvest 2026-10-30
+664	Frozen Mark	10	20	3	0xA61FDF57	5000	1	harvest 2026-10-30
+669	Water Elementalkin	10	20	0	0x1D2A66F9	6000	1	harvest 2026-10-30
+673	Enduring Energize	10	24	3	0xF3C09209	2000	1	harvest 2026-10-30
+675	Fire Elementalkin	10	24	0	0xA40F4AA4	6000	1	harvest 2026-10-30
+677	Summon: Ginger root ale	10	24	0	0xA8C2C199	4000	1	harvest 2026-10-30
+681	Air Elementalkin	10	29	0	0x8FE75B68	6000	1	harvest 2026-10-30
+684	Flaming Aura	10	29	1	0x23D248B4	2000	1	harvest 2026-10-30
+687	Transfusion	10	29	3	0xC2B700FB	2000	1	harvest 2026-10-30
+689	Burning Mark	10	30	3	0x0E030048	5000	1	harvest 2026-10-30
+693	Earth Elemental	10	34	0	0x12E9E0F8	8000	1	harvest 2026-10-30
+695	Enduring Empower	10	34	3	0xF3C09209	2000	1	harvest 2026-10-30
+698	Phase Ring	10	34	0	0xA8C2C199	4000	1	harvest 2026-10-30
+703	Blazing Aura	10	39	1	0x23D248B4	2000	1	harvest 2026-10-30
+707	Impart	10	39	3	0xC2B700FB	2000	1	harvest 2026-10-30
+709	Water Elemental	10	39	0	0x1D2A66F9	8000	1	harvest 2026-10-30
+711	Earthen Mark	10	40	3	0x0E030048	5000	1	harvest 2026-10-30
+716	Enduring Burnout	10	44	3	0xF3C0920A	2000	1	harvest 2026-10-30
+717	Fire Elemental	10	44	0	0xA40F4AA4	8000	1	harvest 2026-10-30
+719	Summon: Bitter draft	10	44	0	0xA8C2C199	4000	1	harvest 2026-10-30
+785	Mend	4	1	0	0xC2B700FA	0	1	harvest 2026-10-30
+875	Disease Cloud	11	1	1	0x052EF90F	1000	1	harvest 2026-10-30
+877	Reinforce Bone +	11	1	3	0x1DAEB5B6	3000	1	harvest 2026-10-30
+880	Life Tap	11	3	1	0xAF72B893	2000	1	harvest 2026-10-30
+882	Gloom Pact	11	4	1	0x428D47EF	2000	1	harvest 2026-10-30
+884	Siphon Strength	11	4	1	0xAF72B893	2000	1	harvest 2026-10-30
+886	Rabid Infection	11	5	1	0x052EF90F	1000	1	harvest 2026-10-30
+888	Strengthen Bone +	11	7	3	0x1DAEB5B6	3000	1	harvest 2026-10-30
+889	Gather Shadows	11	8	0	0x4280E1DA	2000	1	harvest 2026-10-30
+890	Life Draw	11	8	1	0xAF72B893	2000	1	harvest 2026-10-30
+895	Dark Pact	11	12	1	0x428D47EF	2000	1	harvest 2026-10-30
+899	Tap Intellect	11	12	1	0xAE2F114F	3000	1	harvest 2026-10-30
+900	Endure Disease	11	15	1	0xA37406B2	3000	1	harvest 2026-10-30
+903	Siphon Life	11	16	1	0xAF72B893	2000	1	harvest 2026-10-30
+910	Shadow Pact	11	20	1	0x428D47EF	2000	1	harvest 2026-10-30
+911	Tap Fortitude	11	20	1	0x723913E6	2000	1	harvest 2026-10-30
+915	Lifespike	11	24	1	0xAF72B894	2000	1	harvest 2026-10-30
+918	Decaying Flesh	11	25	0	0xA3F05FEA	6000	2	harvest 2026-10-30
+926	Siphon Intellect	11	29	1	0xAE2F114F	3000	1	harvest 2026-10-30
+928	Tenebrous Pact	11	29	1	0x428D47EF	2000	1	harvest 2026-10-30
+932	Rotting Flesh	11	30	0	0xA3F05FEA	6000	1	harvest 2026-10-30
+934	Decay Mastery +	11	33	3	0x1DAEB5B7	3000	1	harvest 2026-10-30
+935	Ichor Spray	11	34	1	0x9DF0E3C5	2000	1	harvest 2026-10-30
+937	Spirit Tap	11	34	1	0xAF72B894	2000	1	harvest 2026-10-30
+939	Putrid Flesh	11	35	0	0xA3F05FEA	8000	2	harvest 2026-10-30
+940	Spiteweave	11	35	0	0x474288E3	3000	1	harvest 2026-10-30
+943	Shock of Spores	11	39	1	0xE1F8058D	2000	1	harvest 2026-10-30
+944	Siphon Fortitude	11	39	1	0x723913E6	2000	1	harvest 2026-10-30
+946	Umbral Pact	11	39	1	0x428D47EF	2000	1	harvest 2026-10-30
+950	Preserved Flesh	11	40	0	0xA3F05FEA	8000	1	harvest 2026-10-30
+952	Death Mastery +	11	43	3	0x1DAEB5B7	3000	1	harvest 2026-10-30
+953	Drain Spirit	11	44	1	0xAF72B895	2000	1	harvest 2026-10-30
+956	Howling Death	11	44	0	0xA3F05FEA	10000	2	harvest 2026-10-30
+957	Toxic Doom	11	44	1	0x9DF0E3C6	2000	1	harvest 2026-10-30
+959	Cremation	11	46	1	0xE78024D9	2000	1	harvest 2026-10-30
+969	Infernal Pact	11	49	1	0x428D47EF	2000	1	harvest 2026-10-30
+970	Innothule Fever	11	49	1	0x052EF911	2000	1	harvest 2026-10-30
+973	Ancient Death	11	50	0	0xA3F05FEA	10000	1	harvest 2026-10-30
+1213	Hide	6	1	0	0x1A2B8058	0	1	harvest 2026-10-30
+1420	Chilling Aura	3	1	0	0xF3C09208	3000	1	harvest 2026-10-30
+1421	Hatred	3	1	0	0xF3C09208	3000	1	harvest 2026-10-30
+1422	Cursed Hand	3	12	0	0xAAC52F03	3000	1	harvest 2026-10-30
+1426	Shadow Tunic	3	7	0	0x1DAEB5B6	3000	1	harvest 2026-10-30
+1431	Veil of Death +	3	12	0	0xF3C09208	3000	1	harvest 2026-10-30
+1437	Hand of Spite	3	20	0	0xF3C0920A	4000	1	harvest 2026-10-30
+1455	Gather Shadows	3	33	0	0x4280E1DA	2000	1	harvest 2026-10-30
+1457	Hand of Hate	3	34	0	0xF3C0920A	4000	1	harvest 2026-10-30
+1484	Hand of Innoruuk	3	49	0	0xF3C0920A	4000	1	harvest 2026-10-30
+1516	Fortitude	0	1	0	0x64BE409A	3000	1	harvest 2026-10-30
+1519	Tough Skin	0	4	0	0x1DAEB5B6	3000	1	harvest 2026-10-30
+1521	Furious Defense	0	7	0	0x1DAEB5B7	0	1	harvest 2026-10-30
+1524	Elemental Toughness	0	12	0	0x64BE409A	3000	1	harvest 2026-10-30
+1536	Reckless Force	0	23	0	0x1DAEB5B8	0	1	harvest 2026-10-30
+1539	Iron Skin	0	25	0	0xF3C09208	3000	1	harvest 2026-10-30
+1541	Frenzied Defense	0	27	0	0x1DAEB5B7	0	1	harvest 2026-10-30
+1547	Roar	0	30	0	0x64BE409A	1000	1	harvest 2026-10-30
+1549	Reckless Anger	0	33	0	0x1DAEB5B8	0	1	harvest 2026-10-30
+1551	Focus	0	34	0	0xF3C09208	0	1	harvest 2026-10-30
+1552	Call to Battle	0	35	2	0x1DAEB5B6	1000	1	harvest 2026-10-30
+1554	Desperate Defense	0	37	0	0x1DAEB5B7	0	1	harvest 2026-10-30
+1557	Iron Conviction	0	39	2	0x1DAEB5B6	1000	1	harvest 2026-10-30
+1559	Howl	0	40	0	0x64BE409A	1000	1	harvest 2026-10-30
+1563	Call to War	0	44	2	0x1DAEB5B8	1000	1	harvest 2026-10-30
+1565	Steel Skin	0	45	0	0xF3C09208	3000	1	harvest 2026-10-30
+1568	Frantic Defense	0	47	0	0x1DAEB5B8	0	1	harvest 2026-10-30
+1571	Focused Attention	0	49	0	0xF3C09208	0	1	harvest 2026-10-30
+1573	Iron Resolution	0	49	2	0x1DAEB5B6	1000	1	harvest 2026-10-30
+1609	Defense of the Swarm	0	40	2	0xA8C2C199	4000	1	harvest 2026-10-30
+1614	Blessing of Valentina	3	50	0	0xD17B032F	6000	1	harvest 2026-10-30
+1625	Minor Shielding	13	1	0	0xA87CDC4B	2000	1	harvest 2026-10-30
+1626	O'Keil's Radiation	13	1	0	0xEEA34A97	2000	1	harvest 2026-10-30
+1631	Element Shield	13	4	0	0xA87CDC4B	2000	1	harvest 2026-10-30
+1791	Leadership	5,10	6	2	0xA87CDC4B	2000	2	harvest 2026-10-30
+1793	Remove Illusion	0,5,9,12	6	0	0x0E030048	3000	5	harvest 2026-10-30; pcap 2026-10-21
+1795	Shroud of Hate	3	6	0	0x93CDC4E4	2000	1	harvest 2026-10-30
+1812	Feral Rat Form	0,5	40	0	0x0E030048	3000	2	harvest 2026-10-30
+1817	Mouse Form	0,5	50	0	0x0E030048	3000	3	harvest 2026-10-30; pcap 2026-10-21
+1820	Ratwere	0,5	30	0	0x0E030048	3000	2	harvest 2026-10-30
+2282	Flesh Mastery +	11	23	3	0x1DAEB5B6	3000	1	harvest 2026-10-30
+6114	Feral Lion Form	11	40	0	0x0E030048	3000	1	harvest 2026-10-30
+6116	Sabretooth Lion Form	11	50	0	0x0E030048	3000	1	harvest 2026-10-30
+6118	Feral Rat Form	0,5	40	0	0x0E030048	3000	2	harvest 2026-10-30
+6119	Mouse Form	0,5	50	0	0x0E030048	3000	2	harvest 2026-10-30

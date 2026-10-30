@@ -280,5 +280,58 @@ class LaterFields(unittest.TestCase):
         self.assertIsNone(iq.travel.route_of("Waysender Windfoot", "Klick'Anon", rs), "a letter is another place")
 
 
+class RequireGroups(unittest.TestCase):
+    """A requires entry that is a list is a group any one of which will do
+    (a token each class gets from its own quest): written "a|b" beside the
+    plain ones, and a draft only when every quest of the group keeps it out;
+    the control: the same keys apart keep it out while either does."""
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.path = os.path.join(self.dir.name, "q.db")
+        self.db = make_db(self.path)
+
+    def tearDown(self):
+        self.db.close()
+        self.dir.cleanup()
+
+    def plan(self, ghost_target):
+        def q(key, requires, target="Field Boar"):
+            return {"key": key, "name": key, "giver": "Captain Brindle", "classes": [0], "requires": requires,
+                    "steps": [{"kind": "kill", "target": target, "count": 1, "journal": "Kill."}]}
+        doc = {"city": "testmoor", "quests": [
+            q("Misc/g/a", []), q("Misc/g/b", [], ghost_target),
+            q("Misc/g/either", [["Misc/g/a", "Misc/g/b"]]), q("Misc/g/both", ["Misc/g/a", "Misc/g/b"]),
+            q("Misc/g/plus", ["Misc/g/a", ["Misc/g/b"]])]}
+        path = os.path.join(self.dir.name, "groups.json")
+        with open(path, "w") as f:
+            json.dump(doc, f)
+        return iq.plan(self.db, iq.load_files([path]))
+
+    def row(self, key):
+        return self.db.execute("SELECT q.questid, q.enabled, q.requires FROM quests q JOIN quest_import_quests k "
+                               "ON k.questid = q.questid WHERE k.key = ?", (key,)).fetchone()
+
+    def test_a_group_is_written_and_kept_out_only_whole(self):
+        iq.write(self.db, self.plan("Moor Ghost"))  # b a draft (no Moor Ghost)
+        a, b = self.row("Misc/g/a"), self.row("Misc/g/b")
+        self.assertEqual((a[1], b[1]), (1, 0))
+        either, both, plus = self.row("Misc/g/either"), self.row("Misc/g/both"), self.row("Misc/g/plus")
+        self.assertEqual(either[2], f"{a[0]}|{b[0]}", "the group in one entry")
+        self.assertEqual(both[2], f"{a[0]}, {b[0]}", "the control: apart")
+        self.assertEqual(plus[2], f"{a[0]}, {b[0]}", "a group of one is a plain entry")
+        self.assertEqual(either[1], 1, "a, whole, meets the group")
+        self.assertEqual((both[1], plus[1]), (0, 0), "the control: b, a draft, keeps them out")
+        # b mended: all whole; then both drafts: the group's quest too
+        iq.write(self.db, self.plan("Field Boar"))
+        self.assertEqual((self.row("Misc/g/both")[1], self.row("Misc/g/either")[1]), (1, 1))
+        self.db.execute("DELETE FROM npcs WHERE npc_name = 'Captain Brindle'")
+        p = self.plan("Moor Ghost")
+        drafts = {x["key"]: x["draft"] for x in p["quests"]}
+        self.assertTrue(drafts["Misc/g/either"], "every quest of its group a draft")
+        why = next(x["why"] for x in p["quests"] if x["key"] == "Misc/g/either")
+        self.assertTrue(any("group" in w for w in why), why)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -763,7 +763,7 @@ async function editor(box, id) {
           field('From level', num(q, 'minlevel', { min: 0 })), field('To level', num(q, 'maxlevel', { min: 0 }), '0: any'),
           field('Classes', idSet(q, 'classes', CLASSES), 'none ticked: any', true),
           field('Races', idSet(q, 'races', RACES), 'none ticked: any', true),
-          field('Quests finished first', text(q, 'requires', { placeholder: 'quest ids, comma separated', class: 'mono' }), null, true),
+          field('Quests finished first', text(q, 'requires', { placeholder: 'quest ids, comma separated; 11|12 for either', class: 'mono' }), null, true),
           field('Standings asked', factionReqs(q, 'factionreq'), 'offered, marked and done at its giver only while each is met (-2000 to 2000)', true))),
         card('What the giver says', h('div', { class: 'fields' },
           field('Offer', area(q, 'offer', 6), 'a paragraph a question: its lines a box each, its last line the question (no name before it)', true),

@@ -58,6 +58,7 @@ type questRow struct {
 	Requires []int64  `json:"requires,omitempty"`
 	Why      []string `json:"why,omitempty"`
 
+	groups  [][]int64   // what it requires by group (database.ParseRequires): any one of a group, every group
 	missing []questMiss // the names behind Why, for the summary
 	notes   string
 	targets []string // the NPCs its talk, show and give steps send players to, in order (the map's givers)
@@ -294,6 +295,13 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 		for _, id := range database.ParseIntList(text(q, "requires")) {
 			r.Requires = append(r.Requires, int64(id))
 		}
+		for _, g := range database.ParseRequires(text(q, "requires")) {
+			ids := make([]int64, len(g))
+			for i, id := range g {
+				ids[i] = int64(id)
+			}
+			r.groups = append(r.groups, ids)
+		}
 		if m := reQuestKey.FindStringSubmatch(r.Source); m != nil {
 			r.Key, r.City = m[1], questCity(m[1])
 		}
@@ -475,15 +483,28 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 	for _, r := range idx.rows {
 		blocked[r.ID] = len(r.Why) > 0
 	}
+	// a quest it requires keeps it out when it does not exist or is a draft
+	// that is not ready; a group of alternatives only when every one of them does
+	out := func(req int64) bool {
+		q := idx.byID[req]
+		return q == nil || (!q.Enabled && blocked[req])
+	}
+	groupOut := func(g []int64) bool {
+		for _, req := range g {
+			if !out(req) {
+				return false
+			}
+		}
+		return true
+	}
 	for changed := true; changed; {
 		changed = false
 		for _, r := range idx.rows {
 			if blocked[r.ID] {
 				continue
 			}
-			for _, req := range r.Requires {
-				q := idx.byID[req]
-				if q == nil || (!q.Enabled && blocked[req]) {
+			for _, g := range r.groups {
+				if groupOut(g) {
 					blocked[r.ID], changed = true, true
 					break
 				}
@@ -491,12 +512,17 @@ func (s *Server) loadQuestIndex() (*questIndex, error) {
 		}
 	}
 	for _, r := range idx.rows {
-		for _, req := range r.Requires {
-			switch q := idx.byID[req]; {
-			case q == nil:
-				r.why("it requires quest %d, which does not exist", req)
-			case !q.Enabled && blocked[req]:
-				r.why("it requires quest %d (%s), a draft that is not ready", req, q.Name)
+		for _, g := range r.groups {
+			if !groupOut(g) {
+				continue
+			}
+			for _, req := range g {
+				switch q := idx.byID[req]; {
+				case q == nil:
+					r.why("it requires quest %d, which does not exist", req)
+				case !q.Enabled && blocked[req]:
+					r.why("it requires quest %d (%s), a draft that is not ready", req, q.Name)
+				}
 			}
 		}
 		switch {

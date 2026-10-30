@@ -560,3 +560,55 @@ func TestEQOADataDraftsSkipImportedSections(t *testing.T) {
 		t.Errorf("import: %d made %v skipped %v, want 1 and 1 (level 1 imported whole)", code, out["made"], out["skipped"])
 	}
 }
+
+// A quest that requires a group ("a|b", any one of them) is ready while one of
+// the group is in the game, and kept out only when every one of them is
+// missing or a draft that is not ready; put in the game, it brings in none of
+// the group when one is in already. The control: the same two apart ("a, b")
+// keep it out while either is out.
+func TestAQuestRequiringAGroupIsReadyOnAnyOfIt(t *testing.T) {
+	f := newFixture(t)
+	f.questEngine()
+	f.importedQuests()
+	src := func(key string) string { return "EQOA-Data " + key + " (tools/import_quests.py)" }
+	// 100003 (Lost) is a draft that is not ready (no Maryan), 100001 in the game
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver, minlevel, maxlevel, classes, requires, source, notes) VALUES
+		(100011, 'Either', 0, 'Guard Dahvel', 1, 60, '0', '100003|100001', ?, ''),
+		(100012, 'Both', 0, 'Guard Dahvel', 1, 60, '0', '100003, 100001', ?, ''),
+		(100013, 'Neither', 0, 'Guard Dahvel', 1, 60, '0', '100003|100004', ?, '')`,
+		src("60/good-healer/ep1-1"), src("60/good-healer/ep1-2"), src("60/good-healer/ep1-3"))
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, count, journal) VALUES
+		(100011, 1, 'talk', 'Guard Dahvel', 1, 'Talk.'), (100012, 1, 'talk', 'Guard Dahvel', 1, 'Talk.'),
+		(100013, 1, 'talk', 'Guard Dahvel', 1, 'Talk.')`)
+	c := f.browser()
+	c.login("gm")
+	code, out := c.op("quest_list", map[string]any{})
+	if code != 200 {
+		t.Fatalf("quest_list: %d %v", code, out)
+	}
+	status, why := map[int64]string{}, map[int64]string{}
+	for _, q := range out["quests"].([]any) {
+		m := q.(map[string]any)
+		id, _ := asFloat(m["questid"])
+		status[int64(id)], _ = m["status"].(string)
+		if w, ok := m["why"].([]any); ok {
+			why[int64(id)] = fmt.Sprint(w...)
+		}
+	}
+	for id, want := range map[int64]string{100011: questReady, 100012: questDraft, 100013: questDraft} {
+		if status[id] != want {
+			t.Errorf("quest %d is %q, want %q (why: %s)", id, status[id], want, why[id])
+		}
+	}
+	if !strings.Contains(why[100012], "it requires quest 100003 (Lost)") || strings.Contains(why[100011], "100003") {
+		t.Errorf("why: Both %q, Either %q", why[100012], why[100011])
+	}
+	// put in the game: Either brings in nothing of its group (100001 is in)
+	code, out = c.op("quest_set_enabled", map[string]any{"quests": []int64{100011}, "enabled": true, "dryRun": true})
+	if code != 200 {
+		t.Fatalf("dry run: %d %v", code, out)
+	}
+	if got := fmt.Sprint(out["changed"]); !strings.Contains(got, "questid:100011") || strings.Contains(got, "required:true") {
+		t.Errorf("Either put in brought in: %s", got)
+	}
+}

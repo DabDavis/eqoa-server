@@ -224,7 +224,11 @@ beside it):
   (`Increase PR/DR by 35`, `buff DR, PR, FR, CR by 100`). A line that raises stats and gives no
   duration lasts 30 minutes; a heal over time with none, 24 seconds. A buff's hate (`218 hate`)
   and an epic's `Power cost`, `Cast` and `Recast` are read and left alone; a radius (`15rad`) is
-  a group's area (below).
+  a group's area (below). The vampires' words (`tools/seed_vampires.py`): `Reagent Unit of Blood x2`
+  (the cast is refused while the caster carries fewer of that item, and takes them as it begins),
+  `Set STR to 500` (a stat set, not raised: from the bearer's own, other effects still adding, the
+  stat cap still holding), `Increase Damage per Hit by 500` (on every melee hit the bearer lands),
+  `Set Aggro to 0` (the target forgets its hate for the caster).
   The cleric's HP/AC line (Courage, Center, Daring, Bravery, Valor, Resolution, Order, United
   Faith and the group ranks) also heals as much as it raises maximum HP. **Heals over time**: the
   first tick lands at once unless the player already has one; a weaker one over a stronger does
@@ -289,7 +293,8 @@ beside it):
   moment, in order: `{"on":"accept","do":"popup","text":"...","answer":"OK"}` (a window the player closes),
   `say` (`npc`, `text`), `give` (`items`: `patternid*count`), `spawn` (`npc`, `hostile`: a copy before the
   player for that step, gone when it is done; hostile, it may be attacked and attacks), `visual` (`fx`, a
-  0x00B1 DictID like `0x1DAEB5B6`, `seconds`), `teleport` (`world`, `x`, `y`, `z`); one popup at a time (the
+  0x00B1 DictID like `0x1DAEB5B6`, `seconds`), `teleport` (`world`, `x`, `y`, `z`), `vampire` (the player made a
+  vampire, whom the sun burns by day: the vampire quest's bats); one popup at a time (the
   client shows one question box at once). The journal holds eight quests. Keep a quest
   a draft (`enabled` 0) until it is right; `quest_try` gives it to your own character in the world to play.
 - **Hundreds of quests** (the city quests imported whole, `tools/import_quests.py`): `quest_list` with `status`

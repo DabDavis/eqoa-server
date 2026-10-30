@@ -72,7 +72,9 @@ engine's (`handlers/quests.go`); its actions are listed there and in the GM pane
 (`npc`, a copy beside the player for the step, gone after; `"hostile": true` makes it one to kill:
 attackable, and it attacks the player, which is how a step has a townsperson killed); `visual` (`fx`: a
 DictID like `0x1DAEB5B6`, or a spell's name for that spell's visual; `seconds`); `teleport`
-(`world`, `x`, `y`, `z`). One popup at a time: the client shows one question box at once.
+(`world`, `x`, `y`, `z`); `vampire` (nothing else: the player made a vampire, whom the sun burns by day,
+`entity/vampire.go`; the vampire quest's bats). One popup at a time: the client shows one question box
+at once.
 
 ## The import
 
@@ -129,7 +131,7 @@ its undo (unless a GM changed it since); a name with a peaceful row already is l
 | `name` | as the quest files spell it |
 | `role` | `foe` (what a quest kills: npc_type 0) or `talker` (whom it talks to: 128) |
 | `body` | `["race", "<human, elf, darkelf, gnome, dwarf, troll, barbarian, halfling, erudite, ogre>", 0 male or 1 female]`, `["kind", "<a KIND key of the tool>"]` (bear, orc, spider ...) or `["npc", "<an npcs name whose body it copies>"]` |
-| `place` | `["ff"]` (where FrontiersForge saw it; not a spot its placeholders share), `["poi", "tunaria", "rathe" or "odus", "<a point of EQOA-Data's map>"]` (the Rathe's points are the sheet's inset, south Tunaria's beside it in the same box Tunaria's: a point of the other region is refused), `["near", "<npc>", distance, world]` or `["at", world, x, z]`; any of them with a last `"low"` for a lower floor |
+| `place` | `["ff"]` (where FrontiersForge saw it; not a spot its placeholders share), `["poi", "tunaria", "rathe" or "odus", "<a point of EQOA-Data's map>"]` (the Rathe's points are the sheet's inset, south Tunaria's beside it in the same box Tunaria's: a point of the other region is refused), `["near", "<npc>", distance, world]` or `["at", world, x, z]` (`["at", world, x, z, height]`: on the floor nearest that height, as under a roof whose top floor is the roof's); any of them with a last `"low"` for a lower floor |
 | `count` | how many spawns (1); `level` its level (none: the sighting's, the map's); `note` the guide's words for its place; `water` `land` (out of the water), `water` (a fish) or `both` |
 
 Each file is a set of its own: `--apply --set qa` writes it, `--undo --set qa` takes exactly its rows

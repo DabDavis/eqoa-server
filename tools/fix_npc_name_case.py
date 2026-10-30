@@ -135,7 +135,7 @@ CODE_KEYED = (
     "Waysender Brindel", "Necrologist Zizclank", "Portal to the Dead Hills", "Whirling Portal",
     "Portal to the Lake", "Bloody Portal", "Portal of the Twins", "Fuming Portal", "Portal to the Cauldron",
     "Sky Portal", "Norach", "portal guardian", "Subdued Magus", "essence of rain", "essence of sun",
-    "essence of night", "Mark of the Majestic",
+    "essence of night", "Mark of the Majestic", "coffin", "Coffin1", "Sanctuary coffin",
     # handlers/chat.go teleDests (entity/world.go SpawnOfNPC)
     "Coachman Ronks", "Archivist Vaal", "Harbormaster Machado",
     # entity/world.go warpLocationNames

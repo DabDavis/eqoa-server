@@ -69,6 +69,8 @@ type World struct {
 	// regenAt is when the last regen tick fell (regenSystem): the regular
 	// tick a heal over time's ticks after its first keep to (hot.go)
 	regenAt time.Time
+	// How the sun treats vampires (vampire.go)
+	vampireSun VampireSun
 
 	// Corpses (corpse.go): how long one lies unlooted, how long after it
 	// goes its creature comes back, and the hook told which went.
@@ -151,6 +153,7 @@ func NewWorld() *World {
 		corpseDecay:  DefaultCorpseDecay,
 		respawnAfter: DefaultRespawnAfter,
 		roamRadius:   DefaultRoamRadius,
+		vampireSun:   DefaultVampireSun,
 	}
 	log.Println("Entity World initialized")
 	return w

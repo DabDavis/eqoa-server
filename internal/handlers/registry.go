@@ -412,8 +412,11 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	}
 	NewSupportHandler(gameWorld, petitions).RegisterHandlers(r)
 
-	// Register the spell book's requests (0x0033, 0x003A, 0x00FE)
-	NewSpellbookHandler(gameWorld, spellStore).RegisterHandlers(r)
+	// Register the spell book's requests (0x0033, 0x003A, 0x00FE), and the
+	// casts' reagents (reagent.go)
+	spellbookHandler := NewSpellbookHandler(gameWorld, spellStore)
+	spellbookHandler.SetInventory(invStore)
+	spellbookHandler.RegisterHandlers(r)
 
 	// Register the world-load handler (0x0049). This is what re-describes the
 	// scene after a teleport; without it a world change lands the player in an
@@ -464,6 +467,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewLiveLookHandler(charHandler).RegisterHandlers(r)
 	if charStore != nil && charStore.DB() != nil {
 		chatHandler.SetDyeStore(charStore.DB())
+		chatHandler.SetVampireStore(charStore.DB()) // #vampire (vampirecmd.go)
 	}
 	if charStore != nil && gameWorld != nil {
 		StartDuelPurse(gameWorld, charStore.DB())

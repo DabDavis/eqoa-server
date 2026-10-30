@@ -67,7 +67,8 @@ type ChatHandler struct {
 
 	gm gmChannel // the GM's TEST menu (gmchannel.go)
 
-	dyes dyeStore // #dye's (dye.go)
+	dyes     dyeStore     // #dye's (dye.go)
+	vampires vampireStore // #vampire's (vampirecmd.go)
 }
 
 // NewChatHandler creates a new chat handler.
@@ -1063,6 +1064,11 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		// #dye [<slot|armor|all> <colour|none>]: the target's (a player) or
 		// the GM's dyes, drawn by clients of the live game's look (dye.go)
 		h.dyeCommand(sess, parts[1:])
+	case "#vampire":
+		// #vampire [on|off]: whether the target (a player) or the GM is a
+		// vampire, whom the sun burns by day, and what the sun does to it
+		// now (vampirecmd.go)
+		h.vampireCommand(sess, parts[1:])
 
 	case "#help":
 		h.gmReply(sess, "GM Commands (each also as /name):")
@@ -1099,6 +1105,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #craftskill [<skill 0-5> <level 1-10> [rank 0-9]] - your tradeskills, or set one")
 		h.gmReply(sess, "  #craftlearn <recipe id | all [skill 0-5]> - recipes into your Recipe Book")
 		h.gmReply(sess, "  #dye [<slot|armor|all> <RRGGBB|tN|name|none>] - your target's (a player) or your dyes, seen by clients of the live game's look")
+		h.gmReply(sess, "  #vampire [on|off] - whether your target (a player) or you is a vampire, burned by day; what the sun does to it now")
 		h.gmReply(sess, "  #kill - kill target")
 		h.gmReply(sess, "  #npcinfo - the target's ids, model, size, level, spawn and gear")
 		h.gmReply(sess, "  #stats - HoT, PoT, stats and caps, the melee rolls, hate: the target's or your own")

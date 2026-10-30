@@ -227,6 +227,7 @@ const (
 	EventSpawn    = "spawn"    // a copy of an NPC beside the player, for the step
 	EventVisual   = "visual"   // a spell visual played on the player
 	EventTeleport = "teleport" // the player moved to a place
+	EventVampire  = "vampire"  // the player made a vampire (charvampire, entity/vampire.go): the bats' infection
 )
 
 // QuestEventWhens are the times a quest's own events may name, StepEventWhens
@@ -234,14 +235,14 @@ const (
 var (
 	QuestEventWhens   = []string{EventAccept, EventFinish}
 	StepEventWhens    = []string{EventStart, EventDone}
-	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventVisual, EventTeleport}
+	QuestEventActions = []string{EventPopup, EventSay, EventGive, EventSpawn, EventVisual, EventTeleport, EventVampire}
 )
 
 // QuestEvent is one thing a quest or a step does at one of its times, kept as
 // a JSON array in the events column.
 type QuestEvent struct {
 	On      string  `json:"on"`                // when: accept or finish (a quest's), start or done (a step's)
-	Do      string  `json:"do"`                // what: popup, say, give, spawn, visual, teleport
+	Do      string  `json:"do"`                // what: popup, say, give, spawn, visual, teleport, vampire
 	Text    string  `json:"text,omitempty"`    // popup, say: the words (%p the player's name)
 	Answer  string  `json:"answer,omitempty"`  // popup: its one answer ("OK" when none)
 	NPC     string  `json:"npc,omitempty"`     // say: who says it (nobody: no name before it); spawn: whom
@@ -328,6 +329,7 @@ func EventProblems(s string, step bool) []string {
 			if e.X == 0 && e.Z == 0 {
 				add(i, "teleport's place is 0, 0")
 			}
+		case EventVampire:
 		default:
 			add(i, "do %q is not one of %s", e.Do, strings.Join(QuestEventActions, ", "))
 		}
@@ -930,6 +932,11 @@ type QuestStore struct{ db *SQLiteDB }
 
 // NewQuestStore is the store over db.
 func NewQuestStore(db *SQLiteDB) *QuestStore { return &QuestStore{db: db} }
+
+// MarkVampire is a quest's vampire event on the character (vampire.go).
+func (s *QuestStore) MarkVampire(serverID uint32, quest string) (bool, error) {
+	return s.db.MarkVampire(serverID, "quest", "infected by "+quest)
+}
 
 // LoadQuests reads every quest, drafts too, with its steps in order.
 func (s *QuestStore) LoadQuests() ([]Quest, error) {

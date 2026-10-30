@@ -16,8 +16,9 @@ import (
 // cmd/groundbake's) and the server's own creatures: each lands where the
 // server would set a player, on a pyramid's top as written, else on the
 // terrain within 200 of its place, under the open sky and out of the water,
-// in one of the disc's six worlds. Skipped without both: neither is in this
-// repository.
+// in one of the disc's six worlds; a place under a roof with no open ground
+// near (the vampires' Sanctuary) on itself. Skipped without both: neither is
+// in this repository.
 func TestRealSpellGatesLand(t *testing.T) {
 	dir := os.Getenv("EQOA_GROUND_DIR")
 	src := os.Getenv("EQOA_REAL_DB")
@@ -87,8 +88,14 @@ func TestRealSpellGatesLand(t *testing.T) {
 		switch {
 		case !ok || math.Abs(float64(fy-y)) > 0.05:
 			t.Errorf("%s: landed at (%.1f, %.1f, %.1f), off the terrain (%.1f)", row.Spell, x, y, z, fy)
-		case top > y+gateOpen:
+		case top > y+gateOpen && d > 0:
 			t.Errorf("%s: landed under a floor %.1f above", row.Spell, top-y)
+		case top > y+gateOpen:
+			// a place under a roof with no open ground near enough (the
+			// vampires' Sanctuary, in the rock): the search's last resort,
+			// the place itself
+			t.Logf("%-24s %s: under a roof, no open ground within the search: on its place", row.Spell, row.Place)
+			continue
 		case env != nil && w.waterAtLocked(row.World, x, y+bodyAbove, z):
 			t.Errorf("%s: landed in the water", row.Spell)
 		case d > gateSteps[len(gateSteps)-1]:

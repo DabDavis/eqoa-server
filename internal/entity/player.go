@@ -275,6 +275,13 @@ type Player struct {
 	GMForm     uint32
 	GMFormSize float32
 	Frozen     bool
+
+	// Vampire: the sun burns it by day (vampire.go; table charvampire, read
+	// at its login, set by #vampire and the GM panel where it stands). GM:
+	// its account was a GM's at its login (acctlevel 1 or more), which
+	// VampireSun.GMs may spare.
+	Vampire bool
+	GM      bool
 }
 
 // BuffSlot is one active effect as CLIENT's Channel43 reads it into

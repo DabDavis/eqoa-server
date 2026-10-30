@@ -96,7 +96,7 @@ func BuffLine(s *CastSpell) string {
 
 // statLineNames are the stats as a line names them, by Stat.
 var statLineNames = []string{"none", "STR", "STA", "AGI", "DEX", "WIS", "INT", "CHA", "AC", "maxHP", "maxPower",
-	"FR", "CR", "PR", "DR", "LR", "AR", "?"}
+	"FR", "CR", "PR", "DR", "LR", "AR", "damage", "?"}
 
 var buffKindNames = map[EffectKind]string{EffectShield: "shield", EffectDefProc: "defproc", EffectProc: "proc",
 	EffectSpeed: "speed", EffectInvis: "invis", EffectPowerCap: "powercap"}

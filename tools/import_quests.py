@@ -64,7 +64,7 @@ CLASSES = {
 KINDS = ("talk", "show", "give", "kill", "loot", "reach")
 NPC_KINDS = ("talk", "show", "give")
 QUEST_WHENS, STEP_WHENS = ("accept", "finish"), ("start", "done")
-DOS = ("popup", "say", "give", "spawn", "visual", "teleport")
+DOS = ("popup", "say", "give", "spawn", "visual", "teleport", "vampire")
 
 # The quest tables as internal/database/quests.go makes them, and the columns
 # it adds to an older one.

@@ -515,7 +515,13 @@ under the 01:30 tables, as the live log); `balancesim_test.go` holds the stand-i
 `balance_tune_log`, `--undo` exact); the server reads it at its next start or at once at a save of
 any Balance page in the panel. `balanceclasslevel` is read only by a server of 2026-10-30 or later,
 so apply it with that server (under an older one the ranger's, bard's and rogue's shares are gone:
-they would take all of an NPC's melee).
+they would take all of an NPC's melee). **Then `tools/retune_balance.py`** (same flags, log
+`balance_retune_log`) moves `balanceclasslevel` from the first tuning's rows to the re-fit on the
+data of 04:20 (the armour classes and the rewards' class masks put right after 01:30 moved the
+kits: a monk of 5 won a yellow two up 31% of the time), only rows still as the first tuning left
+them; data alone, read at the next start. The seeds hold the two tunings' result. Kits move with
+the items, so a data change that reaches what classes wear can move a class off its targets again:
+`balancesim_real_test.go` with `EQOA_REAL_DB` on a copy is the check.
 
 ## The GM panel (`internal/gmweb`)
 

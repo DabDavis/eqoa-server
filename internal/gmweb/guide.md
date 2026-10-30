@@ -120,6 +120,7 @@ beside it):
 | `defaultcharacter` | where a new character starts, per race, home city (`humType`: a human's east 1, west 2) and class: `x`, `y`, `z`, `facing` (radians), `world`; it is bound there until a spiritmaster binds it; read at each creation | `defaultCharacterID` |
 | `quests` | a quest: its giver (an NPC's name), levels, classes, races, quests first, what the giver says (`offer`, `accept`, `started`); `enabled` 0 is a draft | `questid` |
 | `queststeps` | a quest's steps in order: `kind` talk / show / give / kill / loot / reach, `target` (an NPC's or creature's name), `items` (`patternid*count, ...`), `chance` (a loot step's), the `journal` line, the NPC's words, the rewards, `events` | `questid`+`step` |
+| `queststeptargets` | a kill or loot step's other creatures, a row a name: a kill of any counts, a loot step's item drops off any (the Quests page and `quest_save`'s `also` edit them) | `questid`+`step`+`target` |
 | `charquests` | how far a character has come in a quest: `step` (0 finished), `count` (kills so far), `done` (times finished) | `serverid`+`questid` |
 
 ## Conventions
@@ -276,7 +277,9 @@ beside it):
   with the group within 200), `loot` (kill creatures named `target` until `count` of the item in `items` have been taken
   off their corpses during the step: each kill credited to a player on the step drops one onto that player's
   own view of the corpse with `chance`, 0 every kill; items held from before do not count), `reach` (within `radius` of `x`, `z` in
-  `world`). A step done says its `says`,
+  `world`). A kill or loot step counts every creature its journal names: `target` and its `also`, a list of the
+  others (`"target": "raven", "also": ["magpie"]` for "from the ravens and magpies"; a step's `also` left out of
+  a save stays as it is, `[]` clears it). A step done says its `says`,
   takes its journal line and adds the next step's ("You have finished a quest!" and "You have received a
   quest!", as Sandstorm announces each step; the last step only the first) and gives its rewards (Sandstorm
   gives them at the last step only): `xp`, `rewardtunar`,

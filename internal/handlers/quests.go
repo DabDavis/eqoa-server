@@ -629,12 +629,24 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	return false
 }
 
-// stepNPC is whether a talk, give or kill step names this NPC.
+// stepNPC is whether a step names this NPC: a talk, show or give step by its
+// target, a kill or loot step by its target or one of its others (Also). A
+// step pinned to one spawn (NPCID) takes its target at that spawn only; its
+// others count at any of theirs.
 func stepNPC(st *database.QuestStep, name string, spawn entity.EntityID) bool {
-	if !strings.EqualFold(strings.TrimSpace(st.Target), strings.TrimSpace(name)) {
+	name = strings.TrimSpace(name)
+	if strings.EqualFold(strings.TrimSpace(st.Target), name) {
+		return st.NPCID == 0 || entity.EntityID(st.NPCID) == spawn
+	}
+	if !database.Hunts(st.Kind) {
 		return false
 	}
-	return st.NPCID == 0 || entity.EntityID(st.NPCID) == spawn
+	for _, t := range st.Also {
+		if strings.EqualFold(strings.TrimSpace(t), name) {
+			return true
+		}
+	}
+	return false
 }
 
 // factionLook is a player's standings as the World has them (World.Standing,

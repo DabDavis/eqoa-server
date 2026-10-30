@@ -110,8 +110,10 @@ func byDamage(a, b database.ItemPatternRecord) int {
 }
 
 // templateGear is what the template wears and carries out of items (those the
-// character may wear: database.WearablePatterns), as the file's doc says.
-func templateGear(items []database.ItemPatternRecord) []templatePick {
+// character may wear: database.WearablePatterns), as the file's doc says, on
+// a character of the class (a knight's other hand never a weapon:
+// offHandWeaponBarred).
+func templateGear(items []database.ItemPatternRecord, class int) []templatePick {
 	of := func(order func(a, b database.ItemPatternRecord) int, wear ...int) []database.ItemPatternRecord {
 		var out []database.ItemPatternRecord
 		for _, it := range items {
@@ -188,7 +190,10 @@ func templateGear(items []database.ItemPatternRecord) []templatePick {
 		for _, c := range []struct {
 			slot int
 			c    []database.ItemPatternRecord
-		}{{17, of(byScore, 13)}, {15, of(byScore, 14)}, {20, of(byScore, 18)}} {
+		}{{17, of(byScore, 13)}, {equipSecondary, of(byScore, wearEitherHand)}, {20, of(byScore, 18)}} {
+			if c.slot == equipSecondary && offHandWeaponBarred(class) {
+				continue
+			}
 			for _, p := range c.c {
 				if p.PatternID == main.PatternID && p.Lore != 0 {
 					continue // a LORE weapon is held once
@@ -314,7 +319,7 @@ func (h *CharacterHandler) ApplyTemplate(sess *session.Session) ([]string, error
 	if err != nil {
 		return nil, fmt.Errorf("the inventory: %w", err)
 	}
-	plan := planTemplate(items, templateGear(patterns))
+	plan := planTemplate(items, templateGear(patterns, snap.Class))
 
 	for _, id := range plan.takeOff {
 		if err := h.inventoryStore.SetEquipLoc(sid, id, -1); err != nil {

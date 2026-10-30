@@ -44,6 +44,10 @@ type InteractHandler struct {
 	// (by lineKey), so a second talk hears another.
 	lastMu   sync.Mutex
 	lastLine map[uint64]int
+
+	// rehab is the rehabilitators (rehab.go): their menu, and its answers.
+	// Nil: a rehabilitator is any other NPC.
+	rehab *Rehab
 }
 
 // SetDialogLines gives the handler npcdialog's reader (database.NPCDialog).
@@ -247,6 +251,11 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
+	// A rehabilitator's menu (rehab.go): resets, paths, roses.
+	if npc, ok := targetEntity.(*entity.NPC); ok && h.rehab.Talk(sess, player, npc) {
+		return nil
+	}
+
 	// A spiritmaster binds (spiritmaster.go), a waysender sends the player to
 	// another town (waysender.go).
 	if npc, ok := targetEntity.(*entity.NPC); ok && IsSpiritmaster(npc.Name) {
@@ -430,6 +439,10 @@ func (h *InteractHandler) HandleDialogueOption(sess *session.Session, msg *proto
 	}
 	// A GM trigger's popup (gmtriggers.go): its one answer changes nothing.
 	if IsTriggerBox(targetObjectID) {
+		return nil
+	}
+	// A rehabilitator's question (rehab.go); an old one does nothing.
+	if h.rehab.Answer(sess, player, targetObjectID, selectedOption) {
 		return nil
 	}
 	// A duel's invitation or "Cancel duel?" (duel.go)

@@ -151,24 +151,16 @@ func (h *ChatHandler) resetTraining(s gmSubject) string {
 		return "Training reset: this server keeps no characters"
 	}
 	if s.sess != nil {
-		rec, err := h.resets.GetByServerID(s.serverID)
-		if err != nil {
+		r, ok, err := trainingBack(h.gameWorld, h.resets, s.sess, s.serverID)
+		switch {
+		case ok && err != nil:
+			log.Printf("GM: the training reset of '%s' not kept: %v", s.name, err)
+			return fmt.Sprintf("%s's training points were reset but not kept: %v", s.name, err)
+		case ok:
+			log.Printf("GM: training of '%s' reset, %d points back (%d unspent of %d)", s.name, r.Refund(), r.Unused, r.Total)
+			return fmt.Sprintf("%s: %d training points back (%s), %d unspent of %d", s.name, r.Refund(), spentLine(r.Spent), r.Unused, r.Total)
+		case err != nil:
 			return fmt.Sprintf("Training reset of %s: %v", s.name, err)
-		}
-		spent := database.TrainingSpent([7]int{rec.TPStrength, rec.TPStamina, rec.TPAgility, rec.TPDexterity,
-			rec.TPWisdom, rec.TPIntel, rec.TPCharisma})
-		if before, after, total, ok := h.gameWorld.TakeBackTraining(s.serverID, spent); ok {
-			r := database.TrainingReset{Spent: spent, Unused: after, Total: total}
-			if err := h.resets.TakeTraining(s.serverID, r); err != nil {
-				log.Printf("GM: the training reset of '%s' not kept: %v", s.name, err)
-				return fmt.Sprintf("%s's training points were reset but not kept: %v", s.name, err)
-			}
-			// the trainer takes z off what it shows: a negative z gives back
-			SendTrainingPointsSpent(s.sess, int32(before-after))
-			h.sendStatsNow(s.sess)
-			SendColoredChat(s.sess, TrainingResetText, 255, 255, 0)
-			log.Printf("GM: training of '%s' reset, %d points back (%d unspent of %d)", s.name, r.Refund(), after, total)
-			return fmt.Sprintf("%s: %d training points back (%s), %d unspent of %d", s.name, r.Refund(), spentLine(spent), after, total)
 		}
 		// gone from the world meanwhile: its row is all there is
 	}
@@ -179,6 +171,35 @@ func (h *ChatHandler) resetTraining(s gmSubject) string {
 	log.Printf("GM: training of '%s' (offline) reset, %d points back (%d unspent of %d)", s.name, r.Refund(), r.Unused, r.Total)
 	return fmt.Sprintf("%s (not in the world: at the next login): %d training points back (%s), %d unspent of %d",
 		s.name, r.Refund(), spentLine(r.Spent), r.Unused, r.Total)
+}
+
+// trainingBack gives a character in the world back every training point it
+// spent, for the GM's #rst_both and a rehabilitator's reset (rehab.go) alike:
+// the game's first (its base stats and unspent points), then its row's tp
+// columns lowered by what came back (TakeTraining: points a trainer took
+// meanwhile stay), then its client told: 0x001D with old - new (the trainer
+// takes z off what it shows, so a negative z gives back), the stats channel
+// again and TrainingResetText. ok is false when it is not in the world
+// (nothing done); err is a row not read, or, with ok, the reset not kept.
+func trainingBack(gw *entity.World, store resetStore, sess *session.Session, serverID uint32) (database.TrainingReset, bool, error) {
+	rec, err := store.GetByServerID(serverID)
+	if err != nil {
+		return database.TrainingReset{}, false, err
+	}
+	spent := database.TrainingSpent([7]int{rec.TPStrength, rec.TPStamina, rec.TPAgility, rec.TPDexterity,
+		rec.TPWisdom, rec.TPIntel, rec.TPCharisma})
+	before, after, total, ok := gw.TakeBackTraining(serverID, spent)
+	if !ok {
+		return database.TrainingReset{}, false, nil
+	}
+	r := database.TrainingReset{Spent: spent, Unused: after, Total: total}
+	if err := store.TakeTraining(serverID, r); err != nil {
+		return r, true, err
+	}
+	SendTrainingPointsSpent(sess, int32(before-after))
+	sendStatsOf(gw, sess)
+	SendColoredChat(sess, TrainingResetText, 255, 255, 0)
+	return r, true, nil
 }
 
 // spentLine is what each stat gave back, the stats that gave none left out.
@@ -196,14 +217,14 @@ func spentLine(spent [7]int) string {
 	return strings.Join(parts, ", ")
 }
 
-// sendStatsNow puts the session's player's stats on its stat channel at
+// sendStatsOf puts the session's player's stats on its stat channel at
 // once, as the trainer's spend does (training.go), besides the tick's.
-func (h *ChatHandler) sendStatsNow(sess *session.Session) {
+func sendStatsOf(gw *entity.World, sess *session.Session) {
 	conn := sess.Connection()
-	if conn == nil || h.gameWorld == nil {
+	if conn == nil || gw == nil {
 		return
 	}
-	p := h.gameWorld.SessionPlayer(sess)
+	p := gw.SessionPlayer(sess)
 	if p == nil {
 		return
 	}

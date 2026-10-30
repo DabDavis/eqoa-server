@@ -590,6 +590,17 @@ func (h *ClassMasteryHandler) GMReset(sess *session.Session, objectID uint32) st
 	return h.ResetOnline(h.gameWorld.CMSubject(sess, objectID))
 }
 
+// cmReset is what a mastery reset of a character in the world did
+// (resetMasteries).
+type cmReset struct {
+	name    string         // the player's
+	ranks   int            // the ranks taken away
+	points  int            // the points given back
+	mastery entity.Mastery // its points after
+	refusal string         // why nothing was done: no world, not in it
+	notKept error          // done in the game, not kept in its rows
+}
+
 // ResetOnline takes every mastery of the player of session who away and gives
 // back what they cost, takes out the abilities they added and gives back
 // those they replaced, keeps it, and tells its client as the disc's reads a
@@ -597,24 +608,41 @@ func (h *ClassMasteryHandler) GMReset(sess *session.Session, objectID uint32) st
 // the points (sub-op 3: CLIENT tells of the points come back), and the line
 // MasteryResetText. What is said to the GM.
 func (h *ClassMasteryHandler) ResetOnline(who *session.Session) string {
+	r := h.resetMasteries(who)
+	switch {
+	case r.refusal != "":
+		return "Mastery reset: " + r.refusal
+	case r.ranks == 0:
+		return fmt.Sprintf("%s has no masteries: %s", r.name, entity.MasteryLine(r.mastery))
+	case r.notKept != nil:
+		return fmt.Sprintf("%s's masteries were reset but not kept: %v", r.name, r.notKept)
+	}
+	return fmt.Sprintf("%s: %d masteries taken away, %d points back: %s", r.name, r.ranks, r.points, entity.MasteryLine(r.mastery))
+}
+
+// resetMasteries is ResetOnline's work, for the GM's commands and a
+// rehabilitator's reset (rehab.go) alike: what it did.
+func (h *ClassMasteryHandler) resetMasteries(who *session.Session) cmReset {
 	if h.gameWorld == nil {
-		return "Mastery reset: no world"
+		return cmReset{refusal: "no world"}
 	}
 	p := h.gameWorld.SessionPlayer(who)
 	if p == nil {
-		return "Mastery reset: not in the world"
+		return cmReset{refusal: "not in the world"}
 	}
 	res := h.gameWorld.ResetCMs(who)
 	if res.Refusal != "" {
-		return "Mastery reset: " + res.Refusal
+		return cmReset{name: p.Name, refusal: res.Refusal}
 	}
+	out := cmReset{name: p.Name, ranks: len(res.Removed), points: res.Paid, mastery: res.Mastery}
 	if len(res.Removed) == 0 {
-		return fmt.Sprintf("%s has no masteries: %s", p.Name, entity.MasteryLine(res.Mastery))
+		return out
 	}
 	if h.store != nil {
 		if err := h.store.RemoveCMs(p.CharServerID, res.Removed, MasteryRow(res.Mastery)); err != nil {
 			log.Printf("GM: the mastery reset of '%s' not kept: %v", p.Name, err)
-			return fmt.Sprintf("%s's masteries were reset but not kept: %v", p.Name, err)
+			out.notKept = err
+			return out
 		}
 	}
 	list := h.gameWorld.CMList(who, h.cmKnowsOf(p))
@@ -634,7 +662,7 @@ func (h *ClassMasteryHandler) ResetOnline(who *session.Session) string {
 	queueReliable(who, protocol.OpcodeClassMasteryServer, cmPoints(res.Mastery))
 	SendColoredChat(who, MasteryResetText, 255, 255, 0)
 	log.Printf("GM: masteries of '%s' reset, %d ranks, %d points back (%s)", p.Name, len(res.Removed), res.Paid, entity.MasteryLine(res.Mastery))
-	return fmt.Sprintf("%s: %d masteries taken away, %d points back: %s", p.Name, len(res.Removed), res.Paid, entity.MasteryLine(res.Mastery))
+	return out
 }
 
 // cmLoader reads a character's mastery points and ranks off its rows

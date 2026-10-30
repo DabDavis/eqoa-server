@@ -385,8 +385,8 @@ func TestRehabStatPointsResetFreeOnceThenPriced(t *testing.T) {
 }
 
 // Both together: free while both have a free reset; with one left, the
-// other's price; with none, the price of both (2,000,000, not the two
-// prices); a GM's bonus gives one more free one.
+// other's price; with none, the price of both (a GM's 1,500,000 here, not the
+// two prices added); a GM's bonus gives one more free one.
 func TestRehabBothTogether(t *testing.T) {
 	f := newRehabFixture(t)
 	f.purse(4_000_000)
@@ -412,13 +412,15 @@ func TestRehabBothTogether(t *testing.T) {
 	if f.purseNow() != 4_000_000 {
 		t.Fatalf("free, yet %d", f.purseNow())
 	}
-	reset("Reset masteries and stat points (2,000,000 tunar)", "Shall I begin? It costs 2,000,000 tunar.")
-	if f.purseNow() != 2_000_000 {
+	// a GM's price of both, not the two prices added
+	f.exec(`UPDATE rehabsettings SET value = 1500000 WHERE setting = 'price_both'`)
+	reset("Reset masteries and stat points (1,500,000 tunar)", "Shall I begin? It costs 1,500,000 tunar.")
+	if f.purseNow() != 2_500_000 {
 		t.Fatalf("after the price of both: %d", f.purseNow())
 	}
 	f.exec(`UPDATE charresets SET bonus = 1 WHERE serverid = ? AND kind = 'mastery'`, f.sid)
 	reset("Reset masteries and stat points (1,000,000 tunar)", "Shall I begin? It costs 1,000,000 tunar and your free mastery reset.")
-	if f.purseNow() != 1_000_000 {
+	if f.purseNow() != 1_500_000 {
 		t.Fatalf("after the stat points' price: %d", f.purseNow())
 	}
 	um, pm := f.counts(database.ResetMastery)

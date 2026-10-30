@@ -121,6 +121,15 @@ type petState struct {
 	rounds int
 	// tapNext is when its life tap is up again (pettap.go)
 	tapNext time.Time
+	// kind is what it fights as (petrotation.go): ours, or one of the
+	// necromancer's pets Sandstorm's were recorded as; tapIn the swings to
+	// its next tap, specialIn to a spectre's next instant, specialAt when
+	// the one lined up is due, fightStart when its fight's first swing came
+	kind       petKind
+	tapIn      int
+	specialIn  int
+	specialAt  time.Time
+	fightStart time.Time
 }
 
 // petOfLocked is the player's pet, alive, or nil.
@@ -370,18 +379,22 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	w.applyBalanceLocked(pet) // a pet's hit points of its level (balance.go)
 	petPowerLocked(pet)       // and its power (npcregen.go)
 	pet.SwingFixed, pet.SwingKind = petSwing(caster.Class, name)
+	kind := petKindOf(caster.Class, spell.Name)
+	if k, round, ok := petKindSwing(kind); ok {
+		pet.SwingFixed, pet.SwingKind, pet.SwingRound = true, k, round // Sandstorm's (petrotation.go)
+	}
 	w.NPCs[pet.ServerID] = pet
 	w.SpatialIndex.Insert(pet.ServerID, pet.X, pet.Z)
 	if w.pets == nil {
 		w.pets = make(map[EntityID]*petState)
 	}
-	ps := &petState{owner: caster, npc: pet, stance: petDefensive, last: now, taunts: caster.Class == classEnchanter}
+	ps := &petState{owner: caster, npc: pet, stance: petDefensive, last: now, taunts: caster.Class == classEnchanter, kind: kind}
 	w.pets[caster.ServerID] = ps
 	if sess != nil {
 		w.announcePetLocked(ps, sess)
 	}
-	log.Printf("Pet: %s summons %q (%s's body, model %#x, size %.2f), level %d, %d HP",
-		caster.Name, pet.Name, t.Name, uint32(pet.ModelID), pet.Size, pet.Level, pet.MaxHP)
+	log.Printf("Pet: %s summons %q (%s's body, model %#x, size %.2f), level %d, %d HP, fights as %s",
+		caster.Name, pet.Name, t.Name, uint32(pet.ModelID), pet.Size, pet.Level, pet.MaxHP, kind)
 }
 
 // announcePetLocked tells the owner its pet's id (0x007E) when it has not
@@ -739,7 +752,7 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 	}
 	pet.stopMoving()
 	pet.Facing = headingTo(t.X-pet.X, t.Z-pet.Z)
-	if w.petTapLocked(ps, t, now) { // a necromancer's pet's life tap (pettap.go)
+	if ps.kind == petKindOurs && w.petTapLocked(ps, t, now) { // a necromancer's pet's life tap (pettap.go)
 		return
 	}
 	length, delay, fx, hits := npcRound(pet)
@@ -747,6 +760,7 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 		pet.endRound()
 		pet.RoundTarget = t.ServerID
 		ps.rounds = 0
+		ps.specialAt, ps.fightStart = time.Time{}, time.Time{}
 	}
 	if pet.RoundStart.IsZero() || !now.Before(pet.RoundStart.Add(length)) {
 		next := pet.RoundStart.Add(length)
@@ -755,12 +769,19 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 		}
 		pet.RoundStart, pet.RoundHits = next, 0
 		breakNPCInvis(pet) // a pet that fights is seen (invis.go)
+		// a recorded kind's spell of the round goes first, as Sandstorm's
+		// did, in the swing's moment (petrotation.go)
+		if ps.kind != petKindOurs && w.petRoundSpellLocked(ps, t, ps.rounds+1, now) {
+			return
+		}
 		w.broadcastNPCSwingLocked(pet, t.ServerID, uint32(delay/time.Millisecond), fx)
 		ps.rounds++
+		w.petSpecialAfterSwingLocked(ps, now)
 		if ps.taunts && ps.rounds%petTauntEvery == 0 && w.petTauntLocked(ps, t, now) {
 			return
 		}
 	}
+	w.petSpecialDueLocked(ps, t, now)
 	for pet.RoundHits < len(hits) && !now.Before(pet.RoundStart.Add(hits[pet.RoundHits])) {
 		pet.RoundHits++
 		if w.petHitLocked(ps, t, now) {
@@ -815,7 +836,9 @@ func (w *World) petDamageLocked(ps *petState, t *NPC, n int, now time.Time) bool
 	owner, pet := ps.owner, ps.npc
 	sess := w.findSessionByEntityIDLocked(owner.ServerID)
 	tell := func() {
-		if sess == nil {
+		if sess == nil || ps.kind != petKindOurs {
+			// Sandstorm told its necromancer's zombie's, mummy's and
+			// spectre's owner no hit of theirs (petrotation.go)
 			return
 		}
 		if tid := w.objectIDForEntityLocked(sess, t.ServerID); tid != 0 {

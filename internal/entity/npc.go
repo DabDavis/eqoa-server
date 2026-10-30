@@ -158,9 +158,12 @@ type NPC struct {
 	CorpseDecay time.Duration
 
 	// SwingFixed makes SwingKind its swing whatever its class and level
-	// (rounds.go): an enchanter's pet's (pet.go).
+	// (rounds.go): an enchanter's pet's (pet.go), a necromancer's zombie's,
+	// mummy's and spectre's (petrotation.go). SwingRound is its round's
+	// length when not the swing's delay (the spectre's 5.2 s), 0 for that.
 	SwingFixed bool
 	SwingKind  int
+	SwingRound time.Duration
 
 	// A sparring dummy's element (an index of SparElements), the rounds it
 	// has swung in its fight and the start of the round it last struck with

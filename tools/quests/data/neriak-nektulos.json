@@ -465,12 +465,15 @@
      ],
      "says": "The death madam's stone. Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "small dirk"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's Animated Sorceress is the Reanimated Sorceress here. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/alchemist.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide's Animated Sorceress is the Reanimated Sorceress here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: small dirk, Freeport's small dirk (the base of Qeynos's Small Dagger) (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/neriak-nektulos/alchemist/L13",
@@ -2162,12 +2165,15 @@
      ],
      "says": "The traitor is dead. You have served the house well.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Manawood Staff"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/enchanter.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The guide's Burnished Staff is not on this server."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/enchanter.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The guide's Burnished Staff is not on this server. The reward is ours: Manawood Staff, the title is a staff: Qeynos's Manawood Staff (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/neriak-nektulos/enchanter/L13",
@@ -6349,12 +6355,15 @@
      ],
      "says": "The traitor is dead. You have served the house well.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Sturdy Two-Handed Sword"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/warrior.json, # Level 10 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: Sturdy Two-Handed Sword, the same (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/neriak-nektulos/warrior/L13",
@@ -7067,13 +7076,14 @@
      "rewards": {
       "xp": 157474,
       "items": [
-       "Burning Flare"
+       "Burning Flare",
+       "fancy slippers"
       ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide's weak crabs are the Grobb crabs here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Burning Flare scroll, as Freeport's, Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/wizard.json, # Level 7 (github.com/Jadiction/EQOA-Data, MIT). The waysender and dockmaster trips are the player's own (their usual menus); the steps are the people at either end. The guide's weak crabs are the Grobb crabs here. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Burning Flare scroll, as Freeport's, Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30). The reward is ours: fancy slippers, the same (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/neriak-nektulos/wizard/L10",

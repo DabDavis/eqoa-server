@@ -220,12 +220,15 @@
      "journal": "Bring the oilstone, iron ore and bat wing to Derry McQuaid.",
      "says": "That is all I need. Here is your weapon.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "militia short sword"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon Derry makes, so none is given."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon Derry makes, so none is given. The reward is ours: militia short sword, the same; Halas's guide: Derry makes a weapon of an oilstone, iron ore and a bat wing (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/halas/warrior/L5",
@@ -423,12 +426,15 @@
      "journal": "Bring the owl feather to Marik McPherson.",
      "says": "A fine feather. Here is your reward.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Sturdy Two-Handed Sword"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). There is no White Owl in the database: the owls northwest of Ferris McDougal's camp stand in."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/warrior.json, Level 10; github.com/Jadiction/EQOA-Data). There is no White Owl in the database: the owls northwest of Ferris McDougal's camp stand in. The reward is ours: Sturdy Two-Handed Sword, the same (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/halas/warrior/L13",
@@ -1533,12 +1539,15 @@
      "journal": "Bring the oilstone, iron ore and spider eyes to Trista.",
      "says": "Here is your weapon.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Corse Spiked Club"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Two eyes is ours. The guide does not name the weapon, so none is given."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/shaman.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. Two eyes is ours. The guide does not name the weapon, so none is given. The reward is ours: Corse Spiked Club, the same (the user's pick of 2026-10-30, tools/fill_class_quest_picks.py)."
   },
   {
    "key": "1-20/halas/shaman/L5",

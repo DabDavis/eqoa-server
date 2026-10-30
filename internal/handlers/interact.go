@@ -142,8 +142,9 @@ func (h *InteractHandler) RegisterHandlers(r *Registry) {
 // HandleInteract handles NPC interaction requests (opcode 0x0004).
 // Client sends: uint32 targetObjectID
 // A corpse opens its loot, the hard-disk technician his menu, a travel NPC
-// its routes, a greeter its words and a town's person or a guard a line of
-// npcdialog; anything else answers nothing.
+// its routes, a greeter its words, a quest giver the player is too low for
+// its city's "not yet" and a town's person or a guard a line of npcdialog;
+// anything else answers nothing.
 func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Message) error {
 	data := msg.Data()
 	if len(data) < 4 {
@@ -300,6 +301,14 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 			}
 			return nil
 		}
+	}
+
+	// A quest giver whose next quest for the player waits on its level alone
+	// (quests_notyet.go): its city's "come back when you are stronger", in
+	// place of a town's words.
+	if npc, ok := targetEntity.(*entity.NPC); ok && Quests().NotYet(sess, player, npc) {
+		forgetDialogs(player)
+		return nil
 	}
 
 	// A town's people and the guards of Norrath (entity/dialog.go): a line of

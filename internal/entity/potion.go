@@ -94,6 +94,12 @@ type PotionEffect struct {
 func NewPotionEffect(patternID int, itemName, line, name string, icon uint32, breaks string, wear int, area float64) PotionEffect {
 	pe := PotionEffect{PatternID: patternID, ItemName: itemName, Name: name, Icon: icon,
 		Def: ParseSpellText(line), Area: float32(area), WearPct: wear}
+	// an illusion goes by the effect's own name, as a spell's by the spell's
+	// ("Illusion: Ogre": the Transmuter's ogre pill, the owner's ruling of
+	// 2026-10-29); an item's own name is not read so
+	if n := strings.TrimSpace(name); n != "" {
+		pe.Def.readIllusion(n, "")
+	}
 	if strings.TrimSpace(pe.Name) == "" {
 		pe.Name = itemName
 	}

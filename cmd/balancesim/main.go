@@ -309,6 +309,9 @@ func main() {
 					}
 					if k.Play.Pet || k.Play.Charm {
 						hp = c.PetHPLeft // the pet takes the blows
+						if *lowPoint {
+							hp = c.PetLowLeft // its low point (a pet that heals ends higher)
+						}
 					}
 					fmt.Printf(" | %3.0f%% %3.0f%% %4.0f", 100*c.WinShare(), 100*hp, c.Secs)
 				}

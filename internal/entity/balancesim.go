@@ -142,9 +142,12 @@ type SimResult struct {
 	HP, MaxHP       int
 	Power, MaxPower int
 	NPCHP, NPCMaxHP int
-	// HadPet: a pet fought; PetDied: it died; its hit points at the end
+	// HadPet: a pet fought; PetDied: it died; its hit points at the end, and
+	// PetLowHP the fewest it had in the fight (a pet that heals itself or is
+	// healed ends higher than it was taken down to)
 	HadPet, PetDied bool
 	PetHP, PetMaxHP int
+	PetLowHP        int
 	PetLevel        int
 	Casts           int
 	// LowHP is the fewest hit points the player had in the fight (the
@@ -290,9 +293,10 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 	npc := NPCFromRecord(rec, foe.Class, nil)
 	w.applyNPCSettingsLocked(npc) // as LoadNPCs makes it: the balance's hit points (balance.go)
 	if t := foe.Template; t != nil {
-		// its name's npctemplate row, as LoadClassTemplates gives one
-		w.templates = classTemplates{byName: map[string]*ClassTemplate{t.Name: t},
-			use: map[string]string{database.NPCClassKey(npc.Name): t.Name}}
+		// its name's npctemplate row, as LoadClassTemplates gives one (the
+		// pets' templates and taps above kept: a pet fights by its own)
+		w.templates.byName = map[string]*ClassTemplate{t.Name: t}
+		w.templates.use = map[string]string{database.NPCClassKey(npc.Name): t.Name}
 		w.applyTemplateLocked(npc)
 	}
 	w.NPCs[npc.ServerID] = npc
@@ -377,12 +381,18 @@ func (f *simFight) run(limit time.Duration) SimResult {
 		f.engage()
 	}
 	maxHP := npc.MaxHP
-	low := p.HP
+	low, petLow := p.HP, 0
+	if pet != nil {
+		petLow = pet.HP
+	}
 	for f.now.Sub(f.t0) < limit {
 		f.tick()
 		w.mu.RLock()
 		done := npc.Dead || p.IsDead()
 		low = min(low, max(p.HP, 0))
+		if pet != nil {
+			petLow = min(petLow, max(pet.HP, 0))
+		}
 		w.mu.RUnlock()
 		if done {
 			break
@@ -395,6 +405,7 @@ func (f *simFight) run(limit time.Duration) SimResult {
 		Power: p.Power, MaxPower: p.MaxPowerNow(), NPCHP: npc.HP, NPCMaxHP: maxHP, Casts: f.casts, LowHP: low}
 	if pet != nil {
 		r.HadPet, r.PetDied, r.PetHP, r.PetMaxHP, r.PetLevel = true, pet.Dead || pet.HP <= 0, pet.HP, pet.MaxHP, pet.Level
+		r.PetLowHP = petLow
 	}
 	return r
 }
@@ -1013,9 +1024,10 @@ type SimCell struct {
 	HPLeft, Secs float64
 	PetHPLeft    float64
 	// LowLeft is the mean of the least share of hit points the player had in
-	// each fight won (its low point; SimResult.LowHP)
-	LowLeft float64
-	PetDied int
+	// each fight won (its low point; SimResult.LowHP), PetLowLeft its pet's
+	// (SimResult.PetLowHP; a pet that died 0)
+	LowLeft, PetLowLeft float64
+	PetDied             int
 }
 
 // WinShare is the share of the fights won.
@@ -1040,6 +1052,7 @@ func SimCellOf(pl SimPlayer, foe SimNPC, diff int, b *Balance, fights int, seed 
 			c.Secs += r.Time.Seconds()
 			if r.HadPet && !r.PetDied && r.PetMaxHP > 0 {
 				c.PetHPLeft += float64(r.PetHP) / float64(r.PetMaxHP)
+				c.PetLowLeft += float64(r.PetLowHP) / float64(r.PetMaxHP)
 			}
 		}
 		if r.Died {
@@ -1054,6 +1067,7 @@ func SimCellOf(pl SimPlayer, foe SimNPC, diff int, b *Balance, fights int, seed 
 		c.LowLeft /= float64(c.Won)
 		c.Secs /= float64(c.Won)
 		c.PetHPLeft /= float64(c.Won)
+		c.PetLowLeft /= float64(c.Won)
 	}
 	return c
 }

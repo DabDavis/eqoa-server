@@ -42,7 +42,7 @@ import (
 // SnapshotVersion names the sanitiser's rules: the panel's audit line and the
 // snapshot's own snapshot_info table say which made a file. Raise it with
 // every change to what is taken out.
-const SnapshotVersion = 2
+const SnapshotVersion = 3
 
 // SnapshotInfoTable is the table a snapshot carries saying what it is: the
 // sanitiser's version, when it was made and by whom, and what was taken out.
@@ -136,6 +136,7 @@ var snapshotRules = map[string]snapshotRule{
 	// --undo, and what the real-data tests read). A key column is a row's key
 	// in the table the tool changed, a meta table's key the name of a fact.
 	"archived_spells_fix_log":    {allow: []string{"rowkey"}, why: "tools/fix_archived_spells.py's log"},
+	"balance_spells_fix_log":     {allow: []string{"rowkey"}, why: "tools/fix_balance_spells.py's log"},
 	"boss_loot_seed":             {allow: []string{"key"}, why: "tools/seed_boss_loot.py's log"},
 	"camp_loot_seed":             {allow: []string{"key"}, why: "tools/seed_camp_loot.py's log"},
 	"eqoadata_extra_import_meta": {allow: []string{"key"}, why: "tools/import_eqoadata_mastery_spells.py's facts"},

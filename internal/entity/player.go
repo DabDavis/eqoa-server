@@ -248,6 +248,8 @@ type Player struct {
 	Lockouts []castLockout
 	Effects  []*ActiveEffect
 	Mods     StatMods
+	// artReady is when the combat arts' global cooldown is over (balance.go)
+	artReady time.Time
 
 	// StatsDirty sends the stat and effect channels on the next tick, not
 	// at the next 2 s round: a cast's cost goes out with its start.

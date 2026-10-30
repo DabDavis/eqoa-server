@@ -276,8 +276,13 @@ func (w *World) casterShareLocked(cs *castState, caster *Player, mods StatMods, 
 			return
 		}
 	}
-	w.addEffectLocked(caster, &ActiveEffect{SpellID: id, Name: cs.spell.Name, Icon: cs.spell.Icon,
-		Caster: caster.ServerID, Until: until, Mods: mods}, now)
+	ae := &ActiveEffect{SpellID: id, Name: cs.spell.Name, Icon: cs.spell.Icon,
+		Caster: caster.ServerID, Until: until, Mods: mods, Line: BuffLine(&cs.spell), Rank: cs.spell.Level}
+	if !w.shareTakesLocked(caster, ae) { // only the best of a line (buffline.go)
+		return
+	}
+	w.dropLineLocked(caster, ae)
+	w.addEffectLocked(caster, ae, now)
 }
 
 // drainLocked gives the caster (or its group) what one drained effect took

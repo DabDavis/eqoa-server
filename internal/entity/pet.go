@@ -368,6 +368,7 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	}
 	pet := newPet(t, w.allocFreeIDLocked(), caster, name, level)
 	w.applyBalanceLocked(pet) // a pet's hit points of its level (balance.go)
+	petPowerLocked(pet)       // and its power (npcregen.go)
 	pet.SwingFixed, pet.SwingKind = petSwing(caster.Class, name)
 	w.NPCs[pet.ServerID] = pet
 	w.SpatialIndex.Insert(pet.ServerID, pet.X, pet.Z)
@@ -831,6 +832,7 @@ func (w *World) petDamageLocked(ps *petState, t *NPC, n int, now time.Time) bool
 	t.HP = max(t.HP-n, 0)
 	tell()
 	w.updateAggro(t, pet.ServerID, n)
+	w.rootBreakLocked(t, w.balanceLevelOf(pet)) // root.go
 	log.Printf("Pet: %s's %q hit %s for %d (HP %d/%d)", owner.Name, pet.Name, t.Name, n, t.HP, t.MaxHP)
 	if t.HP > 0 {
 		return false

@@ -754,7 +754,28 @@
      "says": "Starfire ore! You have learned all I can teach you here.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Student's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Student's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Klik'Anon Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Klik'Anon Cocktail"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [
@@ -770,7 +791,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Student's Knack (with a hammer) or Klick'Anon Cocktail (with a compendium); a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Student's Knack (with a hammer) or Klick'Anon Cocktail (with a compendium); a quest here gives no choice, so neither is given. The reward is ours: the choice of the Student's Knack or the Klik'Anon Cocktail scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/cleric/L1",
@@ -1775,7 +1796,28 @@
      "says": "The rogue clockworks are finished. Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Disease Ward",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Disease Ward"
+        ]
+       }
+      },
+      {
+       "answer": "Field Dress",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Field Dress"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [
@@ -1791,7 +1833,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/cleric.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Disease Ward or Field Dress; a quest here gives no choice, so neither is given. The root comes from a popup in the Wailing Tree's second chamber, a place to reach here."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/cleric.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of Disease Ward or Field Dress; a quest here gives no choice, so neither is given. The root comes from a popup in the Wailing Tree's second chamber, a place to reach here. The reward is ours: the choice of the Disease Ward or the Field Dress scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/enchanter/L1",
@@ -1930,13 +1972,16 @@
      "journal": "Bring 2 damaged firefly wings to Prof. Temwiddle.",
      "says": "Lovely, still glowing a little.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Crawling Skin"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. The reward is ours: the Crawling Skin scroll, as Freeport's, Neriak's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/enchanter/L4",
@@ -2081,13 +2126,16 @@
      "journal": "Bring Stunned Mindwhipper to Prof. Temwiddle.",
      "says": "Marvelous. Its mind is quite something.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Heavy Arms"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Heavy Arms scroll, as Freeport's, Neriak's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/enchanter/L7",
@@ -2170,13 +2218,16 @@
      "journal": "Speak with Prof. Temwiddle.",
      "says": "The Earblowers write that you were a great help.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Endure Arcane"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The springs are bought in the guide; here Merchant Folsop (by the lava pit) hands them over."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The springs are bought in the guide; here Merchant Folsop (by the lava pit) hands them over. The reward is ours: the Endure Arcane scroll, as Freeport's, Highbourne's, Neriak's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/enchanter/L10",
@@ -2414,13 +2465,16 @@
      "journal": "Bring Camwe's Scalpel to Psova Brinkbar.",
      "says": "That's the end of Camwe's tinkering.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Lumbering Arms"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. Which clockworks are the rats is not said; the model XIVs stand in."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. Which clockworks are the rats is not said; the model XIVs stand in. The reward is ours: the Lumbering Arms scroll, as Freeport's, Highbourne's, Neriak's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/enchanter/L15",
@@ -2566,13 +2620,16 @@
      "journal": "Speak with Teka Harnswoof.",
      "says": "Good work.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Alarming Visage"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. The reward is ours: the Alarming Visage scroll, as Freeport's, Highbourne's and Qeynos's quests of this level teach it (the most of the cities; others teach arcane beckon (neriak-nektulos)) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/enchanter/L20",
@@ -2742,12 +2799,33 @@
      "says": "The power core! You are a true enchanter.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Spacious Mind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Spacious Mind"
+        ]
+       }
+      },
+      {
+       "answer": "Power Boon",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Power Boon"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/enchanter.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The reward is ours: the choice of the Spacious Mind or the Power Boon scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/magician/L1",
@@ -2886,13 +2964,16 @@
      "journal": "Bring 2 Strands of Rat Furs to Werlib Quack.",
      "says": "Fine fur.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Smoldering Aura"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. The reward is ours: the Smoldering Aura scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/magician/L4",
@@ -3037,13 +3118,16 @@
      "journal": "Bring Stunned Mindwhipper to Werlib Quack.",
      "says": "Excellent.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Motivate"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Motivate scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/magician/L7",
@@ -3124,7 +3208,10 @@
      "journal": "Bring Lyriam's Note to Werlib Quack.",
      "says": "Lyriam's answer. Thank you.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Infusion"
+      ]
      }
     }
    ],
@@ -3141,7 +3228,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: the Infusion scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/magician/L10",
@@ -3248,13 +3335,16 @@
      "journal": "Speak with Werlib Quack.",
      "says": "Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "sturdy staff"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The reward is ours: sturdy staff, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/magician/L13",
@@ -3350,13 +3440,16 @@
      "journal": "Bring Skull of Vitsh to Siltha.",
      "says": "My collection is complete.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Lava Wind"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The reward is ours: the Lava Wind scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/magician/L15",
@@ -3493,13 +3586,16 @@
      "journal": "Speak with Werlib Quack.",
      "says": "Good.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Endure Fire"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here and Haldrin is Hardlin (Fayspire's guide spells him so). The guide does not say what the stonemason drops."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here and Haldrin is Hardlin (Fayspire's guide spells him so). The guide does not say what the stonemason drops. The reward is ours: the Endure Fire scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/magician/L20",
@@ -3644,12 +3740,33 @@
      "says": "You have earned your place.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Frozen Mark",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Frozen Mark"
+        ]
+       }
+      },
+      {
+       "answer": "Lava Stone",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Lava Stone"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The crumbling corpse is the Crumbling Bones here, and the marauding soul the Maundering Soul."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/magician.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The crumbling corpse is the Crumbling Bones here, and the marauding soul the Maundering Soul. The reward is ours: the choice of the Frozen Mark or the Lava Stone scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/necromancer/L1",
@@ -3788,13 +3905,16 @@
      "journal": "Bring 2 cracked ant pincers to Grear Hosrottle.",
      "says": "These will do.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Life Tap"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. The reward is ours: the Life Tap scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/necromancer/L4",
@@ -3939,13 +4059,16 @@
      "journal": "Bring Stunned Mindwhipper to Grear Hosrottle.",
      "says": "Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Rabid Infection"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Rabid Infection scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/necromancer/L7",
@@ -3995,7 +4118,10 @@
      "journal": "Bring Troll's Report to Grear Hosrottle.",
      "says": "The trolls are paid. Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Strengthen Bone"
+      ]
      }
     }
    ],
@@ -4012,7 +4138,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The guide does not name the troll in the green tent behind Coachman Droogra (Pulanga and Captain Ogof stand near)."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The guide does not name the troll in the green tent behind Coachman Droogra (Pulanga and Captain Ogof stand near). The reward is ours: the Strengthen Bone + scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/necromancer/L10",
@@ -4120,13 +4246,16 @@
      "journal": "Bring Grim's Collar to Grear Hosrottle.",
      "says": "Ha! Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "dagger of essence"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. In the guide Arzen and Grim appear with a popup."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. In the guide Arzen and Grim appear with a popup. The reward is ours: dagger of essence, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/necromancer/L13",
@@ -4303,13 +4432,16 @@
      "journal": "Speak with Grear Hosrottle.",
      "says": "The dark elves owe us now.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Endure Disease"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. In the guide Foonklim swims out and taunts him out of his house."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. In the guide Foonklim swims out and taunts him out of his house. The reward is ours: the Endure Disease scroll, as Freeport's and Highbourne's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/necromancer/L20",
@@ -4405,12 +4537,33 @@
      "says": "The dark elves will not forget this.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Blood Gale",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Blood Gale"
+        ]
+       }
+      },
+      {
+       "answer": "Power Gale",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Power Gale"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The reward is ours: the choice of the Blood Gale or the Power Gale scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/rogue/L1",
@@ -4703,13 +4856,16 @@
      "journal": "Bring Stunned Mindwhipper to Mistress Briva.",
      "says": "Nice.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Quick Blade"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Quick Blade scroll, as Freeport's, Halas's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/rogue/L7",
@@ -4868,13 +5024,16 @@
      "journal": "Bring Evidence of Jarek's Experiment to Mistress Briva.",
      "says": "Just as I thought. Good work.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "sturdy dagger"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. (the guide says 556,000). The guide's new shank is not named."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. (the guide says 556,000). The guide's new shank is not named. The reward is ours: sturdy dagger, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/rogue/L13",
@@ -5197,12 +5356,33 @@
      "says": "Neriak's houses will remember your name.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Avoidance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Avoidance"
+        ]
+       }
+      },
+      {
+       "answer": "Minor Wound",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Minor Wound"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The reward is ours: the choice of the Avoidance or the Minor Wound scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/warrior/L1",
@@ -6055,13 +6235,16 @@
      "journal": "Speak with Teka Harnswoof.",
      "says": "Good work.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Stomp"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/warrior.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/warrior.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. The reward is ours: the Stomp scroll, as Freeport's, Halas's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/warrior/L20",
@@ -6231,12 +6414,33 @@
      "says": "The clockworks are done for. Well fought.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Bellow",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Bellow"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Might",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Pillar of Might"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/warrior.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of Bellow (with a runework axe) or Pillar of Might (with a runework poleaxe); a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/warrior.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of Bellow (with a runework axe) or Pillar of Might (with a runework poleaxe); a quest here gives no choice, so neither is given. The reward is ours: the choice of the Bellow or the Pillar of Might scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/wizard/L1",
@@ -6515,13 +6719,16 @@
      "journal": "Bring Stunned Mindwhipper to Prof. Pansoof.",
      "says": "Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Shock of Frost"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/wizard.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/wizard.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Shock of Frost scroll, as Freeport's, Highbourne's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/wizard/L7",
@@ -6740,13 +6947,16 @@
      "journal": "Bring Hosco's Note to Prof. Pansoof.",
      "says": "Hosco speaks well of you.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Staff of Malconius"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The reward is ours: Staff of Malconius, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/wizard/L13",
@@ -7211,12 +7421,33 @@
      "says": "You are a wizard of Klick'Anon.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Blazing Clash",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Blazing Clash"
+        ]
+       }
+      },
+      {
+       "answer": "Mental Focus",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Mental Focus"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/wizard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of Burning Clash (with a staff) or Mental Focus (with a wand); a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/wizard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of Burning Clash (with a staff) or Mental Focus (with a wand); a quest here gives no choice, so neither is given. The reward is ours: the choice of the Blazing Clash or the Mental Focus scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   }
  ],
  "items": [

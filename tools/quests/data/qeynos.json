@@ -887,11 +887,32 @@
      "says": "You have done Qeynos proud.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Bellow",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Bellow"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Might",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Pillar of Might"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. The abomination's shackles are the database's abomination's hide. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. The abomination's shackles are the database's abomination's hide. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Bellow or the Pillar of Might scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/cleric/L1",
@@ -1739,11 +1760,32 @@
      "says": "Qeynos owes you much.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Disease Ward",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Disease Ward"
+        ]
+       }
+      },
+      {
+       "answer": "Field Dress",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Field Dress"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). Advisor Amichevole is the database's Advisor Amchevole. The portal sends you to the gypsy camp by Delin Duamher, as the guide has it. The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). Advisor Amichevole is the database's Advisor Amchevole. The portal sends you to the gypsy camp by Delin Duamher, as the guide has it. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Disease Ward or the Field Dress scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/wizard/L1",
@@ -2631,11 +2673,32 @@
      "says": "Qeynos owes you much.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Blazing Clash",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Blazing Clash"
+        ]
+       }
+      },
+      {
+       "answer": "Mental Focus",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Mental Focus"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/wizard.json, Level 20; github.com/Jadiction/EQOA-Data). Advisor Amichevole is the database's Advisor Amchevole. The portal sends you to the gypsy camp by Delin Duamher, as the guide has it. The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/wizard.json, Level 20; github.com/Jadiction/EQOA-Data). Advisor Amichevole is the database's Advisor Amchevole. The portal sends you to the gypsy camp by Delin Duamher, as the guide has it. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Blazing Clash or the Mental Focus scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/paladin/L1",
@@ -5141,11 +5204,32 @@
      "says": "Qeynos owes you much.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Avoidance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Avoidance"
+        ]
+       }
+      },
+      {
+       "answer": "Minor Wound",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Minor Wound"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Advisor Amichevole is the database's Advisor Amchevole. The portal sends you to the gypsy camp by Delin Duamher, as the guide has it. The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Advisor Amichevole is the database's Advisor Amchevole. The portal sends you to the gypsy camp by Delin Duamher, as the guide has it. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Avoidance or the Minor Wound scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/bard/L1",
@@ -6072,12 +6156,16 @@
      "journal": "Return to Jenny Sweethy.",
      "says": "You have done Qeynos proud.",
      "rewards": {
-      "xp": 2814929
+      "xp": 2814929,
+      "items": [
+       "Power Dance",
+       "magic foil"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/bard.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. The abomination's shackles are the database's abomination's hide. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/bard.json, Level 20; github.com/Jadiction/EQOA-Data). The rescue of Guard Malvern is left out: he is not in the database, and a quest cannot have him follow you. The abomination's shackles are the database's abomination's hide. The Slithtar Harvester is not in the database: the slith tar grubs where EQOA-Data's map places him, northeast of Wymondham, stand in. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the Power Dance scroll, as Freeport's quest of this level teaches it, and magic foil, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/enchanter/L1",
@@ -6870,11 +6958,32 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Spacious Mind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Spacious Mind"
+        ]
+       }
+      },
+      {
+       "answer": "Power Boon",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Power Boon"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/enchanter.json, Level 20; github.com/Jadiction/EQOA-Data). The guide's final choice of reward is not in: the quest gives its experience only. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/enchanter.json, Level 20; github.com/Jadiction/EQOA-Data). The guide's final choice of reward is not in: the quest gives its experience only. Furdle Nimdar stands with npc_type 0x80 (not attackable): a draft until a GM makes him attackable. The reward is ours: the choice of the Spacious Mind or the Power Boon scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/magician/L1",
@@ -7756,11 +7865,32 @@
      "says": "Qeynos owes you much.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Frozen Mark",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Frozen Mark"
+        ]
+       }
+      },
+      {
+       "answer": "Lava Stone",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Lava Stone"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/magician.json, Level 20; github.com/Jadiction/EQOA-Data). Advisor Amichevole is the database's Advisor Amchevole. The portal sends you to the gypsy camp by Delin Duamher, as the guide has it. The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/magician.json, Level 20; github.com/Jadiction/EQOA-Data). Advisor Amichevole is the database's Advisor Amchevole. The portal sends you to the gypsy camp by Delin Duamher, as the guide has it. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Frozen Mark or the Lava Stone scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/qeynos/alchemist/L1",
@@ -8666,11 +8796,32 @@
      "says": "You have saved the order.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Student's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Student's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Klik'Anon Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Klik'Anon Cocktail"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/alchemist.json, Level 20; github.com/Jadiction/EQOA-Data). Earnum's concoction to return is not in. The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/qeynos/alchemist.json, Level 20; github.com/Jadiction/EQOA-Data). Earnum's concoction to return is not in. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Student's Knack or the Klik'Anon Cocktail scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   }
  ],
  "items": [

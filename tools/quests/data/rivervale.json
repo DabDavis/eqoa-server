@@ -237,12 +237,15 @@
      "journal": "Bring the dice, the charcoal, the wing and the claw to Darm Leafsway.",
      "says": "Here is your weapon.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Acolyte's Hammer"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon, so none is given."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The guide does not name the weapon, so none is given. The reward is ours: Acolyte's Hammer, as Freeport's and Qeynos's quests of this level give (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/rivervale/cleric/L5",
@@ -482,12 +485,15 @@
      "journal": "Return to Pora Meepup.",
      "says": "Jilo is safe at home, thanks to you.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Sturdy Mace"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 10; github.com/Jadiction/EQOA-Data). The guard at the inn is the database's Deputy Viggo, the deputy nearest EQOA-Data's map's place for him. Jilo and the goblin catcher are not in the database: the tower's own goblins (its Goblin Hurler) are the fight, and Jilo's walk home is left out."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 10; github.com/Jadiction/EQOA-Data). The guard at the inn is the database's Deputy Viggo, the deputy nearest EQOA-Data's map's place for him. Jilo and the goblin catcher are not in the database: the tower's own goblins (its Goblin Hurler) are the fight, and Jilo's walk home is left out. The reward is ours: Sturdy Mace, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/rivervale/cleric/L13",
@@ -883,11 +889,32 @@
      "says": "You have done Rivervale proud.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Disease Ward",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Disease Ward"
+        ]
+       }
+      },
+      {
+       "answer": "Field Dress",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Field Dress"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). Phil Wiggins (Merry-by-Water) is not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/cleric.json, Level 20; github.com/Jadiction/EQOA-Data). Phil Wiggins (Merry-by-Water) is not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Disease Ward or the Field Dress scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/rivervale/druid/L1",
@@ -1125,12 +1152,15 @@
      "journal": "Bring the worms, the line, the beak and the fur to Ren Deeppockets.",
      "says": "Here is your weapon.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "crafted glade staff"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The raven's beak is the database's chipped raven beak, the rat fur its Strands of Rat Fur. The guide does not name the weapon."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/druid.json, Level 4; github.com/Jadiction/EQOA-Data). The guide says to buy it; the merchant stocks none here, so it is handed over on the step. The raven's beak is the database's chipped raven beak, the rat fur its Strands of Rat Fur. The guide does not name the weapon. The reward is ours: crafted glade staff, as Surefall Glade's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/rivervale/druid/L5",
@@ -2483,12 +2513,15 @@
      "journal": "Return to Walt Deeppockets.",
      "says": "Nicely done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "sturdy dagger"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The windmills', the locker's places are EQOA-Data's map's. Mrs. Ghobber is Sophie Ghobber, Old Lady Gubbin is Grandma Gubbin, Mrs. Earblower is Zarene Earblower. The plans stay with you after the locker (a reach step takes no items)."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). The windmills', the locker's places are EQOA-Data's map's. Mrs. Ghobber is Sophie Ghobber, Old Lady Gubbin is Grandma Gubbin, Mrs. Earblower is Zarene Earblower. The plans stay with you after the locker (a reach step takes no items). The reward is ours: sturdy dagger, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/rivervale/rogue/L13",
@@ -2896,11 +2929,32 @@
      "says": "You've earned your keep.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Avoidance",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Avoidance"
+        ]
+       }
+      },
+      {
+       "answer": "Minor Wound",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Minor Wound"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Phil Wiggins (Merry-by-Water) is not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/rogue.json, Level 20; github.com/Jadiction/EQOA-Data). Phil Wiggins (Merry-by-Water) is not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Avoidance or the Minor Wound scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/rivervale/warrior/L1",
@@ -4011,11 +4065,32 @@
      "says": "You are a warrior of Rivervale.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Bellow",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Bellow"
+        ]
+       }
+      },
+      {
+       "answer": "Pillar of Might",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Pillar of Might"
+        ]
+       }
+      }
+     ]
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). Phil Wiggins (Merry-by-Water) is not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's stop at Darm Leafsway is left out. The guide's final choice of reward is not in: the quest gives its experience only."
+   "notes": "From EQOA-Data's guide (Quests/1-20/rivervale/warrior.json, Level 20; github.com/Jadiction/EQOA-Data). Phil Wiggins (Merry-by-Water) is not in the database; the bees' and Phil's places are EQOA-Data's map's. The guide's stop at Darm Leafsway is left out. The guide's final choice of reward is not in: the quest gives its experience only. The reward is ours: the choice of the Bellow or the Pillar of Might scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   }
  ],
  "items": [

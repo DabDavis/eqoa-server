@@ -662,12 +662,33 @@
      "says": "The book is safe. Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Student's Knack",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Student's Knack"
+        ]
+       }
+      },
+      {
+       "answer": "Klik'Anon Cocktail",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Klik'Anon Cocktail"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of a mace and Student's Knack or a book and Klick'Anon Cocktail; a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). The guide offers a choice of a mace and Student's Knack or a book and Klick'Anon Cocktail; a quest here gives no choice, so neither is given. The reward is ours: the choice of the Student's Knack or the Klik'Anon Cocktail scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/cleric/L1",
@@ -806,13 +827,16 @@
      "journal": "Bring 2 damaged firefly wings to Priest Lighthand.",
      "says": "Thank you.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Minor Blessing"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. A sparkfly's wing is the damaged firefly wings here."
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. A sparkfly's wing is the damaged firefly wings here. The reward is ours: the Minor Blessing scroll, as Freeport's, Highbourne's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/cleric/L4",
@@ -878,13 +902,16 @@
      "journal": "Bring leather strip, iron ore and 2 Cracked Rat Claws to Bellia Silkspinner.",
      "says": "Your weapon will be ready.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Acolyte's Hammer"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and ore are bought in the guide; here Grener hands them over."
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The strip and ore are bought in the guide; here Grener hands them over. The reward is ours: Acolyte's Hammer, as Freeport's and Qeynos's quests of this level give (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/cleric/L5",
@@ -930,13 +957,16 @@
      "journal": "Bring Hatebone Tome to Tessarina Starshimmer.",
      "says": "Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Holy Shock"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Holy Shock scroll, as Freeport's, Highbourne's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/cleric/L7",
@@ -982,13 +1012,16 @@
      "journal": "Bring Bank Key to Tessarina Starshimmer.",
      "says": "Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Endure Ailment"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: the Endure Ailment scroll, as Freeport's, Highbourne's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/cleric/L10",
@@ -1080,13 +1113,16 @@
      "journal": "Bring Powder to Dolby.",
      "says": "Just what I needed. Thank you.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Sturdy Mace"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The reward is ours: Sturdy Mace, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/cleric/L13",
@@ -1230,13 +1266,16 @@
      "journal": "Bring Fish Stomach to Dolby.",
      "says": "Everything. Well done.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Ward Death"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The reward is ours: the Ward Death scroll, as Freeport's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (the most of the cities; others teach disrupt undead (highbourne, not a spell of the class's)) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/cleric/L15",
@@ -1354,13 +1393,16 @@
      "journal": "Speak with Dolby.",
      "says": "Well done.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Endure Affliction"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. The reward is ours: the Endure Affliction scroll, as Freeport's, Highbourne's, Klick'Anon's, Moradhim's, Qeynos's and Rivervale's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/cleric/L20",
@@ -1467,12 +1509,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Disease Ward",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Disease Ward"
+        ]
+       }
+      },
+      {
+       "answer": "Field Dress",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Field Dress"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/cleric.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The reward is ours: the choice of the Disease Ward or the Field Dress scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/enchanter/L1",
@@ -1611,13 +1674,16 @@
      "journal": "Bring 2 snake scales to Professor Earthbearer.",
      "says": "Thank you.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Crawling Skin"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. The reward is ours: the Crawling Skin scroll, as Freeport's, Neriak's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/enchanter/L4",
@@ -1745,13 +1811,16 @@
      "journal": "Bring elddar seeds to Dawnseer Mistwelder.",
      "says": "Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Heavy Arms"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Heavy Arms scroll, as Freeport's, Neriak's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/enchanter/L7",
@@ -1797,13 +1866,16 @@
      "journal": "Bring Lockpicker's Keys to Casalandria Lyssia.",
      "says": "Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Endure Arcane"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: the Endure Arcane scroll, as Freeport's, Highbourne's, Neriak's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/enchanter/L10",
@@ -2045,13 +2117,16 @@
      "journal": "Bring Fish Stomach to Dolby.",
      "says": "Everything. Well done.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Lumbering Arms"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The reward is ours: the Lumbering Arms scroll, as Freeport's, Highbourne's, Neriak's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/enchanter/L15",
@@ -2169,13 +2244,16 @@
      "journal": "Speak with Dolby.",
      "says": "Well done.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Alarming Visage"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. The reward is ours: the Alarming Visage scroll, as Freeport's, Highbourne's and Qeynos's quests of this level teach it (the most of the cities; others teach arcane beckon (neriak-nektulos)) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/enchanter/L20",
@@ -2282,12 +2360,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Spacious Mind",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Spacious Mind"
+        ]
+       }
+      },
+      {
+       "answer": "Power Boon",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Power Boon"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide calls the guildmaster Cassandra."
+   "notes": "EQOA-Data Quests/1-20/fayspire/enchanter.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide calls the guildmaster Cassandra. The reward is ours: the choice of the Spacious Mind or the Power Boon scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/magician/L1",
@@ -2426,13 +2525,16 @@
      "journal": "Bring 2 tarantula leg tips to Professor Skysign.",
      "says": "Thank you.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Smoldering Aura"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. The reward is ours: the Smoldering Aura scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/magician/L4",
@@ -2560,13 +2662,16 @@
      "journal": "Bring elddar seeds to Fethinar Silspin.",
      "says": "Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Motivate"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Motivate scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/magician/L7",
@@ -2612,13 +2717,16 @@
      "journal": "Bring Bank Key to Fethinar Silspin.",
      "says": "Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Infusion"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: the Infusion scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/magician/L10",
@@ -2710,13 +2818,16 @@
      "journal": "Bring Powder to Dolby.",
      "says": "Just what I needed. Thank you.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "sturdy staff"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The reward is ours: sturdy staff, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/magician/L13",
@@ -2860,13 +2971,16 @@
      "journal": "Bring Fish Stomach to Dolby.",
      "says": "Everything. Well done.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Lava Wind"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The reward is ours: the Lava Wind scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/magician/L15",
@@ -2984,13 +3098,16 @@
      "journal": "Speak with Dolby.",
      "says": "Well done.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Endure Fire"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. The reward is ours: the Endure Fire scroll, as Freeport's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/magician/L20",
@@ -3097,12 +3214,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Frozen Mark",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Frozen Mark"
+        ]
+       }
+      },
+      {
+       "answer": "Lava Stone",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Lava Stone"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/magician.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The reward is ours: the choice of the Frozen Mark or the Lava Stone scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/paladin/L1",
@@ -4169,13 +4307,16 @@
      "journal": "Bring elddar seeds to Lyriam Kaelean.",
      "says": "Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Shock of Frost"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Shock of Frost scroll, as Freeport's, Highbourne's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/wizard/L7",
@@ -4239,13 +4380,16 @@
      "journal": "Speak with Lyriam Kaelean.",
      "says": "Well done.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Burning Flare"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: the Burning Flare scroll, as Freeport's, Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/wizard/L10",
@@ -4352,13 +4496,16 @@
      "journal": "Speak with Lyriam Kaelean.",
      "says": "Well done.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Staff of Malconius"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The orc witchdoctor stands in for the hatebone witchdoctor."
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-10 quest gives in EQOA-Data's guides. The orc witchdoctor stands in for the hatebone witchdoctor. The reward is ours: Staff of Malconius, as Freeport's quest of this level gives (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/wizard/L13",
@@ -4460,13 +4607,16 @@
      "journal": "Bring Skull of Vitsh to Siltha.",
      "says": "My collection is complete.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Element Guard"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The reward is ours: the Element Guard scroll, as Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (the most of the cities; others teach elemental guard (freeport, not a spell of the class's)) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/wizard/L15",
@@ -4597,13 +4747,16 @@
      "journal": "Bring Stonemason's Chisel to Overseer Evief.",
      "says": "The barges will run again.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Shocking Gaze"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot."
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. Dorrun Hammerfist is Bomun Hammerfist here. The guide does not name the loot. The reward is ours: the Shocking Gaze scroll, as Freeport's, Highbourne's, Klick'Anon's and Qeynos's quests of this level teach it (tools/fill_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/wizard/L20",
@@ -4748,12 +4901,33 @@
      "says": "You are a wizard of Fayspire.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Blazing Clash",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Blazing Clash"
+        ]
+       }
+      },
+      {
+       "answer": "Mental Focus",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Mental Focus"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of Burning Clash with the Deep Flame Staff, or Mental Focus with the Deep Flame Wand; a quest here gives no choice, so neither is given."
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The guide offers a choice of Burning Clash with the Deep Flame Staff, or Mental Focus with the Deep Flame Wand; a quest here gives no choice, so neither is given. The reward is ours: the choice of the Blazing Clash or the Mental Focus scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/fill_class_quest_rewards.py, 2026-10-30)."
   }
  ],
  "items": [

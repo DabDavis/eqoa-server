@@ -34,10 +34,14 @@ const lootSchema = `
 		PRIMARY KEY (npc_name, tablename)
 	);`
 
-// ensureLootTables makes tables loottables and npcloot (initSchema).
+// ensureLootTables makes tables loottables and npcloot, and the categories'
+// lootcategory, lootpool and lootregion (lootcategory.go) (initSchema).
 func (db *SQLiteDB) ensureLootTables() error {
 	if _, err := db.Exec(lootSchema); err != nil {
 		return fmt.Errorf("loottables: %w", err)
+	}
+	if _, err := db.Exec(lootCategorySchema); err != nil {
+		return fmt.Errorf("lootcategory: %w", err)
 	}
 	return nil
 }

@@ -260,6 +260,9 @@ type Player struct {
 	Mods     StatMods
 	// artReady is when the combat arts' global cooldown is over (balance.go)
 	artReady time.Time
+	// recoveryAnswered is when a cast into its own recovery was last
+	// answered (cast.go recoveryAnswerLocked)
+	recoveryAnswered time.Time
 
 	// StatsDirty sends the stat and effect channels on the next tick, not
 	// at the next 2 s round: a cast's cost goes out with its start.

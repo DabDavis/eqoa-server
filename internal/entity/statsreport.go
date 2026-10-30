@@ -177,7 +177,7 @@ func (w *World) npcStatsLocked(npc *NPC, viewer *Player, now time.Time) []string
 			f, viewer.Name, s, DispositionWords[StandingDisposition(s)], viewer.Name, yesNo(w.threatensLocked(npc, viewer)), FactionKOSBelow))
 	}
 	helps := "no one"
-	if rule, ok := w.npcSocial.rules[npc.Name]; ok && rule.Social {
+	if rule, ok := w.npcSocial.ruleFor(npc.Name); ok && rule.Social {
 		radius := rule.Radius
 		if radius <= 0 {
 			radius = DefaultSocialRadius

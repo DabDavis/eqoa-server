@@ -39,6 +39,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveUndead()
 	case "npcsocial":
 		return s.liveSocial()
+	case "npcspawnonly":
+		return s.liveSpawnOnly()
 	case "npcdialog":
 		database.InvalidateNPCDialog()
 		return "at once: the next talk to a town's person or a guard"
@@ -184,6 +186,29 @@ func (s *Server) liveSocial() string {
 		return "not applied to the world: " + err.Error()
 	}
 	return "at once: the next hit uses it"
+}
+
+// liveSpawnOnly reads which NPCs stand out of the world again
+// (entity/spawnonly.go; the change is committed: the database is free).
+func (s *Server) liveSpawnOnly() string {
+	if s.d.World == nil || s.d.DB == nil {
+		return "no world is running: at the next start"
+	}
+	held, changed, err := s.d.World.LoadSpawnOnly(s.d.DB)
+	if err != nil {
+		return "not applied to the world: " + err.Error()
+	}
+	return fmt.Sprintf("at once: %d NPC(s) changed, %d out of the world in all; the quests' and triggers' spawns copy them as before",
+		changed, held)
+}
+
+// checkSpawnOnlyRow holds an npcspawnonly row to a name: a blank one would
+// match no NPC and say nothing.
+func checkSpawnOnlyRow(row map[string]any) error {
+	if name, _ := row["name"].(string); database.NPCClassKey(name) == "" {
+		return badRequest("name is the NPC's name, as in NPCs (any case)")
+	}
+	return nil
 }
 
 // liveMove reads how the creatures of a name move again (entity/movement.go;

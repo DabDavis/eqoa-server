@@ -70,7 +70,10 @@ The importer makes it when no item has the name.
 engine's (`handlers/quests.go`); its actions are listed there and in the GM panel's quest page.
 `popup` (`text`) is a window the player closes; `say` (`npc`, `text`); `give` (`items`); `spawn`
 (`npc`, a copy beside the player for the step, gone after; `"hostile": true` makes it one to kill:
-attackable, and it attacks the player, which is how a step has a townsperson killed); `visual` (`fx`: a
+attackable, and it attacks the player, which is how a step has a townsperson killed; a spawn copies a loaded NPC of
+the name, and one only a spawn should bring, a creature the quest makes before the player, is kept out of the world by a
+row of `npcspawnonly`: `tools/fix_quest_spawns.py` marks those `tools/seed_quest_npcs.py` placed that only spawns use);
+`visual` (`fx`: a
 DictID like `0x1DAEB5B6`, or a spell's name for that spell's visual; `seconds`); `teleport`
 (`world`, `x`, `y`, `z`); `vampire` (nothing else: the player made a vampire, whom the sun burns by day,
 `entity/vampire.go`; the vampire quest's bats). One popup at a time: the client shows one question box

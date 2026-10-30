@@ -167,3 +167,25 @@ func TestSimulatedCharmFightsWithTheCreature(t *testing.T) {
 		t.Errorf("no charmed creature fought: %+v", r)
 	}
 }
+
+// A group's fight (balancegroup.go): three of the synthetic warrior beat an
+// NPC five levels up that one alone mostly loses to, and the control: one
+// "group" of a single member fights as a lone player does (the same share
+// won over the same seeds).
+func TestAGroupBeatsWhatOneCannot(t *testing.T) {
+	if testing.Short() {
+		t.Skip("fights a few hundred fights")
+	}
+	b := SeedBalance()
+	pl := simKit(classWarrior, 30)
+	alone := SimCellOf(pl, SimNPC{}, 5, b, 16, 7, 10*time.Minute)
+	trio := SimGroupCellOf([]SimPlayer{pl, pl, pl}, SimNPC{}, 5, b, 16, 7, 10*time.Minute)
+	if trio.WinShare() <= alone.WinShare() || trio.WinShare() < 0.75 {
+		t.Errorf("+5: alone won %.0f%%, three won %.0f%%", 100*alone.WinShare(), 100*trio.WinShare())
+	}
+	one := SimGroupCellOf([]SimPlayer{pl}, SimNPC{}, 2, b, 12, 3, 10*time.Minute)
+	solo := SimCellOf(pl, SimNPC{}, 2, b, 12, 3, 10*time.Minute)
+	if d := one.WinShare() - solo.WinShare(); d > 0.2 || d < -0.2 {
+		t.Errorf("a group of one won %.0f%%, the lone player %.0f%%", 100*one.WinShare(), 100*solo.WinShare())
+	}
+}

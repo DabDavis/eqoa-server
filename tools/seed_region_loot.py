@@ -2,12 +2,13 @@
 """The loot tables' dead items brought to life: the regional tables no
 creature rolled bound to their regions' creatures, and a table's items no
 bound creature's level reaches given the creatures of its biome at that level
-(the user, 2026-10-30, of tools/drop_rates.py's report: 885 items of
-loottables never dropped).
+(the user, 2026-10-30, of tools/drop_rates.py's report: 1,186 items of
+loottables never dropped, 888 in tables bound to no creature and 298 in
+windows no bound creature's level reached).
 
-tools/seed_camp_loot.py wrote EQOA-Data's thirteen biome tables and bound
-only the 49 XP camps' creatures (a camp's zone quadrant's biome on EQOA-Data's
-map, and "generic"). So:
+tools/seed_camp_loot.py wrote EQOA-Data's biome tables and bound only the 49
+XP camps' creatures (a camp's zone quadrant's biome on EQOA-Data's map, and
+"generic"). So:
 
   - **rathe mountains** (295 items, levels 5-60): the Rathe's creatures
     (world 1), the region the table is named for.
@@ -22,13 +23,17 @@ map, and "generic"). So:
     below 50), and their names are Odus's (Kerran Claw Ring, Abysmal Plate
     Helm, Barren Ring, Rhino Horn Earring, Pirate's Scimitar: its kerrans,
     Abyssmal Sea, Barren Coast, rhinoceroses and indigo pirates), so all four
-    go to Odus's creatures, each at a quarter of a biome's chance (one region,
-    four tables: a kill there rolls about as often as a camp's biome).
-    Inferred: no record names their zones.
+    go to Odus's creatures, sharing a biome's chance by their sizes (a kill
+    there rolls about as often as a camp's biome, each item about as often as
+    another's; at least 1: red desert 10, wetlands 8, deep jungle 7,
+    wastelands 1). Inferred: no record names their zones.
   - **every other biome table** (arctic, desert, forest, mountain, plains,
     swamp): an item whose level window no creature bound to the table reaches
     is reached by binding the creatures of that biome (the commonest biome of
     their spawns' quadrants) whose levels its window holds.
+  - a window still dead after that is stretched to the nearest level a bound
+    creature has, within STRETCH (the Rathe has no creature of a kind at
+    levels 29-42: its 23 items there reach 28 or 43).
   - **khal viceroy, khal warlord**: named creatures this server has no spawn
     of; left, listed.
 
@@ -36,18 +41,22 @@ A creature is a name (npcloot binds names as NPCClassKey keys them) of a kind,
 spelled in lower case (the rename of NPC names: a capital is a person's or a
 named creature's: "Deputy Allen", "Old Red"), that can be attacked (a spawn
 without the NPC bit), is no town's person (no name-wide npcfaction row) and no
-training dummy; its region is the commonest of its spawns'. A binding is written only where the table has
-an item for one of the name's spawn levels, never over a row already there
-(a GM's, the camp seed's). Chances: BIOME_CHANCE (the camp seed's biome
-chance), ODUS_CHANCE each of Odus's four; one roll. Ours, as the camp seed's
-are. Run tools/double_loot_chances.py after this one to double these too, and
-undo in the other order.
+training dummy; its region is the commonest of its spawns'. A binding is
+written only where the table has an item for one of the name's spawn levels,
+never over a row already there (a GM's, the camp seed's). Chances:
+BIOME_CHANCE (the camp seed's biome chance) but Odus's; one roll. Ours, as the
+camp seed's are. Run tools/double_loot_chances.py after this one to double
+these too, and undo in the other order.
 
-Every row written is logged in region_loot_seed; --undo deletes those still
-as written. Report only by default. The server reads npcloot at every corpse:
-no restart.
+On the live data of 2026-10-30 01:30 UTC: 948 bindings for 508 names and 23
+windows; 1,186 dead items to 4 (the Khal Viceroy's and Warlord's).
 
-    python3 -E -s tools/seed_region_loot.py --db eqoa.db --eqoa-data ../external/EQOA-Data [--apply | --undo]
+Every binding written and window changed is logged in region_loot_seed;
+--undo takes back those still as written. Report only by default. The server
+reads npcloot and loottables at every corpse: no restart.
+
+    python3 -E -s tools/seed_region_loot.py --db eqoa.db --eqoa-data ../external/EQOA-Data \
+        --ground worlds/ground [--apply | --undo]
 """
 import argparse
 import collections

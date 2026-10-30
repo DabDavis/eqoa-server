@@ -1246,8 +1246,17 @@ func (w *World) sendPlayerDied(sess *session.Session) {
 	sess.Queue().AddWithSequence(msg)
 }
 
-// SpawnOfNPC returns the spawn point and world of the NPC with this exact
-// name, or ok=false if no such NPC is loaded.
+// sameNPCName reports two NPC names the same but for case and the spaces at
+// their ends: a name the code holds (a #tele place's NPC, a camp's creature in
+// camps.go) names the NPCs of the database however their case was made
+// (tools/fix_npc_name_case.py lowercases a generic name: "Goblin Excavator"
+// is "goblin excavator" now).
+func sameNPCName(a, b string) bool {
+	return strings.EqualFold(strings.TrimSpace(a), strings.TrimSpace(b))
+}
+
+// SpawnOfNPC returns the spawn point and world of the NPC of this name
+// (sameNPCName), or ok=false if no such NPC is loaded.
 //
 // It reports the SPAWN rather than the live position deliberately: a wandering
 // or pushed NPC would otherwise make a named teleport land somewhere new every
@@ -1257,15 +1266,15 @@ func (w *World) SpawnOfNPC(name string) (x, y, z, facing float32, world uint8, o
 	defer w.mu.RUnlock()
 
 	for _, npc := range w.NPCs {
-		if npc.Name == name {
+		if sameNPCName(npc.Name, name) {
 			return npc.SpawnX, npc.SpawnY, npc.SpawnZ, npc.SpawnFacing, npc.World, true
 		}
 	}
 	return 0, 0, 0, 0, 0, false
 }
 
-// SpawnOfNPCNear is the spawn of the NPC of that name in the world whose
-// spawn is nearest (x, z), within reach of it: one of a camp's many creatures
+// SpawnOfNPCNear is the spawn of the NPC of that name (sameNPCName) in the
+// world whose spawn is nearest (x, z), within reach of it: one of a camp's many creatures
 // of a name (a #tele camp's anchor), not a namesake across the world. A GM's
 // temporary copy is not one.
 func (w *World) SpawnOfNPCNear(name string, world uint8, x, z, reach float32) (sx, sy, sz, facing float32, wld uint8, ok bool) {
@@ -1274,7 +1283,7 @@ func (w *World) SpawnOfNPCNear(name string, world uint8, x, z, reach float32) (s
 
 	best, bestID := reach*reach, EntityID(0)
 	for _, npc := range w.NPCs {
-		if npc.Name != name || npc.World != world || npc.Temporary {
+		if !sameNPCName(npc.Name, name) || npc.World != world || npc.Temporary {
 			continue
 		}
 		dx, dz := npc.SpawnX-x, npc.SpawnZ-z

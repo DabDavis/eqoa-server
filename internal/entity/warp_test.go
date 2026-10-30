@@ -335,6 +335,10 @@ func TestSpawnOfNPC(t *testing.T) {
 	if _, _, _, _, _, ok := w.SpawnOfNPC("Harbormaster Nobody"); ok {
 		t.Error("SpawnOfNPC found an NPC that does not exist")
 	}
+	// the name in any case, its ends' spaces aside (tools/fix_npc_name_case.py)
+	if x, _, _, _, _, ok := w.SpawnOfNPC(" harbormaster MACHADO "); !ok || x != 13000 {
+		t.Errorf("SpawnOfNPC in another case: %v %v", x, ok)
+	}
 }
 
 // --- World 22: an authored world, fetched on demand ---

@@ -113,7 +113,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "sliver of bat meat",
@@ -400,7 +400,7 @@
     },
     {
      "kind": "loot",
-     "target": "Bandit",
+     "target": "bandit",
      "items": [
       {
        "item": "Wilwalt's Leathers",
@@ -635,7 +635,7 @@
     },
     {
      "kind": "loot",
-     "target": "Gnoll Raider",
+     "target": "gnoll raider",
      "items": [
       {
        "item": "pair of gnoll gloves",
@@ -666,7 +666,7 @@
     },
     {
      "kind": "loot",
-     "target": "Hungry Zombie",
+     "target": "hungry zombie",
      "items": [
       {
        "item": "stolen milk",
@@ -1005,7 +1005,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Cracked Rat Claw",
@@ -1081,7 +1081,7 @@
     },
     {
      "kind": "loot",
-     "target": "Young Badger",
+     "target": "young badger",
      "items": [
       {
        "item": "shredded badger hide",
@@ -1408,7 +1408,7 @@
     },
     {
      "kind": "give",
-     "target": "old woman",
+     "target": "Old Woman",
      "items": [
       {
        "item": "Box of Coins",
@@ -1420,7 +1420,7 @@
     },
     {
      "kind": "loot",
-     "target": "Black Widow",
+     "target": "black widow",
      "items": [
       {
        "item": "Black Widow Silk",
@@ -1433,7 +1433,7 @@
     },
     {
      "kind": "loot",
-     "target": "Giant Beetle",
+     "target": "giant beetle",
      "items": [
       {
        "item": "Giant Beetle Eye",
@@ -1446,7 +1446,7 @@
     },
     {
      "kind": "give",
-     "target": "old woman",
+     "target": "Old Woman",
      "items": [
       {
        "item": "Black Widow Silk",
@@ -1857,7 +1857,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "ruined bat wing",
@@ -1945,7 +1945,7 @@
     },
     {
      "kind": "loot",
-     "target": "Grass Snake",
+     "target": "grass snake",
      "items": [
       {
        "item": "Poison Sac",
@@ -2300,7 +2300,7 @@
     },
     {
      "kind": "give",
-     "target": "old woman",
+     "target": "Old Woman",
      "items": [
       {
        "item": "Box of Coins",
@@ -2312,7 +2312,7 @@
     },
     {
      "kind": "loot",
-     "target": "Black Widow",
+     "target": "black widow",
      "items": [
       {
        "item": "Black Widow Silk",
@@ -2325,7 +2325,7 @@
     },
     {
      "kind": "loot",
-     "target": "Young Wolf",
+     "target": "young wolf",
      "items": [
       {
        "item": "Brittle Wolf Whisker",
@@ -2338,7 +2338,7 @@
     },
     {
      "kind": "give",
-     "target": "old woman",
+     "target": "Old Woman",
      "items": [
       {
        "item": "Black Widow Silk",
@@ -2755,7 +2755,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Cracked Rat Claw",
@@ -2831,7 +2831,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rabid Bat",
+     "target": "rabid bat",
      "items": [
       {
        "item": "ruined bat wing",
@@ -3153,7 +3153,7 @@
     },
     {
      "kind": "give",
-     "target": "old woman",
+     "target": "Old Woman",
      "items": [
       {
        "item": "Box of Coins",
@@ -3165,7 +3165,7 @@
     },
     {
      "kind": "loot",
-     "target": "Black Widow",
+     "target": "black widow",
      "items": [
       {
        "item": "Black Widow Silk",
@@ -3178,7 +3178,7 @@
     },
     {
      "kind": "loot",
-     "target": "Tree Viper",
+     "target": "tree viper",
      "items": [
       {
        "item": "Tree Viper Poison Sac",
@@ -3191,7 +3191,7 @@
     },
     {
      "kind": "give",
-     "target": "old woman",
+     "target": "Old Woman",
      "items": [
       {
        "item": "Black Widow Silk",
@@ -3599,7 +3599,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Young Badger",
+     "target": "young badger",
      "items": [
       {
        "item": "Smashed Badger Eye",
@@ -4397,7 +4397,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Young Badger",
+     "target": "young badger",
      "items": [
       {
        "item": "Smashed Badger Eye",
@@ -4473,7 +4473,7 @@
     },
     {
      "kind": "loot",
-     "target": "Grass Snake",
+     "target": "grass snake",
      "items": [
       {
        "item": "Poison Sac",
@@ -4698,7 +4698,7 @@
     },
     {
      "kind": "give",
-     "target": "Sand Covered Chest",
+     "target": "sand covered chest",
      "items": [
       {
        "item": "Sea Chest Key",
@@ -4739,7 +4739,7 @@
     },
     {
      "kind": "give",
-     "target": "Treasure Chest",
+     "target": "treasure chest",
      "items": [
       {
        "item": "Naerlik's Key",
@@ -4810,7 +4810,7 @@
     },
     {
      "kind": "give",
-     "target": "old woman",
+     "target": "Old Woman",
      "items": [
       {
        "item": "Box of Coins",
@@ -4822,7 +4822,7 @@
     },
     {
      "kind": "loot",
-     "target": "Black Widow",
+     "target": "black widow",
      "items": [
       {
        "item": "Black Widow Silk",
@@ -4835,7 +4835,7 @@
     },
     {
      "kind": "loot",
-     "target": "Tree Viper",
+     "target": "tree viper",
      "items": [
       {
        "item": "Tree Viper Fang",
@@ -4848,7 +4848,7 @@
     },
     {
      "kind": "give",
-     "target": "old woman",
+     "target": "Old Woman",
      "items": [
       {
        "item": "Black Widow Silk",
@@ -5335,7 +5335,7 @@
     },
     {
      "kind": "loot",
-     "target": "Young Badger",
+     "target": "young badger",
      "items": [
       {
        "item": "shredded badger hide",
@@ -5549,7 +5549,7 @@
     },
     {
      "kind": "loot",
-     "target": "Thick Coat Wolves",
+     "target": "thick coat wolves",
      "items": [
       {
        "item": "Thick Coat Wolf Pelt",
@@ -5821,7 +5821,7 @@
     },
     {
      "kind": "loot",
-     "target": "Gnoll Raider",
+     "target": "gnoll raider",
      "items": [
       {
        "item": "Gnoll Raider Boots",
@@ -5852,7 +5852,7 @@
     },
     {
      "kind": "loot",
-     "target": "Hungry Zombie",
+     "target": "hungry zombie",
      "items": [
       {
        "item": "Stolen Bread",
@@ -6191,7 +6191,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "ruined bat wing",
@@ -6279,7 +6279,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Rat Tail Tip",
@@ -6988,7 +6988,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Grass Snake",
+     "target": "grass snake",
      "items": [
       {
        "item": "cracked snake fang",
@@ -7428,7 +7428,7 @@
     },
     {
      "kind": "give",
-     "target": "old woman",
+     "target": "Old Woman",
      "items": [
       {
        "item": "Box of Coins",
@@ -7440,7 +7440,7 @@
     },
     {
      "kind": "loot",
-     "target": "Black Widow",
+     "target": "black widow",
      "items": [
       {
        "item": "Black Widow Silk",
@@ -7453,7 +7453,7 @@
     },
     {
      "kind": "loot",
-     "target": "Black Wolf Cub",
+     "target": "black wolf cub",
      "items": [
       {
        "item": "Brittle Wolf Whisker",
@@ -7466,7 +7466,7 @@
     },
     {
      "kind": "give",
-     "target": "old woman",
+     "target": "Old Woman",
      "items": [
       {
        "item": "Black Widow Silk",
@@ -7874,7 +7874,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "ruined bat wing",
@@ -7887,7 +7887,7 @@
     },
     {
      "kind": "loot",
-     "target": "Grass Snake",
+     "target": "grass snake",
      "items": [
       {
        "item": "cracked snake fang",
@@ -7957,7 +7957,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Cracked Rat Claw",

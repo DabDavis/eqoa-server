@@ -108,7 +108,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Taksehir Miner",
+     "target": "Taksehir miner",
      "items": [
       {
        "item": "glowing crystal",
@@ -121,7 +121,7 @@
     },
     {
      "kind": "loot",
-     "target": "Goblin Soothsayer",
+     "target": "goblin soothsayer",
      "items": [
       {
        "item": "enchanted goblin warbead",
@@ -187,7 +187,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Froglok Channeler",
+     "target": "froglok channeler",
      "items": [
       {
        "item": "spotted tongue",
@@ -200,7 +200,7 @@
     },
     {
      "kind": "loot",
-     "target": "Froglok Channeler",
+     "target": "froglok channeler",
      "items": [
       {
        "item": "congealed swamp water",
@@ -684,7 +684,7 @@
     },
     {
      "kind": "talk",
-     "target": "Glittering Chest",
+     "target": "glittering chest",
      "journal": "Look at the chest that has appeared by the palm trees.",
      "choose": "Open the chest?",
      "choices": [
@@ -994,7 +994,7 @@
     },
     {
      "kind": "loot",
-     "target": "Goblin Soothsayer",
+     "target": "goblin soothsayer",
      "items": [
       {
        "item": "enchanted goblin warbead",
@@ -1090,7 +1090,7 @@
     },
     {
      "kind": "give",
-     "target": "High Shaman",
+     "target": "high shaman",
      "items": [
       {
        "item": "first page of pardon",
@@ -1130,7 +1130,7 @@
     },
     {
      "kind": "talk",
-     "target": "High Shaman",
+     "target": "high shaman",
      "journal": "Speak with the High Shaman again.",
      "says": "He is safe. Go back to the one who sent you."
     },
@@ -1177,7 +1177,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Desert Marauder",
+     "target": "desert marauder",
      "items": [
       {
        "item": "desert bandit sash",
@@ -1234,7 +1234,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Froglok Slayer",
+     "target": "froglok slayer",
      "items": [
       {
        "item": "Jezia's locket",
@@ -1837,7 +1837,7 @@
     },
     {
      "kind": "loot",
-     "target": "Goblin Soothsayer",
+     "target": "goblin soothsayer",
      "items": [
       {
        "item": "enchanted goblin warbead",
@@ -1922,7 +1922,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fire Imp Protector",
+     "target": "fire imp protector",
      "items": [
       {
        "item": "brain of Aktana",
@@ -2599,7 +2599,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Froglok Slayer",
+     "target": "froglok slayer",
      "items": [
       {
        "item": "froglok summoner's wand",
@@ -2612,7 +2612,7 @@
     },
     {
      "kind": "loot",
-     "target": "Goblin Soothsayer",
+     "target": "goblin soothsayer",
      "items": [
       {
        "item": "enchanted goblin warbead",
@@ -2840,7 +2840,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Plagued Forest Drake",
+     "target": "plagued forest drake",
      "items": [
       {
        "item": "toxic gland of the air",
@@ -2866,7 +2866,7 @@
     },
     {
      "kind": "loot",
-     "target": "Plagued Kobold Hunter",
+     "target": "plagued kobold hunter",
      "items": [
       {
        "item": "toxic gland of the land",
@@ -3238,7 +3238,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Froglok Slayer",
+     "target": "froglok slayer",
      "items": [
       {
        "item": "froglok summoner's wand",
@@ -3251,7 +3251,7 @@
     },
     {
      "kind": "loot",
-     "target": "Treant Diviner",
+     "target": "treant diviner",
      "items": [
       {
        "item": "enchanted treant branch",
@@ -3428,7 +3428,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Desert Marauder",
+     "target": "desert marauder",
      "items": [
       {
        "item": "desert bandit sash",
@@ -3992,7 +3992,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Taksehir Miner",
+     "target": "Taksehir miner",
      "items": [
       {
        "item": "glowing crystal",
@@ -4022,7 +4022,7 @@
     },
     {
      "kind": "loot",
-     "target": "Treant Diviner",
+     "target": "treant diviner",
      "items": [
       {
        "item": "enchanted treant branch",
@@ -4103,7 +4103,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fire Imp Protector",
+     "target": "fire imp protector",
      "items": [
       {
        "item": "brain of Aktana",
@@ -4216,7 +4216,7 @@
     },
     {
      "kind": "talk",
-     "target": "Bandit Henchman",
+     "target": "bandit henchman",
      "journal": "Speak with one of the brigand's henchmen.",
      "says": "Rashiroz sent you? Tell him the brigand had it coming."
     },
@@ -4778,7 +4778,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Taksehir Miner",
+     "target": "Taksehir miner",
      "items": [
       {
        "item": "glowing crystal",
@@ -4791,7 +4791,7 @@
     },
     {
      "kind": "loot",
-     "target": "Treant Diviner",
+     "target": "treant diviner",
      "items": [
       {
        "item": "enchanted treant branch",
@@ -4858,7 +4858,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Froglok Channeler",
+     "target": "froglok channeler",
      "items": [
       {
        "item": "spotted tongue",
@@ -4871,7 +4871,7 @@
     },
     {
      "kind": "loot",
-     "target": "Froglok Channeler",
+     "target": "froglok channeler",
      "items": [
       {
        "item": "congealed swamp water",
@@ -5568,7 +5568,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Froglok Slayer",
+     "target": "froglok slayer",
      "items": [
       {
        "item": "froglok summoner's wand",
@@ -5581,7 +5581,7 @@
     },
     {
      "kind": "loot",
-     "target": "Treant Diviner",
+     "target": "treant diviner",
      "items": [
       {
        "item": "enchanted treant branch",
@@ -5683,7 +5683,7 @@
     },
     {
      "kind": "give",
-     "target": "High Shaman",
+     "target": "high shaman",
      "items": [
       {
        "item": "first page of pardon",
@@ -5723,7 +5723,7 @@
     },
     {
      "kind": "talk",
-     "target": "High Shaman",
+     "target": "high shaman",
      "journal": "Speak with the High Shaman again.",
      "says": "He is safe. Go back to the one who sent you."
     },
@@ -5837,7 +5837,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Wandering Spectre",
+     "target": "wandering spectre",
      "items": [
       {
        "item": "soul of a wandering spectre",
@@ -5850,7 +5850,7 @@
     },
     {
      "kind": "loot",
-     "target": "Red Derelict Mummy",
+     "target": "red derelict mummy",
      "items": [
       {
        "item": "derelict mummy's soul",
@@ -6219,7 +6219,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -6350,7 +6350,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. This is yours.",
      "rewards": {
@@ -6447,7 +6447,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -6560,7 +6560,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. This is yours.",
      "rewards": {
@@ -6657,7 +6657,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -6761,7 +6761,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -6874,7 +6874,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -7023,7 +7023,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -7172,7 +7172,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -7285,7 +7285,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -7434,7 +7434,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -7547,7 +7547,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -7660,7 +7660,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Klick'Anon.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -7773,7 +7773,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -7904,7 +7904,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
      "says": "Ediopolus sent word. This is yours.",
      "rewards": {
@@ -8001,7 +8001,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
      "says": "Ediopolus sent word. This is yours.",
      "rewards": {
@@ -8080,7 +8080,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -8229,7 +8229,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -8369,7 +8369,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -8518,7 +8518,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -8667,7 +8667,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -8798,7 +8798,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",
@@ -8911,7 +8911,7 @@
     },
     {
      "kind": "talk",
-     "target": "Assistant Recruiter",
+     "target": "assistant recruiter",
      "journal": "Collect your epic reward from the Assistant Recruiter, by the Recruiter in Freeport.",
      "says": "Ediopolus sent word. Choose.",
      "choose": "Which do you take?",

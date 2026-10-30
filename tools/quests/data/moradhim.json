@@ -113,7 +113,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Badger",
+     "target": "badger",
      "items": [
       {
        "item": "piece of badger meat",
@@ -189,7 +189,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spiderling",
+     "target": "spiderling",
      "items": [
       {
        "item": "small spider leg",
@@ -202,7 +202,7 @@
     },
     {
      "kind": "loot",
-     "target": "Crow",
+     "target": "crow",
      "items": [
       {
        "item": "chipped raven beak",
@@ -265,7 +265,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Frosteye Shaman",
+     "target": "frosteye shaman",
      "count": 1,
      "journal": "Slay a Frosteye shaman northwest of Moradhim."
     },
@@ -432,7 +432,7 @@
     },
     {
      "kind": "loot",
-     "target": "Frosteye Marauder",
+     "target": "frosteye marauder",
      "items": [
       {
        "item": "Marauders' Key",
@@ -684,7 +684,7 @@
     },
     {
      "kind": "loot",
-     "target": "Freezeblood Treasurer",
+     "target": "Freezeblood treasurer",
      "items": [
       {
        "item": "Freezeblood Treasurer's Key",
@@ -977,7 +977,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Frosteye Runt",
+     "target": "frosteye runt",
      "items": [
       {
        "item": "Slashed Pawn Belt",
@@ -1031,7 +1031,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Grass Snake",
+     "target": "grass snake",
      "items": [
       {
        "item": "cracked snake fang",
@@ -1044,7 +1044,7 @@
     },
     {
      "kind": "loot",
-     "target": "Crow",
+     "target": "crow",
      "items": [
       {
        "item": "chipped raven beak",
@@ -1129,7 +1129,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Frosteye Shaman",
+     "target": "frosteye shaman",
      "items": [
       {
        "item": "Frosteye Talisman",
@@ -1283,7 +1283,7 @@
     },
     {
      "kind": "loot",
-     "target": "Frosteye Lurker",
+     "target": "frosteye lurker",
      "items": [
       {
        "item": "Frosteye Blow Gun",
@@ -1314,7 +1314,7 @@
     },
     {
      "kind": "loot",
-     "target": "Frosteye Marauder",
+     "target": "frosteye marauder",
      "items": [
       {
        "item": "Marauders' Key",
@@ -1566,7 +1566,7 @@
     },
     {
      "kind": "loot",
-     "target": "Freezeblood Treasurer",
+     "target": "Freezeblood treasurer",
      "items": [
       {
        "item": "Freezeblood Treasurer's Key",
@@ -1853,7 +1853,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Smithing Stone",
@@ -1929,7 +1929,7 @@
     },
     {
      "kind": "loot",
-     "target": "Grass Snake",
+     "target": "grass snake",
      "items": [
       {
        "item": "cracked snake fang",
@@ -1942,7 +1942,7 @@
     },
     {
      "kind": "loot",
-     "target": "Badger",
+     "target": "badger",
      "items": [
       {
        "item": "Smashed Badger Eye",
@@ -2005,7 +2005,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Frosteye Shaman",
+     "target": "frosteye shaman",
      "count": 1,
      "journal": "Slay a Frosteye shaman northwest of Moradhim."
     },
@@ -2229,7 +2229,7 @@
     },
     {
      "kind": "loot",
-     "target": "Frosteye Marauder",
+     "target": "frosteye marauder",
      "items": [
       {
        "item": "Marauders' Key",
@@ -2481,7 +2481,7 @@
     },
     {
      "kind": "loot",
-     "target": "Freezeblood Treasurer",
+     "target": "Freezeblood treasurer",
      "items": [
       {
        "item": "Freezeblood Treasurer's Key",
@@ -2768,7 +2768,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Strands of Rat Fur",
@@ -2844,7 +2844,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rabid Bat",
+     "target": "rabid bat",
      "items": [
       {
        "item": "ruined bat wing",
@@ -2857,7 +2857,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spider",
+     "target": "spider",
      "items": [
       {
        "item": "flattened tarantula eye",
@@ -2920,7 +2920,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Frosteye Shaman",
+     "target": "frosteye shaman",
      "count": 1,
      "journal": "Slay a Frosteye shaman northwest of Moradhim."
     },
@@ -3082,7 +3082,7 @@
     },
     {
      "kind": "loot",
-     "target": "Frosteye Marauder",
+     "target": "frosteye marauder",
      "items": [
       {
        "item": "Marauders' Key",
@@ -3334,7 +3334,7 @@
     },
     {
      "kind": "loot",
-     "target": "Freezeblood Treasurer",
+     "target": "Freezeblood treasurer",
      "items": [
       {
        "item": "Freezeblood Treasurer's Key",

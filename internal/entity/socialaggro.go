@@ -63,22 +63,28 @@ type SocialRule struct {
 	Radius  float32
 }
 
-// npcSocialState is the world's social rules by NPC name and the farthest any
-// helper comes from.
+// npcSocialState is the world's social rules by NPC name (database.NPCClassKey:
+// any case, as npcaggro's) and the farthest any helper comes from.
 type npcSocialState struct {
 	rules map[string]SocialRule
 	reach float32
+}
+
+// ruleFor is the rule for the NPCs of a name, in any case.
+func (s *npcSocialState) ruleFor(name string) (SocialRule, bool) {
+	r, ok := s.rules[database.NPCClassKey(name)]
+	return r, ok
 }
 
 // socialFactionLocked is the faction an NPC helps: its row's, else the one
 // its kill lowers most (factionhits; the first of equals); "" none. Must be
 // called with the lock held.
 func (w *World) socialFactionLocked(npc *NPC) string {
-	if r, ok := w.npcSocial.rules[npc.Name]; ok && r.Faction != "" {
+	if r, ok := w.npcSocial.ruleFor(npc.Name); ok && r.Faction != "" {
 		return r.Faction
 	}
 	best, faction := 0, ""
-	for _, h := range w.factions.hits[npc.Name] {
+	for _, h := range w.factions.hitsFor(npc.Name) {
 		if h.Delta < best {
 			best, faction = h.Delta, h.Faction
 		}
@@ -90,10 +96,10 @@ func (w *World) socialFactionLocked(npc *NPC) string {
 // row's, or any its kill lowers (factionhits). Must be called with the lock
 // held.
 func (w *World) ofFactionLocked(npc *NPC, faction string) bool {
-	if r, ok := w.npcSocial.rules[npc.Name]; ok && r.Faction == faction {
+	if r, ok := w.npcSocial.ruleFor(npc.Name); ok && r.Faction == faction {
 		return true
 	}
-	for _, h := range w.factions.hits[npc.Name] {
+	for _, h := range w.factions.hitsFor(npc.Name) {
 		if h.Delta < 0 && h.Faction == faction {
 			return true
 		}
@@ -123,7 +129,7 @@ func (w *World) socialEnemyLocked(attackerID EntityID) EntityID {
 // file's doc's exclusions, its faction victim's, and victim within its
 // radius. Must be called with the lock held.
 func (w *World) helperLocked(helper, victim *NPC, now time.Time) bool {
-	r, ok := w.npcSocial.rules[helper.Name]
+	r, ok := w.npcSocial.ruleFor(helper.Name)
 	if !ok || !r.Social || helper == victim {
 		return false
 	}
@@ -180,13 +186,23 @@ func (w *World) entityNameLocked(id EntityID) string {
 }
 
 // SetSocialRules sets the GMs' rules by NPC name (table npcsocial): at the
-// start and when a GM edits one.
+// start and when a GM edits one. A rule is for its name in any case; of two
+// spellings' rules the one that never helps wins, as npcaggro's peaceful one
+// does (aggro.go).
 func (w *World) SetSocialRules(rules map[string]SocialRule) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
-	w.npcSocial.rules = rules
+	keyed := make(map[string]SocialRule, len(rules))
+	for name, r := range rules {
+		k := database.NPCClassKey(name)
+		if o, dup := keyed[k]; dup && !o.Social && r.Social {
+			continue
+		}
+		keyed[k] = r
+	}
+	w.npcSocial.rules = keyed
 	w.npcSocial.reach = DefaultSocialRadius
-	for _, r := range rules {
+	for _, r := range keyed {
 		if r.Social && r.Radius > w.npcSocial.reach {
 			w.npcSocial.reach = r.Radius
 		}
@@ -217,8 +233,7 @@ func (w *World) LoadSocialRules(db *database.SQLiteDB) (int, error) {
 func (w *World) SocialRuleFor(name string) (SocialRule, bool) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
-	r, ok := w.npcSocial.rules[name]
-	return r, ok
+	return w.npcSocial.ruleFor(name)
 }
 
 // SocialSummary is a line for the server's start: how many NPC names come to

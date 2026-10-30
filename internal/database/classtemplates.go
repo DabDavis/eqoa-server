@@ -78,7 +78,8 @@ const npcTemplateSchema = `
 // spells (entity/classtemplate.go): a hit on one target, a hit on an area, a
 // hit that heals its caster, a heal on itself. A pet of a template
 // (pettemplate, entity/pettemplate.go) casts them too, and two kinds of its
-// own: a damaging taunt at what it fights, and a buff on its owner.
+// own: a damaging taunt at what it fights, and a buff on itself (or its
+// owner).
 const (
 	AbilityNuke    = "nuke"
 	AbilityAoE     = "aoe"
@@ -147,8 +148,9 @@ type TemplateAbility struct {
 	// The fields below are a pet's (pettemplate); an NPC of a template
 	// casts no taunt or buff, and its heals are on itself.
 
-	// Target is who a pet's heal or buff lands on: "owner" (a buff's
-	// default) or "self" (a heal's).
+	// Target is who a pet's heal or buff lands on: "self" (the default:
+	// the user, 2026-10-30, "the earth pet ... is casting the ac buff on the
+	// player instead of itself") or "owner".
 	Target string `json:"target,omitempty"`
 	// SpellsOf is the class (0-14) whose spells it picks from in place of
 	// the template's: a pet's buff from a druid's or a shaman's line.
@@ -173,14 +175,11 @@ type TemplateAbility struct {
 	Hits [][3]float64 `json:"hits,omitempty"`
 }
 
-// TargetOr is who a pet's heal or buff lands on: its own, else its kind's
-// (a buff its owner, anything else itself).
+// TargetOr is who a pet's heal or buff lands on: its own, else the pet
+// itself.
 func (a TemplateAbility) TargetOr() string {
 	if a.Target != "" {
 		return a.Target
-	}
-	if a.Kind == AbilityBuff {
-		return AbilityOnOwner
 	}
 	return AbilityOnSelf
 }
@@ -333,8 +332,6 @@ func checkPetAbility(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: target %q: owner or self", n, a.Target)
 	case a.Target != "" && a.Kind != AbilityHeal && a.Kind != AbilityBuff:
 		return fmt.Errorf("ability %d: a target is a heal's or a buff's", n)
-	case a.Kind == AbilityBuff && a.Target == AbilityOnSelf:
-		return fmt.Errorf("ability %d: a buff lands on its owner (a pet uses no stat of its own)", n)
 	case a.SpellsOf != nil && (*a.SpellsOf < 0 || *a.SpellsOf > 14):
 		return fmt.Errorf("ability %d: spells_of %d: 0 (Warrior) to 14 (Alchemist)", n, *a.SpellsOf)
 	case a.Stat != "" && !oneOf(a.Stat, AbilityStats):

@@ -8,8 +8,11 @@
 # Staging: put the new binary at $SWAP/pending/gameserver, written under another name and moved
 # there (a half-written file must not be taken), with its sha256 in $SWAP/pending/sha256
 # (`sha256sum gameserver | cut -c1-64`; a binary that does not match it is refused). An
-# executable $SWAP/pending/after.sh runs once the new server listens (a data step that needs the
-# new code; it makes its own backup). A newer staging replaces an older one.
+# executable $SWAP/pending/before.sh runs with the server stopped, before the new binary starts (a
+# data step the new binary must find at its start: the balance and the class templates are read
+# then); if it fails, the database goes back to the copy made before the stop and the old binary
+# is started again. An executable $SWAP/pending/after.sh runs once the new server listens (a data
+# step that needs the new code; it makes its own backup). A newer staging replaces an older one.
 #
 # Empty means all of these, again just before the stop (any check that cannot be made counts as
 # someone there):
@@ -20,8 +23,9 @@
 #   - no "UDP received" line in the last $QUIET seconds of the game server's log;
 #   - for $QUIET seconds on end (the first empty check starts the clock).
 # Then: the binary and the database are copied (*.bak-<when>-pre-swap, the last three kept),
-# the service is stopped, the binary moved in, the service started; if it does not listen within
-# a minute the old binary goes back and is started, and the staging is moved to failed-<when>.
+# the service is stopped, before.sh run, the binary moved in, the service started; if it does not
+# listen within a minute the old binary goes back (and the database, when a before.sh ran) and is
+# started, and the staging is moved to failed-<when>.
 # A swap done moves the staging to done-<when>. Everything is said in $SWAP/swap.log.
 #
 #   * * * * * EQOA_UNIT=eqoa-game /path/to/swap_when_empty.sh >> $HOME/eqoa-swap/swap.log 2>&1
@@ -120,13 +124,38 @@ listening() {
 	done
 	return 1
 }
+# the database as it was before the stop, put back with the server stopped (before.sh's data
+# would be the old binary's otherwise)
+db_back() {
+	if cp -p "$DIR/eqoa.db.bak-$when-pre-swap" "$DIR/eqoa.db"; then
+		log "the database is back as it was before the stop"
+	else
+		log "THE DATABASE COULD NOT BE PUT BACK from $DIR/eqoa.db.bak-$when-pre-swap"
+	fi
+}
 sudo -n systemctl stop "$UNIT"
+before=no
+if [ -x "$PENDING/before.sh" ]; then
+	if (cd "$PENDING" && ./before.sh); then
+		log "before.sh done"
+		before=yes
+	else
+		log "before.sh FAILED: not swapped, the old binary is started again"
+		db_back
+		sudo -n systemctl start "$UNIT"
+		listening && log "the old binary is listening" || log "THE OLD BINARY DOES NOT LISTEN"
+		mv "$PENDING" "$SWAP/failed-$when"
+		rm -f "$STATE"
+		exit 1
+	fi
+fi
 cp "$PENDING/gameserver" "$DIR/gameserver.swap" && mv "$DIR/gameserver.swap" "$DIR/gameserver"
 sudo -n systemctl start "$UNIT"
 if ! listening; then
 	log "the new binary did not listen on $AUTH_PORT: the old one goes back"
 	sudo -n systemctl stop "$UNIT"
 	cp -p "$DIR/gameserver.bak-$when-pre-swap" "$DIR/gameserver"
+	[ "$before" = yes ] && db_back
 	sudo -n systemctl start "$UNIT"
 	listening && log "the old binary is back and listening" || log "THE OLD BINARY DOES NOT LISTEN EITHER"
 	mv "$PENDING" "$SWAP/failed-$when"

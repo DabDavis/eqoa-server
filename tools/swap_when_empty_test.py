@@ -6,7 +6,10 @@ nothing; a UDP flow to the game port, or a packet in the log's last two
 minutes, holds the swap; empty starts the clock and a later run swaps (the
 binary moved in, copies of it and the database made, the staging done); a
 binary whose sha256 file disagrees is refused; one that does not listen is
-taken back out. No game data.
+taken back out. A staged before.sh runs with the server stopped and before the
+new binary starts; one that fails leaves the old binary running on the
+database as it was, and so does a new binary that does not listen after one.
+No game data.
 
     python3 tools/swap_when_empty_test.py
 """
@@ -156,6 +159,60 @@ class SwapWhenEmpty(unittest.TestCase):
         self.assertIn("refused", out)
         self.assertEqual(self.binary(), "old binary\n")
         self.assertTrue(any(n.startswith("failed-") for n in os.listdir(self.swap)))
+
+    def stage_before(self, fail=False):
+        """a before.sh that writes a row (and says whether the server was up), failing after it if asked"""
+        with open(f"{self.swap}/pending/before.sh", "w") as f:
+            f.write("#!/bin/bash\n"
+                    f"(exec 3<>/dev/tcp/127.0.0.1/{self.port}) 2>/dev/null && up=up || up=down\n"
+                    f"sqlite3 {self.dir}/eqoa.db \"INSERT INTO t VALUES ('$up')\"\n"
+                    + ("exit 1\n" if fail else ""))
+        os.chmod(f"{self.swap}/pending/before.sh", 0o755)
+
+    def rows(self):
+        db = sqlite3.connect(f"{self.dir}/eqoa.db")
+        try:
+            return [x for (x,) in db.execute("SELECT x FROM t")]
+        finally:
+            db.close()
+
+    def test_before_runs_with_the_server_stopped(self):
+        self.stage("new binary\n")
+        self.stage_before()
+        self.run_script()
+        time.sleep(1.1)
+        code, out = self.run_script()
+        self.assertEqual(code, 0, out)
+        self.assertIn("before.sh done", out)
+        self.assertEqual(self.binary(), "new binary\n")
+        self.assertEqual(self.rows(), ["down"])  # written with the server stopped, kept
+        self.assertTrue(self.listening())
+
+    def test_a_failed_before_leaves_the_old_binary_and_database(self):
+        self.stage("new binary\n")
+        self.stage_before(fail=True)
+        self.run_script()
+        time.sleep(1.1)
+        code, out = self.run_script()
+        self.assertNotEqual(code, 0)
+        self.assertIn("before.sh FAILED", out)
+        self.assertIn("the database is back as it was before the stop", out)
+        self.assertEqual(self.binary(), "old binary\n")
+        self.assertEqual(self.rows(), [])
+        self.assertTrue(self.listening())
+        self.assertTrue(any(n.startswith("failed-") for n in os.listdir(self.swap)))
+
+    def test_a_new_binary_that_does_not_listen_takes_before_back(self):
+        self.stage("broken binary\n")
+        self.stage_before()
+        self.run_script()
+        time.sleep(1.1)
+        code, out = self.run_script()
+        self.assertIn("the old one goes back", out)
+        self.assertIn("the database is back as it was before the stop", out)
+        self.assertEqual(self.binary(), "old binary\n")
+        self.assertEqual(self.rows(), [])
+        self.assertTrue(self.listening())
 
     def test_a_binary_that_does_not_listen_goes_back_out(self):
         self.stage("broken binary\n")

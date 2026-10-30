@@ -97,7 +97,7 @@ func TestEquipTwoHanderDisplacesLikeTheClient(t *testing.T) {
 		row(105, 5, 15, -1, 0, "Greataxe"), // two-hander, in the pack
 		row(201, 6, 12, -1, 1, "Banked"),   // bank row: not in the list
 	}
-	plan, err := planInteractItem(items, newInvList(items[:5]), 4) // the list SendMemoryDump writes: no bank row
+	plan, err := planInteractItem(items, newInvList(items[:5]), 4, int(ClassWarrior)) // the list SendMemoryDump writes: no bank row
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +116,7 @@ func TestEquipBowGoesToRanged(t *testing.T) {
 		row(1, 1, 12, 14, 0, "Sword"),
 		row(2, 2, 16, -1, 0, "Longbow"),
 	}
-	plan, err := planInteractItem(items, newInvList(items), 1)
+	plan, err := planInteractItem(items, newInvList(items), 1, int(ClassWarrior))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,7 +129,7 @@ func TestEquipBowGoesToRanged(t *testing.T) {
 func TestEquipFishingBaitTools(t *testing.T) {
 	for _, c := range []struct{ wear, slot int }{{20, 14}, {21, 15}, {22, 19}, {27, 19}} {
 		items := []database.CharInventoryEntry{row(9, 9, c.wear, -1, 0, "x")}
-		plan, err := planInteractItem(items, newInvList(items), 0)
+		plan, err := planInteractItem(items, newInvList(items), 0, int(ClassWarrior))
 		if err != nil || plan.slot != c.slot {
 			t.Errorf("wear %d: slot %d err %v, want %d", c.wear, plan.slot, err, c.slot)
 		}
@@ -142,13 +142,13 @@ func TestEquipPairs(t *testing.T) {
 		row(1, 1, 8, 9, 0, "Ring A"),
 		row(2, 2, 8, -1, 0, "Ring B"),
 	}
-	plan, _ := planInteractItem(items, newInvList(items), 1)
+	plan, _ := planInteractItem(items, newInvList(items), 1, int(ClassWarrior))
 	if plan.slot != 10 || !reflect.DeepEqual(plan.changes, []equipChange{{2, 10}}) {
 		t.Fatalf("free pair slot: %+v", plan)
 	}
 	items = append(items, row(3, 3, 8, -1, 0, "Ring C"))
 	items[1].EquipLoc = 10
-	plan, _ = planInteractItem(items, newInvList(items), 2)
+	plan, _ = planInteractItem(items, newInvList(items), 2, int(ClassWarrior))
 	if plan.slot != 9 || !reflect.DeepEqual(plan.changes, []equipChange{{1, -1}, {3, 9}}) {
 		t.Fatalf("full pair: %+v", plan)
 	}
@@ -156,7 +156,7 @@ func TestEquipPairs(t *testing.T) {
 
 func TestUnequip(t *testing.T) {
 	items := []database.CharInventoryEntry{row(7, 7, 1, 0, 0, "Helm")}
-	plan, err := planInteractItem(items, newInvList(items), 0)
+	plan, err := planInteractItem(items, newInvList(items), 0, int(ClassWarrior))
 	if err != nil || plan.equip || plan.unequip != 0 || !reflect.DeepEqual(plan.changes, []equipChange{{7, -1}}) {
 		t.Fatalf("plan = %+v err %v", plan, err)
 	}
@@ -178,14 +178,14 @@ func TestEquipResolvesKeyNotPosition(t *testing.T) {
 	}
 	items = items[1:] // and the database row with it
 
-	plan, err := planInteractItem(items, list, 2) // key 2 is the Boots
+	plan, err := planInteractItem(items, list, 2, int(ClassWarrior)) // key 2 is the Boots
 	if err != nil {
 		t.Fatal(err)
 	}
 	if plan.name != "Boots" || plan.index != 1 || plan.slot != 13 {
 		t.Fatalf("plan = %+v, want the Boots at list index 1 into 13", plan)
 	}
-	if _, err := planInteractItem(items, list, 0); err == nil {
+	if _, err := planInteractItem(items, list, 0, int(ClassWarrior)); err == nil {
 		t.Fatal("key 0 left the list but still resolved")
 	}
 }

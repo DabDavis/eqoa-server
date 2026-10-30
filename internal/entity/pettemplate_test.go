@@ -329,12 +329,15 @@ func TestTheWaterPetHealsItsOwnerThenItselfAndNukes(t *testing.T) {
 // The earth pet: a warrior's round (two hits at 34, four from 35: Summon
 // Badi's at 45), 30% more hit points, 20% less of a creature's melee hit
 // landing (Summon Badi, a mastery pet, the earth pet's template but for its
-// own 81% hit points: the balance's pet fit of 2026-10-30); a taunt that
+// own 36% hit points: the balance's pet fit of 2026-10-30, again with its
+// buffs on itself); a taunt that
 // takes the top of the crab's hate and a melee hit;
-// and its owner kept in the druid's AC line and the ranger's AGI line of its
-// level, not cast again while on. The control: a fire pet's hits on the same
+// and itself kept in the druid's AC line and the ranger's AGI line of its
+// level, cast at itself and not again while on (the user, 2026-10-30: "the
+// earth pet ... is casting the ac buff on the player instead of itself"),
+// none of it on its owner. The control: a fire pet's hits on the same
 // dice land 125/90 of the earth pet's, and a crab's hit on an air pet 115%.
-func TestTheEarthPetTauntsTanksAndBuffsItsOwner(t *testing.T) {
+func TestTheEarthPetTauntsTanksAndBuffsItself(t *testing.T) {
 	r, _ := newPetTemplateRig(t)
 	old := meleeIntn
 	meleeIntn = func(n int) int { return n / 2 }
@@ -348,7 +351,7 @@ func TestTheEarthPetTauntsTanksAndBuffsItsOwner(t *testing.T) {
 		t.Errorf("the taunt: the pet's hate %d over the owner's 5000, the crab on %d: want the pet on top", top, r.enemy.CurrentEnemy)
 	}
 	var ac, agi int
-	for _, e := range r.p.Effects {
+	for _, e := range f.pet.Effects {
 		switch e.SpellID {
 		case 700267:
 			ac++
@@ -357,8 +360,21 @@ func TestTheEarthPetTauntsTanksAndBuffsItsOwner(t *testing.T) {
 		}
 	}
 	if ac != 1 || agi != 1 || f.cast(0x0B000005) != 1 || f.cast(0x0B000006) != 1 {
-		t.Errorf("the owner's buffs: Steelskin %d (cast %d), Feet Like Cat %d (cast %d); want each once and on", ac,
+		t.Errorf("the pet's buffs: Steelskin %d (cast %d), Feet Like Cat %d (cast %d); want each once and on", ac,
 			f.cast(0x0B000005), agi, f.cast(0x0B000006))
+	}
+	for _, c := range f.casts {
+		if (c.fx == 0x0B000005 || c.fx == 0x0B000006) && c.target != f.petID {
+			t.Errorf("a buff %v cast at %#x: want the pet itself, %#x", c, c.target, f.petID)
+		}
+	}
+	for _, e := range r.p.Effects {
+		if e.SpellID == 700267 || e.SpellID == 700061 {
+			t.Errorf("the owner wears the pet's %q", e.Name)
+		}
+	}
+	if m := f.pet.effectMods(); m.AC != 310 || m.Agi != 10 {
+		t.Errorf("the pet's AC %+d and AGI %+d from its buffs: want +310 and +10", m.AC, m.Agi)
 	}
 
 	badi, _ := newPetTemplateRig(t)
@@ -366,8 +382,8 @@ func TestTheEarthPetTauntsTanksAndBuffsItsOwner(t *testing.T) {
 	if npcSwingKind(b.pet) != 5 {
 		t.Errorf("Summon Badi's at %d: swing %d, want a warrior's four hits (Attack4)", b.pet.Level, npcSwingKind(b.pet))
 	}
-	if want := int(math.Round(float64(b.pet.MaxHP) / 0.81)); math.Abs(float64(want-badi.w.balance.PetMaxHP(b.pet.Level))) > 2 {
-		t.Errorf("hit points %d: want 81%% of the balance's %d (its own template)", b.pet.MaxHP, badi.w.balance.PetMaxHP(b.pet.Level))
+	if want := int(math.Round(float64(b.pet.MaxHP) / 0.36)); math.Abs(float64(want-badi.w.balance.PetMaxHP(b.pet.Level))) > 3 {
+		t.Errorf("hit points %d: want 36%% of the balance's %d (its own template)", b.pet.MaxHP, badi.w.balance.PetMaxHP(b.pet.Level))
 	}
 	er, _ := newPetTemplateRig(t)
 	if e := petTemplateFight(t, er, earthElemental, 10, time.Second, false); e.pet.MaxHP != int(math.Round(1.3*float64(er.w.balance.PetMaxHP(e.pet.Level)))) {
@@ -398,8 +414,8 @@ func TestTheEarthPetTauntsTanksAndBuffsItsOwner(t *testing.T) {
 
 // The fire pet casts the magician's fire spell of its level at what it
 // fights (Lava Strike at 25%: 58; never the cold Glacial Stream), and keeps
-// its owner in the shaman's STR and DEX lines (Tribal Brawn, Deftness; never
-// Avatar, of an 1800 s recast).
+// itself in the shaman's STR and DEX lines (Tribal Brawn, Deftness; never
+// Avatar, of an 1800 s recast), cast at itself; its owner wears none of them.
 func TestTheFirePetBurnsAndBuffsStrAndDex(t *testing.T) {
 	r, _ := newPetTemplateRig(t)
 	f := petTemplateFight(t, r, fireElemental(), 10, 40*time.Second, false)
@@ -414,11 +430,51 @@ func TestTheFirePetBurnsAndBuffsStrAndDex(t *testing.T) {
 		t.Errorf("crab losses %v: want Lava Strike's 232 at 25%%, 58", f.crabHit)
 	}
 	got := map[int]bool{}
-	for _, e := range r.p.Effects {
+	for _, e := range f.pet.Effects {
 		got[e.SpellID] = true
 	}
 	if !got[700124] || !got[700141] || got[700675] {
-		t.Errorf("the owner's effects %v: want Tribal Brawn and Deftness, never Avatar", got)
+		t.Errorf("the pet's effects %v: want Tribal Brawn and Deftness, never Avatar", got)
+	}
+	for _, c := range f.casts {
+		if (c.fx == 0x0B000008 || c.fx == 0x0B000009) && c.target != f.petID {
+			t.Errorf("a buff %v cast at %#x: want the pet itself, %#x", c, c.target, f.petID)
+		}
+	}
+	for _, e := range r.p.Effects {
+		if e.SpellID == 700124 || e.SpellID == 700141 {
+			t.Errorf("the owner wears the pet's %q", e.Name)
+		}
+	}
+	if m := f.pet.effectMods(); m.Str != 25 || m.Dex != 25 {
+		t.Errorf("the pet's STR %+d and DEX %+d from its buffs: want +25 and +25", m.Str, m.Dex)
+	}
+}
+
+// A row may still send a pet's buff to its owner ("target": "owner"): the
+// fire pet's two then on the owner, cast at the owner, and none on the pet.
+func TestAPetsBuffGoesToItsOwnerWhenItsRowSaysSo(t *testing.T) {
+	r, db := newPetTemplateRig(t, true)
+	if _, err := db.Exec(`UPDATE classtemplates SET abilities = ? WHERE name = 'pet fire'`,
+		`[{"kind": "buff", "stat": "str", "spells_of": 8, "every": 20, "first": 2, "max_recast": 60, "target": "owner"},`+
+			`{"kind": "buff", "stat": "dex", "spells_of": 8, "every": 20, "first": 4, "max_recast": 60, "target": "owner"}]`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := r.w.LoadClassTemplates(db); err != nil {
+		t.Fatal(err)
+	}
+	f := petTemplateFight(t, r, fireElemental(), 10, 40*time.Second, false)
+	on := map[int]bool{}
+	for _, e := range r.p.Effects {
+		on[e.SpellID] = true
+	}
+	if !on[700124] || !on[700141] || len(f.pet.Effects) != 0 {
+		t.Errorf("the owner wears %v, the pet %d effects: want Tribal Brawn and Deftness on the owner alone", on, len(f.pet.Effects))
+	}
+	for _, c := range f.casts {
+		if (c.fx == 0x0B000008 || c.fx == 0x0B000009) && c.target != r.me {
+			t.Errorf("a buff %v cast at %#x: want the owner, %#x", c, c.target, r.me)
+		}
 	}
 }
 

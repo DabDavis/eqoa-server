@@ -166,3 +166,57 @@ func TestAClassDealtShareByLevel(t *testing.T) {
 		t.Errorf("the control, a warrior of 10 with no rows: its spell's 100 landed %d, its melee %d of %d", ws, wm, wm0)
 	}
 }
+
+// A new character's kit (SimStartKitFromDB) is its start weapon in hand and
+// nothing else: a human warrior its Apprentice Sword (DMG 10, one hand, the
+// sword's swing), a human wizard its two-handed Apprentice Staff, a shaman
+// (no human row) the first race's that has one (a troll's club); rations are
+// carried, not worn. The control: the tier kit of the same database puts
+// armour on the warrior, which the start kit has none of.
+func TestASimStartKitIsTheStartWeapon(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/start.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, q := range []string{
+		`INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype,
+			weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color, AC)
+			VALUES (1297, 0, 0, 1, 0, 12, 0, 0, 1, 0, 1, 10, 0, 1, 1, 200, 100, 32767, 2047, 0, 0, 0, 0, 'Apprentice Sword', '', 0, 0, 0),
+			       (5488, 0, 0, 1, 0, 12, 0, 0, 1, 0, 3, 10, 0, 1, 1, 200, 100, 32767, 2047, 0, 0, 0, 0, 'Apprentice Club', '', 0, 0, 0),
+			       (5489, 0, 0, 1, 0, 15, 0, 0, 1, 0, 5, 12, 0, 1, 1, 200, 100, 32767, 2047, 0, 0, 0, 0, 'Apprentice Staff', '', 0, 0, 0),
+			       (8398, 0, 0, 2, 0, -1, 0, 0, 1, 0, 0, 0, 0, 1, 20, 0, 0, 32767, 2047, 0, 0, 0, 0, 'Field Rations', '', 0, 0, 0),
+			       (7001, 0, 0, 3, 0, 5, 0, 0, 1, 0, 0, 0, 0, 1, 1, 100, 100, 32767, 2047, 0, 0, 0, 0, 'a tunic', '', 0, 0, 12)`,
+		`INSERT INTO startitems (race, class, humtype, patternid, count) VALUES (0, 0, 1, 1297, 1), (0, 0, 1, 8398, 20),
+			(0, 13, 2, 8398, 20), (0, 13, 2, 5489, 1), (5, 8, 0, 5488, 1), (6, 8, 0, 1297, 1)`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	war, err := SimStartKitFromDB(db, 0, 0, 3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if war.Gear.WeaponDamage != 10 || war.Gear.WeaponTwoHanded || !war.Worn[14] || war.Worn[16] || war.AttackType != 1 || war.Gear.AC != 0 {
+		t.Errorf("the warrior's start kit: %+v worn %v type %d", war.Gear, war.Worn, war.AttackType)
+	}
+	if war.Base != SimBaseStats(0, 0, 3) || war.Level != 3 {
+		t.Errorf("its base stats %v at %d, want SimBaseStats'", war.Base, war.Level)
+	}
+	wiz, _ := SimStartKitFromDB(db, 13, 0, 1)
+	if wiz.Gear.WeaponDamage != 12 || !wiz.Gear.WeaponTwoHanded || !wiz.Worn[16] || wiz.Worn[14] {
+		t.Errorf("the wizard's start kit (its staff, from the west's row): %+v worn %v", wiz.Gear, wiz.Worn)
+	}
+	sha, _ := SimStartKitFromDB(db, 8, 0, 1)
+	if sha.Gear.WeaponDamage != 10 || sha.AttackType != 3 {
+		t.Errorf("the shaman's start kit (a troll's club): %+v type %d", sha.Gear, sha.AttackType)
+	}
+	tier, err := SimKitFromDB(db, 0, 0, 3, 0.5)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tier.Gear.AC <= 0 {
+		t.Errorf("the control: the tier kit wears no armour either (%+v)", tier.Gear)
+	}
+}

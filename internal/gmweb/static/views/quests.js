@@ -32,6 +32,7 @@ const DOS = {
   spawn: 'Spawn an NPC for the step',
   visual: 'Play a spell visual on the player',
   teleport: 'Teleport the player',
+  vampire: 'Make the player a vampire',
 };
 
 export async function render(box, parts) {
@@ -573,6 +574,8 @@ function eventsEditor(obj, key, whens, worlds) {
       const w = h('select', null, ...(worlds.length ? worlds : [{ value: 0, label: 'World 0' }]).map((x) => h('option', { value: x.value, selected: Number(e.world || 0) === x.value }, x.label)));
       w.addEventListener('change', () => { e.world = Number(w.value); });
       fields.push(field('World', w), field('x', num(e, 'x', { step: 'any' })), field('y', num(e, 'y', { step: 'any' })), field('z', num(e, 'z', { step: 'any' })));
+    } else if (e.do === 'vampire') {
+      fields.push(field('', h('p', { class: 'muted small' }, 'The character becomes a vampire: the sun burns it by day. The Vampires table (or #vampire off) undoes it.')));
     }
     const move = (d) => { const j = i + d; if (j < 0 || j >= list.length) return; [list[i], list[j]] = [list[j], list[i]]; keep(); draw(); };
     return h('div', { class: 'stack' }, h('div', { class: 'fields' }, ...fields),

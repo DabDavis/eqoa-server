@@ -72,6 +72,11 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 	if h.gameWorld == nil {
 		return
 	}
+	// a vampire drinks no invisibility or speed potion (entity/vampire.go)
+	if text := h.gameWorld.VampirePotionRefusal(sess, pe); text != "" {
+		refuse(text)
+		return
+	}
 	refusal, err := h.gameWorld.UsePotion(sess, pe, target, time.Now())
 	switch {
 	case errors.Is(err, entity.ErrPotionNoPlayer):

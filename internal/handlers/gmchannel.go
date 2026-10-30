@@ -324,6 +324,11 @@ func (h *ChatHandler) SendGMChannel(sess *session.Session) {
 	if !h.isGM(sess) {
 		return
 	}
+	// and the world knows its character is a GM's (a GM's vampire may be
+	// spared the sun: entity/vampire.go)
+	if h.gameWorld != nil {
+		h.gameWorld.SetPlayerGM(sess, true)
+	}
 	queueReliable(sess, protocol.OpcodeAdminCode, buildGMEnabled(1))
 	queueReliable(sess, protocol.OpcodeGMTriggers, buildTriggerNamesOffer())
 	log.Printf("GM channel: sent to account %d", sess.AccountID())

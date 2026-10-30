@@ -14,6 +14,7 @@ import (
 
 	"github.com/eqoa/server/internal/config"
 	"github.com/eqoa/server/internal/database"
+	"github.com/eqoa/server/internal/entity"
 	"github.com/eqoa/server/internal/handlers"
 )
 
@@ -81,7 +82,8 @@ func (s *Server) registerAdminOps() {
 		Name: "get_settings", Title: "Server settings", Scope: scopeRead,
 		Description: "The settings a GM panel can change while the server runs (npc_text: what NPCs say by name; " +
 			"start_level and start_all_spells for new characters; allow_auto_register: whether an unknown name " +
-			"registers itself at login), and the rest of the configuration, read-only.",
+			"registers itself at login; vampire_sun_damage, vampire_sun_interval (seconds), vampire_sun_shade and " +
+			"vampire_sun_gms: what the sun does to a vampire by day), and the rest of the configuration, read-only.",
 		Handler: func(c *opCtx) (any, error) { return c.s.settingsView(), nil },
 	})
 	s.addOp(&Op{
@@ -89,10 +91,14 @@ func (s *Server) registerAdminOps() {
 		Description: "Change the live settings: they apply at once and are written to config.yaml (backed up " +
 			"first), so a restart keeps them. npc_text replaces the whole map: read it with get_settings first.",
 		Input: obj(map[string]any{
-			"npc_text":            freeObject("NPC name -> what it says when talked to (the whole map)"),
-			"start_level":         integer("a new character's level, 1-60"),
-			"start_all_spells":    boolean("a new character gets every spell of its class"),
-			"allow_auto_register": boolean("an unknown name registers itself at login"),
+			"npc_text":             freeObject("NPC name -> what it says when talked to (the whole map)"),
+			"start_level":          integer("a new character's level, 1-60"),
+			"start_all_spells":     boolean("a new character gets every spell of its class"),
+			"allow_auto_register":  boolean("an unknown name registers itself at login"),
+			"vampire_sun_damage":   integer("what the sun takes off a vampire (table charvampire) each tick while its client shows the sun up (6:00-18:00), 0-100000; 0 none"),
+			"vampire_sun_interval": integer("seconds between the sun's ticks on a vampire, 1-3600 (6: the regeneration's tick, Sandstorm's)"),
+			"vampire_sun_shade":    boolean("anything over a vampire (a roof, a floor above, a cave's or a cavern's rock, a big tree's crown) shelters it"),
+			"vampire_sun_gms":      boolean("a GM's vampire burns too (false spares it)"),
 		}),
 		Handler: func(c *opCtx) (any, error) {
 			var req struct {
@@ -100,11 +106,12 @@ func (s *Server) registerAdminOps() {
 				StartLevel        *int              `json:"start_level"`
 				StartAllSpells    *bool             `json:"start_all_spells"`
 				AllowAutoRegister *bool             `json:"allow_auto_register"`
+				vampireSunChange
 			}
 			if err := c.decode(&req); err != nil {
 				return nil, err
 			}
-			return c.s.updateSettings(c.a, req.NPCText, req.StartLevel, req.StartAllSpells, req.AllowAutoRegister)
+			return c.s.updateSettings(c.a, req.NPCText, req.StartLevel, req.StartAllSpells, req.AllowAutoRegister, req.vampireSunChange)
 		},
 	})
 	s.addOp(&Op{
@@ -224,12 +231,55 @@ func (s *Server) settingsNow() map[string]any {
 	if s.d.AutoRegister != nil {
 		auto = s.d.AutoRegister()
 	}
-	return map[string]any{
-		"npc_text":            handlers.NPCText(),
-		"start_level":         max(1, rules.Level),
-		"start_all_spells":    rules.AllSpells,
-		"allow_auto_register": auto,
+	sun := entity.DefaultVampireSun
+	if s.d.World != nil {
+		sun = s.d.World.VampireSun()
 	}
+	return map[string]any{
+		"npc_text":             handlers.NPCText(),
+		"start_level":          max(1, rules.Level),
+		"start_all_spells":     rules.AllSpells,
+		"allow_auto_register":  auto,
+		"vampire_sun_damage":   sun.Damage,
+		"vampire_sun_interval": int(sun.Interval / time.Second),
+		"vampire_sun_shade":    sun.Shade,
+		"vampire_sun_gms":      sun.GMs,
+	}
+}
+
+// vampireSunChange is update_settings' vampire_sun_* (entity/vampire.go),
+// each left as it is when not given.
+type vampireSunChange struct {
+	Damage   *int  `json:"vampire_sun_damage"`
+	Interval *int  `json:"vampire_sun_interval"` // seconds
+	Shade    *bool `json:"vampire_sun_shade"`
+	GMs      *bool `json:"vampire_sun_gms"`
+}
+
+// apply is the change on r, and the config.yaml keys it writes; an error
+// names a number out of its range.
+func (v vampireSunChange) apply(r entity.VampireSun, changes map[string]any) (entity.VampireSun, bool, error) {
+	changed := false
+	if v.Damage != nil {
+		if *v.Damage < 0 || *v.Damage > 100000 {
+			return r, false, badRequest("vampire_sun_damage is 0 to 100000")
+		}
+		r.Damage, changes["world.vampire_sun_damage"], changed = *v.Damage, *v.Damage, true
+	}
+	if v.Interval != nil {
+		if *v.Interval < 1 || *v.Interval > 3600 {
+			return r, false, badRequest("vampire_sun_interval is 1 to 3600 seconds")
+		}
+		r.Interval = time.Duration(*v.Interval) * time.Second
+		changes["world.vampire_sun_interval"], changed = r.Interval.String(), true
+	}
+	if v.Shade != nil {
+		r.Shade, changes["world.vampire_sun_shade"], changed = *v.Shade, *v.Shade, true
+	}
+	if v.GMs != nil {
+		r.GMs, changes["world.vampire_sun_gms"], changed = *v.GMs, *v.GMs, true
+	}
+	return r, changed, nil
 }
 
 // settingsView is the live settings and the rest of the configuration,
@@ -265,7 +315,7 @@ func (s *Server) settingsView() map[string]any {
 	}
 }
 
-func (s *Server) updateSettings(a *actor, npcText map[string]string, startLevel *int, allSpells, autoReg *bool) (any, error) {
+func (s *Server) updateSettings(a *actor, npcText map[string]string, startLevel *int, allSpells, autoReg *bool, sunChange vampireSunChange) (any, error) {
 	s.settingsMu.Lock()
 	defer s.settingsMu.Unlock()
 	before := s.settingsNow()
@@ -302,6 +352,14 @@ func (s *Server) updateSettings(a *actor, npcText map[string]string, startLevel 
 	if autoReg != nil {
 		changes["auth.allow_auto_register"] = *autoReg
 	}
+	sun := entity.DefaultVampireSun
+	if s.d.World != nil {
+		sun = s.d.World.VampireSun()
+	}
+	sun, sunChanged, err := sunChange.apply(sun, changes)
+	if err != nil {
+		return nil, err
+	}
 	if len(changes) == 0 {
 		return nil, badRequest("nothing to change")
 	}
@@ -324,6 +382,11 @@ func (s *Server) updateSettings(a *actor, npcText map[string]string, startLevel 
 	if autoReg != nil && s.d.SetAutoRegister != nil {
 		s.d.SetAutoRegister(*autoReg)
 		s.d.Config.Auth.AllowAutoRegister = *autoReg
+	}
+	if sunChanged && s.d.World != nil {
+		s.d.World.SetVampireSun(sun)
+		w := &s.d.Config.World
+		w.VampireSunDamage, w.VampireSunInterval, w.VampireSunShade, w.VampireSunGMs = &sun.Damage, sun.Interval, &sun.Shade, &sun.GMs
 	}
 	after := s.settingsNow()
 	s.audit(a, "settings", "", nil, before, after, "changed server settings")

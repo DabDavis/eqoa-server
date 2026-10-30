@@ -183,6 +183,9 @@ func petLevel(spellLevel, casterLevel int) int {
 var petBodyAliases = map[string]string{
 	"earthen golem": "granite golem",
 	"ferrous golem": "iron golem",
+	// Vampire Form's body: no NPC here is named "vampire", and the fledgling
+	// vampires wear the vampires' body (vampire.go)
+	"vampire": "fledgling vampire",
 }
 
 // petClassStandIn is the creature a class's pet is when nothing of its own

@@ -37,7 +37,7 @@ import routes as travel  # noqa: E402
 
 KINDS = {'talk', 'show', 'give', 'kill', 'loot', 'reach'}
 EVENT_ON = {'accept', 'finish', 'start', 'done'}
-EVENT_DO = {'popup', 'say', 'give', 'spawn', 'visual', 'teleport'}
+EVENT_DO = {'popup', 'say', 'give', 'spawn', 'visual', 'teleport', 'vampire'}
 BOX, ANSWER, LINE = 218, 63, 127
 TEXT = ('offer', 'accept', 'decline', 'declined', 'started')
 FACTION_MIN, FACTION_MAX = -2000, 2000   # entity/faction.go

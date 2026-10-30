@@ -187,6 +187,18 @@ type WorldConfig struct {
 	// unset, it does; false, every NPC by the rules of no faction.
 	FactionAggro *bool `yaml:"faction_aggro"`
 
+	// The sun on a vampire (table charvampire, entity/vampire.go): it takes
+	// VampireSunDamage (unset 50, Sandstorm's; 0 none) every
+	// VampireSunInterval (unset or 0: 6s, the regeneration's tick) while its
+	// client shows the sun up (6:00 to 18:00). VampireSunShade false burns it
+	// under a roof too (unset: shade shelters it); VampireSunGMs false spares
+	// a GM's vampire (unset: it burns as anyone's). The GM panel's settings
+	// change all four while the server runs.
+	VampireSunDamage   *int          `yaml:"vampire_sun_damage"`
+	VampireSunInterval time.Duration `yaml:"vampire_sun_interval"`
+	VampireSunShade    *bool         `yaml:"vampire_sun_shade"`
+	VampireSunGMs      *bool         `yaml:"vampire_sun_gms"`
+
 	// RestartNotice is the line every player in the world is sent when the
 	// server stops (SIGINT or SIGTERM, or the GM panel's restart), in a GM
 	// broadcast's colour, RestartNoticeWait (unset or 0: 5s) before the game

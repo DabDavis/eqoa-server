@@ -54,6 +54,17 @@ world:
   # max_entity_slots: 128
   # max_view_distance: 600
 
+  # The sun on a vampire (table charvampire: #vampire and the GM panel make
+  # one): vampire_sun_damage (50, Sandstorm's; 0 none) every
+  # vampire_sun_interval (6s) while its client shows the sun up (6:00 to
+  # 18:00); vampire_sun_shade false burns it under a roof too (true: shade,
+  # anything over it, shelters it); vampire_sun_gms false spares a GM's
+  # vampire. The GM panel's settings change them while the server runs.
+  # vampire_sun_damage: 50
+  # vampire_sun_interval: 6s
+  # vampire_sun_shade: true
+  # vampire_sun_gms: true
+
   # A line every player in the world gets when the server stops (a restart:
   # SIGTERM from systemctl, or the GM panel's restart), restart_notice_wait
   # (5s when unset) before the game goes back to its login. Unset: none.

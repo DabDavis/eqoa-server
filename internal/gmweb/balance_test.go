@@ -151,10 +151,46 @@ func TestBalanceClassLevelEdits(t *testing.T) {
 	if !strings.Contains(out["live"].(string), "next hit") {
 		t.Errorf("live: %v", out["live"])
 	}
+	if code, out := c.op("update_row", map[string]any{"table": "balanceclasslevel", "key": map[string]any{"class": 13, "level": 12},
+		"values": map[string]any{"melee_taken_pct": 20, "dealt_pct": 140}}); code != 200 {
+		t.Errorf("a wizard's dealt of 140%% was refused: %d %v", code, out)
+	} else if rows, err := f.db.BalanceClassLevels(); err != nil || len(rows) == 0 || func() bool {
+		for _, r := range rows {
+			if r.Class == 13 && r.Level == 12 {
+				return r.DealtPct != 140 || r.MeleeTakenPct != 20
+			}
+		}
+		return true
+	}() {
+		t.Errorf("the wizard of 12's row after the insert: %v, %v", rows, err)
+	}
 	for _, bad := range []map[string]any{{"class": 20, "level": 10, "melee_taken_pct": 90}, {"class": 3, "level": 140, "melee_taken_pct": 90},
-		{"class": 3, "level": 20, "melee_taken_pct": 0}} {
+		{"class": 3, "level": 20, "melee_taken_pct": 0}, {"class": 13, "level": 77, "melee_taken_pct": 50, "dealt_pct": 0}} {
 		if code, out := c.op("insert_row", map[string]any{"table": "balanceclasslevel", "values": bad}); code == 200 {
 			t.Errorf("%v was taken: %v", bad, out)
 		}
+	}
+}
+
+// The spectre's instant, in its own melee hits, is 0-20: refused below 0,
+// past 20 and when not a number, taken within and said to be live at its
+// next instant.
+func TestBalancePetSpecialHitsBounds(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	for _, bad := range []any{-1, 25, "three"} {
+		if code, out := c.op("update_row", map[string]any{"table": "balancelevel", "key": map[string]any{"level": 30},
+			"values": map[string]any{"pet_special_hits": bad}}); code == 200 {
+			t.Errorf("%v hits was taken: %v", bad, out)
+		}
+	}
+	code, out := c.op("update_row", map[string]any{"table": "balancelevel", "key": map[string]any{"level": 30},
+		"values": map[string]any{"pet_special_hits": 5}})
+	if code != 200 {
+		t.Fatalf("5 hits was refused: %d %v", code, out)
+	}
+	if live, _ := out["live"].(string); !strings.Contains(live, "instant") {
+		t.Errorf("live: %v", out["live"])
 	}
 }

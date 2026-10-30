@@ -792,7 +792,9 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 			return
 		}
 	}
-	w.petSpecialDueLocked(ps, t, now)
+	if w.petSpecialDueLocked(ps, t, now) { // a spectre's instant (petrotation.go)
+		return
+	}
 	for pet.RoundHits < len(hits) && !now.Before(pet.RoundStart.Add(hits[pet.RoundHits])) {
 		pet.RoundHits++
 		if w.petHitLocked(ps, t, now) {

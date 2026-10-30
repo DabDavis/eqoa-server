@@ -1155,7 +1155,7 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 				killed := w.spellHitLocked(caster, casterSess, npc, -n)
 				// a life tap's heal (lifetap.go): what landed, after the
 				// con's cut (balance.go)
-				w.drainLocked(cs, caster, casterSess, e, w.takenLocked(npc, caster.Level, -n), now)
+				w.drainLocked(cs, caster, casterSess, e, w.dealtLocked(npc, caster, -n), now)
 				if killed {
 					return
 				}
@@ -1202,7 +1202,7 @@ func (w *World) spellHitLocked(caster *Player, casterSess *session.Session, npc 
 		w.dummyEngagedLocked(npc, caster, time.Now())
 		return false
 	}
-	n = w.takenLocked(npc, caster.Level, n) // balance.go
+	n = w.dealtLocked(npc, caster, n) // balance.go
 	npc.HP = max(npc.HP-n, 0)
 	w.tellAmountLocked(caster, casterSess, npc.ServerID, -n)
 	w.updateAggro(npc, caster.ServerID, n)

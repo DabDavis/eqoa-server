@@ -31,9 +31,17 @@ import (
 //     the percent of its rounds it comes in, special_damage its damage a
 //     level, fixed and through any armour as Sandstorm's creatures' specials
 //     are, special_fx its 0x00B1 visual (0: Sandstorm's creature special,
-//     0x66CD778E);
+//     0x66CD778E); and on a clock as well (the user, 2026-10-30: SOE's
+//     roamers were warriors "stripped down to just a 'crit' attack once
+//     every 30 secs or so"): special_every seconds from one to the next (0
+//     none), the first special_first seconds into the fight, each of them
+//     special_jitter seconds either way, counting its time at its enemy
+//     only (not closing in, rooted away or casting); and either only from special_from
+//     on, a level (0 any: the roamer's 10, the user's "they get it around
+//     level 10 starting, but before only auto attack"), the creature's own
+//     at each fight;
 //   - abilities, a JSON list of TemplateAbility: what it casts in a fight;
-//   - note; source gm, or seed for the five rows the table is made with.
+//   - note; source gm, or seed for the rows the table is made with.
 //
 // npctemplate gives the NPCs of a NAME a template: name as npcclass keys one
 // (NPCClassKey), template a classtemplates name. With no row there, no NPC
@@ -49,6 +57,10 @@ const classTemplatesSchema = `
 		special_chance INTEGER NOT NULL DEFAULT 0,
 		special_damage REAL NOT NULL DEFAULT 0,
 		special_fx     INTEGER NOT NULL DEFAULT 0,
+		special_every  REAL NOT NULL DEFAULT 0,
+		special_first  REAL NOT NULL DEFAULT 0,
+		special_jitter REAL NOT NULL DEFAULT 0,
+		special_from   INTEGER NOT NULL DEFAULT 0,
 		abilities      TEXT NOT NULL DEFAULT '[]',
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
@@ -151,8 +163,14 @@ type ClassTemplate struct {
 	SpecialChance int
 	SpecialDamage float64
 	SpecialFX     uint32 // 0: Sandstorm's creature special
-	Abilities     []TemplateAbility
-	Note          string
+	// SpecialEvery, SpecialFirst and SpecialJitter are the timed special's
+	// clock in seconds: one every SpecialEvery (0: none), the first
+	// SpecialFirst into the fight, each SpecialJitter either way
+	SpecialEvery, SpecialFirst, SpecialJitter float64
+	// SpecialFrom is the level a creature specials from (0: any), its own
+	SpecialFrom int
+	Abilities   []TemplateAbility
+	Note        string
 }
 
 // TemplateKey is a template's name as classtemplates and npctemplate key it:
@@ -277,14 +295,24 @@ func CheckClassTemplate(t ClassTemplate) error {
 		return fmt.Errorf("special_damage %.2f: 0 to 200 a level", t.SpecialDamage)
 	case t.SpecialChance > 0 && t.SpecialDamage <= 0:
 		return fmt.Errorf("a special in %d%% of its rounds needs a special_damage above 0", t.SpecialChance)
+	case math.IsNaN(t.SpecialEvery) || t.SpecialEvery < 0 || t.SpecialEvery > 3600 || (t.SpecialEvery > 0 && t.SpecialEvery < 5):
+		return fmt.Errorf("special_every %.1f: 0 (none) or 5 to 3600 seconds from one special to the next", t.SpecialEvery)
+	case math.IsNaN(t.SpecialFirst) || t.SpecialFirst < 0 || t.SpecialFirst > 3600:
+		return fmt.Errorf("special_first %.1f: 0 to 3600 seconds into a fight", t.SpecialFirst)
+	case math.IsNaN(t.SpecialJitter) || t.SpecialJitter < 0 || (t.SpecialJitter > 0 && 2*t.SpecialJitter >= t.SpecialEvery):
+		return fmt.Errorf("special_jitter %.1f: 0 to under half of special_every (%.1f) seconds either way", t.SpecialJitter, t.SpecialEvery)
+	case t.SpecialEvery > 0 && t.SpecialDamage <= 0:
+		return fmt.Errorf("a special every %.1f s needs a special_damage above 0", t.SpecialEvery)
+	case t.SpecialFrom < 0 || t.SpecialFrom > 100:
+		return fmt.Errorf("special_from %d: 0 (any level) to 100", t.SpecialFrom)
 	case len(t.Special) > 32:
 		return fmt.Errorf("special: a name of 32 characters at most")
 	}
 	return CheckTemplateAbilities(t.Abilities)
 }
 
-// SeedClassTemplates are jib's five examples, the rows classtemplates is made
-// with (source seed). Their numbers are ours: no recording has a creature
+// SeedClassTemplates are jib's five examples and the user's wisp (his wizard
+// at 28%) and roamer, the rows classtemplates is made with (source seed). Their numbers are ours: no recording has a creature
 // casting, and Sandstorm's creatures' specials are the one measured thing
 // (the melee's kick: 251 from a level 34 Desert Crab, 252 from a level 35
 // Gharial, fixed and through 1,763 AC alike, in about one round of five:
@@ -309,11 +337,36 @@ var SeedClassTemplates = []ClassTemplate{
 		Abilities: []TemplateAbility{{Kind: AbilityLifetap, Every: 15, First: 3, MaxRecast: 90, DamagePct: 50}},
 		Note: "jib's shadow knight: tankier (20% more hit points, 10% less of a melee hit lands), a shadow knight life tap of " +
 			"its level every 15 s (the 300 s Blood line left out: max_recast 90); the figure half a player's (ours)"},
+	{Name: "wisp", Class: 13, HPPct: 85, TakenPct: 100, MeleePct: 100,
+		Abilities: []TemplateAbility{
+			{Kind: AbilityAoE, Every: 15, First: 2, MaxRecast: 10, MaxCast: 5, DamagePct: 28},
+			{Kind: AbilityNuke, Chain: true, MaxRecast: 10, MaxCast: 5, DamagePct: 28},
+		},
+		Note: "the user's wisp (2026-10-30, \"28%\"): jib's wizard with its abilities at 28% of a player's figures where " +
+			"his are 35% (at 35% a rogue of 35-45 and a cleric of 35 lost every wisp yellow); tools/seed_roamers.py gives " +
+			"it to the wisps"},
+	{Name: "roamer", Class: 0, HPPct: 100, TakenPct: 100, MeleePct: 100, Special: "Critical Hit", SpecialDamage: 7.4,
+		SpecialEvery: 30, SpecialFirst: 15, SpecialJitter: 5, SpecialFrom: 10,
+		Note: "SOE's basic roamer (the user, 2026-10-30): a warrior \"stripped down to just a 'crit' attack once every 30 " +
+			"secs or so\", which \"they get around level 10 starting, but before only auto attack\": from level 10 a " +
+			"Critical Hit every 25-35 s from 10-20 s into a fight, 7.4 a level, fixed and through any armour (Sandstorm's " +
+			"crab's 251 at 34); tools/seed_roamers.py gives it to the creatures"},
+}
+
+// classTemplateColumns are the columns added to classtemplates since it was
+// first made (2026-10-29): a table made before gets each at 0, so no template
+// has a timed special until a GM gives it one.
+var classTemplateColumns = []struct{ col, decl string }{
+	{"special_every", "REAL NOT NULL DEFAULT 0"},
+	{"special_first", "REAL NOT NULL DEFAULT 0"},
+	{"special_jitter", "REAL NOT NULL DEFAULT 0"},
+	{"special_from", "INTEGER NOT NULL DEFAULT 0"},
 }
 
 // ensureClassTemplates makes tables classtemplates and npctemplate
-// (initSchema). A classtemplates made now is given the five seeds; one made
-// before keeps what GMs left in it, so a seed a GM deleted stays deleted.
+// (initSchema). A classtemplates made now is given the seeds; one made
+// before keeps what GMs left in it, so a seed a GM deleted stays deleted, and
+// gets the columns added since (classTemplateColumns).
 func (db *SQLiteDB) ensureClassTemplates() error {
 	var n int
 	if err := db.QueryRow(`SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'classtemplates'`).Scan(&n); err != nil {
@@ -321,6 +374,17 @@ func (db *SQLiteDB) ensureClassTemplates() error {
 	}
 	if _, err := db.Exec(classTemplatesSchema); err != nil {
 		return fmt.Errorf("classtemplates: %w", err)
+	}
+	for _, c := range classTemplateColumns {
+		has, err := hasColumn(db.DB, "classtemplates", c.col)
+		if err != nil {
+			return fmt.Errorf("classtemplates.%s: %w", c.col, err)
+		}
+		if !has {
+			if _, err := db.Exec(`ALTER TABLE classtemplates ADD COLUMN ` + c.col + ` ` + c.decl); err != nil {
+				return fmt.Errorf("classtemplates.%s: %w", c.col, err)
+			}
+		}
 	}
 	if _, err := db.Exec(npcTemplateSchema); err != nil {
 		return fmt.Errorf("npctemplate: %w", err)
@@ -330,9 +394,10 @@ func (db *SQLiteDB) ensureClassTemplates() error {
 	}
 	for _, t := range SeedClassTemplates {
 		if _, err := db.Exec(`INSERT OR IGNORE INTO classtemplates (name, class, hp_pct, taken_pct, melee_pct, special,
-			special_chance, special_damage, special_fx, abilities, note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'seed')`,
+			special_chance, special_damage, special_fx, special_every, special_first, special_jitter, special_from, abilities,
+			note, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'seed')`,
 			t.Name, t.Class, t.HPPct, t.TakenPct, t.MeleePct, t.Special, t.SpecialChance, t.SpecialDamage, int64(t.SpecialFX),
-			TemplateAbilitiesJSON(t.Abilities), t.Note); err != nil {
+			t.SpecialEvery, t.SpecialFirst, t.SpecialJitter, t.SpecialFrom, TemplateAbilitiesJSON(t.Abilities), t.Note); err != nil {
 			return fmt.Errorf("classtemplates: the seed %q: %w", t.Name, err)
 		}
 	}
@@ -344,7 +409,8 @@ func (db *SQLiteDB) ensureClassTemplates() error {
 // JSON) is left out and named in bad.
 func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []string, err error) {
 	rows, err := db.Query(`SELECT name, class, hp_pct, taken_pct, melee_pct, special, special_chance, special_damage,
-		special_fx, abilities, note FROM classtemplates WHERE name IS NOT NULL`)
+		special_fx, special_every, special_first, special_jitter, special_from, abilities, note FROM classtemplates
+		WHERE name IS NOT NULL`)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -355,7 +421,7 @@ func (db *SQLiteDB) ClassTemplates() (templates map[string]ClassTemplate, bad []
 		var fx int64
 		var abilities sql.NullString
 		if err := rows.Scan(&t.Name, &t.Class, &t.HPPct, &t.TakenPct, &t.MeleePct, &t.Special, &t.SpecialChance,
-			&t.SpecialDamage, &fx, &abilities, &t.Note); err != nil {
+			&t.SpecialDamage, &fx, &t.SpecialEvery, &t.SpecialFirst, &t.SpecialJitter, &t.SpecialFrom, &abilities, &t.Note); err != nil {
 			return nil, nil, err
 		}
 		t.Name = TemplateKey(t.Name)

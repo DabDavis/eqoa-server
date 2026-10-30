@@ -11,6 +11,7 @@
 //	    [-try-art 1:0,30:1500,60:2000] [-try-class 1:80,5:80,6:80]
 //	    [-root] [-try-root 0:0:5,3:35:20,5:65:30] [-try-regen 1:5,60:5] [-try-conpct 1:100]
 //	    [-charm -6,-3,0] [-only false|true|root|charm] [-try-classlevel 3:45:125[:pet]] [-try-pethp 15:161] [-low]
+//	    [-template roamer]
 //	balancesim -db eqoa.db -lines [-classes ...]
 //	balancesim -db eqoa.db -reset 20s [-try-regen 1:5] [-classes ...]
 //	balancesim -db eqoa.db -groups 2,3 [-classes ...] [-diffs 3,4,5]
@@ -40,6 +41,8 @@
 // taken_pct, in place of the tables' (balance db or seed) rows; -try-art
 // the arts' cooldown by the player's level (level:ms), the line through them;
 // -try-class class:melee_taken_pct rows in place of the class table's;
+// -try-classlevel class:level:melee_taken_pct[:pet_hp_pct[:dealt_pct]]
+// rows in place of the class and level table's;
 // -try-root a root's resist and break chances by the con (diff:resist:break).
 // With -root the classes that have a root also fight as a rooting caster
 // does (entity.SimPlay.Root): the root first, then their spells from range,
@@ -107,7 +110,7 @@ func main() {
 	tryRoot := flag.String("try-root", "", "a root's resist and break chances to try, by the con: diff:resist:break,...")
 	tryRegen := flag.String("try-regen", "", "a creature's heal out of a fight to try, by its level: level:pct,...")
 	tryConPct := flag.String("try-conpct", "", "con_pct to try, by the NPC's level: level:pct,... (the line through them)")
-	tryClassLevel := flag.String("try-classlevel", "", "class and level rows to try: class:level:melee_taken_pct[:pet_hp_pct],... (in place of the table's)")
+	tryClassLevel := flag.String("try-classlevel", "", "class and level rows to try: class:level:melee_taken_pct[:pet_hp_pct[:dealt_pct]],... (in place of the table's)")
 	tryPetHP := flag.String("try-pethp", "", "a summoned pet's hit points to try, by its owner's level: level:pct,...")
 	rootPlay := flag.Bool("root", false, "classes with a root also fight rooting and casting from range, no pet")
 	only := flag.String("only", "", "only this play's rows: false (hand to hand), true (the pet) or root")
@@ -115,6 +118,8 @@ func main() {
 	charms := flag.String("charm", "", "classes with a charm also fight with a charmed creature this many levels from their own: -6,-3,0,...")
 	groups := flag.String("groups", "", "instead: each class's fitting groups of these sizes (2,3) against each diff")
 	lowPoint := flag.Bool("low", false, "the HP column is the least the player had in each fight won (its low point), not what it ended with")
+	template := flag.String("template", "", "the foe fights by this class template of the database's (roamer, wizard, ...)")
+	start := flag.Int("start", 0, "players of this level and under fight in a new character's starting gear (its start weapon, no armour)")
 	flag.Parse()
 	if *dbPath == "" {
 		flag.Usage()
@@ -125,6 +130,16 @@ func main() {
 	if *lines {
 		printLines(db, ints(*classes))
 		return
+	}
+	foe := entity.SimNPC{}
+	if *template != "" {
+		all, err := entity.SimTemplatesFromDB(db)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if foe.Template = all[strings.ToLower(strings.TrimSpace(*template))]; foe.Template == nil {
+			log.Fatalf("no class template %q in the database", *template)
+		}
 	}
 	var b *entity.Balance
 	switch *which {
@@ -198,9 +213,12 @@ func main() {
 	if *tryClassLevel != "" {
 		var cll []database.BalanceClassLevel
 		for _, r := range rows(*tryClassLevel, 3) {
-			row := database.BalanceClassLevel{Class: int(r[0]), Level: int(r[1]), MeleeTakenPct: r[2], PetHPPct: 100}
+			row := database.BalanceClassLevel{Class: int(r[0]), Level: int(r[1]), MeleeTakenPct: r[2], PetHPPct: 100, DealtPct: 100}
 			if len(r) > 3 {
 				row.PetHPPct = r[3]
+			}
+			if len(r) > 4 {
+				row.DealtPct = r[4]
 			}
 			cll = append(cll, row)
 		}
@@ -220,11 +238,11 @@ func main() {
 	}
 	ds := ints(*diffs)
 	if *groups != "" {
-		printGroups(db, b, ints(*classes), ints(*levels), ds, ints(*groups), *fights, *tier, *limit)
+		printGroups(db, b, foe, ints(*classes), ints(*levels), ds, ints(*groups), *fights, *tier, *limit)
 		return
 	}
 	if *reset > 0 {
-		printResets(db, b, ints(*classes), ints(*levels), ds, *fights, *tier, *reset)
+		printResets(db, b, foe, ints(*classes), ints(*levels), ds, *fights, *tier, *reset)
 		return
 	}
 	fmt.Printf("%-4s %-6s %-3s %-4s", "", "", "lvl", "pet")
@@ -235,6 +253,9 @@ func main() {
 	for _, class := range ints(*classes) {
 		for _, level := range ints(*levels) {
 			pl, err := entity.SimKitFromDB(db, class, 0, level, *tier)
+			if level <= *start {
+				pl, err = entity.SimStartKitFromDB(db, class, 0, level)
+			}
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -273,7 +294,7 @@ func main() {
 				}
 				fmt.Printf("%-4s %-6s %3d %-4v", classNames[class], entity.ArchetypeName(class), level, mode)
 				for _, d := range ds {
-					c := entity.SimCellOf(k, entity.SimNPC{}, d, b, *fights, 1, *limit)
+					c := entity.SimCellOf(k, foe, d, b, *fights, 1, *limit)
 					hp := c.HPLeft
 					if *lowPoint {
 						hp = c.LowLeft
@@ -293,7 +314,7 @@ func main() {
 // (entity.SimulateReset) and prints the NPC's hit points left at the break,
 // the seconds it took to be whole again, and the player's hit points then
 // (a fight that ended before the break is left out).
-func printResets(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds []int, fights int, tier float64, after time.Duration) {
+func printResets(db *database.SQLiteDB, b *entity.Balance, foe entity.SimNPC, classes, levels, ds []int, fights int, tier float64, after time.Duration) {
 	fmt.Printf("broken off after %v: the NPC's HP left at the break, seconds to whole, the player's HP at the break -> when the NPC is whole\n", after)
 	for _, class := range classes {
 		for _, level := range levels {
@@ -306,7 +327,9 @@ func printResets(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds [
 				var npc, whole, hp0, hp1 float64
 				n := 0
 				for i := range fights {
-					r := entity.SimulateReset(pl, entity.SimNPC{Level: max(level+d, 1)}, b, int64(1+i), after, 10*time.Minute)
+					f := foe
+					f.Level = max(level+d, 1)
+					r := entity.SimulateReset(pl, f, b, int64(1+i), after, 10*time.Minute)
 					if r.Ended || r.Whole == 0 {
 						continue
 					}
@@ -331,7 +354,7 @@ func printResets(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds [
 // printGroups fights each class's fitting group (entity.SimGroupFor) of each
 // size against each diff: won, wiped, deaths a fight, the members' hit points
 // left in the fights won and their length.
-func printGroups(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds, sizes []int, fights int, tier float64, limit time.Duration) {
+func printGroups(db *database.SQLiteDB, b *entity.Balance, foe entity.SimNPC, classes, levels, ds, sizes []int, fights int, tier float64, limit time.Duration) {
 	fmt.Printf("%-4s %-3s %-5s", "", "lvl", "group")
 	for _, d := range ds {
 		fmt.Printf(" | %+d won wipe died  hp secs", d)
@@ -348,7 +371,7 @@ func printGroups(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds, 
 				}
 				fmt.Printf("%-4s %3d %-5s", classNames[class], level, fmt.Sprintf("g%d", size))
 				for _, d := range ds {
-					c := entity.SimGroupCellOf(pls, entity.SimNPC{}, d, b, fights, 1, limit)
+					c := entity.SimGroupCellOf(pls, foe, d, b, fights, 1, limit)
 					fmt.Printf(" | %3.0f%% %3.0f%% %4.1f %3.0f%% %4.0f", 100*c.WinShare(), 100*float64(c.Wiped)/float64(max(c.Fights, 1)),
 						c.Deaths, 100*c.HPLeft, c.Sec)
 				}

@@ -5,6 +5,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/eqoa/server/internal/database"
 )
 
 // The balance's seed rows (database/balanceseed.go) held to the user's
@@ -240,5 +242,50 @@ func TestAFittingGroupFillsTheRoleItLacks(t *testing.T) {
 		if fmt.Sprint(got) != fmt.Sprint(c.want) {
 			t.Errorf("class %d, %d: %v, want %v", c.class, c.size, got, c.want)
 		}
+	}
+}
+
+// The simulator's foe fights by a class template (SimNPC.Template, read off a
+// database by SimTemplatesFromDB): a roamer's crit every 25-35 s from 10-20 s
+// in, 7.4 a level, fixed and through armour, lands on the simulated player at
+// its clock (the fight's log names each), so a long fight costs the player
+// more than the same fight with no template, on the same dice; the control:
+// with no template the fight is the one before (no crit in its log).
+func TestASimulatedFoeFightsByItsTemplate(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/sim.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	tmpl, err := SimTemplatesFromDB(db) // the seeded roamer (database.SeedClassTemplates)
+	if err != nil {
+		t.Fatal(err)
+	}
+	roamer := tmpl["roamer"]
+	if roamer == nil || roamer.SpecialEvery != 30 {
+		t.Fatalf("the roamer read: %+v", roamer)
+	}
+	b := SeedBalance().WithClasses(nil).WithClassLevels(nil)
+	pl := simKit(classWarrior, 40)
+	var plain, crits strings.Builder
+	fight := func(foe SimNPC, to *strings.Builder) SimResult {
+		simLogTo = to
+		defer func() { simLogTo = nil }()
+		return SimulateFight(pl, foe, b, 11, 10*time.Minute)
+	}
+	without := fight(SimNPC{Level: 40}, &plain)
+	with := fight(SimNPC{Level: 40, Template: roamer}, &crits)
+	n := strings.Count(crits.String(), "Critical Hit hits Simmer for 296")
+	if n == 0 || !with.Won || !without.Won {
+		t.Fatalf("crits of 296 (7.4 x 40) in the templated fight: %d; won %v / %v", n, with.Won, without.Won)
+	}
+	if want := int(without.Time/(30*time.Second)) - 1; n < want || n > int(with.Time/(25*time.Second))+1 {
+		t.Errorf("%d crits in a fight of %v (want one every 25-35 s from 10-20 s in)", n, with.Time)
+	}
+	if strings.Contains(plain.String(), "Critical Hit") {
+		t.Errorf("the control: a crit with no template")
+	}
+	if with.HPShare() >= without.HPShare() {
+		t.Errorf("hit points left: %.2f with the crits, %.2f without", with.HPShare(), without.HPShare())
 	}
 }

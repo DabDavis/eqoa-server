@@ -146,7 +146,8 @@ class TuneBalance(unittest.TestCase):
         c.close()
 
     def test_the_seeds_are_the_tuning(self):
-        """internal/database/balanceseed.go (a table made new) is what this tool makes of the 01:30 table."""
+        """internal/database/balanceseed.go (a table made new) is what this tool makes of the 01:30 table: the level,
+        con and class rows (the class and level rows are the two tunings', tools/retune_balance_test.py)."""
         self.run_tool("--apply")
         c = sqlite3.connect(self.db)
         made = {r[0]: tuple(r[1:]) for r in c.execute(f"SELECT level, {', '.join(tb.LEVEL_COLS)} FROM balancelevel")}
@@ -168,10 +169,7 @@ class TuneBalance(unittest.TestCase):
         classes = dict(re.findall(r"\{Class: (\d+), MeleeTakenPct: ([\d.]+)\}", go))
         self.assertEqual(len(classes), 15)
         self.assertEqual(set(classes.values()), {"100"})
-        cl = {}
-        for cls, l, v, pv in re.findall(r"\{Class: (\d+), Level: (\d+), MeleeTakenPct: ([\d.]+), PetHPPct: ([\d.]+)\}", go):
-            cl.setdefault(int(cls), {})[int(l)] = (float(v), float(pv))
-        self.assertEqual(cl, made_cl)
+        self.assertTrue(made_cl, "the first tuning wrote no class and level rows")
 
 if __name__ == "__main__":
     unittest.main()

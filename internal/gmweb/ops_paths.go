@@ -87,7 +87,7 @@ func checkRow(table string, row map[string]any) error {
 	if table == "charcraftskills" && row != nil {
 		return checkCraftSkillRow(row) // live_craft.go
 	}
-	if (table == "balancelevel" || table == "balancecon" || table == "balanceclass") && row != nil {
+	if (table == "balancelevel" || table == "balancecon" || table == "balanceclass" || table == "balanceclasslevel") && row != nil {
 		return checkBalanceRow(table, row) // live_balance.go
 	}
 	if table == "classtemplates" && row != nil {

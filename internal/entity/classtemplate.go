@@ -42,12 +42,14 @@ import (
 //     AC and an enchanter of 167 alike); a damage shield answers it as melee;
 //     and the same special on a clock (special_every, the user's SOE roamer:
 //     a warrior "stripped down to just a 'crit' attack once every 30 secs or
-//     so"): the first special_first into the fight (from its first turn in
-//     reach), then one every special_every, each special_jitter either way;
-//     one coming due while it casts or closes in lands at its next turn in
-//     reach; either only from special_from on, a level (the roamer's 10: the
-//     user's "they get it around level 10 starting, but before only auto
-//     attack"), the creature's own;
+//     so"): the first special_first into the fight, then one every
+//     special_every, each special_jitter either way, on a clock of its time
+//     AT its enemy (its turns in reach, templateContactGap apart at most):
+//     time closing in, held off by a root or casting is not counted, as
+//     Sandstorm's specials come with its rounds (one round in five) and a
+//     creature out of reach has none; either only from special_from on, a
+//     level (the roamer's 10: the user's "they get it around level 10
+//     starting, but before only auto attack"), the creature's own;
 //   - casts its abilities in its fights, from where it stands in reach of its
 //     enemy (a player, or a player's pet), one at a time, its melee waiting
 //     while it casts. Each ability is on a clock of its own (every, first into
@@ -148,8 +150,17 @@ type templateFight struct {
 	chain   int
 	round   time.Time
 	special time.Time
-	timed   time.Time
+	// timedLeft is its timed special's time at its enemy still to go, from
+	// timedSeen, its last turn in reach (zero: its clock not begun)
+	timedLeft time.Duration
+	timedSeen time.Time
 }
+
+// templateContactGap is the longest gap between two of a templated NPC's
+// turns at its enemy that its timed special's clock counts through: a
+// longer one (it closed in, was rooted away or cast) is time away from its
+// enemy, left out. A world tick is 100 ms.
+const templateContactGap = time.Second
 
 // fight is the NPC's fight by its template, begun if it had none.
 func (n *NPC) fight() *templateFight {
@@ -800,10 +811,11 @@ func (w *World) tellNPCHealLocked(sess *session.Session, npc *NPC, n int) {
 }
 
 // templateSpecialLocked is a templated NPC's special in its fight with target
-// (after its round's hits): rolled once a round, landing templateSpecialAfter
-// past the round's last hit; one its NPC was too busy or too far to land in
-// time (casting, closing in) is lost with its round. Must be called with the
-// lock held.
+// (after its round's hits, at each of its turns in reach): on its clock of
+// time at its enemy (special_every), and by chance (special_chance) rolled
+// once a round, landing templateSpecialAfter past the round's last hit; one
+// its NPC was too busy or too far to land in time (casting, closing in) is
+// lost with its round. Must be called with the lock held.
 func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) {
 	t := npc.tmpl
 	if t == nil || t.SpecialDamage <= 0 || npc.Level < t.SpecialFrom {
@@ -811,11 +823,15 @@ func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) 
 	}
 	f := npc.fight()
 	if t.SpecialEvery > 0 {
-		switch {
-		case f.timed.IsZero():
-			f.timed = now.Add(templateJitter(t.SpecialFirst, t.SpecialJitter))
-		case !now.Before(f.timed) && !now.Before(f.busy):
-			f.timed = now.Add(templateJitter(t.SpecialEvery, t.SpecialJitter))
+		switch gap := now.Sub(f.timedSeen); {
+		case f.timedSeen.IsZero():
+			f.timedLeft = templateJitter(t.SpecialFirst, t.SpecialJitter)
+		case gap > 0 && gap <= templateContactGap:
+			f.timedLeft -= gap // at its enemy since its last turn
+		}
+		f.timedSeen = now
+		if f.timedLeft <= 0 && !now.Before(f.busy) {
+			f.timedLeft = templateJitter(t.SpecialEvery, t.SpecialJitter)
 			w.templateSpecialHitLocked(npc, target, now)
 		}
 	}
@@ -950,7 +966,7 @@ func (w *World) templateLineLocked(npc *NPC) string {
 	if t.SpecialFrom > npc.Level {
 		parts = append(parts, fmt.Sprintf("no %s below level %d", specialName(t), t.SpecialFrom))
 	} else if t.SpecialEvery > 0 && t.SpecialDamage > 0 {
-		parts = append(parts, fmt.Sprintf("%s every %g-%g s for %d, the first %g-%g s into a fight", specialName(t),
+		parts = append(parts, fmt.Sprintf("%s every %g-%g s at its enemy for %d, the first %g-%g s in", specialName(t),
 			t.SpecialEvery-t.SpecialJitter, t.SpecialEvery+t.SpecialJitter, max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1),
 			math.Max(t.SpecialFirst-t.SpecialJitter, 0), t.SpecialFirst+t.SpecialJitter))
 	}

@@ -142,10 +142,12 @@ class RetuneBalance(unittest.TestCase):
         self.assertIn(f"left as it is: balanceclasslevel {cls} {level}", out)
         self.assertEqual(self.class_levels()[cls][level][0], 333)
 
-    def test_the_seeds_are_the_two_tunings(self):
-        """internal/database/balanceseed.go's class and level rows are what the two tools make of the 01:30 table."""
+    def test_the_seeds_are_the_tunings(self):
+        """internal/database/balanceseed.go's class and level rows are what the tools make of the 01:30 table: the
+        first tuning, this re-fit and the pets' fit after it (tools/tune_pets.py)."""
         self.run_tool(FIRST, "--apply")
         self.run_tool(TOOL, "--apply")
+        self.run_tool(os.path.join(HERE, "tune_pets.py"), "--apply")
         with open(os.path.join(HERE, "..", "internal", "database", "balanceseed.go")) as f:
             go = f.read()
         cl = {}

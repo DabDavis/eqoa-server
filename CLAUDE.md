@@ -588,7 +588,17 @@ casters and pet classes by `dealt_pct` 108-400% tapering over 1-5: `balancesim -
 column added if missing.
 Apply both, or neither: the shares from 8 assume the crits. Read at the next start (or a save of
 any Balance page / a template edit in the panel); a server older than `dealt_pct` and the timed
-special ignores both. The seeds hold the two tunings' result. Kits move with
+special ignores both. **Then `tools/tune_pets.py`** (same flags, log `balance_pets_log`): the pets'
+fit with each pet on its own class template (`pettemplate`), against the roamer, from the state
+the re-fit leaves: the magician's, necromancer's and enchanter's `pet_hp_pct` at every level on the
+pet the book gives (its low point, the fewest hit points a pet had in a fight won, near a quarter
+over both yellows: `balancesim -low` shows a pet's), `balancelevel.pet_special_hits` 3 -> 1.5 (the
+spectre's instant one and a half of its hits, under a Harm Touch), and, once the server has made
+the pet templates, the weapon pets' `melee_pct` 120 -> 100, the animation's 150/70 -> 100/100 (its
+heals are its tankiness) and nine mastery pets (Badi, Efreet, Djinn, Badi Elder, Efreeti Lord,
+Ghilan Noble, Gymon's Animation, Earthen and Ferrous Golem) each a template of its own, its kind's
+with fewer hit points (else they won every red alone); before the server has made them its seeds
+carry the same. `TestRealPetsAreYellows`. The seeds hold the three tunings' result. Kits move with
 the items, so a data change that reaches what classes wear can move a class off its targets again:
 `balancesim_real_test.go` with `EQOA_REAL_DB` on a copy is the check.
 

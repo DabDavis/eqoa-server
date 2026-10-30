@@ -225,7 +225,8 @@ func TestPetTemplateSeeds(t *testing.T) {
 // round: two hits from 20 (Attack2), four from 35 (Attack4); the Death
 // Sacrament versions swing Sandstorm's recorded rounds, the zombie Attack2,
 // the spectre Attack3 every 5.2 s, their hits scaled to the base pet's damage
-// a second (x1 and x1.73) and 20% more. The control: with the pettemplate
+// a second (x1 and x1.73; the 20% more of their first day taken off by the
+// balance's pet fit). The control: with the pettemplate
 // rows gone they fight as before (petrotation.go's recorded rounds, a
 // warrior's class).
 func TestNecromancerPetsAreShadowKnightsThatQuad(t *testing.T) {
@@ -237,9 +238,9 @@ func TestNecromancerPetsAreShadowKnightsThatQuad(t *testing.T) {
 		scale, melee float64
 	}{
 		{"zombie", decayingBase, 4, 0, 1, 100},
-		{"zombie with weapons", decayingWeapons, 4, 0, 1, 120},
+		{"zombie with weapons", decayingWeapons, 4, 0, 1, 100},
 		{"spectre", howlingBase, 5, 0, 1, 100},
-		{"spectre with a weapon", howlingWithBlade, 7, 5200 * time.Millisecond, (4.0 / 6) / (2 / 5.2), 120},
+		{"spectre with a weapon", howlingWithBlade, 7, 5200 * time.Millisecond, (4.0 / 6) / (2 / 5.2), 100},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			r, _ := newPetTemplateRig(t)

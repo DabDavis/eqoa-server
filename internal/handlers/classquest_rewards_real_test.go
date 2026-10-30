@@ -12,15 +12,17 @@ import (
 )
 
 // The city class quests' rewards on a real server (EQOA_REAL_DB names its
-// database, a copy of which is read), after tools/fill_class_quest_rewards.py:
-// every scroll the tool put on a quest's last step, as its own reward or a
-// level-20 choice's, is one scribe.go scribes (isScroll; scrollSpell over
-// every spell, in its own order) into a spell of the quest's class (a
-// classspells record of that name at that level), with the class in its mask
-// and its level not above the quest's; every choice it wrote parses, at an NPC,
-// with the guides' two paths. The tool reads scribe.go's rules in Python: this
-// reads them in scribe.go's own code. Skipped without a database, and on one
-// the tool has not filled: none is in this repository.
+// database, a copy of which is read), after tools/fill_class_quest_rewards.py
+// and tools/seed_class_quest_rewards.py: every scroll they put on a quest's
+// last step, as its own reward or a level-20 choice's, is one scribe.go
+// scribes (isScroll; scrollSpell over every spell, in its own order) into a
+// spell of the quest's class (a classspells record of that name at that
+// level), with the class in its mask and its level not above the quest's;
+// every item they put there the quest's class may wear; every choice parses,
+// at an NPC, with the guides' two paths; every scroll the seed tool made
+// scribes a spell of its own class. The tools read scribe.go's rules in
+// Python: this reads them in scribe.go's own code. Skipped without a database,
+// and on one neither tool has filled: none is in this repository.
 func TestRealClassQuestRewardsScribe(t *testing.T) {
 	src := os.Getenv("EQOA_REAL_DB")
 	if src == "" {
@@ -46,9 +48,17 @@ func TestRealClassQuestRewardsScribe(t *testing.T) {
 	}
 	defer db.Close()
 
-	var n int
-	if err := db.QueryRow(`SELECT count(*) FROM sqlite_master WHERE name = 'class_quest_fill_log'`).Scan(&n); err != nil || n == 0 {
-		t.Skip("tools/fill_class_quest_rewards.py has not filled this database")
+	// the tools' logs: tools/fill_class_quest_rewards.py's, and tools/seed_class_quest_rewards.py's
+	// (which also makes scrolls and items)
+	var logs []string
+	for _, l := range []string{"class_quest_fill_log", "class_quest_seed_log"} {
+		var n int
+		if err := db.QueryRow(`SELECT count(*) FROM sqlite_master WHERE name = ?`, l).Scan(&n); err == nil && n > 0 {
+			logs = append(logs, l)
+		}
+	}
+	if len(logs) == 0 {
+		t.Skip("neither tool has filled this database")
 	}
 	// the class's own spells: spell key -> the levels of its records
 	own := map[int]map[string]map[int]bool{}
@@ -73,22 +83,32 @@ func TestRealClassQuestRewardsScribe(t *testing.T) {
 	}
 	rows.Close()
 	type place struct{ quest, step int }
-	filled := map[place]string{} // the column the tool wrote
-	rows, err = db.Query(`SELECT rid, col FROM class_quest_fill_log WHERE tbl = 'queststeps'`)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for rows.Next() {
-		var rid, col string
-		if err := rows.Scan(&rid, &col); err != nil {
+	filled := map[place]string{} // the column a tool wrote last ("choices" where it wrote one)
+	var made []int               // the records the seed tool made
+	for _, l := range logs {
+		rows, err = db.Query(`SELECT tbl, rid, col FROM ` + l + ` WHERE tbl IN ('queststeps', 'itempattern') ORDER BY seq`)
+		if err != nil {
 			t.Fatal(err)
 		}
-		q, s, _ := strings.Cut(rid, "/")
-		qi, _ := strconv.Atoi(q)
-		si, _ := strconv.Atoi(s)
-		filled[place{qi, si}] = col
+		for rows.Next() {
+			var tbl, rid, col string
+			if err := rows.Scan(&tbl, &rid, &col); err != nil {
+				t.Fatal(err)
+			}
+			if tbl == "itempattern" {
+				id, _ := strconv.Atoi(rid)
+				made = append(made, id)
+				continue
+			}
+			q, s, _ := strings.Cut(rid, "/")
+			qi, _ := strconv.Atoi(q)
+			si, _ := strconv.Atoi(s)
+			if filled[place{qi, si}] != "choices" {
+				filled[place{qi, si}] = col
+			}
+		}
+		rows.Close()
 	}
-	rows.Close()
 	if len(filled) == 0 {
 		t.Skip("the tool's log names no quest step")
 	}
@@ -135,7 +155,11 @@ func TestRealClassQuestRewardsScribe(t *testing.T) {
 					continue
 				}
 				if !isScroll(p) {
-					continue // an item as it is
+					// an item as it is, or one made for the quest: the quest's class may wear it
+					if p.ClassUse != 0 && p.ClassUse&(1<<uint(class)) == 0 {
+						t.Errorf("quest %d %q: item %d %q is not class %d's", q.ID, q.Name, p.PatternID, p.ItemName, class)
+					}
+					continue
 				}
 				scrolls++
 				spell, ok := scrollSpell(names, p.ItemName, p.LevelReq)
@@ -154,7 +178,30 @@ func TestRealClassQuestRewardsScribe(t *testing.T) {
 		}
 	}
 	if scrolls == 0 {
-		t.Fatal("no scroll among the tool's rewards")
+		t.Fatal("no scroll among the tools' rewards")
 	}
-	t.Logf("%d quest steps filled, %d scrolls scribe their class's spells, %d level-20 choices", len(filled), scrolls, choices)
+	// every scroll the seed tool made scribes a spell of its own class (its mask's one class)
+	for _, id := range made {
+		p, err := items.GetItemPattern(id)
+		if err != nil || p == nil {
+			t.Errorf("made record %d is not here: %v", id, err)
+			continue
+		}
+		if !isScroll(p) {
+			continue
+		}
+		class := -1
+		for c := 0; c < 15; c++ {
+			if p.ClassUse == 1<<uint(c) {
+				class = c
+			}
+		}
+		spell, ok := scrollSpell(names, p.ItemName, p.LevelReq)
+		if class < 0 || !ok || !own[class][spellKey(spell.Name)][spell.Level] {
+			t.Errorf("made scroll %d %q (classes %d) scribes %q (level %d): not its class's", id, p.ItemName, p.ClassUse,
+				spell.Name, spell.Level)
+		}
+	}
+	t.Logf("%d quest steps filled, %d scrolls scribe their class's spells, %d level-20 choices, %d records made",
+		len(filled), scrolls, choices, len(made))
 }

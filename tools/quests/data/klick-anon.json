@@ -229,13 +229,16 @@
      "journal": "Bring Glass Beaker, Wooden Tube and shattered ant chitin to Chemist Ambrakma.",
      "says": "Everything I asked for. Take this shaft for your trouble.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Soft Iron Shaft"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). Samwe is Merchant Swame here (the tower on Stemwater Lake, south past the coachman). Not on this server, left out of the rewards: the item \"Soft Iron Shaft\"."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). Samwe is Merchant Swame here (the tower on Stemwater Lake, south past the coachman). Not on this server, left out of the rewards: the item \"Soft Iron Shaft\". The reward is ours: Soft Iron Shaft, the item the guide names, made for this server (Made by Chemist Ambrakma for a glass beaker, a wooden tube and shattered ant chitin) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/alchemist/L5",
@@ -443,7 +446,10 @@
      "journal": "Bring Lyriam's Note to Lanlin Ogledmaggen.",
      "says": "Lyriam is pleased with you, and so am I. This staff is yours.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Brown Gnarled Staff"
+      ]
      }
     }
    ],
@@ -460,7 +466,7 @@
     }
    ],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). No creature is named Orc Wizard here; the orc casters by the Hatebone cave south of Fayspire (orc augur L10, orc witchdoctor L10) could stand in. Not on this server, left out of the rewards: the item \"Brown Gnarled Staff\"."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/alchemist.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). No creature is named Orc Wizard here; the orc casters by the Hatebone cave south of Fayspire (orc augur L10, orc witchdoctor L10) could stand in. Not on this server, left out of the rewards: the item \"Brown Gnarled Staff\". The reward is ours: Brown Gnarled Staff, the item the guide names, made for this server (Given by Lanlin Ogledmaggen for Lyriam's note) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/alchemist/L13",
@@ -1015,13 +1021,16 @@
      "journal": "Bring Lubricating Oil, Dusting Feathers and 2 cracked ant pincers to Master Micha.",
      "says": "Everything. Here is your mallet; swing it in Brell's name.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Initiate's Mallet"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/cleric.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The oil and feathers are bought in the guide; here the merchants hand them over. Not on this server, left out of the rewards: the item \"Initiate's Mallet\"."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/cleric.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The oil and feathers are bought in the guide; here the merchants hand them over. Not on this server, left out of the rewards: the item \"Initiate's Mallet\". The reward is ours: Initiate's Mallet, the item the guide names, made for this server (Made by Master Micha from lubricating oil, dusting feathers and a cracked ant pincer) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/cleric/L5",
@@ -1303,13 +1312,16 @@
      "journal": "Speak with Stily Hornbar.",
      "says": "Friends with the Coldpaw! My study can go on.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "Dogtooth Mace"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/cleric.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). A GM may place him in the Coldpaw camp west of the city. Not on this server, left out of the rewards: the item \"Dogtooth Mace\"."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/cleric.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). A GM may place him in the Coldpaw camp west of the city. Not on this server, left out of the rewards: the item \"Dogtooth Mace\". The reward is ours: Dogtooth Mace, the item the guide names, made for this server (Made by Renard of the skeletal dogs' chewed-up bones) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/cleric/L13",
@@ -4355,13 +4367,16 @@
      "journal": "Bring Proof of Helthea's Death to Captain V`Ekelos.",
      "says": "Good. Grear chose well.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Ward Death (NEC)"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The tail goes to V'Ekelos here, not to the man in the tavern the guide does not name. Gilgash hands over the nightshade."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/necromancer.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The tail goes to V'Ekelos here, not to the man in the tavern the guide does not name. Gilgash hands over the nightshade. The reward is ours: the Ward Death scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/necromancer/L15",
@@ -4804,13 +4819,16 @@
      "journal": "Bring iron ore, Copper Spring, bent rat whiskers and cracked ant pincer to Junker Plim.",
      "says": "Here's your shank.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Footpad's Shank"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The ore and spring are bought in the guide; here the merchants hand them over. Not on this server, left out of the rewards: the item \"Footpad's Shank\"."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/rogue.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The ore and spring are bought in the guide; here the merchants hand them over. Not on this server, left out of the rewards: the item \"Footpad's Shank\". The reward is ours: Footpad's Shank, the item the guide names, made for this server (Forged by Junker Plim from iron ore, a copper spring, bent rat whiskers and a cracked ant pincer) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/rogue/L5",
@@ -5623,13 +5641,16 @@
      "journal": "Bring oilstone, Gold Spring, Cracked Rat Tooth and fractured firefly thorax to Sergeant Grem.",
      "says": "Here's your sword. Keep it sharp.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Guard Sword"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/warrior.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The stone and spring are bought in the guide; here the merchants hand them over. Not on this server, left out of the rewards: the item \"Guard Sword\"."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/warrior.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-4 quest gives in EQOA-Data's guides. The stone and spring are bought in the guide; here the merchants hand them over. Not on this server, left out of the rewards: the item \"Guard Sword\". The reward is ours: Guard Sword, the item the guide names, made for this server (Forged by Sergeant Grem from an oilstone, a gold spring, a cracked rat tooth and a fractured firefly thorax) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/warrior/L5",
@@ -5675,13 +5696,16 @@
      "journal": "Bring Stunned Mindwhipper to Captain Buntattle.",
      "says": "Good work.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Taunt"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/klick-anon/warrior.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/klick-anon/warrior.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Taunt scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/klick-anon/warrior/L7",

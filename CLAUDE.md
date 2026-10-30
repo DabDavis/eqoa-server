@@ -413,7 +413,7 @@ undone from a two-page list).
   one from before counts every option of its step. A spell another quest the character keeps gives (the 60 epics offer
   the 49 paths' other abilities) or merchants sell as a scroll stays. Past the free respecs a path costs a rose (pack or
   bank; offered for sale when none is held, the paths asked right after).
-- **The Rose of Rehabilitation**: item 707000 (`database.RoseOfRehabilitation`), "rose of renewal"'s art (icon 759960290,
+- **The Rose of Rehabilitation**: item 709300 (`database.RoseOfRehabilitation`), "rose of renewal"'s art (icon 759960290,
   a rose; Oceanic Rose's 1342617881 is a coil of rope), worth 10,000,000, NO TRADE, which merchants refuse (an epic's
   would be ten million tunar). Each class's 60 epic reward quest (`60/<archetype>/reward-<class>`, 23) gives one at its
   last step: not repeatable, and no path undoing touches it, so one a character an epic.

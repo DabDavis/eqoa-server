@@ -215,3 +215,70 @@ func (l *invList) nextKey() uint32 {
 	defer l.mu.Unlock()
 	return l.next
 }
+
+// invTake is n taken off the record of a charinventory row (roomFor).
+type invTake struct {
+	itemID, n int
+}
+
+// invGive is n of an item to be given, stacking to maxStack (roomFor).
+type invGive struct {
+	patternID, n, maxStack int
+}
+
+// roomFor is the gives that would not go in whole once the takes are taken,
+// changing nothing: a take lessens its record's stack and the record leaves
+// at none (Took); then each give is filed as VIItemList::AddItem files it
+// (0x00BBD130, AddItem(item, maxStack, 40) at every site): a stackable item
+// onto the FIRST record of its item, up to maxStack (what does not fit is
+// dropped by CLIENT, so it does not go in whole), else a new record while
+// fewer than invListCap are held (worn items are records of the same list),
+// one a record for an item that does not stack. None: everything fits.
+func (l *invList) roomFor(takes []invTake, gives []invGive) []invGive {
+	l.mu.Lock()
+	recs := append([]invRec(nil), l.recs...)
+	l.mu.Unlock()
+	for _, t := range takes {
+		for i := range recs {
+			if recs[i].itemID != t.itemID {
+				continue
+			}
+			if recs[i].qty -= t.n; recs[i].qty <= 0 {
+				recs = append(recs[:i], recs[i+1:]...)
+			}
+			break
+		}
+	}
+	var short []invGive
+	for _, g := range gives {
+		if g.n < 1 {
+			continue
+		}
+		if g.maxStack >= 2 {
+			at := -1
+			for i := range recs {
+				if recs[i].patternID == g.patternID {
+					at = i
+					break
+				}
+			}
+			switch {
+			case at >= 0 && recs[at].qty+g.n <= g.maxStack:
+				recs[at].qty += g.n
+			case at < 0 && len(recs) < invListCap && g.n <= g.maxStack:
+				recs = append(recs, invRec{patternID: g.patternID, qty: g.n})
+			default:
+				short = append(short, g)
+			}
+			continue
+		}
+		if len(recs)+g.n > invListCap {
+			short = append(short, g)
+			continue
+		}
+		for k := 0; k < g.n; k++ {
+			recs = append(recs, invRec{patternID: g.patternID, qty: 1})
+		}
+	}
+	return short
+}

@@ -287,6 +287,9 @@ func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern, n
 			}
 			continue
 		}
+		if q.waitsForRoomLocked(sess, p, c, qu, cq, st) {
+			continue
+		}
 		q.completeStepLocked(sess, p, c, qu, cq, st, nil, nil)
 	}
 }

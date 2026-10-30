@@ -494,3 +494,74 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 		}
 	}
 }
+
+// The coordinator's low-level check of 2026-10-30 (jib: "jibrush got beat up
+// by a level 1 while he was level 3 alc"): at levels 1-10 every class wins
+// its even fights about 95% of the time and its blue and green ones about
+// all of it (97% of 40), by hand AND in its own play (a wizard's root from 3,
+// an alchemist's from 4, a pet class's pet), in a new character's starting
+// gear at 1-5 (SimStartKitFromDB). One cell is short of it, named: an
+// enchanter of 2 by hand wins 92% of its even fights at any dealt (the NPC of
+// 2 hits 317%: its first blows kill a 25-hit-point caster). The control: an
+// alchemist of 2 by hand under the share fit alone (no dealt) wins under
+// half of its even fights.
+func TestRealLowLevelsEvenAndBelow(t *testing.T) {
+	db := simRealDB(t)
+	b := simRealBalance(t, db)
+	foe := simRealFoe(t, db, "")
+	known := map[[3]int]float64{{12, 2, 0}: 0.92} // class, level, play (0 by hand)
+	for class := range 15 {
+		for level := 1; level <= 10; level++ {
+			var pl SimPlayer
+			var err error
+			if level <= 5 {
+				pl, err = SimStartKitFromDB(db, class, 0, level)
+			} else {
+				pl, err = SimKitFromDB(db, class, 0, level, 0.5)
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			plays := []SimPlayer{pl}
+			switch {
+			case class == 10 || class == 11 || class == 12:
+				k := pl
+				k.Play.Pet, k.Play.Melee = true, false
+				plays = append(plays, k)
+			case (class == 13 && level >= 3) || (class == 14 && level >= 4):
+				k := pl
+				k.Play.Root, k.Play.Melee = true, false
+				plays = append(plays, k)
+			}
+			for i, k := range plays {
+				for _, diff := range []int{-2, -1, 0} {
+					want := 0.97
+					if diff == 0 {
+						want = 0.95
+					}
+					if w, ok := known[[3]int{class, level, i}]; ok && diff == 0 {
+						want = w
+					}
+					if c := SimCellOf(k, foe, diff, b, 40, 1, 10*time.Minute); c.WinShare() < want {
+						t.Errorf("class %d L%d %s %+d: won %.0f%% (want %.0f%%)", class, level, []string{"by hand", "own play"}[i],
+							diff, 100*c.WinShare(), 100*want)
+					}
+				}
+			}
+		}
+	}
+	var fitted []database.BalanceClassLevel
+	for _, r := range b.ClassLevelRows() {
+		if r.Class == 14 && r.Level <= 3 {
+			r.DealtPct = 100
+		}
+		fitted = append(fitted, r)
+	}
+	alc, err := SimStartKitFromDB(db, 14, 0, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c := SimCellOf(alc, foe, 0, b.WithClassLevels(fitted), 40, 1, 10*time.Minute); c.WinShare() >= 0.5 {
+		t.Errorf("the control: an alchemist of 2 by hand with no dealt won %.0f%% of its even fights: the check tells nothing", 100*c.WinShare())
+	}
+}

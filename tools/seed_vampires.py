@@ -63,12 +63,16 @@ since its import is left as the GM left it, and said.
     python3 -E -s tools/seed_vampires.py --db eqoa.db --undo      take it back
 
 --undo puts back what a run changed that no one changed since (a changed
-row is said and kept): the quests' rows as they were, the NPCs where they
-stood, and deletes what it made, but an ability in a character's book or an
-item someone holds (both said); characters' progress in the quests and the
-vampires the quests made (charvampire) stay. A copy of the database is made
-first (--no-backup to skip). Stop the server to apply or undo, start it
-after: the quests, the gates and the NPCs are read at its start.
+row, or a quest changed since the run's import, is said and kept): the
+quests' rows as they were, each at its own rowid (the import rewrites a
+quest's steps at the end of their table, and its marks and meta; put back
+where they stood, a dump of the database is the one before), a quest the run
+made taken out, the NPCs where they stood, the tables' counters, and what it
+made deleted, but an ability in a character's book or an item someone holds
+(both said); characters' progress in the quests and the vampires the quests
+made (charvampire) stay. A copy of the database is made first (--no-backup
+to skip). Stop the server to apply or undo, start it after: the quests, the
+gates and the NPCs are read at its start.
 """
 import argparse
 import datetime
@@ -181,6 +185,43 @@ def row_of(db, table, where, args):
     return dict(zip([d[0] for d in cur.description], r))
 
 
+# the tables whose rows a quest owns by its questid (the import rewrites
+# them all); each row is kept with its rowid, and comes back at it, so the
+# database after --undo is the one before, row for row and in its order
+QUEST_ROWS = ("queststeps", "questunlocks", "queststeptargets")
+
+
+def rows_at(db, table, where, args):
+    """The rows, each with its rowid (rowid_), in rowid order."""
+    cur = db.execute(f"SELECT rowid AS rowid_, * FROM {table} WHERE {where} ORDER BY rowid", args)
+    cols = [d[0] for d in cur.description]
+    return [dict(zip(cols, r)) for r in cur.fetchall()]
+
+
+def put_rows(db, table, rows):
+    """Rows put back at their own rowids (None: the table's next)."""
+    for r in rows:
+        r = dict(r)
+        rid = r.pop("rowid_")
+        db.execute(f"INSERT INTO {table} (rowid, {', '.join(r)}) VALUES (?, {', '.join('?' * len(r))})",
+                   [rid] + list(r.values()))
+
+
+def quest_state(db, key):
+    """The quest the import keeps under key: its import mark, its quests row
+    and its rows of QUEST_ROWS; None when no quest is imported under key."""
+    if not has_table(db, "quest_import_quests"):
+        return None
+    mark = rows_at(db, "quest_import_quests", "key = ?", (key,))
+    if not mark:
+        return None
+    qid = mark[0]["questid"]
+    out = dict(mark=mark[0], quest=row_of(db, "quests", "questid = ?", (qid,)))
+    for t in QUEST_ROWS:
+        out[t] = rows_at(db, t, "questid = ?", (qid,)) if has_table(db, t) else []
+    return out
+
+
 def quest_ids(db):
     """The vampire quests' ids by key, as the import logged them."""
     if not has_table(db, "quest_import_quests"):
@@ -272,7 +313,7 @@ def apply(db, import_quests=import_vampire_quests):
                 if has_table(db, "sqlite_sequence") else None
             log(db, "sqlite_sequence", t, "before", {"seq": None if r is None else r[0]}, None, when)
         if has_table(db, "quest_import_meta"):
-            log(db, "quest_import_meta", "*", "before", db.execute("SELECT key, value FROM quest_import_meta").fetchall(), None, when)
+            log(db, "quest_import_meta", "*", "before", rows_at(db, "quest_import_meta", "1", ()), None, when)
         # the abilities and their lines
         for sid, name, level, cast, recast, scope, rng, back, desc, line in ABILITIES:
             if row_of(db, "spellpattern", "spellid = ?", (sid,)) is None:
@@ -337,22 +378,25 @@ def apply(db, import_quests=import_vampire_quests):
             log(db, "npcs", cur.lastrowid, "insert", None, row_of(db, "npcs", "id = ?", (cur.lastrowid,)), when)
         else:
             said.append(f"{COFFIN}: there already, left")
-        # the quests as they were, before the import below rewrites them
-        for k, qid in quest_ids(db).items():
-            q = row_of(db, "quests", "questid = ?", (qid,))
-            cur = db.execute("SELECT * FROM queststeps WHERE questid = ? ORDER BY step", (qid,))
-            steps = [dict(zip([d[0] for d in cur.description], r)) for r in cur.fetchall()]
-            mark = row_of(db, "quest_import_quests", "key = ?", (k,))
-            unlocks = db.execute("SELECT npc, dest FROM questunlocks WHERE questid = ?", (qid,)).fetchall() \
-                if has_table(db, "questunlocks") else []
-            log(db, "quests", k, "before", dict(quest=q, steps=steps, mark=mark, unlocks=unlocks), None, when)
+        # the quests as they were (None: not imported here), before the import below rewrites them
+        for k in QUEST_KEYS:
+            log(db, "quests", k, "before", quest_state(db, k), None, when)
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
         raise
     written, kept, drafts = import_quests(db)
-    db.execute(f"INSERT INTO {LOG} (tbl, ref, did, before, after, at) VALUES ('quests', '*', 'imported', NULL, ?, ?)",
-               (json.dumps(dict(written=written, kept=kept, drafts=drafts)), when))
+    # and as the import left them, so --undo can tell a GM's change since
+    db.execute("BEGIN IMMEDIATE")
+    try:
+        for k in QUEST_KEYS:
+            log(db, "quests", k, "after", None, quest_state(db, k), when)
+        db.execute(f"INSERT INTO {LOG} (tbl, ref, did, before, after, at) VALUES ('quests', '*', 'imported', NULL, ?, ?)",
+                   (json.dumps(dict(written=written, kept=kept, drafts=drafts)), when))
+        db.execute("COMMIT")
+    except BaseException:
+        db.execute("ROLLBACK")
+        raise
     return said, written, kept, drafts
 
 
@@ -361,20 +405,29 @@ def undo(db):
         sys.exit("no run to undo here")
     done, kept = [], []
     rows = db.execute(f"SELECT tbl, ref, did, before, after FROM {LOG} ORDER BY seq DESC").fetchall()
+    # each quest as the run's import left it
+    left = {ref: json.loads(after) if after else None for tbl, ref, did, _, after in rows if tbl == "quests" and did == "after"}
     db.execute("BEGIN IMMEDIATE")
     try:
         for tbl, ref, did, before, after in rows:
             before = json.loads(before) if before else None
             after = json.loads(after) if after else None
             if tbl == "quests" and did == "before":
-                put_quest_back(db, ref, before)
-                done.append(f"quest {ref} as it was")
+                now = quest_state(db, ref)
+                if ref in left and now != left[ref]:
+                    kept.append(f"quest {ref}: changed since, left")
+                    continue
+                put_quest_back(db, ref, now, before)
+                done.append(f"quest {ref} as it was" if before else f"quest {ref} taken out (the run made it)")
             elif tbl == "spellgates" and did == "made":
                 if db.execute("SELECT count(*) FROM spellgates").fetchone()[0] == 0:
                     db.execute("DROP TABLE spellgates")  # this run made it
             elif tbl == "quest_import_meta":
                 db.execute("DELETE FROM quest_import_meta")
-                db.executemany("INSERT INTO quest_import_meta VALUES (?, ?)", [tuple(r) for r in before])
+                if before and isinstance(before[0], dict):
+                    put_rows(db, "quest_import_meta", before)
+                else:  # a run of the first version: its rows without their rowids
+                    db.executemany("INSERT INTO quest_import_meta VALUES (?, ?)", [tuple(r) for r in before or []])
             elif tbl == "sqlite_sequence":
                 key = COUNTERS[ref]
                 top = db.execute(f"SELECT COALESCE(max({key}), 0) FROM {ref}").fetchone()[0]
@@ -431,24 +484,34 @@ def held(db, pid):
     return False
 
 
-def put_quest_back(db, key, was):
-    """A quest's rows and its import mark as they were logged."""
-    q, steps, mark, unlocks = was["quest"], was["steps"], was["mark"], was["unlocks"]
-    if q is None:
+def put_quest_back(db, key, now, was):
+    """The quest under key as it was logged (was): what the import wrote
+    (now) taken out, the logged rows put back at their own rowids; a quest
+    the run made (was None) is taken out alone."""
+    if now is not None:
+        qid = now["mark"]["questid"]
+        db.execute("DELETE FROM quests WHERE questid = ?", (qid,))
+        for t in QUEST_ROWS:
+            if has_table(db, t):
+                db.execute(f"DELETE FROM {t} WHERE questid = ?", (qid,))
+        db.execute("DELETE FROM quest_import_quests WHERE key = ?", (key,))
+    if was is None:
         return
-    qid = q["questid"]
-    db.execute("DELETE FROM quests WHERE questid = ?", (qid,))
-    db.execute("DELETE FROM queststeps WHERE questid = ?", (qid,))
-    if has_table(db, "questunlocks"):
-        db.execute("DELETE FROM questunlocks WHERE questid = ?", (qid,))
-    db.execute(f"INSERT INTO quests ({', '.join(q)}) VALUES ({', '.join('?' * len(q))})", list(q.values()))
-    for st in steps:
-        db.execute(f"INSERT INTO queststeps ({', '.join(st)}) VALUES ({', '.join('?' * len(st))})", list(st.values()))
-    for npc, dest in unlocks:
-        db.execute("INSERT OR IGNORE INTO questunlocks (questid, npc, dest) VALUES (?, ?, ?)", (qid, npc, dest))
-    if mark is not None:
-        db.execute(f"INSERT OR REPLACE INTO quest_import_quests ({', '.join(mark)}) VALUES ({', '.join('?' * len(mark))})",
-                   list(mark.values()))
+    if "steps" in was:
+        # a run of the first version: its rows without their rowids (the
+        # table's next), its trips as (npc, dest)
+        qid = was["quest"]["questid"] if was["quest"] else None
+        was = dict(quest=was["quest"], mark=was["mark"] and dict(was["mark"], rowid_=None),
+                   queststeps=[dict(st, rowid_=None) for st in was["steps"]],
+                   questunlocks=[dict(questid=qid, npc=n, dest=d, rowid_=None) for n, d in was["unlocks"]])
+    q = was["quest"]
+    if q is not None:
+        db.execute(f"INSERT INTO quests ({', '.join(q)}) VALUES ({', '.join('?' * len(q))})", list(q.values()))
+    for t in QUEST_ROWS:
+        if was.get(t):
+            put_rows(db, t, was[t])
+    if was["mark"] is not None:
+        put_rows(db, "quest_import_quests", [was["mark"]])
 
 
 def main():

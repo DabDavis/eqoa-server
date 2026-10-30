@@ -268,7 +268,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bloodfeather Raven",
+     "target": "Bloodfeather raven",
      "items": [
       {
        "item": "bloodfeather",
@@ -406,7 +406,7 @@
     },
     {
      "kind": "loot",
-     "target": "Reanimated Sorceress",
+     "target": "reanimated sorceress",
      "items": [
       {
        "item": "sorceress's skull",
@@ -605,7 +605,7 @@
     },
     {
      "kind": "loot",
-     "target": "Giant Widow",
+     "target": "giant widow",
      "items": [
       {
        "item": "giant widow fang",
@@ -744,7 +744,7 @@
     },
     {
      "kind": "loot",
-     "target": "Wandering Herbalist",
+     "target": "wandering herbalist",
      "items": [
       {
        "item": "wabeth grass",
@@ -757,7 +757,7 @@
     },
     {
      "kind": "loot",
-     "target": "Orc Gatherer",
+     "target": "orc gatherer",
      "items": [
       {
        "item": "pethoni cactus buttons",
@@ -1091,7 +1091,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Fire Bat",
+     "target": "fire bat",
      "items": [
       {
        "item": "torn fire bat wing",
@@ -1453,7 +1453,7 @@
     },
     {
      "kind": "talk",
-     "target": "Ghostly Mage",
+     "target": "ghostly mage",
      "journal": "Speak with Ghostly Mage.",
      "says": "Croc, on the island off the coast south of Freeport, holds the hatestone dust. Hire trolls in Grobb to clear his crocodiles."
     },
@@ -1534,7 +1534,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ghoul Captain",
+     "target": "ghoul captain",
      "items": [
       {
        "item": "ghoul captain's insignia",
@@ -1815,7 +1815,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fireflies",
+     "target": "fireflies",
      "items": [
       {
        "item": "fractured firefly thorax",
@@ -1877,7 +1877,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Fire Bat",
+     "target": "fire bat",
      "items": [
       {
        "item": "torn fire bat wing",
@@ -2248,7 +2248,7 @@
     },
     {
      "kind": "talk",
-     "target": "Ghostly Mage",
+     "target": "ghostly mage",
      "journal": "Speak with Ghostly Mage.",
      "says": "Croc, on the island off the coast south of Freeport, holds the hatestone dust. Hire trolls in Grobb to clear his crocodiles."
     },
@@ -2332,7 +2332,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ghoul Captain",
+     "target": "ghoul captain",
      "items": [
       {
        "item": "ghoul captain's insignia",
@@ -2672,7 +2672,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Fire Bat",
+     "target": "fire bat",
      "items": [
       {
        "item": "torn fire bat wing",
@@ -2792,7 +2792,7 @@
     },
     {
      "kind": "loot",
-     "target": "Darkclaw Crab",
+     "target": "darkclaw crab",
      "items": [
       {
        "item": "darkclaw crab claw",
@@ -2805,7 +2805,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fungus Cockroach",
+     "target": "fungus cockroach",
      "items": [
       {
        "item": "fungus cockroach carapace",
@@ -2835,13 +2835,13 @@
       {
        "on": "done",
        "do": "spawn",
-       "npc": "Fungus Cockroach"
+       "npc": "fungus cockroach"
       }
      ]
     },
     {
      "kind": "loot",
-     "target": "Fungus Cockroach",
+     "target": "fungus cockroach",
      "items": [
       {
        "item": "mutated shell",
@@ -3059,7 +3059,7 @@
     },
     {
      "kind": "loot",
-     "target": "Lost Thought",
+     "target": "lost thought",
      "items": [
       {
        "item": "gem of wit",
@@ -3072,7 +3072,7 @@
     },
     {
      "kind": "loot",
-     "target": "Oriote Raven",
+     "target": "oriote raven",
      "items": [
       {
        "item": "oriote raven claw",
@@ -3377,7 +3377,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Magpie",
+     "target": "magpie",
      "items": [
       {
        "item": "broken raven feathers",
@@ -3509,7 +3509,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Fire Bat",
+     "target": "fire bat",
      "items": [
       {
        "item": "torn fire bat wing",
@@ -3629,7 +3629,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spikeshell Crab",
+     "target": "Spikeshell crab",
      "items": [
       {
        "item": "spikeshell crab shell",
@@ -3642,7 +3642,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fungus Cockroach",
+     "target": "fungus cockroach",
      "items": [
       {
        "item": "fungus cockroach antenna",
@@ -3672,13 +3672,13 @@
       {
        "on": "done",
        "do": "spawn",
-       "npc": "Fungus Cockroach"
+       "npc": "fungus cockroach"
       }
      ]
     },
     {
      "kind": "loot",
-     "target": "Fungus Cockroach",
+     "target": "fungus cockroach",
      "items": [
       {
        "item": "mutated shell",
@@ -3896,7 +3896,7 @@
     },
     {
      "kind": "loot",
-     "target": "Lost Thought",
+     "target": "lost thought",
      "items": [
       {
        "item": "gem of obfuscation",
@@ -3909,7 +3909,7 @@
     },
     {
      "kind": "loot",
-     "target": "Oriote Raven",
+     "target": "oriote raven",
      "items": [
       {
        "item": "oriote raven beak",
@@ -4349,7 +4349,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Fire Bat",
+     "target": "fire bat",
      "items": [
       {
        "item": "torn fire bat wing",
@@ -4593,7 +4593,7 @@
     },
     {
      "kind": "loot",
-     "target": "Sidewinder",
+     "target": "sidewinder",
      "items": [
       {
        "item": "sidewinder skin",
@@ -4606,7 +4606,7 @@
     },
     {
      "kind": "loot",
-     "target": "Sand Skipper",
+     "target": "sand skipper",
      "items": [
       {
        "item": "sand skipper carapace",
@@ -4762,7 +4762,7 @@
     },
     {
      "kind": "loot",
-     "target": "Sand Covered Chest",
+     "target": "sand covered chest",
      "items": [
       {
        "item": "chiseled great axe of doom",
@@ -5095,7 +5095,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Fire Bat",
+     "target": "fire bat",
      "items": [
       {
        "item": "torn fire bat wing",
@@ -5215,7 +5215,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spikeshell Crab",
+     "target": "Spikeshell crab",
      "items": [
       {
        "item": "spikeshell crab claw",
@@ -5228,7 +5228,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fungus Cockroach",
+     "target": "fungus cockroach",
      "items": [
       {
        "item": "fungus cockroach leg",
@@ -5258,13 +5258,13 @@
       {
        "on": "done",
        "do": "spawn",
-       "npc": "Fungus Cockroach"
+       "npc": "fungus cockroach"
       }
      ]
     },
     {
      "kind": "loot",
-     "target": "Fungus Cockroach",
+     "target": "fungus cockroach",
      "items": [
       {
        "item": "mutated shell",
@@ -5482,7 +5482,7 @@
     },
     {
      "kind": "loot",
-     "target": "Lost Thought",
+     "target": "lost thought",
      "items": [
       {
        "item": "gem of deception",
@@ -5495,7 +5495,7 @@
     },
     {
      "kind": "loot",
-     "target": "Oriote Raven",
+     "target": "oriote raven",
      "items": [
       {
        "item": "oriote raven eye",
@@ -5876,7 +5876,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fireflies",
+     "target": "fireflies",
      "items": [
       {
        "item": "firefly leg segment",
@@ -5935,7 +5935,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Fire Bat",
+     "target": "fire bat",
      "items": [
       {
        "item": "torn fire bat wing",
@@ -6309,7 +6309,7 @@
     },
     {
      "kind": "talk",
-     "target": "Ghostly Mage",
+     "target": "ghostly mage",
      "journal": "Speak with Ghostly Mage.",
      "says": "Croc, on the island off the coast south of Freeport, holds the hatestone dust. Hire trolls in Grobb to clear his crocodiles."
     },
@@ -6390,7 +6390,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ghoul Captain",
+     "target": "ghoul captain",
      "items": [
       {
        "item": "ghoul captain's insignia",
@@ -6601,7 +6601,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fireflies",
+     "target": "fireflies",
      "items": [
       {
        "item": "damaged firefly wings",
@@ -6680,7 +6680,7 @@
     },
     {
      "kind": "loot",
-     "target": "Tree Snake",
+     "target": "tree snake",
      "items": [
       {
        "item": "sliver of snake meat",
@@ -6745,7 +6745,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fire Bat",
+     "target": "fire bat",
      "items": [
       {
        "item": "torn fire bat wing",
@@ -6865,7 +6865,7 @@
     },
     {
      "kind": "loot",
-     "target": "Darkclaw Crab",
+     "target": "darkclaw crab",
      "items": [
       {
        "item": "darkclaw crab shell",
@@ -6878,7 +6878,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fungus Cockroach",
+     "target": "fungus cockroach",
      "items": [
       {
        "item": "fungus cockroach pincers",
@@ -6908,13 +6908,13 @@
       {
        "on": "done",
        "do": "spawn",
-       "npc": "Fungus Cockroach"
+       "npc": "fungus cockroach"
       }
      ]
     },
     {
      "kind": "loot",
-     "target": "Fungus Cockroach",
+     "target": "fungus cockroach",
      "items": [
       {
        "item": "mutated shell",
@@ -7132,7 +7132,7 @@
     },
     {
      "kind": "loot",
-     "target": "Lost Thought",
+     "target": "lost thought",
      "items": [
       {
        "item": "gem of fury",
@@ -7145,7 +7145,7 @@
     },
     {
      "kind": "loot",
-     "target": "Oriote Raven",
+     "target": "oriote raven",
      "items": [
       {
        "item": "oriote raven feather",

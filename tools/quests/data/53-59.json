@@ -4,7 +4,7 @@
   {
    "key": "53-59/53/p1",
    "name": "The Dead Hills' Blight",
-   "giver": "Tomb Spirit",
+   "giver": "tomb spirit",
    "classes": [],
    "races": [],
    "minlevel": 53,
@@ -56,7 +56,7 @@
     },
     {
      "kind": "kill",
-     "target": "Ancient Spirit",
+     "target": "ancient spirit",
      "count": 1,
      "journal": "Defeat the Ancient Spirit in the Ghastly Kin's tomb."
     },
@@ -503,7 +503,7 @@
     },
     {
      "kind": "loot",
-     "target": "Kerran Shaman",
+     "target": "kerran shaman",
      "items": [
       {
        "item": "kerran shaman beads",
@@ -682,7 +682,7 @@
     },
     {
      "kind": "loot",
-     "target": "Sand Wasp",
+     "target": "sand wasp",
      "items": [
       {
        "item": "sandy carapace",
@@ -850,7 +850,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ancient Drudge",
+     "target": "ancient drudge",
      "items": [
       {
        "item": "drudge's map piece",
@@ -1113,7 +1113,7 @@
     },
     {
      "kind": "kill",
-     "target": "Giant Skeleton",
+     "target": "giant skeleton",
      "count": 1,
      "journal": "Defeat the Giant Skeleton roaming the Elephant Graveyard."
     },
@@ -1617,7 +1617,7 @@
     },
     {
      "kind": "loot",
-     "target": "Monstrous Rhino",
+     "target": "monstrous rhino",
      "items": [
       {
        "item": "monstrous rhino horn",
@@ -1717,7 +1717,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fire Goblin General",
+     "target": "fire goblin general",
      "items": [
       {
        "item": "fire goblin general's plans",
@@ -1884,7 +1884,7 @@
     },
     {
      "kind": "loot",
-     "target": "Paradise Basilisk",
+     "target": "paradise basilisk",
      "items": [
       {
        "item": "paradise basilisk eye",
@@ -1897,7 +1897,7 @@
     },
     {
      "kind": "loot",
-     "target": "Abrosian Snapper",
+     "target": "Abrosian snapper",
      "items": [
       {
        "item": "abrosian snapper scale",
@@ -2223,7 +2223,7 @@
     },
     {
      "kind": "loot",
-     "target": "Accursed Zombie",
+     "target": "accursed zombie",
      "items": [
       {
        "item": "Rallosian insignia",
@@ -2416,7 +2416,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Diseased Tempest Panther",
+     "target": "diseased tempest panther",
      "items": [
       {
        "item": "diseased panther pelt",
@@ -2590,7 +2590,7 @@
     },
     {
      "kind": "kill",
-     "target": "Diseased Manticore",
+     "target": "diseased manticore",
      "count": 1,
      "journal": "Defeat a diseased manticore in The Hunt (NW)."
     },
@@ -2620,7 +2620,7 @@
     },
     {
      "kind": "kill",
-     "target": "Kolbok Warden",
+     "target": "kolbok warden",
      "count": 1,
      "journal": "Defeat the Kolbok Warden in the jail of the kobold cave in The Warrens."
     },
@@ -2887,7 +2887,7 @@
     },
     {
      "kind": "loot",
-     "target": "Great War Bear",
+     "target": "great war bear",
      "items": [
       {
        "item": "great war bear meat",
@@ -2900,7 +2900,7 @@
     },
     {
      "kind": "loot",
-     "target": "Primal Eel",
+     "target": "primal eel",
      "items": [
       {
        "item": "primal eel meat",
@@ -2998,7 +2998,7 @@
     },
     {
      "kind": "talk",
-     "target": "Orb of Light",
+     "target": "orb of light",
      "journal": "Speak with the orb of light over the Avatar of Fear's body.",
      "says": "Take the last piece, and be gone from this place.",
      "events": [
@@ -3333,7 +3333,7 @@
     },
     {
      "kind": "loot",
-     "target": "Obsidian Assassin",
+     "target": "obsidian assassin",
      "items": [
       {
        "item": "discarded page #201",
@@ -3385,7 +3385,7 @@
     },
     {
      "kind": "loot",
-     "target": "Earthen Dryad",
+     "target": "earthen dryad",
      "items": [
       {
        "item": "earthen dryad heart",
@@ -3398,7 +3398,7 @@
     },
     {
      "kind": "loot",
-     "target": "Sarek's Keeper",
+     "target": "Sarek's keeper",
      "items": [
       {
        "item": "geode talisman",
@@ -3677,7 +3677,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Sea Nymph",
+     "target": "sea nymph",
      "items": [
       {
        "item": "sea nymph's collar",
@@ -3702,7 +3702,7 @@
     },
     {
      "kind": "kill",
-     "target": "Altar Guardian",
+     "target": "altar guardian",
      "count": 1,
      "journal": "Defeat the altar guardian on the bridge to Saftemoot's isle in Erud's Crossing (C)."
     },
@@ -3920,7 +3920,7 @@
     },
     {
      "kind": "loot",
-     "target": "Monarch of Stone",
+     "target": "monarch of stone",
      "items": [
       {
        "item": "monarch's stone heart",
@@ -3933,7 +3933,7 @@
     },
     {
      "kind": "loot",
-     "target": "Monarch of Flame",
+     "target": "monarch of flame",
      "items": [
       {
        "item": "monarch's flame heart",
@@ -4130,7 +4130,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ancient Clockwork",
+     "target": "ancient clockwork",
      "items": [
       {
        "item": "clockwork essence",
@@ -4181,7 +4181,7 @@
     },
     {
      "kind": "loot",
-     "target": "Wind of the Plains",
+     "target": "wind of the plains",
      "items": [
       {
        "item": "wind of the plains essence",

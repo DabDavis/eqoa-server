@@ -57,7 +57,7 @@
     },
     {
      "kind": "loot",
-     "target": "Goran's Beast",
+     "target": "Goran's beast",
      "journal": "Kill Goran's beasts on the hill and take two beast tails.",
      "items": [
       {
@@ -71,13 +71,13 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Goran's Beast",
+       "npc": "Goran's beast",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Goran's Beast",
+       "npc": "Goran's beast",
        "hostile": true
       }
      ]
@@ -123,7 +123,7 @@
     },
     {
      "kind": "loot",
-     "target": "Goran's Beast",
+     "target": "Goran's beast",
      "journal": "Kill the three beasts the Old Man calls and take their furs.",
      "items": [
       {
@@ -137,19 +137,19 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Goran's Beast",
+       "npc": "Goran's beast",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Goran's Beast",
+       "npc": "Goran's beast",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Goran's Beast",
+       "npc": "Goran's beast",
        "hostile": true
       }
      ]
@@ -195,7 +195,7 @@
     },
     {
      "kind": "loot",
-     "target": "Goran's Beast",
+     "target": "Goran's beast",
      "journal": "Kill the four beasts Malisarisent calls and take their claws.",
      "items": [
       {
@@ -209,25 +209,25 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Goran's Beast",
+       "npc": "Goran's beast",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Goran's Beast",
+       "npc": "Goran's beast",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Goran's Beast",
+       "npc": "Goran's beast",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Goran's Beast",
+       "npc": "Goran's beast",
        "hostile": true
       }
      ]
@@ -273,7 +273,7 @@
     },
     {
      "kind": "loot",
-     "target": "Goran's Pet",
+     "target": "Goran's pet",
      "journal": "Kill Goran's pet down the right-hand fork of the serpent cave.",
      "items": [
       {
@@ -287,7 +287,7 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Goran's Pet",
+       "npc": "Goran's pet",
        "hostile": true
       }
      ]
@@ -918,7 +918,7 @@
     },
     {
      "kind": "talk",
-     "target": "Reaver Gnoll",
+     "target": "reaver gnoll",
      "journal": "Speak to the gnoll among three orange tents north of Strag's Rest.",
      "says": "One, two, three, but not as you count them. Fight!"
     },
@@ -1021,7 +1021,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "Reaver Gnoll",
+     "target": "reaver gnoll",
      "journal": "Speak to the gnoll in Serpent Hills (N).",
      "says": "Uno, dos, tres. Backwards! Fight!"
     },
@@ -1123,7 +1123,7 @@
    "steps": [
     {
      "kind": "talk",
-     "target": "Reaver Gnoll",
+     "target": "reaver gnoll",
      "journal": "Speak to the gnoll by a rock near the barracks in Fort Alliance (E).",
      "says": "New rules. Six reavers, and quickly!"
     },
@@ -1182,7 +1182,7 @@
     },
     {
      "kind": "talk",
-     "target": "Reaver Gnoll",
+     "target": "reaver gnoll",
      "journal": "Speak to the gnoll by the dam in Stone Watchers (C).",
      "says": "First, second, third. Backwards!"
     },
@@ -1367,13 +1367,13 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Black Ant Guard",
+       "npc": "black ant guard",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Black Ant Guard",
+       "npc": "black ant guard",
        "hostile": true
       }
      ]
@@ -1637,7 +1637,7 @@
     },
     {
      "kind": "loot",
-     "target": "Bandit",
+     "target": "bandit",
      "journal": "Take a glove from the bandits in the hills by Darvar Manor.",
      "items": [
       {
@@ -1711,7 +1711,7 @@
     },
     {
      "kind": "loot",
-     "target": "Nasehir Rogue",
+     "target": "Nasehir rogue",
      "journal": "Take the medal for second place from the Nasehirs in Al'Farak Ruins.",
      "items": [
       {
@@ -1743,7 +1743,7 @@
     },
     {
      "kind": "loot",
-     "target": "Deathfist Reaver",
+     "target": "Deathfist reaver",
      "journal": "Take three crude Deathfist belts from the Deathfist orcs: the pawn's level.",
      "items": [
       {
@@ -2485,7 +2485,7 @@
     },
     {
      "kind": "loot",
-     "target": "Shiny Clockwork",
+     "target": "shiny clockwork",
      "journal": "Find the shiny clockworks on the hill with a huge signpost east of there, and take a fan blade.",
      "items": [
       {
@@ -2499,13 +2499,13 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Shiny Clockwork",
+       "npc": "shiny clockwork",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Shiny Clockwork",
+       "npc": "shiny clockwork",
        "hostile": true
       }
      ]
@@ -2528,7 +2528,7 @@
     },
     {
      "kind": "loot",
-     "target": "Gust",
+     "target": "gust",
      "journal": "Run the ravine east of Wyndhaven's coach until the gusts come, and take three gust chimes.",
      "items": [
       {
@@ -2663,7 +2663,7 @@
     },
     {
      "kind": "loot",
-     "target": "Shiny Clockwork",
+     "target": "shiny clockwork",
      "journal": "Find the shiny clockworks on the hill with a huge signpost east of there, and take a fan blade.",
      "items": [
       {
@@ -2677,13 +2677,13 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Shiny Clockwork",
+       "npc": "shiny clockwork",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Shiny Clockwork",
+       "npc": "shiny clockwork",
        "hostile": true
       }
      ]
@@ -2706,7 +2706,7 @@
     },
     {
      "kind": "loot",
-     "target": "Gust",
+     "target": "gust",
      "journal": "Run the ravine east of Wyndhaven's coach until the gusts come, and take three gust chimes.",
      "items": [
       {
@@ -3798,7 +3798,7 @@
     },
     {
      "kind": "loot",
-     "target": "Mountain Spirit",
+     "target": "mountain spirit",
      "journal": "Kill the mountain spirits for two ores.",
      "items": [
       {
@@ -3812,7 +3812,7 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Mountain Spirit",
+       "npc": "mountain spirit",
        "hostile": true
       }
      ]
@@ -3837,7 +3837,7 @@
     },
     {
      "kind": "loot",
-     "target": "Elusive Stone Ant",
+     "target": "elusive stone ant",
      "journal": "Kill the bugs from the stone for an uncut gem.",
      "items": [
       {
@@ -3851,13 +3851,13 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Elusive Stone Ant",
+       "npc": "elusive stone ant",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Elusive Stone Ant",
+       "npc": "elusive stone ant",
        "hostile": true
       }
      ]
@@ -3876,7 +3876,7 @@
     },
     {
      "kind": "loot",
-     "target": "Lost Soul",
+     "target": "lost soul",
      "journal": "Take soul dust from the lost souls in Highbourne's necromancers' guild.",
      "items": [
       {
@@ -3925,7 +3925,7 @@
     },
     {
      "kind": "loot",
-     "target": "Pride Lioness",
+     "target": "pride lioness",
      "journal": "Take three lion's bloods from Abyas's pride on the rock in Highbourne (NW).",
      "items": [
       {
@@ -4238,7 +4238,7 @@
     },
     {
      "kind": "loot",
-     "target": "Unsettled Bones",
+     "target": "unsettled bones",
      "journal": "Destroy the unsettled bones in Rivervale's graveyard by the windmill.",
      "items": [
       {
@@ -4263,7 +4263,7 @@
     },
     {
      "kind": "loot",
-     "target": "Unsettled Bones",
+     "target": "unsettled bones",
      "journal": "Destroy the unsettled bones on the hill near Surefall Glade's shooting range.",
      "items": [
       {
@@ -4288,7 +4288,7 @@
     },
     {
      "kind": "loot",
-     "target": "Unsettled Bones",
+     "target": "unsettled bones",
      "journal": "Destroy the unsettled bones in the blue mist of Collonridge Cemetery (E).",
      "items": [
       {
@@ -4366,7 +4366,7 @@
     },
     {
      "kind": "loot",
-     "target": "Death's Head Beetle",
+     "target": "death's head beetle",
      "journal": "Take three necrotic remains from the death's head beetles of Envar.",
      "items": [
       {
@@ -4646,7 +4646,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Lionguard Cultist",
+     "target": "Lionguard cultist",
      "journal": "Take the medallion from a lion guard without a weapon in the tunnels at the centre of the Sea of Lions.",
      "items": [
       {
@@ -4916,7 +4916,7 @@
     },
     {
      "kind": "talk",
-     "target": "Fungusman Slave",
+     "target": "fungusman slave",
      "journal": "Find the fungusman slave in the cave with ghouls to the west and tell him you are there to free him.",
      "says": "Free? After so long? Thank you! Tell Fugi I am coming.",
      "answer": "I am here to free you."
@@ -4961,7 +4961,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ghoul Reaver",
+     "target": "ghoul reaver",
      "journal": "Take the essence ruby from the Ghoul Reaver.",
      "items": [
       {
@@ -4974,7 +4974,7 @@
     },
     {
      "kind": "give",
-     "target": "Golem Statue",
+     "target": "golem statue",
      "journal": "Give the statue at the bottom of the barrow the two gems and the staff.",
      "items": [
       {
@@ -5776,7 +5776,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Pestilence Rat",
+     "target": "pestilence rat",
      "journal": "Take a smudged totem of the plains from the pestilence rats.",
      "items": [
       {
@@ -6739,7 +6739,7 @@
     },
     {
      "kind": "loot",
-     "target": "Emeraldine Drake",
+     "target": "Emeraldine drake",
      "journal": "Take five gems from emeraldine drakes in Salisearaneen (SW).",
      "items": [
       {
@@ -6797,7 +6797,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Sandstone Drake",
+     "target": "sandstone drake",
      "journal": "Take four gems from sandstone drakes in Tak 'Xiz South (E).",
      "items": [
       {
@@ -6936,7 +6936,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Rubilent Drake",
+     "target": "Rubilent drake",
      "journal": "Take four rubilent gems from the rubilent drakes behind the goblin fort in Lavastorm.",
      "items": [
       {
@@ -7036,27 +7036,27 @@
     },
     {
      "kind": "kill",
-     "target": "Bloodstone Drake",
+     "target": "Bloodstone drake",
      "journal": "Kill the bloodstone drakes.",
      "count": 2,
      "events": [
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Bloodstone Drake",
+       "npc": "Bloodstone drake",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Bloodstone Drake",
+       "npc": "Bloodstone drake",
        "hostile": true
       }
      ]
     },
     {
      "kind": "loot",
-     "target": "Bloodstone Drake Gem Keeper",
+     "target": "Bloodstone drake gem keeper",
      "journal": "Kill the bloodstone drake gem keeper and take the Ward of Magic.",
      "items": [
       {
@@ -7070,7 +7070,7 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Bloodstone Drake Gem Keeper",
+       "npc": "Bloodstone drake gem keeper",
        "hostile": true
       }
      ]
@@ -7126,20 +7126,20 @@
     },
     {
      "kind": "kill",
-     "target": "Undead Drake Lord",
+     "target": "undead drake lord",
      "journal": "Kill the Undead Drake Lord, and the bloodstones that come with him.",
      "count": 1,
      "events": [
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Undead Drake Lord",
+       "npc": "undead drake lord",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Bloodstone Drake",
+       "npc": "Bloodstone drake",
        "hostile": true
       }
      ]
@@ -7181,7 +7181,7 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Ghoul",
+       "npc": "ghoul",
        "hostile": true
       }
      ]
@@ -7233,7 +7233,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Pickclaw Warrior",
+     "target": "pickclaw warrior",
      "journal": "Take a shoddy key from the Pickclaw goblins along the road from Highpass's north entrance.",
      "items": [
       {
@@ -7274,13 +7274,13 @@
     },
     {
      "kind": "talk",
-     "target": "Prisoner",
+     "target": "prisoner",
      "journal": "Speak with the prisoner by the tree.",
      "says": "Free? You have a key? Wait... something is wrong with me... ARGH!"
     },
     {
      "kind": "talk",
-     "target": "Goblin Prisoner",
+     "target": "goblin prisoner",
      "journal": "Speak with the goblin prisoner the prisoner became.",
      "says": "Hee! Fooled you. Lord Pickclaw wants to meet you, up the sunken canyon north-east."
     },
@@ -7416,7 +7416,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Ebony Recluse",
+     "target": "ebony recluse",
      "journal": "Take silk from the ebony recluse in the hills near Kelinar.",
      "items": [
       {
@@ -7582,7 +7582,7 @@
     },
     {
      "kind": "loot",
-     "target": "Mirrored Soul",
+     "target": "mirrored soul",
      "journal": "Kill the Mirrored Soul and take the Scepter of Reflection.",
      "items": [
       {
@@ -7596,7 +7596,7 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Mirrored Soul",
+       "npc": "mirrored soul",
        "hostile": true
       }
      ]
@@ -7644,13 +7644,13 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Dragon Worshipper",
+       "npc": "dragon worshipper",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Dragon Worshipper",
+       "npc": "dragon worshipper",
        "hostile": true
       }
      ]
@@ -8058,7 +8058,7 @@
     },
     {
      "kind": "loot",
-     "target": "Teir'dal knight",
+     "target": "Teir'Dal knight",
      "journal": "Take the Tal'Thex diamond from the dark elves of Sycamore Joy's Rest, on the east coast.",
      "items": [
       {
@@ -8091,26 +8091,26 @@
     },
     {
      "kind": "kill",
-     "target": "Tal'thex Sorcerer",
+     "target": "Tal'thex sorcerer",
      "journal": "Fight off the Tal'thex undead: kill their sorcerers.",
      "count": 3,
      "events": [
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Tal'thex Knight",
+       "npc": "Tal'thex knight",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Tal'thex Soldier",
+       "npc": "Tal'thex soldier",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Tal'thex Sorcerer",
+       "npc": "Tal'thex sorcerer",
        "hostile": true
       }
      ]
@@ -8124,7 +8124,7 @@
       {
        "on": "start",
        "do": "say",
-       "npc": "Tal'thex Sorcerer",
+       "npc": "Tal'thex sorcerer",
        "text": "Lord Valkanith... comes..."
       },
       {
@@ -8213,7 +8213,7 @@
     },
     {
      "kind": "kill",
-     "target": "Paladin Lord",
+     "target": "paladin lord",
      "journal": "Enter the crypt and, to the left, kill the Paladin Lord and his spectres.",
      "count": 1
     },
@@ -8378,7 +8378,7 @@
     },
     {
      "kind": "loot",
-     "target": "Sly Ice Giant",
+     "target": "sly ice giant",
      "journal": "Kill the sly ice giant in the valley north-west of Steely and take his mask.",
      "items": [
       {
@@ -8995,7 +8995,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rainbow Magic Guardian",
+     "target": "rainbow magic guardian",
      "journal": "Kill the Rainbow Magic Guardian and take the hand grip.",
      "items": [
       {
@@ -9009,7 +9009,7 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Rainbow Magic Guardian",
+       "npc": "rainbow magic guardian",
        "hostile": true
       }
      ]
@@ -9457,7 +9457,7 @@
     },
     {
      "kind": "talk",
-     "target": "Weary Adventurer",
+     "target": "weary adventurer",
      "journal": "Speak to the weary adventurer by the campfire in Muniel's Tea Garden (C).",
      "says": "Leave us be! ... Too late. You know."
     },
@@ -9477,7 +9477,7 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Weary Adventurer",
+       "npc": "weary adventurer",
        "hostile": true
       },
       {
@@ -9919,7 +9919,7 @@
     },
     {
      "kind": "give",
-     "target": "Altar of the Spirit Guardian",
+     "target": "altar of the spirit guardian",
      "journal": "Place the three talismans, the horn and the two halves on the altar beside the spirit guardian.",
      "items": [
       {
@@ -9963,7 +9963,7 @@
     },
     {
      "kind": "give",
-     "target": "Altar of the Spirit Guardian",
+     "target": "altar of the spirit guardian",
      "journal": "Clear the room, buff up, and give the altar the Tablet of Haz'Kar.",
      "items": [
       {
@@ -10163,7 +10163,7 @@
     },
     {
      "kind": "give",
-     "target": "Frost Fairy",
+     "target": "frost fairy",
      "journal": "Catch a frost fairy in the jug, on the hills round Anu Village.",
      "items": [
       {
@@ -10285,7 +10285,7 @@
     },
     {
      "kind": "loot",
-     "target": "Pickclaw Warrior",
+     "target": "pickclaw warrior",
      "journal": "Kill the pickclaw goblins and take five swords.",
      "items": [
       {
@@ -10299,13 +10299,13 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Pickclaw Warrior",
+       "npc": "pickclaw warrior",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Pickclaw Warrior",
+       "npc": "pickclaw warrior",
        "hostile": true
       }
      ]
@@ -10576,7 +10576,7 @@
     },
     {
      "kind": "loot",
-     "target": "Pickclaw Warrior",
+     "target": "pickclaw warrior",
      "journal": "Kill the pickclaws and take five swords.",
      "items": [
       {
@@ -10590,13 +10590,13 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Pickclaw Warrior",
+       "npc": "pickclaw warrior",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Pickclaw Warrior",
+       "npc": "pickclaw warrior",
        "hostile": true
       }
      ]
@@ -10770,7 +10770,7 @@
     },
     {
      "kind": "talk",
-     "target": "A Baby Dragon",
+     "target": "a baby dragon",
      "journal": "Speak with the baby dragon that comes as Nanyea falls.",
      "says": "Thank you! Hold on!",
      "events": [

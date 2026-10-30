@@ -170,7 +170,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Spike Beetle",
+     "target": "spike beetle",
      "items": [
       {
        "item": "Cracked Beetle Horn",
@@ -357,7 +357,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Tarantula",
+     "target": "tarantula",
      "items": [
       {
        "item": "broken tarantula fang",
@@ -370,7 +370,7 @@
     },
     {
      "kind": "loot",
-     "target": "Elusive Stone Ant",
+     "target": "elusive stone ant",
      "items": [
       {
        "item": "Elusive Stone Ant Poison",
@@ -781,7 +781,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Dragonflies",
+     "target": "dragonflies",
      "items": [
       {
        "item": "damaged firefly wings",
@@ -848,7 +848,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Cracked Rat Tooth",
@@ -1637,7 +1637,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Skeletal Dog",
+     "target": "skeletal dog",
      "count": 3,
      "journal": "Slay 3 Skeletal Dogs."
     },
@@ -1707,7 +1707,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spotted Lion",
+     "target": "spotted lion",
      "items": [
       {
        "item": "Spotted Lion Pelt",
@@ -1834,7 +1834,7 @@
     },
     {
      "kind": "kill",
-     "target": "Gangrenous Zombie",
+     "target": "gangrenous zombie",
      "count": 1,
      "journal": "Slay Gangrenous Zombie."
     },
@@ -1852,7 +1852,7 @@
     },
     {
      "kind": "loot",
-     "target": "Brownie Thief",
+     "target": "brownie thief",
      "items": [
       {
        "item": "Stolen Catch",
@@ -1969,7 +1969,7 @@
     },
     {
      "kind": "loot",
-     "target": "Aviak Chick",
+     "target": "aviak chick",
      "items": [
       {
        "item": "Captured Aviak Chick",
@@ -2155,7 +2155,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Strands of Rat Fur",
@@ -2311,7 +2311,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Skeletal Dog",
+     "target": "skeletal dog",
      "items": [
       {
        "item": "Shredded Caller's Robe",
@@ -2394,7 +2394,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spotted Lion",
+     "target": "spotted lion",
      "items": [
       {
        "item": "Spotted Lion Pelt",
@@ -2518,7 +2518,7 @@
     },
     {
      "kind": "kill",
-     "target": "Gangrenous Zombie",
+     "target": "gangrenous zombie",
      "count": 1,
      "journal": "Slay Gangrenous Zombie."
     },
@@ -2536,7 +2536,7 @@
     },
     {
      "kind": "loot",
-     "target": "Brownie Thief",
+     "target": "brownie thief",
      "items": [
       {
        "item": "Stolen Catch",
@@ -2650,7 +2650,7 @@
     },
     {
      "kind": "loot",
-     "target": "Aviak Chick",
+     "target": "aviak chick",
      "items": [
       {
        "item": "Captured Aviak Chick",
@@ -2836,7 +2836,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Tarantula",
+     "target": "tarantula",
      "items": [
       {
        "item": "tarantula leg tips",
@@ -2903,7 +2903,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Cracked Rat Claw",
@@ -3073,7 +3073,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Skeletal Dog",
+     "target": "skeletal dog",
      "items": [
       {
        "item": "Skeletal Dog Bone",
@@ -3162,7 +3162,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spotted Lion",
+     "target": "spotted lion",
      "items": [
       {
        "item": "Spotted Lion Pelt",
@@ -3283,7 +3283,7 @@
     },
     {
      "kind": "loot",
-     "target": "Gangrenous Zombie",
+     "target": "gangrenous zombie",
      "items": [
       {
        "item": "Zombie's Torque",
@@ -3314,7 +3314,7 @@
     },
     {
      "kind": "loot",
-     "target": "Brownie Thief",
+     "target": "brownie thief",
      "items": [
       {
        "item": "Nalej's Jar",
@@ -3443,7 +3443,7 @@
     },
     {
      "kind": "loot",
-     "target": "Aviak Chick",
+     "target": "aviak chick",
      "items": [
       {
        "item": "Captured Aviak Chick",
@@ -3715,7 +3715,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spike Beetle",
+     "target": "spike beetle",
      "items": [
       {
        "item": "beetle leg segment",
@@ -4449,7 +4449,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Tarantula",
+     "target": "tarantula",
      "items": [
       {
        "item": "Spider Leg Tip",
@@ -4516,7 +4516,7 @@
     },
     {
      "kind": "loot",
-     "target": "Tarantula",
+     "target": "tarantula",
      "items": [
       {
        "item": "flattened tarantula eye",
@@ -4686,7 +4686,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Skeletal Dog",
+     "target": "skeletal dog",
      "items": [
       {
        "item": "Shredded Caller's Robe",
@@ -4769,7 +4769,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spotted Lion",
+     "target": "spotted lion",
      "items": [
       {
        "item": "Spotted Lion Eye",
@@ -4890,7 +4890,7 @@
     },
     {
      "kind": "kill",
-     "target": "Gangrenous Zombie",
+     "target": "gangrenous zombie",
      "count": 1,
      "journal": "Slay Gangrenous Zombie."
     },
@@ -4908,7 +4908,7 @@
     },
     {
      "kind": "loot",
-     "target": "Brownie Thief",
+     "target": "brownie thief",
      "items": [
       {
        "item": "Stolen Catch",
@@ -5037,7 +5037,7 @@
     },
     {
      "kind": "loot",
-     "target": "Aviak Chick",
+     "target": "aviak chick",
      "items": [
       {
        "item": "Captured Aviak Chick",
@@ -5223,7 +5223,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Ant",
+     "target": "ant",
      "items": [
       {
        "item": "cracked ant pincer",
@@ -5290,7 +5290,7 @@
     },
     {
      "kind": "loot",
-     "target": "Dragonflies",
+     "target": "dragonflies",
      "items": [
       {
        "item": "fractured dragonfly thorax",
@@ -5463,7 +5463,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Skeletal Dog",
+     "target": "skeletal dog",
      "items": [
       {
        "item": "Shredded Caller's Robe",
@@ -5552,7 +5552,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spotted Lion",
+     "target": "spotted lion",
      "items": [
       {
        "item": "Spotted Lion Fang",
@@ -5673,7 +5673,7 @@
     },
     {
      "kind": "kill",
-     "target": "Gangrenous Zombie",
+     "target": "gangrenous zombie",
      "count": 1,
      "journal": "Slay Gangrenous Zombie."
     },
@@ -5691,7 +5691,7 @@
     },
     {
      "kind": "loot",
-     "target": "Brownie Thief",
+     "target": "brownie thief",
      "items": [
       {
        "item": "Stolen Catch",
@@ -5809,7 +5809,7 @@
     },
     {
      "kind": "loot",
-     "target": "Aviak Chick",
+     "target": "aviak chick",
      "items": [
       {
        "item": "Captured Aviak Chick",

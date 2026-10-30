@@ -115,7 +115,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "ruined bat wing",
@@ -198,7 +198,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ant",
+     "target": "ant",
      "items": [
       {
        "item": "shattered ant chitin",
@@ -336,7 +336,7 @@
     },
     {
      "kind": "loot",
-     "target": "Blackpaw",
+     "target": "blackpaw",
      "items": [
       {
        "item": "Dried Honey Fur",
@@ -403,7 +403,7 @@
     },
     {
      "kind": "loot",
-     "target": "Orc Wizard",
+     "target": "orc wizard",
      "items": [
       {
        "item": "Orc Wizard's Staff",
@@ -886,7 +886,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Strands of Rat Fur",
@@ -963,7 +963,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ant",
+     "target": "ant",
      "items": [
       {
        "item": "cracked ant pincer",
@@ -1196,7 +1196,7 @@
     },
     {
      "kind": "loot",
-     "target": "Widow Spiderling",
+     "target": "widow spiderling",
      "items": [
       {
        "item": "Punctured Widow's Eye",
@@ -1253,7 +1253,7 @@
     },
     {
      "kind": "loot",
-     "target": "Skeletal Dog",
+     "target": "skeletal dog",
      "items": [
       {
        "item": "Chewed Bone",
@@ -1907,7 +1907,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Fireflies",
+     "target": "fireflies",
      "items": [
       {
        "item": "damaged firefly wings",
@@ -1981,7 +1981,7 @@
     },
     {
      "kind": "loot",
-     "target": "Grass Snake",
+     "target": "grass snake",
      "items": [
       {
        "item": "snake scales",
@@ -1994,7 +1994,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Cracked Rat Claw",
@@ -2217,7 +2217,7 @@
     },
     {
      "kind": "loot",
-     "target": "Moss Snake",
+     "target": "moss snake",
      "items": [
       {
        "item": "chipped snake fang",
@@ -2863,7 +2863,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Strands of Rat Fur",
@@ -2937,7 +2937,7 @@
     },
     {
      "kind": "loot",
-     "target": "Grass Snake",
+     "target": "grass snake",
      "items": [
       {
        "item": "cracked snake fang",
@@ -2950,7 +2950,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ant",
+     "target": "ant",
      "items": [
       {
        "item": "shattered ant chitin",
@@ -3072,7 +3072,7 @@
     },
     {
      "kind": "loot",
-     "target": "Mindwhipper Wasp",
+     "target": "mindwhipper wasp",
      "items": [
       {
        "item": "Mindwhipper Wasp Eye",
@@ -3170,7 +3170,7 @@
     },
     {
      "kind": "loot",
-     "target": "Orc Thief",
+     "target": "orc thief",
      "items": [
       {
        "item": "Gearcharmer's Device",
@@ -3589,7 +3589,7 @@
     },
     {
      "kind": "loot",
-     "target": "Crumbling Bones",
+     "target": "crumbling bones",
      "items": [
       {
        "item": "Rib of a Crumbling Corpse",
@@ -3614,7 +3614,7 @@
     },
     {
      "kind": "loot",
-     "target": "Maundering Soul",
+     "target": "maundering soul",
      "items": [
       {
        "item": "Essence of a Marauding Soul",
@@ -3765,7 +3765,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Ant",
+     "target": "ant",
      "items": [
       {
        "item": "cracked ant pincer",
@@ -3839,7 +3839,7 @@
     },
     {
      "kind": "loot",
-     "target": "Grass Snake",
+     "target": "grass snake",
      "items": [
       {
        "item": "sliver of snake meat",
@@ -3852,7 +3852,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fireflies",
+     "target": "fireflies",
      "items": [
       {
        "item": "fractured firefly thorax",
@@ -4041,7 +4041,7 @@
     },
     {
      "kind": "loot",
-     "target": "Tomb Rat",
+     "target": "tomb rat",
      "items": [
       {
        "item": "Sigil",
@@ -4261,7 +4261,7 @@
     },
     {
      "kind": "talk",
-     "target": "Ghostly Mage",
+     "target": "ghostly mage",
      "journal": "Speak with Ghostly Mage.",
      "says": "The hatestone is on Croc Island, off Freeport. Croc keeps it. Foonklim in Highpass can draw him out."
     },
@@ -4338,7 +4338,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ghoul Captain",
+     "target": "ghoul captain",
      "items": [
       {
        "item": "Ghoul Captain's Insignia",
@@ -4526,7 +4526,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "bat meat",
@@ -4603,7 +4603,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "bent rat whiskers",
@@ -4616,7 +4616,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ant",
+     "target": "ant",
      "items": [
       {
        "item": "cracked ant pincer",
@@ -4796,7 +4796,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spikeshell Crab",
+     "target": "Spikeshell crab",
      "items": [
       {
        "item": "Spikeshell Crab Leg",
@@ -4809,7 +4809,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fungus Cockroach",
+     "target": "fungus cockroach",
      "items": [
       {
        "item": "Fungus Cockroach Wing",
@@ -5016,7 +5016,7 @@
     },
     {
      "kind": "loot",
-     "target": "Final Thought",
+     "target": "final thought",
      "items": [
       {
        "item": "Final Thought Gem",
@@ -5029,7 +5029,7 @@
     },
     {
      "kind": "loot",
-     "target": "Oriote Raven",
+     "target": "oriote raven",
      "items": [
       {
        "item": "Oriote Raven Foot",
@@ -5318,7 +5318,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "ruined bat wing",
@@ -5395,7 +5395,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Cracked Rat Tooth",
@@ -5408,7 +5408,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fireflies",
+     "target": "fireflies",
      "items": [
       {
        "item": "fractured firefly thorax",
@@ -5660,7 +5660,7 @@
     },
     {
      "kind": "loot",
-     "target": "Gorged Rat",
+     "target": "gorged rat",
      "items": [
       {
        "item": "Digested Mushrooms",
@@ -6352,7 +6352,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Grass Snake",
+     "target": "grass snake",
      "items": [
       {
        "item": "ruined snake scales",
@@ -6429,7 +6429,7 @@
     },
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "ruined bat wing",
@@ -6651,7 +6651,7 @@
     },
     {
      "kind": "loot",
-     "target": "Strange Clockwork",
+     "target": "strange clockwork",
      "items": [
       {
        "item": "Lava Vent Piece",
@@ -6682,7 +6682,7 @@
     },
     {
      "kind": "loot",
-     "target": "Mindwhipper Drone",
+     "target": "mindwhipper drone",
      "items": [
       {
        "item": "Mindwhipper Venom Sac",

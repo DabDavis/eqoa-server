@@ -494,7 +494,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Golden Gnoll",
+     "target": "golden gnoll",
      "count": 1,
      "journal": "Defeat the Golden Gnoll south-east of the undead house at Crethley Manor."
     },
@@ -506,7 +506,7 @@
     },
     {
      "kind": "kill",
-     "target": "Green Racer Snake",
+     "target": "green racer snake",
      "count": 1,
      "journal": "Defeat the Green Racer Snake on the hill east of the druids' lake in the Unkempt Glade."
     },
@@ -555,7 +555,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Golden Gnoll",
+     "target": "golden gnoll",
      "count": 1,
      "journal": "Defeat the Golden Gnoll south-east of the undead house at Crethley Manor."
     },
@@ -567,7 +567,7 @@
     },
     {
      "kind": "kill",
-     "target": "Green Racer Snake",
+     "target": "green racer snake",
      "count": 1,
      "journal": "Defeat the Green Racer Snake on the hill east of the druids' lake in the Unkempt Glade."
     },
@@ -619,7 +619,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Golden Gnoll",
+     "target": "golden gnoll",
      "count": 1,
      "journal": "Defeat the Golden Gnoll south-east of the undead house at Crethley Manor."
     },
@@ -631,7 +631,7 @@
     },
     {
      "kind": "kill",
-     "target": "Green Racer Snake",
+     "target": "green racer snake",
      "count": 1,
      "journal": "Defeat the Green Racer Snake on the hill east of the druids' lake in the Unkempt Glade."
     },
@@ -681,7 +681,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Golden Gnoll",
+     "target": "golden gnoll",
      "count": 1,
      "journal": "Defeat the Golden Gnoll south-east of the undead house at Crethley Manor."
     },
@@ -693,7 +693,7 @@
     },
     {
      "kind": "kill",
-     "target": "Green Racer Snake",
+     "target": "green racer snake",
      "count": 1,
      "journal": "Defeat the Green Racer Snake on the hill east of the druids' lake in the Unkempt Glade."
     },
@@ -1014,13 +1014,13 @@
     },
     {
      "kind": "kill",
-     "target": "Tae Ew Trader",
+     "target": "Tae Ew trader",
      "count": 1,
      "journal": "Defeat the Tae Ew Trader roaming north-western Cazic Thule."
     },
     {
      "kind": "kill",
-     "target": "Tae Ew Hoarder",
+     "target": "Tae Ew hoarder",
      "count": 1,
      "journal": "Defeat the Tae Ew Hoarder on the small hill in green mist across the river in Tak'Xiz South."
     },
@@ -1087,13 +1087,13 @@
     },
     {
      "kind": "kill",
-     "target": "Tae Ew Trader",
+     "target": "Tae Ew trader",
      "count": 1,
      "journal": "Defeat the Tae Ew Trader roaming north-western Cazic Thule."
     },
     {
      "kind": "kill",
-     "target": "Tae Ew Hoarder",
+     "target": "Tae Ew hoarder",
      "count": 1,
      "journal": "Defeat the Tae Ew Hoarder on the small hill in green mist across the river in Tak'Xiz South."
     },
@@ -1161,13 +1161,13 @@
     },
     {
      "kind": "kill",
-     "target": "Tae Ew Trader",
+     "target": "Tae Ew trader",
      "count": 1,
      "journal": "Defeat the Tae Ew Trader roaming north-western Cazic Thule."
     },
     {
      "kind": "kill",
-     "target": "Tae Ew Hoarder",
+     "target": "Tae Ew hoarder",
      "count": 1,
      "journal": "Defeat the Tae Ew Hoarder on the small hill in green mist across the river in Tak'Xiz South."
     },
@@ -1235,13 +1235,13 @@
     },
     {
      "kind": "kill",
-     "target": "Tae Ew Trader",
+     "target": "Tae Ew trader",
      "count": 1,
      "journal": "Defeat the Tae Ew Trader roaming north-western Cazic Thule."
     },
     {
      "kind": "kill",
-     "target": "Tae Ew Hoarder",
+     "target": "Tae Ew hoarder",
      "count": 1,
      "journal": "Defeat the Tae Ew Hoarder on the small hill in green mist across the river in Tak'Xiz South."
     },
@@ -1503,7 +1503,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Undead Slave",
+     "target": "undead slave",
      "count": 1,
      "journal": "Defeat the Undead Slave down the small valley by the first flag on the left north of the Oasis."
     },
@@ -1650,7 +1650,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Undead Slave",
+     "target": "undead slave",
      "count": 1,
      "journal": "Defeat the Undead Slave down the small valley by the first flag on the left north of the Oasis."
     },
@@ -1800,7 +1800,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Undead Slave",
+     "target": "undead slave",
      "count": 1,
      "journal": "Defeat the Undead Slave down the small valley by the first flag on the left north of the Oasis."
     },
@@ -1948,7 +1948,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Undead Slave",
+     "target": "undead slave",
      "count": 1,
      "journal": "Defeat the Undead Slave down the small valley by the first flag on the left north of the Oasis."
     },
@@ -2936,7 +2936,7 @@
     },
     {
      "kind": "kill",
-     "target": "Vicious Wolfwere",
+     "target": "vicious wolfwere",
      "count": 1,
      "journal": "Follow the scent north to the crest of the hill by Master Landaar, and defeat the vicious were-beast."
     },
@@ -3122,7 +3122,7 @@
     },
     {
      "kind": "kill",
-     "target": "Vicious Wolfwere",
+     "target": "vicious wolfwere",
      "count": 1,
      "journal": "Follow the scent north to the crest of the hill by Master Landaar, and defeat the vicious were-beast."
     },
@@ -3306,7 +3306,7 @@
     },
     {
      "kind": "kill",
-     "target": "Vicious Wolfwere",
+     "target": "vicious wolfwere",
      "count": 1,
      "journal": "Follow the scent north to the crest of the hill by Master Landaar, and defeat the vicious were-beast."
     },
@@ -3489,7 +3489,7 @@
     },
     {
      "kind": "kill",
-     "target": "Vicious Wolfwere",
+     "target": "vicious wolfwere",
      "count": 1,
      "journal": "Follow the scent north to the crest of the hill by Master Landaar, and defeat the vicious were-beast."
     },
@@ -5013,7 +5013,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Desmodus Bat",
+     "target": "Desmodus bat",
      "count": 5,
      "journal": "Hunt desmodus bats, wherever their camps have sprung up across Tunaria."
     },

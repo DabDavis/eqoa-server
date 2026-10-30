@@ -113,7 +113,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Large Rat",
+     "target": "large rat",
      "items": [
       {
        "item": "Strands of Rat Fur",
@@ -189,7 +189,7 @@
     },
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "ruined bat wing",
@@ -579,7 +579,7 @@
     },
     {
      "kind": "loot",
-     "target": "Salmon",
+     "target": "salmon",
      "items": [
       {
        "item": "Salmon",
@@ -739,7 +739,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Spiderling",
+     "target": "spiderling",
      "items": [
       {
        "item": "small spider eye",
@@ -815,7 +815,7 @@
     },
     {
      "kind": "loot",
-     "target": "Crow",
+     "target": "crow",
      "items": [
       {
        "item": "chipped raven beak",
@@ -985,7 +985,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Ice Spider Queen",
+     "target": "ice spider queen",
      "items": [
       {
        "item": "Strand of Spider Silk",
@@ -1036,7 +1036,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Freezeblood Captain",
+     "target": "Freezeblood captain",
      "items": [
       {
        "item": "Freezeblood Battle Plans",
@@ -1199,7 +1199,7 @@
     },
     {
      "kind": "loot",
-     "target": "Salmon",
+     "target": "salmon",
      "items": [
       {
        "item": "Salmon",
@@ -1381,7 +1381,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Large Rat",
+     "target": "large rat",
      "items": [
       {
        "item": "Strands of Rat Fur",
@@ -1457,7 +1457,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spiderling",
+     "target": "spiderling",
      "items": [
       {
        "item": "small spider eye",
@@ -1557,7 +1557,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Freezeblood Hoarder",
+     "target": "Freezeblood hoarder",
      "items": [
       {
        "item": "Steel Bar",
@@ -1806,7 +1806,7 @@
     },
     {
      "kind": "loot",
-     "target": "Salmon",
+     "target": "salmon",
      "items": [
       {
        "item": "Salmon",

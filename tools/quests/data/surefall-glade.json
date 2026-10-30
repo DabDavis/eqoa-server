@@ -113,7 +113,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "sliver of bat meat",
@@ -189,7 +189,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ant",
+     "target": "ant",
      "items": [
       {
        "item": "shattered ant chitin",
@@ -419,7 +419,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Gnoll Shaman Forager",
+     "target": "gnoll shaman forager",
      "items": [
       {
        "item": "sack of wild herbs",
@@ -479,7 +479,7 @@
     },
     {
      "kind": "loot",
-     "target": "Gnoll Champion",
+     "target": "gnoll champion",
      "items": [
       {
        "item": "furspirit's totem",
@@ -646,7 +646,7 @@
     },
     {
      "kind": "loot",
-     "target": "Gnoll Raider",
+     "target": "gnoll raider",
      "items": [
       {
        "item": "gnoll cap",
@@ -677,7 +677,7 @@
     },
     {
      "kind": "loot",
-     "target": "Hungry Zombie",
+     "target": "hungry zombie",
      "items": [
       {
        "item": "pouch of stolen berries",
@@ -1019,7 +1019,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Badger",
+     "target": "badger",
      "items": [
       {
        "item": "piece of badger meat",
@@ -1101,7 +1101,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fireflies",
+     "target": "fireflies",
      "items": [
       {
        "item": "fractured firefly thorax",
@@ -1114,7 +1114,7 @@
     },
     {
      "kind": "loot",
-     "target": "Grass Viper",
+     "target": "grass viper",
      "items": [
       {
        "item": "cracked snake fang",
@@ -1238,13 +1238,13 @@
       {
        "on": "done",
        "do": "spawn",
-       "npc": "Gnoll Runner"
+       "npc": "gnoll runner"
       }
      ]
     },
     {
      "kind": "loot",
-     "target": "Gnoll Runner",
+     "target": "gnoll runner",
      "items": [
       {
        "item": "slesher's note",
@@ -1577,7 +1577,7 @@
     },
     {
      "kind": "loot",
-     "target": "Gnoll Raider",
+     "target": "gnoll raider",
      "items": [
       {
        "item": "pair of gnoll gloves",
@@ -1608,7 +1608,7 @@
     },
     {
      "kind": "loot",
-     "target": "Hungry Zombie",
+     "target": "hungry zombie",
      "items": [
       {
        "item": "stolen milk",

@@ -252,7 +252,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Lizardman Outcast",
+     "target": "lizardman outcast",
      "items": [
       {
        "item": "outcast scale",
@@ -429,7 +429,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Lizardman Sneak",
+     "target": "lizardman sneak",
      "items": [
       {
        "item": "lizardman sneak hide",
@@ -590,7 +590,7 @@
     },
     {
      "kind": "loot",
-     "target": "Druid Trainee",
+     "target": "druid trainee",
      "items": [
       {
        "item": "triad stone",
@@ -932,7 +932,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Lizardman Outcast",
+     "target": "lizardman outcast",
      "items": [
       {
        "item": "outcast scale",
@@ -983,7 +983,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Tainted Rat",
+     "target": "tainted rat",
      "items": [
       {
        "item": "tainted rat tail",
@@ -1244,7 +1244,7 @@
     },
     {
      "kind": "loot",
-     "target": "Gruk Crab",
+     "target": "Gruk crab",
      "items": [
       {
        "item": "gruk crab carapace",
@@ -1724,7 +1724,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Lizardman Outcast",
+     "target": "lizardman outcast",
      "items": [
       {
        "item": "outcast scale",
@@ -1913,7 +1913,7 @@
     },
     {
      "kind": "loot",
-     "target": "Hobgoblin Vandal",
+     "target": "hobgoblin vandal",
      "items": [
       {
        "item": "vandal's note",
@@ -1938,7 +1938,7 @@
     },
     {
      "kind": "loot",
-     "target": "Hobgoblin Initiate",
+     "target": "hobgoblin initiate",
      "items": [
       {
        "item": "stolen tower stone",
@@ -1989,7 +1989,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Wandering Forager",
+     "target": "wandering forager",
      "items": [
       {
        "item": "ruby half",
@@ -2002,7 +2002,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fat Piranha",
+     "target": "fat piranha",
      "items": [
       {
        "item": "ruby half",
@@ -2113,7 +2113,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ghoul",
+     "target": "ghoul",
      "items": [
       {
        "item": "ghoul's book",
@@ -2415,7 +2415,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Lizardman Outcast",
+     "target": "lizardman outcast",
      "items": [
       {
        "item": "outcast scale",
@@ -2466,7 +2466,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Tainted Rat",
+     "target": "tainted rat",
      "items": [
       {
        "item": "tainted rat tooth",
@@ -2899,7 +2899,7 @@
     },
     {
      "kind": "loot",
-     "target": "Tae Ew Commander",
+     "target": "Tae Ew commander",
      "items": [
       {
        "item": "copy of the Izz Ta Geth",

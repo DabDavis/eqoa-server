@@ -83,6 +83,20 @@ class Fix(unittest.TestCase):
         self.assertEqual(q["unresolved"], [])
         self.assertEqual(q["notes"], "From a guide. The pelts are the database's Pelt.")
 
+    def test_case_respells_a_name_found_but_for_its_case(self):
+        """--case: "bat" (npcs: "Bat" alone) is respelled; "Wolf Pup" is found
+        and npcs spells it one way, so its case is npcs'; without --case a
+        name found in any case is left as written."""
+        self.quests[2]["steps"][0]["target"] = "bat"
+        self.quests[1]["steps"][0]["target"] = "WOLF PUP"
+        self.write(self.quests)
+        _, qs = self.fixed()
+        self.assertEqual(qs["1-20/t/a/L3"]["steps"][0]["target"], "bat")
+        report, qs = self.fixed(case=True)
+        self.assertEqual(qs["1-20/t/a/L3"]["steps"][0]["target"], "Bat")
+        self.assertEqual(qs["1-20/t/a/L2"]["steps"][0]["target"], "Wolf Pup")
+        self.assertIn("town.json 1-20/t/a/L3: target 'bat' -> 'Bat'", report)
+
     def test_two_spellings_that_agree_are_left_alone(self):
         _, qs = self.fixed()
         q = qs["1-20/t/a/L2"]

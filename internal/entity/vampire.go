@@ -26,10 +26,11 @@ import (
 //
 // Here: every VampireSun.Interval (the regeneration's tick when it is 6 s,
 // after the regeneration, as Sandstorm's), each vampire in the world (table
-// charvampire, database/vampire.go: #vampire and the GM panel make one) that
-// is alive, not loading a world, under the open sky and in daylight as its own
-// client shows it takes VampireSun.Damage, told as Sandstorm tells it. It can
-// kill: a death as any other (respawn.go: its debt, the respawn at its bind).
+// charvampire, database/vampire.go: the vampire quest's bats, #vampire and the
+// GM panel make one) that is alive, not loading a world, under the open sky
+// and in daylight as its own client shows it takes VampireSun.Damage, told as
+// Sandstorm tells it. It can kill: a death as any other (respawn.go: its debt,
+// the respawn at its bind).
 //
 // Daylight is the client's own: the hour its clock shows (session/gameclock.go:
 // the 0x0013 the server sent it, carried forward at the client's 983.04 ticks
@@ -288,4 +289,135 @@ func (w *World) SunOn(sess *session.Session, now time.Time) (s SunState, ok bool
 	}
 	s.Burns = s.Vampire && s.Day && !s.Shaded && !s.Spared && r.Damage > 0 && !p.IsDead() && !p.respawnPending()
 	return s, true
+}
+
+// The vampires' abilities (tools/seed_vampires.py makes their records, their
+// lines and the blood they cost; EQOA-Data's vampire guide gives the
+// figures, Sandstorm's own records Feed's and Sanctuary's exactly). What
+// they need of the World beyond any spell's:
+//   - Units of Blood: a line's "Reagent Unit of Blood xN" (spelltext.go) is
+//     taken from the caster's inventory as the cast begins, and the cast is
+//     refused without them (handlers' cast); Feed's "Summon Unit of Blood"
+//     gives one as it lands, as any summoning of an item (potion.go).
+//   - a stat set, not raised ("Set STR to 500": Bat Form; "Set STR to 0":
+//     Mist Form): the difference from the bearer's own stat as it lands
+//     (setStatsLocked), held to the stat's cap as any STR is (400 from
+//     level 46, more with the masteries that raise it).
+//   - damage per hit ("Increase Damage per Hit by 500": Frenzy): added to
+//     every melee hit the bearer lands, a duel's too (offence.go's
+//     playerMeleeHit).
+//   - the gaze ("Set Aggro to 0": Vampiric Gaze): the creature forgets its
+//     hate for the caster (forgetLocked).
+//   - Vampire Form shows the fledgling vampires' body, Bat Form the bats'
+//     (illusion.go, pet.go's petBodyAliases); Mist Form has no body of its
+//     own on this server (the guide's red mist) and lands as its stats.
+//   - "Prevents invis/sow pots" (the guide): a vampire may not drink a potion
+//     that makes it invisible or quickens it (VampirePotionRefusal).
+
+// setStatsLocked puts each stat the spell sets ("Set STR to 500") on ae as
+// the difference from its bearer's own stat as it lands (base, gear and
+// masteries: RecalcStats), so what other effects add still counts and the
+// stat's cap holds it as any.
+func setStatsLocked(d *SpellDef, t *Player, ae *ActiveEffect) {
+	for _, e := range d.Effects {
+		if e.Kind == EffectStat && e.Set {
+			ae.Mods.add(e.Stat, e.Amount-t.ownStat(e.Stat))
+		}
+	}
+}
+
+// ownStat is a stat as the player's own (base, gear and masteries), without
+// what effects add.
+func (p *Player) ownStat(st Stat) int {
+	switch st {
+	case StatStr:
+		return p.Str
+	case StatSta:
+		return p.Sta
+	case StatAgi:
+		return p.Agi
+	case StatDex:
+		return p.Dex
+	case StatWis:
+		return p.Wis
+	case StatInt:
+		return p.Int
+	case StatCha:
+		return p.Cha
+	case StatAC:
+		return p.AC
+	case StatFR:
+		return p.FireR
+	case StatCR:
+		return p.ColdR
+	case StatPR:
+		return p.PoisonR
+	case StatDR:
+		return p.DiseaseR
+	case StatLR:
+		return p.LightningR
+	case StatAR:
+		return p.ArcaneR
+	}
+	return 0
+}
+
+// forgets is whether the spell takes its target's hate for the caster away.
+func (d *SpellDef) forgets() bool {
+	for _, e := range d.Effects {
+		if e.Kind == EffectForget {
+			return true
+		}
+	}
+	return false
+}
+
+// forgetLocked is a creature forgetting its hate for the caster (Vampiric
+// Gaze: "Sets aggro with target to 0"): off its threat list, and when it was
+// its enemy it turns to the next it hates, or to none (and goes home, as any
+// creature left with no enemy does: chase.go). The caster's pet stays hated.
+func (w *World) forgetLocked(npc *NPC, caster *Player) {
+	delete(npc.Threats, caster.ServerID)
+	if npc.CurrentEnemy != caster.ServerID {
+		return
+	}
+	npc.CurrentEnemy = 0
+	var top int64
+	for id, t := range npc.Threats {
+		if t > top {
+			top, npc.CurrentEnemy = t, id
+		}
+	}
+	log.Printf("Cast: %s forgets %s (now on %d)", npc.Name, caster.Name, npc.CurrentEnemy)
+}
+
+// vampirePotion is a vampire's refusal of a potion that would make it
+// invisible or quicken it. The words are ours: no recording has them.
+const vampirePotion = "The blood in your veins rejects the potion."
+
+// VampirePotionRefusal is the line refusing the session's character the
+// potion, "" when it may drink it: a vampire may not drink one that makes
+// it invisible or quickens it (EQOA-Data's vampire guide: "Prevents
+// invis/sow pots").
+func (w *World) VampirePotionRefusal(sess *session.Session, pe PotionEffect) string {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || !p.Vampire {
+		return ""
+	}
+	for _, e := range pe.Def.Effects {
+		if e.Kind == EffectInvis || e.Kind == EffectSpeed {
+			return vampirePotion
+		}
+	}
+	return ""
+}
+
+// VampireOf is whether the session's character is a vampire.
+func (w *World) VampireOf(sess *session.Session) bool {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	p := w.sessionPlayerLocked(sess)
+	return p != nil && p.Vampire
 }

@@ -141,7 +141,9 @@ def S(name, role, body, place, count=1, level=None, note="", water=LAND):
 
 # body: ("race", race, sex) | ("kind", KIND key) | ("npc", name: that row's body)
 # place: ("ff",) | ("poi", "tunaria" | "rathe" | "odus", poi name) | ("near", npc, distance, world) |
-#        ("at", world, x, z) ; each may be followed by "low" (a lower floor) in the tuple's end
+#        ("at", world, x, z[, height]) ; each may be followed by "low" (a lower floor) in the tuple's end;
+#        an "at" with a height stands on the floor nearest it (a chamber under rock, whose top floor is the
+#        rock's and whose lowest the ground under it: the vampires' Sanctuary)
 # water: LAND (out of the water), WATER (a fish: in it) or BOTH (an alligator, a crab)
 SPECS = [
     # --- Freeport ---
@@ -873,7 +875,9 @@ def plan(db, ground_dir, data_dir, quest_dir, seed=DEFAULT_SEED, specs=None, att
                 f"by {name}"
         if pl[0] == "at":
             world, x, z = pl[1], pl[2], pl[3]
-            return [(world, x, z, around_y(world, x, z), low, None, None)], "the guide's place"
+            # a height given: the floor nearest it; else the height of the NPCs round it
+            near = pl[4] if len(pl) > 4 and isinstance(pl[4], (int, float)) and not isinstance(pl[4], bool) else around_y(world, x, z)
+            return [(world, x, z, near, low, None, None)], "the guide's place"
         return None, f"place {pl[0]!r}"
 
     for spec in specs:
@@ -1004,10 +1008,10 @@ def spec_of(d, where):
         (core[0] == "poi" and len(core) == 3 and core[1] in ("tunaria", "rathe", "odus") and isinstance(core[2], str)) or
         (core[0] == "near" and len(core) in (4, 5) and isinstance(core[1], str) and isinstance(core[2], num)
          and isinstance(core[3], int) and (len(core) == 4 or core[4] == "north")) or
-        (core[0] == "at" and len(core) == 4 and isinstance(core[1], int) and isinstance(core[2], num) and isinstance(core[3], num)))
+        (core[0] == "at" and len(core) in (4, 5) and isinstance(core[1], int) and all(isinstance(v, num) for v in core[2:])))
     if not ok:
         errs.append(f"{where}: place {place!r} (['ff'], ['poi', 'tunaria'|'rathe'|'odus', <point>], ['near', <npc>, <distance>, "
-                    "<world>], ['at', <world>, <x>, <z>], each with a last 'low' or not)")
+                    "<world>], ['at', <world>, <x>, <z>] or ['at', <world>, <x>, <z>, <height>], each with a last 'low' or not)")
     count = d.get("count", 1)
     if not isinstance(count, int) or isinstance(count, bool) or count < 1:
         errs.append(f"{where}: count {count!r}")

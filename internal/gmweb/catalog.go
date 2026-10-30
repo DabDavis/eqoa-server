@@ -275,16 +275,15 @@ var catalog = map[string]tableNote{
 		Help: "The characters who are vampires, a row each: the sun takes world.vampire_sun_damage (50, Sandstorm's) " +
 			"off one every vampire_sun_interval (6 s) while its client shows the sun up (6:00 to 18:00), unless " +
 			"something is over it (a roof, a floor above, a cave's or a cavern's rock, a big tree's crown) and " +
-			"vampire_sun_shade is on; it can die of it. Nothing else makes a vampire yet: the vampire quests are drafts " +
-			"until the vampires' abilities are here. #vampire on|off in the game sets one too, and #vampire says " +
-			"what the sun does to one now.",
+			"vampire_sun_shade is on; it can die of it. The vampire quest's bats make one (Greddy Oldman's, source " +
+			"quest); #vampire on|off in the game sets one too, and #vampire says what the sun does to one now.",
 		Live:   "At once where the character stands, else at its next login.",
 		Search: []string{"note", "source"},
 		Cols: map[string]colNote{
 			"serverid": {Label: "Character", Ref: "characters"},
 			"since":    {Label: "Since", Help: "when it was made one (UTC)"},
 			"note":     {Label: "Note", Help: "why"},
-			"source":   {Label: "Source", Help: "gm"},
+			"source":   {Label: "Source", Help: "gm (a GM's) or quest (the bats' infection)"},
 		},
 	},
 	"charcoaches": {
@@ -1404,7 +1403,7 @@ var catalog = map[string]tableNote{
 			"started":    {Label: "Giver says once taken", Format: "multiline"},
 			"source":     {Label: "Source"},
 			"notes":      {Label: "Notes", Format: "multiline"},
-			"events":     {Label: "Events", Format: "multiline", Help: "a JSON list: on accept or finish, do popup, say, give, spawn, visual or teleport (the Quests page edits them)"},
+			"events":     {Label: "Events", Format: "multiline", Help: "a JSON list: on accept or finish, do popup, say, give, spawn, visual, teleport or vampire (the Quests page edits them)"},
 			"factionreq": {Label: "Standings asked", Help: "Faction Name:min or Faction Name:min..max, comma separated (the factions table's names): offered, and done at its giver, only while each is met; empty: none"},
 		},
 	},
@@ -1457,7 +1456,7 @@ var catalog = map[string]tableNote{
 			"rewarditems": {Label: "Reward: items", Help: "patternid*count, comma separated"},
 			"factions":    {Label: "Reward: factions", Help: "Faction:+10, comma separated"},
 			"spells":      {Label: "Reward: spells", Help: "spell ids, comma separated"},
-			"events":      {Label: "Events", Format: "multiline", Help: "a JSON list: on start or done, do popup, say, give, spawn, visual or teleport (the Quests page edits them)"},
+			"events":      {Label: "Events", Format: "multiline", Help: "a JSON list: on start or done, do popup, say, give, spawn, visual, teleport or vampire (the Quests page edits them)"},
 			"byclass":     {Label: "Reward: by class", Format: "multiline", Help: `a JSON object by class id, each {"xp", "tunar", "items": "patternid*count, ...", "spells": "spell ids"}, given besides the above to a player of that class`},
 			"choices":     {Label: "Choice", Format: "multiline", Help: `talk/show/give: {"ask", "options": [{"answer", "says", "stay", "xp", "tunar", "items", "spells"}]}, asked when the step is done; the pick's rewards given besides the step's, one with stay does not do it`},
 		},

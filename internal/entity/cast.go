@@ -270,6 +270,9 @@ type StatMods struct {
 	// drink's (consumable.go)
 	HoT int `json:",omitempty"`
 	PoT int `json:",omitempty"`
+	// Melee is added to every melee hit the bearer lands (offence.go's
+	// playerMeleeHit): Frenzy's damage per hit (vampire.go)
+	Melee int `json:",omitempty"`
 }
 
 func (m *StatMods) add(st Stat, n int) {
@@ -306,6 +309,8 @@ func (m *StatMods) add(st Stat, n int) {
 		m.LR += n
 	case StatAR:
 		m.AR += n
+	case StatMelee:
+		m.Melee += n
 	}
 }
 
@@ -328,6 +333,7 @@ func (m *StatMods) sum(o StatMods) {
 	m.AR += o.AR
 	m.HoT += o.HoT
 	m.PoT += o.PoT
+	m.Melee += o.Melee
 }
 
 // StatNow is a stat as the client sees it: the player's own, plus effects,
@@ -884,7 +890,9 @@ func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 		case EffectPowerTick:
 			ae.PowerTick += spellAmount(e, caster)
 		case EffectStat:
-			ae.Mods.add(e.Stat, spellAmount(e, caster))
+			if !e.Set { // a stat set is its bearer's to measure (setStatsLocked)
+				ae.Mods.add(e.Stat, spellAmount(e, caster))
+			}
 		case EffectRoot:
 			ae.Root = true
 		case EffectSnare:
@@ -970,6 +978,7 @@ func (w *World) landOnPlayerLocked(cs *castState, caster *Player, casterSess *se
 		if illusion {
 			w.landIllusionLocked(cs, t, ae) // illusion.go
 		}
+		setStatsLocked(&cs.spell.Def, t, ae) // vampire.go: "Set STR to 500"
 		w.addEffectLocked(t, ae, now)
 	}
 	for _, n := range heals {
@@ -1108,10 +1117,15 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 			}
 		case EffectHate:
 			w.updateAggro(npc, caster.ServerID, spellAmount(e, caster))
+		case EffectForget:
+			w.forgetLocked(npc, caster) // vampire.go: Vampiric Gaze
 		default:
 			// a drained stat or power is the caster's (lifetap.go)
 			w.drainLocked(cs, caster, casterSess, e, -spellAmount(e, caster), now)
 		}
+	}
+	if cs.spell.Def.forgets() {
+		return // the gaze angers nothing: what lasts of it, and its hate of 1, are not given
 	}
 	if ae := lasting(cs, caster, now); ae != nil && w.rootResistLocked(caster, casterSess, npc, ae, now) { // root.go
 		for i, old := range npc.Effects {

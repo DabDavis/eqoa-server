@@ -24,7 +24,12 @@ import (
 type SpellbookHandler struct {
 	gameWorld *entity.World
 	store     *database.SpellbookStore
+	inv       *database.InventoryStore // a cast's reagents (reagent.go)
 }
+
+// SetInventory gives the casts their reagents' inventory (reagent.go).
+// Without it a cast that costs items is refused.
+func (h *SpellbookHandler) SetInventory(inv *database.InventoryStore) { h.inv = inv }
 
 func NewSpellbookHandler(gw *entity.World, store *database.SpellbookStore) *SpellbookHandler {
 	return &SpellbookHandler{gameWorld: gw, store: store}

@@ -54,7 +54,20 @@ func (h *SpellbookHandler) handleUseSkill(sess *session.Session, msg *protocol.M
 	if err != nil {
 		log.Printf("Cast: %q's effect: %v", e.Pattern.SpellName, err)
 	}
-	h.gameWorld.StartCast(sess, h.areaOf(castSpell(e, line, fx)), target, time.Now()) // spellarea.go
+	spell := h.areaOf(castSpell(e, line, fx)) // spellarea.go
+	if spell.Def.Reagent == "" || spell.Def.ReagentCount <= 0 {
+		h.gameWorld.StartCast(sess, spell, target, time.Now())
+		return nil
+	}
+	// a cast that costs items (the vampires' Units of Blood, reagent.go):
+	// refused without them, and they are taken only when it begins
+	held, ok := h.reagentRows(sess, p, &spell)
+	if !ok {
+		return nil
+	}
+	if h.gameWorld.StartCast(sess, spell, target, time.Now()) {
+		h.takeReagent(sess, p, held, spell.Def.ReagentCount)
+	}
 	return nil
 }
 

@@ -467,12 +467,13 @@
    "place": [
     "at",
     5,
-    4300.0,
-    6118.0
+    4327.73,
+    6182.08,
+    273.62
    ],
    "count": 1,
    "level": 30,
-   "note": "the vampires' Sanctuary (Sandstorm: Hinder by a brazier), the open ground north of the building",
+   "note": "the vampires' Sanctuary, where Sandstorm's Sanctuary spell lands (a chamber in the rock of the Zaoran Plateau, the guide's \"hidden room in ZP\")",
    "water": "land"
   },
   {
@@ -486,12 +487,13 @@
    "place": [
     "at",
     5,
-    4318.0,
-    6112.0
+    4326.43,
+    6184.02,
+    273.62
    ],
    "count": 1,
    "level": 40,
-   "note": "the vampires' Sanctuary",
+   "note": "the vampires' Sanctuary, by the landing",
    "water": "land"
   },
   {
@@ -505,12 +507,13 @@
    "place": [
     "at",
     5,
-    4336.0,
-    6118.0
+    4326.43,
+    6175.54,
+    273.62
    ],
    "count": 1,
    "level": 50,
-   "note": "the vampires' Sanctuary",
+   "note": "the vampires' Sanctuary, by the landing",
    "water": "land"
   },
   {
@@ -524,12 +527,13 @@
    "place": [
     "at",
     5,
-    4354.0,
-    6124.0
+    4327.73,
+    6177.48,
+    273.62
    ],
    "count": 1,
    "level": 60,
-   "note": "the vampires' Sanctuary",
+   "note": "the vampires' Sanctuary, by the landing",
    "water": "land"
   },
   {

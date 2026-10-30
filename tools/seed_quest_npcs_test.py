@@ -42,6 +42,22 @@ def write_env(path, x0, top):
         f.write(out)
 
 
+def write_layers(path, x0, z0, size, heights):
+    """A ground file of flat squares, one a height, a strip each (internal/
+    ground's format, as write_ground's): a floor over a floor."""
+    strips = [[(x0, h, z0), (x0 + size, h, z0), (x0, h, z0 + size), (x0 + size, h, z0 + size)] for h in heights]
+    verts = [v for st in strips for v in st]
+    miny = min(v[1] for v in verts)
+    with open(path, "wb") as f:
+        f.write(b"EQGR" + struct.pack("<II", 1, 1))
+        f.write(struct.pack("<7fqII", x0, z0, x0 + size, z0 + size, x0, miny, z0, 12 + 44, len(strips), len(verts)))
+        for st in strips:
+            f.write(struct.pack("<H", len(st)))
+            for x, y, z in st:
+                f.write(struct.pack("<hhh", int(round((x - x0) * 4)) - 32768, int(round((y - miny) * 8)),
+                                    int(round((z - z0) * 4)) - 32768))
+
+
 def npc(db, name, x, z, model, level=10, ntype=0, world=0, torso=3):
     db.execute("INSERT INTO npcs (npc_name, zone, x_coord, y_coord, z_coord, facing, world, hp, modelid, size, race, "
                "npc_level, npc_type, npc_id, torso) VALUES (?, 7, ?, ?, ?, 0, ?, 100, ?, 1.0, '0', ?, ?, 99, ?)",
@@ -159,6 +175,24 @@ class World(Fixture):
         os.remove(os.path.join(self.ground, "0.env"))
         p = self.plan([sq.S("Wader", sq.FOE, ("kind", "bear"), ("at", 0, 11600.0, 5000.0))])
         self.assertEqual(len(p["rows"]), 1, p["left"])
+
+    def test_a_place_with_a_height_stands_on_the_floor_nearest_it(self):
+        """A chamber under rock, as the vampires' Sanctuary: floors at 100 (the
+        ground under it), 120 (its floor) and 170 (the rock's top). An "at"
+        with the height 120 stands on 120, and a set file may say so; the
+        controls: with no height (and no NPC round it), on the top floor, and
+        with "low", on the ground under it."""
+        write_layers(os.path.join(self.ground, "1.ground"), 5000.0, 5000.0, 200.0, (100.0, 120.0, 170.0))
+        for place, want in ((("at", 1, 5100.0, 5100.0, 120.0), 120.0), (("at", 1, 5100.0, 5100.0), 170.0),
+                            (("at", 1, 5100.0, 5100.0, "low"), 100.0)):
+            p = self.plan([sq.S("Hinder", sq.TALKER, ("race", "human", sq.MALE), place, level=30)])
+            self.assertEqual(len(p["rows"]), 1, p["left"])
+            self.assertAlmostEqual(p["rows"][0]["row"]["y_coord"], want, places=1, msg=repr(place))
+        spec, errs = sq.spec_of(dict(name="Hinder", role="talker", body=["race", "human", 0],
+                                     place=["at", 1, 5100.0, 5100.0, 120.0], count=1, level=30), "test")
+        self.assertEqual((errs, spec["place"]), ([], ("at", 1, 5100.0, 5100.0, 120.0)))
+        self.assertTrue(sq.spec_of(dict(name="Hinder", role="talker", body=["race", "human", 0],
+                                        place=["at", 1, 5100.0, 5100.0, "high"]), "test")[1])
 
     def test_no_floor_no_npc(self):
         p = self.plan([sq.S("Lost", sq.FOE, ("kind", "bear"), ("at", 0, 30000.0, 30000.0))])

@@ -3,12 +3,14 @@ package entity
 import (
 	"bytes"
 	"encoding/binary"
+	"math"
 	"net"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/ground"
 	"github.com/eqoa/server/internal/protocol"
 	"github.com/eqoa/server/internal/session"
@@ -388,5 +390,55 @@ func TestRealShadeInFreeportsInn(t *testing.T) {
 	f.sun(60)
 	if f.v.HP != 1749 {
 		t.Errorf("the control, shade off, in the inn: %d HP, want 1749", f.v.HP)
+	}
+}
+
+// A real bake (EQOA_GROUND_DIR, with its walls files): the Sanctuary, where
+// Sandstorm's Sanctuary spell lands and tools/seed_vampires.py puts its
+// people (Hinder, Creed, Weaver, Simmons, its coffin), is a floor at 273.62
+// under the rock: shade for each spot, its gate landing on its place, and by
+// day a vampire there does not burn. The control: on the open ground north
+// of the building, where the four stood before, it burns. Skipped without a
+// bake: none is in this repository.
+func TestRealSanctuary(t *testing.T) {
+	dir := os.Getenv("EQOA_GROUND_DIR")
+	if dir == "" {
+		t.Skip("EQOA_GROUND_DIR names a baked ground")
+	}
+	if _, err := os.Stat(filepath.Join(dir, "5.walls")); err != nil {
+		t.Skip("the bake has no walls files")
+	}
+	g, err := ground.Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer g.Close()
+	for _, at := range [][2]float32{{4322.19, 6179.78}, {4327.73, 6182.08}, {4326.43, 6184.02}, {4326.43, 6175.54}, {4327.73, 6177.48}, {4323.72, 6183.48}} {
+		fy, ok := g.Floor(5, at[0], 274.134+0.5, at[1])
+		if !ok || fy < 273.57 || fy > 273.67 {
+			t.Errorf("(%.2f, %.2f): floor %.2f (%v), want 273.62", at[0], at[1], fy, ok)
+		}
+		if !g.Roof(5, at[0], fy+1, fy+1000, at[1]) {
+			t.Errorf("(%.2f, %.2f): no roof over the floor", at[0], at[1])
+		}
+	}
+	row := database.SpellGate{Spell: "sanctuary", Kind: database.GateSelf, Place: "The Sanctuary", World: 5, X: 4322.19, Y: 273.62, Z: 6179.78}
+	f := newSunFixture(t, 12)
+	f.w.SetGround(g)
+	f.w.mu.Lock()
+	x, y, z := f.w.gateLandingLocked(row)
+	f.w.mu.Unlock()
+	if x != row.X || math.Abs(float64(y-row.Y)) > 0.05 || z != row.Z {
+		t.Errorf("the Sanctuary's gate lands at (%.2f, %.2f, %.2f), want its place", x, y, z)
+	}
+	f.v.World, f.v.X, f.v.Y, f.v.Z = 5, 4322.19, 273.62, 6179.78
+	f.sun(60)
+	if f.v.HP != 1849 {
+		t.Errorf("by day in the Sanctuary: %d HP", f.v.HP)
+	}
+	f.v.X, f.v.Y, f.v.Z = 4300, 253.5, 6118
+	f.sun(60)
+	if f.v.HP != 1799 {
+		t.Errorf("the control, the open ground north of the building: %d HP, want 1799", f.v.HP)
 	}
 }

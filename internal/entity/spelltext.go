@@ -59,6 +59,7 @@ const (
 	EffectShield                        // a creature's melee hit on the bearer takes Amount back (dshield.go)
 	EffectDefProc                       // a creature's melee hit on the bearer may take Amount back (dshield.go)
 	EffectPowerCap                      // the bearer's maximum power at most Amount while it lasts; lasting no time, its power taken down to it (powercap.go)
+	EffectForget                        // the target forgets its hate for the caster (vampire.go: Vampiric Gaze)
 )
 
 // Stat names the stat an EffectStat changes, and the one an amount scales
@@ -83,6 +84,9 @@ const (
 	StatDR
 	StatLR
 	StatAR
+	// StatMelee is what the bearer's every melee hit does more ("Increase
+	// Damage per Hit by 500": Frenzy, vampire.go); no stat channel shows it
+	StatMelee
 )
 
 // SpellEffect is one effect of a spell as its line gives it: Amount, plus
@@ -112,6 +116,10 @@ type SpellEffect struct {
 	Cap int
 	// Undead: a shield that answers undead attackers alone (dshield.go)
 	Undead bool
+	// Set: the stat is set to Amount, not changed by it ("Set STR to 500"):
+	// the difference from the bearer's own stat as the spell lands
+	// (vampire.go's setStatsLocked)
+	Set bool
 }
 
 // SpellDef is a spell's line, read: whom it lands on, what it does, how
@@ -150,6 +158,11 @@ type SpellDef struct {
 	// ("Summons a pet, level 30"), at most the caster's; 0: the spell's own
 	// (pet.go).
 	PetLevel int
+	// Reagent is the item a cast takes ReagentCount of from its caster's
+	// inventory as it begins, refused without them ("Reagent Unit of Blood
+	// x2": the vampires' abilities, vampire.go); "" for none.
+	Reagent      string
+	ReagentCount int
 }
 
 // Charms reports whether the spell makes its target the caster's pet.
@@ -220,6 +233,8 @@ var (
 	reVerb     = regexp.MustCompile(`^(increase|decrease|buff|debuff|drain|raise|lower|heal)\s+(.*)$`)
 	reTail     = regexp.MustCompile(`\s+(\d+(?:\.\d+)?)\s*(sec|secs|seconds|min|mins|minutes)$`)
 	reHate     = regexp.MustCompile(`^\+\s*(\d+)\s*hate$`)
+	reReagent  = regexp.MustCompile(`^reagents?\s*:?\s+(.+?)\s+x\s*(\d+)$`)
+	reSetStat  = regexp.MustCompile(`^set\s+(.+?)\s+to\s+(\d+)$`)
 	reSplit    = regexp.MustCompile(`\s*(?:&|/|\band\b)\s*`)
 )
 
@@ -251,6 +266,8 @@ var statWords = []struct {
 	// cold resist as Allakhazam's pages and the wizard's Element Guard word
 	// it ("Increase Resist Fire & Ice by 45"; jib's review, F3 pass 19)
 	{"resist ice", StatCR},
+	// a bearer's every melee hit (Frenzy's "Increase Damage per Hit")
+	{"damage per hit", StatMelee},
 }
 
 func statWord(s string) (Stat, bool) {
@@ -411,6 +428,10 @@ func ParseSpellText(line string) SpellDef {
 				d.Ticks, _ = strconv.Atoi(m[1])
 				continue
 			}
+			if m := reReagent.FindStringSubmatch(part); m != nil {
+				d.Reagent, d.ReagentCount = strings.TrimSpace(m[1]), atoi(m[2])
+				continue
+			}
 			if spellNote(part) { // spellnotes.go
 				d.Ignored = append(d.Ignored, part)
 				continue
@@ -433,7 +454,7 @@ func ParseSpellText(line string) SpellDef {
 			if e.Amount < 0 && !e.Self {
 				d.Harmful = true
 			}
-		case EffectRoot, EffectSnare, EffectHate, EffectCharm:
+		case EffectRoot, EffectSnare, EffectHate, EffectCharm, EffectForget:
 			d.Harmful = true
 		}
 	}
@@ -514,6 +535,19 @@ func (d *SpellDef) parsePart(part, verb string) string {
 	if n, ok := powerCapPart(part); ok { // powercap.go
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectPowerCap, Amount: n, AmountMax: n})
 		return verb
+	}
+	// the target's hate for the caster gone (Vampiric Gaze, vampire.go)
+	if part == "set aggro to 0" || part == "aggro to 0" {
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectForget})
+		return verb
+	}
+	// a stat set to a figure, not changed by one ("Set STR to 500")
+	if m := reSetStat.FindStringSubmatch(part); m != nil {
+		if st, ok := statWord(m[1]); ok && st != StatMaxHP && st != StatMaxPower && st != StatMelee {
+			n := atoi(m[2])
+			d.Effects = append(d.Effects, SpellEffect{Kind: EffectStat, Stat: st, Amount: n, AmountMax: n, Set: true})
+			return verb
+		}
 	}
 	scale, scalePct := StatNone, 0
 	if m := reScaleIn.FindStringSubmatch(part); m != nil {

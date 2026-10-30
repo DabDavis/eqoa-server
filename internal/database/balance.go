@@ -39,7 +39,12 @@ import (
 // a percent of balancelevel's pet_hp_pct (the same line): each class's pets
 // lag their owner their own way (a magician's last is level 47's Ghilan, an
 // enchanter's come every eight to ten levels), which balancelevel's one
-// column by level cannot follow.
+// column by level cannot follow. dealt_pct is the share of a player's own
+// damage (its melee, its spells and their ticks, procs and damage shields)
+// that lands on an NPC, by the player's class and level, after the con's
+// taken_pct (the same line; 100 all of it): a fight's LENGTH by class where
+// melee_taken_pct is its danger, for a class whose fights outlast it (a
+// rooting wizard of 8-18 out of power with a roamer's crits still to come).
 //
 // balanceclass, by a player's class (0 warrior ... 14 alchemist):
 // melee_taken_pct the share of an NPC's melee hit the class takes (after
@@ -96,6 +101,7 @@ const balanceSchema = `
 		level           INTEGER NOT NULL,
 		melee_taken_pct REAL NOT NULL DEFAULT 100,
 		pet_hp_pct      REAL NOT NULL DEFAULT 100,
+		dealt_pct       REAL NOT NULL DEFAULT 100,
 		note            TEXT NOT NULL DEFAULT '',
 		source          TEXT NOT NULL DEFAULT 'gm',
 		PRIMARY KEY (class, level)
@@ -129,7 +135,18 @@ type BalanceClassLevel struct {
 	// PetHPPct is a summoned pet's hit points by its owner's class and
 	// level, a percent of balancelevel's (the file's doc)
 	PetHPPct float64
+	// DealtPct is the share of the player's own damage that lands on an NPC
+	// (the file's doc); 0 in a row made in code is all of it, as 100
+	DealtPct float64
 	Note     string
+}
+
+// Dealt is the row's dealt_pct, 100 when it was made in code without one.
+func (r BalanceClassLevel) Dealt() float64 {
+	if r.DealtPct <= 0 {
+		return 100
+	}
+	return r.DealtPct
 }
 
 // balanceColumn is a column added to a balance table after the table was
@@ -172,6 +189,9 @@ var balanceColumns = []balanceColumn{
 	// a balanceclasslevel made before its pet column (no seed rows of it
 	// anywhere live: the table and the column are of 2026-10-30)
 	{"balanceclasslevel", "pet_hp_pct", "REAL NOT NULL DEFAULT 100", "class", func() map[int]float64 { return nil }},
+	// and before its dealt column (eqoaclassic's of 2026-10-30 00:27, which
+	// tools/retune_balance.py writes it in): every row all of its damage
+	{"balanceclasslevel", "dealt_pct", "REAL NOT NULL DEFAULT 100", "class", func() map[int]float64 { return nil }},
 }
 
 // BalanceSeedRevision is a seed column's values changed (balanceseed.go):
@@ -280,8 +300,8 @@ func (db *SQLiteDB) ensureBalance() error {
 	// older con rows
 	if fresh["balanceclasslevel"] && fresh["balancelevel"] {
 		for _, r := range BalanceSeedClassLevels {
-			if _, err := db.Exec(`INSERT OR IGNORE INTO balanceclasslevel (class, level, melee_taken_pct, pet_hp_pct, note, source)
-				VALUES (?, ?, ?, ?, ?, 'seed')`, r.Class, r.Level, r.MeleeTakenPct, r.PetHPPct, r.Note); err != nil {
+			if _, err := db.Exec(`INSERT OR IGNORE INTO balanceclasslevel (class, level, melee_taken_pct, pet_hp_pct, dealt_pct, note,
+				source) VALUES (?, ?, ?, ?, ?, ?, 'seed')`, r.Class, r.Level, r.MeleeTakenPct, r.PetHPPct, r.Dealt(), r.Note); err != nil {
 				return fmt.Errorf("balanceclasslevel: %w", err)
 			}
 		}
@@ -299,7 +319,7 @@ func (db *SQLiteDB) ensureBalance() error {
 
 // BalanceClassLevels is every row of balanceclasslevel, by class and level.
 func (db *SQLiteDB) BalanceClassLevels() ([]BalanceClassLevel, error) {
-	rows, err := db.Query(`SELECT class, level, melee_taken_pct, pet_hp_pct, note FROM balanceclasslevel ORDER BY class, level`)
+	rows, err := db.Query(`SELECT class, level, melee_taken_pct, pet_hp_pct, dealt_pct, note FROM balanceclasslevel ORDER BY class, level`)
 	if err != nil {
 		return nil, err
 	}
@@ -307,7 +327,7 @@ func (db *SQLiteDB) BalanceClassLevels() ([]BalanceClassLevel, error) {
 	var out []BalanceClassLevel
 	for rows.Next() {
 		var r BalanceClassLevel
-		if err := rows.Scan(&r.Class, &r.Level, &r.MeleeTakenPct, &r.PetHPPct, &r.Note); err != nil {
+		if err := rows.Scan(&r.Class, &r.Level, &r.MeleeTakenPct, &r.PetHPPct, &r.DealtPct, &r.Note); err != nil {
 			return nil, err
 		}
 		out = append(out, r)

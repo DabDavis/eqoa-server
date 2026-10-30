@@ -148,6 +148,13 @@ func (b *Balance) PetHPPctAt(class, level int) float64 {
 	return b.classLevelPct(class, level, func(r database.BalanceClassLevel) float64 { return r.PetHPPct })
 }
 
+// DealtPctAt is the share of a player's own damage that lands on an NPC for
+// a player of the class and level, after the con's (balanceclasslevel's
+// dealt_pct).
+func (b *Balance) DealtPctAt(class, level int) float64 {
+	return b.classLevelPct(class, level, database.BalanceClassLevel.Dealt)
+}
+
 // Rows is the balance's rows, by level and by diff (none for a nil balance).
 func (b *Balance) Rows() ([]database.BalanceLevel, []database.BalanceCon) {
 	if b == nil {
@@ -485,6 +492,18 @@ func (w *World) takenLocked(npc *NPC, attackerLevel, n int) int {
 		return n
 	}
 	return pct(n, w.balance.ConAt(npc.Level, npc.Level-attackerLevel).TakenPct)
+}
+
+// dealtLocked is n of a player's own damage on an NPC (its melee, its spells
+// and their ticks, procs and damage shields): takenLocked's at its level,
+// then the share its class lands at its level (balanceclasslevel's
+// dealt_pct).
+func (w *World) dealtLocked(npc *NPC, p *Player, n int) int {
+	n = w.takenLocked(npc, p.Level, n)
+	if !balanced(npc) {
+		return n
+	}
+	return pct(n, w.balance.DealtPctAt(p.Class, p.Level))
 }
 
 // petDealtLocked is n of a pet's damage on an NPC: a summoned pet's times its

@@ -114,3 +114,55 @@ func TestAPetsHitPointsTakeItsOwnersClassShare(t *testing.T) {
 		t.Errorf("a class with no rows: %g%%, want 100", got)
 	}
 }
+
+// A player's own damage on an NPC lands at its class's share at its level
+// (balanceclasslevel's dealt_pct, after the con's): a wizard with a row of 150
+// at 10 and 50 at 30 lands 150% at 1-10, the line's 100% at 20 and 50% from
+// 30; a row made in code without the column is all of it. On the hits: a
+// level 10 wizard's spell of 100 on an even NPC lands 150 and its melee hit
+// half again what it lands with no rows; the control: a warrior of 10 (no
+// rows) lands its spell's 100 and its whole melee hit.
+func TestAClassDealtShareByLevel(t *testing.T) {
+	b := SeedBalance().WithClassLevels([]database.BalanceClassLevel{
+		{Class: 13, Level: 10, MeleeTakenPct: 100, DealtPct: 150}, {Class: 13, Level: 30, MeleeTakenPct: 100, DealtPct: 50}})
+	for _, tc := range []struct {
+		class, level int
+		want         float64
+	}{{13, 1, 150}, {13, 10, 150}, {13, 20, 100}, {13, 30, 50}, {13, 60, 50}, {0, 10, 100}} {
+		if got := b.DealtPctAt(tc.class, tc.level); got != tc.want {
+			t.Errorf("class %d level %d: dealt %g%%, want %g%%", tc.class, tc.level, got, tc.want)
+		}
+	}
+	if got := SeedBalance().WithClassLevels([]database.BalanceClassLevel{{Class: 13, Level: 10, MeleeTakenPct: 80}}).DealtPctAt(13, 10); got != 100 {
+		t.Errorf("a row without dealt_pct: %g%%, want all of it", got)
+	}
+	hits := func(b *Balance, class int) (spell, melee int) {
+		c := newCaster(t)
+		c.w.balance = b
+		c.p.Class, c.p.Level = class, 10
+		c.p.Gear.WeaponDamage, c.p.Gear.WeaponCond = 40, 1 // a whole weapon, whose hit is more than 1
+		npc := &NPC{ServerID: 2003, Name: "a test orc", Level: 10, HP: 50000, MaxHP: 50000, X: 101, Y: 10, Z: 100}
+		c.w.NPCs[npc.ServerID] = npc
+		was := meleeIntn
+		meleeIntn = func(n int) int { return n - 1 }
+		defer func() { meleeIntn = was }()
+		c.w.mu.Lock()
+		defer c.w.mu.Unlock()
+		c.w.spellHitLocked(c.p, c.sess, npc, 100)
+		spell = 50000 - npc.HP
+		npc.HP = 50000
+		c.w.playerHitLocked(c.sess, c.p, npc, 0x01312E99)
+		return spell, 50000 - npc.HP
+	}
+	plain := SeedBalance().WithClassLevels(nil)
+	s, m := hits(b, 13)
+	_, m0 := hits(plain, 13)
+	if s != 150 || m != pct(m0, 150) || m0 < 2 {
+		t.Errorf("a wizard of 10 at 150%%: its spell's 100 landed %d (want 150), its melee %d (want %d of %d)", s, m, pct(m0, 150), m0)
+	}
+	ws, wm := hits(b, 0)
+	_, wm0 := hits(plain, 0)
+	if ws != 100 || wm != wm0 {
+		t.Errorf("the control, a warrior of 10 with no rows: its spell's 100 landed %d, its melee %d of %d", ws, wm, wm0)
+	}
+}

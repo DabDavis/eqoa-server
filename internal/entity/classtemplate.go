@@ -45,7 +45,9 @@ import (
 //     so"): the first special_first into the fight (from its first turn in
 //     reach), then one every special_every, each special_jitter either way;
 //     one coming due while it casts or closes in lands at its next turn in
-//     reach;
+//     reach; either only from special_from on, a level (the roamer's 10: the
+//     user's "they get it around level 10 starting, but before only auto
+//     attack"), the creature's own;
 //   - casts its abilities in its fights, from where it stands in reach of its
 //     enemy (a player, or a player's pet), one at a time, its melee waiting
 //     while it casts. Each ability is on a clock of its own (every, first into
@@ -804,8 +806,8 @@ func (w *World) tellNPCHealLocked(sess *session.Session, npc *NPC, n int) {
 // lock held.
 func (w *World) templateSpecialLocked(npc *NPC, target EntityID, now time.Time) {
 	t := npc.tmpl
-	if t == nil || t.SpecialDamage <= 0 {
-		return
+	if t == nil || t.SpecialDamage <= 0 || npc.Level < t.SpecialFrom {
+		return // a creature below its template's special_from fights with its melee alone
 	}
 	f := npc.fight()
 	if t.SpecialEvery > 0 {
@@ -945,7 +947,9 @@ func (w *World) templateLineLocked(npc *NPC) string {
 		parts = append(parts, fmt.Sprintf("%s in %d%% of its rounds for %d", specialName(t), t.SpecialChance,
 			max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1)))
 	}
-	if t.SpecialEvery > 0 && t.SpecialDamage > 0 {
+	if t.SpecialFrom > npc.Level {
+		parts = append(parts, fmt.Sprintf("no %s below level %d", specialName(t), t.SpecialFrom))
+	} else if t.SpecialEvery > 0 && t.SpecialDamage > 0 {
 		parts = append(parts, fmt.Sprintf("%s every %g-%g s for %d, the first %g-%g s into a fight", specialName(t),
 			t.SpecialEvery-t.SpecialJitter, t.SpecialEvery+t.SpecialJitter, max(int(math.Round(float64(npc.Level)*t.SpecialDamage)), 1),
 			math.Max(t.SpecialFirst-t.SpecialJitter, 0), t.SpecialFirst+t.SpecialJitter))

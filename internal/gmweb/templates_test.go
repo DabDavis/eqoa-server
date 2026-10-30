@@ -72,7 +72,7 @@ func TestClassTemplatesInThePanel(t *testing.T) {
 	// a timed special (the roamer's crit): written, and its bad clocks refused below
 	if code, out := c.op("update_row", map[string]any{"table": "classtemplates", "key": map[string]any{"name": "tank"},
 		"values": map[string]any{"special": "a critical hit", "special_damage": 7.4, "special_every": 30, "special_first": 15,
-			"special_jitter": 5}}); code != 200 {
+			"special_jitter": 5, "special_from": 10}}); code != 200 {
 		t.Errorf("a timed special: %d %v", code, out)
 	}
 	if n, ok := catalog["classtemplates"]; !ok || n.Cols["special_every"].Label == "" || n.Cols["special_jitter"].Section != "Special melee" {
@@ -85,6 +85,8 @@ func TestClassTemplatesInThePanel(t *testing.T) {
 		{"special_every": 3},
 		{"special_jitter": 15},
 		{"special_every": "soon"},
+		{"special_from": 101},
+		{"special_from": 9.5},
 		{"abilities": `[{"kind": "fireball", "every": 10}]`},
 		{"abilities": `[{"kind": "nuke", "evry": 10}]`},
 		{"abilities": "not json"},

@@ -257,11 +257,7 @@ func TestASimulatedFoeFightsByItsTemplate(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	if _, err := db.Exec(`INSERT INTO classtemplates (name, class, special, special_damage, special_every, special_first,
-		special_jitter) VALUES ('roamer', 0, 'Critical Hit', 7.4, 30, 15, 5)`); err != nil {
-		t.Fatal(err)
-	}
-	tmpl, err := SimTemplatesFromDB(db)
+	tmpl, err := SimTemplatesFromDB(db) // the seeded roamer (database.SeedClassTemplates)
 	if err != nil {
 		t.Fatal(err)
 	}

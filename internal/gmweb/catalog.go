@@ -837,7 +837,8 @@ var catalog = map[string]tableNote{
 			"in special_chance of its rounds for special_damage a level, fixed and through any armour, as Sandstorm's " +
 			"creatures' specials hit (a level 34 crab's 251), with special_fx's visual (0: Sandstorm's creature special), " +
 			"and on a clock as well: every special_every seconds (0 none), the first special_first seconds into the fight, " +
-			"each special_jitter seconds either way (the user's SOE roamer: a crit every 30 s or so); " +
+			"each special_jitter seconds either way (the user's SOE roamer: a crit every 30 s or so), either only from " +
+			"special_from on (a level: the roamer's 10); " +
 			"and in its fights it casts its abilities from where it stands, its melee waiting while it casts. An ability " +
 			"casts the highest spell of its kind (nuke: a harmful hit of one target; aoe: one on an area, the spell's area " +
 			"and its Spell areas row; lifetap: a hit that heals its caster; heal: a heal on itself, below its share of hit " +
@@ -865,6 +866,7 @@ var catalog = map[string]tableNote{
 			"special_every":  {Label: "Special every s", Help: "seconds from one timed special to the next (5-3600; 0 none), as well as special_chance's", Section: "Special melee"},
 			"special_first":  {Label: "First special at s", Help: "seconds into a fight (its first turn in reach) for the first timed one", Section: "Special melee"},
 			"special_jitter": {Label: "Special jitter s", Help: "seconds either way on each timed special, the first too (under half of special_every)", Section: "Special melee"},
+			"special_from":   {Label: "Special from level", Help: "a creature below this level (its own, at each fight) has no special, timed or by chance (0 any; the roamer's 10)", Section: "Special melee"},
 			"abilities":      {Label: "Abilities", Format: "json", Help: classTemplateAbilitiesHelp},
 			"note":           {Label: "Note", Format: "multiline"},
 			"source":         {Label: "Source", Help: "gm, or seed for jib's five examples the table was made with"},

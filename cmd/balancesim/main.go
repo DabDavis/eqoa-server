@@ -10,7 +10,7 @@
 //	    [-try-level 1:300:200:0,60:500:300:100] [-try-con 1:115:95,5:200:60]
 //	    [-try-art 1:0,30:1500,60:2000] [-try-class 1:80,5:80,6:80]
 //	    [-root] [-try-root 0:0:5,3:35:20,5:65:30] [-try-regen 1:5,60:5] [-try-conpct 1:100]
-//	    [-charm -6,-3,0] [-only false|true|root|charm] [-try-classlevel 3:45:125] [-try-pethp 15:161] [-low]
+//	    [-charm -6,-3,0] [-only false|true|root|charm] [-try-classlevel 3:45:125[:pet]] [-try-pethp 15:161] [-low]
 //	balancesim -db eqoa.db -lines [-classes ...]
 //	balancesim -db eqoa.db -reset 20s [-try-regen 1:5] [-classes ...]
 //	balancesim -db eqoa.db -groups 2,3 [-classes ...] [-diffs 3,4,5]
@@ -107,7 +107,7 @@ func main() {
 	tryRoot := flag.String("try-root", "", "a root's resist and break chances to try, by the con: diff:resist:break,...")
 	tryRegen := flag.String("try-regen", "", "a creature's heal out of a fight to try, by its level: level:pct,...")
 	tryConPct := flag.String("try-conpct", "", "con_pct to try, by the NPC's level: level:pct,... (the line through them)")
-	tryClassLevel := flag.String("try-classlevel", "", "class and level rows to try: class:level:pct,... (in place of the table's)")
+	tryClassLevel := flag.String("try-classlevel", "", "class and level rows to try: class:level:melee_taken_pct[:pet_hp_pct],... (in place of the table's)")
 	tryPetHP := flag.String("try-pethp", "", "a summoned pet's hit points to try, by its owner's level: level:pct,...")
 	rootPlay := flag.Bool("root", false, "classes with a root also fight rooting and casting from range, no pet")
 	only := flag.String("only", "", "only this play's rows: false (hand to hand), true (the pet) or root")
@@ -198,7 +198,11 @@ func main() {
 	if *tryClassLevel != "" {
 		var cll []database.BalanceClassLevel
 		for _, r := range rows(*tryClassLevel, 3) {
-			cll = append(cll, database.BalanceClassLevel{Class: int(r[0]), Level: int(r[1]), MeleeTakenPct: r[2]})
+			row := database.BalanceClassLevel{Class: int(r[0]), Level: int(r[1]), MeleeTakenPct: r[2], PetHPPct: 100}
+			if len(r) > 3 {
+				row.PetHPPct = r[3]
+			}
+			cll = append(cll, row)
 		}
 		b = b.WithClassLevels(cll)
 	}

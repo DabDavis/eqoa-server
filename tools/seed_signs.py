@@ -192,6 +192,13 @@ TRADES = [
     ("Waysender", None), ("Merchant", None),
 ]
 
+# What a sign at a place of the guide's maps says where the guide's legend
+# names the keeper and the building has a name of its own, by city and the
+# legend's number (the user's corrections).
+PLACE_TITLES = {
+    ("Neriak", "26"): "Blind Fish Tavern",  # the user, 2026-10-30: "the madam du klot signpost should be Blind Fish Tavern"
+}
+
 # The four quarters a sign points to, their bearings (degrees clockwise from
 # north) and a step of one zone that way.
 QUARTERS = [("North", 0.0, (0, -1)), ("East", 90.0, (1, 0)), ("South", 180.0, (0, 1)), ("West", 270.0, (-1, 0))]
@@ -441,9 +448,11 @@ def trade_of(name):
 
 
 def place_title(p):
-    """What a sign at a place says: its title, or a keeper's shop by trade
-    (the keeper's own name where the trade names no shop, as the database
-    spells it)."""
+    """What a sign at a place says: the user's word for it (PLACE_TITLES), its
+    title, or a keeper's shop by trade (the keeper's own name where the trade
+    names no shop, as the database spells it)."""
+    if (p["city"], p["no"]) in PLACE_TITLES:
+        return PLACE_TITLES[(p["city"], p["no"])]
     if not p["keeper"]:
         return p["title"].replace("’", "'")
     t = trade_of(p["title"])

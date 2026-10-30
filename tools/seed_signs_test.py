@@ -168,6 +168,16 @@ class CitySigns(Patched):
         # a merchant's place is its keeper's, by name
         self.assertEqual((p[102]["kind"], p[102]["text"]), ("building", "Merchant Quill"))
 
+    def test_the_users_word_for_a_place(self):
+        # a keeper's place the user named (Neriak's 26, Madam Du`Klot's: the Blind Fish Tavern)
+        seed_signs.PLACE_TITLES[("Testburg", "3")] = "The Quill and Ink"
+        try:
+            p = self.plan(npc(102, "signpost", 5060, 5170, BODY))
+        finally:
+            del seed_signs.PLACE_TITLES[("Testburg", "3")]
+        self.assertEqual((p[102]["kind"], p[102]["text"]), ("building", "The Quill and Ink"))
+        self.assertEqual(seed_signs.PLACE_TITLES[("Neriak", "26")], "Blind Fish Tavern")
+
     def test_the_walkthrough_places_a_person(self):
         places = {p["no"]: p for p in seed_signs.city_places(self.lines, self.people)}
         self.assertIn("Tobin Rask", [n["name"] for n in places["1"]["people"]])

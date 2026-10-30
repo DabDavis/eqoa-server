@@ -122,6 +122,10 @@ type QuestEngine struct {
 	// spawns are the NPCs steps' spawn events placed, by character
 	// (questevents.go)
 	spawns map[uint32][]questSpawn
+	// notYetLines is table questnotyet (database.QuestNotYet): what a giver
+	// says to a player too low for its next quest (quests_notyet.go); nil
+	// says questNotStrong
+	notYetLines func() ([]database.QuestNotYetLine, error)
 
 	// playerOf and sessionOf find a session's player and a character's
 	// in-world session (tests stand in for them)
@@ -177,6 +181,12 @@ type questChar struct {
 	// windowOffered is the quests a shop NPC's window has offered this
 	// session (AtWindow): offered once, the next request opens the window
 	windowOffered map[int]bool
+	// windowNotYet is the quests a shop NPC's window has said "not yet" for
+	// this session (quests_notyet.go), as windowOffered
+	windowNotYet map[int]bool
+	// notYetLast is the questnotyet line said to it last (its id), not said
+	// twice running when its city has another
+	notYetLast int
 }
 
 // say is a text with %p the player's name (left as it is while the name is
@@ -239,6 +249,9 @@ func NewQuestEngine(db *database.SQLiteDB, gw *entity.World, sm *session.Manager
 	if gw != nil {
 		q.playerOf = gw.SessionPlayer
 		q.sessionOf = func(id uint32) *session.Session { return SessionOfCharacter(gw, sm, id) }
+	}
+	if db != nil {
+		q.notYetLines = db.QuestNotYet
 	}
 	if err := q.Reload(); err != nil {
 		return nil, err
@@ -720,14 +733,21 @@ func giverWontDeal(look *factionLook, qu *database.Quest, st *database.QuestStep
 // mayTakeLocked is "" when the player may take the quest, else why not; its
 // faction requirements are asked of look (the player's session's).
 func (q *QuestEngine) mayTakeLocked(look *factionLook, p *entity.Player, c *questChar, qu *database.Quest) string {
+	return q.mayTakeAtLocked(look, p, c, qu, p.Level)
+}
+
+// mayTakeAtLocked is mayTakeLocked for the player at a level of its own: at
+// the quest's lowest it says whether the level is all the player lacks (the
+// giver's "not yet", quests_notyet.go).
+func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *questChar, qu *database.Quest, level int) string {
 	switch {
 	case !qu.Enabled:
 		return "it is a draft"
 	case qu.First() == nil:
 		return "it has no steps"
-	case qu.MinLevel > 0 && p.Level < qu.MinLevel:
+	case qu.MinLevel > 0 && level < qu.MinLevel:
 		return fmt.Sprintf("it starts at level %d", qu.MinLevel)
-	case qu.MaxLevel > 0 && p.Level > qu.MaxLevel:
+	case qu.MaxLevel > 0 && level > qu.MaxLevel:
 		return fmt.Sprintf("it ends at level %d", qu.MaxLevel)
 	case len(qu.Classes) > 0 && !containsInt(qu.Classes, p.Class):
 		return "not for that class"

@@ -74,3 +74,31 @@ func TestRollIsHeardInSayRange(t *testing.T) {
 		t.Errorf("a bad roll was heard by the room: %+v", got)
 	}
 }
+
+// The L2 menu's "Roll 0-99" is the bare opcode 0x00C8 (quick command 23): a
+// roll of 0 to 99, heard as /roll's is. The control: the chat handler
+// registers it, so the game's dispatcher reaches it.
+func TestTheL2MenusRollIsZeroToNinetyNine(t *testing.T) {
+	old := rollDice
+	rollDice = func(n int) int { return n - 1 } // the most every time
+	defer func() { rollDice = old }()
+	c := newChatWorld(t)
+	alice, _ := c.join(1, "Alice", 25000, 16000, 0)
+	near, _ := c.join(2, "Near", 25050, 16000, 0)
+	far, _ := c.join(3, "Far", 25500, 16000, 0)
+	c.send(alice, protocol.OpcodeRollRequest, nil)
+	for _, s := range []*session.Session{alice, near} {
+		got := heard(t, s)
+		if len(got) != 1 || got[0].text != "Alice rolls 99 (0 to 99)." || got[0].rgb != rollRGB {
+			t.Errorf("in range heard %+v", got)
+		}
+	}
+	if got := heard(t, far); len(got) != 0 {
+		t.Errorf("out of range heard %+v", got)
+	}
+	r := NewRegistry()
+	c.h.RegisterHandlers(r)
+	if _, ok := r.Get(protocol.OpcodeRollRequest); !ok {
+		t.Error("0x00C8 is not registered: the menu's roll reaches no handler")
+	}
+}

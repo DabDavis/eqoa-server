@@ -14,6 +14,11 @@ package handlers
 // /random is the same. A PS2 keeps an unknown /command to itself, so its
 // player types #roll or #random, which go out as chat; vanilla forwards the
 // slash.
+//
+// The L2 menu's "Roll 0-99" (the dump's quick-chat set 91, its line "|23":
+// quick command 23, DoAction 0x0B0E0003) is no chat line: CLIENT sends the
+// bare opcode 0x00C8, rolled here 0 to 99 as the menu says (the user,
+// 2026-10-30: "the L2 menu roll is not working but the /roll is").
 
 import (
 	"fmt"
@@ -71,6 +76,17 @@ func rollRange(args []string) (lo, hi int, ok bool) {
 		return min(a, b), max(a, b), true
 	}
 	return 0, 0, false
+}
+
+// HandleRollRequest is 0x00C8, the L2 menu's "Roll 0-99" (the file's doc).
+func (h *ChatHandler) HandleRollRequest(sess *session.Session, msg *protocol.Message) error {
+	if h.gameWorld == nil {
+		return nil
+	}
+	if player := h.gameWorld.SessionPlayer(sess); player != nil {
+		h.roll(sess, player, []string{"0", "99"})
+	}
+	return nil
 }
 
 // roll rolls for player and tells everyone in say range, the roller too.

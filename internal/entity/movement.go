@@ -27,12 +27,25 @@ import (
 // no floor under it) does not wander at all, whatever its row says, but for
 // one swimming where it spawned: walked at its spawn's height it would float
 // wherever the floor beneath it fell away (F3 20261026-021425).
+//
+// Nor does a leg pass through a wall (F3 pass 24, the user: "they are
+// walking outside the walls of the tavern basement, also city cat does the
+// same and walks through walls"): from each of those points to the next, at
+// a creature's knee above the floor (legKnee, and as far again as it spawned
+// above the terrain: a house's floor over the street), the way meets no wall
+// of the terrain and nothing placed on it (the ground's walls files: Neriak's
+// tavern is a house placed in the city's cavern, its rats spawned on its
+// floor over the cavern's, and they walked the cavern's floor out through
+// its walls). A wall lower than the knee (a kerb, a step, a threshold) is
+// stepped over, as a table or a fence higher than it is not.
 
 // legSample is the spacing of the points a wander leg is tried at, and
-// legDrop how far the floor may fall between two of them (51 degrees).
+// legDrop how far the floor may fall between two of them (51 degrees);
+// legKnee how far above the floor the way between two is tested for walls.
 const (
 	legSample float32 = 2
 	legDrop   float32 = 2.5
+	legKnee   float32 = 1
 )
 
 // SetMoveRules sets table npcmove's rules, keyed as database.NPCClassKey
@@ -212,6 +225,14 @@ func (w *World) legOKLocked(npc *NPC, x, z float32) bool {
 		keeps = w.keepsToLocked(npc)
 	}
 	y := npc.Y
+	walls, _ := w.ground.(Walls)
+	knee, px, py, pz := legKnee, npc.X, y, npc.Z
+	if onGround {
+		knee += npc.spawnLift
+		if f, ok := w.ground.Floor(npc.World, npc.X, y, npc.Z); ok {
+			py = f
+		}
+	}
 	for i := 1; i <= n; i++ {
 		t := float32(i) / float32(n)
 		sx, sz := npc.X+(x-npc.X)*t, npc.Z+(z-npc.Z)*t
@@ -222,6 +243,10 @@ func (w *World) legOKLocked(npc *NPC, x, z float32) bool {
 			}
 			y = f
 		}
+		if walls != nil && walls.Wall(npc.World, px, py+knee, pz, sx, y+knee, sz) {
+			return false // a wall in the way
+		}
+		px, py, pz = sx, y, sz
 		switch keeps {
 		case keepsToLand:
 			if w.waterAtLocked(npc.World, sx, y+bodyAbove, sz) {

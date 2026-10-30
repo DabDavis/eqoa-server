@@ -136,3 +136,25 @@ func TestBalanceRegenBounds(t *testing.T) {
 		t.Errorf("a regen of 8%% was refused: %d %v", code, out)
 	}
 }
+
+// Balance by class and level is the GM's like the others: a row is taken
+// and live, a class past 14 or a level past 100 refused.
+func TestBalanceClassLevelEdits(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	code, out := c.op("insert_row", map[string]any{"table": "balanceclasslevel",
+		"values": map[string]any{"class": 3, "level": 45, "melee_taken_pct": 125}})
+	if code != 200 {
+		t.Fatalf("insert: %d %v", code, out)
+	}
+	if !strings.Contains(out["live"].(string), "next hit") {
+		t.Errorf("live: %v", out["live"])
+	}
+	for _, bad := range []map[string]any{{"class": 20, "level": 10, "melee_taken_pct": 90}, {"class": 3, "level": 140, "melee_taken_pct": 90},
+		{"class": 3, "level": 20, "melee_taken_pct": 0}} {
+		if code, out := c.op("insert_row", map[string]any{"table": "balanceclasslevel", "values": bad}); code == 200 {
+			t.Errorf("%v was taken: %v", bad, out)
+		}
+	}
+}

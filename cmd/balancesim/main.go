@@ -9,17 +9,31 @@
 //	    [-tier 0.5] [-pets] [-limit 10m]
 //	    [-try-level 1:300:200:0,60:500:300:100] [-try-con 1:115:95,5:200:60]
 //	    [-try-art 1:0,30:1500,60:2000] [-try-class 1:80,5:80,6:80]
-//	    [-root] [-try-root 0:0:5,3:35:20,5:65:30] [-try-regen 1:5,60:5]
-//	    [-charm -6,-3,0] [-only false|true|root|charm]
+//	    [-root] [-try-root 0:0:5,3:35:20,5:65:30] [-try-regen 1:5,60:5] [-try-conpct 1:100]
+//	    [-charm -6,-3,0] [-only false|true|root|charm] [-try-classlevel 3:45:125[:pet]] [-try-pethp 15:161] [-low]
 //	balancesim -db eqoa.db -lines [-classes ...]
 //	balancesim -db eqoa.db -reset 20s [-try-regen 1:5] [-classes ...]
+//	balancesim -db eqoa.db -groups 2,3 [-classes ...] [-diffs 3,4,5]
 //
 // -reset fights each fight that long and then breaks it off: the player
 // runs out of the NPC's reach for good and rests, and it prints how long the
 // NPC took to be whole again (its heal out of a fight, regen_pct).
 //
+// -groups fights each class's fitting groups of those sizes instead
+// (entity.SimGroupFor: two, the class and the role it lacks, a cleric for a
+// tank or a melee class, a warrior for a priest or a caster; three, a
+// warrior, the class and a cleric), the column won, wiped, members dead a
+// fight, the hit points left in the fights won and their length.
+//
 // -lines prints each class's buff lines instead: the spells of one line, of
 // which only the best counts on a player (entity/buffline.go).
+//
+// In a row of a pet's play (the pet column true, or a charm's) the HP column
+// is the pet's hit points left in the fights won: its owner stands off
+// untouched while the pet holds the NPC. With -low the HP column of a
+// player's own play is instead the fewest hit points it had in each fight
+// won, its low point (the user's "take you down to less than a third hp": a
+// class that heals itself ends a fight higher than it was taken down to).
 //
 // -try-level and -try-con try rows before they are written: level:hp_pct:
 // damage_pct[:con_pct[:pet_hp_pct:pet_damage_pct]] and diff:damage_pct:
@@ -92,10 +106,15 @@ func main() {
 	tryClass := flag.String("try-class", "", "class rows to try: class:melee_taken_pct,... (in place of the table's)")
 	tryRoot := flag.String("try-root", "", "a root's resist and break chances to try, by the con: diff:resist:break,...")
 	tryRegen := flag.String("try-regen", "", "a creature's heal out of a fight to try, by its level: level:pct,...")
+	tryConPct := flag.String("try-conpct", "", "con_pct to try, by the NPC's level: level:pct,... (the line through them)")
+	tryClassLevel := flag.String("try-classlevel", "", "class and level rows to try: class:level:melee_taken_pct[:pet_hp_pct],... (in place of the table's)")
+	tryPetHP := flag.String("try-pethp", "", "a summoned pet's hit points to try, by its owner's level: level:pct,...")
 	rootPlay := flag.Bool("root", false, "classes with a root also fight rooting and casting from range, no pet")
 	only := flag.String("only", "", "only this play's rows: false (hand to hand), true (the pet) or root")
 	reset := flag.Duration("reset", 0, "instead: fight this long, then run off for good and rest; how long the NPC takes to be whole")
 	charms := flag.String("charm", "", "classes with a charm also fight with a charmed creature this many levels from their own: -6,-3,0,...")
+	groups := flag.String("groups", "", "instead: each class's fitting groups of these sizes (2,3) against each diff")
+	lowPoint := flag.Bool("low", false, "the HP column is the least the player had in each fight won (its low point), not what it ended with")
 	flag.Parse()
 	if *dbPath == "" {
 		flag.Usage()
@@ -110,6 +129,10 @@ func main() {
 	var b *entity.Balance
 	switch *which {
 	case "db":
+		cll, err := db.BalanceClassLevels()
+		if err != nil {
+			log.Fatal(err)
+		}
 		ls, err := db.BalanceLevels()
 		if err != nil {
 			log.Fatal(err)
@@ -122,7 +145,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		b = entity.NewBalance(ls, cs).WithClasses(cls)
+		b = entity.NewBalance(ls, cs).WithClasses(cls).WithClassLevels(cll)
 	case "seed":
 		b = entity.SeedBalance()
 	case "none":
@@ -154,7 +177,7 @@ func main() {
 				cs = append(cs, c)
 			}
 		}
-		b = entity.NewBalance(ls, cs).WithClasses(b.ClassRows())
+		b = entity.NewBalance(ls, cs).WithClasses(b.ClassRows()).WithClassLevels(b.ClassLevelRows())
 	}
 	if *tryClass != "" {
 		var cls []database.BalanceClass
@@ -172,6 +195,23 @@ func main() {
 		b = b.WithConColumn(resist, func(r *database.BalanceCon, v float64) { r.RootResistPct = v })
 		b = b.WithConColumn(brk, func(r *database.BalanceCon, v float64) { r.RootBreakPct = v })
 	}
+	if *tryClassLevel != "" {
+		var cll []database.BalanceClassLevel
+		for _, r := range rows(*tryClassLevel, 3) {
+			row := database.BalanceClassLevel{Class: int(r[0]), Level: int(r[1]), MeleeTakenPct: r[2], PetHPPct: 100}
+			if len(r) > 3 {
+				row.PetHPPct = r[3]
+			}
+			cll = append(cll, row)
+		}
+		b = b.WithClassLevels(cll)
+	}
+	if *tryPetHP != "" {
+		b = b.WithLevelColumn(points(*tryPetHP), func(r *database.BalanceLevel, v float64) { r.PetHPPct = v })
+	}
+	if *tryConPct != "" {
+		b = b.WithLevelColumn(points(*tryConPct), func(r *database.BalanceLevel, v float64) { r.ConPct = v })
+	}
 	if *tryRegen != "" {
 		b = b.WithLevelColumn(points(*tryRegen), func(r *database.BalanceLevel, v float64) { r.RegenPct = v })
 	}
@@ -179,6 +219,10 @@ func main() {
 		b = b.WithLevelColumn(points(*tryArt), func(r *database.BalanceLevel, v float64) { r.ArtCooldownMS = v })
 	}
 	ds := ints(*diffs)
+	if *groups != "" {
+		printGroups(db, b, ints(*classes), ints(*levels), ds, ints(*groups), *fights, *tier, *limit)
+		return
+	}
 	if *reset > 0 {
 		printResets(db, b, ints(*classes), ints(*levels), ds, *fights, *tier, *reset)
 		return
@@ -230,7 +274,14 @@ func main() {
 				fmt.Printf("%-4s %-6s %3d %-4v", classNames[class], entity.ArchetypeName(class), level, mode)
 				for _, d := range ds {
 					c := entity.SimCellOf(k, entity.SimNPC{}, d, b, *fights, 1, *limit)
-					fmt.Printf(" | %3.0f%% %3.0f%% %4.0f", 100*c.WinShare(), 100*c.HPLeft, c.Secs)
+					hp := c.HPLeft
+					if *lowPoint {
+						hp = c.LowLeft
+					}
+					if k.Play.Pet || k.Play.Charm {
+						hp = c.PetHPLeft // the pet takes the blows
+					}
+					fmt.Printf(" | %3.0f%% %3.0f%% %4.0f", 100*c.WinShare(), 100*hp, c.Secs)
 				}
 				fmt.Println()
 			}
@@ -273,6 +324,36 @@ func printResets(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds [
 				fmt.Printf(" | %+d npc %3.0f%% %4.0fs you %3.0f%%->%3.0f%%", d, 100*npc/k, whole/k, 100*hp0/k, 100*hp1/k)
 			}
 			fmt.Println()
+		}
+	}
+}
+
+// printGroups fights each class's fitting group (entity.SimGroupFor) of each
+// size against each diff: won, wiped, deaths a fight, the members' hit points
+// left in the fights won and their length.
+func printGroups(db *database.SQLiteDB, b *entity.Balance, classes, levels, ds, sizes []int, fights int, tier float64, limit time.Duration) {
+	fmt.Printf("%-4s %-3s %-5s", "", "lvl", "group")
+	for _, d := range ds {
+		fmt.Printf(" | %+d won wipe died  hp secs", d)
+	}
+	fmt.Println()
+	for _, class := range classes {
+		for _, level := range levels {
+			for _, size := range sizes {
+				pls, err := entity.SimGroupFor(class, level, size, func(c int) (entity.SimPlayer, error) {
+					return entity.SimKitFromDB(db, c, 0, level, tier)
+				})
+				if err != nil {
+					log.Fatal(err)
+				}
+				fmt.Printf("%-4s %3d %-5s", classNames[class], level, fmt.Sprintf("g%d", size))
+				for _, d := range ds {
+					c := entity.SimGroupCellOf(pls, entity.SimNPC{}, d, b, fights, 1, limit)
+					fmt.Printf(" | %3.0f%% %3.0f%% %4.1f %3.0f%% %4.0f", 100*c.WinShare(), 100*float64(c.Wiped)/float64(max(c.Fights, 1)),
+						c.Deaths, 100*c.HPLeft, c.Sec)
+				}
+				fmt.Println()
+			}
 		}
 	}
 }

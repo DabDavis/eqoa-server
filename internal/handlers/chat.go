@@ -192,6 +192,14 @@ func (h *ChatHandler) HandleSayChat(sess *session.Session, msg *protocol.Message
 		return nil
 	}
 
+	// /roll (or /random; #roll, #random from a PS2, which keeps an unknown
+	// /command to itself): a random number for everyone in say range,
+	// everyone's (roll.go)
+	if word, rest, _ := strings.Cut(message, " "); isRollWord(word) {
+		h.roll(sess, player, strings.Fields(rest))
+		return nil
+	}
+
 	// GM commands start with #
 	if strings.HasPrefix(message, "#") {
 		h.handleGMCommand(sess, player, message)
@@ -297,15 +305,16 @@ func playerSessions(gw *entity.World) map[entity.EntityID]*session.Session {
 	return out
 }
 
-// say is mode 0: "Name: text", white (0x0A7A, as Sandstorm says NPC lines
-// [C]), to every player within sayRadius in the sender's world.
-func (h *ChatHandler) say(sess *session.Session, player *entity.Player, message string) {
-	line := fmt.Sprintf("%s: %s", player.Name, message)
+// hearer is a player who hears a line, and its session.
+type hearer struct {
+	s *session.Session
+	p *entity.Player
+}
+
+// inSayRange is who hears player's say: every other player within sayRadius
+// in its world, then the speaker itself.
+func (h *ChatHandler) inSayRange(sess *session.Session, player *entity.Player) []hearer {
 	sessions := playerSessions(h.gameWorld)
-	type hearer struct {
-		s *session.Session
-		p *entity.Player
-	}
 	var hear []hearer
 	h.gameWorld.ForEachPlayer(func(p *entity.Player) {
 		if p.World != player.World || p.ServerID == player.ServerID {
@@ -318,7 +327,14 @@ func (h *ChatHandler) say(sess *session.Session, player *entity.Player, message 
 			}
 		}
 	})
-	hear = append(hear, hearer{sess, player})
+	return append(hear, hearer{sess, player})
+}
+
+// say is mode 0: "Name: text", white (0x0A7A, as Sandstorm says NPC lines
+// [C]), to every player within sayRadius in the sender's world.
+func (h *ChatHandler) say(sess *session.Session, player *entity.Player, message string) {
+	line := fmt.Sprintf("%s: %s", player.Name, message)
+	hear := h.inSayRange(sess, player)
 	for _, l := range hear {
 		l.s.Queue().AddWithSequence(buildClientMessage(lineFor(l.p, line)))
 	}

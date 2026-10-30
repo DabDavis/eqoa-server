@@ -135,3 +135,27 @@ func TestBalanceComposesWithClassTemplates(t *testing.T) {
 		t.Errorf("a level 15's 100 on it: %d, want the template's 80 then the con's half: 40", got)
 	}
 }
+
+// A column tried by cmd/balancesim (-try-pethp, -try-conpct: WithLevelColumn)
+// is the line through its points at every row, rows added at the points'
+// levels with the table's other columns there: a pet's hit points follow the
+// tried line where the NPCs' stay the table's; the control: the table as it
+// was gives the pet its own column's.
+func TestBalanceTriedColumnIsTheLine(t *testing.T) {
+	b := testBalance()
+	tried := b.WithLevelColumn([][2]float64{{1, 100}, {20, 150}, {60, 540}}, func(r *database.BalanceLevel, v float64) { r.PetHPPct = v })
+	for _, c := range []struct {
+		level int
+		pet   float64
+	}{{1, 100}, {10, 100 + 50*9/19.0}, {20, 150}, {30, 150 + 390*10/40.0}, {60, 540}} {
+		if r := tried.Level(c.level); r.PetHPPct != c.pet || r.HPPct != b.Level(c.level).HPPct {
+			t.Errorf("level %d: pet %v hp %v, want pet %v hp %v", c.level, r.PetHPPct, r.HPPct, c.pet, b.Level(c.level).HPPct)
+		}
+	}
+	if got, want := tried.PetMaxHP(60), pct(NPCMaxHP(60), 540); got != want {
+		t.Errorf("a level 60 pet: %d hit points, want %d", got, want)
+	}
+	if got, want := b.PetMaxHP(60), pct(NPCMaxHP(60), 300); got != want {
+		t.Errorf("the control, the table's own: %d, want %d", got, want)
+	}
+}

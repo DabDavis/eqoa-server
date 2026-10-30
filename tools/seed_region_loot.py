@@ -40,15 +40,17 @@ XP camps' creatures (a camp's zone quadrant's biome on EQOA-Data's map, and
 A creature is a name (npcloot binds names as NPCClassKey keys them) of a kind,
 spelled in lower case (the rename of NPC names: a capital is a person's or a
 named creature's: "Deputy Allen", "Old Red"), that can be attacked (a spawn
-without the NPC bit), is no town's person (no name-wide npcfaction row) and no
-training dummy; its region is the commonest of its spawns'. A binding is
+without the NPC bit), is no town's person (no name-wide npcfaction row), no
+player's pet recorded off the live game (tools/seed_npc_aggro.py's rows: the
+summoning spells' names) and no training dummy; its region is the commonest of
+its spawns'. A binding is
 written only where the table has an item for one of the name's spawn levels,
 never over a row already there (a GM's, the camp seed's). Chances:
 BIOME_CHANCE (the camp seed's biome chance) but Odus's; one roll. Ours, as the
 camp seed's are. Run tools/double_loot_chances.py after this one to double
 these too, and undo in the other order.
 
-On the live data of 2026-10-30 01:30 UTC: 948 bindings for 508 names and 23
+On the live data of 2026-10-30 01:30 UTC: 939 bindings for 504 names and 23
 windows; 1,186 dead items to 4 (the Khal Viceroy's and Warlord's).
 
 Every binding written and window changed is logged in region_loot_seed;
@@ -107,6 +109,10 @@ def creatures(db, data, ground=None):
     people = set()
     if has_table(db, "npcfaction"):
         people = {campseed.npc_key(n) for (n,) in db.execute("SELECT name FROM npcfaction WHERE radius = 0")}
+    if has_table(db, "npcaggro"):
+        # players' pets recorded beside their owners off the live game (tools/seed_npc_aggro.py's rows)
+        people |= {campseed.npc_key(n) for (n,) in db.execute(
+            "SELECT npc_name FROM npcaggro WHERE note LIKE 'a summoned pet''s name%'")}
     zones, rows = camps.load(db, data) if data else ({"zones": [], "towns": [], "pois": []}, [])
     fitted = camps.fits(zones, rows) if data else {}
     envs = {}

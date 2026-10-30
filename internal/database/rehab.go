@@ -25,7 +25,7 @@ import (
 // RoseOfRehabilitation is the Rose of Rehabilitation's item (itempattern),
 // made by tools/seed_rehabilitation.py (ROSE_ID there): it undoes a path once
 // the free path respecs are used.
-const RoseOfRehabilitation = 707000
+const RoseOfRehabilitation = 709300
 
 // RoseOfRehabilitationName is its name, as the tool writes it.
 const RoseOfRehabilitationName = "Rose of Rehabilitation"

@@ -67,7 +67,7 @@ class Rehabilitation(unittest.TestCase):
         db.execute("INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, "
                    "location, listnumber) VALUES (31, 1, 0, 0, 1081, -1, 0, 4)")
         db.execute("INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, "
-                   "location, listnumber) VALUES (32, 1, 0, 0, 707000, -1, 1, 0)")  # a rose in the bank
+                   "location, listnumber) VALUES (32, 1, 0, 0, 709300, -1, 1, 0)")  # a rose in the bank
         db.commit()
         db.close()
         self.before = dump(self.path)
@@ -86,20 +86,20 @@ class Rehabilitation(unittest.TestCase):
         out = self.run_tool("--apply")
         self.assertIn("wrote 1 items, 1 npcs, 2 rewards, 1 given", out)
         rose = db.execute("SELECT itemname, itemicon, itemcost, trade, lore, maxstack, equipslot, model, levelreq "
-                          "FROM itempattern WHERE patternid = 707000").fetchone()
+                          "FROM itempattern WHERE patternid = 709300").fetchone()
         self.assertEqual(rose, ("Rose of Rehabilitation", 759960290, 10_000_000, 1, 0, 1, -1, 0, 1),
                          "rose of renewal's look, worth ten million, no trade, one a record")
-        self.assertIn("Rehabilitator Frejo", db.execute("SELECT itemdesc FROM itempattern WHERE patternid = 707000").fetchone()[0])
+        self.assertIn("Rehabilitator Frejo", db.execute("SELECT itemdesc FROM itempattern WHERE patternid = 709300").fetchone()[0])
         self.assertEqual(db.execute("SELECT npc_type FROM npcs WHERE id = 101943").fetchone()[0], 128, "Frejo talks")
         self.assertEqual(db.execute("SELECT npc_type FROM npcs WHERE id = 2205").fetchone()[0], 128, "Anja as she was")
         self.assertEqual(db.execute("SELECT npc_type FROM npcs WHERE id = 7").fetchone()[0], 0, "the control: a gnoll fights")
         steps = dict(((q, s), r) for q, s, r in db.execute("SELECT questid, step, rewarditems FROM queststeps"))
-        self.assertEqual(steps[(101114, 2)], "707000", "the epic's last step")
+        self.assertEqual(steps[(101114, 2)], "709300", "the epic's last step")
         self.assertEqual(steps[(101114, 1)], "", "not the step before")
-        self.assertEqual(steps[(101115, 2)], "1081, 707000", "beside the epic's own reward")
+        self.assertEqual(steps[(101115, 2)], "1081, 709300", "beside the epic's own reward")
         self.assertEqual(steps[(101107, 7)], "", "the control: an episode, not the epic")
         self.assertEqual(steps[(100100, 9)], "", "the control: a level 20 quest")
-        given = db.execute("SELECT serverid, location, equiploc, listnumber FROM charinventory WHERE patternid = 707000 "
+        given = db.execute("SELECT serverid, location, equiploc, listnumber FROM charinventory WHERE patternid = 709300 "
                            "AND serverid != 32").fetchall()
         self.assertEqual(given, [(31, 0, -1, 5)], "the warrior's finisher, at the inventory's next place; not the one "
                          "under way, nor one who finished an episode")
@@ -115,7 +115,7 @@ class Rehabilitation(unittest.TestCase):
     def test_no_second_rose_after_one_is_used(self):
         self.run_tool("--apply")
         db = sqlite3.connect(self.path)
-        db.execute("DELETE FROM charinventory WHERE patternid = 707000 AND serverid = 31")  # used at a rehabilitator
+        db.execute("DELETE FROM charinventory WHERE patternid = 709300 AND serverid = 31")  # used at a rehabilitator
         db.commit()
         out = self.run_tool("--apply")
         self.assertIn("0 given", out, "a rose this gave and the character used is not given again")

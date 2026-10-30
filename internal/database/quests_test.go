@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -243,5 +244,44 @@ func TestAStepsOtherCreatures(t *testing.T) {
 	}
 	if !Hunts(StepKill) || !Hunts(StepLoot) || Hunts(StepTalk) || Hunts(StepReach) {
 		t.Errorf("Hunts: kill and loot only")
+	}
+}
+
+// The requires column: numbers apart are each a quest to finish, numbers
+// joined by | one group any of them meets ("100880, 101064|101065|101066"),
+// written back as read; an old column with any other separator reads as it
+// always did (each number its own). UnmetRequire names the first group none
+// of whose quests is finished.
+func TestRequireGroups(t *testing.T) {
+	for _, c := range []struct {
+		in, out string
+		want    [][]int
+	}{
+		{"", "", nil},
+		{"100868, 100869, 100870", "100868, 100869, 100870", [][]int{{100868}, {100869}, {100870}}},
+		{"100868 100869;100870", "100868, 100869, 100870", [][]int{{100868}, {100869}, {100870}}},
+		{"101064|101065|101066", "101064|101065|101066", [][]int{{101064, 101065, 101066}}},
+		{"100880, 101064 | 101065", "100880, 101064|101065", [][]int{{100880}, {101064, 101065}}},
+		{"7|, 8", "7, 8", [][]int{{7}, {8}}},
+	} {
+		got := ParseRequires(c.in)
+		if fmt.Sprint(got) != fmt.Sprint(c.want) {
+			t.Errorf("ParseRequires(%q) = %v, want %v", c.in, got, c.want)
+		}
+		if out := FormatRequires(got); out != c.out {
+			t.Errorf("FormatRequires(%v) = %q, want %q", got, out, c.out)
+		}
+	}
+	done := map[int]bool{101065: true, 100880: true}
+	finished := func(id int) bool { return done[id] }
+	if g, unmet := UnmetRequire(ParseRequires("100880, 101064|101065|101066"), finished); unmet {
+		t.Errorf("101065 finished meets its group: %v unmet", g)
+	}
+	// the controls: a group with none finished, and the same quests apart
+	if g, unmet := UnmetRequire(ParseRequires("100880, 101064|101066"), finished); !unmet || fmt.Sprint(g) != "[101064 101066]" {
+		t.Errorf("101064|101066 with neither finished: %v %v", g, unmet)
+	}
+	if g, unmet := UnmetRequire(ParseRequires("101064, 101065, 101066"), finished); !unmet || fmt.Sprint(g) != "[101064]" {
+		t.Errorf("101064, 101065, 101066 apart: %v %v, want 101064 unmet", g, unmet)
 	}
 }

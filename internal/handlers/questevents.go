@@ -378,8 +378,15 @@ func (q *QuestEngine) stepStartedLocked(sess *session.Session, p *entity.Player,
 }
 
 // lootKillLocked is a kill on a loot step: its item dropped for the player
-// with the step's chance while it has taken fewer than the step wants.
-func (q *QuestEngine) lootKillLocked(k entity.KillCredit, kp entity.KillPlayer, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep) {
+// with the step's chance while it has taken fewer than the step wants. A drop
+// the player could never take is counted at once: its record of the item is a
+// full stack, and CLIENT's VIItemList::AddItem (0x00BBD130) puts a stackable
+// item on the FIRST record of it and keeps nothing past its stack, opening no
+// second record (0x003B and a corpse's 0x0019/0x001A alike), so a player who
+// held a full stack from before the step (a quest given up and taken again:
+// jib's quest walk of 2026-10-30, "Wands and Branches" and its two wands)
+// could never take one and never finish. What it holds is the step's item.
+func (q *QuestEngine) lootKillLocked(k entity.KillCredit, kp entity.KillPlayer, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep) {
 	pid, need, ok := st.LootItem()
 	if !ok || q.drop == nil || k.NPCID == 0 || cq.Count >= need {
 		return
@@ -392,8 +399,36 @@ func (q *QuestEngine) lootKillLocked(k entity.KillCredit, kp entity.KillPlayer, 
 		log.Printf("Quests: %q step %d's item %d: %v", qu.Name, st.Step, pid, err)
 		return
 	}
+	if fullStack(sessionInvList(kp.Session), pat) {
+		var p *entity.Player
+		if kp.Session != nil && q.playerOf != nil {
+			p = q.playerOf(kp.Session)
+		}
+		if p != nil {
+			SendClientMessage(kp.Session, fmt.Sprintf("You can carry no more %s: this one counts.", pat.ItemName))
+			log.Printf("Quests: %q dropped %q for %s, whose stack of it is full: counted (step %d of %q)",
+				k.NPCName, pat.ItemName, kp.Name, st.Step, qu.Name)
+			q.countLootLocked(kp.Session, p, c, qu, cq, st, 1)
+			return
+		}
+	}
 	q.drop(k.NPCID, k.Died, kp.ServerID, database.CharInventoryEntry{StackLeft: 1, EquipLoc: -1, Pattern: *pat})
 	log.Printf("Quests: %q dropped %q for %s (step %d of %q)", k.NPCName, pat.ItemName, kp.Name, st.Step, qu.Name)
+}
+
+// fullStack is whether a list's record of a stackable item is full: CLIENT
+// keeps no more of it (VIItemList::AddItem joins the first record of an item
+// and opens none past it). False for an item that does not stack, or none held.
+func fullStack(l *invList, pat *database.ItemPatternRecord) bool {
+	if l == nil || pat == nil || pat.MaxStack < 2 {
+		return false
+	}
+	i := l.stackOnto(pat.PatternID, pat.MaxStack)
+	if i < 0 {
+		return false
+	}
+	r, ok := l.at(i)
+	return ok && r.qty >= pat.MaxStack
 }
 
 // Looted is n of an item a player took off a corpse: counted on a loot step
@@ -414,27 +449,34 @@ func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern, n
 		if st == nil || st.Kind != database.StepLoot {
 			continue
 		}
-		pid, need, ok := st.LootItem()
+		pid, _, ok := st.LootItem()
 		if !ok || pid != pattern {
 			continue
 		}
-		cq.Count += n
-		if cq.Count < need {
-			q.saveLocked(cq)
-			if sess != nil {
-				name := fmt.Sprintf("item %d", pid)
-				if pat, err := q.items.GetItemPattern(pid); err == nil && pat != nil {
-					name = pat.ItemName
-				}
-				SendClientMessage(sess, fmt.Sprintf("%s: %d of %d.", name, cq.Count, need))
-			}
-			continue
-		}
-		if q.waitsForRoomLocked(sess, p, c, qu, cq, st) {
-			continue
-		}
-		q.completeStepLocked(sess, p, c, qu, cq, st, nil, nil)
+		q.countLootLocked(sess, p, c, qu, cq, st, n)
 	}
+}
+
+// countLootLocked counts n of a loot step's item taken: the step done at its
+// count (once the pack has room for what doing it gives), else the count said.
+func (q *QuestEngine) countLootLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, n int) {
+	pid, need, _ := st.LootItem()
+	cq.Count += n
+	if cq.Count < need {
+		q.saveLocked(cq)
+		if sess != nil {
+			name := fmt.Sprintf("item %d", pid)
+			if pat, err := q.items.GetItemPattern(pid); err == nil && pat != nil {
+				name = pat.ItemName
+			}
+			SendClientMessage(sess, fmt.Sprintf("%s: %d of %d.", name, cq.Count, need))
+		}
+		return
+	}
+	if q.waitsForRoomLocked(sess, p, c, qu, cq, st) {
+		return
+	}
+	q.completeStepLocked(sess, p, c, qu, cq, st, nil, nil)
 }
 
 // AtWindow is a merchant's, banker's or blacksmith's window asked for: CLIENT
@@ -444,8 +486,12 @@ func (q *QuestEngine) Looted(sess *session.Session, p *entity.Player, pattern, n
 // window opens as ever. A quest it gives is offered first too, as a talk offers
 // one (the user's "have shop NPCs offer the quest first"), once a session a
 // quest: declined or left unanswered, the next request opens the window; so is
-// its "not yet" for a quest the player is too low for (quests_notyet.go). It
-// reports whether the quests answered (the window is not opened then).
+// its "not yet" for a quest the player is too low for (quests_notyet.go). A
+// new login (LoggedIn) and the quest given up forget the offer, so it is made
+// again (it was remembered for the server's whole run: jib's quest walk of
+// 2026-10-30, Spellsmith Ulla's "The Orb of Parathior" offered once and never
+// again until a restart). It reports whether the quests answered (the window
+// is not opened then).
 func (q *QuestEngine) AtWindow(sess *session.Session, p *entity.Player, npc *entity.NPC) bool {
 	if q == nil || p == nil || npc == nil || npc.Dead {
 		return false
@@ -476,10 +522,7 @@ func (q *QuestEngine) AtWindow(sess *session.Session, p *entity.Player, npc *ent
 		log.Printf("Quests: %s's window answered for %q step %d", npc.Name, qu.Name, st.Step)
 		return true
 	}
-	for _, qu := range q.cat.givers[foldName(npc.Name)] {
-		if c.windowOffered[qu.ID] || q.mayTakeLocked(look, p, c, qu) != "" {
-			continue
-		}
+	if qu := q.nextOfferLocked(look, p, c, npc.Name, c.windowOffered); qu != nil {
 		if c.windowOffered == nil {
 			c.windowOffered = make(map[int]bool)
 		}
@@ -501,6 +544,27 @@ func (q *QuestEngine) AtWindow(sess *session.Session, p *entity.Player, npc *ent
 		return true
 	}
 	return false
+}
+
+// forgetOffer forgets that a shop's window offered the quest (and said "not
+// yet" for it) this session: offered again at the next request.
+func (c *questChar) forgetOffer(questID int) {
+	delete(c.windowOffered, questID)
+	delete(c.windowNotYet, questID)
+}
+
+// LoggedIn starts a character's session: what the shops' windows offered
+// (and said "not yet" for) in its last one is forgotten. The MemoryDump of a
+// login calls it (SendMemoryDump), not a respawn's.
+func (q *QuestEngine) LoggedIn(serverID uint32) {
+	if q == nil {
+		return
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if c := q.chars[serverID]; c != nil {
+		c.windowOffered, c.windowNotYet = nil, nil
+	}
 }
 
 // questsAtWindow is AtWindow on the running engine, the client's pending

@@ -179,7 +179,8 @@ type questChar struct {
 	progressOn   bool
 	progressSent string
 	// windowOffered is the quests a shop NPC's window has offered this
-	// session (AtWindow): offered once, the next request opens the window
+	// session (AtWindow): offered once, the next request opens the window;
+	// forgotten at a login (LoggedIn) and when the quest is given up
 	windowOffered map[int]bool
 	// windowNotYet is the quests a shop NPC's window has said "not yet" for
 	// this session (quests_notyet.go), as windowOffered
@@ -638,13 +639,35 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 		log.Printf("Quests: %s: %s", p.Name, wontDeal)
 		return true
 	}
-	for _, qu := range q.cat.givers[foldName(npc.Name)] {
-		if q.mayTakeLocked(look, p, c, qu) == "" {
-			q.offerLocked(sess, p, c, qu)
-			return true
-		}
+	if qu := q.nextOfferLocked(look, p, c, npc.Name, nil); qu != nil {
+		q.offerLocked(sess, p, c, qu)
+		return true
 	}
 	return false
+}
+
+// nextOfferLocked is the quest a giver offers the player now, or nil: the
+// first of its quests (by id) the player may take and has never finished;
+// else, of the repeatable ones it has finished, the one finished fewest times
+// (then the first). So a giver whose quests are all repeatable (Chef Lukkif's
+// Hunt and Gather) takes the player through them in order and round again,
+// where offering the first takeable one offered its first quest for ever.
+// skip leaves quests out (a shop's offered this session); nil none.
+func (q *QuestEngine) nextOfferLocked(look *factionLook, p *entity.Player, c *questChar, giver string, skip map[int]bool) *database.Quest {
+	var again *database.Quest
+	for _, qu := range q.cat.givers[foldName(giver)] {
+		if skip[qu.ID] || q.mayTakeLocked(look, p, c, qu) != "" {
+			continue
+		}
+		n := c.timesDone(qu.ID)
+		if n == 0 {
+			return qu
+		}
+		if again == nil || n < c.timesDone(again.ID) {
+			again = qu
+		}
+	}
+	return again
 }
 
 // stepNPC is whether a step names this NPC: a talk, show or give step by its
@@ -759,10 +782,11 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 	case len(qu.Races) > 0 && !containsInt(qu.Races, p.Race):
 		return "not for that race"
 	}
-	for _, id := range qu.Requires {
-		if cq := c.quests[id]; cq == nil || cq.Done == 0 {
-			return fmt.Sprintf("quest %d is to be finished first", id)
+	if g, unmet := database.UnmetRequire(qu.Required(), c.hasFinished); unmet {
+		if len(g) == 1 {
+			return fmt.Sprintf("quest %d is to be finished first", g[0])
 		}
+		return fmt.Sprintf("one of quests %s is to be finished first", formatAlternatives(g))
 	}
 	if cq := c.quests[qu.ID]; cq != nil {
 		if cq.Active() {
@@ -777,6 +801,29 @@ func (q *QuestEngine) mayTakeAtLocked(look *factionLook, p *entity.Player, c *qu
 		return fmt.Sprintf("its standing with %s is %d, not %s", r.Faction, v, database.FormatFactionReqs([]database.FactionReq{r}))
 	}
 	return ""
+}
+
+// hasFinished is whether the character has finished the quest at least once.
+func (c *questChar) hasFinished(id int) bool { return c.timesDone(id) > 0 }
+
+// timesDone is how many times the character has finished the quest.
+func (c *questChar) timesDone(id int) int {
+	if cq := c.quests[id]; cq != nil {
+		return cq.Done
+	}
+	return 0
+}
+
+// formatAlternatives is a group of quest ids as a line says it: "1, 2 or 3".
+func formatAlternatives(g []int) string {
+	parts := make([]string, len(g))
+	for i, id := range g {
+		parts[i] = fmt.Sprint(id)
+	}
+	if len(parts) < 2 {
+		return strings.Join(parts, "")
+	}
+	return strings.Join(parts[:len(parts)-1], ", ") + " or " + parts[len(parts)-1]
 }
 
 func containsInt(v []int, n int) bool {
@@ -1091,6 +1138,9 @@ func (q *QuestEngine) HandleDrop(sess *session.Session, msg *protocol.Message) e
 // finished, else left finished as many times as it was.
 func (q *QuestEngine) giveUpLocked(cq *database.CharQuest) {
 	q.clearSpawnsLocked(cq.ServerID, cq.QuestID, 0)
+	if c := q.chars[cq.ServerID]; c != nil {
+		c.forgetOffer(cq.QuestID)
+	}
 	cq.Step, cq.Count = 0, 0
 	if cq.Done == 0 {
 		if err := q.store.DeleteCharQuest(cq.ServerID, cq.QuestID); err != nil {
@@ -1117,7 +1167,7 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 			}
 			st := qu.Step(cq.Step)
 			if st != nil && st.Kind == database.StepLoot && stepNPC(st, k.NPCName, k.NPCSpawn) {
-				q.lootKillLocked(k, kp, qu, cq, st) // questevents.go
+				q.lootKillLocked(k, kp, c, qu, cq, st) // questevents.go
 				continue
 			}
 			if st == nil || st.Kind != database.StepKill || !stepNPC(st, k.NPCName, k.NPCSpawn) {

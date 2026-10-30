@@ -4,7 +4,8 @@
     python3 tools/quests/check_quests.py --db eqoa.db [file.json ...]
 
 With no files it checks every tools/quests/data/*.json. It checks each file's
-shape, the chains (every `requires` names a quest of some file, no cycles),
+shape, the chains (every `requires` names a quest of some file, a group of
+alternatives each of its quests, no cycles),
 the lengths CLIENT's windows take (handlers/quests.go: a box's paragraph 218
 characters, an answer 63, a journal line 127), and, with --db, every name the
 way the game matches one (case and surrounding spaces aside): givers and step
@@ -131,6 +132,10 @@ class Check:
         for f in ('classes', 'races', 'requires', 'steps', 'unresolved', 'factions_required', 'unlocks'):
             if not isinstance(q.get(f, []), list):
                 self.err(where, f'{f} is not a list')
+        for r in q.get('requires', []) if isinstance(q.get('requires', []), list) else []:
+            group = r if isinstance(r, list) else [r]
+            if not group or not all(isinstance(k, str) and k.strip() for k in group):
+                self.err(where, f'requires {r!r}: a key, or a list of keys any one of which will do')
         if not isinstance(q.get('repeatable', False), bool):
             self.err(where, f"repeatable {q.get('repeatable')!r} is not true or false")
         factions = []
@@ -321,7 +326,9 @@ class Check:
                 self.err(where, f'{m!r} does not resolve and is not in unresolved')
             for u in sorted(have - want):
                 self.err(where, f'unresolved {u!r} resolves')
-        return q.get('requires', [])
+        # every quest it names, a group's each (the chain's edges)
+        reqs = q.get('requires', []) if isinstance(q.get('requires', []), list) else []
+        return [k for r in reqs for k in (r if isinstance(r, list) else [r]) if isinstance(k, str)]
 
     def file(self, path, all_keys):
         fname = os.path.basename(path)

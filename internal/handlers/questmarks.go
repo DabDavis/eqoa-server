@@ -323,10 +323,16 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 	}
 	sort.Strings(givers)
 	for _, g := range givers {
+		// in the order the giver offers them (nextOfferLocked): the ones never
+		// finished first, a finished repeatable one after
+		var takes []*database.Quest
 		for _, qu := range q.cat.givers[g] {
-			if q.mayTakeLocked(look, p, c, qu) != "" {
-				continue
+			if q.mayTakeLocked(look, p, c, qu) == "" {
+				takes = append(takes, qu)
 			}
+		}
+		sort.SliceStable(takes, func(i, j int) bool { return c.timesDone(takes[i].ID) < c.timesDone(takes[j].ID) })
+		for _, qu := range takes {
 			t := q.texts[qu.ID]
 			add(markTake, []string{qu.Giver}, 0, markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: t.offer, detail: t.rewardsFor(p.Class)})
 		}

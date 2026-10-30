@@ -410,3 +410,49 @@ func TestPetTemplateChecks(t *testing.T) {
 		}
 	}
 }
+
+// The mastery pets fight by templates of their own (the balance's
+// pet fit of 2026-10-30): each summoning's pettemplate row names its own, and
+// that template is its kind's but for its hit points and note, scaled down
+// (a mastery pet a modest step over the book's pet of its level, no red won
+// alone); the control: the book's pets of the same kinds keep their kind's.
+func TestTheMagiciansMasteryPetsHaveTheirOwn(t *testing.T) {
+	kinds := map[string]ClassTemplate{}
+	for _, ct := range SeedPetClassTemplates {
+		kinds[ct.Name] = ct
+	}
+	rows := map[string]string{}
+	for _, p := range SeedPetTemplates {
+		if !p.Weapon {
+			rows[p.Spell] = p.Template
+		}
+	}
+	for _, c := range []struct{ spell, own, kind string }{
+		{"summon badi", "pet badi", "pet earth"}, {"summon efreet", "pet efreet", "pet fire"},
+		{"summon djinn", "pet djinn", "pet air"}, {"summon badi elder", "pet badi elder", "pet earth"},
+		{"summon efreeti lord", "pet efreeti lord", "pet fire"}, {"summon ghilan noble", "pet ghilan noble", "pet water"},
+		{"gymon's animation", "pet gymon's animation", "pet animation"}, {"earthen golem", "pet earthen golem", "pet animation"},
+		{"ferrous golem", "pet ferrous golem", "pet animation"},
+	} {
+		if rows[c.spell] != c.own {
+			t.Errorf("%q fights by %q, want %q", c.spell, rows[c.spell], c.own)
+		}
+		own, kind := kinds[c.own], kinds[c.kind]
+		if own.Name == "" || own.HPPct >= kind.HPPct || own.Class != kind.Class || own.TakenPct != kind.TakenPct ||
+			own.MeleePct != kind.MeleePct || !reflect.DeepEqual(own.Abilities, kind.Abilities) {
+			t.Errorf("%q: %+v, want %q's but for fewer hit points (%d%%)", c.own, own, c.kind, kind.HPPct)
+		}
+	}
+	for spell, kind := range map[string]string{"earth elemental": "pet earth", "fire elemental": "pet fire",
+		"air elemental": "pet air", "summon ghilan": "pet water", "stone golem": "pet animation", "iron golem": "pet animation"} {
+		if rows[spell] != kind {
+			t.Errorf("the control: %q fights by %q, want its kind's %q", spell, rows[spell], kind)
+		}
+	}
+	if w := kinds["pet necromancer weapon"]; w.MeleePct != 100 {
+		t.Errorf("the necromancer's weapon pet hits at %d%%, want 100", w.MeleePct)
+	}
+	if a := kinds["pet animation"]; a.HPPct != 100 || a.TakenPct != 100 || len(a.Abilities) != 5 {
+		t.Errorf("the animation: %+v, want 100/100 and its taunt and four heals", a)
+	}
+}

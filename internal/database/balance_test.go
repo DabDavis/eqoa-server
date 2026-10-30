@@ -243,13 +243,13 @@ func TestBalanceClassLevelDealtColumnAddedToAnOlderTable(t *testing.T) {
 }
 
 // pet_special_hits (the spectre's instant, 2026-10-30) reaches a balancelevel
-// made before it with the column's default, 3, on every row, the seed's and a
-// GM's alike; a new table's seed rows carry it; a GM's value of it is kept
+// made before it with the column's default, 1.5, on every row, the seed's and
+// a GM's alike; a new table's seed rows carry it; a GM's value of it is kept
 // over the next open (the control: the column is added once, not reset).
 func TestBalancePetSpecialHitsColumn(t *testing.T) {
 	for _, r := range BalanceSeedLevels {
 		if r.PetSpecialHits != BalancePetSpecialHitsDefault {
-			t.Fatalf("seed row %d: pet_special_hits %g, want %d", r.Level, r.PetSpecialHits, BalancePetSpecialHitsDefault)
+			t.Fatalf("seed row %d: pet_special_hits %g, want %g", r.Level, r.PetSpecialHits, BalancePetSpecialHitsDefault)
 		}
 	}
 	path := t.TempDir() + "/old.db"
@@ -282,8 +282,8 @@ func TestBalancePetSpecialHitsColumn(t *testing.T) {
 		}
 		return got
 	}
-	if got := open(); len(got) != 2 || got[30] != 3 || got[33] != 3 {
-		t.Errorf("an older table: %v, want 3 on both rows", got)
+	if got := open(); len(got) != 2 || got[30] != 1.5 || got[33] != 1.5 {
+		t.Errorf("an older table: %v, want 1.5 on both rows", got)
 	}
 	raw, err = sql.Open("sqlite", path)
 	if err != nil {
@@ -293,7 +293,7 @@ func TestBalancePetSpecialHitsColumn(t *testing.T) {
 		t.Fatal(err)
 	}
 	raw.Close()
-	if got := open(); got[30] != 3 || got[33] != 5 {
+	if got := open(); got[30] != 1.5 || got[33] != 5 {
 		t.Errorf("a GM's 5 over the next open: %v", got)
 	}
 
@@ -307,7 +307,7 @@ func TestBalancePetSpecialHitsColumn(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, r := range rows {
-		if r.PetSpecialHits != 3 {
+		if r.PetSpecialHits != 1.5 {
 			t.Fatalf("a new table's row %d: %g", r.Level, r.PetSpecialHits)
 		}
 	}

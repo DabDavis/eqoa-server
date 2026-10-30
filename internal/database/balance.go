@@ -65,8 +65,11 @@ import (
 // balancelevel's pet_special_hits is by a summoned pet's balance level (its
 // owner's, as pet_damage_pct): how many of its own melee hits a
 // necromancer's spectre's instant lands in one blow (entity/petrotation.go),
-// read when it lands; 3 is the column's default and the seed's
-// (BalancePetSpecialHitsDefault), 0 the instant's visual alone.
+// read when it lands; 1.5 is the column's default and the seed's
+// (BalancePetSpecialHitsDefault: the user's "harm touch like move, not as
+// much damage but sizable", one and a half of its hits, under a shadow
+// knight's Harm Touch at 44-60 where the 3 of its first day was over twice
+// one), 0 the instant's visual alone.
 //
 // A table with no rows changes nothing. source: gm, or seed for the rows
 // this file gives a table it makes (the tuning of 2026-10-29,
@@ -84,7 +87,7 @@ const balanceSchema = `
 		pet_damage_pct REAL NOT NULL DEFAULT 100,
 		art_cooldown_ms REAL NOT NULL DEFAULT 0,
 		regen_pct      REAL NOT NULL DEFAULT 15,
-		pet_special_hits REAL NOT NULL DEFAULT 3,
+		pet_special_hits REAL NOT NULL DEFAULT 1.5,
 		note           TEXT NOT NULL DEFAULT '',
 		source         TEXT NOT NULL DEFAULT 'gm'
 	);
@@ -204,12 +207,12 @@ var balanceColumns = []balanceColumn{
 	{"balanceclasslevel", "dealt_pct", "REAL NOT NULL DEFAULT 100", "class", func() map[int]float64 { return nil }},
 	// the spectre's instant (2026-10-30): every row the column's default,
 	// which is the seed's (BalancePetSpecialHitsDefault)
-	{"balancelevel", "pet_special_hits", "REAL NOT NULL DEFAULT 3", "level", func() map[int]float64 { return nil }},
+	{"balancelevel", "pet_special_hits", "REAL NOT NULL DEFAULT 1.5", "level", func() map[int]float64 { return nil }},
 }
 
 // BalancePetSpecialHitsDefault is pet_special_hits' default and every seed
 // row's: a spectre's instant is three of its melee hits in one blow.
-const BalancePetSpecialHitsDefault = 3
+const BalancePetSpecialHitsDefault = 1.5
 
 // The seed rows take pet_special_hits' default where they name none, so that
 // balanceseed.go's rows stay as the tuning wrote them.

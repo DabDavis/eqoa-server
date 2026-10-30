@@ -88,16 +88,22 @@ func intp(v int) *int { return &v }
 
 // SeedPetClassTemplates are the pets' templates, given to classtemplates
 // with pettemplate (their numbers ours, the notes say from what; the
-// balance's re-fit tunes them).
-var SeedPetClassTemplates = []ClassTemplate{
+// balance's pet fit of 2026-10-30 tuned them: the weapon pets' melee to
+// 100%, the animations' own hit points and armour off, and the magician's
+// mastery pets each a template of its own, petMasteryTemplates).
+var SeedPetClassTemplates = append(petKindTemplates, petMasteryTemplates()...)
+
+// petKindTemplates are the pet kinds' templates.
+var petKindTemplates = []ClassTemplate{
 	{Name: "pet necromancer", Class: 3, HPPct: 100, TakenPct: 100, MeleePct: 100,
 		Note: "A necromancer's pet: a shadow knight (its class) that swings a warrior's round (pettemplate swing_class 0: two " +
 			"hits from 20, four from 35, the user's 'SKs that quad'; CLIENT's shadow knight never swings four); its taps, " +
 			"openers and the spectre's instant are petrotation.go's"},
-	{Name: "pet necromancer weapon", Class: 3, HPPct: 100, TakenPct: 100, MeleePct: 120,
+	{Name: "pet necromancer weapon", Class: 3, HPPct: 100, TakenPct: 100, MeleePct: 100,
 		Note: "Death Sacrament's pet (the 'with weapons' and 'with a weapon' summonings, the mastery's 'Pet weapons (Increases " +
 			"melee damage)'): Sandstorm's recorded rounds (pettemplate swing, round_ms), its hits scaled to the base pet's " +
-			"damage a second, then 20% more (melee_pct 120, ours)"},
+			"damage a second; the rounds alone make it the stronger pet (balancesim against a roamer: its low point 6-15 points " +
+			"over the base's at 25-50), where 20% more (ours at first) won a red alone at 25-40"},
 	{Name: "pet water", Class: 9, HPPct: 100, TakenPct: 100, MeleePct: 100,
 		Abilities: []TemplateAbility{
 			{Kind: AbilityHeal, Target: AbilityOnOwner, Below: 60, Every: 12, First: 1},
@@ -135,7 +141,7 @@ var SeedPetClassTemplates = []ClassTemplate{
 			"(Fire Bolt ... Burning Clash) and cold (Chilling Gaze ... Ice Comet; the Fury line is a mastery's), each at 12%: " +
 			"level with the fire pet's damage (balancesim, a +1 with its owner: the Djinn 35 s against the Efreet's 37 at 50, " +
 			"the Air Elemental 46 against the Fire Elemental's 41 at 45; at 18% 25 and 33) (ours)"},
-	{Name: "pet animation", Class: 12, HPPct: 150, TakenPct: 70, MeleePct: 100,
+	{Name: "pet animation", Class: 12, HPPct: 100, TakenPct: 100, MeleePct: 100,
 		Abilities: []TemplateAbility{
 			{Kind: AbilityTaunt, Every: 9, First: 1, Hits: [][3]float64{{1, 84, 88}}},
 			{Kind: AbilityHeal, HealPct: 45, Every: 38, First: 1},
@@ -143,11 +149,54 @@ var SeedPetClassTemplates = []ClassTemplate{
 			{Kind: AbilityHeal, HealPct: 10, Every: 8, First: 1},
 			{Kind: AbilityHeal, HealPct: 5, Every: 5, First: 1},
 		},
-		Note: "The enchanter's animations, golems and blades, all alike: one hit a round, 50% more hit points and 30% less of " +
-			"a melee hit landing; a damaging taunt every 9 s for 84-88 at every level (the user: Storm of Blades' 84-88, " +
+		Note: "The enchanter's animations, golems and blades, all alike: one hit a round, its heals its tankiness (the 50% more " +
+			"hit points and 30% less of a melee hit landing first given it kept it at 95% of its hit points through any yellow " +
+			"and won it reds alone); a damaging taunt every 9 s for 84-88 at every level (the user: Storm of Blades' 84-88, " +
 			"'the enc pet taunt doesnt scale'); four heals of their own share, 45% (38 s), 20% (24 s), 10% (8 s), 5% (5 s) of its most " +
 			"hit points, the biggest due that it is missing (jib's four and the user's cooldowns and rule; the small ones' " +
 			"clocks ours); no heal to full"},
+}
+
+// petMasteryTemplates are the mastery pets' own templates (the magician's
+// and the enchanter's): each its kind's template (petKindTemplates) with its
+// hit points scaled, so that against the pet of its level a mastery pet is a
+// modest step up and not a red won alone (the balance's pet fit of
+// 2026-10-30, balancesim against a roamer: under its kind's template a Badi
+// or an Efreet of 49 kept 65-76% of its hit points through a yellow and won
+// every red alone, a Badi Elder 85%, Gymon's Animation 64% and 79% of its
+// reds).
+// The pet hit points by level (balanceclasslevel's pet_hp_pct) are fitted on
+// the pet the book gives, Summon Ghilan from 47; these keep the mastery pets
+// near a third of theirs at 49-60.
+func petMasteryTemplates() []ClassTemplate {
+	kind := map[string]ClassTemplate{}
+	for _, t := range petKindTemplates {
+		kind[t.Name] = t
+	}
+	var out []ClassTemplate
+	for _, m := range []struct {
+		name, of, spell string
+		hp              int
+	}{
+		{"pet badi", "pet earth", "Summon Badi (49)", 81},
+		{"pet efreet", "pet fire", "Summon Efreet (49)", 65},
+		{"pet djinn", "pet air", "Summon Djinn (49)", 67},
+		{"pet badi elder", "pet earth", "Summon Badi Elder (55)", 61},
+		{"pet efreeti lord", "pet fire", "Summon Efreeti Lord (55)", 47},
+		{"pet ghilan noble", "pet water", "Summon Ghilan Noble (55)", 64},
+		{"pet gymon's animation", "pet animation", "Gymon's Animation (20)", 70},
+		{"pet earthen golem", "pet animation", "Earthen Golem (29)", 72},
+		{"pet ferrous golem", "pet animation", "Ferrous Golem (39)", 80},
+	} {
+		t := kind[m.of]
+		t.Name, t.HPPct = m.name, m.hp
+		t.Abilities = append([]TemplateAbility(nil), t.Abilities...)
+		t.Note = fmt.Sprintf("A mastery pet, %s: %s's template with %d%% hit points where its kind's has %d%% "+
+			"(the balance's pet fit of 2026-10-30: near a third of its hit points through a yellow, no red won alone)",
+			m.spell, m.of, m.hp, kind[m.of].HPPct)
+		out = append(out, t)
+	}
+	return out
 }
 
 // SeedPetTemplates are the pets the seeds are given to: every necromancer,
@@ -170,17 +219,22 @@ var SeedPetTemplates = func() []PetTemplate {
 	add("pet necromancer weapon", 0, 7, 5200, true, "Death Sacrament's spectre: Attack3 (5000 ms) every 5.2 s, as Sandstorm's 956",
 		"howling death", "ancient death")
 	add("pet earth", -1, -1, 0, false, "the magician's earth pet",
-		"earth elementaling", "earth elementalkin", "earth elemental", "summon badi", "summon badi elder")
+		"earth elementaling", "earth elementalkin", "earth elemental")
 	add("pet water", -1, -1, 0, false, "the magician's water pet (the elementals are in no book here; the Ghilan are)",
-		"water elementaling", "water elementalkin", "water elemental", "summon ghilan", "summon ghilan noble")
+		"water elementaling", "water elementalkin", "water elemental", "summon ghilan")
 	add("pet fire", -1, -1, 0, false, "the magician's fire pet",
-		"fire elementaling", "fire elementalkin", "fire elemental", "summon efreet", "summon efreeti lord")
+		"fire elementaling", "fire elementalkin", "fire elemental")
 	add("pet air", -1, -1, 0, false, "the magician's air pet",
-		"air elementaling", "air elementalkin", "air elemental", "summon djinn")
+		"air elementaling", "air elementalkin", "air elemental")
+	for _, m := range [][2]string{{"summon badi", "pet badi"}, {"summon efreet", "pet efreet"}, {"summon djinn", "pet djinn"},
+		{"summon badi elder", "pet badi elder"}, {"summon efreeti lord", "pet efreeti lord"},
+		{"summon ghilan noble", "pet ghilan noble"}, {"gymon's animation", "pet gymon's animation"},
+		{"earthen golem", "pet earthen golem"}, {"ferrous golem", "pet ferrous golem"}} {
+		add(m[1], -1, -1, 0, false, "a mastery pet, by its own template", m[0])
+	}
 	add("pet animation", -1, -1, 0, false, "an enchanter's pet",
-		"pendril's animation", "mircyl's animation", "mercyls animation", "shalee's animation", "gymon's animation",
-		"clay golem", "earthen golem", "stone golem", "ferrous golem", "iron golem", "blade swarm", "steel tempest",
-		"storm of blades")
+		"pendril's animation", "mircyl's animation", "mercyls animation", "shalee's animation",
+		"clay golem", "stone golem", "iron golem", "blade swarm", "steel tempest", "storm of blades")
 	return out
 }()
 

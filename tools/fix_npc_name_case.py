@@ -105,6 +105,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import seed_npc_move as move  # noqa: E402  (the server's lists of animals, creatures and people)
 
+KIND_NOUNS = frozenset(move.NOT_ANIMALS | move.PEOPLE)
+
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
 DEFAULT_DICT = "/usr/share/dict/american-english"
 LOG = "npc_name_case_log"
@@ -249,6 +251,7 @@ class Evidence:
         self.soe = {fold(n): clean(n) for n in soe}
         self.sources["soe"] = collections.Counter({clean(n): 1 for n in soe})
         self.dict_words = frozenset(dict_words)
+        self._proper, self._noun = {}, {}  # each word's class, worked out once
         self.pets = frozenset(fold(n) for n in pets)
         self.variants = collections.defaultdict(collections.Counter)
         for src, names in self.sources.items():
@@ -306,6 +309,11 @@ class Evidence:
                                 if c > before_noun[t] and not any(self.kind_word(w) for w in t.split(" ")))
 
     def proper(self, w):
+        if w not in self._proper:
+            self._proper[w] = self._proper_word(w)
+        return self._proper[w]
+
+    def _proper_word(self, w):
         k = w.lower()
         if k in FUNCTION_WORDS:
             return False
@@ -323,7 +331,9 @@ class Evidence:
         lowercase, or one of the server's own lists of animals, creatures and
         people (tools/seed_npc_move.py's, entity/wildlife.go's)."""
         k = w.lower()
-        return self.headlow[k] > 0 or move.wildlife_noun(k) or move.in_set(k, move.NOT_ANIMALS | move.PEOPLE)
+        if k not in self._noun:
+            self._noun[k] = self.headlow[k] > 0 or move.wildlife_noun(k) or move.in_set(k, KIND_NOUNS)
+        return self._noun[k]
 
     def kind_word(self, w):
         """A proper word that names a kind, not a person: capitalized in a name
@@ -603,7 +613,8 @@ def plan_from_tsv(db, path):
             old, new, kind, why = (json.loads(x) for x in ln.rstrip("\n").split("\t")[:4])
             if old not in have:
                 continue
-            renames[old] = new
+            if new != old:
+                renames[old] = new
             spellings[fold(old)][old] += 1
             target = new if kind in ("retail", "variant", "generic") else None
             decisions[fold(old)] = Decision(fold(old), kind, target, why)
@@ -986,6 +997,13 @@ def write_lists(p, ev, out_dir):
         for old, new in sorted(p.renames.items(), key=lambda kv: (fold(kv[0]), kv[0])):
             d = p.decisions[fold(old)]
             f.write("\t".join(json.dumps(x) for x in (old, new, d.kind, d.why)) + "\n")
+        # the names whose spellings are as decided already: --names needs them,
+        # a reference spelled otherwise (a quest's giver) taking their spelling
+        f.write("# spelled as decided already\n")
+        for k, d in sorted(p.decisions.items()):
+            for n in sorted(p.spellings[k]):
+                if d.target is not None and n == d.target:
+                    f.write("\t".join(json.dumps(x) for x in (n, n, d.kind, d.why)) + "\n")
     ambiguous = os.path.join(out_dir, "npc-name-case-ambiguous.tsv")
     with open(ambiguous, "w", encoding="utf-8") as f:
         f.write("# name (its spellings in npcs, rows)\tkind\twhy\n")

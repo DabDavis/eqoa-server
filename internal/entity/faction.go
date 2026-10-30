@@ -752,7 +752,7 @@ func (w *World) StartThreats(spots []database.StartSpot) []StartThreat {
 				continue
 			}
 			d := dist3(npc.SpawnX, npc.SpawnY, npc.SpawnZ, s.X, s.Y, s.Z)
-			if d > startThreatReach || !w.threatensLocked(npc, p) {
+			if d > startThreatReach || !w.threatensLocked(npc, p) || !npc.EventAggro && greenTo(npc, p) {
 				continue
 			}
 			t := StartThreat{Spot: s, NPC: npc.Name, Level: npc.Level, Distance: d}

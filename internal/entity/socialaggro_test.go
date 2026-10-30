@@ -108,9 +108,10 @@ func TestAnNPCWithNoRowIsOfTheFactionsItsKillLowers(t *testing.T) {
 func TestACreaturesOwnNoticeCallsNoOne(t *testing.T) {
 	f := newSocialFix(t)
 	f.w.SetSocialRules(map[string]SocialRule{"Gnoll Pup": {Social: true, Faction: "Blackburrow Gnolls"}})
-	a := f.npc(200, "Gnoll Pup", 20, bearBody, 1025, 1000)
-	b := f.npc(201, "Gnoll Pup", 20, bearBody, 1050, 1000)
-	c := f.npc(202, "Gnoll Pup", 20, bearBody, 1070, 1000)
+	// level 32: light blue to the level 40, so it notices on sight
+	a := f.npc(200, "Gnoll Pup", 32, bearBody, 1025, 1000)
+	b := f.npc(201, "Gnoll Pup", 32, bearBody, 1050, 1000)
+	c := f.npc(202, "Gnoll Pup", 32, bearBody, 1070, 1000)
 	f.look()
 	if !f.attacks(a) {
 		t.Fatalf("the near gnoll noticed the player: enemy %d", a.CurrentEnemy)

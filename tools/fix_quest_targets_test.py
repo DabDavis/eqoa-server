@@ -47,6 +47,9 @@ NPCS = [
     ("gnoll champion", 1100, 1200, 4, 0), ("Vithara", 1120, 1200, 4, 0),
     ("bloodflies", 1200, 1200, 3, 0), ("bloodflies", 1220, 1200, 3, 0), ("swamp flies", 1210, 1210, 3, 0),
     ("rat", 9000, 9000, 2, 0), ("large rat", 1100, 1300, 2, 0), ("giant rat", 1110, 1300, 30, 0),
+    # a lone Grobb crab and a star crab on its beach; the creatures named "crab" are far off and higher
+    ("Grobb Crab", 1500, 1500, 7, 0), ("Star Crab", 1520, 1500, 7, 0), ("crab", 20000, 20000, 12, 0),
+    ("farmer", 1000, 1600, 4, 0), ("farmer", 1020, 1600, 4, 0), ("odd farmer", 1040, 1600, 4, 0),
     # the item fixes' NPCs
     ("Sundro", 3000, 3000, 40, 128), ("Jebdo", 3100, 3000, 40, 128),
     ("Agent", 5000, 5000, 60, 128), ("Assistant", 5010, 5000, 60, 128), ("orc sapper", 5500, 5000, 48, 0),
@@ -71,6 +74,7 @@ class FixQuestTargets(unittest.TestCase):
         db.execute(s, (1, 1, "talk", "Merchant Rokar", "", 1, 0, "Speak with Merchant Rokar."))
         db.execute(s, (1, 2, "loot", "raven", "10", 1, 0.5, "Take the chipped raven beak from the ravens and magpies outside the city."))
         db.execute(s, (1, 3, "give", "Sythonis", "10", 1, 0, "Bring the chipped raven beak to Sythonis."))
+        db.execute(s, (1, 4, "loot", "Grobb Crab", "11", 2, 0.5, "Take two crab legs from the crabs on the beach north-west of Sythonis."))
         # the controls, one a step
         db.execute(q, (2, "Controls", "Sythonis", 4))
         for n, (target, journal) in enumerate([
@@ -79,7 +83,8 @@ class FixQuestTargets(unittest.TestCase):
                 ("bloodflies", "Take a loot from the blood flies round the city."),
                 ("large rat", "Kill rats outside the city for rat fur."),
                 ("crow", "Kill the crow by the gate for a loot."),
-                ("Vithara", "Slay Vithara and the gnoll champions for a loot.")], start=1):
+                ("Vithara", "Slay Vithara and the gnoll champions for a loot."),
+                ("farmer", "Take a loot from the farmers south of Honjour (not the odd farmers).")], start=1):
             db.execute(s, (2, n, "loot", target, "11" if target != "large rat" else "12", 1, 0.5, journal))
         # the item fixes' quests, by their import keys
         db.execute(q, (3, "The Legend of Altivo", "Sundro", 41))
@@ -121,8 +126,12 @@ class FixQuestTargets(unittest.TestCase):
         by = {(r["q"]["questid"], r["st"]["step"]): r for r in rows}
         added = {(r["q"]["questid"], r["st"]["step"]): add for r, target, add, why in changes}
         self.assertEqual(added.get((1, 2)), ["magpie"], "the ravens' step takes the magpies its journal names")
+        # "the crabs" of a lone Grobb crab: crabs, so its kind beside it (the star crab), not the far "crab"s;
+        # "north-west of Sythonis" says where, and narrows nothing
+        self.assertFalse(by[(1, 4)]["named"])
+        self.assertEqual(added.get((1, 4)), ["star crab"])
         self.assertIn("journal", by[(1, 2)]["flags"])
-        for step in range(1, 7):
+        for step in range(1, 8):
             self.assertNotIn((2, step), added, f"control step {step}: {by[(2, step)]['st']['journal']!r} added "
                                                 f"{added.get((2, step))}")
         # the rats: the line's "rats" are named, but the only rat stands 9,000 off (and a giant rat is 30)
@@ -155,7 +164,7 @@ class FixQuestTargets(unittest.TestCase):
         before = self.state()
         self.run_tool("--apply")
         db = self.db()
-        self.assertEqual(db.execute("SELECT target FROM queststeptargets WHERE questid = 1 AND step = 2").fetchall(), [("Magpie",)])
+        self.assertEqual(db.execute("SELECT step, target FROM queststeptargets WHERE questid = 1 ORDER BY step").fetchall(), [(2, "Magpie"), (4, "Star Crab")])
         self.assertEqual(db.execute("SELECT events FROM quests WHERE questid = 3").fetchone()[0],
                          '[{"on":"accept","do":"give","items":"20, 21"}]')
         steps = db.execute("SELECT step, kind, target, items, count, chance FROM queststeps WHERE questid = 4 ORDER BY step").fetchall()
@@ -168,7 +177,7 @@ class FixQuestTargets(unittest.TestCase):
         self.assertNotEqual(r.returncode, 0, "a second --apply is refused")
         # another tool lowers the name since: still taken back
         db = self.db()
-        db.execute("UPDATE queststeptargets SET target = 'magpie'")
+        db.execute("UPDATE queststeptargets SET target = LOWER(target)")
         db.close()
         r = self.run_tool("--undo")
         self.assertIn("0 changed since", r.stdout)

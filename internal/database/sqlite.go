@@ -672,6 +672,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensureCharCoaches(); err != nil { // charcoaches.go: the stables' ledgers
 		return err
 	}
+	if err := db.ensureRehab(); err != nil { // rehab.go: the rehabilitators' settings and resets
+		return err
+	}
 
 	log.Printf("SQLite schema initialized")
 	return nil
@@ -950,6 +953,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 		return err
 	}
 	if _, err := s.db.Exec(`DELETE FROM charcoaches WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
+	// and its resets counted (rehab.go)
+	if err := s.db.deleteCharResets(serverID); err != nil {
 		return err
 	}
 	// and its tradeskills and recipe book (craft.go), for the same reason

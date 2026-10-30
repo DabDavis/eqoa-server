@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS charquests (
 	done     INTEGER NOT NULL DEFAULT 0,
 	slot     INTEGER NOT NULL DEFAULT 0,
 	updated  TEXT NOT NULL DEFAULT '',
+	picks    TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY (serverid, questid)
 );
 CREATE INDEX IF NOT EXISTS idx_queststeps_target ON queststeps(target);
@@ -127,6 +128,7 @@ func (db *SQLiteDB) initQuests() error {
 		{"queststeps", "chance", `REAL NOT NULL DEFAULT 0`},
 		{"quests", "factionreq", `TEXT NOT NULL DEFAULT ''`}, {"queststeps", "byclass", `TEXT NOT NULL DEFAULT ''`},
 		{"queststeps", "choices", `TEXT NOT NULL DEFAULT ''`},
+		{"charquests", "picks", `TEXT NOT NULL DEFAULT ''`},
 	} {
 		has, err := hasColumn(db.DB, c.table, c.col)
 		if err != nil {
@@ -914,6 +916,10 @@ type CharQuest struct {
 	Done     int // times finished
 	Slot     int // the journal's order: its line came after every smaller one
 	Updated  string
+	// Picks is the options picked at the quest's choices ("2:1, 3:0": step 2
+	// its second option, step 3 its first; FormatPicks), so a rehabilitator
+	// undoing a path takes back what was picked (handlers/rehab.go)
+	Picks string
 }
 
 // Active is whether the quest is under way (it has a journal line).
@@ -1042,7 +1048,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 
 // CharQuests is a character's quests, under way and finished.
 func (s *QuestStore) CharQuests(serverID uint32) ([]CharQuest, error) {
-	rs, err := s.db.Query(`SELECT serverid, questid, step, count, done, slot, updated FROM charquests
+	rs, err := s.db.Query(`SELECT serverid, questid, step, count, done, slot, updated, picks FROM charquests
 		WHERE serverid = ? ORDER BY slot, questid`, serverID)
 	if err != nil {
 		return nil, err
@@ -1051,7 +1057,7 @@ func (s *QuestStore) CharQuests(serverID uint32) ([]CharQuest, error) {
 	var out []CharQuest
 	for rs.Next() {
 		var c CharQuest
-		if err := rs.Scan(&c.ServerID, &c.QuestID, &c.Step, &c.Count, &c.Done, &c.Slot, &c.Updated); err != nil {
+		if err := rs.Scan(&c.ServerID, &c.QuestID, &c.Step, &c.Count, &c.Done, &c.Slot, &c.Updated, &c.Picks); err != nil {
 			return nil, err
 		}
 		out = append(out, c)
@@ -1062,12 +1068,52 @@ func (s *QuestStore) CharQuests(serverID uint32) ([]CharQuest, error) {
 // SaveCharQuest writes a character's progress in a quest.
 func (s *QuestStore) SaveCharQuest(c *CharQuest) error {
 	c.Updated = time.Now().UTC().Format(time.RFC3339)
-	_, err := s.db.Exec(`INSERT INTO charquests (serverid, questid, step, count, done, slot, updated)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+	_, err := s.db.Exec(`INSERT INTO charquests (serverid, questid, step, count, done, slot, updated, picks)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(serverid, questid) DO UPDATE SET step = excluded.step, count = excluded.count,
-			done = excluded.done, slot = excluded.slot, updated = excluded.updated`,
-		c.ServerID, c.QuestID, c.Step, c.Count, c.Done, c.Slot, c.Updated)
+			done = excluded.done, slot = excluded.slot, updated = excluded.updated, picks = excluded.picks`,
+		c.ServerID, c.QuestID, c.Step, c.Count, c.Done, c.Slot, c.Updated, c.Picks)
 	return err
+}
+
+// ParsePicks reads a charquests picks column: the option picked (from 0) by
+// step. A part it cannot read is left out.
+func ParsePicks(s string) map[int]int {
+	out := map[int]int{}
+	for _, f := range strings.Split(s, ",") {
+		step, opt, ok := strings.Cut(strings.TrimSpace(f), ":")
+		if !ok {
+			continue
+		}
+		st, err1 := strconv.Atoi(strings.TrimSpace(step))
+		o, err2 := strconv.Atoi(strings.TrimSpace(opt))
+		if err1 != nil || err2 != nil || st < 1 || o < 0 {
+			continue
+		}
+		out[st] = o
+	}
+	return out
+}
+
+// FormatPicks writes picks as ParsePicks reads them, by step.
+func FormatPicks(picks map[int]int) string {
+	steps := make([]int, 0, len(picks))
+	for st := range picks {
+		steps = append(steps, st)
+	}
+	sort.Ints(steps)
+	parts := make([]string, len(steps))
+	for i, st := range steps {
+		parts[i] = fmt.Sprintf("%d:%d", st, picks[st])
+	}
+	return strings.Join(parts, ", ")
+}
+
+// WithPick is a picks column with the option picked at step set.
+func WithPick(picks string, step, option int) string {
+	m := ParsePicks(picks)
+	m[step] = option
+	return FormatPicks(m)
 }
 
 // DeleteCharQuest forgets a character's progress in a quest.

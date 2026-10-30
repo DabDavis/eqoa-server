@@ -40,6 +40,9 @@ const (
 // (ps2_main_capture), so an item sells and buys at its value.
 const merchantRate = 100
 
+// roseNotSold is a merchant's refusal of a Rose of Rehabilitation (ours).
+const roseNotSold = "Merchants will not buy a Rose of Rehabilitation."
+
 // merchantGreeting is the line 0x00B7 ends with (m_merchantName, at most 127
 // UTF-16 characters). Sandstorm sends each merchant's own; npcs carries none.
 const merchantGreeting = "Have a look at my wares."
@@ -421,6 +424,14 @@ func (h *NPCWindowHandler) sell(sess *session.Session, id, key uint32, n int) bo
 	}
 	if row.EquipLoc != -1 {
 		log.Printf("MerchantSell: %s tried to sell %q while wearing it", player.Name, row.Pattern.ItemName)
+		return false
+	}
+	if row.Pattern.PatternID == database.RoseOfRehabilitation {
+		// its worth is a path undone at a rehabilitator (rehab.go), not
+		// tunar: a merchant paying its value would make each epic's rose
+		// ten million tunar
+		SendColoredChat(sess, roseNotSold, scribeRefusalRGB[0], scribeRefusalRGB[1], scribeRefusalRGB[2])
+		log.Printf("MerchantSell: %s offered %q to %q, which merchants do not buy", player.Name, row.Pattern.ItemName, npc.Name)
 		return false
 	}
 	paid := n * sellPrice(row.Pattern.ItemCost, row.RemainHP, row.Pattern.MaxHP)

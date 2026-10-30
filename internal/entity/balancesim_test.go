@@ -289,3 +289,38 @@ func TestASimulatedFoeFightsByItsTemplate(t *testing.T) {
 		t.Errorf("hit points left: %.2f with the crits, %.2f without", with.HPShare(), without.HPShare())
 	}
 }
+
+// A simulated foe's template leaves the pets their own: the world a fight is
+// set in keeps the kit's pet templates and taps (SimPetsFromDB: the seeded
+// pettemplate rows) beside the roamer it gives the creature. Until 2026-10-30
+// the foe's template replaced every template of that world, and a pet against
+// a roamer fought by none ("no template" in the summoning's line).
+func TestASimulatedFoesTemplateKeepsThePetsOwn(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/sim.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	tmpl, err := SimTemplatesFromDB(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pets, err := SimPetsFromDB(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(pets.pets) == 0 {
+		t.Fatal("no pet templates read off a new database: the check tells nothing")
+	}
+	pl := simKit(11, 40)
+	pl.Pets = pets
+	for _, foe := range []SimNPC{{Level: 40}, {Level: 40, Template: tmpl["roamer"]}} {
+		f := newSimFight(pl, foe, SeedBalance())
+		if got := len(f.w.templates.pets); got != len(pets.pets) {
+			t.Errorf("foe template %v: the world has %d pet templates, want the kit's %d", foe.Template != nil, got, len(pets.pets))
+		}
+		if foe.Template != nil && f.npc.TemplateName() != "roamer" {
+			t.Errorf("the foe fights by %q, want the roamer", f.npc.TemplateName())
+		}
+	}
+}

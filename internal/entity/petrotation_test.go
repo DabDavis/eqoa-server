@@ -531,8 +531,9 @@ func specialBalance(hits float64) *Balance {
 		PetDamagePct: 100, RegenPct: 15, PetSpecialHits: hits}}, nil)
 }
 
-// A spectre's instant lands three of its own melee hits in one blow, rolled
-// as they are: on fixed dice, and the dice's highest throws putting each
+// A spectre's instant lands pet_special_hits of its own melee hits in one
+// blow (the default's 1.5 since the balance's pet fit of 2026-10-30, three
+// at first), rolled as they are: on fixed dice, and the dice's highest throws putting each
 // instant 0.7 s after its swing (between the swing's hits at 0.5 and 1.0 s),
 // the crab's loss in an instant's tick is three of its losses to a melee hit,
 // within rounding, and its owner is told none of it. pet_special_hits is
@@ -624,7 +625,7 @@ func TestASpectresInstantLandsItsHits(t *testing.T) {
 	if hit == 0 || len(instants) != 3 {
 		t.Fatalf("a melee hit of %d, %d instants (%v): want a hit and three instants", hit, len(instants), instants)
 	}
-	for i, want := range []float64{3, 5, 0} {
+	for i, want := range []float64{database.BalancePetSpecialHitsDefault, 5, 0} {
 		if d := float64(instants[i].loss) - want*float64(hit); d < -want || d > want {
 			t.Errorf("instant %d at %d ms took %d, want %g hits of %d", i+1, instants[i].at, instants[i].loss, want, hit)
 		}

@@ -611,3 +611,65 @@ func TestRealWispsAreYellows(t *testing.T) {
 		t.Errorf("the control: a rogue of 35 won %.0f%% of its one up against jib's wizard (35%%): the check tells nothing", 100*c.WinShare())
 	}
 }
+
+// The pet classes' pets are yellows like any other (the pets' fit of
+// 2026-10-30, tools/tune_pets.py): a magician, a necromancer and an
+// enchanter with the pet its book gives at 10, 20, 30, 40, 50 and 60 win one
+// up at least 75% and two up half the time against the creature the
+// database gives (a roamer), the pet taken down to under 45% of its hit
+// points at its lowest on average, and lose a red three up alone more often
+// than not. The control: the enchanter's animation as the pet lane first had
+// it (150% hit points, 70% of a hit landing, on top of its heals) keeps over
+// 70% through its yellows and wins its reds at 30 and 45.
+func TestRealPetsAreYellows(t *testing.T) {
+	db := simRealDB(t)
+	b := simRealBalance(t, db)
+	foe := simRealFoe(t, db, "")
+	kit := func(c, l int) SimPlayer {
+		pl, err := SimKitFromDB(db, c, 0, l, 0.5)
+		if err != nil {
+			t.Fatal(err)
+		}
+		pl.Play.Pet, pl.Play.Melee = true, false
+		return pl
+	}
+	for _, class := range []int{10, 11, 12} {
+		for _, level := range []int{10, 20, 30, 40, 50, 60} {
+			pl := kit(class, level)
+			y1 := SimCellOf(pl, foe, 1, b, 16, 1, 10*time.Minute)
+			y2 := SimCellOf(pl, foe, 2, b, 16, 1, 10*time.Minute)
+			w1, w2 := float64(y1.Won), float64(y2.Won)
+			low := (w1*y1.PetLowLeft + w2*y2.PetLowLeft) / max(w1+w2, 1)
+			if y1.WinShare() < 0.75 || y2.WinShare() < 0.5 || low > 0.45 {
+				t.Errorf("class %d L%d with its pet: +1 won %.0f%%, +2 won %.0f%%, the pet down to %.0f%% on average",
+					class, level, 100*y1.WinShare(), 100*y2.WinShare(), 100*low)
+			}
+			if r := SimCellOf(pl, foe, 3, b, 16, 1, 10*time.Minute); r.WinShare() > 0.4 {
+				t.Errorf("class %d L%d +3 alone with its pet: won %.0f%%", class, level, 100*r.WinShare())
+			}
+		}
+	}
+	for _, level := range []int{30, 45} {
+		pl := kit(12, level)
+		if pl.Pets == nil {
+			t.Fatal("no pets read for the kit")
+		}
+		ctl := &SimPets{pets: map[database.PetTemplateKey]*petTemplate{}, weapon: pl.Pets.weapon, taps: pl.Pets.taps}
+		for k, pt := range pl.Pets.pets {
+			if pt.tmpl != nil && pt.tmpl.Name == "pet animation" {
+				c, tm := *pt, *pt.tmpl
+				tm.HPPct, tm.TakenPct = 150, 70
+				c.tmpl = &tm
+				pt = &c
+			}
+			ctl.pets[k] = pt
+		}
+		pl.Pets = ctl
+		y1 := SimCellOf(pl, foe, 1, b, 16, 1, 10*time.Minute)
+		red := SimCellOf(pl, foe, 3, b, 16, 1, 10*time.Minute)
+		if y1.PetLowLeft < 0.7 || red.WinShare() < 0.6 {
+			t.Errorf("the control at %d: the pet lane's animation kept %.0f%% through a +1 and won %.0f%% of its reds alone",
+				level, 100*y1.PetLowLeft, 100*red.WinShare())
+		}
+	}
+}

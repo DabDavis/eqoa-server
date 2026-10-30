@@ -12,7 +12,13 @@
 // the water is (F3 20261026-020316); -only-env writes those alone, leaving
 // the ground files as they are.
 //
-//	groundbake -iso /path/to/frontiers.iso [-out worlds/ground] [-only-env]
+// And what stands on the ground (<out>/<world>.walls, ground/walls.go): the
+// collision of everything the zones place on their terrain (a house, a fence,
+// a tree's trunk), each buffer once and each placement's transform, which a
+// creature's wander does not walk through (F3 pass 24); -only-walls writes
+// those alone.
+//
+//	groundbake -iso /path/to/frontiers.iso [-out worlds/ground] [-only-env | -only-walls]
 package main
 
 import (
@@ -38,75 +44,110 @@ func main() {
 	iso := flag.String("iso", "", "the game's disc image (EverQuest Online Adventures: Frontiers, SLUS-20744)")
 	out := flag.String("out", "worlds/ground", "the folder the ground files go to")
 	onlyEnv := flag.Bool("only-env", false, "write the environment files (<world>.env) alone")
+	onlyWalls := flag.Bool("only-walls", false, "write the walls files (<world>.walls) alone")
 	flag.Parse()
-	if *iso == "" {
+	if *iso == "" || *onlyEnv && *onlyWalls {
 		flag.Usage()
 		os.Exit(2)
 	}
 	if err := os.MkdirAll(*out, 0o755); err != nil {
 		log.Fatal(err)
 	}
+	want := what{terrain: !*onlyEnv && !*onlyWalls, walls: !*onlyEnv, env: !*onlyWalls}
 	for n, name := range worldFiles {
 		t := time.Now()
-		zones, env, verts, err := bake(*iso, name, !*onlyEnv)
+		b, err := bake(*iso, name, want)
 		if err != nil {
 			log.Fatalf("%s: %v", name, err)
 		}
-		if !*onlyEnv {
+		if want.terrain {
 			path := filepath.Join(*out, fmt.Sprintf("%d.ground", n))
-			if err := write(path, func(f *os.File) error { return ground.Write(f, zones) }); err != nil {
+			if err := write(path, func(f *os.File) error { return ground.Write(f, b.zones) }); err != nil {
 				log.Fatalf("%s: %v", path, err)
 			}
 			st, _ := os.Stat(path)
-			log.Printf("world %d (%s): %d zones, %d terrain vertices, %d KB, in %v", n, name, len(zones), verts, st.Size()>>10, time.Since(t).Round(time.Millisecond))
+			log.Printf("world %d (%s): %d zones, %d terrain vertices, %d KB, in %v", n, name, len(b.zones), b.verts, st.Size()>>10, time.Since(t).Round(time.Millisecond))
 		}
-		path := filepath.Join(*out, fmt.Sprintf("%d.env", n))
-		if err := write(path, func(f *os.File) error { return ground.WriteEnv(f, env) }); err != nil {
-			log.Fatalf("%s: %v", path, err)
+		if want.walls {
+			path := filepath.Join(*out, fmt.Sprintf("%d.walls", n))
+			if err := write(path, func(f *os.File) error { return ground.WriteWalls(f, b.bufs, b.wallZones) }); err != nil {
+				log.Fatalf("%s: %v", path, err)
+			}
+			st, _ := os.Stat(path)
+			placed := 0
+			for _, z := range b.wallZones {
+				placed += len(z.Placements)
+			}
+			log.Printf("world %d (%s): what stands on it: %d placements of %d collision buffers, %d KB", n, name, placed, len(b.bufs), st.Size()>>10)
 		}
-		st, _ := os.Stat(path)
-		water := 0
-		for _, z := range env.Zones {
-			for _, fl := range z.Leaves {
-				if fl&ground.EnvWater != 0 {
-					water++
+		if want.env {
+			path := filepath.Join(*out, fmt.Sprintf("%d.env", n))
+			if err := write(path, func(f *os.File) error { return ground.WriteEnv(f, b.env) }); err != nil {
+				log.Fatalf("%s: %v", path, err)
+			}
+			st, _ := os.Stat(path)
+			water := 0
+			for _, z := range b.env.Zones {
+				for _, fl := range z.Leaves {
+					if fl&ground.EnvWater != 0 {
+						water++
+					}
 				}
 			}
+			log.Printf("world %d (%s): environment of %d zones (%d world nodes, %d water leaves), %d KB", n, name, len(b.env.Zones), len(b.env.Tree.Nodes), water, st.Size()>>10)
 		}
-		log.Printf("world %d (%s): environment of %d zones (%d world nodes, %d water leaves), %d KB", n, name, len(env.Zones), len(env.Tree.Nodes), water, st.Size()>>10)
 		runtime.GC() // the world file's bytes go before the next is read
 	}
 }
 
-// bake is a world's zones' terrain (each zone's room placements' collision
-// strips, placed in the world; when terrain is asked) and its environment.
-func bake(iso, name string, terrain bool) ([]ground.Zone, *ground.WorldEnv, int, error) {
+// what is what a bake writes.
+type what struct{ terrain, walls, env bool }
+
+// baked is a world baked: its zones' terrain, what stands on it (the
+// collision buffers once each, and each zone's placements of them) and its
+// environment.
+type baked struct {
+	zones     []ground.Zone
+	verts     int
+	bufs      []ground.Buffer
+	wallZones []ground.WallZone
+	env       *ground.WorldEnv
+}
+
+// bake is a world baked: each zone's room placements' collision strips,
+// placed in the world (the terrain); each zone's actor placements'
+// collision buffers, kept once each in their own space, and where each is
+// placed (what stands on the terrain: a plant, which collides as nothing
+// (vanilla's SpriteKind::Flora), is left out); and its environment; each as
+// asked.
+func bake(iso, name string, want what) (*baked, error) {
 	f, err := esf.OpenISOFile(iso, name)
 	if err != nil {
-		return nil, nil, 0, err
+		return nil, err
 	}
 	defer f.Close()
 	root, err := f.Root()
 	if err != nil {
-		return nil, nil, 0, err
+		return nil, err
 	}
 	w := root.Child(esf.TypeWorld)
 	if w == nil {
-		return nil, nil, 0, fmt.Errorf("no world in it")
+		return nil, fmt.Errorf("no world in it")
 	}
-	env, err := bakeEnv(f, root, w.ChildrenOfType(esf.TypeZone))
-	if err != nil {
-		return nil, nil, 0, err
+	b := &baked{}
+	if want.env {
+		if b.env, err = bakeEnv(f, root, w.ChildrenOfType(esf.TypeZone)); err != nil {
+			return nil, err
+		}
 	}
-	if !terrain {
-		return nil, env, 0, nil
+	if !want.terrain && !want.walls {
+		return b, nil
 	}
-	var zones []ground.Zone
-	verts := 0
+	index := make(map[int]int) // a collision buffer's place in the file: its index in b.bufs, -1 for none
 	for _, zi := range w.ChildrenOfType(esf.TypeZone) {
 		obj, err := f.GetObject(zi)
 		if err != nil {
-			return nil, nil, 0, err
+			return nil, err
 		}
 		z, ok := obj.(*esf.Zone)
 		if !ok {
@@ -114,19 +155,35 @@ func bake(iso, name string, terrain bool) ([]ground.Zone, *ground.WorldEnv, int,
 		}
 		pls, err := z.GetSpritePlacements(f)
 		if err != nil {
-			return nil, nil, 0, err
+			return nil, err
 		}
 		var zone ground.Zone
+		var wz ground.WallZone
 		for _, sp := range pls {
-			if !sp.IsRoom {
-				continue // an actor's (a tree, a rock, a house): not the ground
+			if !sp.IsRoom && !want.walls || sp.IsRoom && !want.terrain {
+				continue
 			}
 			s, err := sp.GetSprite(f)
-			if err != nil || s == nil {
+			if err != nil || s == nil || sp.IsFlora {
 				continue
 			}
 			cb, err := s.GetCollBuffer(f)
 			if err != nil || cb == nil {
+				continue
+			}
+			if !sp.IsRoom {
+				bi, seen := index[cb.ObjInfo().Offset]
+				if !seen {
+					bi = -1
+					if buf := ownSpace(cb); len(buf.Strips) > 0 {
+						bi = len(b.bufs)
+						b.bufs = append(b.bufs, buf)
+					}
+					index[cb.ObjInfo().Offset] = bi
+				}
+				if bi >= 0 {
+					wz.Placements = append(wz.Placements, ground.Placement{Buffer: uint32(bi), M: matrix(sp)})
+				}
 				continue
 			}
 			for _, l := range cb.Lists {
@@ -140,12 +197,49 @@ func bake(iso, name string, terrain bool) ([]ground.Zone, *ground.WorldEnv, int,
 					strip[i] = ground.Vertex{X: p.X, Y: p.Y, Z: p.Z}
 				}
 				zone.Strips = append(zone.Strips, strip)
-				verts += len(strip)
+				b.verts += len(strip)
 			}
 		}
-		zones = append(zones, zone)
+		b.zones = append(b.zones, zone)
+		b.wallZones = append(b.wallZones, wz)
 	}
-	return zones, env, verts, nil
+	return b, nil
+}
+
+// ownSpace is a collision buffer's strips in its own space.
+func ownSpace(cb *esf.CollBuffer) ground.Buffer {
+	var buf ground.Buffer
+	for _, l := range cb.Lists {
+		if len(l.Vertices) < 3 {
+			continue
+		}
+		strip := make([]ground.Vertex, len(l.Vertices))
+		for i, v := range l.Vertices {
+			strip[i] = ground.Vertex{X: v.X, Y: v.Y, Z: v.Z}
+		}
+		buf.Strips = append(buf.Strips, strip)
+	}
+	return buf
+}
+
+// matrix is a placement's transform (sp.Transform: scale, turn, move) as a
+// 3x4 by rows: its turn and scale are where it takes each axis with the
+// move left out (so the columns keep their precision far from the origin),
+// its move the placement's position.
+func matrix(sp *esf.SpritePlacement) [12]float32 {
+	turn := *sp
+	turn.Pos = esf.Point{}
+	axis := func(x, y, z float32) esf.Point {
+		p := esf.Point{X: x, Y: y, Z: z}
+		turn.Transform(&p)
+		return p
+	}
+	ex, ey, ez := axis(1, 0, 0), axis(0, 1, 0), axis(0, 0, 1)
+	return [12]float32{
+		ex.X, ey.X, ez.X, sp.Pos.X,
+		ex.Y, ey.Y, ez.Y, sp.Pos.Y,
+		ex.Z, ey.Z, ez.Z, sp.Pos.Z,
+	}
 }
 
 // bakeEnv is a world's environment: the world base's tree (0x8200 -> 0x8230,

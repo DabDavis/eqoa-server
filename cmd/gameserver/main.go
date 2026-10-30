@@ -107,11 +107,14 @@ func main() {
 	}
 	// The ground creatures stand on (internal/ground), baked from the game's
 	// disc into <worlds>/ground by cmd/groundbake; without it they keep the
-	// heights they have.
+	// heights they have. What stands on it (<world>.walls, the same bake since
+	// F3 pass 24) keeps their wander off the walls; without those files only
+	// the terrain's own walls do.
 	if g, err := ground.Open(filepath.Join(worlds.Dir(cfg.Patch.WorldsDir), "ground")); err == nil {
 		gameWorld.SetGround(g)
 		nw, nz := g.Worlds()
-		log.Printf("Creatures: the ground of %d worlds (%d zones), read a zone at a time", nw, nz)
+		ww, wp := g.Walls()
+		log.Printf("Creatures: the ground of %d worlds (%d zones), read a zone at a time; what stands on it (walls) in %d worlds, %d placements", nw, nz, ww, wp)
 	} else {
 		log.Printf("Creatures: no ground (%v): they keep their heights as they move", err)
 	}

@@ -44,13 +44,13 @@ STAMP = "the user's pick of 2026-10-30, tools/fill_class_quest_picks.py"
 # The records made for the three quests the review suggested a staff for and no record of the class is:
 # (id, quest, its class, the item's name, the record copied, the line, why)
 MADE = [
-    (707200, 100340, 11, "Bal's Staff", 707114,
+    (709200, 100340, 11, "Bal's Staff", 707114,
      "Carved by Bal Noonlittle from a small gear wheel, a meat chunk, a sliver of snake meat and a fractured firefly thorax.",
      "the Staff of Necromancy's numbers (the necromancer's level-4 staff made for Highbourne), under its own quest's name"),
-    (707201, 100024, 12, "Salithal's Staff", 8585,
+    (709201, 100024, 12, "Salithal's Staff", 8585,
      "Carved by Salithal Grassweave from a bough of wood, a leather strip and a ruined bat wing.",
      "the wizard's level-4 staff of evocation, for the enchanter (no enchanter's staff of level 3-6 is)"),
-    (707202, 100320, 12, "Valespin's Staff", 8585,
+    (709202, 100320, 12, "Valespin's Staff", 8585,
      "Made by Prof. Valespin from an empty bottle, a small metal rod, snake scales and a cracked rat claw.",
      "the wizard's level-4 staff of evocation, for the enchanter (no enchanter's staff of level 3-6 is)"),
 ]

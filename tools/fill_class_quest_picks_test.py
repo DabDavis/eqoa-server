@@ -21,7 +21,7 @@ REVIEW = {
     100340: (None, "a staff"),
     100056: (8583, "Freeport's fancy slippers"),
 }
-MADE = [(707200, 100340, 11, "Bal's Staff", 707114, "Carved by Bal Noonlittle from a meat chunk.", "the Staff of Necromancy's numbers")]
+MADE = [(709200, 100340, 11, "Bal's Staff", 707114, "Carved by Bal Noonlittle from a meat chunk.", "the Staff of Necromancy's numbers")]
 QUESTS = [  # key, questid, name, [(kind, rewarditems)]
     ("1-20/grobb/warrior/L4", 100184, "A Warrior Weapon", [("talk", "")]),
     ("1-20/klick-anon/necromancer/L4", 100340, "Bal's Staff", [("loot", ""), ("give", "")]),
@@ -129,12 +129,12 @@ class FillClassQuestPicks(unittest.TestCase):
         n = self.apply()
         self.assertEqual((n["made"], n["quests"], n["given"]), (1, 3, 2))
         self.assertEqual(self.rw(100184), "8571")
-        self.assertEqual(self.rw(100340), "707200")
+        self.assertEqual(self.rw(100340), "709200")
         self.assertEqual(self.rw(100056), "8578, 8583", "beside the scroll the first fill gave")
-        self.assertEqual(self.q("SELECT itemname, itemdesc, classuse, raceuse, maxhp FROM itempattern WHERE patternid = 707200")[0],
+        self.assertEqual(self.q("SELECT itemname, itemdesc, classuse, raceuse, maxhp FROM itempattern WHERE patternid = 709200")[0],
                          ("Bal's Staff", "Carved by Bal Noonlittle from a meat chunk.", 2048, 271, 1000), "the made staff, its class's")
         self.assertEqual(self.q("SELECT serverid, patternid FROM charinventory WHERE serverid IN (301, 302) ORDER BY serverid"),
-                         [(301, 707200), (302, 8571)])
+                         [(301, 709200), (302, 8571)])
         self.assertEqual(self.q("SELECT count(*) FROM charinventory WHERE serverid = 303")[0][0], 1, "control: held already")
         self.assertEqual(self.rw(100550), "9999", "control: a quest the review does not name keeps its own")
         self.assertIn("The reward is ours: militia short sword", self.q("SELECT notes FROM quests WHERE questid = 100184")[0][0])

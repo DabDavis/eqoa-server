@@ -142,6 +142,8 @@ func (c *chatWorld) send(s *session.Session, op protocol.GameOpcode, data []byte
 		err = c.h.HandleShoutChat(s, incoming(op, data))
 	case protocol.OpcodeChangeChatMode:
 		err = c.h.HandleChangeChatMode(s, incoming(op, data))
+	case protocol.OpcodeRollRequest:
+		err = c.h.HandleRollRequest(s, incoming(op, data))
 	}
 	if err != nil {
 		c.t.Fatal(err)

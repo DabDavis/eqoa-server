@@ -87,6 +87,7 @@ func (h *ChatHandler) RegisterHandlers(r *Registry) {
 	r.Register(protocol.OpcodeClientShout, h.HandleShoutChat)
 	r.Register(protocol.OpcodeChangeChatMode, h.HandleChangeChatMode)
 	r.Register(protocol.OpcodeProfanityFilter, h.HandleProfanityFilter)
+	r.Register(protocol.OpcodeRollRequest, h.HandleRollRequest) // roll.go: the L2 menu's roll
 }
 
 // chatMode is the mode p's last 0x000E named, say before any.

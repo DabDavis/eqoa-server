@@ -26,6 +26,7 @@ class MergeNPCDuplicate(unittest.TestCase):
             (1630, "Guard Syon", 0, 24974.6, 34.9, 9451.2, 204, 0, 6, 3707576513),
             (2983, "Guard Syon", 0, 25201.2, 36.2, 9442.2, 0, 0, None, None),
             (3000, "Guard Other", 0, 1.0, 2.0, 3.0, 5, 0, 1, 2),
+            (100397, "Guard Nosun", 0, 25200.6, 36.0, 9425.3, 63, 0, 6, 1),
         ])
         db.commit()
         db.close()
@@ -48,6 +49,15 @@ class MergeNPCDuplicate(unittest.TestCase):
         self.assertEqual(rows, [(1630, 25201.2, 9442.2, 0, 6, 3707576513)], "one guard, dressed, where the naked one stood")
         self.tool("--undo")
         self.assertEqual(dump(self.path), self.before, "undo puts both back")
+
+    def test_facing_as_the_guard_beside_him(self):
+        self.tool("--keep", "1630", "--at", "2983", "--facing-of", "100397", "--apply")
+        db = sqlite3.connect(self.path)
+        got = db.execute("SELECT x_coord, z_coord, facing FROM npcs WHERE id = 1630").fetchone()
+        db.close()
+        self.assertEqual(got, (25201.2, 9442.2, 63), "the naked one's place, Guard Nosun's facing")
+        self.tool("--undo")
+        self.assertEqual(dump(self.path), self.before, "undo puts both back, the facing too")
 
     def test_two_names_are_refused(self):
         r = self.tool("--keep", "1630", "--at", "3000", "--apply", check=False)

@@ -2,14 +2,15 @@
 """One NPC where two of the same name stood: the row kept takes the other's place, and the other is
 deleted (the user, 2026-10-30: "guard Syon in neriak has a duplicate, one is naked the other towards
 the coach, should be where the naked one is": Guard Syon 1630, dressed, by the coach, and 2983, no
-gear, where he belongs).
+gear, where he belongs; "also make him face the way the nearby guard adjacent is facing": Guard Nosun,
+100397, 17 off, facing 63).
 
-    tools/merge_npc_duplicate.py --keep 1630 --at 2983 [--db eqoa.db] [--apply]
+    tools/merge_npc_duplicate.py --keep 1630 --at 2983 [--facing-of 100397] [--db eqoa.db] [--apply]
     tools/merge_npc_duplicate.py --undo [--db eqoa.db]
 
 --keep is the row that stays (its body, gear, level and the rest), --at the row whose place
-(x, y, z, facing, world, zone) it takes and which is then deleted. Both must be the same name, case
-aside. Both rows are logged whole in npc_merge_log; --undo puts the deleted row back with its own id
+(x, y, z, facing, world, zone) it takes and which is then deleted, facing as --facing-of's NPC
+does when one is named. Both must be the same name, case aside. Both rows are logged whole in npc_merge_log; --undo puts the deleted row back with its own id
 and the kept one where it stood, each only if the kept one is still where this left it. Report only
 by default. The server reads npcs at start: apply with it stopped, or restart it after.
 """
@@ -45,12 +46,15 @@ def plan(db, keep, at):
     return k, a
 
 
-def apply(db, k, a):
+def apply(db, k, a, facing=None):
     db.execute(LOG_DDL)
     db.execute("INSERT INTO npc_merge_log (kept, gone, kept_before, gone_row) VALUES (?, ?, ?, ?)",
                (k["id"], a["id"], json.dumps(k), json.dumps(a)))
+    place = dict((c, a[c]) for c in PLACE)
+    if facing is not None:
+        place["facing"] = facing
     db.execute(f"UPDATE npcs SET {', '.join(f'{c} = ?' for c in PLACE)} WHERE id = ?",
-               [a[c] for c in PLACE] + [k["id"]])
+               [place[c] for c in PLACE] + [k["id"]])
     db.execute("DELETE FROM npcs WHERE id = ?", (a["id"],))
 
 
@@ -62,7 +66,7 @@ def undo(db):
     for kid, gid, kb, gr in db.execute("SELECT kept, gone, kept_before, gone_row FROM npc_merge_log ORDER BY seq DESC").fetchall():
         kb, gr = json.loads(kb), json.loads(gr)
         now = row(db, kid)
-        if now is None or any(now[c] != gr[c] for c in PLACE) or row(db, gid) is not None:
+        if now is None or any(now[c] != gr[c] for c in PLACE if c != "facing") or row(db, gid) is not None:
             kept += 1
             continue
         db.execute(f"UPDATE npcs SET {', '.join(f'{c} = ?' for c in PLACE)} WHERE id = ?", [kb[c] for c in PLACE] + [kid])
@@ -78,6 +82,7 @@ def main():
     ap.add_argument("--db", default="eqoa.db")
     ap.add_argument("--keep", type=int)
     ap.add_argument("--at", type=int)
+    ap.add_argument("--facing-of", type=int, help="face as this NPC does")
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--apply", action="store_true")
     g.add_argument("--undo", action="store_true")
@@ -92,13 +97,20 @@ def main():
     if a.keep is None or a.at is None:
         sys.exit("--keep and --at")
     k, at = plan(db, a.keep, a.at)
+    facing = None
+    if a.facing_of is not None:
+        f = row(db, a.facing_of)
+        if f is None:
+            sys.exit(f"refused: npcs {a.facing_of} is not here")
+        facing = f["facing"]
     print(f"{k['npc_name']!r}: {k['id']} (kept) from ({k['x_coord']:.1f}, {k['z_coord']:.1f}) to "
-          f"{at['id']}'s ({at['x_coord']:.1f}, {at['z_coord']:.1f}); {at['id']} deleted")
+          f"{at['id']}'s ({at['x_coord']:.1f}, {at['z_coord']:.1f}); {at['id']} deleted"
+          + (f"; facing {facing}, as {a.facing_of}" if facing is not None else ""))
     if not a.apply:
         print("report only: --apply to write")
         return
     db.execute("BEGIN IMMEDIATE")
-    apply(db, k, at)
+    apply(db, k, at, facing)
     db.execute("COMMIT")
     print("merged; restart the server for the world to have it")
 

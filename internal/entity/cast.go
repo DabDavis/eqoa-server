@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"time"
@@ -32,7 +33,11 @@ import (
 //     friendly." (a harmful spell on a friend, the caster too), "Target is
 //     not friendly." (a heal on a creature), "Out of range.", "Not enough
 //     power.";
-//   - a cast sent during another, or during its own lockout: nothing at all.
+//   - a cast sent during another's cast time (and 0.4 s on): nothing at all;
+//   - a cast sent into its own recovery, its cast time over: the red line
+//     "Recovery time for that ability has not been met (N.N s)" and the
+//     player's own 0x00B1 at itself, cast 0, the lockout cloud 0x9EC7854A,
+//     at most one about every 1.25 s (recoveryAnswerLocked).
 //
 // What a spell does comes from its line (spelltext.go); a line this cannot
 // read lands as nothing, the cast itself (power, lockout, animation) as on
@@ -87,6 +92,36 @@ const (
 )
 
 var castRefusalRGB = [3]byte{255, 63, 63}
+
+// A cast into its own recovery, as Sandstorm answered four spells spammed
+// (lane-spellfx24, 2026-10-30: Rockskin, Minor Healing, Roar and Focus): its
+// red line, the lockout left to a tenth ("(300.2 s)"), and the player's own
+// CastingCombat at itself, cast 0, the lockout cloud (SPELLFX.CSF's effect
+// 216: a puff of dust at the feet with a sound), sent as a cast is, so those
+// around see it too (an alchemist spamming beside the recorder was seen so).
+// A send in the cast time itself got nothing; after it, Sandstorm answered at
+// most one about every 1.25 s (1.03-1.40 s apart, mostly 1.25, to sends 0.25 s
+// apart) and dropped the rest: recoveryAnswerGap.
+const (
+	castRecoveryWords        = "Recovery time for that ability has not been met (%.1f s)"
+	fxLockoutCloud    uint32 = 0x9EC7854A
+	recoveryAnswerGap        = 1200 * time.Millisecond
+)
+
+// recoveryAnswerLocked answers a cast sent into its own recovery (left of it
+// to go), unless one was answered less than recoveryAnswerGap ago.
+func (w *World) recoveryAnswerLocked(sess *session.Session, p *Player, spell *CastSpell, left time.Duration, now time.Time) {
+	if !p.recoveryAnswered.IsZero() && now.Sub(p.recoveryAnswered) < recoveryAnswerGap {
+		log.Printf("Cast: %s casts %q, locked out for %v: not answered (%v after the last answer)", p.Name, spell.Name,
+			left.Round(time.Millisecond), now.Sub(p.recoveryAnswered).Round(time.Millisecond))
+		return
+	}
+	p.recoveryAnswered = now
+	text := fmt.Sprintf(castRecoveryWords, left.Seconds())
+	log.Printf("Cast: %s casts %q, locked out for %v: %q", p.Name, spell.Name, left.Round(time.Millisecond), text)
+	w.sendColoredLocked(sess, text, castRefusalRGB)
+	w.broadcastCastLocked(p, p.ServerID, 0, fxLockoutCloud)
+}
 
 // The visuals Sandstorm's recorded casts named, as the stand-ins for spells
 // with none recorded: a heal's (Minor Healing's and Healing's), a strike's
@@ -180,12 +215,13 @@ func StandInVisuals() map[string]uint32 {
 
 // castState is one cast, from its start to its landing.
 type castState struct {
-	spell   CastSpell
-	caster  EntityID
-	targets []EntityID
-	others  []EntityID // an area spell's others (area.go)
-	ends    time.Time  // the cast time over: the caster may cast again
-	lands   time.Time
+	spell    CastSpell
+	caster   EntityID
+	targets  []EntityID
+	others   []EntityID // an area spell's others (area.go)
+	ends     time.Time  // the cast time over: the caster may cast again
+	lands    time.Time
+	castEnds time.Time // the cast time itself over (ends less castBusy)
 }
 
 // castLockout is one ability's lockout: 0x00CD again when it is over.
@@ -488,12 +524,17 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 		return false
 	}
 	if p.Casting != nil && now.Before(p.Casting.ends) {
-		log.Printf("Cast: %s casts %q during %q: not answered", p.Name, spell.Name, p.Casting.spell.Name)
-		return false
+		// the same spell past its cast time is its recovery's to answer
+		// (below); within the cast time, or another spell in the 0.4 s
+		// after it: nothing, as on Sandstorm
+		if p.Casting.spell.SpellID != spell.SpellID || now.Before(p.Casting.castEnds) {
+			log.Printf("Cast: %s casts %q during %q: not answered", p.Name, spell.Name, p.Casting.spell.Name)
+			return false
+		}
 	}
 	for _, l := range p.Lockouts {
 		if l.spellID == spell.SpellID && now.Before(l.until) {
-			log.Printf("Cast: %s casts %q, locked out for %v: not answered", p.Name, spell.Name, l.until.Sub(now).Round(time.Millisecond))
+			w.recoveryAnswerLocked(sess, p, &spell, l.until.Sub(now), now)
 			return false
 		}
 	}
@@ -548,7 +589,8 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 	w.breakInvisLocked(p, "a spell cast") // invis.go
 	lockout := spell.CastTime + spell.Recast + castLockoutExtra
 	p.Lockouts = append(p.Lockouts, castLockout{spellID: spell.SpellID, displayIndex: spell.DisplayIndex, until: now.Add(lockout)})
-	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + castBusy), lands: now.Add(spell.CastTime + castLand)}
+	cs := &castState{spell: spell, caster: p.ServerID, targets: targets, ends: now.Add(spell.CastTime + castBusy), lands: now.Add(spell.CastTime + castLand),
+		castEnds: now.Add(spell.CastTime)}
 	w.areaStartLocked(p, cs, now) // area.go: an area spell's others
 	p.Casting = cs
 	w.casts = append(w.casts, cs)

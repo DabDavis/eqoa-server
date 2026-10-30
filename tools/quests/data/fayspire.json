@@ -231,13 +231,16 @@
      "journal": "Bring drained poison sac and Burlap Bracers to Venathorn.",
      "says": "Your bracers.",
      "rewards": {
-      "xp": 17000
+      "xp": 17000,
+      "items": [
+       "Venomguard Bracers"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The bracers are bought in the guide; here Sinthios hands them over. The tree snakes stand in for green snakes. Not on this server, left out of the rewards: the item \"Venomguard Bracers\"."
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 4\" (github.com/Jadiction/EQOA-Data, MIT). The bracers are bought in the guide; here Sinthios hands them over. The tree snakes stand in for green snakes. Not on this server, left out of the rewards: the item \"Venomguard Bracers\". The reward is ours: Venomguard Bracers, the item the guide names, made for this server (Treated by Venathorn with a drained poison sac, from burlap bracers) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/alchemist/L5",
@@ -416,13 +419,16 @@
      "journal": "Speak with Venathorn.",
      "says": "Well done.",
      "rewards": {
-      "xp": 528916
+      "xp": 528916,
+      "items": [
+       "Alchemist Apprentice Staff"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Alchemist Apprentice Staff\"."
+   "notes": "EQOA-Data Quests/1-20/fayspire/alchemist.json, \"# Level 10\" (github.com/Jadiction/EQOA-Data, MIT). Not on this server, left out of the rewards: the item \"Alchemist Apprentice Staff\". The reward is ours: Alchemist Apprentice Staff, the item the guide names, made for this server (Given by Venathorn for the wings Amelie wanted) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/alchemist/L13",
@@ -3379,13 +3385,16 @@
      "journal": "Bring 2 sliver of bat meats to Itheria Silverwind.",
      "says": "Good.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Hero Guard"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. The reward is ours: the Hero Guard scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/paladin/L4",
@@ -3503,13 +3512,16 @@
      "journal": "Bring elddar seeds to Sir Lothwin Galiel.",
      "says": "Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Lay Hands"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 5\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-5 quest gives in EQOA-Data's guides. The reward is ours: the Lay Hands scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/paladin/L7",
@@ -3555,13 +3567,16 @@
      "journal": "Bring Bank Key to Sir Lothwin Galiel.",
      "says": "Good.",
      "rewards": {
-      "xp": 157474
+      "xp": 157474,
+      "items": [
+       "Protectorate"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 7\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-7 quest gives in EQOA-Data's guides. The reward is ours: the Protectorate scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/paladin/L10",
@@ -3792,13 +3807,16 @@
      "journal": "Bring Fish Stomach to Dolby.",
      "says": "Everything. Well done.",
      "rewards": {
-      "xp": 550698
+      "xp": 550698,
+      "items": [
+       "Towering Wall"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 13\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-13 quest gives in EQOA-Data's guides. The reward is ours: the Towering Wall scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/paladin/L15",
@@ -3916,13 +3934,16 @@
      "journal": "Speak with Dolby.",
      "says": "Well done.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Knight's Bash"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 15\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-15 quest gives in EQOA-Data's guides. The reward is ours: the Knight's Bash scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/paladin/L20",
@@ -4029,12 +4050,33 @@
      "says": "Well done.",
      "rewards": {
       "xp": 2814929
-     }
+     },
+     "choose": "Which do you take?",
+     "choices": [
+      {
+       "answer": "Fortify",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Fortify"
+        ]
+       }
+      },
+      {
+       "answer": "Shining Bastion",
+       "says": "Then it is yours.",
+       "rewards": {
+        "items": [
+         "Shining Bastion"
+        ]
+       }
+      }
+     ]
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/paladin.json, \"# Level 20\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-20 quest gives in EQOA-Data's guides. The reward is ours: the choice of the Fortify or the Shining Bastion scroll, the two level-20 paths every city's guide offers (their weapons, each city's own, left out) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/wizard/L1",
@@ -4173,13 +4215,16 @@
      "journal": "Bring 2 Strands of Rat Furs to Professor Blacklake.",
      "says": "Thank you.",
      "rewards": {
-      "xp": 6900
+      "xp": 6900,
+      "items": [
+       "Arcane Bindings"
+      ]
      }
     }
    ],
    "events": [],
    "unresolved": [],
-   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides."
+   "notes": "EQOA-Data Quests/1-20/fayspire/wizard.json, \"# Level 3\" (github.com/Jadiction/EQOA-Data, MIT). This guide gives no experience; it is what every class's level-3 quest gives in EQOA-Data's guides. The reward is ours: the Arcane Bindings scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/fayspire/wizard/L4",

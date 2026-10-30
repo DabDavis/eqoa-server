@@ -1464,12 +1464,15 @@
      "journal": "Return to Smithy Cragis.",
      "says": "Good. Here is a tunic for your trouble.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Endure Poison"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Underlord Burgrish is Underlord Bugrish here, and its Turgot is Torgot. The guide's tunic and Torgot's scroll are unnamed. The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/shaman.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide's Underlord Burgrish is Underlord Bugrish here, and its Turgot is Torgot. The guide's tunic and Torgot's scroll are unnamed. The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Endure Poison scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/shaman/L20",
@@ -1890,12 +1893,15 @@
      ],
      "says": "A casting stone. Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Taunt"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/grobb/warrior.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Taunt scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/grobb/warrior/L7",

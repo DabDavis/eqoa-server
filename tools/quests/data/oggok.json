@@ -2099,12 +2099,15 @@
      ],
      "says": "Bound together. Well done.",
      "rewards": {
-      "xp": 883791
+      "xp": 883791,
+      "items": [
+       "Endure Poison"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/shaman.json, # Level 15 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Endure Poison scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/shaman/L20",
@@ -2495,12 +2498,15 @@
      ],
      "says": "The outcast is dead. Good.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Taunt"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/oggok/warrior.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The reward is ours: the Taunt scroll, made for it (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/oggok/warrior/L7",

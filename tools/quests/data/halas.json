@@ -1029,12 +1029,15 @@
      "journal": "Bring the two strands of spider silk to Juno Felligan.",
      "says": "This silk will bind a fine blade.",
      "rewards": {
-      "xp": 556753
+      "xp": 556753,
+      "items": [
+       "The Slicer's Special"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). Reward left out (not in the database): item The Slicer's Special."
+   "notes": "From EQOA-Data's guide (Quests/1-20/halas/rogue.json, Level 10; github.com/Jadiction/EQOA-Data). Reward left out (not in the database): item The Slicer's Special. The reward is ours: The Slicer's Special, the item the guide names, made for this server (Forged by Juno Felligan with the silk of the ice spider queen) (tools/seed_class_quest_rewards.py, 2026-10-30)."
   },
   {
    "key": "1-20/halas/rogue/L13",

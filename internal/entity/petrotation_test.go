@@ -3,6 +3,7 @@ package entity
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 	"testing"
 	"time"
 
@@ -458,5 +459,64 @@ func TestASpectresLateInstantIsDropped(t *testing.T) {
 		if sent != c.sent || !ps.specialAt.IsZero() {
 			t.Errorf("%v late: sent %v, want %v; still lined up %v", c.late, sent, c.sent, !ps.specialAt.IsZero())
 		}
+	}
+}
+
+// A recorded kind's melee keeps the damage a second our round gave the pet:
+// on the same fixed dice, with no taps, over two minutes the zombie of 25,
+// the mummy of 35 and the spectre of 44 take off what the same pet fighting
+// as ours (the same summoning under a name not recorded: the same body,
+// level and round) takes off, within 5%. Each hit is scaled by our round's
+// hits a second over Sandstorm's: x1 for the zombie (our round at 25 is
+// Sandstorm's), x4/3 for the mummy (four hits in 6 s against two in 4) and
+// x1.73 for the spectre (two in 5.2 s).
+func TestARecordedPetKeepsItsDamageASecond(t *testing.T) {
+	old := meleeIntn
+	meleeIntn = func(n int) int { return n / 2 }
+	t.Cleanup(func() { meleeIntn = old })
+	dealt := func(t *testing.T, spell CastSpell) (int, float64, petKind) {
+		t.Helper()
+		r := newPetRig(t)
+		r.p.Class, r.p.Level = classNecromancer, 51
+		r.w.petTaps = nil
+		r.enemy.HP, r.enemy.MaxHP, r.enemy.Level = 1_000_000, 1_000_000, 1
+		pet, _ := r.summon(t, spell, 0)
+		ox, oz := pet.X, pet.Z
+		pet.X, pet.Y, pet.Z = r.enemy.X-2, r.enemy.Y, r.enemy.Z
+		r.w.SpatialIndex.Update(pet.ServerID, ox, oz, pet.X, pet.Z)
+		r.w.PetCommand(r.sess, petCmdAttack, crabObject, r.at(9600*time.Millisecond))
+		for ms := 9700; ms <= 9700+120000; ms += 100 {
+			r.w.mu.Lock()
+			r.w.petSystem(r.at(time.Duration(ms) * time.Millisecond))
+			r.w.mu.Unlock()
+			r.sent()
+		}
+		ps := r.w.pets[r.p.ServerID]
+		return r.enemy.MaxHP - r.enemy.HP, ps.hitScale, ps.kind
+	}
+	for _, c := range []struct {
+		name  string
+		spell CastSpell
+		scale float64
+	}{
+		{"zombie", decayingFlesh(), 1},
+		{"mummy", putridFlesh(), (4.0 / 6) / (2.0 / 4)},
+		{"spectre", howlingDeath(), (4.0 / 6) / (2 / 5.2)},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			got, scale, kind := dealt(t, c.spell)
+			ours := c.spell
+			ours.Name += " Unrecorded"
+			want, oursScale, oursKind := dealt(t, ours)
+			if kind == petKindOurs || oursKind != petKindOurs || oursScale != 1 {
+				t.Fatalf("kinds %v and %v (scale %v): want a recorded kind against ours", kind, oursKind, oursScale)
+			}
+			if math.Abs(scale-c.scale) > 1e-6 {
+				t.Errorf("hits x%.4f, want x%.4f", scale, c.scale)
+			}
+			if want == 0 || math.Abs(float64(got-want)) > 0.05*float64(want) {
+				t.Errorf("took off %d in two minutes, ours %d: want within 5%%", got, want)
+			}
+		})
 	}
 }

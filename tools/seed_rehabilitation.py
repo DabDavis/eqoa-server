@@ -3,8 +3,8 @@
 garden and another near freeport NPC, talk to them", "the rehab person sells it for 10 million tunar. Rose of
 Rehabilitation", "Roses for paths", and "1 free path respec w/ 60 epic. Or rose as reward".
 
-  - The Rose of Rehabilitation, item 709300 (ROSE_ID; Go's database.RoseOfRehabilitation): what undoes a path at a
-    rehabilitator once a character's free path respecs are used. It takes "rose of renewal"'s look (1001: its icon
+  - The Rose of Rehabilitation, item 709300 (ROSE_ID; Go's database.RoseOfRehabilitation): what pays a rehabilitator
+    for a path chosen again once a character's free path respecs are used. It takes "rose of renewal"'s look (1001: its icon
     759960290 is a pink rose on the disc's ITEMICON.ESF, where Oceanic Rose's 1342617881 is a coil of rope, the
     quest import's art for 163 items), is worth 10,000,000 (a merchant will not buy it: handlers/merchant.go),
     NO TRADE (trade 1) and one a record.
@@ -16,9 +16,11 @@ Rehabilitation", "Roses for paths", and "1 free path respec w/ 60 epic. Or rose 
     before is given a rose for each such quest it finished, less every rose it holds, has used at a rehabilitator
     (charresets: a path paid for) or this gave it before, so no run gives one twice (one a character an epic; an
     epic's reward quest is not repeatable, so it is finished once), the way a quest gives an item (the inventory's
-    next place).
+    next place; the bank's when the pack holds its 40 records, as a client's list does; none while both are full,
+    for a later run to give).
 
-Every row written or changed is logged in rehab_seed; --undo puts back only what is still as this left it. One
+Every row written or changed is logged in rehab_seed (the rose's id raising itempattern's AUTOINCREMENT mark too);
+--undo puts back only what is still as this left it, the mark only when no item stands above where it was. One
 transaction. A report by default. --write-data DIR names the rose in the epics' quest file there (60.json, written
 in its own layout: json.dump with indent 1), so a re-import writes what --apply does. The server reads the npcs and
 the quests at its start: apply this before the restart that brings the rehabilitators' code (an item record is read
@@ -40,8 +42,9 @@ ROSE_LOOK = 1001  # rose of renewal
 ROSE_ICON = 759960290
 ROSE_VALUE = 10_000_000
 ROSE_DESC = ("Bring this rose to Rehabilitator Anja in Muniel's Tea Garden or Rehabilitator Frejo near Freeport "
-             "to undo a path once your free path respecs are spent.")
+             "to choose a path again once your free path respecs are spent.")
 NPC_BIT = 0x80
+LIST_CAP = 40  # the records a client's item list holds (VIItemList's ItemInternal[40]), the pack's and the bank's
 EPIC_KEY = re.compile(r"^EQOA-Data (60/[^/ ]+/reward-[a-z]+) \(tools/import_quests\.py\)$")
 EPIC_FILE_KEY = re.compile(r"^60/[^/]+/reward-[a-z]+$")
 
@@ -110,9 +113,20 @@ def epic_quests(db):
     return out
 
 
+def place_for(db, sid, taken):
+    """Where a rose given to a character goes: its pack (location 0) while that holds fewer than LIST_CAP records
+    (worn ones among them), else its bank (location 1), else nowhere (None). taken is what this run gave already."""
+    for loc in (0, 1):
+        n = db.execute("SELECT count(*) FROM charinventory WHERE serverid = ? AND location = ?", (sid, loc)).fetchone()[0]
+        if n + taken.get((sid, loc), 0) < LIST_CAP:
+            taken[(sid, loc)] = taken.get((sid, loc), 0) + 1
+            return loc
+    return None
+
+
 def plan(db):
     """What --apply would do, and what it would refuse."""
-    p = {"rose": None, "npcs": [], "rewards": [], "given": [], "problems": []}
+    p = {"rose": None, "npcs": [], "rewards": [], "given": [], "noroom": [], "problems": []}
     here = row(db, "SELECT itemname FROM itempattern WHERE patternid = ?", (ROSE_ID,))
     if here is None:
         p["rose"] = the_rose(db)
@@ -137,14 +151,26 @@ def plan(db):
         used = {}
         if has_table(db, "charresets"):
             used = dict(db.execute("SELECT serverid, paid FROM charresets WHERE kind = 'path'").fetchall())
+        taken = {}
         for sid, done in db.execute(f"SELECT serverid, count(*) FROM charquests WHERE questid IN ({ids}) AND done > 0 "
                                     "GROUP BY serverid ORDER BY serverid").fetchall():
             held = db.execute("SELECT COALESCE(SUM(stackleft), 0) FROM charinventory WHERE serverid = ? AND patternid = ?",
                               (sid, ROSE_ID)).fetchone()[0]
-            owed = done - held - given_before.get(sid, 0) - used.get(sid, 0)
-            if owed > 0:
-                p["given"].append((sid, owed))
+            for _ in range(done - held - given_before.get(sid, 0) - used.get(sid, 0)):
+                loc = place_for(db, sid, taken)
+                if loc is None:
+                    p["noroom"].append(sid)
+                else:
+                    p["given"].append((sid, loc))
     return p
+
+
+def sequence(db, table):
+    """AUTOINCREMENT's high-water mark for a table (sqlite_sequence), None without one."""
+    if not has_table(db, "sqlite_sequence"):
+        return None
+    r = db.execute("SELECT seq FROM sqlite_sequence WHERE name = ?", (table,)).fetchone()
+    return None if r is None else r[0]
 
 
 def log(db, tbl, rid, col, old, new):
@@ -158,7 +184,11 @@ def apply(db, p):
     if p["rose"] is not None:
         rose = p["rose"]
         cols = list(rose)
+        seq = sequence(db, "itempattern")
         db.execute(f"INSERT INTO itempattern ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})", [rose[c] for c in cols])
+        if sequence(db, "itempattern") != seq:
+            # an id above the high-water mark raises it: logged first, so an undo puts it back after the rose goes
+            log(db, "sqlite_sequence", "itempattern", "seq", seq, sequence(db, "itempattern"))
         log(db, "itempattern", ROSE_ID, "*", None, rose)
         n["items"] += 1
     for nid, _, t in p["npcs"]:
@@ -169,14 +199,13 @@ def apply(db, p):
         db.execute("UPDATE queststeps SET rewarditems = ? WHERE questid = ? AND step = ?", (new, qid, step))
         log(db, "queststeps", f"{qid}/{step}", "rewarditems", old, new)
         n["rewards"] += 1
-    for sid, owed in p["given"]:
-        for _ in range(owed):
-            cur = db.execute(
-                "INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, "
-                "listnumber) VALUES (?, 1, 0, 0, ?, -1, 0, (SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory "
-                "WHERE serverid = ? AND location = 0))", (sid, ROSE_ID, sid))
-            log(db, "charinventory", cur.lastrowid, "*", None, {"serverid": sid, "patternid": ROSE_ID})
-            n["given"] += 1
+    for sid, loc in p["given"]:
+        cur = db.execute(
+            "INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, location, "
+            "listnumber) VALUES (?, 1, 0, 0, ?, -1, ?, (SELECT COALESCE(MAX(listnumber), -1) + 1 FROM charinventory "
+            "WHERE serverid = ? AND location = ?))", (sid, ROSE_ID, loc, sid, loc))
+        log(db, "charinventory", cur.lastrowid, "*", None, {"serverid": sid, "patternid": ROSE_ID})
+        n["given"] += 1
     return n
 
 
@@ -203,6 +232,15 @@ def undo(db):
         elif tbl == "charinventory":
             ok = db.execute("DELETE FROM charinventory WHERE itemid = ? AND serverid = ? AND patternid = ?",
                             (int(rid), new["serverid"], new["patternid"])).rowcount > 0
+        elif tbl == "sqlite_sequence" and rid == "itempattern":
+            # lowered only while still where this left it and no item stands above the old mark: an item made
+            # since keeps the mark it raised, so no id is ever given twice
+            if db.execute("SELECT count(*) FROM itempattern WHERE patternid > ?", (old or 0,)).fetchone()[0] == 0:
+                if old is None:
+                    ok = db.execute("DELETE FROM sqlite_sequence WHERE name = ? AND seq = ?", (rid, new)).rowcount > 0
+                else:
+                    ok = db.execute("UPDATE sqlite_sequence SET seq = ? WHERE name = ? AND seq = ?",
+                                    (old, rid, new)).rowcount > 0
         back, kept = (back + 1, kept) if ok else (back, kept + 1)
     db.execute("DROP TABLE rehab_seed")
     print(f"put back {back}; left {kept} changed since")
@@ -259,8 +297,10 @@ def main():
         print(f"npc {nid} {name!r}: npc_type {t} -> {t | NPC_BIT} (talks)")
     for qid, key, step, old, new in p["rewards"]:
         print(f"quest {qid} {key} step {step}: rewards {old!r} -> {new!r}")
-    for sid, owed in p["given"]:
-        print(f"character {sid}: given {owed} rose(s) for epics finished before")
+    for sid, loc in p["given"]:
+        print(f"character {sid}: given a rose for an epic finished before" + (" (in its bank: its pack is full)" if loc else ""))
+    for sid in p["noroom"]:
+        print(f"character {sid}: owed a rose, but its pack and bank are full: given none (a later run gives it)")
     for x in p["problems"]:
         print("PROBLEM:", x)
     if not a.apply:

@@ -133,6 +133,8 @@ def main():
 
     counts = collections.Counter(n for (n,) in db.execute("SELECT npc_name FROM npcs"))
     keep = {key(k) for k in args.keep}
+    # a measured name in any case (tools/fix_npc_name_case.py spells the minnow "cave minnow")
+    measured = {key(k): v for k, v in MEASURED.items()}
     rows = {}
     for name, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0])):
         k = key(name)
@@ -142,8 +144,8 @@ def main():
             spell, where = spells[k]
             rows[name] = (f"a summoned pet's name ({where}: {spell}): a player's pet recorded beside its "
                           f"owner, not wildlife", n)
-        elif name in MEASURED:
-            rows[name] = (MEASURED[name], n)
+        elif k in measured:
+            rows[name] = (measured[k], n)
 
     db.execute(SCHEMA)
     have = {n: s for n, s in db.execute("SELECT npc_name, source FROM npcaggro")}

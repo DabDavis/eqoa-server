@@ -216,7 +216,8 @@ func TestCastRefusalsAreSandstorms(t *testing.T) {
 	}
 }
 
-// A cast sent during another, or into its own lockout, is not answered.
+// A cast sent during another, or during its own cast time, is not
+// answered; the other spell is free once the cast is over.
 func TestCastDuringACastIsNotAnswered(t *testing.T) {
 	c := newCaster(t)
 	c.w.StartCast(c.sess, minorHeal(), c.me, c.at(0))
@@ -227,12 +228,72 @@ func TestCastDuringACastIsNotAnswered(t *testing.T) {
 	if c.w.StartCast(c.sess, strike(), c.npcO, c.at(2399*time.Millisecond)) || len(c.sent()) != 0 {
 		t.Error("a cast within cast time + 0.4 s was answered")
 	}
-	// the other spell is free once the cast is over; the same one is not
-	if c.w.StartCast(c.sess, minorHeal(), c.me, c.at(2500*time.Millisecond)) || len(c.sent()) != 0 {
-		t.Error("a cast into its own lockout was answered")
+	if c.w.StartCast(c.sess, minorHeal(), c.me, c.at(1999*time.Millisecond)) || len(c.sent()) != 0 {
+		t.Error("a cast within its own cast time was answered")
 	}
 	if !c.w.StartCast(c.sess, strike(), c.npcO, c.at(2500*time.Millisecond)) {
 		t.Error("another spell after the cast was refused")
+	}
+}
+
+// A cast sent into its own recovery, its cast time over, is answered as
+// Sandstorm answered four spammed (lane-spellfx24): the red line with the
+// lockout left to a tenth, Sandstorm's bytes for its "(3.2 s)", and the
+// player's own 0x00B1 at itself, cast 0, the lockout cloud 0x9EC7854A, in
+// those bytes with this player's id; then nothing for 1.2 s, then answered
+// again; nothing taken, nothing begun, until the lockout is over. The
+// controls: a send within the cast time gets nothing; another spell in the
+// 0.4 s after the cast gets nothing.
+func TestCastIntoItsRecoveryIsAnswered(t *testing.T) {
+	c := newCaster(t)
+	rock := minorHeal()
+	rock.SpellID, rock.DisplayIndex, rock.CastTime, rock.Recast = 353, 8, 4*time.Second, 3*time.Second // Rockskin's 4 + 3: 7300 ms
+	if !c.w.StartCast(c.sess, rock, c.me, c.at(0)) {
+		t.Fatal("the cast did not begin")
+	}
+	c.sent()
+	power := c.p.Power
+	if c.w.StartCast(c.sess, rock, c.me, c.at(3500*time.Millisecond)) || len(c.sent()) != 0 {
+		t.Error("a send within its cast time was answered")
+	}
+	if c.w.StartCast(c.sess, strike(), c.npcO, c.at(4100*time.Millisecond)) || len(c.sent()) != 0 {
+		t.Error("another spell 0.1 s after the cast was answered")
+	}
+	// 4.1 s in: 3.2 s of the 7.3 left, as Sandstorm's line said 4.26 s into its Rockskin
+	if c.w.StartCast(c.sess, rock, c.me, c.at(4100*time.Millisecond)) {
+		t.Fatal("begun inside its own lockout")
+	}
+	msgs := c.sent()
+	wantOps(t, msgs, protocol.OpcodeColoredChat, protocol.OpcodeCastingCombat)
+	line := unhex(t, "7b0a370000005200650063006f0076006500720079002000740069006d006500200066006f007200200074006800610074002000"+
+		"6100620069006c00690074007900200068006100730020006e006f00740020006200650065006e0020006d00650074002000280033002e00"+
+		"3200200073002900ff3f3f")
+	if !bytes.Equal(msgs[0], line) {
+		t.Errorf("the line % X\n want Sandstorm's % X", msgs[0], line)
+	}
+	if cloud := unhex(t, "b100d0a12414d0a1241400000000004a85c79e"); !bytes.Equal(msgs[1], cloud) {
+		t.Errorf("the cloud % X, want % X", msgs[1], cloud)
+	}
+	for _, ms := range []int{4350, 4600, 5250} { // 1.2 s to the next answer (5.3 s)
+		if c.w.StartCast(c.sess, rock, c.me, c.at(time.Duration(ms)*time.Millisecond)) || len(c.sent()) != 0 {
+			t.Errorf("answered again at %d ms, within 1.2 s", ms)
+		}
+	}
+	if c.w.StartCast(c.sess, rock, c.me, c.at(5400*time.Millisecond)) {
+		t.Fatal("begun inside its own lockout")
+	}
+	msgs = c.sent()
+	wantOps(t, msgs, protocol.OpcodeColoredChat, protocol.OpcodeCastingCombat)
+	if !bytes.Contains(msgs[0], utf16le(" (1.9 s)")) {
+		t.Errorf("the second line % X, want the 1.9 s left", msgs[0])
+	}
+	if c.p.Power != power || len(c.p.Lockouts) != 1 {
+		t.Errorf("an answer took power or locked: power %d -> %d, %d lockouts", power, c.p.Power, len(c.p.Lockouts))
+	}
+	c.tick(7300 * time.Millisecond) // the lockout's end
+	c.sent()
+	if !c.w.StartCast(c.sess, rock, c.me, c.at(7400*time.Millisecond)) {
+		t.Error("refused after its lockout")
 	}
 }
 

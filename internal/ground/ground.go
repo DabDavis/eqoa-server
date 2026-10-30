@@ -12,9 +12,11 @@
 // the air in a straight line"). With the ground the server sends the floor
 // itself.
 //
-// Only the terrain counts (the zone rooms' own collision, not the trees,
-// rocks and houses placed on it): Tunaria's is 8.15 million triangles of the
-// 31.3 million its collision holds, and a creature walks on it. The disc's
+// Only the terrain counts for a floor (the zone rooms' own collision, not the
+// trees, rocks and houses placed on it): Tunaria's is 8.15 million triangles
+// of the 31.3 million its collision holds, and a creature walks on it. What
+// stands in a creature's way is the terrain's steep parts (a cliff, a cave's
+// side) and what is placed on it (walls.go, <world>.walls): Wall. The disc's
 // world files are not read by the server itself: the esf library reads a
 // world file whole to parse its index (Tunaria 997 MB, a peak of 2 GB),
 // which a small server cannot spare; the bake is done once, where there is
@@ -53,12 +55,16 @@ const (
 	// roof or a ledge higher than it is not climbed.
 	StepUp float32 = 2
 
-	// cell is the side of the grid a zone's triangles are found by.
-	cell float32 = 8
+	// cell is the side of the grid a zone's floors are found by, wallCell
+	// its walls' (sparse: Tunaria's are 5% of its terrain).
+	cell     float32 = 8
+	wallCell float32 = 32
 
 	// keep is how many zones are kept loaded at once: Tunaria's take 2.25 MB
 	// each on average and load in 6 ms (12 at most); a creature moves only
-	// near a player, so this is a few zones a player.
+	// near a player, so this is a few zones a player. The walls files' zones
+	// are kept as many again, counted apart (Tunaria's 32 and every buffer
+	// they place, 11 MB; 0.3 ms a zone).
 	keep = 32
 )
 
@@ -170,20 +176,40 @@ type tri [3]Vertex
 
 // zoneGrid is a loaded zone, compact: its strips' vertices once each, each
 // floor triangle by its first vertex (the strip's next two finish it), and a
-// grid over the zone's bounds of the triangles each cell meets, as one array
-// of offsets and one of triangle numbers.
+// grid over the zone's bounds of the triangles each cell meets; and the same
+// of its walls (the triangles too steep to stand on), each by its first
+// vertex or, for every other triangle of a strip, that vertex's complement
+// (^v: turned as the game's collision turns it, stripTri).
 type zoneGrid struct {
 	verts      []Vertex
 	tris       []int32
+	walls      []int32
 	minX, minZ float32
-	nx, nz     int32
-	offsets    []int32
-	cells      []int32
+	floors     triGrid
+	wallGrid   triGrid
 	used       uint64
+}
+
+// triGrid is a grid over a zone of the triangles each cell meets, as one
+// array of offsets and one of triangle numbers.
+type triGrid struct {
+	side    float32
+	nx, nz  int32
+	offsets []int32
+	cells   []int32
 }
 
 func (z *zoneGrid) tri(i int32) tri {
 	v := z.tris[i]
+	return tri{z.verts[v], z.verts[v+1], z.verts[v+2]}
+}
+
+func (z *zoneGrid) wall(i int32) tri {
+	v := z.walls[i]
+	if v < 0 {
+		v = ^v
+		return tri{z.verts[v+1], z.verts[v], z.verts[v+2]}
+	}
 	return tri{z.verts[v], z.verts[v+1], z.verts[v+2]}
 }
 
@@ -194,19 +220,24 @@ type world struct {
 	loaded  map[int]*zoneGrid
 }
 
-// Ground is the worlds' ground, a file each, their zones loaded as asked.
+// Ground is the worlds' ground, a file each, their zones loaded as asked;
+// and what stands on it, a walls file each where the bake wrote one.
 type Ground struct {
 	mu     sync.Mutex
 	worlds map[uint8]*world
+	walls  map[uint8]*wallWorld
 	clock  uint64
-	// Loads counts the zones read from the files (for a test and the log).
-	Loads int
+	// Loads counts the zones read from the ground files, WallLoads those
+	// read from the walls files (for a test and the log).
+	Loads, WallLoads int
 }
 
 // Open opens the ground files in dir (<world>.ground, world 0 to 255): the
-// worlds whose file is there. None there is an error.
+// worlds whose file is there. None there is an error. The walls files
+// (<world>.walls) beside them are opened too; a world without one has only
+// its terrain's walls.
 func Open(dir string) (*Ground, error) {
-	g := &Ground{worlds: make(map[uint8]*world)}
+	g := &Ground{worlds: make(map[uint8]*world), walls: make(map[uint8]*wallWorld)}
 	for n := 0; n < 256; n++ {
 		f, err := os.Open(filepath.Join(dir, fmt.Sprintf("%d.ground", n)))
 		if err != nil {
@@ -223,7 +254,33 @@ func Open(dir string) (*Ground, error) {
 	if len(g.worlds) == 0 {
 		return nil, fmt.Errorf("no ground files in %s", dir)
 	}
+	for n := 0; n < 256; n++ {
+		f, err := os.Open(filepath.Join(dir, fmt.Sprintf("%d.walls", n)))
+		if err != nil {
+			continue
+		}
+		w, err := readWalls(f)
+		if err != nil {
+			f.Close()
+			g.Close()
+			return nil, fmt.Errorf("%d.walls: %w", n, err)
+		}
+		g.walls[uint8(n)] = w
+	}
 	return g, nil
+}
+
+// Walls is how many worlds have a walls file, and the placements in them.
+func (g *Ground) Walls() (worlds, placements int) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	for _, w := range g.walls {
+		worlds++
+		for _, e := range w.zones {
+			placements += int(e.count)
+		}
+	}
+	return
 }
 
 // Worlds is how many worlds have their ground, and their zones.
@@ -244,7 +301,10 @@ func (g *Ground) Close() {
 	for _, w := range g.worlds {
 		w.f.Close()
 	}
-	g.worlds = nil
+	for _, w := range g.walls {
+		w.f.Close()
+	}
+	g.worlds, g.walls = nil, nil
 }
 
 func readTable(f *os.File) (*world, error) {
@@ -280,7 +340,7 @@ func readTable(f *os.File) (*world, error) {
 }
 
 // load reads zone i of w and grids its floors (a triangle that faces up
-// more than it faces sideways: a wall is no floor).
+// more than it faces sideways: a wall is no floor) and its walls.
 func (w *world) load(i int) (*zoneGrid, error) {
 	e := w.entries[i]
 	buf := make([]byte, int(e.strips)*2+int(e.verts)*6)
@@ -288,8 +348,8 @@ func (w *world) load(i int) (*zoneGrid, error) {
 		return nil, err
 	}
 	z := &zoneGrid{verts: make([]Vertex, 0, e.verts), minX: e.minX, minZ: e.minZ}
-	z.nx = int32((e.maxX-e.minX)/cell) + 1
-	z.nz = int32((e.maxZ-e.minZ)/cell) + 1
+	z.floors = triGrid{side: cell, nx: int32((e.maxX-e.minX)/cell) + 1, nz: int32((e.maxZ-e.minZ)/cell) + 1}
+	z.wallGrid = triGrid{side: wallCell, nx: int32((e.maxX-e.minX)/wallCell) + 1, nz: int32((e.maxZ-e.minZ)/wallCell) + 1}
 	p := 0
 	for s := uint32(0); s < e.strips; s++ {
 		n := int(binary.LittleEndian.Uint16(buf[p:]))
@@ -303,57 +363,83 @@ func (w *world) load(i int) (*zoneGrid, error) {
 			z.verts = append(z.verts, Vertex{e.baseX + unquant(x, qXZ, true), e.baseY + unquant(y, qY, false), e.baseZ + unquant(zz, qXZ, true)})
 		}
 		for k := int32(0); k+2 < int32(n); k++ {
-			if floor(tri{z.verts[first+k], z.verts[first+k+1], z.verts[first+k+2]}) {
+			t := tri{z.verts[first+k], z.verts[first+k+1], z.verts[first+k+2]}
+			switch {
+			case floor(t):
 				z.tris = append(z.tris, first+k)
+			case degenerate(t):
+			case k%2 == 0:
+				z.walls = append(z.walls, first+k)
+			default:
+				z.walls = append(z.walls, ^(first + k))
 			}
 		}
 	}
-	// the grid: each triangle counted in every cell its bounds meet, then
-	// placed (two passes, one array)
-	z.offsets = make([]int32, int(z.nx)*int(z.nz)+1)
+	z.fill(&z.floors, len(z.tris), z.tri)
+	z.fill(&z.wallGrid, len(z.walls), z.wall)
+	return z, nil
+}
+
+// fill grids n triangles of the zone (each counted in every cell its bounds
+// meet, then placed: two passes, one array).
+func (z *zoneGrid) fill(g *triGrid, n int, t func(int32) tri) {
+	g.offsets = make([]int32, int(g.nx)*int(g.nz)+1)
 	span := func(t tri) (x0, x1, z0, z1 int32) {
-		return z.cellX(min(t[0].X, t[1].X, t[2].X)), z.cellX(max(t[0].X, t[1].X, t[2].X)),
-			z.cellZ(min(t[0].Z, t[1].Z, t[2].Z)), z.cellZ(max(t[0].Z, t[1].Z, t[2].Z))
+		return z.cellX(g, min(t[0].X, t[1].X, t[2].X)), z.cellX(g, max(t[0].X, t[1].X, t[2].X)),
+			z.cellZ(g, min(t[0].Z, t[1].Z, t[2].Z)), z.cellZ(g, max(t[0].Z, t[1].Z, t[2].Z))
 	}
-	for i := range z.tris {
-		x0, x1, z0, z1 := span(z.tri(int32(i)))
+	for i := 0; i < n; i++ {
+		x0, x1, z0, z1 := span(t(int32(i)))
 		for cx := x0; cx <= x1; cx++ {
 			for cz := z0; cz <= z1; cz++ {
-				z.offsets[cx*z.nz+cz+1]++
+				g.offsets[cx*g.nz+cz+1]++
 			}
 		}
 	}
-	for c := 1; c < len(z.offsets); c++ {
-		z.offsets[c] += z.offsets[c-1]
+	for c := 1; c < len(g.offsets); c++ {
+		g.offsets[c] += g.offsets[c-1]
 	}
-	z.cells = make([]int32, z.offsets[len(z.offsets)-1])
-	next := append([]int32(nil), z.offsets[:len(z.offsets)-1]...)
-	for i := range z.tris {
-		x0, x1, z0, z1 := span(z.tri(int32(i)))
+	g.cells = make([]int32, g.offsets[len(g.offsets)-1])
+	next := append([]int32(nil), g.offsets[:len(g.offsets)-1]...)
+	for i := 0; i < n; i++ {
+		x0, x1, z0, z1 := span(t(int32(i)))
 		for cx := x0; cx <= x1; cx++ {
 			for cz := z0; cz <= z1; cz++ {
-				c := cx*z.nz + cz
-				z.cells[next[c]] = int32(i)
+				c := cx*g.nz + cz
+				g.cells[next[c]] = int32(i)
 				next[c]++
 			}
 		}
 	}
-	return z, nil
 }
 
-// cellX and cellZ are a coordinate's cell in the zone's grid, kept within
-// it (a quantised corner may stand a hair past the bounds).
-func (z *zoneGrid) cellX(x float32) int32 { return max(0, min(z.nx-1, int32((x-z.minX)/cell))) }
-func (z *zoneGrid) cellZ(v float32) int32 { return max(0, min(z.nz-1, int32((v-z.minZ)/cell))) }
+// cellX and cellZ are a coordinate's cell in one of the zone's grids, kept
+// within it (a quantised corner may stand a hair past the bounds).
+func (z *zoneGrid) cellX(g *triGrid, x float32) int32 {
+	return max(0, min(g.nx-1, int32((x-z.minX)/g.side)))
+}
+func (z *zoneGrid) cellZ(g *triGrid, v float32) int32 {
+	return max(0, min(g.nz-1, int32((v-z.minZ)/g.side)))
+}
 
 // floor reports a triangle that faces up more than sideways (steeper than
 // 60 degrees is a wall), and is not degenerate.
 func floor(t tri) bool {
-	ux, uy, uz := t[1].X-t[0].X, t[1].Y-t[0].Y, t[1].Z-t[0].Z
-	vx, vy, vz := t[2].X-t[0].X, t[2].Y-t[0].Y, t[2].Z-t[0].Z
-	nx, ny, nz := uy*vz-uz*vy, uz*vx-ux*vz, ux*vy-uy*vx
+	nx, ny, nz := normal(t)
 	l2 := nx*nx + ny*ny + nz*nz
 	return l2 > 1e-8 && ny*ny > 0.25*l2
+}
+
+// degenerate reports a triangle of no area (a strip's turn).
+func degenerate(t tri) bool {
+	nx, ny, nz := normal(t)
+	return nx*nx+ny*ny+nz*nz <= 1e-8
+}
+
+func normal(t tri) (nx, ny, nz float32) {
+	ux, uy, uz := t[1].X-t[0].X, t[1].Y-t[0].Y, t[1].Z-t[0].Z
+	vx, vy, vz := t[2].X-t[0].X, t[2].Y-t[0].Y, t[2].Z-t[0].Z
+	return uy*vz - uz*vy, uz*vx - ux*vz, ux*vy - uy*vx
 }
 
 // heightAt is the height of t at (x, z) when (x, z) is within it seen from
@@ -394,8 +480,9 @@ func (g *Ground) Floor(worldN uint8, x, y, z float32) (float32, bool) {
 		if err != nil {
 			continue
 		}
-		c := zg.cellX(x)*zg.nz + zg.cellZ(z)
-		for _, ti := range zg.cells[zg.offsets[c]:zg.offsets[c+1]] {
+		f := &zg.floors
+		c := zg.cellX(f, x)*f.nz + zg.cellZ(f, z)
+		for _, ti := range f.cells[f.offsets[c]:f.offsets[c+1]] {
 			if h, ok := heightAt(zg.tri(ti), x, z); ok && h <= y+StepUp && (!found || h > best) {
 				best, found = h, true
 			}
@@ -405,6 +492,108 @@ func (g *Ground) Floor(worldN uint8, x, y, z float32) (float32, bool) {
 		return y, false
 	}
 	return best, true
+}
+
+// Wall reports whether the way from (x0, y0, z0) to (x1, y1, z1) in world
+// passes through a wall: the terrain's own (its collision too steep to stand
+// on: a cliff, a cave's side, a city's walls where they are terrain) or
+// anything placed on it that has collision (the walls file: a house, a
+// fence, a tree's trunk, a table); false where the world has neither file.
+func (g *Ground) Wall(worldN uint8, x0, y0, z0, x1, y1, z1 float32) bool {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	a, b := Vertex{x0, y0, z0}, Vertex{x1, y1, z1}
+	lo, hi := lowest(a, b), highest(a, b)
+	if w := g.worlds[worldN]; w != nil {
+		for i, e := range w.entries {
+			if e.verts == 0 || hi.X < e.minX || lo.X > e.maxX || hi.Z < e.minZ || lo.Z > e.maxZ {
+				continue
+			}
+			zg, err := g.zoneLocked(w, i)
+			if err != nil {
+				continue
+			}
+			wg := &zg.wallGrid
+			for cx := zg.cellX(wg, lo.X); cx <= zg.cellX(wg, hi.X); cx++ {
+				for cz := zg.cellZ(wg, lo.Z); cz <= zg.cellZ(wg, hi.Z); cz++ {
+					c := cx*wg.nz + cz
+					for _, ti := range wg.cells[wg.offsets[c]:wg.offsets[c+1]] {
+						t := zg.wall(ti)
+						if crosses(a, b, t[0], t[1], t[2]) {
+							return true
+						}
+					}
+				}
+			}
+		}
+	}
+	if w := g.walls[worldN]; w != nil {
+		for i, e := range w.zones {
+			if e.count == 0 || !overlaps(lo, hi, e.lo, e.hi) {
+				continue
+			}
+			z, err := g.wallZoneLocked(w, i)
+			if err != nil {
+				continue
+			}
+			x0, x1, z0, z1 := z.span(lo, hi)
+			for cx := x0; cx <= x1; cx++ {
+				for cz := z0; cz <= z1; cz++ {
+					c := cx*z.nz + cz
+					for _, k := range z.cells[z.offsets[c]:z.offsets[c+1]] {
+						p := &z.places[k]
+						if !overlaps(lo, hi, p.lo, p.hi) {
+							continue
+						}
+						buf, err := w.buffer(p.buf)
+						if err != nil {
+							continue
+						}
+						if p.hit(buf, a, b) {
+							return true
+						}
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+// wallZoneLocked is zone i of the walls file w, loaded now if it is not, the
+// least lately used of the walls files' zones let go past keep. Must be
+// called with g.mu held.
+func (g *Ground) wallZoneLocked(w *wallWorld, i int) (*wallZone, error) {
+	g.clock++
+	if z := w.loaded[i]; z != nil {
+		z.used = g.clock
+		return z, nil
+	}
+	z, err := w.load(i)
+	if err != nil {
+		return nil, err
+	}
+	g.WallLoads++
+	z.used = g.clock
+	w.loaded[i] = z
+	total := 0
+	for _, ww := range g.walls {
+		total += len(ww.loaded)
+	}
+	for total > keep {
+		var oldW *wallWorld
+		oldI, oldUsed := -1, uint64(math.MaxUint64)
+		for _, ww := range g.walls {
+			for j, zz := range ww.loaded {
+				if zz.used < oldUsed {
+					oldW, oldI, oldUsed = ww, j, zz.used
+				}
+			}
+		}
+		delete(oldW.loaded, oldI)
+		total--
+	}
+	return z, nil
 }
 
 // zoneLocked is zone i of w, loaded now if it is not, the least lately used

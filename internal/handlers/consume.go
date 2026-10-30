@@ -24,8 +24,12 @@ import (
 // effect's icon whole at its own size into a cell 34 high, so a meal's tile
 // covered the effects beside it. What lasts of a spell goes on 0x43 as the
 // ability's own icon (Sandstorm's, claude-notes/casting-sandstorm-20261021.md),
-// a UI.CSF surface of 32x32: a meal takes the health-over-time one, a drink
-// the power-over-time one.
+// a UI.CSF surface of 32x32. Sandstorm showed a meal and a drink alike with
+// the health-over-time one (lane-spellfx24, 2026-10-30: Elven Wine, Spiced
+// Jerky and mine rations all 0x828563AF), and named a plain ration's effect
+// "Food" where a grocer's meal or drink kept its item's name ("Elven Wine",
+// "Spiced Jerky"). With the item taken it played its eating-and-drinking
+// visual on the player (entity.Consumed: the cheer).
 //
 // A grocer's wares say what they are: every meal of the food line is "A
 // hearty meal that will increase health regeneration." and every drink "A
@@ -53,20 +57,23 @@ var (
 // HUD's first two quick slots take: food, drink, potions (VIInfoText::IsUsable).
 const usableType = 2
 
-// The effects' icons, spellpattern.icon as it reaches the wire: a meal's is
-// Regenerative Aura's ("Increase HP per tic", the whole healing line's icon:
-// Minor Healing, Healing, the Celebrations), a drink's Breeze's ("Increase
-// Power per tic", the enchanter's line: Intuition, Clarity, Lucidity).
-const (
-	mealEffectIcon  uint32 = 0x828563AF
-	drinkEffectIcon uint32 = 0xA2774C47
-)
+// consumableEffectIcon is a meal's and a drink's effect icon, spellpattern.icon
+// as it reaches the wire: Regenerative Aura's ("Increase HP per tic", the
+// whole healing line's icon: Minor Healing, Healing, the Celebrations), as
+// Sandstorm showed both (a drink here had Breeze's, 0xA2774C47, until
+// 2026-10-30).
+const consumableEffectIcon uint32 = 0x828563AF
+
+// rationEffectName is what a plain ration's effect is called, as Sandstorm
+// called a mine ration's.
+const rationEffectName = "Food"
 
 // Refusals. The level one is the line Sandstorm gives an item used below its
-// level (scribe.go); the fight one is ours: a meal ends in a fight, so one
-// taken in a fight would be gone at once.
+// level (scribe.go); the fight one is ours, a meal's alone: a meal ends in a
+// fight (entity/consumable.go), so one taken in a fight would be gone at
+// once. A drink is taken mid-fight, as Sandstorm took one.
 const (
-	consumeFighting = "You can't eat or drink while you are fighting."
+	consumeFighting = "You can't eat while you are fighting."
 	consumeTooLow   = scribeTooLow
 )
 
@@ -84,10 +91,12 @@ func consumableOf(p *database.ItemPatternRecord) (entity.Consumable, bool) {
 		return *v
 	}
 	switch {
-	case mealDesc.MatchString(p.ItemDesc), p.ProcAnim == usableType && rationName.MatchString(p.ItemName):
-		c.Icon, c.Amount = mealEffectIcon, own(p.HoT)
+	case mealDesc.MatchString(p.ItemDesc):
+		c.Icon, c.Amount = consumableEffectIcon, own(p.HoT)
+	case p.ProcAnim == usableType && rationName.MatchString(p.ItemName):
+		c.Name, c.Icon, c.Amount = rationEffectName, consumableEffectIcon, own(p.HoT)
 	case drinkDesc.MatchString(p.ItemDesc):
-		c.Drink, c.Icon, c.Amount = true, drinkEffectIcon, own(p.PoT)
+		c.Drink, c.Icon, c.Amount = true, consumableEffectIcon, own(p.PoT)
 	default:
 		return entity.Consumable{}, false
 	}
@@ -126,4 +135,9 @@ func (h *EquipHandler) consume(sess *session.Session, player *entity.Player, idx
 		return
 	}
 	queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, 1))
+	// then, in the same moment, Sandstorm's eating-and-drinking visual: the
+	// cheer, its sound and its particles (entity.Consumed)
+	if h.consumed != nil {
+		h.consumed(sess)
+	}
 }

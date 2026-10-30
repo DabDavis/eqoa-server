@@ -65,7 +65,9 @@ func (f *scribeFixture) stackOf(name string) int {
 // eaten and leaves by 0x003C (index, sound 0, one); a drink gives its own
 // PoT. The last of a stack leaves the list. Each is shown by its item's name
 // and a buff's 32x32 icon, never the item's own (the wares here carry the
-// 128x64 inventory tile's DictID 1511586099, which a meal must not show).
+// 128x64 inventory tile's DictID 1511586099, which a meal must not show):
+// the health-over-time icon for a drink too, as Sandstorm showed Elven
+// Wine's.
 func TestUseMealEatsOne(t *testing.T) {
 	f := newScribeFixture(t)
 	got := f.eats(nil)
@@ -80,7 +82,7 @@ func TestUseMealEatsOne(t *testing.T) {
 	if want := mustHex(t, "3c00000002"); !bytes.Equal(msgs[0], want) {
 		t.Errorf("0x003C % X, want % X", msgs[0], want)
 	}
-	if len(*got) != 1 || (*got)[0] != (entity.Consumable{Name: "hearty bread", Icon: mealEffectIcon, Amount: 10}) {
+	if len(*got) != 1 || (*got)[0] != (entity.Consumable{Name: "hearty bread", Icon: consumableEffectIcon, Amount: 10}) {
 		t.Fatalf("eaten %+v", *got)
 	}
 	if n := f.stackOf("hearty bread"); n != 4 {
@@ -92,7 +94,7 @@ func TestUseMealEatsOne(t *testing.T) {
 	if want := mustHex(t, "3c00010002"); !bytes.Equal(msgs[0], want) {
 		t.Errorf("0x003C % X, want % X", msgs[0], want)
 	}
-	if len(*got) != 2 || (*got)[1] != (entity.Consumable{Drink: true, Name: "well water", Icon: drinkEffectIcon, Amount: 7}) {
+	if len(*got) != 2 || (*got)[1] != (entity.Consumable{Drink: true, Name: "well water", Icon: consumableEffectIcon, Amount: 7}) {
 		t.Fatalf("drunk %+v", *got)
 	}
 	if n := f.stackOf("well water"); n != 0 || len(f.rowsOf()) != 1 {
@@ -100,6 +102,34 @@ func TestUseMealEatsOne(t *testing.T) {
 	}
 	if l := sessionInvList(f.sess); l == nil || l.index(1) != -1 {
 		t.Error("the last water is still in the client's list mirror")
+	}
+}
+
+// With the item taken, and after its 0x003C, the eating-and-drinking visual
+// is played (the World's Consumed: Sandstorm's 0x00B1 of 0xCF84F260 came in
+// the same moment, after the 0x003C). The control: a use refused plays
+// nothing.
+func TestUseMealPlaysTheCheerAfterTheTake(t *testing.T) {
+	f := newScribeFixture(t)
+	f.eats(nil)
+	var order []string
+	f.h.consumed = func(*session.Session) {
+		order = append(order, "cheer")
+		for range f.sess.Queue().GetPending() {
+			order = append(order, "0x003C before it")
+		}
+	}
+	f.own(f.ware("hearty bread", mealText, -1, 10, -1, -1), 5)
+	f.own(f.ware("levain", mealText, -1, 30, -1, -1), 1)
+	f.loadList()
+	f.use(0)
+	if len(order) != 2 || order[0] != "cheer" || order[1] != "0x003C before it" {
+		t.Fatalf("the cheer: %v, want it once, after the 0x003C", order)
+	}
+	order = nil
+	f.use(1) // above the player's level: refused
+	if len(order) != 0 {
+		t.Errorf("a refused use played the cheer: %v", order)
 	}
 }
 
@@ -160,9 +190,9 @@ func TestUseRationEatsOne(t *testing.T) {
 	f.own(f.ware("Field Rations", "Wrapped tight in cloth is the basic lunch of a farmer.", -1, 1, -1, -1), 20)
 	f.loadList()
 	f.use(0)
-	if len(*got) != 1 || (*got)[0].Drink || (*got)[0].Amount != 1 || (*got)[0].Icon != mealEffectIcon ||
-		(*got)[0].Name != "Field Rations" || f.stackOf("Field Rations") != 19 {
-		t.Fatalf("eaten %+v, %d left; want one meal of 1, 19 left", *got, f.stackOf("Field Rations"))
+	if len(*got) != 1 || (*got)[0].Drink || (*got)[0].Amount != 1 || (*got)[0].Icon != consumableEffectIcon ||
+		(*got)[0].Name != "Food" || f.stackOf("Field Rations") != 19 {
+		t.Fatalf("eaten %+v, %d left; want one meal of 1 called Food (Sandstorm's word for a ration), 19 left", *got, f.stackOf("Field Rations"))
 	}
 	for _, r := range []database.ItemPatternRecord{
 		{EquipSlot: -1, ProcAnim: 0, ItemName: "field rations", ItemDesc: "Simple field rations."},
@@ -174,8 +204,8 @@ func TestUseRationEatsOne(t *testing.T) {
 	}
 	for _, name := range []string{"travel cuisine", "toad snacks", "Gnomish Ration"} {
 		r := database.ItemPatternRecord{EquipSlot: -1, ProcAnim: usableType, ItemName: name, LevelReq: 1}
-		if c, ok := consumableOf(&r); !ok || c.Drink || c.Amount != 1 {
-			t.Errorf("%q: %+v %v, want a meal of 1", name, c, ok)
+		if c, ok := consumableOf(&r); !ok || c.Drink || c.Amount != 1 || c.Name != "Food" {
+			t.Errorf("%q: %+v %v, want a meal of 1 called Food", name, c, ok)
 		}
 	}
 }

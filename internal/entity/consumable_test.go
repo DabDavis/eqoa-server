@@ -2,6 +2,7 @@ package entity
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"net"
 	"testing"
 	"time"
@@ -69,8 +70,8 @@ func TestConsumeAddsToTheRegen(t *testing.T) {
 		t.Errorf("the new meal goes last on the channel: %+v", p.Buffs)
 	}
 
-	// none in a fight (it would end at once), none for the dead; nothing
-	// changes
+	// no meal in a fight (it would end at once), nothing for the dead;
+	// nothing changes
 	p.AttackTarget = 2002
 	if err := w.Consume(sess, Consumable{Name: "boiled egg", Amount: 14}, now); err != ErrConsumeFighting {
 		t.Errorf("in a fight: %v, want ErrConsumeFighting", err)
@@ -81,6 +82,38 @@ func TestConsumeAddsToTheRegen(t *testing.T) {
 	}
 	if p.HoTNow() != 20+49 || len(p.Effects) != 2 {
 		t.Errorf("after the refusals: HoT %d, %d effects", p.HoTNow(), len(p.Effects))
+	}
+	// but a drink in a fight, as Sandstorm took Elven Wine mid-fight
+	p.AttackTarget, p.HP = 2002, 500
+	if err := w.Consume(sess, Consumable{Drink: true, Name: "Elven Wine", Amount: 5}, now); err != nil {
+		t.Errorf("a drink in a fight: %v, want it drunk", err)
+	}
+	if p.PoTNow() != 10+5 {
+		t.Errorf("the drink in a fight: PoT %d, want 15", p.PoTNow())
+	}
+}
+
+// Eating or drinking plays Sandstorm's visual on the player: its own 0x00B1
+// at itself, cast 0, 0xCF84F260 (the cheer, its sound and particles), in
+// Sandstorm's bytes with this player's id. The control: a dead player's
+// plays nothing.
+func TestConsumedPlaysTheCheer(t *testing.T) {
+	w, sess, p, _ := newEater(t)
+	sess.SetCharacterInWorld(true)
+	sess.SetPlayerObjectID(0x284AEFD9)
+	w.Consumed(sess)
+	msgs := sess.Queue().GetPending()
+	if len(msgs) != 1 || hex.EncodeToString(msgs[0].Data()) != "b100d9ef4a28d9ef4a280000000000"+"60f284cf" {
+		var got []string
+		for _, m := range msgs {
+			got = append(got, hex.EncodeToString(m.Data()))
+		}
+		t.Fatalf("sent %v, want Sandstorm's b100d9ef4a28d9ef4a28000000000060f284cf", got)
+	}
+	p.HP = 0
+	w.Consumed(sess)
+	if n := len(sess.Queue().GetPending()); n != 0 {
+		t.Errorf("a dead player's: %d messages", n)
 	}
 }
 
@@ -100,9 +133,10 @@ func TestConsumableLastsAMinute(t *testing.T) {
 	}
 }
 
-// A meal and a drink end once their eater engages, lands a blow or a harmful
-// spell, or is hit, after eating (LastCombatTime moves past the meal). The
-// control: a fight that ended before the meal leaves it on.
+// A meal ends once its eater engages, lands a blow or a harmful spell, or is
+// hit, after eating (LastCombatTime moves past the meal); a drink runs on
+// through it (Sandstorm's Elven Wine gave its power through its owner's
+// fight). The control: a fight that ended before the meal leaves it on.
 func TestConsumableEndsInAFight(t *testing.T) {
 	for _, c := range []struct {
 		name   string
@@ -123,8 +157,8 @@ func TestConsumableEndsInAFight(t *testing.T) {
 			w.consumableSystem(now.Add(6 * time.Second))
 			w.mu.Unlock()
 			if c.broken {
-				if len(p.Effects) != 0 || len(p.Buffs) != 0 || p.HoTNow() != 20 || p.PoTNow() != 10 {
-					t.Errorf("still on: %d effects, %d on the channel, HoT %d PoT %d", len(p.Effects), len(p.Buffs), p.HoTNow(), p.PoTNow())
+				if len(p.Effects) != 1 || p.Effects[0].SpellID != DrinkEffectID || len(p.Buffs) != 1 || p.HoTNow() != 20 || p.PoTNow() != 12 {
+					t.Errorf("the meal still on, or the drink gone: %d effects, %d on the channel, HoT %d PoT %d", len(p.Effects), len(p.Buffs), p.HoTNow(), p.PoTNow())
 				}
 				return
 			}

@@ -55,6 +55,9 @@ func npcRound(npc *NPC) (length, delay time.Duration, fx uint32, hits []time.Dur
 	if kind == 0 {
 		length = 3200 * time.Millisecond
 	}
+	if npc.SwingFixed && npc.SwingRound > 0 {
+		length = npc.SwingRound // a recorded pet's (petrotation.go)
+	}
 	return length, delay, HashResourceID(SwingEffectName(kind)), swingHits(kind)
 }
 

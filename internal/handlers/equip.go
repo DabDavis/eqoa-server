@@ -43,6 +43,7 @@ type EquipHandler struct {
 	// (SetGameWorld); tests stand in for them.
 	playerOf func(*session.Session) *entity.Player
 	eat      func(*session.Session, entity.Consumable, time.Time) error
+	consumed func(*session.Session) // the World's Consumed: the cheer
 
 	fishing *FishingHandler // a fishing pole used from the HUD (fishing.go)
 	craft   *CraftHandler   // a recipe scroll used (craft.go)
@@ -59,6 +60,7 @@ func (h *EquipHandler) SetGameWorld(gw *entity.World) {
 	h.gameWorld = gw
 	h.playerOf = gw.SessionPlayer
 	h.eat = gw.Consume
+	h.consumed = gw.Consumed
 }
 
 // RegisterHandlers registers the equip handlers.

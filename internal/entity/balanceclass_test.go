@@ -26,11 +26,12 @@ func classHit(t *testing.T, b *Balance, class int) int {
 }
 
 // A ranger, a bard and a rogue take their class's share of an NPC's melee
-// (the seed's 70, 80 and 65%) where a warrior and a wizard take it all; the
-// control: with no class rows every class takes the whole hit.
+// (70, 80 and 65%, the seed of 2026-10-29) where a warrior and a wizard take
+// it all; the control: with no class rows every class takes the whole hit.
 func TestAClassTakesItsShareOfNPCMelee(t *testing.T) {
-	seed := SeedBalance()
-	whole := SeedBalance().WithClasses(nil)
+	seed := SeedBalance().WithClasses([]database.BalanceClass{{Class: 1, MeleeTakenPct: 70}, {Class: 5, MeleeTakenPct: 80},
+		{Class: 6, MeleeTakenPct: 65}}).WithClassLevels(nil)
+	whole := SeedBalance().WithClasses(nil).WithClassLevels(nil)
 	for _, tc := range []struct {
 		class int
 		pct   float64
@@ -45,7 +46,7 @@ func TestAClassTakesItsShareOfNPCMelee(t *testing.T) {
 		t.Errorf("no hit landed: %d %d", a, b)
 	}
 	// a row's share is the GM's: 50 halves it
-	half := SeedBalance().WithClasses([]database.BalanceClass{{Class: 6, MeleeTakenPct: 50}})
+	half := SeedBalance().WithClasses([]database.BalanceClass{{Class: 6, MeleeTakenPct: 50}}).WithClassLevels(nil)
 	if full, got := classHit(t, whole, 6), classHit(t, half, 6); got != pct(full, 50) {
 		t.Errorf("a 50%% row: %d of %d", got, full)
 	}
@@ -70,7 +71,7 @@ func TestAClassShareByLevel(t *testing.T) {
 		t.Errorf("no class and level rows: %g%%, want Balance by class's %g%%", got, SeedBalance().MeleeTakenPct(6))
 	}
 	// a hit lands at the share: a rogue of 50 takes 40% of the whole
-	whole := SeedBalance().WithClasses(nil)
+	whole := SeedBalance().WithClasses(nil).WithClassLevels(nil)
 	full := classHit(t, whole, 6)
 	if got := classHit(t, b, 6); got != pct(full, 40) {
 		t.Errorf("a rogue of 50 took %d of %d, want 40%%", got, full)

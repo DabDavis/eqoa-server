@@ -187,6 +187,9 @@ type questChar struct {
 	// notYetLast is the questnotyet line said to it last (its id), not said
 	// twice running when its city has another
 	notYetLast int
+	// packTold is when a kill, loot or reach step waiting for room in the
+	// pack last said so, by quest and step (questroom.go)
+	packTold map[[2]int]time.Time
 }
 
 // say is a text with %p the player's name (left as it is while the name is
@@ -332,6 +335,7 @@ func (q *QuestEngine) run() {
 			q.syncProgress()
 		case <-tick.C:
 			q.checkReach()
+			q.checkWaiting() // questroom.go: steps that waited for room
 			q.expireSpawns()
 			q.syncMarks(time.Now())
 			q.syncProgress()
@@ -859,6 +863,14 @@ func (q *QuestEngine) startLocked(sess *session.Session, p *entity.Player, c *qu
 		}
 		return "the journal is full (eight quests under way)"
 	}
+	// what taking it hands over must fit the pack (questroom.go); a GM's
+	// give is the GM's to judge
+	if !gm {
+		if short := q.packShortLocked(sess, nil, startGains(qu, st)); short != "" {
+			q.tellLocked(c, sess, qu.Giver, fmt.Sprintf(questPackFull, short))
+			return "the pack is too full for what it hands over"
+		}
+	}
 	cq := c.quests[qu.ID]
 	if cq == nil {
 		cq = &database.CharQuest{ServerID: c.serverID, QuestID: qu.ID}
@@ -944,6 +956,17 @@ func (q *QuestEngine) atNPCLocked(sess *session.Session, p *entity.Player, c *qu
 			log.Printf("Quests: %s picked %q at %q step %d: the step stays", p.Name, opt.Answer, qu.Name, st.Step)
 			return
 		}
+	}
+	// what doing the step puts in the pack must fit it, after what it takes,
+	// else nothing changes hands and the step stays to do (questroom.go)
+	var extraRw *database.ClassReward
+	if opt != nil {
+		extraRw = &opt.Reward
+	}
+	if short := q.packShortLocked(sess, q.handInTakes(p, st), stepGains(p, qu, st, extraRw)); short != "" {
+		q.tellLocked(c, sess, st.Target, fmt.Sprintf(questPackFull, short))
+		log.Printf("Quests: %s's step %d of %q waits for room for %s", p.Name, st.Step, qu.Name, short)
+		return
 	}
 	var given []string
 	if st.Kind == database.StepGive {
@@ -1112,6 +1135,9 @@ func (q *QuestEngine) killed(k entity.KillCredit) {
 				}
 				continue
 			}
+			if q.waitsForRoomLocked(kp.Session, p, c, qu, cq, st) {
+				continue
+			}
 			q.completeStepLocked(kp.Session, p, c, qu, cq, st, nil, nil)
 		}
 	}
@@ -1147,7 +1173,7 @@ func (q *QuestEngine) checkReach() {
 			if r <= 0 {
 				r = 15
 			}
-			if dx, dz := x-st.X, z-st.Z; dx*dx+dz*dz <= r*r {
+			if dx, dz := x-st.X, z-st.Z; dx*dx+dz*dz <= r*r && !q.waitsForRoomLocked(sess, p, c, qu, cq, st) {
 				q.completeStepLocked(sess, p, c, qu, cq, st, nil, nil)
 			}
 		}
@@ -1161,6 +1187,7 @@ func (q *QuestEngine) checkReach() {
 // faction lines. extra is the rewards of the option the player picked (nil
 // none), given besides the step's.
 func (q *QuestEngine) completeStepLocked(sess *session.Session, p *entity.Player, c *questChar, qu *database.Quest, cq *database.CharQuest, st *database.QuestStep, given []string, extra *database.ClassReward) {
+	delete(c.packTold, [2]int{qu.ID, st.Step})
 	idx := c.index(qu.ID)
 	next := qu.Next(st.Step)
 	speaker := ""

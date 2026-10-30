@@ -30,8 +30,9 @@ import (
 //     levels, the start of the giver's offer and its rewards;
 //   - the NPC of a step the player has to do there (talk, show, give): kind
 //     2, "?", with the step's journal line and what it needs;
-//   - a kill or loot step's creature: kind 3, "?" too, at the nearest of its
-//     spawns, with the kills or drops done of those needed.
+//   - a kill or loot step's creatures: kind 3, "?" too, at the nearest of
+//     their spawns (of every name the step counts), with the kills or drops
+//     done of those needed.
 //
 // A PS2 ignores the offer and is sent nothing. Each NPC's mark is at its spawn
 // (its nearest few when the name stands in more than one place); the marks
@@ -218,9 +219,12 @@ func (q *QuestEngine) markSpotsLocked(now time.Time) map[string][]entity.NPCSpot
 			continue
 		}
 		names[foldName(qu.Giver)] = true
-		for _, st := range qu.Steps {
-			if database.AtNPC(st.Kind) || st.Kind == database.StepKill || st.Kind == database.StepLoot {
-				names[foldName(st.Target)] = true
+		for i := range qu.Steps {
+			st := &qu.Steps[i]
+			if database.AtNPC(st.Kind) || database.Hunts(st.Kind) {
+				for _, t := range st.Targets() {
+					names[foldName(t)] = true
+				}
 			}
 		}
 	}
@@ -251,13 +255,15 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		}
 		return float32(math.Hypot(float64(s.X-x), float64(s.Z-z)))
 	}
-	// the nearest maxMarkSpots of a name's spawns (only the one a step pins)
-	near := func(name string, pinned int) []entity.NPCSpot {
-		all := spots[foldName(name)]
+	// the nearest maxMarkSpots of the spawns of a step's names (of its first,
+	// only the one a step pins)
+	near := func(names []string, pinned int) []entity.NPCSpot {
 		var out []entity.NPCSpot
-		for _, s := range all {
-			if pinned == 0 || int(s.ID) == pinned {
-				out = append(out, s)
+		for i, name := range names {
+			for _, s := range spots[foldName(name)] {
+				if i > 0 || pinned == 0 || int(s.ID) == pinned {
+					out = append(out, s)
+				}
 			}
 		}
 		sort.SliceStable(out, func(i, j int) bool {
@@ -274,8 +280,8 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 	}
 	byKey := map[string]*questMark{}
 	var marks []*questMark
-	add := func(kind byte, name string, pinned int, mq markQuest) {
-		for _, s := range near(name, pinned) {
+	add := func(kind byte, names []string, pinned int, mq markQuest) {
+		for _, s := range near(names, pinned) {
 			k := fmt.Sprintf("%d %d %.0f %.0f", kind, s.World, s.X, s.Z)
 			m := byKey[k]
 			if m == nil {
@@ -301,14 +307,14 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 		switch {
 		case database.AtNPC(st.Kind):
 			mq.detail = q.texts[qu.ID].needs[st.Step]
-			add(markStep, st.Target, st.NPCID, mq)
+			add(markStep, []string{st.Target}, st.NPCID, mq)
 		case st.Kind == database.StepKill:
-			mq.detail = fmt.Sprintf("%s: %d of %d killed", strings.TrimSpace(st.Target), cq.Count, max(st.Count, 1))
-			add(markHunt, st.Target, st.NPCID, mq)
+			mq.detail = fmt.Sprintf("%s: %d of %d killed", st.TargetWords(), cq.Count, max(st.Count, 1))
+			add(markHunt, st.Targets(), st.NPCID, mq)
 		case st.Kind == database.StepLoot:
 			_, need, _ := st.LootItem()
 			mq.detail = fmt.Sprintf("%s: %d of %d", q.texts[qu.ID].needs[st.Step], cq.Count, need)
-			add(markHunt, st.Target, st.NPCID, mq)
+			add(markHunt, st.Targets(), st.NPCID, mq)
 		}
 	}
 	givers := make([]string, 0, len(q.cat.givers))
@@ -322,7 +328,7 @@ func (q *QuestEngine) marksLocked(look *factionLook, p *entity.Player, c *questC
 				continue
 			}
 			t := q.texts[qu.ID]
-			add(markTake, qu.Giver, 0, markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: t.offer, detail: t.rewardsFor(p.Class)})
+			add(markTake, []string{qu.Giver}, 0, markQuest{name: qu.Name, min: qu.MinLevel, max: qu.MaxLevel, line: t.offer, detail: t.rewardsFor(p.Class)})
 		}
 	}
 	sort.SliceStable(marks, func(i, j int) bool {

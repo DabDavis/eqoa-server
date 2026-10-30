@@ -26,6 +26,12 @@ import (
 // questunlocks is the trips quests open (QuestUnlock): a travel NPC's route
 // (handlers/waysender.go) offered only to a player who has finished one of the
 // quests that unlock it.
+//
+// queststeptargets is the other creatures a kill or loot step counts besides
+// its own target (QuestStep.Also): a journal's "from the ravens and magpies"
+// as two names, the step's target "raven" and a row "magpie" (the user,
+// 2026-10-30: the beak a step dropped only off ravens never dropped off the
+// magpies its journal names; tools/fix_quest_targets.py).
 const questSchema = `
 CREATE TABLE IF NOT EXISTS quests (
 	questid    INTEGER PRIMARY KEY,
@@ -84,6 +90,12 @@ CREATE TABLE IF NOT EXISTS questunlocks (
 	npc     TEXT NOT NULL,
 	dest    TEXT NOT NULL,
 	PRIMARY KEY (questid, npc, dest)
+);
+CREATE TABLE IF NOT EXISTS queststeptargets (
+	questid INTEGER NOT NULL,
+	step    INTEGER NOT NULL,
+	target  TEXT NOT NULL,
+	PRIMARY KEY (questid, step, target)
 );
 CREATE TABLE IF NOT EXISTS charquests (
 	serverid INTEGER NOT NULL,
@@ -188,8 +200,8 @@ const (
 	StepTalk  = "talk"  // talk to an NPC (target), answering it when the step has an answer
 	StepShow  = "show"  // talk to an NPC (target) holding items, which are kept (Sandstorm's first warrior quest: the bracer)
 	StepGive  = "give"  // hand an NPC (target) items and tunar
-	StepKill  = "kill"  // kill count creatures named target
-	StepLoot  = "loot"  // kill creatures named target until count of the item (items) are taken off their corpses during the step
+	StepKill  = "kill"  // kill count creatures named target (or one of its others, Also)
+	StepLoot  = "loot"  // kill creatures named target (or Also) until count of the item (items) are taken off their corpses during the step
 	StepReach = "reach" // come within radius of a place
 )
 
@@ -362,6 +374,10 @@ func LootChance(c float64) float64 {
 // AtNPC is whether a step kind is done by talking to its NPC.
 func AtNPC(kind string) bool { return kind == StepTalk || kind == StepShow || kind == StepGive }
 
+// Hunts is whether a step kind is done by killing creatures (kill, loot):
+// the kinds that count several (QuestStep.Also).
+func Hunts(kind string) bool { return kind == StepKill || kind == StepLoot }
+
 // Quest is one quest and its steps, in order.
 type Quest struct {
 	ID         int
@@ -441,7 +457,11 @@ type QuestStep struct {
 	Step   int
 	Kind   string
 	Target string // talk/give: the NPC's name; kill, loot: the creature's
-	NPCID  int    // talk/give/kill/loot: only that spawn (npcs.id), 0 any of the name
+	NPCID  int    // talk/give/kill/loot: only that spawn (npcs.id) of Target, 0 any of the name
+	// Also is the other creatures a kill or loot step counts, at any of their
+	// spawns (the queststeptargets table): a talk, show, give or reach step's
+	// are kept and counted for nothing
+	Also []string
 	// Items are what a show or give step wants held, and a loot step's item
 	// (its first; Count of it, else the item's own count, is to be taken off
 	// corpses during the step).
@@ -823,6 +843,43 @@ type QuestUnlock struct {
 	Dest  string
 }
 
+// Targets is the names a step's NPC or creatures go by: its Target, then for
+// a kill or loot step each of Also not already said (trimmed, any case: as
+// names are matched), each trimmed.
+func (s *QuestStep) Targets() []string {
+	var out []string
+	seen := map[string]bool{}
+	add := func(n string) {
+		n = strings.TrimSpace(n)
+		k := strings.ToLower(n)
+		if n == "" || seen[k] {
+			return
+		}
+		seen[k] = true
+		out = append(out, n)
+	}
+	add(s.Target)
+	if Hunts(s.Kind) {
+		for _, n := range s.Also {
+			add(n)
+		}
+	}
+	return out
+}
+
+// TargetWords is a step's creatures said as one: "raven", "raven or magpie",
+// "crow, raven or magpie".
+func (s *QuestStep) TargetWords() string {
+	t := s.Targets()
+	switch len(t) {
+	case 0:
+		return ""
+	case 1:
+		return t[0]
+	}
+	return strings.Join(t[:len(t)-1], ", ") + " or " + t[len(t)-1]
+}
+
 // LootItem is a loot step's item and how many of it are to be taken: Count,
 // else the item's own count; ok false when the step names no item.
 func (s *QuestStep) LootItem() (patternID, need int, ok bool) {
@@ -939,6 +996,30 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 	}
 	srs.Close()
 	if err := srs.Err(); err != nil {
+		return nil, err
+	}
+	// each step's other creatures (queststeptargets), in the order written
+	trs, err := s.db.Query(`SELECT questid, step, target FROM queststeptargets ORDER BY questid, step, rowid`)
+	if err != nil {
+		return nil, err
+	}
+	for trs.Next() {
+		var qid, n int
+		var t string
+		if err := trs.Scan(&qid, &n, &t); err != nil {
+			trs.Close()
+			return nil, err
+		}
+		i, ok := byID[qid]
+		if !ok || strings.TrimSpace(t) == "" {
+			continue
+		}
+		if st := out[i].Step(n); st != nil {
+			st.Also = append(st.Also, strings.TrimSpace(t))
+		}
+	}
+	trs.Close()
+	if err := trs.Err(); err != nil {
 		return nil, err
 	}
 	urs, err := s.db.Query(`SELECT questid, npc, dest FROM questunlocks ORDER BY questid, npc, dest`)

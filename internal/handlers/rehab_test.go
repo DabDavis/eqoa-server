@@ -184,6 +184,13 @@ func (f *rehabFixture) talk() []string {
 	return f.last
 }
 
+// resets talks to Anja and answers her menu's reset: the question which.
+func (f *rehabFixture) resets() []string {
+	f.t.Helper()
+	f.talk()
+	return f.pick(0)
+}
+
 // pick answers the last question with option n and returns what was sent.
 func (f *rehabFixture) pick(n byte) []string {
 	f.t.Helper()
@@ -241,9 +248,11 @@ func (f *rehabFixture) spendTraining(str, sta int) {
 		str, sta, str+sta, f.sid)
 }
 
-// The menu says what the character has left and offers its six answers,
-// each reset free while a free one is left and at its price after; the
-// question is a rehabilitator's box (0x54), which no other NPC answers.
+// The menu says what the character has left and offers three answers, a
+// page of CLIENT's answer box (VIWndResponse shows three, then More, Back and
+// its own Close): a reset (then which, each free while a free one is left and
+// at its price after), a path, a rose. The question is a rehabilitator's box
+// (0x54), which no other NPC answers; a Close (255) and an old box do nothing.
 func TestRehabilitatorsMenu(t *testing.T) {
 	f := newRehabFixture(t)
 	m := f.talk()
@@ -252,22 +261,30 @@ func TestRehabilitatorsMenu(t *testing.T) {
 		t.Fatalf("the greeting: %q", m)
 	}
 	q, answers := asked(m)
-	want := []string{"Reset my Combat Masteries (free)", "Reset my stat points (free)", "Reset masteries and stat points (free)",
-		"Undo a path (free)", "Buy a Rose of Rehabilitation (10,000,000 tunar)", "Nothing today."}
+	want := []string{"Reset my masteries or stat points", "Undo a path (free)", "Buy a Rose of Rehabilitation (10,000,000 tunar)"}
 	if q != rehabAskMenu || strings.Join(answers, "|") != strings.Join(want, "|") {
 		t.Fatalf("the menu: %q %q", q, answers)
 	}
-	if id := boxID(m); !IsRehabBox(id) || id&0xFF000000 != 0x54000000 {
-		t.Errorf("the box id %#x is not a rehabilitator's", id)
+	first := boxID(m)
+	if !IsRehabBox(first) || first&0xFF000000 != 0x54000000 {
+		t.Errorf("the box id %#x is not a rehabilitator's", first)
 	}
-	for _, l := range answers {
+	m = f.pick(0)
+	q, answers = asked(m)
+	want = []string{"My Combat Masteries (free)", "My stat points (free)", "Both (free)"}
+	if q != rehabAskResets || strings.Join(answers, "|") != strings.Join(want, "|") {
+		t.Fatalf("which reset: %q %q", q, answers)
+	}
+	for _, l := range append(answers, "Buy a Rose of Rehabilitation (10,000,000 tunar)") {
 		if len([]rune(l)) > questAnswerChars {
 			t.Errorf("%q is longer than CLIENT shows", l)
 		}
 	}
-	m = f.pick(5)
-	if !rehabSays(m, "Come back whenever you would start over.") {
-		t.Errorf("nothing today: %q", m)
+	// a Close keeps the box; the old menu's id answers nothing now
+	f.tw.pick(boxID(m), 255)
+	f.tw.pick(first, 1)
+	if m := questMsgs(f.tw.s); len(m) != 0 {
+		t.Errorf("a close or an old box did something: %q", m)
 	}
 	// the control: an NPC of another name is no rehabilitator
 	other := f.tw.add(2, &entity.NPC{ServerID: 2206, Name: "Rehab Anja", NPCType: 0x80, SpawnX: 23431.5, SpawnY: 54, SpawnZ: 19601.5})
@@ -284,7 +301,7 @@ func TestRehabMasteryResetFreeOnceThenPriced(t *testing.T) {
 	f := newRehabFixture(t)
 	f.purse(5000)
 	f.giveMastery()
-	f.talk()
+	f.resets()
 	m := f.pick(0)
 	if q, a := asked(m); q != "Shall I begin? It uses your free mastery reset." || strings.Join(a, "|") != "Yes, begin.|Not now." {
 		t.Fatalf("the question: %q %q (%q)", q, a, m)
@@ -305,8 +322,8 @@ func TestRehabMasteryResetFreeOnceThenPriced(t *testing.T) {
 
 	// the second: priced
 	f.giveMastery()
-	m = f.talk()
-	if _, a := asked(m); a[0] != "Reset my Combat Masteries (1,000,000 tunar)" {
+	m = f.resets()
+	if _, a := asked(m); a[0] != "My Combat Masteries (1,000,000 tunar)" {
 		t.Fatalf("the second's price: %q", a)
 	}
 	f.purse(999_999)
@@ -318,7 +335,7 @@ func TestRehabMasteryResetFreeOnceThenPriced(t *testing.T) {
 		t.Fatalf("refused, yet changed: %v, purse %d", f.tw.p.CMs, f.purseNow())
 	}
 	f.purse(1_250_000)
-	f.talk()
+	f.resets()
 	m = f.pick(0)
 	if q, _ := asked(m); q != "Shall I begin? It costs 1,000,000 tunar." {
 		t.Fatalf("the paid question: %q", q)
@@ -331,7 +348,7 @@ func TestRehabMasteryResetFreeOnceThenPriced(t *testing.T) {
 		t.Errorf("used %d paid %d: want 1 1", u, p)
 	}
 	// nothing to reset: said, nothing taken
-	f.talk()
+	f.resets()
 	if m := f.pick(0); !rehabSays(m, rehabNoMastery) || boxID(m) != 0 {
 		t.Errorf("no masteries: %q", m)
 	}
@@ -345,7 +362,7 @@ func TestRehabStatPointsResetFreeOnceThenPriced(t *testing.T) {
 	f := newRehabFixture(t)
 	f.purse(800_000)
 	f.spendTraining(5, 3)
-	f.talk()
+	f.resets()
 	m := f.pick(1)
 	if q, _ := asked(m); q != "Shall I begin? It uses your free stat point reset." {
 		t.Fatalf("the question: %q (%q)", q, m)
@@ -370,8 +387,8 @@ func TestRehabStatPointsResetFreeOnceThenPriced(t *testing.T) {
 	// a GM's price: read at the talk, taken exactly
 	f.exec(`UPDATE rehabsettings SET value = 750000 WHERE setting = 'price_training'`)
 	f.spendTraining(2, 0)
-	m = f.talk()
-	if _, a := asked(m); a[1] != "Reset my stat points (750,000 tunar)" {
+	m = f.resets()
+	if _, a := asked(m); a[1] != "My stat points (750,000 tunar)" {
 		t.Fatalf("the GM's price: %q", a)
 	}
 	f.pick(1)
@@ -394,7 +411,7 @@ func TestRehabBothTogether(t *testing.T) {
 		t.Helper()
 		f.giveMastery()
 		f.spendTraining(4, 0)
-		m := f.talk()
+		m := f.resets()
 		if _, a := asked(m); a[2] != wantLabel {
 			t.Fatalf("the label: %q, want %q", a[2], wantLabel)
 		}
@@ -408,18 +425,18 @@ func TestRehabBothTogether(t *testing.T) {
 		}
 		f.tw.p.UnusedTP = 0
 	}
-	reset("Reset masteries and stat points (free)", "Shall I begin? It uses your free mastery reset and your free stat point reset.")
+	reset("Both (free)", "Shall I begin? It uses your free mastery reset and your free stat point reset.")
 	if f.purseNow() != 4_000_000 {
 		t.Fatalf("free, yet %d", f.purseNow())
 	}
 	// a GM's price of both, not the two prices added
 	f.exec(`UPDATE rehabsettings SET value = 1500000 WHERE setting = 'price_both'`)
-	reset("Reset masteries and stat points (1,500,000 tunar)", "Shall I begin? It costs 1,500,000 tunar.")
+	reset("Both (1,500,000 tunar)", "Shall I begin? It costs 1,500,000 tunar.")
 	if f.purseNow() != 2_500_000 {
 		t.Fatalf("after the price of both: %d", f.purseNow())
 	}
 	f.exec(`UPDATE charresets SET bonus = 1 WHERE serverid = ? AND kind = 'mastery'`, f.sid)
-	reset("Reset masteries and stat points (1,000,000 tunar)", "Shall I begin? It costs 1,000,000 tunar and your free mastery reset.")
+	reset("Both (1,000,000 tunar)", "Shall I begin? It costs 1,000,000 tunar and your free mastery reset.")
 	if f.purseNow() != 1_500_000 {
 		t.Fatalf("after the stat points' price: %d", f.purseNow())
 	}
@@ -527,7 +544,7 @@ func (f *rehabFixture) warriorPaths() {
 func (f *rehabFixture) pathsAsked() []string {
 	f.t.Helper()
 	f.talk()
-	m := f.pick(3)
+	m := f.pick(1)
 	q, a := asked(m)
 	if q != rehabAskPath {
 		f.t.Fatalf("the paths not asked: %q", m)
@@ -545,9 +562,8 @@ func TestRehabPathUndoesItsPathOnly(t *testing.T) {
 	f := newRehabFixture(t)
 	f.warriorPaths()
 	paths := f.pathsAsked()
-	if len(paths) != 5 || paths[0] != "Level 20: Bellow" || paths[1] != "Level 30: Roar" ||
-		paths[2] != "Level 40: Howl and the Calamitous Falchion" || !strings.HasPrefix(paths[3], "Level 49: Battlecry") ||
-		paths[4] != rehabNoneOfThem {
+	if len(paths) != 4 || paths[0] != "Level 20: Bellow" || paths[1] != "Level 30: Roar" ||
+		paths[2] != "Level 40: Howl and the Calamitous Falchion" || !strings.HasPrefix(paths[3], "Level 49: Battlecry") {
 		t.Fatalf("the paths: %q", paths)
 	}
 	m := f.pick(1)
@@ -703,11 +719,11 @@ func TestRehabRoseForAPath(t *testing.T) {
 	f.warriorPaths()
 	f.exec(`INSERT INTO charresets (serverid, kind, used) VALUES (?, 'path', 2)`, f.sid)
 	m := f.talk()
-	if _, a := asked(m); a[3] != "Undo a path (a Rose of Rehabilitation)" {
+	if _, a := asked(m); a[1] != "Undo a path (a Rose of Rehabilitation)" {
 		t.Fatalf("the menu: %q", a)
 	}
 	f.purse(9_999_999)
-	m = f.pick(3)
+	m = f.pick(1)
 	if !rehabSays(m, "I sell them for 10,000,000 tunar, and you carry 9,999,999 tunar.") || boxID(m) != 0 {
 		t.Fatalf("too little tunar: %q", m)
 	}
@@ -716,7 +732,7 @@ func TestRehabRoseForAPath(t *testing.T) {
 	}
 	f.purse(10_000_000)
 	f.talk()
-	m = f.pick(3)
+	m = f.pick(1)
 	if q, a := asked(m); q != "Will you buy one?" || a[0] != "Yes, buy a rose." {
 		t.Fatalf("the offer: %q", m)
 	}
@@ -743,10 +759,10 @@ func TestRehabRoseForAPath(t *testing.T) {
 	f.exec(`UPDATE rehabsettings SET value = 4000000 WHERE setting = 'price_rose'`)
 	f.purse(5_000_000)
 	m = f.talk()
-	if _, a := asked(m); a[4] != "Buy a Rose of Rehabilitation (4,000,000 tunar)" {
+	if _, a := asked(m); a[2] != "Buy a Rose of Rehabilitation (4,000,000 tunar)" {
 		t.Fatalf("the menu's rose: %q", a)
 	}
-	f.pick(4)
+	f.pick(2)
 	f.pick(0)
 	if f.purseNow() != 1_000_000 || f.held(database.RoseOfRehabilitation) != 1 {
 		t.Errorf("bought from the menu: purse %d roses %d", f.purseNow(), f.held(database.RoseOfRehabilitation))
@@ -763,7 +779,7 @@ func TestRehabRoseIsForPathsOnly(t *testing.T) {
 	f.own(database.RoseOfRehabilitation, 1, -1, 0)
 	f.purse(1_000_000)
 	f.giveMastery()
-	f.talk()
+	f.resets()
 	m := f.pick(0)
 	if q, _ := asked(m); q != "Shall I begin? It costs 1,000,000 tunar." {
 		t.Fatalf("the mastery question: %q", m)

@@ -392,10 +392,12 @@ The user, 2026-10-30: "1 free CM [reset] and stat points [reset] per char. 2 fre
 cms, 2mil for both", "Roses for paths", "1 free path respec w/ 60 epic. Or rose as reward". Talking to **Rehabilitator
 Anja** (Muniel's Tea Garden) or **Rehabilitator Frejo** (near Freeport; any NPC named "Rehabilitator ...") opens a menu of
 the quest boxes a PS2 reads (0x0046 lines, 0x0034 questions under box mark **0x54000000**, beside the quests' 0x51, the
-triggers' 0x52, the duels' 0x53): what the character has left, then its Combat Masteries reset (`#rst_mastr`'s work,
-`resetMasteries`), its stat points reset (`#rst_both`'s training half, `trainingBack`), both, a path undone, a Rose of
-Rehabilitation bought. Each is asked again with its terms and done only on them; nothing to undo or too little tunar is
-refused, nothing taken.
+triggers' 0x52, the duels' 0x53): what the character has left, then three answers, a page of CLIENT's answer box
+(VIWndResponse shows three, then More, Back and its own Close, which answers 255): a reset, then which (its Combat
+Masteries, `#rst_mastr`'s work, `resetMasteries`; its stat points, `#rst_both`'s training half, `trainingBack`; both), a
+path undone, a Rose of Rehabilitation bought. Each is asked again with its terms and done only on them; nothing to undo
+or too little tunar is refused, nothing taken. Walked end to end in the headless vanilla client (a rose bought, a path
+undone from a two-page list).
 
 - **Prices and free counts**: table `rehabsettings` (GM panel "Rehabilitators' prices", a row a setting, read at each
   talk): free_mastery 1, free_training 1, free_path 2, price_mastery 1,000,000, price_training 1,000,000 (the user priced

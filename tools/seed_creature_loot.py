@@ -471,15 +471,15 @@ def hour(items, chance):
     return out
 
 
-def report(w, made, leg, left, unbind, hold, retier, path):
+def report(w, made, leg, left, unbind, hold, retier, path, dbname=""):
     names = {pid: n for pid, (n, _, _) in w.items.items()}
     every = {t: c for t, c, *_ in w.binds.get("*", [])}
     tiers = w.tiers
     L = []
-    L.append("# A loot table for every creature: the proposal\n")
-    L.append("Built by `tools/seed_creature_loot.py`" + (" --retier-bound" if retier else "") +
-             " on a copy of the live data of 2026-10-30 01:30 UTC with tools/seed_region_loot.py, "
-             "tools/raise_gem_roll.py and tools/fix_single_spawn_steps.py applied. Nothing is applied anywhere live.\n")
+    L.append("# Tiered loot for every creature: the alternative to doubling\n" if retier else
+             "# A loot table for every creature: the proposal\n")
+    L.append("Built by `tools/seed_creature_loot.py" + (" --retier-bound" if retier else "") + "`" +
+             (f" on {dbname}" if dbname else "") + ": what --apply would write.\n")
     n_names = len({k for k, *_ in made})
     L.append(f"- creature names given tables: **{n_names}**, tables **{len(made)}**, rows "
              f"**{sum(len(i) for *_, i in made)}**" + (f"; bindings to the pooled tables taken away: {len(unbind)}" if unbind else ""))
@@ -623,7 +623,7 @@ def main():
     for pid, (r, n) in sorted(leg.items(), key=lambda kv: names[kv[0]]):
         print(f"  legendary {names[pid]}: {n} spawns hold it, {r:.2e} a kill (1 in {1 / r:,.0f})")
     if a.report:
-        report(w, made, leg, left, unbind, hold, a.retier_bound, a.report)
+        report(w, made, leg, left, unbind, hold, a.retier_bound, a.report, os.path.basename(a.db))
         print(f"report: {a.report}")
     if a.tsv:
         with open(a.tsv, "w") as f:

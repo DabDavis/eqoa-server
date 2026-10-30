@@ -242,8 +242,10 @@ const (
 	OpcodeWorldUnavailable          GameOpcode = 0x07F3 // char select: word 676, as 0x07F0
 	// OpcodeLiveFeatures (once "Camera2", the C# reference's 0x1B) is SOE's live
 	// client's server feature word: a u32 into VIClient+0x813C (live
-	// 0x012C9548), 0x1B in both retail save states; bit 0x10 lets its duel
-	// part challenge and surrender (entity/duel.go). The disc has no case.
+	// 0x012C9548, read by GetFeatures 0x012C79E0), 0x1B in both retail save
+	// states: 0x01 the auction's menu entries, 0x02 Ogre and Alchemist in the
+	// pickers, 0x08 the auction's stacks, 0x10 the duel part's challenge and
+	// surrender. The disc has no case. Sent once, by handlers/livefeatures.go.
 	OpcodeLiveFeatures GameOpcode = 0x07F5
 	OpcodeTeleport     GameOpcode = 0x00B2 // Msg00B2: u8 world, pos, HPR, u32 token -- Respawn, answered by 0x0049 = zigzag(token)
 )
@@ -252,9 +254,16 @@ const (
 // 0x08XX - LFG System
 // =============================================================================
 
+// SOE's live client's group search (VIWndGroupSearch; handlers/lfg.go): its
+// part at VIClient+0x308F8 is the disc's VIClientPart2EFC8 grown, and sends
+// 0x0801 {u8 sub, ...} where the disc sends 0x0B01 {u8 1, u8 show}: sub 1 the
+// Group menu's Show/Hide Chat, 2 register, 3 unregister, 4 a search. Its
+// answer is 0x0840 {u8 0x40, zz count, the rows}. A PS2 never sends 0x0801
+// and has no case for 0x0840.
 const (
-	OpcodeLFGShowHide GameOpcode = 0x0801 // Show/Hide Group Chat + LFG commands
-	OpcodeLFGUnknown  GameOpcode = 0x0840 // Unknown LFG
+	OpcodeLFG        GameOpcode = 0x0801 // live: sub 1 show/hide group chat, 2 register, 3 unregister, 4 search
+	OpcodeLFGResults GameOpcode = 0x0840 // live: sub 0x40, a search's players
+	OpcodeGroupShow  GameOpcode = 0x0B01 // disc: {u8 1, u8 show}, the Group menu's Show Chat (1) / Hide Chat (0)
 )
 
 // =============================================================================
@@ -433,6 +442,17 @@ const (
 	// answered by its own form whatever the answer, which is kept on the
 	// session for the log. A PS2 ignores the offer; the server never offers 0.
 	OpcodeMailForm GameOpcode = 0x7E0A
+	// OpcodeAuctionForm is not retail: whether a client has SOE's live
+	// auction forms (the stack UI of feature bit 0x08, handlers/auction.go),
+	// a u32 after the opcode, both ways. The server offers it (1) once the
+	// player is in the world; a client whose sell form names a quantity
+	// answers 1, and from then on its Sell's count is how many items go up
+	// (one of a stack is one item, not the whole record) and it is shown a
+	// lot a disc client put up whole in its own terms (per item, bid for
+	// whole); 0 goes back. Without it a Sell of count 1 puts up the whole
+	// bank record, as the disc's form (whose count is the constant 1) means
+	// it; a count over 1 is a quantity from any client. A PS2 ignores it.
+	OpcodeAuctionForm GameOpcode = 0x7E0B
 
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length
@@ -690,6 +710,14 @@ func (op GameOpcode) String() string {
 		return "DuelWindow"
 	case OpcodeMailForm:
 		return "MailForm"
+	case OpcodeAuctionForm:
+		return "AuctionForm"
+	case OpcodeLFG:
+		return "LFG"
+	case OpcodeLFGResults:
+		return "LFGResults"
+	case OpcodeGroupShow:
+		return "GroupShow"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:

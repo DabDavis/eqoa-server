@@ -20,9 +20,10 @@
 // NPC took to be whole again (its heal out of a fight, regen_pct).
 //
 // -groups fights each class's fitting groups of those sizes instead
-// (entity.SimGroupFor: two, the class and a cleric; three, a warrior, the
-// class and a cleric), the column won, wiped, members dead a fight, the hit
-// points left in the fights won and their length.
+// (entity.SimGroupFor: two, the class and the role it lacks, a cleric for a
+// tank or a melee class, a warrior for a priest or a caster; three, a
+// warrior, the class and a cleric), the column won, wiped, members dead a
+// fight, the hit points left in the fights won and their length.
 //
 // -lines prints each class's buff lines instead: the spells of one line, of
 // which only the best counts on a player (entity/buffline.go).

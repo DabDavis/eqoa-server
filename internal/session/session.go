@@ -110,6 +110,12 @@ type Session struct {
 	// mailLiveForms is the client's answer to the mail form offer
 	// (OpcodeMailForm, handlers/mail.go): it sends SOE's live mail forms.
 	mailLiveForms bool
+	// liveLook: the client asked for SOE's live game's look
+	// (protocol.OpcodeLiveLook) and was told it is in force: its entity
+	// channels are the live 201 bytes and its character lists the live
+	// records (entity/livelook.go). liveLookOffered: the offer went out.
+	liveLook        bool
+	liveLookOffered bool
 }
 
 // SetMailLiveForms records the client's answer to the mail form offer.
@@ -125,6 +131,31 @@ func (s *Session) MailLiveForms() bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.mailLiveForms
+}
+
+// SetLiveLook records whether the session's client reads the live game's
+// look (entity channels and character lists).
+func (s *Session) SetLiveLook(on bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.liveLook = on
+}
+
+// LiveLook is whether the session's client reads the live game's look.
+func (s *Session) LiveLook() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.liveLook
+}
+
+// OfferLiveLookOnce reports whether the live look's offer is still to be
+// made on this session, and marks it made.
+func (s *Session) OfferLiveLookOnce() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	first := !s.liveLookOffered
+	s.liveLookOffered = true
+	return first
 }
 
 // SetFactionMessagesOff records the client's Faction Messages option (0x00C9):

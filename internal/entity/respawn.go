@@ -215,9 +215,7 @@ func (w *World) SyncSelfChannels(sess *session.Session) {
 		return
 	}
 	if objectID := sess.PlayerObjectID(); objectID != 0 {
-		if state := conn.GetServerObject(0); state != nil {
-			state.SetData(SerializePlayerUpdate(objectID, p))
-		}
+		SetEntityState(conn.GetServerObject(0), ForViewer(sess, SerializePlayerUpdate(objectID, p), &p.Dyes))
 	}
 	if stat := conn.GetClientStatUpdate(); stat != nil {
 		stat.SetData(SerializeStatUpdate(p))

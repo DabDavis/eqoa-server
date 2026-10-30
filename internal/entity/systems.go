@@ -281,13 +281,12 @@ func (w *World) stateSyncSystem() {
 			return true
 		}
 
-		stateData := SerializePlayerUpdate(objectID, player)
+		// in the client's look: the disc's, or the live game's (livelook.go)
+		stateData := ForViewer(sess, SerializePlayerUpdate(objectID, player), &player.Dyes)
 
 		conn := sess.Connection()
 		if conn != nil {
-			if state := conn.GetServerObject(0); state != nil {
-				state.SetData(stateData)
-			}
+			SetEntityState(conn.GetServerObject(0), stateData)
 		}
 
 		return true
@@ -324,9 +323,7 @@ func (w *World) entityChannelSyncSystem() {
 
 			stateData := w.serializeEntityForChannel(sess, id, objectID)
 			if stateData != nil {
-				if state := conn.GetServerObject(i + 1); state != nil {
-					state.SetData(stateData)
-				}
+				SetEntityState(conn.GetServerObject(i+1), stateData)
 			}
 		}
 

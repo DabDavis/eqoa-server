@@ -75,7 +75,7 @@ var gmCommands = map[string]bool{
 	"#grantcm": true, "#npcinfo": true, "#fx": true, "#spellfx": true,
 	"#aggro": true, "#stats": true, "#cm": true, "#cmreset": true, "#debt": true,
 	"#trigger": true, "#craftskill": true, "#craftlearn": true,
-	"#clearbuffs": true, "#nukebuffs": true,
+	"#clearbuffs": true, "#nukebuffs": true, "#dye": true,
 	"#rst_mastr": true, "#rst_both": true, "#rem_abil": true, "#banktunar": true, "#servdown": true,
 }
 

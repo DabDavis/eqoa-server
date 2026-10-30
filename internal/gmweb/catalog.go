@@ -89,6 +89,8 @@ func enums() map[string][]EnumValue {
 		"craftskill": numbered("Weapon Crafting", "Armor Crafting", "Tailoring", "Jewel Crafting", "Carpentry", "Alchemy"),
 		// craftrecipes.rarity: the book's Rarity column (C, UC, R, UR)
 		"craftrarity": numbered("Common", "Uncommon", "Rare", "Ultra Rare"),
+		// chardyes.slot (database/chardyes.go, entity/livelook.go)
+		"dyeslot": numbered("Chest", "Bracer", "Gloves", "Legs", "Boots", "Helm", "Primary", "Secondary", "Shield", "Robe"),
 		// classtemplates.class (entity/classtemplate.go): -1 the NPC's own
 		"templateclass": append([]EnumValue{{-1, "The NPC's own (NPC classes)"}}, numbered("Warrior", "Ranger", "Paladin", "Shadow Knight", "Monk", "Bard", "Rogue", "Druid", "Shaman", "Cleric", "Magician", "Necromancer", "Enchanter", "Wizard", "Alchemist")...),
 	}
@@ -249,6 +251,23 @@ var catalog = map[string]tableNote{
 			"serverid": {Label: "Character", Ref: "characters"},
 			"faction":  {Label: "Faction", Ref: "factions"},
 			"standing": {Label: "Standing"},
+		},
+	},
+	"chardyes": {
+		Label: "Character dyes", Group: "Players", Sort: "serverid",
+		Help: "A colour on a character's armour slot, held item or robe, drawn by a client of SOE's live game's look " +
+			"(eqoa-rust-client-vanilla: the live game's state channel and character list, which carry a colour where the " +
+			"disc's carry a tint). A PS2 never sees one. Color is 0xRRGGBBAA, red in the high byte (0xD10000FF red, " +
+			"0xFFFFFFFF white); alpha 0 is refused. A slot with no row is undyed and looks as it always has. #dye in the " +
+			"game sets them too.",
+		Live:   "At once where the character stands (every client of the live look, from the next tick), else at its next login.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"slot":     {Label: "Slot", Enum: "dyeslot"},
+			"color":    {Label: "Colour", Format: hex32, Help: "0xRRGGBBAA: 0xD10000FF red, 0x008000FF green, 0xFFFFFFFF white"},
+			"note":     {Label: "Note", Help: "why"},
+			"source":   {Label: "Source", Help: "gm"},
 		},
 	},
 	"charbuffs": {

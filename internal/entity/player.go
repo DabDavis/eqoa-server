@@ -43,6 +43,9 @@ type Player struct {
 	Legs          byte
 	Boots         byte
 	Helm          byte
+	// Dyes: a colour per armour slot, held item and the robe (livelook.go,
+	// table chardyes), drawn by a client of the live game's look; 0 none.
+	Dyes Dyes
 
 	// PlayerInfo
 	AccountID    int

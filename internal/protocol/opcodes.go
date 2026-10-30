@@ -453,6 +453,24 @@ const (
 	// bank record, as the disc's form (whose count is the constant 1) means
 	// it; a count over 1 is a quantity from any client. A PS2 ignores it.
 	OpcodeAuctionForm GameOpcode = 0x7E0B
+	// OpcodeLiveLook is not retail: whether a client reads SOE's live game's
+	// look (entity/livelook.go): the 201-byte entity state channel and the
+	// 0x002C record of eqoa-live-1500's CLIENT, which carry a colour (RGBA)
+	// for each armour slot, held item and the robe where the disc's carry a
+	// tint index. A u32 after the opcode, both ways: the server offers it (1)
+	// after a session's first character list; a client that reads the live
+	// look answers 1 to have it and 0 to go back. A PS2 ignores the offer and
+	// is sent the disc's look, as is every client of a server that never
+	// offers it (Sandstorm).
+	OpcodeLiveLook GameOpcode = 0x7E0C
+
+	// OpcodeLiveLookInForce is the server's answer to OpcodeLiveLook, a u32:
+	// the look every character list from here on is in (1 the live game's,
+	// 0 the disc's), so a client never reads a list in the wrong one (lists
+	// are reliable, and come after it). A client still choosing a character
+	// is then sent its list again in that look. The entity channels say
+	// theirs by their length (162 the disc's, 201 the live game's).
+	OpcodeLiveLookInForce GameOpcode = 0x7E0D
 
 	// Voice chat (internal/voice, entity/voice.go): non-retail opcodes in a
 	// block of their own; a PS2 ignores them. Strings are a u16 byte length
@@ -718,6 +736,10 @@ func (op GameOpcode) String() string {
 		return "LFGResults"
 	case OpcodeGroupShow:
 		return "GroupShow"
+	case OpcodeLiveLook:
+		return "LiveLook"
+	case OpcodeLiveLookInForce:
+		return "LiveLookInForce"
 	case OpcodeNoCollideList:
 		return "NoCollideList"
 	case OpcodeFactionPage:

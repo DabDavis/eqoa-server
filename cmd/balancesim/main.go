@@ -119,6 +119,7 @@ func main() {
 	groups := flag.String("groups", "", "instead: each class's fitting groups of these sizes (2,3) against each diff")
 	lowPoint := flag.Bool("low", false, "the HP column is the least the player had in each fight won (its low point), not what it ended with")
 	template := flag.String("template", "", "the foe fights by this class template of the database's (roamer, wizard, ...)")
+	start := flag.Int("start", 0, "players of this level and under fight in a new character's starting gear (its start weapon, no armour)")
 	flag.Parse()
 	if *dbPath == "" {
 		flag.Usage()
@@ -252,6 +253,9 @@ func main() {
 	for _, class := range ints(*classes) {
 		for _, level := range ints(*levels) {
 			pl, err := entity.SimKitFromDB(db, class, 0, level, *tier)
+			if level <= *start {
+				pl, err = entity.SimStartKitFromDB(db, class, 0, level)
+			}
 			if err != nil {
 				log.Fatal(err)
 			}

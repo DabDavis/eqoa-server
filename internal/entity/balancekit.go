@@ -149,6 +149,73 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 	return pl, err
 }
 
+// SimStartKitFromDB is a new character of the class and race at the level as
+// its creation outfits one (database.StartItems: Sandstorm's starting weapon,
+// an Apprentice Sword, Dagger, Club or Staff, in hand; its rations carried;
+// no armour at all, a monk not even a weapon), its base stats and book as
+// SimKitFromDB's: what a player fights with at 1-5 before it buys or finds
+// anything (the coordinator's check of 2026-10-30: a level 3 alchemist "beat
+// up by a level 1"). A race with no row for the class (a human shaman) takes
+// the first race's that has one; a human's city the east's, then the west's.
+func SimStartKitFromDB(db *database.SQLiteDB, class, race, level int) (SimPlayer, error) {
+	pl := SimPlayer{Class: class, Race: race, Level: level, Base: SimBaseStats(class, race, level),
+		Play: SimPlay{Melee: true, Buffs: true, Spells: true}}
+	items, err := simStartItems(db, class, race)
+	if err != nil {
+		return pl, err
+	}
+	inv := database.NewInventoryStore(db)
+	g := Gear{WeaponCond: 1}
+	for _, it := range items {
+		rec, ok, err := inv.ItemPatternByID(it.PatternID)
+		if err != nil {
+			return pl, err
+		}
+		if !ok || (rec.EquipSlot != 12 && rec.EquipSlot != 14 && rec.EquipSlot != 15) || g.WeaponDamage > 0 {
+			continue // carried, not worn (rations; a second weapon)
+		}
+		for id, v := range simItemStats(&rec) {
+			g.Add(id, v)
+		}
+		g.WeaponDamage, pl.AttackType = rec.WeaponDamage, rec.AttackType
+		if rec.EquipSlot == 15 {
+			g.WeaponTwoHanded, pl.Worn[16] = true, true
+		} else {
+			pl.Worn[14] = true
+		}
+	}
+	if pl.AttackType > 6 {
+		pl.AttackType = 1
+	}
+	pl.Gear = g
+	pl.Spells, err = SimBookFromDB(db, class, level, false)
+	return pl, err
+}
+
+// simStartItems is what a new character of the class carries: its race's
+// row, a human's of the east then of the west, else the first race's that
+// has the class (by race).
+func simStartItems(db *database.SQLiteDB, class, race int) ([]database.StartItem, error) {
+	for _, h := range []int{1, 2, 0} {
+		items, err := db.StartItems(race, class, h)
+		if err != nil || len(items) > 0 {
+			return items, err
+		}
+	}
+	var other int
+	err := db.QueryRow(`SELECT race FROM startitems WHERE class = ? ORDER BY race, humtype LIMIT 1`, class).Scan(&other)
+	if err != nil {
+		return nil, nil // no row anywhere: nothing carried
+	}
+	for _, h := range []int{1, 2, 0} {
+		items, err := db.StartItems(other, class, h)
+		if err != nil || len(items) > 0 {
+			return items, err
+		}
+	}
+	return nil, nil
+}
+
 // SimBookFromDB is every spell of the class up to the level that its levels
 // give (database.Granted: not a mastery's, an epic's or a master class's,
 // unless all), each as the cast handler builds it (handlers/cast.go

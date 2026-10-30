@@ -4,7 +4,9 @@ of tools/drop_rates.py's report: a generic table's item took 841 kills for a
 one-in-two chance): each npcloot row bound to a creature's name has its
 chance doubled, at most 100. The tables every creature rolls (npcloot's "*":
 the tradeskills' gems and modifiers) are not a creature's and are left
-(tools/raise_gem_roll.py raises the gems'); a row at 100 already stays.
+(tools/raise_gem_roll.py raises the gems'); a row at 100 already stays, and so
+does a tiered table's (tools/seed_creature_loot.py: its chance is its items'
+rates' sum).
 
 Measured by tools/drop_rates.py on the live data of 2026-10-30: the generic
 table's median item from 0.082% a kill (841 kills for a one-in-two chance) to
@@ -28,6 +30,7 @@ import sys
 
 EVERY = "*"  # handlers/loot.go lootEveryCreature: no creature's own
 CAP = 100
+TIERED = "creature-seed"  # tools/seed_creature_loot.py's tables: each item at its tier's rate already
 
 LOG_DDL = """CREATE TABLE IF NOT EXISTS loot_chance_double_log (
     npc_name  TEXT NOT NULL,
@@ -47,8 +50,9 @@ def plan(db):
     """[(name, table, chance before, after)] for every creature's row a
     doubling changes."""
     out = []
-    for name, table, chance in db.execute("SELECT npc_name, tablename, chance FROM npcloot ORDER BY npc_name, tablename"):
-        if name == EVERY or chance is None:
+    for name, table, chance, source in db.execute(
+            "SELECT npc_name, tablename, chance, source FROM npcloot ORDER BY npc_name, tablename"):
+        if name == EVERY or chance is None or source == TIERED:
             continue
         new = min(CAP, chance * 2)
         if new != chance:

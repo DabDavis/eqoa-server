@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """tools/double_loot_chances.py against a made-up npcloot: every creature's
 row doubled, at most 100; the controls left: the rows of "*" (every
-creature's), a row at 100 already, a row of no chance. --apply then --undo
-leaves npcloot as it was; a second --apply is refused; a row a GM changed
-since is left by --undo. No game data.
+creature's), a row at 100 already, a tiered table (tools/seed_creature_loot.py).
+--apply then --undo leaves npcloot as it was, but for a row a GM changed since,
+which --undo leaves; a second --apply is refused. No game data.
 
     python3 tools/double_loot_chances_test.py
 """
@@ -28,6 +28,7 @@ class DoubleLootChances(unittest.TestCase):
         db.executemany("INSERT INTO npcloot (npc_name, tablename, chance) VALUES (?, ?, ?)",
                        [("orc pawn", "plains", 25), ("orc pawn", "generic", 15), ("ogre", "mountain", 60),
                         ("lady vox", "boss lady vox", 100), ("*", "craft gems", 3), ("*", "craft modifiers", 3)])
+        db.execute("INSERT INTO npcloot (npc_name, tablename, chance, source) VALUES ('crow', 'crow 1-5', 23, 'creature-seed')")
         db.commit()
         db.close()
 
@@ -54,6 +55,7 @@ class DoubleLootChances(unittest.TestCase):
         # the controls
         self.assertEqual(got[("lady vox", "boss lady vox")], 100)
         self.assertEqual((got[("*", "craft gems")], got[("*", "craft modifiers")]), (3, 3), "every creature's tables are no creature's")
+        self.assertEqual(got[("crow", "crow 1-5")], 23, "a tiered table's chance is its items' rates")
         self.assertNotEqual(self.run_tool("--apply").returncode, 0, "a second --apply is refused")
         # a GM's change since is left by the undo
         db = sqlite3.connect(self.path)

@@ -368,10 +368,13 @@ def apply(db, plan, items, pool):
     db.execute("BEGIN IMMEDIATE")
     try:
         db.execute(LOG_DDL)
+        rows = {}  # a part's template record, read once
         for key, it in sorted(items.items()):
             if it["pid"] is None:
-                tpl = dict(zip(cols, db.execute(f"SELECT {', '.join(cols)} FROM itempattern WHERE patternid = ?",
-                                                (plan.templates[it["part"]],)).fetchone()))
+                t = plan.templates[it["part"]]
+                if t not in rows:
+                    rows[t] = db.execute(f"SELECT {', '.join(cols)} FROM itempattern WHERE patternid = ?", (t,)).fetchone()
+                tpl = dict(zip(cols, rows[t]))
                 tpl.update(itemname=it["name"], itemcost=it["price"], maxstack=MAX_STACK, equipslot=-1, trade=0, lore=0,
                            craft=0, levelreq=0, maxhp=0, duration=0,
                            itemdesc=f"{article(it['name']).capitalize()}. A merchant will pay for it.")
@@ -382,10 +385,11 @@ def apply(db, plan, items, pool):
             elif it["old"] == 0:
                 db.execute("UPDATE itempattern SET itemcost = ? WHERE patternid = ?", (it["price"], it["pid"]))
                 db.execute(log, ("price", str(it["pid"]), "0", str(it["price"]), when))
-        for k, key in pool:
-            cur = db.execute("INSERT INTO lootpool (category, region, npc_name, patternid, weight, minlevel, maxlevel, source) "
-                             "VALUES (?, '', ?, ?, 1, 1, 100, ?)", (TRASH, k, items[key]["pid"], SOURCE))
-            db.execute(log, ("pool", str(cur.lastrowid), "", json.dumps([k, items[key]["pid"]]), when))
+        (top,) = db.execute("SELECT COALESCE(MAX(id), 0) FROM lootpool").fetchone()
+        db.executemany("INSERT INTO lootpool (category, region, npc_name, patternid, weight, minlevel, maxlevel, source) "
+                       "VALUES (?, '', ?, ?, 1, 1, 100, ?)", [(TRASH, k, items[key]["pid"], SOURCE) for k, key in pool])
+        db.executemany(log, [("pool", str(rid), "", json.dumps([k, pid]), when) for rid, k, pid in db.execute(
+            "SELECT id, npc_name, patternid FROM lootpool WHERE id > ? AND source = ? ORDER BY id", (top, SOURCE)).fetchall()])
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")

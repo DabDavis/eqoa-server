@@ -54,9 +54,10 @@ ITEMS = ([item(1 + i, f"plain cap {i}", 23, 1, AC=50) for i in range(3)] +      
          [item(20, "great ring", 23, 8, str=40), item(21, "Grimblade", 26, 12, attacktype=1, weapondamage=300),
           item(22, "town boots", 22, 11, AC=40)] +                                   # rare, legendary, a ware
          [item(30 + i, f"filler ring {i}", 23, 8, str=10) for i in range(4)] +      # the level's median
-         [item(50 + i, f"band ring {i}", 23, 8, str=10) for i in range(8)])         # more uncommons than slots
+         [item(50 + i, f"band ring {i}", 23, 8, str=10) for i in range(8)] +        # more uncommons than slots
+         [item(60, "Aquamarine", 0, -1)])                                            # a gem every creature rolls
 LOOT = [("rathe mountains", p, 18, 28) for p in (1, 10, 11, 12, 20)] + [("generic", 13, 18, 28), ("generic", 21, 21, 31)] + \
-       [("rathe mountains", 50 + i, 18, 28) for i in range(8)]
+       [("rathe mountains", 50 + i, 18, 28) for i in range(8)] + [("generic", 60, 18, 28), ("craft gems", 60, 1, 60)]
 NPCS = [  # npc_id, name, world, x, z, level, type
     (1, "hill troll", 1, 0, 0, 23, 0), (2, "rock golem", 1, 5000, 0, 24, 0), (3, "hill troll", 1, 60, 0, 22, 0),
     (4, "primal spirit", 1, 70, 0, 23, 0), (5, "training dummy", 1, 80, 0, 23, 0), (6, "cave bear", 1, 90, 0, 23, 0),
@@ -113,6 +114,8 @@ class SeedCreatureLoot(unittest.TestCase):
                 self.assertEqual((lo, hi), (21, 25), "the band's window")
                 p = chance / 100 * weight / total
                 self.assertAlmostEqual(p / r, 1, delta=0.03, msg=f"{k}: {w.items[pid][0]}")
+        # the gem in the generic table is every creature's already (the craft gems' "*" roll): no one's own
+        self.assertFalse(any(pid == 60 for *_, items in made for pid, *_ in items))
         # the ware beside the hill troll is its common, not the golem's (out of reach)
         self.assertIn(22, [pid for pid, *_ in by["hill troll"][2]])
         self.assertNotIn(22, [pid for pid, *_ in by["rock golem"][2]])
@@ -130,7 +133,8 @@ class SeedCreatureLoot(unittest.TestCase):
         w, made, unbind, leg, hold = self.plan(retier=True)
         self.assertEqual([(k, t) for k, t, *_ in unbind], [("cave bear", "generic")])
         held_by = {pid for *_, items in made for pid, *_ in items}
-        pooled = {p for t, p, _, _ in LOOT}
+        # every item of the pools but what every creature rolls already (the gem)
+        pooled = {p for t, p, _, _ in LOOT if not t.startswith("craft")} - {p for t, p, _, _ in LOOT if t.startswith("craft")}
         self.assertEqual(pooled - held_by, set(), "with the pooled bindings gone, every item of the pools is placed")
         # the control: without --retier-bound the twelve uncommons are not all placed (the pooled tables hold them)
         w, made, *_ = self.plan(retier=False)

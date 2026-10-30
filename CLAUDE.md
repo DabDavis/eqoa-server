@@ -424,8 +424,10 @@ undo or too little tunar is refused, nothing taken. Walked end to end in the hea
   last step: not repeatable, and no path change touches its row, so one a character an epic.
 - `tools/seed_rehabilitation.py [--apply|--undo] [--write-data tools/quests/data]` writes the rose, Frejo's NPC bit (his
   npc_type was 0: a creature), the epics' rewards, and a rose for each epic a character finished before, less the roses
-  it holds, has used (charresets) or the tool gave it (logged in `rehab_seed`, exact undo; no run gives one twice). Apply
-  it before the restart that brings the code: NPCs and quests are read at the start.
+  it holds, has used (charresets) or the tool gave it (logged in `rehab_seed`, exact undo, itempattern's AUTOINCREMENT
+  mark too; no run gives one twice), in the pack while it holds fewer than 40 records, else the bank, else none (a
+  later run gives it). Apply it just before the restart that brings the code: NPCs and quests are read at the start,
+  and a GM's quest save in between would have the old server hand out roses its merchants still buy.
 
 ### A quest's items wait for room in the pack (`handlers/questroom.go`, every quest)
 

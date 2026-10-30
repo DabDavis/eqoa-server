@@ -119,6 +119,45 @@ class Rehabilitation(unittest.TestCase):
         self.run_tool("--undo")
         self.assertEqual(dump(self.path), self.before, "the undo puts back exactly what was there")
 
+    def fill(self, sid, location, upto):
+        db = sqlite3.connect(self.path)
+        while db.execute("SELECT count(*) FROM charinventory WHERE serverid = ? AND location = ?",
+                         (sid, location)).fetchone()[0] < upto:
+            db.execute("INSERT INTO charinventory (serverid, stackleft, remainHP, remaincharge, patternid, equiploc, "
+                       "location, listnumber) VALUES (?, 1, 0, 0, 1081, -1, ?, (SELECT COALESCE(MAX(listnumber), -1) + 1 "
+                       "FROM charinventory WHERE serverid = ? AND location = ?))", (sid, location, sid, location))
+        db.commit()
+        db.close()
+
+    def roses(self, sid):
+        db = sqlite3.connect(self.path)
+        out = db.execute("SELECT location, listnumber FROM charinventory WHERE serverid = ? AND patternid = ?",
+                         (sid, rh.ROSE_ID)).fetchall()
+        db.close()
+        return out
+
+    def test_a_full_pack_banks_the_rose(self):
+        """A finisher whose pack holds its 40 records is given the rose in its bank (the control is
+        test_apply_and_undo's, given in the pack); with the bank full too, none, said so, and a later run gives it
+        once there is room."""
+        self.fill(31, 0, rh.LIST_CAP)
+        self.assertIn("in its bank: its pack is full", self.run_tool("--apply"))
+        self.assertEqual(self.roses(31), [(1, 0)])
+        self.run_tool("--undo")
+
+        self.fill(31, 1, rh.LIST_CAP)
+        out = self.run_tool("--apply")
+        self.assertIn("character 31: owed a rose, but its pack and bank are full: given none", out)
+        self.assertIn("0 given", out)
+        self.assertEqual(self.roses(31), [])
+        db = sqlite3.connect(self.path)
+        db.execute("DELETE FROM charinventory WHERE itemid = (SELECT max(itemid) FROM charinventory WHERE serverid = 31 "
+                   "AND location = 0)")
+        db.commit()
+        db.close()
+        self.assertIn("1 given", self.run_tool("--apply"), "room made, a later run gives it")
+        self.assertEqual(len(self.roses(31)), 1)
+
     def test_the_item_mark_goes_back(self):
         """The rose's id raises itempattern's AUTOINCREMENT mark (1081 here) to 709300; an undo puts it back, so the
         round trip is the file as it was, marks and all. The control: an item made after the apply keeps the mark
@@ -178,7 +217,7 @@ class Rehabilitation(unittest.TestCase):
         db.execute("DELETE FROM charinventory WHERE serverid = 32")
         db.commit()
         db.close()
-        self.assertIn("character 32: given 1", self.run_tool(), "the control: without its rose it is owed one")
+        self.assertIn("character 32: given a rose", self.run_tool(), "the control: without its rose it is owed one")
 
     def test_write_data(self):
         folder = tempfile.mkdtemp(dir=os.environ.get("TMPDIR"))

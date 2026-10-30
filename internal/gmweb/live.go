@@ -62,6 +62,8 @@ func (s *Server) applyLive(a *actor, t *Table, action string, before, after map[
 		return s.liveRaceSizes() // live_racesize.go
 	case "chardyes":
 		return s.liveDyes(before, after) // live_dyes.go
+	case "charvampire":
+		return s.liveVampire(before, after) // live_vampire.go
 	case "gmtriggers":
 		return s.liveTriggers() // ops_triggers.go
 	case "charfactions":

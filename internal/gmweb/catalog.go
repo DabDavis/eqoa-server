@@ -270,6 +270,23 @@ var catalog = map[string]tableNote{
 			"source":   {Label: "Source", Help: "gm"},
 		},
 	},
+	"charvampire": {
+		Label: "Vampires", Group: "Players", Sort: "serverid",
+		Help: "The characters who are vampires, a row each: the sun takes world.vampire_sun_damage (50, Sandstorm's) " +
+			"off one every vampire_sun_interval (6 s) while its client shows the sun up (6:00 to 18:00), unless " +
+			"something is over it (a roof, a floor above, a cave's or a cavern's rock, a big tree's crown) and " +
+			"vampire_sun_shade is on; it can die of it. Nothing else makes a vampire yet: the vampire quests are drafts " +
+			"until the vampires' abilities are here. #vampire on|off in the game sets one too, and #vampire says " +
+			"what the sun does to one now.",
+		Live:   "At once where the character stands, else at its next login.",
+		Search: []string{"note", "source"},
+		Cols: map[string]colNote{
+			"serverid": {Label: "Character", Ref: "characters"},
+			"since":    {Label: "Since", Help: "when it was made one (UTC)"},
+			"note":     {Label: "Note", Help: "why"},
+			"source":   {Label: "Source", Help: "gm"},
+		},
+	},
 	"charcoaches": {
 		Label: "Character coach ledgers", Group: "Players", Sort: "serverid",
 		Help: "The stables' ledgers each character has signed, a town a row (handlers/coachledger.go): talking to a " +

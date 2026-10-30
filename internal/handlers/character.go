@@ -617,6 +617,16 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 		} else if ok {
 			h.gameWorld.SetBind(player.ServerID, bindOfRow(b))
 		}
+		// and whether it is a vampire, whom the sun burns by day
+		// (entity/vampire.go)
+		if db := h.store.DB(); db != nil {
+			if v, err := db.IsVampire(record.ServerID); err != nil {
+				log.Printf("SelectedChar: '%s' vampire: %v", record.CharName, err)
+			} else if v {
+				h.gameWorld.SetVampire(record.ServerID, true)
+				log.Printf("SelectedChar: '%s' is a vampire", record.CharName)
+			}
+		}
 	}
 
 	// Load equipped items from DB and apply visual equipment to player
@@ -2129,13 +2139,17 @@ func (h *CharacterHandler) sendTimeOnly(sess *session.Session) {
 
 	// Write opcode in data
 	writer.WriteUint16(uint16(protocol.OpcodeTime))
-	// Write time data - two uint64 LE epoch-millisecond timestamps
-	now := uint64(time.Now().UnixMilli())
+	// Write time data - two uint64 LE epoch-millisecond timestamps; the
+	// client's time of day is the second's, and the session keeps the clock
+	// the client sets by it (session/gameclock.go: a vampire's daylight)
+	at := time.Now()
+	now := uint64(at.UnixMilli())
 	writer.WriteUint64(now)
-	writer.WriteUint64(now + 1350000)
+	writer.WriteUint64(now + session.ClockOffset)
 	msg.SetSize(writer.Position())
 
 	sess.Queue().AddWithSequence(msg)
+	sess.SetGameClock(int64(now+session.ClockOffset), at)
 	log.Printf("sendTimeOnly: sent Time message to %s (epoch=%d)", sess.RemoteAddr(), now)
 }
 

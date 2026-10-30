@@ -23,6 +23,11 @@ export async function render(box) {
   const level = h('input', { type: 'number', min: '1', max: '60', value: live.start_level, disabled: !admin });
   const allSpells = h('input', { type: 'checkbox', checked: live.start_all_spells, disabled: !admin });
   const autoReg = h('input', { type: 'checkbox', checked: live.allow_auto_register, disabled: !admin });
+  // the sun on vampires (entity/vampire.go)
+  const sunDamage = h('input', { type: 'number', min: '0', max: '100000', value: live.vampire_sun_damage, disabled: !admin });
+  const sunInterval = h('input', { type: 'number', min: '1', max: '3600', value: live.vampire_sun_interval, disabled: !admin });
+  const sunShade = h('input', { type: 'checkbox', checked: live.vampire_sun_shade, disabled: !admin });
+  const sunGMs = h('input', { type: 'checkbox', checked: live.vampire_sun_gms, disabled: !admin });
 
   const save = button('Save settings', { class: 'primary', icon: 'save', disabled: !admin, onclick: async () => {
     const npc_text = {};
@@ -31,7 +36,8 @@ export async function render(box) {
       if (n.value.trim()) npc_text[n.value.trim()] = t.value;
     }
     try {
-      const out = await op('update_settings', { npc_text, start_level: Number(level.value), start_all_spells: allSpells.checked, allow_auto_register: autoReg.checked });
+      const out = await op('update_settings', { npc_text, start_level: Number(level.value), start_all_spells: allSpells.checked, allow_auto_register: autoReg.checked,
+        vampire_sun_damage: Number(sunDamage.value), vampire_sun_interval: Number(sunInterval.value), vampire_sun_shade: sunShade.checked, vampire_sun_gms: sunGMs.checked });
       toast('Settings saved and applied', 'ok', out.configBackup ? 'config.yaml backed up to ' + out.configBackup : '');
     } catch (e) { toast(e.message, 'error'); }
   } });
@@ -81,7 +87,13 @@ export async function render(box) {
         h('p', { class: 'muted small' }, 'A creation message never picks the level; these are for testing.'))),
       card('Accounts', h('div', { class: 'stack' },
         h('label', { class: 'check' }, autoReg, 'An unknown name registers itself at login'),
-        h('p', { class: 'muted small' }, 'Off: only accounts that exist (made here, on the account page, or seeded in config) can log in.')))),
+        h('p', { class: 'muted small' }, 'Off: only accounts that exist (made here, on the account page, or seeded in config) can log in.'))),
+      card('Vampires in the sun', h('div', { class: 'stack' },
+        h('label', null, 'Damage a tick (0: none)', sunDamage),
+        h('label', null, 'Seconds between ticks', sunInterval),
+        h('label', { class: 'check' }, sunShade, 'Shade shelters a vampire: anything over it (a roof, rock, a big tree\'s crown)'),
+        h('label', { class: 'check' }, sunGMs, 'A GM\'s vampire burns too'),
+        h('p', { class: 'muted small' }, 'A vampire (the Vampires table, #vampire in the game) takes this while its client shows the sun up, 6:00 to 18:00; it can die of it.')))),
     card('What NPCs say', h('div', { class: 'stack' },
       h('p', { class: 'muted small' }, 'An NPC of this exact name answers a talk with these words instead of the debug box.'),
       rows, admin ? button('Add a line', { icon: 'plus', class: 'small', onclick: () => addRow() }) : null)),

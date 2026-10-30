@@ -116,6 +116,10 @@ type Session struct {
 	// records (entity/livelook.go). liveLookOffered: the offer went out.
 	liveLook        bool
 	liveLookOffered bool
+
+	// clock is the game clock the session's client keeps, set by each 0x0013
+	// it was sent: its time of day (gameclock.go).
+	clock gameClock
 }
 
 // SetMailLiveForms records the client's answer to the mail form offer.

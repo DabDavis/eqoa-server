@@ -457,6 +457,7 @@ func RegisterDefaultHandlers(r *Registry, charStore *database.SQLiteCharacterSto
 	NewLiveLookHandler(charHandler).RegisterHandlers(r)
 	if charStore != nil && charStore.DB() != nil {
 		chatHandler.SetDyeStore(charStore.DB())
+		chatHandler.SetVampireStore(charStore.DB()) // #vampire (vampirecmd.go)
 	}
 	if charStore != nil && gameWorld != nil {
 		StartDuelPurse(gameWorld, charStore.DB())

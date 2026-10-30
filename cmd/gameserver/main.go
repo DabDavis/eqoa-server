@@ -163,6 +163,13 @@ func main() {
 	if cfg.World.FactionAggro != nil && !*cfg.World.FactionAggro {
 		gameWorld.SetFactionAggro(false)
 	}
+	// The sun on vampires (entity/vampire.go, table charvampire)
+	gameWorld.SetVampireSun(vampireSunOf(cfg.World))
+	if n, err := db.Vampires(); err != nil {
+		log.Printf("WARNING: the vampires: %v", err)
+	} else {
+		log.Printf("Vampires: %d; %s", n, gameWorld.VampireSun())
+	}
 	log.Printf("Creatures: %s", gameWorld.AggroSummary())
 	// Nothing may attack a new character on sight where it first stands
 	// (entity/faction.go: the dark elf the ghoul servant killed, 2026-10-29)
@@ -650,4 +657,24 @@ func noticeRestart(w config.WorldConfig, sm *session.Manager) {
 	}
 	log.Printf("Restart notice: waiting %v before the shutdown notice", wait)
 	time.Sleep(wait)
+}
+
+// vampireSunOf is world.vampire_sun_*, each unset one the default
+// (entity.DefaultVampireSun: Sandstorm's 50 every 6 s, shade sheltering, a
+// GM's vampire burning).
+func vampireSunOf(w config.WorldConfig) entity.VampireSun {
+	r := entity.DefaultVampireSun
+	if w.VampireSunDamage != nil {
+		r.Damage = max(0, *w.VampireSunDamage)
+	}
+	if w.VampireSunInterval > 0 {
+		r.Interval = w.VampireSunInterval
+	}
+	if w.VampireSunShade != nil {
+		r.Shade = *w.VampireSunShade
+	}
+	if w.VampireSunGMs != nil {
+		r.GMs = *w.VampireSunGMs
+	}
+	return r
 }

@@ -6,6 +6,15 @@ type Ground interface {
 	Floor(world uint8, x, y, z float32) (float32, bool)
 }
 
+// Walls is what stands in a creature's way (internal/ground's Wall): whether
+// the way from one point to another passes through a wall, the terrain's or
+// anything placed on it (a house, a fence, a tree's trunk). A Ground that is
+// also Walls keeps a wander off the walls (movement.go's legOKLocked); one
+// that is not leaves every way open, as before.
+type Walls interface {
+	Wall(world uint8, x0, y0, z0, x1, y1, z1 float32) bool
+}
+
 // SetGround gives the world its ground: every move of an NPC (its wander,
 // its chase, its way home, a pet's following) then sets it on the floor
 // there, so CLIENT, which sets a creature down only on a floor within 1.5 of
@@ -51,6 +60,10 @@ func (w *World) spawnOnGroundLocked(npc *NPC) bool {
 		npc.groundKnown = true
 		y, ok := w.ground.Floor(npc.World, npc.SpawnX, npc.SpawnY, npc.SpawnZ)
 		npc.onGround = ok && y-npc.SpawnY <= spawnedBelow && npc.SpawnY-y <= spawnedAbove
+		npc.spawnLift = 0
+		if npc.onGround && npc.SpawnY > y {
+			npc.spawnLift = npc.SpawnY - y
+		}
 	}
 	return npc.onGround
 }

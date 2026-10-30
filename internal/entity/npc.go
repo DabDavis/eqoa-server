@@ -99,8 +99,12 @@ type NPC struct {
 	path pathState
 
 	// onGround: it spawned on the terrain of the world's ground, so its moves
-	// take its floor (groundnpc.go); groundKnown once that was looked at.
+	// take its floor (groundnpc.go); groundKnown once that was looked at;
+	// spawnLift how far above that terrain it spawned (a house's floor over
+	// the street: Neriak's tavern's 0.77), which its wander is tested for
+	// walls above too (movement.go).
 	groundKnown, onGround bool
+	spawnLift             float32
 
 	// AggroBehavior. RoamRadius is how far from its spawn a creature wanders
 	// (roam.go); 0 for none.

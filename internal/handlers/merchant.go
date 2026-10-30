@@ -60,11 +60,13 @@ type NPCWindowHandler struct {
 
 	// loot is the corpses (loot.go), made on first use; coinRoll rolls a
 	// corpse's tunar (corpsecoins.go) and lootIntn its loot tables (loot.go's
-	// rollLoot), rand.Intn when nil.
-	loot     *lootState
-	lootOnce sync.Once
-	coinRoll func(int) int
-	lootIntn func(int) int
+	// rollLoot), rand.Intn when nil; lootFloat its categories' rolls
+	// (lootcategory.go's rollCategories), rand.Float64 when nil.
+	loot      *lootState
+	lootOnce  sync.Once
+	coinRoll  func(int) int
+	lootIntn  func(int) int
+	lootFloat func() float64
 
 	// auction is the auction house (auction.go): 0x1205, and what it holds
 	// for a player filed as its bank opens

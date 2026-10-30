@@ -110,6 +110,17 @@ func (h *NPCWindowHandler) OpenCorpse(sess *session.Session, npc *entity.NPC) bo
 				log.Printf("Loot: %q (level %d) rolled %d of %q's tables' items", npc.Name, npc.Level, len(got), name)
 			}
 		}
+		// and a roll a category (lootcategory.go), but for a pet's, a
+		// charmed creature's or a training dummy's corpse
+		if rollsCategories(npc) {
+			if rolls, err := h.inv.CategoryRolls(npc.Name, npc.Level); err != nil {
+				log.Printf("Loot: %q's loot categories: %v", npc.Name, err)
+			} else if len(rolls) > 0 {
+				got := rollCategories(rolls, h.lootFloat, h.lootIntn)
+				items = append(items, got...)
+				log.Printf("Loot: %q (level %d) rolled %d items of its categories", npc.Name, npc.Level, len(got))
+			}
+		}
 		for i := range items {
 			items[i] = catalogRecord(items[i])
 		}

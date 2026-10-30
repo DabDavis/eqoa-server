@@ -103,6 +103,7 @@ func main() {
 	tryRoot := flag.String("try-root", "", "a root's resist and break chances to try, by the con: diff:resist:break,...")
 	tryRegen := flag.String("try-regen", "", "a creature's heal out of a fight to try, by its level: level:pct,...")
 	tryConPct := flag.String("try-conpct", "", "con_pct to try, by the NPC's level: level:pct,... (the line through them)")
+	tryClassLevel := flag.String("try-classlevel", "", "class and level rows to try: class:level:pct,... (in place of the table's)")
 	rootPlay := flag.Bool("root", false, "classes with a root also fight rooting and casting from range, no pet")
 	only := flag.String("only", "", "only this play's rows: false (hand to hand), true (the pet) or root")
 	reset := flag.Duration("reset", 0, "instead: fight this long, then run off for good and rest; how long the NPC takes to be whole")
@@ -122,6 +123,10 @@ func main() {
 	var b *entity.Balance
 	switch *which {
 	case "db":
+		cll, err := db.BalanceClassLevels()
+		if err != nil {
+			log.Fatal(err)
+		}
 		ls, err := db.BalanceLevels()
 		if err != nil {
 			log.Fatal(err)
@@ -134,7 +139,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		b = entity.NewBalance(ls, cs).WithClasses(cls)
+		b = entity.NewBalance(ls, cs).WithClasses(cls).WithClassLevels(cll)
 	case "seed":
 		b = entity.SeedBalance()
 	case "none":
@@ -166,7 +171,7 @@ func main() {
 				cs = append(cs, c)
 			}
 		}
-		b = entity.NewBalance(ls, cs).WithClasses(b.ClassRows())
+		b = entity.NewBalance(ls, cs).WithClasses(b.ClassRows()).WithClassLevels(b.ClassLevelRows())
 	}
 	if *tryClass != "" {
 		var cls []database.BalanceClass
@@ -183,6 +188,13 @@ func main() {
 		}
 		b = b.WithConColumn(resist, func(r *database.BalanceCon, v float64) { r.RootResistPct = v })
 		b = b.WithConColumn(brk, func(r *database.BalanceCon, v float64) { r.RootBreakPct = v })
+	}
+	if *tryClassLevel != "" {
+		var cll []database.BalanceClassLevel
+		for _, r := range rows(*tryClassLevel, 3) {
+			cll = append(cll, database.BalanceClassLevel{Class: int(r[0]), Level: int(r[1]), MeleeTakenPct: r[2]})
+		}
+		b = b.WithClassLevels(cll)
 	}
 	if *tryConPct != "" {
 		b = b.WithLevelColumn(points(*tryConPct), func(r *database.BalanceLevel, v float64) { r.ConPct = v })

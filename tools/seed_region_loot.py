@@ -47,8 +47,9 @@ its spawns'. A binding is
 written only where the table has an item for one of the name's spawn levels,
 never over a row already there (a GM's, the camp seed's). Chances:
 BIOME_CHANCE (the camp seed's biome chance) but Odus's; one roll. Ours, as the
-camp seed's are. Run tools/double_loot_chances.py after this one to double
-these too, and undo in the other order.
+camp seed's are. tools/seed_loot_categories.py, run after this one, takes
+these bindings away again for the loot categories' rolls; the windows this
+stretches stay, and its pools take the tables' items in them.
 
 On the live data of 2026-10-30 01:30 UTC: 939 bindings for 504 names and 23
 windows; 1,186 dead items to 4 (the Khal Viceroy's and Warlord's).

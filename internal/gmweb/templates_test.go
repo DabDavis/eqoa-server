@@ -142,3 +142,39 @@ func TestClassTemplatesInThePanel(t *testing.T) {
 		t.Errorf("the guard after the reload: %q, %d HP, class %d", st.Template, st.MaxHP, st.Class)
 	}
 }
+
+// The pets' class templates in the panel (entity/pettemplate.go): the seeded
+// pettemplate rows are there (Storm of Blades an animation, Howling Death's
+// weapon version its two-handed round), a row a GM writes is taken and said
+// to be the next summoning's, and one the world could not summon by (a swing
+// past CLIENT's eleven, a round of half a second, no template) is refused.
+func TestPetTemplatesInThePanel(t *testing.T) {
+	f := newFixture(t)
+	c := f.browser()
+	c.login("gm")
+	code, out := c.op("get_row", map[string]any{"table": "pettemplate", "key": map[string]any{"spell": "storm of blades", "weapon": 0}})
+	if code != 200 || !strings.Contains(fmt.Sprint(out), "pet animation") {
+		t.Errorf("Storm of Blades: %d %v", code, out)
+	}
+	code, out = c.op("get_row", map[string]any{"table": "pettemplate", "key": map[string]any{"spell": "howling death", "weapon": 1}})
+	if code != 200 || !strings.Contains(fmt.Sprint(out), "5200") {
+		t.Errorf("Howling Death with a weapon: %d %v", code, out)
+	}
+	if n, ok := catalog["pettemplate"]; !ok || n.Cols["template"].Ref != "classtemplates" {
+		t.Errorf("the catalog's pettemplate: %+v", n)
+	}
+	code, out = c.op("insert_row", map[string]any{"table": "pettemplate",
+		"values": map[string]any{"spell": "summon servant", "weapon": 0, "template": "pet earth"}})
+	if code != 200 || !strings.Contains(fmt.Sprint(out["live"]), "next summoning") {
+		t.Errorf("a GM's row: %d %v", code, out)
+	}
+	for _, bad := range []map[string]any{
+		{"spell": "spirit of x", "template": "pet earth", "swing": 12},
+		{"spell": "spirit of y", "template": "pet earth", "swing": 7, "round_ms": 500},
+		{"spell": "spirit of z"},
+	} {
+		if code, out := c.op("insert_row", map[string]any{"table": "pettemplate", "values": bad}); code == 200 {
+			t.Errorf("%v was taken: %v", bad, out)
+		}
+	}
+}

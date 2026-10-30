@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"math"
 	"sort"
 	"strings"
@@ -66,6 +67,16 @@ func SimBaseStats(class, race, level int) [7]int {
 func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (SimPlayer, error) {
 	pl := SimPlayer{Class: class, Race: race, Level: level, Base: SimBaseStats(class, race, level),
 		Play: SimPlay{Melee: true, Buffs: true, Spells: true}}
+	if v, ok := simPetsCache.Load(db); ok {
+		pl.Pets = v.(*SimPets)
+	} else {
+		pets, err := SimPetsFromDB(db) // its pet as the server's (balancesim.go)
+		if err != nil {
+			return pl, err
+		}
+		simPetsCache.Store(db, pets)
+		pl.Pets = pets
+	}
 	inv := database.NewInventoryStore(db)
 	items, err := inv.WearablePatterns(class, race, level, []int{1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 19})
 	if err != nil {
@@ -255,6 +266,30 @@ func SimBookFromDB(db *database.SQLiteDB, class, level int, all bool) ([]CastSpe
 			Area: ReadSpellArea(sp.SpellName, line, def)})
 	}
 	return book, nil
+}
+
+// SimWithSpell is the kit with the spell of that id in its book, from every
+// spell of its class at its level (a mastery's, a quest's too) when its own
+// lacks it: a sweep's pet bought through the masteries (balancesim
+// -petspell: Summon Badi, Gymon's Animation).
+func SimWithSpell(db *database.SQLiteDB, pl SimPlayer, id int) (SimPlayer, error) {
+	for _, s := range pl.Spells {
+		if s.SpellID == id {
+			return pl, nil
+		}
+	}
+	all, err := SimBookFromDB(db, pl.Class, pl.Level, true)
+	if err != nil {
+		return pl, err
+	}
+	for _, s := range all {
+		if s.SpellID == id {
+			s.DisplayIndex = len(pl.Spells) + 1
+			pl.Spells = append(append([]CastSpell(nil), pl.Spells...), s)
+			return pl, nil
+		}
+	}
+	return pl, fmt.Errorf("no spell %d of class %d at or below level %d", id, pl.Class, pl.Level)
 }
 
 // simPick is the item at the tier's place by score among those of the last

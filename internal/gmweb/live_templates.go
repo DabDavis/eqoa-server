@@ -14,13 +14,17 @@ import (
 // the next fight by it uses its abilities.
 
 // classTemplateAbilitiesHelp is the abilities column's form, for the catalog.
-const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | lifetap | heal, ` +
+const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | lifetap | heal | taunt | buff (the last two a pet's), ` +
 	`"every": seconds from one cast's start to the next (2-3600), "first": seconds into a fight before the first, ` +
 	`"chain": true to cast it as soon as the ability before it is cast (its clock then unused), ` +
 	`"chance": % of its due casts (100), "damage_pct": % of its spell's figures (100), ` +
 	`"max_recast" / "max_cast": the longest recast / cast time in seconds of a spell it picks (0 any), ` +
 	`"line": words its spell's name must hold, "spell": a spell's name to cast whatever the level, ` +
-	`"below": a heal's % of hit points under which it casts (50), "from": the NPC level from which it casts it (0 any)}; ` +
+	`"below": a heal's % of hit points under which it casts (50), "from": the NPC level from which it casts it (0 any); ` +
+	`a pet's (Pet class templates): "target": owner | self (a heal's on itself, a buff's on its owner), "spells_of": the class ` +
+	`0-14 whose spells it picks, "stat": the stat a buff raises (ac str sta agi dex wis int cha hp power), "element": a ` +
+	`harmful spell's (fire cold lightning poison disease arcane), "heal_pct": a heal of that % of its most hit points (cast ` +
+	`by size: the biggest due it is missing), "hits": a taunt's damage by level, [[level, least, most], ...] landing as it is}; ` +
 	`e.g. [{"kind": "aoe", "every": 15, "first": 2}, {"kind": "nuke", "chain": true}]`
 
 // liveTemplates reads the templates and the names given them again (the
@@ -46,6 +50,15 @@ func (s *Server) liveTemplates(table string, before, after map[string]any) strin
 	}
 	var msgs []string
 	switch table {
+	case "pettemplate":
+		spell := database.TemplateKey(text(row, "spell"))
+		if after == nil {
+			msgs = append(msgs, fmt.Sprintf("from the next summoning: the pets of %q fight as before (no template; a weapon "+
+				"version by its base row, if there is one); those out now keep theirs", spell))
+			break
+		}
+		msgs = append(msgs, fmt.Sprintf("from the next summoning: the pets of %q fight by the %q template; those out now keep "+
+			"theirs", spell, database.TemplateKey(text(after, "template"))))
 	case "npctemplate":
 		name := database.NPCClassKey(text(row, "name"))
 		if after == nil {
@@ -131,6 +144,41 @@ func checkClassTemplateRow(row map[string]any) error {
 		t.Abilities = list
 	}
 	if err := database.CheckClassTemplate(t); err != nil {
+		return badRequest("%v", err)
+	}
+	return nil
+}
+
+// checkPetTemplateRow holds a pettemplate row to what a pet can be summoned
+// by (database.CheckPetTemplate). Whether the template is there is the
+// world's to say (the answer's line).
+func checkPetTemplateRow(row map[string]any) error {
+	p := database.PetTemplate{SwingClass: -1, Swing: -1}
+	if v, ok := row["spell"]; ok && v != nil {
+		p.Spell = fmt.Sprint(v)
+	}
+	if v, ok := row["template"]; ok && v != nil {
+		p.Template = fmt.Sprint(v)
+	}
+	ints := map[string]*int{"swing_class": &p.SwingClass, "swing": &p.Swing, "round_ms": &p.RoundMS}
+	for col, dst := range ints {
+		v, ok := row[col]
+		if !ok || v == nil {
+			continue
+		}
+		f, fok := asFloat(v)
+		if !fok || f != math.Trunc(f) || math.Abs(f) > 1e6 {
+			return badRequest("%s is a whole number", col)
+		}
+		*dst = int(f)
+	}
+	if v, ok := row["weapon"]; ok && v != nil {
+		f, fok := asFloat(v)
+		if !fok || (f != 0 && f != 1) {
+			return badRequest("weapon is 0 or 1")
+		}
+	}
+	if err := database.CheckPetTemplate(p); err != nil {
 		return badRequest("%v", err)
 	}
 	return nil

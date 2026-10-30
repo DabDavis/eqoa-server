@@ -2,7 +2,7 @@ package database
 
 import (
 	"database/sql"
-
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -27,8 +27,16 @@ func TestClassTemplatesAreSeededAndNoneApplied(t *testing.T) {
 			t.Errorf("seed %q not in the table", s.Name)
 		}
 	}
-	if strings.Join(names, ",") != "tank,melee,wizard,necromancer,shadowknight,wisp,roamer" || len(got) != 7 {
+	// jib's five, the wisp and the roamer, and the pets' templates pettemplate gives the table
+	// with it (pettemplates.go)
+	if strings.Join(names, ",") != "tank,melee,wizard,necromancer,shadowknight,wisp,roamer" ||
+		len(got) != len(SeedClassTemplates)+len(SeedPetClassTemplates) {
 		t.Errorf("the seeds: %v (%d rows)", names, len(got))
+	}
+	for _, p := range SeedPetClassTemplates {
+		if _, ok := got[p.Name]; !ok {
+			t.Errorf("the pets' %q not in the table", p.Name)
+		}
 	}
 	w := got["wizard"]
 	if w.Class != 13 || len(w.Abilities) != 2 || w.Abilities[0].Kind != AbilityAoE || w.Abilities[1].Kind != AbilityNuke ||
@@ -59,7 +67,7 @@ func TestClassTemplatesAreSeededAndNoneApplied(t *testing.T) {
 			t.Errorf("ability %d: the wisp's %d%%, the wizard's %d%% (want 28 and 35)", i, a.DamagePct, b.DamagePct)
 		}
 		a.DamagePct = b.DamagePct
-		if a != b {
+		if !reflect.DeepEqual(a, b) {
 			t.Errorf("ability %d: the wisp's %+v is not the wizard's %+v but for its figure", i, ws.Abilities[i], b)
 		}
 	}
@@ -87,7 +95,7 @@ func TestClassTemplatesAreSeededAndNoneApplied(t *testing.T) {
 	}
 	defer db.Close()
 	got, _, _ = db.ClassTemplates()
-	if _, ok := got["tank"]; ok || len(got) != 6 {
+	if _, ok := got["tank"]; ok || len(got) != len(SeedClassTemplates)+len(SeedPetClassTemplates)-1 {
 		t.Errorf("after a GM's delete and a restart: %d templates, tank back %v", len(got), ok)
 	}
 
@@ -161,7 +169,7 @@ func TestTemplateAbilities(t *testing.T) {
 		t.Errorf("defaults: %+v", list)
 	}
 	again, err := ParseTemplateAbilities(TemplateAbilitiesJSON(list))
-	if err != nil || len(again) != 2 || again[1] != list[1] || again[0] != list[0] {
+	if err != nil || len(again) != 2 || !reflect.DeepEqual(again, list) {
 		t.Errorf("written back: %v %v", again, err)
 	}
 	if none, err := ParseTemplateAbilities(" "); err != nil || none != nil || TemplateAbilitiesJSON(nil) != "[]" {
@@ -284,5 +292,121 @@ func TestATimedSpecialsColumns(t *testing.T) {
 	}
 	if len(bad) != 4 {
 		t.Errorf("bad: %v, want the four", bad)
+	}
+}
+
+// pettemplate reaches a database whose classtemplates was made before it:
+// the pets' templates go in beside a GM's rows (a GM's row of a pet
+// template's name kept as the GM left it) and pettemplate takes its seed
+// rows, once; emptied by a GM, it stays empty at the next start, and a pet
+// template a GM deleted stays deleted.
+func TestPetTemplatesReachAnOlderDatabase(t *testing.T) {
+	path := t.TempDir() + "/old.db"
+	db, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// as a database made before pettemplate: the table gone, a GM's row of a
+	// pet template's name, the pets' other templates not there
+	if _, err := db.Exec(`DROP TABLE pettemplate`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`DELETE FROM classtemplates WHERE name LIKE 'pet %'`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`INSERT INTO classtemplates (name, class, hp_pct, note, source) VALUES ('pet earth', 0, 222, 'a GM''s', 'gm')`); err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+	reopen := func() *SQLiteDB {
+		t.Helper()
+		db, err := NewSQLite(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return db
+	}
+	db = reopen()
+	got, bad, err := db.ClassTemplates()
+	if err != nil || len(bad) != 0 {
+		t.Fatalf("templates: %v, bad %v", err, bad)
+	}
+	for _, p := range SeedPetClassTemplates {
+		if _, ok := got[p.Name]; !ok {
+			t.Errorf("%q not given to the older table", p.Name)
+		}
+	}
+	if got["pet earth"].HPPct != 222 {
+		t.Errorf("the GM's pet earth: hp_pct %d, want its 222 kept", got["pet earth"].HPPct)
+	}
+	rows, _, err := db.PetTemplates()
+	if err != nil || len(rows) != len(SeedPetTemplates) {
+		t.Fatalf("pettemplate: %d rows, %v; want %d", len(rows), err, len(SeedPetTemplates))
+	}
+	if r := rows[PetTemplateKey{"howling death", true}]; r.Template != "pet necromancer weapon" || r.Swing != 7 || r.RoundMS != 5200 {
+		t.Errorf("Howling Death's weapon version: %+v", r)
+	}
+	if _, err := db.Exec(`DELETE FROM pettemplate`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`DELETE FROM classtemplates WHERE name = 'pet fire'`); err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+	db = reopen()
+	defer db.Close()
+	rows, _, _ = db.PetTemplates()
+	got, _, _ = db.ClassTemplates()
+	if _, fire := got["pet fire"]; len(rows) != 0 || fire {
+		t.Errorf("after a GM emptied pettemplate and deleted pet fire: %d rows, pet fire back %v", len(rows), fire)
+	}
+}
+
+// A pettemplate row is held to a spell, a template, a swing class of the
+// fifteen or -1, a CLIENT swing or -1, and a round of 1-20 s or 0; a pet's
+// ability fields to what their kinds take.
+func TestPetTemplateChecks(t *testing.T) {
+	ok := PetTemplate{Spell: "storm of blades", Template: "pet animation", SwingClass: -1, Swing: -1}
+	if err := CheckPetTemplate(ok); err != nil {
+		t.Fatalf("a good row: %v", err)
+	}
+	for _, bad := range []PetTemplate{
+		{Template: "pet animation", SwingClass: -1, Swing: -1},
+		{Spell: "storm of blades", SwingClass: -1, Swing: -1},
+		{Spell: "x", Template: "y", SwingClass: 15, Swing: -1},
+		{Spell: "x", Template: "y", SwingClass: -1, Swing: 12},
+		{Spell: "x", Template: "y", SwingClass: -1, Swing: 7, RoundMS: 500},
+	} {
+		if CheckPetTemplate(bad) == nil {
+			t.Errorf("%+v was taken", bad)
+		}
+	}
+	for _, text := range []string{
+		`[{"kind": "taunt", "every": 9, "hits": [[1, 84, 88]]}]`,
+		`[{"kind": "buff", "stat": "ac", "spells_of": 7, "every": 20}]`,
+		`[{"kind": "heal", "target": "owner", "below": 60, "every": 12}]`,
+		`[{"kind": "heal", "heal_pct": 45, "every": 38}]`,
+		`[{"kind": "nuke", "element": "fire", "spells_of": 10, "every": 12}]`,
+	} {
+		if _, err := ParseTemplateAbilities(text); err != nil {
+			t.Errorf("%s: %v", text, err)
+		}
+	}
+	for _, text := range []string{
+		`[{"kind": "buff", "every": 20}]`,                                    // no stat
+		`[{"kind": "buff", "stat": "luck", "every": 20}]`,                    // no such stat
+		`[{"kind": "buff", "stat": "ac", "target": "self", "every": 20}]`,    // a buff on itself
+		`[{"kind": "nuke", "target": "owner", "every": 20}]`,                 // a target on a nuke
+		`[{"kind": "nuke", "element": "wind", "every": 20}]`,                 // no such element
+		`[{"kind": "heal", "heal_pct": 120, "every": 20}]`,                   // past 100
+		`[{"kind": "nuke", "heal_pct": 10, "every": 20}]`,                    // heal_pct on a nuke
+		`[{"kind": "nuke", "hits": [[1, 84, 88]], "every": 20}]`,             // hits on a nuke
+		`[{"kind": "taunt", "hits": [[60, 84, 88], [1, 1, 2]], "every": 9}]`, // levels falling
+		`[{"kind": "taunt", "hits": [[1, 88, 84]], "every": 9}]`,             // least over most
+		`[{"kind": "buff", "stat": "ac", "spells_of": 15, "every": 20}]`,     // no class 15
+	} {
+		if _, err := ParseTemplateAbilities(text); err == nil {
+			t.Errorf("%s was taken", text)
+		}
 	}
 }

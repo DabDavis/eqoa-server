@@ -926,22 +926,55 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 
 // petMeleeHit is a pet's hit on a creature: a creature's roll of the pet's
 // level (defence.go), its top less the target's defence as a tank's is
-// (offence.go), never under the floor. Not measured: no pet's hits were
-// recorded.
+// (offence.go), never under the floor; what its effects add to its STR and
+// DEX move the roll as a tank's do (offence.go's lines: STR the top and the
+// floor, DEX the bottom, by petDexShare of the roll's width). Not measured:
+// no pet's hits were recorded.
 func petMeleeHit(pet, t *NPC, intn func(int) int) int {
 	r := creatureRoll(pet.Level)
+	m := pet.effectMods()
 	top := int(math.Round(r.Top - targetDefence(t)))
-	hit := top - r.Width + intn(r.Width+1)
-	return t.meleeTaken(max(hit, r.Floor, 1)) // as the target's class template takes it (classtemplate.go)
+	low := top - r.Width
+	floor := r.Floor
+	if m.Str != 0 || m.Dex != 0 {
+		str := float64(m.Str)
+		top = int(math.Round(r.Top - targetDefence(t) + offHighSTR*str))
+		low = min(low+int(math.Round(petDexShare*float64(m.Dex)*float64(r.Width))), top)
+		floor += int(math.Floor(offFloorSTR * str))
+	}
+	hit := low + intn(top-low+1)
+	return t.meleeTaken(max(hit, floor, 1)) // as the target's class template takes it (classtemplate.go)
 }
 
+// petDexShare is what a point of DEX raises the bottom of a pet's roll by, a
+// share of the roll's width: a tank's (offence.go: the bottom's DEX term over
+// the width a weapon's D gives the roll, the top's share of D less the
+// bottom's), as a pet's roll has no weapon. 0.16% a point: 50 DEX lifts the
+// bottom 8% of the way to the top.
+var petDexShare = offenceArchs[archTank].LowShare * offLowDEX / (offHighD - offenceArchs[archTank].LowShare*offLowD)
+
 // npcHitOnPet is a creature's hit on a pet: its roll on a tank of the pet's
-// level, its AC NPCDefMod's estimate (ten a level), its AGI its level.
+// level, its AC NPCDefMod's estimate (ten a level) and its AGI its level,
+// each with what its effects add (its own buffs and its owner's: the earth
+// pet's skin and AGI lines, pettemplate.go), as a player's AC and AGI take
+// off a creature's top (defence.go).
 func npcHitOnPet(npc, pet *NPC, intn func(int) int) int {
 	r := npcMeleeRoll(npc)
-	top := int(math.Round(r.Top - r.ACSlope*float64(10*pet.Level) - agiSlope[archTank]*float64(pet.Level)))
+	m := pet.effectMods()
+	top := int(math.Round(r.Top - r.ACSlope*float64(10*pet.Level+m.AC) - agiSlope[archTank]*float64(pet.Level+m.Agi)))
 	hit := top - r.Width + intn(r.Width+1)
 	return max(hit, r.Floor, 1)
+}
+
+// effectMods is what the NPC's effects add to its stats: a pet's own buffs
+// and those cast on it. Only a pet's are used (npcHitOnPet, petMeleeHit); a
+// creature still fights by its level alone.
+func (n *NPC) effectMods() StatMods {
+	var m StatMods
+	for _, e := range n.Effects {
+		m.sum(e.Mods)
+	}
+	return m
 }
 
 // petEnemyLocked is the pet a creature's current enemy is, when it is a pet
@@ -1020,8 +1053,9 @@ func (w *World) retargetLocked(npc *NPC) {
 }
 
 // landOnPetLocked is a beneficial spell on a pet: a heal now, and what lasts
-// kept on it (its heals tick in petEffectsLocked; what it does to stats a
-// pet does not use yet).
+// kept on it as the best of its line (putOnPetLocked; its heals tick in
+// petEffectsLocked, its AC, AGI, STR and DEX count in its fights: pet.go's
+// npcHitOnPet and petMeleeHit; its other stats a pet does not use).
 func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *session.Session, pet *NPC, now time.Time) {
 	for _, e := range cs.spell.Def.Effects {
 		if e.Kind != EffectHP {
@@ -1033,15 +1067,37 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 		}
 	}
 	if ae := lasting(cs, caster, now); ae != nil {
-		for i, old := range pet.Effects {
-			if old.SpellID == ae.SpellID {
-				pet.Effects = append(pet.Effects[:i], pet.Effects[i+1:]...)
-				break
+		if over := putOnPetLocked(pet, &cs.spell, ae); over != nil {
+			log.Printf("Cast: %s's %q (rank %d) does not take on the pet %q: %q (rank %d) is on, line %s",
+				caster.Name, cs.spell.Name, ae.Rank, pet.Name, over.Name, over.Rank, ae.Line)
+			if casterSess != nil {
+				w.sendColoredLocked(casterSess, fmt.Sprintf(lineStronger, pet.Name, over.Name), castRefusalRGB)
 			}
 		}
-		pet.Effects = append(pet.Effects, ae)
 	}
 	log.Printf("Cast: %s's %q lands on the pet %q (%d/%d HP, %d effects)", caster.Name, cs.spell.Name, pet.Name, pet.HP, pet.MaxHP, len(pet.Effects))
+}
+
+// putOnPetLocked keeps a beneficial spell's lasting effect on a pet, only the
+// best of its line counting as on a player (buffline.go), now that a pet's
+// stats count: under an effect of its line of a higher rank it does not take
+// (that effect given back); else it takes off every effect of its line of
+// its rank or below, and an earlier cast of the same spell, and goes on.
+func putOnPetLocked(pet *NPC, spell *CastSpell, ae *ActiveEffect) (over *ActiveEffect) {
+	ae.Line, ae.Rank = BuffLine(spell), spell.Level
+	for _, e := range pet.Effects {
+		if ae.Line != "" && e.Line == ae.Line && e.SpellID != ae.SpellID && e.Rank > ae.Rank {
+			return e
+		}
+	}
+	left := pet.Effects[:0]
+	for _, e := range pet.Effects {
+		if e.SpellID != ae.SpellID && (ae.Line == "" || e.Line != ae.Line) {
+			left = append(left, e)
+		}
+	}
+	pet.Effects = append(left, ae)
+	return nil
 }
 
 // petEffectsLocked takes off a pet's effects that are over and runs their

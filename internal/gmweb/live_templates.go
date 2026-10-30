@@ -21,7 +21,7 @@ const classTemplateAbilitiesHelp = `a JSON list, each {"kind": nuke | aoe | life
 	`"max_recast" / "max_cast": the longest recast / cast time in seconds of a spell it picks (0 any), ` +
 	`"line": words its spell's name must hold, "spell": a spell's name to cast whatever the level, ` +
 	`"below": a heal's % of hit points under which it casts (50), "from": the NPC level from which it casts it (0 any); ` +
-	`a pet's (Pet class templates): "target": owner | self (a heal's on itself, a buff's on its owner), "spells_of": the class ` +
+	`a pet's (Pet class templates): "target": self | owner (where its heal or buff lands: itself, the default, or its owner), "spells_of": the class ` +
 	`0-14 whose spells it picks, "stat": the stat a buff raises (ac str sta agi dex wis int cha hp power), "element": a ` +
 	`harmful spell's (fire cold lightning poison disease arcane), "heal_pct": a heal of that % of its most hit points (cast ` +
 	`by size: the biggest due it is missing), "hits": a taunt's damage by level, [[level, least, most], ...] landing as it is}; ` +

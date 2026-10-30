@@ -189,3 +189,40 @@ func TestAGroupBeatsWhatOneCannot(t *testing.T) {
 		t.Errorf("a group of one won %.0f%%, the lone player %.0f%%", 100*one.WinShare(), 100*solo.WinShare())
 	}
 }
+
+// The low point (SimResult.LowHP, the user's "take you down to"): a fight
+// is never ended below it; a stand-in that heals itself (a heal of a third
+// of its hit points, cast below half) ends its fights above the low point
+// it was taken down to; the control: the same stand-in without the heal
+// ends each fight it wins at its low point or within a tick's blow of it.
+func TestSimLowPointIsTheFightsLeast(t *testing.T) {
+	b := SeedBalance().WithClasses(nil).WithClassLevels(nil)
+	plain := simKit(classWarrior, 20)
+	healer := simKit(classWarrior, 20)
+	heal := ParseSpellText("Self, Increase Hitpoints by 200")
+	healer.Spells = append(healer.Spells, CastSpell{SpellID: 9103, DisplayIndex: 3, Level: 20, Scope: 0, Name: "a heal",
+		CastTime: time.Second, Recast: 12 * time.Second, PowerCost: 20, Def: heal})
+	var healed, ended, plainWon int
+	for seed := int64(1); seed <= 12; seed++ {
+		r := SimulateFight(healer, SimNPC{Level: 21}, b, seed, 10*time.Minute)
+		if r.LowHP > r.HP || r.LowShare() > r.HPShare() {
+			t.Fatalf("seed %d: ended at %d below its low point %d", seed, r.HP, r.LowHP)
+		}
+		if r.Won {
+			ended++
+			if r.HP > r.LowHP {
+				healed++
+			}
+		}
+		p := SimulateFight(plain, SimNPC{Level: 21}, b, seed, 10*time.Minute)
+		if p.Won {
+			plainWon++
+			if p.HP-p.LowHP > p.MaxHP/10 {
+				t.Errorf("seed %d, no heal: ended at %d, low point %d of %d", seed, p.HP, p.LowHP, p.MaxHP)
+			}
+		}
+	}
+	if ended == 0 || plainWon == 0 || healed*2 < ended {
+		t.Errorf("the healer won %d and ended above its low point in %d; without the heal %d won", ended, healed, plainWon)
+	}
+}

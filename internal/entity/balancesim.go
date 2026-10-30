@@ -104,6 +104,10 @@ type SimResult struct {
 	PetHP, PetMaxHP int
 	PetLevel        int
 	Casts           int
+	// LowHP is the fewest hit points the player had in the fight (the
+	// user's "take you down to less than a third hp": a class that heals
+	// itself ends a fight higher than it was taken down to)
+	LowHP int
 }
 
 // HPShare is the player's hit points left, a share of its most.
@@ -112,6 +116,15 @@ func (r SimResult) HPShare() float64 {
 		return 0
 	}
 	return float64(r.HP) / float64(r.MaxHP)
+}
+
+// LowShare is the fewest hit points the player had in the fight, a share of
+// its most.
+func (r SimResult) LowShare() float64 {
+	if r.MaxHP <= 0 {
+		return 0
+	}
+	return float64(r.LowHP) / float64(r.MaxHP)
 }
 
 const (
@@ -308,10 +321,12 @@ func (f *simFight) run(limit time.Duration) SimResult {
 		f.engage()
 	}
 	maxHP := npc.MaxHP
+	low := p.HP
 	for f.now.Sub(f.t0) < limit {
 		f.tick()
 		w.mu.RLock()
 		done := npc.Dead || p.IsDead()
+		low = min(low, max(p.HP, 0))
 		w.mu.RUnlock()
 		if done {
 			break
@@ -321,7 +336,7 @@ func (f *simFight) run(limit time.Duration) SimResult {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 	r := SimResult{Won: npc.Dead, Died: p.IsDead(), Time: f.now.Sub(f.t0), HP: p.HP, MaxHP: p.MaxHPNow(),
-		Power: p.Power, MaxPower: p.MaxPowerNow(), NPCHP: npc.HP, NPCMaxHP: maxHP, Casts: f.casts}
+		Power: p.Power, MaxPower: p.MaxPowerNow(), NPCHP: npc.HP, NPCMaxHP: maxHP, Casts: f.casts, LowHP: low}
 	if pet != nil {
 		r.HadPet, r.PetDied, r.PetHP, r.PetMaxHP, r.PetLevel = true, pet.Dead || pet.HP <= 0, pet.HP, pet.MaxHP, pet.Level
 	}
@@ -935,7 +950,10 @@ type SimCell struct {
 	// pet that died 0): with a pet out the pet takes the fight's blows
 	HPLeft, Secs float64
 	PetHPLeft    float64
-	PetDied      int
+	// LowLeft is the mean of the least share of hit points the player had in
+	// each fight won (its low point; SimResult.LowHP)
+	LowLeft float64
+	PetDied int
 }
 
 // WinShare is the share of the fights won.
@@ -956,6 +974,7 @@ func SimCellOf(pl SimPlayer, foe SimNPC, diff int, b *Balance, fights int, seed 
 		if r.Won {
 			c.Won++
 			c.HPLeft += r.HPShare()
+			c.LowLeft += r.LowShare()
 			c.Secs += r.Time.Seconds()
 			if r.HadPet && !r.PetDied && r.PetMaxHP > 0 {
 				c.PetHPLeft += float64(r.PetHP) / float64(r.PetMaxHP)
@@ -970,6 +989,7 @@ func SimCellOf(pl SimPlayer, foe SimNPC, diff int, b *Balance, fights int, seed 
 	}
 	if c.Won > 0 {
 		c.HPLeft /= float64(c.Won)
+		c.LowLeft /= float64(c.Won)
 		c.Secs /= float64(c.Won)
 		c.PetHPLeft /= float64(c.Won)
 	}

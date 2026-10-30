@@ -10,7 +10,7 @@
 //	    [-try-level 1:300:200:0,60:500:300:100] [-try-con 1:115:95,5:200:60]
 //	    [-try-art 1:0,30:1500,60:2000] [-try-class 1:80,5:80,6:80]
 //	    [-root] [-try-root 0:0:5,3:35:20,5:65:30] [-try-regen 1:5,60:5] [-try-conpct 1:100]
-//	    [-charm -6,-3,0] [-only false|true|root|charm] [-try-classlevel 3:45:125] [-try-pethp 15:161]
+//	    [-charm -6,-3,0] [-only false|true|root|charm] [-try-classlevel 3:45:125] [-try-pethp 15:161] [-low]
 //	balancesim -db eqoa.db -lines [-classes ...]
 //	balancesim -db eqoa.db -reset 20s [-try-regen 1:5] [-classes ...]
 //	balancesim -db eqoa.db -groups 2,3 [-classes ...] [-diffs 3,4,5]
@@ -29,7 +29,10 @@
 //
 // In a row of a pet's play (the pet column true, or a charm's) the HP column
 // is the pet's hit points left in the fights won: its owner stands off
-// untouched while the pet holds the NPC.
+// untouched while the pet holds the NPC. With -low the HP column of a
+// player's own play is instead the fewest hit points it had in each fight
+// won, its low point (the user's "take you down to less than a third hp": a
+// class that heals itself ends a fight higher than it was taken down to).
 //
 // -try-level and -try-con try rows before they are written: level:hp_pct:
 // damage_pct[:con_pct[:pet_hp_pct:pet_damage_pct]] and diff:damage_pct:
@@ -110,6 +113,7 @@ func main() {
 	reset := flag.Duration("reset", 0, "instead: fight this long, then run off for good and rest; how long the NPC takes to be whole")
 	charms := flag.String("charm", "", "classes with a charm also fight with a charmed creature this many levels from their own: -6,-3,0,...")
 	groups := flag.String("groups", "", "instead: each class's fitting groups of these sizes (2,3) against each diff")
+	lowPoint := flag.Bool("low", false, "the HP column is the least the player had in each fight won (its low point), not what it ended with")
 	flag.Parse()
 	if *dbPath == "" {
 		flag.Usage()
@@ -266,6 +270,9 @@ func main() {
 				for _, d := range ds {
 					c := entity.SimCellOf(k, entity.SimNPC{}, d, b, *fights, 1, *limit)
 					hp := c.HPLeft
+					if *lowPoint {
+						hp = c.LowLeft
+					}
 					if k.Play.Pet || k.Play.Charm {
 						hp = c.PetHPLeft // the pet takes the blows
 					}

@@ -121,7 +121,7 @@
     },
     {
      "kind": "loot",
-     "target": "Sparkflies",
+     "target": "sparkflies",
      "items": [
       {
        "item": "damaged firefly wings",
@@ -134,7 +134,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spiderling",
+     "target": "spiderling",
      "items": [
       {
        "item": "tarantula leg tips",
@@ -193,7 +193,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Tree Snake",
+     "target": "tree snake",
      "items": [
       {
        "item": "drained poison sac",
@@ -370,7 +370,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Sunflies",
+     "target": "sunflies",
      "items": [
       {
        "item": "Radiant Sunfly Wing",
@@ -383,7 +383,7 @@
     },
     {
      "kind": "loot",
-     "target": "Pixie Nettle",
+     "target": "pixie nettle",
      "items": [
       {
        "item": "Pixie Nettle Wing",
@@ -445,7 +445,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Green Lightning Bugs",
+     "target": "green lightning bugs",
      "items": [
       {
        "item": "Green Lightning Wing",
@@ -524,7 +524,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Forger Wolf",
+     "target": "forger wolf",
      "items": [
       {
        "item": "Forger Wolf Fang",
@@ -783,7 +783,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Sparkflies",
+     "target": "sparkflies",
      "items": [
       {
        "item": "damaged firefly wings",
@@ -847,7 +847,7 @@
     },
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Cracked Rat Claw",
@@ -1588,7 +1588,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Grass Snake",
+     "target": "grass snake",
      "items": [
       {
        "item": "snake scales",
@@ -1662,7 +1662,7 @@
     },
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "ruined bat wing",
@@ -2403,7 +2403,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Spiderling",
+     "target": "spiderling",
      "items": [
       {
        "item": "tarantula leg tips",
@@ -2477,7 +2477,7 @@
     },
     {
      "kind": "loot",
-     "target": "Fireflies",
+     "target": "fireflies",
      "items": [
       {
        "item": "fractured firefly thorax",
@@ -3218,7 +3218,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bat",
+     "target": "bat",
      "items": [
       {
        "item": "sliver of bat meat",
@@ -3282,7 +3282,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spiderling",
+     "target": "spiderling",
      "items": [
       {
        "item": "small spider eye",
@@ -4012,7 +4012,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Rat",
+     "target": "rat",
      "items": [
       {
        "item": "Strands of Rat Fur",
@@ -4086,7 +4086,7 @@
     },
     {
      "kind": "loot",
-     "target": "Grass Snake",
+     "target": "grass snake",
      "items": [
       {
        "item": "cracked snake fang",
@@ -4210,7 +4210,7 @@
     },
     {
      "kind": "loot",
-     "target": "Mindwhipper Wasp",
+     "target": "mindwhipper wasp",
      "items": [
       {
        "item": "Mindwhipper Wasp Eye",
@@ -4274,7 +4274,7 @@
     },
     {
      "kind": "loot",
-     "target": "Orc Thief",
+     "target": "orc thief",
      "items": [
       {
        "item": "Gearcharmer's Device",
@@ -4693,7 +4693,7 @@
     },
     {
      "kind": "loot",
-     "target": "Crumbling Bones",
+     "target": "crumbling bones",
      "items": [
       {
        "item": "Rib of a Crumbling Corpse",
@@ -4718,7 +4718,7 @@
     },
     {
      "kind": "loot",
-     "target": "Maundering Soul",
+     "target": "maundering soul",
      "items": [
       {
        "item": "Essence of a Marauding Soul",

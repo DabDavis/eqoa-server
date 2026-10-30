@@ -2822,7 +2822,7 @@
     },
     {
      "kind": "loot",
-     "target": "Silvermist Alpha",
+     "target": "silvermist alpha",
      "items": [
       {
        "item": "Maximillian's journal",
@@ -3848,7 +3848,7 @@
     },
     {
      "kind": "loot",
-     "target": "Dark Drake",
+     "target": "dark drake",
      "items": [
       {
        "item": "Red Elemental Necklace",
@@ -3984,7 +3984,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ebony Wolf",
+     "target": "ebony wolf",
      "items": [
       {
        "item": "Blue Elemental Ring",
@@ -4049,7 +4049,7 @@
     },
     {
      "kind": "loot",
-     "target": "Frosteye Scarecrow",
+     "target": "frosteye scarecrow",
      "items": [
       {
        "item": "Green Elemental Earring",
@@ -4182,7 +4182,7 @@
     },
     {
      "kind": "loot",
-     "target": "Forest Night Wolf",
+     "target": "forest night wolf",
      "items": [
       {
        "item": "Green Elemental Talisman",
@@ -4289,7 +4289,7 @@
     },
     {
      "kind": "loot",
-     "target": "Ghoul",
+     "target": "ghoul",
      "items": [
       {
        "item": "Red Elemental Talisman",
@@ -4638,7 +4638,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Tae Ew Keeper",
+     "target": "Tae Ew keeper",
      "items": [
       {
        "item": "Orb of Fayspires Jade",
@@ -5501,7 +5501,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Tarlin's Agent",
+     "target": "Tarlin's agent",
      "items": [
       {
        "item": "agent's note",
@@ -6034,7 +6034,7 @@
     },
     {
      "kind": "loot",
-     "target": "Magus of the Sun",
+     "target": "magus of the sun",
      "items": [
       {
        "item": "Sun Phylactery",
@@ -6047,7 +6047,7 @@
     },
     {
      "kind": "loot",
-     "target": "Magus of the Stars",
+     "target": "magus of the stars",
      "items": [
       {
        "item": "Star Phylactery",
@@ -6060,7 +6060,7 @@
     },
     {
      "kind": "loot",
-     "target": "Magus of the Moon",
+     "target": "magus of the moon",
      "items": [
       {
        "item": "Moon Phylactery",
@@ -6093,7 +6093,7 @@
     },
     {
      "kind": "talk",
-     "target": "Jeweled Chest",
+     "target": "jeweled chest",
      "journal": "Look into the jeweled chest beside Archmagus Terathin.",
      "events": [
       {
@@ -6440,7 +6440,7 @@
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Compelled Shade",
+       "npc": "compelled shade",
        "hostile": true
       }
      ]
@@ -6522,7 +6522,7 @@
     },
     {
      "kind": "loot",
-     "target": "Golem of Fear",
+     "target": "golem of fear",
      "items": [
       {
        "item": "Crystalline Shard of Fear",
@@ -6595,7 +6595,7 @@
     },
     {
      "kind": "loot",
-     "target": "Golem of Station",
+     "target": "golem of station",
      "items": [
       {
        "item": "Crystalline Shard of Station",
@@ -6650,7 +6650,7 @@
     },
     {
      "kind": "give",
-     "target": "Golem of Strength",
+     "target": "golem of strength",
      "items": [
       {
        "item": "Drelk's sword",
@@ -6661,7 +6661,7 @@
     },
     {
      "kind": "loot",
-     "target": "Golem of Strength",
+     "target": "golem of strength",
      "items": [
       {
        "item": "Crystalline Shard of Strength",
@@ -6711,7 +6711,7 @@
     },
     {
      "kind": "loot",
-     "target": "Golem of Greed",
+     "target": "golem of greed",
      "items": [
       {
        "item": "Crystalline Shard of Greed",
@@ -7156,7 +7156,7 @@
     },
     {
      "kind": "loot",
-     "target": "Magus of the Sun",
+     "target": "magus of the sun",
      "items": [
       {
        "item": "Sun Phylactery",
@@ -7169,7 +7169,7 @@
     },
     {
      "kind": "loot",
-     "target": "Magus of the Stars",
+     "target": "magus of the stars",
      "items": [
       {
        "item": "Star Phylactery",
@@ -7182,7 +7182,7 @@
     },
     {
      "kind": "loot",
-     "target": "Magus of the Moon",
+     "target": "magus of the moon",
      "items": [
       {
        "item": "Moon Phylactery",
@@ -7215,7 +7215,7 @@
     },
     {
      "kind": "talk",
-     "target": "Jeweled Chest",
+     "target": "jeweled chest",
      "journal": "Look into the jeweled chest beside Archmagus Terathin.",
      "events": [
       {
@@ -7762,7 +7762,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Forces of Nature",
+     "target": "forces of nature",
      "count": 3,
      "journal": "Kill the Forces of Nature at Twisted Tower for the essences of sun, soil and rain."
     },
@@ -9159,7 +9159,7 @@
     },
     {
      "kind": "loot",
-     "target": "Magus of the Sun",
+     "target": "magus of the sun",
      "items": [
       {
        "item": "Sun Phylactery",
@@ -9172,7 +9172,7 @@
     },
     {
      "kind": "loot",
-     "target": "Magus of the Stars",
+     "target": "magus of the stars",
      "items": [
       {
        "item": "Star Phylactery",
@@ -9185,7 +9185,7 @@
     },
     {
      "kind": "loot",
-     "target": "Magus of the Moon",
+     "target": "magus of the moon",
      "items": [
       {
        "item": "Moon Phylactery",
@@ -9218,7 +9218,7 @@
     },
     {
      "kind": "talk",
-     "target": "Jeweled Chest",
+     "target": "jeweled chest",
      "journal": "Look into the jeweled chest beside Archmagus Terathin.",
      "events": [
       {

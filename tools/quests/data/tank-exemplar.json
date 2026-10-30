@@ -26,7 +26,7 @@
     },
     {
      "kind": "loot",
-     "target": "Bandit Thug",
+     "target": "bandit thug",
      "items": [
       {
        "item": "Bandit Blade",
@@ -79,7 +79,7 @@
     },
     {
      "kind": "kill",
-     "target": "Fell Beast",
+     "target": "fell beast",
      "count": 1,
      "journal": "Stand against the Fell Beast in the canyon."
     },
@@ -124,7 +124,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bandit Thug",
+     "target": "bandit thug",
      "items": [
       {
        "item": "Bandit Blade",
@@ -181,7 +181,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Bandit Thug",
+     "target": "bandit thug",
      "items": [
       {
        "item": "Bandit Charm",
@@ -278,7 +278,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Frozen Soul",
+     "target": "frozen soul",
      "items": [
       {
        "item": "Soul Shard",
@@ -396,7 +396,7 @@
     },
     {
      "kind": "loot",
-     "target": "Unjust Bandit",
+     "target": "unjust bandit",
      "items": [
       {
        "item": "Bandit Sash",
@@ -449,7 +449,7 @@
     },
     {
      "kind": "loot",
-     "target": "Zealot",
+     "target": "zealot",
      "items": [
       {
        "item": "Zealot's Sash",
@@ -563,7 +563,7 @@
     },
     {
      "kind": "loot",
-     "target": "Villager",
+     "target": "villager",
      "items": [
       {
        "item": "Soul Energy",
@@ -713,7 +713,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Mourner",
+     "target": "mourner",
      "items": [
       {
        "item": "Crystallized Sorrow",
@@ -824,7 +824,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Paladin of Rodcet Nife",
+     "target": "paladin of Rodcet Nife",
      "items": [
       {
        "item": "Screaming Soul",

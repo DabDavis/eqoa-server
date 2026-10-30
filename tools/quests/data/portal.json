@@ -364,32 +364,32 @@
     },
     {
      "kind": "kill",
-     "target": "Filth Squid",
+     "target": "filth squid",
      "count": 4,
      "journal": "Kill the filth squids that rose from the mud.",
      "events": [
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Filth Squid",
+       "npc": "filth squid",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Filth Squid",
+       "npc": "filth squid",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Filth Squid",
+       "npc": "filth squid",
        "hostile": true
       },
       {
        "on": "start",
        "do": "spawn",
-       "npc": "Filth Squid",
+       "npc": "filth squid",
        "hostile": true
       }
      ]
@@ -1035,7 +1035,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Moth Monarch",
+     "target": "moth monarch",
      "items": [
       {
        "item": "wax dust",
@@ -1048,7 +1048,7 @@
     },
     {
      "kind": "loot",
-     "target": "Locust Monarch",
+     "target": "locust monarch",
      "items": [
       {
        "item": "acidic blood bile",
@@ -1061,7 +1061,7 @@
     },
     {
      "kind": "loot",
-     "target": "Mantis Matriarch",
+     "target": "mantis matriarch",
      "items": [
       {
        "item": "front legs of the Mantis Matriarch",
@@ -1074,7 +1074,7 @@
     },
     {
      "kind": "loot",
-     "target": "Millipede Matriarch",
+     "target": "millipede matriarch",
      "items": [
       {
        "item": "mandibles of the Millipede Matriarch",
@@ -2007,7 +2007,7 @@
     },
     {
      "kind": "talk",
-     "target": "Manifestation of Rain",
+     "target": "manifestation of rain",
      "journal": "Speak with the Manifestation of Rain on the Isle of Wonder.",
      "says": "You have walked the whole chain of rain. Take my key: it brings you back any time."
     }
@@ -2177,7 +2177,7 @@
     },
     {
      "kind": "kill",
-     "target": "Torrential Wind",
+     "target": "torrential wind",
      "count": 1,
      "journal": "Kill the Torrential Wind that follows."
     },
@@ -2225,7 +2225,7 @@
     },
     {
      "kind": "talk",
-     "target": "Manifestation of Dreams",
+     "target": "manifestation of dreams",
      "journal": "Speak with the Manifestation of Dreams on the Isle of Wonder.",
      "says": "The chain of the sun is yours. Come back whenever you like."
     }
@@ -2301,25 +2301,25 @@
     },
     {
      "kind": "kill",
-     "target": "Ancient Peasant",
+     "target": "ancient peasant",
      "count": 4,
      "journal": "Kill the four ancient peasants."
     },
     {
      "kind": "kill",
-     "target": "Ancient Vassal",
+     "target": "ancient vassal",
      "count": 3,
      "journal": "Kill the three ancient vassals."
     },
     {
      "kind": "kill",
-     "target": "Ancient Denizen",
+     "target": "ancient denizen",
      "count": 3,
      "journal": "Kill the three ancient denizens."
     },
     {
      "kind": "kill",
-     "target": "Ancient Squire",
+     "target": "ancient squire",
      "count": 1,
      "journal": "Kill the ancient squire by the exit portal."
     },
@@ -2346,7 +2346,7 @@
     },
     {
      "kind": "kill",
-     "target": "Iron Knight",
+     "target": "iron knight",
      "count": 1,
      "journal": "Get past the golems to the far end of the isle and kill the Iron Knight."
     },
@@ -2557,7 +2557,7 @@
     },
     {
      "kind": "kill",
-     "target": "Glacial Champion",
+     "target": "glacial champion",
      "count": 1,
      "journal": "Kill the Glacial Champion far to the south to open the isle's portal."
     },
@@ -2748,7 +2748,7 @@
     },
     {
      "kind": "talk",
-     "target": "Aviak Elder",
+     "target": "aviak elder",
      "journal": "Speak with the Elder of the aviak village.",
      "says": "Narcillian's soldiers come for us! Defend the village, stranger."
     },
@@ -2766,7 +2766,7 @@
     },
     {
      "kind": "kill",
-     "target": "Warlord of Narcillian",
+     "target": "warlord of Narcillian",
      "count": 1,
      "journal": "Kill the Warlord of Narcillian."
     },
@@ -2793,7 +2793,7 @@
     },
     {
      "kind": "kill",
-     "target": "Elite Harpy Queen",
+     "target": "elite harpy queen",
      "count": 1,
      "journal": "Kill the Harpy Queen when she comes down on you."
     },
@@ -2985,7 +2985,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Dread",
+     "target": "dread",
      "items": [
       {
        "item": "Dread's essence",
@@ -3011,7 +3011,7 @@
     },
     {
      "kind": "loot",
-     "target": "Terror",
+     "target": "terror",
      "items": [
       {
        "item": "Terror's essence",
@@ -3385,7 +3385,7 @@
     },
     {
      "kind": "loot",
-     "target": "Superior Head Jailor",
+     "target": "superior head jailor",
      "items": [
       {
        "item": "titanium key",
@@ -3756,7 +3756,7 @@
   {
    "key": "Portal/soluseks-eye/nagafen-1",
    "name": "The Fire Giant Magus",
-   "giver": "Fire Giant Magus",
+   "giver": "fire giant magus",
    "classes": [],
    "races": [
     5,
@@ -3780,7 +3780,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Fire Giant Guard",
+     "target": "fire giant guard",
      "items": [
       {
        "item": "Giant Guardian Shroud",
@@ -3793,7 +3793,7 @@
     },
     {
      "kind": "show",
-     "target": "Fire Giant Magus",
+     "target": "fire giant magus",
      "items": [
       {
        "item": "Giant Guardian Shroud",
@@ -3844,7 +3844,7 @@
     },
     {
      "kind": "give",
-     "target": "Fire Giant Magus",
+     "target": "fire giant magus",
      "items": [
       {
        "item": "Twisted Goblinkind Signet",
@@ -3871,7 +3871,7 @@
     },
     {
      "kind": "kill",
-     "target": "Fire Giant Magus",
+     "target": "fire giant magus",
      "count": 1,
      "journal": "Kill the Fire Giant Magus."
     },
@@ -3955,7 +3955,7 @@
     },
     {
      "kind": "loot",
-     "target": "Earthen Dryad",
+     "target": "earthen dryad",
      "items": [
       {
        "item": "dryad heart",
@@ -3968,7 +3968,7 @@
     },
     {
      "kind": "loot",
-     "target": "Sarek's Keeper",
+     "target": "Sarek's keeper",
      "items": [
       {
        "item": "geode talisman",
@@ -4089,7 +4089,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Jal'Raeth Commoner",
+     "target": "Jal'Raeth commoner",
      "items": [
       {
        "item": "green soulstone gem",
@@ -4144,7 +4144,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Grave Usher",
+     "target": "grave usher",
      "items": [
       {
        "item": "iron brooch",
@@ -4157,7 +4157,7 @@
     },
     {
      "kind": "loot",
-     "target": "Grave Usher",
+     "target": "grave usher",
      "items": [
       {
        "item": "copper brooch",
@@ -4170,7 +4170,7 @@
     },
     {
      "kind": "loot",
-     "target": "Grave Usher",
+     "target": "grave usher",
      "items": [
       {
        "item": "brass brooch",
@@ -4183,7 +4183,7 @@
     },
     {
      "kind": "loot",
-     "target": "Grave Usher",
+     "target": "grave usher",
      "items": [
       {
        "item": "bronze brooch",
@@ -4320,7 +4320,7 @@
   {
    "key": "Portal/zaoran-plateau/garlic",
    "name": "The Wailing Ghost",
-   "giver": "Wailing Ghost",
+   "giver": "wailing ghost",
    "classes": [],
    "races": [],
    "minlevel": 55,
@@ -4342,7 +4342,7 @@
     },
     {
      "kind": "loot",
-     "target": "Bolash Daemon",
+     "target": "Bolash daemon",
      "items": [
       {
        "item": "bolash daemon skull",
@@ -4379,7 +4379,7 @@
     },
     {
      "kind": "loot",
-     "target": "Bolash Daemon",
+     "target": "Bolash daemon",
      "items": [
       {
        "item": "bolash daemon heart",
@@ -4481,7 +4481,7 @@
   {
    "key": "Portal/zaoran-plateau/broken-blade",
    "name": "The Broken Blade",
-   "giver": "Wailing Ghost",
+   "giver": "wailing ghost",
    "classes": [],
    "races": [],
    "minlevel": 60,
@@ -4534,7 +4534,7 @@
     },
     {
      "kind": "talk",
-     "target": "Wailing Ghost",
+     "target": "wailing ghost",
      "journal": "Return to the Wailing Ghost on Zaoran Plateau.",
      "says": "Yarn Blackport, the giant skeleton of the Council's round room, reads old tongues. Ask him."
     },
@@ -4655,7 +4655,7 @@
     },
     {
      "kind": "loot",
-     "target": "Infected Wolverine",
+     "target": "infected wolverine",
      "items": [
       {
        "item": "infected wolverine blood",
@@ -4784,7 +4784,7 @@
    "steps": [
     {
      "kind": "kill",
-     "target": "Zek Troop",
+     "target": "Zek troop",
      "count": 4,
      "journal": "Kill the Zek troops of the camp."
     },
@@ -4858,7 +4858,7 @@
     },
     {
      "kind": "kill",
-     "target": "Zek Sentry",
+     "target": "Zek sentry",
      "count": 1,
      "journal": "Kill the Zek Sentry at the foot of the ramp."
     },
@@ -4889,7 +4889,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Zek Scout",
+     "target": "Zek scout",
      "items": [
       {
        "item": "Portal Rune of Zek",

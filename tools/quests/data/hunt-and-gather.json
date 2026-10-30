@@ -19,7 +19,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Patron of Bertoxxulous",
+     "target": "patron of Bertoxxulous",
      "items": [
       {
        "item": "Zombie Patron Skin",
@@ -163,7 +163,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Sphere of Annihilation",
+     "target": "sphere of annihilation",
      "items": [
       {
        "item": "wooden cylinder gasket",
@@ -499,7 +499,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Rock Spider",
+     "target": "rock spider",
      "items": [
       {
        "item": "Dark Ore",
@@ -691,7 +691,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Treant Defender",
+     "target": "treant defender",
      "items": [
       {
        "item": "savory treant roots",
@@ -739,7 +739,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Ghoul Servant",
+     "target": "ghoul servant",
      "items": [
       {
        "item": "Ghoulish Preservative",
@@ -787,7 +787,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Taksehir Miner",
+     "target": "Taksehir miner",
      "items": [
       {
        "item": "Purified Water Canteen",
@@ -883,7 +883,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Froglok Slayer",
+     "target": "froglok slayer",
      "items": [
       {
        "item": "tasty froglok skins",
@@ -1171,7 +1171,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Frosteye Shaman",
+     "target": "frosteye shaman",
      "items": [
       {
        "item": "Broken Totem",
@@ -1507,7 +1507,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Red Ant Worker",
+     "target": "red ant worker",
      "items": [
       {
        "item": "Mutant Ant Carapace",
@@ -1795,7 +1795,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Gnoll Stalker",
+     "target": "gnoll stalker",
      "items": [
       {
        "item": "Gnoll Ear Cuff",
@@ -1891,7 +1891,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Moss Snake",
+     "target": "moss snake",
      "items": [
       {
        "item": "torn snake scales",
@@ -1939,7 +1939,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Snow Crow",
+     "target": "snow crow",
      "items": [
       {
        "item": "pristine raven feathers",
@@ -2131,7 +2131,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Pickclaw Brawler",
+     "target": "pickclaw brawler",
      "items": [
       {
        "item": "destroyed pickclaw sash",
@@ -2179,7 +2179,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Adept Pickclaw Brawler",
+     "target": "adept pickclaw brawler",
      "items": [
       {
        "item": "destroyed pickclaw sash",
@@ -2227,7 +2227,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Pickclaw Warrior",
+     "target": "pickclaw warrior",
      "items": [
       {
        "item": "destroyed pickclaw sash",
@@ -2275,7 +2275,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Adept Pickclaw Warrior",
+     "target": "adept pickclaw warrior",
      "items": [
       {
        "item": "destroyed pickclaw sash",
@@ -2323,7 +2323,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Pickclaw Soldier",
+     "target": "pickclaw soldier",
      "items": [
       {
        "item": "destroyed pickclaw sash",
@@ -2371,7 +2371,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Adept Pickclaw Soldier",
+     "target": "adept pickclaw soldier",
      "items": [
       {
        "item": "destroyed pickclaw sash",
@@ -2563,7 +2563,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Orc Pawn",
+     "target": "orc pawn",
      "items": [
       {
        "item": "weak roots",
@@ -2619,7 +2619,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Orc Pawn",
+     "target": "orc pawn",
      "items": [
       {
        "item": "weak herbs",
@@ -2688,7 +2688,7 @@
     },
     {
      "kind": "loot",
-     "target": "Goblin Novice",
+     "target": "goblin novice",
      "items": [
       {
        "item": "Bar of Tin",

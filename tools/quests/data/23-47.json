@@ -339,7 +339,7 @@
     },
     {
      "kind": "talk",
-     "target": "Ice Statue",
+     "target": "ice statue",
      "journal": "Find the ice statue in Greyvax's cave and speak to it.",
      "choose": "A voice in the ice begs to be set free.",
      "choices": [
@@ -367,7 +367,7 @@
     },
     {
      "kind": "give",
-     "target": "Frosty Chest",
+     "target": "frosty chest",
      "items": [
       {
        "item": "Ice Key",
@@ -590,7 +590,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Ancient Stone Golem",
+     "target": "ancient stone golem",
      "items": [
       {
        "item": "Ancient Golem Stone",
@@ -650,7 +650,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Enraged Wolf",
+     "target": "enraged wolf",
      "items": [
       {
        "item": "Enraged Wolf Pelt",
@@ -788,7 +788,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Goblin Fanatic",
+     "target": "goblin fanatic",
      "items": [
       {
        "item": "Scrawled Note",
@@ -1316,7 +1316,7 @@
     },
     {
      "kind": "loot",
-     "target": "Savage Bear",
+     "target": "savage bear",
      "items": [
       {
        "item": "Savage Bear Pelt",
@@ -1755,7 +1755,7 @@
     },
     {
      "kind": "talk",
-     "target": "Ornate Chest",
+     "target": "ornate chest",
      "journal": "Open the chest beside Conner Dunn.",
      "rewards": {
       "xp": 1300000
@@ -2317,7 +2317,7 @@
     },
     {
      "kind": "loot",
-     "target": "Spectral Guardian",
+     "target": "spectral guardian",
      "items": [
       {
        "item": "Spectral Key",
@@ -2417,7 +2417,7 @@
     },
     {
      "kind": "loot",
-     "target": "Adept Pickclaw Warrior",
+     "target": "adept pickclaw warrior",
      "items": [
       {
        "item": "Goblin Kama",
@@ -2826,7 +2826,7 @@
     },
     {
      "kind": "loot",
-     "target": "Weary Treant",
+     "target": "weary treant",
      "items": [
       {
        "item": "Weary Treant Sap",
@@ -3288,7 +3288,7 @@
     },
     {
      "kind": "loot",
-     "target": "Tomb Keeper",
+     "target": "tomb keeper",
      "items": [
       {
        "item": "Tomb Keeper's Sinew",
@@ -3313,7 +3313,7 @@
     },
     {
      "kind": "loot",
-     "target": "Tae Ew Scavenger",
+     "target": "Tae Ew scavenger",
      "items": [
       {
        "item": "Scavenger's Claw",
@@ -3610,7 +3610,7 @@
     },
     {
      "kind": "loot",
-     "target": "Aggravated Spirit",
+     "target": "aggravated spirit",
      "items": [
       {
        "item": "Aggravated Essence",
@@ -4368,7 +4368,7 @@
     },
     {
      "kind": "loot",
-     "target": "Tae Ew Excavator",
+     "target": "Tae Ew excavator",
      "items": [
       {
        "item": "Excavator's Ore",
@@ -4674,7 +4674,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Dark Elf Miner",
+     "target": "dark elf miner",
      "items": [
       {
        "item": "Mining Log",
@@ -4761,7 +4761,7 @@
     },
     {
      "kind": "loot",
-     "target": "Golem Protector",
+     "target": "golem protector",
      "items": [
       {
        "item": "Golem Part A",
@@ -4774,7 +4774,7 @@
     },
     {
      "kind": "loot",
-     "target": "Golem Protector",
+     "target": "golem protector",
      "items": [
       {
        "item": "Golem Part B",

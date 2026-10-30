@@ -266,7 +266,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Froglok Novitiate",
+     "target": "froglok novitiate",
      "items": [
       {
        "item": "casting stone",
@@ -342,7 +342,7 @@
     },
     {
      "kind": "loot",
-     "target": "Froglok Squire",
+     "target": "froglok squire",
      "items": [
       {
        "item": "token of marr",
@@ -405,7 +405,7 @@
     },
     {
      "kind": "loot",
-     "target": "Froglok Knight",
+     "target": "froglok knight",
      "items": [
       {
        "item": "hand of thule",
@@ -493,7 +493,7 @@
     },
     {
      "kind": "loot",
-     "target": "Shadow Cub",
+     "target": "shadow cub",
      "items": [
       {
        "item": "shadow cub pelt",
@@ -1053,7 +1053,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Froglok Novitiate",
+     "target": "froglok novitiate",
      "items": [
       {
        "item": "casting stone",
@@ -1129,7 +1129,7 @@
     },
     {
      "kind": "loot",
-     "target": "Froglok Apprentice",
+     "target": "froglok apprentice",
      "items": [
       {
        "item": "poison vial",
@@ -1180,7 +1180,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Vengeful Dead",
+     "target": "vengeful dead",
      "items": [
       {
        "item": "skeleton note",
@@ -1268,7 +1268,7 @@
     },
     {
      "kind": "loot",
-     "target": "Shadow Cub",
+     "target": "shadow cub",
      "items": [
       {
        "item": "shadow cub pelt",
@@ -1834,7 +1834,7 @@
    "steps": [
     {
      "kind": "loot",
-     "target": "Froglok Novitiate",
+     "target": "froglok novitiate",
      "items": [
       {
        "item": "casting stone",
@@ -1967,7 +1967,7 @@
     },
     {
      "kind": "loot",
-     "target": "Vengeful Dead",
+     "target": "vengeful dead",
      "items": [
       {
        "item": "scroll and necklace",
@@ -2004,7 +2004,7 @@
     },
     {
      "kind": "loot",
-     "target": "Star Crab",
+     "target": "star crab",
      "items": [
       {
        "item": "starcrab shell",
@@ -2128,7 +2128,7 @@
     },
     {
      "kind": "loot",
-     "target": "Shadow Cub",
+     "target": "shadow cub",
      "items": [
       {
        "item": "shadow cub pelt",

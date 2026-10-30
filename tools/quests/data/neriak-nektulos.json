@@ -5133,12 +5133,15 @@
      ],
      "says": "A torn fire bat wing. Not bad.",
      "rewards": {
-      "xp": 36500
+      "xp": 36500,
+      "items": [
+       "Harm Touch"
+      ]
      }
     }
    ],
    "unresolved": [],
-   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level."
+   "notes": "From EQOA-Data Quests/1-20/neriak-nektulos/shadowknight.json, # Level 5 (github.com/Jadiction/EQOA-Data, MIT). The guide names no reward but the experience; the experience is the one every city gives for this level. The guide names no reward; the Harm Touch scroll (the user, 2026-10-30: \"should be harm touch scroll\"; Highbourne's shadow knight is taught it at this level)."
   },
   {
    "key": "1-20/neriak-nektulos/shadowknight/L7",

@@ -6,12 +6,14 @@ every region's), the gems by jib's shares, each creature's own trash (a
 trophy whose whole creature its name holds), the global list's legendary
 weight, the creatures' regions and profiles, and the bindings taken away.
 The controls: a giant badger gets no giant's trophy, a quest trophy and a
-no-trade one are no trash, a pet rolls nothing, a boss's own table and a
-GM's binding stay. --apply then --undo leaves the database as it was (the four
+no-trade one are no trash, a capital alone makes no named creature (the map's
+rare mobs do), a pet rolls nothing, a boss's own table and a GM's binding
+stay. --apply then --undo leaves the database as it was (the four
 tables made and dropped again); a second --apply is refused. No game data.
 
     python3 tools/seed_loot_categories_test.py
 """
+import json
 import os
 import sqlite3
 import subprocess
@@ -66,10 +68,18 @@ LOOT = ([("plains", p, 15, 25) for p in (1, 2, 3, 20, 21, 22, 23)] + [("generic"
         [("craft gems", 30, 1, 60), ("craft gems", 32, 1, 60), ("craft gems", 33, 10, 60)] +
         [("craft gems", 31, 30, 60)] + [("boss old red", 1, 1, 60)])
 WEIGHTS = {30: 30, 32: 30, 33: 9, 31: 1}
-NPCS = [  # npc_id, name, world, level, type
-    (1, "rat", 1, 20, 0), (2, "rat", 1, 22, 0), (3, "giant badger", 1, 20, 0), (4, "frost giant", 2, 50, 0),
-    (5, "Old Red", 1, 20, 0), (6, "Deputy Allen", 1, 20, 0), (7, "primal spirit", 1, 20, 0), (8, "Guard Rolf", 1, 20, 0),
+NPCS = [  # npc_id, name, world, x, z, level, type
+    (1, "rat", 1, 0, 0, 20, 0), (2, "rat", 1, 0, 0, 22, 0), (3, "giant badger", 1, 0, 0, 20, 0),
+    (4, "frost giant", 2, 0, 0, 50, 0), (5, "Old Red", 1, 0, 0, 20, 0), (6, "Deputy Allen", 1, 0, 0, 20, 0),
+    (7, "primal spirit", 1, 0, 0, 20, 0), (8, "Grizzly Grak", 1, 0, 0, 20, 0),
+    (9, "Anchor One", 0, 1000, 1000, 1, 128), (10, "Anchor Two", 0, 3000, 3000, 1, 128),
+    (11, "Anchor Three", 2, 100, 8000, 1, 128), (12, "Anchor Four", 2, 500, 9000, 1, 128),
 ]
+# EQOA-Data's map: two anchors a world for the fit, and one rare mob
+ZONES = {"zones": [], "towns": [], "pois": [
+    {"name": "Anchor One", "x": 100, "y": 100, "category": "other"}, {"name": "Anchor Two", "x": 300, "y": 300, "category": "other"},
+    {"name": "Anchor Three", "x": 10, "y": 800, "category": "other"}, {"name": "Anchor Four", "x": 50, "y": 900, "category": "other"},
+    {"name": "Grizzly Grak", "x": 200, "y": 200, "category": "rare-mob"}]}
 
 
 class SeedLootCategories(unittest.TestCase):
@@ -80,8 +90,11 @@ class SeedLootCategories(unittest.TestCase):
         db.executescript(SCHEMA)
         db.executemany(f"INSERT INTO itempattern VALUES ({', '.join('?' * len(COLS))})", [tuple(r[c] for c in COLS) for r in ITEMS])
         db.executemany("INSERT INTO npcs (npc_id, npc_name, world, x_coord, y_coord, z_coord, npc_level, npc_type) "
-                       "VALUES (?, ?, ?, 0, 0, 0, ?, ?)", NPCS)
-        db.execute("INSERT INTO npcfaction (name, faction) VALUES ('guard rolf', 'Citizens')")
+                       "VALUES (?, ?, ?, ?, 0, ?, ?, ?)", NPCS)
+        self.data = os.path.join(self.dir.name, "data")
+        os.makedirs(os.path.join(self.data, "Map"))
+        with open(os.path.join(self.data, "Map", "zones.json"), "w") as f:
+            json.dump(ZONES, f)
         db.execute("INSERT INTO npcaggro (npc_name, aggressive, note, source) VALUES ('primal spirit', 0, "
                    "'a summoned pet''s name (spellpattern): a player''s pet', 'seed')")
         db.execute("INSERT INTO queststeps (questid, step, items) VALUES (1, 1, '38')")  # the rat tail tip is a quest's
@@ -100,7 +113,7 @@ class SeedLootCategories(unittest.TestCase):
     def plan(self):
         db = sqlite3.connect(self.path)
         try:
-            return slc.plan(db, None, None)
+            return slc.plan(db, self.data, None)
         finally:
             db.close()
 
@@ -143,8 +156,8 @@ class SeedLootCategories(unittest.TestCase):
         self.assertEqual(cr["rat"], ("rathe mountains", ""))
         self.assertEqual(cr["frost giant"], ("odus", ""))
         self.assertEqual(cr["old red"][1], "boss")
-        self.assertEqual(cr["deputy allen"][1], "named")
-        self.assertEqual(cr["guard rolf"][1], "", "a town's person is no named creature")
+        self.assertEqual(cr["grizzly grak"][1], "named", "a rare mob of EQOA-Data's map")
+        self.assertEqual(cr["deputy allen"][1], "", "a capital alone makes no named creature")
         self.assertEqual(cr["primal spirit"][0], "-")
         gone = {(n, t) for n, t, *_ in unbind}
         self.assertEqual(gone, {("rat", "plains"), ("rat", "generic"), ("giant badger", "rathe mountains"), ("*", "craft gems")})
@@ -162,7 +175,7 @@ class SeedLootCategories(unittest.TestCase):
         run = lambda *a: subprocess.run([sys.executable, "-E", "-s", TOOL, "--db", self.path, "--no-backup", *a],
                                         capture_output=True, text=True)
         before = state()
-        r = run("--apply")
+        r = run("--eqoa-data", self.data, "--apply")
         self.assertEqual(r.returncode, 0, r.stderr)
         db = sqlite3.connect(self.path)
         self.assertEqual(db.execute("SELECT count(*) FROM npcloot WHERE source = 'boss-seed'").fetchone(), (1,))
@@ -170,7 +183,7 @@ class SeedLootCategories(unittest.TestCase):
         self.assertEqual(db.execute("SELECT name FROM lootpreset WHERE active = 1").fetchall(), [("jib",)])
         self.assertGreater(db.execute("SELECT itemcost FROM itempattern WHERE patternid = 40").fetchone()[0], 0)
         db.close()
-        self.assertNotEqual(run("--apply").returncode, 0, "a second --apply is refused")
+        self.assertNotEqual(run("--eqoa-data", self.data, "--apply").returncode, 0, "a second --apply is refused")
         r = run("--undo")
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertNotIn("changed since", r.stdout)

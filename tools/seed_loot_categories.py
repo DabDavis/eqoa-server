@@ -18,10 +18,10 @@ Presets (lootpreset, lootrate), each a set of rates by profile:
     1 in 10,000 and legendary at the rate that gives about five of each on
     the server in ten years.
 
-Profiles: xp (every creature's but these), named (a creature whose name has a
-capital and no town's person) and boss (one with a "boss <name>" loot table):
-their gear tiers three times xp's (ours); trash (no creature yet: a GM's
-choice), trash and the global roll alone.
+Profiles: xp (every creature's but these), named (the rare and raid mobs of
+EQOA-Data's map) and boss (one with a "boss <name>" loot table): their gear
+tiers three times xp's (ours); trash (no creature yet: a GM's choice), trash
+and the global roll alone.
 
 Pools (lootpool): the gear of EQOA-Data's tables as tools/seed_camp_loot.py
 and tools/seed_region_loot.py hold them, each item in its table's region
@@ -166,17 +166,15 @@ class World:
         zones, rows = camps.load(db, data) if data else ({"zones": [], "towns": [], "pois": []}, [])
         self.zones, self.fitted = zones, (camps.fits(zones, rows) if data else {})
         self.ground, self._envs = ground, {}
-        people = set()
-        if has_table(db, "npcfaction"):
-            people = {campseed.npc_key(n) for (n,) in db.execute("SELECT name FROM npcfaction WHERE radius = 0")}
         self.pets = set()
         if has_table(db, "npcaggro"):
             self.pets = {campseed.npc_key(n) for (n,) in db.execute(
                 "SELECT npc_name FROM npcaggro WHERE note LIKE 'a summoned pet''s name%'")}
         bosses = {n for (n,) in db.execute("SELECT DISTINCT npc_name FROM npcloot WHERE tablename LIKE 'boss %'")}
+        # the named creatures: EQOA-Data's map's rare and raid mobs
+        named = {camps.clean(p["name"]) for p in zones.get("pois", []) if p.get("category") in ("rare-mob", "raid-mob")}
         self.spawns = collections.defaultdict(list)  # name -> [(world, level)]
         votes = collections.defaultdict(collections.Counter)
-        capital = set()
         self.all_spawns = 0
         for name, world, x, y, z, lvl, typ in db.execute(
                 "SELECT npc_name, world, x_coord, y_coord, z_coord, npc_level, npc_type FROM npcs WHERE npc_name IS NOT NULL"):
@@ -188,8 +186,6 @@ class World:
                 continue
             self.spawns[k].append((world, lvl or 0))
             votes[k][self.region_at(world, x or 0.0, y or 0.0, z or 0.0)] += 1
-            if name.strip() != name.strip().lower():
-                capital.add(k)
         self.region = {k: ("-" if k in self.pets else (v.most_common(1)[0][0] or "")) for k, v in votes.items()}
         self.profile = {}
         for k in self.spawns:
@@ -197,7 +193,7 @@ class World:
                 continue
             if k in bosses:
                 self.profile[k] = "boss"
-            elif k in capital and k not in people:
+            elif k in named:
                 self.profile[k] = "named"
             else:
                 self.profile[k] = ""

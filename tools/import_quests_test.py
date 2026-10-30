@@ -237,6 +237,28 @@ class LaterFields(unittest.TestCase):
         self.assertEqual(self.db.execute("SELECT count(*) FROM questunlocks").fetchone()[0], 0)
         self.assertEqual(state(self.db), before, "undo leaves the database as it was")
 
+    def test_a_steps_other_creatures_are_a_change_and_go_with_undo(self):
+        """A row of queststeptargets (a GM's, or tools/fix_quest_targets.py's)
+        on an imported quest is a change: a run again leaves the quest as it is;
+        --undo deletes the rows with the quest. The control: a quest without
+        any digests as it did."""
+        before = state(self.db)
+        iq.write(self.db, iq.plan(self.db, self.files))
+        q, _ = self.quest("1-20/testmoor/warrior/L1")
+        plain = self.quest("1-20/testmoor/warrior/L3")[0]["questid"]
+        was = iq.digest(self.db, plain)
+        self.db.execute("CREATE TABLE queststeptargets (questid INTEGER NOT NULL, step INTEGER NOT NULL, "
+                        "target TEXT NOT NULL, PRIMARY KEY (questid, step, target))")
+        self.db.execute("INSERT INTO queststeptargets VALUES (?, 1, 'field boar')", (q["questid"],))
+        self.assertEqual(iq.digest(self.db, plain), was, "the control: a quest with no rows digests as before")
+        _, kept, _ = iq.write(self.db, iq.plan(self.db, self.files))
+        self.assertEqual(kept, ["1-20/testmoor/warrior/L1"])
+        self.assertEqual(self.db.execute("SELECT count(*) FROM queststeptargets").fetchone()[0], 1)
+        n = iq.undo(self.db)
+        self.assertEqual(n["creatures"], 1)
+        self.db.execute("DROP TABLE queststeptargets")
+        self.assertEqual(state(self.db), before, "undo leaves the database as it was")
+
     def test_an_earlier_imports_digest_still_holds(self):
         iq.write(self.db, iq.plan(self.db, self.files, routes=ROUTES))
         plain = self.quest("1-20/testmoor/warrior/L1")[0]["questid"]

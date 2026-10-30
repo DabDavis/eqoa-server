@@ -1,6 +1,8 @@
 package database
 
 import (
+	"database/sql"
+
 	"strings"
 	"testing"
 )
@@ -25,7 +27,7 @@ func TestClassTemplatesAreSeededAndNoneApplied(t *testing.T) {
 			t.Errorf("seed %q not in the table", s.Name)
 		}
 	}
-	if strings.Join(names, ",") != "tank,melee,wizard,necromancer,shadowknight" || len(got) != 5 {
+	if strings.Join(names, ",") != "tank,melee,wizard,necromancer,shadowknight,wisp,roamer" || len(got) != 7 {
 		t.Errorf("the seeds: %v (%d rows)", names, len(got))
 	}
 	w := got["wizard"]
@@ -44,6 +46,26 @@ func TestClassTemplatesAreSeededAndNoneApplied(t *testing.T) {
 	}
 	if tk := got["tank"]; tk.HPPct <= 100 || tk.TakenPct >= 100 || len(tk.Abilities) != 0 {
 		t.Errorf("the tank: %+v", tk)
+	}
+	// the wisp is jib's wizard but for its abilities' figures, 28% where his are 35% (the user's "28%")
+	wz, ws := got["wizard"], got["wisp"]
+	if len(ws.Abilities) != len(wz.Abilities) || ws.Class != wz.Class || ws.HPPct != wz.HPPct || ws.TakenPct != wz.TakenPct ||
+		ws.MeleePct != wz.MeleePct || ws.Special != wz.Special || ws.SpecialEvery != wz.SpecialEvery {
+		t.Errorf("the wisp %+v is not the wizard %+v", ws, wz)
+	}
+	for i := range ws.Abilities {
+		a, b := ws.Abilities[i], wz.Abilities[i]
+		if a.DamagePct != 28 || b.DamagePct != 35 {
+			t.Errorf("ability %d: the wisp's %d%%, the wizard's %d%% (want 28 and 35)", i, a.DamagePct, b.DamagePct)
+		}
+		a.DamagePct = b.DamagePct
+		if a != b {
+			t.Errorf("ability %d: the wisp's %+v is not the wizard's %+v but for its figure", i, ws.Abilities[i], b)
+		}
+	}
+	if r := got["roamer"]; r.Class != 0 || r.HPPct != 100 || r.SpecialChance != 0 || r.SpecialDamage != 7.4 ||
+		r.SpecialEvery != 30 || r.SpecialFirst != 15 || r.SpecialJitter != 5 || r.SpecialFrom != 10 || len(r.Abilities) != 0 {
+		t.Errorf("the roamer: %+v", r)
 	}
 	var source string
 	if err := db.QueryRow(`SELECT source FROM classtemplates WHERE name = 'wizard'`).Scan(&source); err != nil || source != "seed" {
@@ -65,7 +87,7 @@ func TestClassTemplatesAreSeededAndNoneApplied(t *testing.T) {
 	}
 	defer db.Close()
 	got, _, _ = db.ClassTemplates()
-	if _, ok := got["tank"]; ok || len(got) != 4 {
+	if _, ok := got["tank"]; ok || len(got) != 6 {
 		t.Errorf("after a GM's delete and a restart: %d templates, tank back %v", len(got), ok)
 	}
 
@@ -202,5 +224,65 @@ func TestTemplateSpells(t *testing.T) {
 	}
 	if b := k.Pattern.RangeBits(); b != 16880<<16 {
 		t.Errorf("range bits %#x", b)
+	}
+}
+
+// The timed special's columns: a classtemplates made before them gets each at
+// 0 (no template has a clock until a GM gives it one), a row's clock reads
+// back, and the checks refuse a clock under 5 s, a jitter of half the clock
+// or more, and a clock with no damage; the control: a roamer's 30 s, 15 s in,
+// 5 s either way, reads as written.
+func TestATimedSpecialsColumns(t *testing.T) {
+	path := t.TempDir() + "/old.db"
+	raw, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := raw.Exec(`CREATE TABLE classtemplates (name TEXT PRIMARY KEY, class INTEGER NOT NULL DEFAULT -1,
+		hp_pct INTEGER NOT NULL DEFAULT 100, taken_pct INTEGER NOT NULL DEFAULT 100, melee_pct INTEGER NOT NULL DEFAULT 100,
+		special TEXT NOT NULL DEFAULT '', special_chance INTEGER NOT NULL DEFAULT 0, special_damage REAL NOT NULL DEFAULT 0,
+		special_fx INTEGER NOT NULL DEFAULT 0, abilities TEXT NOT NULL DEFAULT '[]', note TEXT NOT NULL DEFAULT '',
+		source TEXT NOT NULL DEFAULT 'gm');
+		INSERT INTO classtemplates (name, class, special, special_chance, special_damage) VALUES ('melee', 4, 'Kick', 20, 7.4);`); err != nil {
+		t.Fatal(err)
+	}
+	raw.Close()
+	db, err := NewSQLite(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	got, bad, err := db.ClassTemplates()
+	if err != nil || len(bad) != 0 {
+		t.Fatalf("%v %v", err, bad)
+	}
+	if m := got["melee"]; m.SpecialChance != 20 || m.SpecialEvery != 0 || m.SpecialFirst != 0 || m.SpecialJitter != 0 || m.SpecialFrom != 0 {
+		t.Errorf("an older row: %+v (want its kick kept and no clock)", m)
+	}
+	for _, q := range []string{
+		`INSERT INTO classtemplates (name, class, special_damage, special_every, special_first, special_jitter) VALUES ('roamer', 0, 7.4, 30, 15, 5)`,
+		`INSERT INTO classtemplates (name, class, special_damage, special_every) VALUES ('toofast', 0, 7.4, 3)`,
+		`INSERT INTO classtemplates (name, class, special_damage, special_every, special_jitter) VALUES ('wobbly', 0, 7.4, 30, 15)`,
+		`INSERT INTO classtemplates (name, class, special_every) VALUES ('toothless', 0, 30)`,
+		`INSERT INTO classtemplates (name, class, special_damage, special_every, special_from) VALUES ('ancient', 0, 7.4, 30, 101)`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	got, bad, err = db.ClassTemplates()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r := got["roamer"]; r.SpecialEvery != 30 || r.SpecialFirst != 15 || r.SpecialJitter != 5 || r.SpecialDamage != 7.4 {
+		t.Errorf("the roamer: %+v", r)
+	}
+	for _, name := range []string{"toofast", "wobbly", "toothless", "ancient"} {
+		if _, ok := got[name]; ok {
+			t.Errorf("%q read, want left out", name)
+		}
+	}
+	if len(bad) != 4 {
+		t.Errorf("bad: %v, want the four", bad)
 	}
 }

@@ -114,3 +114,109 @@ func TestAPetsHitPointsTakeItsOwnersClassShare(t *testing.T) {
 		t.Errorf("a class with no rows: %g%%, want 100", got)
 	}
 }
+
+// A player's own damage on an NPC lands at its class's share at its level
+// (balanceclasslevel's dealt_pct, after the con's): a wizard with a row of 150
+// at 10 and 50 at 30 lands 150% at 1-10, the line's 100% at 20 and 50% from
+// 30; a row made in code without the column is all of it. On the hits: a
+// level 10 wizard's spell of 100 on an even NPC lands 150 and its melee hit
+// half again what it lands with no rows; the control: a warrior of 10 (no
+// rows) lands its spell's 100 and its whole melee hit.
+func TestAClassDealtShareByLevel(t *testing.T) {
+	b := SeedBalance().WithClassLevels([]database.BalanceClassLevel{
+		{Class: 13, Level: 10, MeleeTakenPct: 100, DealtPct: 150}, {Class: 13, Level: 30, MeleeTakenPct: 100, DealtPct: 50}})
+	for _, tc := range []struct {
+		class, level int
+		want         float64
+	}{{13, 1, 150}, {13, 10, 150}, {13, 20, 100}, {13, 30, 50}, {13, 60, 50}, {0, 10, 100}} {
+		if got := b.DealtPctAt(tc.class, tc.level); got != tc.want {
+			t.Errorf("class %d level %d: dealt %g%%, want %g%%", tc.class, tc.level, got, tc.want)
+		}
+	}
+	if got := SeedBalance().WithClassLevels([]database.BalanceClassLevel{{Class: 13, Level: 10, MeleeTakenPct: 80}}).DealtPctAt(13, 10); got != 100 {
+		t.Errorf("a row without dealt_pct: %g%%, want all of it", got)
+	}
+	hits := func(b *Balance, class int) (spell, melee int) {
+		c := newCaster(t)
+		c.w.balance = b
+		c.p.Class, c.p.Level = class, 10
+		c.p.Gear.WeaponDamage, c.p.Gear.WeaponCond = 40, 1 // a whole weapon, whose hit is more than 1
+		npc := &NPC{ServerID: 2003, Name: "a test orc", Level: 10, HP: 50000, MaxHP: 50000, X: 101, Y: 10, Z: 100}
+		c.w.NPCs[npc.ServerID] = npc
+		was := meleeIntn
+		meleeIntn = func(n int) int { return n - 1 }
+		defer func() { meleeIntn = was }()
+		c.w.mu.Lock()
+		defer c.w.mu.Unlock()
+		c.w.spellHitLocked(c.p, c.sess, npc, 100)
+		spell = 50000 - npc.HP
+		npc.HP = 50000
+		c.w.playerHitLocked(c.sess, c.p, npc, 0x01312E99)
+		return spell, 50000 - npc.HP
+	}
+	plain := SeedBalance().WithClassLevels(nil)
+	s, m := hits(b, 13)
+	_, m0 := hits(plain, 13)
+	if s != 150 || m != pct(m0, 150) || m0 < 2 {
+		t.Errorf("a wizard of 10 at 150%%: its spell's 100 landed %d (want 150), its melee %d (want %d of %d)", s, m, pct(m0, 150), m0)
+	}
+	ws, wm := hits(b, 0)
+	_, wm0 := hits(plain, 0)
+	if ws != 100 || wm != wm0 {
+		t.Errorf("the control, a warrior of 10 with no rows: its spell's 100 landed %d, its melee %d of %d", ws, wm, wm0)
+	}
+}
+
+// A new character's kit (SimStartKitFromDB) is its start weapon in hand and
+// nothing else: a human warrior its Apprentice Sword (DMG 10, one hand, the
+// sword's swing), a human wizard its two-handed Apprentice Staff, a shaman
+// (no human row) the first race's that has one (a troll's club); rations are
+// carried, not worn. The control: the tier kit of the same database puts
+// armour on the warrior, which the start kit has none of.
+func TestASimStartKitIsTheStartWeapon(t *testing.T) {
+	db, err := database.NewSQLite(t.TempDir() + "/start.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, q := range []string{
+		`INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, attacktype,
+			weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, unk6, craft, itemname, itemdesc, model, color, AC)
+			VALUES (1297, 0, 0, 1, 0, 12, 0, 0, 1, 0, 1, 10, 0, 1, 1, 200, 100, 32767, 2047, 0, 0, 0, 0, 'Apprentice Sword', '', 0, 0, 0),
+			       (5488, 0, 0, 1, 0, 12, 0, 0, 1, 0, 3, 10, 0, 1, 1, 200, 100, 32767, 2047, 0, 0, 0, 0, 'Apprentice Club', '', 0, 0, 0),
+			       (5489, 0, 0, 1, 0, 15, 0, 0, 1, 0, 5, 12, 0, 1, 1, 200, 100, 32767, 2047, 0, 0, 0, 0, 'Apprentice Staff', '', 0, 0, 0),
+			       (8398, 0, 0, 2, 0, -1, 0, 0, 1, 0, 0, 0, 0, 1, 20, 0, 0, 32767, 2047, 0, 0, 0, 0, 'Field Rations', '', 0, 0, 0),
+			       (7001, 0, 0, 3, 0, 5, 0, 0, 1, 0, 0, 0, 0, 1, 1, 100, 100, 32767, 2047, 0, 0, 0, 0, 'a tunic', '', 0, 0, 12)`,
+		`INSERT INTO startitems (race, class, humtype, patternid, count) VALUES (0, 0, 1, 1297, 1), (0, 0, 1, 8398, 20),
+			(0, 13, 2, 8398, 20), (0, 13, 2, 5489, 1), (5, 8, 0, 5488, 1), (6, 8, 0, 1297, 1)`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	war, err := SimStartKitFromDB(db, 0, 0, 3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if war.Gear.WeaponDamage != 10 || war.Gear.WeaponTwoHanded || !war.Worn[14] || war.Worn[16] || war.AttackType != 1 || war.Gear.AC != 0 {
+		t.Errorf("the warrior's start kit: %+v worn %v type %d", war.Gear, war.Worn, war.AttackType)
+	}
+	if war.Base != SimBaseStats(0, 0, 3) || war.Level != 3 {
+		t.Errorf("its base stats %v at %d, want SimBaseStats'", war.Base, war.Level)
+	}
+	wiz, _ := SimStartKitFromDB(db, 13, 0, 1)
+	if wiz.Gear.WeaponDamage != 12 || !wiz.Gear.WeaponTwoHanded || !wiz.Worn[16] || wiz.Worn[14] {
+		t.Errorf("the wizard's start kit (its staff, from the west's row): %+v worn %v", wiz.Gear, wiz.Worn)
+	}
+	sha, _ := SimStartKitFromDB(db, 8, 0, 1)
+	if sha.Gear.WeaponDamage != 10 || sha.AttackType != 3 {
+		t.Errorf("the shaman's start kit (a troll's club): %+v type %d", sha.Gear, sha.AttackType)
+	}
+	tier, err := SimKitFromDB(db, 0, 0, 3, 0.5)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tier.Gear.AC <= 0 {
+		t.Errorf("the control: the tier kit wears no armour either (%+v)", tier.Gear)
+	}
+}

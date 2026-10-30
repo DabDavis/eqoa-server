@@ -22,7 +22,8 @@ func (s *Server) liveBalance() string {
 	}
 	return fmt.Sprintf("at once (%d level rows, %d con rows): every NPC's hit points are its level's now, "+
 		"each keeping its share of them, and the next hit of every fight uses it (a root's next landing and the next "+
-		"hit on a rooted NPC too), the next combat art its cooldown, the next regen tick its rate; "+
+		"hit on a rooted NPC too), the next combat art its cooldown, the next regen tick its rate, a spectre's next "+
+		"instant its size; "+
 		"a summoned pet's at its next summoning", levels, cons)
 }
 
@@ -59,6 +60,15 @@ func checkBalanceRow(table string, row map[string]any) error {
 				return badRequest("%s: %s", table, why)
 			}
 		}
+		if v, present := row["pet_special_hits"]; present && v != nil {
+			h, ok := asFloat(v)
+			if !ok {
+				return badRequest("%s: pet_special_hits is a number", table)
+			}
+			if why := database.BalancePetSpecialHitsProblem(h); why != "" {
+				return badRequest("%s: %s", table, why)
+			}
+		}
 	}
 	switch table {
 	case "balancecon":
@@ -77,7 +87,7 @@ func checkBalanceRow(table string, row map[string]any) error {
 	case "balanceclass":
 		key, cols = "class", []string{"melee_taken_pct"}
 	case "balanceclasslevel":
-		key, cols = "class", []string{"melee_taken_pct", "pet_hp_pct"}
+		key, cols = "class", []string{"melee_taken_pct", "pet_hp_pct", "dealt_pct"}
 		lv, ok := asFloat(row["level"])
 		if !ok {
 			return badRequest("%s: level is a whole number", table)

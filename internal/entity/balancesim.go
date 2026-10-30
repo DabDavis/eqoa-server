@@ -90,6 +90,20 @@ type SimNPC struct {
 	Class  int // npcclass's: 0 a warrior's swing
 	Weapon bool
 	Shield bool
+	// Template is the class template it fights by (classtemplate.go: its
+	// class, stat profile, special, timed special and abilities), nil none;
+	// SimTemplatesFromDB reads a database's
+	Template *ClassTemplate
+}
+
+// SimTemplatesFromDB is a database's class templates as the world fights by
+// them (classtemplate.go), by name: for SimNPC.Template.
+func SimTemplatesFromDB(db *database.SQLiteDB) (map[string]*ClassTemplate, error) {
+	w := NewWorld()
+	if _, err := w.LoadClassTemplates(db); err != nil {
+		return nil, err
+	}
+	return w.templates.byName, nil
 }
 
 // SimResult is how a fight went.
@@ -175,9 +189,12 @@ func SimulateFight(pl SimPlayer, foe SimNPC, b *Balance, seed int64, limit time.
 // gives back what puts the package's own back.
 func simDice(rng *rand.Rand) func() {
 	melee, spell, proc, tap, charm, resist, root := meleeIntn, spellIntn, procIntn, petTapIntn, charmIntn, resistRand, rootIntn
+	tmpl := templateIntn
 	meleeIntn, spellIntn, procIntn, petTapIntn, charmIntn, resistRand, rootIntn = rng.Intn, rng.Intn, rng.Intn, rng.Intn, rng.Intn, rng.Float64, rng.Intn
+	templateIntn = rng.Intn
 	return func() {
 		meleeIntn, spellIntn, procIntn, petTapIntn, charmIntn, resistRand, rootIntn = melee, spell, proc, tap, charm, resist, root
+		templateIntn = tmpl
 	}
 }
 
@@ -240,6 +257,12 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 	}
 	npc := NPCFromRecord(rec, foe.Class, nil)
 	w.applyNPCSettingsLocked(npc) // as LoadNPCs makes it: the balance's hit points (balance.go)
+	if t := foe.Template; t != nil {
+		// its name's npctemplate row, as LoadClassTemplates gives one
+		w.templates = classTemplates{byName: map[string]*ClassTemplate{t.Name: t},
+			use: map[string]string{database.NPCClassKey(npc.Name): t.Name}}
+		w.applyTemplateLocked(npc)
+	}
 	w.NPCs[npc.ServerID] = npc
 	w.SpatialIndex.Insert(npc.ServerID, npc.X, npc.Z)
 	vs := GetOrCreateVisibility(sess)
@@ -259,6 +282,7 @@ func (f *simFight) tick() {
 	w.mu.Lock()
 	w.TickCount++
 	w.aiSystem(f.now)
+	w.templateSystem(f.now) // a templated foe's casts landing (classtemplate.go)
 	w.homeSystem(f.now)
 	w.attackSystem(f.now)
 	w.petSystem(f.now)

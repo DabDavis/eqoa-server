@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/eqoa/server/internal/database"
 	"github.com/eqoa/server/internal/protocol"
 )
 
@@ -463,7 +464,8 @@ func TestASpectresLateInstantIsDropped(t *testing.T) {
 }
 
 // A recorded kind's melee keeps the damage a second our round gave the pet:
-// on the same fixed dice, with no taps, over two minutes the zombie of 25,
+// on the same fixed dice, with no taps and the spectre's instant at none of
+// its hits (pet_special_hits 0), over two minutes the zombie of 25,
 // the mummy of 35 and the spectre of 44 take off what the same pet fighting
 // as ours (the same summoning under a name not recorded: the same body,
 // level and round) takes off, within 5%. Each hit is scaled by our round's
@@ -479,6 +481,7 @@ func TestARecordedPetKeepsItsDamageASecond(t *testing.T) {
 		r := newPetRig(t)
 		r.p.Class, r.p.Level = classNecromancer, 51
 		r.w.petTaps = nil
+		r.w.balance = specialBalance(0)
 		r.enemy.HP, r.enemy.MaxHP, r.enemy.Level = 1_000_000, 1_000_000, 1
 		pet, _ := r.summon(t, spell, 0)
 		ox, oz := pet.X, pet.Z
@@ -518,5 +521,159 @@ func TestARecordedPetKeepsItsDamageASecond(t *testing.T) {
 				t.Errorf("took off %d in two minutes, ours %d: want within 5%%", got, want)
 			}
 		})
+	}
+}
+
+// specialBalance is a balance of one level row, every percent 100 (nothing
+// scaled) and pet_special_hits as given.
+func specialBalance(hits float64) *Balance {
+	return NewBalance([]database.BalanceLevel{{Level: 1, HPPct: 100, DamagePct: 100, ConPct: 100, PetHPPct: 100,
+		PetDamagePct: 100, RegenPct: 15, PetSpecialHits: hits}}, nil)
+}
+
+// A spectre's instant lands three of its own melee hits in one blow, rolled
+// as they are: on fixed dice, and the dice's highest throws putting each
+// instant 0.7 s after its swing (between the swing's hits at 0.5 and 1.0 s),
+// the crab's loss in an instant's tick is three of its losses to a melee hit,
+// within rounding, and its owner is told none of it. pet_special_hits is
+// read when the instant lands: made 5 after the first (the balance swapped
+// as a GM's change swaps it, LoadBalance's SetBalance, without its hit
+// points' rescaling), the second is five hits; made 0, the third is its
+// visual alone. The control: a zombie and a mummy send no instant, and every
+// loss to them is one melee hit.
+func TestASpectresInstantLandsItsHits(t *testing.T) {
+	oldMelee, oldTap := meleeIntn, petTapIntn
+	meleeIntn, petTapIntn = func(n int) int { return n / 2 }, diceHigh
+	t.Cleanup(func() { meleeIntn, petTapIntn = oldMelee, oldTap })
+	type blow struct {
+		at, loss int
+		instant  bool
+	}
+	fight := func(t *testing.T, spell CastSpell, after func(r *petRig, instants int)) (blows []blow, told int) {
+		t.Helper()
+		r := newPetRig(t)
+		r.p.Class, r.p.Level = classNecromancer, 51
+		r.w.petTaps = nil
+		r.w.balance = specialBalance(database.BalancePetSpecialHitsDefault)
+		r.enemy.HP, r.enemy.MaxHP, r.enemy.Level = 1_000_000, 1_000_000, 1
+		pet, _ := r.summon(t, spell, 0)
+		ox, oz := pet.X, pet.Z
+		pet.X, pet.Y, pet.Z = r.enemy.X-2, r.enemy.Y, r.enemy.Z
+		r.w.SpatialIndex.Update(pet.ServerID, ox, oz, pet.X, pet.Z)
+		petID := r.w.objectIDForEntityLocked(r.sess, pet.ServerID)
+		r.w.PetCommand(r.sess, petCmdAttack, crabObject, r.at(9600*time.Millisecond))
+		r.sent()
+		instants := 0
+		for ms := 9700; ms <= 9700+120000; ms += 100 {
+			hp := r.enemy.HP
+			r.w.mu.Lock()
+			r.w.petSystem(r.at(time.Duration(ms) * time.Millisecond))
+			r.w.mu.Unlock()
+			b := blow{at: ms, loss: hp - r.enemy.HP}
+			for _, m := range r.sent() {
+				switch opOfMsg(m) {
+				case protocol.OpcodeCastingCombat:
+					if binary.LittleEndian.Uint32(m[2:]) == petID && binary.LittleEndian.Uint32(m[15:]) == fxPetSpecial {
+						b.instant = true
+					}
+				case protocol.OpcodeDamageIndication:
+					for _, di := range damageIndications([][]byte{m}) {
+						if di[2] == crabObject {
+							told++
+						}
+					}
+				}
+			}
+			if b.loss > 0 || b.instant {
+				blows = append(blows, b)
+			}
+			if b.instant {
+				instants++
+				if after != nil {
+					r.w.mu.Lock()
+					after(r, instants)
+					r.w.mu.Unlock()
+				}
+			}
+		}
+		return blows, told
+	}
+
+	blows, told := fight(t, howlingDeath(), func(r *petRig, n int) {
+		switch n {
+		case 1:
+			r.w.balance = specialBalance(5)
+		case 2:
+			r.w.balance = specialBalance(0)
+		}
+	})
+	var hit int
+	var instants []blow
+	for _, b := range blows {
+		if b.instant {
+			instants = append(instants, b)
+			continue
+		}
+		if hit == 0 {
+			hit = b.loss
+		}
+		if b.loss != hit {
+			t.Fatalf("melee losses differ on fixed dice: %d and %d", hit, b.loss)
+		}
+	}
+	if hit == 0 || len(instants) != 3 {
+		t.Fatalf("a melee hit of %d, %d instants (%v): want a hit and three instants", hit, len(instants), instants)
+	}
+	for i, want := range []float64{3, 5, 0} {
+		if d := float64(instants[i].loss) - want*float64(hit); d < -want || d > want {
+			t.Errorf("instant %d at %d ms took %d, want %g hits of %d", i+1, instants[i].at, instants[i].loss, want, hit)
+		}
+	}
+	if told != 0 {
+		t.Errorf("%d hits told to the owner", told)
+	}
+
+	for _, c := range []struct {
+		name  string
+		spell CastSpell
+	}{{"zombie", decayingFlesh()}, {"mummy", putridFlesh()}} {
+		t.Run(c.name, func(t *testing.T) {
+			blows, _ := fight(t, c.spell, nil)
+			if len(blows) == 0 {
+				t.Fatal("it never hit")
+			}
+			for _, b := range blows {
+				if b.instant || b.loss != blows[0].loss {
+					t.Errorf("a blow at %d ms: %d (instant %v), want every one a melee hit of %d", b.at, b.loss, b.instant, blows[0].loss)
+				}
+			}
+		})
+	}
+}
+
+// An instant that kills reports it, so the fight stops there: the crab dead,
+// its XP its owner's once (a level 34 crab to a level 45: 37,044, as a pet's
+// melee kill), the pet's target cleared. The control: one that leaves it
+// standing reports none.
+func TestASpectresInstantCanKill(t *testing.T) {
+	r := newPetRig(t)
+	r.p.Class = classNecromancer
+	r.w.petTaps = nil
+	r.summon(t, howlingDeath(), 0)
+	ps := r.w.pets[r.p.ServerID]
+	land := func(hp int) bool {
+		ps.target, r.enemy.HP = r.enemy.ServerID, hp
+		now := r.at(60 * time.Second)
+		ps.specialAt = now.Add(-100 * time.Millisecond)
+		r.w.mu.Lock()
+		defer r.w.mu.Unlock()
+		return r.w.petSpecialDueLocked(ps, r.enemy, now)
+	}
+	xp := r.p.TotalXP
+	if land(r.enemy.MaxHP) || r.enemy.Dead || r.enemy.HP >= r.enemy.MaxHP {
+		t.Fatalf("the control: killed, or untouched (%d of %d)", r.enemy.HP, r.enemy.MaxHP)
+	}
+	if !land(1) || !r.enemy.Dead || ps.target != 0 || r.p.TotalXP != xp+37044 {
+		t.Errorf("the kill: dead %v, target %d, XP %d -> %d", r.enemy.Dead, ps.target, xp, r.p.TotalXP)
 	}
 }

@@ -30,6 +30,8 @@ import (
 //     last pet of its levels is Ghilan, 47), and a pet is its owner's
 //     weapon. A charmed creature is still a creature: its own level's.
 //   - a creature's heal out of a fight, by its level (RegenPct, npcregen.go);
+//   - a necromancer's spectre's instant, how many of its own melee hits it
+//     lands, by the pet's balance level (PetSpecialHits, petrotation.go);
 //   - a root on an NPC, by its con on the root's caster: resisted at its
 //     landing, freed by a hit (root.go);
 //   - the combat arts' global cooldown, by the player's level (ArtCooldown):
@@ -148,6 +150,13 @@ func (b *Balance) PetHPPctAt(class, level int) float64 {
 	return b.classLevelPct(class, level, func(r database.BalanceClassLevel) float64 { return r.PetHPPct })
 }
 
+// DealtPctAt is the share of a player's own damage that lands on an NPC for
+// a player of the class and level, after the con's (balanceclasslevel's
+// dealt_pct).
+func (b *Balance) DealtPctAt(class, level int) float64 {
+	return b.classLevelPct(class, level, database.BalanceClassLevel.Dealt)
+}
+
 // Rows is the balance's rows, by level and by diff (none for a nil balance).
 func (b *Balance) Rows() ([]database.BalanceLevel, []database.BalanceCon) {
 	if b == nil {
@@ -264,7 +273,7 @@ func between(x, x0, x1 int, y0, y1 float64) float64 {
 // with no rows.
 func (b *Balance) Level(level int) database.BalanceLevel {
 	out := database.BalanceLevel{Level: level, HPPct: 100, DamagePct: 100, ConPct: 100, PetHPPct: 100, PetDamagePct: 100,
-		RegenPct: npcCalmHealPct}
+		RegenPct: npcCalmHealPct, PetSpecialHits: database.BalancePetSpecialHitsDefault}
 	if b == nil || len(b.levels) == 0 {
 		return out
 	}
@@ -284,6 +293,7 @@ func (b *Balance) Level(level int) database.BalanceLevel {
 		out.PetDamagePct = between(level, a.Level, c.Level, a.PetDamagePct, c.PetDamagePct)
 		out.ArtCooldownMS = between(level, a.Level, c.Level, a.ArtCooldownMS, c.ArtCooldownMS)
 		out.RegenPct = between(level, a.Level, c.Level, a.RegenPct, c.RegenPct)
+		out.PetSpecialHits = between(level, a.Level, c.Level, a.PetSpecialHits, c.PetSpecialHits)
 	}
 	out.Level = level
 	return out
@@ -303,6 +313,12 @@ func (b *Balance) ArtCooldown(level int) time.Duration {
 // (npcregen.go), a percent of its maximum: jib's 15 with no rows.
 func (b *Balance) RegenPct(level int) float64 {
 	return b.Level(level).RegenPct
+}
+
+// PetSpecialHits is how many of its own melee hits a spectre of that balance
+// level lands with its instant (petrotation.go): 3 with no rows.
+func (b *Balance) PetSpecialHits(level int) float64 {
+	return b.Level(level).PetSpecialHits
 }
 
 // isArt is whether a spell is a combat art for the global cooldown: an
@@ -485,6 +501,18 @@ func (w *World) takenLocked(npc *NPC, attackerLevel, n int) int {
 		return n
 	}
 	return pct(n, w.balance.ConAt(npc.Level, npc.Level-attackerLevel).TakenPct)
+}
+
+// dealtLocked is n of a player's own damage on an NPC (its melee, its spells
+// and their ticks, procs and damage shields): takenLocked's at its level,
+// then the share its class lands at its level (balanceclasslevel's
+// dealt_pct).
+func (w *World) dealtLocked(npc *NPC, p *Player, n int) int {
+	n = w.takenLocked(npc, p.Level, n)
+	if !balanced(npc) {
+		return n
+	}
+	return pct(n, w.balance.DealtPctAt(p.Class, p.Level))
 }
 
 // petDealtLocked is n of a pet's damage on an NPC: a summoned pet's times its

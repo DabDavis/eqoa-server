@@ -752,12 +752,15 @@ var catalog = map[string]tableNote{
 			"line between them, one below the first or past the last the end row's; no rows, 100 everywhere (the " +
 			"formulas alone). art_cooldown_ms is the one column by a PLAYER's level: the combat arts' global cooldown " +
 			"(an art sent within it is not answered, as a cast sent during another). regen_pct is a creature's heal out of " +
-			"a fight, every 6 s from its third tick (a pet heals as a player does, whatever this says). " +
+			"a fight, every 6 s from its third tick (a pet heals as a player does, whatever this says). pet_special_hits, " +
+			"by a summoned pet's owner's level as the pet columns are, is how many of its own melee hits a necromancer's " +
+			"spectre (Howling and Ancient Death) lands with its instant, the shake it gives its target 1-6 swings apart " +
+			"from 20 s into a fight (3, the default; 0 the visual alone). " +
 			"A charmed creature keeps its own (an NPC's) hit points and damage. Training dummies are " +
 			"never touched. Rows of source seed are the tuning of 2026-10-29 (claude-notes/balance-20261029.md), held to " +
 			"its targets by the fight simulator: run cmd/balancesim on a copy of the database to see what a change does " +
 			"before it goes in (its -try-level flag tries rows without writing them).",
-		Live:   "At once: every NPC's hit points become its level's (each keeping its share of them); a summoned pet's at its next summoning.",
+		Live:   "At once: every NPC's hit points become its level's (each keeping its share of them); a summoned pet's at its next summoning; a spectre's instant at its next one.",
 		Search: []string{"note", "source"},
 		Cols: map[string]colNote{
 			"level":          {Label: "NPC level", Help: "1-100; the levels between two rows take the line between them"},
@@ -770,6 +773,8 @@ var catalog = map[string]tableNote{
 				"cast at a creature) starts, how long before another may; 0 none"},
 			"regen_pct": {Label: "Regen % a tick", Help: "0-100: what a creature of this level heals each 6 s out of a fight, " +
 				"from its third tick, of its most hit points (15 with no rows)"},
+			"pet_special_hits": {Label: "Spectre's instant, hits", Help: "0-20, by its owner's level: how many of a " +
+				"necromancer's spectre's own melee hits its instant lands in one blow (3; 0 the visual alone)"},
 			"note":   {Label: "Note"},
 			"source": {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},
@@ -812,9 +817,11 @@ var catalog = map[string]tableNote{
 		Help: "The game's balance by a player's class and level (entity/balance.go): melee_taken_pct, a percent of " +
 			"the class's share in Balance by class at that level, so an NPC's melee hit on the player is Balance by " +
 			"class's figure times this; pet_hp_pct, a summoned pet's hit points by its owner's class and level, a " +
-			"percent of Balance by level's pet_hp_pct (taken when the pet is summoned). A class's rows make a line by " +
+			"percent of Balance by level's pet_hp_pct (taken when the pet is summoned); dealt_pct, the share of the " +
+			"player's own damage (melee, spells and their ticks, procs, damage shields) that lands on an NPC, after " +
+			"Balance by con's taken_pct: a fight's length by class where melee_taken_pct is its danger. A class's rows make a line by " +
 			"level (between two rows the straight line, below the first and past the last the end row's); a class with " +
-			"no rows takes Balance by class's figure and the whole of Balance by level's pet column at every level. Rows " +
+			"no rows takes Balance by class's figure, the whole of Balance by level's pet column and all of its damage at every level. Rows " +
 			"of source seed are the tuning of 2026-10-30 (claude-notes/balance-20261029.md); cmd/balancesim's " +
 			"-try-classlevel tries rows before they are written.",
 		Live:   "At once: the next hit of every fight uses it.",
@@ -825,6 +832,8 @@ var catalog = map[string]tableNote{
 			"melee_taken_pct": {Label: "Share of the class's %", Help: "of Balance by class's figure, at this level"},
 			"pet_hp_pct": {Label: "Pet's hit points %", Help: "a summoned pet's of an owner of this class and level, " +
 				"a percent of Balance by level's pet_hp_pct (each class's pets lag their owner their own way)"},
+			"dealt_pct": {Label: "Damage dealt %", Help: "of a player's own damage on an NPC that lands, after the con's " +
+				"(its pet's not: Balance by level's pet_damage_pct)"},
 			"note":   {Label: "Note"},
 			"source": {Label: "Source", Help: "gm, or seed for the rows a new table is given"},
 		},
@@ -889,7 +898,11 @@ var catalog = map[string]tableNote{
 			"and the class whose spells it casts; -1 keeps its own), with hp_pct of its level's hit points, taken_pct of a " +
 			"player's or a pet's melee hit on it landing (85: 15% less), melee_pct of its own melee hits; it kicks (special) " +
 			"in special_chance of its rounds for special_damage a level, fixed and through any armour, as Sandstorm's " +
-			"creatures' specials hit (a level 34 crab's 251), with special_fx's visual (0: Sandstorm's creature special); " +
+			"creatures' specials hit (a level 34 crab's 251), with special_fx's visual (0: Sandstorm's creature special), " +
+			"and on a clock as well: every special_every seconds (0 none), the first special_first seconds into the fight, " +
+			"each special_jitter seconds either way, counting only its time at its enemy (not closing in, rooted away or " +
+			"casting: Sandstorm's specials come with its rounds) (the user's SOE roamer: a crit every 30 s or so), either only from " +
+			"special_from on (a level: the roamer's 10); " +
 			"and in its fights it casts its abilities from where it stands, its melee waiting while it casts. An ability " +
 			"casts the highest spell of its kind (nuke: a harmful hit of one target; aoe: one on an area, the spell's area " +
 			"and its Spell areas row; lifetap: a hit that heals its caster; heal: a heal on itself, below its share of hit " +
@@ -898,11 +911,13 @@ var catalog = map[string]tableNote{
 			"lands as a player's cast does, 1.4 s after its cast time: its hit at damage_pct, less the share the player's " +
 			"resist to its element (by its name: fire, ice, lightning, poison, disease, else arcane) takes, told in a " +
 			"0x00DB and a line; a tap's share back on the NPC. A spell's lasting part (a damage tick, a stat, a hold) is " +
-			"not put on a player. abilities is " + classTemplateAbilitiesHelp + ". The five seed rows are jib's examples " +
-			"(tank, melee, wizard, necromancer, shadowknight); their numbers are ours, each note says which. A row the " +
+			"not put on a player. abilities is " + classTemplateAbilitiesHelp + ". The seed rows are jib's five examples " +
+			"(tank, melee, wizard, necromancer, shadowknight), the user's wisp (his wizard at 28%) and roamer (SOE's basic " +
+			"creature: a crit every 30 s or so from level 10), both given out by tools/seed_roamers.py; their numbers " +
+			"are ours, each note says which. A row the " +
 			"world cannot use is refused here, and named in the answer's line when it was written another way.",
 		Live:   "At once: every NPC of a name given it takes its numbers where it stands, and its next fight its abilities.",
-		Show:   []string{"name", "class", "hp_pct", "taken_pct", "melee_pct", "special", "special_chance", "abilities", "source"},
+		Show:   []string{"name", "class", "hp_pct", "taken_pct", "melee_pct", "special", "special_chance", "special_every", "abilities", "source"},
 		Search: []string{"name", "special", "abilities", "note", "source"},
 		Cols: map[string]colNote{
 			"name":           {Label: "Template (key)", Help: "lower case; NPC class templates names it"},
@@ -914,9 +929,13 @@ var catalog = map[string]tableNote{
 			"special_chance": {Label: "Special %", Help: "of its rounds it comes in, a second after the round's last hit (0-100)", Section: "Special melee"},
 			"special_damage": {Label: "Special damage", Help: "a level (0-200), fixed and through any armour: Sandstorm's crab's 251 at 34 is 7.4", Section: "Special melee"},
 			"special_fx":     {Label: "Special visual", Format: hex32, Help: "0x00B1's visual; 0 Sandstorm's creature special (0x66CD778E)", Section: "Special melee"},
+			"special_every":  {Label: "Special every s", Help: "seconds at its enemy from one timed special to the next (5-3600; 0 none; time closing in, rooted away or casting is not counted), as well as special_chance's", Section: "Special melee"},
+			"special_first":  {Label: "First special at s", Help: "seconds of a fight at its enemy (its turns in reach) before the first timed one", Section: "Special melee"},
+			"special_jitter": {Label: "Special jitter s", Help: "seconds either way on each timed special, the first too (under half of special_every)", Section: "Special melee"},
+			"special_from":   {Label: "Special from level", Help: "a creature below this level (its own, at each fight) has no special, timed or by chance (0 any; the roamer's 10)", Section: "Special melee"},
 			"abilities":      {Label: "Abilities", Format: "json", Help: classTemplateAbilitiesHelp},
 			"note":           {Label: "Note", Format: "multiline"},
-			"source":         {Label: "Source", Help: "gm, or seed for jib's five examples the table was made with"},
+			"source":         {Label: "Source", Help: "gm, or seed for the rows the table was made with (jib's five examples, the wisp and the roamer)"},
 		},
 	},
 	"npctemplate": {

@@ -2,6 +2,7 @@ package entity
 
 import (
 	"log"
+	"math"
 	"strings"
 	"time"
 )
@@ -23,15 +24,24 @@ import (
 //     0xAF72B894 (Lifespike's) with 2000 ms, every 2-5 swings: the same visual
 //     for the zombie of 24 as the spectre of 44.
 //   - The spectre's instants, 0xFD069D13 at cast 0, half a second after a
-//     swing (not with it), from about 20 s into the fight, 1-6 swings apart.
+//     swing (not with it), from about 20 s into the fight, 1-6 swings apart:
+//     no spell's visual but a blow's (the target's hit action 34, the pad's
+//     motor, a camera shake, two sounds), a pet's special melee.
 //   - Each spell's 0x00B1 came in the same millisecond as a swing's and
 //     before it; nothing else said what any did, and no 0x00DB came in six
 //     minutes of fights: the owner is told no pet hit.
 //
 // Here the taps do what ours did (pettap.go: the necromancer's own tap of
 // the pet's level, its figure off the target and as much back on the pet),
-// on Sandstorm's cadence and visual and untold; the openers and the
-// instants are their visuals alone (nothing recorded what they did). The
+// on Sandstorm's cadence and visual and untold; the openers are their
+// visuals alone (nothing recorded what they did). The spectre's instant
+// lands as a blow of three of its own melee hits, each rolled as they are
+// (the target's defence counted, its hits' scale below), the three being
+// balancelevel's pet_special_hits at its balance level, a GM's, read when it
+// lands (the user, 2026-10-30: "does the necro pet at 45 use the harm touch
+// like move, not as much damage but sizable"); untold as its hits are, the
+// target's hit points showing it. Nothing measured its size: Sandstorm told
+// no hit. The
 // melee keeps the damage a second our round gave the pet (petHitRate): no
 // hit of these pets was ever shown on Sandstorm, so only the cadence is
 // recorded, and our warrior's round from level 35 (Attack4, four hits in 6
@@ -213,17 +223,42 @@ func (w *World) petSpecialAfterSwingLocked(ps *petState, now time.Time) {
 	ps.specialAt = now.Add(petSpecialLag + time.Duration(petTapIntn(int(petSpecialLagJitter/time.Millisecond)+1))*time.Millisecond)
 }
 
-// petSpecialDueLocked sends a spectre's instant once it is due; one more
+// petSpecialDueLocked sends a spectre's instant once it is due and lands it
+// (petSpecialHitLocked) as a hit of the pet's own (petDamageLocked: the
+// balance's pet damage and con, hate, a kill's XP; told to no one); one more
 // than petSpecialStale past it (the pet off chasing, out of reach) is
-// dropped, not sent late.
-func (w *World) petSpecialDueLocked(ps *petState, t *NPC, now time.Time) {
+// dropped, not sent late. It reports a kill.
+func (w *World) petSpecialDueLocked(ps *petState, t *NPC, now time.Time) bool {
 	if ps.specialAt.IsZero() || now.Before(ps.specialAt) {
-		return
+		return false
 	}
 	late := now.Sub(ps.specialAt)
 	ps.specialAt = time.Time{}
 	if late > petSpecialStale {
-		return
+		return false
 	}
 	w.broadcastNPCSwingLocked(ps.npc, t.ServerID, 0, fxPetSpecial)
+	n := w.petSpecialHitLocked(ps, t)
+	if n <= 0 {
+		return false
+	}
+	ps.npc.LastCombatTime = now
+	log.Printf("Pet: %s's %q (%s) lands its instant on %s for %d before the balance", ps.owner.Name, ps.npc.Name, ps.kind, t.Name, n)
+	return w.petDamageLocked(ps, t, n, now)
+}
+
+// petSpecialHitLocked is a spectre's instant before the balance's pet damage
+// and con: one of its melee hits rolled as they are (petMeleeHit, the
+// target's defence counted, times its hits' scale), times balancelevel's
+// pet_special_hits at its balance level, read now; 0 when that is 0.
+func (w *World) petSpecialHitLocked(ps *petState, t *NPC) int {
+	times := w.balance.PetSpecialHits(w.balanceLevelOf(ps.npc))
+	if times <= 0 {
+		return 0
+	}
+	hit := float64(petMeleeHit(ps.npc, t, meleeIntn))
+	if ps.hitScale > 0 {
+		hit *= ps.hitScale
+	}
+	return int(math.Round(hit * times))
 }

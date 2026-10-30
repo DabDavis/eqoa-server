@@ -311,7 +311,7 @@ func TestNoAssignmentChangesNothing(t *testing.T) {
 		}
 	}
 	sum := r.w.ClassTemplateSummary()
-	if !strings.HasPrefix(sum[0], "no NPC fights by a class template") || !strings.Contains(sum[0], "melee, necromancer, shadowknight, tank, wizard") {
+	if !strings.HasPrefix(sum[0], "no NPC fights by a class template") || !strings.Contains(sum[0], "melee, necromancer, roamer, shadowknight, tank, wisp, wizard") {
 		t.Errorf("the summary: %q", sum)
 	}
 	p, sess := r.player("Hero", 1001.5, 100)
@@ -622,5 +622,220 @@ func TestStatsSayATemplate(t *testing.T) {
 	}
 	if lines := strings.Join(r.w.StatsReport(sess, r.objectID(pup.ServerID), r.at(0)), "\n"); strings.Contains(lines, "Class template") {
 		t.Errorf("the control has a template line:\n%s", lines)
+	}
+}
+
+// A template's special on a clock (special_every): the first special_first
+// into the fight (from its first turn in reach), then one every
+// special_every, each special_jitter either way, for the level times
+// special_damage, fixed and through any armour, with Sandstorm's creature
+// special's visual; the templates' dice at their low end and their high end
+// put each where the jitter says. The control fights beside it: the same
+// template with no clock (special_every 0) and no chance never specials.
+func TestATimedSpecialComesOnItsClock(t *testing.T) {
+	r := newTemplateRig(t)
+	exec := func(q string, args ...any) {
+		t.Helper()
+		if _, err := r.db.Exec(q, args...); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	// the seeded roamer (database.SeedClassTemplates), and a control of no clock
+	exec(`INSERT INTO classtemplates (name, class, special, special_damage, special_every, special_first, special_jitter)
+		VALUES ('plainwar', 0, '', 7.4, 0, 0, 0)`)
+	r.assign("gnoll brute", "roamer")
+	r.assign("gnoll guard", "plainwar")
+	brute, guard := r.npc("Gnoll Brute"), r.npc("Gnoll Guard")
+	if brute.TemplateName() != "roamer" || guard.TemplateName() != "plainwar" {
+		t.Fatalf("templates %q, %q", brute.TemplateName(), guard.TemplateName())
+	}
+	for _, c := range []struct {
+		dice  func(int) int
+		want  []time.Duration
+		label string
+	}{
+		{func(int) int { return 0 }, []time.Duration{10 * time.Second, 35 * time.Second, 60 * time.Second}, "low end: 10 s, then every 25 s"},
+		{func(n int) int { return n - 1 }, []time.Duration{20 * time.Second, 55 * time.Second}, "high end: 20 s, then every 35 s"},
+	} {
+		func() {
+			defer func(f func(int) int) { templateIntn = f }(templateIntn)
+			templateIntn = c.dice
+			p, sess := r.player("Hero", 2001.5, 100)
+			p.AC = 1763
+			q, qsess := r.player("Control", 3001.5, 100)
+			brute.endTemplateFight()
+			guard.endTemplateFight()
+			r.fight(brute, p.ServerID)
+			r.fight(guard, q.ServerID)
+			var at []time.Duration
+			for d := time.Duration(0); d <= 70*time.Second; d += 100 * time.Millisecond {
+				r.tick(d)
+				msgs := drain(sess)
+				for _, cc := range castsIn(msgs) {
+					if cc.caster == r.objectID(brute.ServerID) && cc.fx == templateSpecialFX {
+						at = append(at, d)
+						found := false
+						for _, f := range damageIndications(msgs) {
+							found = found || f[0] == int64(r.objectID(brute.ServerID)) && f[1] == -252
+						}
+						if !found {
+							t.Errorf("%s: no 0x00DB of 252 (7.4 x 34, through 1,763 AC) at %v: %v", c.label, d, damageIndications(msgs))
+						}
+					}
+				}
+				for _, cc := range castsIn(drain(qsess)) {
+					if cc.caster == r.objectID(guard.ServerID) && cc.fx == templateSpecialFX {
+						t.Errorf("%s: the control specialed at %v", c.label, d)
+					}
+				}
+			}
+			if fmt.Sprint(at) != fmt.Sprint(c.want) {
+				t.Errorf("%s: timed specials at %v, want %v", c.label, at, c.want)
+			}
+			delete(r.w.Players, p.ServerID)
+			delete(r.w.Players, q.ServerID)
+		}()
+	}
+}
+
+// A timed special's clock counts no time its NPC casts: the wizard template
+// with a clock every 5 s from 2 s in melees from 0 to 1.9 s, chain-casts its
+// area spell at 2 s and its single target's after it, and the special, a
+// tenth of a second of melee short when the casts began, comes a tick after
+// they are over (6.8 s: 6.9 s), never inside one.
+func TestATimedSpecialWaitsForACast(t *testing.T) {
+	r := newTemplateRig(t)
+	if _, err := r.db.Exec(`UPDATE classtemplates SET special = 'a critical hit', special_damage = 7.4, special_every = 5,
+		special_first = 2 WHERE name = 'wizard'`); err != nil {
+		t.Fatal(err)
+	}
+	r.assign("gnoll mage", "wizard")
+	defer func(f func(int) int) { templateIntn = f }(templateIntn)
+	templateIntn = func(int) int { return 0 }
+	mage := r.npc("Gnoll Mage")
+	p, sess := r.player("Hero", 1001.5, 100)
+	r.fight(mage, p.ServerID)
+	var specials, casts []time.Duration
+	var castEnds []time.Duration
+	for d := time.Duration(0); d <= 12*time.Second; d += 100 * time.Millisecond {
+		r.tick(d)
+		for _, c := range castsIn(drain(sess)) {
+			if c.caster != r.objectID(mage.ServerID) {
+				continue
+			}
+			switch {
+			case c.fx == templateSpecialFX:
+				specials = append(specials, d)
+			case c.fx&0xFFFFFF00 == 0x0A0A0A00: // a spell of the rig's (its melee rounds' swings are not casts)
+				casts = append(casts, d)
+				castEnds = append(castEnds, d+time.Duration(c.ms)*time.Millisecond+castBusy)
+			}
+		}
+	}
+	if len(specials) == 0 || len(casts) == 0 || specials[0] != 6900*time.Millisecond {
+		t.Fatalf("specials at %v (want the first at 6.9 s, after the casts), casts at %v", specials, casts)
+	}
+	for _, s := range specials {
+		for i, c := range casts {
+			if s >= c && s < castEnds[i] {
+				t.Errorf("a timed special at %v inside the cast from %v to %v", s, c, castEnds[i])
+			}
+		}
+	}
+}
+
+// A special from a level on (special_from, the roamer's 10: the user's "they
+// get it around level 10 starting, but before only auto attack"), read off
+// the creature's own level at each fight, not its name: the same creature at
+// level 9 fights a minute with its melee alone, at level 10 it crits on its
+// clock (7.4 x 10 = 74).
+func TestARoamerCritsFromLevelTen(t *testing.T) {
+	r := newTemplateRig(t)
+	r.assign("gnoll brute", "roamer")
+	defer func(f func(int) int) { templateIntn = f }(templateIntn)
+	templateIntn = func(int) int { return 0 }
+	brute := r.npc("Gnoll Brute")
+	for _, c := range []struct {
+		level, want int
+	}{{9, 0}, {10, 2}} {
+		brute.Level = c.level
+		brute.endTemplateFight()
+		p, sess := r.player("Hero", 2001.5, 100)
+		r.fight(brute, p.ServerID)
+		crits := 0
+		for d := time.Duration(0); d <= 40*time.Second; d += 100 * time.Millisecond {
+			r.tick(d)
+			msgs := drain(sess)
+			for _, cc := range castsIn(msgs) {
+				if cc.caster == r.objectID(brute.ServerID) && cc.fx == templateSpecialFX {
+					crits++
+					found := false
+					for _, f := range damageIndications(msgs) {
+						found = found || f[1] == -int64(math.Round(7.4*float64(c.level)))
+					}
+					if !found {
+						t.Errorf("level %d: no 0x00DB of %d: %v", c.level, int(7.4*float64(c.level)+0.5), damageIndications(msgs))
+					}
+				}
+			}
+		}
+		if crits != c.want {
+			t.Errorf("a level %d roamer: %d crits in 40 s, want %d", c.level, crits, c.want)
+		}
+		// #stats says so
+		lines := strings.Join(r.w.StatsReport(sess, r.objectID(brute.ServerID), r.at(0)), "\n")
+		want := "no Critical Hit below level 10"
+		if c.level >= 10 {
+			want = "Critical Hit every 25-35 s at its enemy for 74, the first 10-20 s in"
+		}
+		if !strings.Contains(lines, want) {
+			t.Errorf("a level %d roamer's #stats has no %q:\n%s", c.level, want, lines)
+		}
+		delete(r.w.Players, p.ServerID)
+	}
+}
+
+// A timed special's clock counts only its creature's time AT its enemy, as
+// Sandstorm's specials come with its rounds: a level 34 roamer fights a
+// player 5 s (of its first 10: its turns from 0 to 4.9 s count 4.9), is
+// rooted with the player stepped 15 off for 30 s, and crits 5.1 s after it is
+// back at the player (40.1 s: the turn it is back on starts its clock again),
+// not on its return (35 s); the control fights on in reach and crits at 10 s
+// and 35 s.
+func TestATimedSpecialCountsTimeAtItsEnemy(t *testing.T) {
+	r := newTemplateRig(t)
+	r.assign("gnoll brute", "roamer")
+	defer func(f func(int) int) { templateIntn = f }(templateIntn)
+	templateIntn = func(int) int { return 0 } // first 10 s, every 25 s
+	brute := r.npc("Gnoll Brute")
+	for _, held := range []bool{false, true} {
+		brute.endTemplateFight()
+		brute.Effects = nil
+		p, sess := r.player("Hero", 2001.5, 100)
+		r.fight(brute, p.ServerID)
+		var crits []time.Duration
+		for d := time.Duration(0); d <= 45*time.Second; d += 100 * time.Millisecond {
+			if held && d == 5*time.Second {
+				brute.Effects = append(brute.Effects, &ActiveEffect{Name: "Root", Root: true, Until: r.at(35 * time.Second)})
+				p.X = brute.X + 15
+			}
+			if held && d == 35*time.Second {
+				p.X = brute.X + 1.5
+			}
+			r.tick(d)
+			for _, c := range castsIn(drain(sess)) {
+				if c.caster == r.objectID(brute.ServerID) && c.fx == templateSpecialFX {
+					crits = append(crits, d)
+				}
+			}
+		}
+		want := []time.Duration{10 * time.Second, 35 * time.Second}
+		if held {
+			want = []time.Duration{40100 * time.Millisecond}
+		}
+		if fmt.Sprint(crits) != fmt.Sprint(want) {
+			t.Errorf("held off %v: crits at %v, want %v", held, crits, want)
+		}
+		delete(r.w.Players, p.ServerID)
 	}
 }

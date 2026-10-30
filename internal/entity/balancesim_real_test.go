@@ -304,20 +304,97 @@ func TestRealDustAndTheFireBat(t *testing.T) {
 	if batHP != 786 || won < 0.95 || hp < 0.55 || hp > 0.75 || secs < 18 || secs > 40 {
 		t.Errorf("the calibration fight is not Dust's")
 	}
-	won, hp, secs, batHP = fight(SeedBalance())
-	t.Logf("2026-10-30 seed: won %.0f%%, %.0f%% HP left, %.0f s, the bat %d HP", 100*won, 100*hp, secs, batHP)
+	tuned := simRealBalance(t, db)
+	won, hp, secs, batHP = fight(tuned)
+	t.Logf("the tuning: won %.0f%%, %.0f%% HP left, %.0f s, the bat %d HP", 100*won, 100*hp, secs, batHP)
 	if won < 0.6 || hp > 0.40 {
-		t.Errorf("under the new seed the fire bat is still easy: won %.0f%% with %.0f%% left", 100*won, 100*hp)
+		t.Errorf("under the tuning the fire bat is still easy: won %.0f%% with %.0f%% left", 100*won, 100*hp)
 	}
+	// the bat by the template its name has (tools/seed_roamers.py: a roamer), whose crit comes from level 10:
+	// a level 6 bat fights with its melee alone, the same fight
+	if foe := simRealFoe(t, db, "fire bat"); foe.Template != nil {
+		bat.Template = foe.Template
+		w2, h2, s2, _ := fight(tuned)
+		if w2 != won || h2 != hp || s2 != secs {
+			t.Errorf("the level 6 roamer's fight: won %.0f%%, %.0f%% left, %.0f s; without the template %.0f%%, %.0f%%, %.0f s",
+				100*w2, 100*h2, s2, 100*won, 100*hp, secs)
+		}
+	}
+}
+
+// simRealFoe is the simulated foe a real database gives a creature of the
+// name ("" a generic creature: any name npctemplate gives the roamer): the
+// template npctemplate gives it (tools/seed_roamers.py), else none.
+func simRealFoe(t *testing.T, db *database.SQLiteDB, name string) SimNPC {
+	t.Helper()
+	uses, err := db.NPCTemplates()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpl := uses[database.NPCClassKey(name)]
+	if name == "" {
+		for _, v := range uses {
+			if v == "roamer" {
+				tmpl = v
+				break
+			}
+		}
+	}
+	if tmpl == "" {
+		return SimNPC{}
+	}
+	all, err := SimTemplatesFromDB(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if all[tmpl] == nil {
+		t.Fatalf("npctemplate names %q, which classtemplates has not", tmpl)
+	}
+	t.Logf("the foe fights by the %q template", tmpl)
+	return SimNPC{Template: all[tmpl]}
+}
+
+// simRealBalance is the balance a real database fights under: its own tables
+// once the tuning is written into them (balanceclasslevel has rows: tools/
+// tune_balance.py and tools/retune_balance.py applied), else the seed rows
+// (the same tuning, for a database it is not written into yet).
+func simRealBalance(t *testing.T, db *database.SQLiteDB) *Balance {
+	t.Helper()
+	cll, err := db.BalanceClassLevels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cll) == 0 {
+		t.Log("the seed rows (the database's balance is not the tuning's)")
+		return SeedBalance()
+	}
+	ls, err := db.BalanceLevels()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cs, err := db.BalanceCons()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cls, err := db.BalanceClasses()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("the database's own tables (%d class and level rows)", len(cll))
+	return NewBalance(ls, cs).WithClasses(cls).WithClassLevels(cll)
 }
 
 // The user's targets of 2026-10-30 on the real kits (EQOA_REAL_DB): both
 // yellows won as a rule (one up four times in five, two up half the time)
 // and taking a player down below about a third of its hit points (its low
 // point, averaged over the fights won one and two up: the tuning's fit aims
-// at a quarter), a red three up a lone player's loss, two of the level a
-// red three up's winners and three a red five up's; the control: under the
-// 01:30 tables most yellows left a player above a third.
+// at a quarter), a red three up a lone player's loss (a healer's too), even
+// fights won (a priest's at levels 1-3 97%), two of the level a red three
+// up's winners and three a red five up's, under the database's own tables
+// once the tuning is written into them (simRealBalance), against the
+// creature the database gives (simRealFoe: a roamer); the controls: under
+// the 01:30 tables most yellows left a player above a third, and the rows
+// each check was added for miss it.
 func TestRealBalanceYellowsAndReds(t *testing.T) {
 	db := simRealDB(t)
 	kit := func(c, l int) SimPlayer {
@@ -327,10 +404,11 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 		}
 		return pl
 	}
-	seed, old := SeedBalance(), balanceAt0130()
-	yellow := func(pl SimPlayer, b *Balance, fights int) (SimCell, SimCell, float64) {
-		y1 := SimCellOf(pl, SimNPC{}, 1, b, fights, 1, 10*time.Minute)
-		y2 := SimCellOf(pl, SimNPC{}, 2, b, fights, 1, 10*time.Minute)
+	seed, old := simRealBalance(t, db), balanceAt0130()
+	foe := simRealFoe(t, db, "") // a creature as the database's creatures fight: a roamer once seed_roamers.py is applied
+	yellow := func(pl SimPlayer, b *Balance, fights int, foe SimNPC) (SimCell, SimCell, float64) {
+		y1 := SimCellOf(pl, foe, 1, b, fights, 1, 10*time.Minute)
+		y2 := SimCellOf(pl, foe, 2, b, fights, 1, 10*time.Minute)
 		w1, w2 := float64(y1.Won), float64(y2.Won)
 		return y1, y2, (w1*y1.LowLeft + w2*y2.LowLeft) / max(w1+w2, 1)
 	}
@@ -338,16 +416,16 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 	for _, class := range []int{0, 2, 4, 6} {
 		for _, level := range []int{5, 20, 40, 55} {
 			pl := kit(class, level)
-			y1, y2, low := yellow(pl, seed, 16)
+			y1, y2, low := yellow(pl, seed, 16, foe)
 			if y1.WinShare() < 0.7 || y2.WinShare() < 0.5 || low > 0.36 {
 				t.Errorf("class %d L%d: +1 won %.0f%%, +2 won %.0f%%, taken down to %.0f%% on average",
 					class, level, 100*y1.WinShare(), 100*y2.WinShare(), 100*low)
 			}
-			if r := SimCellOf(pl, SimNPC{}, 3, seed, 16, 1, 10*time.Minute); r.WinShare() > 0.4 {
+			if r := SimCellOf(pl, foe, 3, seed, 16, 1, 10*time.Minute); r.WinShare() > 0.4 {
 				t.Errorf("class %d L%d +3 alone: won %.0f%%", class, level, 100*r.WinShare())
 			}
 			cells++
-			if _, _, l := yellow(pl, old, 8); l > 0.36 {
+			if _, _, l := yellow(pl, old, 8, SimNPC{}); l > 0.36 { // the 01:30 creatures: no template
 				easy++
 			}
 		}
@@ -355,20 +433,181 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 	if easy*2 < cells {
 		t.Errorf("the control: under the 01:30 tables only %d of %d yellows left a player above a third", easy, cells)
 	}
+	// even fights won as a rule ("even and below kept"), healers included: a
+	// priest at levels 1-3 at least 97% of 40 (the coordinator's check of
+	// 2026-10-30: under the first tuning's row of 47 a level 1 cleric won 70%
+	// of them on the 04:20 data); the control is that row
+	for _, class := range []int{7, 8, 9} {
+		for _, level := range []int{1, 2, 3} {
+			if e := SimCellOf(kit(class, level), foe, 0, seed, 40, 1, 10*time.Minute); e.WinShare() < 0.97 {
+				t.Errorf("class %d L%d even: won %.0f%%, low %.0f%%", class, level, 100*e.WinShare(), 100*e.LowLeft)
+			}
+		}
+	}
+	// a red three up a healer's loss alone too: a priest out-heals a low enough
+	// share in a long fight (under the share fit alone a druid of 14 won 100%
+	// of its reds in about three minutes, a cleric of 25 too, a shaman of 40);
+	// the control is the druid of 14 at the share fit's 26
+	for _, class := range []int{7, 8, 9} {
+		for _, level := range []int{14, 18, 25, 40, 45} {
+			if r := SimCellOf(kit(class, level), foe, 3, seed, 16, 1, 10*time.Minute); r.WinShare() > 0.4 {
+				t.Errorf("class %d L%d +3 alone: won %.0f%% (%.0f s)", class, level, 100*r.WinShare(), r.Secs)
+			}
+		}
+	}
+	var fitted []database.BalanceClassLevel
+	for _, r := range seed.ClassLevelRows() {
+		if r.Class == 7 && r.Level == 14 {
+			r.MeleeTakenPct = 26
+		}
+		fitted = append(fitted, r)
+	}
+	if r := SimCellOf(kit(7, 14), foe, 3, seed.WithClassLevels(fitted), 16, 1, 10*time.Minute); r.WinShare() < 0.6 {
+		t.Errorf("the control: a druid of 14 at the share fit's 26 won %.0f%% of its reds alone: the check tells nothing", 100*r.WinShare())
+	}
+	var first []database.BalanceClassLevel
+	for _, r := range seed.ClassLevelRows() {
+		if r.Class == 9 && r.Level <= 2 {
+			r.MeleeTakenPct = 47 // tools/tune_balance.py's cleric of 1 (and 2, by the row of 1 it reaches)
+		}
+		first = append(first, r)
+	}
+	ctl := SimCellOf(kit(9, 1), foe, 0, seed.WithClassLevels(first), 40, 1, 10*time.Minute)
+	t.Logf("the control: a level 1 cleric's even fights under the first tuning's row: won %.0f%%", 100*ctl.WinShare())
+	if ctl.WinShare() >= 0.97 {
+		t.Errorf("the control: under the first tuning's row a level 1 cleric won %.0f%% of its even fights: the check tells nothing", 100*ctl.WinShare())
+	}
 	for _, level := range []int{10, 30, 50} {
 		duo, err := SimGroupFor(6, level, 2, func(c int) (SimPlayer, error) { return kit(c, level), nil })
 		if err != nil {
 			t.Fatal(err)
 		}
-		if g := SimGroupCellOf(duo, SimNPC{}, 3, seed, 12, 1, 10*time.Minute); g.WinShare() < 0.6 {
+		if g := SimGroupCellOf(duo, foe, 3, seed, 12, 1, 10*time.Minute); g.WinShare() < 0.6 {
 			t.Errorf("L%d +3, a rogue and a cleric: won %.0f%%", level, 100*g.WinShare())
 		}
 		trio, err := SimGroupFor(6, level, 3, func(c int) (SimPlayer, error) { return kit(c, level), nil })
 		if err != nil {
 			t.Fatal(err)
 		}
-		if g := SimGroupCellOf(trio, SimNPC{}, 5, seed, 12, 1, 10*time.Minute); g.WinShare() < 0.5 {
+		if g := SimGroupCellOf(trio, foe, 5, seed, 12, 1, 10*time.Minute); g.WinShare() < 0.5 {
 			t.Errorf("L%d +5, a warrior, a rogue and a cleric: won %.0f%%", level, 100*g.WinShare())
 		}
+	}
+}
+
+// The coordinator's low-level check of 2026-10-30 (jib: "jibrush got beat up
+// by a level 1 while he was level 3 alc"): at levels 1-10 every class wins
+// its even fights about 95% of the time and its blue and green ones about
+// all of it (97% of 40), by hand AND in its own play (a wizard's root from 3,
+// an alchemist's from 4, a pet class's pet), in a new character's starting
+// gear at 1-5 (SimStartKitFromDB). One cell is short of it, named: an
+// enchanter of 2 by hand wins 92% of its even fights at any dealt (the NPC of
+// 2 hits 317%: its first blows kill a 25-hit-point caster). The control: an
+// alchemist of 2 by hand under the share fit alone (no dealt) wins under
+// half of its even fights.
+func TestRealLowLevelsEvenAndBelow(t *testing.T) {
+	db := simRealDB(t)
+	b := simRealBalance(t, db)
+	foe := simRealFoe(t, db, "")
+	known := map[[3]int]float64{{12, 2, 0}: 0.92} // class, level, play (0 by hand)
+	for class := range 15 {
+		for level := 1; level <= 10; level++ {
+			var pl SimPlayer
+			var err error
+			if level <= 5 {
+				pl, err = SimStartKitFromDB(db, class, 0, level)
+			} else {
+				pl, err = SimKitFromDB(db, class, 0, level, 0.5)
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			plays := []SimPlayer{pl}
+			switch {
+			case class == 10 || class == 11 || class == 12:
+				k := pl
+				k.Play.Pet, k.Play.Melee = true, false
+				plays = append(plays, k)
+			case (class == 13 && level >= 3) || (class == 14 && level >= 4):
+				k := pl
+				k.Play.Root, k.Play.Melee = true, false
+				plays = append(plays, k)
+			}
+			for i, k := range plays {
+				for _, diff := range []int{-2, -1, 0} {
+					want := 0.97
+					if diff == 0 {
+						want = 0.95
+					}
+					if w, ok := known[[3]int{class, level, i}]; ok && diff == 0 {
+						want = w
+					}
+					if c := SimCellOf(k, foe, diff, b, 40, 1, 10*time.Minute); c.WinShare() < want {
+						t.Errorf("class %d L%d %s %+d: won %.0f%% (want %.0f%%)", class, level, []string{"by hand", "own play"}[i],
+							diff, 100*c.WinShare(), 100*want)
+					}
+				}
+			}
+		}
+	}
+	var fitted []database.BalanceClassLevel
+	for _, r := range b.ClassLevelRows() {
+		if r.Class == 14 && r.Level <= 3 {
+			r.DealtPct = 100
+		}
+		fitted = append(fitted, r)
+	}
+	alc, err := SimStartKitFromDB(db, 14, 0, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c := SimCellOf(alc, foe, 0, b.WithClassLevels(fitted), 40, 1, 10*time.Minute); c.WinShare() >= 0.5 {
+		t.Errorf("the control: an alchemist of 2 by hand with no dealt won %.0f%% of its even fights: the check tells nothing", 100*c.WinShare())
+	}
+}
+
+// A wisp is a yellow like any other (the user's "28%" of 2026-10-30): a
+// crag wisp fights by the template the database gives it (tools/
+// seed_roamers.py: the wisp, jib's wizard at 28% of a player's figures), and
+// a warrior, a rogue and a cleric by hand and a wizard and an alchemist
+// rooting win one up at least 70% of the time and two up half of it, at 25,
+// 35 and 45. The control: under jib's wizard as he made it (35%) a rogue of
+// 35 loses its one up more often than not.
+func TestRealWispsAreYellows(t *testing.T) {
+	db := simRealDB(t)
+	b := simRealBalance(t, db)
+	foe := simRealFoe(t, db, "crag wisp")
+	if foe.Template == nil || foe.Template.Name != "wisp" {
+		t.Skip("npctemplate gives a crag wisp no wisp template: tools/seed_roamers.py first")
+	}
+	kit := func(c, l int) SimPlayer {
+		pl, err := SimKitFromDB(db, c, 0, l, 0.5)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if c == 13 || c == 14 {
+			pl.Play.Root, pl.Play.Melee = true, false
+		}
+		return pl
+	}
+	for _, class := range []int{0, 6, 9, 13, 14} {
+		for _, level := range []int{25, 35, 45} {
+			pl := kit(class, level)
+			y1 := SimCellOf(pl, foe, 1, b, 16, 1, 10*time.Minute)
+			y2 := SimCellOf(pl, foe, 2, b, 16, 1, 10*time.Minute)
+			if y1.WinShare() < 0.7 || y2.WinShare() < 0.5 {
+				t.Errorf("class %d L%d against a wisp: +1 won %.0f%%, +2 won %.0f%%", class, level, 100*y1.WinShare(), 100*y2.WinShare())
+			}
+		}
+	}
+	all, err := SimTemplatesFromDB(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if all["wizard"] == nil {
+		t.Fatal("no wizard template to fight the control by")
+	}
+	if c := SimCellOf(kit(6, 35), SimNPC{Template: all["wizard"]}, 1, b, 16, 1, 10*time.Minute); c.WinShare() >= 0.5 {
+		t.Errorf("the control: a rogue of 35 won %.0f%% of its one up against jib's wizard (35%%): the check tells nothing", 100*c.WinShare())
 	}
 }

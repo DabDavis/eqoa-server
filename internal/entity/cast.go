@@ -642,7 +642,7 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 			return nil, castNoPet
 		}
 		if outOfRange(p, pet.X, pet.Y, pet.Z, spell.Range) {
-			return nil, castOutOfRange
+			return nil, refuseOutOfRange(p, spell, pet.Name, pet.X, pet.Y, pet.Z, spell.Range)
 		}
 		return []EntityID{pet.ServerID}, ""
 	case 2:
@@ -677,7 +677,7 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 			return nil, castFriendly
 		}
 		if t != p && outOfRange(p, t.X, t.Y, t.Z, spell.Range) {
-			return nil, castOutOfRange
+			return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, spell.Range)
 		}
 		return []EntityID{t.ServerID}, ""
 	case *NPC:
@@ -690,7 +690,7 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 				return nil, castFriendly
 			}
 			if outOfRange(p, t.X, t.Y, t.Z, spell.Range) {
-				return nil, castOutOfRange
+				return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, spell.Range)
 			}
 			return []EntityID{t.ServerID}, ""
 		}
@@ -700,23 +700,36 @@ func (w *World) castTargetsLocked(sess *session.Session, p *Player, spell *CastS
 		if t.NPCType&0x80 != 0 {
 			return nil, castFriendly // not attackable (CLIENT's own test, +0x25A & 0x80)
 		}
-		if outOfRange(p, t.X, t.Y, t.Z, spell.Range+npcReachExtra(t)) {
-			return nil, castOutOfRange
+		if reach := spell.Range + npcReachExtra(t); outOfRange(p, t.X, t.Y, t.Z, reach) {
+			return nil, refuseOutOfRange(p, spell, t.Name, t.X, t.Y, t.Z, reach)
 		}
 		return []EntityID{t.ServerID}, ""
 	}
 	return nil, castNoTarget
 }
 
-// outOfRange is whether a place is beyond a spell's range from the caster.
-// A range of 0 is no limit: Renew's record has one, and it is cast at a
-// corpse.
+// outOfRange is whether a place is beyond a spell's range from the caster:
+// centre to centre in three dimensions, as CLIENT's TargetInRange measures a
+// melee reach (0x00BDC4B8), so a target of the caster's height 3 ahead is in
+// a reach of 4.5 and one 3.4 above or below it at that distance is not. A
+// range of 0 is no limit: Renew's record has one, and it is cast at a corpse.
 func outOfRange(p *Player, x, y, z, r float32) bool {
 	if r <= 0 {
 		return false
 	}
 	dx, dy, dz := p.X-x, p.Y-y, p.Z-z
 	return float32(math.Sqrt(float64(dx*dx+dy*dy+dz*dz))) > r
+}
+
+// refuseOutOfRange is castOutOfRange, the distance logged as it was measured
+// (across and up or down), so a refusal at a target that looked near is told
+// from the log (jib's quest walk of 2026-10-30: Rapid Strike refused at a
+// dummy #spawn had put 3 ahead).
+func refuseOutOfRange(p *Player, spell *CastSpell, target string, x, y, z, r float32) string {
+	dx, dy, dz := float64(p.X-x), float64(p.Y-y), float64(p.Z-z)
+	log.Printf("Cast: %s's %q at %s: %.2f off (%.2f across, %.2f up or down), its reach %.2f",
+		p.Name, spell.Name, target, math.Sqrt(dx*dx+dy*dy+dz*dz), math.Hypot(dx, dz), math.Abs(dy), r)
+	return castOutOfRange
 }
 
 // groupMembersLocked is GroupMembers without taking the lock.

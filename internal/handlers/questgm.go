@@ -200,6 +200,7 @@ func (q *QuestEngine) SetCharacterQuest(serverID uint32, questID int, action str
 			return "", err
 		}
 		delete(c.quests, questID)
+		c.forgetOffer(questID) // a shop offers it again this session
 		return fmt.Sprintf("quest %d forgotten: it may be taken again", questID), nil
 	}
 	return "", fmt.Errorf("no change %q (%s)", action, strings.Join(QuestActions, ", "))

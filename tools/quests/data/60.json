@@ -99,7 +99,12 @@
    ],
    "minlevel": 60,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "60/good-tank/start-g1",
+     "60/good-tank/start-g2"
+    ]
+   ],
    "offer": "Bring me two crystals off the Taksehir miners in the west of the Great Waste. Then help the Coldwind Guard of Halas: goblins attack the treants of Guardian Forest. Bring two of their warbeads.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -955,7 +960,13 @@
    ],
    "minlevel": 60,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "60/good-melee/start-g1",
+     "60/good-melee/start-g2",
+     "60/good-melee/start-g3"
+    ]
+   ],
    "offer": "Bring me two ghostly goos from the undead of east Centaur Valley, then two enchanted goblin warbeads from north-west Guardian Forest.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -1798,7 +1809,13 @@
    ],
    "minlevel": 60,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "60/good-caster/start-g1",
+     "60/good-caster/start-g2",
+     "60/good-caster/start-g3"
+    ]
+   ],
    "offer": "Bring me two ghostly goos off the powerful undead of east Centaur Valley, and two enchanted war beads from the goblins of north-west Guardian Forest.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -2590,7 +2607,13 @@
    ],
    "minlevel": 60,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "60/good-healer/start-g1",
+     "60/good-healer/start-g2",
+     "60/good-healer/start-g3"
+    ]
+   ],
    "offer": "Bring me two summoner's wands from the frogloks of south-west Burial Mounds, and two enchanted goblin warbeads from north-west Guardian Forest.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -3229,7 +3252,12 @@
    ],
    "minlevel": 60,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "60/evil-tank/start-g5",
+     "60/evil-tank/start-g6"
+    ]
+   ],
    "offer": "Me could kill you without trying. Instead: two summoner's wands from the frogloks of south-west Burial Mounds, and two enchanted treant branches from south-west Guardian Forest.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -3983,7 +4011,9 @@
    ],
    "minlevel": 60,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    "60/evil-melee/start-g4"
+   ],
    "offer": "Two glowing crystals from the Taksehir miners in the west of the Great Waste, then two enchanted treant branches from south-west Guardian Forest.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -4769,7 +4799,13 @@
    ],
    "minlevel": 60,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "60/evil-caster/start-g4",
+     "60/evil-caster/start-g5",
+     "60/evil-caster/start-g6"
+    ]
+   ],
    "offer": "Two glowing crystals from the Taksehir miners in the west of the Great Waste, and two enchanted treant branches from south-west Guardian Forest.",
    "accept": "I will do it.",
    "decline": "Not now.",
@@ -5559,7 +5595,12 @@
    ],
    "minlevel": 60,
    "maxlevel": 60,
-   "requires": [],
+   "requires": [
+    [
+     "60/evil-healer/start-g4",
+     "60/evil-healer/start-g5"
+    ]
+   ],
    "offer": "Two summoner's wands from the frogloks of south-west Burial Mounds, and two enchanted treant branches from south-west Guardian Forest.",
    "accept": "I will do it.",
    "decline": "Not now.",

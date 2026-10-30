@@ -392,8 +392,14 @@ type Quest struct {
 	MaxLevel   int
 	Classes    []int // class ids that may take it; none: any
 	Races      []int // race ids; none: any
-	Requires   []int // quests finished first
+	Requires   []int // every quest it names to be finished first (each alternative too)
 	Repeatable bool
+	// RequireGroups is what it asks finished first (the requires column,
+	// ParseRequires): every group met, a group by any one of its quests,
+	// so "a, b|c" is a, and b or c. A quest several classes take whose
+	// hand-in each class gets from a quest of its own (a recruiter's token)
+	// asks for those as one group.
+	RequireGroups [][]int
 	// Offer is the giver's words offering it, a paragraph (lines between
 	// blank lines) a question: its lines a box each, its last line the
 	// question the paragraph's answer (Accept's line of that number) answers.
@@ -454,6 +460,19 @@ func (q *Quest) Next(n int) *QuestStep {
 
 // First is the quest's first step, or nil.
 func (q *Quest) First() *QuestStep { return q.Next(0) }
+
+// Required is what the quest asks finished first, by group (RequireGroups;
+// a quest made without them, each of its Requires a group of its own).
+func (q *Quest) Required() [][]int {
+	if q.RequireGroups != nil || len(q.Requires) == 0 {
+		return q.RequireGroups
+	}
+	out := make([][]int, len(q.Requires))
+	for i, id := range q.Requires {
+		out[i] = []int{id}
+	}
+	return out
+}
 
 // QuestStep is one step of a quest.
 type QuestStep struct {
@@ -958,6 +977,7 @@ func (s *QuestStore) LoadQuests() ([]Quest, error) {
 		}
 		q.Enabled, q.Repeatable = enabled != 0, repeatable != 0
 		q.Classes, q.Races, q.Requires = ParseIntList(classes), ParseIntList(races), ParseIntList(requires)
+		q.RequireGroups = ParseRequires(requires)
 		if q.Events, err = ParseQuestEvents(events); err != nil {
 			log.Printf("Quests: quest %d's events are not read: %v", q.ID, err)
 		}
@@ -1139,6 +1159,64 @@ func ParseIntList(s string) []int {
 		}
 	}
 	return out
+}
+
+// ParseRequires reads a requires column: "1, 2, 3" (every quest; anything
+// but a | between the numbers is a separator, as ParseIntList reads it), and
+// "4|5|6" one group met by any of them. Each number outside a group is a
+// group of its own.
+func ParseRequires(s string) [][]int {
+	var out [][]int
+	for _, part := range strings.Split(s, ",") {
+		if !strings.Contains(part, "|") {
+			for _, n := range ParseIntList(part) {
+				out = append(out, []int{n})
+			}
+			continue
+		}
+		var g []int
+		for _, alt := range strings.Split(part, "|") {
+			g = append(g, ParseIntList(alt)...)
+		}
+		if len(g) > 0 {
+			out = append(out, g)
+		}
+	}
+	return out
+}
+
+// FormatRequires writes groups as ParseRequires reads them: "1, 4|5|6".
+func FormatRequires(groups [][]int) string {
+	parts := make([]string, 0, len(groups))
+	for _, g := range groups {
+		alts := make([]string, len(g))
+		for i, n := range g {
+			alts[i] = strconv.Itoa(n)
+		}
+		if len(alts) > 0 {
+			parts = append(parts, strings.Join(alts, "|"))
+		}
+	}
+	return strings.Join(parts, ", ")
+}
+
+// UnmetRequire is the first of the groups none of whose quests finished
+// says is finished, and whether there is one: what keeps a quest that
+// requires them from being taken.
+func UnmetRequire(groups [][]int, finished func(id int) bool) ([]int, bool) {
+	for _, g := range groups {
+		met := false
+		for _, id := range g {
+			if finished(id) {
+				met = true
+				break
+			}
+		}
+		if !met {
+			return g, true
+		}
+	}
+	return nil, false
 }
 
 // FormatIntList writes a list as ParseIntList reads it.

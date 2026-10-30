@@ -8,7 +8,9 @@
    "classes": [
     5
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 1,
    "maxlevel": 60,
    "requires": [],
@@ -56,7 +58,9 @@
    "classes": [
     5
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 2,
    "maxlevel": 60,
    "requires": [
@@ -101,7 +105,9 @@
    "classes": [
     5
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 3,
    "maxlevel": 60,
    "requires": [
@@ -156,7 +162,9 @@
    "classes": [
     5
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 4,
    "maxlevel": 60,
    "requires": [
@@ -248,7 +256,9 @@
    "classes": [
     5
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 5,
    "maxlevel": 60,
    "requires": [
@@ -303,7 +313,9 @@
    "classes": [
     5
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 7,
    "maxlevel": 60,
    "requires": [
@@ -358,7 +370,9 @@
    "classes": [
     5
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
@@ -459,7 +473,9 @@
    "classes": [
     5
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
@@ -612,7 +628,9 @@
    "classes": [
     5
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 15,
    "maxlevel": 60,
    "requires": [
@@ -739,7 +757,9 @@
    "classes": [
     5
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 20,
    "maxlevel": 60,
    "requires": [
@@ -875,7 +895,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 1,
    "maxlevel": 60,
    "requires": [],
@@ -923,7 +945,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 2,
    "maxlevel": 60,
    "requires": [
@@ -974,7 +998,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 3,
    "maxlevel": 60,
    "requires": [
@@ -1029,7 +1055,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 4,
    "maxlevel": 60,
    "requires": [
@@ -1114,7 +1142,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 5,
    "maxlevel": 60,
    "requires": [
@@ -1169,7 +1199,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 7,
    "maxlevel": 60,
    "requires": [
@@ -1224,7 +1256,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
@@ -1337,7 +1371,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
@@ -1448,7 +1484,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 15,
    "maxlevel": 60,
    "requires": [
@@ -1588,7 +1626,9 @@
    "classes": [
     7
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 20,
    "maxlevel": 60,
    "requires": [
@@ -1759,7 +1799,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 1,
    "maxlevel": 60,
    "requires": [],
@@ -1807,7 +1849,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 2,
    "maxlevel": 60,
    "requires": [
@@ -1858,7 +1902,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 3,
    "maxlevel": 60,
    "requires": [
@@ -1913,7 +1959,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 4,
    "maxlevel": 60,
    "requires": [
@@ -1985,7 +2033,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 5,
    "maxlevel": 60,
    "requires": [
@@ -2040,7 +2090,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 7,
    "maxlevel": 60,
    "requires": [
@@ -2096,7 +2148,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
@@ -2212,7 +2266,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
@@ -2323,7 +2379,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 15,
    "maxlevel": 60,
    "requires": [
@@ -2464,7 +2522,9 @@
    "classes": [
     1
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 20,
    "maxlevel": 60,
    "requires": [
@@ -2635,7 +2695,9 @@
    "classes": [
     6
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 1,
    "maxlevel": 60,
    "requires": [],
@@ -2683,7 +2745,9 @@
    "classes": [
     6
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 2,
    "maxlevel": 60,
    "requires": [
@@ -2728,7 +2792,9 @@
    "classes": [
     6
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 3,
    "maxlevel": 60,
    "requires": [
@@ -2783,7 +2849,9 @@
    "classes": [
     6
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 4,
    "maxlevel": 60,
    "requires": [
@@ -2858,7 +2926,9 @@
    "classes": [
     6
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 5,
    "maxlevel": 60,
    "requires": [
@@ -2913,7 +2983,9 @@
    "classes": [
     6
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 7,
    "maxlevel": 60,
    "requires": [
@@ -2990,7 +3062,9 @@
    "classes": [
     6
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 10,
    "maxlevel": 60,
    "requires": [
@@ -3106,7 +3180,9 @@
    "classes": [
     6
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 13,
    "maxlevel": 60,
    "requires": [
@@ -3217,7 +3293,9 @@
    "classes": [
     6
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 15,
    "maxlevel": 60,
    "requires": [
@@ -3357,7 +3435,9 @@
    "classes": [
     6
    ],
-   "races": [],
+   "races": [
+    1
+   ],
    "minlevel": 20,
    "maxlevel": 60,
    "requires": [

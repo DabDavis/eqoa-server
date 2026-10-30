@@ -14,7 +14,7 @@ holds:
      Allakhazam's players of 2004 called one of a kind on their server;
   2. by Allakhazam's players' word (ARCHIVE: its item pages' comments,
      2003-2005, as tools/fetch_item_pages.py keeps them);
-  3. not worn (a material, a trophy, food, a potion): common;
+  3. not worn (a material, a trophy, food, a potion), or of no level: common;
   4. sold by a merchant here (an npcitem row): common;
   5. worn with no stats (plain gear: its armor class or damage alone, at most
      its slot's usual for its level): common;
@@ -212,8 +212,10 @@ def tiers(db):
             out[pid] = (LEGENDARY, LEGENDARY_ITEMS[name])
         elif name in ARCHIVE:
             out[pid] = ARCHIVE[name]
+        elif pid not in scores and not group(it["equipslot"]):
+            out[pid] = (COMMON, "no wear slot: a material, a trophy, food or a potion")
         elif pid not in scores:
-            out[pid] = (COMMON, "not worn: a material, a trophy, food or a potion")
+            out[pid] = (COMMON, "no level to weigh its stats against")
         elif pid in sold:
             out[pid] = (COMMON, "sold by a merchant here")
         else:

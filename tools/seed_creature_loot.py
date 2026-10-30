@@ -490,19 +490,22 @@ def report(w, made, leg, left, unbind, hold, retier, path):
              ", ".join(f"{n} {t}" for t, n in reversed(COMPOSITION)) + ", and every legendary of its region and level. "
              "Every creature also rolls the tables every creature does: " +
              ", ".join(f"{t} {c}%" for t, c in sorted(every.items())) + ".\n")
-    cnt = collections.Counter()
     why = collections.defaultdict(collections.Counter)
+    eg = collections.defaultdict(list)
     pool_items = {pid for *_, items in made for pid, *_ in items}
-    for pid in pool_items:
+    for pid in sorted(pool_items, key=lambda p: (-w.items[p][1], names[p])):
         t, y = tiers[pid]
-        cnt[t] += 1
-        why[t][re.sub(r"\s*\(?\d+(\.\d+)? times.*$", " (n times its level's median)", y)] += 1
-    L.append("Items placed, by tier and why:\n")
-    L.append("| tier | items | why |")
-    L.append("|---|---:|---|")
+        y = re.sub(r"^stats \(?\d+(\.\d+)? times its level's median\)?$",
+                   f"stats {'at least' if t == lt.RARE else 'under'} {lt.RARE_RATIO:g} times its level's median", y)
+        why[t][y] += 1
+        if len(eg[(t, y)]) < 3:
+            eg[(t, y)].append(f"{' '.join(names[pid].split())} (L{w.items[pid][1]})")
+    L.append("Items placed, by tier and why (every item's tier and why: `tools/loot_tiers.py --tsv`):\n")
+    L.append("| tier | items | why | for example |")
+    L.append("|---|---:|---|---|")
     for t in lt.TIERS:
         for y, n in why[t].most_common():
-            L.append(f"| {t} | {n} | {y} |")
+            L.append(f"| {t} | {n} | {y} | {', '.join(eg[(t, y)])} |")
     L.append("")
     L.append("## The legendary items\n")
     k10 = lt.kills_in()

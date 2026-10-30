@@ -1349,6 +1349,28 @@ var catalog = map[string]tableNote{
 			"choices":     {Label: "Choice", Format: "multiline", Help: `talk/show/give: {"ask", "options": [{"answer", "says", "stay", "xp", "tunar", "items", "spells"}]}, asked when the step is done; the pick's rewards given besides the step's, one with stay does not do it`},
 		},
 	},
+	"questnotyet": {
+		Label: "Quest givers' \"not yet\"", Group: "Guilds & quests", Title: "line", Sort: "city",
+		Help: "What a quest giver says to a player who meets everything its next quest asks but the level (the quests " +
+			"before it, class, race, standings; the player below its From level), when the giver has nothing else for " +
+			"the player: no step to do, no quest to take now, no bind, route or words of its own (handlers/quests_notyet.go). " +
+			"A line of the giver's city, at random, never the same one twice running to a player; a city with no line " +
+			"says one of the lines with no city. The giver's city is the starting city of the quest's import key " +
+			"(1-20/neriak-nektulos/... is Neriak), Weres for the were quests, else the town the giver stands in (its " +
+			"faction's, as NPC dialog's town, else the coach map's). A city may be spelled any way the game's data " +
+			"spells it: Klick`Anon, Klik'Anon and klick-anon are one, Fayspires is Fayspire, Highpass Hold is Highpass, " +
+			"Hazinak (Evil) is Hazinak. Said in a dialogue box after the giver's name, so a line under 190 characters " +
+			"fits one box; %p is the player's name. A merchant, banker or blacksmith giver says it once a session a " +
+			"quest, in place of its window, as it offers a quest. Rows of source seed are the lines the table was made " +
+			"with, ours: no record of what the live game's givers said exists.",
+		Live:   "At once: the next talk to a quest giver.",
+		Search: []string{"city", "line", "source"},
+		Cols: map[string]colNote{
+			"city":   {Label: "City", Help: "the giver's city (Neriak, Freeport, Klick'Anon, Oggok, Weres...); empty: a city with no line of its own"},
+			"line":   {Label: "Line", Help: "the giver's words, its name before them; %p the player's name"},
+			"source": {Label: "Source", Help: "gm, or seed for the lines the table was made with"},
+		},
+	},
 	"queststeptargets": {
 		Label: "Quest step creatures", Group: "Guilds & quests", Sort: "questid",
 		Help: "The other creatures a kill or loot step counts besides its own target (queststeps.target), a row a name as " +

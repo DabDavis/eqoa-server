@@ -141,12 +141,13 @@ func (p *plan) report(dir string) error {
 
 func f1(v float64) string { return fmt.Sprintf("%.1f", v) }
 
-// zoneName is Tunaria's zone at (x, z) by WORDS.TXT, else its word's number.
+// zoneName is the zone at (x, z) of world w by WORDS.TXT (CLIENT's grids:
+// Tunaria's and Rathe's), else its word's number.
 func (p *plan) zoneName(w int, x, z float64) string {
-	if w != 0 {
+	word := zoneWord(w, x, z)
+	if word == 641 && w > 1 {
 		return ""
 	}
-	word := tunariaZone(x, z)
 	if word < len(p.words) {
 		return strings.TrimSpace(p.words[word])
 	}

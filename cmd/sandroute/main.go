@@ -36,10 +36,25 @@ type pt struct{ x, z float64 }
 
 type planner struct {
 	g          *ground.Ground
+	env        *ground.Env // the water, slime, lava and mud (<world>.env), nil: none known
 	w          uint8
 	stop, look float64
 	clear      float64
 	below      float64
+}
+
+// dry reports land at (x, z): a floor, not under water, slime, lava or mud.
+func (p *planner) dry(x, z float64) bool {
+	h, ok := p.top(x, z)
+	if !ok {
+		return false
+	}
+	if p.env != nil {
+		if fl, ok := p.env.Flags(p.w, float32(x), float32(h)+1, float32(z)); ok && fl&(ground.EnvWater|ground.EnvSlime|ground.EnvLava|ground.EnvMud) != 0 {
+			return false
+		}
+	}
+	return true
 }
 
 func (p *planner) top(x, z float64) (float64, bool) {
@@ -103,14 +118,14 @@ func (p *planner) heights(path []pt) []float64 {
 }
 
 // rows is a lawnmower over the box: a row every rows units, its land from
-// its first floor to its last, a stop every p.stop; starting at the corner
-// nearest from.
+// its first dry floor to its last (the sea floor is no land), a stop every
+// p.stop; starting at the corner nearest from.
 func (p *planner) rows(x0, x1, z0, z1, rows float64, from pt) []pt {
 	var lines [][]pt
 	for z := z0 + rows/2; z < z1; z += rows {
 		lo, hi := math.Inf(1), math.Inf(-1)
 		for x := x0; x <= x1; x += 25 {
-			if _, ok := p.top(x, z); ok {
+			if p.dry(x, z) {
 				lo, hi = math.Min(lo, x), math.Max(hi, x)
 			}
 		}
@@ -206,6 +221,9 @@ func main() {
 		log.Fatal(err)
 	}
 	p := &planner{g: g, w: uint8(*world), stop: *stop, look: *look, clear: *clear, below: *below}
+	if env, err := ground.OpenEnv(*dir); err == nil && env.Worlds() > 0 {
+		p.env = env
+	}
 	at := pt{(*x0 + *x1) / 2, (*z0 + *z1) / 2}
 	if *from != "" {
 		if _, err := fmt.Sscanf(*from, "%f,%f", &at.x, &at.z); err != nil {
@@ -304,13 +322,20 @@ func main() {
 }
 
 // zoneWord is CLIENT's zone grid's word for a cell (row, col as ZoneName
-// takes them), 0 off a grid this command knows (Rathe's: sZones1).
+// takes them), 0 off a grid this command knows (the decomp's vientity.cpp:
+// Rathe's sZones1, Odus's sZones2).
 func zoneWord(world, col, row int) int {
 	grids := map[int][][]int{1: {
 		{641, 1177, 1181, 1185},
 		{641, 1178, 1182, 1186},
 		{641, 1179, 1183, 1187},
 		{641, 1180, 1184, 1188},
+	}, 2: {
+		{641, 1441, 1451, 1446, 1456, 641},
+		{641, 1442, 1447, 1452, 1457, 641},
+		{641, 1443, 1448, 1453, 1458, 641},
+		{641, 1444, 1449, 1454, 1459, 641},
+		{641, 1445, 1450, 1455, 1460, 641},
 	}}
 	g := grids[world]
 	if row < 0 || row >= len(g) || col < 0 || col >= len(g[row]) {

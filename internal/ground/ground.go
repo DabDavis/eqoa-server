@@ -503,6 +503,23 @@ func (g *Ground) Wall(worldN uint8, x0, y0, z0, x1, y1, z1 float32) bool {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	a, b := Vertex{x0, y0, z0}, Vertex{x1, y1, z1}
+	return g.terrainWallLocked(worldN, a, b) || g.placedLocked(worldN, a, b)
+}
+
+// Placed is Wall's half for what is placed on the terrain alone (the walls
+// file: a house, a bench, a stair, a tree's trunk), the terrain's own steep
+// faces left out: whether the way meets one of their faces from its front.
+// Downward it finds what stands above a floor, sideways a wall beside it
+// (entity's clearLocked: where CLIENT sets a creature down).
+func (g *Ground) Placed(worldN uint8, x0, y0, z0, x1, y1, z1 float32) bool {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.placedLocked(worldN, Vertex{x0, y0, z0}, Vertex{x1, y1, z1})
+}
+
+// terrainWallLocked is whether the way from a to b crosses the terrain's own
+// steep faces. Must be called with g.mu held.
+func (g *Ground) terrainWallLocked(worldN uint8, a, b Vertex) bool {
 	lo, hi := lowest(a, b), highest(a, b)
 	if w := g.worlds[worldN]; w != nil {
 		for i, e := range w.entries {
@@ -527,6 +544,13 @@ func (g *Ground) Wall(worldN uint8, x0, y0, z0, x1, y1, z1 float32) bool {
 			}
 		}
 	}
+	return false
+}
+
+// placedLocked is whether the way from a to b meets a face of anything
+// placed on the terrain. Must be called with g.mu held.
+func (g *Ground) placedLocked(worldN uint8, a, b Vertex) bool {
+	lo, hi := lowest(a, b), highest(a, b)
 	if w := g.walls[worldN]; w != nil {
 		for i, e := range w.zones {
 			if e.count == 0 || !overlaps(lo, hi, e.lo, e.hi) {

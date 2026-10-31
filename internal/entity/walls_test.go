@@ -133,3 +133,99 @@ func TestAHouseFloorsCreatureIsTestedAboveTheFloor(t *testing.T) {
 		t.Error("the street's creature was stopped by what stands above its knee")
 	}
 }
+
+// slab is a flat top (a bench, a table, a stair tread) over a rectangle.
+type slab struct{ x0, z0, x1, z1, top float32 }
+
+// placedGround is wallGround's walls as what is placed on the terrain, and
+// slabs: internal/ground's Placed as clearLocked asks it, a way down through
+// a slab's top meeting it.
+type placedGround struct {
+	wallGround
+	slabs []slab
+}
+
+func (g placedGround) Placed(world uint8, x0, y0, z0, x1, y1, z1 float32) bool {
+	if g.wallGround.Wall(world, x0, y0, z0, x1, y1, z1) {
+		return true
+	}
+	for _, s := range g.slabs {
+		if y0 > s.top && y1 <= s.top {
+			t := (y0 - s.top) / (y0 - y1)
+			x, z := x0+(x1-x0)*t, z0+(z1-z0)*t
+			if x >= s.x0 && x <= s.x1 && z >= s.z0 && z <= s.z1 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// A wander is set down by CLIENT on its own floor all along (the user,
+// 2026-10-31: "the tavern rats (and probably any mob) though they are
+// confined by the walls can still somewhat walk up them"): a leg over a
+// bench lower than its knee is refused (it would be drawn on the bench), and
+// one that ends against a wall or runs along it (drawn up it), and one that
+// stops where the client may carry it on into the wall; one that stops a
+// unit off the wall, or goes away from both, is walked. The controls: on a
+// ground that knows its walls but not what is placed (the Walls of before)
+// the bench is stepped over and a leg up to the wall is walked; and a
+// house's creature, whose own floor is the house's, is not stopped by that
+// floor, only by a bench on it.
+func TestAWanderIsSetDownOnItsOwnFloor(t *testing.T) {
+	bench := slab{1004, 995, 1006, 1005, 0.5}
+	walls := wallGround{walls: []wall{{1012, 980, 1012, 1030, 0, 10}}}
+	w := roamWorld(t)
+	w.SetGround(placedGround{wallGround: walls, slabs: []slab{bench}})
+	npc := addNPC(w, 100, "beetle", 1000, 1000, creatureModel, 0)
+	along := addNPC(w, 101, "beetle", 1011.7, 1010, creatureModel, 0)
+	cases := []struct {
+		what string
+		npc  *NPC
+		x, z float32
+		want bool
+	}{
+		{"over the bench", npc, 1010, 1000, false},
+		{"ending 0.2 off the wall", npc, 1011.8, 1012, false},
+		{"stopping 0.6 off it, carried on into it", npc, 1011.4, 1013, false},
+		{"along the wall, 0.3 off it", along, 1011.7, 1025, false},
+		{"stopping a unit off the wall", npc, 1011, 1013, true},
+		{"away from both", npc, 990, 990, true},
+	}
+	w.mu.Lock()
+	for _, c := range cases {
+		if got := w.legOKLocked(c.npc, c.x, c.z); got != c.want {
+			t.Errorf("%s: %v, want %v", c.what, got, c.want)
+		}
+	}
+	w.mu.Unlock()
+
+	// the controls: what is placed not known
+	w.SetGround(walls)
+	npc.groundKnown, along.groundKnown = false, false
+	w.mu.Lock()
+	for _, c := range cases[:4] {
+		if c.npc == along {
+			continue // its start stands where the old rule never looked
+		}
+		if !w.legOKLocked(c.npc, c.x, c.z) {
+			t.Errorf("the control, %s: refused with only the walls known", c.what)
+		}
+	}
+	w.mu.Unlock()
+
+	// a house's creature: its own floor (the house's, 1.2 over the terrain)
+	// is no bench; a bench on it is, where the client's probe (from 1.6, the
+	// height it is sent, the terrain's, and 1.5 over it) reaches its top
+	w.SetGround(placedGround{wallGround: walls, slabs: []slab{{990, 990, 1010, 1010, 1.2}, {1004, 995, 1006, 1005, 1.5}}})
+	housed := addNPC(w, 102, "tavern rat", 1000, 1000, creatureModel, 0)
+	housed.Y, housed.SpawnY = 1.2, 1.2
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if !w.legOKLocked(housed, 1000, 994) {
+		t.Error("a house's creature was kept off its own floor")
+	}
+	if w.legOKLocked(housed, 1010, 1000) {
+		t.Error("a house's creature was walked over the bench on its floor")
+	}
+}

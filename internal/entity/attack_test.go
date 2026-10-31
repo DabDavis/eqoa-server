@@ -242,8 +242,14 @@ func TestAutoAttackRoundsByClass(t *testing.T) {
 	}
 }
 
-// Out of reach the round waits; in reach it begins at once.
-func TestAutoAttackWaitsForReach(t *testing.T) {
+// Out of the server's reach a round's hits land nothing and the rounds keep
+// the client's beat (a swing it played: no 0x00D8): the creature 60 off from
+// the press, nothing lands and the fight is kept; back in reach at 9.1 s, the
+// round due at 12 s lands, not one begun at 9.1 s (which put the damage off
+// the client's swings for the rest of the fight). A 0x00D8 (the client's due
+// swing out of its reach, none played) calls off the round just begun, and
+// the next comes 2 s on.
+func TestAutoAttackOutOfReachKeepsTheBeat(t *testing.T) {
 	f := newFight(t)
 	f.w.EngageAttack(f.sess, f.npcID, swing6s, f.t0)
 	f.p.AutoAttack = true
@@ -256,20 +262,42 @@ func TestAutoAttackWaitsForReach(t *testing.T) {
 	f.npc.X = 103
 	f.tick(9100 * time.Millisecond)
 	f.tick(9600 * time.Millisecond)
+	f.tick(12400 * time.Millisecond)
+	if len(f.damage(t)) != 0 {
+		t.Fatal("a round began when the reach came back, off the client's beat")
+	}
+	f.tick(12500 * time.Millisecond)
 	if len(f.damage(t)) != 1 {
-		t.Fatal("the waiting round did not begin in reach")
+		t.Fatal("the round due at 12 s did not land its first hit at 12.5 s")
+	}
+	// a 0x00D8 just as the round due at 18 s begins: it is called off, and
+	// the next comes 2 s after the 0x00D8
+	f.tick(18 * time.Second)
+	f.w.SwingOutOfReach(f.sess, f.t0.Add(18*time.Second+20*time.Millisecond))
+	n := len(f.damage(t))
+	for at := 18100 * time.Millisecond; at < 20*time.Second; at += 100 * time.Millisecond {
+		f.tick(at)
+	}
+	if len(f.damage(t)) != n {
+		t.Fatal("a round the client did not swing landed a hit")
+	}
+	f.tick(20520 * time.Millisecond)
+	if len(f.damage(t)) != n+1 {
+		t.Fatal("no round 2 s after the 0x00D8")
 	}
 }
 
-// Another 0x000F on the same target keeps the due swing; a 0x0010 on any
-// other target ends the fight.
+// Another 0x000F on the same target starts the rounds from it (CLIENT sends
+// one only with its swing timer run out, and starts the timer from the
+// press: VIClient::ToggleAutoAttack); a 0x0010 on any other target ends the
+// fight.
 func TestAutoAttackRetarget(t *testing.T) {
 	f := newFight(t)
 	f.w.EngageAttack(f.sess, f.npcID, swing6s, f.t0)
-	due := f.p.NextSwing
-	f.w.EngageAttack(f.sess, f.npcID, swing6s, f.t0.Add(3*time.Second))
-	if f.p.NextSwing != due {
-		t.Error("a repeat 0x000F pushed the swing back")
+	press := f.t0.Add(7 * time.Second)
+	f.w.EngageAttack(f.sess, f.npcID, swing6s, press)
+	if !f.p.NextSwing.Equal(press) || !f.p.ButtonReadAt.Equal(press.Add(firstRound)) || !f.p.RoundStart.IsZero() {
+		t.Error("a repeat 0x000F did not start the rounds from its press")
 	}
 	f.w.StopAttackOnRetarget(f.sess, f.npcID)
 	if f.p.AttackTarget == 0 {

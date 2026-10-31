@@ -33,10 +33,23 @@ import (
 //
 // So the rule here: a 0x000F on an attackable NPC engages it, its first
 // round counted from the press and begun if the button is still down a
-// moment later (firstRound); a round begins only with byte 36 up and the
-// player in reach (CLIENT's TargetInRange), and waits for both, the fight
-// kept. A change of target (0x0010), the NPC's death or the player's, or the
-// NPC gone from view ends it.
+// moment later (firstRound); a round begins only with byte 36 up, and waits
+// for it, the fight kept. A change of target (0x0010), the NPC's death or
+// the player's, or the NPC gone from view ends it.
+//
+// The rounds keep the client's own swing timer (m_p071E8), the beat its
+// swings play to, which the server is told of twice: a 0x000F comes only
+// with a press whose timer has run out, and starts the timer again from the
+// press (pressed); a 0x00D8 is a due swing at a target out of the client's
+// reach, no swing played and the timer 2 s on (SwingOutOfReach). Between the
+// two the timer goes a swing's delay a swing. The server's own reach test
+// decides only whether each hit lands, never when a round begins: begun
+// again from the tick its view of the reach came back, the rounds kept a
+// beat of their own while the client's swings kept theirs, and the damage
+// came anywhere in the client's swing for the rest of the fight (the user,
+// 2026-10-30: "the animation and damage don't sync well for auto attacks
+// especially on eqoaclassic", whose creatures chase and step about; a press
+// a little out of reach, the client swinging 2 s later, was enough).
 
 // Swing kinds, CLIENT's GetSwing (0x00CBDEF8 [A]); VISwing::Effect
 // (0x00CBE0A8 [A]) names a spell effect for each and VISwing::Delay
@@ -264,9 +277,10 @@ func inReach(p *Player, npc *NPC) bool {
 }
 
 // EngageAttack is the server's half of a 0x000F: the player engages the NPC
-// it names and its first swing comes one delay from now. A 0x000F on the
-// target already engaged keeps the swing that is due (CLIENT sends one per
-// swing of its own). It reports whether a fight is on.
+// it names, its first round the press's. CLIENT sends one only with its
+// swing timer run out (ToggleAutoAttack: m_p071E8 <= now), and starts the
+// timer from the press, so a 0x000F on the target already engaged starts
+// the rounds from it too. It reports whether a fight is on.
 func (w *World) EngageAttack(sess *session.Session, objectID uint32, swing Swing, now time.Time) bool {
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -292,16 +306,12 @@ func (w *World) EngageAttack(sess *session.Session, objectID uint32, swing Swing
 	}
 	p.Swing = swing
 	if p.AttackTarget == npc.ServerID && p.AttackObjectID == objectID {
+		p.pressed(now) // a press with the client's timer run out: its timer from the press
 		return true
 	}
 	p.AttackTarget = npc.ServerID
 	p.AttackObjectID = objectID
-	p.RoundStart, p.RoundHits = time.Time{}, 0
-	// the first round is the press's: its hits on the press's clock, its
-	// button read a moment later (firstRound)
-	p.NextSwing = now
-	p.ButtonReadAt = now.Add(firstRound)
-	p.roundWaits = false
+	p.pressed(now)
 	w.breakInvisLocked(p, "an attack") // invis.go
 	log.Printf("Combat: %s engages %s (swing %d, %v, reach %.1f)", p.Name, npc.Name, swing.Kind, swing.Delay, swing.Reach)
 	return true
@@ -316,6 +326,73 @@ func (w *World) StopAttackOnRetarget(sess *session.Session, objectID uint32) {
 	if p := w.sessionPlayerLocked(sess); p != nil && p.AttackTarget != 0 && p.AttackObjectID != objectID {
 		p.disengage()
 	}
+}
+
+// pressed is a 0x000F: CLIENT's swing timer from the press (ToggleAutoAttack:
+// m_p071E8 = now), the first round the press's, its hits on the press's
+// clock and its button read a moment later (firstRound); a round in hand is
+// the timer's last swing's and goes.
+func (p *Player) pressed(now time.Time) {
+	p.RoundStart, p.RoundHits = time.Time{}, 0
+	p.NextSwing = now
+	p.ButtonReadAt = now.Add(firstRound)
+	p.roundWaits = false
+}
+
+// outOfReachRetry is how long CLIENT's AutoAttackTick waits after a due
+// swing at a target out of its reach before it looks again (its timer's
+// 2000).
+const outOfReachRetry = 2 * time.Second
+
+// buttonLate is how long after a round was due the button may come down
+// with the round still on the client's beat: a press just before the
+// client's swing, which sends no 0x000F (its timer runs), reaches the
+// server in a 0x40 that left at its next slot (101.7 ms) and may come a
+// tick or two after the round was due. Later than that, the press came
+// after the client's timer ran out, and its 0x000F starts the rounds again
+// (pressed); until it comes the round begins with the button.
+const buttonLate = 300 * time.Millisecond
+
+// SwingOutOfReach is a 0x00D8: CLIENT's AutoAttackTick found its due swing's
+// target out of its reach (TargetInRange), played no swing and put its timer
+// 2 s on. A round begun for that swing, none of its hits come yet, is called
+// off, and the next round is the client's next look, 2 s on (and a 0x00D8
+// that comes as the round is due puts it there before it begins).
+func (w *World) SwingOutOfReach(sess *session.Session, now time.Time) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	p := w.sessionPlayerLocked(sess)
+	if p == nil || p.AttackTarget == 0 {
+		return
+	}
+	if !p.RoundStart.IsZero() && p.RoundHits == 0 {
+		p.RoundStart = time.Time{}
+	}
+	p.NextSwing = now.Add(outOfReachRetry)
+	p.roundWaits = false
+}
+
+// roundStartLocked is when the player's next round begins, if it begins at
+// this tick: at its due time (the client's beat) with the button down,
+// waiting for the button with the fight kept (a tap that never held, a
+// release, a toggled button: CLIENT sends no new 0x000F for a press between
+// its swings, F3 20261026-020605), then on the beat when the button came
+// within buttonLate of it, else from now. Not by the reach: see the file's
+// doc.
+func (p *Player) roundStart(now time.Time) (time.Time, bool) {
+	if now.Before(p.NextSwing) || now.Before(p.ButtonReadAt) {
+		return time.Time{}, false
+	}
+	if !p.AutoAttack {
+		p.roundWaits = true
+		return time.Time{}, false
+	}
+	start := p.NextSwing
+	if p.roundWaits && now.Sub(start) > buttonLate {
+		start = now
+	}
+	p.roundWaits = false
+	return start, true
 }
 
 func (p *Player) disengage() {
@@ -351,15 +428,15 @@ func (p *Player) Attacking() bool {
 const firstRound = 250 * time.Millisecond
 
 // attackSystem runs every engaged player's melee in rounds, as Sandstorm's
-// (rounds.go): a round every swing delay, its hits at the swing's times
-// (swingHits), each in reach a hit (playerHitLocked) and out of it lost. A
-// round begins only with the attack button held (0x40 byte 36) and the
-// target in reach, and waits for both with the fight kept; the round in hand
-// lands whole, the button up or not, as Sandstorm's did (a bard's hits went
-// on 1.15 s past the release, and no further, the training dummy still
-// hitting him), and a press between the client's swings, which sends no
-// 0x000F, takes the fight up again. The player's own swing is played by its
-// client: no 0x00B1. Every tick; must be called with the lock held.
+// (rounds.go): a round every swing delay on the client's beat (the file's
+// doc), its hits at the swing's times (swingHits), each in reach a hit
+// (playerHitLocked) and out of it lost. A round begins only with the attack
+// button held (0x40 byte 36), and waits for it with the fight kept
+// (roundStart); the round in hand lands whole, the button up or not, as
+// Sandstorm's did (a bard's hits went on 1.15 s past the release, and no
+// further, the training dummy still hitting him). The player's own swing is
+// played by its client: no 0x00B1. Every tick; must be called with the lock
+// held.
 func (w *World) attackSystem(now time.Time) {
 	for _, p := range w.Players {
 		if p.AttackTarget == 0 {
@@ -377,28 +454,12 @@ func (w *World) attackSystem(now time.Time) {
 		if !p.RoundStart.IsZero() && w.playerRoundHitsLocked(p, npc, now) {
 			continue // the fight ended
 		}
-		if now.Before(p.NextSwing) || now.Before(p.ButtonReadAt) {
+		start, ok := p.roundStart(now)
+		if !ok {
 			continue
-		}
-		if !p.AutoAttack || !inReach(p, npc) {
-			// The round waits, and begins with the button down again (a tap
-			// that never held, a release, a toggled button) and in reach.
-			// The fight is kept: CLIENT sends no new 0x000F for a press that
-			// comes between its swings, so a fight let go on a release never
-			// came back while the client swung on (F3 20261026-020605: one
-			// hit, then only the swings).
-			p.roundWaits = true
-			continue
-		}
-		// at its due time, not the tick's: a steady cadence; one that waited
-		// begins with this tick
-		start := p.NextSwing
-		if p.roundWaits {
-			start, p.roundWaits = now, false
 		}
 		p.RoundStart, p.RoundHits = start, 0
 		p.NextSwing = p.RoundStart.Add(p.Swing.Delay)
-		w.breakInvisLocked(p, "a swing") // invis.go
 		w.playerRoundHitsLocked(p, npc, now)
 	}
 }
@@ -409,6 +470,10 @@ func (w *World) playerRoundHitsLocked(p *Player, npc *NPC, now time.Time) bool {
 	hits := swingHits(p.Swing.Kind)
 	for p.RoundHits < len(hits) && !now.Before(p.RoundStart.Add(hits[p.RoundHits])) {
 		p.RoundHits++
+		if p.RoundHits == 1 {
+			// the client swung: a round a 0x00D8 calls off ends nothing
+			w.breakInvisLocked(p, "a swing") // invis.go
+		}
 		if !inReach(p, npc) {
 			continue // swung at a target that stepped away
 		}

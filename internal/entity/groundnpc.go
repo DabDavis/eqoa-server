@@ -15,6 +15,14 @@ type Walls interface {
 	Wall(world uint8, x0, y0, z0, x1, y1, z1 float32) bool
 }
 
+// Placed is what stands in a creature's way of what is placed on the ground
+// alone, the terrain left out (internal/ground's Placed). A Ground that is
+// also Placed keeps a wander where CLIENT sets the creature down on its own
+// floor (movement.go's clearLocked); one that is not, as before.
+type Placed interface {
+	Placed(world uint8, x0, y0, z0, x1, y1, z1 float32) bool
+}
+
 // SetGround gives the world its ground: every move of an NPC (its wander,
 // its chase, its way home, a pet's following) then sets it on the floor
 // there, so CLIENT, which sets a creature down only on a floor within 1.5 of

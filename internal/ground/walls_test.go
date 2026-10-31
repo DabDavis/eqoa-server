@@ -43,6 +43,9 @@ func TestAWallOfTheTerrainStandsInTheWay(t *testing.T) {
 	if y, ok := g.Floor(0, 2024.5, 51, 2020); !ok || !near(y, 50, 0.13) {
 		t.Errorf("beside the wall the floor is %.3f %v, want 50", y, ok)
 	}
+	if g.Placed(0, 2020, 51, 2020, 2030, 51, 2020) {
+		t.Error("Placed: the terrain's own wall is nothing placed")
+	}
 }
 
 // face is a quad as a strip (a and b one edge, c and d the other) wound to
@@ -132,6 +135,14 @@ func TestWhatStandsOnTheGroundStandsInTheWay(t *testing.T) {
 	}
 	if g.Wall(2, 95, 0.5, 100, 105, 0.5, 100) {
 		t.Error("a world with no walls file has a wall")
+	}
+	// Placed: what is placed alone, sideways as Wall finds it and down onto
+	// a box's top; the floor in the open is nothing placed
+	if !g.Placed(0, 95, 0.5, 100, 105, 0.5, 100) || !g.Placed(0, 130, 3, 100, 130, 0.5, 100) {
+		t.Error("Placed: the box sideways or from above not found")
+	}
+	if g.Placed(0, 200, 3, 200, 200, 0.1, 200) {
+		t.Error("Placed: the open floor is something placed")
 	}
 	if w, p := g.Walls(); w != 1 || p != 3 {
 		t.Errorf("%d worlds with walls, %d placements; want 1 and 3", w, p)

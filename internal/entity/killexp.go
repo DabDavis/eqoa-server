@@ -1,6 +1,10 @@
 package entity
 
-import "github.com/eqoa/server/internal/session"
+import (
+	"log"
+
+	"github.com/eqoa/server/internal/session"
+)
 
 // killexp.go — the experience a kill gives, as the live game's server gave it.
 //
@@ -134,6 +138,10 @@ func (w *World) killSharersLocked(killer *Player, npc *NPC) []*Player {
 // with the lock held.
 func (w *World) awardKillXPLocked(killerSess *session.Session, killer *Player, npc *NPC) {
 	if killer == nil || npc == nil {
+		return
+	}
+	if guardsKillLocked(npc) {
+		log.Printf("Guards: %s's kill of %s is the guards': no experience", killer.Name, npc.Name)
 		return
 	}
 	sharers := w.killSharersLocked(killer, npc)

@@ -133,6 +133,9 @@ func (w *World) chaseLocked(npc *NPC, x, z, vx, vz float32, now time.Time) (inRe
 	if leash <= 0 {
 		leash = DefaultLeash
 	}
+	if g := w.guardLeashLocked(npc); g > 0 {
+		leash = g // a town guard after a creature (guards.go)
+	}
 	if d > npcGiveUp || distXZ(npc.X, npc.Z, npc.chase.fromX, npc.chase.fromZ) > leash {
 		return false, true
 	}

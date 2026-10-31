@@ -198,6 +198,14 @@ beside it):
   of every faction its kill lowers (`factionhits`), so a guard with Freeport's militia hits is helped by rows of
   faction "The Freeport Militia". Not on a creature's own notice of a player, and not by one already fighting.
   The town guards already have rows (source `seed`). At once.
+- **Town guards keep their posts clear**: a row whose `faction` is a town's guard faction ("Guards of <town>", or
+  The Freeport Militia, The Qeynos Guard, The Highpass Guard, Klick`Anon Watch) also makes that NPC attack any
+  creature that comes within 30 of it (or its `radius`), a player near or not, and follow it up to 100 from its post.
+  It leaves alone pets, other guards and guard factions, its own faction and town, people (a players' race body),
+  signs, dummies, the NPC bit, quest spawns, a creature whose spawn point is that near its post, and any name an
+  `npcaggro` row makes peaceful (`{npc_name, aggressive: 0}`, which also stops it attacking on sight). A
+  creature a guard has hit is the guards' kill: no XP, faction, quest kill or loot for anyone, whoever finishes it.
+  A camp's row under a faction of its own ("Deathfist Orcs") guards nothing.
 - **Give creatures a class** (a camp's casters, a boss; applied at once): `insert_row` into `npctemplate`
   `{name: "<its name, lower case>", template: "wizard"}`. Every NPC of the name then fights by the template:
   its class's swing, `hp_pct` of its level's hit points (where it stands), its kick in `special_chance` of its

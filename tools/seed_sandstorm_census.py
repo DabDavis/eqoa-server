@@ -8,12 +8,16 @@ Rathe's west, cmd/wildspread's made kinds, met their zones' real creatures:
 archon bosses ...").
 
 The census: eqoa-rust-headless's `eqoa harvest` on the user's named
-character, `track on` through a route of `goto` steps a little over the
-ground (cmd/sandroute: rows 160 apart, a stop every 50, 60 over the floor:
-Sandstorm shows the creatures within about 125 of the client, height
-counted), its `<out>.track.jsonl` files: a `who` line the first time a
-creature is seen (its body, size, level, class, race, npc flags, the items it
-holds, its armour, hair, face and robe) and its place every half second.
+character, `track on` through a route of `goto` steps, a run per zone
+(cmd/sandroute -zones -below 12: rows 220 apart, a stop every 50, 12 under
+the lowest floor near each leg, where nothing reaches it and it is level
+with what walks there: Sandstorm shows the creatures within about 170 of
+the client, height counted, and saw twice as many from under Ogre Ruins as
+from 60 over them; never under the top of any water, where Sandstorm
+drowns a player even under the sea floor), its `<out>.track.jsonl` files: a
+`who` line the first time a creature is seen (its body, size, level, class,
+race, npc flags, the items it holds, its armour, hair, face and robe) and
+its place every half second.
 
 What it decides, and from what:
 
@@ -52,7 +56,7 @@ while a census is in. Report only by default (--plan writes the rows it
 would add as JSON). The server reads npcs at its start: apply with it
 stopped (a swap's before.sh), or restart after.
 
-    tools/seed_sandstorm_census.py --track 'rathe-run*.json.track.jsonl' --world 1
+    tools/seed_sandstorm_census.py --track 'zone-*.json.track.jsonl' --world 1
         [--db eqoa.db] [--match 150] [--with-npcs] [--plan out.json] [--apply | --undo]
 """
 import argparse

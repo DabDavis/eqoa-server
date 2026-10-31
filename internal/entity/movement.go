@@ -38,6 +38,21 @@ import (
 // floor over the cavern's, and they walked the cavern's floor out through
 // its walls). A wall lower than the knee (a kerb, a step, a threshold) is
 // stepped over, as a table or a fence higher than it is not.
+//
+// And every point of a leg is one where CLIENT sets the creature down on its
+// own floor (clearLocked; the user, 2026-10-31: "the tavern rats (and
+// probably any mob) though they are confined by the walls can still somewhat
+// walk up them"). Its ExtrapolateGround (viaiextrapolate.cpp) sweeps a ball
+// 0.1 round down from 1.5 above the height the server sends and stands the
+// creature where it first touches: on a bench or a stair tread it was walked
+// under or over, up a wall it came within 0.1 of. Over two hours of the
+// Double Daggers' cellar rats' wander, 1.3% of their places were drawn so
+// (vanilla's own collision, bit-exact to the console): on the benches 0.47
+// over the floor, up the walls and the stairs to 0.72. So nothing placed
+// may stand between the creature's floor and the ball's start at any point
+// of a leg (each unit, and half a unit past its end, where the client's
+// carrying it on until the stop comes may take it), and no placed wall
+// within clearReach of it at its feet.
 
 // legSample is the spacing of the points a wander leg is tried at, and
 // legDrop how far the floor may fall between two of them (51 degrees);
@@ -47,6 +62,39 @@ const (
 	legDrop   float32 = 2.5
 	legKnee   float32 = 1
 )
+
+// CLIENT's ground probe and the room a creature is kept clear in
+// (clearLocked): the ball's start over the height sent (1.5, and the ball's
+// 0.1); how far over its own floor something counts as standing above it;
+// how far round it no wall may be, and how high over its floor that is
+// looked at; and how far past a leg's end the client may carry it.
+const (
+	clearProbe     float32 = 1.6
+	clearAbove     float32 = 0.15
+	clearReach     float32 = 0.4
+	clearFeet      float32 = 0.3
+	clearOvershoot float32 = 0.5
+)
+
+// clearDirs are the directions a creature's room is looked at in.
+var clearDirs = [8][2]float32{{1, 0}, {0.7071, 0.7071}, {0, 1}, {-0.7071, 0.7071}, {-1, 0}, {-0.7071, -0.7071}, {0, -1}, {0.7071, -0.7071}}
+
+// clearLocked is whether CLIENT sets a creature sent at height y over (x, z)
+// down on its own floor, floor (the package's doc): nothing placed under
+// its ground probe's start above that floor, and no placed wall within
+// clearReach at its feet. Must be called with the lock held.
+func clearLocked(p Placed, world uint8, x, y, z, floor float32) bool {
+	if p.Placed(world, x, y+clearProbe, z, x, floor+clearAbove, z) {
+		return false // a bench, a stair, a ledge: it would be set on it
+	}
+	feet := floor + clearFeet
+	for _, d := range clearDirs {
+		if p.Placed(world, x, feet, z, x+d[0]*clearReach, feet, z+d[1]*clearReach) {
+			return false // a wall it would be set up
+		}
+	}
+	return true
+}
 
 // SetMoveRules sets table npcmove's rules, keyed as database.NPCClassKey
 // keys a name.
@@ -231,6 +279,11 @@ func (w *World) legOKLocked(npc *NPC, x, z float32) bool {
 	}
 	y := npc.Y
 	walls, _ := w.ground.(Walls)
+	placed, _ := w.ground.(Placed)
+	if !onGround {
+		placed = nil // set down where it was sent: nothing of the ground's to keep it off
+	}
+	lift := max(npc.spawnLift, 0) // its own floor over the terrain (a house's over the street)
 	knee, px, py, pz := legKnee, npc.X, y, npc.Z
 	if onGround {
 		knee += npc.spawnLift
@@ -250,6 +303,19 @@ func (w *World) legOKLocked(npc *NPC, x, z float32) bool {
 		}
 		if walls != nil && walls.Wall(npc.World, px, py+knee, pz, sx, y+knee, sz) {
 			return false // a wall in the way
+		}
+		if placed != nil {
+			// set down on its own floor here and halfway from the last point
+			mx, my, mz := (px+sx)/2, (py+y)/2, (pz+sz)/2
+			if !clearLocked(placed, npc.World, mx, my, mz, my+lift) || !clearLocked(placed, npc.World, sx, y, sz, y+lift) {
+				return false
+			}
+			if i == n && d > 0 {
+				ox, oz := sx+(x-npc.X)/d*clearOvershoot, sz+(z-npc.Z)/d*clearOvershoot
+				if !clearLocked(placed, npc.World, ox, y, oz, y+lift) {
+					return false // where the client may carry it on to before it stops
+				}
+			}
 		}
 		px, py, pz = sx, y, sz
 		switch keeps {

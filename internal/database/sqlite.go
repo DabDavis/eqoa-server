@@ -547,6 +547,14 @@ func (db *SQLiteDB) initSchema() error {
 		percent  INTEGER NOT NULL DEFAULT 0,
 		xp       INTEGER NOT NULL DEFAULT 0
 	);
+	-- charvitals: a character's hit points and power as it left the world
+	-- (vitals.go), taken at its next login; no row, whole
+	CREATE TABLE IF NOT EXISTS charvitals (
+		serverid INTEGER PRIMARY KEY,
+		hp       INTEGER NOT NULL,
+		power    INTEGER NOT NULL,
+		saved    TEXT NOT NULL DEFAULT ''
+	);
 	-- charbind: where a spiritmaster bound a character (Return Home and a
 	-- death take it there); no row, the login spawn
 	CREATE TABLE IF NOT EXISTS charbind (
@@ -965,6 +973,10 @@ func (s *SQLiteCharacterStore) Delete(serverID uint32) error {
 		return err
 	}
 	if _, err := s.db.Exec(`DELETE FROM charcoaches WHERE serverid = ?`, serverID); err != nil {
+		return err
+	}
+	// and the hit points it left with (vitals.go)
+	if _, err := s.db.Exec(`DELETE FROM charvitals WHERE serverid = ?`, serverID); err != nil {
 		return err
 	}
 	// and its resets counted (rehab.go)

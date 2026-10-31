@@ -41,6 +41,7 @@ type Session struct {
 	inGame             bool
 	pendingTermination bool
 	replacedAt         time.Time // set when another session took this one's character
+	quitAt             time.Time // its client quit (0x09B0) while creatures fought it: it ends when they stop
 	charListSent       bool      // Track if character list was actually sent
 
 	// Connection tracking
@@ -489,6 +490,24 @@ func (s *Session) SetPendingTermination(pending bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.pendingTermination = pending
+}
+
+// SetQuitting records that the client quit (0x09B0) while creatures fought
+// its character: the session stays, link-dead, until they stop
+// (entity/linkdead.go). The first quit counts.
+func (s *Session) SetQuitting(at time.Time) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.quitAt.IsZero() {
+		s.quitAt = at
+	}
+}
+
+// QuittingSince is when the client quit in a fight, and false if it did not.
+func (s *Session) QuittingSince() (time.Time, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.quitAt, !s.quitAt.IsZero()
 }
 
 // MarkReplaced records that another session took this one's character. The

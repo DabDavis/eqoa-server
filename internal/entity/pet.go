@@ -1015,11 +1015,24 @@ func (w *World) petEnemyLocked(npc *NPC) *NPC {
 // (npcRoundLocked): its swing to everyone who sees it, then its hits; the
 // pet dies at 0 (petSystem takes it away). The leash is a player's, 10.
 func (w *World) npcFightPetLocked(npc, pet *NPC, now time.Time) {
-	if distXZ(npc.X, npc.Z, pet.X, pet.Z) > 10 {
+	d := distXZ(npc.X, npc.Z, pet.X, pet.Z)
+	if d > 10 {
 		delete(npc.Threats, pet.ServerID)
 		w.retargetLocked(npc)
 		npc.endRound()
 		return
+	}
+	// it stands to fight the pet, turned to it: the run of a chase it was in
+	// when the pet's hate passed the player's ends here. Kept, its channel
+	// ran on where it stood, and every client carried it along that velocity
+	// and put it back at each update (F3 20261031-061313, the user: "mobs
+	// are rubberbanding but is only visual, the pet is standing still
+	// attacking the mob in it's real position").
+	if npc.moving() {
+		npc.stopMoving()
+	}
+	if d > 0 {
+		npc.Facing = headingTo(pet.X-npc.X, pet.Z-npc.Z)
 	}
 	if npc.RoundTarget != pet.ServerID {
 		npc.endRound()

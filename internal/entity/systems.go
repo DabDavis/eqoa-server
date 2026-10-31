@@ -39,7 +39,8 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 
 	w.TickCount++
 
-	w.aggroSystem(now) // a creature's first move (aggro.go)
+	w.aggroSystem(now)      // a creature's first move (aggro.go)
+	w.guardWatchSystem(now) // the town guards on creatures near their posts (guards.go)
 	w.aiSystem(now)
 	w.templateSystem(now) // templated NPCs' casts landing (classtemplate.go)
 	w.homeSystem(now)
@@ -167,7 +168,6 @@ func (w *World) aiSystem(now time.Time) {
 		if enemy.IsDead() || npc.CurrentEnemy != enemy.ServerID {
 			continue
 		}
-		w.guardsDefendLocked(npc, enemy, now) // the town guards near the player (guards.go)
 		if npc.tmpl != nil && w.templateTurnLocked(npc, enemy.ServerID, now) {
 			npc.loseDueHits(now) // casting: no swing meanwhile (classtemplate.go)
 			continue

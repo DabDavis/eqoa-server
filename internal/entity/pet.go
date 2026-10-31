@@ -714,8 +714,33 @@ func (w *World) petFollowLocked(ps *petState, dt float32) {
 	}
 	x := owner.X + (pet.X-owner.X)/d*petFollow
 	z := owner.Z + (pet.Z-owner.Z)/d*petFollow
-	pet.Y = owner.Y
+	w.petStepLocked(pet, x, z, owner.Y, speed, dt)
+}
+
+// petStepLocked steps the pet toward (x, z), its floor looked for from
+// toward's height (its owner's or its target's: a floor they went down to, a
+// cave under the hill it stands on), else, where the ground at its place has
+// none that low, from its own height. Looked for at its target's height
+// alone, a pet on a hill sent at a creature below stood inside the hill at
+// the creature's height until the slope came down to it (the user,
+// 2026-10-31: "when i was sending jedds pet skeleton to attack mobs, it would
+// glitch under the hill i was on then run at the mob"). Must be called with
+// the lock held.
+func (w *World) petStepLocked(pet *NPC, x, z, toward, speed, dt float32) {
+	own := pet.Y
+	pet.Y = toward
 	w.stepNPCToward(pet, x, z, speed, dt)
+	if w.ground == nil || !w.spawnOnGroundLocked(pet) {
+		return
+	}
+	if _, ok := w.ground.Floor(pet.World, pet.X, toward, pet.Z); ok {
+		return
+	}
+	if y, ok := w.ground.Floor(pet.World, pet.X, own, pet.Z); ok {
+		pet.Y = y
+	} else {
+		pet.Y = own
+	}
 }
 
 // petChooseTargetLocked lets go of a target that is gone, dead or too far
@@ -776,8 +801,7 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 	if d > petReach {
 		x := t.X + (pet.X-t.X)/d*(petReach-1)
 		z := t.Z + (pet.Z-t.Z)/d*(petReach-1)
-		pet.Y = t.Y
-		w.stepNPCToward(pet, x, z, max(ps.owner.SpeedNow(), petRunSpeed), dt)
+		w.petStepLocked(pet, x, z, t.Y, max(ps.owner.SpeedNow(), petRunSpeed), dt)
 		return
 	}
 	pet.stopMoving()

@@ -171,6 +171,7 @@ func (w *World) respawnNPCLocked(npc *NPC) {
 	npc.CorpseGone = time.Time{}
 	npc.Threats = nil
 	npc.CurrentEnemy = 0
+	npc.guardHit = false // a new life (guards.go)
 	npc.stopMoving()
 	npc.roam = roamState{}
 	npc.path = pathState{}

@@ -60,6 +60,9 @@ type NPCWindowHandler struct {
 	playerOf    func(*session.Session) *entity.Player
 	corpseLies  func(entity.EntityID) (time.Time, bool)
 	clearCorpse func(entity.EntityID, time.Time) bool
+	// guardsKill is the World's GuardsKill: a corpse the town guards made
+	// is no one's to loot (entity/guards.go)
+	guardsKill func(entity.EntityID) bool
 
 	// loot is the corpses (loot.go), made on first use; coinRoll rolls a
 	// corpse's tunar (corpsecoins.go) and lootIntn its loot tables (loot.go's
@@ -89,6 +92,7 @@ func (h *NPCWindowHandler) SetGameWorld(gw *entity.World) {
 	h.playerOf = gw.SessionPlayer
 	h.corpseLies = gw.CorpseLies
 	h.clearCorpse = gw.ClearCorpse
+	h.guardsKill = gw.GuardsKill
 	gw.OnCorpseGone(h.CorpsesGone)
 }
 

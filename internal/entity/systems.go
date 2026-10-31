@@ -39,7 +39,8 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 
 	w.TickCount++
 
-	w.aggroSystem(now) // a creature's first move (aggro.go)
+	w.aggroSystem(now)      // a creature's first move (aggro.go)
+	w.guardWatchSystem(now) // the town guards on creatures near their posts (guards.go)
 	w.aiSystem(now)
 	w.templateSystem(now) // templated NPCs' casts landing (classtemplate.go)
 	w.homeSystem(now)
@@ -84,6 +85,7 @@ func (w *World) aiSystem(now time.Time) {
 	var fights []fight
 	var dummies []*NPC
 	var petFights [][2]*NPC // a creature and the pet it fights (pet.go)
+	var npcFights [][2]*NPC // a guard and its creature, either way (guards.go)
 
 	for _, npc := range w.NPCs {
 		if npc.Owner != 0 {
@@ -99,6 +101,9 @@ func (w *World) aiSystem(now time.Time) {
 			if !npc.RoundStart.IsZero() {
 				npc.endRound()
 			}
+			if !npc.Dead {
+				npc.guardHit = false // its fight is over: the next is no one's yet (guards.go)
+			}
 			npc.endTemplateFight() // its next fight starts its template's clocks (classtemplate.go)
 			if npc.chase.on && !npc.Dead {
 				w.goHomeLocked(npc) // its fight is over: back where it began (chase.go)
@@ -111,6 +116,10 @@ func (w *World) aiSystem(now time.Time) {
 		if !ok {
 			if pet := w.petEnemyLocked(npc); pet != nil {
 				petFights = append(petFights, [2]*NPC{npc, pet})
+				continue
+			}
+			if foe := w.npcFoeLocked(npc); foe != nil {
+				npcFights = append(npcFights, [2]*NPC{npc, foe})
 				continue
 			}
 			npc.Threats = nil
@@ -174,6 +183,11 @@ func (w *World) aiSystem(now time.Time) {
 	for _, f := range petFights {
 		if npc, pet := f[0], f[1]; !npc.Dead && !pet.Dead && npc.CurrentEnemy == pet.ServerID {
 			w.npcFightPetLocked(npc, pet, now)
+		}
+	}
+	for _, f := range npcFights {
+		if npc, foe := f[0], f[1]; !npc.Dead && !foe.Dead && npc.CurrentEnemy == foe.ServerID {
+			w.npcFightNPCLocked(npc, foe, now)
 		}
 	}
 	for _, npc := range dummies {

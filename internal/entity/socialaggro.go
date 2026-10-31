@@ -68,6 +68,9 @@ type SocialRule struct {
 type npcSocialState struct {
 	rules map[string]SocialRule
 	reach float32
+	// gen counts the rule sets (0: none yet): who is a town guard is looked
+	// at again when it changes (guards.go)
+	gen uint32
 }
 
 // ruleFor is the rule for the NPCs of a name, in any case.
@@ -201,6 +204,7 @@ func (w *World) SetSocialRules(rules map[string]SocialRule) {
 		keyed[k] = r
 	}
 	w.npcSocial.rules = keyed
+	w.npcSocial.gen++
 	w.npcSocial.reach = DefaultSocialRadius
 	for _, r := range keyed {
 		if r.Social && r.Radius > w.npcSocial.reach {

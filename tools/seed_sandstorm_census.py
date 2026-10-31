@@ -118,8 +118,11 @@ def key(name):
     return (name or "").strip().lower().rstrip("$").strip()
 
 
-def read_census(paths):
-    """id -> {looks, name, places [(t, x, y, z, h)]} for every creature seen."""
+def read_census(paths, exclude=()):
+    """id -> {looks, name, places [(t, x, y, z, h)]} for every creature seen,
+    but those whose name (any case) is in `exclude`: what Sandstorm put in
+    for an event, not its world (--exclude)."""
+    exclude = {key(n) for n in exclude}
     seen = {}
     for path in paths:
         with open(path) as f:
@@ -137,7 +140,9 @@ def read_census(paths):
                     c = seen.setdefault(r["id"], {"places": []})
                     c["name"] = r["name"]
                     c["places"].append((r["t"], r["x"], r["y"], r["z"], r.get("h", 0.0)))
-    return {i: c for i, c in seen.items() if c.get("places") and c.get("looks")}
+    # a nameless entity (a spawner, a marker) is no creature to make
+    return {i: c for i, c in seen.items()
+            if c.get("places") and c.get("looks") and key(c.get("name")) and key(c.get("name")) not in exclude}
 
 
 def read_path(paths, step=20.0):
@@ -464,6 +469,8 @@ def main():
     ap.add_argument("--swap", action="store_true", help="remove our creatures in the world but those a quest or a table keeps")
     ap.add_argument("--sight", type=float, default=SIGHT, help="--swap removes only a row this near the census flight's path, across")
     ap.add_argument("--sight-up", type=float, default=SIGHT_UP, help="... and this near it over or under")
+    ap.add_argument("--exclude", action="append", default=[],
+                    help="a name never made nor matched (an event's spawn); again for more, or @file with a name a line")
     ap.add_argument("--plan", help="write the rows it would add, as JSON")
     ap.add_argument("--compact", help="write the census as two lines a creature (read back as a track file)")
     ap.add_argument("--apply", action="store_true")
@@ -478,7 +485,13 @@ def main():
     files = sorted({p for g in a.track for p in glob.glob(g)})
     if not files:
         sys.exit("no track files (--track)")
-    census = read_census(files)
+    exclude = []
+    for e in a.exclude:
+        if e.startswith("@"):
+            exclude += [line.strip() for line in open(e[1:]) if line.strip() and not line.startswith("#")]
+        else:
+            exclude.append(e)
+    census = read_census(files, exclude)
     flight = read_path(files)
     if a.compact:
         compact(census, a.compact, flight)

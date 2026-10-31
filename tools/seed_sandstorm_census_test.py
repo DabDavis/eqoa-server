@@ -209,6 +209,12 @@ class SwapTest(unittest.TestCase):
         _, removes2, _ = sc.plan(self.db, census, 1, swap=True)
         self.assertIn(("fire beetle", 9000.0), [(d["npc_name"], d["z_coord"]) for d in removes2])
 
+    def test_an_excluded_name_is_neither_made_nor_matched(self):
+        census = sc.read_census([self.track], exclude=["GRASS VIPER"])
+        self.assertNotIn("Grass Viper", {c["name"] for c in census.values()})
+        adds, _, _ = sc.plan(self.db, census, 1, swap=True)
+        self.assertEqual(sorted(a["row"]["npc_name"] for a in adds), ["grizzly bear"])
+
     def test_compact_keeps_the_census_and_the_flight(self):
         out = os.path.join(self.dir.name, "census.jsonl")
         census = sc.read_census([self.track])

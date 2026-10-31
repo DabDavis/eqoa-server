@@ -240,8 +240,8 @@ func (h *InteractHandler) HandleInteract(sess *session.Session, msg *protocol.Me
 		return nil
 	}
 
-	// A spiritmaster not yet bound to offers its bind first, its quest's answer
-	// at the next talk (Sandstorm's Zole, recorded by questrec16).
+	// A spiritmaster not yet bound to offers its bind first (Sandstorm's Zole,
+	// recorded by questrec16); Yes does its quest's step too (answerBind).
 	if npc, ok := targetEntity.(*entity.NPC); ok && IsSpiritmaster(npc.Name) {
 		if b, bound := h.gameWorld.BindOf(player.ServerID); !bound || b.By != npc.Name {
 			forgetDialogs(player)

@@ -613,6 +613,34 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	c := q.namedLocked(p.CharServerID, p.Name)
 	c.box = nil
 	look := q.lookAt(sess)
+	if q.stepAtLocked(sess, p, c, look, npc.Name, npc.ServerID) {
+		return true
+	}
+	if qu := q.nextOfferLocked(look, p, c, npc.Name, nil); qu != nil {
+		q.offerLocked(sess, p, c, qu)
+		return true
+	}
+	return false
+}
+
+// TalkStep is Talk without the offers: a quest step done at the NPC called
+// name (spawn, its spawn), as a spiritmaster's bind does its step at once
+// (answerBind). It reports whether a step answered.
+func (q *QuestEngine) TalkStep(sess *session.Session, p *entity.Player, name string, spawn entity.EntityID) bool {
+	if q == nil || p == nil {
+		return false
+	}
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	c := q.namedLocked(p.CharServerID, p.Name)
+	c.box = nil
+	return q.stepAtLocked(sess, p, c, q.lookAt(sess), name, spawn)
+}
+
+// stepAtLocked does the first of the player's quest steps at the NPC called
+// name (spawn, its spawn), or says why its giver will not deal with the
+// player; it reports whether either was said.
+func (q *QuestEngine) stepAtLocked(sess *session.Session, p *entity.Player, c *questChar, look *factionLook, name string, spawn entity.EntityID) bool {
 	wontDeal := ""
 	for _, cq := range c.active() {
 		qu := q.cat.byID[cq.QuestID]
@@ -620,7 +648,7 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 			continue
 		}
 		st := qu.Step(cq.Step)
-		if st == nil || !database.AtNPC(st.Kind) || !stepNPC(st, npc.Name, npc.ServerID) {
+		if st == nil || !database.AtNPC(st.Kind) || !stepNPC(st, name, spawn) {
 			continue
 		}
 		// a giver the player's standing keeps from its steps: another
@@ -637,10 +665,6 @@ func (q *QuestEngine) Talk(sess *session.Session, p *entity.Player, npc *entity.
 	if wontDeal != "" {
 		q.tellLocked(c, sess, "", wontDeal)
 		log.Printf("Quests: %s: %s", p.Name, wontDeal)
-		return true
-	}
-	if qu := q.nextOfferLocked(look, p, c, npc.Name, nil); qu != nil {
-		q.offerLocked(sess, p, c, qu)
 		return true
 	}
 	return false

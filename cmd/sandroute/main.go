@@ -80,15 +80,27 @@ func (p *planner) bad(x, y, z float64) bool {
 	return ok && fl&(ground.EnvWater|ground.EnvSlime|ground.EnvLava|ground.EnvMud) != 0
 }
 
+// noFloorWater is the water's top taken where the ground has no floor at
+// all (open sea, or past the world's geometry), where the census knows
+// nothing: the census druid (2026-10-31) dove there from 134 to 47 off Erud's
+// Crossing and lost 32 of her breath and 275 of her 688 HP at once, with no
+// creature within 128 of her.
+const noFloorWater = 60
+
 // waterTop is the top of the water (or slime, lava, mud) in the column at
 // (x, z): its highest point, looked for 2 at a time from 600 under the
-// column's floor to 400 over it; false, none. Kept by the whole unit.
+// column's floor to 400 over it (noFloorWater with no floor); false, none.
+// Kept by the whole unit.
 func (p *planner) waterTop(x, z float64) (float64, bool) {
 	k := [2]int32{int32(math.Round(x)), int32(math.Round(z))}
 	if c, ok := p.tops[k]; ok {
 		return c.y, c.ok
 	}
-	top, _ := p.top(x, z)
+	top, floored := p.top(x, z)
+	if !floored {
+		p.tops[k] = column{noFloorWater, true}
+		return noFloorWater, true
+	}
 	var c column
 	for h := top - 600; h <= top+400; h += 2 {
 		if p.bad(x, h, z) {

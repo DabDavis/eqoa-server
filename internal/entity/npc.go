@@ -117,6 +117,12 @@ type NPC struct {
 	CurrentEnemy EntityID
 	LastCombat   time.Time
 
+	// guardHit: a town guard has damaged it since its fight began, so its
+	// kill is the guards' (guards.go); guardLookAt is when the guards near a
+	// player it fights next look at it.
+	guardHit    bool
+	guardLookAt time.Time
+
 	// nature is whether it attacks on sight (aggro.go's hostileLocked): 0
 	// not looked at, 1 it does, -1 it does not; natureGen the GMs' rules it
 	// was looked at under.

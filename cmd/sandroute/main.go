@@ -18,6 +18,12 @@
 //	sandroute -ground worlds/ground -world 1 [-x0 4000 -x1 10000 -z0 2000 -z1 10000]
 //	    [-rows 200] [-stop 50] [-look 20] [-clear 60 | -below 12] [-run 40000]
 //	    [-from x,z] [-zones -words WORDS.TXT]
+//	sandroute ... -from x,z -to x,z   (one flight, to move a character)
+//	sandroute ... -check plan.txt     (where a plan's flight is in water)
+//
+// No stop is ever under the top of the water (or slime, lava, mud) in its
+// legs' columns (dryUp): Sandstorm drowns a player under a water's surface
+// even where CLIENT's leaf is dry, under the sea floor.
 package main
 
 import (
@@ -41,6 +47,8 @@ type planner struct {
 	stop, look float64
 	clear      float64
 	below      float64
+	lifted     int // stops dryUp lifted out of water, slime, lava or mud
+	tops       map[[2]int32]column
 }
 
 // dry reports land at (x, z): a floor, not under water, slime, lava or mud.
@@ -62,10 +70,160 @@ func (p *planner) top(x, z float64) (float64, bool) {
 	return float64(h), ok
 }
 
-// edge is the highest (over) or the lowest (under) floor within look of the
-// segment a-b, sampled every 25.
-func (p *planner) edge(a, b pt) (float64, bool) {
-	best, any := 0.0, false
+// bad reports a point in water, slime, lava or mud (its zone leaf's flags,
+// as CLIENT's walk finds them).
+func (p *planner) bad(x, y, z float64) bool {
+	if p.env == nil {
+		return false
+	}
+	fl, ok := p.env.Flags(p.w, float32(x), float32(y), float32(z))
+	return ok && fl&(ground.EnvWater|ground.EnvSlime|ground.EnvLava|ground.EnvMud) != 0
+}
+
+// waterTop is the top of the water (or slime, lava, mud) in the column at
+// (x, z): its highest point, looked for 2 at a time from 600 under the
+// column's floor to 400 over it; false, none. Kept by the whole unit.
+func (p *planner) waterTop(x, z float64) (float64, bool) {
+	k := [2]int32{int32(math.Round(x)), int32(math.Round(z))}
+	if c, ok := p.tops[k]; ok {
+		return c.y, c.ok
+	}
+	top, _ := p.top(x, z)
+	var c column
+	for h := top - 600; h <= top+400; h += 2 {
+		if p.bad(x, h, z) {
+			c = column{h, true}
+		}
+	}
+	p.tops[k] = c
+	return c.y, c.ok
+}
+
+// column is a column's water top (waterTop).
+type column struct {
+	y  float64
+	ok bool
+}
+
+// wet is the height a leg a-b (at ya, yb) must keep over: 5 over the top of
+// the water in any column it passes under, sampled every 5 units at its own
+// height. Under the water's top is in it to Sandstorm, whatever CLIENT's
+// leaf says there: the census druid (2026-10-31) drowned 12 under the floor of Erud's
+// Crossing's harbour, where the leaf is dry and the sea was 24 to 51 over
+// her (Sandstorm's 32 of 255 breath every 6 s, then 399 of her 688 HP).
+// False: the leg is dry as it is.
+func (p *planner) wet(a pt, ya float64, b pt, yb float64) (float64, bool) {
+	n := int(math.Ceil(dist(a, b)/5)) + 1
+	ceil, any := 0.0, false
+	for k := 0; k <= n; k++ {
+		t := float64(k) / float64(n)
+		x, y, z := a.x+(b.x-a.x)*t, ya+(yb-ya)*t, a.z+(b.z-a.z)*t
+		top, ok := p.waterTop(x, z)
+		if !ok || y >= top+5 {
+			continue
+		}
+		if !any || top+5 > ceil {
+			ceil, any = top+5, true
+		}
+	}
+	return ceil, any
+}
+
+// liftClear is how far over the highest floor near its legs a stop lifted
+// out of the water flies when that leaves it in the open (dryUp).
+const liftClear = 20
+
+// dryUp lifts stops till no leg is wet: a wet leg lifts both its stops over
+// it, and a lifted stop's other leg is looked at again. A lifted stop no
+// longer 3 under every floor near its legs is in the open, where a creature
+// could reach it, and flies liftClear over the highest of them. It returns
+// how many stops it lifted.
+func (p *planner) dryUp(path []pt, ys []float64) int {
+	lifted := map[int]bool{}
+	for pass := 0; pass < 100; pass++ {
+		changed := false
+		for i := 1; i < len(path); i++ {
+			c, ok := p.wet(path[i-1], ys[i-1], path[i], ys[i])
+			if !ok {
+				continue
+			}
+			for _, j := range []int{i - 1, i} {
+				if ys[j] < c {
+					ys[j], changed, lifted[j] = c, true, true
+				}
+			}
+		}
+		for j := range lifted {
+			lo, hi, ok := p.stopFloors(path, j)
+			if ok && ys[j] > lo-3 && ys[j] < hi+liftClear {
+				ys[j], changed = hi+liftClear, true
+			}
+		}
+		if !changed {
+			break
+		}
+	}
+	return len(lifted)
+}
+
+// stopFloors are the lowest and the highest floor near stop j's legs (its
+// own, for a stop alone).
+func (p *planner) stopFloors(path []pt, j int) (lo, hi float64, any bool) {
+	for _, k := range []int{j - 1, j + 1} {
+		if k < 0 || k >= len(path) {
+			continue
+		}
+		l, h, ok := p.floors(path[k], path[j])
+		if !ok {
+			continue
+		}
+		if !any {
+			lo, hi, any = l, h, true
+			continue
+		}
+		lo, hi = math.Min(lo, l), math.Max(hi, h)
+	}
+	if !any {
+		if h, ok := p.top(path[j].x, path[j].z); ok {
+			return h, h, true
+		}
+	}
+	return lo, hi, any
+}
+
+// checkPlan prints, for each run of a plan (this command's output), the legs
+// whose flight is wet as written, and the height each would need.
+func (p *planner) checkPlan(file string) {
+	b, err := os.ReadFile(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, line := range strings.Split(strings.TrimSpace(string(b)), "\n") {
+		name := ""
+		if i := strings.IndexByte(line, '\t'); i >= 0 {
+			name, line = line[:i], line[i+1:]
+		}
+		var path []pt
+		var ys []float64
+		for _, s := range strings.Split(line, ";") {
+			var x, y, z float64
+			if n, _ := fmt.Sscanf(strings.TrimSpace(s), "goto %f %f %f", &x, &y, &z); n == 3 {
+				path, ys = append(path, pt{x, z}), append(ys, y)
+			}
+		}
+		var wet []string
+		for i := 1; i < len(path); i++ {
+			if c, ok := p.wet(path[i-1], ys[i-1], path[i], ys[i]); ok {
+				wet = append(wet, fmt.Sprintf("%d:(%.0f,%.0f)@%.0f>%.0f", i, path[i].x, path[i].z, ys[i], c))
+			}
+		}
+		fmt.Printf("%s\t%d stops, %d legs wet\t%s\n", name, len(path), len(wet), strings.Join(wet, " "))
+	}
+}
+
+// floors are the lowest and the highest floor within look of the segment
+// a-b, sampled every 25.
+func (p *planner) floors(a, b pt) (lo, hi float64, any bool) {
 	n := int(math.Ceil(math.Hypot(b.x-a.x, b.z-a.z)/25)) + 1
 	for i := 0; i <= n; i++ {
 		t := float64(i) / float64(n)
@@ -75,12 +233,24 @@ func (p *planner) edge(a, b pt) (float64, bool) {
 			if !ok {
 				continue
 			}
-			if !any || (p.below > 0 && h < best) || (p.below <= 0 && h > best) {
-				best, any = h, true
+			if !any {
+				lo, hi, any = h, h, true
+				continue
 			}
+			lo, hi = math.Min(lo, h), math.Max(hi, h)
 		}
 	}
-	return best, any
+	return lo, hi, any
+}
+
+// edge is the highest (over) or the lowest (under) floor within look of the
+// segment a-b.
+func (p *planner) edge(a, b pt) (float64, bool) {
+	lo, hi, ok := p.floors(a, b)
+	if p.below > 0 {
+		return lo, ok
+	}
+	return hi, ok
 }
 
 // heights are the stops' heights: each over (or under) both its legs, so
@@ -114,6 +284,7 @@ func (p *planner) heights(path []pt) []float64 {
 			ys[i] = h + p.clear
 		}
 	}
+	p.lifted += p.dryUp(path, ys)
 	return ys
 }
 
@@ -183,10 +354,12 @@ func (p *planner) transit(a, b pt) []pt {
 
 func dist(a, b pt) float64 { return math.Hypot(a.x-b.x, a.z-b.z) }
 
+// steps are a path's goto steps, each height rounded up (a stop lifted to
+// 55.4 out of the water must not come out as 55).
 func steps(path []pt, ys []float64) string {
 	s := make([]string, len(path))
 	for i, q := range path {
-		s[i] = fmt.Sprintf("goto %.0f %.0f %.0f", q.x, ys[i], q.z)
+		s[i] = fmt.Sprintf("goto %.0f %.0f %.0f", q.x, math.Ceil(ys[i]), q.z)
 	}
 	return strings.Join(s, ";")
 }
@@ -215,19 +388,45 @@ func main() {
 	from := flag.String("from", "", "x,z: where the flight begins")
 	zones := flag.Bool("zones", false, "a run per 2,000-unit zone of the grid, snaking")
 	wordsPath := flag.String("words", "", "WORDS.TXT, for -zones' names")
+	check := flag.String("check", "", "a plan to check instead: where its flight is in water, slime, lava or mud")
+	to := flag.String("to", "", "x,z: one flight from -from straight to here instead, by the same rules")
+	skipList := flag.String("skip", "", "-zones: zones left out (done), comma-separated names, so the first transit starts at -from")
 	flag.Parse()
 	g, err := ground.Open(*dir)
 	if err != nil {
 		log.Fatal(err)
 	}
-	p := &planner{g: g, w: uint8(*world), stop: *stop, look: *look, clear: *clear, below: *below}
+	p := &planner{g: g, w: uint8(*world), stop: *stop, look: *look, clear: *clear, below: *below, tops: map[[2]int32]column{}}
 	if env, err := ground.OpenEnv(*dir); err == nil && env.Worlds() > 0 {
 		p.env = env
+	} else {
+		log.Printf("no environment files in %s: water, slime, lava and mud unknown", *dir)
+	}
+	if *check != "" {
+		p.checkPlan(*check)
+		return
 	}
 	at := pt{(*x0 + *x1) / 2, (*z0 + *z1) / 2}
 	if *from != "" {
 		if _, err := fmt.Sscanf(*from, "%f,%f", &at.x, &at.z); err != nil {
 			log.Fatalf("-from %q: want x,z", *from)
+		}
+	}
+	if *to != "" {
+		var b pt
+		if _, err := fmt.Sscanf(*to, "%f,%f", &b.x, &b.z); err != nil {
+			log.Fatalf("-to %q: want x,z", *to)
+		}
+		path := append(p.transit(at, b), b)
+		ys := p.heights(path)
+		fmt.Println(steps(path, ys))
+		log.Printf("%d stops, %.0f units, %d lifted out of water, slime, lava or mud", len(path), length(path), p.lifted)
+		return
+	}
+	skip := map[string]bool{}
+	for _, n := range strings.Split(*skipList, ",") {
+		if n = strings.TrimSpace(n); n != "" {
+			skip[strings.ToLower(n)] = true
 		}
 	}
 	var all []pt
@@ -278,6 +477,9 @@ func main() {
 				if word := zoneWord(*world, c.col-1, c.row-1); word > 0 && word < len(words) {
 					name = strings.TrimSpace(words[word])
 				}
+				if skip[strings.ToLower(name)] {
+					continue
+				}
 				full := append(p.transit(at, path[0]), path...)
 				ys := p.heights(full)
 				fmt.Printf("%s\t%s\n", name, steps(full, ys))
@@ -296,7 +498,7 @@ func main() {
 			if i > 0 {
 				flown += dist(full[i-1], q)
 			}
-			cur = append(cur, fmt.Sprintf("goto %.0f %.0f %.0f", q.x, ys[i], q.z))
+			cur = append(cur, fmt.Sprintf("goto %.0f %.0f %.0f", q.x, math.Ceil(ys[i]), q.z))
 			if flown >= *run && i+1 < len(full) {
 				fmt.Println(strings.Join(cur, ";"))
 				cur = []string{cur[len(cur)-1]}
@@ -306,7 +508,9 @@ func main() {
 		fmt.Println(strings.Join(cur, ";"))
 		all = full
 	}
+	p.lifted = 0
 	ys := p.heights(all)
+	log.Printf("%d stops lifted out of water, slime, lava or mud", p.lifted)
 	var over []float64
 	for i, q := range all {
 		if h, ok := p.top(q.x, q.z); ok {

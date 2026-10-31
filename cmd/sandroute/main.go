@@ -90,8 +90,8 @@ const noFloorWater = 60
 
 // waterTop is the top of the water (or slime, lava, mud) in the column at
 // (x, z): its highest point, looked for 2 at a time from 600 under the
-// column's floor to 400 over it (noFloorWater with no floor); false, none.
-// Kept by the whole unit.
+// column's floor to 400 over it (noFloorWater with no floor, its top floor
+// with a floor under that); false, none. Kept by the whole unit.
 func (p *planner) waterTop(x, z float64) (float64, bool) {
 	k := [2]int32{int32(math.Round(x)), int32(math.Round(z))}
 	if c, ok := p.tops[k]; ok {
@@ -101,6 +101,15 @@ func (p *planner) waterTop(x, z float64) (float64, bool) {
 	if !floored {
 		p.tops[k] = column{noFloorWater, true}
 		return noFloorWater, true
+	}
+	// a floor under the top floor is a cave's (or an overhang's, a
+	// building's): water the leaves do not show may lie in it, so the
+	// column is water to its top floor (the census druid, 2026-10-31, lost breath at
+	// 137 to 150 in The Warrens, over a floor at 143 inside a mountain
+	// topped at 207 to 244, every leaf there dry)
+	if f, ok := p.g.Floor(p.w, float32(x), float32(top)-ground.StepUp-0.5, float32(z)); ok && float64(f) < top-1 {
+		p.tops[k] = column{top, true}
+		return top, true
 	}
 	var c column
 	for h := top - 600; h <= top+400; h += 2 {
@@ -210,26 +219,56 @@ func (p *planner) stopFloors(path []pt, j int) (lo, hi float64, any bool) {
 	return lo, hi, any
 }
 
-// checkPlan prints, for each run of a plan (this command's output), the legs
-// whose flight is wet as written, and the height each would need.
-func (p *planner) checkPlan(file string) {
+// run is one run of a plan (this command's output): its name ("" with
+// none), and its stops and their heights.
+type run struct {
+	name string
+	path []pt
+	ys   []float64
+}
+
+// readPlan reads a plan's runs.
+func readPlan(file string) []run {
 	b, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatal(err)
 	}
+	var runs []run
 	for _, line := range strings.Split(strings.TrimSpace(string(b)), "\n") {
-		name := ""
+		var r run
 		if i := strings.IndexByte(line, '\t'); i >= 0 {
-			name, line = line[:i], line[i+1:]
+			r.name, line = line[:i], line[i+1:]
 		}
-		var path []pt
-		var ys []float64
 		for _, s := range strings.Split(line, ";") {
 			var x, y, z float64
 			if n, _ := fmt.Sscanf(strings.TrimSpace(s), "goto %f %f %f", &x, &y, &z); n == 3 {
-				path, ys = append(path, pt{x, z}), append(ys, y)
+				r.path, r.ys = append(r.path, pt{x, z}), append(r.ys, y)
 			}
 		}
+		runs = append(runs, r)
+	}
+	return runs
+}
+
+// fixPlan prints a plan with its stops lifted out of the water by the rules
+// as they are now (dryUp), every stop kept where it is, so that a census
+// part flown already still finds its place in it (resume-steps.py).
+func (p *planner) fixPlan(file string) {
+	for _, r := range readPlan(file) {
+		n := p.dryUp(r.path, r.ys)
+		if r.name != "" {
+			fmt.Printf("%s\t", r.name)
+		}
+		fmt.Println(steps(r.path, r.ys))
+		log.Printf("%s: %d of %d stops lifted", r.name, n, len(r.path))
+	}
+}
+
+// checkPlan prints, for each run of a plan (this command's output), the legs
+// whose flight is wet as written, and the height each would need.
+func (p *planner) checkPlan(file string) {
+	for _, r := range readPlan(file) {
+		name, path, ys := r.name, r.path, r.ys
 		var wet []string
 		for i := 1; i < len(path); i++ {
 			if c, ok := p.wet(path[i-1], ys[i-1], path[i], ys[i]); ok {
@@ -409,6 +448,7 @@ func main() {
 	zones := flag.Bool("zones", false, "a run per 2,000-unit zone of the grid, snaking")
 	wordsPath := flag.String("words", "", "WORDS.TXT, for -zones' names")
 	check := flag.String("check", "", "a plan to check instead: where its flight is in water, slime, lava or mud")
+	fix := flag.String("fix", "", "a plan to lift out of the water instead, by the rules as they are now, every stop kept where it is")
 	to := flag.String("to", "", "x,z: one flight from -from straight to here instead, by the same rules")
 	skipList := flag.String("skip", "", "-zones: zones left out (done), comma-separated names, so the first transit starts at -from")
 	flag.Parse()
@@ -424,6 +464,10 @@ func main() {
 	}
 	if *check != "" {
 		p.checkPlan(*check)
+		return
+	}
+	if *fix != "" {
+		p.fixPlan(*fix)
 		return
 	}
 	at := pt{(*x0 + *x1) / 2, (*z0 + *z1) / 2}

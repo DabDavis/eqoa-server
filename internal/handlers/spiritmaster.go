@@ -103,7 +103,10 @@ func (h *InteractHandler) askBind(sess *session.Session, player *entity.Player, 
 }
 
 // answerBind takes the answer to the open question: Yes (option 0) binds the
-// player there, kept; No or anything else closes it.
+// player there, kept, then does the player's quest step at that spiritmaster
+// (a "bind your spirit" step) in the same go; No or anything else closes it.
+// Sandstorm's Zole (questrec16) answered the step only at the next talk: two
+// talks a new player did not know to make (F3 20261029-200655, 20261030-062009).
 func (h *InteractHandler) answerBind(sess *session.Session, player *entity.Player, option byte) {
 	b := player.PendingBind
 	player.PendingBind = entity.Bind{}
@@ -119,4 +122,7 @@ func (h *InteractHandler) answerBind(sess *session.Session, player *entity.Playe
 	sess.Queue().AddWithSequence(buildClientMessage(b.By + ": " + boundLine))
 	h.gameWorld.NPCVisual(b.NPC, player.ServerID, bindCast, bindVisual)
 	log.Printf("Bind: %s bound by %s at (%.1f, %.1f, %.1f) world=%d", player.Name, b.By, b.X, b.Y, b.Z, b.World)
+	if Quests().TalkStep(sess, player, b.By, b.NPC) {
+		log.Printf("Bind: %s's quest step at %s done with the bind", player.Name, b.By)
+	}
 }

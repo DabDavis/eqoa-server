@@ -50,14 +50,27 @@ What it decides, and from what:
   REGION) and npctemplate (tools/seed_roamers.py's rule: a generic hostile
   warrior the roamer, a wisp the wisp).
 
-Every row added is logged in sandstorm_census_seed (the table, the rowid,
-the census id); --undo deletes exactly those. A second --apply is refused
-while a census is in. Report only by default (--plan writes the rows it
-would add as JSON). The server reads npcs at its start: apply with it
-stopped (a swap's before.sh), or restart after.
+--swap makes the world's creatures Sandstorm's (the user, 2026-10-31: "lets
+add/swap for Sandstorms Rathe/Odus", swapping creatures): every creature
+row of ours in the world is removed but those a quest names or spawns (a
+quest's target or giver, an unlock's NPC, a name of npcspawnonly) and those
+another table points at by row (wares, a path, a sign); the census is
+matched against what is kept, so a kept kind's census creatures near ours
+are not made twice. Our townsfolk are never removed. --with-named and
+--with-pets make the named creatures and the summoned pets too (a named
+one is still not made where a kept row of ours has its name in the world).
+Fly the whole world before a swap: a place never flown loses its creatures.
+
+Every row added is logged in sandstorm_census_seed_w<world> (the table,
+the rowid, the census id), and every row removed with the whole row;
+--undo deletes the added and puts the removed back, ids and all. A second
+--apply in a world is refused while its census is in. Report only by default (--plan writes the
+rows it would add as JSON). The server reads npcs at its start: apply with
+it stopped (a swap's before.sh), or restart after.
 
     tools/seed_sandstorm_census.py --track 'zone-*.json.track.jsonl' --world 1
-        [--db eqoa.db] [--match 150] [--with-npcs] [--plan out.json] [--apply | --undo]
+        [--db eqoa.db] [--match 150] [--swap] [--with-npcs] [--with-named] [--with-pets]
+        [--plan out.json] [--apply | --undo]
 """
 import argparse
 import collections
@@ -78,6 +91,12 @@ PLAYER_IDS = 100_000_000
 MATCH = 150.0
 LOG = "sandstorm_census_seed"
 META = "sandstorm_census_meta"
+
+
+def tables(world):
+    """A world's log and meta tables: each world's census is applied and
+    undone on its own."""
+    return f"{LOG}_w{world}", f"{META}_w{world}"
 SOURCE = "sandstorm-census"
 REGION = {0: "tunaria", 1: "rathe mountains", 2: "odus"}
 
@@ -111,6 +130,21 @@ def read_census(paths):
                     c["name"] = r["name"]
                     c["places"].append((r["t"], r["x"], r["y"], r["z"], r.get("h", 0.0)))
     return {i: c for i, c in seen.items() if c.get("places") and c.get("looks")}
+
+
+def compact(census, path):
+    """The census as two lines a creature, its first `who` line and one place
+    line at its place (place: the median, the height near it, the last
+    heading), which read_census reads back to the same census for plan: the
+    track files are tens of megabytes, this a few hundred kilobytes."""
+    with open(path, "w") as f:
+        for i in sorted(census):
+            c = census[i]
+            x, y, z, h = place(c)
+            last = c["places"][-1]
+            f.write(json.dumps(c["looks"]) + "\n")
+            f.write(json.dumps(dict(t=last[0], id=i, name=c["name"], lvl=c["looks"].get("lvl"), model=c["looks"].get("model"),
+                                    x=x, y=y, z=z, h=h)) + "\n")
 
 
 def place(c):
@@ -167,17 +201,41 @@ def pet_names(db):
     return out
 
 
-def plan(db, census, world, match=MATCH, with_npcs=False):
-    """(adds, report): the rows to add and what was found."""
+# what keeps a creature row of ours through --swap: another table pointing at
+# its row, or a quest naming it
+KEEP_IDS = (("npcitem", "npcid"), ("npcpaths", "npcid"), ("queststeps", "npcid"), ("signtext", "npcid"))
+KEEP_NAMES = (("queststeps", "target"), ("queststeptargets", "target"), ("quests", "giver"),
+              ("questunlocks", "npc"), ("npcspawnonly", "name"))
+
+
+def kept(db):
+    """(ids, names): the rows --swap keeps by row and by name."""
+    ids, names = set(), set()
+    for t, c in KEEP_IDS:
+        if has_table(db, t):
+            ids |= {r[0] for r in db.execute(f"SELECT {c} FROM {t} WHERE {c} IS NOT NULL")}
+    for t, c in KEEP_NAMES:
+        if has_table(db, t):
+            names |= {key(r[0]) for r in db.execute(f"SELECT {c} FROM {t} WHERE {c} IS NOT NULL")}
+    return ids, names
+
+
+def plan(db, census, world, match=MATCH, with_npcs=False, swap=False, with_named=False, with_pets=False):
+    """(adds, removes, report): the rows to add, the rows of ours to remove
+    (--swap) and what was found."""
+    keep_ids, keep_names = kept(db) if swap else (set(), set())
     db.row_factory = sqlite3.Row
     cols = [r[1] for r in db.execute("PRAGMA table_info(npcs)")]
     ours = collections.defaultdict(list)
     by_name = collections.defaultdict(list)
     by_model = collections.defaultdict(list)
+    removes = []
     for r in db.execute("SELECT * FROM npcs"):
         d = dict(r)
         k = key(d["npc_name"])
-        if d["world"] == world:
+        if d["world"] == world and swap and not (d["npc_type"] or 0) & 0x80 and d["id"] not in keep_ids and k not in keep_names:
+            removes.append(d)
+        elif d["world"] == world:
             ours[k].append(d)
         if k:
             by_name[k].append(d)
@@ -202,8 +260,8 @@ def plan(db, census, world, match=MATCH, with_npcs=False):
         used.add(rid)
     pets = pet_names(db)
     is_pet = lambda i: key(census[i]["name"]) in pets or key(census[i]["name"]).endswith("animation")
-    missing = [i for i in census if i not in matched and not is_pet(i)]
-    pets_seen = collections.Counter(census[i]["name"] for i in census if is_pet(i))
+    missing = [i for i in census if i not in matched and (with_pets or not is_pet(i))]
+    pets_seen = collections.Counter(census[i]["name"] for i in census if is_pet(i) and i not in matched)
     creatures = [i for i in missing if not census[i]["looks"].get("npc_flags", 0) & 0x80]
     people = [i for i in missing if census[i]["looks"].get("npc_flags", 0) & 0x80]
     new_names = sorted({census[i]["name"].strip() for i in missing if key(census[i]["name"]) not in ours_spelling})
@@ -220,7 +278,8 @@ def plan(db, census, world, match=MATCH, with_npcs=False):
 
     named = [i for i in creatures if not generic(i)]
     elsewhere = [i for i in named if in_world[key(census[i]["name"])] > 0]
-    make = [i for i in creatures if generic(i)] + (people if with_npcs else [])
+    make = [i for i in creatures if generic(i)] + (people if with_npcs else []) + \
+        ([i for i in named if i not in elsewhere] if with_named else [])
     adds = []
     for i in sorted(make):
         c, lk = census[i], census[i]["looks"]
@@ -250,14 +309,17 @@ def plan(db, census, world, match=MATCH, with_npcs=False):
         adds.append(dict(row={c2: row.get(c2) for c2 in cols if c2 != "id"}, census_id=i, new_name=k not in ours_spelling,
                          sand_class=lk.get("class", 0), template_row=tmpl["id"] if tmpl else None))
     report = dict(seen=len(census), matched=len(matched), missing_creatures=len(creatures), missing_people=len(people),
-                  adds=len(adds), new_names=sorted({a["row"]["npc_name"] for a in adds if a["new_name"]}),
+                  adds=len(adds), removes=len(removes),
+                  removed=collections.Counter(d["npc_name"] for d in removes).most_common(),
+                  with_npcs=with_npcs, with_named=with_named, with_pets=with_pets,
+                  new_names=sorted({a["row"]["npc_name"] for a in adds if a["new_name"]}),
                   by_name=collections.Counter(a["row"]["npc_name"] for a in adds).most_common(),
                   people=sorted(collections.Counter(census[i]["name"] for i in people).items()),
                   pets=sorted(pets_seen.items()),
                   named=sorted((census[i]["name"], census[i]["looks"].get("lvl"), [round(v) for v in place(census[i])[:3]])
                                for i in named if i not in elsewhere),
                   elsewhere=sorted((census[i]["name"], [round(v) for v in place(census[i])[:3]]) for i in elsewhere))
-    return adds, report
+    return adds, removes, report
 
 
 def roamer_template(name, level, cls):
@@ -270,13 +332,19 @@ def roamer_template(name, level, cls):
     return None
 
 
-def apply(db, adds, world, files):
+def apply(db, adds, world, files, removes=()):
+    LOG, META = tables(world)
     if has_table(db, META):
-        sys.exit(f"a census is applied already ({META}): --undo it first")
+        sys.exit(f"a census is applied already in world {world} ({META}): --undo it first")
     seq = db.execute("SELECT seq FROM sqlite_sequence WHERE name = 'npcs'").fetchone()
     db.execute(f"CREATE TABLE {LOG} (seq INTEGER PRIMARY KEY AUTOINCREMENT, tbl TEXT NOT NULL, rid INTEGER NOT NULL, "
-               f"census_id INTEGER, name TEXT NOT NULL)")
+               f"census_id INTEGER, name TEXT NOT NULL, old TEXT)")
     db.execute(f"CREATE TABLE {META} (k TEXT PRIMARY KEY, v TEXT NOT NULL)")
+    # --swap's removals first, each kept whole for --undo
+    for d in removes:
+        db.execute("DELETE FROM npcs WHERE id = ?", (d["id"],))
+        db.execute(f"INSERT INTO {LOG} (tbl, rid, census_id, name, old) VALUES ('npcs removed', ?, NULL, ?, ?)",
+                   (d["id"], d["npc_name"] or "", json.dumps(d)))
     done_names = set()
     for a in adds:
         r = a["row"]
@@ -303,16 +371,23 @@ def apply(db, adds, world, files):
                 db.execute(f"INSERT INTO {LOG} (tbl, rid, census_id, name) VALUES ('npctemplate', ?, ?, ?)", (cur.lastrowid, a["census_id"], name))
     for k, v in dict(applied=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
                      world=str(world), files=json.dumps(files), seq_before=str(seq[0] if seq else ""),
-                     added=str(len(adds))).items():
+                     added=str(len(adds)), removed=str(len(removes))).items():
         db.execute(f"INSERT INTO {META} VALUES (?, ?)", (k, v))
 
 
-def undo(db):
+def undo(db, world):
+    LOG, META = tables(world)
     if not has_table(db, LOG):
-        sys.exit("no census is applied")
+        sys.exit(f"no census is applied in world {world}")
     meta = dict(db.execute(f"SELECT k, v FROM {META}").fetchall()) if has_table(db, META) else {}
     n = collections.Counter()
-    for tbl, rid in db.execute(f"SELECT tbl, rid FROM {LOG} ORDER BY seq DESC").fetchall():
+    for tbl, rid, old in db.execute(f"SELECT tbl, rid, old FROM {LOG} ORDER BY seq DESC").fetchall():
+        if tbl == "npcs removed":
+            d = json.loads(old)
+            cols = list(d)
+            n[tbl] += db.execute(f"INSERT INTO npcs ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
+                                 [d[c] for c in cols]).rowcount
+            continue
         n[tbl] += db.execute(f"DELETE FROM {tbl} WHERE rowid = ?", (rid,)).rowcount
     seq = meta.get("seq_before", "")
     if seq:
@@ -331,41 +406,54 @@ def main():
     ap.add_argument("--world", type=int, default=1)
     ap.add_argument("--match", type=float, default=MATCH)
     ap.add_argument("--with-npcs", action="store_true", help="make the missing townsfolk and merchants too")
+    ap.add_argument("--with-named", action="store_true", help="make the named creatures too")
+    ap.add_argument("--with-pets", action="store_true", help="make the summoned pets too")
+    ap.add_argument("--swap", action="store_true", help="remove our creatures in the world but those a quest or a table keeps")
     ap.add_argument("--plan", help="write the rows it would add, as JSON")
+    ap.add_argument("--compact", help="write the census as two lines a creature (read back as a track file)")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--undo", action="store_true")
     a = ap.parse_args()
     db = sqlite3.connect(a.db, timeout=5)
     if a.undo:
         with db:
-            n = undo(db)
+            n = undo(db, a.world)
         print(f"undone: {dict(n)}")
         return
     files = sorted({p for g in a.track for p in glob.glob(g)})
     if not files:
         sys.exit("no track files (--track)")
     census = read_census(files)
-    adds, report = plan(db, census, a.world, a.match, a.with_npcs)
+    if a.compact:
+        compact(census, a.compact)
+        print(f"compact: {len(census)} creatures to {a.compact}")
+    adds, removes, report = plan(db, census, a.world, a.match, a.with_npcs, a.swap, a.with_named, a.with_pets)
     print(f"{len(files)} track files: {report['seen']} creatures seen, {report['matched']} ours already, "
-          f"{report['missing_creatures']} creatures and {report['missing_people']} townsfolk missing; {report['adds']} to add")
+          f"{report['missing_creatures']} creatures and {report['missing_people']} townsfolk missing; {report['adds']} to add"
+          + (f", {report['removes']} of ours to remove" if a.swap else ""))
     print("new names:", ", ".join(report["new_names"]) or "none")
     for name, n in report["by_name"]:
         print(f"  {n:4d}  {name}")
+    if a.swap:
+        print("ours removed:", ", ".join(f"{n} x{c}" for n, c in report["removed"]) or "none")
     if report["people"]:
-        print("townsfolk missing (not made without --with-npcs):", ", ".join(f"{n} x{c}" for n, c in report["people"]))
+        print(f"townsfolk missing ({'made' if a.with_npcs else 'not made without --with-npcs'}):",
+              ", ".join(f"{n} x{c}" for n, c in report["people"]))
     if report["pets"]:
-        print("pets seen (a summoning spell's name: not made):", ", ".join(f"{n} x{c}" for n, c in report["pets"]))
+        print(f"pets seen (a summoning spell's name: {'made' if a.with_pets else 'not made without --with-pets'}):",
+              ", ".join(f"{n} x{c}" for n, c in report["pets"]))
     if report["named"]:
-        print("named creatures we have none of (not made):", "; ".join(f"{n} L{l} at {p}" for n, l, p in report["named"]))
+        print(f"named creatures we have none of ({'made' if a.with_named else 'not made without --with-named'}):",
+              "; ".join(f"{n} L{l} at {p}" for n, l, p in report["named"]))
     if report["elsewhere"]:
         print("named creatures we have elsewhere in the world (not made):", "; ".join(f"{n} at {p}" for n, p in report["elsewhere"]))
     if a.plan:
         with open(a.plan, "w") as f:
-            json.dump(dict(report=report, adds=adds), f, indent=1, default=str)
+            json.dump(dict(report=report, adds=adds, removes=removes), f, indent=1, default=str)
     if a.apply:
         with db:
-            apply(db, adds, a.world, files)
-        print(f"applied: {len(adds)} rows ({LOG})")
+            apply(db, adds, a.world, files, removes)
+        print(f"applied: {len(adds)} rows added, {len(removes)} removed ({tables(a.world)[0]})")
 
 
 if __name__ == "__main__":

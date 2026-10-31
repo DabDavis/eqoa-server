@@ -29,6 +29,8 @@ SCHEMA = [
     "source TEXT NOT NULL DEFAULT 'gm')",
     "CREATE TABLE npctemplate (name TEXT PRIMARY KEY, template TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '', "
     "source TEXT NOT NULL DEFAULT 'gm')",
+    "CREATE TABLE queststeptargets (target TEXT NOT NULL)",
+    "CREATE TABLE npcpaths (npcid INTEGER NOT NULL, seq INTEGER NOT NULL)",
 ]
 BEAR, VIPER, SPIRIT, LORD, MAN = 0x1001, 0x2002, 0x3003, 0x4004, 0x5005
 
@@ -101,7 +103,8 @@ class CensusTest(unittest.TestCase):
     def test_the_kind_we_lack_is_made_and_nothing_else(self):
         census = sc.read_census([self.track])
         self.assertNotIn(200_000_001, census, "a player")
-        adds, report = sc.plan(self.db, census, 1)
+        adds, removes, report = sc.plan(self.db, census, 1)
+        self.assertEqual(removes, [], "nothing removed without --swap")
         self.assertEqual(report["matched"], 1, "the bear within MATCH of ours")
         names = sorted(a["row"]["npc_name"] for a in adds)
         self.assertEqual(names, ["grass viper", "grass viper"])
@@ -118,7 +121,7 @@ class CensusTest(unittest.TestCase):
     def test_apply_then_undo_leaves_every_table_as_it_was(self):
         before = self.dump()
         census = sc.read_census([self.track])
-        adds, _ = sc.plan(self.db, census, 1)
+        adds, _, _ = sc.plan(self.db, census, 1)
         with self.db:
             sc.apply(self.db, adds, 1, [self.track])
         after = self.dump()
@@ -129,14 +132,79 @@ class CensusTest(unittest.TestCase):
         with self.assertRaises(SystemExit):
             sc.apply(self.db, adds, 1, [self.track])
         with self.db:
-            sc.undo(self.db)
+            sc.undo(self.db, 1)
         self.assertEqual(self.dump(), before)
         # the control: the undo is of the census's rows alone
         self.db.execute("INSERT INTO npcclass VALUES ('grizzly bear', 0, 'gm')")
         with self.db:
             sc.apply(self.db, adds, 1, [self.track])
-            sc.undo(self.db)
+            sc.undo(self.db, 1)
         self.assertEqual([r[0] for r in self.db.execute("SELECT name FROM npcclass")], ["grizzly bear"])
+
+
+class SwapTest(unittest.TestCase):
+    """--swap: our creatures in the world go but those a quest or a table
+    keeps, and our townsfolk; the census's creatures take their places."""
+
+    def setUp(self):
+        self.dir = tempfile.TemporaryDirectory()
+        self.db = build(os.path.join(self.dir.name, "t.db"))
+        ins = ("INSERT INTO npcs (npc_name, x_coord, y_coord, z_coord, world, modelid, size, npc_level, npc_type, hp, "
+               "hp_percent, unk_i, robe_style) VALUES (?, ?, 60, 5000, ?, 7, 1.0, 20, ?, 1, 255, '15', '255')")
+        self.db.execute(ins, ("fire beetle", 7000.0, 1, 0))      # no census match: removed
+        self.db.execute(ins, ("Quest Wolf", 7500.0, 1, 0))       # a quest's target: kept
+        self.db.execute(ins, ("pathed rat", 8000.0, 1, 0))       # walks a path: kept
+        self.db.execute(ins, ("Guard Bob", 8500.0, 1, 0x80))     # a townsman: kept
+        self.db.execute(ins, ("fire beetle", 7000.0, 2, 0))      # another world: kept
+        self.db.execute("INSERT INTO queststeptargets VALUES ('quest wolf')")
+        rat = self.db.execute("SELECT id FROM npcs WHERE npc_name = 'pathed rat'").fetchone()[0]
+        self.db.execute("INSERT INTO npcpaths VALUES (?, 0)", (rat,))
+        self.track = os.path.join(self.dir.name, "run.json.track.jsonl")
+        track(self.track)
+        self.cased = sc.cased
+        sc.cased = lambda db, names: {n: ((n, False) if n.startswith("Lord ") else (n.lower(), True)) for n in names}
+
+    def tearDown(self):
+        sc.cased = self.cased
+        self.db.close()
+        self.dir.cleanup()
+
+    def dump(self):
+        return {t: list(self.db.execute(f"SELECT * FROM {t} ORDER BY rowid"))
+                for t in ("npcs", "npcclass", "lootcreature", "npctemplate", "sqlite_sequence")}
+
+    def test_swap_removes_the_unkept_and_the_census_takes_their_places(self):
+        census = sc.read_census([self.track])
+        adds, removes, report = sc.plan(self.db, census, 1, swap=True)
+        self.assertEqual(sorted((d["npc_name"], d["x_coord"]) for d in removes),
+                         [("fire beetle", 7000.0), ("grizzly bear", 5000.0), ("grizzly bear", 9000.0)])
+        self.assertEqual(report["matched"], 0, "our bears are gone: the census bear is no longer ours already")
+        self.assertEqual(sorted(a["row"]["npc_name"] for a in adds), ["grass viper", "grass viper", "grizzly bear"])
+        # the control: without --swap the bear is ours and nothing goes
+        adds2, removes2, _ = sc.plan(self.db, census, 1)
+        self.assertEqual((len(removes2), sorted(a["row"]["npc_name"] for a in adds2)), (0, ["grass viper", "grass viper"]))
+
+    def test_named_pets_and_townsfolk_are_made_when_asked(self):
+        census = sc.read_census([self.track])
+        adds, _, _ = sc.plan(self.db, census, 1, swap=True, with_npcs=True, with_named=True, with_pets=True)
+        self.assertEqual(sorted(a["row"]["npc_name"] for a in adds),
+                         ["Lord Uzzlebeck", "feral spirit", "grass viper", "grass viper", "grizzly bear", "townsman"])
+        self.assertNotIn(200_000_001, {a["census_id"] for a in adds}, "never a player")
+
+    def test_swap_apply_then_undo_leaves_every_table_as_it_was(self):
+        before = self.dump()
+        census = sc.read_census([self.track])
+        adds, removes, _ = sc.plan(self.db, census, 1, swap=True, with_npcs=True, with_named=True, with_pets=True)
+        with self.db:
+            sc.apply(self.db, adds, 1, [self.track], removes)
+        names = [r[0] for r in self.db.execute("SELECT npc_name FROM npcs WHERE world = 1 ORDER BY id")]
+        self.assertNotIn("fire beetle", names)
+        for kept in ("Quest Wolf", "pathed rat", "Guard Bob"):
+            self.assertIn(kept, names)
+        self.assertEqual(self.db.execute("SELECT COUNT(*) FROM npcs WHERE world = 2").fetchone()[0], 1)
+        with self.db:
+            sc.undo(self.db, 1)
+        self.assertEqual(self.dump(), before)
 
 
 if __name__ == "__main__":

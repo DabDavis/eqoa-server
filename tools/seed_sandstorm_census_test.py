@@ -191,6 +191,29 @@ class SwapTest(unittest.TestCase):
                          ["Lord Uzzlebeck", "feral spirit", "grass viper", "grass viper", "grizzly bear", "townsman"])
         self.assertNotIn(200_000_001, {a["census_id"] for a in adds}, "never a player")
 
+    def test_swap_removes_only_what_the_flight_could_see(self):
+        self.db.execute("INSERT INTO npcs (npc_name, x_coord, y_coord, z_coord, world, modelid, size, npc_level, npc_type, hp, "
+                        "hp_percent, unk_i, robe_style) VALUES ('fire beetle', 7000, 60, 9000, 1, 7, 1.0, 20, 0, 1, 255, '15', '255')")
+        census = sc.read_census([self.track])
+        sight = sc.Sight([(float(x), 80.0, 5000.0) for x in range(4500, 9600, 50)], 120)
+        _, removes, report = sc.plan(self.db, census, 1, swap=True, sight=sight)
+        places = [(d["npc_name"], d["z_coord"]) for d in removes]
+        self.assertIn(("fire beetle", 5000.0), places, "under the flight: removed")
+        self.assertNotIn(("fire beetle", 9000.0), places, "4,000 off the flight: kept")
+        self.assertEqual(report["unseen_kept"], 1)
+        # the control: with no sight given, every unkept row goes
+        _, removes2, _ = sc.plan(self.db, census, 1, swap=True)
+        self.assertIn(("fire beetle", 9000.0), [(d["npc_name"], d["z_coord"]) for d in removes2])
+
+    def test_compact_keeps_the_census_and_the_flight(self):
+        out = os.path.join(self.dir.name, "census.jsonl")
+        census = sc.read_census([self.track])
+        sc.compact(census, out, [(1.0, 2.0, 3.0), (100.0, 2.0, 3.0)])
+        self.assertEqual(sc.read_path([out]), [(1.0, 2.0, 3.0), (100.0, 2.0, 3.0)])
+        a1 = sc.plan(self.db, census, 1)[0]
+        a2 = sc.plan(self.db, sc.read_census([out]), 1)[0]
+        self.assertEqual([x["row"] for x in a1], [x["row"] for x in a2])
+
     def test_swap_apply_then_undo_leaves_every_table_as_it_was(self):
         before = self.dump()
         census = sc.read_census([self.track])

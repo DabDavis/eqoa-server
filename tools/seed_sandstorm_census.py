@@ -59,7 +59,10 @@ matched against what is kept, so a kept kind's census creatures near ours
 are not made twice. Our townsfolk are never removed. --with-named and
 --with-pets make the named creatures and the summoned pets too (a named
 one is still not made where a kept row of ours has its name in the world).
-Fly the whole world before a swap: a place never flown loses its creatures.
+Only a row within SIGHT (120, --sight) of the census flight's own path is
+removed, where nine in ten of its sightings lie (99% within 158): a place
+the census never came near (a zone not flown yet, a deep dungeon, a
+basement under a tower) keeps what it has.
 
 Every row added is logged in sandstorm_census_seed_w<world> (the table,
 the rowid, the census id), and every row removed with the whole row;
@@ -89,6 +92,7 @@ sys.path.insert(0, HERE)
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
 PLAYER_IDS = 100_000_000
 MATCH = 150.0
+SIGHT = 120.0
 LOG = "sandstorm_census_seed"
 META = "sandstorm_census_meta"
 
@@ -132,12 +136,50 @@ def read_census(paths):
     return {i: c for i, c in seen.items() if c.get("places") and c.get("looks")}
 
 
-def compact(census, path):
+def read_path(paths, step=20.0):
+    """The census flight's own places (its `self` lines), one every `step`."""
+    out = []
+    for path in paths:
+        with open(path) as f:
+            for line in f:
+                if '"self"' not in line:
+                    continue
+                try:
+                    p = json.loads(line).get("self")
+                except ValueError:
+                    continue
+                if p and len(p) == 3 and (not out or math.dist(out[-1], p) >= step):
+                    out.append(tuple(p))
+    return out
+
+
+class Sight:
+    """Whether a place lies within `reach` (3D) of the census flight's path."""
+
+    def __init__(self, path, reach=SIGHT):
+        self.reach, self.cells = reach, collections.defaultdict(list)
+        for p in path:
+            self.cells[(int(p[0] // 100), int(p[2] // 100))].append(p)
+
+    def saw(self, x, y, z):
+        cx, cz, n = int(x // 100), int(z // 100), int(self.reach // 100) + 1
+        for i in range(cx - n, cx + n + 1):
+            for j in range(cz - n, cz + n + 1):
+                for p in self.cells.get((i, j), ()):
+                    if math.dist(p, (x, y, z)) <= self.reach:
+                        return True
+        return False
+
+
+def compact(census, path, flight=()):
     """The census as two lines a creature, its first `who` line and one place
     line at its place (place: the median, the height near it, the last
-    heading), which read_census reads back to the same census for plan: the
-    track files are tens of megabytes, this a few hundred kilobytes."""
+    heading), which read_census reads back to the same census for plan, and
+    the flight's path (read_path's) as `self` lines: the track files are
+    tens of megabytes, this a few."""
     with open(path, "w") as f:
+        for p in flight:
+            f.write(json.dumps(dict(self=list(p))) + "\n")
         for i in sorted(census):
             c = census[i]
             x, y, z, h = place(c)
@@ -220,10 +262,12 @@ def kept(db):
     return ids, names
 
 
-def plan(db, census, world, match=MATCH, with_npcs=False, swap=False, with_named=False, with_pets=False):
+def plan(db, census, world, match=MATCH, with_npcs=False, swap=False, with_named=False, with_pets=False, sight=None):
     """(adds, removes, report): the rows to add, the rows of ours to remove
-    (--swap) and what was found."""
+    (--swap: only those `sight`, a Sight, saw; all with none) and what was
+    found."""
     keep_ids, keep_names = kept(db) if swap else (set(), set())
+    unseen = []
     db.row_factory = sqlite3.Row
     cols = [r[1] for r in db.execute("PRAGMA table_info(npcs)")]
     ours = collections.defaultdict(list)
@@ -234,7 +278,11 @@ def plan(db, census, world, match=MATCH, with_npcs=False, swap=False, with_named
         d = dict(r)
         k = key(d["npc_name"])
         if d["world"] == world and swap and not (d["npc_type"] or 0) & 0x80 and d["id"] not in keep_ids and k not in keep_names:
-            removes.append(d)
+            if sight is None or sight.saw(d["x_coord"], d["y_coord"], d["z_coord"]):
+                removes.append(d)
+            else:
+                unseen.append(d)
+                ours[k].append(d)
         elif d["world"] == world:
             ours[k].append(d)
         if k:
@@ -309,7 +357,7 @@ def plan(db, census, world, match=MATCH, with_npcs=False, swap=False, with_named
         adds.append(dict(row={c2: row.get(c2) for c2 in cols if c2 != "id"}, census_id=i, new_name=k not in ours_spelling,
                          sand_class=lk.get("class", 0), template_row=tmpl["id"] if tmpl else None))
     report = dict(seen=len(census), matched=len(matched), missing_creatures=len(creatures), missing_people=len(people),
-                  adds=len(adds), removes=len(removes),
+                  adds=len(adds), removes=len(removes), unseen_kept=len(unseen),
                   removed=collections.Counter(d["npc_name"] for d in removes).most_common(),
                   with_npcs=with_npcs, with_named=with_named, with_pets=with_pets,
                   new_names=sorted({a["row"]["npc_name"] for a in adds if a["new_name"]}),
@@ -409,6 +457,7 @@ def main():
     ap.add_argument("--with-named", action="store_true", help="make the named creatures too")
     ap.add_argument("--with-pets", action="store_true", help="make the summoned pets too")
     ap.add_argument("--swap", action="store_true", help="remove our creatures in the world but those a quest or a table keeps")
+    ap.add_argument("--sight", type=float, default=SIGHT, help="--swap removes only a row this near the census flight's path")
     ap.add_argument("--plan", help="write the rows it would add, as JSON")
     ap.add_argument("--compact", help="write the census as two lines a creature (read back as a track file)")
     ap.add_argument("--apply", action="store_true")
@@ -424,13 +473,17 @@ def main():
     if not files:
         sys.exit("no track files (--track)")
     census = read_census(files)
+    flight = read_path(files)
     if a.compact:
-        compact(census, a.compact)
-        print(f"compact: {len(census)} creatures to {a.compact}")
-    adds, removes, report = plan(db, census, a.world, a.match, a.with_npcs, a.swap, a.with_named, a.with_pets)
+        compact(census, a.compact, flight)
+        print(f"compact: {len(census)} creatures and {len(flight)} places of the flight to {a.compact}")
+    if a.swap and not flight:
+        sys.exit("--swap needs the census flight's path (the tracks' self lines)")
+    sight = Sight(flight, a.sight) if a.swap else None
+    adds, removes, report = plan(db, census, a.world, a.match, a.with_npcs, a.swap, a.with_named, a.with_pets, sight)
     print(f"{len(files)} track files: {report['seen']} creatures seen, {report['matched']} ours already, "
           f"{report['missing_creatures']} creatures and {report['missing_people']} townsfolk missing; {report['adds']} to add"
-          + (f", {report['removes']} of ours to remove" if a.swap else ""))
+          + (f", {report['removes']} of ours to remove ({report['unseen_kept']} more out of the flight's sight kept)" if a.swap else ""))
     print("new names:", ", ".join(report["new_names"]) or "none")
     for name, n in report["by_name"]:
         print(f"  {n:4d}  {name}")

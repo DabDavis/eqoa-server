@@ -50,6 +50,7 @@ type planner struct {
 	sea        float64 // no stop under it: Sandstorm's water level (wet)
 	lifted     int     // stops dryUp lifted out of water, slime, lava or mud
 	tops       map[[2]int32]column
+	allFloors  bool // rows over every column with a floor, the sea's too (-all-floors)
 }
 
 // dry reports land at (x, z): a floor, not under water, slime, lava or mud.
@@ -354,7 +355,8 @@ func (p *planner) rows(x0, x1, z0, z1, rows float64, from pt) []pt {
 	for z := z0 + rows/2; z < z1; z += rows {
 		lo, hi := math.Inf(1), math.Inf(-1)
 		for x := x0; x <= x1; x += 25 {
-			if p.dry(x, z) {
+			_, floored := p.top(x, z)
+			if (p.allFloors && floored) || p.dry(x, z) {
 				lo, hi = math.Min(lo, x), math.Max(hi, x)
 			}
 		}
@@ -451,12 +453,13 @@ func main() {
 	fix := flag.String("fix", "", "a plan to lift out of the water instead, by the rules as they are now, every stop kept where it is")
 	to := flag.String("to", "", "x,z: one flight from -from straight to here instead, by the same rules")
 	skipList := flag.String("skip", "", "-zones: zones left out (done), comma-separated names, so the first transit starts at -from")
+	allFloors := flag.Bool("all-floors", false, "rows over every column with a floor, the sea's too: for the creatures in the water")
 	flag.Parse()
 	g, err := ground.Open(*dir)
 	if err != nil {
 		log.Fatal(err)
 	}
-	p := &planner{g: g, w: uint8(*world), stop: *stop, look: *look, clear: *clear, below: *below, sea: *sea, tops: map[[2]int32]column{}}
+	p := &planner{g: g, w: uint8(*world), stop: *stop, look: *look, clear: *clear, below: *below, sea: *sea, tops: map[[2]int32]column{}, allFloors: *allFloors}
 	if env, err := ground.OpenEnv(*dir); err == nil && env.Worlds() > 0 {
 		p.env = env
 	} else {
@@ -591,9 +594,26 @@ func main() {
 
 // zoneWord is CLIENT's zone grid's word for a cell (row, col as ZoneName
 // takes them), 0 off a grid this command knows (the decomp's vientity.cpp:
-// Rathe's sZones1, Odus's sZones2).
+// Tunaria's sZones0, Rathe's sZones1, Odus's sZones2).
 func zoneWord(world, col, row int) int {
-	grids := map[int][][]int{1: {
+	grids := map[int][][]int{0: {
+		{641, 641, 641, 641, 641, 641, 641, 641, 641, 1152, 1153, 1176, 1051},
+		{1046, 1057, 1058, 1074, 1075, 364, 1097, 1123, 1124, 1151, 1154, 1175, 1042},
+		{1047, 1056, 1059, 1073, 1076, 1096, 1098, 1122, 1125, 1150, 361, 1174, 1045},
+		{1047, 1055, 1060, 1072, 1077, 1095, 608, 1121, 1126, 1149, 1155, 1173, 1047},
+		{1047, 1054, 1061, 1071, 1078, 1094, 1099, 1120, 1127, 1148, 1156, 1172, 1047},
+		{1047, 1053, 1062, 602, 1079, 1093, 1100, 1119, 1128, 1147, 1157, 1171, 1047},
+		{1047, 1052, 1063, 1070, 1080, 1092, 1101, 1118, 1129, 1146, 1158, 358, 1047},
+		{1047, 357, 1064, 1069, 1081, 1091, 1102, 1117, 1130, 1145, 1159, 1170, 1047},
+		{1047, 1050, 1065, 1068, 1082, 1090, 1103, 1116, 1131, 1144, 1160, 1047, 1047},
+		{1048, 366, 1066, 1067, 1083, 1089, 1104, 1115, 1132, 1143, 1161, 1047, 1047},
+		{1049, 1049, 641, 641, 641, 1088, 1105, 1114, 1133, 1142, 1162, 1047, 1047},
+		{641, 641, 641, 641, 641, 1087, 1106, 1113, 1134, 1141, 1163, 1169, 1047},
+		{641, 641, 641, 641, 641, 1086, 1107, 1112, 1135, 1140, 1164, 1168, 1047},
+		{641, 641, 641, 641, 641, 1085, 1108, 1111, 1136, 1139, 1165, 1167, 1047},
+		{641, 641, 641, 641, 641, 1084, 1109, 1110, 1137, 1138, 1166, 363, 1047},
+		{641, 641, 641, 641, 641, 1047, 1047, 1047, 1047, 1047, 1047, 1047, 1047},
+	}, 1: {
 		{641, 1177, 1181, 1185},
 		{641, 1178, 1182, 1186},
 		{641, 1179, 1183, 1187},

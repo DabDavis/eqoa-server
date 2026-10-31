@@ -47,7 +47,8 @@ type planner struct {
 	stop, look float64
 	clear      float64
 	below      float64
-	lifted     int // stops dryUp lifted out of water, slime, lava or mud
+	sea        float64 // no stop under it: Sandstorm's water level (wet)
+	lifted     int     // stops dryUp lifted out of water, slime, lava or mud
 	tops       map[[2]int32]column
 }
 
@@ -123,6 +124,9 @@ type column struct {
 // leaf says there: the census druid (2026-10-31) drowned 12 under the floor of Erud's
 // Crossing's harbour, where the leaf is dry and the sea was 24 to 51 over
 // her (Sandstorm's 32 of 255 breath every 6 s, then 399 of her 688 HP).
+// And Sandstorm's water is a level as well, under any ground: the census druid lost
+// breath 30 to 40 under solid land (Odus, floors 69 to 85 at 10155-10222,
+// 3210), where no column has water, so no sample is under p.sea either.
 // False: the leg is dry as it is.
 func (p *planner) wet(a pt, ya float64, b pt, yb float64) (float64, bool) {
 	n := int(math.Ceil(dist(a, b)/5)) + 1
@@ -130,6 +134,9 @@ func (p *planner) wet(a pt, ya float64, b pt, yb float64) (float64, bool) {
 	for k := 0; k <= n; k++ {
 		t := float64(k) / float64(n)
 		x, y, z := a.x+(b.x-a.x)*t, ya+(yb-ya)*t, a.z+(b.z-a.z)*t
+		if y < p.sea && (!any || p.sea > ceil) {
+			ceil, any = p.sea, true
+		}
 		top, ok := p.waterTop(x, z)
 		if !ok || y >= top+5 {
 			continue
@@ -396,6 +403,7 @@ func main() {
 	look := flag.Float64("look", 20, "how far either side of a leg the ground is looked at")
 	clear := flag.Float64("clear", 60, "over: the height over the highest floor near a leg")
 	below := flag.Float64("below", 0, "under: the depth under the lowest floor near a leg (0: fly over)")
+	sea := flag.Float64("sea", 58, "no stop under this height: Sandstorm drowns a player under its sea level, ground over it or not (kept breath at 55, lost it at 47-50)")
 	run := flag.Float64("run", 40000, "a run's most flight, units (without -zones)")
 	from := flag.String("from", "", "x,z: where the flight begins")
 	zones := flag.Bool("zones", false, "a run per 2,000-unit zone of the grid, snaking")
@@ -408,7 +416,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	p := &planner{g: g, w: uint8(*world), stop: *stop, look: *look, clear: *clear, below: *below, tops: map[[2]int32]column{}}
+	p := &planner{g: g, w: uint8(*world), stop: *stop, look: *look, clear: *clear, below: *below, sea: *sea, tops: map[[2]int32]column{}}
 	if env, err := ground.OpenEnv(*dir); err == nil && env.Worlds() > 0 {
 		p.env = env
 	} else {

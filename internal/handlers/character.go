@@ -221,8 +221,17 @@ func (h *CharacterHandler) RegisterHandlers(r *Registry) {
 // saves where the character stood and takes it out of the world, so the
 // account can log in again at once (one login at a time counts a session
 // heard from in the last minute as live).
+//
+// A Quit while creatures fight the character does not end the session: the
+// character stays in the world, link-dead, until they stop (or a minute
+// passes), as a dropped client's does (entity/linkdead.go; the user,
+// 2026-10-31: a quit was a way out of any fight).
 func (h *CharacterHandler) HandleLogout(sess *session.Session, msg *protocol.Message) error {
 	log.Printf("Logout: %s quit the game (0x09B0)", sess.RemoteAddr())
+	if h.gameWorld != nil && sess.CharacterInWorld() && h.gameWorld.QuitInFight(sess) > 0 {
+		sess.SetQuitting(time.Now())
+		return nil
+	}
 	sess.SetPendingTermination(true)
 	return nil
 }
@@ -635,6 +644,25 @@ func (h *CharacterHandler) HandleSelectedChar(sess *session.Session, msg *protoc
 	}
 	// and its dyes, drawn by a client of the live game's look (livelook.go)
 	h.loadDyes(player, record.ServerID)
+	// and the hit points and power it left the world with, and what its HoT
+	// and PoT gave back while it was away, within the maxima its gear gives
+	// it now (entity/linkdead.go): until 2026-10-31 every login filled them
+	if player != nil && h.store != nil {
+		if hp, power, saved, ok, err := h.store.TakeVitals(record.ServerID); err != nil {
+			log.Printf("SelectedChar: '%s' hit points kept: %v", record.CharName, err)
+		} else if ok {
+			// what its HoT and PoT gave back while it was away (it rested);
+			// a row that says no time comes back as it was left
+			var away time.Duration
+			if !saved.IsZero() {
+				away = time.Since(saved)
+			}
+			if got, gotPower, set := h.gameWorld.RestoreVitals(sess, hp, power, away); set {
+				log.Printf("SelectedChar: '%s' left with %d HP and %d power %v ago, back with %d and %d",
+					record.CharName, hp, power, away.Round(time.Second), got, gotPower)
+			}
+		}
+	}
 
 	// NOT sent: WorldEntry (0x002E). Sandstorm never sends it — zero
 	// occurrences across all three PS2 captures. Its promoted session goes

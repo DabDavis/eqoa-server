@@ -376,6 +376,7 @@ func (l *Listener) tickAllSessions() {
 	var toRemove []*session.Session
 
 	l.sessionManager.ForEach(func(sess *session.Session) bool {
+		l.endQuitStay(sess, time.Now())
 		// Clean up sessions flagged for termination (ping timeout, disconnect)
 		if sess.PendingTermination() {
 			toRemove = append(toRemove, sess)
@@ -415,21 +416,44 @@ func (l *Listener) tickAllSessions() {
 
 	// Remove terminated sessions and their ECS entities
 	for _, sess := range toRemove {
-		log.Printf("Cleaning up terminated session %s (instance=0x%X, objectID=%d)",
-			sess.RemoteAddr(), sess.InstanceID(), sess.PlayerObjectID())
-		if l.gameWorld != nil && sess.CharacterInWorld() {
-			// Save player position, spell effects and standings to database before removing
-			if l.charStore != nil {
-				l.savePlayerPosition(sess)
-				l.saveEffects(sess)
-				l.saveFactions(sess)
-				l.saveMastery(sess)
-				l.saveRez(sess) // rezsave.go
-			}
-			l.gameWorld.RemovePlayerBySession(sess)
-		}
-		l.sessionManager.RemoveSession(sess)
+		l.endSession(sess)
 	}
+}
+
+// endQuitStay ends the session of a client that quit while creatures fought
+// its character once they have stopped (entity/linkdead.go): until then it is
+// a dropped client's, its character fought on. A session another login took
+// the character from ends as a replaced one does.
+func (l *Listener) endQuitStay(sess *session.Session, now time.Time) {
+	since, quit := sess.QuittingSince()
+	if !quit || sess.PendingTermination() || l.gameWorld == nil {
+		return
+	}
+	if _, replaced := sess.ReplacedFor(); replaced || !l.gameWorld.QuitStayOver(sess, since, now) {
+		return
+	}
+	log.Printf("Logout: %s's stay after its quit is over (%v)", sess.RemoteAddr(), now.Sub(since).Round(time.Second))
+	sess.SetPendingTermination(true)
+}
+
+// endSession saves a terminated session's character and takes it and the
+// session away.
+func (l *Listener) endSession(sess *session.Session) {
+	log.Printf("Cleaning up terminated session %s (instance=0x%X, objectID=%d)",
+		sess.RemoteAddr(), sess.InstanceID(), sess.PlayerObjectID())
+	if l.gameWorld != nil && sess.CharacterInWorld() {
+		// Save player position, spell effects and standings to database before removing
+		if l.charStore != nil {
+			l.savePlayerPosition(sess)
+			l.saveEffects(sess)
+			l.saveFactions(sess)
+			l.saveMastery(sess)
+			l.saveRez(sess) // rezsave.go
+			l.saveVitals(sess)
+		}
+		l.gameWorld.RemovePlayerBySession(sess)
+	}
+	l.sessionManager.RemoveSession(sess)
 }
 
 // saveEffects keeps the player's spell effects over the logout, what is left
@@ -467,6 +491,29 @@ func (l *Listener) saveFactions(sess *session.Session) {
 		log.Printf("saveFactions: '%s' %d standings: %v", player.Name, len(m), err)
 	} else if len(m) > 0 {
 		log.Printf("saveFactions: '%s' keeps its standing with %d factions", player.Name, len(m))
+	}
+}
+
+// saveVitals keeps the player's hit points and power over the logout
+// (entity/linkdead.go); one dead or about to respawn comes back whole. As
+// saveFactions, an old session's Player is not saved (the new login has it).
+func (l *Listener) saveVitals(sess *session.Session) {
+	hp, power, keep, ok := l.gameWorld.Vitals(sess)
+	if !ok {
+		return
+	}
+	id := sess.CharacterServerID()
+	if p := l.gameWorld.SessionPlayer(sess); p != nil {
+		id = p.CharServerID
+	}
+	var err error
+	if keep {
+		err = l.charStore.SaveVitals(id, hp, power)
+	} else {
+		err = l.charStore.ClearVitals(id)
+	}
+	if err != nil {
+		log.Printf("saveVitals: character %d: %v", id, err)
 	}
 }
 
@@ -535,6 +582,7 @@ func (l *Listener) SaveAll() {
 		l.saveFactions(sess)
 		l.saveMastery(sess)
 		l.saveRez(sess) // rezsave.go
+		l.saveVitals(sess)
 	}
 	log.Printf("SaveAll: %d players saved", len(inWorld))
 }

@@ -93,11 +93,14 @@ func (h *CombatHandler) HandleAttack(sess *session.Session, msg *protocol.Messag
 }
 
 // HandleSwingOutOfReach is a bare 0x00D8: CLIENT's AutoAttackTick
-// (0x00BC76A0 [V]) swung at a target out of its reach and will try again in
-// 2 s. The server's own reach test (entity/attack.go) already holds the
-// swing; there is nothing to answer, and an unhandled opcode would be logged
-// every 2 s for as long as the button is held.
+// (0x00BC76A0 [V]) found its due swing's target out of its reach, played no
+// swing and will look again in 2 s. The server's rounds keep that beat
+// (entity/attack.go SwingOutOfReach): the round begun for the swing is
+// called off and the next looked for 2 s on. Nothing is answered.
 func (h *CombatHandler) HandleSwingOutOfReach(sess *session.Session, msg *protocol.Message) error {
+	if h.gameWorld != nil {
+		h.gameWorld.SwingOutOfReach(sess, time.Now())
+	}
 	return nil
 }
 

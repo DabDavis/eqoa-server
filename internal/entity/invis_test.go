@@ -40,12 +40,19 @@ func TestInvisibilityEndsWithACastOrAnAttack(t *testing.T) {
 		t.Error("an attack engaged left the attacker invisible")
 	}
 
-	// invisible again mid-fight: the next round shows it
+	// invisible again mid-fight: the next round's first hit shows it (the
+	// client swung; a round its 0x00D8 calls off before then ends nothing)
 	c.land(t, invis, c.me, 7*time.Second)
 	c.p.AutoAttack = true
 	c.p.NextSwing = c.at(11 * time.Second)
 	c.w.mu.Lock()
 	c.w.attackSystem(c.at(11 * time.Second))
+	c.w.mu.Unlock()
+	if seen(c.p) {
+		t.Error("a round begun, its first hit not yet come, showed the attacker")
+	}
+	c.w.mu.Lock()
+	c.w.attackSystem(c.at(11*time.Second + 500*time.Millisecond))
 	c.w.mu.Unlock()
 	if !seen(c.p) {
 		t.Error("a round swung left the attacker invisible")

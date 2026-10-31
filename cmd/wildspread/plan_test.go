@@ -144,3 +144,31 @@ func TestSpotCount(t *testing.T) {
 		t.Errorf("spots %v, want world 0: 2, world 2: 1", got)
 	}
 }
+
+// Rathe's zones are CLIENT's grid's (sZones1): Dead Hills at (5000, 7000), the
+// sea's column "Empty" (641) west of 4000; and a zone's rule is found by its
+// name. The control: Tunaria's grid at the same place says otherwise.
+func TestZonesReadRathesGrid(t *testing.T) {
+	if w := zoneWord(1, 5000, 7000); w != 1179 {
+		t.Errorf("Rathe (5000, 7000): word %d, want 1179 (Dead Hills)", w)
+	}
+	if w := zoneWord(1, 3000, 7000); w != 641 {
+		t.Errorf("Rathe's west sea: word %d, want 641", w)
+	}
+	if w := zoneWord(0, 5000, 7000); w == 1179 {
+		t.Error("Tunaria read with Rathe's grid")
+	}
+	words := make([]string, 1200)
+	words[1179] = "Dead Hills"
+	words[1177] = "Geomancer's Citadel"
+	p := &plan{words: words}
+	if r := p.ruleAt(1, 5000, 7000); r == nil || !r.undead {
+		t.Errorf("Dead Hills' rule: %+v, want the undead's", r)
+	}
+	if r := p.ruleAt(1, 5000, 3000); r == nil || !r.leave {
+		t.Errorf("Geomancer's Citadel's rule: %+v, want it left as it is", r)
+	}
+	if r := p.ruleAt(0, 5000, 7000); r != nil {
+		t.Errorf("a rule in Tunaria: %+v", r)
+	}
+}

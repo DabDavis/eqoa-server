@@ -22,6 +22,11 @@ type plan struct {
 	prima     map[string][]primaEntry
 	biomes    map[string][]string
 	worlds    []*worldPlan
+	// zones.go's: the kinds its rules name, the undead's bodies and kinds
+	ruled      map[string]*kind
+	deadBodies map[uint32]bool
+	deadKinds  map[int]map[string]*kind
+	zoneLevels map[[2]int]int
 }
 
 // kind is a wildlife kind: every creature of a name that the server
@@ -31,6 +36,7 @@ type kind struct {
 	spelling string // as most of its rows write it
 	rows     []*npcRow
 	spots    map[int]int // in how many spots of each world its creatures stand (chains within spotLink)
+	made     *made       // a kind this server has no row of, made from a body (made.go); rows are its body's
 }
 
 // spotLink chains a kind's creatures into one spot.
@@ -50,7 +56,7 @@ type fill struct {
 	level      int
 	x, y, z    float64
 	facing     int
-	source     string // "local": the wildlife round it; "prima": the bestiary's for the place
+	source     string // "local": the wildlife round it; "prima": the bestiary's for the place; "made": made.go's
 	placeLevel int    // the place's level (localLevel)
 }
 
@@ -252,8 +258,18 @@ func (p *plan) world(w int) {
 	for _, r := range movers {
 		wp.pointsBefore = append(wp.pointsBefore, pt{r.x, r.z, int(r.id)})
 	}
+	// the zones left as they are (zones.go): nothing placed in them
+	left := make([]bool, len(land.kind))
+	for k := range left {
+		if land.kind[k] == sLand {
+			x, z := land.xz(k)
+			if r := p.ruleAt(w, x, z); r != nil && r.leave {
+				left[k] = true
+			}
+		}
+	}
 	open := func(k int) bool {
-		if !land.placeable(k) {
+		if !land.placeable(k) || left[k] {
 			return false
 		}
 		x, z := land.xz(k)
@@ -266,10 +282,21 @@ func (p *plan) world(w int) {
 	for _, m := range wp.moves {
 		wp.pointsAfter = append(wp.pointsAfter, pt{m.x, m.z, int(m.row.id)})
 	}
-	wp.fills, wp.empty = p.fillGaps(land, wp, open, camps, rng)
-	for _, f := range wp.fills {
+	// the rules' camps (zones.go), then the fill round them
+	occupied := newIndex(100)
+	for _, q := range wp.pointsAfter {
+		occupied.add(q.x, q.z, q.v)
+	}
+	campFills := p.placeCamps(land, w, open, occupied, rng)
+	for _, f := range campFills {
 		wp.pointsAfter = append(wp.pointsAfter, pt{f.x, f.z, -1})
 	}
+	var gapFills []fill
+	gapFills, wp.empty = p.fillGaps(land, wp, open, camps, rng)
+	for _, f := range gapFills {
+		wp.pointsAfter = append(wp.pointsAfter, pt{f.x, f.z, -1})
+	}
+	wp.fills = append(campFills, gapFills...)
 	wp.after = measure(land, open, wp.pointsAfter)
 	p.worlds = append(p.worlds, wp)
 	say("world %d: %d creatures, %d spread in %d clumps, %d filled; open land beyond 250 of a creature %.1f%% -> %.1f%%",
@@ -314,6 +341,9 @@ func (p *plan) stays(r *npcRow, land *landGrid, towns, camps *index) string {
 		return "in or near a town"
 	case camps.within(r.x, r.z, campKeep):
 		return "an EQOA-Data camp's"
+	}
+	if z := p.ruleAt(r.world, r.x, r.z); z != nil && z.leave {
+		return "in a zone left as it is (" + z.zone + ")"
 	}
 	k := land.cell(r.x, r.z)
 	if k < 0 || !land.placeable(k) {
@@ -574,14 +604,17 @@ func lloyd(land *landGrid, samples []int, centre, n int) []int {
 }
 
 // settle is a creature's place at a sample: a little off it (so the
-// creatures do not stand on a grid), on the floor there, else the sample's
-// own.
+// creatures do not stand on a grid) within the sample's zone, on the floor
+// there, else the sample's own.
 func (p *plan) settle(land *landGrid, k int, rng *rand.Rand) (x, y, z float64) {
 	sx, sz := land.xz(k)
 	sh := float64(land.h[k])
 	for try := 0; try < 4; try++ {
 		x = sx + (rng.Float64()*2-1)*jitter
 		z = sz + (rng.Float64()*2-1)*jitter
+		if zoneWord(land.world, x, z) != zoneWord(land.world, sx, sz) {
+			continue
+		}
 		h, ok := p.g.Floor(uint8(land.world), float32(x), 1e6, float32(z))
 		if !ok || math.Abs(float64(h)-sh) > 5 || badAt(p.env, land.world, x, float64(h), z) {
 			continue
@@ -633,6 +666,9 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 	sort.Strings(keys)
 	for _, key := range keys {
 		k := p.kinds[key]
+		if k.made != nil {
+			continue // its rows are its body's, not its own (made.go)
+		}
 		for _, r := range k.rows {
 			if r.world != w || !r.wild || !r.open || r.wet || camps.within(r.x, r.z, campKeep) {
 				continue
@@ -688,6 +724,25 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 		}
 		return gaps[a].k < gaps[b].k
 	})
+	// the undead a zone of the dead copies (zones.go), where they stand
+	type dead struct {
+		k     *kind
+		level int
+	}
+	var deads []dead
+	deadIx := newIndex(250)
+	dk := p.undeadKinds(w)
+	deadKeys := make([]string, 0, len(dk))
+	for key := range dk {
+		deadKeys = append(deadKeys, key)
+	}
+	sort.Strings(deadKeys)
+	for _, key := range deadKeys {
+		for _, r := range dk[key].rows {
+			deadIx.add(r.x, r.z, len(deads))
+			deads = append(deads, dead{dk[key], r.level})
+		}
+	}
 	var fills []fill
 	empty := 0
 	for _, gp := range gaps {
@@ -696,6 +751,64 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 			continue
 		}
 		place := localLevel(x, z)
+		// a zone with creatures of its own (zones.go)
+		if rule := p.ruleAt(w, x, z); rule != nil && (rule.undead || len(rule.kinds) > 0) {
+			var k *kind
+			var level int
+			if zl := p.zoneLevel(w, x, z); zl > 0 {
+				place = zl // the zone's own level, not its neighbours'
+			}
+			if rule.undead {
+				weight := map[*kind]float64{}
+				lvls := map[*kind][]weighed{}
+				for reach := kindReach; reach <= 3*kindReach && len(weight) == 0; reach += kindReach {
+					deadIx.near(x, z, reach, func(q pt, d float64) {
+						dd := deads[q.v]
+						weight[dd.k] += nearness(d)
+						lvls[dd.k] = append(lvls[dd.k], weighed{dd.level, nearness(d)})
+					})
+				}
+				var ks []*kind
+				total := 0.0
+				for kk, wt := range weight {
+					if place > 0 && abs(weightedMedian(lvls[kk])-place) > levelBand {
+						continue
+					}
+					ks = append(ks, kk)
+					total += wt
+				}
+				sort.Slice(ks, func(a, b int) bool { return ks[a].key < ks[b].key })
+				pick := rng.Float64() * total
+				for _, kk := range ks {
+					pick -= weight[kk]
+					if pick <= 0 {
+						k = kk
+						break
+					}
+				}
+				if k == nil && len(ks) > 0 {
+					k = ks[len(ks)-1]
+				}
+				if k != nil {
+					level = max(1, weightedMedian(lvls[k])+[]int{-1, 0, 0, 1}[rng.Intn(4)])
+				}
+			} else {
+				k, level = p.pickRuleKind(rule, nil, rng)
+			}
+			if k == nil {
+				empty++
+				continue
+			}
+			fx, fy, fz := p.settle(land, gp.k, rng)
+			src := "zone"
+			if rule.undead {
+				src = "undead"
+			}
+			fills = append(fills, fill{kind: k, template: template(k, w, fx, fz), level: level,
+				x: fx, y: fy, z: fz, facing: rng.Intn(256), source: src, placeLevel: place})
+			occupied.add(fx, fz, -1)
+			continue
+		}
 		sections := p.sectionsAt(w, x, z)
 		// the free wildlife round it, by kind: its weight and its levels here
 		weight := map[*kind]float64{}
@@ -767,8 +880,12 @@ func (p *plan) fillGaps(land *landGrid, wp *worldPlan, open func(int) bool, camp
 		}
 		level = max(1, level)
 		fx, fy, fz := p.settle(land, gp.k, rng)
+		from := source
+		if chosen.k.made != nil {
+			from = "made"
+		}
 		fills = append(fills, fill{kind: chosen.k, template: template(chosen.k, w, fx, fz), level: level,
-			x: fx, y: fy, z: fz, facing: rng.Intn(256), source: source, placeLevel: place})
+			x: fx, y: fy, z: fz, facing: rng.Intn(256), source: from, placeLevel: place})
 		occupied.add(fx, fz, -1)
 	}
 	return fills, empty

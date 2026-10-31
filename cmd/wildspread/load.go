@@ -37,6 +37,7 @@ type input struct {
 	pets      map[string]bool   // a pet's body: a spell's name (entity/pet.go)
 	water     map[string]string // npcmove's water word by name
 	moveNote  map[string]string // npcmove's note by name
+	undead    map[string]bool   // npcundead's word by name
 	protected map[int64]string  // rows another tool or table places, and why
 	places    []placeRule       // npcfaction's rules bound to a place
 }
@@ -85,7 +86,7 @@ func load(db *database.SQLiteDB, g *ground.Ground, env *ground.Env) (*input, err
 		return nil, err
 	}
 	in := &input{byID: map[int64]*npcRow{}, players: players, pets: map[string]bool{},
-		water: map[string]string{}, moveNote: map[string]string{}, protected: map[int64]string{}}
+		water: map[string]string{}, moveNote: map[string]string{}, undead: map[string]bool{}, protected: map[int64]string{}}
 	if err := in.readTables(db); err != nil {
 		return nil, err
 	}
@@ -135,6 +136,9 @@ func (in *input) readTables(db *database.SQLiteDB) error {
 	})
 	strs(`SELECT name, note FROM npcmove`, func(a, b string) {
 		in.moveNote[database.NPCClassKey(a)] = b
+	})
+	strs(`SELECT name, CAST(undead AS TEXT) FROM npcundead`, func(a, b string) {
+		in.undead[database.NPCClassKey(a)] = b != "0"
 	})
 	ids := func(why, q string) {
 		rows, err := db.Query(q)

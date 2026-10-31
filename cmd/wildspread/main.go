@@ -56,7 +56,12 @@
 // with the server stopped (a swap's before.sh), or restart after.
 //
 //	wildspread -db eqoa.db -ground worlds/ground [-words WORDS.TXT] [-eqoa-data DIR]
-//	    [-prima prima-frontiers-layout.txt] [-out DIR] [-worlds 0,1,2] [-seed N] [-apply | -undo]
+//	    [-prima prima-frontiers-layout.txt] [-make-kinds 1] [-out DIR] [-worlds 0,1,2] [-seed N]
+//	    [-apply | -undo]
+//
+// -make-kinds makes the bestiary's beasts a world has no row of from the
+// bodies of kinds it has (made.go: Rathe's), for the fill where nothing round
+// will do.
 package main
 
 import (
@@ -100,6 +105,7 @@ func main() {
 	primaPath := flag.String("prima", "", "Prima's Frontiers guide as pdftotext -layout writes it: its bestiary, the wildlife each biome has")
 	out := flag.String("out", "wildspread", "where the report goes")
 	worldsFlag := flag.String("worlds", "0,1,2", "the worlds to spread and fill")
+	makeFlag := flag.String("make-kinds", "", "the worlds whose missing bestiary beasts are made from bodies (made.go), e.g. 1 for Rathe")
 	seed := flag.Int64("seed", defaultSeed, "the plan's random seed")
 	apply := flag.Bool("apply", false, "write the plan into the database")
 	undo := flag.Bool("undo", false, "take an applied plan out again")
@@ -166,6 +172,17 @@ func main() {
 		if p.biomes, err = readZoneBiomes(*eqoaData); err != nil {
 			log.Fatal(err)
 		}
+	}
+	if *makeFlag != "" {
+		makeWorlds := map[int]bool{}
+		for _, s := range strings.Split(*makeFlag, ",") {
+			n, err := strconv.Atoi(strings.TrimSpace(s))
+			if err != nil {
+				log.Fatalf("-make-kinds: %q", s)
+			}
+			makeWorlds[n] = true
+		}
+		p.makeKinds(makeWorlds)
 	}
 	for _, w := range worlds {
 		p.world(w)

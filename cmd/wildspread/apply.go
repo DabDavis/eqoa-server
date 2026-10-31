@@ -42,13 +42,28 @@ func applyPlan(db *database.SQLiteDB, p *plan, seed int64) error {
 		return err
 	}
 	defer tx.Rollback()
-	if _, err := tx.Exec(logSchema); err != nil {
+	if _, err := tx.Exec(logSchema + kindsSchema); err != nil {
 		return fmt.Errorf("the log tables: %w", err)
 	}
 	var seqBefore sql.NullInt64
 	if err := tx.QueryRow(`SELECT seq FROM sqlite_sequence WHERE name = 'npcs'`).Scan(&seqBefore); err != nil &&
 		err != sql.ErrNoRows {
 		return err
+	}
+	// the made kinds the fills take (made.go), their name-keyed rows first
+	kindRows, madeDone := 0, map[*kind]bool{}
+	for _, wp := range p.worlds {
+		for _, f := range wp.fills {
+			if f.kind.made == nil || madeDone[f.kind] {
+				continue
+			}
+			madeDone[f.kind] = true
+			n, err := writeMadeKind(tx, f.kind)
+			if err != nil {
+				return fmt.Errorf("the made kind %q: %w", f.kind.spelling, err)
+			}
+			kindRows += n
+		}
 	}
 	moved, added := 0, 0
 	for _, wp := range p.worlds {
@@ -92,6 +107,8 @@ func applyPlan(db *database.SQLiteDB, p *plan, seed int64) error {
 		"had_seq":    fmt.Sprint(seqBefore.Valid),
 		"moved":      fmt.Sprint(moved),
 		"added":      fmt.Sprint(added),
+		"made_kinds": fmt.Sprint(len(madeDone)),
+		"kind_rows":  fmt.Sprint(kindRows),
 		"params":     string(params),
 	}
 	for k, v := range meta {
@@ -102,7 +119,8 @@ func applyPlan(db *database.SQLiteDB, p *plan, seed int64) error {
 	if err := tx.Commit(); err != nil {
 		return err
 	}
-	say("applied: %d moved, %d added (wildspread_moves, wildspread_adds)", moved, added)
+	say("applied: %d moved, %d added (wildspread_moves, wildspread_adds); %d kinds made, %d of their rows (wildspread_kinds)",
+		moved, added, len(madeDone), kindRows)
 	return nil
 }
 
@@ -224,6 +242,10 @@ func undoPlan(db *database.SQLiteDB) error {
 		return err
 	}
 	deleted, _ := res.RowsAffected()
+	kindRows, err := undoMadeKinds(tx)
+	if err != nil {
+		return fmt.Errorf("the made kinds: %w", err)
+	}
 	var maxID sql.NullInt64
 	if err := tx.QueryRow(`SELECT MAX(id) FROM npcs`).Scan(&maxID); err != nil {
 		return err
@@ -243,6 +265,7 @@ func undoPlan(db *database.SQLiteDB) error {
 	if err := tx.Commit(); err != nil {
 		return err
 	}
-	say("undone: %d moved back, %d left where a GM had put them, %d added rows deleted", back, left, deleted)
+	say("undone: %d moved back, %d left where a GM had put them, %d added rows deleted, %d made kinds' rows deleted",
+		back, left, deleted, kindRows)
 	return nil
 }

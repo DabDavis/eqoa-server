@@ -55,6 +55,11 @@ func undeadName(name string) bool {
 	return reUndeadName.MatchString(strings.ToLower(name))
 }
 
+// UndeadName reports whether a creature's name says it is undead, as the
+// world reads a name with no npcundead row (cmd/wildspread's zones of the
+// dead).
+func UndeadName(name string) bool { return undeadName(name) }
+
 // SetUndeadTags sets the GMs' undead tags (table npcundead), keyed as
 // database.NPCClassKey keys a name.
 func (w *World) SetUndeadTags(tags map[string]bool) {

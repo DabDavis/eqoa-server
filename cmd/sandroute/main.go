@@ -41,16 +41,18 @@ import (
 type pt struct{ x, z float64 }
 
 type planner struct {
-	g          *ground.Ground
-	env        *ground.Env // the water, slime, lava and mud (<world>.env), nil: none known
-	w          uint8
-	stop, look float64
-	clear      float64
-	below      float64
-	sea        float64 // no stop under it: Sandstorm's water level (wet)
-	lifted     int     // stops dryUp lifted out of water, slime, lava or mud
-	tops       map[[2]int32]column
-	allFloors  bool // rows over every column with a floor, the sea's too (-all-floors)
+	g           *ground.Ground
+	env         *ground.Env // the water, slime, lava and mud (<world>.env), nil: none known
+	w           uint8
+	stop, look  float64
+	clear       float64
+	below       float64
+	sea         float64 // no stop under it: Sandstorm's water level (wet)
+	lifted      int     // stops dryUp lifted out of water, slime, lava or mud
+	tops        map[[2]int32]column
+	allFloors   bool    // rows over every column with a floor, the sea's too (-all-floors)
+	liftClear   float64 // a stop lifted into the open flies this over the highest floor near it
+	underMargin float64 // a lifted stop this far under its floors is still under them
 }
 
 // dry reports land at (x, z): a floor, not under water, slime, lava or mud.
@@ -158,14 +160,14 @@ func (p *planner) wet(a pt, ya float64, b pt, yb float64) (float64, bool) {
 	return ceil, any
 }
 
-// liftClear is how far over the highest floor near its legs a stop lifted
-// out of the water flies when that leaves it in the open (dryUp).
-const liftClear = 20
-
 // dryUp lifts stops till no leg is wet: a wet leg lifts both its stops over
 // it, and a lifted stop's other leg is looked at again. A lifted stop no
-// longer 3 under every floor near its legs is in the open, where a creature
-// could reach it, and flies liftClear over the highest of them. It returns
+// longer p.underMargin (-under-margin: 3, and 12 where a creature on the
+// ground could reach down to a stop just under it) under every floor near
+// its legs is in the open, where a creature could reach it, and flies p.liftClear over the highest of them (-lift-clear:
+// 20, and 60 where a creature hits hard and sees far, as in Odus's The Hunt
+// and the Isle of Dread: Sandstorm shows little more than 90 under a client,
+// so 60 still sees the ground's creatures). It returns
 // how many stops it lifted.
 func (p *planner) dryUp(path []pt, ys []float64) int {
 	lifted := map[int]bool{}
@@ -184,8 +186,8 @@ func (p *planner) dryUp(path []pt, ys []float64) int {
 		}
 		for j := range lifted {
 			lo, hi, ok := p.stopFloors(path, j)
-			if ok && ys[j] > lo-3 && ys[j] < hi+liftClear {
-				ys[j], changed = hi+liftClear, true
+			if ok && ys[j] > lo-p.underMargin && ys[j] < hi+p.liftClear {
+				ys[j], changed = hi+p.liftClear, true
 			}
 		}
 		if !changed {
@@ -454,12 +456,14 @@ func main() {
 	to := flag.String("to", "", "x,z: one flight from -from straight to here instead, by the same rules")
 	skipList := flag.String("skip", "", "-zones: zones left out (done), comma-separated names, so the first transit starts at -from")
 	allFloors := flag.Bool("all-floors", false, "rows over every column with a floor, the sea's too: for the creatures in the water")
+	liftClear := flag.Float64("lift-clear", 20, "a stop lifted out of the water into the open flies this over the highest floor near it")
+	underMargin := flag.Float64("under-margin", 3, "a lifted stop at least this far under every floor near it is still under them")
 	flag.Parse()
 	g, err := ground.Open(*dir)
 	if err != nil {
 		log.Fatal(err)
 	}
-	p := &planner{g: g, w: uint8(*world), stop: *stop, look: *look, clear: *clear, below: *below, sea: *sea, tops: map[[2]int32]column{}, allFloors: *allFloors}
+	p := &planner{g: g, w: uint8(*world), stop: *stop, look: *look, clear: *clear, below: *below, sea: *sea, tops: map[[2]int32]column{}, allFloors: *allFloors, liftClear: *liftClear, underMargin: *underMargin}
 	if env, err := ground.OpenEnv(*dir); err == nil && env.Worlds() > 0 {
 		p.env = env
 	} else {

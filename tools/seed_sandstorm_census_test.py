@@ -195,12 +195,16 @@ class SwapTest(unittest.TestCase):
         self.db.execute("INSERT INTO npcs (npc_name, x_coord, y_coord, z_coord, world, modelid, size, npc_level, npc_type, hp, "
                         "hp_percent, unk_i, robe_style) VALUES ('fire beetle', 7000, 60, 9000, 1, 7, 1.0, 20, 0, 1, 255, '15', '255')")
         census = sc.read_census([self.track])
-        sight = sc.Sight([(float(x), 80.0, 5000.0) for x in range(4500, 9600, 50)], 120)
+        sight = sc.Sight([(float(x), 80.0, 5000.0) for x in range(4500, 9600, 50)], 120, 60)
         _, removes, report = sc.plan(self.db, census, 1, swap=True, sight=sight)
         places = [(d["npc_name"], d["z_coord"]) for d in removes]
         self.assertIn(("fire beetle", 5000.0), places, "under the flight: removed")
         self.assertNotIn(("fire beetle", 9000.0), places, "4,000 off the flight: kept")
         self.assertEqual(report["unseen_kept"], 1)
+        # a flight 70 over the rows is out of sight over them: nothing goes
+        high = sc.Sight([(float(x), 130.0, 5000.0) for x in range(4500, 9600, 50)], 120, 60)
+        _, removes3, _ = sc.plan(self.db, census, 1, swap=True, sight=high)
+        self.assertEqual(removes3, [])
         # the control: with no sight given, every unkept row goes
         _, removes2, _ = sc.plan(self.db, census, 1, swap=True)
         self.assertIn(("fire beetle", 9000.0), [(d["npc_name"], d["z_coord"]) for d in removes2])

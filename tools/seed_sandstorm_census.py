@@ -59,10 +59,13 @@ matched against what is kept, so a kept kind's census creatures near ours
 are not made twice. Our townsfolk are never removed. --with-named and
 --with-pets make the named creatures and the summoned pets too (a named
 one is still not made where a kept row of ours has its name in the world).
-Only a row within SIGHT (120, --sight) of the census flight's own path is
-removed, where nine in ten of its sightings lie (99% within 158): a place
-the census never came near (a zone not flown yet, a deep dungeon, a
-basement under a tower) keeps what it has.
+Only a row within SIGHT (120, --sight) of the census flight's own path
+across and SIGHT_UP (60, --sight-up) over or under it is removed:
+Sandstorm shows a client the creatures within about 160 of it sideways but
+hardly any more than 90 under it (flights 80 and more over the ground saw
+the ground's creatures almost never), so a place the census never came near
+(a zone not flown yet, a deep dungeon, a basement under a flight) keeps
+what it has.
 
 Every row added is logged in sandstorm_census_seed_w<world> (the table,
 the rowid, the census id), and every row removed with the whole row;
@@ -93,6 +96,7 @@ DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
 PLAYER_IDS = 100_000_000
 MATCH = 150.0
 SIGHT = 120.0
+SIGHT_UP = 60.0
 LOG = "sandstorm_census_seed"
 META = "sandstorm_census_meta"
 
@@ -154,10 +158,11 @@ def read_path(paths, step=20.0):
 
 
 class Sight:
-    """Whether a place lies within `reach` (3D) of the census flight's path."""
+    """Whether a place lies within `reach` across and `up` over or under some
+    place of the census flight's path."""
 
-    def __init__(self, path, reach=SIGHT):
-        self.reach, self.cells = reach, collections.defaultdict(list)
+    def __init__(self, path, reach=SIGHT, up=SIGHT_UP):
+        self.reach, self.up, self.cells = reach, up, collections.defaultdict(list)
         for p in path:
             self.cells[(int(p[0] // 100), int(p[2] // 100))].append(p)
 
@@ -166,7 +171,7 @@ class Sight:
         for i in range(cx - n, cx + n + 1):
             for j in range(cz - n, cz + n + 1):
                 for p in self.cells.get((i, j), ()):
-                    if math.dist(p, (x, y, z)) <= self.reach:
+                    if abs(p[1] - y) <= self.up and math.hypot(p[0] - x, p[2] - z) <= self.reach:
                         return True
         return False
 
@@ -457,7 +462,8 @@ def main():
     ap.add_argument("--with-named", action="store_true", help="make the named creatures too")
     ap.add_argument("--with-pets", action="store_true", help="make the summoned pets too")
     ap.add_argument("--swap", action="store_true", help="remove our creatures in the world but those a quest or a table keeps")
-    ap.add_argument("--sight", type=float, default=SIGHT, help="--swap removes only a row this near the census flight's path")
+    ap.add_argument("--sight", type=float, default=SIGHT, help="--swap removes only a row this near the census flight's path, across")
+    ap.add_argument("--sight-up", type=float, default=SIGHT_UP, help="... and this near it over or under")
     ap.add_argument("--plan", help="write the rows it would add, as JSON")
     ap.add_argument("--compact", help="write the census as two lines a creature (read back as a track file)")
     ap.add_argument("--apply", action="store_true")
@@ -479,7 +485,7 @@ def main():
         print(f"compact: {len(census)} creatures and {len(flight)} places of the flight to {a.compact}")
     if a.swap and not flight:
         sys.exit("--swap needs the census flight's path (the tracks' self lines)")
-    sight = Sight(flight, a.sight) if a.swap else None
+    sight = Sight(flight, a.sight, a.sight_up) if a.swap else None
     adds, removes, report = plan(db, census, a.world, a.match, a.with_npcs, a.swap, a.with_named, a.with_pets, sight)
     print(f"{len(files)} track files: {report['seen']} creatures seen, {report['matched']} ours already, "
           f"{report['missing_creatures']} creatures and {report['missing_people']} townsfolk missing; {report['adds']} to add"

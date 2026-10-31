@@ -7,13 +7,17 @@ import (
 )
 
 // Creatures wander round their spawn (F3 20261025-044257: "Wildlife does not
-// roam around"), within the roam radius (world.roam_radius, 75 since F3
-// 20261025-164404: "Wild life roaming needs increased distance and
-// randomization. At least 5x the distance"; it was 15): legs of 5 to 35 in
-// any direction from where it stands, inside the radius, walked at
-// Sandstorm's walking pace (npcmove.go), each followed by a rest of 3 to 25 s,
-// or, two times in five, a pause of half a second to two and another leg, so
-// a creature meanders about its ground rather than crossing it straight. A
+// roam around"), within the roam radius (world.roam_radius, 225 since F3
+// 20261029-024920, jib: "increase roaming range ... for all wildlife by
+// triple. Decrease the frequency at which they stop roaming as they stand
+// around unnaturally a lot", the user's yes of 2026-10-31; 75 since F3
+// 20261025-164404, 15 before): legs of 10 to 75 in any direction from where
+// it stands, inside the radius, walked at Sandstorm's walking pace
+// (npcmove.go), each followed by a rest of 2 to 12 s, or, three times in
+// five, a pause of half a second to two and another leg, so a creature
+// meanders about its ground rather than crossing it straight, on its feet
+// about 70% of the time (it was 31%: legs of 5 to 35, rests of 3 to 25 s two
+// times in five, then three in five). A
 // leg never ends in a town nor passes through one (towns.go: "they should
 // generally not path near or into cities"), unless the creature lives there.
 // Sandstorm's own wander between rests, walking at 5 units a second
@@ -40,24 +44,24 @@ import (
 // keep's floor, a bridge) does not wander.
 
 // DefaultRoamRadius is how far from its spawn a creature wanders.
-const DefaultRoamRadius float32 = 75
+const DefaultRoamRadius float32 = 225
 
 // The rest between walks, the pause before a leg walked straight on (the
 // chance of one), and the first rest of one that comes into a player's
 // range (so a crowd does not set off at once).
 const (
-	roamRestMin   = 3 * time.Second
-	roamRestMax   = 25 * time.Second
+	roamRestMin   = 2 * time.Second
+	roamRestMax   = 12 * time.Second
 	roamPauseMin  = 500 * time.Millisecond
 	roamPauseMax  = 2 * time.Second
-	roamOnChance  = 0.4
+	roamOnChance  = 0.6
 	roamFirstRest = 10 * time.Second
 )
 
 // A leg's length.
 const (
-	roamLegMin float32 = 5
-	roamLegMax float32 = 35
+	roamLegMin float32 = 10
+	roamLegMax float32 = 75
 )
 
 // roamActiveRange is how near a player a creature must be to wander: the

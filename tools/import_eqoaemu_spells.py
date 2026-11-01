@@ -522,41 +522,81 @@ def item_ref(wb, items_by_name, e, id_col, count):
     return out
 
 
-# a line's clause naming an item it makes or takes: "Summon Unit of Blood x1"
-# (Feed's), "Reagent Unit of Blood x2" (the vampires' abilities); "Summon
-# Player" is a kind of its own and "Summons a pet" a pet's
-LINE_ITEM_WORDS = {"item": re.compile(r"(?i)^summon (?!player\b)(.+?)(?: x\d+)?$"),
-                   "consume": re.compile(r"(?i)^reagent (.+?)(?: x\d+)?$")}
+# a line's clause naming an item it makes or takes, as the server's readers
+# take them (entity/potion.go's reSummonItem, spelltext.go's Reagent): "SELF
+# Summon Draught", "Self, Summon Item: foraged herb", "Summons Unstable Potion
+# X3", "Summon Unit of Blood x1" (Feed's); "Reagent Unit of Blood x2" (the
+# vampires' abilities). "Summon Player" is a kind of its own, and a creature's
+# summoning ("to your aid", a familiar) no item
+LINE_TARGET = re.compile(r"(?i)^(?:self|target(?:\s+undead)?|groups?|pet)\b[\s,]*")
+LINE_ITEM_WORDS = {
+    "item": re.compile(r"(?i)^summ[ou]ns?\s+(?!player\b)(?:item\s*:?\s*)?(?:an?\s+|the\s+)?(.+?)(?:\s+x\s*\d+)?$"),
+    "consume": re.compile(r"(?i)^reagent\s+(.+?)(?:\s+x\s*\d+)?$"),
+}
+LINE_CREATURE = re.compile(r"(?i)\b(?:to your aid|to aid|creature|familiar|familar)\b")
 
 
-def name_items_by_line(j, old, items_by_name):
-    """A made ("item") or taken ("consume") item the workbook names none of
-    (its Created Item Info sheet has no row of it: Feed's Unit of Blood, the
-    vampires' reagents), named as a spell of ours names it in its line, when
-    the line names exactly one of that kind and it is an item of ours: the
-    server reads a spell's effects alone (the brief's contract), so a name
-    only the line had would make nothing and take nothing (a free cast). The
-    workbook's count stays. Returns what it named, for the report."""
-    done = []
+def line_items(old, key):
+    """The items a line names in clauses of that kind ("item" made, "consume" taken)."""
+    out = []
+    for c in old.split(","):
+        c = LINE_TARGET.sub("", re.sub(r"\s*\([^)]*\)", "", c).strip()).strip()
+        m = LINE_ITEM_WORDS[key].match(c)
+        if m and not LINE_CREATURE.search(c):
+            out.append(m.group(1).strip())
+    return out
+
+
+def settle_item_names(j, old, items_by_name, item_names):
+    """Each made ("item") or taken ("consume") item under the name the server
+    finds it by (handlers' summonItem and the reagent check read an item by
+    its name; the effects are all the server reads, the brief's contract):
+    one that is an item of ours by the workbook's name (our_item: its
+    "Acidic Mix Potion" is our "Acidic Potion", its "Sparkling Cider effect"
+    the food made for it) takes our item's own name; one the workbook names
+    none of ours of, or names not at all (Neriak Cocktail's "Neriak Fire
+    Potion", Feed's Unit of Blood, the vampires' reagents), takes the one item
+    of ours of that kind a spell of ours names in its line ("SELF Summon
+    Grobb Cocktail", "Reagent Unit of Blood x2"). The workbook's name stays as
+    sheet_name, its count as it is. Returns (renamed, by_line): what it did,
+    for the report; an item left none of ours makes nothing or takes
+    nothing."""
+    renamed, by_line = [], []
 
     def walk(objs):
         for o in objs:
             yield o
             yield from walk(o.get("procs") or [])
 
-    clauses = [c.strip() for c in old.split(",")]
-    for key, words in LINE_ITEM_WORDS.items():
-        blank = [o[key] for o in walk(j["effects"]) if key in o and not (o[key].get("name") or "").strip()]
-        named = [m.group(1).strip() for m in map(words.match, clauses) if m]
-        ours = [n for n in named if our_item(items_by_name, n) is not None]
-        if len(blank) != 1 or len(ours) != 1:
+    for key in LINE_ITEM_WORDS:
+        unresolved = []
+        for o in walk(j["effects"]):
+            it = o.get(key)
+            if it is None:
+                continue
+            nm = (it.get("name") or "").strip()
+            pid = it.get("patternid")
+            if pid is None and nm:
+                pid = our_item(items_by_name, nm)
+            if pid in item_names:
+                if it.get("name") != item_names[pid]:
+                    it["sheet_name"], it["name"], it["patternid"] = nm, item_names[pid], pid
+                    renamed.append(f"{nm!r} -> {item_names[pid]!r}")
+            else:
+                unresolved.append(it)
+        ours = [n for n in line_items(old, key) if our_item(items_by_name, n) in item_names]
+        if len(unresolved) != 1 or len(ours) != 1:
             continue
-        it = blank[0]
-        it["name"], it["patternid"] = ours[0], our_item(items_by_name, ours[0])
+        it, pid = unresolved[0], our_item(items_by_name, ours[0])
+        nm = (it.get("name") or "").strip()
+        if nm:
+            it["sheet_name"] = nm
+        it["name"], it["patternid"] = item_names[pid], pid
         if not str(it.get("sheet_item_id") or "").strip():
             it.pop("sheet_item_id", None)
-        done.append(f"{'makes' if key == 'item' else 'takes'} {ours[0]} x{it.get('count', 1)}")
-    return done
+        by_line.append(f"{'makes' if key == 'item' else 'takes'} {item_names[pid]} x{it.get('count', 1)}"
+                       + (f" (the workbook's {nm!r}, none of ours)" if nm else ""))
+    return renamed, by_line
 
 
 def effect_objects(e, ctx, wb, items_by_name, proc_of=None):
@@ -1425,15 +1465,20 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
 
         # what it does
         if j["effects"]:
-            if rec is not None:
-                for what in name_items_by_line(j, (erows.get(sid) or {}).get("line") or "", items_by_name):
-                    lists["an item the workbook names none of, named as our line names it"].append(
-                        f"{sid} {rec['spellname']}: {what}")
+            old_line = ((erows.get(sid) or {}).get("line") or "") if rec is not None else ""
+            renamed, by_line = settle_item_names(j, old_line, items_by_name, item_names)
+            for what in renamed:
+                lists["a made or taken item of ours by the workbook's name, under our item's own"].append(
+                    f"{sid} {cell(s, 'Name')}: {what}")
+            for what in by_line:
+                lists["a made or taken item the workbook names none of ours of, named as our line names it"].append(
+                    f"{sid} {cell(s, 'Name')}: {what}")
             for key in ("item", "consume"):
-                if any(key in o and not (o[key].get("name") or "").strip() for o in j["effects"]):
-                    lists[f"an item the workbook names none of, {'made' if key == 'item' else 'taken'} by a spell "
-                          f"none of whose lines name one (it {'makes' if key == 'item' else 'takes'} nothing)"].append(
-                        f"{sid} {cell(s, 'Name')}")
+                left = [o[key].get("name") or "no name" for o in j["effects"] if key in o and "patternid" not in o[key]]
+                if left:
+                    lists[f"an item none of ours {'made' if key == 'item' else 'taken'} (it "
+                          f"{'makes' if key == 'item' else 'takes'} nothing)"].append(
+                        f"{sid} {cell(s, 'Name')}: {', '.join(left)}")
             line = line_of(j, proc_desc, new_scope, item_names)
             text = dumps(j)
             now = erows.get(sid)

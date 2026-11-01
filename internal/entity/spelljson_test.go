@@ -588,6 +588,43 @@ func TestADoTCureTakesWhatTicks(t *testing.T) {
 	}
 }
 
+// A spell for a target whose every effect is for the area round it
+// (Lightning Maelstrom's record) is that area: its target takes both
+// figures, a creature 8 off the area's, one 40 off nothing; a target spell
+// with an effect of its own scope stays a target's (the control).
+func TestATargetSpellOfAreaEffectsIsAnArea(t *testing.T) {
+	noResist(t)
+	storm := wbSpell(9841, 60, 1, "Test Maelstrom", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"stack":0,"level":60,"radius":25,
+		"effects":[{"id":"08ED","type":"Dmg/Heal","kind":"hp","amount":-846,"resist":"lr","scope":"target_aoe"},
+		{"id":"08ED","type":"Dmg/Heal","kind":"hp2","amount":-360,"resist":"lr","scope":"target_aoe"}]}`)
+	plain := wbSpell(9842, 60, 1, "Test Bolt", `{"v":1,"scope":"target","target_type":"Enemy","harmful":true,"stack":0,"level":60,"radius":25,
+		"effects":[{"id":"0001","type":"Dmg/Heal","kind":"hp","amount":-846,"resist":"lr"},{"id":"0001","type":"Dmg/Heal","kind":"hp2","amount":-360,"resist":"lr"}]}`)
+	for _, c := range []struct {
+		spell      CastSpell
+		near, area bool
+	}{{storm, true, true}, {plain, false, false}} {
+		k := newCaster(t)
+		k.p.Level = 60
+		k.npc.HP, k.npc.MaxHP, k.npc.Level = 50000, 50000, 55
+		k.w.SpatialIndex.Insert(k.npc.ServerID, k.npc.X, k.npc.Z)
+		mk := func(id EntityID, dx float32) *NPC {
+			n := &NPC{ServerID: id, Name: "Test Crab", Level: 55, HP: 50000, MaxHP: 50000, X: k.npc.X + dx, Y: k.npc.Y, Z: k.npc.Z}
+			k.w.NPCs[id] = n
+			k.w.SpatialIndex.Insert(id, n.X, n.Z)
+			return n
+		}
+		near, far := mk(7201, 8), mk(7202, 40)
+		if got := c.spell.Area.Centre != AreaNone; got != c.area {
+			t.Fatalf("%s: an area %v, want %v", c.spell.Name, got, c.area)
+		}
+		k.landSeen(t, c.spell, k.npcO)
+		tookT, tookN, tookF := 50000-k.npc.HP, 50000-near.HP, 50000-far.HP
+		if tookT < 1206 || (tookN > 0) != c.near || tookF != 0 || c.near && tookN >= tookT {
+			t.Errorf("%s: the target took %d, 8 off %d, 40 off %d", c.spell.Name, tookT, tookN, tookF)
+		}
+	}
+}
+
 // A player below a spell's lowest level is not affected; one at it is (the
 // control).
 func TestWorkbookLowestLevel(t *testing.T) {

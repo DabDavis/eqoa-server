@@ -16,6 +16,8 @@ necromancer's, "take it out" of the enchanter's epic option).
     Desecration (700673, a zombie form with resist and AC caps): EQOA-Data's
     lines, none in the workbook, taught by nothing, and each read to no
     effect (the user: "remove them").
+  - The enchanter's Soothing Visage (700544, "Group, Weapon proc, 5min") and
+    Adoration (700661): EQOA-Data's, taught by nothing ("remove them").
   - The enchanter's Eldritch Rune (701132), one of the six spells its level
     60 epic reward quest offers: its line is only a description ("Level 60
     Epic third spell option. ..."), no source has its effects, and it did
@@ -51,7 +53,11 @@ LEFTOVERS = [
     (8, 700643, "Savage Healing"), (8, 700654, "Tribal Healing"), (8, 700672, "Spiritform"),
     (12, 701132, "Eldritch Rune"),
     (11, 701214, "Revert Lich"), (11, 700673, "Stone of Desecration"),
+    (12, 700544, "Soothing Visage"), (12, 700661, "Adoration"),
 ]
+# leftovers whose quest choices this takes out with them (the only quest that
+# may still name one: any other quest giving a leftover refuses it)
+CHOICES_TAKEN = {701132}
 LOG = "leftover_spells_log"
 LOG_SCHEMA = f"""CREATE TABLE {LOG} (
     seq     INTEGER PRIMARY KEY,
@@ -81,9 +87,41 @@ def gives(option, sid):
     return str(sid) in [s.strip() for s in str(option.get("spells", "")).split(",")]
 
 
+def quest_gives(db):
+    """{spellid: [where]}: every spell a quest step gives, by its spells, its
+    choices' options or its rewards by class (byclass)."""
+    out = {}
+    if not has_table(db, "queststeps"):
+        return out
+    cols = columns(db, "queststeps")
+    want = [c for c in ("spells", "choices", "byclass") if c in cols]
+    for row in db.execute(f"SELECT questid, step, {', '.join(want)} FROM queststeps").fetchall():
+        qid, step, vals = row[0], row[1], dict(zip(want, row[2:]))
+        ids = []
+        ids += [x.strip() for x in str(vals.get("spells") or "").split(",")]
+        for key in ("choices", "byclass"):
+            text = vals.get(key) or ""
+            if not text:
+                continue
+            try:
+                o = json.loads(text)
+            except ValueError:
+                continue
+            opts = o.get("options", []) if key == "choices" and isinstance(o, dict) else \
+                (list(o.values()) if isinstance(o, dict) else [])
+            for opt in opts:
+                if isinstance(opt, dict):
+                    ids += [x.strip() for x in str(opt.get("spells", "")).split(",")]
+        for x in ids:
+            if x.isdigit():
+                out.setdefault(int(x), []).append(f"quest {qid} step {step}")
+    return out
+
+
 def plan(db):
     """(rows, refused): rows [(op, table, rowid, data, after, note)], refused [why]."""
     rows, refused = [], []
+    given = quest_gives(db)
     ccols, scols = columns(db, "classspells"), columns(db, "spells")
     names = {}
     for cls, sid, name in LEFTOVERS:
@@ -92,6 +130,9 @@ def plan(db):
             continue  # no record: nothing of it to take out
         if (rec[0] or "").strip() != name:
             refused.append(f"{sid}: its record is {rec[0] if rec else 'gone'!r}, not {name!r}")
+            continue
+        if sid not in CHOICES_TAKEN and given.get(sid):
+            refused.append(f"{sid} {name}: a quest gives it ({', '.join(given[sid][:3])}); left")
             continue
         names[sid] = name
         for r in db.execute(f"SELECT rowid, {', '.join(ccols)} FROM classspells WHERE class = ? AND spellid = ?",

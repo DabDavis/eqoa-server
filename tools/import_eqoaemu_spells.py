@@ -659,6 +659,9 @@ def spell_json(s, wb, items_by_name):
     return out, missing
 
 
+REAGENT = re.compile(r"(?i)\breagents?\s*:?\s+[^,;]+?\s+x\s*\d+")
+
+
 def keep_line(j, old):
     """Why a spell we have keeps its line beside the workbook's effects: the
     line names what the server reads off it by name (a pet's template, an
@@ -861,6 +864,11 @@ def line_of(j, proc_desc=False, record_scope=None):
     elif (j["scope"] == "target_aoe" or (j["scope"] == "target" and j.get("radius"))) and \
             not any(" aoe " in p for p in parts):
         parts.append("AOE")
+    # a reagent the cast takes (vampire.go reads "Reagent <item> xN")
+    for o in effects:
+        c = o.get("consume") or {}
+        if c.get("name") and "patternid" in c:
+            parts.append(f"Reagent {c['name']} x{c.get('count', 1)}")
     d = j.get("duration_s") or max([o.get("duration_s") or 0 for o in effects] + [0])
     line = head + ", " + ", ".join(p for p in parts if p)
     if d:
@@ -1216,6 +1224,12 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None):
                 if keep:
                     counts[f"lines kept: {keep}"] += 1
                     line = now.get("line") or ""
+                elif "reagent" not in line.lower():
+                    # the reagent its line names, where the workbook names none of ours
+                    m = REAGENT.search(now.get("line") or "")
+                    if m:
+                        line += ", " + m.group(0).strip(" ,")
+                        counts["lines given their old reagent"] += 1
                 after = dict(line=line, effects=text, source=src)
                 before = {k: now.get(k, "") if k != "effects" else (now.get("effects") or "") for k in after}
                 if before != after:
@@ -1466,7 +1480,8 @@ def apply(db, p):
         added = "effects" not in columns(db, "spelleffect")
         if added:
             db.execute("ALTER TABLE main.spelleffect ADD COLUMN effects TEXT NOT NULL DEFAULT ''")
-        if not has_table(db, "spellarea"):
+        made_area = not has_table(db, "spellarea")
+        if made_area:
             db.execute("CREATE TABLE spellarea (spellid INTEGER PRIMARY KEY, centre INTEGER NOT NULL DEFAULT 0, "
                        "radius REAL NOT NULL DEFAULT 0, maxtargets INTEGER NOT NULL DEFAULT 0, note TEXT NOT NULL DEFAULT '')")
         for tbl, key, entries in (("spellpattern", "spellid", p["spells"]), ("spelleffect", "spellid", p["effects"]),
@@ -1518,7 +1533,7 @@ def apply(db, p):
             done += 1
         now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
         for k, v in {"applied_at": now, "sqlite_sequence": dumps(seqs), "added_effects_column": str(int(added)),
-                     "counts": dumps(p["counts"])}.items():
+                     "made_spellarea": str(int(made_area)), "counts": dumps(p["counts"])}.items():
             db.execute(f"INSERT OR REPLACE INTO {META} VALUES (?, ?)", (k, v))
         db.execute("COMMIT")
     except BaseException:
@@ -1597,6 +1612,8 @@ def undo(db, force=False):
     if meta.get("added_effects_column") == "1" and not left and \
             not db.execute("SELECT count(*) FROM main.spelleffect WHERE effects <> ''").fetchone()[0]:
         db.execute("ALTER TABLE main.spelleffect DROP COLUMN effects")
+    if meta.get("made_spellarea") == "1" and not db.execute("SELECT count(*) FROM main.spellarea").fetchone()[0]:
+        db.execute("DROP TABLE main.spellarea")
     return back, left, leftover
 
 

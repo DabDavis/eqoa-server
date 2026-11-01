@@ -27,6 +27,17 @@ import (
 // merchant's sale gives an item (GiveItemNow, 0x003B), three of a potion
 // (jib: "stacks of 3"); an auto-attack's throw takes one off the worn stack
 // (potionThrown).
+//
+// A potion's line may cost an item and give one (entity's PotionEffect
+// Reagent and Summons): "Reagent X xN" is held, carried (reagent.go, as a
+// cast's), or the Use is refused in red with nothing used; it is taken with
+// the potion (0x003C each), and what "Summon X" names is given after, as a
+// spell's summoning gives it. Envar's gems (tools/fix_eqoaemu_places.py):
+// each sends its user up one chamber of the Prophet's tower, takes the
+// cracked gem the last one left and leaves its own cracked one ("If you do
+// not have that cracked version of the gem, you will not be allowed to use
+// the gem in the next chamber. Thus people may not simply coth into the
+// tower", EQOA-Data's Envaric Ascension guide).
 
 // potionOf is the item's use, if it has one: its itemeffect row, read now, so
 // a GM's change counts at the next use.
@@ -77,6 +88,16 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 		refuse(text)
 		return
 	}
+	// what using it costs (its line's "Reagent X xN": one of Envar's gems,
+	// the cracked gem the last one left): held first, taken with it
+	var held []database.CharInventoryEntry
+	reagent, needs := pe.Reagent()
+	if reagent != "" {
+		var ok bool
+		if held, ok = reagentHeld(h.inventoryStore, sess, player, "Potion", row.Pattern.ItemName, &pe.Def); !ok {
+			return
+		}
+	}
 	refusal, err := h.gameWorld.UsePotion(sess, pe, target, time.Now())
 	switch {
 	case errors.Is(err, entity.ErrPotionNoPlayer):
@@ -93,6 +114,24 @@ func (h *EquipHandler) usePotion(sess *session.Session, player *entity.Player, i
 		return
 	}
 	queueReliable(sess, protocol.OpcodeRemoveInvItem, removeInvItemPayload(idx, 0, 1))
+	if reagent != "" {
+		// the stack the potion came off is one less now, if it is one of them
+		// (no potion is its own reagent: Envar's gems take another item)
+		left := held[:0]
+		for _, r := range held {
+			if r.ItemID == row.ItemID {
+				r.StackLeft--
+			}
+			if r.StackLeft > 0 {
+				left = append(left, r)
+			}
+		}
+		takeStacks(h.inventoryStore, sess, player, "Potion", left, needs)
+	}
+	// and what its line gives after it (a gem's cracked version)
+	for _, it := range pe.Summons() {
+		h.summonItem(sess, player.CharServerID, it.Name, it.Count, row.Pattern.ItemName)
+	}
 }
 
 // LoadPotions gives the World every item's use (at the start).

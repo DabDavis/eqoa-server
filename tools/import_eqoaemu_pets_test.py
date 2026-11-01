@@ -4,7 +4,8 @@ pets, spells and ids, none the game's): a pet joined to its summoning spell
 through the Effects sheet's PetID, its body and weapons byte-reversed, its
 numbers, stances and weapon kinds read, its spells made abilities by what
 they do (a nuke, an area nuke on its target, a taunt of hate alone, a heal of
-either, a lasting heal a buff on the owner, a debuff left out), a pettemplate
+either, a lasting heal a buff on the owner, a drain of the enemy's stats a
+life tap of them), a pettemplate
 row for a magician's pet by its element and none over one there; the apply's
 gm_audit lines, a GM's petstats row replaced (the workbook wins on all) and
 put back by --undo, the same plan again writing nothing, and --undo exact; and the schema the same as the server's."""
@@ -109,8 +110,10 @@ class ImportPetsTest(unittest.TestCase):
         self.assertEqual((a["stances"], b["stances"], c["type"]), ("", "passive", "non-combat"))
         self.assertEqual(json.loads(a["abilities"]), [
             {"every": 6.0, "first": 1.0, "kind": "nuke", "spell_id": 950},
-            {"every": 12.0, "first": 3.0, "kind": "nuke", "spell_id": 902306}])  # the hex left out, said
-        self.assertIn("a debuff", a["note"])
+            {"every": 12.0, "first": 3.0, "kind": "nuke", "spell_id": 902306},
+            # a drain of the enemy's stats a life tap of them (2026-11-01: a creature's stats count)
+            {"every": 60.0, "first": 5.0, "kind": "lifetap", "spell_id": 902307}])
+        self.assertNotIn("a debuff", a["note"])
         self.assertIn("an area spell", a["note"])
         self.assertEqual(json.loads(b["abilities"]), [
             {"every": 2.0, "first": 1.0, "kind": "taunt", "hits": [[1, 0, 0]]},

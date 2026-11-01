@@ -238,6 +238,14 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 			for i := n; i < len(d.Effects); i++ {
 				targetOnly[i] = true
 			}
+		case es == "group" && scope == "target" && groupShare(d.Effects[n:]):
+			// a share for the caster's group in a spell cast at an enemy
+			// (the shadow knight's screams' AC): its caster's, its group's
+			// when a mastery adds the spell (ShareGroup, lifetap.go)
+			for i := n; i < len(d.Effects); i++ {
+				d.Effects[i].Self, d.Effects[i].ShareGroup = true, true
+			}
+			d.ShareRadius = float32(s.Radius)
 		case es != "" && es != scope && es != "self" && es != "target":
 			d.unsupported("an effect for %q in a spell for %q (it lands as the spell's)", es, scope)
 		}
@@ -335,6 +343,18 @@ func effectOf(k EffectKind, e effectJSON) SpellEffect {
 		out.Resist = st
 	}
 	return out
+}
+
+// groupShare is whether a workbook effect's parts for a group, in a spell
+// cast at an enemy, are a share for the caster's side: each raises a stat
+// (Arcane Bonding's root on the target's group of enemies is not one).
+func groupShare(es []SpellEffect) bool {
+	for _, e := range es {
+		if e.Kind != EffectStat || e.Amount <= 0 {
+			return false
+		}
+	}
+	return len(es) > 0
 }
 
 // readEffectJSON adds one workbook effect to d; area collects a

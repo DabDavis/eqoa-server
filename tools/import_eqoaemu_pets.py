@@ -24,8 +24,9 @@ abilities, pinned by their ids here, each by what its effects do: a hit on
 the enemy a nuke (an area one on its target alone: a pet casts no area
 spell), a drained hit a life tap, a heal on itself, its owner or either (the
 sheet's "Owner/Self"), a buff on its owner, a "Modify Hate" a taunt of hate
-alone (no damage: the sheet gives none); a debuff or a snare has no pet kind
-and is left out, said. Each on a clock of its spell's recast (2 s at least),
+alone (no damage: the sheet gives none), a drain of the enemy's stats a life
+tap of them (the pet gains what it takes); a debuff or a snare has no pet
+kind and is left out, said. Each on a clock of its spell's recast (2 s at least),
 the first 1 s into a fight and the next 2 s after (ours). Its spells are new
 to this server (900000 + their hex ids): the spell import makes their
 records; an ability pinning one not there yet casts nothing, said.
@@ -289,8 +290,14 @@ def ability_of(spell, effects, spellid, i):
         if scope == "self":
             a.update(kind="buff", spell_id=spellid, target="self")
             return a, ""
-    if typ == "drain" and hp1 == 0:
-        return None, "a debuff of the enemy's stats (no pet ability kind; a creature here has no such stats)"
+    if typ == "drain" and hp1 == 0 and target == "enemy":
+        # a drain of the enemy's stats (a necromancer's pet's Undead Bane): a
+        # life tap of its stats, the pet's for the spell's time and the
+        # creature's loss, which counts in its fights since 2026-11-01
+        # (entity/pettemplate.go's petDrainStatsLocked); the sheet gives only
+        # the first rank a time (60 s), tools/fix_eqoaemu_pet_drains.py the rest
+        a.update(kind="lifetap", spell_id=spellid)
+        return a, ""
     return None, f"{e.get('TYPE')} on {e.get('Scope')} {e.get('Target Type')}: no pet ability kind"
 
 

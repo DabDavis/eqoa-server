@@ -277,6 +277,9 @@ func (w *World) threatensLocked(npc *NPC, p *Player) bool {
 		}
 	}
 	if f, ok := w.factionAggroLocked(npc); ok {
+		if p.disguised(time.Now()) {
+			return false // a disguise: no faction attacks it on sight (workbookmore.go)
+		}
 		return w.standingLocked(p, f) < FactionKOSBelow
 	}
 	return inAggroLevels(npc.Level, p.Level) && w.hostileLocked(npc)

@@ -216,7 +216,7 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	// Sandstorm's roll on the player's AC, AGI and archetype (defence.go),
 	// as its class template makes it (classtemplate.go), then the balance's
 	// (balance.go: its level's, its con's and the player's class's)
-	damage := w.npcHitPlayerLocked(npc, player, npc.meleeOut(npcMeleeRoll(npc).hitOn(player, meleeIntn)))
+	damage := w.npcHitPlayerLocked(npc, player, npc.meleeOut(npcMeleeRollFor(npc, player).hitOn(player, meleeIntn)))
 	damage = mitigateLocked(player, damage, now) // workbook.go: a mitigation's share off
 	player.HP -= damage
 	w.contactPlayerLocked(player) // what ends at a hit (workbook.go)
@@ -249,7 +249,8 @@ func (w *World) npcAttackPlayer(npc *NPC, playerID EntityID, now time.Time) {
 	if w.playerShieldsLocked(sess, player, npc, now) { // its damage shield and defensive procs (dshield.go)
 		return
 	}
-	w.procHealsLocked(player, true, now) // its defensive proc heals (workbook.go)
+	w.procHealsLocked(player, true, now)              // its defensive proc heals (workbook.go)
+	w.procSpellsLocked(player, sess, npc, true, now) // and spell procs (workbookmore.go)
 }
 
 // regenSystem gives every player its HoT in hit points and its PoT in power

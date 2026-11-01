@@ -82,6 +82,9 @@ type EffectRules struct {
 	ProcHealScale    Stat `json:",omitempty"`
 	ProcHealScalePct int  `json:",omitempty"`
 	ProcHealChance   int  `json:",omitempty"`
+	// Disguise: the factions do not attack the bearer on sight
+	// (workbookmore.go)
+	Disguise bool `json:",omitempty"`
 }
 
 // rulesOf is a cast's rules for what lasts of it.
@@ -115,6 +118,8 @@ func (ae *ActiveEffect) workbookLasting(e SpellEffect, d *SpellDef) bool {
 		ae.Rules.Breath = true
 	case EffectHide:
 		ae.Invis, ae.Rules.Hide = true, true
+	case EffectDisguise:
+		ae.Rules.Disguise = true
 	case EffectProcHeal:
 		ae.Rules.ProcHeal, ae.Rules.ProcHealDef = e.Amount, e.Defense
 		ae.Rules.ProcHealScale, ae.Rules.ProcHealScalePct, ae.Rules.ProcHealChance = e.Scale, e.ScalePct, e.Chance
@@ -231,6 +236,12 @@ func npcResistKindPct(npc *NPC, st Stat, now time.Time) int {
 			v = e.Mods.PR
 		case StatDR:
 			v = e.Mods.DR
+		case StatPierce, StatRanged: // melee resists (workbookmore.go)
+			v = e.Mods.Pierce
+		case StatBlunt:
+			v = e.Mods.Blunt
+		case StatSlash:
+			v = e.Mods.Slash
 		}
 		off = max(off, -v)
 	}

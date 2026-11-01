@@ -190,11 +190,11 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 	}
 	for _, kind := range []string{"animal", "summoned"} {
 		if strings.Contains(tt, kind) {
-			d.unsupported("target type %q (any creature takes it)", s.TargetType)
+			d.TargetKind = kind // workbookmore.go
 		}
 	}
-	if s.ReqEquip != "" && !strings.EqualFold(s.ReqEquip, "any") {
-		d.unsupported("required equipment %q", s.ReqEquip)
+	if r := strings.TrimSpace(s.ReqEquip); r != "" && !strings.EqualFold(r, "any") {
+		d.ReqEquip = r // workbookmore.go
 	}
 	d.Duration = seconds(s.DurationS)
 	var area []SpellEffect
@@ -366,8 +366,8 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			d.readSpeedJSON(e)
 		case !ok:
 			d.unsupported("%s of %q by %g", kind, e.Stat, e.Amount)
-		case st >= StatPierce && st <= StatRanged:
-			d.unsupported("%s resist debuff by %g", e.Stat, e.Amount)
+		case kind == "stat_set" && st >= StatPierce && st <= StatRanged:
+			d.unsupported("%s set to %g", e.Stat, e.Amount)
 		case kind == "stat_set" && st == StatMaxPower:
 			n := max(round(e.Amount), 0)
 			add(SpellEffect{Kind: EffectPowerCap, Amount: n, AmountMax: n, ID: e.ID})
@@ -500,11 +500,26 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 	case "breath":
 		add(SpellEffect{Kind: EffectBreath, ID: e.ID})
 	case "faction":
-		d.unsupported("a faction change")
+		add(SpellEffect{Kind: EffectDisguise, ID: e.ID}) // workbookmore.go
 	case "pickpocket":
-		d.unsupported("pickpocket")
-	case "melee_debuff", "off_mod", "def_mod", "hp_factor":
-		d.unsupported("%s %s by %g", kind, e.Stat, e.Amount)
+		add(SpellEffect{Kind: EffectPickpocket, ID: e.ID})
+	case "summon_player":
+		add(SpellEffect{Kind: EffectSummonPlayer, ID: e.ID})
+	case "off_mod", "def_mod", "hp_factor":
+		se := effectOf(EffectStat, e)
+		se.Stat = map[string]Stat{"off_mod": StatOffMod, "def_mod": StatDefMod, "hp_factor": StatHPFactor}[kind]
+		se.Resist = StatNone
+		if se.Amount != 0 {
+			add(se)
+		}
+	case "melee_debuff":
+		if st, ok := jsonStat(e.Stat); ok && st >= StatPierce && st <= StatRanged && e.Amount != 0 {
+			se := effectOf(EffectStat, e)
+			se.Stat = st
+			add(se)
+		} else {
+			d.unsupported("a melee debuff of %q", e.Stat)
+		}
 	default:
 		d.unsupported("kind %q (%s)", e.Kind, e.Type)
 	}
@@ -576,7 +591,25 @@ func (d *SpellDef) readProcsJSON(kind string, e effectJSON) {
 			}
 			d.Effects = append(d.Effects, se)
 		default:
-			d.unsupported("a %s proc of kind %q (%s)", on, p.Kind, p.Type)
+			// anything else a proc does (a hate, a stat taken, a tick, power)
+			// is a spell of its own the proc casts (workbookmore.go)
+			var pd SpellDef
+			var none []SpellEffect
+			pd.readEffectJSON("", "", p, false, &none)
+			if len(pd.Effects) == 0 {
+				d.unsupported("a %s proc of kind %q (%s)", on, p.Kind, p.Type)
+				continue
+			}
+			if strings.EqualFold(strings.TrimSpace(p.Scope), "self") {
+				for i := range pd.Effects {
+					pd.Effects[i].Self = true // on the bearer
+				}
+			}
+			ps := ProcSpell{Defense: def, Effects: pd.Effects, Duration: seconds(p.DurationS)}
+			if def {
+				ps.Chance = 100 // the legend's: a defensive proc at every hit
+			}
+			d.ProcSpells = append(d.ProcSpells, ps)
 		}
 	}
 }

@@ -344,6 +344,11 @@ func (w *World) contactPlayerLocked(p *Player) {
 	}
 }
 
+// untilContact is how long a harmful effect stays that the workbook gives no
+// time but ends at contact (Enshrouding darkness: the user's "until hit"):
+// a day, so a hit ends it, or its bearer's death, respawn or a restart.
+const untilContact = 24 * time.Hour
+
 // contactNPCLocked ends what lasts on a creature that ends when it is hit
 // or harmed (a lull).
 func contactNPCLocked(npc *NPC) {
@@ -352,7 +357,7 @@ func contactNPCLocked(npc *NPC) {
 	}
 	left := npc.Effects[:0]
 	for _, e := range npc.Effects {
-		if e.Rules.DispelOnContact {
+		if e.Rules.DispelOnContact && !e.ticking { // its own tick is no contact for itself
 			log.Printf("Cast: %q ends on %s: a hit", e.Name, npc.Name)
 			continue
 		}

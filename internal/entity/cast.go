@@ -260,11 +260,15 @@ type ActiveEffect struct {
 	// for nobody; TickRange the spell's range, for a group's share.
 	TickDrain DrainTo
 	TickRange float32
-	Mods      StatMods
-	Root      bool
-	Snare     bool
-	Speed     bool
-	Invis     bool
+	// ticking is set while the effect's own tick lands: its hit is no
+	// contact for itself (contactNPCLocked), as Caltrops' tick ended its own
+	// snare at its landing
+	ticking bool
+	Mods    StatMods
+	Root    bool
+	Snare   bool
+	Speed   bool
+	Invis   bool
 	// Proc is a proc's damage (proc.go): what the bearer's melee hits may do
 	// more, 0 for none; ProcMax the top of its range.
 	Proc, ProcMax int
@@ -1447,6 +1451,18 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 	if cs.spell.Def.forgets() {
 		return // the gaze angers nothing: what lasts of it, and its hate of 1, are not given
 	}
+	// a spell that only holds or slows still angers it, a resisted root too
+	// (root.go): hate of 1, as a resisted charm's, since a hate of none makes
+	// no enemy (addThreatLocked takes the highest above 0); a lull that took
+	// angers nothing (workbook.go). It comes before what lasts of the spell
+	// goes on: the anger is a contact (contactNPCLocked), which ends what was
+	// on the creature that ends at a hit, and until 2026-11-01 it came after,
+	// so every root and snare that ends at contact ended at its own landing
+	// (Root, Arcane Bindings, Caltrops, Enshrouding darkness: the user's
+	// "until hit")
+	if !cs.spell.Def.lulls() && !cs.spell.Def.picks() { // a pickpocket angers only when caught (workbookmore.go)
+		w.updateAggro(npc, caster.ServerID, 1)
+	}
 	ae := lasting(cs, caster, now)
 	if ae != nil && cs.spell.Def.hasIllusion() {
 		w.landNPCIllusionLocked(cs, npc, ae) // illusion.go: a thrown potion's body on the creature
@@ -1466,13 +1482,6 @@ func (w *World) landOnNPCLocked(cs *castState, caster *Player, casterSess *sessi
 		}
 		w.affected[npc.ServerID] = npc
 		w.tickNPCEffectLocked(npc, ae, now)
-	}
-	// a spell that only holds or slows still angers it, a resisted root too
-	// (root.go): hate of 1, as a resisted charm's, since a hate of none makes
-	// no enemy (addThreatLocked takes the highest above 0); a lull that took
-	// angers nothing (workbook.go)
-	if !cs.spell.Def.lulls() && !cs.spell.Def.picks() { // a pickpocket angers only when caught (workbookmore.go)
-		w.updateAggro(npc, caster.ServerID, 1)
 	}
 }
 
@@ -1524,6 +1533,8 @@ func (w *World) tickNPCEffectLocked(npc *NPC, ae *ActiveEffect, now time.Time) {
 	if ae.Rules.Twice { // the workbook's first tick, twice (workbook.go)
 		ae.Rules.Twice, times = false, 2
 	}
+	ae.ticking = true
+	defer func() { ae.ticking = false }()
 	for ; times > 0; times-- {
 		if caster := w.Players[ae.Caster]; caster != nil && !npc.Dead {
 			sess := w.findSessionByEntityIDLocked(caster.ServerID)

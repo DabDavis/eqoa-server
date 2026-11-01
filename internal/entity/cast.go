@@ -311,10 +311,10 @@ type ActiveEffect struct {
 	// Rules are what the workbook's effects say beside their numbers
 	// (workbook.go): kept over a logout
 	Rules EffectRules
-	// contact is what its parts a hit ends put on beside what its other
-	// parts do, when the workbook marks only some (workbook.go): kept over
-	// a logout; nil when a hit ends it whole, or nothing
-	contact *contactSplit
+	// parts are what each of its lasting parts puts on, when a hit, its
+	// bearer's cast or its own action may end some and not the others
+	// (parts.go): kept over a logout; nil for one that ends whole
+	parts []*effectPart
 	// ProcSpells are its procs that cast more than a hit (workbookmore.go)
 	ProcSpells []ProcSpell
 }
@@ -410,8 +410,8 @@ func (m *StatMods) add(st Stat, n int) {
 	}
 }
 
-// take takes o's changes back off m (an effect's parts that end at a hit:
-// endContactParts).
+// take takes o's changes back off m (an effect's parts that end apart:
+// parts.go's takeOff).
 func (m *StatMods) take(o StatMods) {
 	m.Str -= o.Str
 	m.Sta -= o.Sta
@@ -584,12 +584,16 @@ func (p *Player) SpeedNow() float32 {
 	}
 	slow := float32(1)
 	for _, e := range p.Effects {
-		// a duel opponent's hold or slow (duelfight.go); no other harm lands
-		// on a player
-		if e.duelFoe != 0 && e.Root {
+		// a hold: a duel opponent's (duelfight.go), or one of the player's
+		// own or a friend's cast puts on it (the druid's Spirit Form, the
+		// paladin's barriers: the user, 2026-11-01, "yes hold the tree form");
+		// no other harm lands on a player (classtemplate.go puts nothing
+		// lasting on one). Told as a run speed of 0 (0x00F8), as a duel's
+		// hold is, and the run speed again at its end
+		if e.Root {
 			return 0
 		}
-		if e.duelFoe != 0 && e.Snare {
+		if e.duelFoe != 0 && e.Snare { // a duel opponent's slow
 			slow = duelSnare
 		}
 	}
@@ -1183,13 +1187,12 @@ func capAmount(n, cap int) int {
 }
 
 // lasting is the part of a spell that stays on its target for the
-// duration, from this caster, or nil when nothing does; with what its parts
-// a hit ends put on beside its other parts' when the workbook marks only
-// some (contactSplitOf, workbook.go).
+// duration, from this caster, or nil when nothing does; with what each of
+// its lasting parts puts on when some may end apart (partsOf, parts.go).
 func lasting(cs *castState, caster *Player, now time.Time) *ActiveEffect {
 	ae := lastingParts(cs, caster, now)
 	if ae != nil {
-		ae.contact = contactSplitOf(cs, caster, now)
+		ae.parts = partsOf(cs, caster, now, ae.Until.Sub(now))
 	}
 	return ae
 }

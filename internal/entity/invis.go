@@ -1,8 +1,6 @@
 package entity
 
 import (
-	"log"
-
 	"github.com/eqoa/server/internal/session"
 )
 
@@ -20,17 +18,20 @@ import (
 // and chat should break invis") every other action of its bearer's
 // (BreakInvis, called before the handlers/invisactions.go messages). No
 // recording says what Sandstorm or SOE sent when invisibility broke; the
-// effect simply goes from the effects channel.
+// effect simply goes from the effects channel. An effect with more than its
+// invisibility (Spirit Walk's speed, Superior Invisibility's skeleton) loses
+// the invisibility alone, its invisible body with it, the rest staying to its
+// time (the user, 2026-11-01: "yes only end the marked part"; parts.go).
 
 // breakInvisLocked ends every invisibility on a player: casting a spell or
 // swinging at something shows it (F3 20261025-180117, jib: "Casting a
 // spell, or taking an action such as auto attacking should remove the
-// invisibility buff").
+// invisibility buff"); an effect with more than its invisibility keeps the
+// rest (parts.go).
 func (w *World) breakInvisLocked(p *Player, why string) {
 	for _, e := range append([]*ActiveEffect(nil), p.Effects...) {
 		if e.Invis {
-			w.removeEffectLocked(p, e.SpellID)
-			log.Printf("Cast: %q ends on %s: %s", e.Name, p.Name, why)
+			w.endOnPlayerLocked(p, e, partInvisible, why)
 		}
 	}
 }
@@ -51,7 +52,7 @@ func (w *World) BreakInvis(sess *session.Session, why string) {
 func breakNPCInvis(npc *NPC) {
 	left := npc.Effects[:0]
 	for _, e := range npc.Effects {
-		if !e.Invis {
+		if !e.Invis || endOnNPC(npc, e, partInvisible, "a swing") {
 			left = append(left, e)
 		}
 	}

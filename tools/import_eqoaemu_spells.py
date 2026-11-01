@@ -152,7 +152,10 @@ What it writes, and from what:
       client's merchant list holds. A spell a scroll of its name already
       teaches its class (handlers/scribe.go's rule: the exact name before
       spellKey's, the class's record first), or would scribe another record
-      of its name, gets none: listed.
+      of its name, gets none: listed. A scroll it finds keeps its level, so
+      one whose spell's level this sets asks for the old one:
+      tools/fix_scrolls.py, run after this import, brings each scroll to its
+      spell's level (and folds or renames a scroll that teaches nothing).
     Scroll + Quest: listed, unless a quest's reward already scribes it.
     Scroll + Drop: listed (no loot is changed).
     CM: nothing here (the masteries lane's).

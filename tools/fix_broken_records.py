@@ -270,11 +270,11 @@ def plan(db, eqoa_data):
     return dict(changes=out, lists={k: v for k, v in lists.items()})
 
 
-def references(db, pid):
+def references(db, pid, table=LOG):
     """The rows naming an item record: REFS' and TEXT_REFS' (moved by a
-    fold), a tool's log's (its provenance, left), any other table's column
-    named like a REFS one (unknown: the fold refused). Each (table, column,
-    rows)."""
+    fold), a tool's log's (its provenance, left: table is the folding tool's
+    own), any other table's column named like a REFS one (unknown: the fold
+    refused). Each (table, column, rows)."""
     out = dict(moved=[], provenance=[], unknown=[])
     known = {(t, c) for t, c in REFS} | {(t, c) for t, c, _ in TEXT_REFS}
     for t, c in REFS:
@@ -291,7 +291,7 @@ def references(db, pid):
     for (t,) in db.execute("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name").fetchall():
         if t == "itempattern":
             continue
-        log_table = t == LOG or bool(LOG_TABLE.search(t))
+        log_table = t in (LOG, table) or bool(LOG_TABLE.search(t))
         for c in columns(db, t):
             item_col = c.lower() == "patternid" or c.lower().endswith("pattern")
             # a log's id map (import_prh_content.py's src_id, dst_id) names
@@ -340,20 +340,25 @@ def swap_items(text, old, new, how):
     return json.dumps(j, separators=(",", ":"), ensure_ascii=False) if changed[0] else text
 
 
-def fold_into(db, when, c):
+def fold_into(db, when, c, table=LOG, once=()):
     """A broken record folded into the real one of its name (1.): every row
     naming it moved, its held copies made whole at the real one's item HP,
-    its record deleted, each row logged; returns (rows moved, held copies)
-    or None when the record or the real one is not as planned, or a row
-    could not be moved (a key the real record holds already)."""
+    its record deleted, each row logged in table (this tool's log, or
+    another's: tools/fix_scrolls.py's); returns (rows moved, held copies) or
+    None when the record or the real one is not as planned, or a row could
+    not be moved (a key the real record holds already). once names lists
+    that hold an item once, by (table, its owner's column): a row of one
+    whose owner holds the real record already is deleted, not moved (a
+    merchant selling both: tools/fix_scrolls.py's npcitem)."""
     pid, to = c["patternid"], c["fold"]
+    once = dict(once)
     cols = columns(db, "itempattern")
     if row_now(db, "itempattern", {"patternid": pid}, cols) != {k: c["row"].get(k) for k in cols}:
         return None
     real = row_now(db, "itempattern", {"patternid": to}, ["itemname", "maxhp"])
     if real is None or real["itemname"] != c["fold_name"]:
         return None
-    if references(db, pid)["unknown"]:
+    if references(db, pid, table)["unknown"]:
         return None
     db.execute("SAVEPOINT fold")
     moved, held, copies = 0, 0, []
@@ -362,8 +367,18 @@ def fold_into(db, when, c):
             if not has_table(db, t) or col not in columns(db, t):
                 continue
             for (rid,) in db.execute(f"SELECT rowid FROM {t} WHERE {col} = ? ORDER BY rowid", (pid,)).fetchall():
+                owner = once.get(t)
+                if owner and db.execute(f"SELECT 1 FROM {t} WHERE {owner} = (SELECT {owner} FROM {t} WHERE rowid = ?) "
+                                        f"AND {col} = ?", (rid, to)).fetchone():
+                    tcols = columns(db, t)
+                    row = dict(zip(tcols, db.execute(f"SELECT {', '.join(tcols)} FROM {t} WHERE rowid = ?", (rid,)).fetchone()))
+                    db.execute(f"DELETE FROM {t} WHERE rowid = ?", (rid,))
+                    log(db, when, t, {"rowid": rid}, "delete", dict(row, rowid_=rid), None,
+                        f"{c['name']}: folded into {to}, which its {owner} holds already", table)
+                    moved += 1
+                    continue
                 db.execute(f"UPDATE {t} SET {col} = ? WHERE rowid = ?", (to, rid))
-                log(db, when, t, {"rowid": rid}, "update", {col: pid}, {col: to}, f"{c['name']}: folded into {to}")
+                log(db, when, t, {"rowid": rid}, "update", {col: pid}, {col: to}, f"{c['name']}: folded into {to}", table)
                 moved += 1
                 if t == "charinventory":
                     copies.append(rid)
@@ -374,7 +389,7 @@ def fold_into(db, when, c):
                 w = swap_items(v, pid, to, how)
                 if w != v:
                     db.execute(f"UPDATE {t} SET {col} = ? WHERE rowid = ?", (w, rid))
-                    log(db, when, t, {"rowid": rid}, "update", {col: v}, {col: w}, f"{c['name']}: folded into {to}")
+                    log(db, when, t, {"rowid": rid}, "update", {col: v}, {col: w}, f"{c['name']}: folded into {to}", table)
                     moved += 1
     except sqlite3.IntegrityError:
         db.execute("ROLLBACK TO fold")
@@ -386,11 +401,11 @@ def fold_into(db, when, c):
         if hp and hp > 0 and now > hp:
             db.execute("UPDATE charinventory SET remainHP = ? WHERE rowid = ?", (hp, rid))
             log(db, when, "charinventory", {"rowid": rid}, "update", {"remainHP": now}, {"remainHP": hp},
-                f"a held {c['name']} made whole at {to}'s item HP")
+                f"a held {c['name']} made whole at {to}'s item HP", table)
             held += 1
     row = dict(row_now(db, "itempattern", {"patternid": pid}, cols), rowid_=pid)
     db.execute("DELETE FROM itempattern WHERE patternid = ?", (pid,))
-    log(db, when, "itempattern", {"patternid": pid}, "delete", row, None, f"{c['name']}: folded into {to}")
+    log(db, when, "itempattern", {"patternid": pid}, "delete", row, None, f"{c['name']}: folded into {to}", table)
     db.execute("RELEASE fold")
     return moved, held
 
@@ -458,7 +473,10 @@ def stripped(r, real, weapon_hp, worn_hp, lists):
 
 # ---- apply and undo -----------------------------------------------------------------
 
-LOG_DDL = f"""CREATE TABLE IF NOT EXISTS {LOG} (
+def log_ddl(table=LOG):
+    """A log table: this tool's, or another's that writes as it does
+    (tools/fix_scrolls.py's)."""
+    return f"""CREATE TABLE IF NOT EXISTS {table} (
     seq    INTEGER PRIMARY KEY,
     run    TEXT NOT NULL,     -- the run's time (UTC): --undo takes the last run back
     tbl    TEXT NOT NULL,
@@ -470,8 +488,11 @@ LOG_DDL = f"""CREATE TABLE IF NOT EXISTS {LOG} (
 )"""
 
 
-def log(db, run, tbl, ref, action, before, after, note=""):
-    db.execute(f"INSERT INTO {LOG} (run, tbl, ref, action, before, after, note) VALUES (?, ?, ?, ?, ?, ?, ?)",
+LOG_DDL = log_ddl()
+
+
+def log(db, run, tbl, ref, action, before, after, note="", table=LOG):
+    db.execute(f"INSERT INTO {table} (run, tbl, ref, action, before, after, note) VALUES (?, ?, ?, ?, ?, ?, ?)",
                (run, tbl, dumps(ref), action, None if before is None else dumps(before), None if after is None else dumps(after),
                 note or ""))
 
@@ -553,15 +574,16 @@ def apply(db, p, when=None):
     return recs, held, loot, stale
 
 
-def undo(db):
-    """Takes the last run back: (put back, left changed since, the run)."""
-    if not has_table(db, LOG):
+def undo(db, table=LOG):
+    """Takes the last run back (of this tool's log, or of another's that
+    writes as it does): (put back, left changed since, the run)."""
+    if not has_table(db, table):
         sys.exit("no run to undo here")
     back, left = 0, []
     db.execute("BEGIN IMMEDIATE")
     try:
-        run = db.execute(f"SELECT max(run) FROM {LOG}").fetchone()[0]
-        for tbl, ref, act, before, after in db.execute(f"SELECT tbl, ref, action, before, after FROM {LOG} WHERE run = ? "
+        run = db.execute(f"SELECT max(run) FROM {table}").fetchone()[0]
+        for tbl, ref, act, before, after in db.execute(f"SELECT tbl, ref, action, before, after FROM {table} WHERE run = ? "
                                                        "ORDER BY seq DESC", (run,)).fetchall():
             ref, before = json.loads(ref), json.loads(before)
             if act == "update":
@@ -579,9 +601,9 @@ def undo(db):
                     continue
                 db.execute(f"INSERT INTO {tbl} (rowid, {', '.join(row)}) VALUES (?, {', '.join('?' * len(row))})", [rid, *row.values()])
             back += 1
-        db.execute(f"DELETE FROM {LOG} WHERE run = ?", (run,))
-        if db.execute(f"SELECT count(*) FROM {LOG}").fetchone()[0] == 0:
-            db.execute(f"DROP TABLE {LOG}")
+        db.execute(f"DELETE FROM {table} WHERE run = ?", (run,))
+        if db.execute(f"SELECT count(*) FROM {table}").fetchone()[0] == 0:
+            db.execute(f"DROP TABLE {table}")
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")

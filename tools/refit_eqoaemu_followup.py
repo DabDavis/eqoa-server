@@ -9,19 +9,20 @@ re-fit's rows, against the 10:20 state (that database before the follow-up, the 
 
   a monk's bare hands roll a hand-to-hand DMG by its level (offence.go) and its kit is bare-handed, so its 30 punches
   are cast: a yellow left it 34-50% at 1-59 (43 levels off the targets), and at 60, its share fitted on a kit holding a
-  broken record (a DMG of 999, which no kit wears now), it won a yellow one up 20% of the time;
+  broken record (Sapphire's Sword, DMG 999, PoT 987: no kit wears one now), it won a yellow one up 20% of the time;
   a ranger dual wields its slashing blades and switches to its bow for its arrow arts as the server now switches a
   player's hands (handlers/handswitch.go: on demand, never back by itself, so after an arrow art in melee it swings its
   bow until a blade art), its bow rolling its DMG: 26 levels off, a yellow two up won 0-55% at 8-25, every fight lost at
-  60 (its share fitted on another broken record, Sapphire's Sword);
+  60 (its share, as the monk's, fitted on that broken record, Sapphire's Sword);
   a paladin's kit switches to a blunt weapon for its strikes, and Smite Undead's proc lands on the undead alone: 2-10
   too easy (35-46% left), 11, 17, 33, 52 and 55 too hard;
   a bard of 3-13, whose first arts do not choose its weapon (fewer than three name one: balancekit.go's simHandsLine),
   easier, at 7-8 a yellow two up lost, and at 60 a yellow two up won 35%;
   Avatar (a shaman's of 51) heals once at its landing, not 1500 a tick: at the 10:20 re-fit's 4-5x (fitted on the
   tick) a shaman of 51-54 lost every yellow;
-  a rooting wizard of 50, its staff the Phase Staff until the follow-up made it NO RENT (no kit wears one: INT 175 ->
-  150, power 659 -> 624), won a yellow two up 48% (68% at 10:20), and one of 60 57%;
+  a rooting wizard of 50 that had worn the Phase Crown (a conjured helm: NO RENT, which no kit wears now; INT 175 -> 150,
+  power 659 -> 624 all told) won a yellow two up 48% (68% at 10:20), and one of 60 that had worn the old dump's broken
+  records (eight level 60 pieces of INT 112, PoT 987 and LR 927 each, which no kit wears now) 57%;
   at the edges of the targets: a shadow knight of 53 and 60 (one up won 75-78%), a druid of 41 (its red won alone 57%)
   and of 53 (38% left), an enchanter's pet at 52 and 60 (one up won 75% and 62%), an alchemist of 16 rooting (two up
   52%).

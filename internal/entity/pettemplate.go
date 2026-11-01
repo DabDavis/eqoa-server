@@ -296,10 +296,16 @@ func (w *World) tellPetHealLocked(ps *petState, n int) {
 func (w *World) petWantsLocked(ps *petState, a *templateAbility, now time.Time) bool {
 	switch a.Kind {
 	case database.AbilityHeal:
-		if a.TargetOr() == database.AbilityOnOwner {
+		owner := func() bool {
 			o := ps.owner
 			top := o.MaxHPNow()
-			return top > 0 && o.HP*100 < top*a.BelowOr()
+			return top > 0 && !o.IsDead() && o.HP*100 < top*a.BelowOr()
+		}
+		switch a.TargetOr() {
+		case database.AbilityOnOwner:
+			return owner()
+		case database.AbilityOnEither:
+			return owner() || ps.npc.HP*100 < ps.npc.MaxHP*a.BelowOr()
 		}
 		return ps.npc.HP*100 < ps.npc.MaxHP*a.BelowOr()
 	case database.AbilityBuff:
@@ -366,6 +372,13 @@ func (w *World) petCastLocked(ps *petState, i int, t *NPC, now time.Time) bool {
 		c.target = t.ServerID
 	case a.TargetOr() == database.AbilityOnOwner:
 		c.target = ps.owner.ServerID
+	case a.TargetOr() == database.AbilityOnEither:
+		// its owner or itself, the lower share of its hit points
+		c.target = pet.ServerID
+		if o := ps.owner; !o.IsDead() && o.MaxHPNow() > 0 && pet.MaxHP > 0 &&
+			float64(o.HP)/float64(o.MaxHPNow()) < float64(pet.HP)/float64(pet.MaxHP) {
+			c.target = o.ServerID
+		}
 	default:
 		c.target = pet.ServerID
 	}
@@ -425,6 +438,9 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 			return
 		}
 		hit, drained := templateFigure(c.spell.Def.Effects, a.DamageOr())
+		if pet.sheet != nil {
+			hit, drained = sheetFigure(pet, c.spell.Def.Effects, a.DamageOr(), false) // its stats scale it (petstats.go)
+		}
 		if hit <= 0 {
 			return
 		}
@@ -438,6 +454,9 @@ func (w *World) petLandLocked(c *petCast, now time.Time) {
 		}
 	case database.AbilityHeal:
 		n := petHealFigure(c.spell, a)
+		if pet.sheet != nil {
+			n, _ = sheetFigure(pet, c.spell.Def.Effects, a.DamageOr(), true) // its stats scale it (petstats.go)
+		}
 		if c.target == ps.owner.ServerID {
 			o := ps.owner
 			if a.HealPct > 0 {
@@ -517,7 +536,8 @@ func petHealFigure(s *CastSpell, a *templateAbility) int {
 }
 
 // petTauntFigure is a taunt's damage from its hits points at the pet's
-// level: a roll between the line's least and most there, at least 1; ok
+// level: a roll between the line's least and most there, at least 1 (none
+// where the most is 0: a taunt of hate alone); ok
 // false with no points.
 func petTauntFigure(hits [][3]float64, level int) (n int, ok bool) {
 	if len(hits) == 0 {
@@ -539,6 +559,9 @@ func petTauntFigure(hits [][3]float64, level int) (n int, ok bool) {
 		}
 	}
 	lo, hi := int(math.Round(least)), int(math.Round(most))
+	if hi <= 0 {
+		return 0, true // a taunt of hate alone (a workbook pet's "Modify Hate")
+	}
 	if hi > lo {
 		lo += templateIntn(hi - lo + 1)
 	}
@@ -554,6 +577,10 @@ func (w *World) petTemplateTauntLocked(ps *petState, a *templateAbility, t *NPC,
 	w.petTopHateLocked(pet, t)
 	pet.LastCombatTime = now
 	if n, ok := petTauntFigure(a.Hits, pet.Level); ok {
+		if n == 0 {
+			log.Printf("Pet: %s's %q taunts %s", ps.owner.Name, pet.Name, t.Name)
+			return false
+		}
 		log.Printf("Pet: %s's %q taunts %s for %d", ps.owner.Name, pet.Name, t.Name, n)
 		return w.petLandHitLocked(ps, t, n, now, false)
 	}

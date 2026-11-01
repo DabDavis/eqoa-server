@@ -677,6 +677,9 @@ func (db *SQLiteDB) initSchema() error {
 	if err := db.ensurePetTemplates(); err != nil { // pettemplates.go
 		return err
 	}
+	if err := db.ensurePetStats(); err != nil { // petstats.go: the workbook's pets
+		return err
+	}
 	if err := db.ensureAuction(); err != nil { // auction.go
 		return err
 	}

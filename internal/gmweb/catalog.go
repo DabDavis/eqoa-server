@@ -1027,6 +1027,40 @@ var catalog = map[string]tableNote{
 			"source":      {Label: "Source", Help: "gm, or seed for the rows the table was made with"},
 		},
 	},
+	"petstats": {
+		Label: "Pet stats", Group: "World", Title: "name", Sort: "spellid",
+		Help: "A summoned pet's own numbers, by its SUMMONING SPELL's id (entity/petstats.go; EQOAEmu's spell workbook, the " +
+			"user's \"Workbook wins, re-fit\", tools/import_eqoaemu_pets.py). The pet takes the row's body (model: a CHAR.ESF " +
+			"CSprite as npcs.modelid; 0 chosen as before), weapons held (an item's model), name and level (at most its " +
+			"caster's), hit points (before Balance by level's and Balance by class and level's pet columns), power, HoT " +
+			"(scaled as its hit points are) and PoT a tick; its AC and AGI take off a creature's hits on it, and its STR " +
+			"and DEX move its own, as a player's of its type (tank, melee, priest, caster; non-combat: it never fights) " +
+			"with the row's weapon damage (wpn1; wpn2 its off hand every other hit); its resists a creature's spells; " +
+			"str_max..cha_max cap its stats (0 none). abilities is what it casts, as Class templates' abilities (its own " +
+			"spells pinned by spell_id; target either: its owner or itself, the lower), in place of its Pet class " +
+			"templates row's (keep_template 1: those after); that row's class and swing it keeps. stances lists the " +
+			"stances it takes (empty: all four). No row: the pet as before.",
+		Live:   "From the next summoning: a pet out now keeps what it was summoned with.",
+		Search: []string{"name", "sheet_pet_id", "type", "note", "source"},
+		Show:   []string{"spellid", "sheet_pet_id", "name", "level", "type", "model", "hp", "ac", "wpn1_dmg", "abilities"},
+		Cols: map[string]colNote{
+			"spellid":         {Label: "Summoning spell (key)", Help: "spellpattern's id"},
+			"sheet_pet_id":    {Label: "Workbook pet", Help: "the workbook's PetID, for tracing"},
+			"model":           {Label: "Body", Format: hex32, Help: "a CHAR.ESF CSprite's DictID; 0 the server's choice"},
+			"primary_model":   {Label: "Main hand", Format: hex32, Help: "an item's model; 0 none"},
+			"secondary_model": {Label: "Off hand", Format: hex32, Help: "an item's model; 0 none"},
+			"level":           {Label: "Level", Help: "0: the spell's; never above the caster's"},
+			"type":            {Label: "Type", Help: "tank, melee, priest, caster or non-combat"},
+			"stances":         {Label: "Stances", Help: "passive, defensive, neutral, aggressive (empty: all four)"},
+			"hp":              {Label: "Hit points", Help: "before the balance's pet columns; 0 its level's"},
+			"wpn1_type":       {Label: "Main hand kind", Help: "slash, blunt or pierce"},
+			"wpn2_type":       {Label: "Off hand kind", Help: "slash, blunt or pierce"},
+			"abilities":       {Label: "Abilities", Help: classTemplateAbilitiesHelp + `; "spell_id": a spell pinned by its id`},
+			"keep_template":   {Label: "Keep template abilities", Help: "1: its Pet class templates row's abilities as well"},
+			"note":            {Label: "Note"},
+			"source":          {Label: "Source", Help: "eqoaemu (tools/import_eqoaemu_pets.py), or gm"},
+		},
+	},
 	"cmcatalog": {
 		Label: "Class masteries", Group: "Items & spells", Title: "name", Sort: "id",
 		Help: "Every class mastery a character may buy in the Class Mastery window, a row a rank (entity/cmbuy.go). " +

@@ -361,6 +361,7 @@ func newPet(t *NPC, id EntityID, owner *Player, name string, level int) *NPC {
 	// a pet fights by no class template (classtemplate.go), its body's
 	// creature's or not
 	pet.tmpl, pet.tbase, pet.tfight = nil, templateBase{}, nil
+	pet.sheet = nil // a workbook pet's row is put on after (petstats.go)
 	return &pet
 }
 
@@ -375,7 +376,16 @@ func besideOwner(p *Player) (x, y, z float32) {
 func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Session, now time.Time) {
 	spell := &cs.spell
 	name := petSpellName(spell.Name)
-	t := w.petTemplateLocked(spell.Name, spell.Def.Pet, caster.Class)
+	sheet := w.templates.sheets[spell.SpellID] // the workbook's numbers for it, nil none (petstats.go)
+	var t *NPC
+	if sheet != nil {
+		t = w.petBodyLocked(sheet, spell.Name, spell.Def.Pet, caster.Class)
+		if sheet.Name != "" {
+			name = sheet.Name
+		}
+	} else {
+		t = w.petTemplateLocked(spell.Name, spell.Def.Pet, caster.Class)
+	}
 	if t == nil {
 		log.Printf("Pet: %s's %q: no creature of its name, its line's %q or its class's stand-in in this world: no pet",
 			caster.Name, spell.Name, spell.Def.Pet)
@@ -388,16 +398,34 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	if spell.Def.PetLevel > 0 {
 		level = petLevel(spell.Def.PetLevel, caster.Level) // its line's "level N"
 	}
+	if sheet != nil && sheet.Level > 0 {
+		level = petLevel(sheet.Level, caster.Level) // the workbook's
+	}
 	pet := newPet(t, w.allocFreeIDLocked(), caster, name, level)
+	if sheet != nil {
+		applyPetSheet(pet, sheet) // its body, weapons and numbers (petstats.go)
+	}
 	w.applyBalanceLocked(pet) // a pet's hit points of its level (balance.go)
 	petPowerLocked(pet)       // and its power (npcregen.go)
 	pet.SwingFixed, pet.SwingKind = petSwing(caster.Class, name)
 	kind := petKindOf(caster.Class, spell.Name)
 	hitScale := 1.0
 	pt := w.petTemplateForLocked(spell)
+	ownSwing := false
+	if sheet != nil {
+		// its own spells, its template row's class and swing (petstats.go);
+		// none of the recorded necromancer pets' rotation
+		kind, ownSwing = petKindOurs, pt == nil
+		pt = petSheetTemplate(sheet, spell, pt)
+	}
 	switch k, round, ok := petKindSwing(kind); {
 	case pt != nil:
+		fixed, swing := pet.SwingFixed, pet.SwingKind
 		hitScale = w.applyPetTemplateLocked(pet, pt) // its class (pettemplate.go)
+		if ownSwing {
+			// no template row: pet.go's swing (an enchanter's once a round)
+			pet.SwingFixed, pet.SwingKind, pet.SwingRound = fixed, swing, 0
+		}
 	case ok:
 		was := petHitRate(pet)
 		pet.SwingFixed, pet.SwingKind, pet.SwingRound = true, k, round // Sandstorm's (petrotation.go)
@@ -408,8 +436,8 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	if w.pets == nil {
 		w.pets = make(map[EntityID]*petState)
 	}
-	ps := &petState{owner: caster, npc: pet, stance: petDefensive, last: now, taunts: caster.Class == classEnchanter && pt == nil,
-		kind: kind, hitScale: hitScale, tmpl: pt}
+	ps := &petState{owner: caster, npc: pet, stance: petSheetStance(sheet), last: now,
+		taunts: caster.Class == classEnchanter && pt == nil, kind: kind, hitScale: hitScale, tmpl: pt}
 	w.pets[caster.ServerID] = ps
 	if sess != nil {
 		w.announcePetLocked(ps, sess)
@@ -420,6 +448,9 @@ func (w *World) summonPetLocked(cs *castState, caster *Player, sess *session.Ses
 	}
 	log.Printf("Pet: %s summons %q (%s's body, model %#x, size %.2f), level %d, %d HP, fights as %s (hits x%.2f), %s",
 		caster.Name, pet.Name, t.Name, uint32(pet.ModelID), pet.Size, pet.Level, pet.MaxHP, kind, hitScale, tmplName)
+	if sheet != nil {
+		logPetSheet(pet, sheet)
+	}
 }
 
 // announcePetLocked tells the owner its pet's id (0x007E) when it has not
@@ -585,6 +616,11 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 	pet := ps.npc
 	switch cmd {
 	case byte(petPassive), byte(petDefensive), byte(petNeutral), byte(petAggressive):
+		if pet.sheet != nil && !pet.sheet.TakesStance(int(cmd)) {
+			// a workbook pet takes its row's stances alone (petstats.go)
+			w.sendChatToSession(sess, petStanceRefused[petStance(cmd)])
+			return
+		}
 		ps.stance = petStance(cmd)
 		w.sendChatToSession(sess, petStanceWords[ps.stance])
 	case petCmdDismiss:
@@ -606,7 +642,7 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 			return
 		}
 		npc, isNPC := ent.(*NPC)
-		if !ok || !isNPC || !petMayFight(pet, npc) || distXZ(p.X, p.Z, npc.X, npc.Z) > petLeash {
+		if !ok || !isNPC || !pet.petFights() || !petMayFight(pet, npc) || distXZ(p.X, p.Z, npc.X, npc.Z) > petLeash {
 			w.sendChatToSession(sess, "Your pet cannot attack that.")
 			return
 		}
@@ -614,6 +650,14 @@ func (w *World) PetCommand(sess *session.Session, cmd byte, target uint32, now t
 		ps.heldUntil = time.Time{}
 		w.sendChatToSession(sess, "Your pet attacks "+npc.Name+".")
 	}
+}
+
+// petStanceRefused is the line for a stance a workbook pet does not take.
+var petStanceRefused = map[petStance]string{
+	petPassive:    "Your pet cannot be passive.",
+	petDefensive:  "Your pet cannot be defensive.",
+	petNeutral:    "Your pet cannot be neutral.",
+	petAggressive: "Your pet cannot be aggressive.",
 }
 
 var petStanceWords = map[petStance]string{
@@ -758,7 +802,7 @@ func (w *World) petChooseTargetLocked(ps *petState, now time.Time) {
 			return
 		}
 	}
-	if ps.stance == petPassive || now.Before(ps.heldUntil) {
+	if ps.stance == petPassive || now.Before(ps.heldUntil) || !pet.petFights() {
 		return
 	}
 	if ps.stance == petAggressive {
@@ -812,7 +856,7 @@ func (w *World) petFightLocked(ps *petState, t *NPC, dt float32, now time.Time) 
 	if t.Dead || w.NPCs[t.ServerID] != t || ps.target != t.ServerID {
 		return // its taunt killed it
 	}
-	if ps.kind == petKindOurs && w.petTapLocked(ps, t, now) { // a necromancer's pet's life tap (pettap.go)
+	if ps.kind == petKindOurs && pet.sheet == nil && w.petTapLocked(ps, t, now) { // a necromancer's pet's life tap (pettap.go)
 		return
 	}
 	length, delay, fx, hits := npcRound(pet)
@@ -955,6 +999,9 @@ func (w *World) petLandHitLocked(ps *petState, t *NPC, n int, now time.Time, bal
 // floor, DEX the bottom, by petDexShare of the roll's width). Not measured:
 // no pet's hits were recorded.
 func petMeleeHit(pet, t *NPC, intn func(int) int) int {
+	if hit, ok := sheetMeleeHit(pet, t, intn); ok {
+		return hit // a workbook pet's weapon (petstats.go)
+	}
 	r := creatureRoll(pet.Level)
 	m := pet.effectMods()
 	top := int(math.Round(r.Top - targetDefence(t)))
@@ -983,6 +1030,9 @@ var petDexShare = offenceArchs[archTank].LowShare * offLowDEX / (offHighD - offe
 // pet's skin and AGI lines, pettemplate.go), as a player's AC and AGI take
 // off a creature's top (defence.go).
 func npcHitOnPet(npc, pet *NPC, intn func(int) int) int {
+	if pet.sheet != nil {
+		return sheetHitOn(npc, pet, intn) // a workbook pet's armour and archetype (petstats.go)
+	}
 	r := npcMeleeRoll(npc)
 	m := pet.effectMods()
 	top := int(math.Round(r.Top - r.ACSlope*float64(10*pet.Level+m.AC) - agiSlope[archTank]*float64(pet.Level+m.Agi)))

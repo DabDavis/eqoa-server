@@ -50,6 +50,11 @@ func (s *Server) liveTemplates(table string, before, after map[string]any) strin
 	}
 	var msgs []string
 	switch table {
+	case "petstats":
+		msgs = append(msgs, fmt.Sprintf("from the next summoning: the pets of spell %s are its row's", text(row, "spellid")))
+		if after == nil {
+			msgs[len(msgs)-1] = fmt.Sprintf("from the next summoning: the pets of spell %s are as before", text(row, "spellid"))
+		}
 	case "pettemplate":
 		spell := database.TemplateKey(text(row, "spell"))
 		if after == nil {
@@ -179,6 +184,49 @@ func checkPetTemplateRow(row map[string]any) error {
 		}
 	}
 	if err := database.CheckPetTemplate(p); err != nil {
+		return badRequest("%v", err)
+	}
+	return nil
+}
+
+// checkPetStatsRow holds a petstats row to what a pet can be summoned by
+// (database.CheckPetStats, its stances and abilities read as the world reads
+// them). A column an insert leaves out takes the table's default.
+func checkPetStatsRow(row map[string]any) error {
+	p := database.PetStats{}
+	ints := map[string]*int{"spellid": &p.SpellID, "level": &p.Level, "ac": &p.AC, "str": &p.Str, "sta": &p.Sta,
+		"agi": &p.Agi, "dex": &p.Dex, "wis": &p.Wis, "intelligence": &p.Int, "cha": &p.Cha, "hp": &p.HP, "power": &p.Power,
+		"hot": &p.HoT, "pot": &p.PoT, "ar": &p.AR, "cr": &p.CR, "lr": &p.LR, "fr": &p.FR, "pr": &p.PR, "dr": &p.DR,
+		"str_max": &p.StrMax, "sta_max": &p.StaMax, "agi_max": &p.AgiMax, "dex_max": &p.DexMax, "wis_max": &p.WisMax,
+		"int_max": &p.IntMax, "cha_max": &p.ChaMax, "hp_factor": &p.HPFactor, "off_mod": &p.OffMod, "def_mod": &p.DefMod,
+		"wpn1_dmg": &p.Wpn1Dmg, "wpn2_dmg": &p.Wpn2Dmg}
+	for col, dst := range ints {
+		v, ok := row[col]
+		if !ok || v == nil {
+			continue
+		}
+		f, fok := asFloat(v)
+		if !fok || f != math.Trunc(f) || math.Abs(f) > 1e9 {
+			return badRequest("%s is a whole number", col)
+		}
+		*dst = int(f)
+	}
+	text := func(col string) string {
+		if v, ok := row[col]; ok && v != nil {
+			return strings.ToLower(strings.TrimSpace(fmt.Sprint(v)))
+		}
+		return ""
+	}
+	p.Type, p.Wpn1Type, p.Wpn2Type = text("type"), text("wpn1_type"), text("wpn2_type")
+	if _, err := database.ParsePetStances(text("stances")); err != nil {
+		return badRequest("stances: %v", err)
+	}
+	if v, ok := row["abilities"]; ok && v != nil {
+		if _, err := database.ParseTemplateAbilities(fmt.Sprint(v)); err != nil {
+			return badRequest("%v", err)
+		}
+	}
+	if err := database.CheckPetStats(p); err != nil {
 		return badRequest("%v", err)
 	}
 	return nil

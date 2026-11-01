@@ -60,6 +60,7 @@ type SimPets struct {
 	pets   map[database.PetTemplateKey]*petTemplate
 	weapon map[int]bool
 	taps   []PetTap
+	sheets map[int]*petSheet // the workbook's pets (petstats.go)
 }
 
 // SimPetsFromDB reads the pet templates and the taps out of a database, as
@@ -72,7 +73,7 @@ func SimPetsFromDB(db *database.SQLiteDB) (*SimPets, error) {
 	if _, err := w.LoadPetTaps(db); err != nil {
 		return nil, err
 	}
-	return &SimPets{pets: w.templates.pets, weapon: w.templates.weapon, taps: w.petTaps}, nil
+	return &SimPets{pets: w.templates.pets, weapon: w.templates.weapon, taps: w.petTaps, sheets: w.templates.sheets}, nil
 }
 
 // simPetsCache is SimPetsFromDB once a database (SimKitFromDB).
@@ -257,6 +258,7 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 	w.balance = b
 	if pl.Pets != nil { // the server's pets (pettemplate.go, pettap.go)
 		w.templates.pets, w.templates.weapon, w.petTaps = pl.Pets.pets, pl.Pets.weapon, pl.Pets.taps
+		w.templates.sheets = pl.Pets.sheets
 	}
 	mgr := session.NewManager()
 	w.SessionManager = mgr

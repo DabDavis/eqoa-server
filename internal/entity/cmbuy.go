@@ -122,8 +122,15 @@ type CMRank struct {
 	// ids): the stat-boost quests open the stat-boost lines, a trial a rank
 	// (the user, 2026-10-29: "gate the stat boost masteries behind the
 	// quests"; EQOA-Data's guide: "Bulging Muscles 1 ... is now available
-	// for purchase")
+	// for purchase"). Every id of every group, for what asks whether a rank
+	// needs a quest at all.
 	RequireQuests []int
+	// QuestGroups is require_quests as the quests' own requires reads them
+	// (database.ParseRequires): every group met, a group by any one of its
+	// quests ("101346|101353|101360": a werebeast's rank, any were's form;
+	// the user, 2026-11-01: "lets add weres and werehunters back"), each id
+	// apart a group of its own as before
+	QuestGroups   [][]int
 	Effects       [CMSlots]int
 	Adds, Removes []CMAbility
 	Description   string
@@ -188,7 +195,10 @@ func ParseCMRank(r database.CMRankRow) *CMRank {
 	}
 	c.Requires = parseAbilities(r.Requires, r.RequireSpells)
 	c.RequireRanks = database.SpellIDs(r.RequireRanks) // a list of ids, as the spells' are
-	c.RequireQuests = database.SpellIDs(r.RequireQuests)
+	c.QuestGroups = database.ParseRequires(r.RequireQuests)
+	for _, g := range c.QuestGroups {
+		c.RequireQuests = append(c.RequireQuests, g...)
+	}
 	c.Adds = parseAbilities(r.Adds, r.AddSpells)
 	c.Removes = parseAbilities(r.Removes, r.RemoveSpells)
 	return c
@@ -470,13 +480,10 @@ func (w *World) cmBlockLocked(p *Player, r *CMRank, k CMKnows) string {
 	if p.Level < r.Level {
 		return fmt.Sprintf("You must be level %d to buy %s.", r.Level, r.Name)
 	}
-	for _, id := range r.RequireQuests {
-		// a quest not in the game (a draft, or none) bars no one, as a trip
-		// a draft unlocks does not (questtrips.go): no one can finish it, and
-		// a GM taking a quest out locks no rank for good
-		if name, ok := k.QuestNames[id]; ok && !k.Quests[id] {
-			return fmt.Sprintf("You must finish %s to buy %s.", name, r.Name)
-		}
+	if names := r.unmetQuests(k); len(names) == 1 {
+		return fmt.Sprintf("You must finish %s to buy %s.", names[0], r.Name)
+	} else if len(names) > 1 {
+		return fmt.Sprintf("You must finish one of %s to buy %s.", strings.Join(names, ", "), r.Name)
 	}
 	if p.Mastery.Spent < r.Spent {
 		return fmt.Sprintf("You must have spent %d mastery points to buy %s.", r.Spent, r.Name)
@@ -493,6 +500,34 @@ func (w *World) cmBlockLocked(p *Player, r *CMRank, k CMKnows) string {
 		}
 	}
 	return ""
+}
+
+// unmetQuests is the first of the rank's quest groups the character has not
+// met, by the names of its quests in the game; nil when every group is met.
+// A quest not in the game (a draft, or none) bars no one, as a trip a draft
+// unlocks does not (questtrips.go): no one can finish it, and a GM taking a
+// quest out locks no rank for good. So a group is met by any one of its
+// quests in the game finished, and bars no one when none of them is in it.
+func (r *CMRank) unmetQuests(k CMKnows) []string {
+	for _, g := range r.QuestGroups {
+		var names []string
+		met := false
+		for _, id := range g {
+			name, in := k.QuestNames[id]
+			if !in {
+				continue
+			}
+			if k.Quests[id] {
+				met = true
+				break
+			}
+			names = append(names, name)
+		}
+		if !met && len(names) > 0 {
+			return names
+		}
+	}
+	return nil
 }
 
 // CMList is the window's list for the session's player: every rank its
@@ -536,13 +571,7 @@ func (w *World) CMOpenedBy(sess *session.Session, questID int, k CMKnows) []stri
 		if _, owned := p.CMs[r.ID]; owned {
 			continue
 		}
-		open := true
-		for _, id := range r.RequireQuests {
-			if _, ok := k.QuestNames[id]; ok && !k.Quests[id] {
-				open = false
-			}
-		}
-		if open {
+		if r.unmetQuests(k) == nil {
 			out = append(out, r.Name)
 		}
 	}

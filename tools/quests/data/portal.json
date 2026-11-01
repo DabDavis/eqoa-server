@@ -4076,7 +4076,6 @@
    "name": "The Dead Hills Port",
    "giver": "Fendren the Forgotten",
    "classes": [
-    13,
     7
    ],
    "races": [],
@@ -4115,15 +4114,13 @@
      "says": "Four. The Dead Hills will open to you whenever you call.",
      "rewards": {
       "spells": [
-       "Dead Hills Port"
+       "Circle of Dead Hills"
       ]
      }
     }
    ],
-   "unresolved": [
-    "Dead Hills Port"
-   ],
-   "notes": "From EQOA-Data Quests/Portal/fendren-the-forgotten.json, ## Dead Hills Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The reward is the guide's Dead Hills Port (a druid's and wizard's group port to Dead Hills SE): no spellpattern row has it, so the quest is a draft until the spell and its spellgates row are added. Fendren, his treants and the commoners are specs; the drop chance is ours."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/fendren-the-forgotten.json, ## Dead Hills Portal Quest (github.com/Jadiction/EQOA-Data, MIT). The reward is the guide's Dead Hills Port (a druid's and wizard's group port to Dead Hills SE); here the druid's is the Circle of Dead Hills, EQOAEmu's workbook's druid circle (the record that lands by Fendren: tools/seed_spell_gates.py). No record gives a wizard's port to the Dead Hills, so the quest is the druid's alone until one does (2026-11-01, ours). Fendren, his treants and the commoners are specs; the drop chance is ours."
   },
   {
    "key": "Portal/envaric-ascension-quest/ascension",
@@ -4309,15 +4306,13 @@
        "Holy Symbol of Envar"
       ],
       "spells": [
-       "Envaric Ascension"
+       "Envaric Acension"
       ]
      }
     }
    ],
-   "unresolved": [
-    "Envaric Ascension"
-   ],
-   "notes": "From EQOA-Data Quests/Portal/envaric-ascension-quest.json, ## Envaric Ascension Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Part 1. The reward is the guide's Envaric Ascension (a druid's, necromancer's and wizard's group port to the first chamber of the Prophet's tower): no spellpattern row has it, so the quest is a draft until the spell and its spellgates row are added. Both altars, the Grave Ushers, Tal'Thir, Vorin, the Bishop and the Patriarch are specs in Envar's towers (the Rathe's cell south of the Dead Hills: four towers with basements at y 44-51), their guards left out; the two diamonds and the symbol's death are the altar's words. Part 2, the climb of the Prophet's tower with its gems, begins with the spell's port and is left out."
+   "unresolved": [],
+   "notes": "From EQOA-Data Quests/Portal/envaric-ascension-quest.json, ## Envaric Ascension Portal Quest (github.com/Jadiction/EQOA-Data, MIT). Part 1. The reward is the guide's Envaric Ascension (a druid's, necromancer's and wizard's group port to the first chamber of the Prophet's tower), the record's Envaric Acension (EQOAEmu's workbook's spelling, its hour's recast the guide's). Both altars, the Grave Ushers, Tal'Thir, Vorin, the Bishop and the Patriarch are specs in Envar's towers (the Rathe's cell south of the Dead Hills: four towers with basements at y 44-51), their guards left out; the two diamonds and the symbol's death are the altar's words. Part 2, the climb of the Prophet's tower with its gems, is no quest: tools/fix_eqoaemu_places.py's gems drop off the chambers' creatures and send their users up (the orb and the Prophet left out)."
   },
   {
    "key": "Portal/zaoran-plateau/garlic",

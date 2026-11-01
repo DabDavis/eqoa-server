@@ -229,3 +229,29 @@ func TestThrownSplashTargetTakesBothShares(t *testing.T) {
 		t.Errorf("the control: the target at %d, want %d (the line alone)", ctl.npc.HP, 1000-20)
 	}
 }
+
+// A body the disc lacks (not in the bodies' table, reach.go's models.txt) is
+// shown on no one, a drinker or a creature, though the rest of the use lands;
+// the control: the same body in the table is shown.
+func TestABodyTheDiscLacksIsShownOnNoOne(t *testing.T) {
+	SetModelRadii(map[uint32]float32{testOgreMale: 1, testOgreFemale: 1, testFleshBody: 1})
+	t.Cleanup(func() { SetModelRadii(nil) })
+	c := bodyRig(t)
+	rat := NewPotionEffect(9003, "Test Draught", "Self, Increase STR by 10, 30min", "", 0, "", 0, 0)
+	rat.SetBody(testRatBody)
+	c.use(t, rat, 0, 0)
+	if m, _ := channelBody(c.p); m != uint32(c.p.ModelID) || c.p.Mods.Str != 10 {
+		t.Errorf("a drink of a body the disc lacks: %#x, STR %+d; want its own body and the STR", m, c.p.Mods.Str)
+	}
+	c.use(t, transmuter(), c.npcO, 0)
+	if m, _ := npcBody(c.npc); m != testFleshBody || len(c.npc.Effects) != 1 {
+		t.Errorf("thrown: %#x with %d effects; want its own body under the debuff", m, len(c.npc.Effects))
+	}
+
+	SetModelRadii(map[uint32]float32{testRatBody: 1})
+	ctl := bodyRig(t)
+	ctl.use(t, transmuter(), ctl.npcO, 0)
+	if m, _ := npcBody(ctl.npc); m != testRatBody {
+		t.Errorf("the control: the rat's body in the table, yet %#x", m)
+	}
+}

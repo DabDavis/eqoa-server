@@ -623,6 +623,14 @@ LINE_ITEM_WORDS = {
 LINE_CREATURE = re.compile(r"(?i)\b(?:to your aid|to aid|creature|familiar|familar)\b")
 # a line for undead alone, and a line for its target that does not say so
 UNDEAD_LINE = re.compile(r"(?i)^target\s+undead\b")
+
+
+def undead_name(name):
+    """entity/undead.go's readUndead: a harmful spell named "... Undead" is
+    for undead alone."""
+    return (name or "").strip().lower().endswith(" undead")
+
+
 TARGET_LINE = re.compile(r"(?i)^target\b(?!\s+undead)")
 
 
@@ -1668,6 +1676,15 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None, b
                 if j["harmful"] and UNDEAD_LINE.match((now.get("line") or "").strip()) and TARGET_LINE.match(line):
                     line = TARGET_LINE.sub("Target undead", line, count=1)
                     counts["lines keeping their undead target"] += 1
+                # and the one the workbook's name gives it (entity/undead.go's
+                # readUndead: a harmful spell named "... Undead" is for undead
+                # alone) where our record keeps a name of its own: Agonize Death,
+                # the workbook's Agonize Undead (the user, 2026-11-01: "yes", for
+                # undead alone as the workbook's record is)
+                elif j["harmful"] and undead_name(cell(s, "Name")) and \
+                        not undead_name(want.get("spellname") or (rec or {}).get("spellname")) and TARGET_LINE.match(line):
+                    line = TARGET_LINE.sub("Target undead", line, count=1)
+                    counts["lines given the undead target the workbook's name gives"] += 1
                 after = dict(line=line, effects=text, source=src)
                 before = {k: now.get(k, "") if k != "effects" else (now.get("effects") or "") for k in after}
                 if before != after:

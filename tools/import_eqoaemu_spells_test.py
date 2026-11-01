@@ -462,6 +462,32 @@ class ImportTest(unittest.TestCase):
         self.assertEqual(self.line(p, 102), "Target, Increase HP per tic by 200, 24sec", "a heal: the workbook's target")
         self.assertEqual(p["counts"]["lines keeping their undead target"], 1)
 
+    def test_the_workbooks_undead_name_gives_the_line_its_target(self):
+        """A harmful spell of ours that keeps its own name, taking a workbook
+        row named "... Undead" (the server reads such a name as for undead
+        alone), says "Target undead" in its line, so it stays for undead alone
+        as the workbook's record is; the controls: ours named so too (the name
+        says it), and a friendly row named so (a heal: the workbook's target).
+        The names made up."""
+        def plan_with(names, ours_name=None):
+            spells = [dict(r, Name=names.get(r["SpellID"], r["Name"])) for r in SPELLS]
+            wb = im.Workbook(dict(WORKBOOK, Spells=spells))
+            if ours_name:
+                self.db.execute("UPDATE spellpattern SET spellname = ? WHERE spellid = 101", (ours_name,))
+            return im.plan(self.db, wb, MAP, weres=WERES)
+
+        p = plan_with({"0100": "Ember Undead", "0101": "Kind Undead"})
+        self.assertEqual(self.line(p, 101), "Target undead, Decrease Hitpoints by 100 ; Increase 15% based on DEX")
+        self.assertEqual(p["counts"]["lines given the undead target the workbook's name gives"], 1)
+        self.assertEqual(self.line(p, 102), "Target, Increase HP per tic by 200, 24sec", "a heal: the workbook's target")
+        p = plan_with({"0100": "Ember Undead"}, ours_name="Ember Undead")
+        self.assertEqual(self.line(p, 101), "Target, Decrease Hitpoints by 100 ; Increase 15% based on DEX",
+                         "ours named for the undead: its name says it")
+        self.assertNotIn("lines given the undead target the workbook's name gives", p["counts"])
+        p = self.plan()
+        self.assertEqual(self.line(p, 101), "Target, Decrease Hitpoints by 100 ; Increase 15% based on DEX",
+                         "the control: the fixture's own names")
+
     def test_apply_undo(self):
         before = self.dump()
         p = self.plan()

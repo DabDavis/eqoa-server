@@ -432,8 +432,9 @@ func (h simHands) bowed() bool { return h.bow > 0 && 2*h.bow >= h.most() }
 
 // weapons is the items of the attack types that let the most of its arts be
 // cast (every item when the types tie, a warrior's arts taking any, or when
-// fewer than simHandsLine arts name one: a monk's lone two-handed Fierce
-// Strike among its punches does not choose its weapon).
+// fewer than simHandsLine arts name one: a kit's first art or two at the low
+// levels do not choose its weapon, and it switches for them, simOtherHands;
+// a monk, bare-handed, never comes here).
 func (h simHands) weapons(items []database.ItemPatternRecord) []database.ItemPatternRecord {
 	m := h.most()
 	if m < simHandsLine {

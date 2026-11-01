@@ -21,47 +21,79 @@ import (
 //   - wear: the percent chance each six-second tick that it wears off;
 //   - area: a thrown potion's splash, how far round its target other
 //     creatures take it too (0: the target alone);
-//   - source: who wrote it (tools/seed_potions.py's rows say "potions").
+//   - source: who wrote it (tools/seed_potions.py's rows say "potions");
+//   - body: the body it shows (2026-11-01): a CHAR.ESF CSprite's DictID, as
+//     npcs.modelid holds it, its drinker's (a race's body of the drinker's
+//     own sex) or a thrown one's creature's for what lasts of it; 0 none but
+//     an illusion its name says ("Illusion: Ogre");
+//   - target_line: what a thrown potion's target alone takes beside line, in
+//     its words (2026-11-01: a target-based area's first figure, the
+//     workbook's HP1; the line, its second, lands on the target and every
+//     creature in the splash); empty for none.
 const itemEffectSchema = `
 	CREATE TABLE IF NOT EXISTS itemeffect (
-		patternid INTEGER PRIMARY KEY,
-		line      TEXT NOT NULL,
-		name      TEXT NOT NULL DEFAULT '',
-		icon      INTEGER NOT NULL DEFAULT 0,
-		breaks    TEXT NOT NULL DEFAULT '',
-		wear      INTEGER NOT NULL DEFAULT 0,
-		area      REAL NOT NULL DEFAULT 0,
-		source    TEXT NOT NULL DEFAULT 'gm'
+		patternid   INTEGER PRIMARY KEY,
+		line        TEXT NOT NULL,
+		name        TEXT NOT NULL DEFAULT '',
+		icon        INTEGER NOT NULL DEFAULT 0,
+		breaks      TEXT NOT NULL DEFAULT '',
+		wear        INTEGER NOT NULL DEFAULT 0,
+		area        REAL NOT NULL DEFAULT 0,
+		source      TEXT NOT NULL DEFAULT 'gm',
+		body        INTEGER NOT NULL DEFAULT 0,
+		target_line TEXT NOT NULL DEFAULT ''
 	);`
 
-// ensureItemEffects makes table itemeffect (initSchema).
+// itemEffectAdded are the columns itemeffect gained after it was made, which
+// a table made before them is given (ensureItemEffects).
+var itemEffectAdded = []struct{ col, decl string }{
+	{"body", "INTEGER NOT NULL DEFAULT 0"},
+	{"target_line", "TEXT NOT NULL DEFAULT ''"},
+}
+
+// ensureItemEffects makes table itemeffect (initSchema), and gives one made
+// before them its later columns.
 func (db *SQLiteDB) ensureItemEffects() error {
 	if _, err := db.Exec(itemEffectSchema); err != nil {
 		return fmt.Errorf("itemeffect: %w", err)
+	}
+	for _, c := range itemEffectAdded {
+		has, err := hasColumn(db.DB, "itemeffect", c.col)
+		if err != nil {
+			return fmt.Errorf("itemeffect: %w", err)
+		}
+		if !has {
+			if _, err := db.Exec(`ALTER TABLE itemeffect ADD COLUMN ` + c.col + ` ` + c.decl); err != nil {
+				return fmt.Errorf("itemeffect: %w", err)
+			}
+		}
 	}
 	return nil
 }
 
 // ItemEffectRow is one row of itemeffect, with its item's name.
 type ItemEffectRow struct {
-	PatternID int
-	ItemName  string
-	Line      string
-	Name      string
-	Icon      uint32
-	Breaks    string
-	Wear      int
-	Area      float64
+	PatternID  int
+	ItemName   string
+	Line       string
+	Name       string
+	Icon       uint32
+	Breaks     string
+	Wear       int
+	Area       float64
+	Body       uint32
+	TargetLine string
 }
 
-const itemEffectSelect = `SELECT e.patternid, COALESCE(p.itemname, ''), e.line, e.name, e.icon, e.breaks, e.wear, e.area
+const itemEffectSelect = `SELECT e.patternid, COALESCE(p.itemname, ''), e.line, e.name, e.icon, e.breaks, e.wear, e.area,
+	e.body, e.target_line
 	FROM itemeffect e LEFT JOIN itempattern p ON p.patternid = e.patternid`
 
 func scanItemEffect(sc interface{ Scan(...any) error }) (ItemEffectRow, error) {
 	var r ItemEffectRow
-	var icon int64
-	err := sc.Scan(&r.PatternID, &r.ItemName, &r.Line, &r.Name, &icon, &r.Breaks, &r.Wear, &r.Area)
-	r.Icon = uint32(icon)
+	var icon, body int64
+	err := sc.Scan(&r.PatternID, &r.ItemName, &r.Line, &r.Name, &icon, &r.Breaks, &r.Wear, &r.Area, &body, &r.TargetLine)
+	r.Icon, r.Body = uint32(icon), uint32(body)
 	return r, err
 }
 

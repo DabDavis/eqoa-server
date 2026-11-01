@@ -106,6 +106,11 @@ func (w *World) SpawnNPCCopy(name string, x, y, z, facing float32, world uint8) 
 	c.CurrentEnemy = 0
 	c.LastCombat = time.Time{}
 	c.LastCombatTime = time.Time{}
+	// none of the original's spells: the copy shared their list, a body a
+	// thrown potion put on the original among them (illusion.go), and kept
+	// them past their time (the effect system ends only those of a creature
+	// a spell landed on: cast.go's affected)
+	c.Effects = nil
 	c.Temporary = true
 	c.SpawnOnly, c.HiddenUntil = false, time.Time{} // in every view near it
 	c.endDummyFight()

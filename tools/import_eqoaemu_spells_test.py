@@ -471,13 +471,13 @@ class ImportTest(unittest.TestCase):
 
 class LineItemsTest(unittest.TestCase):
     """Every made or taken item under the name the server finds it by: an item
-    of ours by the workbook's name takes ours (Acidic Mix Potion is our Acidic
-    Potion), one it names none of ours of, or not at all, takes our line's
-    (Neriak Cocktail's Grobb Cocktail, Feed's Unit of Blood, the vampires'
+    of ours by the workbook's name takes ours (a Fizzing Mix Potion is our
+    Fizzing Potion), one it names none of ours of, or not at all, takes our line's
+    (a cocktail's Grobb Cocktail, Feed's Unit of Blood, the vampires'
     reagents): the server reads the effects alone, so without it a summon
     makes nothing and a reagent is free."""
 
-    NAMES = {709302: "Unit of Blood", 7: "Fire Potion", 50002: "Acidic Potion", 50025: "Draught",
+    NAMES = {709302: "Unit of Blood", 7: "Fire Potion", 50002: "Fizzing Potion", 50025: "Weak Brew",
              61: "Grobb Cocktail", 50104: "foraged herb"}
 
     def settle(self, j, line):
@@ -497,24 +497,24 @@ class LineItemsTest(unittest.TestCase):
         self.settle(vit, "Self, Increase HP by 1000, 60sec, Reagent Unit of Blood x5")
         self.assertEqual(vit["effects"][0]["consume"]["count"], 6)
         # an item the workbook names that is none of ours: our line's, the workbook's name kept
-        cocktail = {"effects": [{"kind": "create_item", "item": {"count": 3, "name": "Neriak Fire Potion"}}]}
+        cocktail = {"effects": [{"kind": "create_item", "item": {"count": 3, "name": "Dark Fire Potion"}}]}
         self.assertEqual(self.settle(cocktail, "SELF Summon Grobb Cocktail"),
-                         ([], ["makes Grobb Cocktail x3 (the workbook's 'Neriak Fire Potion', none of ours)"]))
+                         ([], ["makes Grobb Cocktail x3 (the workbook's 'Dark Fire Potion', none of ours)"]))
         self.assertEqual(cocktail["effects"][0]["item"], {"count": 3, "name": "Grobb Cocktail", "patternid": 61,
-                                                          "sheet_name": "Neriak Fire Potion"})
+                                                          "sheet_name": "Dark Fire Potion"})
         # the line's words as the server's reader takes them
         for line in ("Self, Summon Item: foraged herb", "Summons Foraged Herb X3", "SELF Summon foraged herb (a meal)"):
             j = {"effects": [{"kind": "create_item", "item": {"count": 1, "name": "Wild Roots"}}]}
             self.assertEqual(self.settle(j, line)[1], ["makes foraged herb x1 (the workbook's 'Wild Roots', none of ours)"], line)
 
     def test_ours_by_the_workbooks_name(self):
-        acid = {"effects": [{"kind": "create_item", "item": {"count": 6, "name": "Acidic Mix Potion", "patternid": 50002}}]}
-        self.assertEqual(self.settle(acid, "Summon Acidic Potion X3"), (["'Acidic Mix Potion' -> 'Acidic Potion'"], []))
-        self.assertEqual(acid["effects"][0]["item"], {"count": 6, "name": "Acidic Potion", "patternid": 50002,
-                                                      "sheet_name": "Acidic Mix Potion"})
+        acid = {"effects": [{"kind": "create_item", "item": {"count": 6, "name": "Fizzing Mix Potion", "patternid": 50002}}]}
+        self.assertEqual(self.settle(acid, "Summon Fizzing Potion X3"), (["'Fizzing Mix Potion' -> 'Fizzing Potion'"], []))
+        self.assertEqual(acid["effects"][0]["item"], {"count": 6, "name": "Fizzing Potion", "patternid": 50002,
+                                                      "sheet_name": "Fizzing Mix Potion"})
         # matched here though the plan's item_ref had not (a consume, a name by a variant)
-        dr = {"effects": [{"kind": "create_item", "item": {"count": 1, "name": "Draught Potion"}}]}
-        self.assertEqual(self.settle(dr, "")[0], ["'Draught Potion' -> 'Draught'"])
+        dr = {"effects": [{"kind": "create_item", "item": {"count": 1, "name": "Weak Brew Potion"}}]}
+        self.assertEqual(self.settle(dr, "")[0], ["'Weak Brew Potion' -> 'Weak Brew'"])
         # already ours by our own name: as it is
         fire = {"effects": [{"kind": "create_item", "item": {"count": 1, "name": "Fire Potion", "patternid": 7}}]}
         self.assertEqual(self.settle(fire, "SELF Summon Grobb Cocktail"), ([], []))
@@ -534,8 +534,8 @@ class LineItemsTest(unittest.TestCase):
         self.assertEqual(self.settle(two, "SELF Summon Grobb Cocktail"), ([], []))
 
     def test_gate_twins(self):
-        self.assertTrue(im.one_letter_apart("kithacor circle", "kithicor circle"))
-        self.assertTrue(im.one_letter_apart("sycamore circle", "sycamor circle"))
+        self.assertTrue(im.one_letter_apart("mossvole circle", "mossvale circle"))
+        self.assertTrue(im.one_letter_apart("thornwood circle", "thornwod circle"))
         self.assertFalse(im.one_letter_apart("odus gate", "odus gates"))              # too short to tell
         self.assertFalse(im.one_letter_apart("nerius portal", "melton portal"))
         db = sqlite3.connect(":memory:")
@@ -543,14 +543,14 @@ class LineItemsTest(unittest.TestCase):
                       place TEXT NOT NULL DEFAULT '', world INTEGER NOT NULL DEFAULT 0, x REAL NOT NULL DEFAULT 0,
                       y REAL NOT NULL DEFAULT 0, z REAL NOT NULL DEFAULT 0, radius REAL NOT NULL DEFAULT 0,
                       note TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT 'gm')""")
-        db.execute("INSERT INTO spellgates VALUES ('kithicor circle', 'group', 'Saerk Towers', 0, 20333.3, 80.6, "
+        db.execute("INSERT INTO spellgates VALUES ('mossvale circle', 'group', 'Saerk Towers', 0, 20333.3, 80.6, "
                    "12333.3, 0, 'seeded', 'seed')")
         lists, counts = collections.defaultdict(list), collections.Counter()
-        out = im.plan_gates(db, [dict(spellid=900434, name="Kithacor Circle", location="", group=True, radius=0),
+        out = im.plan_gates(db, [dict(spellid=900434, name="Mossvole Circle", location="", group=True, radius=0),
                                  dict(spellid=900429, name="Circle of Dead Hills", location="", group=True, radius=0)],
                             lists, counts)
         self.assertEqual([(g["spell"], g["place"], g["x"], g["source"]) for g in out],
-                         [("kithacor circle", "Saerk Towers", 20333.3, "eqoaemu")])
+                         [("mossvole circle", "Saerk Towers", 20333.3, "eqoaemu")])
         self.assertEqual(lists["a new teleport with no place in its Location (no spellgates row)"],
                          ["900429 Circle of Dead Hills: none"])
 

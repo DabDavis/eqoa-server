@@ -552,10 +552,10 @@ def settle_item_names(j, old, items_by_name, item_names):
     finds it by (handlers' summonItem and the reagent check read an item by
     its name; the effects are all the server reads, the brief's contract):
     one that is an item of ours by the workbook's name (our_item: its
-    "Acidic Mix Potion" is our "Acidic Potion", its "Sparkling Cider effect"
-    the food made for it) takes our item's own name; one the workbook names
-    none of ours of, or names not at all (Neriak Cocktail's "Neriak Fire
-    Potion", Feed's Unit of Blood, the vampires' reagents), takes the one item
+    "<X> Mix Potion" is our "<X> Potion", a food's "<X> effect" the food made
+    for it) takes our item's own name; one the workbook names none of ours
+    of, or names not at all (Neriak Cocktail's, Feed's Unit of Blood, the
+    vampires' reagents), takes the one item
     of ours of that kind a spell of ours names in its line ("SELF Summon
     Grobb Cocktail", "Reagent Unit of Blood x2"). The workbook's name stays as
     sheet_name, its count as it is. Returns (renamed, by_line): what it did,
@@ -1867,7 +1867,7 @@ def swap_json_spells(text, old, new, classes):
 
 def one_letter_apart(a, b):
     """Whether two names of ten letters or more differ by one letter put in,
-    taken out or changed ("kithacor circle", "kithicor circle")."""
+    taken out or changed ("mossvale circle", "mossvole circle")."""
     if a == b or min(len(a), len(b)) < 10 or abs(len(a) - len(b)) > 1:
         return False
     if len(a) > len(b):
@@ -1916,8 +1916,8 @@ def plan_gates(db, gates, lists, counts):
             lists["a new teleport whose name a spellgates row has: that row kept"].append(tag)
         elif len(twins) == 1:
             # the workbook's second record of a circle we have, spelled one
-            # letter otherwise and with no place of its own (Kithacor Circle,
-            # Kithicor Circle's level 60 twin for every race): its twin's place
+            # letter otherwise and with no place of its own (a druid circle's
+            # level 60 twin for every race): its twin's place
             row = dict(rows[twins[0]])
             row.update(spell=key, note=f"{NOTE}: {g['name']}, spelled as {twins[0]!r} is but for one letter, its "
                                        f"Location {g['location'] or 'none'}: that row's place", source="eqoaemu")

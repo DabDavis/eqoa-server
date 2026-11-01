@@ -5,16 +5,16 @@ tools/refit_eqoaemu_followup.py): the classes that round moved, fitted again by 
 What the second round moved, measured with the fight simulator (cmd/balancesim against SOE's roamer, every level 1-60, 40
 fights a cell, the player's low point averaged over the fights won one and two up) on eqoaclassic's database of 18:59
 UTC with the round's data in it (tools/fix_eqoaemu_followup2.py, fix_eqoaemu_places.py, fix_broken_records.py,
-fix_scrolls.py, remove_leftover_spells.py, fix_eqoaemu_pet_abilities.py), under the 16:38 re-fit's rows, against the
-state live at 18:59 (that database before the round, the 18:50 server):
+fix_scrolls.py, remove_leftover_spells.py, fix_eqoaemu_pet_abilities.py) and its server, under the 16:38 re-fit's rows,
+against the state live at 18:59 (that database before the round, the 18:50 server):
 
   a ranger is back on its blades after an arrow art in melee reach (handlers/handswitch.go, the simulator too), so from
   level 8, its first arrow art, its fights are shorter: through a yellow it kept 3-10 points more (ten levels over the
   targets' 36%), and at 20 it won a red alone 42% of the time;
   the simulator's player casts its book's pure debuffs and drains in a long fight (simDebuffs), and a creature's effects
   count in its fights (a player's debuffs: STR and DEX its rolls, AC and AGI the rolls on it, a maximum its hit points):
-  a shaman of 4-60 (its Wind and Malady lines) won its reds alone at nine levels of 4-16 (42-95%) and at 37-60
-  (45-100%, 98-100% from 45) and kept 3-15 points more through a yellow, its pet 4-19 points more (its reds won alone at
+  a shaman (its Wind and Malady lines) won its reds alone at nine levels of 4-16 (42-95%) and at 37-60 (45-100%, every
+  one at 45-48 and 57-60) and kept 3-15 points more through a yellow, its pet 4-19 points more (its reds won alone at
   57-59); a rogue of 19-60 kept 4-10 points more; a shadow knight of 21-50, which spends power and time on its debuffs
   and drains where its taps were, kept less and won less (a yellow one up won 57-78% at 24 and 29-31, two up 22-60% at
   29-33, 8-14% left at 34-38); a warrior's Rend (46: it lowers the armour of what it strikes) and a bard's Deadly
@@ -25,23 +25,33 @@ state live at 18:59 (that database before the round, the 18:50 server):
   40-48% and won its reds alone 45-98% at seven of those levels, one of 56-60 kept 38-42%; an enchanter's pet of 5-6 and
   36-43 kept 36-46% and won its reds alone at 44-45, 49, 55-56 and 60;
   the druid's four EQOA-Data leftovers are out of its list (Nature Form, which roots its caster, among them): a druid of
-  50-60 won its reds alone 98-100% of the time;
+  50-60 won its reds alone 98-100% of the time; the shaman's two (Savage Healing and Tribal Healing, its own heals over
+  time from 49) are out too: through its yellows at 49-59 it kept 11-25% where the round's other changes had left it
+  26-34% (one up won 88% at 52 and 53, a priest's bar being 90%);
   the broken records take real figures or lose the template (the eight test pieces, plain level 60 gear now, are what
-  level 60 kits wear): every class of 60 moved a little, a bard of 60 most (24% -> 38% on the data alone, 44% in all).
-The paladin, the monk, the cleric, the magician, the wizard and the alchemist moved a point or two or not at all, and
-stay on the targets as they were.
+  level 60 kits wear), and the level 60 epic options take the workbook's records: every class of 60 moved a little, a
+  bard of 60 kept 38% (24% before) and a monk of 60 won two up 62%.
+The paladin, the cleric, the magician, the wizard and the alchemist moved a point or two or not at all, the monk but at
+60, and stay on the targets as they were.
 
 The rows, by the re-fits' stages (yellow, dealt, red, pets, low, the cut; tools/refit_eqoaemu_balance.py says them):
-the ranger's 8-60, the shaman's 4-60 and its pet's, the rogue's 19-60, the shadow knight's 21-51 (its share alone, at the
-undead check's dealt bands of 150 and 130), the warrior's 46-60, the bard's 57-60, the druid's 50-60, the enchanter's
-pet's 5-60 and the necromancer's pet's 5-7 and 34-60, levels 1-12 each a row and above them the fewest within 4% of every
-level's fit (the pets' 7%), dealt exact. Cells set after, each a row and checked with the simulator: a ranger of 10 at 16
-dealing 115 (the cut's 17 at 100 left it 14%: a level 10 roamer's crits, the share alike at 15 and 16), a shadow knight
-of 24 at the yellow stage's own 322 and of 28 and 50 a step of 0.9 lower (the cut's line left a yellow's win rate just
-under its bar), a druid of 60 at 135 (the cut's 131 left its red won alone 42%, the red stage's 131.1 40%), and the
-enchanter's pet at 45 and at every level 49-60 its own row of 31-40 (the knife edge between its yellows and its reds
-alone: each the hit points that win the yellows and lose the red, under where the red is won).
-DOCSTRING-OUTCOME
+the ranger's 8-60, the shaman's 4-60 and its pet's (49-60 on the shaman's list without its two heals), the rogue's
+19-60, the shadow knight's 21-51 (its share alone, at the undead check's dealt bands of 150 and 130), the warrior's
+46-60, the bard's 57-60, the druid's 50-60, the enchanter's pet's 5-60 and the necromancer's pet's 5-7 and 34-60, levels
+1-12 each a row and above them the fewest within 4% of every level's fit (the pets' 7%), dealt exact. Cells set after,
+each a row and checked with the simulator: a ranger of 10 at 16 dealing 115 (the cut's 17 at 100 left it 14%: a level
+10 roamer's crits, the share alike at 15 and 16), a shadow knight of 24 at the yellow stage's own 322 and of 28 and 50
+a step of 0.9 lower (the cut's line left a yellow's win rate just under its bar), a druid of 60 at 135 (the cut's 131
+left its red won alone 42%, the red stage's 131.1 40%), a bard of 60 and a monk of 60 a step of 0.9 lower (76 and 173:
+two up won 52% and 62%), and the enchanter's pet at 45 and at every level 49-60 its own row of 31-40 (the knife edge
+between its yellows and its reds alone: each the hit points that win the yellows and lose the red, under where the red
+is won). Under them no cell of any class the 18:59 state had on the targets is off them, thirteen that were off are on
+(a shaman of 29, its pet at 19, 27, 28, 52 and 54, the enchanter's pet at 7, 50, 51, 53, 54, 57 and 59), the even
+fights are as they were (the median class 67-86% left), and two of a level win their reds three up 75-100% of the time,
+three every one; the cells off the targets before are off them still (the level 1s, an alchemist of 2 and 3, the
+rooting wizard's and alchemist's low points, a rogue of 9 at 15%, a shadow knight of 5 at 41%, a magician's pet at 44
+and 46, a necromancer's pet at 1 and 2, an enchanter's pet at 1). 244 rows on eqoaclassic's copy of 18:59 with the
+round's data in.
 
 It writes balanceclasslevel's rows of each class in SPAN (its spans of levels lo..hi) to FOLLOWUP's, each change only
 while the row holds what tools/refit_eqoaemu_followup.py left it (a row a GM changed is left, and said); the other
@@ -85,7 +95,8 @@ LOG_SCHEMA = f"""CREATE TABLE IF NOT EXISTS {LOG} (
 CL = rf.CL  # balanceclasslevel
 WHY = ("the balance re-fitted for the EQOAEmu follow-ups' second round (tools/refit_eqoaemu_followup2.py; 2026-11-01 "
        "evening: a ranger's blades back after an arrow art, creatures' effects counting, the simulator's debuffs, roots "
-       "held until a hit, the pets' abilities, the druid's leftovers out, the broken records fixed)")
+       "held until a hit, the pets' abilities, the druid's and shaman's leftovers out, the epic options and the broken "
+       "records on real records)")
 
 # class -> [(lo, hi), ...]: the levels fitted again; FOLLOWUP's rows there take the place of the 16:38 re-fit's
 SPAN = {

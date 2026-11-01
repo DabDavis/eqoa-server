@@ -94,3 +94,57 @@ func TestASimMonkPunchesBareHanded(t *testing.T) {
 		t.Error("the control: a monk with a weapon punched")
 	}
 }
+
+// A ranger whose only art is an arrow art, fighting in melee, is back on its
+// blades after each one has landed, as the server puts a player's back
+// (handlers/handswitch.go HandsBack): after its first arrow its hits are the
+// blades' (reach 4.5) again, a bow's (one hit a round, reach 25) only from
+// a round begun before an arrow landed, never more than one an arrow. The
+// control: a kit whose fighting hands hold nothing has nothing to put back,
+// and every hit after its first arrow is the bow's.
+func TestASimRangerIsBackOnItsBladesAfterEachArrowArt(t *testing.T) {
+	blades := SimHands{AttackType: 1, Primary: 1, Secondary: 1, Gear: Gear{WeaponCond: 1, WeaponDamage: 300, WeaponSlot: 14, WeaponType: 1}}
+	blades.Worn[14], blades.Worn[15] = true, true
+	bow := SimHands{AttackType: 7, Range: 25, Secondary: 7, Gear: Gear{WeaponCond: 1, WeaponDamage: 330, WeaponSlot: 18, WeaponType: 7}}
+	bow.Worn[18] = true
+	kit := simKit(1, 30)
+	kit.Body = kit.Gear
+	kit.Body.WeaponDamage = 0
+	kit.Spells = []CastSpell{simArt(9201, "an arrow", "Range", 200)}
+	kit.Play = SimPlay{Melee: true, Spells: true}
+	foe := SimNPC{Level: 31}
+	// the arrows, and the player's own hits after its first (not the
+	// creature's on it), by their reach
+	after := func(logged string) (arrows, blade, bowed int) {
+		i := strings.Index(logged, `begins "an arrow"`)
+		if i < 0 {
+			return 0, 0, 0
+		}
+		for _, l := range strings.Split(logged[i:], "\n") {
+			switch {
+			case strings.Contains(l, `begins "an arrow"`):
+				arrows++
+			case !strings.Contains(l, "Combat: Simmer hit"):
+			case strings.HasSuffix(l, "reach 4.50"):
+				blade++
+			case strings.HasSuffix(l, "reach 25.00"):
+				bowed++
+			}
+		}
+		return arrows, blade, bowed
+	}
+
+	kit.Hands = []SimHands{blades, bow}
+	r, logged := simFightLog(kit, foe)
+	arrows, blade, bowed := after(logged)
+	if arrows < 2 || blade == 0 || bowed > arrows {
+		t.Errorf("with its blades: %d arrows, then %d blade hits and %d bow hits (won %v in %v); want blade hits, at most a bow hit an arrow",
+			arrows, blade, bowed, r.Won, r.Time)
+	}
+
+	kit.Hands = []SimHands{simBareHands(), bow}
+	_, logged = simFightLog(kit, foe)
+	if arrows, blade, bowed := after(logged); arrows == 0 || blade != 0 || bowed == 0 {
+		t.Errorf("the control, bare hands: %d arrows, then %d hits at a melee reach and %d with the bow; want the bow's alone", arrows, blade, bowed)
+	}
+}

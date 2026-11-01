@@ -263,6 +263,7 @@ type simFight struct {
 	reserve                int         // power kept for a heal
 	casts                  int
 	hands                  int       // the kit's Hands it holds
+	back                   int       // the Hands a switch to a ranged weapon took off, for the way back (handsBack)
 	moveUntil              time.Time // a rooting caster stepping back: no cast till then
 	rootAt                 float32   // how far off its NPC a rooting caster stands (simRootAt)
 	rootLands              time.Time // a rooting caster's root in flight lands then
@@ -328,6 +329,19 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 
 	f := &simFight{w: w, sess: sess, p: p, npc: npc, pl: pl, t0: time.Unix(1_900_000_000, 0), rootAt: apart}
 	f.sortBook()
+	// the hands a switch took off back after its cast, as the server's hook
+	// puts a player's back (cast.go handsBackLocked): each member's own
+	w.onHandsBack = func(s *session.Session, _ *Player) {
+		ms := f.mates
+		if ms == nil {
+			ms = []*simFight{f}
+		}
+		for _, m := range ms {
+			if m.sess == s {
+				m.handsBack()
+			}
+		}
+	}
 	return f
 }
 
@@ -389,21 +403,36 @@ func (f *simFight) hold(i int) {
 // handsFor is the server's switch for a spell its hands do not fit, when
 // that alone would refuse it (CastWantsHands): the first of the kit's other
 // Hands that fits it (handlers/handswitch.go takes the ones a switch took
-// off first, a kit's first Hands).
+// off first, a kit's first Hands). A switch to a ranged weapon from hands
+// that held anything marks the spell for the way back (CastSpell.HandsBack:
+// at its landing in melee reach, handsBack), as the server's does.
 func (f *simFight) handsFor(s *CastSpell, target uint32) {
 	if len(f.pl.Hands) < 2 || s.Def.ReqEquip == "" || !f.w.CastWantsHands(f.sess, *s, target, f.now) {
 		return
 	}
 	for i := range f.pl.Hands {
 		if i != f.hands && f.pl.Hands[i].fits(s.Def.ReqEquip) {
+			if f.pl.Hands[i].Worn[18] && f.pl.Hands[f.hands].holds() {
+				f.back, s.HandsBack = f.hands, true
+			}
 			f.hold(i)
 			return
 		}
 	}
 }
 
+// handsBack is the server's way back after a cast whose switch took up a
+// ranged weapon (handlers/handswitch.go HandsBack): the hands it took off
+// taken up again, while it holds that weapon still.
+func (f *simFight) handsBack() {
+	if f.back != f.hands && f.pl.Hands[f.hands].Worn[18] {
+		f.hold(f.back)
+	}
+}
+
 // tick is one of the World's ticks, the systems a fight lives in, in the
-// tick's order (systems.go tickLocked).
+// tick's order (systems.go tickLocked), then the hands a cast's switch took
+// off put back with the lock let go, as Tick does (runHandsBack).
 func (f *simFight) tick() {
 	f.now = f.now.Add(simTick)
 	w := f.w
@@ -419,6 +448,7 @@ func (f *simFight) tick() {
 	w.regenSystem(f.now)
 	w.npcRegenSystem(f.now) // pets', and a creature's out of its fight (npcregen.go)
 	w.mu.Unlock()
+	w.runHandsBack()
 	f.sess.Queue().GetPending() // what was sent: no one reads it
 }
 

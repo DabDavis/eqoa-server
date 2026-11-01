@@ -62,6 +62,10 @@ type World struct {
 	onGate   GateFunc
 	onPurse  PurseFunc         // a purse changed here saved (workbookmore.go)
 	affected map[EntityID]*NPC // creatures with a spell's effect on them
+	// The players whose hands go back after a cast, and the hook that puts
+	// them back (cast.go handsBackLocked)
+	handsBack   []respawnDue
+	onHandsBack HandsBackFunc
 	// The game's balance (balance.go): nil, none
 	balance *Balance
 	// The spells that send players to a named place, table spellgates, and

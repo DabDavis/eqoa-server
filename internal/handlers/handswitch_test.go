@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"maps"
 	"net"
 	"strings"
 	"testing"
@@ -54,8 +55,35 @@ func newSwitchFixture(t *testing.T, class Class) *switchFixture {
 	f.h.charHandler.gameWorld = w
 	f.sb = NewSpellbookHandler(w, database.NewSpellbookStore(f.db))
 	f.sb.SetInventory(f.inv)
-	f.sb.SetHandSwitch(f.h.SwitchHandsFor)
+	f.sb.SetHandSwitch(f.h.SwitchHandsFor) // as RegisterDefaultHandlers wires them
+	w.OnHandsBack(f.h.HandsBack)
 	return f
+}
+
+// land ticks the World on past the landing of the casts begun (a second
+// past castLand, or after), the hands' way back with it (runHandsBack),
+// and returns what was sent. The tick count starts again, so no visibility
+// pass moves the creature off its channel.
+func (f *switchFixture) land(after time.Duration) [][]byte {
+	f.t.Helper()
+	f.w.TickCount = 0
+	f.w.Tick(time.Now().Add(after))
+	var out [][]byte
+	for _, m := range f.sess.Queue().GetPending() {
+		out = append(out, append([]byte(nil), m.Data()...))
+	}
+	return out
+}
+
+// equipsOf is the equips and unequips (0x003F, 0x0040) among msgs, in order.
+func equipsOf(msgs [][]byte) [][]byte {
+	var out [][]byte
+	for i, op := range opsOf(msgs) {
+		if op == protocol.OpcodeEquipItem || op == protocol.OpcodeUnequipItem {
+			out = append(out, msgs[i])
+		}
+	}
+	return out
 }
 
 // weapon adds a weapon: its wear slot, attack type, DMG and range (unk5),
@@ -371,5 +399,139 @@ func TestAMonksPunchTakesItsWeaponOff(t *testing.T) {
 	}
 	if !f.player.Gear.BareHands {
 		t.Error("the World's gear is not bare-handed after the punch")
+	}
+}
+
+// An arrow art that took up the bow, landed with the ranger within its melee
+// reach of the creature, puts the blades the switch took off back (the
+// user's "lets fix all these", 2026-11-01): each in its hand, 0x003F as a
+// switch sends them (the client taking the bow off itself), and the fight's
+// next round is theirs again, nothing waiting for the bow. The control: shot
+// from further than a melee reach (within the art's), the bow stays and its
+// auto-attack would go on shooting.
+func TestAnArrowArtInMeleeReachPutsTheBladesBack(t *testing.T) {
+	for _, far := range []bool{false, true} {
+		f := newSwitchFixture(t, ClassRanger)
+		a := f.own(f.weapon("Fen Cutter", 14, 1, 200, 0), 14)
+		b := f.own(f.weapon("Reed Blade", 14, 1, 180, 0), 15)
+		bow := f.own(f.weapon("Ash Shortbow", 16, 7, 220, 25), -1)
+		f.art(1801, "Test Arrow", "Range")
+		f.look()
+		if far {
+			f.npc.X = f.player.X + 20 // the art's reach is 30, a melee reach 4.5
+		}
+		blades := swingOf(f.w, f.inv, f.sess, f.player)
+		if !f.w.EngageAttack(f.sess, f.npcO, blades, time.Now()) {
+			t.Fatal("not engaged")
+		}
+		stats := func() string { return strings.Join(f.w.StatsReport(f.sess, 0, time.Now()), "\n") }
+		if out := f.cast("Test Arrow"); !began(out) || f.worn()[18] != bow {
+			t.Fatalf("far %v: the arrow art %x, worn %v: want the bow taken up and the cast", far, out, f.worn())
+		}
+		if !strings.Contains(stats(), "from the next round Range2") {
+			t.Fatalf("far %v: the bow's swing not waiting for the next round: %s", far, stats())
+		}
+		got := equipsOf(f.land(2 * time.Second))
+		if far {
+			if len(got) != 0 || f.worn()[18] != bow || !strings.Contains(stats(), "from the next round Range2") {
+				t.Errorf("the control, 20 off: sent %x, worn %v; want the bow kept and its swing next", got, f.worn())
+			}
+			continue
+		}
+		want := [][]byte{{0x3F, 0x00, 0, 14}, {0x3F, 0x00, 1, 15}}
+		if len(got) != 2 || !bytes.Equal(got[0], want[0]) || !bytes.Equal(got[1], want[1]) {
+			t.Fatalf("after the landing: sent %x, want the blades back into 14 and 15", got)
+		}
+		if w := f.worn(); len(w) != 2 || w[14] != a || w[15] != b {
+			t.Errorf("worn %v after the landing: want the blades in their hands", w)
+		}
+		if f.player.PrimaryType != 1 || f.player.SecondaryType != 1 {
+			t.Errorf("the look after: %d/%d, want the blades' 1/1", f.player.PrimaryType, f.player.SecondaryType)
+		}
+		if s := stats(); strings.Contains(s, "from the next round") || f.player.Swing != blades {
+			t.Errorf("the fight after: %s; want the blades' swing and nothing waiting", s)
+		}
+	}
+}
+
+// The hands stay as they are when they cannot go back: another cast on at
+// the arrow art's landing (it has its own hands), a blade the switch took off
+// gone to the bank, the hands changed from the item menu since the switch,
+// or nothing taken off for the bow (bare hands). A blade art's switch is
+// never undone. The control is TestAnArrowArtInMeleeReachPutsTheBladesBack.
+func TestTheHandsStayWhenTheyCannotGoBack(t *testing.T) {
+	hum := entity.CastSpell{SpellID: 1899, Scope: 0, Name: "Test Hum", CastTime: 3 * time.Second,
+		Def: entity.ParseSpellText("Self, Increase STR by 1, 1min")}
+	for _, c := range []string{"a cast on", "a blade banked", "changed by hand", "bare hands", "a blade art"} {
+		f := newSwitchFixture(t, ClassRanger)
+		var a, b int
+		if c != "bare hands" {
+			a = f.own(f.weapon("Fen Cutter", 14, 1, 200, 0), 14)
+			b = f.own(f.weapon("Reed Blade", 14, 1, 180, 0), 15)
+		}
+		bow := f.own(f.weapon("Ash Shortbow", 16, 7, 220, 25), -1)
+		other := f.own(f.weapon("Marsh Hook", 14, 1, 150, 0), -1)
+		f.art(1801, "Test Arrow", "Range")
+		f.art(1802, "Test Edge", "1HS,2HS")
+		f.look()
+		if c == "a blade art" {
+			f.npc.X = f.player.X + 20 // the arrow from range: the bow kept
+		}
+		if out := f.cast("Test Arrow"); !began(out) || f.worn()[18] != bow {
+			t.Fatalf("%s: the arrow art %x, worn %v", c, out, f.worn())
+		}
+		want := map[int]int{18: bow}
+		switch c {
+		case "a cast on":
+			if !f.w.StartCast(f.sess, hum, 0xFFFFFFFF, time.Now()) {
+				t.Fatal("the second cast did not begin")
+			}
+		case "a blade banked":
+			if err := f.inv.MoveCharItem(f.sid, b, 1); err != nil {
+				t.Fatal(err)
+			}
+			f.loadList()
+		case "changed by hand":
+			rows, _ := f.inv.GetCharacterItems(f.sid)
+			key := listIndexOf(rows, sessionInvList(f.sess), other)
+			f.send(protocol.OpcodeInteractItem, func(w *buffer.Writer) { w.WriteUint32(uint32(key)); w.WriteUint32(0xFFFFFFFF); w.WriteByte(0) })
+			want = map[int]int{14: other}
+		case "a blade art":
+			if got := equipsOf(f.land(2 * time.Second)); len(got) != 0 {
+				t.Fatalf("the arrow from range: sent %x, want the bow kept", got)
+			}
+			f.npc.X = f.player.X + 3
+			if out := f.cast("Test Edge"); !began(out) {
+				t.Fatalf("the blade art %x", out)
+			}
+			want = map[int]int{14: a, 15: b}
+		}
+		got := equipsOf(f.land(2 * time.Second))
+		got = append(got, equipsOf(f.land(6*time.Second))...) // the second cast landed too
+		if w := f.worn(); len(got) != 0 || !maps.Equal(w, want) {
+			t.Errorf("%s: after the landing sent %x, worn %v; want nothing sent and %v", c, got, w, want)
+		}
+	}
+}
+
+// Any class's hands go back, not a ranger's alone: a warrior's sword and
+// shield, which the bow's equip took off, each back in its own slot.
+func TestAWarriorsSwordAndShieldGoBack(t *testing.T) {
+	f := newSwitchFixture(t, ClassWarrior)
+	sword := f.own(f.weapon("Cold Iron Sword", 12, 1, 150, 0), 14)
+	shield := f.own(f.pattern("Bark Buckler", 13, 0, 0), 17)
+	bow := f.own(f.weapon("Ash Shortbow", 16, 7, 220, 25), -1)
+	f.art(1801, "Test Arrow", "Range")
+	f.look()
+	if out := f.cast("Test Arrow"); !began(out) || !maps.Equal(f.worn(), map[int]int{18: bow}) {
+		t.Fatalf("the arrow art %x, worn %v: want the bow alone", out, f.worn())
+	}
+	got := equipsOf(f.land(2 * time.Second))
+	want := [][]byte{{0x3F, 0x00, 0, 14}, {0x3F, 0x00, 1, 17}}
+	if len(got) != 2 || !bytes.Equal(got[0], want[0]) || !bytes.Equal(got[1], want[1]) {
+		t.Errorf("after the landing: sent %x, want the sword into 14 and the shield into 17", got)
+	}
+	if w := f.worn(); !maps.Equal(w, map[int]int{14: sword, 17: shield}) {
+		t.Errorf("worn %v after the landing: want the sword and the shield", w)
 	}
 }

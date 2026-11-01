@@ -348,3 +348,28 @@ func TestTheItemMenusEquipChangesAFightsSwing(t *testing.T) {
 		t.Errorf("after the bow went on: %s", s)
 	}
 }
+
+// A monk's punch (None) takes the weapon off its hands, a 0x0040 for the
+// slot (the client takes nothing off for it itself), and is cast: its hands
+// bare, so its melee rolls its hand to hand (the gear the World is given).
+// Its shield stays: a shield is no weapon.
+func TestAMonksPunchTakesItsWeaponOff(t *testing.T) {
+	f := newSwitchFixture(t, ClassMonk)
+	f.own(f.weapon("Oak Cudgel", 12, 3, 120, 0), 14)
+	shield := f.own(f.pattern("Bark Buckler", 13, 0, 0), 17)
+	f.art(1804, "Test Punch", "None")
+	f.look()
+	if f.player.Gear.BareHands {
+		t.Fatal("bare-handed with a cudgel in hand")
+	}
+	out := f.cast("Test Punch")
+	if len(out) == 0 || !bytes.Equal(out[0], []byte{0x40, 0x00, 14}) || !began(out) || toldWeapon(out) {
+		t.Fatalf("the punch: %x, want the cudgel's slot emptied (0x0040 14), then the cast", out)
+	}
+	if w := f.worn(); len(w) != 1 || w[17] != shield {
+		t.Errorf("worn %v after the punch: want the shield alone", w)
+	}
+	if !f.player.Gear.BareHands {
+		t.Error("the World's gear is not bare-handed after the punch")
+	}
+}

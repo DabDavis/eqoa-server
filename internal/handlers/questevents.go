@@ -36,6 +36,13 @@ import (
 //     with their life or the player's leaving, a corpse gone unlooted) are
 //     made again as the step first made them when the player comes within
 //     questRespawnReach of where that NPC stands (respawnLost).
+//   - attack: an NPC near the player (the event's npc, else the step's target)
+//     turns on it, as a hostile spawn does (World.QuestAttack): the man
+//     himself, not a copy, so a talk step's done is the one the player came to
+//     see refusing it (Lady Furess's Packages: "Talk to Valraen, he will
+//     attack you"), where a spawn is Jarek's creation, something the step
+//     brings. One with the NPC bit is left alone (players could not hit it
+//     back): the content clears it first (a seed set's attackable list).
 //   - visual: a spell visual (a SPELLFX.CSF DictID) played from the player on
 //     itself, as a cast's 0x00B1 begins one for everyone who sees it.
 //   - teleport: the player warped as a travel NPC warps it (a world its
@@ -100,6 +107,8 @@ func (q *QuestEngine) runEventsLocked(sess *session.Session, p *entity.Player, c
 			q.tellLocked(c, sess, "", q.giveItemsLocked(sess, p, database.ParseItemCounts(e.Items))...)
 		case database.EventSpawn:
 			q.spawnLocked(p, c, qu, spawnStep, e)
+		case database.EventAttack:
+			q.attackLocked(p, qu, step, e)
 		case database.EventVisual:
 			fx, ok := database.ParseVisualID(e.FX)
 			if !ok || q.gw == nil {
@@ -189,6 +198,24 @@ func (q *QuestEngine) spawnLocked(p *entity.Player, c *questChar, qu *database.Q
 	}
 	q.spawns[c.serverID] = append(q.spawns[c.serverID], questSpawn{id: id, quest: qu.ID, step: step, until: time.Now().Add(questSpawnLife)})
 	log.Printf("Quests: %q step %d spawned %q (%d) for %s", qu.Name, step, name, id, p.Name)
+}
+
+// attackLocked is an attack event of the quest's step: the NPC it names, else
+// the step's target, nearest the player turns on it.
+func (q *QuestEngine) attackLocked(p *entity.Player, qu *database.Quest, step int, e database.QuestEvent) {
+	if q.gw == nil || step == 0 {
+		return
+	}
+	name := strings.TrimSpace(e.NPC)
+	if st := qu.Step(step); name == "" && st != nil {
+		name = strings.TrimSpace(st.Target)
+	}
+	id, why := q.gw.QuestAttack(name, p)
+	if why != "" {
+		log.Printf("Quests: %q step %d: %q does not attack %s: %s", qu.Name, step, name, p.Name, why)
+		return
+	}
+	log.Printf("Quests: %q step %d: %q (%d) attacks %s", qu.Name, step, name, id, p.Name)
 }
 
 // clearSpawnsLocked takes away a character's spawns of the quest (step 0:

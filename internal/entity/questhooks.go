@@ -1,8 +1,10 @@
 package entity
 
 import (
+	"fmt"
 	"log"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/eqoa/server/internal/session"
@@ -163,6 +165,54 @@ func (w *World) SpawnForQuest(name string, p *Player, hostile bool) (EntityID, s
 		}
 	}
 	return id, spelled, true
+}
+
+// QuestAttackReach is how near the player an attack event's NPC stands: the
+// one it has just talked to, or one in the same room.
+const QuestAttackReach float32 = 30
+
+// QuestAttack turns the NPC called name nearest the player (in its world,
+// within QuestAttackReach, alive and in view) on the player, as a hostile
+// quest spawn attacks (SpawnForQuest): a quest step's attack event, the man
+// the player came to see refusing it. A pet, a charmed creature, a dummy and
+// one with the NPC bit (a townsperson players could not hit back; a seed
+// set's attackable list clears it) are left alone. It returns the NPC's id,
+// and why it did not turn ("" when it did).
+func (w *World) QuestAttack(name string, p *Player) (EntityID, string) {
+	name = strings.TrimSpace(name)
+	if p == nil || name == "" {
+		return 0, "no NPC named"
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	if cur, ok := w.Players[p.ServerID]; !ok || cur != p || p.IsDead() {
+		return 0, "the player is not in the world"
+	}
+	now := time.Now()
+	var best *NPC
+	bestD := QuestAttackReach * QuestAttackReach
+	for _, n := range w.NPCs {
+		if n.Dead || n.SpawnOnly || n.World != p.World || now.Before(n.HiddenUntil) ||
+			!strings.EqualFold(strings.TrimSpace(n.Name), name) {
+			continue
+		}
+		dx, dz := n.X-p.X, n.Z-p.Z
+		if d := dx*dx + dz*dz; d <= bestD {
+			best, bestD = n, d
+		}
+	}
+	switch {
+	case best == nil:
+		return 0, fmt.Sprintf("none within %.0f", QuestAttackReach)
+	case best.Owner != 0 || best.Charm != nil:
+		return best.ServerID, "a pet"
+	case best.Dummy != NotDummy:
+		return best.ServerID, "a training dummy"
+	case best.NPCType&0x80 != 0:
+		return best.ServerID, "it has the NPC bit: players could not hit it back"
+	}
+	w.addThreatLocked(best, p.ServerID, 1)
+	return best.ServerID, ""
 }
 
 // PlayVisualOn plays a spell visual from sess's player onto itself, as

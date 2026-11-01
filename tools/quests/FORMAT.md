@@ -73,6 +73,10 @@ engine's (`handlers/quests.go`); its actions are listed there and in the GM pane
 attackable, and it attacks the player, which is how a step has a townsperson killed; a spawn copies a loaded NPC of
 the name, and one only a spawn should bring, a creature the quest makes before the player, is kept out of the world by a
 row of `npcspawnonly`: `tools/fix_quest_spawns.py` marks those `tools/seed_quest_npcs.py` placed that only spawns use);
+`attack` (`npc`, none: the step's target; a step's: the NPC of that name nearest the player, within 30, turns on it, the
+man himself and no copy, so a talk step whose `says` is his refusal and whose `done` is an attack is "talk to him, he
+attacks you", with the kill or loot step after it: Valrean V`Ghen in Lady Furess's Packages; one with the NPC bit is left
+alone, so the set's `attackable` list clears it first);
 `visual` (`fx`: a
 DictID like `0x1DAEB5B6`, or a spell's name for that spell's visual; `seconds`); `teleport`
 (`world`, `x`, `y`, `z`); `vampire` (nothing else: the player made a vampire, whom the sun burns by day,

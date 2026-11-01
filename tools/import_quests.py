@@ -68,7 +68,7 @@ CLASSES = {
 KINDS = ("talk", "show", "give", "kill", "loot", "reach")
 NPC_KINDS = ("talk", "show", "give")
 QUEST_WHENS, STEP_WHENS = ("accept", "finish"), ("start", "done")
-DOS = ("popup", "say", "give", "spawn", "visual", "teleport", "vampire")
+DOS = ("popup", "say", "give", "spawn", "attack", "visual", "teleport", "vampire")
 
 # The quest tables as internal/database/quests.go makes them, and the columns
 # it adds to an older one.
@@ -375,6 +375,16 @@ def plan(db, files, routes=False):
                             miss.append(f"NPC {e.get('npc')!r} ({where} spawn)")
                         if e.get("hostile"):
                             ev["hostile"] = True
+                    elif do == "attack":
+                        # the NPC near the player turns on it (handlers/questevents.go): a step's
+                        if whens is QUEST_WHENS:
+                            miss.append(f"{where} event {on}/attack (an attack is a step's)")
+                            continue
+                        if e.get("npc"):
+                            n = names.npc(e["npc"])
+                            ev["npc"] = n or e["npc"]
+                            if not n:
+                                miss.append(f"NPC {e['npc']!r} ({where} attack)")
                     elif do == "visual":
                         fx = names.visual(e.get("fx"), classes)
                         if not fx:

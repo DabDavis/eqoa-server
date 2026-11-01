@@ -391,3 +391,47 @@ func TestASpawnOnADoneIsTheNextSteps(t *testing.T) {
 		t.Errorf("finished: step %d done %d, %d goblins left", s, d, len(copies()))
 	}
 }
+
+// An attack event turns on the player the NPC it names, else its step's
+// target, the one nearest the player: the man himself, no copy (Lady
+// Furess's Packages: "Talk to Valraen, he will attack you"), his words first.
+// One out of reach stays as it was, and so does one with the NPC bit.
+func TestAnAttackTurnsTheNPCTalkedTo(t *testing.T) {
+	f := newQuestFixture(t)
+	f.tw.p.HP, f.tw.p.MaxHP = 100, 100 // alive, to be attacked
+	near := f.tw.add(5, &entity.NPC{ServerID: 707, Name: "Valraen", MaxHP: 100, SpawnX: 25405, SpawnY: 54.1, SpawnZ: 15727})
+	f.tw.add(6, &entity.NPC{ServerID: 708, Name: "Valraen", MaxHP: 100, SpawnX: 25405 + 200, SpawnY: 54.1, SpawnZ: 15727})
+	box := f.pattern("locked box", 1)
+	f.exec(`INSERT INTO quests (questid, name, enabled, giver) VALUES (81, 'Packages', 1, 'Malsis')`)
+	f.exec(`INSERT INTO queststeps (questid, step, kind, target, journal, says, events) VALUES (81, 1, 'talk', 'Valraen', 'Ask Valraen for the box.',
+		'The box stays with me.', '[{"on":"done","do":"attack"}]')`)
+	f.exec(fmt.Sprintf(`INSERT INTO queststeps (questid, step, kind, target, items, journal) VALUES (81, 2, 'loot', 'Valraen', '%d', 'Take the box.')`, box))
+	f.qe.Reload()
+	if _, err := f.qe.SetCharacterQuest(f.sid, 81, QuestGive, 0); err != nil {
+		t.Fatal(err)
+	}
+	f.msgs()
+	f.tw.talk(near)
+	f.want(f.msgs(), "box:Valraen: The box stays with me.")
+	if s, _ := f.progress(81); s != 2 {
+		t.Fatalf("the talk left the quest at step %d", s)
+	}
+	him, far := f.tw.w.NPCs[707], f.tw.w.NPCs[708]
+	if him.CurrentEnemy != f.tw.p.ServerID || far.CurrentEnemy != 0 {
+		t.Fatalf("enemies: his %d, the far one's %d; want the player's and none", him.CurrentEnemy, far.CurrentEnemy)
+	}
+	for _, n := range f.tw.w.NPCs {
+		if n.QuestSpawn {
+			t.Fatalf("a copy was made: %q", n.Name)
+		}
+	}
+
+	// the NPC bit: a townsperson players could not hit back is left alone
+	him.CurrentEnemy, him.Threats, him.NPCType = 0, nil, 0x80
+	if id, why := f.tw.w.QuestAttack("valraen", f.tw.p); why == "" || him.CurrentEnemy != 0 {
+		t.Fatalf("one with the NPC bit turned (%d, %q)", id, why)
+	}
+	if _, why := f.tw.w.QuestAttack("Nobody", f.tw.p); why == "" {
+		t.Fatal("an attack by no NPC there did not say why")
+	}
+}

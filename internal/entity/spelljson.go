@@ -321,6 +321,21 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 	if d.FormKind != FormNone {
 		d.Harmful = false
 	}
+	// a stance (Stance): a self spell raising stats whose cure is the
+	// workbook's "ID?" ends the bearer's other stances, not every harm
+	if d.Target == TargetSelf && !d.Harmful {
+		raises := false
+		for _, e := range d.Effects {
+			if e.Kind == EffectStat && e.Amount > 0 && !e.Set {
+				raises = true
+			}
+		}
+		for i, w := range d.Removes {
+			if raises && strings.EqualFold(strings.TrimSpace(w), "id?") {
+				d.Removes[i], d.Stance = "stance", true
+			}
+		}
+	}
 	// a harmful spell the workbook gives no time whose effect ends at
 	// contact lasts until contact (untilContact, workbook.go): Enshrouding
 	// darkness, the shadow knight's snare, Duration 0 and DisspellOnContact

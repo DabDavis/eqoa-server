@@ -246,6 +246,12 @@ type SpellDef struct {
 	// came by them (Restorative's three: the user, 2026-11-01, "make it cure
 	// up to 3 effects"; the order ours), 0 every one its words take.
 	CureMax int
+	// Stance is a warrior's stance: a self spell that raises stats and
+	// carries the workbook's cure of "ID?", which ends the bearer's other
+	// stances (the user, 2026-11-01: "make stances end each other"), where
+	// it took every harmful effect off (the twelve of the Controlled,
+	// Reckless, Furious, Frenzied, Frantic and Desperate lines).
+	Stance bool
 	// DispelOnCast and DispelOnContact end what lasts of it when its bearer
 	// casts, or is hit or harmed (workbook.go)
 	DispelOnCast, DispelOnContact bool

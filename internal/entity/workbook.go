@@ -66,6 +66,9 @@ type EffectRules struct {
 	SpeedPct        int  `json:",omitempty"`
 	DispelOnCast    bool `json:",omitempty"`
 	DispelOnContact bool `json:",omitempty"`
+	// Stance marks a warrior's stance (SpellDef.Stance): another stance's
+	// cure takes it off
+	Stance bool `json:",omitempty"`
 	// MitigatePct of each melee hit on the bearer is not taken, at most
 	// MitigateLeft more (0: no limit; MitigateCapped says there is one)
 	MitigatePct    int  `json:",omitempty"`
@@ -97,7 +100,7 @@ type EffectRules struct {
 
 // rulesOf is a cast's rules for what lasts of it.
 func rulesOf(d *SpellDef) EffectRules {
-	r := EffectRules{DispelOnCast: d.DispelOnCast, DispelOnContact: d.DispelOnContact, Harm: d.Harmful, Twice: d.Workbook}
+	r := EffectRules{DispelOnCast: d.DispelOnCast, DispelOnContact: d.DispelOnContact, Harm: d.Harmful, Twice: d.Workbook, Stance: d.Stance}
 	for _, e := range d.Effects {
 		if e.Resist != StatNone {
 			r.Resist = e.Resist
@@ -491,6 +494,10 @@ func cureMatches(ae *ActiveEffect, words string) bool {
 		return ae.Speed
 	case has("mask", "illusion"):
 		return ae.Form != 0
+	case w == "stance":
+		// a stance's cure: the bearer's other stances (its own spell is
+		// never cured by itself: cureLocked)
+		return ae.Rules.Stance
 	case reDoTWord.MatchString(w) || has("damage over time"):
 		// a damage over time (Envaric Salve's "PoE DoT?": the user,
 		// 2026-11-01, "damage over time"): a harmful effect whose tick hurts

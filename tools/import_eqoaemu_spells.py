@@ -328,6 +328,20 @@ TWO_SPELLS = {"flesh mastery": ("Flesh Mastery +", (2,))}
 DESCRIPTIONS = {"flesh mastery +": None,
                 "agonize death": "Level 60 Epic third spell option. An arcane strike at an undead foe. Its wound "
                                  "damages it over 24 seconds. Resisted by AR."}
+# MADE_ERRATA: a spell whose row makes another spell's item, by its name
+# (folded) -> the workbook's name of the item it makes, its own name's and
+# level's. The Created Item sheets' 13614 is Foraged Fruit (L35, HP1 85) and
+# 13615 Foraged Grub (L25, HP1 55), where the Spells sheet gives the ranger's
+# Forage Grub (L25) 13614 and Forage Fruit (L35) 13615 (the user, 2026-11-01:
+# "yes swap them").
+MADE_ERRATA = {"forage grub": "Foraged Grub", "forage fruit": "Foraged Fruit"}
+# MEAL_RULE: the workbook's meals that end as a meal of ours does (entity/
+# consumable.go: refused in a fight, ended by an aggressive action or a hit:
+# a foodeffect row's ends_on_contact, not its ends_on_cast) and last the
+# workbook's time (its Created Item Effects' Duration, 120 s: the user,
+# 2026-11-01, "yes use 2 minutes"), by the workbook's item name (folded): the
+# ranger's five foraged meals, which the workbook ends on any cast instead.
+MEAL_RULE = {"foraged berries", "foraged grub", "foraged fruit", "foraged herbs", "foraged tuber"}
 # the key on a Spells row two_spells made, naming the row it was cut from
 ERRATUM_OF = "erratum of"
 # a Dmg/Heal row with a positive HP1 lasting at most this many seconds heals
@@ -1003,7 +1017,22 @@ def spell_json(s, wb, items_by_name):
     if cell(s, "ArchType"):
         out["arch_type"] = cell(s, "ArchType")
     out["effects"] = effects
+    fix = MADE_ERRATA.get(fold(cell(s, "Name")))
+    if fix:
+        for o in effects:
+            if o.get("kind") == "create_item":
+                o["item"] = made_erratum(o.get("item") or {}, fix, items_by_name)
     return out, missing
+
+
+def made_erratum(item, name, items_by_name):
+    """A create_item's item (as item_ref writes it) for the item a spell's row
+    should name (MADE_ERRATA): the workbook's name for it, ours by that name."""
+    out = {"count": item.get("count", 1), "name": name}
+    pid = our_item(items_by_name, name)
+    if pid is not None:
+        out["patternid"] = pid
+    return out
 
 
 REAGENT = re.compile(r"(?i)\breagents?\s*:?\s+[^,;]+?\s+x\s*\d+")
@@ -2030,11 +2059,12 @@ def plan_foods(db, wb, items_by_name, item_names, lists, counts):
         if not ok or not figures or POTION_NAME.search(name):
             continue  # not a food or a drink (an alchemist's potion is not this part's)
         potion = figures["heal"] > 0
+        meal_rule = fold(name) in MEAL_RULE and not potion and figures["hot"]
         foods.append(dict(iid=iid, name=name, level=num(rs[0], "Level") or 1, figures=figures, potion=potion,
                           kind="potion" if potion else "meal" if figures["hot"] else "drink",
                           dur=max(num(e, "Duration") or 0 for e in effs),
-                          cast=any(cell(e, "DisspellOnCast") == "1" for e in effs),
-                          contact=any(cell(e, "DisspellOnContact") == "1" for e in effs)))
+                          cast=False if meal_rule else any(cell(e, "DisspellOnCast") == "1" for e in effs),
+                          contact=True if meal_rule else any(cell(e, "DisspellOnContact") == "1" for e in effs)))
     # ours first (a made one's siblings are the workbook's foods we have, of its kind)
     for f in foods:
         f["pid"] = our_item(items_by_name, f["name"])

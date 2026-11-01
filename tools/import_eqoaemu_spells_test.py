@@ -411,6 +411,35 @@ class ImportTest(unittest.TestCase):
         self.assertEqual(pour["item"]["patternid"], 940002, "the summoning names the made item")
         self.assertEqual(self.line(p, 900276), "Self, Summon Sweet Cider x3")
 
+    def test_errata_made_items_and_meal_rule(self):
+        """MADE_ERRATA: a spell whose row makes another's item makes the one
+        its table names (here two swapped: Brew Fire makes the Sweet Cider,
+        Pour Cider the Fire Potion), its line saying so; MEAL_RULE: a meal of
+        the workbook's ends as a meal of ours does (contact, not cast), its
+        time the workbook's. The controls: without the tables' rows each makes
+        its sheet's item and the meal ends as the workbook says (the foods
+        test's (120, 1, 0)); a meal of ours the workbook lacks gets no row (a
+        grocer's: the minute). The names made up."""
+        x = self.db.execute
+        x("INSERT INTO itempattern VALUES (11, 0, 0, 4343, 0, -1, 0, 1, 0, 0, 0, 0, 0, 5, 50, 0, 50, 32767, 1023, 2, 0, 0, "
+          "0, 'Grocer Loaf', 'A loaf, a meal that will increase health regeneration.', 0, 0, NULL, 3, NULL)")
+        saved = im.MADE_ERRATA, im.MEAL_RULE
+        im.MADE_ERRATA = {"brew fire": "Sweet Cider effect", "pour cider": "Fire Mix Potion"}
+        im.MEAL_RULE = {"wild berries"}
+        try:
+            p = self.plan()
+        finally:
+            im.MADE_ERRATA, im.MEAL_RULE = saved
+        brew, pour = self.effects(p, 900265)["effects"][0]["item"], self.effects(p, 900276)["effects"][0]["item"]
+        self.assertEqual((brew["patternid"], pour["patternid"]), (940002, 7), "each makes the item its erratum names")
+        self.assertEqual((self.line(p, 900265), self.line(p, 900276)), ("Self, Summon Sweet Cider x3", "Self, Summon Fire Potion x3"))
+        fe = {x["patternid"]: (x["duration_s"], x["ends_on_cast"], x["ends_on_contact"]) for x in p["foods"]["foodeffects"]}
+        self.assertEqual(fe[9], (120, 0, 1), "a meal's ending, the workbook's time")
+        self.assertNotIn(11, fe, "a grocer's meal: no row, the minute")
+        plain = self.plan()
+        self.assertEqual((self.effects(plain, 900265)["effects"][0]["item"]["patternid"],
+                          self.effects(plain, 900276)["effects"][0]["item"]["patternid"]), (7, 940002), "the control")
+
     def test_areas_and_classes(self):
         p = self.plan()
         areas = {a["spellid"]: a["row"] if a["action"] == "insert" else a["set"] for a in p["areas"]}

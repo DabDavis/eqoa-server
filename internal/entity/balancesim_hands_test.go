@@ -148,3 +148,56 @@ func TestASimRangerIsBackOnItsBladesAfterEachArrowArt(t *testing.T) {
 		t.Errorf("the control, bare hands: %d arrows, then %d hits at a melee reach and %d with the bow; want the bow's alone", arrows, blade, bowed)
 	}
 }
+
+// The simulator gives back a bow an earlier switch took up as the server
+// does: a ranger whose arrow art took its bow up at range (the bow kept, out
+// of a melee reach) casts its next one in melee with the bow in hand, no
+// switch of its own, and is back on its blades once it has landed. The
+// control: a bow taken up by a change of hands that is no switch (hold, as
+// the item menu's) stays.
+func TestASimRangerPulledAtRangeIsBackOnItsBladesAfterAnArrowArtInMelee(t *testing.T) {
+	blades := SimHands{AttackType: 1, Primary: 1, Secondary: 1, Gear: Gear{WeaponCond: 1, WeaponDamage: 300, WeaponSlot: 14, WeaponType: 1}}
+	blades.Worn[14], blades.Worn[15] = true, true
+	bow := SimHands{AttackType: 7, Range: 25, Secondary: 7, Gear: Gear{WeaponCond: 1, WeaponDamage: 330, WeaponSlot: 18, WeaponType: 7}}
+	bow.Worn[18] = true
+	kit := simKit(1, 30)
+	kit.Body = kit.Gear
+	kit.Body.WeaponDamage = 0
+	arrow := simArt(9201, "an arrow", "Range", 50)
+	kit.Spells = []CastSpell{arrow}
+	kit.Hands = []SimHands{blades, bow}
+	for _, switched := range []bool{true, false} {
+		f := newSimFight(kit, SimNPC{Level: 31}, SeedBalance())
+		f.now = f.t0
+		at := func(x float32) {
+			f.w.mu.Lock()
+			f.npc.X = f.p.X + x
+			f.p.Lockouts, f.p.artReady = nil, time.Time{} // its lockout waited out
+			f.w.mu.Unlock()
+		}
+		shoot := func(when string) {
+			s := arrow
+			f.handsFor(&s, simFoeID)
+			if !f.w.StartCast(f.sess, s, simFoeID, f.now) {
+				t.Fatalf("switched %v: %s, the arrow did not begin", switched, when)
+			}
+			for range int((castLand + simTick) / simTick) {
+				f.tick()
+			}
+		}
+		if switched {
+			at(20)
+			shoot("at range")
+			if f.hands != 1 {
+				t.Fatalf("at range the bow was not kept: hands %d", f.hands)
+			}
+		} else {
+			f.hold(1) // the bow by a change of hands that is no switch
+		}
+		at(3)
+		shoot("in melee")
+		if want := map[bool]int{true: 0, false: 1}[switched]; f.hands != want {
+			t.Errorf("switched %v: hands %d after the arrow in melee, want %d", switched, f.hands, want)
+		}
+	}
+}

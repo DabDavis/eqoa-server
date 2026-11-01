@@ -264,6 +264,7 @@ type simFight struct {
 	casts                  int
 	hands                  int       // the kit's Hands it holds
 	back                   int       // the Hands a switch to a ranged weapon took off, for the way back (handsBack)
+	took                   bool      // the Hands it holds are that switch's ranged weapon, nothing changed since
 	moveUntil              time.Time // a rooting caster stepping back: no cast till then
 	rootAt                 float32   // how far off its NPC a rooting caster stands (simRootAt)
 	rootLands              time.Time // a rooting caster's root in flight lands then
@@ -389,14 +390,15 @@ func (f *simFight) swing() Swing {
 // hold switches the player's hands to the kit's Hands i, as the server's
 // switch does (handlers/handswitch.go): what they add and their attack
 // types, its stats from them, and a fight's swing from its next round
-// (HandsChanged).
+// (HandsChanged). Any change of hands forgets a switch's ranged weapon (took),
+// as the server's applyPlan does; handsFor sets it again after its own.
 func (f *simFight) hold(i int) {
 	w, p := f.w, f.p
 	w.mu.Lock()
 	simDress(p, &f.pl, i)
 	p.RecalcStats(false)
 	w.mu.Unlock()
-	f.hands = i
+	f.hands, f.took = i, false
 	w.HandsChanged(f.sess, f.swing())
 }
 
@@ -404,28 +406,31 @@ func (f *simFight) hold(i int) {
 // that alone would refuse it (CastWantsHands): the first of the kit's other
 // Hands that fits it (handlers/handswitch.go takes the ones a switch took
 // off first, a kit's first Hands). A switch to a ranged weapon from hands
-// that held anything marks the spell for the way back (CastSpell.HandsBack:
-// at its landing in melee reach, handsBack), as the server's does.
+// that held anything remembers them for the way back (back, took: handsBack)
+// and marks the spell (CastSpell.HandsBack: a self cast's own switch), as
+// the server's does.
 func (f *simFight) handsFor(s *CastSpell, target uint32) {
 	if len(f.pl.Hands) < 2 || s.Def.ReqEquip == "" || !f.w.CastWantsHands(f.sess, *s, target, f.now) {
 		return
 	}
 	for i := range f.pl.Hands {
 		if i != f.hands && f.pl.Hands[i].fits(s.Def.ReqEquip) {
-			if f.pl.Hands[i].Worn[18] && f.pl.Hands[f.hands].holds() {
-				f.back, s.HandsBack = f.hands, true
-			}
+			from := f.hands
 			f.hold(i)
+			if f.pl.Hands[i].Worn[18] && f.pl.Hands[from].holds() {
+				f.back, f.took, s.HandsBack = from, true, true
+			}
 			return
 		}
 	}
 }
 
-// handsBack is the server's way back after a cast whose switch took up a
-// ranged weapon (handlers/handswitch.go HandsBack): the hands it took off
-// taken up again, while it holds that weapon still.
+// handsBack is the server's way back after a cast that wants a ranged weapon
+// (handlers/handswitch.go HandsBack): the hands a switch took off to take up
+// the one it holds taken up again, while it holds that weapon still, nothing
+// else changed since (took).
 func (f *simFight) handsBack() {
-	if f.back != f.hands && f.pl.Hands[f.hands].Worn[18] {
+	if f.took && f.pl.Hands[f.hands].Worn[18] {
 		f.hold(f.back)
 	}
 }

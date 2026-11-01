@@ -535,3 +535,69 @@ func TestAWarriorsSwordAndShieldGoBack(t *testing.T) {
 		t.Errorf("worn %v after the landing: want the sword and the shield", w)
 	}
 }
+
+// A ranger that pulled at range (its arrow art took the bow up, kept out of a
+// melee reach) and fights on in melee has its blades back once its next arrow
+// art lands, though that art switched nothing (the coordinator's ruling of
+// 2026-11-01 on the question the user answered "lets fix all these": "switch
+// back to the blades by itself right after an arrow art used in melee range").
+// The controls: a bow put on from the item menu
+// stays, though an earlier switch's way back left the blades it took off in
+// the memory; and so does the switch's own bow once the hands were changed
+// from the item menu since (another blade, then the same bow again).
+func TestAPullAtRangeThenAnArrowArtInMeleePutsTheBladesBack(t *testing.T) {
+	for _, c := range []string{"pulled at range", "the bow from the item menu", "changed by hand since"} {
+		f := newSwitchFixture(t, ClassRanger)
+		a := f.own(f.weapon("Fen Cutter", 14, 1, 200, 0), 14)
+		b := f.own(f.weapon("Reed Blade", 14, 1, 180, 0), 15)
+		bow := f.own(f.weapon("Ash Shortbow", 16, 7, 220, 25), -1)
+		other := f.own(f.weapon("Marsh Hook", 14, 1, 150, 0), -1)
+		f.art(1801, "Test Arrow", "Range")
+		f.look()
+		menu := func(item int) {
+			rows, _ := f.inv.GetCharacterItems(f.sid)
+			key := listIndexOf(rows, sessionInvList(f.sess), item)
+			f.send(protocol.OpcodeInteractItem, func(w *buffer.Writer) { w.WriteUint32(uint32(key)); w.WriteUint32(0xFFFFFFFF); w.WriteByte(0) })
+		}
+		if c == "the bow from the item menu" {
+			// an arrow art in melee and its way back first: the blades in the memory
+			if out := f.cast("Test Arrow"); !began(out) || f.worn()[18] != bow {
+				t.Fatalf("%s: the first arrow art %x", c, out)
+			}
+			if got := equipsOf(f.land(2 * time.Second)); len(got) != 2 {
+				t.Fatalf("%s: the first way back sent %x", c, got)
+			}
+			menu(bow)
+		} else {
+			f.npc.X = f.player.X + 20
+			if out := f.cast("Test Arrow"); !began(out) || f.worn()[18] != bow {
+				t.Fatalf("%s: the pull %x, worn %v", c, out, f.worn())
+			}
+			if got := equipsOf(f.land(2 * time.Second)); len(got) != 0 {
+				t.Fatalf("%s: after the pull at range sent %x, want the bow kept", c, got)
+			}
+			if c == "changed by hand since" {
+				menu(other)
+				menu(bow)
+			}
+		}
+		if w := f.worn(); !maps.Equal(w, map[int]int{18: bow}) {
+			t.Fatalf("%s: worn %v before the arrow art in melee, want the bow alone", c, w)
+		}
+		f.npc.X = f.player.X + 3
+		if out := f.cast("Test Arrow"); !began(out) || len(equipsOf(out)) != 0 {
+			t.Fatalf("%s: the arrow art in melee %x, want it cast with the bow in hand, nothing switched", c, out)
+		}
+		got := equipsOf(f.land(2 * time.Second))
+		if c == "pulled at range" {
+			want := [][]byte{{0x3F, 0x00, 0, 14}, {0x3F, 0x00, 1, 15}}
+			if len(got) != 2 || !bytes.Equal(got[0], want[0]) || !bytes.Equal(got[1], want[1]) || !maps.Equal(f.worn(), map[int]int{14: a, 15: b}) {
+				t.Errorf("%s: after the arrow art in melee sent %x, worn %v; want the blades back into 14 and 15", c, got, f.worn())
+			}
+			continue
+		}
+		if len(got) != 0 || !maps.Equal(f.worn(), map[int]int{18: bow}) {
+			t.Errorf("the control, %s: after the arrow art in melee sent %x, worn %v; want the bow kept", c, got, f.worn())
+		}
+	}
+}

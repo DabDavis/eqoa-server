@@ -665,7 +665,9 @@ every red alone from 8 under pet columns fitted for the server's own. It sets `b
 `dealt_pct` where no share met their win rates, a red a lone loss, every summoner's `pet_hp_pct` on its book's pet
 but the wizard's, whose familiars are passive, levels 1-10 by the low-level check; eleven cells after: a shadow
 knight of 5 to the fire bat fight, a magician of 4 and an alchemist of 6 to their even fights, a druid of 5 and 10
-and a magician of 44's pet to their reds, five yellows off the cut's edge), each row only while
+and a magician of 44's pet to their reds, five yellows off the cut's edge; the shadow knight's 13-60 with Punish
+Death for the undead alone, as the undead check of 2026-11-01 means it: under them a knight that casts it at any
+creature loses its yellows from 20, so the check must reach it), each row only while
 it is the four tunings'; 812 rows on eqoaclassic's copy of 07:15 with the import in. For it the simulator's root
 play roots with a root that holds through a hit first (every workbook root ends at one) and stands within its reach
 (`simRootAt`), and a kit holds what its arts need (`simHands`: a rogue a piercer, a paladin a blunt weapon, a bard

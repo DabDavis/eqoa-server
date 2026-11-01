@@ -42,13 +42,26 @@ import (
 //   - Thrown ("Target, ..."): its hit and what lasts of it land on the
 //     creature targeted, as a spell's would (landOnNPCLocked), within the
 //     potion's throwing range, and on every creature within its splash
-//     (itemeffect.area: the cocktails'). A thrown potion is a ranged weapon
+//     (itemeffect.area: the cocktails'); what its target alone takes beside
+//     it is its row's target_line (a target-based area's first figure, the
+//     workbook's HP1, the line its second, HP2: its legend's "AoE hits target
+//     and also the radius from the target, including target a second time",
+//     2026-11-01), so the target takes both and the rest of the splash the
+//     line, what lasts of it on each once. A thrown potion is a ranged weapon
 //     (F3 20261026-014336, jib: "equips in the range attack slot, like a bow,
 //     and fires as a range auto attack"): wear 16, a bow's, attack type 10,
 //     worn in the ranged slot by Use, and each throw of the ranged
 //     auto-attack is one of them, gone from the stack
 //     (thrownPotionHitLocked). Use throws one only when it is worn nowhere
 //     (a GM's potion; handlers/potion.go usesPotion).
+//
+// A use may show a body (illusion.go; 2026-11-01, the user's "fix all these"
+// of the potions that changed no body): its effect's name read as a spell's
+// ("Illusion: Ogre", the Transformative Pill's) and its row's body (a CHAR.ESF
+// CSprite's DictID as npcs.modelid holds it: the workbook's Alter Appearance
+// sprite, the other way round). A drink shows its drinker in it as a spell's
+// illusion does (a race's body of the drinker's own sex), a thrown potion the
+// creature it hits, for what lasts of it (NPC.Body).
 //
 // What ends one early is its row's: "attack" (jib: a quickening "break[s] on
 // any aggressive action done by the character": its auto-attack, a harmful
@@ -94,6 +107,11 @@ type PotionEffect struct {
 	BreaksOnDamage bool
 	WearPct        int
 	Cures          int // harmful effects a drink takes off
+	// Body is the body it shows (its row's, SetBody), 0 none but its name's
+	Body uint32
+	// TargetShare is what a thrown one's target alone takes beside its line
+	// (its row's target_line, SetTargetShare)
+	TargetShare []SpellEffect
 }
 
 // reDispel is a cure's words in a line ("Dispel Effect x3"): spelltext.go
@@ -123,7 +141,54 @@ func NewPotionEffect(patternID int, itemName, line, name string, icon uint32, br
 			}
 		}
 	}
+	pe.readBody()
 	return pe
+}
+
+// SetBody gives the use its row's body (itemeffect.body: a CHAR.ESF CSprite's
+// DictID, 0 none).
+func (pe *PotionEffect) SetBody(body uint32) {
+	pe.Body = body
+	pe.readBody()
+}
+
+// SetTargetShare gives a thrown use what its target alone takes beside its
+// line (itemeffect.target_line, in the line's words; "" none): its hit, read
+// as the line is, before the line's own.
+func (pe *PotionEffect) SetTargetShare(line string) {
+	pe.TargetShare = nil
+	if strings.TrimSpace(line) != "" {
+		pe.TargetShare = ParseSpellText(line).Effects
+	}
+}
+
+// readBody gives the use the body its effect's name says as a spell's does
+// ("Illusion: Ogre"; a glamour's too) or its row gives (Body; with both the
+// row's, a race's body still its bearer's sex's: illusion.go): an illusion on
+// a drinker, as a self illusion spell's, or on the creature a thrown one
+// hits, for what lasts of it (ten minutes when its line gives no time, as an
+// illusion spell's).
+func (pe *PotionEffect) readBody() {
+	var named SpellDef
+	named.readIllusion(pe.Name, "")
+	form := ""
+	if named.FormKind == FormSelf || named.FormKind == FormGroup {
+		form = named.Form
+	}
+	if form == "" && pe.Body == 0 {
+		return
+	}
+	d := &pe.Def
+	if !d.hasIllusion() {
+		d.Effects = append(d.Effects, SpellEffect{Kind: EffectIllusion})
+	}
+	d.Form, d.FormModel = form, pe.Body
+	if !pe.Thrown() {
+		d.FormKind = FormSelf // a thrown one keeps its target (castTargetsLocked)
+	}
+	if d.Duration <= 0 {
+		d.Duration = illusionDuration
+	}
 }
 
 // Thrown is whether the potion is thrown at a target rather than drunk.
@@ -314,12 +379,19 @@ func (w *World) usePotion(sess *session.Session, pe PotionEffect, targetObjectID
 	return "", nil, nil
 }
 
-// throwLocked lands a thrown potion on npc, and on every creature that may be
-// fought within its splash. Throwing is an attack: what a potion of the
-// thrower's own ends on an attack ends, invisibility too.
+// throwLocked lands a thrown potion on npc, its own share first (TargetShare,
+// two hits as the workbook's two figures are), and its line on every creature
+// that may be fought within its splash. Throwing is an attack: what a potion
+// of the thrower's own ends on an attack ends, invisibility too.
 func (w *World) throwLocked(sess *session.Session, p *Player, pe *PotionEffect, npc *NPC, now time.Time) {
 	cs := &castState{spell: pe.castSpell(), caster: p.ServerID, targets: []EntityID{npc.ServerID}}
-	w.landOnNPCLocked(cs, p, sess, npc, now)
+	target := cs
+	if len(pe.TargetShare) > 0 {
+		own := *cs
+		own.spell.Def.Effects = append(append([]SpellEffect(nil), pe.TargetShare...), cs.spell.Def.Effects...)
+		target = &own
+	}
+	w.landOnNPCLocked(target, p, sess, npc, now)
 	if pe.Area > 0 {
 		for _, id := range w.SpatialIndex.QueryRadius(npc.X, npc.Z, pe.Area) {
 			o := w.NPCs[id]

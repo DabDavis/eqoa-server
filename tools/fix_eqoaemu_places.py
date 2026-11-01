@@ -102,6 +102,17 @@ gates' seed (tools/seed_spell_gates.py) were applied to.
      has it). Only a spell with no effects of its own yet is written; else
      listed, left.
 
+  8. Two workbook errors put right (MADE_ERRATA, MEAL_RULE, import_eqoaemu_spells.py's:
+     a fresh import makes the same; the user, 2026-11-01: "yes swap them,
+     yes use 2 minutes"): the ranger's Forage Grub makes foraged grub and
+     Forage Fruit foraged fruit (the workbook's Spells sheet gave each the
+     other's CreatedItemID): each spell's create_item the one the import
+     wrote for the item it should make (on the other spell), its line the
+     import's line writer's; and the five foraged meals' foodeffect rows end
+     as a meal does (ends_on_contact, not ends_on_cast: consumable.go's rule)
+     and keep the workbook's 120 s. Only rows still as the import wrote them
+     (its log) are written; else listed, left.
+
 Where two of the five land stays as tools/seed_spell_gates.py put them:
 the Circle of Dead Hills at Fendren's spot (Fendren's guide: "Ports to Dead
 Hills SE (where Fendren is)", its level 53 guide that his port goes "to the
@@ -134,7 +145,8 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import import_quests as iq  # noqa: E402
-from import_eqoaemu_spells import CURES, DURATIONS, MAKES, MIRRORS, RECASTS, dumps as im_dumps, with_duration  # noqa: E402
+from import_eqoaemu_spells import CURES, DURATIONS, MADE_ERRATA, MAKES, MEAL_RULE, MIRRORS, RECASTS, dumps as im_dumps, \
+    with_duration  # noqa: E402
 import import_eqoaemu_spells as im  # noqa: E402
 
 DEFAULT_DB = os.path.join(HERE, "..", "eqoa.db")
@@ -426,6 +438,86 @@ def plan_ours(db, makes, cures, ch, said):
                            set=eff["set"], note=tag))
 
 
+def import_row(db, tbl, key):
+    """A row as import_eqoaemu_spells.py last wrote it (its log's after), or
+    None."""
+    if not has_table(db, IMPORT_LOG):
+        return None
+    r = db.execute(f"SELECT after FROM {IMPORT_LOG} WHERE tbl = ? AND key = ? AND after IS NOT NULL ORDER BY seq DESC LIMIT 1",
+                   (tbl, im_dumps(key))).fetchone()
+    return json.loads(r[0]) if r else None
+
+
+def plan_errata(db, made, meals, ch, said):
+    has_fx = has_table(db, "spelleffect") and "effects" in columns(db, "spelleffect")
+    recs = dict(db.execute("SELECT spellid, spellname FROM spellpattern"))
+    fx = {r[0]: (r[1], r[2]) for r in db.execute("SELECT spellid, line, effects FROM spelleffect")} if has_fx else {}
+    item_names = dict(db.execute("SELECT patternid, itemname FROM itempattern"))
+    # the item part the import wrote for each item of the workbook's name (its sheet_name), on any spell
+    parts = collections.defaultdict(set)
+    for sid, (_, text) in fx.items():
+        try:
+            j = json.loads(text or "{}")
+        except ValueError:
+            continue
+        for o in j.get("effects") or [] if isinstance(j, dict) else []:
+            it = o.get("item") or {}
+            if o.get("kind") == "create_item" and it.get("sheet_name"):
+                parts[im.fold(it["sheet_name"])].add(im_dumps(it))
+    for name, item in sorted(made.items()):
+        mine = [sid for sid, n in recs.items() if im.exact_key(n) == im.exact_key(name)]
+        if len(mine) != 1 or not (fx.get(mine[0], ("", ""))[1] or "").strip():
+            said["a spell an erratum names with no one record and effects here (left)"].append(f"{name}: {mine}")
+            continue
+        sid = mine[0]
+        line, text = fx[sid]
+        if len(parts.get(im.fold(item), ())) != 1:
+            said["an erratum's item not one the import wrote (left)"].append(f"{sid} {recs[sid]}: {item}")
+            continue
+        part = json.loads(next(iter(parts[im.fold(item)])))
+        j = json.loads(text)
+        hit = False
+        for o in j.get("effects") or []:
+            if o.get("kind") == "create_item" and o.get("item") != dict(part, count=(o.get("item") or {}).get("count", 1)):
+                o["item"] = dict(part, count=(o.get("item") or {}).get("count", 1))
+                hit = True
+        if not hit:
+            said["errata as they are to be"].append(f"{sid} {recs[sid]}")
+            continue
+        wrote = import_wrote(db, sid)
+        if wrote is None or wrote[1] != text:
+            said["an erratum's spell not as the import wrote it (left)"].append(f"{sid} {recs[sid]}")
+            continue
+        new_line = im.line_of(j, item_names={part.get("patternid"): item_names.get(part.get("patternid"))})
+        ch.append(dict(tbl="spelleffect", action="update", ref={"spellid": sid}, before={"effects": text, "line": line},
+                       set={"effects": im_dumps(j), "line": new_line},
+                       note=f"{recs[sid]}: makes {item_names.get(part.get('patternid'))} (MADE_ERRATA: the workbook's swap)"))
+    # the meals that end as a meal does
+    items_by_name = {}
+    for pid, n, icon, slot in db.execute("SELECT patternid, itemname, itemicon, equipslot FROM itempattern ORDER BY patternid"):
+        if not (icon == im.SCROLL_ICON and slot == -1):
+            items_by_name.setdefault(im.fold(n), pid)
+    fcols = columns(db, "foodeffect") if has_table(db, "foodeffect") else []
+    for name in sorted(meals):
+        pid = im.our_item(items_by_name, name)
+        r = db.execute(f"SELECT {', '.join(fcols)} FROM foodeffect WHERE patternid = ?", (pid,)).fetchone() if fcols and pid else None
+        row = dict(zip(fcols, r)) if r else None
+        wrote = import_row(db, "foodeffect", {"patternid": pid}) if pid else None
+        if row is None:
+            said["a meal MEAL_RULE names with no foodeffect row (left)"].append(f"{name}: {pid}")
+            continue
+        if (row["ends_on_cast"], row["ends_on_contact"]) == (0, 1):
+            said["meals ending as a meal does already"].append(f"{pid} {item_names.get(pid)}")
+            continue
+        if wrote is None or {k: row.get(k) for k in wrote} != wrote:
+            said["a meal's foodeffect row not as the import wrote it (left: a GM's?)"].append(f"{pid} {item_names.get(pid)}")
+            continue
+        ch.append(dict(tbl="foodeffect", action="update", ref={"patternid": pid},
+                       before={"ends_on_cast": row["ends_on_cast"], "ends_on_contact": row["ends_on_contact"]},
+                       set={"ends_on_cast": 0, "ends_on_contact": 1},
+                       note=f"{item_names.get(pid)}: a meal's ending, {row['duration_s']} s (MEAL_RULE)"))
+
+
 def plan_tower(db, gems, chambers, ch, said):
     for g in gems:
         # its two items: one of the name there is used; one to make whose id
@@ -602,7 +694,7 @@ def plan_isle(db, talked_to, ch, said):
 
 
 def plan(db, recasts=None, gems=None, chambers=None, portal=PORTAL, keys=QUEST_KEYS, talked_to=TALKED_TO, durations=None,
-         mirrors=None, makes=None, cures=None):
+         mirrors=None, makes=None, cures=None, made=None, meals=None):
     """Every change --apply would make, in order, and the report's lines."""
     ch, said = [], collections.defaultdict(list)
     plan_recasts(db, RECASTS if recasts is None else recasts, ch, said)
@@ -612,6 +704,7 @@ def plan(db, recasts=None, gems=None, chambers=None, portal=PORTAL, keys=QUEST_K
     plan_durations(db, DURATIONS if durations is None else durations, ch, said)
     plan_mirrors(db, MIRRORS if mirrors is None else mirrors, ch, said)
     plan_ours(db, MAKES if makes is None else makes, CURES if cures is None else cures, ch, said)
+    plan_errata(db, MADE_ERRATA if made is None else made, MEAL_RULE if meals is None else meals, ch, said)
     return dict(changes=ch, quests=q, said=dict(said))
 
 

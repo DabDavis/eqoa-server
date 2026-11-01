@@ -98,6 +98,18 @@ LOG_SCHEMA = f"""CREATE TABLE IF NOT EXISTS {LOG} (
     audit   INTEGER NOT NULL,      -- the gm_audit line written
     applied TEXT NOT NULL
 )"""
+# the characters' rows the import changed (their books, a moved purchase):
+# each row as it was and as written, for --undo
+CHARS_LOG = "cmcatalog_eqoaemu_chars_log"
+CHARS_LOG_SCHEMA = f"""CREATE TABLE IF NOT EXISTS {CHARS_LOG} (
+    n       INTEGER PRIMARY KEY AUTOINCREMENT,
+    tbl     TEXT NOT NULL,         -- spells or charcms
+    key     TEXT NOT NULL,         -- the row's key as the GM panel writes it
+    before  TEXT,                  -- the row as it was (JSON; NULL: made here)
+    after   TEXT,                  -- the row as written (NULL: taken out here)
+    audit   INTEGER NOT NULL,
+    applied TEXT NOT NULL
+)"""
 # database.GMAuditSchema, as the server makes it
 AUDIT_SCHEMA = """CREATE TABLE IF NOT EXISTS gm_audit (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -843,9 +855,17 @@ def plan(db, W, spellmap, levels, opts):
                     notes["the spell map's new spell where ours names our spell of that name"].append(
                         f"{c['id']} {a.get('name', byo[c['id']]['name'])} {names_col}: {n}: ours {was}, the map's {i}")
 
-    # what the plan does to the characters
+    # what the plan does to the characters: a purchase whose stats move to a
+    # new rank moves with them, and the owners' books follow their ranks
+    charcms = {}
+    for sid, cmid, cost, bought in db.execute("SELECT serverid, cmid, cost, bought FROM charcms"):
+        charcms[(sid, cmid)] = {"serverid": sid, "cmid": cmid, "cost": cost, "bought": bought}
+    moves = plan_moves(changes, inserts, byo, charcms, notes)
+    books = plan_books(db, changes, inserts, moves, byo, charcms, ctx, notes)
+    moved = {(m["serverid"], m["from"]) for m in moves}
     newcost = {c["id"]: c["after"]["cost"] for c in changes if "cost" in c["after"]}
-    cost_changed = [(oid, sid, paid, newcost[oid]) for oid in newcost for sid, paid in owned.get(oid, [])]
+    cost_changed = [(oid, sid, paid, newcost[oid]) for oid in newcost for sid, paid in owned.get(oid, [])
+                    if (sid, oid) not in moved]
     cats = {o["id"]: o["category"] for o in O}
     for c in changes:
         if "category" in c["after"]:
@@ -867,7 +887,8 @@ def plan(db, W, spellmap, levels, opts):
             if new_ids:
                 adds_missing.append((c["id"], c["after"].get("name", byo[c["id"]]["name"]), len(owned[c["id"]]),
                                      sorted(new_ids)))
-    return dict(changes=changes, inserts=inserts, disables=disables, kept=[(o["id"], o["name"]) for o in kept],
+    return dict(changes=changes, inserts=inserts, disables=disables, moves=moves, books=books,
+                kept=[(o["id"], o["name"]) for o in kept],
                 taken=taken, cover={w: [o["id"] for o in v] for w, v in cover.items()}, notes=notes,
                 cost_changed=cost_changed, two_mc=two_mc, adds_missing=adds_missing,
                 gm_rows=sorted(gm_rows), unmapped=ctx.unmapped, missing_spells=ctx.missing_spells,
@@ -875,6 +896,148 @@ def plan(db, W, spellmap, levels, opts):
                 quests=ctx.quests,
                 quest_marked=[(w["hex"], w["name"]) for w in W if w["quest"]],
                 O=byo, W=ctx.byw)
+
+
+def plan_moves(changes, inserts, byo, charcms, notes):
+    """A bought rank whose stats the plan moves to a new rank of its own
+    master class or line (the workbook's Enlightened Body takes our Touch of
+    Nife's): each owner holds the new rank at what it paid, and keeps the old
+    one, its ability, at 0, so its points spent and its stats stay as they
+    were (a #cmreset gives back the same). The coordinator, 2026-11-01."""
+    out = []
+    owners = collections.defaultdict(list)
+    for (sid, cmid), row in charcms.items():
+        owners[cmid].append(row)
+    for c in changes:
+        if "effects" not in c["after"] or not owners.get(c["id"]):
+            continue
+        was = slots_of(c["before"]["effects"])
+        if not any(was) or slots_of(c["after"]["effects"]) == was:
+            continue
+        o = byo[c["id"]]
+        to = [e["row"] for e in inserts if e["row"]["enabled"] and slots_of(e["row"]["effects"]) == was
+              and e["row"]["mastery"] == o["mastery"] and e["row"]["classes"] & o["classes"]
+              and e["row"]["races"] & o["races"]]
+        if len(to) != 1:
+            notes["a bought rank's stats change, none moved (no one new rank has them)"].append(
+                f"{o['id']} {o['name']}: {c['before']['effects']!r} -> {c['after']['effects']!r}, "
+                f"{len(owners[c['id']])} owners")
+            continue
+        for row in owners[c["id"]]:
+            if (row["serverid"], to[0]["id"]) in charcms:
+                continue
+            out.append({"serverid": row["serverid"], "from": o["id"], "to": to[0]["id"], "paid": row["cost"],
+                        "bought": row["bought"], "from_name": o["name"], "to_name": to[0]["name"]})
+    return out
+
+
+def book_change(row):
+    """CMRank.BookChange of a cmcatalog row: (gives, takes) as [(name, spellid)],
+    a spell both added and taken (improved in place) in neither."""
+    def pairs(names, ids):
+        ns, xs = ability_names(names), id_list(ids)
+        return [(n, xs[i] if i < len(xs) else 0) for i, n in enumerate(ns)]
+    adds, removes = pairs(row["adds"], row["add_spells"]), pairs(row["removes"], row["remove_spells"])
+    both = {i for _, i in adds if i > 0} & {i for _, i in removes if i > 0}
+    return ([a for a in adds if a[1] > 0 and a[1] not in both],
+            [r for r in removes if r[1] > 0 and r[1] not in both])
+
+
+BOOK_COLS = ("id", "serverid", "spellid", "addedorder", "onHotBar", "whereonBar", "unk1", "showhide")
+
+
+def book_digest(rows):
+    return json.dumps(sorted([[r[c] for c in BOOK_COLS] for r in rows]))
+
+
+def plan_books(db, changes, inserts, moves, byo, charcms, ctx, notes):
+    """Each owner's book brought in line with what buying its changed ranks
+    gives now, as the buy path does it (handlers/classmastery.go buy, then
+    giveAbilitiesTo and takeAbilitiesFrom): a rank's spells taught, those it
+    replaces taken out, nothing else touched; a rank before the ranks after
+    it, its gives before its takes. A spell taught where the rank takes out
+    the one it improves (its name, or the one of each) takes that one's
+    place in the book and on the bar (addedorder, onHotBar, whereonBar),
+    as a player moved or hotkeyed it; any other at the next place below 252,
+    off the bar (AddSpell's record). A spell spellpattern lacks is not taught
+    (the client's book joins it). [{serverid, digest, ops}]."""
+    after = {c["id"]: c["after"] for c in changes}
+    newrows = {e["id"]: e["row"] for e in inserts}
+
+    def row(cid):
+        if cid in newrows:
+            return newrows[cid]
+        r = dict(byo[cid])
+        r.update(after.get(cid, {}))
+        return r
+
+    touched = {c["id"] for c in changes if {"add_spells", "remove_spells"} & set(c["after"])}
+    per = collections.defaultdict(set)
+    for (sid, cmid) in charcms:
+        if cmid in touched:
+            per[sid].add(cmid)
+    for m in moves:
+        per[m["serverid"]].add(m["to"])
+    known = set(ctx.spells)
+
+    def depth(cid):
+        d, seen = 0, set()
+        while cid and cid not in seen and (cid in byo or cid in newrows):
+            seen.add(cid)
+            cid = row(cid)["parent"]
+            d += 1
+        return d
+
+    out = []
+    for sid in sorted(per):
+        cur = db.execute(f"SELECT {', '.join(BOOK_COLS)} FROM spells WHERE serverid = ?", (sid,))
+        orig = [dict(zip(BOOK_COLS, r)) for r in cur.fetchall()]
+        book = [dict(r) for r in orig]
+        for cid in sorted(per[sid], key=lambda c: (depth(c), c)):
+            r = row(cid)
+            gives, takes = book_change(r)
+            held = {}
+            for b in book:
+                held.setdefault(b["spellid"], b)
+            place = {}  # a given spell -> the row it takes the place of
+            for tn, tid in takes:
+                if tid not in held:
+                    continue
+                same = [g for g in gives if ability_fold(g[0]) == ability_fold(tn)]
+                if not same and len(gives) == 1 and len(takes) == 1:
+                    same = gives
+                if same and same[0][1] not in place:
+                    place[same[0][1]] = held[tid]
+            for gn, gid in gives:
+                if any(b["spellid"] == gid and gid in known for b in book):
+                    continue
+                if gid not in known:
+                    notes["a spell a bought rank gives is not in spellpattern (not taught)"].append(
+                        f"character {sid}, {cid} {r['name']}: {gid} {gn}")
+                    continue
+                if gid in place:
+                    at = place[gid]
+                    book.append({"id": None, "serverid": sid, "spellid": gid, "addedorder": at["addedorder"],
+                                 "onHotBar": at["onHotBar"], "whereonBar": at["whereonBar"], "unk1": 0,
+                                 "showhide": -1})
+                    continue
+                nxt = 0
+                for b in book:
+                    if b["spellid"] in known and nxt <= b["addedorder"] < 252:
+                        nxt = b["addedorder"] + 1
+                if nxt >= 252:
+                    notes["a book full (252): not taught"].append(f"character {sid}, {cid} {r['name']}: {gid} {gn}")
+                    continue
+                book.append({"id": None, "serverid": sid, "spellid": gid, "addedorder": nxt, "onHotBar": 0,
+                             "whereonBar": -1, "unk1": 0, "showhide": -1})
+            gone = {tid for _, tid in takes}
+            book = [b for b in book if b["spellid"] not in gone]
+        ids = {b["id"] for b in book if b["id"] is not None}
+        ops = [{"op": "remove", "row": b} for b in orig if b["id"] not in ids]
+        ops += [{"op": "add", "row": b} for b in book if b["id"] is None]
+        if ops:
+            out.append({"serverid": sid, "digest": book_digest(orig), "ops": ops})
+    return out
 
 
 def sum_mask(masks):
@@ -1045,6 +1208,15 @@ def report(p, full=False):
         print(f"bought ranks that now add abilities their owners were not given ({len(p['adds_missing'])}):")
         for oid, name, n, ids in p["adds_missing"]:
             print(f"  {oid} {name}: {n} owners, spells {ids}")
+    for m in p.get("moves", []):
+        print(f"purchase moved: character {m['serverid']} holds {m['to']} {m['to_name']} at the {m['paid']} it paid for "
+              f"{m['from']} {m['from_name']}, kept at 0")
+    books = p.get("books", [])
+    ops = collections.Counter(o["op"] for b in books for o in b["ops"])
+    placed = sum(1 for b in books for o in b["ops"] if o["op"] == "add" and
+                 any(r["op"] == "remove" and r["row"]["addedorder"] == o["row"]["addedorder"] for r in b["ops"]))
+    print(f"books brought in line with their bought ranks: {len(books)} characters, {ops['add']} spells taught "
+          f"({placed} in the place of the spell they replace), {ops['remove']} taken out")
     cat_moves = collections.Counter((CATEGORY_NAMES[c["before"]["category"]], CATEGORY_NAMES[c["after"]["category"]])
                                     for c in p["changes"] if "category" in c["after"])
     for (a, b), n in cat_moves.most_common():
@@ -1102,15 +1274,116 @@ def row_of(db, cid):
     return None if r is None else dict(zip([d[0] for d in cur.description], r))
 
 
-def audit(db, action, cid, before, after, detail):
+def audit(db, action, cid, before, after, detail, tbl="cmcatalog", key=None):
     acct = db.execute("SELECT accountid FROM accountinfo WHERE username = ?", (WHO,)).fetchone() \
         if has_table(db, "accountinfo") else None
     at = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     cur = db.execute("INSERT INTO gm_audit (at, accountid, username, via, ip, action, tbl, rowkey, before, after, detail) "
-                     "VALUES (?, ?, ?, ?, '', ?, 'cmcatalog', ?, ?, ?, ?)",
-                     (at, acct[0] if acct else 0, WHO, VIA, action, go_json({"id": cid}),
+                     "VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?)",
+                     (at, acct[0] if acct else 0, WHO, VIA, action, tbl, go_json(key if key is not None else {"id": cid}),
                       None if before is None else go_json(before), None if after is None else go_json(after), detail))
     return cur.lastrowid
+
+
+CHAR_KEYS = {"spells": ("id",), "charcms": ("cmid", "serverid")}
+
+
+def char_row(db, tbl, key):
+    cols = BOOK_COLS if tbl == "spells" else ("serverid", "cmid", "cost", "bought")
+    where = " AND ".join(f"{k} = ?" for k in CHAR_KEYS[tbl])
+    r = db.execute(f"SELECT {', '.join(cols)} FROM {tbl} WHERE {where}", [key[k] for k in CHAR_KEYS[tbl]]).fetchone()
+    return None if r is None else dict(zip(cols, r))
+
+
+def char_write(db, tbl, key, before, after, when, detail=DETAIL):
+    """One character row changed as the plan says (before None: made; after
+    None: taken out), audited as the panel's edit and logged. The new row's
+    key (a spells row's id is the table's)."""
+    if before is None:
+        cols = [c for c in after if not (tbl == "spells" and c == "id")]
+        cur = db.execute(f"INSERT INTO {tbl} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
+                         [after[c] for c in cols])
+        if tbl == "spells":
+            after = dict(after, id=cur.lastrowid)
+            key = {"id": cur.lastrowid}
+        action = "insert"
+    elif after is None:
+        db.execute(f"DELETE FROM {tbl} WHERE {' AND '.join(f'{k} = ?' for k in CHAR_KEYS[tbl])}",
+                   [key[k] for k in CHAR_KEYS[tbl]])
+        action = "delete"
+    else:
+        sets = [c for c in after if c not in CHAR_KEYS[tbl]]
+        db.execute(f"UPDATE {tbl} SET {', '.join(f'{c} = ?' for c in sets)} WHERE "
+                   f"{' AND '.join(f'{k} = ?' for k in CHAR_KEYS[tbl])}",
+                   [after[c] for c in sets] + [key[k] for k in CHAR_KEYS[tbl]])
+        action = "update"
+    a = audit(db, action, 0, before, after, detail, tbl=tbl, key=key)
+    if when is not None:
+        db.execute(f"INSERT INTO {CHARS_LOG} (tbl, key, before, after, audit, applied) VALUES (?, ?, ?, ?, ?, ?)",
+                   (tbl, json.dumps(key, sort_keys=True), None if before is None else json.dumps(before),
+                    None if after is None else json.dumps(after), a, when))
+    return key
+
+
+def apply_chars(db, p, when):
+    """The plan's moved purchases and books, each only where the character's
+    rows are still as planned: (done, changed since)."""
+    db.execute(CHARS_LOG_SCHEMA)
+    done = stale = 0
+    for m in p.get("moves", []):
+        frm = char_row(db, "charcms", {"serverid": m["serverid"], "cmid": m["from"]})
+        to_key = {"cmid": m["to"], "serverid": m["serverid"]}
+        if frm is None or frm["cost"] != m["paid"] or char_row(db, "charcms", to_key) is not None:
+            stale += 1
+            continue
+        char_write(db, "charcms", to_key, None,
+                   {"serverid": m["serverid"], "cmid": m["to"], "cost": m["paid"], "bought": m["bought"]}, when)
+        char_write(db, "charcms", {"cmid": m["from"], "serverid": m["serverid"]}, frm, dict(frm, cost=0), when)
+        done += 1
+    have = {r[0] for r in db.execute("SELECT spellid FROM spellpattern")}
+    for b in p.get("books", []):
+        rows = [dict(zip(BOOK_COLS, r)) for r in
+                db.execute(f"SELECT {', '.join(BOOK_COLS)} FROM spells WHERE serverid = ?", (b["serverid"],))]
+        if book_digest(rows) != b["digest"] or any(o["op"] == "add" and o["row"]["spellid"] not in have for o in b["ops"]):
+            stale += len(b["ops"])
+            continue
+        for o in b["ops"]:
+            if o["op"] == "remove":
+                char_write(db, "spells", {"id": o["row"]["id"]}, o["row"], None, when)
+            else:
+                char_write(db, "spells", None, None, o["row"], when)
+            done += 1
+    return done, stale
+
+
+def undo_chars(db):
+    """Every logged character row still as written put back, newest first:
+    (back, left, why)."""
+    back, left, why = 0, 0, []
+    if not has_table(db, CHARS_LOG):
+        return back, left, why
+    for n, tbl, key, before, after in db.execute(
+            f"SELECT n, tbl, key, before, after FROM {CHARS_LOG} ORDER BY n DESC").fetchall():
+        key = json.loads(key)
+        before = None if before is None else json.loads(before)
+        after = None if after is None else json.loads(after)
+        now = char_row(db, tbl, key)
+        if (after is None and now is not None) or (after is not None and now != after):
+            left += 1
+            why.append(f"{tbl} {key}: changed since")
+            continue
+        if after is None:  # taken out: put back as it was, its own id
+            cols = list(before)
+            db.execute(f"INSERT INTO {tbl} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
+                       [before[c] for c in cols])
+            audit(db, "insert", 0, None, before, "undo: " + DETAIL, tbl=tbl, key=key)
+        else:
+            char_write(db, tbl, key, after, before, None, "undo: " + DETAIL)
+        db.execute(f"DELETE FROM {CHARS_LOG} WHERE n = ?", (n,))
+        back += 1
+    if not db.execute(f"SELECT count(*) FROM {CHARS_LOG}").fetchone()[0]:
+        db.execute(f"DROP TABLE {CHARS_LOG}")
+    return back, left, why
 
 
 def same(row, cols):
@@ -1155,6 +1428,8 @@ def apply(db, p, allow_missing=False):
                 db.execute(f"INSERT INTO {LOG} VALUES (?, ?, ?, ?, ?, ?)",
                            (cid, e["op"], json.dumps({k: now[k] for k in sets}), json.dumps(sets), a, when))
             done += 1
+        cdone, cstale = apply_chars(db, p, when)
+        done, stale = done + cdone, stale + cstale
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
@@ -1175,13 +1450,14 @@ def missing_spells(db, p):
 
 def undo(db):
     """Every logged row still as written back as it was: (back, left, why)."""
-    if not has_table(db, LOG):
+    if not has_table(db, LOG) and not has_table(db, CHARS_LOG):
         return 0, 0, []
-    back, left, why = 0, 0, []
-    owned = {r[0] for r in db.execute("SELECT DISTINCT cmid FROM charcms")} if has_table(db, "charcms") else set()
     db.execute("BEGIN IMMEDIATE")
     try:
-        for cid, op, before, after in db.execute(f"SELECT id, op, before, after FROM {LOG} ORDER BY id").fetchall():
+        back, left, why = undo_chars(db)
+        owned = {r[0] for r in db.execute("SELECT DISTINCT cmid FROM charcms")} if has_table(db, "charcms") else set()
+        rows = db.execute(f"SELECT id, op, before, after FROM {LOG} ORDER BY id").fetchall() if has_table(db, LOG) else []
+        for cid, op, before, after in rows:
             now = row_of(db, cid)
             after = json.loads(after)
             if now is None or not same(now, after):
@@ -1202,7 +1478,7 @@ def undo(db):
                 audit(db, "update", cid, now, row_of(db, cid), "undo: " + DETAIL)
             db.execute(f"DELETE FROM {LOG} WHERE id = ?", (cid,))
             back += 1
-        if not db.execute(f"SELECT count(*) FROM {LOG}").fetchone()[0]:
+        if has_table(db, LOG) and not db.execute(f"SELECT count(*) FROM {LOG}").fetchone()[0]:
             db.execute(f"DROP TABLE {LOG}")
         db.execute("COMMIT")
     except BaseException:
@@ -1277,7 +1553,8 @@ def backup(path):
 
 def plan_json(p):
     return {"made": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
-            "changes": p["changes"], "inserts": p["inserts"], "disables": p["disables"]}
+            "changes": p["changes"], "inserts": p["inserts"], "disables": p["disables"],
+            "moves": p["moves"], "books": p["books"]}
 
 
 def main():
@@ -1324,7 +1601,9 @@ def main():
     if a.plan:
         with open(a.plan, encoding="utf-8") as f:
             p = json.load(f)
-        print(f"plan {a.plan}: {len(p['changes'])} changes, {len(p['inserts'])} new, {len(p['disables'])} disabled")
+        print(f"plan {a.plan}: {len(p['changes'])} changes, {len(p['inserts'])} new, {len(p['disables'])} disabled, "
+              f"{len(p.get('moves', []))} purchases moved, {sum(len(b['ops']) for b in p.get('books', []))} book "
+              f"rows of {len(p.get('books', []))} characters")
     else:
         if not a.spellmap or not (a.sheet or a.tsv_dir):
             sys.exit("--sheet or --tsv-dir, and --spellmap (or --plan)")

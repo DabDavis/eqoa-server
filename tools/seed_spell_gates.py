@@ -67,6 +67,13 @@ Five teleports EQOAEmu's workbook brought (tools/import_eqoaemu_spells.py,
 Their group radius is their records' own (spelleffect.effects' radius, the
 workbook's: OWN), as the import's rows for the other new teleports have it.
 
+And Surefall Potion, an alchemist's 20 of eqoa-data's (its line "Self,
+Teleport", refused as it began with no row): a self gate to Surefall Glade's
+druid ring, Jaggedpine Circle's place, by Allakhazam's April 2004 record
+(eqoaspell 3471: Teleport, Self Only, cast 5 s) and its players' word, "its a
+one time use only so u can go back to surefall glade and talk to the quest
+guy there" (archived).
+
 Which ninth the Melton, North Ro and Commons pyramids are: Melton's the one
 north-west of the Bolash daemons' hill in Druid's Watch (s) ("s/e of the wiz
 port-melton", EQOA-Data's Zaoran Plateau guide), North Ro's the one
@@ -282,6 +289,11 @@ GATES = [
     ("Odus Escape", GROUP, OWN, "Arcadin", ARCADIN,
      "Group (its record), wizard 55; where Odus gate and Odus Portal land, as an escape lands where its gate does "
      "(the Nerius, Sslathis and Kelinar's Escape rows)"),
+    # ---- an alchemist's of eqoa-data's (2026-11-01)
+    ("Surefall Potion", SELF, 0, "Surefall Glade", SFG_RING,
+     "Self, Teleport; Allakhazam: Teleport, Self Only, an alchemist's 20, cast 5 s (eqoaspell 3471); 'its a one time use "
+     "only so u can go back to surefall glade and talk to the quest guy there' (its comment, archived): Jaggedpine "
+     "Circle's place"),
 ]
 
 

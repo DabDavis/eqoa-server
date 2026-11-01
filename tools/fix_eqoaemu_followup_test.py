@@ -50,7 +50,7 @@ def old_rules():
     """The import's rules as it was applied: a positive heal with a duration
     ticks, and no item is made."""
     keep = im.HEAL_TICKS_UP_TO, im.MadeItems.settle
-    im.HEAL_TICKS_UP_TO, im.MadeItems.settle = 10 ** 9, lambda self, s, j, sid=None: None
+    im.HEAL_TICKS_UP_TO, im.MadeItems.settle = 10 ** 9, lambda self, s, j, sid=None, replace=False: None
     try:
         yield
     finally:

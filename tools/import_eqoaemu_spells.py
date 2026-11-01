@@ -118,10 +118,14 @@ What it writes, and from what:
       words (entity/potion.go reads it as spelltext.go reads a line): a cure
       the sibling's "Dispel Effect xN", a teleport the place of the spell
       gate within 15 of its Location ("Teleport to <place>", potion.go), a
-      thrown one's splash its AoERadius with the area's figure (the splash
-      lands one line on every creature in it, its target among them, so a
-      target's second share is left out), its reach (unk5) its Range; what
-      no line says (a body, a resist) listed. It is named as our records
+      thrown one's splash its AoERadius with the area's figure (HP2: the
+      splash lands the line on every creature in it, its target among them)
+      and its target's own (HP1) its target_line, its body its Alter
+      Appearance's sprite the other way round (itemeffect.body, as the
+      server reads a spell's sprite: the workbook writes every SpriteID
+      byte-reversed; the invisible body none, its Invisible said by the
+      line), its reach (unk5) its Range; what no line says (a resist)
+      listed. It is named as our records
       name such items (MADE_NAMES: "<X> Corrective" for the sheets' "<X>
       Cure Potion", "<X> Potion" for a "<X> Mix Potion", no " Effect"),
       910000 + its ItemID (950000 + its spell's SpellID with none). One no
@@ -133,7 +137,16 @@ What it writes, and from what:
       (tools/fix_dump_weapons.py's rule), a food its model's figures and
       foodeffect row. An item of ours the sheets give a use for that has
       none (no itemeffect, foodeffect or meal's or drink's words) takes the
-      workbook's, its row made a thrown one's when the use is thrown.
+      workbook's, its row made a thrown one's when the use is thrown. A
+      record of ours the map spells otherwise (one spell under two
+      spellings) makes the item its line names, the 2004 records' (the
+      Transformative Pill, not the Creative Potion the workbook's name finds:
+      that one is listed, `folds`, and tools/fix_eqoaemu_followup2.py folds
+      a made one into it), and that item takes the workbook's use over its
+      own as the record takes the workbook's (its effect's name kept, its
+      icon a made potion's). A use the import wrote takes, on a plan made
+      again, the body and target's own share it says now (a GM's value since
+      left, and said).
 
   spellgates: a new teleport whose Location names a world and a point gets
       its row (kind group or self by its scope, its radius the spell's, the
@@ -164,7 +177,9 @@ transaction, every row logged in eqoaemu_spell_import_log (its key, the
 columns before and after; a deleted row's rowid); --undo puts each logged
 row back as it was (one changed since is left, and said), the counters
 too, and drops the effects column, a spellarea or spellgates table it made
-when they are empty again; refused while a character holds a made spell
+when they are empty again (--apply adds itemeffect's body and target_line
+to a database made before them when it writes them, and --undo drops them
+again when no row holds anything in them); refused while a character holds a made spell
 (a book a split moved aside) or scroll, unless --force. Both take a copy of the database first (SQLite's backup API). A
 cast reads its spell at the cast, a scroll at its use and a catalog at the
 window, so no restart is needed; the class templates and pet taps read
@@ -594,7 +609,7 @@ def line_items(old, key):
     return out
 
 
-def settle_item_names(j, old, items_by_name, item_names):
+def settle_item_names(j, old, items_by_name, item_names, line_first=False, folds=None):
     """Each made ("item") or taken ("consume") item under the name the server
     finds it by (handlers' summonItem and the reagent check read an item by
     its name; the effects are all the server reads, the brief's contract):
@@ -605,8 +620,14 @@ def settle_item_names(j, old, items_by_name, item_names):
     vampires' reagents), takes the one item
     of ours of that kind a spell of ours names in its line ("SELF Summon
     Grobb Cocktail", "Reagent Unit of Blood x2"). The workbook's name stays as
-    sheet_name, its count as it is. Returns (renamed, by_line): what it did,
-    for the report; an item left none of ours makes nothing or takes
+    sheet_name, its count as it is. line_first: the spell is a record of ours
+    the map spells otherwise (one spell under two spellings, 2026-11-01), and
+    makes the item its line names (the 2004 records' and EQOA-Data's) though
+    the workbook's name finds another of ours (an item the import made for
+    the workbook's record: the Transformative Pill, not the Creative Potion);
+    that other is put in folds (the follow-up folds it into the line's,
+    tools/fix_eqoaemu_followup2.py). Returns (renamed, by_line): what it
+    did, for the report; an item left none of ours makes nothing or takes
     nothing."""
     renamed, by_line = [], []
 
@@ -616,7 +637,7 @@ def settle_item_names(j, old, items_by_name, item_names):
             yield from walk(o.get("procs") or [])
 
     for key in LINE_ITEM_WORDS:
-        unresolved = []
+        unresolved, found = [], []
         for o in walk(j["effects"]):
             it = o.get(key)
             if it is None:
@@ -626,16 +647,27 @@ def settle_item_names(j, old, items_by_name, item_names):
             if pid is None and nm:
                 pid = our_item(items_by_name, nm)
             if pid in item_names:
-                if it.get("name") != item_names[pid]:
-                    it["sheet_name"], it["name"], it["patternid"] = nm, item_names[pid], pid
-                    renamed.append(f"{nm!r} -> {item_names[pid]!r}")
+                found.append((it, nm, pid))
             else:
                 unresolved.append(it)
         ours = [n for n in line_items(old, key) if our_item(items_by_name, n) in item_names]
+        if line_first and key == "item" and len(ours) == 1 and len(found) == 1 and not unresolved:
+            it, nm, pid = found[0]
+            lid = our_item(items_by_name, ours[0])
+            if pid != lid:
+                # the workbook's name found another item of ours than the line's
+                if folds is not None:
+                    folds.append(dict(name=it.get("sheet_name") or nm, found=pid, line=lid))
+                it.pop("patternid", None)
+                found, unresolved = [], [it]
+        for it, nm, pid in found:
+            if it.get("name") != item_names[pid]:
+                it["sheet_name"], it["name"], it["patternid"] = nm, item_names[pid], pid
+                renamed.append(f"{nm!r} -> {item_names[pid]!r}")
         if len(unresolved) != 1 or len(ours) != 1:
             continue
         it, pid = unresolved[0], our_item(items_by_name, ours[0])
-        nm = (it.get("name") or "").strip()
+        nm = (it.get("sheet_name") or it.get("name") or "").strip()
         if nm:
             it["sheet_name"] = nm
         it["name"], it["patternid"] = item_names[pid], pid
@@ -1406,6 +1438,7 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
 
     spells, effects, area_rows, links = [], [], [], []
     splits, gates = [], []
+    folds = []      # an item the workbook's name found where a record the map spells otherwise makes another
     new_rows = {}   # spellid -> (sheet row, json, a were's) of a new spell
     for sid, rows in sorted(by_sid.items()):
         rec = records.get(sid)
@@ -1421,10 +1454,22 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
         # the items it makes under the names the server finds them by, ours
         # or made (MadeItems), before its description and its line name them
         renamed, by_line = [], []
+        # one spell under two spellings, the map's row on ours (how "spelled
+        # otherwise"): its item is the one its line names, which takes the
+        # workbook's use, as the record takes the workbook's record
+        otherwise = rec is not None and (map_entry(smap, hexid(s.get("SpellID"))) or (0, ""))[1].startswith(
+            "spelled otherwise")
         if j["effects"]:
             old_line = ((erows.get(sid) or {}).get("line") or "") if rec is not None else ""
-            renamed, by_line = settle_item_names(j, old_line, items_by_name, item_names)
-            made.settle(s, j, sid)
+            n = len(folds)
+            renamed, by_line = settle_item_names(j, old_line, items_by_name, item_names, otherwise, folds)
+            for f in folds[n:]:
+                f["spellid"] = sid
+                lists["an item the workbook names that a spell of ours makes as its line names another (the line's "
+                      "kept; tools/fix_eqoaemu_followup2.py folds a made one into it)"].append(
+                    f"{sid} {rec['spellname']}: the workbook's {f['name']!r} ({f['found']} "
+                    f"{item_names.get(f['found'])}) is {f['line']} {item_names.get(f['line'])}")
+            made.settle(s, j, sid, replace=otherwise)
         sheet_scope = cell(s, "Scope")
         scope = SCOPE.get(sheet_scope)
         rez = any(o["kind"] == "resurrect" for o in j["effects"])
@@ -1632,7 +1677,7 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
     scrolls, stock = plan_scrolls(db, new_rows, records, lists, counts, links, moves, migrations)
     p = dict(spells=spells, effects=effects, areas=area_rows, links=links, scrolls=scrolls, stock=stock,
              moves=moves, migrations=migrations, gates=gate_rows, foods=foods, made=made.out,
-             made_spells=sorted(made.settled),
+             made_spells=sorted(made.settled), folds=folds,
              lists={k: v for k, v in lists.items()}, counts=dict(counts), effect_clash=wb.effect_clash)
     p["changes"] = changes_of(p)
     return p
@@ -1868,10 +1913,9 @@ def potion_line(objs, thrown, area=0, place=None, cures=1):
     splash = None
     if thrown and area and hits:
         # the splash lands the line on every creature in it, its target
-        # among them (potion.go throwLocked): the area's figure for all
+        # among them (potion.go throwLocked): the area's figure for all, its
+        # target's own beside it its target_line (potion_target_line)
         splash = next((o for o in hits if o["kind"] == "hp2"), hits[0])
-        if {o["kind"] for o in hits} == {"hp", "hp2"}:
-            unsaid.append("its target's own hit beside the area's (a splash lands one line on all it reaches)")
     dur, lasting, said_splash = 0, False, False
     for o in objs:
         k, n = o["kind"], o.get("amount")
@@ -1889,7 +1933,8 @@ def potion_line(objs, thrown, area=0, place=None, cures=1):
             else:
                 unsaid.append(f"a teleport to {o.get('location') or 'nowhere'} (no spell gate is that place)")
         elif k == "illusion":
-            unsaid.append("a body (the potion reader shows none)")
+            if not o.get("sprite"):
+                unsaid.append("a body with no sprite")  # else its row's body (potion_body)
         elif k in ("power", "stat_set", "speed") and o.get("absolute"):
             unsaid.append(f"a {k} set to {n} (no potion's words for it)")
         elif k in ("hp", "hp2", "hp_tick", "power", "power_tick", "stat", "speed", "invis", "gate"):
@@ -1903,6 +1948,74 @@ def potion_line(objs, thrown, area=0, place=None, cures=1):
     if dur and lasting:
         line += ", " + fmt_dur(dur)
     return line, unsaid
+
+
+# the invisible body, either way round: an illusion of it is invisibility
+# (entity/spelljson.go's invisibleSprite), which the use's own Invisible
+# effect says in its line
+INVISIBLE_SPRITES = {0x435EF663, 0x63F65E43}
+
+
+def sprite_body(sprite):
+    """The body a workbook SpriteID shows: the CHAR.ESF CSprite's DictID, as
+    npcs.modelid holds it, which the workbook writes byte-reversed (every one
+    of its sprites, measured against the disc 2026-11-01; the server reads a
+    spell's sprite so: entity/spelljson.go's spriteBody); 0 for none and for
+    the invisible body."""
+    try:
+        v = int(str(sprite or "").strip(), 16)
+    except ValueError:
+        return 0
+    if not 0 < v <= 0xFFFFFFFF or v in INVISIBLE_SPRITES:
+        return 0
+    return int.from_bytes(v.to_bytes(4, "big")[::-1], "big")
+
+
+def potion_body(objs):
+    """The body a potion's use shows (itemeffect.body: its drinker's, or a
+    thrown one's creature's while it lasts): its Alter Appearance sprite's,
+    0 for none."""
+    for o in objs:
+        if o["kind"] == "illusion":
+            b = sprite_body(o.get("sprite"))
+            if b:
+                return b
+    return 0
+
+
+def potion_target_line(objs, thrown, area):
+    """What a thrown potion's target alone takes beside its line
+    (itemeffect.target_line), in the line's words: a target-based area's
+    first figure (HP1) where it has a second (HP2, the line's, which lands on
+    every creature in the splash, the target among them: the workbook's
+    legend, "AoE hits target and also the radius from the target, including
+    target a second time"); "" for none."""
+    hits = [o for o in objs if o["kind"] in ("hp", "hp2") and (o.get("amount") or 0) < 0]
+    if not (thrown and area) or {o["kind"] for o in hits} != {"hp", "hp2"}:
+        return ""
+    return "Target, " + ", ".join(f"Decrease Hitpoints by {abs(o['amount'])}" + scale_words(o)
+                                  for o in hits if o["kind"] == "hp")
+
+
+def potion_extras(objs, thrown, area):
+    """A use's columns past its line (body, target_line), each only when it
+    has one: a database made before them reads none."""
+    out = {}
+    b = potion_body(objs)
+    if b:
+        out["body"] = b
+    t = potion_target_line(objs, thrown, area)
+    if t:
+        out["target_line"] = t
+    return out
+
+
+# a use's columns as a row with none holds them (database/itemeffect.go)
+USE_DEFAULTS = {"line": "", "name": "", "icon": 0, "breaks": "", "wear": 0, "area": 0.0, "source": "gm", "body": 0,
+                "target_line": ""}
+# the columns itemeffect gained after it was made, which --apply adds to a
+# database made before them (the server adds them at its start)
+ITEMEFFECT_ADDED = [("body", "INTEGER NOT NULL DEFAULT 0"), ("target_line", "TEXT NOT NULL DEFAULT ''")]
 
 
 def potion_desc(name, objs, thrown, area, place, cures):
@@ -1981,7 +2094,7 @@ class MadeItems:
         self.made = {}     # an item's key -> its patternid, once found or made
         self.given = set()  # items of ours given a use
         self.settled = set()  # the spells whose items this named
-        self.out = dict(items=[], updates=[], itemeffects=[], foodeffects=[])
+        self.out = dict(items=[], updates=[], itemeffects=[], foodeffects=[], itemeffect_updates=[])
 
     # the server's lookup of an item by its name (database.ItemPatternByName):
     # no spell scroll, one with a use first, then the lowest id
@@ -2085,9 +2198,11 @@ class MadeItems:
         self.items_by_name.setdefault(fold(row["itemname"]), pid)
         self.item_names[pid] = row["itemname"]
 
-    def settle(self, s, j, sid=None):
+    def settle(self, s, j, sid=None, replace=False):
         """Each item j's spell makes under the name the server finds it by:
-        one of ours as settle_item_names left it, else one made here."""
+        one of ours as settle_item_names left it, else one made here.
+        replace: the spell is a record of ours the map spells otherwise, so
+        its item of ours takes the workbook's use (give_use)."""
         for o in walk_effects(j["effects"]):
             it = o.get("item") if o.get("kind") == "create_item" else None
             if it is None:
@@ -2095,7 +2210,7 @@ class MadeItems:
             if it.get("patternid") is not None:
                 pid = self.by_name(it.get("name") or "")
                 if pid is not None:
-                    self.give_use(pid, self.sheet_rows(it.get("sheet_name") or it.get("name") or "", ""), s)
+                    self.give_use(pid, self.sheet_rows(it.get("sheet_name") or it.get("name") or "", ""), s, replace)
                 continue
             pid = self.make(it, s)
             if pid is None:
@@ -2183,7 +2298,7 @@ class MadeItems:
         icon = (icon_of(cell(info, "IconID"), self.icons) or 0) if lasting and not thrown else 0
         self.out["items"].append(dict(patternid=pid, row=row, sibling=sib["patternid"]))
         self.out["itemeffects"].append(dict(patternid=pid, line=line, name="", icon=icon, breaks="", wear=0,
-                                            area=float(area), source="eqoaemu"))
+                                            area=float(area), source="eqoaemu", **potion_extras(objs, thrown, area)))
         self.keep(pid, row)
         self.uses[pid] = self.out["itemeffects"][-1]
         self.counts["made items (potions)"] += 1
@@ -2197,14 +2312,25 @@ class MadeItems:
         m = re.match(r"(?i)^conjured by the (\w+)'s ", sib.get("itemdesc") or "")
         return f"Conjured by the {m.group(1)}'s {cell(s, 'Name')}." if m else ""
 
-    def give_use(self, pid, rows, s):
-        """An item of ours with no use (no itemeffect, foodeffect or a meal's
-        or drink's words) that the sheets give one: the workbook's, as a
-        potion's; a thrown one's row made a thrown potion's."""
+    def give_use(self, pid, rows, s, replace=False):
+        """An item of ours the sheets give a use for: one with none (no
+        itemeffect, foodeffect or a meal's or drink's words) takes the
+        workbook's, as a potion's, its row made a thrown one's when the use
+        is thrown; one a record the map spells otherwise makes (replace: the
+        Transformative Pill, the 2004 records' item of the Transmuter's
+        second rank) takes the workbook's use over its own, as the record
+        takes the workbook's record (2026-11-01: "workbook wins"; its effect's
+        name kept, its icon a made potion's); one whose use the import wrote
+        (source eqoaemu) takes what a use's columns say now that they could
+        not then (its body, its target's own share), a value a GM gave since
+        left."""
         r = self.rows.get(pid)
-        if not rows or r is None or pid in self.uses or pid in self.foods or pid in self.given:
+        if not rows or r is None or pid in self.foods or pid in self.given:
             return
-        if MEAL_DESC.search(r["itemdesc"] or "") or DRINK_DESC.search(r["itemdesc"] or ""):
+        old = self.uses.get(pid)
+        if old is not None and not replace and (old.get("source") or "") != "eqoaemu":
+            return  # a use of ours
+        if old is None and (MEAL_DESC.search(r["itemdesc"] or "") or DRINK_DESC.search(r["itemdesc"] or "")):
             return
         info = rows[0]
         thrown = cell(info, "Scope").split(" ")[0] not in ("Self", "")
@@ -2214,7 +2340,8 @@ class MadeItems:
             return
         level = num(info, "Level") or num(s, "Level") or 1
         objs, radius = self.effects_of(rows)
-        line, unsaid = potion_line(objs, thrown, radius if thrown else 0, None, 1)
+        area = radius if thrown else 0
+        line, unsaid = potion_line(objs, thrown, area, None, 1)
         if not line:
             self.lists["an item of ours with no use whose workbook use no potion's words say: left"].append(tag)
             return
@@ -2233,12 +2360,38 @@ class MadeItems:
                     self.out["updates"].append(dict(patternid=pid, name=r["itemname"], before={k: r.get(k) for k in changed},
                                                     set=changed))
                     r.update(changed)
-        self.out["itemeffects"].append(dict(patternid=pid, line=line, name="", icon=0, breaks="", wear=0,
-                                            area=float(radius if thrown else 0), source="eqoaemu"))
-        self.uses[pid] = self.out["itemeffects"][-1]
-        self.counts["items of ours given the workbook's use"] += 1
-        self.lists["an item of ours with no use given the workbook's"].append(
-            f"{tag}: {line}" + (f"; unsaid: {', '.join(unsaid)}" if unsaid else ""))
+        extras = potion_extras(objs, thrown, area)
+        if old is None:
+            self.out["itemeffects"].append(dict(patternid=pid, line=line, name="", icon=0, breaks="", wear=0,
+                                                area=float(area), source="eqoaemu", **extras))
+            self.uses[pid] = self.out["itemeffects"][-1]
+            self.counts["items of ours given the workbook's use"] += 1
+            self.lists["an item of ours with no use given the workbook's"].append(
+                f"{tag}: {line}" + (f"; unsaid: {', '.join(unsaid)}" if unsaid else ""))
+            return
+        want = {"body": extras.get("body", 0), "target_line": extras.get("target_line", "")}
+        if replace:
+            lasting = any(o.get("duration_s") for o in objs)
+            want.update(line=line, icon=(icon_of(cell(info, "IconID"), self.icons) or 0) if lasting and not thrown else 0,
+                        area=float(area), source="eqoaemu")
+        before = {k: old.get(k, USE_DEFAULTS[k]) for k in want}
+        changed = {k: v for k, v in want.items() if before[k] != v}
+        if not replace:
+            gm = sorted(k for k in changed if before[k] != USE_DEFAULTS[k])
+            if gm:
+                self.lists["a use the import wrote that a GM changed since: those columns left"].append(
+                    f"{tag}: {', '.join(gm)}")
+                changed = {k: v for k, v in changed.items() if k not in gm}
+        if not changed:
+            return
+        self.out["itemeffect_updates"].append(dict(patternid=pid, name=r["itemname"],
+                                                   before={k: before[k] for k in changed}, set=changed))
+        self.uses[pid] = dict(old, **changed)
+        what = "its use the workbook's (a record the map spells otherwise makes it)" if replace else \
+            "its use given what its columns say now"
+        self.counts[f"items of ours: {what}"] += 1
+        self.lists[f"an item of ours: {what}"].append(
+            f"{tag}: " + ", ".join(f"{k} {before[k]!r} -> {v!r}" for k, v in changed.items()))
 
     def make_ours(self, pid, name, our, s):
         """An item no source gives, as our item of its kind nearest its level
@@ -2565,6 +2718,9 @@ def changes_of(p):
                         set=x["set"], note=x["name"]))
     for x in m.get("itemeffects", []):
         out.append(dict(tbl="itemeffect", action="insert", key={"patternid": x["patternid"]}, row=x))
+    for x in m.get("itemeffect_updates", []):
+        out.append(dict(tbl="itemeffect", action="update", key={"patternid": x["patternid"]}, before=x["before"],
+                        set=x["set"], note=x["name"]))
     for x in m.get("foodeffects", []):
         out.append(dict(tbl="foodeffect", action="insert", key={"patternid": x["patternid"]}, row=x))
     return out
@@ -2820,6 +2976,20 @@ def apply(db, p, log_table=LOG, meta_table=META, what="an EQOAEmu spell import")
         added = "effects" not in columns(db, "spelleffect")
         if added:
             db.execute("ALTER TABLE main.spelleffect ADD COLUMN effects TEXT NOT NULL DEFAULT ''")
+        # the use's columns a change writes that a database made before them
+        # lacks (the server adds them at its start: database/itemeffect.go)
+        added_uses = []
+        if has_table(db, "itemeffect"):
+            want = set()
+            for c in changes:
+                if c["tbl"] == "itemeffect":
+                    for part in ("row", "set", "before"):
+                        want |= set(c.get(part) or {})
+            have = set(columns(db, "itemeffect"))
+            for col, decl in ITEMEFFECT_ADDED:
+                if col in want and col not in have:
+                    db.execute(f"ALTER TABLE main.itemeffect ADD COLUMN {col} {decl}")
+                    added_uses.append(col)
         made = {}
         for tbl, ddl in (("spellarea", "CREATE TABLE spellarea (spellid INTEGER PRIMARY KEY, centre INTEGER NOT NULL "
                                        "DEFAULT 0, radius REAL NOT NULL DEFAULT 0, maxtargets INTEGER NOT NULL DEFAULT 0, "
@@ -2873,7 +3043,7 @@ def apply(db, p, log_table=LOG, meta_table=META, what="an EQOAEmu spell import")
         now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
         for k, v in {"applied_at": now, "sqlite_sequence": dumps(seqs), "added_effects_column": str(int(added)),
                      "made_spellarea": str(int(made["spellarea"])), "made_spellgates": str(int(made["spellgates"])),
-                     "made_foodeffect": str(int(made["foodeffect"])),
+                     "made_foodeffect": str(int(made["foodeffect"])), "added_itemeffect_columns": ",".join(added_uses),
                      "counts": dumps(p["counts"])}.items():
             db.execute(f"INSERT OR REPLACE INTO {meta_table} VALUES (?, ?)", (k, v))
         db.execute("COMMIT")
@@ -2965,6 +3135,11 @@ def undo(db, force=False, log_table=LOG, meta_table=META, what="EQOAEmu spell im
     for t in ("spellarea", "spellgates", "foodeffect"):
         if meta.get(f"made_{t}") == "1" and not db.execute(f"SELECT count(*) FROM main.{t}").fetchone()[0]:
             db.execute(f"DROP TABLE main.{t}")
+    # the use's columns it added, when no row holds anything in them again
+    for col, _ in reversed(ITEMEFFECT_ADDED):
+        if col in (meta.get("added_itemeffect_columns") or "").split(",") and not left and \
+                not db.execute(f"SELECT count(*) FROM main.itemeffect WHERE {col} <> ?", (USE_DEFAULTS[col],)).fetchone()[0]:
+            db.execute(f"ALTER TABLE main.itemeffect DROP COLUMN {col}")
     return back, left, leftover
 
 

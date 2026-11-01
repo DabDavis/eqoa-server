@@ -22,9 +22,9 @@ import (
 const sheetFireRow = `INSERT INTO petstats (spellid, sheet_pet_id, name, model, primary_model, level, type, element, ac,
 	str, sta, agi, dex, wis, intelligence, cha, hp, power, hot, pot, ar, cr, lr, fr, pr, dr, str_max, hp_factor, off_mod,
 	def_mod, wpn1_dmg, wpn1_type, wpn2_dmg, wpn2_type, abilities, source)
-	VALUES (717, '002F', 'Fire Elementalkin', 2319540799, 3749499871, 40, 'melee', 'fire', 1200,
-	59, 60, 61, 76, 10, 11, 12, 2640, 3420, 59, 76, 20, 21, 22, 23, 24, 25, 400, 36, 3, 1,
-	480, 'slash', 440, 'pierce',
+	VALUES (717, 'T001', 'Test Flame', 2319540799, 3749499871, 38, 'melee', 'fire', 1100,
+	55, 60, 61, 70, 10, 11, 12, 2500, 3000, 50, 70, 20, 21, 22, 23, 24, 25, 400, 36, 3, 1,
+	450, 'slash', 400, 'pierce',
 	'[{"kind":"nuke","spell_id":700198,"every":6,"first":1},{"kind":"taunt","hits":[[1,0,0]],"every":12,"first":3}]', 'eqoaemu')`
 
 func sheetRig(t *testing.T, rows ...string) (*petRig, *database.SQLiteDB) {
@@ -45,14 +45,14 @@ func TestAWorkbookPetIsItsRow(t *testing.T) {
 	r, db := sheetRig(t, sheetFireRow)
 	pet, _ := r.summon(t, fireElemental(), 0)
 	ps := r.w.pets[r.p.ServerID]
-	if pet.sheet == nil || pet.sheet.SheetPetID != "002F" {
+	if pet.sheet == nil || pet.sheet.SheetPetID != "T001" {
 		t.Fatalf("the pet has no row: %+v", pet.sheet)
 	}
-	if pet.Name != "Fire Elementalkin" || pet.Level != 40 || uint32(pet.ModelID) != 0x8A41623F || pet.Size != 1 {
+	if pet.Name != "Test Flame" || pet.Level != 38 || uint32(pet.ModelID) != 0x8A41623F || pet.Size != 1 {
 		t.Errorf("name %q, level %d, body %#x, size %.2f: want the row's", pet.Name, pet.Level, uint32(pet.ModelID), pet.Size)
 	}
-	if pet.MaxHP != 2640 || pet.HP != 2640 || pet.MaxPower != 3420 || pet.WeaponDamage != 480 {
-		t.Errorf("HP %d/%d, power %d, weapon %d: want the row's 2640 (no balance), 3420, 480", pet.HP, pet.MaxHP, pet.MaxPower, pet.WeaponDamage)
+	if pet.MaxHP != 2500 || pet.HP != 2500 || pet.MaxPower != 3000 || pet.WeaponDamage != 450 {
+		t.Errorf("HP %d/%d, power %d, weapon %d: want the row's 2500 (no balance), 3000, 450", pet.HP, pet.MaxHP, pet.MaxPower, pet.WeaponDamage)
 	}
 	if pet.PrimaryWeapon != 3749499871 || pet.PrimaryType != 1 || pet.SecondaryType != 5 {
 		t.Errorf("hands %d (%d, %d): want the row's model, a slash and a pierce", pet.PrimaryWeapon, pet.PrimaryType, pet.SecondaryType)
@@ -75,19 +75,19 @@ func TestAWorkbookPetIsItsRow(t *testing.T) {
 	plain := *pet
 	plain.sheet = nil
 	if got, was := npcHitOnPet(r.enemy, pet, top), npcHitOnPet(r.enemy, &plain, top); got >= was {
-		t.Errorf("a crab's top hit on it %d, on the pet with no row %d: its 1200 AC takes off more", got, was)
+		t.Errorf("a crab's top hit on it %d, on the pet with no row %d: its 1100 AC takes off more", got, was)
 	}
 	pet.RoundHits = 1
 	hit, ok := sheetMeleeHit(pet, r.enemy, zero)
-	d, a := 480.0, offenceArchs[archMelee]
-	low := int(math.Round(a.LowShare*(offLowD+offLowDEX*76)*d + a.Low - a.Defence*targetDefence(r.enemy)))
-	floor := int(math.Floor(offFloorD*d + offFloorSTR*59))
+	d, a := 450.0, offenceArchs[archMelee]
+	low := int(math.Round(a.LowShare*(offLowD+offLowDEX*70)*d + a.Low - a.Defence*targetDefence(r.enemy)))
+	floor := int(math.Floor(offFloorD*d + offFloorSTR*55))
 	if !ok || hit != max(low, floor, 1) {
-		t.Errorf("its least hit %d (%v): want a melee player's with the 480 weapon, %d", hit, ok, max(low, floor, 1))
+		t.Errorf("its least hit %d (%v): want a melee player's with the 450 weapon, %d", hit, ok, max(low, floor, 1))
 	}
 	pet.RoundHits = 2
 	if off, _ := sheetMeleeHit(pet, r.enemy, zero); off >= hit {
-		t.Errorf("its off hand's least %d: want under its main hand's %d (440 against 480)", off, hit)
+		t.Errorf("its off hand's least %d: want under its main hand's %d (400 against 450)", off, hit)
 	}
 	if share := pet.petResistShare(StatFR); share < 0 {
 		t.Errorf("resist share %v", share)
@@ -106,8 +106,8 @@ func TestAWorkbookPetIsItsRow(t *testing.T) {
 	// its HoT a tick, scaled as its hit points are (here not at all)
 	pet.HP = 100
 	pet.petRegen()
-	if pet.HP != 159 {
-		t.Errorf("after a tick HP %d: want 100 + its 59", pet.HP)
+	if pet.HP != 150 {
+		t.Errorf("after a tick HP %d: want 100 + its 50", pet.HP)
 	}
 
 	// the control: the row gone, the pet as it always was
@@ -138,12 +138,12 @@ func TestAWorkbookPetIsItsRow(t *testing.T) {
 // as pet.go has it (an enchanter's once a round).
 func TestAWorkbookPetsBodyAndSwing(t *testing.T) {
 	r, _ := sheetRig(t, `INSERT INTO petstats (spellid, sheet_pet_id, name, model, level, type, hp, wpn1_dmg, wpn1_type)
-		VALUES (498, '000B', 'Pendril''s Animation', 305419896, 99, 'tank', 30, 9, 'blunt')`,
+		VALUES (498, 'T002', 'Test Animation', 305419896, 99, 'tank', 44, 7, 'blunt')`,
 		`DELETE FROM pettemplate WHERE spell = 'pendril''s animation'`)
 	r.p.Class = classEnchanter
 	pet, _ := r.summon(t, pendrils, 0)
-	if uint32(pet.ModelID) != 0x12345678 || pet.Level != r.p.Level || pet.MaxHP != 30 {
-		t.Errorf("body %#x, level %d, HP %d: want the row's body, the caster's level, 30", uint32(pet.ModelID), pet.Level, pet.MaxHP)
+	if uint32(pet.ModelID) != 0x12345678 || pet.Level != r.p.Level || pet.MaxHP != 44 {
+		t.Errorf("body %#x, level %d, HP %d: want the row's body, the caster's level, 44", uint32(pet.ModelID), pet.Level, pet.MaxHP)
 	}
 	if !pet.SwingFixed || npcSwingKind(pet) != 0 || pet.PrimaryType != 3 || pet.SecondaryType != attackTypeEmptyHand {
 		t.Errorf("swing %v %d, hands %d %d: want an enchanter pet's one hit, a blunt and an empty hand", pet.SwingFixed,
@@ -156,7 +156,7 @@ func TestAWorkbookPetsBodyAndSwing(t *testing.T) {
 // not.
 func TestAWorkbookPetsStances(t *testing.T) {
 	r, _ := sheetRig(t, `INSERT INTO petstats (spellid, sheet_pet_id, name, level, type, stances, hp)
-		VALUES (717, '0065', 'Minor Familiar', 8, 'non-combat', 'passive', 237)`)
+		VALUES (717, 'T003', 'Test Gadget', 9, 'non-combat', 'passive', 222)`)
 	pet, _ := r.summon(t, fireElemental(), 0)
 	ps := r.w.pets[r.p.ServerID]
 	if ps.stance != petPassive {
@@ -187,7 +187,7 @@ func sentText(r *petRig, s string) bool {
 // spell's scale is the pet's stat (the workbook's Modifier and Percentage).
 func TestAWorkbookPetsHealOfEitherAndScale(t *testing.T) {
 	r, _ := sheetRig(t, `INSERT INTO petstats (spellid, sheet_pet_id, name, level, type, hp, str, abilities)
-		VALUES (717, '0029', 'Water Elemental', 31, 'priest', 1000, 60,
+		VALUES (717, 'T004', 'Test Spring', 33, 'priest', 1000, 60,
 		'[{"kind":"heal","spell_id":1100,"target":"either","below":60,"every":5,"first":0}]')`)
 	pet, _ := r.summon(t, fireElemental(), 0)
 	ps := r.w.pets[r.p.ServerID]

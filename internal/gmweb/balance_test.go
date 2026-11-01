@@ -141,6 +141,7 @@ func TestBalanceRegenBounds(t *testing.T) {
 // and live, a class past 14 or a level past 100 refused.
 func TestBalanceClassLevelEdits(t *testing.T) {
 	f := newFixture(t)
+	f.exec(`DELETE FROM balanceclasslevel WHERE class = 3 AND level = 45`) // a seed row there (the re-fit of 2026-11-01's): the insert's place
 	c := f.browser()
 	c.login("gm")
 	code, out := c.op("insert_row", map[string]any{"table": "balanceclasslevel",

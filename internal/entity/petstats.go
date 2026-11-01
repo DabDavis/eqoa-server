@@ -175,9 +175,10 @@ func applyPetSheet(pet *NPC, s *petSheet) {
 	if s.Model != 0 {
 		pet.ModelID = int64(s.Model)
 	}
-	if s.PrimaryModel != 0 || s.SecondaryModel != 0 {
-		pet.PrimaryWeapon, pet.SecondaryWeapon = int(s.PrimaryModel), int(s.SecondaryModel)
-	}
+	// the row's weapons, none where it names none, and no shield (the
+	// workbook gives a pet two hands: a shield would make a creature's
+	// Attack3 of its swing from 35, rounds.go)
+	pet.PrimaryWeapon, pet.SecondaryWeapon, pet.Shield = int(s.PrimaryModel), int(s.SecondaryModel), 0
 	if t := database.PetWeaponTypes[s.Wpn1Type]; t != 0 {
 		pet.PrimaryType, pet.SecondaryType = t, attackTypeEmptyHand
 		if t2 := database.PetWeaponTypes[s.Wpn2Type]; t2 != 0 && s.Wpn2Dmg > 0 {

@@ -73,28 +73,59 @@ func spellKey(name string) string {
 	return strings.ToLower(strings.TrimSpace(n))
 }
 
+// exactKey is a spell's name as a scroll names it exactly: spellKey with
+// its bard "+" kept, so "Anthem of Hope" is not "Anthem of Hope +" (the
+// workbook import of 2026-11-01: a base spell and its mastery's "+" are two
+// spells, and the base's scroll scribed the "+" record).
+func exactKey(name string) string {
+	n := strings.TrimSpace(name)
+	n = strings.TrimSpace(strings.TrimSuffix(n, "$"))
+	n = classTag.ReplaceAllString(n, "")
+	n = strings.ReplaceAll(n, "`", "'")
+	return strings.Join(strings.Fields(strings.ToLower(n)), " ")
+}
+
 // scrollSpell is the spell a scroll teaches, out of every pattern in id
-// order: the first of its name at the scroll's level, else the first of its
-// name. One name twice is mostly one spell numbered twice, Return Home's and
-// Sandstorm's (Provoke is 674 and 1607, the same record).
+// order, for no class in particular (scrollSpellFor).
 func scrollSpell(spells []database.SpellName, scroll string, level int) (database.SpellName, bool) {
-	key := spellKey(scroll)
-	first := -1
-	for i, s := range spells {
-		if spellKey(s.Name) != key {
-			continue
+	return scrollSpellFor(spells, scroll, level, nil)
+}
+
+// scrollSpellFor is the spell a scroll teaches a character of a class whose
+// spells (classspells) has reports: of the records of the scroll's exact name
+// (exactKey), else of its name as spellKey reads it, the first its class has
+// at the scroll's level, else the first its class has, else the first at the
+// scroll's level, else the first. One name twice is mostly one spell numbered
+// twice, Return Home's and Sandstorm's (Provoke is 674 and 1607, the same
+// record); two classes' spells of one name are two records since the workbook
+// import split them (Camouflage, the druid's and the ranger's), and the class
+// tells them apart. has nil counts no class.
+func scrollSpellFor(spells []database.SpellName, scroll string, level int, has func(spellID int) bool) (database.SpellName, bool) {
+	for _, same := range []func(string) bool{
+		func(n string) bool { return exactKey(n) == exactKey(scroll) },
+		func(n string) bool { return spellKey(n) == spellKey(scroll) },
+	} {
+		best, rank := -1, 0
+		for i, s := range spells {
+			if !same(s.Name) {
+				continue
+			}
+			r := 1
+			if s.Level == level {
+				r++
+			}
+			if has != nil && has(s.SpellID) {
+				r += 2
+			}
+			if r > rank {
+				best, rank = i, r
+			}
 		}
-		if s.Level == level {
-			return s, true
-		}
-		if first < 0 {
-			first = i
+		if best >= 0 {
+			return spells[best], true
 		}
 	}
-	if first < 0 {
-		return database.SpellName{}, false
-	}
-	return spells[first], true
+	return database.SpellName{}, false
 }
 
 // nextDisplayIndex is where a new ability goes in the book: after the last
@@ -138,7 +169,13 @@ func (h *EquipHandler) scribe(sess *session.Session, player *entity.Player, idx 
 		log.Printf("Scribe: %s, %q: spell names: %v", player.Name, p.ItemName, err)
 		return
 	}
-	spell, ok := scrollSpell(names, p.ItemName, p.LevelReq)
+	var has func(int) bool
+	if own, err := h.spells.ClassSpellIDs(player.Class); err != nil {
+		log.Printf("Scribe: %s, %q: class spells: %v", player.Name, p.ItemName, err)
+	} else {
+		has = func(id int) bool { return own[id] }
+	}
+	spell, ok := scrollSpellFor(names, p.ItemName, p.LevelReq, has)
 	if !ok {
 		refuse(scribeNoSpell)
 		return
@@ -148,9 +185,11 @@ func (h *EquipHandler) scribe(sess *session.Session, player *entity.Player, idx 
 		log.Printf("Scribe: %s, %q: the book: %v", player.Name, p.ItemName, err)
 		return
 	}
-	key := spellKey(spell.Name)
+	// known: the record, or one of its exact name (a "+" record is another
+	// spell: a bard who has Anthem of Hope + may learn Anthem of Hope)
+	key := exactKey(spell.Name)
 	for _, e := range book {
-		if e.Pattern.SpellID == spell.SpellID || spellKey(e.Pattern.SpellName) == key {
+		if e.Pattern.SpellID == spell.SpellID || exactKey(e.Pattern.SpellName) == key {
 			refuse(scribeKnown)
 			return
 		}

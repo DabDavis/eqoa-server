@@ -31,6 +31,16 @@ var (
 // change it; tools/stock_grocers.py sets each to the item's level), added to
 // the six-second regen (regen.go) and so to the stat channel's HoT and PoT;
 // the time is jib's minute.
+//
+// An item with a foodeffect row (database/foodeffect.go; EQOAEmu's workbook,
+// the import of 2026-11-01: "yes add the food too") lasts its row's time and
+// ends as its row says: on any spell its eater casts (ends_on_cast, the
+// workbook's DisspellOnCast) and in a fight (ends_on_contact, its
+// DisspellOnContact: the meal's rule above, a drink's too then, and refused
+// in a fight as a meal is); a meal or drink with no row keeps the minute and
+// the rules above. An item with both a HoT and a PoT (Blessed Fish) gives
+// both from its one slot: a meal's (its description says what it is), so a
+// drink beside it adds its own PoT and another meal replaces it whole.
 
 // FoodEffectID and DrinkEffectID key the two effects among a player's
 // spells': a new meal replaces the last, a drink the last drink, and a meal
@@ -45,12 +55,35 @@ const (
 const ConsumableDuration = time.Minute
 
 // Consumable is a meal or a drink being taken: its item's name and icon, as
-// the effects channel shows them, and its HoT (a meal) or PoT (a drink).
+// the effects channel shows them, and its HoT (a meal) or PoT (a drink); Also
+// the other of the two an item has both of (a meal's PoT, a drink's HoT).
+// Duration and Rule are its foodeffect row's: 0 and nil without one.
 type Consumable struct {
-	Drink  bool
-	Name   string
-	Icon   uint32
-	Amount int
+	Drink    bool
+	Name     string
+	Icon     uint32
+	Amount   int
+	Also     int
+	Duration time.Duration
+	Rule     *FoodRule
+}
+
+// FoodRule is what ends a meal or a drink, as its item's foodeffect row
+// says: a spell its eater casts, a fight. Since is when it was taken (a
+// fight from then on ends it); a rule kept over a logout starts again at the
+// login.
+type FoodRule struct {
+	EndsOnCast    bool      `json:",omitempty"`
+	EndsOnContact bool      `json:",omitempty"`
+	Since         time.Time `json:"-"`
+}
+
+// endsInFight is whether a fight ends it: its row's word, else a meal's rule.
+func (c Consumable) endsInFight() bool {
+	if c.Rule != nil {
+		return c.Rule.EndsOnContact
+	}
+	return !c.Drink
 }
 
 func (c Consumable) effectID() int {
@@ -72,34 +105,58 @@ func (w *World) Consume(sess *session.Session, c Consumable, now time.Time) erro
 	if p == nil || p.IsDead() {
 		return ErrConsumeNoPlayer
 	}
-	if p.Attacking() && !c.Drink {
+	if p.Attacking() && c.endsInFight() {
 		return ErrConsumeFighting
 	}
-	ae := &ActiveEffect{SpellID: c.effectID(), Name: c.Name, Icon: c.Icon, Caster: p.ServerID,
-		Until: now.Add(ConsumableDuration)}
+	d := c.Duration
+	if d <= 0 {
+		d = ConsumableDuration
+	}
+	ae := &ActiveEffect{SpellID: c.effectID(), Name: c.Name, Icon: c.Icon, Caster: p.ServerID, Until: now.Add(d)}
 	if c.Drink {
-		ae.Mods.PoT = c.Amount
+		ae.Mods.PoT, ae.Mods.HoT = c.Amount, c.Also
 	} else {
-		ae.Mods.HoT = c.Amount
+		ae.Mods.HoT, ae.Mods.PoT = c.Amount, c.Also
+	}
+	if c.Rule != nil {
+		r := *c.Rule
+		r.Since = now
+		ae.Food = &r
 	}
 	w.addEffectLocked(p, ae, now)
-	log.Printf("Consume: %s has %q (%s %d for %v)", p.Name, c.Name, map[bool]string{false: "HoT", true: "PoT"}[c.Drink], c.Amount, ConsumableDuration)
+	log.Printf("Consume: %s has %q (HoT %d, PoT %d for %v)", p.Name, c.Name, ae.Mods.HoT, ae.Mods.PoT, d)
 	return nil
+}
+
+// endFoodOnCastLocked ends the eater's meal and drink whose rule says a spell
+// cast ends it (FoodRule.EndsOnCast), as the cast begins (cast.go). Must be
+// called with the lock held.
+func (w *World) endFoodOnCastLocked(p *Player) {
+	for _, ae := range append([]*ActiveEffect(nil), p.Effects...) {
+		if (ae.SpellID == FoodEffectID || ae.SpellID == DrinkEffectID) && ae.Food != nil && ae.Food.EndsOnCast {
+			w.removeEffectLocked(p, ae.SpellID)
+			log.Printf("Consume: %s's %q ends with a cast", p.Name, ae.Name)
+		}
+	}
 }
 
 // consumableSystem ends a player's meal once it takes an aggressive action
 // or is hit after eating: auto-attack engaged, or a fight marked since
 // (LastCombatTime: its swing or harmful spell landing, a creature's or a
-// dummy's hit on it). A drink runs on through a fight (Sandstorm's did).
-// Every tick; must be called with the lock held.
+// dummy's hit on it). A drink runs on through a fight (Sandstorm's did); a
+// meal or a drink with a rule (FoodRule) ends so as its rule says. Every
+// tick; must be called with the lock held.
 func (w *World) consumableSystem(now time.Time) {
 	for _, p := range w.Players {
 		for _, ae := range append([]*ActiveEffect(nil), p.Effects...) {
-			if ae.SpellID != FoodEffectID {
+			if ae.SpellID != FoodEffectID && ae.SpellID != DrinkEffectID {
 				continue
 			}
-			since := ae.Until.Add(-ConsumableDuration)
-			if !p.Attacking() && !p.LastCombatTime.After(since) {
+			ends, since := ae.SpellID == FoodEffectID, ae.Until.Add(-ConsumableDuration)
+			if ae.Food != nil {
+				ends, since = ae.Food.EndsOnContact, ae.Food.Since
+			}
+			if !ends || !p.Attacking() && !p.LastCombatTime.After(since) {
 				continue
 			}
 			w.removeEffectLocked(p, ae.SpellID)

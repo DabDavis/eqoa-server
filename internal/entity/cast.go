@@ -279,6 +279,9 @@ type ActiveEffect struct {
 	// Power to 0")
 	PowerCap    int
 	PowerCapped bool
+	// Food is a meal's or a drink's rule (consumable.go), nil for every
+	// other effect and for one with no foodeffect row
+	Food *FoodRule
 	// duelFoe is the duel opponent that put a harmful effect on a player
 	// (duelfight.go), 0 for every other effect: it alone holds and slows a
 	// player (SpeedNow), comes off at the duel's end and is never kept over
@@ -615,6 +618,7 @@ func (w *World) StartCast(sess *session.Session, spell CastSpell, targetObjectID
 		castEnds: now.Add(spell.CastTime)}
 	w.areaStartLocked(p, cs, now) // area.go: an area spell's others
 	p.Casting = cs
+	w.endFoodOnCastLocked(p) // consumable.go: a meal or drink a cast ends
 	w.casts = append(w.casts, cs)
 
 	sendCooldown(sess, spell.DisplayIndex, lockout)

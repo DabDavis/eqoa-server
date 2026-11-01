@@ -357,3 +357,81 @@ func TestNextDisplayIndex(t *testing.T) {
 		t.Errorf("an empty book's next %d", n)
 	}
 }
+
+// The workbook import of 2026-11-01: a scroll's exact name before spellKey's
+// (a "+" kept), and of several records of one name the one the scribing
+// character's class has. The names are made up but for the shapes.
+func TestScrollSpellExactNameAndClass(t *testing.T) {
+	spells := []database.SpellName{
+		{SpellID: 159, Name: "Anthem of Hope +", Level: 20},
+		{SpellID: 162, Name: "Melodic Blades", Level: 20},
+		{SpellID: 348, Name: "Camouflage", Level: 8},
+		{SpellID: 900158, Name: "Anthem of Hope", Level: 20},
+		{SpellID: 901141, Name: "Camouflage", Level: 34},
+		{SpellID: 901163, Name: "Melodic Blades +", Level: 20},
+	}
+	ranger := func(id int) bool { return id == 901141 }
+	druid := func(id int) bool { return id == 348 }
+	for _, c := range []struct {
+		scroll string
+		level  int
+		has    func(int) bool
+		want   int
+	}{
+		{"Anthem of Hope", 20, nil, 900158},     // its exact name, not the "+" record before it
+		{"Anthem of Hope +", 20, nil, 159},      // the "+" record by its own name
+		{"Melodic Blades", 20, nil, 162},        // exact
+		{"Melodic Blades+", 20, nil, 162},       // no record "Melodic Blades+": spellKey's, the first at the level
+		{"Camouflage", 34, ranger, 901141},      // the ranger's record
+		{"Camouflage", 34, druid, 348},          // the druid's, whatever the scroll's level
+		{"Camouflage", 34, nil, 901141},         // no class: the one at the scroll's level
+		{"Camouflage", 12, nil, 348},            // none at its level: the first
+		{"Camouflage (DRD)", 8, ranger, 901141}, // a class tag is no part of the name
+	} {
+		if s, ok := scrollSpellFor(spells, c.scroll, c.level, c.has); !ok || s.SpellID != c.want {
+			t.Errorf("scrollSpellFor(%q, %d) = %d %v, want %d", c.scroll, c.level, s.SpellID, ok, c.want)
+		}
+	}
+	if exactKey("Selo`s  Accelerando + ") != "selo's accelerando +" {
+		t.Errorf("exactKey %q", exactKey("Selo`s  Accelerando + "))
+	}
+}
+
+// A scroll teaches the record its exact name names, and the class's of two
+// of one name; a "+" record in the book does not make the base one known,
+// the same name does.
+func TestScribeExactNameAndClass(t *testing.T) {
+	f := newScribeFixture(t)
+	f.spell(159, "Thorn Song +", 20)
+	f.spell(348, "Bark Hide", 8)
+	f.spell(900158, "Thorn Song", 20)
+	f.spell(901141, "Bark Hide", 20)
+	f.know(159, 0)
+	if _, err := f.db.Exec(`INSERT INTO classspells (class, spellid, source) VALUES (?, 901141, 'eqoaemu'), (1, 348, 'dump')`,
+		classDruid); err != nil {
+		t.Fatal(err)
+	}
+	song := f.item("Thorn Song", true, druidMask, 20, 1)
+	hide := f.item("Bark Hide", true, druidMask, 8, 1)
+	f.own(song, 1)
+	f.own(hide, 1)
+	f.loadList()
+	mustOps(t, f.use(0), protocol.OpcodeRemoveInvItem, protocol.OpcodeAbilityAdd)
+	f.loadList()
+	mustOps(t, f.use(0), protocol.OpcodeRemoveInvItem, protocol.OpcodeAbilityAdd)
+	got := map[int]bool{}
+	for _, r := range f.book() {
+		got[r.SpellID] = true
+	}
+	if !got[900158] || !got[901141] || got[348] {
+		t.Errorf("the book holds %v: want the base song (900158) beside its + (159), and the druid's Bark Hide (901141)", got)
+	}
+	// the same exact name again: known
+	again := f.item("Thorn Song", true, druidMask, 20, 1)
+	f.own(again, 1)
+	f.loadList()
+	f.use(0)
+	if rows := f.rowsOf(); len(rows) != 1 {
+		t.Errorf("a scroll of a spell known was taken: %d rows left", len(rows))
+	}
+}

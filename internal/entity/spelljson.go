@@ -195,11 +195,29 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 	}
 	d.Duration = seconds(s.DurationS)
 	var area []SpellEffect
+	targetOnly := map[int]bool{} // a target-based area spell's effects for its target alone
 	for _, e := range s.Effects {
 		if d.Duration <= 0 && e.DurationS > 0 {
 			d.Duration = seconds(e.DurationS)
 		}
+		n := len(d.Effects)
 		d.readEffectJSON(name, desc, e, scope == "target_aoe", &area)
+		switch es := strings.ToLower(strings.TrimSpace(e.Scope)); {
+		case es == "self" && scope != "self" && scope != "player_aoe":
+			// an effect of the spell's on its caster (a price, a tap's own
+			// share, a taunt's AC): lifetap.go lands it, once a cast
+			for i := n; i < len(d.Effects); i++ {
+				if k := d.Effects[i].Kind; k == EffectHP || k == EffectPower || k == EffectStat {
+					d.Effects[i].Self = true
+				}
+			}
+		case es == "target" && scope == "target_aoe":
+			for i := n; i < len(d.Effects); i++ {
+				targetOnly[i] = true
+			}
+		case es != "" && es != scope && es != "self" && es != "target":
+			d.unsupported("an effect for %q in a spell for %q (it lands as the spell's)", es, scope)
+		}
 	}
 	switch {
 	case s.Harmful != nil:
@@ -225,8 +243,8 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 		if len(area) > 0 {
 			// the area's own number, and what the spell does beside its hits
 			// and its hate (a debuff, a tick)
-			for _, e := range d.Effects {
-				if e.Kind != EffectHP && e.Kind != EffectHate && !e.Self {
+			for i, e := range d.Effects {
+				if e.Kind != EffectHP && e.Kind != EffectHate && !e.Self && !targetOnly[i] {
 					area = append(area, e)
 				}
 			}
@@ -380,7 +398,10 @@ func (d *SpellDef) readEffectJSON(name, desc string, e effectJSON, aoe bool, are
 			return
 		}
 		d.readIllusion(name, desc)
-		if d.FormKind == FormNone || d.FormKind == FormEnd {
+		if d.FormKind == FormEnd {
+			return // "Remove Illusion", "True Form": the bearer's own body back
+		}
+		if d.FormKind == FormNone {
 			// a body by its sprite alone, on whom the spell lands
 			d.FormKind = FormSelf
 			if !strings.EqualFold(strings.TrimSpace(e.Scope), "self") && d.Target != TargetSelf {
@@ -497,7 +518,8 @@ const mitigateNoLimit = 100000
 func (d *SpellDef) readSpeedJSON(e effectJSON) {
 	n := round(e.Amount)
 	switch {
-	case n > 0:
+	case n > 0 || strings.EqualFold(strings.TrimSpace(e.Kind), "speed") && e.Amount == 0:
+		// a speed with no figure is the movement buff too
 		d.Effects = append(d.Effects, SpellEffect{Kind: EffectSpeed, Amount: n, AmountMax: n, ID: e.ID})
 	case n < 0:
 		se := effectOf(EffectSnare, e)

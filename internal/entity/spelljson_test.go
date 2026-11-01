@@ -59,6 +59,13 @@ func TestWorkbookEffectsAreWhatASpellDoes(t *testing.T) {
 			t.Errorf("effects %q: not the line's %+v", bad, d)
 		}
 	}
+	// an effect for its caster in a spell for a target: a price, a tap's
+	// share (lifetap.go); a speed with no figure, the movement buff
+	d = SpellDefFrom("Test Pact", "", "", `{"v":1,"scope":"target","target_type":"Friendly","effects":[
+		{"kind":"hp","amount":100},{"kind":"hp","amount":-30,"scope":"self"},{"kind":"speed","duration_s":60}]}`)
+	if len(d.Effects) != 3 || d.Effects[0].Self || !d.Effects[1].Self || d.Effects[2].Kind != EffectSpeed || d.Harmful {
+		t.Errorf("the pact: %+v", d)
+	}
 	// what the engine has no rule for is kept, never acted on
 	d = SpellDefFrom("Test Odd", "", "", `{"v":1,"scope":"target","harmful":true,"effects":[{"kind":"pickpocket"},{"kind":"def_mod","amount":3}]}`)
 	if len(d.Unsupported) != 2 || len(d.Effects) != 0 {
@@ -82,6 +89,10 @@ func TestWorkbookKindsMapOntoTheEngines(t *testing.T) {
 	d = SpellDefFrom("Test Shape", "", "", `{"v":1,"scope":"self","duration_s":60,"effects":[{"kind":"illusion","sprite":"0x12345678"}]}`)
 	if d.FormKind != FormSelf || d.FormModel != 0x12345678 || d.Duration != time.Minute {
 		t.Errorf("the illusion: %+v", d)
+	}
+	d = SpellDefFrom("True Form", "", "", `{"v":1,"scope":"self","effects":[{"kind":"illusion","sprite":"0x12345678"}]}`)
+	if d.FormKind != FormEnd || len(d.Effects) != 1 || d.Effects[0].Kind != EffectEndIllusion {
+		t.Errorf("an illusion's end: %+v", d)
 	}
 	d = SpellDefFrom("Test Veil", "", "", `{"v":1,"scope":"self","duration_s":60,"effects":[{"kind":"illusion","sprite":"0x435EF663"}]}`)
 	if d.FormKind != FormNone || len(d.Effects) != 1 || d.Effects[0].Kind != EffectInvis {

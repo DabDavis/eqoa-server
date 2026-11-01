@@ -350,7 +350,7 @@ func checkPetAbility(n int, a TemplateAbility) error {
 		return fmt.Errorf("ability %d: stat %q: one of %s", n, a.Stat, strings.Join(AbilityStats, ", "))
 	case a.Stat != "" && a.Kind != AbilityBuff:
 		return fmt.Errorf("ability %d: a stat is a buff's", n)
-	case a.Kind == AbilityBuff && a.Stat == "" && a.Spell == "":
+	case a.Kind == AbilityBuff && a.Stat == "" && a.Spell == "" && a.SpellID == 0:
 		return fmt.Errorf("ability %d: a buff needs the stat its spell raises (or a spell)", n)
 	case a.Element != "" && !oneOf(a.Element, AbilityElements):
 		return fmt.Errorf("ability %d: element %q: one of %s", n, a.Element, strings.Join(AbilityElements, ", "))

@@ -2341,6 +2341,12 @@ class MadeItems:
         level = num(info, "Level") or num(s, "Level") or 1
         objs, radius = self.effects_of(rows)
         area = radius if thrown else 0
+        extras = potion_extras(objs, thrown, area)
+        if old is not None and not replace:
+            self.given.add(pid)
+            self.use_columns(pid, r, tag, old, {"body": extras.get("body", 0),
+                                                 "target_line": extras.get("target_line", "")}, False)
+            return
         line, unsaid = potion_line(objs, thrown, area, None, 1)
         if not line:
             self.lists["an item of ours with no use whose workbook use no potion's words say: left"].append(tag)
@@ -2360,7 +2366,6 @@ class MadeItems:
                     self.out["updates"].append(dict(patternid=pid, name=r["itemname"], before={k: r.get(k) for k in changed},
                                                     set=changed))
                     r.update(changed)
-        extras = potion_extras(objs, thrown, area)
         if old is None:
             self.out["itemeffects"].append(dict(patternid=pid, line=line, name="", icon=0, breaks="", wear=0,
                                                 area=float(area), source="eqoaemu", **extras))
@@ -2369,11 +2374,16 @@ class MadeItems:
             self.lists["an item of ours with no use given the workbook's"].append(
                 f"{tag}: {line}" + (f"; unsaid: {', '.join(unsaid)}" if unsaid else ""))
             return
-        want = {"body": extras.get("body", 0), "target_line": extras.get("target_line", "")}
-        if replace:
-            lasting = any(o.get("duration_s") for o in objs)
-            want.update(line=line, icon=(icon_of(cell(info, "IconID"), self.icons) or 0) if lasting and not thrown else 0,
-                        area=float(area), source="eqoaemu")
+        lasting = any(o.get("duration_s") for o in objs)
+        self.use_columns(pid, r, tag, old, dict(
+            line=line, icon=(icon_of(cell(info, "IconID"), self.icons) or 0) if lasting and not thrown else 0,
+            area=float(area), body=extras.get("body", 0), target_line=extras.get("target_line", ""), source="eqoaemu"),
+            True)
+
+    def use_columns(self, pid, r, tag, old, want, replace):
+        """An existing use's columns made want's: all of them (replace: the
+        workbook's use over ours), else only those still at what a row with
+        none holds (a GM's value since left, and said)."""
         before = {k: old.get(k, USE_DEFAULTS[k]) for k in want}
         changed = {k: v for k, v in want.items() if before[k] != v}
         if not replace:

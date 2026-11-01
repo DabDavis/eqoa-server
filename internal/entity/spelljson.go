@@ -279,6 +279,13 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 	if d.FormKind != FormNone {
 		d.Harmful = false
 	}
+	// a harmful spell the workbook gives no time whose effect ends at
+	// contact lasts until contact (untilContact, workbook.go): Enshrouding
+	// darkness, the shadow knight's snare, Duration 0 and DisspellOnContact
+	// 1 (the user, 2026-11-01: "until hit"); until then it lasted no time
+	if d.Duration <= 0 && d.DispelOnContact && d.Harmful {
+		d.Duration = untilContact
+	}
 	// the undead check, which the workbook's Legend calls the one oddity of a
 	// negative HP1 and its Target Type gives only some of the undead spells
 	// ("Enemy - Undead": the cleric's Death line, the Charm Undead line;

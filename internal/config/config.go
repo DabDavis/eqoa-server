@@ -207,6 +207,15 @@ type WorldConfig struct {
 	// the world.
 	RestartNotice     string        `yaml:"restart_notice"`
 	RestartNoticeWait time.Duration `yaml:"restart_notice_wait"`
+
+	// MoveCheck is what the server does with a player's report of its own
+	// place (its 0x40) that its moves cannot have reached: in the air with
+	// nothing under it, under the ground, through a wall, faster than its
+	// speed (entity/movecheck.go). "off" takes every report, as before;
+	// "log" (unset) takes every report and logs the rest ("MOVECHECK"
+	// lines); "enforce" leaves the player where it last was right and moves
+	// the client back. #movecheck changes it while the server runs.
+	MoveCheck string `yaml:"movecheck"`
 }
 
 // PatchConfig selects which client patch payloads the patch server hands out.

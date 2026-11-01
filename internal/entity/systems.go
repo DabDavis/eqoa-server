@@ -59,6 +59,7 @@ func (w *World) tickLocked(now time.Time) ([]respawnDue, []respawnDue, []EntityI
 	w.vampireSunSystem(now) // after the regen, as Sandstorm's (vampire.go)
 	w.npcRegenSystem(now)   // creatures out of a fight (npcregen.go)
 	w.breathSystem(now)
+	w.silentAirSystem(now) // movecheck.go
 	w.stateSyncSystem()
 	w.entityChannelSyncSystem()
 	w.statChannelSyncSystem()
@@ -387,8 +388,18 @@ func (w *World) breathSystem(now time.Time) {
 			continue
 		}
 
-		if p.HasWalkFlags {
+		if under, known := w.underLiquidLocked(p); known && MoveCheck() == MoveCheckEnforce {
+			// the server's own water at the player's place, not the
+			// client's word for it (movecheck.go): a client that always
+			// says it is at the surface never drowned
+			p.Underwater = under
+		} else if p.HasWalkFlags {
 			p.Underwater = UnderLiquid(p.WalkFlags)
+			if known && under != p.Underwater && MoveCheck() == MoveCheckLog && w.TickCount-p.mv.breathLogged > 600 {
+				p.mv.breathLogged = w.TickCount
+				log.Printf("MOVECHECK breath: %s at (%.1f, %.1f, %.1f) world %d says under a liquid: %v; the water there says %v (flags %#x)",
+					p.Name, p.X, p.Y, p.Z, p.World, p.Underwater, under, p.WalkFlags)
+			}
 		} else {
 			p.Underwater = isSwimAnimation(p.Animation)
 		}

@@ -1028,6 +1028,10 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 	case "#aggro":
 		// #aggro [on|off]: whether creatures attack you on sight (aggrocmd.go)
 		h.aggroCommand(sess, parts[1:])
+	case "#movecheck":
+		// #movecheck [off|log|enforce]: the server's view of players' own
+		// moves (movecheckcmd.go, entity/movecheck.go)
+		h.moveCheckCommand(sess, player.Name, parts[1:])
 	case "#fx":
 		// #fx <visual> [seconds] | <spell>: a spell visual played on the
 		// target now, nothing saved (spellfx.go)
@@ -1100,6 +1104,7 @@ func (h *ChatHandler) handleGMCommand(sess *session.Session, player *entity.Play
 		h.gmReply(sess, "  #banktunar [name] <amount> - added to a bank (negative takes away; no name: your target, else you)")
 		h.gmReply(sess, "  #servdown - restart the server, everyone saved (an admin's; say it twice)")
 		h.gmReply(sess, "  #aggro [on|off] - whether creatures attack you on sight (off until #aggro on)")
+		h.gmReply(sess, "  #movecheck [off|log|enforce] - the check of players' own moves, and who it moved back")
 		h.gmReply(sess, "  #fx <visual> [seconds] | <spell> - play a spell visual (0x1DAEB5B6) on your target, nothing saved")
 		h.gmReply(sess, "  #spellfx <spell> [<visual> | 0] - a spell's visual, or give it one (0: its stand-in)")
 		h.gmReply(sess, "  #trigger [n | name | stop [n]] - the triggers (the GM panel's), fire one, or stop their runs")

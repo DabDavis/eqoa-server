@@ -580,7 +580,7 @@ Training dummies are never touched.
 
 | Table (panel) | Key | Columns |
 |---|---|---|
-| `balancelevel` (Balance by level) | an NPC's level (the line between rows) | `hp_pct` (of 60 a level), `damage_pct` (its melee hits; **a row at every level 1-14 evens out the floor's step**: an NPC's least hit is `(level+1)/2` (`defence.go`), a step at each odd level, and there most of its hits on a tank are that floor, so the seed is the line's times `(2L+1)/(4*ceil(L/2))`), `con_pct` (how much of the con table its level takes; seed 100 at every level), `pet_hp_pct`/`pet_damage_pct` (a SUMMONED pet's, by its owner's level; `pet_hp_pct` seed 100 at 1-8 to 540 at 60; a table's untouched rows of the first tuning take 2026-10-29's seven tenths, `BalanceSeedRevisions`), `regen_pct` (its heal out of a fight a tick, seed 5), and **by a PLAYER's level** `art_cooldown_ms` (the combat arts' global cooldown, seed 1500) |
+| `balancelevel` (Balance by level) | an NPC's level (the line between rows) | `hp_pct` (of 60 a level), `damage_pct` (its melee hits; **a row at every level 1-14 evens out the floor's step**: an NPC's least hit is `(level+1)/2` (`defence.go`), a step at each odd level, and there most of its hits on a tank are that floor, so the seed is the line's times `(2L+1)/(4*ceil(L/2))`), `con_pct` (how much of the con table its level takes; seed 100 at every level), `pet_hp_pct`/`pet_damage_pct` (a SUMMONED pet's, by its owner's level; seed 100 at every level since the workbook's pets, which fight as a player of their kind, 2026-11-01: `tools/refit_eqoaemu_balance.py`, below; 2026-10-30's 100-540 and 225-560 were for the server's own pets; a table's untouched rows of the first tuning take 2026-10-29's seven tenths, `BalanceSeedRevisions`), `regen_pct` (its heal out of a fight a tick, seed 5), and **by a PLAYER's level** `art_cooldown_ms` (the combat arts' global cooldown, seed 1500) |
 | `balancecon` (Balance by con) | the NPC's level less its foe's (1-2 yellow, 3+ red) | `damage_pct` (its melee on that foe), `taken_pct` (what that foe deals it; seed 147/68 one up, 140/70 two, 190/53 three, 220/45 four, 230/45 five), `root_resist_pct` and `root_break_pct` (`root.go`: a root's, and a snare's resist, at its landing; each hit on a rooted NPC; seed 0/5 even and one up, 10/10, 30/20, 45/25, 60/30 for 2..5; not scaled by `con_pct`) |
 | `balanceclass` (Balance by class) | a player's class | `melee_taken_pct`: the share of an NPC's melee hit it takes (seed 100 for every class since 2026-10-30: 2026-10-29's ranger 70, bard 80 and rogue 65 moved into the next table) |
 | `balanceclasslevel` (Balance by class and level) | a player's class and level (the line between that class's rows) | `melee_taken_pct`: times Balance by class's share, by the player's level (a class whose strength turns with its level: a monk takes 66-104% at 1-12 and 326% at 60); `pet_hp_pct`: its summoned pet's hit points, a share of Balance by level's pet column (each class's pets lag their owner their own way, and an NPC's hits on a pet take the con on the PET's level); `dealt_pct`: the share of the player's own damage (melee, spells and their ticks, procs, damage shields; not its pet's) that lands on an NPC, after Balance by con's `taken_pct`: a fight's LENGTH by class where `melee_taken_pct` is its danger, for a class whose fights outlast it (a rooting wizard of 8-18 out of power with a roamer's crits still to come); a table made before it gets it at 100 at the next start. Seed: both fitted by the simulator at every level 1-60 to both yellows at once (the player's low point, the least hit points in a fight won, or the pet's hit points left, averaged over one and two up near 25%; one up won 80% of the time, a healer's 90% and eased 8% off its cliff, two up 65%), cut to the fewest rows within 7% of every level's fit; the druid's melee on its hand-to-hand play, the wizard's and the alchemist's on their root play. Seeded only with a fresh balance: an older database gets it empty, for the tool |
@@ -654,7 +654,25 @@ made Badi and Badi Elder win every red alone (Natureskin's 625 AC); the fire tem
 91, Badi 81 -> 36, Badi Elder 61 -> 32, Efreet 65 -> 58, Efreeti Lord 47 -> 42, and the magician's
 `pet_hp_pct` at 34-38 (the Earth Elemental) 56..100 -> 41, 44, 46, 53, 58 put each back on the old
 fit's numbers where it was made. Apply it with the server stopped and this binary starting after
-(`before.sh`). The seeds hold the four tunings' result. Kits move with
+(`before.sh`). **Then `tools/refit_eqoaemu_balance.py`** (same flags, log `balance_eqoaemu_log`; the
+user's "Workbook wins, re-fit", 2026-11-01), once EQOAEmu's workbook is in (`tools/import_eqoaemu_spells.py`,
+`import_eqoaemu_cms.py`, `import_eqoaemu_pets.py`): under the four tunings' rows its spells (stack types, heals,
+procs) left the tanks and melee classes 40-65% through a yellow and a paladin of 37-60 or a bard of 13-59 winning
+nearly every red alone, the priests won their reds, and its pets (each a player of its kind, `petstats.go`) won
+every red alone from 8 under pet columns fitted for the server's own. It sets `balancelevel.pet_hp_pct` and
+`pet_damage_pct` 100 at every row (a workbook pet's hits land as a player's) and every class's
+`balanceclasslevel` rows to the simulator's fit by the earlier fits' method (both yellows in the class's own play,
+`dealt_pct` where no share met their win rates, a red a lone loss, every summoner's `pet_hp_pct` on its book's pet
+but the wizard's, whose familiars are passive, levels 1-10 by the low-level check; three cells after: a shadow
+knight of 5 to the fire bat fight, a magician of 4 and an alchemist of 6 to their even fights), each row only while
+it is the four tunings'; 812 rows on eqoaclassic's copy of 07:15 with the import in. For it the simulator's root
+play roots with a root that holds through a hit first (every workbook root ends at one) and stands within its reach
+(`simRootAt`), and a kit holds what its arts need (`simHands`: a rogue a piercer, a paladin a blunt weapon, a bard
+and a ranger a slashing one, a ranger a bow for its arrows; never bare hands, which roll weapon damage 0). A
+rooting wizard or alchemist wins its yellows as often as asked but keeps 40-60% when it does (won with the root
+held, lost when it breaks: no share or dealt moves the low point), and a shaman of 51-54 takes 4-5x an NPC's melee
+(Avatar's 1500 a tick). Apply it with the import's server and data: its rows are fitted on them. The seeds hold the
+five tunings' result. Kits move with
 the items, so a data change that reaches what classes wear can move a class off its targets again:
 `balancesim_real_test.go` with `EQOA_REAL_DB` on a copy is the check.
 

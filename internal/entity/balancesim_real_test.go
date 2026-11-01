@@ -160,11 +160,12 @@ func TestRealBalanceSeedOnRealKits(t *testing.T) {
 // end), wins it nearly always given the time (15-20 minutes under the con
 // rows of 2026-10-30, so the control's fights may last 30); a rooting wizard
 // of 50 pays for a yellow two up under the chances, and with none wins it
-// nearly always with most of its hit points (the control: untouched under
-// the old Arcane Shackles, which held 50 s from a 1 s cast; the workbook's
-// end at a hit, so the wizard roots with its Arcane Bindings-Wiz, 36 s from
-// a 3 s cast, and a re-root costs it a blow or two). A wizard's roots do not
-// take a red at all.
+// nine times in ten or more with half its hit points or more (the control:
+// untouched under the old Arcane Shackles, which held 50 s from a 1 s cast;
+// the workbook's end at a hit, so the wizard roots with its Arcane
+// Bindings-Wiz, 36 s from a 3 s cast, and a re-root costs it a blow or two,
+// more under the re-fit's share of 2026-11-01: 94% won with 53% left, where
+// the chances leave it 38%). A wizard's roots do not take a red at all.
 func TestRealRootPlayHeldToTheCon(t *testing.T) {
 	db := simRealDB(t)
 	none := SeedBalance().WithConColumn([][2]float64{{0, 0}}, func(r *database.BalanceCon, v float64) {
@@ -188,7 +189,7 @@ func TestRealRootPlayHeldToTheCon(t *testing.T) {
 	wizard := kit(13)
 	paid := SimCellOf(wizard, SimNPC{}, 2, SeedBalance(), 16, 1, 10*time.Minute)
 	free := SimCellOf(wizard, SimNPC{}, 2, none, 16, 1, 10*time.Minute)
-	if free.WinShare() < 0.95 || free.HPLeft < 0.6 {
+	if free.WinShare() < 0.9 || free.HPLeft < 0.5 {
 		t.Errorf("a wizard rooting with no root chances: +2 won %.0f%% with %.0f%% left (the control)", 100*free.WinShare(), 100*free.HPLeft)
 	}
 	if paid.WinShare() > 0.9 && paid.HPLeft > 0.75 {
@@ -459,12 +460,11 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 			}
 		}
 	}
-	var fitted []database.BalanceClassLevel
+	fitted := []database.BalanceClassLevel{{Class: 7, Level: 14, MeleeTakenPct: 26, PetHPPct: 100, DealtPct: 100}}
 	for _, r := range seed.ClassLevelRows() {
-		if r.Class == 7 && r.Level == 14 {
-			r.MeleeTakenPct = 26
+		if r.Class != 7 || r.Level != 14 { // the share fit's row in place of the table's (or of none there)
+			fitted = append(fitted, r)
 		}
-		fitted = append(fitted, r)
 	}
 	if r := SimCellOf(kit(7, 14), foe, 3, seed.WithClassLevels(fitted), 16, 1, 10*time.Minute); r.WinShare() < 0.6 {
 		t.Errorf("the control: a druid of 14 at the share fit's 26 won %.0f%% of its reds alone: the check tells nothing", 100*r.WinShare())
@@ -504,9 +504,11 @@ func TestRealBalanceYellowsAndReds(t *testing.T) {
 // its even fights about 95% of the time and its blue and green ones about
 // all of it (97% of 40), by hand AND in its own play (a wizard's root from 3,
 // an alchemist's from 4, a pet class's pet), in a new character's starting
-// gear at 1-5 (SimStartKitFromDB). One cell is short of it, named: an
-// enchanter of 2 by hand wins 92% of its even fights at any dealt (the NPC of
-// 2 hits 317%: its first blows kill a 25-hit-point caster). The control: an
+// gear at 1-5 (SimStartKitFromDB; a level 1's blue and green fights are its
+// even one, a creature of level 1: no creature is under it). One cell is
+// short of it, named: an enchanter of 2 by hand wins 92% of its even fights
+// at any dealt (the NPC of 2 hits 317%: its first blows kill a 25-hit-point
+// caster). The control: an
 // alchemist of 2 by hand under the share fit alone (no dealt) wins under
 // half of its even fights.
 func TestRealLowLevelsEvenAndBelow(t *testing.T) {
@@ -540,7 +542,7 @@ func TestRealLowLevelsEvenAndBelow(t *testing.T) {
 			for i, k := range plays {
 				for _, diff := range []int{-2, -1, 0} {
 					want := 0.97
-					if diff == 0 {
+					if diff == 0 || level+diff < 1 { // no creature under level 1: a level 1's blue and green are its even fight
 						want = 0.95
 					}
 					if w, ok := known[[3]int{class, level, i}]; ok && diff == 0 {
@@ -617,14 +619,17 @@ func TestRealWispsAreYellows(t *testing.T) {
 }
 
 // The pet classes' pets are yellows like any other (the pets' fit of
-// 2026-10-30, tools/tune_pets.py): a magician, a necromancer and an
+// 2026-10-30, tools/tune_pets.py, and its re-fit on the workbook's pets,
+// tools/refit_eqoaemu_balance.py): a magician, a necromancer and an
 // enchanter with the pet its book gives at 10, 20, 30, 40, 50 and 60 win one
 // up at least 75% and two up half the time against the creature the
 // database gives (a roamer), the pet taken down to under 45% of its hit
 // points at its lowest on average, and lose a red three up alone more often
-// than not. The control: the enchanter's animation as the pet lane first had
-// it (150% hit points, 70% of a hit landing, on top of its heals) keeps over
-// 70% through its yellows and wins its reds at 30 and 45.
+// than not. The control: the workbook's pets under the pet columns the four
+// tunings left (balancelevel's pet_hp_pct 100-540 and pet_damage_pct
+// 225-560, fitted for the server's own pets, which hit with a creature's
+// roll) keep over 70% through a +1 and win their reds alone, a magician's
+// and a necromancer's at 30 and 45.
 func TestRealPetsAreYellows(t *testing.T) {
 	db := simRealDB(t)
 	b := simRealBalance(t, db)
@@ -653,27 +658,20 @@ func TestRealPetsAreYellows(t *testing.T) {
 			}
 		}
 	}
-	for _, level := range []int{30, 45} {
-		pl := kit(12, level)
-		if pl.Pets == nil {
-			t.Fatal("no pets read for the kit")
-		}
-		ctl := &SimPets{pets: map[database.PetTemplateKey]*petTemplate{}, weapon: pl.Pets.weapon, taps: pl.Pets.taps}
-		for k, pt := range pl.Pets.pets {
-			if pt.tmpl != nil && pt.tmpl.Name == "pet animation" {
-				c, tm := *pt, *pt.tmpl
-				tm.HPPct, tm.TakenPct = 150, 70
-				c.tmpl = &tm
-				pt = &c
+	// the four tunings' pet columns, as their rows' line reads (tools/tune_balance.py's LEVEL_WANT and LEVELS_0130)
+	old := b.WithLevelColumn([][2]float64{{8, 100}, {10, 140}, {15, 155}, {18, 155}, {25, 190}, {30, 205}, {35, 250},
+		{45, 375}, {50, 450}, {60, 540}}, func(r *database.BalanceLevel, v float64) { r.PetHPPct = v }).
+		WithLevelColumn([][2]float64{{1, 250}, {5, 265}, {8, 260}, {10, 225}, {15, 280}, {18, 300}, {25, 285}, {30, 300},
+			{35, 340}, {45, 430}, {50, 475}, {60, 560}}, func(r *database.BalanceLevel, v float64) { r.PetDamagePct = v })
+	for _, class := range []int{10, 11} {
+		for _, level := range []int{30, 45} {
+			pl := kit(class, level)
+			y1 := SimCellOf(pl, foe, 1, old, 16, 1, 10*time.Minute)
+			red := SimCellOf(pl, foe, 3, old, 16, 1, 10*time.Minute)
+			if y1.PetLowLeft < 0.7 || red.WinShare() < 0.6 {
+				t.Errorf("the control: class %d L%d's pet under the four tunings' pet columns kept %.0f%% through a +1 and "+
+					"won %.0f%% of its reds alone", class, level, 100*y1.PetLowLeft, 100*red.WinShare())
 			}
-			ctl.pets[k] = pt
-		}
-		pl.Pets = ctl
-		y1 := SimCellOf(pl, foe, 1, b, 16, 1, 10*time.Minute)
-		red := SimCellOf(pl, foe, 3, b, 16, 1, 10*time.Minute)
-		if y1.PetLowLeft < 0.7 || red.WinShare() < 0.6 {
-			t.Errorf("the control at %d: the pet lane's animation kept %.0f%% through a +1 and won %.0f%% of its reds alone",
-				level, 100*y1.PetLowLeft, 100*red.WinShare())
 		}
 	}
 }

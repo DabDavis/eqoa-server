@@ -72,6 +72,16 @@ RIME = ('{"v":1,"scope":"self","target_type":"Self","harmful":false,"stack":0,"l
         '"req_equipment":"Any","sheet_type":"Create Item","effects":[{"id":"0065","type":"Create Item","kind":"create_item",'
         '"item":{"count":3,"name":"Rime Potion","patternid":4780,"sheet_name":"Rime Mix Potion"}}]}')
 
+# made up: two spells that make each other's items, and meals ending as the workbook says (8.)
+MADE = {"grub hunt": "Hunted Grub", "fruit hunt": "Hunted Fruit"}
+MEALS = {"hunted grub", "hunted fruit", "hunted nut"}
+
+
+def hunt(level, name, pid, sheet):
+    return fp.im_dumps({"v": 1, "scope": "self", "target_type": "Self", "harmful": False, "stack": 0, "level": level,
+                        "effects": [{"id": "0E50", "type": "Create Item", "kind": "create_item",
+                                     "item": {"count": 1, "name": name, "patternid": pid, "sheet_name": sheet}}]})
+
 # made up: four lasting debuffs the workbook gave no time (5.)
 DURATIONS = {"mire cloud": 30, "ash veil": 30, "bog mark": 30, "quick rot": 30}
 
@@ -187,6 +197,24 @@ def make(dir):
                    (sid, line, fx))
     db.execute("INSERT INTO eqoaemu_spell_import_log (tbl, key, action, after) VALUES ('spelleffect', ?, 'update', ?)",
                (fp.im_dumps({"spellid": 920}), fp.im_dumps({"line": "Self, Summon Rime Potion x3", "effects": RIME})))
+    # the swapped makers as the import wrote them, the meals (Hunted Nut's row a GM's), a grocer's with no row
+    db.execute("CREATE TABLE foodeffect (patternid INTEGER PRIMARY KEY, duration_s INTEGER NOT NULL DEFAULT 0, "
+               "ends_on_cast INTEGER NOT NULL DEFAULT 0, ends_on_contact INTEGER NOT NULL DEFAULT 0, source TEXT NOT NULL DEFAULT 'gm')")
+    for pid, name in ((4790, "hunted grub"), (4791, "hunted fruit"), (4792, "hunted nut"), (4793, "grocer loaf")):
+        db.execute(item, (pid, name))
+    for sid, name, lv, fx in ((930, "Grub Hunt", 25, hunt(25, "hunted fruit", 4791, "Hunted Fruit")),
+                              (931, "Fruit Hunt", 35, hunt(35, "hunted grub", 4790, "Hunted Grub"))):
+        db.execute("INSERT INTO spellpattern (spellid, spellname, abilitylvl, scope) VALUES (?, ?, ?, 0)", (sid, name, lv))
+        line = f"Self, Summon {json.loads(fx)['effects'][0]['item']['name']}"
+        db.execute("INSERT INTO spelleffect (spellid, line, source, effects) VALUES (?, ?, 'eqoa-data ranger', ?)", (sid, line, fx))
+        db.execute("INSERT INTO eqoaemu_spell_import_log (tbl, key, action, after) VALUES ('spelleffect', ?, 'update', ?)",
+                   (fp.im_dumps({"spellid": sid}), fp.im_dumps({"line": line, "effects": fx})))
+    for pid in (4790, 4791, 4792):
+        row = {"patternid": pid, "duration_s": 120, "ends_on_cast": 1, "ends_on_contact": 0, "source": "eqoaemu"}
+        db.execute("INSERT INTO foodeffect VALUES (?, 120, 1, 0, 'eqoaemu')", (pid,))
+        db.execute("INSERT INTO eqoaemu_spell_import_log (tbl, key, action, after) VALUES ('foodeffect', ?, 'insert', ?)",
+                   (fp.im_dumps({"patternid": pid}), fp.im_dumps(row)))
+    db.execute("UPDATE foodeffect SET duration_s = 90 WHERE patternid = 4792")   # a GM's
     record, eff = fp.im.mirror_changes(rec, dict(line=taunt, effects="", source="eqoa-data enchanter"), 1, 486870879,
                                        "Soothing Mask", json.loads(SOOTHING), 5)
     db.execute(f"UPDATE spellpattern SET {', '.join(f'{k} = ?' for k in record['set'])} WHERE spellid = 912",
@@ -214,7 +242,7 @@ class FixPlaces(unittest.TestCase):
 
     def plan(self):
         return fp.plan(self.db, recasts=RECASTS, gems=GEMS, chambers=CHAMBERS, portal=self.qfile, keys=KEYS, talked_to=TALKED,
-                       durations=DURATIONS, mirrors=MIRRORS, makes=MAKES, cures=CURES)
+                       durations=DURATIONS, mirrors=MIRRORS, makes=MAKES, cures=CURES, made=MADE, meals=MEALS)
 
     def by(self, p, tbl, action):
         return [c for c in p["changes"] if c["tbl"] == tbl and c["action"] == action]
@@ -294,6 +322,16 @@ class FixPlaces(unittest.TestCase):
         self.assertEqual(fx[922]["line"], "Self, Cure up to 3 harmful effects")
         self.assertEqual(p["said"]["a spell of ours with effects of its own or no effects row (left: a GM's?)"],
                          ["923 Odd Mixture"])
+        # the errata: each hunt makes its own item, its line saying so; the meals end as a meal does, a GM's row left
+        hunts = {c["ref"]["spellid"]: c["set"] for c in self.by(p, "spelleffect", "update") if c["ref"]["spellid"] in (930, 931)}
+        self.assertEqual({k: (json.loads(v["effects"])["effects"][0]["item"]["patternid"], v["line"]) for k, v in hunts.items()},
+                         {930: (4790, "Self, Summon hunted grub"), 931: (4791, "Self, Summon hunted fruit")})
+        self.assertEqual(json.loads(hunts[930]["effects"]), json.loads(hunt(25, "hunted grub", 4790, "Hunted Grub")),
+                         "the item part the import wrote for its item, on the other spell")
+        meals = {c["ref"]["patternid"]: c["set"] for c in self.by(p, "foodeffect", "update")}
+        self.assertEqual(meals, {4790: {"ends_on_cast": 0, "ends_on_contact": 1}, 4791: {"ends_on_cast": 0, "ends_on_contact": 1}})
+        self.assertEqual(p["said"]["a meal's foodeffect row not as the import wrote it (left: a GM's?)"], ["4792 hunted nut"])
+        self.assertNotIn(4793, meals, "a grocer's meal with no row: the minute")
 
     def test_apply_again_and_undo(self):
         before = dump(self.db)

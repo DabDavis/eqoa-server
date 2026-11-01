@@ -18,9 +18,11 @@ const balanceFloorNote = "damage_pct x (2L+1)/(4*ceil(L/2)): the floor's step ev
 // player's loss and a fitting group of two or three's win. A table made
 // before takes them from tools/tune_balance.py and then tools/retune_balance.py
 // (the 04:20 data with the roamers), tools/tune_pets.py,
-// tools/fit_pet_selfbuffs.py and tools/refit_eqoaemu_balance.py (the re-fit
-// once EQOAEmu's workbook is in, 2026-11-01; each logged, --undo), never at an
-// open; entity/balancesim_real_test.go holds them to the targets on the real
+// tools/fit_pet_selfbuffs.py, tools/refit_eqoaemu_balance.py (the re-fit
+// once EQOAEmu's workbook is in, 2026-11-01) and its follow-ups' re-fits
+// (tools/refit_eqoaemu_followup.py, tools/refit_eqoaemu_followup2.py; each
+// logged, --undo), never at an open;
+// entity/balancesim_real_test.go holds them to the targets on the real
 // kits (EQOA_REAL_DB) and replays the fight the user called "too easy" (a
 // level 5 shadow knight of 170 hit points killed a level 6 fire bat in 24 s
 // and kept 65%: the simulator's same fight keeps 65% under the tables
@@ -77,9 +79,23 @@ const balanceFloorNote = "damage_pct x (2L+1)/(4*ceil(L/2)): the floor's step ev
 // and the shaman's 51-54 are the simulator's fit on them by the same
 // method, with cells at the targets' edges set after (a shadow knight of 53
 // and 60, a druid of 41 and 53, an enchanter's pet at 52 and 60, an
-// alchemist of 16, a rooting wizard of 50 and 60). A new database wants
-// tools/seed_roamers.py too, and the workbook's import and its follow-up:
-// these rows are fitted on them.
+// alchemist of 16, a rooting wizard of 50 and 60). And again for the
+// follow-ups' second round (tools/refit_eqoaemu_followup2.py, the same
+// evening): a ranger is back on its blades after an arrow art in melee
+// reach, a creature's effects count in its fights (a player's debuffs on
+// it), the simulator's player casts its book's pure debuffs and drains in a
+// long fight, roots and snares that end at a hit hold until one, the pets'
+// abilities are the workbook's, the druid's and the shaman's leftovers are
+// out of their lists, and the level 60 epic options and the broken records
+// take real records, so the ranger's rows 8-60, the shaman's 4-60 and its
+// pet's, the rogue's 19-60, the shadow knight's 21-51, the warrior's 46-60,
+// the bard's 57-60, the druid's 50-60, the enchanter's pet's 5-60 and the
+// necromancer's pet's 5-7 and 34-60 are the simulator's fit on them by the
+// same method, with cells at the targets' edges set after (a ranger of 10,
+// a shadow knight of 24, 28 and 50, a druid of 60, a bard and a monk of 60,
+// the enchanter's pet at 45 and at every level 49-60). A new database wants
+// tools/seed_roamers.py too, and the workbook's import and both its
+// follow-ups: these rows are fitted on them.
 //
 // The combat arts' cooldown (art_cooldown_ms, by the player's level): 1.5 s
 // at every level, the length a global cooldown commonly has, so no burst
@@ -171,7 +187,9 @@ var (
 	// share of its own damage that lands: the re-fit after the workbook's
 	// import (tools/refit_eqoaemu_balance.py's REFIT, 2026-11-01; above),
 	// with the follow-up's spans over it (tools/refit_eqoaemu_followup.py's
-	// FOLLOWUP), fitted by the simulator at every level 1-60 to both yellows
+	// FOLLOWUP) and the second round's over those
+	// (tools/refit_eqoaemu_followup2.py's FOLLOWUP), fitted by the simulator
+	// at every level 1-60 to both yellows
 	// at once (the player's low point, SimResult.LowHP, or a pet's, averaged over the
 	// fights won one and two up near 25%; one up won 80% of the time, a
 	// healer's 90% and eased 8%, two up 65%), levels 1-12 each a row and each

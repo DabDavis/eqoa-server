@@ -307,7 +307,14 @@ judged anyone (`cmd/movereplay` over eqoaclassic's live log of 2026-10-31, 58,42
 no report it would have refused; injected hovering, sinking, a 30-unit blink and double speed all
 caught; an honest scripted walk round Freeport in enforce mode untouched, and a scripted client's
 straight rise, walk under the ground and walk through a house each moved back.
-Without the ground files (or for a world without them) only the speed rule applies.
+Without the ground files (or for a world without them) only the speed rule applies. **Its cost**
+(`movereplay -judge` timing every update; a 250-player simulation of honest walkers at real spawn
+places): 6 µs a report on average (p99 32 µs), so 250 players all running (2,000 reports a second)
+take 1.2% of one core and the 58,422 reports of a day 0.4 s in all; memory 0.2 KB a player. What it
+needs is the zones its players stand in loaded: the ground kept 32 zones until 2026-11-01, and 250
+players spread over the worlds made it read a zone (8 ms) for nearly every report, 13 cores' worth.
+`world.ground_zones` (unset or 0: every zone once read, 652 MB at most for all six worlds, 2.4 MB a
+zone) is that cache's size, for the creatures' moves too.
 
 ### Duels: SOE's live game's, for every client (`entity/duel*.go`, `handlers/duel.go`)
 

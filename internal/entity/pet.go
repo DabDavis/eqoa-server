@@ -1277,7 +1277,11 @@ func (w *World) landOnPetLocked(cs *castState, caster *Player, casterSess *sessi
 // takes its raise back within the pet's tick (petEffectsLocked), whatever
 // took the effect off, its hit points kept within the lower maximum; the
 // balance setting a pet's hit points again keeps the raise
-// (applyBalanceLocked); a charm's end takes it back (unCharmLocked).
+// (applyBalanceLocked). A charmed creature set free keeps its effects and
+// their raise until each runs out (the user, 2026-11-01: "is charm
+// breaks/release the mob retains all buffs until they expire": charm.go's
+// releaseCharmLocked puts it on the creatures' effects, effectSystem, which
+// takes the raise back as they end); a respawn is a new life, without them.
 
 // effectsMaxHP is what the NPC's effects add to its maximum hit points: each
 // effect's maximum and its hit point factor at the NPC's level, as a
@@ -1302,9 +1306,8 @@ func (n *NPC) syncEffectMaxHP() {
 	n.HP = min(n.HP, n.MaxHP)
 }
 
-// dropEffectMaxHP takes back what the NPC's effects add to its maximum (a
-// charm's end: its effects are a creature's again, which count for no
-// maximum).
+// dropEffectMaxHP takes back what the NPC's effects added to its maximum (a
+// respawn: its effects gone with its life).
 func (n *NPC) dropEffectMaxHP() {
 	if n.effMaxHP == 0 {
 		return

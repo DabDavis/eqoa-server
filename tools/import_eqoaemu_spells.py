@@ -534,6 +534,9 @@ LINE_ITEM_WORDS = {
     "consume": re.compile(r"(?i)^reagent\s+(.+?)(?:\s+x\s*\d+)?$"),
 }
 LINE_CREATURE = re.compile(r"(?i)\b(?:to your aid|to aid|creature|familiar|familar)\b")
+# a line for undead alone, and a line for its target that does not say so
+UNDEAD_LINE = re.compile(r"(?i)^target\s+undead\b")
+TARGET_LINE = re.compile(r"(?i)^target\b(?!\s+undead)")
 
 
 def line_items(old, key):
@@ -1503,6 +1506,13 @@ def plan(db, wb, smap, disc=None, link_existing=False, weres=None, icons=None):
                     if m:
                         line += ", " + m.group(0).strip(" ,")
                         counts["lines given their old reagent"] += 1
+                # the undead check its line gives it (EQOA-Data's "Target undead"),
+                # which the server keeps on a harmful spell read from the workbook
+                # (entity/spelljson.go's undeadFromLine, reading this line): the new
+                # line says it too (Punish Death, Exorcise: the workbook's "Enemy")
+                if j["harmful"] and UNDEAD_LINE.match((now.get("line") or "").strip()) and TARGET_LINE.match(line):
+                    line = TARGET_LINE.sub("Target undead", line, count=1)
+                    counts["lines keeping their undead target"] += 1
                 after = dict(line=line, effects=text, source=src)
                 before = {k: now.get(k, "") if k != "effects" else (now.get("effects") or "") for k in after}
                 if before != after:

@@ -399,6 +399,18 @@ class ImportTest(unittest.TestCase):
         self.assertEqual(self.line(p, 104), "Group, Increase Maximum HP by 40, Radius 30, 30min")
         self.assertEqual(self.line(p, 106), "Target, Increase Hate by 300 ; Increase 10% based on STR")
 
+    def test_lines_keep_their_undead_target(self):
+        """A harmful spell of ours whose line says "Target undead" keeps it in
+        the new line (the server reads it there for the undead check); a
+        friendly one's line says what the workbook's does (the control: 101's
+        line as the fixture has it says "Target")."""
+        self.db.execute("UPDATE spelleffect SET line = 'Target undead, Decrease Hitpoints by 90' WHERE spellid = 101")
+        self.db.execute("INSERT INTO spelleffect VALUES (102, 'Target undead, Increase HP per tic by 9', 0, 'eqoa-data')")
+        p = self.plan()
+        self.assertEqual(self.line(p, 101), "Target undead, Decrease Hitpoints by 100 ; Increase 15% based on DEX")
+        self.assertEqual(self.line(p, 102), "Target, Increase HP per tic by 200, 24sec", "a heal: the workbook's target")
+        self.assertEqual(p["counts"]["lines keeping their undead target"], 1)
+
     def test_apply_undo(self):
         before = self.dump()
         p = self.plan()

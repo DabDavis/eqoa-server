@@ -65,6 +65,13 @@ SOOTHING = ('{"v":1,"scope":"target","target_type":"Friendly","harmful":false,"d
             '"min_level":15,"effects":[{"id":"0E30","type":"Offensive Proc","kind":"proc","procs":[{"id":"0E31",'
             '"type":"Modify Hate","kind":"hate","amount":-10,"on":"offense","scope":"target","target_type":"Enemy"}]}]}')
 
+# made up: two spells of ours given effects of ours (7.): one making an item in a maker's frame, one a cure
+MAKES = {"chill mixture": ("rime mixture", "Chill Potion", 1), "odd mixture": ("rime mixture", "Chill Potion", 1)}
+CURES = {"mending tonic": 3}
+RIME = ('{"v":1,"scope":"self","target_type":"Self","harmful":false,"stack":0,"level":46,"min_level":1,'
+        '"req_equipment":"Any","sheet_type":"Create Item","effects":[{"id":"0065","type":"Create Item","kind":"create_item",'
+        '"item":{"count":3,"name":"Rime Potion","patternid":4780,"sheet_name":"Rime Mix Potion"}}]}')
+
 # made up: four lasting debuffs the workbook gave no time (5.)
 DURATIONS = {"mire cloud": 30, "ash veil": 30, "bog mark": 30, "quick rot": 30}
 
@@ -167,6 +174,19 @@ def make(dir):
     rec = dict(zip(("spellid", "spellname", "abilitylvl", "scope", "iconColor", "spelldesc"),
                    db.execute("SELECT spellid, spellname, abilitylvl, scope, iconColor, spelldesc FROM spellpattern "
                               "WHERE spellid = 912").fetchone()))
+    # the maker as the import wrote it, our item it makes, and the spells of ours (Odd Mixture a GM's effects)
+    db.execute(item, (4780, "Rime Potion"))
+    db.execute(item, (4781, "Chill Potion"))
+    for sid, name, lv, scope, line, fx in ((920, "Rime Mixture", 46, 0, "Self, Summon Rime Potion x3", RIME),
+                                          (921, "Chill Mixture", 37, 0, "SELF Summon Chill Potion", ""),
+                                          (922, "Mending Tonic", 16, 0, "Dispel Effect x3", ""),
+                                          (923, "Odd Mixture", 20, 0, "SELF Summon Chill Potion", '{"v":1,"effects":[]}')):
+        db.execute("INSERT INTO spellpattern (spellid, spellname, abilitylvl, scope, spelldesc) VALUES (?, ?, ?, ?, ?)",
+                   (sid, name, lv, scope, line))
+        db.execute("INSERT INTO spelleffect (spellid, line, source, effects) VALUES (?, ?, 'eqoa-data alchemist', ?)",
+                   (sid, line, fx))
+    db.execute("INSERT INTO eqoaemu_spell_import_log (tbl, key, action, after) VALUES ('spelleffect', ?, 'update', ?)",
+               (fp.im_dumps({"spellid": 920}), fp.im_dumps({"line": "Self, Summon Rime Potion x3", "effects": RIME})))
     record, eff = fp.im.mirror_changes(rec, dict(line=taunt, effects="", source="eqoa-data enchanter"), 1, 486870879,
                                        "Soothing Mask", json.loads(SOOTHING), 5)
     db.execute(f"UPDATE spellpattern SET {', '.join(f'{k} = ?' for k in record['set'])} WHERE spellid = 912",
@@ -194,7 +214,7 @@ class FixPlaces(unittest.TestCase):
 
     def plan(self):
         return fp.plan(self.db, recasts=RECASTS, gems=GEMS, chambers=CHAMBERS, portal=self.qfile, keys=KEYS, talked_to=TALKED,
-                       durations=DURATIONS, mirrors=MIRRORS)
+                       durations=DURATIONS, mirrors=MIRRORS, makes=MAKES, cures=CURES)
 
     def by(self, p, tbl, action):
         return [c for c in p["changes"] if c["tbl"] == tbl and c["action"] == action]
@@ -261,6 +281,19 @@ class FixPlaces(unittest.TestCase):
         self.assertEqual(p["said"]["a mirror's spell with effects of its own or no effects row (left: a GM's?)"],
                          ["913 Odd Mask"])
         self.assertNotIn({"spellid": 913}, [c["ref"] for c in p["changes"]])
+        # the spells of ours given effects of ours: Chill Mixture makes one Chill Potion in Rime Mixture's frame,
+        # Mending Tonic a self cure of up to three; Odd Mixture's own effects left
+        fx = {c["ref"]["spellid"]: c["set"] for c in self.by(p, "spelleffect", "update") if c["ref"]["spellid"] in range(920, 924)}
+        self.assertEqual(sorted(fx), [921, 922])
+        chill = json.loads(fx[921]["effects"])
+        self.assertEqual((chill["level"], chill["effects"]), (37, [{"type": "Create Item", "kind": "create_item",
+                                                                     "item": {"count": 1, "name": "Chill Potion", "patternid": 4781}}]))
+        self.assertEqual(fx[921]["line"], "Self, Summon Chill Potion")
+        self.assertEqual(json.loads(fx[922]["effects"])["effects"],
+                         [{"type": "Remove Ability", "kind": "cure", "removes": "", "cure_max": 3}])
+        self.assertEqual(fx[922]["line"], "Self, Cure up to 3 harmful effects")
+        self.assertEqual(p["said"]["a spell of ours with effects of its own or no effects row (left: a GM's?)"],
+                         ["923 Odd Mixture"])
 
     def test_apply_again_and_undo(self):
         before = dump(self.db)

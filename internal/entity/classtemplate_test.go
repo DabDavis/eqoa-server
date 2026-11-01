@@ -592,7 +592,7 @@ func TestTheKindsOfAbility(t *testing.T) {
 		{"Gloom Pact", "Target, Increase Hitpoints by 25, Decrease Hitpoints by 50 to Self", ""},
 		{"Summon Bones", "Summons a pet", ""},
 		{"Smite Undead", "Target undead, Decrease Hitpoints by 100", ""},
-		{"Root", "Target, Root, 36sec", ""},
+		{"Root", "Target, Root, 36sec", "root"},
 	} {
 		s := spell(c.name, c.line)
 		var kinds []string

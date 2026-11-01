@@ -807,11 +807,11 @@ func (w *World) PetTemplateSummary() string {
 		len(w.templates.weapon))
 }
 
-// petOnly is whether an ability is a pet's alone: a taunt, a buff, a heal
+// petOnly is whether an ability is a pet's alone: a taunt, a buff, a root, a heal
 // on its owner or of its own share (an NPC of the template casts none).
 func petOnly(a *templateAbility) bool {
 	switch {
-	case a.Kind == database.AbilityTaunt, a.Kind == database.AbilityBuff:
+	case a.Kind == database.AbilityTaunt, a.Kind == database.AbilityBuff, a.Kind == database.AbilityRoot:
 		return true
 	case a.Kind == database.AbilityHeal && (a.HealPct > 0 || a.TargetOr() == database.AbilityOnOwner):
 		return true

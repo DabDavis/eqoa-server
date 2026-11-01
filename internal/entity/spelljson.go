@@ -336,6 +336,23 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 			}
 		}
 	}
+	// a run speed buff whose cure is the workbook's "ID?" (Spirit of the
+	// Wolf, Pack Spirit) ends its bearer's other speed buffs, as the
+	// workbook's own "removing lesser speed boosts" do, not every harm (the
+	// user, 2026-11-01: "yes make them end other speed buffs")
+	if !d.Harmful {
+		quick := false
+		for _, e := range d.Effects {
+			if e.Kind == EffectSpeed && e.Amount >= 0 { // a speed of no figure is the movement buff (readSpeedJSON)
+				quick = true
+			}
+		}
+		for i, w := range d.Removes {
+			if quick && strings.EqualFold(strings.TrimSpace(w), "id?") {
+				d.Removes[i] = "speed"
+			}
+		}
+	}
 	// a harmful spell the workbook gives no time whose effect ends at
 	// contact lasts until contact (untilContact, workbook.go): Enshrouding
 	// darkness, the shadow knight's snare, Duration 0 and DisspellOnContact

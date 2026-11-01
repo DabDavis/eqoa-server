@@ -261,6 +261,65 @@ class ImportCMsTest(unittest.TestCase):
         self.assertIsNotNone(self.row(900003), "a rank bought since was taken out")
         self.assertIsNone(self.row(900000 + 0x02E5), "a new rank was not taken out")
 
+    def test_books_and_moved_purchases(self):
+        """A bought rank's owner gets what buying it gives now: the improved
+        record in the place (and on the bar) of the spell it replaces, nothing
+        else touched; a purchase whose stats move to a new rank moves with
+        them (the new rank at what was paid, the old kept at 0); all undone
+        exactly, characters first."""
+        x = self.db.execute
+        x("CREATE TABLE spells (id INTEGER PRIMARY KEY AUTOINCREMENT, serverid INTEGER NOT NULL, spellid INTEGER NOT NULL, "
+          "addedorder INTEGER NOT NULL, onHotBar INTEGER NOT NULL, whereonBar INTEGER NOT NULL, unk1 INTEGER NOT NULL, "
+          "showhide INTEGER NOT NULL)")
+        x("INSERT INTO spellpattern VALUES (901786, 'Flash of Daggers +', 6)")
+        x("INSERT INTO spellpattern VALUES (14, 'Shadow Step', 6)")
+        x("INSERT INTO spells VALUES (1, 42, 10, 0, 1, 2, 5, 0)")    # Flash of Daggers, hotkeyed
+        x("INSERT INTO spells VALUES (2, 42, 13, 3, 0, -1, 0, -1)")  # Soul Tap
+        x("INSERT INTO charcms VALUES (42, 1101, 10, 7)")
+        x("INSERT INTO cmcatalog (id, category, classes, races, mastery, rank, name, parent, cost, level, effects, adds, "
+          "add_spells, source) VALUES (4113, 4, 8, 2047, 'Death Knight', 3, 'Touch', 4111, 75, 60, 'STR:25', "
+          "'Shadow Step@6', '14', 'eqoa-data cms')")
+        x("INSERT INTO charcms VALUES (42, 4113, 75, 9)")
+        x("UPDATE cmcatalog SET adds = 'Undead Servitude@60' WHERE id = 4112")  # as our real row is found
+        before_books = x("SELECT * FROM spells ORDER BY id").fetchall()
+        before_cms = x("SELECT * FROM charcms ORDER BY serverid, cmid").fetchall()
+        sheet = self.sheet
+        sheet.rows = [r for r in sheet.rows if r[0] != "00B8"] + [
+            wrow("00B8", "Flash of Daggers", cls="Racial", sub="Dark Elf", race="DELF", level="6", points="10",
+                 adds=[("06FA", "Flash of Daggers +"), ("06FB", "Dagger Toss")], removes=[("06F0", "Flash of Daggers")]),
+            wrow("03AB", "Touch", cls="Master Class", sub="Death Knight", klass="SK", level="60", points="0",
+                 reqs=[("03A3", "Death Knight")], adds=[("06FC", "Shadow Step")]),
+            wrow("03AC", "Enlightened", cls="Master Class", sub="Death Knight", klass="SK", level="60", points="75",
+                 reqs=[("03A3", "Death Knight")], stats={"STR": 25}),
+        ]
+        self.spellmap.update({0x06FA: (901786, "new"), 0x06F0: (10, "name"), 0x06FB: (901787, "new"),
+                              0x06FC: (14, "name")})
+        p = self.plan()
+        self.assertEqual([(m["serverid"], m["from"], m["to"], m["paid"]) for m in p["moves"]],
+                         [(42, 4113, 900000 + 0x03AC, 75)])
+        book = {b["serverid"]: b for b in p["books"]}[42]
+        got = sorted((o["op"], o["row"]["spellid"], o["row"]["addedorder"], o["row"]["onHotBar"], o["row"]["whereonBar"])
+                     for o in book["ops"])
+        self.assertEqual(got, [("add", 901786, 0, 1, 2), ("remove", 10, 0, 1, 2)],
+                         "the improved record in the replaced one's place and slot; Dagger Toss (no record) not "
+                         "taught; Soul Tap untouched")
+        self.assertIn("character 42, 1101 Flash of Daggers: 901787 Dagger Toss",
+                      p["notes"]["a spell a bought rank gives is not in spellpattern (not taught)"])
+        saved = json.loads(json.dumps(m.plan_json(p)))
+        done, stale = m.apply(self.db, saved, allow_missing=True)
+        self.assertEqual(stale, 0)
+        self.assertEqual(x("SELECT serverid, spellid, addedorder, onHotBar, whereonBar, unk1, showhide FROM spells "
+                           "ORDER BY addedorder").fetchall(), [(42, 901786, 0, 1, 2, 0, -1), (42, 13, 3, 0, -1, 0, -1)])
+        self.assertEqual(x("SELECT cmid, cost, bought FROM charcms WHERE serverid = 42 AND cmid IN (4113, ?) ORDER BY cmid",
+                           (900000 + 0x03AC,)).fetchall(), [(4113, 0, 9), (900000 + 0x03AC, 75, 9)])
+        self.assertEqual(x("SELECT count(*) FROM gm_audit WHERE tbl IN ('spells', 'charcms')").fetchone()[0], 4)
+        self.assertEqual(m.apply(self.db, saved, allow_missing=True)[0], 0, "the same plan again writes nothing")
+        back, left, why = m.undo(self.db)
+        self.assertEqual(left, 0, why)
+        self.assertEqual(x("SELECT * FROM spells ORDER BY id").fetchall(), before_books)
+        self.assertEqual(x("SELECT * FROM charcms ORDER BY serverid, cmid").fetchall(), before_cms)
+        self.assertIsNone(self.row(900000 + 0x03AC), "the new rank the move had given was not taken out")
+
 
 if __name__ == "__main__":
     unittest.main()

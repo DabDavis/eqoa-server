@@ -47,9 +47,9 @@ import (
 //   - The lowest level that may receive it: a player below it is not
 //     affected, the caster told (ours: "<name> is too low a level for that
 //     spell.").
-//   - A snare's slow by its percent (-30, -50) where a line's halves the pace,
-//     and on a player a slow of its own beside the buff that carries it
-//     (Towering Wall's AC with -30).
+//   - A snare's slow by its percent where a line's halves the pace, and on a
+//     player a slow of its own beside the buff that carries it (a self buff's
+//     AC with a slow).
 //   - Proc heals: a proc that heals heals its bearer, an offensive one at the
 //     proc chance of its hits (proc.go), a defensive one at every hit on it.
 

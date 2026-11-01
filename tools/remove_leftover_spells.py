@@ -24,6 +24,10 @@ necromancer's, "take it out" of the enchanter's epic option).
     (701090), Summon Returning Potion (701052), Serpent's Heart (700816) and
     Badger Form (700127): EQOA-Data's, taught by nothing ("remove them with
     quest check guarding").
+  - The warrior's Defender's Toughness (701124) and Hero's Mantle (701158),
+    whose masteries of those names give their bonuses themselves, and
+    "Warrior 49 Specialized Epic" (701256), a description alone: EQOA-Data's,
+    taught by nothing ("yes remove them").
   - The enchanter's Eldritch Rune (701132), one of the six spells its level
     60 epic reward quest offers: its line is only a description ("Level 60
     Epic third spell option. ..."), no source has its effects, and it did
@@ -63,6 +67,7 @@ LEFTOVERS = [
     (14, 700224, "Surefall Potion"), (14, 700600, "Fire Field Potion"), (14, 700024, "Acidic Mix Potion"),
     (14, 701017, "Icy Mixtures"), (14, 701090, "Freezing Mixtures"), (14, 701052, "Summon Returning Potion"),
     (14, 700816, "Serpent's Heart"), (14, 700127, "Badger Form"),
+    (0, 701124, "Defender's Toughness"), (0, 701158, "Hero's Mantle"), (0, 701256, "Warrior 49 Specialized Epic"),
 ]
 # leftovers whose quest choices this takes out with them (the only quest that
 # may still name one: any other quest giving a leftover refuses it)

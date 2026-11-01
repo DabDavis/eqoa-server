@@ -678,6 +678,38 @@ func TestAShoutsAreaPartIsRoundTheWarrior(t *testing.T) {
 	}
 }
 
+// A warrior's stance (a self spell raising stats with the workbook's cure of
+// "ID?") ends the warrior's other stances, and no longer takes a harmful
+// effect off; a cure of "ID?" with no stats (the monk's Purity) still takes
+// every harmful one (the control).
+func TestAStanceEndsTheOtherStances(t *testing.T) {
+	stance := func(id int, name, stat string) CastSpell {
+		sp := wbSpell(id, 20, 0, name, `{"v":1,"scope":"self","target_type":"Self","harmful":false,"duration_s":600,"stack":2,"level":20,
+			"effects":[{"kind":"cure","removes":"ID?"},{"kind":"stat","stat":"`+stat+`","amount":50}]}`)
+		sp.Recast = 0
+		return sp
+	}
+	defense, force := stance(9861, "Test Defense", "ac"), stance(9862, "Test Force", "str")
+	if !defense.Def.Stance || defense.Def.Removes[0] != "stance" {
+		t.Fatalf("read as a stance %v, its cure %q", defense.Def.Stance, defense.Def.Removes)
+	}
+	c := newCaster(t)
+	c.p.Effects = append(c.p.Effects, &ActiveEffect{SpellID: 1, Name: "Test Venom", Until: c.at(time.Hour), Rules: EffectRules{Harm: true, Resist: StatPR}})
+	c.castOn(t, defense, 0)
+	c.castOn(t, force, 10*time.Second)
+	if got := strings.Join(c.effectNames(), ","); got != "Test Venom,Test Force" {
+		t.Errorf("after two stances: %s, want the venom kept and the second stance alone", got)
+	}
+	purity := wbSpell(9863, 20, 0, "Test Purity", `{"v":1,"scope":"self","effects":[{"kind":"cure","removes":"ID?"}]}`)
+	if purity.Def.Stance {
+		t.Fatal("a cure with no stats read as a stance")
+	}
+	c.castOn(t, purity, 20*time.Second)
+	if got := strings.Join(c.effectNames(), ","); got != "Test Force" {
+		t.Errorf("after the control's cure: %s, want the stance alone", got)
+	}
+}
+
 // A player below a spell's lowest level is not affected; one at it is (the
 // control).
 func TestWorkbookLowestLevel(t *testing.T) {

@@ -203,6 +203,13 @@ func ParseSpellJSON(name, desc, text string) (SpellDef, error) {
 	}
 	d := SpellDef{Workbook: true, Stack: s.Stack, StackLevel: s.Level, MinLevel: s.MinLevel}
 	scope := strings.ToLower(strings.TrimSpace(s.Scope))
+	if scope == "target" && allTargetArea(s.Effects) {
+		// a spell for a target whose every effect is for the area round it
+		// (Lightning Maelstrom, the only one: its radius 25 and its line's
+		// "AOE") is that area: its target both figures, the rest the
+		// area's (2026-11-01; until then its target alone took both)
+		scope = "target_aoe"
+	}
 	tt := strings.ToLower(s.TargetType)
 	switch scope {
 	case "self", "player_aoe":
@@ -355,6 +362,22 @@ var unsupportedLogged sync.Map
 // unsupported keeps what the engine does not act on, for the log.
 func (d *SpellDef) unsupported(format string, args ...any) {
 	d.Unsupported = append(d.Unsupported, fmt.Sprintf(format, args...))
+}
+
+// allTargetArea reports whether every effect that names a scope names the
+// area round the target (and one does).
+func allTargetArea(effects []effectJSON) bool {
+	n := 0
+	for _, e := range effects {
+		switch es := strings.ToLower(strings.TrimSpace(e.Scope)); es {
+		case "":
+		case "target_aoe":
+			n++
+		default:
+			return false
+		}
+	}
+	return n > 0
 }
 
 // cureByName is what a cure the workbook leaves at "ID?" (it does not know

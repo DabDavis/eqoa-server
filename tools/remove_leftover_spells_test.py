@@ -17,7 +17,8 @@ CREATE TABLE classspells (class INTEGER NOT NULL, spellid INTEGER NOT NULL, sour
 CREATE TABLE characters (charName TEXT UNIQUE NOT NULL, serverid INTEGER PRIMARY KEY AUTOINCREMENT, level INTEGER, tclass INTEGER);
 CREATE TABLE spells (id INTEGER PRIMARY KEY AUTOINCREMENT, serverid INTEGER NOT NULL, spellid INTEGER NOT NULL, addedorder INTEGER NOT NULL,
     onHotBar INTEGER NOT NULL, whereonBar INTEGER NOT NULL, unk1 INTEGER NOT NULL, showhide INTEGER NOT NULL);
-CREATE TABLE queststeps (questid INTEGER NOT NULL, step INTEGER NOT NULL, choices TEXT NOT NULL DEFAULT '');
+CREATE TABLE queststeps (questid INTEGER NOT NULL, step INTEGER NOT NULL, choices TEXT NOT NULL DEFAULT '',
+    spells TEXT NOT NULL DEFAULT '', byclass TEXT NOT NULL DEFAULT '');
 """
 EPIC = {"ask": "Which ability do you take?", "options": [
     {"answer": "Ahrianna's Generous Gift", "says": "It is yours.", "spells": "701097"},
@@ -56,8 +57,8 @@ class RemoveLeftovers(unittest.TestCase):
         db.executemany("INSERT INTO spells (serverid, spellid, addedorder, onHotBar, whereonBar, unk1, showhide) VALUES (?, ?, ?, ?, ?, 0, 0)",
                        [(1, 452, 0, 1, 2), (1, 701258, 1, 1, 3), (1, 700670, 2, 0, 0), (2, 700672, 0, 0, 0), (2, 452, 1, 0, 0),
                         (3, 701132, 0, 0, 0), (3, 701097, 1, 0, 0)])
-        db.execute("INSERT INTO queststeps VALUES (101122, 1, ?)", (compact(EPIC),))
-        db.execute("INSERT INTO queststeps VALUES (101122, 2, '')")
+        db.execute("INSERT INTO queststeps (questid, step, choices) VALUES (101122, 1, ?)", (compact(EPIC),))
+        db.execute("INSERT INTO queststeps (questid, step) VALUES (101122, 2)")
         db.commit()
         db.close()
 
@@ -84,6 +85,21 @@ class RemoveLeftovers(unittest.TestCase):
         self.assertIn("changed 0 rows", self.run_tool("--apply"))
         self.assertIn("put back 13 rows, 0 left", self.run_tool("--undo"))
         self.assertEqual(dump(self.db), before)
+
+    def test_a_spell_a_quest_gives_is_refused(self):
+        db = sqlite3.connect(self.db)
+        db.execute("INSERT INTO queststeps (questid, step, byclass) VALUES (100765, 7, ?)", (compact({"8": {"spells": "700643"}}),))
+        db.execute("INSERT INTO queststeps (questid, step, spells) VALUES (100766, 2, '700672')")
+        db.commit()
+        db.close()
+        out = self.run_tool("--apply")
+        self.assertIn("refused: 700643 Savage Healing: a quest gives it (quest 100765 step 7)", out)
+        self.assertIn("refused: 700672 Spiritform: a quest gives it (quest 100766 step 2)", out)
+        db = sqlite3.connect(self.db)
+        self.assertEqual(db.execute("SELECT count(*) FROM classspells WHERE spellid IN (700643, 700672)").fetchone()[0], 2)
+        self.assertEqual(db.execute("SELECT count(*) FROM spells WHERE spellid = 700672").fetchone()[0], 1)
+        self.assertEqual(db.execute("SELECT count(*) FROM classspells WHERE spellid = 700654").fetchone()[0], 0, "the rest still go")
+        db.close()
 
     def test_a_record_not_the_one_named_is_refused(self):
         db = sqlite3.connect(self.db)

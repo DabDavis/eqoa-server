@@ -67,7 +67,7 @@ EFFECTS = [
     eff("0012", "Teleport", Location="Odus,7,8,9", Scope="Group", Target_Type="Friendly"),
 ]
 SPELLS = [
-    spell("0100", "Ember Bolt", EffectID1="0001", Level=12, CastTime=3),                        # ours: 101
+    spell("0100", "Ember bolt", EffectID1="0001", Level=12, CastTime=3),                        # ours: 101, renamed
     spell("0101", "Kind Mending", EffectID1="0002", Scope="Target", Target_Type="Friendly", CLASS="CL",
           IconBGDColor="Red", Range=1, Duration=24),                                             # ours: 102
     spell("0102", "Shared Name", EffectID1="0003", Level=5, CLASS="NEC"),                       # ours: 103 (its own)
@@ -94,15 +94,42 @@ SPELLS = [
     spell("0111", "Hearth Portal", EffectID1="0010", Scope="Group", Target_Type="Friendly", ScrollSource="Quest"),
     spell("0112", "Moon Portal", EffectID1="0011", Scope="Group", Target_Type="Friendly", ScrollSource="Quest"),
     spell("0113", "Sun Escape", EffectID1="0012", Scope="Group", Target_Type="Friendly", ScrollSource="Quest"),
+    spell("0114", "Pour Cider", EffectID1="0013", Scope="Self", Target_Type="Self", CLASS="MAG", ScrollSource="Quest"),
 ]
 MAP = {"0100": (101, "name"), "0101": (102, "name"), "0102": (103, "name"), "0103": (900259, "split", 103),
-       "0111": (900273, "new"), "0112": (900274, "new"), "0113": (900275, "new"),
+       "0111": (900273, "new"), "0112": (900274, "new"), "0113": (900275, "new"), "0114": (900276, "new"),
        "0104": (900260, "new"), "0105": (900261, "new"), "0106": (900262, "new"), "0107": (900263, "new"),
        "0108": (900264, "new"), "0109": (900265, "new"), "010A": (900266, "new"), "010B": (104, "name"),
        "010C": (105, "name"), "010D": (900269, "new"), "010E": (900270, "new"), "010F": (900271, "new"),
        "0110": (106, "name")}
-WORKBOOK = {"Spells": SPELLS, "Effects": EFFECTS,
-            "Created Item Info": [{"ItemID": "20001", "Name": "Fire Mix Potion"}],
+def item(i, name, item_id, level, *effects):
+    r = {"SpellID": i, "Name": name, "ItemID": str(item_id), "Level": str(level), "Scope": "Self", "Target Type": "Self"}
+    for k, e in enumerate(effects, 1):
+        r[f"EffectID{k}"] = e
+    return r
+
+
+ITEM_EFFECTS = [
+    eff("0E01", "Statistic Change", PoT=8, Duration=120, Scope="Self", Target_Type="Self", DisspellOnCast=1,
+        DisspellOnContact=1),
+    eff("0E02", "Statistic Change", PoT=30, Duration=120, Scope="Self", Target_Type="Self"),
+    eff("0E03", "Statistic Change", PoT=10, HP1=10, Duration=180, Scope="Self", Target_Type="Self"),
+    eff("0E04", "Statistic Change", HP1=6, Duration=120, Scope="Self", Target_Type="Self", DisspellOnCast=1),
+    eff("0E05", "Statistic Change", HoT=20, Duration=54, Scope="Self", Target_Type="Self"),
+    eff("0E06", "Statistic Change", HP1=20, Duration=0, Scope="Self", Target_Type="Self"),
+]
+ITEMS = [
+    {"ItemID": "20001", "Name": "Fire Mix Potion"},
+    item("0901", "Well Water Effect", 30001, 5, "0E01"),          # ours: a drink, PoT 5
+    item("0902", "Sweet Cider effect", 30002, 20, "0E02"),        # made as Well Water is
+    item("0903", "Holy Fish Effect", 30003, 25, "0E03"),          # made, a meal with both
+    item("0904", "Wild Berries", 30004, 5, "0E04"),               # ours: a meal, HoT 2
+    item("0905", "Calm Concoction Effect", 30005, 30, "0E05"),    # a heal now and over time: a potion
+    item("0906", "Calm Concoction Effect", 30005, 30, "0E06"),
+]
+WORKBOOK = {"Spells": SPELLS, "Effects": EFFECTS + [eff("0013", "Create Item", CreatedItemID=30002, QTY=3, Scope="Self",
+                                                         Target_Type="Self")],
+            "Created Item Info": ITEMS, "Created Item Effects": ITEM_EFFECTS,
             "Pets": [{"PetID": "0001", "PetName": "Fire Imp"}]}
 WERES = {im.quest_fold("Rage of Claws"): ("Rage of Claws", "Weres/wolfwere/L40-melee")}
 
@@ -125,7 +152,10 @@ class ImportTest(unittest.TestCase):
              maxstack INTEGER NOT NULL, maxhp INTEGER NOT NULL, duration INTEGER NOT NULL, classuse INTEGER NOT NULL,
              raceuse INTEGER NOT NULL, procanim INTEGER NOT NULL, lore INTEGER NOT NULL, unk6 INTEGER NOT NULL,
              craft INTEGER NOT NULL, itemname TEXT NOT NULL, itemdesc TEXT NOT NULL, model INTEGER NOT NULL,
-             color INTEGER NOT NULL, str INTEGER)""")
+             color INTEGER NOT NULL, str INTEGER, HoT INTEGER, PoT INTEGER)""")
+        x("""CREATE TABLE itemeffect (patternid INTEGER PRIMARY KEY, line TEXT NOT NULL, name TEXT NOT NULL DEFAULT '',
+             icon INTEGER NOT NULL DEFAULT 0, breaks TEXT NOT NULL DEFAULT '', wear INTEGER NOT NULL DEFAULT 0,
+             area REAL NOT NULL DEFAULT 0, source TEXT NOT NULL DEFAULT 'gm')""")
         x("""CREATE TABLE npcitem (itemid INTEGER PRIMARY KEY AUTOINCREMENT, npcid INTEGER NOT NULL,
              stackleft INTEGER NOT NULL DEFAULT 0, remainHP INTEGER NOT NULL DEFAULT 0, remaincharge INTEGER NOT NULL DEFAULT 0,
              patternid INTEGER NOT NULL, equiploc INTEGER NOT NULL DEFAULT 0, location INTEGER NOT NULL DEFAULT 1,
@@ -164,7 +194,8 @@ class ImportTest(unittest.TestCase):
         x("INSERT INTO classspells VALUES (8, 103, 'vendor')")
         x("INSERT INTO classspells VALUES (13, 101, 'dump')")
         # a wizard's scroll vendor (npc 50: levels 1-20, three scrolls), one full (npc 60), our potion
-        item = ("INSERT INTO itempattern VALUES (?, ?, 0, ?, 0, ?, 0, 0, 1, 0, 0, 0, 0, ?, 1, 0, 0, ?, 1023, 2, 0, 0, 0, ?, '', 0, 0, NULL)")
+        item = ("INSERT INTO itempattern VALUES (?, ?, 0, ?, 0, ?, 0, 0, 1, 0, 0, 0, 0, ?, 1, 0, 0, ?, 1023, 2, 0, 0, 0, ?, '', 0, 0, "
+                "NULL, NULL, NULL)")
         for pid, lv, cost in ((1, 1, 10), (2, 12, 160), (3, 20, 370)):
             x(item, (pid, cost, SCROLL, -1, lv, 1 << 13, f"Scroll {pid}"))
             x("INSERT INTO sandstorm_import_rows (tbl, key, action) VALUES ('itempattern', ?, 'inserted')", (pid,))
@@ -173,6 +204,12 @@ class ImportTest(unittest.TestCase):
         for k in range(37):
             x("INSERT INTO npcitem (npcid, stackleft, patternid, equiploc, location, listnumber) VALUES (60, 1, 1, -1, 1, ?)", (10 + k,))
         x(item, (7, 5, 999, 0, 1, 1 << 14, "Fire Potion"))
+        food = ("INSERT INTO itempattern VALUES (?, 0, 0, ?, 0, -1, 0, 1, 0, 0, 0, 0, 0, ?, 50, 0, 50, 32767, 1023, 2, 0, 0, "
+                "0, ?, ?, 0, 0, NULL, ?, ?)")
+        x(food, (8, 4242, 5, "Well Water", "A refreshing beverage that increases power regeneration.", None, 5))
+        x(food, (9, 4343, 5, "wild berries", "Berries of the wild, a meal that will increase health regeneration.", 2, None))
+        x(food, (10, 4444, 25, "Weak Draught", "A draught.", None, None))
+        x("INSERT INTO itemeffect (patternid, line, source) VALUES (10, 'Self, Increase Power by 10', 'potions')")
         # the warrior's and the alchemist's vendors
         x(item, (4, 10, SCROLL, -1, 1, 1, "War Scroll A"))
         x(item, (5, 20, SCROLL, -1, 4, 1, "War Scroll B"))
@@ -232,14 +269,18 @@ class ImportTest(unittest.TestCase):
     def test_records(self):
         p = self.plan()
         up = {e["spellid"]: e for e in p["spells"] if e["action"] == "update"}
-        self.assertEqual(up[101]["set"], {"abilitylvl": 12, "casttime": 3})
+        self.assertEqual(up[101]["set"], {"abilitylvl": 12, "casttime": 3, "spellname": "Ember bolt",
+                                          "icon": struct.unpack("<i", struct.pack(">I", 0x11223344))[0]},
+                         "the workbook's on all: its icon and spelling too (its frame is ours already)")
         self.assertEqual(up[102]["set"].get("range"), F45, "the workbook's 1 on a target spell is touch")
         self.assertNotIn("abilitylvl", up.get(103, {}).get("set", {}), "the record's own row is its level's")
         self.assertNotIn("several rows on one record: not applied (the map's to settle)", p["lists"])
         self.assertEqual(up[104]["set"].get("range"), F20)
         self.assertNotIn("scope", up.get(105, {}).get("set", {}), "a rez keeps its scope")
         self.assertNotIn("range", up.get(105, {}).get("set", {}), "no range given: ours")
-        self.assertEqual(up[106]["set"], {"casttime": 2, "power": 40, "range": F20}, "a Sandstorm record takes the workbook's too")
+        self.assertEqual(up[106]["set"], {"casttime": 2, "power": 40, "range": F20,
+                                          "icon": struct.unpack("<i", struct.pack(">I", 0x11223344))[0]},
+                         "a Sandstorm record takes the workbook's too")
         new = {e["spellid"]: e["row"] for e in p["spells"] if e["action"] == "insert"}
         r = new[900261]
         self.assertEqual((r["scope"], r["range"], r["iconColor"], r["eqprequire"]), (0, F45, -1809115846, 21))
@@ -294,6 +335,27 @@ class ImportTest(unittest.TestCase):
                                        "source": "eqoaemu"}])
         self.assertEqual(len(p["lists"]["a new teleport whose Location differently named teleports share "
                                         "(the workbook's stand-in: no row)"]), 2)
+
+    def test_foods(self):
+        p = self.plan()
+        f = p["foods"]
+        self.assertEqual(sorted((x["patternid"], x["set"]) for x in f["updates"]),
+                         [(8, {"PoT": 8}), (9, {"HoT": 6})], "ours take the workbook's figures")
+        made = {x["patternid"]: x["row"] for x in f["items"]}
+        self.assertEqual(sorted(made), [940002, 940003, 940005])
+        cider, fish, calm = made[940002], made[940003], made[940005]
+        self.assertEqual((cider["itemname"], cider["PoT"], cider["itemicon"], cider["levelreq"]), ("Sweet Cider", 30, 4242, 20),
+                         "a drink as our drink, its own figure and level")
+        self.assertEqual((fish["HoT"], fish["PoT"], fish["itemicon"]), (10, 10, 4343), "a meal with both, as our meal")
+        self.assertRegex(fish["itemdesc"], r"meal.*health regeneration")
+        self.assertEqual((calm["itemicon"], calm["HoT"], calm["PoT"]), (4444, None, None), "a potion as our potion")
+        self.assertEqual(f["itemeffects"], [{"patternid": 940005, "line": "Self, Increase Hitpoints by 20, Increase HP per tic by 20, 54sec",
+                                             "name": "", "icon": 0, "breaks": "", "wear": 0, "area": 0.0, "source": "eqoaemu"}])
+        fe = {x["patternid"]: (x["duration_s"], x["ends_on_cast"], x["ends_on_contact"]) for x in f["foodeffects"]}
+        self.assertEqual(fe, {8: (120, 1, 1), 940002: (120, 0, 0), 940003: (180, 0, 0), 9: (120, 1, 0)})
+        pour = self.effects(p, 900276)["effects"][0]
+        self.assertEqual(pour["item"]["patternid"], 940002, "the summoning names the made item")
+        self.assertEqual(self.line(p, 900276), "Self, Summon Sweet Cider x3")
 
     def test_areas_and_classes(self):
         p = self.plan()
@@ -350,7 +412,7 @@ class ImportTest(unittest.TestCase):
         r = self.db.execute("SELECT fxdict, source FROM spelleffect WHERE spellid = 101").fetchone()
         self.assertEqual(r, (1234, "eqoa-data wizard; effects from EQOAEmu's workbook"), "the visual left alone")
         self.assertEqual(self.db.execute("SELECT icon, spellname FROM spellpattern WHERE spellid = 101").fetchone(),
-                         (111, "Ember Bolt"), "our icon and name kept")
+                         (struct.unpack("<i", struct.pack(">I", 0x11223344))[0], "Ember bolt"), "the workbook's icon and name")
         self.assertEqual(self.db.execute("SELECT count(*) FROM npcitem WHERE patternid >= 900000").fetchone()[0],
                          len(p["stock"]))
         with self.assertRaises(SystemExit):
@@ -397,6 +459,12 @@ class ImportTest(unittest.TestCase):
         self.assertEqual(im.scroll_spell([(1, "Anthem of Hope +", 20)], "Anthem of Hope", 20), 1, "the key when no exact")
         self.assertEqual(im.scroll_spell([(3, "Hide", 1), (8, "Hide", 6)], "Hide", 1, {8}.__contains__), 8,
                          "the class's record before the level's")
+        self.assertTrue(im.rename_safe("Glimmering blades", "Glimmering Blades", self.db), "case alone")
+        self.assertFalse(im.rename_safe("Kast Spark", "Kast's Spark", self.db), "another spelling")
+        self.db.execute("CREATE TABLE spellgates (spell TEXT PRIMARY KEY)")
+        self.db.execute("INSERT INTO spellgates VALUES ('mai`adra''s gate')")
+        self.assertFalse(im.rename_safe("Mai`adra's Gate", "Mai'adra's Gate", self.db), "a gate keyed by the backtick")
+        self.assertTrue(im.rename_safe("Mai`adra's Hope", "Mai'adra's Hope", self.db), "a backtick no key holds")
 
 
 if __name__ == "__main__":

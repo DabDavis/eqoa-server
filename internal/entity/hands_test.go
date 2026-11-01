@@ -210,15 +210,18 @@ func TestADuelsSwingFollowsTheHands(t *testing.T) {
 	}
 }
 
-// A cast whose switch took up a ranged weapon (HandsBack) hands its caster to
-// the hands-back hook once it has landed, with the lock let go
-// (runHandsBack), when the caster stands within its melee reach of the
-// cast's target: 4.5 off a creature of no known body, and 4.5 with the
-// allowance of 3 off a big one (reach.go); its own body for a self cast. Not
-// before the landing, not at range (the bow kept), not for a cast the switch
-// did not mark, not with another cast on at the landing or begun before the
-// hook runs. The controls: the first case, and the big creature's distance
-// off one of no body.
+// A cast that wants a ranged weapon hands its caster to the hands-back hook
+// once it has landed, with the lock let go (runHandsBack), when the caster
+// stands within its melee reach of the cast's target: 4.5 off a creature of
+// no known body, and 4.5 with the allowance of 3 off a big one (reach.go),
+// whether this cast's own switch took up the bow (HandsBack) or an earlier
+// one did (a pull at range: the hook's memory decides). A self cast hands it
+// over when its own switch took up the bow (borrowed), else by its reach to
+// the creature it fights: in melee yes, at range or out of a fight no. Not
+// before the landing, not at range (the bow kept), not for a cast that wants
+// no ranged weapon, not with another cast on at the landing or begun before
+// the hook runs. The controls: the first case, the big creature's distance
+// off one of no body, and the self cast's own switch.
 func TestACastsHandsGoBackAtItsLandingInMeleeReach(t *testing.T) {
 	withBodies(t)
 	arrow := CastSpell{SpellID: 1151, DisplayIndex: 11, Scope: 1, Name: "Test Arrow", Range: 30,
@@ -229,6 +232,9 @@ func TestACastsHandsGoBackAtItsLandingInMeleeReach(t *testing.T) {
 	eye.Def.ReqEquip = "Range"
 	hum := CastSpell{SpellID: 1153, DisplayIndex: 13, Scope: 0, Name: "Test Hum", CastTime: 2 * time.Second,
 		Def: ParseSpellText("Self, Increase STR by 1, 1min")}
+	blade := arrow
+	blade.SpellID, blade.Name, blade.Def.ReqEquip = 1154, "Test Edge", "1HS,2HS"
+	inHand := func(s CastSpell) CastSpell { s.HandsBack = false; return s } // no switch of its own: the bow in hand
 	for _, tc := range []struct {
 		name  string
 		spell CastSpell
@@ -238,11 +244,18 @@ func TestACastsHandsGoBackAtItsLandingInMeleeReach(t *testing.T) {
 		want  int
 	}{
 		{name: "in melee reach", spell: arrow, want: 1},
-		{name: "not marked by a switch", spell: func() CastSpell { s := arrow; s.HandsBack = false; return s }()},
+		{name: "in melee reach, the bow an earlier switch's", spell: inHand(arrow), want: 1},
+		{name: "an art that wants no ranged weapon, though marked", spell: blade, set: func(c *caster) { c.p.PrimaryType, c.p.SecondaryType = 1, 1 }},
 		{name: "at range", spell: arrow, set: func(c *caster) { c.npc.X = c.p.X + 20 }},
+		{name: "at range, the bow an earlier switch's", spell: inHand(arrow), set: func(c *caster) { c.npc.X = c.p.X + 20 }},
 		{name: "a big creature at 6.5", spell: arrow, set: func(c *caster) { c.npc.ModelID, c.npc.X = testGiant, c.p.X+6.5 }, want: 1},
 		{name: "a creature of no known body at 6.5", spell: arrow, set: func(c *caster) { c.npc.X = c.p.X + 6.5 }},
-		{name: "a self cast", spell: eye, set: func(c *caster) { c.npc.X = c.p.X + 40 }, want: 1},
+		{name: "a self cast its switch took up the bow for", spell: eye, set: func(c *caster) { c.npc.X = c.p.X + 40 }, want: 1},
+		{name: "a self cast, fighting in melee", spell: inHand(eye), set: func(c *caster) { c.p.AttackTarget = c.npc.ServerID }, want: 1},
+		{name: "a self cast, fighting at range", spell: inHand(eye), set: func(c *caster) {
+			c.p.AttackTarget, c.npc.X = c.npc.ServerID, c.p.X+20
+		}},
+		{name: "a self cast out of a fight", spell: inHand(eye)},
 		{name: "another cast on at the landing", spell: arrow, cast: func(c *caster) {
 			if !c.w.StartCast(c.sess, hum, 0xFFFFFFFF, c.at(500*time.Millisecond)) {
 				t.Fatal("the second cast did not begin")

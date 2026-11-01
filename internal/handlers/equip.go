@@ -504,7 +504,12 @@ func mayWear(sess *session.Session, player *entity.Player, p *database.ItemPatte
 
 // applyPlan writes a plan's equip slots and tells the client: UnequipItem for
 // the slot it vacates, then EquipItem. False when the database refused one.
+// A change of the hands forgets the ranged weapon a switch took up (keptHands'
+// took: the switch that made it sets it again after, handswitch.go).
 func (h *EquipHandler) applyPlan(sess *session.Session, serverID uint32, plan equipPlan, who string) bool {
+	if (plan.equip && handSlot(plan.slot)) || handSlot(plan.unequip) {
+		h.hands.update(serverID, func(k *keptHands) { k.took = 0 })
+	}
 	for _, c := range plan.changes {
 		if err := h.inventoryStore.SetEquipLoc(serverID, c.itemID, c.equipLoc); err != nil {
 			log.Printf("%s: item %d -> equiploc %d: %v", who, c.itemID, c.equipLoc, err)

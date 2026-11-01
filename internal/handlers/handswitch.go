@@ -49,27 +49,38 @@ import (
 // HandsFit). A fight in progress swings with them from its next round
 // (handsChanged).
 //
-// The way back (the user, 2026-11-01: "lets fix all these", of a ranger
-// left swinging its bow after an arrow art used in melee until a blade art
-// switched it back): once a cast whose switch took up a ranged weapon has
-// landed, its caster within its melee reach of the cast's target (CLIENT's
-// TargetInRange as the server has it, 4.5 and a big creature's allowance:
-// entity/reach.go; a self cast's target is its caster, so the bow a self
-// buff took up is only borrowed), the hands that switch took off go back,
-// each in its own hand, as a switch puts hands on (HandsBack, from entity's
-// hook: cast.go handsBackLocked). Further off the ranged weapon stays, and
-// the auto-attack goes on shooting. Not after a switch to a weapon, a shield
-// or bare hands (a blade art's stays), nor while another cast is on (it has
-// its own hands), nor once the hands changed (anything in them but the
-// ranged weapon) or any item the switch took off is no longer in the pack or
-// may not be worn (backSwitch).
+// The way back (asked whether the server should "switch back to the blades
+// by itself right after an arrow art used in melee range", of a ranger left
+// swinging its bow until a blade art switched it back, the user, 2026-11-01:
+// "lets fix all these"; a pull at range included, the coordinator's ruling of
+// the same day): once a cast whose required equipment is a ranged weapon (an
+// arrow art) has landed, its caster within its melee reach of the cast's
+// target (CLIENT's TargetInRange as the server has it, 4.5 and a big
+// creature's allowance: entity/reach.go), the hands a switch took off to
+// take up the bow it holds go back, each in its own hand, as a switch puts
+// hands on (HandsBack, from entity's hook: cast.go handsBackLocked), whenever
+// that switch was: a ranger that pulled at range is on its blades again after
+// its first arrow art in melee, though that one switched nothing. Further off
+// the ranged weapon stays, and the auto-attack goes on shooting. A self cast's
+// target is its caster: the bow its own switch took up is only borrowed for
+// it; with a switch's bow already in hand its reach is the one to the
+// creature it fights (none, the bow kept), so a buff at range never takes a
+// shooting ranger's bow. Not a bow no switch took up (the item menu's, a
+// weapon set's: any change of the hands but a switch's forgets the switch's
+// bow, applyPlan), nor after a switch to a weapon, a shield or bare hands (a
+// blade art's stays), nor while another cast is on (it has its own hands),
+// nor once the hands changed (anything in them but that bow) or any item the
+// switch took off is no longer in the pack or may not be worn (backSwitch).
 
 // keptHands is what the switches remember of a character's hands: the item
-// ids a switch took off the main hand and the off hand (0 none), and the
-// ranged weapon last held.
+// ids a switch took off the main hand and the off hand (0 none), the ranged
+// weapon last held, and the ranged weapon a switch took up in place of
+// those (took: 0 when it took none up, took up a bow for empty hands, or
+// anything else changed the hands since: applyPlan).
 type keptHands struct {
 	main, off int
 	ranged    int
+	took      int
 }
 
 // handMemory is keptHands by character (CharServerID), in memory: a restart
@@ -106,6 +117,9 @@ const (
 	equipRanged = 18
 )
 
+// handSlot is whether an equip slot is one of the hands' (handSlots, 14-20).
+func handSlot(e int) bool { return slices.Contains(handSlots, e) }
+
 // handSwitch is one switch: the equip slots the server empties first (what
 // the client's own equip would not), then the items put on, in order.
 type handSwitch struct {
@@ -141,22 +155,27 @@ func (h *EquipHandler) SwitchHandsFor(sess *session.Session, player *entity.Play
 	return done, done && sw.ranged && (took.main != 0 || took.off != 0)
 }
 
-// HandsBack puts back the hands a switch took off to take up a ranged
-// weapon for a cast, at the cast's landing within its caster's melee reach of
-// its target (entity's hands-back hook: cast.go handsBackLocked), each in the
-// hand it was taken from, as the switch puts hands on (makeSwitch). The
+// HandsBack puts back the hands a switch took off to take up the ranged
+// weapon the player holds, at the landing of a cast that wants a ranged
+// weapon within its caster's melee reach of its target (entity's hands-back
+// hook: cast.go handsBackLocked), each in the hand it was taken from, as the
+// switch puts hands on (makeSwitch). A bow no switch took up (the item menu's,
+// a weapon set's) stays without a word; one a switch took up stays when the
 // hands changed since (anything in them but the ranged weapon) or what it
-// took off no longer carried, they stay as they are (backSwitch).
+// took off is no longer carried (backSwitch).
 func (h *EquipHandler) HandsBack(sess *session.Session, player *entity.Player) {
 	if h.inventoryStore == nil || player == nil {
 		return
+	}
+	kept := h.hands.get(player.CharServerID)
+	if kept.took == 0 {
+		return // no switch's bow to give back for
 	}
 	items, err := h.inventoryStore.GetCharacterItems(player.CharServerID)
 	if err != nil {
 		log.Printf("Hands: %s's items: %v", player.Name, err)
 		return
 	}
-	kept := h.hands.get(player.CharServerID)
 	sw, ok := backSwitch(items, player, kept)
 	if !ok {
 		log.Printf("Hands: %s's hands stay: changed since the switch, or %d/%d not carried", player.Name, kept.main, kept.off)
@@ -167,7 +186,8 @@ func (h *EquipHandler) HandsBack(sess *session.Session, player *entity.Player) {
 
 // makeSwitch makes a switch of the player's hands: the hands it takes off
 // remembered for the way back (a ranged weapon it puts on is applyPlan's to
-// keep, after these), the switch made, and what it did put into the game,
+// keep, after these), the switch made, the ranged weapon it took up in place
+// of hands it took off remembered (took), and what it did put into the game,
 // all or part (a database refusal stops it). It reports the hands it took
 // off, and whether it was made whole.
 func (h *EquipHandler) makeSwitch(sess *session.Session, player *entity.Player, items []database.CharInventoryEntry, sw handSwitch, why string) (keptHands, bool) {
@@ -181,7 +201,10 @@ func (h *EquipHandler) makeSwitch(sess *session.Session, player *entity.Player, 
 			k.ranged = before.ranged
 		}
 	})
-	done := h.applySwitch(sess, sid, items, sw)
+	done := h.applySwitch(sess, sid, items, sw) // (applyPlan forgets took)
+	if done && sw.ranged && (before.main != 0 || before.off != 0) {
+		h.hands.update(sid, func(k *keptHands) { k.took = sw.on[len(sw.on)-1].itemID })
+	}
 	h.wornChanged(sess, player, sid)
 	if done {
 		log.Printf("Hands: %s's hands switched for %q (%s): took off %d/%d/%d", player.Name, why, sw.what, before.main, before.off, before.ranged)
@@ -418,12 +441,13 @@ func bareSwitch(items []database.CharInventoryEntry) []handSwitch {
 // backSwitch is the switch that puts back the hands a switch took off
 // (kept: the main hand's item in the main hand, the off hand's in the off
 // hand), checked as a switch is before it is made: only while the hands are
-// still that switch's (the ranged weapon alone: the item menu, a weapon set or
-// another switch since leave them be), every item it took off still in the
-// pack and wearable, and the hands it makes those it took off.
+// still that switch's (the ranged weapon it took up, kept.took, alone: the
+// item menu, a weapon set or another switch since leave them be), every item
+// it took off still in the pack and wearable, and the hands it makes those it
+// took off.
 func backSwitch(items []database.CharInventoryEntry, player *entity.Player, kept keptHands) (handSwitch, bool) {
 	worn := handsWorn(items)
-	if worn.ranged == 0 || worn.main != 0 || worn.off != 0 || (kept.main == 0 && kept.off == 0) {
+	if kept.took == 0 || worn.ranged != kept.took || worn.main != 0 || worn.off != 0 || (kept.main == 0 && kept.off == 0) {
 		return handSwitch{}, false
 	}
 	carriedItem := func(id int) *database.CharInventoryEntry {

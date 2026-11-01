@@ -628,6 +628,63 @@ def info(name, item_id, cls, level, scope, ttype, *effects, rng=1):
     return r
 
 
+def made_db(path):
+    """MadeItemsTest's database: the potions, weapons and foods of ours the made
+    items are modelled on, the spells of ours whose words make them, a spell
+    gate (every name and figure made up)."""
+    db = sqlite3.connect(path, isolation_level=None)
+    x = db.execute
+    make_schema(x)
+    x("""CREATE TABLE foodeffect (patternid INTEGER PRIMARY KEY, duration_s INTEGER NOT NULL DEFAULT 0,
+         ends_on_cast INTEGER NOT NULL DEFAULT 0, ends_on_contact INTEGER NOT NULL DEFAULT 0,
+         source TEXT NOT NULL DEFAULT 'gm')""")
+    x(im.SPELLGATES_DDL)
+    x("INSERT INTO spellgates (spell, kind, place, world, x, y, z) VALUES ('moonwell circle', 'group', "
+      "'Glimmer Hollow', 0, 5000, 40, 6000)")
+    rec = "INSERT INTO spellpattern VALUES (?, 60, 0, 0, ?, 2, 100, -1809115846, 7, 0, 3, -1, ?, ?)"
+    fx = "INSERT INTO spelleffect VALUES (?, ?, 0, 'eqoa-data')"
+    # the spells of ours whose words make the potions the made ones are modelled on (their classes' rows)
+    for sid, name, line, cls in ((301, "Wonder Mixture", "SELF Summon Wonder Draught", 14),
+                                 (302, "Muddle Mixture", "SELF Summon Muddle Potion", 14),
+                                 (401, "Small Distillation", "SELF Summon Small Corrective", 14),
+                                 (402, "Old Cocktail", "SELF Summon Old Cocktail", 14),
+                                 (403, "Summon Returning Potion", "SELF Summon Returning Potion", 14),
+                                 (404, "Septic Mixture", "SELF Summon Septic Potion", 14),
+                                 (405, "Forage Berries", "Self, Summon Item: foraged berries", 1),
+                                 (406, "Summon: Weak Ale", "Self, Summon Weak Ale", 10)):
+        x(rec, (sid, F45, name, "Ours."))
+        x(fx, (sid, line))
+        x("INSERT INTO classspells VALUES (?, ?, 'eqoa-data')", (cls, sid))
+    item = ("INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, "
+            "attacktype, weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, "
+            "unk6, craft, itemname, itemdesc, model, color, HoT, PoT) "
+            "VALUES (?, 0, 0, ?, 0, ?, 0, ?, ?, 0, ?, ?, ?, ?, ?, ?, 50, ?, 1023, ?, 0, 0, 0, ?, ?, ?, -1, ?, ?)")
+    use = "INSERT INTO itemeffect (patternid, line, area, source) VALUES (?, ?, ?, 'potions')"
+    # pid, icon, slot, trade, rent, type, damage, reach, level, stack, item HP, classes, item type, name, desc, model, HoT, PoT
+    for r in ((50038, 501, -1, 0, 1, 0, 0, 0, 1, 3, 0, 32767, 2, "Small Corrective", "A corrective.", 0, None, None),
+              (50021, 502, 16, 0, 1, 10, 0, 20, 49, 999, 0, 16384, 0, "Old Cocktail", "A cocktail.", 0, None, None),
+              (50017, 503, 16, 0, 1, 10, 0, 20, 60, 999, 0, 16384, 0, "Septic Potion", "Thrown.", 0, None, None),
+              (50046, 504, -1, 0, 1, 0, 0, 0, 1, 3, 0, 32767, 2, "Returning Potion", "Home.", 0, None, None),
+              (5780, 505, 15, 0, 1, 4, 90, 0, 8, 1, 1600, 32766, 0, "Phase Staff", "A staff.", 77, None, None),
+              (6001, 506, 15, 0, 1, 4, 300, 0, 29, 1, 6000, 32767, 0, "Oak Maul", "", 0, None, None),
+              (6002, 506, 15, 0, 1, 4, 320, 0, 30, 1, 6200, 32767, 0, "Ash Maul", "", 0, None, None),
+              (6003, 506, 15, 0, 1, 4, 340, 0, 31, 1, 6400, 32767, 0, "Elm Maul", "", 0, None, None),
+              (705310, 507, 16, 0, 0, 10, 500, 25, 50, 2000, 5000, 31871, 0, "Shadow Knife", "A knife.", 88, None, None),
+              (50101, 508, -1, 1, 1, 0, 0, 0, 5, 50, 0, 32767, 2, "foraged berries",
+               "Berries, a meal that will increase health regeneration.", 0, 25, None),
+              (705313, 509, -1, 1, 0, 0, 0, 0, 8, 50, 0, 32767, 2, "Weak Ale", im.DRINK_TEXT, 0, None, 12),
+              (60001, 510, -1, 0, 1, 0, 0, 0, 1, 3, 0, 32767, 2, "Wonder Draught", "A draught.", 0, None, None),
+              (60002, 511, -1, 0, 1, 0, 0, 0, 1, 3, 0, 32767, 2, "Muddle Potion", "A potion.", 0, None, None),
+              # a scroll of a made item's name: never the item (the server's lookup)
+              (60003, SCROLL, -1, 0, 1, 0, 0, 0, 44, 1, 0, 16384, 2, "Grand Corrective", "A scroll.", 0, None, None)):
+        x(item, r)
+    for pid, line, area in ((50038, "Self, Dispel Effect x1", 0), (50021, "Target, Decrease Hitpoints by 100", 10),
+                            (50017, "Target, Decrease HP per tic by 10", 0), (50046, "Self, Return to bind point", 0)):
+        x(use, (pid, line, area))
+    x("INSERT INTO foodeffect VALUES (50101, 120, 1, 0, 'eqoaemu'), (705313, 120, 1, 1, 'eqoaemu')")
+    return db
+
+
 class MadeItemsTest(unittest.TestCase):
     """The items the spells make that are none of ours (MadeItems), on a
     database and a workbook of their own, every name and figure made up: a
@@ -688,56 +745,7 @@ class MadeItemsTest(unittest.TestCase):
 
     def setUp(self):
         self.path = os.path.join(tempfile.mkdtemp(), "m.db")
-        self.db = sqlite3.connect(self.path, isolation_level=None)
-        x = self.db.execute
-        make_schema(x)
-        x("""CREATE TABLE foodeffect (patternid INTEGER PRIMARY KEY, duration_s INTEGER NOT NULL DEFAULT 0,
-             ends_on_cast INTEGER NOT NULL DEFAULT 0, ends_on_contact INTEGER NOT NULL DEFAULT 0,
-             source TEXT NOT NULL DEFAULT 'gm')""")
-        x(im.SPELLGATES_DDL)
-        x("INSERT INTO spellgates (spell, kind, place, world, x, y, z) VALUES ('moonwell circle', 'group', "
-          "'Glimmer Hollow', 0, 5000, 40, 6000)")
-        rec = "INSERT INTO spellpattern VALUES (?, 60, 0, 0, ?, 2, 100, -1809115846, 7, 0, 3, -1, ?, ?)"
-        fx = "INSERT INTO spelleffect VALUES (?, ?, 0, 'eqoa-data')"
-        # the spells of ours whose words make the potions the made ones are modelled on (their classes' rows)
-        for sid, name, line, cls in ((301, "Wonder Mixture", "SELF Summon Wonder Draught", 14),
-                                     (302, "Muddle Mixture", "SELF Summon Muddle Potion", 14),
-                                     (401, "Small Distillation", "SELF Summon Small Corrective", 14),
-                                     (402, "Old Cocktail", "SELF Summon Old Cocktail", 14),
-                                     (403, "Summon Returning Potion", "SELF Summon Returning Potion", 14),
-                                     (404, "Septic Mixture", "SELF Summon Septic Potion", 14),
-                                     (405, "Forage Berries", "Self, Summon Item: foraged berries", 1),
-                                     (406, "Summon: Weak Ale", "Self, Summon Weak Ale", 10)):
-            x(rec, (sid, F45, name, "Ours."))
-            x(fx, (sid, line))
-            x("INSERT INTO classspells VALUES (?, ?, 'eqoa-data')", (cls, sid))
-        item = ("INSERT INTO itempattern (patternid, itemcost, unk1, itemicon, unk2, equipslot, unk3, trade, rent, unk4, "
-                "attacktype, weapondamage, unk5, levelreq, maxstack, maxhp, duration, classuse, raceuse, procanim, lore, "
-                "unk6, craft, itemname, itemdesc, model, color, HoT, PoT) "
-                "VALUES (?, 0, 0, ?, 0, ?, 0, ?, ?, 0, ?, ?, ?, ?, ?, ?, 50, ?, 1023, ?, 0, 0, 0, ?, ?, ?, -1, ?, ?)")
-        use = "INSERT INTO itemeffect (patternid, line, area, source) VALUES (?, ?, ?, 'potions')"
-        # pid, icon, slot, trade, rent, type, damage, reach, level, stack, item HP, classes, item type, name, desc, model, HoT, PoT
-        for r in ((50038, 501, -1, 0, 1, 0, 0, 0, 1, 3, 0, 32767, 2, "Small Corrective", "A corrective.", 0, None, None),
-                  (50021, 502, 16, 0, 1, 10, 0, 20, 49, 999, 0, 16384, 0, "Old Cocktail", "A cocktail.", 0, None, None),
-                  (50017, 503, 16, 0, 1, 10, 0, 20, 60, 999, 0, 16384, 0, "Septic Potion", "Thrown.", 0, None, None),
-                  (50046, 504, -1, 0, 1, 0, 0, 0, 1, 3, 0, 32767, 2, "Returning Potion", "Home.", 0, None, None),
-                  (5780, 505, 15, 0, 1, 4, 90, 0, 8, 1, 1600, 32766, 0, "Phase Staff", "A staff.", 77, None, None),
-                  (6001, 506, 15, 0, 1, 4, 300, 0, 29, 1, 6000, 32767, 0, "Oak Maul", "", 0, None, None),
-                  (6002, 506, 15, 0, 1, 4, 320, 0, 30, 1, 6200, 32767, 0, "Ash Maul", "", 0, None, None),
-                  (6003, 506, 15, 0, 1, 4, 340, 0, 31, 1, 6400, 32767, 0, "Elm Maul", "", 0, None, None),
-                  (705310, 507, 16, 0, 0, 10, 500, 25, 50, 2000, 5000, 31871, 0, "Shadow Knife", "A knife.", 88, None, None),
-                  (50101, 508, -1, 1, 1, 0, 0, 0, 5, 50, 0, 32767, 2, "foraged berries",
-                   "Berries, a meal that will increase health regeneration.", 0, 25, None),
-                  (705313, 509, -1, 1, 0, 0, 0, 0, 8, 50, 0, 32767, 2, "Weak Ale", im.DRINK_TEXT, 0, None, 12),
-                  (60001, 510, -1, 0, 1, 0, 0, 0, 1, 3, 0, 32767, 2, "Wonder Draught", "A draught.", 0, None, None),
-                  (60002, 511, -1, 0, 1, 0, 0, 0, 1, 3, 0, 32767, 2, "Muddle Potion", "A potion.", 0, None, None),
-                  # a scroll of a made item's name: never the item (the server's lookup)
-                  (60003, SCROLL, -1, 0, 1, 0, 0, 0, 44, 1, 0, 16384, 2, "Grand Corrective", "A scroll.", 0, None, None)):
-            x(item, r)
-        for pid, line, area in ((50038, "Self, Dispel Effect x1", 0), (50021, "Target, Decrease Hitpoints by 100", 10),
-                                (50017, "Target, Decrease HP per tic by 10", 0), (50046, "Self, Return to bind point", 0)):
-            x(use, (pid, line, area))
-        x("INSERT INTO foodeffect VALUES (50101, 120, 1, 0, 'eqoaemu'), (705313, 120, 1, 1, 'eqoaemu')")
+        self.db = made_db(self.path)
         self.wb = im.Workbook({"Spells": self.SPELLS, "Effects": self.EFFECTS, "Created Item Info": self.ITEMS,
                                "Created Item Effects": self.ITEM_EFFECTS, "Pets": []})
 

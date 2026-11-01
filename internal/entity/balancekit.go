@@ -78,7 +78,11 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 		pl.Pets = pets
 	}
 	inv := database.NewInventoryStore(db)
-	items, err := inv.WearablePatterns(class, race, level, []int{1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 19})
+	items, err := inv.WearablePatterns(class, race, level, []int{1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19})
+	if err != nil {
+		return pl, err
+	}
+	book, err := SimBookFromDB(db, class, level, false)
 	if err != nil {
 		return pl, err
 	}
@@ -99,10 +103,34 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 			wear(it, s.count)
 		}
 	}
-	// the hands
+	// the hands: what its arts want held, as a player of the class arms
+	// itself (the workbook's required equipment, which a cast without it is
+	// refused for: workbookmore.go): a weapon of the type most of them
+	// name (a rogue's backstabs a one-handed piercer, a paladin's strikes a
+	// blunt weapon, a bard's and a ranger's blades a slashing one) and a bow
+	// in place of a second weapon where its arrows want one (a ranger's);
+	// its pick of that kind as any weapon's, by the tier (simHands). Never
+	// bare hands: a monk's punches want them, but a bare hand rolls a
+	// weapon's damage of 0 (offence.go), and a monk of 20-60 without its
+	// weapon lost every fight one up, so it keeps the weapon (2026-11-01)
+	hands := simHandsOf(book)
 	arch := archetypeOf(class)
-	main := simPick(append(append([]database.ItemPatternRecord(nil), bySlot[12]...), bySlot[14]...), level, tier, simWeaponScore)
-	two := simPick(bySlot[15], level, tier, simWeaponScore)
+	mains, twos := hands.weapons(append(append([]database.ItemPatternRecord(nil), bySlot[12]...), bySlot[14]...)), hands.weapons(bySlot[15])
+	if len(mains) == 0 && len(twos) == 0 { // none of the kind to be had: any
+		mains, twos = append(append([]database.ItemPatternRecord(nil), bySlot[12]...), bySlot[14]...), bySlot[15]
+	}
+	main := simPick(mains, level, tier, simWeaponScore)
+	two := simPick(twos, level, tier, simWeaponScore)
+	var bow *database.ItemPatternRecord
+	if hands.bowed() {
+		var bows []database.ItemPatternRecord
+		for _, it := range bySlot[16] {
+			if it.AttackType == 7 || it.AttackType == 9 || it.AttackType == 10 {
+				bows = append(bows, it)
+			}
+		}
+		bow = simPick(bows, level, tier, simWeaponScore)
+	}
 	var off *database.ItemPatternRecord
 	offSlot := 0
 	switch {
@@ -110,12 +138,15 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 		if off = simPick(bySlot[13], level, tier, simArmourScore); off != nil {
 			offSlot = 17
 		}
-	case arch == archMelee:
-		if off = simPick(bySlot[14], level, tier, simWeaponScore); off != nil {
+	case arch == archMelee && bow == nil:
+		if off = simPick(hands.weapons(bySlot[14]), level, tier, simWeaponScore); off == nil {
+			off = simPick(bySlot[14], level, tier, simWeaponScore)
+		}
+		if off != nil {
 			offSlot = 15
 		}
 	}
-	if off == nil && arch != archMelee {
+	if off == nil && arch != archMelee && bow == nil {
 		if off = simPick(bySlot[18], level, tier, simArmourScore); off != nil {
 			offSlot = 20
 		}
@@ -136,6 +167,7 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 		var w1, w2 [21]bool
 		w1[14], w1[offSlot] = true, off != nil
 		w2[16] = true
+		w1[18], w2[18] = bow != nil, bow != nil // a bow held with either changes the swing (GetSwing)
 		useTwo = rate(two, w2, true) > rate(main, w1, false)
 	}
 	switch {
@@ -150,14 +182,96 @@ func SimKitFromDB(db *database.SQLiteDB, class, race, level int, tier float64) (
 		if off != nil {
 			wear(off, 1)
 			pl.Worn[offSlot] = true
+			switch offSlot {
+			case 15:
+				pl.SecondaryType = off.AttackType
+			case 20:
+				pl.SecondaryType = -1 // a held item: no weapon in that hand
+			}
 		}
+	}
+	if bow != nil {
+		wear(bow, 1)
+		pl.Worn[18], pl.SecondaryType = true, bow.AttackType
 	}
 	if pl.AttackType > 6 {
 		pl.AttackType = 1 // a melee swing, whatever the record calls it
 	}
 	pl.Gear = g
-	pl.Spells, err = SimBookFromDB(db, class, level, false)
-	return pl, err
+	pl.Spells = book
+	return pl, nil
+}
+
+// simHands is what a book's spells want held (their ReqEquip, the
+// workbook's required equipment): of each melee attack type 1-6 how many
+// of them it lets cast, and how many want a bow; a spell that takes any
+// weapon (or names none) counts for none of them.
+type simHands struct {
+	byType [7]int
+	bow    int
+}
+
+func simHandsOf(book []CastSpell) simHands {
+	var h simHands
+	for i := range book {
+		req := book[i].Def.ReqEquip
+		if req == "" {
+			continue
+		}
+		var types [7]bool
+		for _, tok := range strings.Split(strings.ToUpper(req), ",") {
+			switch tok = strings.TrimSpace(tok); tok {
+			case "RANGE", "RANGED":
+				h.bow++
+			default:
+				for _, t := range equipCodes[tok] {
+					if t >= 1 && t <= 6 {
+						types[t] = true
+					}
+				}
+			}
+		}
+		for t := 1; t <= 6; t++ {
+			if types[t] {
+				h.byType[t]++
+			}
+		}
+	}
+	return h
+}
+
+// simHandsLine is the fewest arts that choose a kit's weapon: a line of them.
+const simHandsLine = 3
+
+// most is the most spells one weapon type lets cast.
+func (h simHands) most() int {
+	m := 0
+	for t := 1; t <= 6; t++ {
+		m = max(m, h.byType[t])
+	}
+	return m
+}
+
+// bowed is whether its arrows want a bow: half as many of them as the most
+// a weapon type lets cast, or more (a ranger's 24 arrows to its 17 blades).
+func (h simHands) bowed() bool { return h.bow > 0 && 2*h.bow >= h.most() }
+
+// weapons is the items of the attack types that let the most of its arts be
+// cast (every item when the types tie, a warrior's arts taking any, or when
+// fewer than simHandsLine arts name one: a monk's lone two-handed Fierce
+// Strike among its punches does not choose its weapon).
+func (h simHands) weapons(items []database.ItemPatternRecord) []database.ItemPatternRecord {
+	m := h.most()
+	if m < simHandsLine {
+		return items
+	}
+	var out []database.ItemPatternRecord
+	for _, it := range items {
+		if it.AttackType >= 1 && it.AttackType <= 6 && h.byType[it.AttackType] == m {
+			out = append(out, it)
+		}
+	}
+	return out
 }
 
 // SimStartKitFromDB is a new character of the class and race at the level as

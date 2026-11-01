@@ -43,6 +43,10 @@ type SimPlayer struct {
 	// bare hands
 	Worn       [21]bool
 	AttackType int
+	// SecondaryType is the other hand's attack type as the server's worn
+	// look gives it (a second weapon's, a bow's 7), -1 a held item; 0 none
+	// given (newSimFight then reads it off Worn)
+	SecondaryType int
 	// CMs is what its masteries give, by the mastery window's slots
 	CMs [CMSlots]int
 	// Spells is its book: what it may cast
@@ -273,15 +277,19 @@ func newSimFight(pl SimPlayer, foe SimNPC, b *Balance) *simFight {
 	p.BaseWis, p.BaseInt, p.BaseCha = pl.Base[4], pl.Base[5], pl.Base[6]
 	p.Gear = pl.Gear
 	// its hands, for a spell's required equipment (workbookmore.go): the
-	// kit's weapon, a shield (17), an off-hand weapon (15) or a bow (20)
+	// kit's weapon, a shield (17), an off-hand weapon (15) or a bow (20);
+	// a kit that names its other hand (SimKitFromDB) as it does
 	p.PrimaryType = byte(pl.AttackType)
 	if pl.Worn[17] {
 		p.Shield = 1
 	}
-	if pl.Worn[15] {
+	switch {
+	case pl.SecondaryType > 0:
+		p.SecondaryType = byte(pl.SecondaryType)
+	case pl.SecondaryType < 0: // a held item: no weapon
+	case pl.Worn[15]:
 		p.SecondaryType = 1
-	}
-	if pl.Worn[20] {
+	case pl.Worn[20]:
 		p.SecondaryType = 7
 	}
 	p.CMEffects = pl.CMs

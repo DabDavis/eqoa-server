@@ -67,10 +67,19 @@ func (p *Player) PoTNow() int {
 }
 
 // regenTick gives the player its HoT in hit points and its PoT in power,
-// each within its maximum: what a tick does.
+// each within its maximum: what a tick does. A HoT below nothing is a price
+// over time (the Lich form's -196 a tick, the workbook's): it takes its hit
+// points at full health too, never below 1 (the user, 2026-11-01, "yes";
+// the floor ours), where until then the tick ran only below full health and
+// a full necromancer paid nothing.
 func (p *Player) regenTick() {
-	if top := p.MaxHPNow(); p.HP < top {
-		p.HP = min(p.HP+p.HoTNow(), top)
+	switch top, hot := p.MaxHPNow(), p.HoTNow(); {
+	case hot < 0:
+		if p.HP > 1 {
+			p.HP = max(p.HP+hot, 1)
+		}
+	case p.HP < top:
+		p.HP = min(p.HP+hot, top)
 	}
 	if top := p.MaxPowerNow(); p.Power < top {
 		p.Power = min(p.Power+p.PoTNow(), top)

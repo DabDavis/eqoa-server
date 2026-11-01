@@ -70,3 +70,34 @@ func TestRegenTicksEverySixSecondsInAFight(t *testing.T) {
 		t.Errorf("level 1: %d HP, %d power; want 11, 6", novice.HP, novice.Power)
 	}
 }
+
+// A HoT below nothing (the Lich form's -196 a tick) takes its hit points at
+// full health too and stops at 1; a HoT above nothing still heals only what
+// is missing (the control).
+func TestANegativeHoTDrainsAtFullHealthDownToOne(t *testing.T) {
+	p := &Player{Level: 60, HP: 3000, MaxHP: 3000, Power: 100, MaxPower: 2000}
+	p.Mods.HoT = -196 // the base is 3000/50 = 60: a tick of -136
+	p.regenTick()
+	if p.HP != 3000-136 {
+		t.Fatalf("at full health: HP %d, want %d", p.HP, 3000-136)
+	}
+	p.HP = 100
+	p.regenTick()
+	if p.HP != 1 {
+		t.Fatalf("near its end: HP %d, want 1", p.HP)
+	}
+	p.regenTick()
+	if p.HP != 1 {
+		t.Fatalf("at 1: HP %d, want 1", p.HP)
+	}
+	c := &Player{Level: 60, HP: 3000, MaxHP: 3000, MaxPower: 2000}
+	c.regenTick()
+	if c.HP != 3000 {
+		t.Errorf("the control at full health: HP %d, want 3000", c.HP)
+	}
+	c.HP = 2990
+	c.regenTick()
+	if c.HP != 3000 {
+		t.Errorf("the control healing: HP %d, want 3000", c.HP)
+	}
+}

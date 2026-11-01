@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """EQOA-Data spells nothing should teach, out of their class's list, out of
 every book and out of any quest choice that gives one (the user, 2026-11-01:
-"remove them from both" of the druid's, "remove them" of the shaman's, "take
-it out" of the enchanter's epic option).
+"remove them from both" of the druid's, "remove them" of the shaman's and the
+necromancer's, "take it out" of the enchanter's epic option).
 
   - The druid's Nature Form (701064), Wild Nature (701258), Bixie Form
     (701107) and Sacred Spring (700670). Since the EQOAEmu workbook's import
@@ -12,6 +12,10 @@ it out" of the enchanter's epic option).
   - The shaman's Savage Healing (700643), Tribal Healing (700654) and
     Spiritform (700672): EQOA-Data's lines, none in the workbook, taught by
     nothing (Spiritform's line reads to no effect at all).
+  - The necromancer's Revert Lich (701214, "Removes Lich form") and Stone of
+    Desecration (700673, a zombie form with resist and AC caps): EQOA-Data's
+    lines, none in the workbook, taught by nothing, and each read to no
+    effect (the user: "remove them").
   - The enchanter's Eldritch Rune (701132), one of the six spells its level
     60 epic reward quest offers: its line is only a description ("Level 60
     Epic third spell option. ..."), no source has its effects, and it did
@@ -46,6 +50,7 @@ LEFTOVERS = [
     (7, 701064, "Nature Form"), (7, 701258, "Wild Nature"), (7, 701107, "Bixie Form"), (7, 700670, "Sacred Spring"),
     (8, 700643, "Savage Healing"), (8, 700654, "Tribal Healing"), (8, 700672, "Spiritform"),
     (12, 701132, "Eldritch Rune"),
+    (11, 701214, "Revert Lich"), (11, 700673, "Stone of Desecration"),
 ]
 LOG = "leftover_spells_log"
 LOG_SCHEMA = f"""CREATE TABLE {LOG} (
@@ -83,7 +88,9 @@ def plan(db):
     names = {}
     for cls, sid, name in LEFTOVERS:
         rec = db.execute("SELECT spellname FROM spellpattern WHERE spellid = ?", (sid,)).fetchone()
-        if rec is None or (rec[0] or "").strip() != name:
+        if rec is None:
+            continue  # no record: nothing of it to take out
+        if (rec[0] or "").strip() != name:
             refused.append(f"{sid}: its record is {rec[0] if rec else 'gone'!r}, not {name!r}")
             continue
         names[sid] = name
